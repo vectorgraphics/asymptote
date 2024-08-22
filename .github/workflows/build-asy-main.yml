@@ -109,6 +109,45 @@ jobs:
       - run: chmod +x cmake-build-linux/release/asy
       - name: asy test
         run: ctest --test-dir cmake-build-linux/release -R "^asy.*" -E "asy.(gc.*|pic.trans)"
+  linux-asy-docgen:
+    runs-on: "ubuntu-22.04"
+    needs: build-linux-release-x64
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - uses: ./.github/actions/initialize-linux-env
+      - name: install dependencies
+        run: sudo apt-get install texlive texlive-latex-extra texinfo
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: asy-buildfiles
+          path: cmake-build-linux/release/
+      - name: delete cache file
+        run: rm -f cmake-build-linux/release/CMakeCache.txt
+      - name: reconfigure with documentation
+        run: VCPKG_ROOT="$VCPKG_INSTALLATION_ROOT" cmake --preset linux/release
+      - name: touch asymptote binary (to avoid need for rebuilding)
+        run: touch cmake-build-linux/release/asy
+      - name: build documentation
+        run: cmake --build --preset linux/release --target docgen -j
+      - name: Archive asymptote.pdf
+        uses: actions/upload-artifact@v4
+        with:
+          name: asy-pdf-file
+          path: cmake-build-linux/release/docbuild/asymptote.pdf
+      - name: Archive remaining asymptote documentation
+        uses: actions/upload-artifact@v3
+        with:
+          name: asy-misc-docs
+          path: |
+            cmake-build-linux/release/docbuild/asy-latex.pdf
+            cmake-build-linux/release/docbuild/asymptote.sty
+            cmake-build-linux/release/docbuild/CAD.pdf
+            cmake-build-linux/release/docbuild/asyRefCard.pdf
+            cmake-build-linux/release/docbuild/TeXShopAndAsymptote.pdf
+            cmake-build-linux/release/docbuild/latexusage.pdf
   package-asymptote-artifacts:
     needs: [test-x64-cxxtests, test-x64-asy-tests]
     runs-on: "ubuntu-22.04"
