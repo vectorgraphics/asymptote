@@ -207,76 +207,6 @@ float orient(vec3 a, vec3 b, vec3 c, vec3 d) {
   return dot(cross(a-d,b-d), c-d);
 }
 
-int windingnumberPolygon(vec3 p[3], vec3 v) {
-  vec3 M = max(max(p[0],p[1]), p[2]);
-  vec3 m = min(min(p[0],p[1]), p[2]);
-  vec3 outside = 2*M-m;
-  float epsilon = 0.0000001;
-  float norm = length(M-m);
-  float Epsilon=norm*epsilon;
-
-  // equivalent to normal(p) in asy
-  vec3 n = normalize(cross(p[2]-p[0],p[1]-p[0]));
-  vec3 normal = norm*n;
-  vec3 H = v+normal;
-
-  outside -= dot(outside,n) * n;
-
-  bool check=true;
-  while(check) {
-    check=false;
-    for(uint i=0;i<3;++i) {
-      vec3 u = p[i];
-      if (u != v && orient(u,v,outside,H)==0) {
-        vec3 otherNormal = normalize(cross(v-u,H-u));
-        outside += otherNormal * Epsilon;
-        outside -= dot(outside,n)*n;
-        check = true;
-      }
-    }
-  }
-
-  // now outside point should be okay, do StraightContribution
-  int count = 0;
-
-  vec3 z0 = p[p.length()-1]; // prevpoint
-  vec3 z = v;
-  for (int i=0; i<3; ++i){
-    vec3 z1 = p[i];
-    float s1 = sign(orient(z,z0,z1,H));
-    if (s1 == 0) {
-      // insidesegment in 3d
-      // return 999 means onboundary, continue means not onboundary
-      if (z == z1 || z == z0) return 999;
-      if (z0 == z1) continue;
-
-      vec3 h = cross(z1-z0,normal);
-      float s1_ = sign(orient(z0,z,h,H));
-      float s2_ = sign(orient(z1,z,h,H));
-
-      if (s1_ != s2_) {
-        return 999;
-      }
-      continue;
-    }
-    float s2 = sign(orient(outside,z0,z1,H));
-
-    if (s1 == s2) {
-      continue;
-    }
-
-    float s3 = sign(orient(z,outside,z0,H));
-    float s4 = sign(orient(z,outside,z1,H));
-    if (s3 != s4) {
-      count += int(s3);
-    }
-
-    z0=z1;
-  }
-
-  return 100;
-}
-
 vec3 tpoly[36] = vec3[36](
   vec3(0,0,-3.031),
   vec3(-0.7071,-0.4082,-2.454),
@@ -316,38 +246,35 @@ vec3 tpoly[36] = vec3[36](
   vec3(0.7071,-0.4082,-2.454)
 );
 
-int windingnumber(vec3 v) {
-  uint n = tpoly.length();
-  vec3 M = tpoly[0];
-  for (int i=1; i<n; ++i) {
-    M=max(M,tpoly[i]);
-  }
-  vec3 m = tpoly[0];
-  for (int i=1; i<n; ++i) {
-    m=min(m,tpoly[i]);
-  }
-
-/*
-  if (m.x < v.x && v.x <= M.x &&
-      m.y < v.y && v.y <= M.y &&
-      m.z < v.z && v.z <= M.z) {
-    discard;
-  }
-*/
+// move this to the cpu since its the same for the same shape & doesnt need to
+// be run on each pixel or vertex ?
+vec3 nonCoplanarOutsidePoint(vec3 v, vec3 polyhedron[36]) {
+  uint n = polyhedron.length();
+  vec3 m = polyhedron[0];
+  for (uint i=0;i<n;++i) m = min(m,polyhedron[i]);
+  vec3 M = polyhedron[0];
+  for (uint i=0;i<n;++i) M = max(M,polyhedron[i]);
 
   vec3 outside = 2*M-m;
-  float epsilon = 0.0000001;
-
-  float norm = length(M-m); // abs(M-m)
+  float epsilon = 0.0000001;  // what is the smallest float?
+  float norm = length(M-m);
   float Epsilon = norm*epsilon;
+
+  // check that the outside point is not coplanar with any of the faces of the
+  // of the polyhedron. if it is, move it a little bit in the direction of the
+  // normal and recheck all the faces
   bool check=true;
   while (check) {
     check = false;
-    for(uint i=0; i<n; i += 3) {
-      // check each face
-      vec3 u = tpoly[i];
-      vec3 w = tpoly[i+1];
-      {
+    // check each face
+    for (uint i=0;i<n;i+=3) {
+      // for each face (3 vertices), check each edge
+      // test i & i+1, i+1 & i+2, i+2 & i
+      //u=i,w=i+1,  u=i+1,w=i+2,  u=i+2,w=i+3
+      for (uint offset=0; offset<3; offset++) {
+        vec3 u = polyhedron[i+offset];
+        vec3 w = polyhedron[i+((offset+1) % 3)];  // is this better than copy + pasting the code & typing indices by hand?
+
         vec3 normal = normalize(cross(v-u,w-u));
         vec3 H = v+normal;
         if (orient(u,v,w,H) != 0 && orient(u,v,w,outside) == 0) {
@@ -355,48 +282,107 @@ int windingnumber(vec3 v) {
           check = true;
         }
       }
-      u = tpoly[i+1];
-      w = tpoly[i+2];
-      {
-        vec3 normal = normalize(cross(v-u,w-u));
-        vec3 H = v+normal;
-        if (orient(u,v,w,H) != 0 && orient(u,v,w,outside) == 0) {
-          outside += normal*Epsilon;
-          check = true;
-        }
-      }
-      u = tpoly[i+2];
-      w = tpoly[i];
-      {
-        vec3 normal = normalize(cross(v-u,w-u));
-        vec3 H = v+normal;
-        if (orient(u,v,w,H) != 0 && orient(u,v,w,outside) == 0) {
-          outside += normal*Epsilon;
-          check = true;
-        }
+    }
+  }
+  return outside;
+}
+
+void discardIfInsideFace(vec3 v, vec3 t1, vec3 t2, vec3 t3) {
+  // v is test point, t1,t2,t3 are vertices of the face
+  vec3 m = min(min(t1,t2),t3);
+  vec3 M = max(max(t1,t2),t3);
+
+  vec3 outside = 2*M-m;
+  float epsilon = 0.0000001;
+  float norm = length(M-m);
+  float Epsilon = norm*epsilon;
+  
+  vec3 n = normalize(cross(t3-t1,t2-t1));
+  vec3 normal = norm*n;
+  vec3 H = v+normal;
+
+  // project the outside point on to the plane defined by the face
+  outside -= dot(outside,n)*n;
+
+  vec3 face[3]={t1,t2,t3};  // put in array for iteration
+  
+  // make sure the outside point is not colinear with any of the edges of the
+  // face
+  bool check=true;
+  while(check) {
+    check=false;
+    for(uint i=0;i<3;++i) {
+      vec3 u = face[i];
+      if (u == v) discard;  // test point is a vertex
+      if (orient(u,v,outside,H) == 0) {
+        vec3 normal = normalize(cross(v-u,H-u));
+        outside += normal*Epsilon;
+        outside -= dot(outside,n)*n;
+        check = true;
       }
     }
   }
 
 
   int count = 0;
-  // now outside shouldn't be coplanar with any of the faces
-  for (uint i=0; i<n; i += 3) {
-    vec3 t1 = tpoly[i];
-    vec3 t2 = tpoly[i+1];
-    vec3 t3 = tpoly[i+2];
-    // straightContribution3
-    // sign's return type is the same as its input type (float)
-    float s1 = sign(orient(v,t1,t2,t3));
+  vec3 z0 = face[2];
+  vec3 z = v;
+  for(uint i=0; i<3; ++i) {
+    vec3 z1 = face[i];
+    float s1 = sign(orient(z,z0,z1,H));
     if (s1 == 0) {
-      vec3 face[3] = vec3[3](t1,t2,t3);
-      if (windingnumberPolygon(face, v) != 0) {
-        return 9; // TEMPORARY: Replace with "Undefined"
+      // insidesegment in 3d
+      if (z == z1 || z == z0) discard;
+      if (z0 == z1) continue;
+      vec3 h = cross(z1-z0,normal);
+      float s1_ = sign(orient(z0,z,h,H));
+      float s2_ = sign(orient(z1,z,h,H));
+      if (s1_ != s2_) {
+        discard;
       }
       continue;
     }
+
+    float s2 = sign(orient(outside,z0,z1,H));
+
+    if (s1 == s2) {
+      continue;
+    }
+
+    float s3 = sign(orient(z,outside,z0,H));
+    float s4 = sign(orient(z,outside,z1,H));
+    if (s3 != s4) {
+      count += int(s3);
+    }
+
+    z0 = z1;
+  }
+
+  if (count != 0) discard;
+}
+
+void discardIfInside(vec3 v, vec3 polyhedron[36]) {
+  vec3 outside = nonCoplanarOutsidePoint(v, polyhedron);
+  uint n = polyhedron.length();
+  int count = 0;
+  for (uint i=0;i<n;i+=3) {
+    vec3 t1 = polyhedron[i];
+    vec3 t2 = polyhedron[i+1];
+    vec3 t3 = polyhedron[i+2];
+
+    float s1 = sign(orient(v,t1,t2,t3));
+    if (s1 == 0) {
+      // s1==0 is the case where the test point lies on the planar extension 
+      // of the face. check if it lies within the face
+      discardIfInsideFace(v,t1,t2,t3);
+      continue;
+    }
+
     float s2 = sign(orient(outside, t1, t2, t3));
     if (s1 == s2) {
+      // s1 == s2 means that the test point has the same sidedness as the
+      // outside point for this face, indicating that it is also outside and
+      // has no winding number contribution
       continue;
     }
 
@@ -407,23 +393,17 @@ int windingnumber(vec3 v) {
     if (s3 == s4 && s4 == s5) {
       count += int(s3);
     }
-
   }
 
-  return count;
+  if (count != 0 ) discard;
 }
 
 in vec4 V;
 
 void main()
 {
-  int n = 36;
-
   vec3 v=V.xyz/V.w;
-  int winding = windingnumber(v);
-  if (winding != 0) {
-     discard;
-   };
+  discardIfInside(v,tpoly);
 
   vec4 diffuse;
   vec4 emissive;
