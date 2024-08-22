@@ -118,7 +118,7 @@ jobs:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-linux-env
       - name: install dependencies
-        run: sudo apt-get install texlive texlive-latex-extra texinfo
+        run: sudo apt-get install texlive texlive-latex-extra texinfo ghostscript
       - name: Download build artifacts
         uses: actions/download-artifact@v3
         with:
