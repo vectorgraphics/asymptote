@@ -97,6 +97,7 @@ GLuint createShaderFile(std::string file, int shaderType,
   std::stringstream shaderSrc;
 
   shaderSrc << "#version " << GLSLversion << "\n";
+  shaderSrc << "#define FLT_EPSILON " << FLT_EPSILON << "\n";
 #ifndef __APPLE__
   shaderSrc << "#extension GL_ARB_uniform_buffer_object : enable" << "\n";
 #ifdef HAVE_SSBO

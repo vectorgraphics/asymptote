@@ -174,7 +174,7 @@ int windingnumberPolyhedron(triple[][] p, triple v) {
     }
     return false;
   }
-  
+
   bool check=true;
   while(check) {
     check = false;

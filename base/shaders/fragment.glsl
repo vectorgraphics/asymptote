@@ -63,6 +63,32 @@ layout(binding=7, std430) buffer opaqueDepthBuffer
   float opaqueDepth[];
 };
 
+/*
+layout(binding=10, std430) buffer clipIndices {
+  int clip[]; // offets0, size0,...offset (n-1),size(n-1)
+}
+
+struct array {
+  int offset;
+  int size;
+}
+
+// Example:
+// array clip[]={array(0,12)};
+
+// array clip[]={array(0,12),array(0,12),array(12,4)};
+// surface A=0,1 (cube): clip[0]
+// surface B=1,2 (cube,tetrahedron): clip[1],clip[2]
+
+struct triangle {
+  vec3 a,b,c;
+}
+
+layout(binding=11, std430) buffer clipBuffer {
+  triangle face[];
+}
+*/
+
 #ifdef GPUCOMPRESS
 layout(binding=1, std430) buffer indexBuffer
 {
@@ -256,7 +282,7 @@ vec3 nonCoplanarOutsidePoint(vec3 v, vec3 polyhedron[36]) {
   for (uint i=0;i<n;++i) M = max(M,polyhedron[i]);
 
   vec3 outside = 2*M-m;
-  float epsilon = 0.0000001;  // what is the smallest float?
+  float epsilon = FLT_EPSILON;
   float norm = length(M-m);
   float Epsilon = norm*epsilon;
 
@@ -293,10 +319,10 @@ void discardIfInsideFace(vec3 v, vec3 t1, vec3 t2, vec3 t3) {
   vec3 M = max(max(t1,t2),t3);
 
   vec3 outside = 2*M-m;
-  float epsilon = 0.0000001;
+  float epsilon = FLT_EPSILON;
   float norm = length(M-m);
   float Epsilon = norm*epsilon;
-  
+
   vec3 n = normalize(cross(t3-t1,t2-t1));
   vec3 normal = norm*n;
   vec3 H = v+normal;
@@ -304,8 +330,8 @@ void discardIfInsideFace(vec3 v, vec3 t1, vec3 t2, vec3 t3) {
   // project the outside point on to the plane defined by the face
   outside -= dot(outside,n)*n;
 
-  vec3 face[3]={t1,t2,t3};  // put in array for iteration
-  
+  vec3 face[3]=vec3[3](t1,t2,t3);  // put in array for iteration
+
   // make sure the outside point is not colinear with any of the edges of the
   // face
   bool check=true;
@@ -372,7 +398,7 @@ void discardIfInside(vec3 v, vec3 polyhedron[36]) {
 
     float s1 = sign(orient(v,t1,t2,t3));
     if (s1 == 0) {
-      // s1==0 is the case where the test point lies on the planar extension 
+      // s1 == 0 is the case where the test point lies on the planar extension
       // of the face. check if it lies within the face
       discardIfInsideFace(v,t1,t2,t3);
       continue;
