@@ -56,10 +56,19 @@ void addNameOps(coenv &e, record *r, record *qt, varEntry *qv, position pos) {
       continue;
     }
 
+    qv = qualifyVarEntry(qv, v);
     if (r) {
-      r->e.ve.enter(auName, qualifyVarEntry(qv, v));
+      if (!r->e.ve.lookByType(auName, qv->getType()))
+      // Add op only if it does not already exist.
+      {
+        r->e.ve.enter(auName, qv);
+      }
     }
-    e.e.ve.enter(auName, qualifyVarEntry(qv, v));
+    if (!e.e.ve.lookByType(auName, qv->getType()))
+    // Add op only if it does not already exist.
+    {
+      e.e.ve.enter(auName, qv);
+    }
   }
 }
 
@@ -1234,6 +1243,12 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
     }
     addTypeWithPermission(e, r, entry, paramSym);
     recordInitializer(e,paramSym,r,pos);
+
+    // // Add any autounravel fields.
+    // record *qt = dynamic_cast<record *>(entry->t);
+    // assert(qt);  // Should always pass since arg->ent->t->kind == ty_record
+    // varEntry *qv = entry->v;
+    // addNameOps(e, r, qt, qv, pos);
   } else
     addTypeWithPermission(e, r, arg->ent, paramSym);
 
@@ -1297,8 +1312,9 @@ bool typeParamList::transAsParamMatcher(
   for (namedTyEntry *arg : *args) {
     if (arg->ent->t->kind == types::ty_record) {
       varEntry *v = arg->ent->v;
-      varEntry *newV = makeVarEntryWhere(e, r, v ? v->getType() : callerContext, nullptr,
-                                         arg->pos);
+      varEntry *newV = makeVarEntryWhere(
+          e, r, v ? v->getType() : callerContext, nullptr, arg->pos
+      );
       newV->getLocation()->encode(WRITE, arg->pos, e.c);
       e.c.encodePop();
 
