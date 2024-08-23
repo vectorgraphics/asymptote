@@ -113,8 +113,8 @@ Instructions for generating a setup file is in the next section
 #### Prerequisites for documentation generation
 
 Make sure [MikTeX](https://miktex.org/) is installed in the system.
-[TeX Live](https://tug.org/texlive/windows.html) is an acceptable subsitute if you are not building `asymptote.pdf`,
-which requries extra steps which will be discussed further.
+[TeX Live](https://tug.org/texlive/windows.html) is an acceptable substitute if you are not building `asymptote.pdf`,
+which requires extra steps which will be discussed further.
 
 ##### Extra considerations for `asymptote.pdf`
 
@@ -123,7 +123,7 @@ Additionally, ensure that a replacement for `texindex` is available in the syste
 As of the moment, I have only tested using WSL's `texindex`.
 
 - If you have a WSL distribution with `texindex` installed,
-that may be used as a subsitute for `texindex` on windows. In this case, ensure the cache variable
+that may be used as a substitute for `texindex` on windows. In this case, ensure the cache variable
 `WIN32_TEXINDEX` is set to `WSL`. This is the default option.
 - If you have a replacement `texindex` program, ensure `WIN32_TEXINDEX` points to that file.
 
@@ -134,7 +134,7 @@ cmake --build --preset msvc/release --target docgen
 
 ### Installation file generation 
 
-#### Prerequisites for insallation file generation
+#### Prerequisites for installation file generation
 
 Ensure that
 - Requirements for building asymptote executable
@@ -159,14 +159,14 @@ After that, configure cmake with the preset `msvc/release-with-existing-asymptot
 cmake --preset msvc/release-with-existing-asymptote-pdf
 ```
 
-##### If generating `asymptote.pdf` as part of build processs
+##### If generating `asymptote.pdf` as part of build process
 
 Use the `msvc/release` build preset for cmake.
 
 ##### Dependencies for GUI files
 
 All required dependencies for building GUI are present in `GUI/requirements.txt` and `GUI/requirements.dev.txt`.
-We recommend using a virtual envioronment, for example
+We recommend using a virtual environment, for example
 
 ```powershell
 python.exe -m virtualenv asyguibuild
