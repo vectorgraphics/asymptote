@@ -14,6 +14,7 @@ env:
       & "$($VsInfo.InstallLocation)\\Common7\\Tools\\Launch-VsDevShell.ps1" `
         -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
       $env:VCPKG_ROOT = "$env:VCPKG_INSTALLATION_ROOT"
+  cmake_msvc_profile: msvc/release-with-existing-asymptote-pdf
 jobs:
   configure-windows-msvc-x64:
     runs-on: "windows-2022"
@@ -26,7 +27,7 @@ jobs:
         shell: pwsh
         run: |
           ${{ env.pwsh_initialize_devenv }}
-          cmake --preset msvc/release
+          cmake --preset ${{ env.cmake_msvc_profile }}
       - name: zip cmake configuration
         shell: pwsh
         # Compress-Archive cmdlet does not support hidden files
@@ -75,10 +76,16 @@ jobs:
       - name: Generate version suffix for github runner
         run: |
           "set(ASY_VERSION_SUFFIX `"/github-ci/ref=${{ github.sha }}`")" | Out-File -Path asy-pkg-version-suffix.cmake
+      - name: Remove CMakeCache.txt
+        run: Remove-Item cmake-build-msvc/release/CMakeCache.txt
+      - name: Reconfigure CMake (now that we have TeX Live)
+        run: |
+          ${{ env.pwsh_initialize_devenv }}
+          cmake --preset ${{ env.cmake_msvc_profile }}
       - name: Build asymptote on windows
         run: |
           ${{ env.pwsh_initialize_devenv }}
-          cmake --build --preset msvc/release --target asy-with-basefiles -j
+          cmake --build cmake-build-msvc/release --target asy-with-basefiles -j
       - name: Archive Asymptote build
         uses: actions/upload-artifact@v4
         with:
@@ -90,7 +97,7 @@ jobs:
       - name: Build Asymptote google test
         run: |
           ${{ env.pwsh_initialize_devenv }}
-          cmake --build --preset msvc/release --target asyCxxTests -j
+          cmake --build cmake-build-msvc/release --target asyCxxTests -j
       - name: Archive Asymptote gtest files
         uses: actions/upload-artifact@v4
         with:
@@ -105,6 +112,21 @@ jobs:
           name: asy-win-x64-testfiles
           path: |
             cmake-build-msvc/release/CTest*.cmake
+      - name: Build asymptote documentation (except asymptote.pdf)
+        run: |
+            ${{ env.pwsh_initialize_devenv }}
+            cmake --build cmake-build-msvc/release --target docgen -j
+      - name: Archive asymptote documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: asy-win-x64-misc-docs
+          path: |
+            cmake-build-msvc/release/docbuild/asymptote.sty
+            cmake-build-msvc/release/docbuild/asy-latex.pdf
+            cmake-build-msvc/release/docbuild/CAD.pdf
+            cmake-build-msvc/release/docbuild/TeXShopAndAsymptote.pdf
+            cmake-build-msvc/release/docbuild/asyRefCard.pdf
+            cmake-build-msvc/release/docbuild/latexusage.pdf
   test-windows-msvc-x64-cxxtests:
     needs: build-windows-msvc-x64
     runs-on: "windows-2022"
