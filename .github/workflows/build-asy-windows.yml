@@ -53,6 +53,16 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
+      - name: Setup TeXLive Action
+        uses: teatimeguest/setup-texlive-action@v3.3.0
+        with:
+            packages: |
+              scheme-basic
+              hypdoc
+              parskip
+              etoolbox
+              ocgx2
+              media9
       - name: Download configuration artifacts
         uses: actions/download-artifact@v4
         with:
