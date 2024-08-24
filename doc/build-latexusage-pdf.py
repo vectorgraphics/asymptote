@@ -5,6 +5,7 @@ import contextlib
 import os
 import pathlib
 import sys
+import shutil
 import subprocess as sp
 
 
@@ -20,14 +21,19 @@ def parse_args():
 
 
 def print_called_process_error(e: sp.CalledProcessError):
-    sys.stderr.write("Process stderr:\n")
-    sys.stderr.write(e.stderr)
-    sys.stderr.write("Process output:\n")
-    sys.stderr.write(e.stdout)
+    if e.stderr is not None:
+        sys.stderr.write("Process stderr:\n")
+        sys.stderr.write(e.stderr)
+
+    if e.stdout is not None:
+        sys.stderr.write("Process output:\n")
+        sys.stderr.write(e.stdout)
     sys.stderr.flush()
 
 
 def clean_artifacts(buildroot_path: pathlib.Path, latexusage_file_prefix: str):
+    if (buildroot_path / (latexusage_file_prefix + ".tex")).is_file():
+        os.remove((buildroot_path / (latexusage_file_prefix + ".tex")))
     for asyartifacts in buildroot_path.glob("latexusage-*"):
         os.remove(asyartifacts)
     for exts in ["pre", "aux", "out"]:
@@ -35,14 +41,30 @@ def clean_artifacts(buildroot_path: pathlib.Path, latexusage_file_prefix: str):
             os.remove(buildroot_path / (latexusage_file_prefix + "." + exts))
 
 
+def run_pdflatex(
+    pdflatex_exec: str, buildroot_path: pathlib.Path, latexusage_name: str
+):
+    sp.run(
+        [pdflatex_exec, latexusage_name + ".tex"],
+        text=True,
+        cwd=buildroot_path,
+        check=True,
+    )
+
+
 def main():
     args = parse_args()
     buildroot_path = pathlib.Path(args.build_dir)
     clean_artifacts(buildroot_path, args.latexusage_name)
-    pdflatex_base_args = [
-        args.pdflatex_executable,
-        f"-output-directory={str(buildroot_path)}",
-    ]
+
+    # copy latexusage.pdf to build root, since TeX Live has some issues with
+    # out of source builds
+
+    shutil.copy2(
+        pathlib.Path(args.latexusage_source_dir) / (args.latexusage_name + ".tex"),
+        buildroot_path / (args.latexusage_name + ".tex"),
+    )
+
     asy_base_dir = pathlib.Path(args.asy_base_dir)
     asy_base_args = [
         args.asy_executable,
@@ -57,14 +79,9 @@ def main():
         str(buildroot_path) + os.path.sep,
     ]
 
-    latexusage_src_file = pathlib.Path(args.latexusage_source_dir) / (
-        args.latexusage_name + ".tex"
-    )
-
     try:
         # first pdflatex run
-        sp.run(pdflatex_base_args + [str(latexusage_src_file)], check=True, text=True)
-
+        run_pdflatex(args.pdflatex_executable, buildroot_path, args.latexusage_name)
         # asy run
         for asyfile in buildroot_path.glob("latexusage-*.asy"):
             sp.run(
@@ -75,7 +92,7 @@ def main():
             )
 
         # second pdflatex run
-        sp.run(pdflatex_base_args + [str(latexusage_src_file)], check=True, text=True)
+        run_pdflatex(args.pdflatex_executable, buildroot_path, args.latexusage_name)
     except sp.CalledProcessError as e:
         print_called_process_error(e)
         raise
