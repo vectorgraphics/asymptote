@@ -41,7 +41,6 @@ def main():
     clean_artifacts(buildroot_path, args.latexusage_name)
     pdflatex_base_args = [
         args.pdflatex_executable,
-        f"-include-directory={str(buildroot_path)}",
         f"-output-directory={str(buildroot_path)}",
     ]
     asy_base_dir = pathlib.Path(args.asy_base_dir)

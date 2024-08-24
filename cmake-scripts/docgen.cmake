@@ -10,7 +10,6 @@ configure_file(${ASY_RESOURCE_DIR}/version.texi.in ${ASY_TEX_BUILD_ROOT}/version
 set(LATEX_ARTIFRACT_EXTENSIONS aux hd idx ins log out toc)
 
 set(PDFLATEX_BASE_ARGUMENTS ${PDFLATEX_COMPILER}
-        -include-directory=${ASY_TEX_BUILD_ROOT}
         -output-directory=${ASY_TEX_BUILD_ROOT}
 )
 
