@@ -129,6 +129,9 @@ int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
     startInfo.hStdOutput= quiet >= 1 ? nulFileHandle.getHandle() : GetStdHandle(STD_OUTPUT_HANDLE);
     startInfo.hStdError= quiet >= 2 ? nulFileHandle.getHandle() : GetStdHandle(STD_ERROR_HANDLE);
 
+    ostringstream errorMessage;
+    errorMessage << "Cannot open application " << application;
+    string const errorMessageOut=errorMessage.str();
     w32::checkResult(CreateProcessA(
                        nullptr,
                        cmdlineStr.data(),
@@ -137,7 +140,7 @@ int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
                        nullptr, nullptr,
                        &startInfo,
                        &procInfo),
-                     "Cannot open process");
+                     errorMessageOut.c_str());
   }
   if (ppid)
   {
