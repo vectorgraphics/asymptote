@@ -64,6 +64,9 @@ jobs:
               etoolbox
               ocgx2
               media9
+      - name: Install ghostscript
+        shell: pwsh
+        run: choco install ghostscript
       - name: Download configuration artifacts
         uses: actions/download-artifact@v4
         with:
