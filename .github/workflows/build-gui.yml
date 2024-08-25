@@ -1,7 +1,16 @@
 name: build-gui
 on:
-  workflow_dispatch:
   workflow_call:
+    inputs:
+      version_override:
+        type: string
+        default: ""
+  workflow_dispatch:
+    inputs:
+      version_override:
+        type: string
+        description: Version override. If not given, will use the default value in configure.ac.
+        default: ""
 
 jobs:
   build-gui-linux:
@@ -13,7 +22,10 @@ jobs:
       - name: install dependencies
         run: python3 -m pip install -r GUI/requirements.dev.txt -r GUI/requirements.txt
       - name: build GUI files
-        run: cd GUI && python3 buildtool.py build
+        run: |
+          test -n "${{ inputs.version_override }}" \
+            && VERSION_OVERRIDE_ARG="--version-override=${{ inputs.version_override }}"
+          cd GUI && python3 buildtool.py build $VERSION_OVERRIDE_ARG
       - name: Archive generated GUI files
         uses: actions/upload-artifact@v4
         with:
@@ -34,7 +46,11 @@ jobs:
         shell: pwsh
         run: |
           Push-Location GUI
-          python.exe buildtool.py build
+          if ("${{ inputs.version_override }}")
+          {
+            $version_override_arg="--version-override=${{ inputs.version_override }}"
+          }
+          python.exe buildtool.py build $version_override_arg
           Pop-Location
       - name: Archive generated GUI files
         uses: actions/upload-artifact@v4

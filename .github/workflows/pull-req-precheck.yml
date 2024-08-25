@@ -40,7 +40,10 @@ jobs:
     needs: [build-asy-windows]
     uses: ./.github/workflows/test-asy-windows.yml
   build-gui:
+    needs: determine_asy_version
     uses: ./.github/workflows/build-gui.yml
+    with:
+      version_override: ${{ needs.determine_asy_version.outputs.asyver }}
   package-asy-install-file:
     needs:
       - build-asy-windows
