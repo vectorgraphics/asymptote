@@ -1,0 +1,48 @@
+name: build-gui
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - "master"
+      - "a/*"
+jobs:
+  build-gui-linux:
+    runs-on: "ubuntu-22.04"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: install dependencies
+        run: python3 -m pip install -r GUI/requirements.dev.txt -r GUI/requirements.txt
+      - name: build GUI files
+        run: cd GUI && python3 buildtool.py build
+      - name: Archive generated GUI files
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmake-linux-gui-files
+          path: |
+            GUI/xasyicons
+            GUI/xasyqtui
+            GUI/xasyversion
+  build-gui-windows:
+    runs-on: "windows-2022"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: install dependencies
+        run: python.exe -m pip install -r GUI/requirements.dev.txt -r GUI/requirements.txt
+      - name: build GUI files
+        shell: pwsh
+        run: |
+          Push-Location GUI
+          python.exe buildtool.py build
+          Pop-Location
+      - name: Archive generated GUI files
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmake-windows-gui-files
+          path: |
+            GUI/xasyicons
+            GUI/xasyqtui
+            GUI/xasyversion
