@@ -1,7 +1,16 @@
 name: build-asy-cxx-linux
 on:
   workflow_call:
+    inputs:
+      version_override:
+        type: string
+        default: ""
   workflow_dispatch:
+    inputs:
+      version_override:
+        type: string
+        description: Version override. If not given, will use the default value in configure.ac.
+        default: ""
 
 jobs:
   configure-linux-release-x64:
@@ -11,7 +20,8 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-linux-env
-      - run: cmake --preset linux/release-ccache
+      - run: |
+          ASY_VERSION_OVERRIDE="${{ inputs.version_override }}" cmake --preset linux/release-ccache
       - name: tar+gz cmake configuration
         run: tar -czf cmake-linux-cfg-artifact.tar.gz --exclude='vcpkg_installed' cmake-build-linux/release
       - name: Upload configuration artifacts
@@ -36,6 +46,7 @@ jobs:
         # Why we are defining version here and not in configuration stage is because cmake gets
         # re-run here
       - name: Generate version suffix
+        if: ${{ inputs.version_override == '' }}
         run: |
           echo set\(ASY_VERSION_SUFFIX \"/github-ci/ref=${{ github.sha }}\"\) > asy-pkg-version-suffix.cmake
       - run: cmake --build --preset linux/release --target asy-with-basefiles -j

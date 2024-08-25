@@ -1,14 +1,23 @@
 name: build-asy-cxx-windows
 on:
   workflow_call:
+    inputs:
+      version_override:
+        type: string
+        default: ""
   workflow_dispatch:
-
+    inputs:
+      version_override:
+        type: string
+        description: Version override. If not given, will use the default value in configure.ac.
+        default: ""
 env:
   pwsh_initialize_devenv: |
       $VsInfo = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
       & "$($VsInfo.InstallLocation)\\Common7\\Tools\\Launch-VsDevShell.ps1" `
         -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
       $env:VCPKG_ROOT = "$env:VCPKG_INSTALLATION_ROOT"
+      $env:ASY_VERSION_OVERRIDE = "${{ inputs.version_override }}"
   cmake_msvc_profile: msvc/release-with-existing-asymptote-pdf
 jobs:
   configure-windows-msvc-x64:
@@ -71,9 +80,10 @@ jobs:
           Expand-Archive `
           -Path cmake-msvc-x64-release-cfg.zip `
           -DestinationPath .
-      - name: Generate version suffix for github runner
+      - name: Generate version suffix for github runner, in case version is not specified
+        if: ${{ inputs.version_override == '' }}
         run: |
-          "set(ASY_VERSION_SUFFIX `"/github-ci/ref=${{ github.sha }}`")" | Out-File -Path asy-pkg-version-suffix.cmake
+          "set(ASY_VERSION_SUFFIX `-ci`")" | Out-File -Path asy-pkg-version-suffix.cmake
       - name: Remove CMakeCache.txt
         run: Remove-Item cmake-build-msvc/release/CMakeCache.txt
       - name: Reconfigure CMake (now that we have TeX Live)
