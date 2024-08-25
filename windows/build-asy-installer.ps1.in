@@ -1,10 +1,11 @@
 #!/usr/bin/env pwsh
 
 param(
-    [Parameter(Mandatory=$true)][string]$makensis_exec
+    [Parameter(Mandatory=$true)]
+    [string]$MakeNsisExec
 )
 
 & "${PY3_INTERPRETER}" "${BUILD_ASY_INSTALLER_SCRIPT}" `
     --cmake-install-root="${CMAKE_INSTALL_PREFIX}" `
     --asy-install-build-dir="${ASY_INSTALL_DIRECTORY}" `
-    --makensis-exec="$makensis_exec"
+    --makensis-exec="$MakeNsisExec"
