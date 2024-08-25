@@ -20,6 +20,15 @@ PY_ICONS_FILE_DIR = BUILD_ROOT_DIRECTORY / XASY_ICONS_MODULE_NAME
 PY_VERSION_MODULE_DIR = BUILD_ROOT_DIRECTORY / "xasyversion"
 
 
+def add_version_override_arg(cmd_fn):
+    return click.option(
+        "--version-override",
+        default=None,
+        type=str,
+        help="Version to use. If not given, uses information from configure.ac.",
+    )(cmd_fn)
+
+
 def _mapUiFile(_: str, fileName: str):
     return str(PY_UI_FILE_DIR), fileName
 
@@ -59,14 +68,7 @@ def determineAsyVersion() -> str:
     return version_base
 
 
-@click.command()
-@click.option(
-    "--version-override",
-    default=None,
-    type=str,
-    help="Version to use. If not given, uses information from configure.ac.",
-)
-def buildVersionModule(version_override: Optional[str]):
+def buildVersionModuleInternal(version_override: Optional[str] = None):
     PY_VERSION_MODULE_DIR.mkdir(exist_ok=True)
     make_init_py_at_dir(PY_VERSION_MODULE_DIR)
     if version_override is not None:
@@ -75,6 +77,12 @@ def buildVersionModule(version_override: Optional[str]):
         version = determineAsyVersion()
     with open(PY_VERSION_MODULE_DIR / "version.py", "w", encoding="utf-8") as f:
         f.write(f'VERSION="{version}"\n')
+
+
+@click.command()
+@add_version_override_arg
+def buildVersionModule(version_override: Optional[str]):
+    buildVersionModuleInternal(version_override)
 
 
 @click.command()
@@ -91,10 +99,11 @@ def clean():
 
 @click.command()
 @click.pass_context
-def build(ctx: click.Context):
+@add_version_override_arg
+def build(ctx: click.Context, version_override: Optional[str] = None):
     ctx.invoke(buildUi)
     ctx.invoke(buildIcons)
-    ctx.invoke(buildVersionModule)
+    buildVersionModuleInternal(version_override)
 
 
 @click.group(invoke_without_command=True)
