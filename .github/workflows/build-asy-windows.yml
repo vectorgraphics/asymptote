@@ -80,6 +80,13 @@ jobs:
         run: |
           ${{ env.pwsh_initialize_devenv }}
           cmake --preset ${{ env.cmake_msvc_profile }}
+      - name: Upload cmake install file
+        uses: actions/upload-artifact@v4
+        with:
+          name: asy-win-x64-install-file
+          path: |
+            cmake-build-msvc/release/**/cmake_install.cmake
+            cmake-build-msvc/release/nsifiles
       - name: Build asymptote on windows
         run: |
           ${{ env.pwsh_initialize_devenv }}

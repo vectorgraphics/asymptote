@@ -20,3 +20,17 @@ jobs:
     uses: ./.github/workflows/test-asy-windows.yml
   build-gui:
     uses: ./.github/workflows/build-gui.yml
+  package-asy-install-file:
+    needs:
+      - build-asy-windows
+      - build-gui
+      - build-asy-linux
+    uses: ./.github/workflows/package-asy-installer-win.yml
+  precheck-pass:  # this is a dummy step with the sole purpose of making the PR need only this job to pass
+    needs:
+      - test-asy-linux
+      - test-asy-windows
+      - package-asy-install-file
+    runs-on: "ubuntu-22.04"
+    steps:
+      - run: echo All prechecks pass!
