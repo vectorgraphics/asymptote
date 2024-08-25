@@ -79,18 +79,25 @@
         "rhs": "Windows"
       }
     },
+    {
+      "name": "base/allow_version_override_from_env",
+      "hidden": true,
+      "cacheVariables": {
+        "ASY_VERSION_OVERRIDE": "$env{ASY_VERSION_OVERRIDE}"
+      }
+    },
 
     {
       "name": "linux/release",
       "displayName": "[linux-x86/64] Release",
       "binaryDir": "${sourceDir}/cmake-build-linux/release",
-      "inherits": ["base/buildBaseWithVcpkg", "base/release"]
+      "inherits": ["base/buildBaseWithVcpkg", "base/release", "base/allow_version_override_from_env"]
     },
     {
       "name": "linux/release-ccache",
       "displayName": "[linux-x86/64] Release (with ccache)",
       "binaryDir": "${sourceDir}/cmake-build-linux/release",
-      "inherits": ["base/buildBaseWithVcpkg", "base/release", "base/linuxCcache"]
+      "inherits": ["linux/release", "base/linuxCcache"]
     },
     {
       "name": "linux/releaseWithDebugInfo",
@@ -104,7 +111,7 @@
       "binaryDir": "${sourceDir}/cmake-build-msvc/release",
       "inherits": [
         "base/buildBaseWithVcpkg", "base/release", "base/gccCompatCacheVar",
-        "base/windows-only", "base/ensure-cl-compiler"
+        "base/windows-only", "base/ensure-cl-compiler", "base/allow_version_override_from_env"
       ],
       "cacheVariables": {
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/cmake-install-w32-nsis-release"
