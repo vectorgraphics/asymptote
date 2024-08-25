@@ -1,0 +1,22 @@
+name: pull-request-precheck
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - "master"
+      - "a/*"
+
+jobs:
+  build-asy-linux:
+    uses: ./.github/workflows/build-asy-linux.yml
+  build-asy-windows:
+    uses: ./.github/workflows/build-asy-windows.yml
+  test-asy-linux:
+    needs: [build-asy-linux]
+    uses: ./.github/workflows/test-asy-linux.yml
+  test-asy-windows:
+    needs: [build-asy-windows]
+    uses: ./.github/workflows/test-asy-windows.yml
+  build-gui:
+    uses: ./.github/workflows/build-gui.yml
