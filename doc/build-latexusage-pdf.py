@@ -75,8 +75,6 @@ def main():
         '""',
         "-render=0",
         "-noV",
-        "-o",
-        str(buildroot_path) + os.path.sep,
     ]
 
     try:
