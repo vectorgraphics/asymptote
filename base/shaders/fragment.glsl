@@ -64,19 +64,19 @@ layout(binding=7, std430) buffer opaqueDepthBuffer
 };
 
 /*
-layout(binding=10, std430) buffer clipIndices {
-  int clip[]; // offets0, size0,...offset (n-1),size(n-1)
+layout(binding=10, std430) buffer clipIndexBuffer {
+  clipIndex clip[]; // offets0, size0,...offset (n-1),size(n-1)
 }
 
-struct array {
+struct clipIndex {
   int offset;
   int size;
 }
 
 // Example:
-// array clip[]={array(0,12)};
+// clipIndex clip[]={clipIndex(0,12)};
 
-// array clip[]={array(0,12),array(0,12),array(12,4)};
+// clipIndex clip[]={clipIndex(0,12),clipIndex(0,12),clipIndex(12,4)};
 // surface A=0,1 (cube): clip[0]
 // surface B=1,2 (cube,tetrahedron): clip[1],clip[2]
 
@@ -89,17 +89,17 @@ layout(binding=11, std430) buffer clipBuffer {
 }
 */
 
-struct clipInfo {
-  int offset, size;
+struct clipIndex {
+  int offset,size;
 };
 
 struct triangle {
   vec3 a,b,c;
 };
 
-clipInfo clip[1] = clipInfo[1](clipInfo(0,12));
+clipIndex clip[] = clipIndex[](clipIndex(0,12));
 
-triangle face[12] = triangle[12](
+triangle face[] = triangle[](
   triangle(vec3(0,0,-3.031),vec3(-0.7071,-0.4082,-2.454),vec3(-0.7071,0.4082,-1.876)),
   triangle(vec3(0,0,-3.031),vec3(-0.7071,0.4082,-1.876),vec3(0,0.8165,-2.454)),
   triangle(vec3(0,0,-3.031),vec3(0,0.8165,-2.454),vec3(0.7071,0.4082,-1.876)),
@@ -422,8 +422,8 @@ void discardIfInside(vec3 v, uint startIndex, uint endIndex) {
 
 void doClipping(vec3 v) {
   uint clipLength=clip.length();
-  for (uint i=0;i<clipLength;++i) {
-    clipInfo c=clip[i];
+  for (uint i=0; i < clipLength; ++i) {
+    clipIndex c=clip[i];
     discardIfInside(v, c.offset, c.offset+c.size);
   }
 }
