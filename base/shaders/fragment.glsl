@@ -422,7 +422,6 @@ void discardIfInside(vec3 v, uint startIndex, uint endIndex) {
 
 void doClipping(vec3 v) {
   uint clipLength=clip.length();
-  uint faceLength=face.length();
   for (uint i=0;i<clipLength;++i) {
     clipInfo c=clip[i];
     discardIfInside(v, c.offset, c.offset+c.size);
