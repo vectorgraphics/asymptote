@@ -1,6 +1,41 @@
 # Building Asymptote with CMake (On Windows)
 
-## Notes on Depedency management
+## Basic Requirements
+
+### Required Dependencies
+Ensure the following are installed:
+- Visual Studio or Visual Studio build tools.
+  - Both can be found at [here](https://visualstudio.microsoft.com/downloads/).
+- CMake
+  - (Recommended way) Visual Studio/Visual Studio Build Tools provides bundled CMake as a selectable component
+  - Otherwise, CMake can be found [here](https://cmake.org/)
+- Ninja 
+  - (Recommended way) Ninja can be installed using winget by running `winget install Ninja-build.Ninja`.
+  - Otherwise, Ninja can be found [here](https://ninja-build.org/).
+    If installing this way, ensure `ninja` is accessible from `PATH`.
+- Python 3+
+  - Available [here](https://www.python.org/downloads/windows/).
+- Perl on Windows
+  - (Recommended way) Strawberry Perl is available at [Strawberry Perl](https://strawberryperl.com/).
+  - (Not recommended due to license terms) ActiveState Perl is available [here](https://www.activestate.com/products/perl/).
+
+### Optional, but highly recommended dependencies
+- A GCC-compatible C++ compiler (Optional, but highly recommended. See #installing-gcc-compatible-c++-compiler)
+  - (Recommended way) [here](https://releases.llvm.org/).
+  - (Untested) Visual Studio also provides clang tools as an installable component.
+    If installing this way, ensure that `clang++.exe` is available.
+- Vcpkg (Optional, but highly recommended. See #notes-on-dependency-management)
+  - Can be found [here](https://vcpkg.io/).
+
+## For a quick start
+
+If you are getting started and want a quick configuration, run `./quick-start-win32.ps1`.
+This script automatically checks that you have vcpkg, and if not, clones and bootstraps vcpkg on your system.
+
+Additionally, this script automatically locates your Visual Studio installation and
+establishes all required environment variables.
+
+## Notes on Dependency management
 
 The recommended way is to use [vcpkg](https://vcpkg.io/).
 See `INSTALL.md` for more details.
@@ -38,21 +73,6 @@ Visual Studio or its build tools can be retrieved [here](https://visualstudio.mi
 
 ## Using CMake
 
-### Quick start (Windows with MSVC toolchain)
-
-Firstly, make sure `ninja` and `cmake` is installed, as well as Visual Studio or its build tools.
-- Ninja can be found [here](https://ninja-build.org/)
-- CMake can be found [here](https://cmake.org/), or can be installed alongside Visual Studio Build Tools.
-- Visual Studio or its build tools can be found at [here](https://visualstudio.microsoft.com/downloads/).
-
-Make sure CMake and Ninja are available in your PATH.
-
-Additionally, building Asymptote requires `perl` and Python 3 to be installed.
-
-- Perl can be found at [Strawberry Perl](https://strawberryperl.com/).
-  We do not recommend ActiveState perl because of licensing issues.
-- Python 3 can be found at https://www.python.org/downloads/.
-
 #### Installing GCC-compatible C++ compiler
 
 Additionally, we (highly) suggest installing a GCC-compatible C++ compiler for preprocessing.
@@ -72,14 +92,6 @@ Once your compiler is installed, there are a few options.
   The build script will automatically try to locate `clang++.exe` or `g++.exe` in places
   within `PATH`. Be warned that the build script may select a different compiler depending
   on if there are other compilers available in `PATH`.
-
-
-#### Even a quicker start...
-
-If you are getting started and want a quick configuration, run `./quick-start-win32.ps1`.
-This script automatically checks that you have vcpkg, and if not, clones and bootstraps vcpkg on your system.
-
-Additionally, this script auto locates your Visual Studio installation and establishes all needed environment variables.
 
 #### Building steps
 
