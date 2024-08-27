@@ -85,7 +85,7 @@ struct triangle {
 }
 
 layout(binding=11, std430) buffer clipBuffer {
-  triangle face[];
+vec3 vertex[];
 }
 */
 
@@ -99,20 +99,43 @@ struct triangle {
 
 clipIndex clip[] = clipIndex[](clipIndex(0,12));
 
-triangle face[] = triangle[](
-  triangle(vec3(0,0,-3.031),vec3(-0.7071,-0.4082,-2.454),vec3(-0.7071,0.4082,-1.876)),
-  triangle(vec3(0,0,-3.031),vec3(-0.7071,0.4082,-1.876),vec3(0,0.8165,-2.454)),
-  triangle(vec3(0,0,-3.031),vec3(0,0.8165,-2.454),vec3(0.7071,0.4082,-1.876)),
-  triangle(vec3(0,0,-3.031),vec3(0.7071,0.4082,-1.876),vec3(0.7071,-0.4082,-2.454)),
-  triangle(vec3(0,0,-3.031),vec3(0.7071,-0.4082,-2.454),vec3(0,-0.8165,-1.876)),
-  triangle(vec3(0,0,-3.031),vec3(0,-0.8165,-1.876),vec3(-0.7071,-0.4082,-2.454)),
-  triangle(vec3(0,0,-1.299),vec3(0.7071,0.4082,-1.876),vec3(0,0.8165,-2.454)),
-  triangle(vec3(0,0,-1.299),vec3(0,0.8165,-2.454),vec3(-0.7071,0.4082,-1.876)),
-  triangle(vec3(0,0,-1.299),vec3(-0.7071,0.4082,-1.876),vec3(-0.7071,-0.4082,-2.454)),
-  triangle(vec3(0,0,-1.299),vec3(-0.7071,-0.4082,-2.454),vec3(0,-0.8165,-1.876)),
-  triangle(vec3(0,0,-1.299),vec3(0.7071,-0.4082,-2.454),vec3(0.7071,0.4082,-1.876)),
-  triangle(vec3(0,0,-1.299),vec3(0,-0.8165,-1.876),vec3(0.7071,-0.4082,-2.454))
-);
+vec3 vertex[] = vec3[](
+ vec3(0,0,-3.031),
+ vec3(-0.7071,-0.4082,-2.454),
+ vec3(-0.7071,0.4082,-1.876),
+ vec3(0,0,-3.031),
+ vec3(-0.7071,0.4082,-1.876),
+ vec3(0,0.8165,-2.454),
+ vec3(0,0,-3.031),
+ vec3(0,0.8165,-2.454),
+ vec3(0.7071,0.4082,-1.876),
+ vec3(0,0,-3.031),
+ vec3(0.7071,0.4082,-1.876),
+ vec3(0.7071,-0.4082,-2.454),
+ vec3(0,0,-3.031),
+ vec3(0.7071,-0.4082,-2.454),
+ vec3(0,-0.8165,-1.876),
+ vec3(0,0,-3.031),
+ vec3(0,-0.8165,-1.876),
+ vec3(-0.7071,-0.4082,-2.454),
+ vec3(0,0,-1.299),
+ vec3(0.7071,0.4082,-1.876),
+ vec3(0,0.8165,-2.454),
+ vec3(0,0,-1.299),
+ vec3(0,0.8165,-2.454),
+ vec3(-0.7071,0.4082,-1.876),
+ vec3(0,0,-1.299),
+ vec3(-0.7071,0.4082,-1.876),
+ vec3(-0.7071,-0.4082,-2.454),
+ vec3(0,0,-1.299),
+ vec3(-0.7071,-0.4082,-2.454),
+ vec3(0,-0.8165,-1.876),
+ vec3(0,0,-1.299),
+ vec3(0.7071,-0.4082,-2.454),
+ vec3(0.7071,0.4082,-1.876),
+ vec3(0,0,-1.299),
+ vec3(0,-0.8165,-1.876),
+ vec3(0.7071,-0.4082,-2.454));
 
 #ifdef GPUCOMPRESS
 layout(binding=1, std430) buffer indexBuffer
@@ -252,8 +275,6 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 in vec4 Color;
 #endif
 
-
-
 float orient(vec3 a, vec3 b, vec3 c, vec3 d) {
   return dot(cross(a-d,b-d), c-d);
 }
@@ -267,30 +288,12 @@ void checkCoplanar(vec3 vertex1, vec3 vertex2, vec3 testPoint, float Epsilon, ou
   }
 }
 
-vec3 triangleMinbound(uint startIndex, uint endIndex) {
-  triangle t=face[startIndex];
-  vec3 minbound=min(min(t.a,t.b),t.c);
-  for (uint i=startIndex+1;i<endIndex;++i) {
-    t=face[i];
-    minbound=min(min(t.a,t.b),t.c);
-  }
-  return minbound;
-}
-vec3 triangleMaxbound(uint startIndex, uint endIndex) {
-  triangle t=face[startIndex];
-  vec3 maxbound=min(min(t.a,t.b),t.c);
-  for (uint i=startIndex+1;i<endIndex;++i) {
-    t=face[i];
-    maxbound=max(max(t.a,t.b),t.c);
-  }
-  return maxbound;
-}
-
-// move this to the cpu since its the same for the same shape & doesnt need to
-// be run on each pixel or vertex ?
 vec3 nonCoplanarOutsidePoint(vec3 v, uint startIndex, uint endIndex) {
-  vec3 m=triangleMinbound(startIndex, endIndex);
-  vec3 M=triangleMaxbound(startIndex, endIndex);
+  uint n = vertex.length();
+  vec3 m = vertex[0];
+  for (uint i=0;i<n;++i) m = min(m,vertex[i]);
+  vec3 M = vertex[0];
+  for (uint i=0;i<n;++i) M = max(M,vertex[i]);
 
   vec3 outside=2*M-m;
   float norm=length(M-m);
@@ -304,11 +307,13 @@ vec3 nonCoplanarOutsidePoint(vec3 v, uint startIndex, uint endIndex) {
     check = false;
     // check each face
     for (uint i=startIndex;i<endIndex;++i) {
-      triangle t=face[i];
+      vec3 a=vertex[3*i];
+      vec3 b=vertex[3*i+1];
+      vec3 c=vertex[3*i+2];
       // for each face (3 vertices), check each edge
-      checkCoplanar(t.a,t.b,v,Epsilon,check,outside);
-      checkCoplanar(t.b,t.c,v,Epsilon,check,outside);
-      checkCoplanar(t.c,t.a,v,Epsilon,check,outside);
+      checkCoplanar(a,b,v,Epsilon,check,outside);
+      checkCoplanar(b,c,v,Epsilon,check,outside);
+      checkCoplanar(c,a,v,Epsilon,check,outside);
     }
   }
   return outside;
@@ -390,7 +395,7 @@ void discardIfInside(vec3 v, uint startIndex, uint endIndex) {
   vec3 outside=nonCoplanarOutsidePoint(v, startIndex, endIndex);
   int count=0;
   for (uint i=startIndex;i<endIndex;++i) {
-    triangle t=face[i];
+    triangle t=triangle(vertex[3*i],vertex[3*i+1],vertex[3*i+2]);
 
     float s1=sign(orient(v,t.a,t.b,t.c));
     if (s1 == 0) {
