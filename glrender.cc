@@ -100,6 +100,8 @@ GLuint elementsBuffer;
 GLuint countBuffer;
 GLuint globalSumBuffer;
 GLuint fragmentBuffer;
+GLuint clipBuffer;
+GLuint clipIndexBuffer;
 GLuint depthBuffer;
 GLuint opaqueBuffer;
 GLuint opaqueDepthBuffer;
@@ -128,6 +130,9 @@ vertexBuffer materialData;
 vertexBuffer colorData;
 vertexBuffer transparentData;
 vertexBuffer triangleData;
+vertexBuffer clipData;
+
+clipStack_t clipStack;
 
 const size_t Nbuffer=10000;
 const size_t nbuffer=1000;
@@ -159,6 +164,7 @@ void clearMaterials()
   colorData.partial=false;
   triangleData.partial=false;
   transparentData.partial=false;
+  clipData.partial=false;
 }
 
 }
@@ -817,6 +823,8 @@ void setBuffers()
     glGenBuffers(1, &camp::elementsBuffer);
   }
   glGenBuffers(1, &camp::fragmentBuffer);
+  glGenBuffers(1, &camp::clipBuffer);
+  glGenBuffers(1, &camp::clipIndexBuffer);
   glGenBuffers(1, &camp::depthBuffer);
   glGenBuffers(1, &camp::opaqueBuffer);
   glGenBuffers(1, &camp::opaqueDepthBuffer);
@@ -2403,6 +2411,15 @@ void resizeFragmentBuffer()
   }
 }
 
+void refreshClipBuffers()
+{
+  int n=1;
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::clipBuffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER,n*sizeof(glm::vec4),NULL,
+               GL_DYNAMIC_DRAW); // FIXME
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,9,camp::clipBuffer);
+}
+
 void refreshBuffers()
 {
   GLuint zero=0;
@@ -2689,6 +2706,8 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
   glBindBuffer(GL_UNIFORM_BUFFER,0);
   glBindBuffer(GL_ARRAY_BUFFER,0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+
+  clipData.clear();
 }
 
 void drawMaterial0()

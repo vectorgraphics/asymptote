@@ -4,6 +4,7 @@
  * Stores a surface that has been added to a picture.
  *****/
 
+#include "glrender.h" // TEMP
 #include "drawsurface.h"
 #include "drawpath3.h"
 #include "arrayop.h"
@@ -262,6 +263,11 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   if(invisible) return;
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
     diffuse.A < 1.0;
+
+  for(auto p=clipStack.begin(); p != clipStack.end(); ++p) {
+    assert(*p);
+    cout << (*p)->offset << " " << (*p)->size << endl;
+  }
 
   setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
 

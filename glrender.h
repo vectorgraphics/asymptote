@@ -399,6 +399,16 @@ extern vertexBuffer materialData;    // material Bezier patches & triangles
 extern vertexBuffer colorData;       // colored Bezier patches & triangles
 extern vertexBuffer triangleData;    // opaque indexed triangles
 extern vertexBuffer transparentData; // transparent patches & triangles
+extern vertexBuffer clipData;        // clipping volume
+
+class clipIndex : public gc {
+public:
+  size_t offset,size;
+  clipIndex(size_t offset, size_t size) : offset(offset), size(size) {};
+};
+
+typedef mem::list<clipIndex*> clipStack_t;
+extern clipStack_t clipStack;
 
 void drawBuffer(vertexBuffer& data, GLint shader, bool color=false);
 void drawBuffers();

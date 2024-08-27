@@ -11,6 +11,7 @@ triple   => primTriple()
 path     => primPath()
 path3     => primPath3()
 picture* => primPicture()
+boolarray* => booleanArray()
 Intarray*  => IntArray()
 Intarray2*  => IntArray2()
 realarray* => realArray()
@@ -22,6 +23,7 @@ pairarray* => pairArray()
 pairarray2* => pairArray2()
 triplearray* => tripleArray()
 triplearray2* => tripleArray2()
+triplearray3* => tripleArray3()
 transform => primTransform()
 callablePen* => penFunction()
 
@@ -48,6 +50,7 @@ using namespace camp;
 using namespace settings;
 using namespace vm;
 
+typedef array boolarray;
 typedef array Intarray;
 typedef array Intarray2;
 typedef array realarray;
@@ -56,12 +59,14 @@ typedef array pairarray;
 typedef array pairarray2;
 typedef array triplearray;
 typedef array triplearray2;
+typedef array triplearray3;
 typedef array patharray;
 typedef array penarray;
 typedef array penarray2;
 
 typedef callable callablePen;
 
+using types::booleanArray;
 using types::IntArray;
 using types::IntArray2;
 using types::realArray;
@@ -70,6 +75,7 @@ using types::pairArray;
 using types::pairArray2;
 using types::tripleArray;
 using types::tripleArray2;
+using types::tripleArray3;
 using types::pathArray;
 using types::penArray;
 using types::penArray2;
@@ -665,6 +671,21 @@ void drawbeziertriangle(picture *f, triplearray2 *P, triple center,
                                    metallic,fresnel0,*colors,
                                    (Interaction) intcast(interaction),
                                    digits,primitive));
+}
+
+// clip Bezier volume
+void clip(picture *f, triplearray3 *P, boolarray *straight)
+{
+//, bool copy=true)
+//  array *(*copyarray2)(array *a)=copy ? copyArray2 : nop;
+  size_t n=checkArrays(P,straight);
+  clipVolume *V=new clipVolume;
+//  V->reserve(n);
+  for(size_t i=0; i < n; ++i)
+//    (*V)[i]=new clipFace(copyarray2(read<array *>(P,i)),read<bool>(straight,i));
+    V->push_back(new clipFace(read<array *>(P,i),read<bool>(straight,i)));
+  drawClip3Begin *begin=new drawClip3Begin(V);
+  f->enclose(begin,new drawClip3End(begin));
 }
 
 // General NURBS curve

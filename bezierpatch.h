@@ -27,8 +27,9 @@ struct BezierPatch
                                                  const triple& n);
   vertexFunction pvertex;
   bool Onscreen;
+  bool clip;
 
-  BezierPatch() : transparent(false), color(false), Onscreen(true) {}
+  BezierPatch() : transparent(false), color(false), Onscreen(true), clip(false) {}
 
   void init(double res);
 
@@ -138,13 +139,17 @@ struct BezierPatch
               GLfloat *C3=NULL);
 
   void append() {
-    if(transparent)
-      transparentData.Append(data);
+    if(clip)
+      clipData.append(data);
     else {
-      if(color)
-        colorData.Append(data);
-      else
-        materialData.append(data);
+      if(transparent)
+        transparentData.Append(data);
+      else {
+          if(color)
+            colorData.Append(data);
+          else
+            materialData.append(data);
+      }
     }
   }
 
@@ -160,10 +165,11 @@ struct BezierPatch
   }
 
   void queue(const triple *g, bool straight, double ratio, bool Transparent,
-             GLfloat *colors=NULL) {
+             GLfloat *colors=NULL, bool Clip=false) {
     data.clear();
     Onscreen=true;
     transparent=Transparent;
+    clip=Clip;
     color=colors;
     notRendered();
     init(pixelResolution*ratio);
@@ -208,10 +214,14 @@ public:
              const uint32_t (*CI)[3], bool transparent);
 
   void append() {
-    if(transparent)
-      transparentData.Append(data);
-    else
-      triangleData.Append(data);
+    if(clip)
+      clipData.append(data);
+    else {
+      if(transparent)
+        transparentData.Append(data);
+      else
+        triangleData.Append(data);
+    }
   }
 
   void notRendered() {

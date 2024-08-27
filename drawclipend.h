@@ -56,7 +56,24 @@ public:
     if(grestore) out->grestore();
     return true;
   }
+};
 
+class drawClip3End : public drawElement {
+  drawClip3Begin *partner;
+public:
+  drawClip3End(drawClip3Begin *partner=NULL) :
+    partner(partner) {}
+
+  virtual ~drawClip3End() {}
+
+  bool endclip() {return true;}
+
+  bool endgroup() {return true;}
+
+  void render(double size2, const triple& Min, const triple& Max,
+              double perspective, bool remesh) {
+    clipStack.pop_back();
+  }
 };
 
 }

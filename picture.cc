@@ -1295,10 +1295,11 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   return true;
 }
 
-// render viewport with width x height pixels.
+// render scene
 void picture::render(double size2, const triple& Min, const triple& Max,
                      double perspective, bool remesh) const
 {
+  clipStack.clear();
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
     if(remesh) (*p)->meshinit();

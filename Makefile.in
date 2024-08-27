@@ -32,7 +32,7 @@ vpath %.py GUI/pyUIClass
 vpath %.py GUI
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
-       guide flatguide knot drawfill path3 drawpath3 drawsurface \
+       guide flatguide knot drawfill path3 drawpath3 drawsurface drawclipbegin \
        beziercurve bezierpatch pen pipestream
 
 RUNTIME_FILES = runtime runbacktrace runpicture runlabel runhistory runarray \

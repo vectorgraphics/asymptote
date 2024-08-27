@@ -13,6 +13,7 @@
 #include <iostream>
 
 #include "drawelement.h"
+#include "drawclipbegin.h"
 
 namespace camp {
 
@@ -31,6 +32,9 @@ private:
   bool deconstruct;
 public:
   bbox3 b3; // 3D bounding box
+
+  typedef mem::vector<clipVolume*> clipVolumes;
+  clipVolumes clip3;
 
   typedef mem::list<drawElement*> nodelist;
   nodelist nodes;
