@@ -80,10 +80,6 @@ struct clipIndex {
 // surface A=0,1 (cube): clip[0]
 // surface B=1,2 (cube,tetrahedron): clip[1],clip[2]
 
-struct triangle {
-  vec3 a,b,c;
-}
-
 layout(binding=11, std430) buffer clipBuffer {
 vec3 vertex[];
 }
@@ -91,10 +87,6 @@ vec3 vertex[];
 
 struct clipIndex {
   int offset,size;
-};
-
-struct triangle {
-  vec3 a,b,c;
 };
 
 clipIndex clip[] = clipIndex[](clipIndex(0,12));
@@ -319,23 +311,23 @@ vec3 nonCoplanarOutsidePoint(vec3 v, uint startIndex, uint endIndex) {
   return outside;
 }
 
-void discardIfInsideFace(vec3 v, triangle t) {
+void discardIfInsideFace(vec3 v, vec3 a, vec3 b, vec3 c) {
   // v is test point, t1,t2,t3 are vertices of the face
-  vec3 m=min(min(t.a,t.b),t.c);
-  vec3 M=max(max(t.a,t.b),t.c);
+  vec3 m=min(min(a,b),c);
+  vec3 M=max(max(a,b),c);
 
   vec3 outside=2*M-m;
   float norm=length(M-m);
   float Epsilon=norm*FLT_EPSILON;
 
-  vec3 n=normalize(cross(t.c-t.a,t.b-t.a));
+  vec3 n=normalize(cross(c-a,b-a));
   vec3 normal=norm*n;
   vec3 H=v+normal;
 
   // project the outside point on to the plane defined by the face
   outside -= dot(outside,n)*n;
 
-  vec3 currentFace[3]=vec3[3](t.a,t.b,t.c);  // put in array for iteration
+  vec3 currentFace[3]=vec3[3](a,b,c);  // put in array for iteration
   // make sure the outside point is not colinear with any of the edges of the
   // face
   bool check=true;
@@ -395,17 +387,19 @@ void discardIfInside(vec3 v, uint startIndex, uint endIndex) {
   vec3 outside=nonCoplanarOutsidePoint(v, startIndex, endIndex);
   int count=0;
   for (uint i=startIndex;i<endIndex;++i) {
-    triangle t=triangle(vertex[3*i],vertex[3*i+1],vertex[3*i+2]);
+    vec3 a=vertex[3*i];
+    vec3 b=vertex[3*i+1];
+    vec3 c=vertex[3*i+2];
 
-    float s1=sign(orient(v,t.a,t.b,t.c));
+    float s1=sign(orient(v,a,b,c));
     if (s1 == 0) {
       // s1 == 0 is the case where the test point lies on the planar extension
       // of the face. check if it lies within the face
-      discardIfInsideFace(v,t);
+      discardIfInsideFace(v,a,b,c);
       continue;
     }
 
-    float s2=sign(orient(outside, t.a, t.b, t.c));
+    float s2=sign(orient(outside,a,b,c));
     if (s1 == s2) {
       // s1 == s2 means that the test point has the same sidedness as the
       // outside point for this face, indicating that it is also outside and
@@ -413,9 +407,9 @@ void discardIfInside(vec3 v, uint startIndex, uint endIndex) {
       continue;
     }
 
-    float s3=sign(orient(v,outside,t.a,t.b));
-    float s4=sign(orient(v,outside,t.b,t.c));
-    float s5=sign(orient(v,outside,t.c,t.a));
+    float s3=sign(orient(v,outside,a,b));
+    float s4=sign(orient(v,outside,b,c));
+    float s5=sign(orient(v,outside,c,a));
 
     if (s3 == s4 && s4 == s5) {
       count += int(s3);
