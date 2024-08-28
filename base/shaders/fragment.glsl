@@ -312,7 +312,7 @@ vec3 nonCoplanarOutsidePoint(vec3 v, uint startIndex, uint endIndex) {
 }
 
 void discardIfInsideFace(vec3 v, vec3 a, vec3 b, vec3 c) {
-  // v is test point, t1,t2,t3 are vertices of the face
+  // v is test point, a,b,c are vertices of the face
   vec3 m=min(min(a,b),c);
   vec3 M=max(max(a,b),c);
 

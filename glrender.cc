@@ -1210,8 +1210,21 @@ void nextframe()
 
 stopWatch Timer;
 
+bool suppressDisplay=false;
+
 void display()
 {
+  if(suppressDisplay)
+    return;
+
+  // Suppress initial spurious call to display.
+  static bool first=true;
+  if(first) {
+    first=false;
+    glutSwapBuffers();
+    return;
+  }
+
   if(queueScreen) {
     if(!Animate) screen();
     queueScreen=false;
@@ -2108,6 +2121,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
 #endif
 
+  suppressDisplay=true;
+
 #ifdef HAVE_LIBGLUT
   if(View) {
     int x,y;
@@ -2253,6 +2268,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #ifdef HAVE_LIBOSMESA
   View=false;
 #endif
+
+  suppressDisplay=false;
 
   if(View) {
 #ifdef HAVE_LIBGLUT

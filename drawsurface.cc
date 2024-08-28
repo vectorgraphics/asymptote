@@ -268,6 +268,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
     assert(*p);
     cout << (*p)->offset << " " << (*p)->size << endl;
   }
+  cout << endl;
 
   setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
 
