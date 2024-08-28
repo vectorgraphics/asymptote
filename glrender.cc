@@ -133,6 +133,8 @@ vertexBuffer triangleData;
 vertexBuffer clipData;
 
 clipStack_t clipStack;
+clipStackStack_t clipStackStack;
+size_t clipStackStackIndex=0;
 
 const size_t Nbuffer=10000;
 const size_t nbuffer=1000;
@@ -2798,6 +2800,16 @@ void drawTransparent()
 
 void drawBuffers()
 {
+  for(auto q=clipStackStack.begin(); q != clipStackStack.end(); ++q) {
+    assert(*q);
+    for(auto p=(*q)->begin(); p != (*q)->end(); ++p) {
+      assert(*p);
+      cout << (*p)->offset << " " << (*p)->size << endl;
+    }
+    cout << endl;
+  }
+  cout << endl;
+
   gl::copied=false;
   Opaque=transparentData.indices.empty();
   bool transparent=!Opaque;

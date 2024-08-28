@@ -73,6 +73,7 @@ public:
   void render(double size2, const triple& Min, const triple& Max,
               double perspective, bool remesh) {
     clipStack.pop_back();
+    --clipStackStackIndex;
   }
 };
 

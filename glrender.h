@@ -410,6 +410,11 @@ public:
 typedef mem::list<clipIndex*> clipStack_t;
 extern clipStack_t clipStack;
 
+typedef mem::list<clipStack_t*> clipStackStack_t;
+extern clipStackStack_t clipStackStack;
+
+extern size_t clipStackStackIndex;
+
 void drawBuffer(vertexBuffer& data, GLint shader, bool color=false);
 void drawBuffers();
 
