@@ -233,8 +233,10 @@ void checkCoplanar(vec3 vertex1, vec3 vertex2, vec3 testPoint, float Epsilon, in
   vec3 normal=normalize(cross(testPoint-vertex1,vertex2-vertex1));
   vec3 H=testPoint+normal;
   if (orient(vertex1,testPoint,vertex2,H) != 0 && orient(vertex1,testPoint,vertex2,outside) == 0) {
-    outside += normal*Epsilon;
-    check = true;
+    if(normal != vec3(0,0,0)) {
+      outside += normal*Epsilon*1000;
+      check = true;
+    }
   }
 }
 
@@ -249,7 +251,7 @@ vec3 nonCoplanarOutsidePoint(vec3 v, uint startIndex, uint endIndex) {
 
   vec3 outside=10*M-m; // TODO: Revert to 2*M-m;
   float norm=length(M-m);
-  float Epsilon=norm*FLT_EPSILON;
+  float Epsilon=norm*EPSILON;
 
   // check that the outside point is not coplanar with any of the faces of the
   // of the polyhedron. if it is, move it a little bit in the direction of the
@@ -278,7 +280,7 @@ void discardIfInsideFace(vec3 v, vec3 a, vec3 b, vec3 c) {
 
   vec3 outside=2*M-m;
   float norm=length(M-m);
-  float Epsilon=norm*FLT_EPSILON;
+  float Epsilon=norm*EPSILON;
 
   vec3 n=normalize(cross(c-a,b-a));
   vec3 normal=norm*n;
@@ -298,9 +300,11 @@ void discardIfInsideFace(vec3 v, vec3 a, vec3 b, vec3 c) {
       if (u == v) discard;  // test point is a vertex
       if (orient(u,v,outside,H) == 0) {
         vec3 normal=normalize(cross(v-u,H-u));
-        outside += normal*Epsilon;
-        outside -= dot(outside,n)*n;
-        check=true;
+        if(normal != vec3(0,0,0)) {
+          outside += normal*Epsilon;
+          outside -= dot(outside,n)*n;
+          check=true;
+        }
       }
     }
   }

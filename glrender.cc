@@ -2432,8 +2432,8 @@ void resizeFragmentBuffer()
 
 void refreshClipBuffers()
 {
-  cout << "size=" << clipData.clipVertices.size() << endl;
-  cout << "indexSize=" << clipData.indices.size() << endl;
+//  cout << "size=" << clipData.clipVertices.size() << endl;
+//  cout << "indexSize=" << clipData.indices.size() << endl;
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::clipVertexBuffer);
   glBufferData(GL_SHADER_STORAGE_BUFFER,clipData.clipVertices.size()*sizeof(glm::vec4),clipData.clipVertices.data(),
@@ -2844,8 +2844,8 @@ void drawBuffers()
   cout << endl;
   */
 
-  refreshClipBuffers();
-
+  if(clipData.indices.size())
+    refreshClipBuffers();
 
   gl::copied=false;
   Opaque=transparentData.indices.empty();
