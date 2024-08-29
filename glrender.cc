@@ -1222,14 +1222,6 @@ void display()
   if(suppressDisplay)
     return;
 
-  // Suppress initial spurious call to display.
-  static bool first=true;
-  if(first) {
-    first=false;
-    glutSwapBuffers();
-    return;
-  }
-
   if(queueScreen) {
     if(!Animate) screen();
     queueScreen=false;
