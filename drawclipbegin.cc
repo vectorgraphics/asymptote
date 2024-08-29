@@ -50,7 +50,7 @@ void drawClip3Begin::render(double size2, const triple& Min, const triple& Max,
     }
   }
   size_t size=clipData.indices.size()-offset;
-  clipStack.push_back(new clipIndex(offset,size));
+  clipStack.push_back(clipIndex{offset,size});
   clipIndices.insert(clipIndices.end(),clipStack.begin(),clipStack.end());
   clipIndicesIndex=clipIndices.size();
 }

@@ -2444,34 +2444,40 @@ void refreshClipBuffers()
   cout << "indexSize=" << clipData.indices.size() << endl;
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::clipVertexBuffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,clipData.clipVertices.size()*sizeof(glm::vec4),NULL,
+  glBufferData(GL_SHADER_STORAGE_BUFFER,clipData.clipVertices.size()*sizeof(glm::vec4),clipData.clipVertices.data(),
                GL_DYNAMIC_DRAW);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER,9,camp::clipVertexBuffer);
+
+  /*
   glm::vec4 *p=(glm::vec4 *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_WRITE);
   for(size_t i=0; i < clipData.clipVertices.size(); ++i)
     p[i]=clipData.clipVertices[i];
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+  */
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::clipBuffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,clipData.indices.size()*sizeof(GLuint),NULL,
+  glBufferData(GL_SHADER_STORAGE_BUFFER,clipData.indices.size()*sizeof(GLuint),clipData.indices.data(),
                GL_DYNAMIC_DRAW);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER,10,camp::clipBuffer);
 
+  /*
   GLuint *q=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_WRITE);
   for(size_t i=0; i < clipData.indices.size(); ++i)
     q[i]=clipData.indices[i];
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+  */
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::clipIndexBuffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,clipIndices.size()*sizeof(clipIndex),NULL,
+  glBufferData(GL_SHADER_STORAGE_BUFFER,clipIndices.size()*sizeof(clipIndex),clipIndices.data(),
                GL_DYNAMIC_DRAW);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER,11,camp::clipIndexBuffer);
 
+  /*
   clipIndex *r=(clipIndex *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_WRITE);
-  size_t i=0;
-  for(auto p=clipIndices.begin(); p != clipIndices.end(); ++p)
-    r[i++]=*(*p);
+  for(size_t i=0; i < clipIndices.size(); ++i)
+    r[i]=clipIndices[i];
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+  */
 }
 
 void refreshBuffers()
@@ -2838,11 +2844,13 @@ void drawTransparent()
 
 void drawBuffers()
 {
+  /*
   for(auto p=clipIndices.begin(); p != clipIndices.end(); ++p) {
     assert(*p);
     cout << (*p)->offset << " " << (*p)->size << endl;
   }
   cout << endl;
+  */
 
   refreshClipBuffers();
 

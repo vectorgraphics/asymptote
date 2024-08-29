@@ -65,7 +65,7 @@ layout(binding=7, std430) buffer opaqueDepthBuffer
 
 /*
 
-// clipIndex clip[]={clipIndex(0,12),clipIndex(0,12),clipIndex(12,4)};
+// clipIndex clip[]={clipIndex(0,36),clipIndex(0,36),clipIndex(36,12)};
 // surface A 0,1 (cube): clip[0]
 // surface B 1,2 (cube,tetrahedron): clip[1],clip[2]
 

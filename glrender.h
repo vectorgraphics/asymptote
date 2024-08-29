@@ -427,10 +427,10 @@ public:
   clipIndex(GLuint offset, GLuint size) : offset(offset), size(size) {};
 };
 
-typedef mem::list<clipIndex*> clipStack_t;
+typedef mem::vector<clipIndex> clipStack_t;
 extern clipStack_t clipStack;
 
-typedef mem::list<clipIndex*> clipIndices_t;
+typedef mem::vector<clipIndex> clipIndices_t;
 extern clipIndices_t clipIndices;
 
 extern size_t clipIndicesIndex;
