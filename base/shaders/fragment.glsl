@@ -229,7 +229,7 @@ float orient(vec3 a, vec3 b, vec3 c, vec3 d) {
   return dot(cross(a-d,b-d), c-d);
 }
 
-void checkCoplanar(vec3 vertex1, vec3 vertex2, vec3 testPoint, float Epsilon, out bool check, inout vec3 outside) {
+void checkCoplanar(vec3 vertex1, vec3 vertex2, vec3 testPoint, float Epsilon, inout bool check, inout vec3 outside) {
   vec3 normal=normalize(cross(testPoint-vertex1,vertex2-vertex1));
   vec3 H=testPoint+normal;
   if (orient(vertex1,testPoint,vertex2,H) != 0 && orient(vertex1,testPoint,vertex2,outside) == 0) {
