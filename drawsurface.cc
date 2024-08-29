@@ -264,7 +264,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
     diffuse.A < 1.0;
 
-  cout << clipStackStackIndex << endl;
+  cout << clipIndicesIndex << endl;
 
   setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
 
@@ -527,7 +527,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
     diffuse.A < 1.0;
 
-  cout << clipStackStackIndex << endl;
+  cout << clipIndicesIndex << endl;
 
   setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
 

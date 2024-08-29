@@ -100,6 +100,7 @@ GLuint elementsBuffer;
 GLuint countBuffer;
 GLuint globalSumBuffer;
 GLuint fragmentBuffer;
+GLuint clipVertexBuffer;
 GLuint clipBuffer;
 GLuint clipIndexBuffer;
 GLuint depthBuffer;
@@ -133,8 +134,8 @@ vertexBuffer triangleData;
 vertexBuffer clipData;
 
 clipStack_t clipStack;
-clipStackStack_t clipStackStack;
-size_t clipStackStackIndex=0;
+clipIndices_t clipIndices;
+size_t clipIndicesIndex;
 
 const size_t Nbuffer=10000;
 const size_t nbuffer=1000;
@@ -812,6 +813,7 @@ void setBuffers()
   camp::colorData.Reserve();
   camp::triangleData.Reserve();
   camp::transparentData.Reserve();
+  camp::clipData.reserveClip();
 
 #ifdef HAVE_SSBO
   glGenBuffers(1, &camp::offsetBuffer);
@@ -825,6 +827,7 @@ void setBuffers()
     glGenBuffers(1, &camp::elementsBuffer);
   }
   glGenBuffers(1, &camp::fragmentBuffer);
+  glGenBuffers(1, &camp::clipVertexBuffer);
   glGenBuffers(1, &camp::clipBuffer);
   glGenBuffers(1, &camp::clipIndexBuffer);
   glGenBuffers(1, &camp::depthBuffer);
@@ -1938,6 +1941,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
               double *background, size_t nlightsin, triple *lights,
               double *diffuse, double *specular, bool view, int oldpid)
 {
+  camp::clipStack.clear();
+  camp::clipIndices.clear();
+  camp::clipIndicesIndex=0;
+  camp::clipData.clear();
+
   Iconify=getSetting<bool>("iconify");
 
   if(zoom == 0.0) zoom=1.0;
@@ -2432,11 +2440,38 @@ void resizeFragmentBuffer()
 
 void refreshClipBuffers()
 {
-  int n=1;
+  cout << "size=" << clipData.clipVertices.size() << endl;
+  cout << "indexSize=" << clipData.indices.size() << endl;
+
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::clipVertexBuffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER,clipData.clipVertices.size()*sizeof(glm::vec4),NULL,
+               GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,9,camp::clipVertexBuffer);
+  glm::vec4 *p=(glm::vec4 *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_WRITE);
+  for(size_t i=0; i < clipData.clipVertices.size(); ++i)
+    p[i]=clipData.clipVertices[i];
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
   glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::clipBuffer);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,n*sizeof(glm::vec4),NULL,
-               GL_DYNAMIC_DRAW); // FIXME
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,9,camp::clipBuffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER,clipData.indices.size()*sizeof(GLuint),NULL,
+               GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,10,camp::clipBuffer);
+
+  GLuint *q=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_WRITE);
+  for(size_t i=0; i < clipData.indices.size(); ++i)
+    q[i]=clipData.indices[i];
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::clipIndexBuffer);
+  glBufferData(GL_SHADER_STORAGE_BUFFER,clipIndices.size()*sizeof(clipIndex),NULL,
+               GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,11,camp::clipIndexBuffer);
+
+  clipIndex *r=(clipIndex *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_WRITE);
+  size_t i=0;
+  for(auto p=clipIndices.begin(); p != clipIndices.end(); ++p)
+    r[i++]=*(*p);
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 }
 
 void refreshBuffers()
@@ -2726,6 +2761,9 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
   glBindBuffer(GL_ARRAY_BUFFER,0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 
+  camp::clipStack.clear();
+  camp::clipIndices.clear();
+  camp::clipIndicesIndex=0;
   clipData.clear();
 }
 
@@ -2800,15 +2838,14 @@ void drawTransparent()
 
 void drawBuffers()
 {
-  for(auto q=clipStackStack.begin(); q != clipStackStack.end(); ++q) {
-    assert(*q);
-    for(auto p=(*q)->begin(); p != (*q)->end(); ++p) {
-      assert(*p);
-      cout << (*p)->offset << " " << (*p)->size << endl;
-    }
-    cout << endl;
+  for(auto p=clipIndices.begin(); p != clipIndices.end(); ++p) {
+    assert(*p);
+    cout << (*p)->offset << " " << (*p)->size << endl;
   }
   cout << endl;
+
+  refreshClipBuffers();
+
 
   gl::copied=false;
   Opaque=transparentData.indices.empty();

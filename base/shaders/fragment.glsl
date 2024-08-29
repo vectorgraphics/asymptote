@@ -64,9 +64,6 @@ layout(binding=7, std430) buffer opaqueDepthBuffer
 };
 
 /*
-layout(binding=10, std430) buffer clipIndexBuffer {
-  clipIndex clip[]; // offets0, size0,...offset (n-1),size(n-1)
-}
 
 struct clipIndex {
   int offset;
@@ -80,54 +77,63 @@ struct clipIndex {
 // surface A=0,1 (cube): clip[0]
 // surface B=1,2 (cube,tetrahedron): clip[1],clip[2]
 
-layout(binding=11, std430) buffer clipBuffer {
-vec3 vertex[];
-}
 */
 
 struct clipIndex {
   int offset,size;
 };
 
+layout(binding=9, std430) buffer clipVertexBuffer {
+vec4 vertex[];
+};
+
+layout(binding=10, std430) buffer clipBuffer {
+int clipindex[];
+};
+
+layout(binding=11, std430) buffer clipIndexBuffer {
+  clipIndex clip0[]; // offets0, size0,...offset (n-1),size(n-1)
+};
+
 clipIndex clip[] = clipIndex[](clipIndex(0,12));
 
-vec3 vertex[] = vec3[](
- vec3(0,0,-3.031),
- vec3(-0.7071,-0.4082,-2.454),
- vec3(-0.7071,0.4082,-1.876),
- vec3(0,0,-3.031),
- vec3(-0.7071,0.4082,-1.876),
- vec3(0,0.8165,-2.454),
- vec3(0,0,-3.031),
- vec3(0,0.8165,-2.454),
- vec3(0.7071,0.4082,-1.876),
- vec3(0,0,-3.031),
- vec3(0.7071,0.4082,-1.876),
- vec3(0.7071,-0.4082,-2.454),
- vec3(0,0,-3.031),
- vec3(0.7071,-0.4082,-2.454),
- vec3(0,-0.8165,-1.876),
- vec3(0,0,-3.031),
- vec3(0,-0.8165,-1.876),
- vec3(-0.7071,-0.4082,-2.454),
- vec3(0,0,-1.299),
- vec3(0.7071,0.4082,-1.876),
- vec3(0,0.8165,-2.454),
- vec3(0,0,-1.299),
- vec3(0,0.8165,-2.454),
- vec3(-0.7071,0.4082,-1.876),
- vec3(0,0,-1.299),
- vec3(-0.7071,0.4082,-1.876),
- vec3(-0.7071,-0.4082,-2.454),
- vec3(0,0,-1.299),
- vec3(-0.7071,-0.4082,-2.454),
- vec3(0,-0.8165,-1.876),
- vec3(0,0,-1.299),
- vec3(0.7071,-0.4082,-2.454),
- vec3(0.7071,0.4082,-1.876),
- vec3(0,0,-1.299),
- vec3(0,-0.8165,-1.876),
- vec3(0.7071,-0.4082,-2.454));
+vec4 vertex0[] = vec4[](
+ vec4(0,0,-3.031,0),
+ vec4(-0.7071,-0.4082,-2.454,0),
+ vec4(-0.7071,0.4082,-1.876,0),
+ vec4(0,0,-3.031,0),
+ vec4(-0.7071,0.4082,-1.876,0),
+ vec4(0,0.8165,-2.454,0),
+ vec4(0,0,-3.031,0),
+ vec4(0,0.8165,-2.454,0),
+ vec4(0.7071,0.4082,-1.876,0),
+ vec4(0,0,-3.031,0),
+ vec4(0.7071,0.4082,-1.876,0),
+ vec4(0.7071,-0.4082,-2.454,0),
+ vec4(0,0,-3.031,0),
+ vec4(0.7071,-0.4082,-2.454,0),
+ vec4(0,-0.8165,-1.876,0),
+ vec4(0,0,-3.031,0),
+ vec4(0,-0.8165,-1.876,0),
+ vec4(-0.7071,-0.4082,-2.454,0),
+ vec4(0,0,-1.299,0),
+ vec4(0.7071,0.4082,-1.876,0),
+ vec4(0,0.8165,-2.454,0),
+ vec4(0,0,-1.299,0),
+ vec4(0,0.8165,-2.454,0),
+ vec4(-0.7071,0.4082,-1.876,0),
+ vec4(0,0,-1.299,0),
+ vec4(-0.7071,0.4082,-1.876,0),
+ vec4(-0.7071,-0.4082,-2.454,0),
+ vec4(0,0,-1.299,0),
+ vec4(-0.7071,-0.4082,-2.454,0),
+ vec4(0,-0.8165,-1.876,0),
+ vec4(0,0,-1.299,0),
+ vec4(0.7071,-0.4082,-2.454,0),
+ vec4(0.7071,0.4082,-1.876,0),
+ vec4(0,0,-1.299,0),
+ vec4(0,-0.8165,-1.876,0),
+ vec4(0.7071,-0.4082,-2.454,0));
 
 #ifdef GPUCOMPRESS
 layout(binding=1, std430) buffer indexBuffer
@@ -280,12 +286,15 @@ void checkCoplanar(vec3 vertex1, vec3 vertex2, vec3 testPoint, float Epsilon, ou
   }
 }
 
+//#define Vertex(i) vertex[i]
+#define Vertex(i) vertex[clipindex[i]]
+
 vec3 nonCoplanarOutsidePoint(vec3 v, uint startIndex, uint endIndex) {
   uint n = vertex.length();
-  vec3 m = vertex[0];
-  for (uint i=0;i<n;++i) m = min(m,vertex[i]);
-  vec3 M = vertex[0];
-  for (uint i=0;i<n;++i) M = max(M,vertex[i]);
+  vec3 m = Vertex(0).xyz;
+  for (uint i=0;i<n;++i) m = min(m,Vertex(i).xyz);
+  vec3 M = Vertex(0).xyz;
+  for (uint i=0;i<n;++i) M = max(M,Vertex(i).xyz);
 
   vec3 outside=2*M-m;
   float norm=length(M-m);
@@ -299,9 +308,9 @@ vec3 nonCoplanarOutsidePoint(vec3 v, uint startIndex, uint endIndex) {
     check = false;
     // check each face
     for (uint i=startIndex;i<endIndex;++i) {
-      vec3 a=vertex[3*i];
-      vec3 b=vertex[3*i+1];
-      vec3 c=vertex[3*i+2];
+      vec3 a=Vertex(3*i).xyz;
+      vec3 b=Vertex(3*i+1).xyz;
+      vec3 c=Vertex(3*i+2).xyz;
       // for each face (3 vertices), check each edge
       checkCoplanar(a,b,v,Epsilon,check,outside);
       checkCoplanar(b,c,v,Epsilon,check,outside);
@@ -387,9 +396,9 @@ void discardIfInside(vec3 v, uint startIndex, uint endIndex) {
   vec3 outside=nonCoplanarOutsidePoint(v, startIndex, endIndex);
   int count=0;
   for (uint i=startIndex;i<endIndex;++i) {
-    vec3 a=vertex[3*i];
-    vec3 b=vertex[3*i+1];
-    vec3 c=vertex[3*i+2];
+    vec3 a=Vertex(3*i).xyz;
+    vec3 b=Vertex(3*i+1).xyz;
+    vec3 c=Vertex(3*i+2).xyz;
 
     float s1=sign(orient(v,a,b,c));
     if (s1 == 0) {

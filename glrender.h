@@ -298,6 +298,7 @@ public:
   std::vector<vertexData> vertices;
   std::vector<VertexData> Vertices;
   std::vector<vertexData0> vertices0;
+  std::vector<glm::vec4> clipVertices;
   std::vector<GLuint> indices;
 
   std::vector<Material> materials;
@@ -320,6 +321,7 @@ public:
     vertices.clear();
     Vertices.clear();
     vertices0.clear();
+    clipVertices.clear();
     indices.clear();
     materials.clear();
     materialTable.clear();
@@ -337,6 +339,18 @@ public:
   void Reserve() {
     Vertices.reserve(Nbuffer);
     indices.reserve(Nbuffer);
+  }
+
+  void reserveClip() {
+    clipVertices.reserve(Nbuffer);
+    indices.reserve(Nbuffer);
+  }
+
+// Store the position v. // TODO: optimize out n?
+  GLuint clipVertex(const triple &v, const triple&) {
+    size_t nvertices=clipVertices.size();
+    clipVertices.push_back(glm::vec4(v.getx(),v.gety(),v.getz(),1.0));
+    return nvertices;
   }
 
 // Store the vertex v and its normal vector n.
@@ -391,6 +405,12 @@ public:
     appendOffset(indices,b.indices,vertices0.size());
     vertices0.insert(vertices0.end(),b.vertices0.begin(),b.vertices0.end());
   }
+
+  void appendClip(const vertexBuffer& b) {
+    appendOffset(indices,b.indices,clipVertices.size());
+    clipVertices.insert(clipVertices.end(),b.clipVertices.begin(),
+                        b.clipVertices.end());
+  }
 };
 
 extern vertexBuffer material0Data;   // pixels
@@ -399,21 +419,21 @@ extern vertexBuffer materialData;    // material Bezier patches & triangles
 extern vertexBuffer colorData;       // colored Bezier patches & triangles
 extern vertexBuffer triangleData;    // opaque indexed triangles
 extern vertexBuffer transparentData; // transparent patches & triangles
-extern vertexBuffer clipData;        // clipping volume
+extern vertexBuffer clipData;        // clipping volumes
 
 class clipIndex : public gc {
 public:
-  size_t offset,size;
-  clipIndex(size_t offset, size_t size) : offset(offset), size(size) {};
+  GLuint offset,size;
+  clipIndex(GLuint offset, GLuint size) : offset(offset), size(size) {};
 };
 
 typedef mem::list<clipIndex*> clipStack_t;
 extern clipStack_t clipStack;
 
-typedef mem::list<clipStack_t*> clipStackStack_t;
-extern clipStackStack_t clipStackStack;
+typedef mem::list<clipIndex*> clipIndices_t;
+extern clipIndices_t clipIndices;
 
-extern size_t clipStackStackIndex;
+extern size_t clipIndicesIndex;
 
 void drawBuffer(vertexBuffer& data, GLint shader, bool color=false);
 void drawBuffers();

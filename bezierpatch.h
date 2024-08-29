@@ -140,7 +140,7 @@ struct BezierPatch
 
   void append() {
     if(clip)
-      clipData.append(data);
+      clipData.appendClip(data);
     else {
       if(transparent)
         transparentData.Append(data);
@@ -215,7 +215,7 @@ public:
 
   void append() {
     if(clip)
-      clipData.append(data);
+      clipData.appendClip(data);
     else {
       if(transparent)
         transparentData.Append(data);
