@@ -87,48 +87,6 @@ layout(binding=11, std430) buffer clipIndexBuffer {
   clipIndex clip[];
 };
 
-/*
-clipIndex clip[] = clipIndex[](clipIndex(0,36));
-
-vec4 vertex[] = vec4[](
- vec4(0,0,-3.031,0),
- vec4(-0.7071,-0.4082,-2.454,0),
- vec4(-0.7071,0.4082,-1.876,0),
- vec4(0,0,-3.031,0),
- vec4(-0.7071,0.4082,-1.876,0),
- vec4(0,0.8165,-2.454,0),
- vec4(0,0,-3.031,0),
- vec4(0,0.8165,-2.454,0),
- vec4(0.7071,0.4082,-1.876,0),
- vec4(0,0,-3.031,0),
- vec4(0.7071,0.4082,-1.876,0),
- vec4(0.7071,-0.4082,-2.454,0),
- vec4(0,0,-3.031,0),
- vec4(0.7071,-0.4082,-2.454,0),
- vec4(0,-0.8165,-1.876,0),
- vec4(0,0,-3.031,0),
- vec4(0,-0.8165,-1.876,0),
- vec4(-0.7071,-0.4082,-2.454,0),
- vec4(0,0,-1.299,0),
- vec4(0.7071,0.4082,-1.876,0),
- vec4(0,0.8165,-2.454,0),
- vec4(0,0,-1.299,0),
- vec4(0,0.8165,-2.454,0),
- vec4(-0.7071,0.4082,-1.876,0),
- vec4(0,0,-1.299,0),
- vec4(-0.7071,0.4082,-1.876,0),
- vec4(-0.7071,-0.4082,-2.454,0),
- vec4(0,0,-1.299,0),
- vec4(-0.7071,-0.4082,-2.454,0),
- vec4(0,-0.8165,-1.876,0),
- vec4(0,0,-1.299,0),
- vec4(0.7071,-0.4082,-2.454,0),
- vec4(0.7071,0.4082,-1.876,0),
- vec4(0,0,-1.299,0),
- vec4(0,-0.8165,-1.876,0),
- vec4(0.7071,-0.4082,-2.454,0));
-*/
-
 #ifdef GPUCOMPRESS
 layout(binding=1, std430) buffer indexBuffer
 {
@@ -280,7 +238,6 @@ void checkCoplanar(vec3 vertex1, vec3 vertex2, vec3 testPoint, float Epsilon, ou
   }
 }
 
-//#define Vertex(i) vertex[i]
 #define Vertex(i) vertex[clipindex[i]]
 
 vec3 nonCoplanarOutsidePoint(vec3 v, uint startIndex, uint endIndex) {
