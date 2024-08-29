@@ -65,17 +65,9 @@ layout(binding=7, std430) buffer opaqueDepthBuffer
 
 /*
 
-struct clipIndex {
-  int offset;
-  int size;
-}
-
-// Example:
-// clipIndex clip[]={clipIndex(0,12)};
-
 // clipIndex clip[]={clipIndex(0,12),clipIndex(0,12),clipIndex(12,4)};
-// surface A=0,1 (cube): clip[0]
-// surface B=1,2 (cube,tetrahedron): clip[1],clip[2]
+// surface A 0,1 (cube): clip[0]
+// surface B 1,2 (cube,tetrahedron): clip[1],clip[2]
 
 */
 
@@ -92,12 +84,13 @@ int clipindex[];
 };
 
 layout(binding=11, std430) buffer clipIndexBuffer {
-  clipIndex clip0[]; // offets0, size0,...offset (n-1),size(n-1)
+  clipIndex clip[];
 };
 
-clipIndex clip[] = clipIndex[](clipIndex(0,12));
+/*
+clipIndex clip[] = clipIndex[](clipIndex(0,36));
 
-vec4 vertex0[] = vec4[](
+vec4 vertex[] = vec4[](
  vec4(0,0,-3.031,0),
  vec4(-0.7071,-0.4082,-2.454,0),
  vec4(-0.7071,0.4082,-1.876,0),
@@ -134,6 +127,7 @@ vec4 vertex0[] = vec4[](
  vec4(0,0,-1.299,0),
  vec4(0,-0.8165,-1.876,0),
  vec4(0.7071,-0.4082,-2.454,0));
+*/
 
 #ifdef GPUCOMPRESS
 layout(binding=1, std430) buffer indexBuffer
@@ -307,10 +301,10 @@ vec3 nonCoplanarOutsidePoint(vec3 v, uint startIndex, uint endIndex) {
   while (check) {
     check = false;
     // check each face
-    for (uint i=startIndex;i<endIndex;++i) {
-      vec3 a=Vertex(3*i).xyz;
-      vec3 b=Vertex(3*i+1).xyz;
-      vec3 c=Vertex(3*i+2).xyz;
+    for (uint i=startIndex;i<endIndex; i += 3) {
+      vec3 a=Vertex(i).xyz;
+      vec3 b=Vertex(i+1).xyz;
+      vec3 c=Vertex(i+2).xyz;
       // for each face (3 vertices), check each edge
       checkCoplanar(a,b,v,Epsilon,check,outside);
       checkCoplanar(b,c,v,Epsilon,check,outside);
@@ -395,10 +389,10 @@ void discardIfInsideFace(vec3 v, vec3 a, vec3 b, vec3 c) {
 void discardIfInside(vec3 v, uint startIndex, uint endIndex) {
   vec3 outside=nonCoplanarOutsidePoint(v, startIndex, endIndex);
   int count=0;
-  for (uint i=startIndex;i<endIndex;++i) {
-    vec3 a=Vertex(3*i).xyz;
-    vec3 b=Vertex(3*i+1).xyz;
-    vec3 c=Vertex(3*i+2).xyz;
+  for (uint i=startIndex;i<endIndex; i += 3) {
+    vec3 a=Vertex(i).xyz;
+    vec3 b=Vertex(i+1).xyz;
+    vec3 c=Vertex(i+2).xyz;
 
     float s1=sign(orient(v,a,b,c));
     if (s1 == 0) {
