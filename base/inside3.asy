@@ -5,12 +5,19 @@ real orient(triple a, triple b, triple c, triple d) {
 }
 
 struct StraightContribution {
-  triple outside,normal;
+  triple outside;
+  triple z;
+  real Epsilon;
+  triple normal;
   triple H;
   int count=0;
+  bool redo;
 
-  void operator init(triple outside, triple normal, triple H)  {
+  void operator init(triple outside, triple z, real Epsilon, triple normal,
+                     triple H)  {
     this.outside=outside;
+    this.z=z;
+    this.Epsilon=Epsilon;
     this.normal=normal;
     this.H=H;
   }
@@ -27,29 +34,51 @@ struct StraightContribution {
     return s1 != s2;
   }
 
-  bool onBoundary(triple z0, triple z1, triple z) {
+  // Check that each vertex u distinct from v is not colinear w/ outside
+  void avoidColinear(triple u) {
+    if(u != z) {
+      redo=true;
+      triple n=unit(normal);
+      write("adjust");
+      triple Normal=unit(cross(z-u,H-u));
+      assert(Normal != O);
+      outside += Normal*Epsilon;
+      outside=outside-dot(outside,n)*n;
+    }
+  }
+
+  int onBoundary(triple z0, triple z1, triple z) {
     int s1 = sgn(orient(z,z0,z1,H));
     if (s1 == 0)
-      return insideSegment(z0,z1,z);
+      return insideSegment(z0,z1,z) ? 1 : 0;
 
     int s2 = sgn(orient(outside,z0,z1,H));
 
     if (s1 == s2)
-      return false;
+      return 0;
+
+    redo=false;
 
     int s3 = sgn(orient(z,outside,z0,H));
+    if(s3 == 0)
+      avoidColinear(z0);
+
     int s4 = sgn(orient(z,outside,z1,H));
+    if(s4 == 0)
+      avoidColinear(z1);
+
+    if(redo) return -1;
+
     if (s3 != s4)
       count += s3;
 
-    return false;
+    return 0;
   }
 }
 
 // Return the winding number of planar polygon relative to point v
 // lying in the same plane, or the largest odd integer if v lies on p.
 int windingnumberPolygon(triple[] p, triple v) {
-  triple prevPoint = p[p.length - 1];
   triple M = maxbound(p);
   triple m = minbound(p);
   triple outside = 2*M-m;
@@ -63,32 +92,19 @@ int windingnumberPolygon(triple[] p, triple v) {
 
   outside=outside-dot(outside,n)*n;
 
-  // Check that each vertex u distinct from v is not colinear w/ outside
-  bool checkColinear(triple u) {
-    if (u != v && orient(u,v,outside,H) == 0) {
-      triple normal=unit(cross(v-u,H-u));
-      assert(normal != O);
-      outside += normal*Epsilon;
-      outside=outside-dot(outside,n)*n;
-      return true; // need to restart & recheck
+  int onboundary=-1;
+  var W=StraightContribution(outside,v,Epsilon,normal,H);
+  while(onboundary == -1) {
+    triple prevPoint = p[p.length - 1];
+    for (int i=0; i < p.length; ++i) {
+      triple currentPoint = p[i];
+      onboundary=W.onBoundary(prevPoint,currentPoint,v);
+      if(onboundary == -1) break;
+      if(onboundary == 1) return undefined;
+      prevPoint = currentPoint;
     }
-    return false;
   }
 
-  bool check=true;
-  while(check) {
-    check = false;
-    for (triple v : p)
-      check = check || checkColinear(v);
-  }
-
-  var W=StraightContribution(outside,normal,H);
-
-  for (int i=0; i < p.length; ++i) {
-    triple currentPoint = p[i];
-    if(W.onBoundary(prevPoint,currentPoint,v)) return undefined;
-    prevPoint = currentPoint;
-  }
   return W.count;
 }
 
@@ -113,43 +129,69 @@ triple maxbound(triple[][] polyhedron) {
   return m;
 }
 
-struct straightContribution3 {
+struct StraightContribution3 {
   triple outside;
   triple v;
   int count=0;
+  real Epsilon;
+  bool redo;
 
-  void operator init(triple outside, triple v) {
+  void operator init(triple outside, triple v, real Epsilon) {
     this.outside=outside;
     this.v=v;
+    this.Epsilon=Epsilon;
   }
 
-  bool onBoundary(triple t1, triple t2, triple t3) {
-    int s1 = sgn(orient(v, t1, t2, t3));
+  // Ensure that outside does not lie on the extension of the non-degenerate
+  // triangle u--v--w
+  void avoidCoplanar(triple u, triple w) {
+    triple normal=unit(cross(v-u,w-u));
+    triple H=v+normal;
+    if(orient(u,v,w,H) != 0) {
+      redo=true;
+      outside += normal*Epsilon;
+    }
+  }
+
+  int onBoundary(triple a, triple b, triple c) {
+    int s1 = sgn(orient(v, a, b, c));
     if (s1 == 0) {
-      triple[] tri = {t1,t2,t3};
-      return insidePolygon(tri, v);
+      triple[] tri = {a,b,c};
+      return insidePolygon(tri, v) ? 1 : 0;
     }
 
-    int s2 = sgn(orient(outside, t1, t2, t3));
+    int s2 = sgn(orient(outside, a, b, c));
 
     // Test whether the two extermities of the segment
     // are on the same side of the supporting plane of
     // the triangle
     if (s1 == s2)
-      return false;
+      return 0;
 
-    // Now we know that the segment 'straddles' the supporing
+    redo=false;
+
+    // Now we know that the segment 'straddles' the supporting
     // plane. We need to test whether the three tetrahedra formed
     // by the segment and the three edges of the triangle have
     // the same orientation
-    int s3 = sgn(orient(v, outside, t1, t2));
-    int s4 = sgn(orient(v, outside, t2, t3));
-    int s5 = sgn(orient(v, outside, t3, t1));
+    int s3 = sgn(orient(v, outside, a, b));
+    if(s3 == 0)
+      avoidCoplanar(a,b);
+
+    int s4 = sgn(orient(v, outside, b, c));
+    if(s4 == 0)
+      avoidCoplanar(b,c);
+
+    int s5 = sgn(orient(v, outside, c, a));
+    if(s5 == 0)
+      avoidCoplanar(c,a);
+
+    if(redo) return -1;
 
     if (s3 == s4 && s4 == s5)
       count += s3;
 
-    return false;
+    return 0;
   }
 }
 
@@ -161,36 +203,16 @@ int windingnumberPolyhedron(triple[][] p, triple v) {
   real norm=abs(M-m);
   real Epsilon=norm*epsilon;
 
-  // Check that outside does not lie on the extension of the non-degenerate
-  // triangle u--v--w
-  bool checkCoplanar(triple u, triple w) {
-    triple normal=unit(cross(v-u,w-u));
-    triple H=v+normal;
-    if (orient(u,v,w,H) != 0 &&
-        orient(u,v,w,outside) == 0) {
-      assert(normal != O);
-      outside += normal*Epsilon;
-      return true; // need to restart & recheck
-    }
-    return false;
-  }
-
-  bool check=true;
-  while(check) {
-    check = false;
+  int onboundary=-1;
+  StraightContribution3 W=StraightContribution3(outside,v,Epsilon);
+  while(onboundary == -1) {
     for(triple[] f : p) {
-      check = check || checkCoplanar(f[0],f[1]);
-      check = check || checkCoplanar(f[1],f[2]);
-      check = check || checkCoplanar(f[2],f[0]);
+      onboundary=W.onBoundary(f[0],f[1],f[2]);
+      if(onboundary == -1) break;
+      if(onboundary == 1) return undefined;
     }
   }
 
-  var W=straightContribution3(outside,v);
-
-  for(triple[] f : p) {
-    if(W.onBoundary(f[0],f[1],f[2]))
-      return undefined;
-  }
   return W.count;
 }
 

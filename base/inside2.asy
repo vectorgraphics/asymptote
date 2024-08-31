@@ -12,27 +12,52 @@ bool insideSegment(pair z0, pair z1, pair z) {
 
 struct StraightContribution {
   pair outside;
+  pair z;
+  real Epsilon;
   int count=0;
+  bool redo;
 
-  void operator init(pair outside)  {
+  void operator init(pair outside, pair z, real Epsilon)  {
     this.outside=outside;
+    this.z=z;
+    this.Epsilon=Epsilon;
   }
 
-  bool onBoundary(pair z0, pair z1, pair z) {
+  // Ensure that outside does not lie on the extension of the non-degenerate
+  // line segment v--z
+  void avoidColinear(pair v) {
+    if (v != z) {
+      pair normal=unit(z-v)*I;
+      outside += normal*Epsilon;
+    }
+  }
+
+  int onBoundary(pair z0, pair z1, pair z) {
     int s1 = sgn(orient(z,z0,z1));
     if (s1 == 0)
-      return insideSegment(z0,z1,z);
+      return insideSegment(z0,z1,z) ? 1 : 0;
 
     int s2 = sgn(orient(outside,z0,z1));
+
     if (s1 == s2)
-      return false;
+      return 0;
+
+    redo=false;
 
     int s3 = sgn(orient(z,outside,z0));
+    if(s3 == 0)
+      avoidColinear(z0);
+
     int s4 = sgn(orient(z,outside,z1));
+    if(s4 == 0)
+      avoidColinear(z1);
+
+    if(redo) return -1;
+
     if (s3 != s4)
       count += s3;
 
-    return false;
+    return 0;
   }
 }
 
@@ -45,32 +70,19 @@ int windingnumberPolygon(pair[] p, pair z) {
   real epsilon = sqrt(realEpsilon);
   real Epsilon=abs(M-m)*epsilon;
 
-  // Check that outside does not lie on the extension of the non-degenerate
-  // line segment v--z
-  bool checkColinear(pair v) {
-    if (v != z && orient(v,z,outside) == 0) {
-      pair normal=unit(z-v)*I;
-      outside += normal*Epsilon;
-      return true; // need to restart & recheck
+  int onboundary=-1;
+  var W=StraightContribution(outside,z,Epsilon);
+  while(onboundary == -1) {
+    pair prevPoint = p[p.length - 1];
+    for (int i=0; i < p.length; ++i) {
+      pair currentPoint = p[i];
+      onboundary=W.onBoundary(prevPoint,currentPoint,z);
+      if(onboundary == -1) break;
+      if(onboundary == 1) return undefined;
+      prevPoint = currentPoint;
     }
-    return false;
   }
 
-  bool check=true;
-  while(check) {
-    check = false;
-    for (pair v : p)
-      check = check || checkColinear(v);
-  }
-
-  var W=StraightContribution(outside);
-
-  pair prevPoint = p[p.length - 1];
-  for (int i=0; i < p.length; ++i) {
-    pair currentPoint = p[i];
-    if(W.onBoundary(prevPoint,currentPoint,z)) return undefined;
-    prevPoint = currentPoint;
-  }
   return W.count;
 }
 
