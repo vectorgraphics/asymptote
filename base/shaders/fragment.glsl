@@ -241,14 +241,90 @@ void avoidCoplanar(vec3 u, vec3 w, vec3 v, float Epsilon, inout bool redo, inout
   }
 }
 
+  // make sure the outside point is not colinear with any of the edges of the
+  // face
+void avoidColinear(vec3 u, vec3 v, float Epsilon, vec3 H, vec3 n,
+                   inout vec3 outside) {
+  if(u == v) discard;  // test point is a vertex
+  vec3 normal=normalize(cross(v-u,H-u));
+  outside += normal*Epsilon;
+  outside -= dot(outside,n)*n;
+}
+
 #define Vertex(i) vertex[clipindex[i]]
 
+void discardIfInsideFace(vec3 z, vec3 a, vec3 b, vec3 c) {
+  // v is test point, a,b,c are vertices of the face
+  vec3 m=min(min(a,b),c);
+  vec3 M=max(max(a,b),c);
+
+  vec3 outside=2*M-m;
+  float norm=length(M-m);
+  float Epsilon=norm*EPSILON;
+
+  vec3 n=normalize(cross(c-a,b-a));
+  vec3 normal=norm*n;
+  vec3 H=z+normal;
+
+  // project the outside point on to the plane defined by the face
+  outside -= dot(outside,n)*n;
+
+  int count;
+  vec3 currentFace[3]=vec3[3](a,b,c);  // put in array for iteration
+
+  float s3=0;
+  float s4=0;
+  while(s3 == 0 || s4 == 0) {
+    count=0;
+
+    vec3 z0=currentFace[2];
+    for(uint i=0; i<3; ++i) {
+      vec3 z1=currentFace[i];
+      float s1=sign(orient(z,z0,z1,H));
+      if (s1 == 0) {
+        // insidesegment in 3d
+        if (z == z1 || z == z0) discard;
+        if (z0 == z1) continue;
+        vec3 h=cross(z1-z0,normal);
+        float s1_=sign(orient(z0,z,h,H));
+        float s2_=sign(orient(z1,z,h,H));
+        if (s1_ != s2_) {
+          discard;
+        }
+        continue;
+      }
+
+      float s2=sign(orient(outside,z0,z1,H));
+
+      if (s1 == s2)
+        continue;
+
+      float s3=sign(orient(z,outside,z0,H));
+      if(s3 == 0)
+        avoidColinear(z0,z,Epsilon,H,n,outside);
+
+      float s4=sign(orient(z,outside,z1,H));
+      if(s3 == 0)
+        avoidColinear(z1,z,Epsilon,H,n,outside);
+
+      if(s3 == 0 || s4 == 0) break;
+
+      if (s3 != s4)
+        count += int(s3);
+
+      z0=z1;
+    }
+  }
+
+  if (count != 0) discard;
+}
+
 void discardIfInside(vec3 v, uint startIndex, uint endIndex) {
-  uint n=vertex.length();
-  vec3 m=Vertex(0).xyz;
-  for (uint i=0; i < n; ++i) m=min(m,Vertex(i).xyz);
-  vec3 M=Vertex(0).xyz;
-  for (uint i=0; i < n; ++i) M=max(M,Vertex(i).xyz);
+  uint n = vertex.length();
+  vec3 m = Vertex(0).xyz;
+  for (uint i=0;i<n;++i) m = min(m,Vertex(i).xyz);
+  vec3 M = Vertex(0).xyz;
+  for (uint i=0;i<n;++i) M = max(M,Vertex(i).xyz);
 
   vec3 outside=10*M-m; // TODO: Revert to 2*M-m;
   float norm=length(M-m);
@@ -266,10 +342,12 @@ void discardIfInside(vec3 v, uint startIndex, uint endIndex) {
       vec3 c=Vertex(i+2).xyz;
 
       float s1=sign(orient(v,a,b,c));
-      // s1 == 0 is the case where the test point lies on the planar extension
-      // of the face.
-      if (s1 == 0)
-        discard;
+      if (s1 == 0) {
+        // s1 == 0 is the case where the test point lies on the planar extension
+        // of the face. check if it lies within the face
+        discardIfInsideFace(v,a,b,c);
+        continue;
+      }
 
       float s2=sign(orient(outside,a,b,c));
       if (s1 == s2) {
