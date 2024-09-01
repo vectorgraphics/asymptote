@@ -93,8 +93,9 @@ int windingnumberPolygon(triple[] p, triple v) {
   outside=outside-dot(outside,n)*n;
 
   int onboundary=-1;
-  var W=StraightContribution(outside,v,Epsilon,normal,H);
+  StraightContribution W=StraightContribution(outside,v,Epsilon,normal,H);
   while(onboundary == -1) {
+    W.count=0;
     triple prevPoint = p[p.length - 1];
     for (int i=0; i < p.length; ++i) {
       triple currentPoint = p[i];
@@ -204,8 +205,9 @@ int windingnumberPolyhedron(triple[][] p, triple v) {
   real Epsilon=norm*epsilon;
 
   int onboundary=-1;
+  StraightContribution3 W=StraightContribution3(outside,v,Epsilon);
   while(onboundary == -1) {
-    StraightContribution3 W=StraightContribution3(outside,v,Epsilon);
+    W.count=0;
     for(triple[] f : p) {
       onboundary=W.onBoundary(f[0],f[1],f[2]);
       if(onboundary == -1) break;

@@ -71,8 +71,9 @@ int windingnumberPolygon(pair[] p, pair z) {
   real Epsilon=abs(M-m)*epsilon;
 
   int onboundary=-1;
-  var W=StraightContribution(outside,z,Epsilon);
+  StraightContribution W=StraightContribution(outside,z,Epsilon);
   while(onboundary == -1) {
+    W.count=0;
     pair prevPoint = p[p.length - 1];
     for (int i=0; i < p.length; ++i) {
       pair currentPoint = p[i];
