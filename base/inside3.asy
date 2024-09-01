@@ -132,7 +132,7 @@ triple maxbound(triple[][] polyhedron) {
 struct StraightContribution3 {
   triple outside;
   triple v;
-  int count=0;
+  int count;
   real Epsilon;
   bool redo;
 
@@ -154,7 +154,7 @@ struct StraightContribution3 {
   }
 
   int onBoundary(triple a, triple b, triple c) {
-    int s1 = sgn(orient(v, a, b, c));
+    int s1=sgn(orient(v,a,b,c));
     if (s1 == 0) {
       triple[] tri = {a,b,c};
       return insidePolygon(tri, v) ? 1 : 0;
@@ -204,8 +204,8 @@ int windingnumberPolyhedron(triple[][] p, triple v) {
   real Epsilon=norm*epsilon;
 
   int onboundary=-1;
-  StraightContribution3 W=StraightContribution3(outside,v,Epsilon);
   while(onboundary == -1) {
+    StraightContribution3 W=StraightContribution3(outside,v,Epsilon);
     for(triple[] f : p) {
       onboundary=W.onBoundary(f[0],f[1],f[2]);
       if(onboundary == -1) break;

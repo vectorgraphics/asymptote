@@ -229,157 +229,78 @@ float orient(vec3 a, vec3 b, vec3 c, vec3 d) {
   return dot(cross(a-d,b-d), c-d);
 }
 
-void checkCoplanar(vec3 vertex1, vec3 vertex2, vec3 testPoint, float Epsilon, inout bool check, inout vec3 outside) {
-  vec3 normal=normalize(cross(testPoint-vertex1,vertex2-vertex1));
-  vec3 H=testPoint+normal;
-  if (orient(vertex1,testPoint,vertex2,H) != 0 && orient(vertex1,testPoint,vertex2,outside) == 0) {
-    if(normal != vec3(0,0,0)) {
-      outside += normal*Epsilon*1000;
-      check = true;
-    }
+  // check that the outside point is not coplanar with any of the faces of the
+  // of the polyhedron. if it is, move it a little bit in the direction of the
+  // normal and recheck all the faces
+void avoidCoplanar(vec3 u, vec3 w, vec3 v, float Epsilon, inout bool redo, inout vec3 outside) {
+  vec3 normal=normalize(cross(v-u,w-u));
+  vec3 H=v+normal;
+  if (orient(u,v,w,H) != 0) {
+    redo=true;
+    outside += normal*Epsilon*1000;
   }
 }
 
 #define Vertex(i) vertex[clipindex[i]]
 
-vec3 nonCoplanarOutsidePoint(vec3 v, uint startIndex, uint endIndex) {
-  uint n = vertex.length();
-  vec3 m = Vertex(0).xyz;
-  for (uint i=0;i<n;++i) m = min(m,Vertex(i).xyz);
-  vec3 M = Vertex(0).xyz;
-  for (uint i=0;i<n;++i) M = max(M,Vertex(i).xyz);
+void discardIfInside(vec3 v, uint startIndex, uint endIndex) {
+  uint n=vertex.length();
+  vec3 m=Vertex(0).xyz;
+  for (uint i=0; i < n; ++i) m=min(m,Vertex(i).xyz);
+  vec3 M=Vertex(0).xyz;
+  for (uint i=0; i < n; ++i) M=max(M,Vertex(i).xyz);
 
   vec3 outside=10*M-m; // TODO: Revert to 2*M-m;
   float norm=length(M-m);
   float Epsilon=norm*EPSILON;
 
-  // check that the outside point is not coplanar with any of the faces of the
-  // of the polyhedron. if it is, move it a little bit in the direction of the
-  // normal and recheck all the faces
-  bool check=true;
-  while (check) {
-    check = false;
-    // check each face
-    for (uint i=startIndex;i<endIndex; i += 3) {
+  bool redo=true;
+  int count;
+  while(redo) {
+    redo=false;
+    count=0;
+
+    for(uint i=startIndex; i < endIndex; i += 3) {
       vec3 a=Vertex(i).xyz;
       vec3 b=Vertex(i+1).xyz;
       vec3 c=Vertex(i+2).xyz;
-      // for each face (3 vertices), check each edge
-      checkCoplanar(a,b,v,Epsilon,check,outside);
-      checkCoplanar(b,c,v,Epsilon,check,outside);
-      checkCoplanar(c,a,v,Epsilon,check,outside);
-    }
-  }
-  return outside;
-}
 
-void discardIfInsideFace(vec3 v, vec3 a, vec3 b, vec3 c) {
-  // v is test point, a,b,c are vertices of the face
-  vec3 m=min(min(a,b),c);
-  vec3 M=max(max(a,b),c);
-
-  vec3 outside=2*M-m;
-  float norm=length(M-m);
-  float Epsilon=norm*EPSILON;
-
-  vec3 n=normalize(cross(c-a,b-a));
-  vec3 normal=norm*n;
-  vec3 H=v+normal;
-
-  // project the outside point on to the plane defined by the face
-  outside -= dot(outside,n)*n;
-
-  vec3 currentFace[3]=vec3[3](a,b,c);  // put in array for iteration
-  // make sure the outside point is not colinear with any of the edges of the
-  // face
-  bool check=true;
-  while(check) {
-    check=false;
-    for(uint i=0;i<3;++i) {
-      vec3 u=currentFace[i];
-      if (u == v) discard;  // test point is a vertex
-      if (orient(u,v,outside,H) == 0) {
-        vec3 normal=normalize(cross(v-u,H-u));
-        if(normal != vec3(0,0,0)) {
-          outside += normal*Epsilon;
-          outside -= dot(outside,n)*n;
-          check=true;
-        }
-      }
-    }
-  }
-
-
-  int count=0;
-  vec3 z0=currentFace[2];
-  vec3 z=v;
-  for(uint i=0; i<3; ++i) {
-    vec3 z1=currentFace[i];
-    float s1=sign(orient(z,z0,z1,H));
-    if (s1 == 0) {
-      // insidesegment in 3d
-      if (z == z1 || z == z0) discard;
-      if (z0 == z1) continue;
-      vec3 h=cross(z1-z0,normal);
-      float s1_=sign(orient(z0,z,h,H));
-      float s2_=sign(orient(z1,z,h,H));
-      if (s1_ != s2_) {
-        discard;
-      }
-      continue;
-    }
-
-    float s2=sign(orient(outside,z0,z1,H));
-
-    if (s1 == s2) {
-      continue;
-    }
-
-    float s3=sign(orient(z,outside,z0,H));
-    float s4=sign(orient(z,outside,z1,H));
-    if (s3 != s4) {
-      count += int(s3);
-    }
-
-    z0=z1;
-  }
-
-  if (count != 0) discard;
-}
-
-void discardIfInside(vec3 v, uint startIndex, uint endIndex) {
-  vec3 outside=nonCoplanarOutsidePoint(v, startIndex, endIndex);
-  int count=0;
-  for (uint i=startIndex;i<endIndex; i += 3) {
-    vec3 a=Vertex(i).xyz;
-    vec3 b=Vertex(i+1).xyz;
-    vec3 c=Vertex(i+2).xyz;
-
-    float s1=sign(orient(v,a,b,c));
-    if (s1 == 0) {
+      float s1=sign(orient(v,a,b,c));
       // s1 == 0 is the case where the test point lies on the planar extension
-      // of the face. check if it lies within the face
-      discardIfInsideFace(v,a,b,c);
-      continue;
-    }
+      // of the face.
+      if (s1 == 0)
+        discard;
 
-    float s2=sign(orient(outside,a,b,c));
-    if (s1 == s2) {
-      // s1 == s2 means that the test point has the same sidedness as the
-      // outside point for this face, indicating that it is also outside and
-      // has no winding number contribution
-      continue;
-    }
+      float s2=sign(orient(outside,a,b,c));
+      if (s1 == s2) {
+        // s1 == s2 means that the test point has the same sidedness as the
+        // outside point for this face, indicating that it is also outside and
+        // has no winding number contribution
+        continue;
+      }
 
-    float s3=sign(orient(v,outside,a,b));
-    float s4=sign(orient(v,outside,b,c));
-    float s5=sign(orient(v,outside,c,a));
+      // Now we know that the segment 'straddles' the supporting
+      // plane. We need to test whether the three tetrahedra formed
+      // by the segment and the three edges of the triangle have
+      // the same orientation
+      float s3=sign(orient(v,outside,a,b));
+      if(s3 == 0)
+        avoidCoplanar(a,b,v,Epsilon,redo,outside);
 
-    if (s3 == s4 && s4 == s5) {
-      count += int(s3);
+      float s4=sign(orient(v,outside,b,c));
+      if(s4 == 0)
+        avoidCoplanar(b,c,v,Epsilon,redo,outside);
+
+      float s5=sign(orient(v,outside,c,a));
+      if(s5 == 0)
+        avoidCoplanar(c,a,v,Epsilon,redo,outside);
+
+      if(redo) break;
+
+      if (s3 == s4 && s4 == s5)
+        count += int(s3);
     }
   }
-
   if (count != 0) discard;
 }
 
