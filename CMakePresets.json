@@ -118,11 +118,12 @@
       }
     },
     {
-      "name": "msvc/release-with-existing-asymptote-pdf",
+      "name": "msvc/release-with-external-doc-files",
       "displayName": "[MSVC-x86/64] Release (with external asymptote.pdf)",
       "inherits": ["msvc/release"],
       "cacheVariables": {
-        "EXTERNAL_ASYMPTOTE_PDF_FILE": "${sourceDir}/extfiles/asymptote.pdf"
+        "ENABLE_DOCGEN": "false",
+        "EXTERNAL_DOCUMENTATION_DIR": "${sourceDir}/extfiles"
       }
     },
     {
