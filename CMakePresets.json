@@ -119,12 +119,20 @@
       }
     },
     {
-      "name": "msvc/release-with-external-doc-files",
+      "name": "msvc/release-with-existing-asymptote-pdf",
       "displayName": "[MSVC-x86/64] Release (with external asymptote.pdf)",
       "inherits": ["msvc/release"],
       "cacheVariables": {
-        "ENABLE_DOCGEN": "false",
+        "ENABLE_ASYMPTOTE_PDF_DOCGEN": "false",
         "EXTERNAL_DOCUMENTATION_DIR": "${sourceDir}/extfiles"
+      }
+    },
+    {
+      "name": "msvc/release-with-external-doc-files",
+      "displayName": "[MSVC-x86/64] Release (with external documentation)",
+      "inherits": ["msvc/release-with-existing-asymptote-pdf"],
+      "cacheVariables": {
+        "ENABLE_DOCGEN": "false"
       }
     },
     {
