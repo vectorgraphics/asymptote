@@ -893,17 +893,15 @@ bool picture::postprocess(const string& prename, const string& outname,
         res *= expand;
         string s=getSetting<string>("convert");
         cmd.push_back(s);
-        if(s != "convert")
-          cmd.push_back("convert");
         cmd.push_back("-density");
         cmd.push_back(String(res)+"x"+String(res));
+        cmd.push_back(prename);
         if(expand == 1.0)
           cmd.push_back("+antialias");
         push_split(cmd,getSetting<string>("convertOptions"));
         cmd.push_back("-resize");
         cmd.push_back(String(100.0/expand)+"%x");
         if(outputformat == "jpg") cmd.push_back("-flatten");
-        cmd.push_back(prename);
         cmd.push_back(outputformat+":"+outname);
         status=System(cmd,0,true,"convert");
       }
