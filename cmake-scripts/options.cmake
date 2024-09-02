@@ -148,15 +148,6 @@ option(
 )
 
 # documentation
-
-set(
-        EXTERNAL_ASYMPTOTE_PDF_FILE "" CACHE STRING
-        "If specified, will use the following file as asymptote.pdf in packaging
-instead of building. This is because the requirements for building asymptote.pdf on
-windows can be complex (at the moment requiring WSL) due to the lack of native
-texindex on windows."
-)
-
 set(WIN32_TEXINDEX "WSL" CACHE STRING
         "Location to texindex for windows, or WSL to use internal WSL wrapper.
 Inert for non-windows systems.")
@@ -218,7 +209,6 @@ endif()
 if (LATEX_PDFLATEX_FOUND AND PDFTEX_EXEC)
     set(ENABLE_BASE_DOCGEN_POSSIBLE true)
 
-    if (NOT EXTERNAL_ASYMPTOTE_PDF_FILE)
     if (WIN32)
         determine_asymptote_pdf_gen_possible_win32()
     elseif(UNIX)
@@ -227,16 +217,20 @@ if (LATEX_PDFLATEX_FOUND AND PDFTEX_EXEC)
             set(ENABLE_ASYMPTOTE_PDF_DOCGEN_POSSIBLE true)
         endif()
     endif()
-    endif()
 endif()
 
-if (NOT ENABLE_BASE_DOCGEN_POSSIBLE)
-    message(STATUS "System does not have the preqrequisites for building documentation")
-endif()
+set(
+        EXTERNAL_DOCUMENTATION_DIR "" CACHE STRING
+        "If specified, installation will use files from this directory as documentation.
+In particular,
 
-if (NOT (EXTERNAL_ASYMPTOTE_PDF_FILE OR ENABLE_ASYMPTOTE_PDF_DOCGEN_POSSIBLE))
-    message(STATUS "Build is without asymptote.pdf; system cannot generate asymptote.pdf.")
-endif()
+- if ENABLE_DOCGEN and ENABLE_ASYMPTOTE_PDF_DOCGEN is enabled and the system has the capability to build
+all documentation files, this option is inert.
+- if ENABLE_DOCGEN is enabled but ENABLE_ASYMPTOTE_PDF_DOCGEN is disabled or if the system cannot produce asymptote.pdf,
+only asymptote.pdf will be copied from this directory.
+- if ENABLE_DOCGEN is disabled, every documentation file will be copied from this directory.
+"
+)
 
 cmake_dependent_option(
     ENABLE_DOCGEN
@@ -250,10 +244,23 @@ cmake_dependent_option(
         ENABLE_ASYMPTOTE_PDF_DOCGEN
         "Enable asymptote.pdf document generation. Requires texinfo, and additionally WSL + texindex on windows."
         true
-        "ENABLE_ASYMPTOTE_PDF_DOCGEN_POSSIBLE"
+        "ENABLE_ASYMPTOTE_PDF_DOCGEN_POSSIBLE;ENABLE_DOCGEN"
         false
 )
 
+if (NOT EXTERNAL_DOCUMENTATION_DIR)
+    if (NOT ENABLE_DOCGEN)
+        message(STATUS "Build is not generating documentation.
+If you are planning on generating installation files, please make sure you have access to
+documentation files in a directory and specify this directory in EXTERNAL_DOCUMENTATION_DIR cache variable.
+")
+    elseif(NOT ENABLE_ASYMPTOTE_PDF_DOCGEN)
+        message(STATUS "Build is not generating asymptote.pdf.
+If you are planning on generating installation files, please make sure you have access to asymptote.pdf
+in a directory and specify this directory in EXTERNAL_DOCUMENTATION_DIR cache variable.
+")
+    endif()
+endif()
 
 # windows-specific installation
 option(

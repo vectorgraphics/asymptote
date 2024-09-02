@@ -20,16 +20,8 @@ macro(action_if_component_not_buildable message)
     endif()
 endmacro()
 
-if (NOT ASY_TEX_BUILD_ROOT)
-    action_if_component_not_buildable("Documentation is not buildable")
-endif()
-
-if (NOT (EXTERNAL_ASYMPTOTE_PDF_FILE OR ENABLE_ASYMPTOTE_PDF_DOCGEN))
-    action_if_component_not_buildable("asymptote.pdf is not buildable")
-endif()
-
 # helper target for files needed
-add_custom_target(asy-pre-nsis-targets DEPENDS asy asy-basefiles docgen)
+add_custom_target(asy-pre-nsis-targets DEPENDS asy asy-basefiles)
 
 # check done, start configuration
 set(ASYMPTOTE_NSI_CONFIGURATION_DIR ${CMAKE_CURRENT_BINARY_DIR}/nsifiles)
@@ -94,24 +86,53 @@ install(
 # this can also be called from asy-pre-nsis-targets, which includes asy-with-basefiles alongside docgen.
 # this is a limitation of cmake currently (https://discourse.cmake.org/t/install-file-with-custom-target/2984/2)
 
+if (ASY_TEX_BUILD_ROOT)
+    add_dependencies(asy-pre-nsis-targets docgen)
+endif()
+
+macro(install_from_external_documentation_dir docfile_name)
+    set(DOCFILE_LOCATION ${EXTERNAL_DOCUMENTATION_DIR}/${docfile_name})
+    if(EXISTS ${DOCFILE_LOCATION})
+        install(FILES ${DOCFILE_LOCATION} ${ASY_NSIS_INSTALL_ARGUMENT})
+    else()
+        action_if_component_not_buildable("${docfile_name} cannot be found")
+    endif()
+endmacro()
+
+
 if (ASY_TEX_BUILD_ROOT)  # basic docgen possible
     install(
             FILES ${BASE_ASYMPTOTE_DOC_AND_TEX_FILES}
             ${ASY_NSIS_INSTALL_ARGUMENT}
     )
+elseif(EXTERNAL_DOCUMENTATION_DIR)
+    set(
+            ASY_DOC_FILES_TO_COPY
+            asymptote.sty
+            asy-latex.pdf
+            CAD.pdf
+            TeXShopAndAsymptote.pdf
+            asyRefCard.pdf
+            latexusage.pdf
+    )
+    foreach(ASY_DOC_FILE ${ASY_DOC_FILES_TO_COPY})
+        install_from_external_documentation_dir(${ASY_DOC_FILE})
+    endforeach()
+else()
+    action_if_component_not_buildable("base asymptote documentation cannot be found and is not buildable")
 endif()
 
-if (EXTERNAL_ASYMPTOTE_PDF_FILE)
-    install(
-            FILES ${EXTERNAL_ASYMPTOTE_PDF_FILE}
-            ${ASY_NSIS_INSTALL_ARGUMENT}
-            RENAME asymptote.pdf
-    )
-elseif(ENABLE_ASYMPTOTE_PDF_DOCGEN)
+
+# asymptote.pdf
+if(ENABLE_ASYMPTOTE_PDF_DOCGEN)
     install(
             FILES ${ASY_TEX_BUILD_ROOT}/asymptote.pdf
             ${ASY_NSIS_INSTALL_ARGUMENT}
     )
+elseif (EXTERNAL_DOCUMENTATION_DIR)
+    install_from_external_documentation_dir(asymptote.pdf)
+else()
+    action_if_component_not_buildable("asymptote.pdf cannot be found and is not buildable")
 endif()
 
 # README files
