@@ -15,8 +15,9 @@ Ensure the following is installed:
   - (Recommended way) Strawberry Perl is available at [Strawberry Perl](https://strawberryperl.com/).
   - (Not recommended due to license terms) ActiveState Perl is available [here](https://www.activestate.com/products/perl/).
 - Ninja
-  - (Recommended way) Ninja can be installed using winget by running `winget install Ninja-build.Ninja`.
-  - Otherwise, Ninja can be found [here](https://ninja-build.org/).
+  - (Recommended) Visual Studio/Visual Studio Build Tools provides bundled Ninja as part of CMake build tools
+  - Otherwise, Ninja can be installed using winget by running `winget install Ninja-build.Ninja`.
+  - If winget is not available, Ninja can be found [here](https://ninja-build.org/).
     If installing this way, ensure `ninja` is accessible from `PATH`.
   - (Untested) `ninja.exe` is bundled within a Strawberry Perl installation.
 
