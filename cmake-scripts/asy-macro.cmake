@@ -44,3 +44,7 @@ endif()
 if (CMAKE_BUILD_TYPE IN_LIST cmake_debug_build_types)
     list(APPEND ASY_MACROS DEBUG)
 endif()
+
+if (CTAN_BUILD)
+    list(APPEND ASY_MACROS CTAN_BUILD)
+endif()

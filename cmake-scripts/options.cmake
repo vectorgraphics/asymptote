@@ -97,6 +97,7 @@ option(
 
 option(DEBUG_GC_ENABLE "Enable debug mode for gc" false)
 option(DEBUG_GC_BACKTRACE_ENABLE "Enable backtrace for gc" false)
+option(CTAN_BUILD "Build for CTAN." false)
 
 # additional optimization options
 
