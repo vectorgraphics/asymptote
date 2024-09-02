@@ -1,76 +1,22 @@
-        Compiling MSWindows binary of Asymptote under CYGWIN-x86_64
+        Compiling MSWindows binary of Asymptote under MSVC
 
-First run build-asymptote on Linux. This will build the documentation
-and source tar ball and copy them to a directory ~/shared which needs to be
-shared via virtualbox to the cygwin build environment.
+First ensure asymptote documentation files are built on linux. Copy these to extfiles/ directory
 
-Install TeXLive and required Cygwin packages:
+Ensure git is available
+Ensure Powershell execution policy is Bypass
 
-setup-x86_64.exe -q -P git,wget,make,patch,gcc-g++,autoconf2.5,bison,flex,w32api-headers,w32api-runtime,zlib-devel,glm-devel,automake1.15,libtool
+# TODO: Does unrestricted execution policy work by default?
+Install powershell community extensions by "Install-Module Pscx -Scope CurrentUser" (https://github.com/Pscx/Pscx)
+Install VSSetup extension for powershell by "Install-Module VSSetup -Scope CurrentUser"
 
-setup-x86_64.exe -q -I -P libtirpc-devel,libreadline-devel,libfftw3-devel,libgsl-devel,libcurl-devel
+Install Visual Studio Build Tools (Select CMake build tools as part of installation)
+Install python3 (https://www.python.org/)
+Install perl (https://strawberryperl.com/)
+Install LLVM (https://github.com/llvm/llvm-project/releases)
 
-Download wolfssl GPLV3 source code from www.wolfssl.com
+Download NSIS 3+ ZIP from https://sourceforge.net/projects/nsis/ and extract to tools-cache/nsis
+(Make sure tools-cache/nsis/makensis.exe is available)
 
-Build and install static libraries from /usr/src:
+# TODO: check if NSIS puts makensis in PATH or not for default installation
 
-gsl-devel:
-./configure --prefix=/usr
-make install
-
-readline-devel:
-./configure --prefix=/usr --disable-shared
-make install LOCAL_CFLAGS=-DNEED_EXTERN_PC
-
-fftw3-devel:
-./configure --prefix=/usr --disable-shared
-make install
-
-tirpc-devel:
-./configure --prefix=/usr --disable-gssapi
-make install
-rm -rf /usr/include/rpc
-ln -s /usr/include/tirpc/rpc /usr/include/rpc
-ln -sf /usr/include/tirpc/netconfig.h /usr/include/netconfig.h
-ln -sf /usr/lib/libtirpc.a /usr/lib/librpc.a
-
-termcap-1.3.1:
-./configure --prefix=/usr
-make install
-
-wolfssl-4.4.0-gplv3-fips-ready:
-./configure --prefix=/usr --enable-static
-make install
-
-curl-7.71.1:
-./configure --prefix=/usr --disable-shared --without-brotli --without-ssl --with-wolfssl
-make install
-
-git clone http://github.com/vectorgraphics/asymptote
-
-freeglut-3.0.0:
-patch -p1 < ~/asymptote/patches/cygwin_freeglut-3.0.0.patch
-cmake CMakeLists.txt
-make
-cp lib/libfreeglut_static.a /usr/lib/libfreeglut.a
-cp -a include/GL/*.h /usr/include/w32api/GL/
-
-mkdir -p ~/dll/cygwin
-cp /usr/bin/cygwin1.dll ~/dll/cygwin
-
-mkdir ~/CTAN
-cp -a ~/asymptote/build-scripts/README-binaries ~/CTAN
-
-cd ~/
-GCVERSION=7.6.2
-ATOMICVERSION=7.6.10
-wget http://hboehm.info/gc/gc_source/gc-$GCVERSION.tar.gz
-wget https://github.com/ivmai/libatomic_ops/releases/download/v$ATOMICVERSION/libatomic_ops-$ATOMICVERSION.tar.gz
-tar -zxf gc-$GCVERSION.tar.gz
-tar -zxf libatomic_ops-$ATOMICVERSION.tar.gz
-mv libatomic_ops-$ATOMICVERSION gc-$GCVERSION/libatomic_ops
-cd gc-$GCVERSION
-./configure --disable-shared
-make check
-
-~/asymptote/build-scripts/build-asymptote.dos <VERSION>
+./build-asymptote.ps1 <VERSION>
