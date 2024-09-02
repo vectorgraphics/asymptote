@@ -1,9 +1,5 @@
 # ---- asy tests ------
 
-if (WIN32)
-    set(SYSDIR_ARGS -sys /)
-endif()
-
 set(ASY_ASYLANG_TEST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 set(ASY_ASYLANG_TEST_SCRATCH_DIR ${ASY_ASYLANG_TEST_ROOT}/out/)
 
@@ -19,8 +15,8 @@ function(add_individual_asy_tests)
     add_test(
             NAME "asy.${ASY_TEST_DIR}.${ASY_TEST_FILE}"
             COMMAND asy
-                -dir ${ASY_BUILD_BASE_DIR} ${SYSDIR_ARGS} ${TEST_PATH}
-                -o ${ASY_ASYLANG_TEST_SCRATCH_DIR}
+                -dir ${ASY_BUILD_BASE_DIR} ${TEST_PATH}
+                -o out
                 -globalwrite
                 ${ASY_TEST_ADDR_ASY_ARGS}
             WORKING_DIRECTORY ${ASY_ASYLANG_TEST_ROOT}
