@@ -114,6 +114,7 @@
         "base/windows-only", "base/ensure-cl-compiler", "base/allow_version_override_from_env"
       ],
       "cacheVariables": {
+        "ENABLE_LSP": "false",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/cmake-install-w32-nsis-release"
       }
     },
