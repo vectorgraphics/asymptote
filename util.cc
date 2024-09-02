@@ -130,7 +130,7 @@ int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
     startInfo.hStdError= quiet >= 2 ? nulFileHandle.getHandle() : GetStdHandle(STD_ERROR_HANDLE);
 
     ostringstream errorMessage;
-    errorMessage << "Cannot open application " << application;
+    errorMessage << "Cannot open " << application << "\n";
     string const errorMessageOut=errorMessage.str();
     w32::checkResult(CreateProcessA(
                        nullptr,
