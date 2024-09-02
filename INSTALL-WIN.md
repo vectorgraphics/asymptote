@@ -31,11 +31,10 @@ Ensure the following is installed:
 
 ### Dependencies for documentation generation (Required only for building a setup file)
 
-Make sure [MikTeX](https://miktex.org/) is installed in the system.
-[TeX Live](https://tug.org/texlive/windows.html) is an acceptable substitute if you are not building `asymptote.pdf`,
-which requires extra steps which will be discussed further.
+Ensure [TeX Live](https://tug.org/texlive/windows.html) is available on the system.
+[MikTeX](https://miktex.org) is a possible substitute but is unsupported.
 
-If both `MikTeX` or `TeX Live` are not installed on the system, documentation generation will be disabled.
+Building `asymptote.pdf` requires a UNIX system.
 
 ### Dependencies for building the setup file
 
