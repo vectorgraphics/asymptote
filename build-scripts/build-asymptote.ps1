@@ -14,7 +14,7 @@ param(
 
 # ----------------------------------------------------
 # checking documentation files
-$extfilesRoot="extfiles"
+$extfilesRoot="Z:\asy\asydoc"
 $requiredDocumentationFiles=@(
     "asymptote.sty"
     "asymptote.pdf"

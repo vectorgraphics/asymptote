@@ -1,6 +1,7 @@
         Compiling MSWindows binary of Asymptote under MSVC
 
-First ensure asymptote documentation files are built on linux. Copy these to extfiles/ directory
+First ensure that the asymptote documentation files and asymptote.sty are built under Linux.
+Copy these to the Z:\asy\asydoc directory.
 
 Ensure git is available
 Ensure Powershell execution policy is Bypass
