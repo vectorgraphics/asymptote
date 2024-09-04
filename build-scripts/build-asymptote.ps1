@@ -12,6 +12,8 @@ param(
     [string]$Version
 )
 
+# TODO: Also handle automatic version handling
+
 # ----------------------------------------------------
 # checking documentation files
 $extfilesRoot="Z:\asy\asydoc"
@@ -152,5 +154,17 @@ Pop-EnvironmentBlock  # Visual studio vars
 # ------------------------------------------------------
 # Generate NSIS installer file
 & ./asymptote/cmake-install-w32-nsis-release/build-asy-installer.ps1 "$makeNsisLoc"
+
+
+$asySetupFile="./asymptote/cmake-install-w32-nsis-release/asymptote-$Version-setup.exe"
+if (Test-Path -PathType leaf $asySetupFile)
+{
+    Copy-Item $asySetupFile .
+}
+else
+{
+    Write-Error "Asymptote setup file not built."
+    Break
+}
 
 # TODO: Also handle CTAN builds
