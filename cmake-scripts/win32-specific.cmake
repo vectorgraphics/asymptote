@@ -14,7 +14,7 @@ endif()
 list(APPEND ASY_MACROS WIN32_LEAN_AND_MEAN NOMINMAX __MSDOS__=1)
 
 
-# set ASYMPTOTE_SYSTEM_DIR to empty string
+# set ASYMPTOTE_SYSDIR to empty string
 if (CTAN_BUILD)
     list(APPEND ASY_MACROS ASYMPTOTE_SYSDIR="")
 else()
