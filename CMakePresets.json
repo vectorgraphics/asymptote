@@ -86,7 +86,13 @@
         "ASY_VERSION_OVERRIDE": "$env{ASY_VERSION_OVERRIDE}"
       }
     },
-
+    {
+      "name": "base/ctan",
+      "hidden": true,
+      "cacheVariables": {
+        "CTAN_BUILD": "true"
+      }
+    },
     {
       "name": "linux/release",
       "displayName": "[linux-x86/64] Release",
@@ -134,6 +140,11 @@
       "cacheVariables": {
         "ENABLE_DOCGEN": "false"
       }
+    },
+    {
+      "name": "msvc/release-with-external-doc-file-ctan",
+      "displayName": "[MSVC-x86/64] Release (with external documentation) for CTAN",
+      "inherits": ["msvc/release-with-external-doc-files", "base/ctan"]
     },
     {
       "name": "msvc/releaseWithDebugInfo",
