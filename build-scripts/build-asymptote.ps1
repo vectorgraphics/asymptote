@@ -168,7 +168,7 @@ if (Test-Path -PathType leaf "asymptote-$Version-setup.exe")
 
 if (Test-Path -PathType leaf $asySetupFile)
 {
-    Copy-Item $asySetupFile . -Force
+    Move-Item $asySetupFile . -Force
 }
 else
 {
