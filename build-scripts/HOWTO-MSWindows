@@ -4,7 +4,8 @@ First ensure that the asymptote documentation files and asymptote.sty are built 
 Copy these to the Z:\asy\asydoc directory.
 
 Ensure git is available
-Ensure Powershell execution policy is Bypass
+Ensure Powershell execution policy is at least unrestricted (the default for Powershell 7):
+Set-ExecutionPolicy -Scope CurrentUser unrestricted
 
 # TODO: Does unrestricted execution policy work by default?
 Install powershell community extensions by "Install-Module Pscx -Scope CurrentUser" (https://github.com/Pscx/Pscx)
@@ -14,6 +15,9 @@ Install Visual Studio Build Tools (Select CMake build tools as part of installat
 Install python3 (https://www.python.org/)
 Install perl (https://strawberryperl.com/)
 Install LLVM (https://github.com/llvm/llvm-project/releases)
+
+Install virtualenv:
+pip3 install virtualenv
 
 Download NSIS 3+ ZIP from https://sourceforge.net/projects/nsis/ and extract to tools-cache/nsis
 (Make sure tools-cache/nsis/makensis.exe is available)
