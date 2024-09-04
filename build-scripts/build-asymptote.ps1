@@ -131,25 +131,27 @@ Pop-Location
 
 
 # ----------------------------------------------------
-# build C++ side
-Import-VisualStudioVars -Architecture x64
-Push-EnvironmentBlock
+
+function buildAsy($preset, $cfgDir) {
+    # build C++ side
+    Import-VisualStudioVars -Architecture x64
+    Push-EnvironmentBlock
     $env:ASY_VERSION_OVERRIDE = $Version
     if ($useToolsCacheVcpkg)
     {
         $env:VCPKG_ROOT = $vcpkgToolsCacheLoc
     }
     Push-Location asymptote
-    cmake --preset msvc/release-with-external-doc-files
+    cmake --preset $preset
     Pop-Location
-
-    $asymptoteCmakeConfigurationDir="asymptote/cmake-build-msvc/release"
-    cmake --build $asymptoteCmakeConfigurationDir --target asy-pre-nsis-targets -j
+    cmake --build $cfgDir --target asy-pre-nsis-targets -j
+    Pop-EnvironmentBlock  # ASY_VERSION_OVERRIDE, VCPKG_ROOT
+    Pop-EnvironmentBlock  # Visual studio vars
     # install to pre-installation root
-    cmake --install $asymptoteCmakeConfigurationDir --component asy-pre-nsis
+}
 
-Pop-EnvironmentBlock  # ASY_VERSION_OVERRIDE, VCPKG_ROOT
-Pop-EnvironmentBlock  # Visual studio vars
+buildAsy msvc/release-with-external-doc-files asymptote/cmake-build-msvc/release
+cmake --install asymptote/cmake-build-msvc/release --component asy-pre-nsis
 
 # ------------------------------------------------------
 # Generate NSIS installer file
@@ -157,9 +159,16 @@ Pop-EnvironmentBlock  # Visual studio vars
 
 
 $asySetupFile="./asymptote/cmake-install-w32-nsis-release/asymptote-$Version-setup.exe"
+
+if (Test-Path -PathType leaf "asymptote-$Version-setup.exe")
+{
+    Write-Host "Found old setup file. Will delete the file."
+    Remove-Item -Force "asymptote-$Version-setup.exe"
+}
+
 if (Test-Path -PathType leaf $asySetupFile)
 {
-    Copy-Item $asySetupFile .
+    Copy-Item $asySetupFile . -Force
 }
 else
 {
@@ -167,4 +176,9 @@ else
     Break
 }
 
-# TODO: Also handle CTAN builds
+# ------------------------------------------------------
+# building for CTAN
+
+buildAsy msvc/release-with-external-doc-file-ctan asymptote/cmake-build-msvc/release
+New-Item -ItemType Directory -Path CTAN -Force
+Copy-Item asymptote/cmake-build-msvc/release/asy.exe -Destination CTAN/asy.exe
