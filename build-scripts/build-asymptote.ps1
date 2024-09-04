@@ -17,6 +17,7 @@ param(
 $extfilesRoot="extfiles"
 $requiredDocumentationFiles=@(
     "asymptote.sty"
+    "asymptote.pdf"
     "asy-latex.pdf"
     "CAD.pdf"
     "TeXShopAndAsymptote.pdf"
