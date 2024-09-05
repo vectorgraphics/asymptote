@@ -1239,9 +1239,11 @@ void AsyVkRender::createLogicalDevice()
 {
   auto const supportedDeviceExtensions = getDeviceExtensions(physicalDevice);
   std::vector<const char*> extensions(deviceExtensions.begin(), deviceExtensions.end());
+  bool usePortability = false;
 
   if (supportedDeviceExtensions.find(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
     extensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
+    usePortability = true;
   }
   if (View) {
     extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
@@ -1284,6 +1286,7 @@ void AsyVkRender::createLogicalDevice()
     queueCIs.push_back(queueCI);
   }
 
+  void * extensionChain = nullptr;
   auto portabilityFeatures = vk::PhysicalDevicePortabilitySubsetFeaturesKHR(
     false,
     true
@@ -1311,8 +1314,16 @@ void AsyVkRender::createLogicalDevice()
 
   physicalDevice.getProperties2(&props);
 
+  if (usePortability) {
+    extensionChain = &portabilityFeatures;
+  }
+
   if (interlock) {
-    portabilityFeatures.pNext = &interlockFeatures;
+    if (usePortability) {
+      portabilityFeatures.pNext = &interlockFeatures;
+    } else {
+      extensionChain = &interlockFeatures;
+    }
   }
 
   auto deviceCI = vk::DeviceCreateInfo(
@@ -1321,7 +1332,7 @@ void AsyVkRender::createLogicalDevice()
     VEC_VIEW(validationLayers),
     VEC_VIEW(extensions),
     &deviceFeatures,
-    &portabilityFeatures
+    extensionChain
   );
 
   device = physicalDevice.createDeviceUnique(deviceCI, nullptr);
@@ -4183,6 +4194,13 @@ void AsyVkRender::drawFrame()
     recreatePipeline = false;
   }
 
+  checkVkResult(device->waitForFences(
+    1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
+  ));
+  checkVkResult(device->resetFences(
+    1, &*frameObject.inFlightFence
+  ));
+
   uint32_t imageIndex=0; // index of the current swap chain image to render to
 
   // Get the image index from the swapchain if not viewing.
@@ -4196,13 +4214,6 @@ void AsyVkRender::drawFrame()
     else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
       throw std::runtime_error("Failed to acquire next swapchain image.");
   }
-
-  checkVkResult(device->waitForFences(
-    1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
-  ));
-  checkVkResult(device->resetFences(
-    1, &*frameObject.inFlightFence
-  ));
   frameObject.commandBuffer->reset(vk::CommandBufferResetFlagBits());
 
   updateUniformBuffer(currentFrame);
