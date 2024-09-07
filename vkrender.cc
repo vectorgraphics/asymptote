@@ -1289,6 +1289,12 @@ void AsyVkRender::createLogicalDevice()
   void * extensionChain = nullptr;
   auto portabilityFeatures = vk::PhysicalDevicePortabilitySubsetFeaturesKHR(
     false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
     true
   );
   auto interlockFeatures = vk::PhysicalDeviceFragmentShaderInterlockFeaturesEXT(
