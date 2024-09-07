@@ -824,7 +824,7 @@ void AsyVkRender::recreateSwapChain()
     glfwWaitEvents();
   }
 
-//  device->waitIdle();
+  device->waitIdle();
 
   createSwapChain();
 
@@ -1288,12 +1288,6 @@ void AsyVkRender::createLogicalDevice()
 
   void * extensionChain = nullptr;
   auto portabilityFeatures = vk::PhysicalDevicePortabilitySubsetFeaturesKHR(
-    false,
-    true,
-    false,
-    false,
-    false,
-    false,
     false,
     true
   );
@@ -4203,9 +4197,6 @@ void AsyVkRender::drawFrame()
   checkVkResult(device->waitForFences(
     1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
   ));
-  checkVkResult(device->resetFences(
-    1, &*frameObject.inFlightFence
-  ));
 
   uint32_t imageIndex=0; // index of the current swap chain image to render to
 
@@ -4220,6 +4211,9 @@ void AsyVkRender::drawFrame()
     else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
       throw std::runtime_error("Failed to acquire next swapchain image.");
   }
+  checkVkResult(device->resetFences(
+    1, &*frameObject.inFlightFence
+  ));
   frameObject.commandBuffer->reset(vk::CommandBufferResetFlagBits());
 
   updateUniformBuffer(currentFrame);
