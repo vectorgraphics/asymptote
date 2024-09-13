@@ -2,6 +2,39 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "MacOS Debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/asy",
+            "args": ["-V", "triangles"],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [
+                {
+                    "name": "ASYMPTOTE_DIR",
+                    "value": "${workspaceFolder}/base"
+                },
+                {
+                    "name": "DYLD_LIBRARY_PATH",
+                    "value": "/usr/local/lib/:"
+                },
+                {
+                    "name": "VK_ICD_FILENAMES",
+                    "value": "/usr/local/share/vulkan/icd.d/MoltenVK_icd.json"
+                },
+                {
+                    "name": "VK_DRIVER_FILES",
+                    "value": "/usr/local/share/vulkan/icd.d/MoltenVK_icd.json"
+                },
+                {
+                    "name": "VK_ADD_LAYER_PATH",
+                    "value": "/usr/local/share/vulkan/explicit_layer.d"
+                }
+            ],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
+        {
             "name": "asy 3d linux",
             "type": "cppdbg",
             "request": "launch",
