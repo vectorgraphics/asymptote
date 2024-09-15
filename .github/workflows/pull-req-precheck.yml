@@ -20,8 +20,7 @@ jobs:
         shell: bash
         id: determine_asyver
         run: |
-          asyver="$(git describe --long | sed -e 's/git-\([0-9]*\)-g.*/-\1/' | sed -e 's/-0-g.*//')ci" || asyver=""
-          echo "Asymptote version is $asyver"
+          asyver="$(python3 generate_asy_ver_info.py --version-with-git-info)ci"
           echo "asyver=$asyver" >> "$GITHUB_OUTPUT"
   build-asy-linux:
     needs: determine_asy_version
