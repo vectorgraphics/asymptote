@@ -29,10 +29,10 @@ void BezierPatch::init(double res)
     MaterialIndex=color ? -1-materialIndex : 1+materialIndex;
     pvertex=&vertexBuffer::tvertex;
   } else {
-      Epsilon=FillFactor*res;
       if(clip)
         pvertex=&vertexBuffer::clipVertex;
       else {
+        Epsilon=FillFactor*res;
         MaterialIndex=materialIndex;
         pvertex=&vertexBuffer::vertex;
       }
