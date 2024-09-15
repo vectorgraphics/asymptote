@@ -21,6 +21,7 @@ jobs:
         id: determine_asyver
         run: |
           asyver="$(python3 generate_asy_ver_info.py --version-with-git-info)ci"
+          echo "Asymptote version is $asyver"
           echo "asyver=$asyver" >> "$GITHUB_OUTPUT"
   build-asy-linux:
     needs: determine_asy_version
