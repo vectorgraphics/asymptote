@@ -5,14 +5,14 @@
 .DESCRIPTION
     Builds asymptote installer file
 .PARAMETER Version
-    Specifies Asymptote version to build.
+    Specifies Asymptote version to build. If not given, will automatically determine version from configure.ac.
 #>
 param(
-    [Parameter(Mandatory)]
+    [AllowEmptyString()]
+    [Parameter()]
     [string]$Version
 )
-
-# TODO: Also handle automatic version handling
+$usageString="Usage: $PSCommandPath -Version <version>"
 
 # ----------------------------------------------------
 # checking documentation files
@@ -120,6 +120,22 @@ if (Test-Path asymptote)
 git clone --depth=1 -b msvc-support-make https://github.com/vectorgraphics/asymptote
 Copy-Item -Recurse -Force -Path "$extfilesRoot" -Destination "asymptote/extfiles"
 
+# ----------------------------------------------------
+# determine version, if not given in arguments
+
+if (0 -eq $Version.Length) {
+    Write-Host "Version not given; will try to determine version"
+    Push-Location asymptote
+    $Version=python generate_asy_ver_info.py --version-for-release
+    if (0 -ne $LASTEXITCODE) {
+        Write-Error $usageString
+        Write-Error "Cannot automatically determine release asymptote version. Please specify the version manually"
+        Pop-Location
+        Break
+    }
+    Pop-Location
+    Write-Host "Asymptote version is $Version"
+}
 
 # ----------------------------------------------------
 # build GUI
