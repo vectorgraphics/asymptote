@@ -326,7 +326,7 @@ void discardIfInside(vec3 v, uint startIndex, uint endIndex) {
   vec3 M = Vertex(0).xyz;
   for (uint i=1; i < n; ++i) M = max(M,Vertex(i).xyz);
 
-  vec3 outside=10*M-m; // TODO: Revert to 2*M-m;
+  vec3 outside=2*M-m;
   float norm=length(M-m);
   float Epsilon=norm*EPSILON;
 
