@@ -237,7 +237,7 @@ void avoidCoplanar(vec3 u, vec3 w, vec3 v, float Epsilon, inout bool redo, inout
   vec3 H=v+normal;
   if (orient(u,v,w,H) != 0) {
     redo=true;
-    outside += normal*Epsilon*1000;
+    outside += normal*Epsilon;
   }
 }
 
@@ -322,9 +322,9 @@ void discardIfInsideFace(vec3 z, vec3 a, vec3 b, vec3 c) {
 void discardIfInside(vec3 v, uint startIndex, uint endIndex) {
   uint n = vertex.length();
   vec3 m = Vertex(0).xyz;
-  for (uint i=0;i<n;++i) m = min(m,Vertex(i).xyz);
+  for (uint i=1; i < n; ++i) m = min(m,Vertex(i).xyz);
   vec3 M = Vertex(0).xyz;
-  for (uint i=0;i<n;++i) M = max(M,Vertex(i).xyz);
+  for (uint i=1; i < n; ++i) M = max(M,Vertex(i).xyz);
 
   vec3 outside=10*M-m; // TODO: Revert to 2*M-m;
   float norm=length(M-m);
