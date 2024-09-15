@@ -1869,6 +1869,31 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight,name,render);
 }
 
+void clip(frame f, surface s)
+{
+  patch[] p=s.s;
+  int n=p.length;
+  triple [][][] P=new triple[n][][];
+  bool [] S=new bool[n];
+  for(int i=0; i < n; ++i) {
+    P[i]=p[i].P;
+    S[i]=p[i].straight;
+  }
+  clip(f,P,S);
+}
+
+void clip(picture pic=currentpicture, surface s)
+{
+  if(s.empty()) return;
+
+  pic.add(new void(frame f, transform3 t, picture pic, projection P) {
+      if(is3D())
+        clip(f,t*s);
+    });
+  pic.addPoint(min(s));
+  pic.addPoint(max(s));
+}
+
 surface extrude(path3 p, path3 q)
 {
   static patch[] allocate;
