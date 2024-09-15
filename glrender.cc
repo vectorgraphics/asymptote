@@ -236,6 +236,7 @@ double ymin,ymax;
 double Xmin,Xmax;
 double Ymin,Ymax;
 double Zmin,Zmax;
+bool haveScene;
 
 pair Shift;
 pair Margin;
@@ -379,8 +380,10 @@ void ortho(GLdouble left, GLdouble right, GLdouble bottom,
 void setProjection()
 {
   setDimensions(Width,Height,X,Y);
-  if(orthographic) ortho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
-  else frustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+  if(haveScene) {
+    if(orthographic) ortho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+    else frustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+  }
 }
 
 void updateModelViewData()
@@ -851,6 +854,8 @@ void drawscene(int Width, int Height)
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  if(xmin >= xmax || ymin >= ymax || Zmin >= Zmax) return;
+
   triple m(xmin,ymin,Zmin);
   triple M(xmax,ymax,Zmax);
   double perspective=orthographic ? 0.0 : 1.0/Zmax;
@@ -902,33 +907,44 @@ void Export()
       trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
 
       setDimensions(fullWidth,fullHeight,X/Width*fullWidth,Y/Width*fullWidth);
-      (orthographic ? trOrtho : trFrustum)(tr,xmin,xmax,ymin,ymax,-Zmax,-Zmin);
 
       size_t count=0;
-      do {
-        trBeginTile(tr);
-        remesh=true;
+      if(haveScene) {
+        (orthographic ? trOrtho : trFrustum)(tr,xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+        do {
+          trBeginTile(tr);
+          remesh=true;
+          drawscene(fullWidth,fullHeight);
+          gl::lastshader=-1;
+          ++count;
+        } while (trEndTile(tr));
+      } else {// clear screen and return
         drawscene(fullWidth,fullHeight);
-        gl::lastshader=-1;
-        ++count;
-      } while (trEndTile(tr));
+      }
+
       if(settings::verbose > 1)
         cout << count << " tile" << (count != 1 ? "s" : "") << " drawn" << endl;
       trDelete(tr);
 
       picture pic;
-      double w=oWidth;
-      double h=oHeight;
-      double Aspect=((double) fullWidth)/fullHeight;
-      if(w > h*Aspect) w=(int) (h*Aspect+0.5);
-      else h=(int) (w/Aspect+0.5);
-      // Render an antialiased image.
-      drawRawImage *Image=new drawRawImage(data,fullWidth,fullHeight,
-                                           transform(0.0,0.0,w,0.0,0.0,h),
-                                           antialias);
-      pic.append(Image);
+      drawRawImage *Image=NULL;
+      if(haveScene) {
+        double w=oWidth;
+        double h=oHeight;
+        double Aspect=((double) fullWidth)/fullHeight;
+        if(w > h*Aspect) w=(int) (h*Aspect+0.5);
+        else h=(int) (w/Aspect+0.5);
+        // Render an antialiased image.
+
+        Image=new drawRawImage(data,fullWidth,fullHeight,
+                               transform(0.0,0.0,w,0.0,0.0,h),
+                               antialias);
+        pic.append(Image);
+      }
+
       pic.shipout(NULL,Prefix,Format,false,ViewExport);
-      delete Image;
+      if(Image)
+        delete Image;
       delete[] data;
     }
   } catch(handled_error const&) {
@@ -1944,6 +1960,7 @@ void glrender(GLRenderArgs const& args, int oldpid)
   Zmin=args.m.getz();
   Zmax=args.M.getz();
 
+  haveScene=Xmin < Xmax && Ymin < Ymax && Zmin < Zmax;
   orthographic=Angle == 0.0;
   H=orthographic ? 0.0 : -tan(0.5*Angle)*Zmax;
 
