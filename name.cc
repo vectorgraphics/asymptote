@@ -73,8 +73,17 @@ types::ty *name::getType(coenv &e, bool tacit)
 
 varEntry *simpleName::getVarEntry(coenv &e)
 {
+  // If the name refers to a signatureless variable,
+  // return its varEntry.
   types::ty *t=signatureless(varGetType(e));
-  return t ? e.e.lookupVarByType(id, t) : 0;
+  if (t)
+      return e.e.lookupVarByType(id, t);
+
+  // Otherwise, the name refers to a type.
+  // Return its varEntry.
+  tyEntry *ent = e.e.lookupTyEntry(id);
+  assert(ent);
+  return ent->v;
 }
 
 void simpleName::varTrans(action act, coenv &e, types::ty *target)

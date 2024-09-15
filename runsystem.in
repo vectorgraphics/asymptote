@@ -214,8 +214,6 @@ Int convert(string args=emptystring, string file=emptystring,
   mem::vector<string> cmd;
   string s=getSetting<string>("convert");
   cmd.push_back(s);
-    if(s == "magick")
-      cmd.push_back("convert");
   push_split(cmd,args);
   cmd.push_back(name);
   bool quiet=verbose <= 1;

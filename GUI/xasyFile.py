@@ -32,7 +32,7 @@ def extractTransform(line):
     testMatch = re.match(
         r'^{0:s}\s*\(\s*\"([^\"]+)\"\s*,\s*\(([-\d, .]+)\)\s*\)'.format(mapString), line.strip())
     if testMatch is None:
-        mapOnlyMatch = re.match(r'^{0:s}\s*\(\s *\"([^\"]+)\"\s*\)'.format(mapString), line.strip())
+        mapOnlyMatch = re.match(r'^{0:s}\s*\(\s*\"([^\"]+)\"\s*\)'.format(mapString), line.strip())
         if mapOnlyMatch is None:
             return None
         else:
