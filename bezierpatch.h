@@ -123,6 +123,7 @@ struct BezierPatch
 
   // Approximate bounds by bounding box of control polyhedron.
   bool offscreen(size_t n, const triple *v) {
+    if(clip) return false;
     if(bbox2(n,v).offscreen()) {
       Onscreen=false;
       return true;
