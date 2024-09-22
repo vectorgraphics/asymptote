@@ -81,26 +81,65 @@ else
     Write-Host "Using VCPKG_ROOT at $($env:VCPKG_ROOT)"
 }
 
+# ------------------------------------------------------
 # checking for NSIS
-$baseNsisExec=Get-Command makensis -ErrorAction ignore
-if ($null -eq $baseNsisExec)
-{
-    Write-Host "makensis not found. Checking for downloaded NSIS."
-    $makeNsisLoc="$toolscacheRoot/nsis/makensis.exe"
+$makeNsisLoc=$null
 
-    if (-Not (Test-Path -PathType leaf $makeNsisLoc))
+# checking for downloaded nsis
+if ($null -eq $makeNsisLoc)
+{
+    $nsisToolsCacheRoot="$toolscacheRoot/nsis"
+    $downloadedNsis = "$nsisToolsCacheRoot/makensis.exe"
+    if (Test-Path -PathType leaf $downloadedNsis)
     {
-        Write-Error "$makeNsisLoc not found. Please ensure you download and extract NSIS Zip to $toolscacheRoot/nsis,
-found at https://sourceforge.net/projects/nsis/
-"
-        Break
+        Write-Host "Found downloaded NSIS at $downloadedNsis"
+        $makeNsisLoc=$downloadedNsis
     }
 }
-else
+
+# checking registry & install location
+if ($null -eq $makeNsisLoc)
 {
-    $makeNsisLoc=$baseNsisExec.Path
+    $nsisInstallEntry = Get-ItemProperty `
+    -Path HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\NSIS `
+    -Name InstallLocation `
+    -ErrorAction SilentlyContinue
+
+    if ($null -ne $nsisInstallEntry)
+    {
+        # entry found for registry
+        $nsisTestPath = "$( $nsisInstallEntry.InstallLocation )/makensis.exe"
+        if (Test-Path -PathType leaf $nsisTestPath)
+        {
+            Write-Host "Found installed NSIS. Using NSIS at $nsisTestPath"
+            $makeNsisLoc = $nsisTestPath
+        }
+    }
 }
 
+# check in tools-cache/nsis
+if ($null -Eq $makeNsisLoc)
+{
+    $nsisPathExec = Get-Command makensis -ErrorAction ignore
+    if ($null -Ne $nsisPathExec)
+    {
+        Write-Host "Found NSIS in PATH at $($makeNsisLoc.Path)".
+        $makeNsisLoc=$nsisPathExec.Path
+    }
+}
+
+# nsis not found
+if ($null -eq $makeNsisLoc)
+{
+    Write-Error "Cannot find NSIS. Please either
+(1, Recommended) Install NSIS from https://sourceforge.net/projects/nsis/
+(2) Download NSIS ZIP and extract the files to $toolscacheRoot so that $nsisToolsCacheRoot/makensis.exe
+    is available
+"
+    Break
+}
+
+# ------------------------------------------------
 # python
 $pyVenvLocation="$toolscacheRoot/pyxasy"
 $pyXasyActivateScript="$pyVenvLocation/Scripts/activate.ps1"
