@@ -193,7 +193,8 @@ void grid3(picture pic=currentpicture,
     grid3routines gridroutinej=gridroutine[j];
     for(int i=0; i < gridroutinej.length; ++i) {
       grid3 gt=gridroutinej[i](pic);
-      pic.add(new void(picture f, transform3 t, transform3 T, triple, triple) {
+      pic.add(new void(picture f, transform3 t, transform3 T,
+                       projection P, triple, triple) {
           picture d;
           ticks3 ticks=Ticks3(1,F="%",ticklabel=null,
                               beginlabel=false,endlabel=false,
@@ -202,7 +203,7 @@ void grid3(picture pic=currentpicture,
                               Size=0,size=0,extend=true,
                               pTick=pGrid,ptick=pgrid);
           ticks(d,t,"",gt.axea,gt.axeb,nullpen,None,NoMargin3,gt.locate,
-                gt.bds.divisor,opposite=true,primary=false);
+                gt.bds.divisor,opposite=true,primary=false,P);
           add(f,t*T*inverse(t)*d);
         },above=above);
       addPath(pic,gt.axea,pGrid);

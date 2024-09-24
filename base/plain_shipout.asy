@@ -122,6 +122,8 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	     string options="", string script="",
 	     light light=currentlight, projection P=currentprojection)
 {
+  projection P=centered(P,pic);
+
   if(!uptodate()) {
     bool inlinetex=settings.inlinetex;
     bool prc=prc(format) || settings.v3d;

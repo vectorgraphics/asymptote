@@ -46,21 +46,21 @@ restricted interaction Billboard=interaction(1);
 
 struct render
 {
-  // PRC parameters:
-  real compression;     // lossy compression parameter (0=no compression)
+  real compression;     // lossy PRC compression parameter (0=no compression)
   real granularity;     // PRC rendering granularity
 
-  bool closed;          // use one-sided rendering?
-  bool tessellate;      // use tessellated mesh to store straight patches?
+  bool closed;          // use one-sided PRC rendering?
 
-  bool3 merge;          // merge nodes before rendering, for faster but
-                        // lower quality PRC rendering (the value default means
+  bool tessellate;      // use tessellated mesh to store straight patches
+
+  bool3 merge;          // merge PRC nodes before rendering, for faster but
+                        // lower quality rendering (the value default means
                         // merge opaque patches only).
 
   int sphere;           // PRC sphere type (PRCsphere or NURBSsphere).
 
   // General parameters:
-  real margin;          // shrink amount for rendered openGL viewport, in bp.
+  real margin;          // shrink amount for rendered OpenGL viewport, in bp.
   bool partnames;       // assign part name indices to compound objects
   bool defaultnames;    // assign default names to unnamed objects
   interaction interaction; // billboard interaction mode
@@ -346,7 +346,7 @@ projection perspective(real x, real y, real z, triple up=Z, triple target=O,
 
 projection orthographic(triple camera, triple up=Z, triple target=O,
                         real zoom=1, pair viewportshift=0,
-                        bool showtarget=true, bool center=false)
+                        bool showtarget=true, bool center=true)
 {
   return projection(camera,up,target,zoom,viewportshift,showtarget,
                     center=center,new transformation(triple camera, triple up,
@@ -356,7 +356,7 @@ projection orthographic(triple camera, triple up=Z, triple target=O,
 
 projection orthographic(real x, real y, real z, triple up=Z,
                         triple target=O, real zoom=1, pair viewportshift=0,
-                        bool showtarget=true, bool center=false)
+                        bool showtarget=true, bool center=true)
 {
   return orthographic((x,y,z),up,target,zoom,viewportshift,showtarget,
                       center=center);
@@ -2679,10 +2679,10 @@ struct scene
       warn=false;
     }
 
-    if(P.absolute)
-      this.P=P.copy();
-    else if(P.showtarget && !pic.empty3())
-      draw(pic,P.target,nullpen);
+    this.P=P.copy();
+
+    if(!P.absolute && P.showtarget && !pic.empty3())
+      draw(pic,this.P.target,nullpen);
 
     t=pic.scaling(xsize3,ysize3,zsize3,keepAspect,warn);
     adjusted=false;
@@ -2690,14 +2690,9 @@ struct scene
     triple M=pic.max(t);
 
     if(!P.absolute) {
-      this.P=t*P;
+      this.P=t*this.P;
       if(this.P.autoadjust || this.P.infinity)
         adjusted=adjusted | this.P.adjust(m,M);
-      if(this.P.center && settings.render != 0) {
-        triple target=0.5*(m+M);
-        this.P.target=target;
-        this.P.calculate();
-      }
     }
 
     bool scale=xsize != 0 || ysize != 0;
@@ -2898,11 +2893,13 @@ object embed(string prefix=outprefix(), string label=prefix,
     if(primitive())
       format=settings.v3d ? "v3d" : settings.outformat;
 
+    transform3 s=inv*shift(0,0,zcenter);
+
     shipout3(prefix,f,preview ? nativeformat() : format,
              S.width-defaultrender.margin,S.height-defaultrender.margin,
              P.infinity ? 0 : 2aTan(Tan(0.5*P.angle)*P.zoom),
              P.zoom,m,M,P.viewportshift,S.viewportmargin,
-             tinv*inv*shift(0,0,zcenter),Light.background(),Light.position,
+             tinv*s,s,Light.background(),Light.position,
              Light.diffuse,Light.specular,
              view && !preview);
     if(settings.v3d) {
@@ -3040,13 +3037,13 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
   bool empty3=pic.empty3();
   if(!empty3 || pic.queueErase3) {
     f=embedder(new object(string prefix, string format) {
-      return embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
-                   options,script,light,P);
-    },prefix,format,view,light);
+        return embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
+                     options,script,light,P);
+      },prefix,format,view,light);
     pic.queueErase3=false;
   }
 
-  if(is3D(format) || pic.queueErase)
+  if(is3D(format) || pic.queueErase || settings.render == 0)
     add(f,pic.fit2(xsize,ysize,keepAspect));
   return f;
 };

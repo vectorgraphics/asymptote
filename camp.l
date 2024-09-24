@@ -168,7 +168,7 @@ void reportEOF() {
   assert(eof);
   error();
   em << eofMessage;
-  em.sync();
+  em.sync(true);
 }
 
 position stringpos; // The position of the start of the string.

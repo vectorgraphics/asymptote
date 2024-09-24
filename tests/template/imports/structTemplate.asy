@@ -34,3 +34,8 @@ EndTest();
 StartTest(Lib.testName + ': Access static member from instance');
 int f = c.global;
 EndTest();
+
+StartTest(Lib.testName + ': Unraveling and accessing static member');
+from T unravel global;
+int g = global;
+EndTest();

@@ -22,8 +22,6 @@ s2.colors(palette(s2.map(f),Rainbow));
 s3.colors(palette(s3.map(f),Rainbow));
 s4.colors(palette(s4.map(f),Rainbow));
 
-defaultrender.merge=true;
-
 draw(s1);
 draw(s2);
 draw(s3);

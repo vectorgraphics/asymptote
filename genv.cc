@@ -121,7 +121,7 @@ void genv::checkRecursion(string filename) {
       inTranslation.end()) {
     em.sync();
     em << "error: recursive loading of module '" << filename << "'\n";
-    em.sync();
+    em.sync(true);
     throw handled_error();
   }
 }

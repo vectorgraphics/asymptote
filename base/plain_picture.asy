@@ -733,7 +733,7 @@ struct picture { // <<<1
     add(new void(frame f, transform t) {
         picture opic=new picture;
         d(opic,t);
-        add(f,opic.fit(identity()));
+        add(f,opic.fit(identity));
       },exact);
   }
 
@@ -745,12 +745,12 @@ struct picture { // <<<1
       },exact,above);
   }
 
-  void add(void d(picture, transform3, transform3, triple, triple),
+  void add(void d(picture, transform3, transform3, projection, triple, triple),
            bool exact=false, bool above=true) {
     add(new void(frame f, transform3 t, transform3 T, picture pic2,
                  projection P, triple lb, triple rt) {
           picture opic=new picture;
-          d(opic,t,T,lb,rt);
+          d(opic,t,T,P,lb,rt);
           add(f,opic.fit3(identity4,pic2,P));
         },exact,above);
   }
@@ -1132,6 +1132,26 @@ pair size(picture pic, bool user=false)
   if(!user) return M-m;
   t=inverse(t);
   return t*M-t*m;
+}
+
+// Return a projection adjusted to view center of pic from specified direction.
+projection centered(projection P, picture pic=currentpicture) {
+  projection P=P.copy();
+  if(P.autoadjust && P.center) {
+    triple min=pic.userMin3();
+    triple max=pic.userMax3();
+    if(min != max) {
+      triple target=0.5*(max+min);
+      if(pic.keepAspect)
+        P.camera=target+P.vector();
+      else
+        P.camera=target+realmult(unit(P.vector()),max-min);
+      P.target=target;
+      P.normal=P.vector();
+      P.calculate();
+    }
+  }
+  return P;
 }
 
 // Frame Alignment <<<
@@ -1608,7 +1628,7 @@ void fill(pair origin, picture pic=currentpicture, path[] g, pen p=currentpen)
 {
   picture opic;
   fill(opic,g,p);
-  add(pic,opic,origin);
+  add(pic,opic.fit(identity),origin);
 }
 
 void postscript(picture pic=currentpicture, string s)

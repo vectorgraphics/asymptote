@@ -2,7 +2,7 @@ import graph3;
 import palette;
 
 size(12cm,IgnoreAspect);
-currentprojection=orthographic(1,-2,1);
+currentprojection=orthographic(dir(80,290));
 
 real X=4.5;
 real M=abs(gamma((X,0)));
@@ -22,7 +22,7 @@ real Arg(triple v)
 }
 
 s.colors(palette(s.map(Arg),Wheel()));
-draw(s,render(compression=Low,merge=true));
+draw(s,render(tessellate=false));
 
 real xmin=point((-1,-1,-1)).x;
 real xmax=point((1,1,1)).x;

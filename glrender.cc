@@ -439,6 +439,7 @@ void home(bool webgl=false)
 }
 
 double T[16];
+double Tup[16];
 
 #ifdef HAVE_GL
 
@@ -568,7 +569,7 @@ void initComputeShaders()
   shaderParams.push_back(s.str().c_str());
   s2 << "BLOCKSIZE " << gl::blockSize << "u" << endl;
   shaderParams.push_back(s2.str().c_str());
-  GLuint rc=compileAndLinkShader(shaders,shaderParams,true,false,true);
+  GLuint rc=compileAndLinkShader(shaders,shaderParams,true,false,true,true);
   if(rc == 0) {
     GPUindexing=false; // Compute shaders are unavailable.
     if(settings::verbose > 2)
@@ -662,7 +663,8 @@ void initShaders()
   if(GPUcompress)
     shaderParams.push_back("GPUCOMPRESS");
   shaders[1]=ShaderfileModePair(count.c_str(),GL_FRAGMENT_SHADER);
-  camp::countShader=compileAndLinkShader(shaders,shaderParams,true);
+  camp::countShader=compileAndLinkShader(shaders,shaderParams,
+                                         true,false,false,true);
   if(camp::countShader)
     shaderParams.push_back("HAVE_SSBO");
 #else
@@ -697,8 +699,8 @@ void initShaders()
 
   shaderParams.push_back("NORMAL");
   if(interlock) shaderParams.push_back("HAVE_INTERLOCK");
-  camp::materialShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo,
-                                               interlock);
+  camp::materialShader[0]=compileAndLinkShader(shaders,shaderParams,
+                                               ssbo,interlock,false,true);
   if(interlock && !camp::materialShader[0]) {
     shaderParams.pop_back();
     interlock=false;
@@ -1660,7 +1662,9 @@ void showCamera()
     cout << "," << endl << indent << "angle=" << P.angle;
   if(P.viewportshift != pair(0.0,0.0))
     cout << "," << endl << indent << "viewportshift=" << P.viewportshift*Zoom;
-  if(!orthographic)
+  if(orthographic)
+    cout << ",center=false";
+  else
     cout << "," << endl << indent << "autoadjust=false";
   cout << ");" << endl;
 }
@@ -1781,7 +1785,7 @@ projection camera(bool user)
         double R3=Rotate[j4+3];
         double T4ij=T[i4+j];
         sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
-        sumUp += T4ij*R1;
+        sumUp += Tup[i4+j]*R1;
         sumTarget += T4ij*(R3-cx*R0-cy*R1);
       }
       vCamera[i]=sumCamera;
@@ -1907,7 +1911,7 @@ bool NVIDIA()
 void glrender(const string& prefix, const picture *pic, const string& format,
               double width, double height, double angle, double zoom,
               const triple& m, const triple& M, const pair& shift,
-              const pair& margin, double *t,
+              const pair& margin, double *t, double *tup,
               double *background, size_t nlightsin, triple *lights,
               double *diffuse, double *specular, bool view, int oldpid)
 {
@@ -1986,6 +1990,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
   for(int i=0; i < 16; ++i)
     T[i]=t[i];
+
+  for(int i=0; i < 16; ++i)
+    Tup[i]=tup[i];
 
   static bool initialized=false;
 
