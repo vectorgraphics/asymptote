@@ -1,5 +1,6 @@
-// Assumption: T is a struct with a static int `global` and a non-static int
-// `local`. Lib is a struct with a static string `testName`.
+// Assumption: T is a struct with a static int `global`, a non-static int
+// `local`, and an autounravel int `au`. The value of T.au is -1. Lib is a
+// struct with a static string `testName`.
 typedef import(T, Lib);
 import TestLib;
 
@@ -38,4 +39,23 @@ EndTest();
 StartTest(Lib.testName + ': Unraveling and accessing static member');
 from T unravel global;
 int g = global;
+EndTest();
+
+StartTest(Lib.testName + ': Access autounravel member');
+assert(au == -1);
+assert(T.au == -1);
+assert(c.au == -1);
+au = -2;
+assert(au == -2);
+assert(T.au == -2);
+assert(c.au == -2);
+T.au = -3;
+assert(au == -3);
+assert(T.au == -3);
+assert(c.au == -3);
+c.au = -4;
+assert(au == -4);
+assert(T.au == -4);
+assert(c.au == -4);
+au = -1;  // Reset for next test
 EndTest();
