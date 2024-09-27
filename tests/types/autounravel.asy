@@ -101,3 +101,20 @@ A5.z5 = -4;
 assert(C5.z5 == -4);
 assert(z5 == -4);
 EndTest();
+
+StartTest('autounravel: function');
+struct B6 {
+  static struct C6 {
+    autounravel int y6() { return -1; }
+  }
+}
+from B6 unravel C6;
+assert(y6() == -1);
+assert(C6.y6() == -1);
+y6 = new int() { return -2; };
+assert(C6.y6() == -2);
+assert(y6() == -2);
+C6.y6 = new int() { return -3; };
+assert(y6() == -3);
+assert(C6.y6() == -3);
+EndTest();

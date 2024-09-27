@@ -698,7 +698,7 @@ varEntry *venv::lookBySignature(symbol name, signature *sig) {
 
 void venv::add(venv& source, varEntry *qualifier, coder &c)
 {
-  bool isAutoUnravel = c.isAutoUnravel();
+  const bool isAutoUnravel = c.isAutoUnravel();
   for (const cell& p : source.core) {
     DEBUG_CACHE_ASSERT(p.filled());
 
