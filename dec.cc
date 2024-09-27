@@ -78,54 +78,6 @@ void nameTy::addOps(coenv &e, record *r)
   if (!qt) { return; }
   varEntry *qv = id->getVarEntry(e);
   addNameOps(e, r, qt, qv, getPos());
-  // for (auto au : qt->e.ve.getAutoUnravels()) {
-  //   symbol auName = au.first;
-  //   varEntry *v = au.second;
-  //   if (!v->checkPerm(READ, e.c)) {
-  //     em.error(getPos());
-  //     em << "cannot access '" << auName << "' in current scope";
-  //     continue;
-  //   }
-
-  //   if (r) {
-  //     r->e.ve.enter(auName, qualifyVarEntry(qv, v));
-  //   }
-  //   e.e.ve.enter(auName, qualifyVarEntry(qv, v));
-  // }
-
-
-
-
-
-
-  // // If the symbol is TestAuUn
-  // if (id->getName() == symbol::literalTrans("TestAuUn")) {
-  //   // from TestAuAun unravel testAuUn;
-  //   symbol src = symbol::literalTrans("testAuUn");
-    
-  //   // getType is where errors in the qualifier are reported.
-  //   if (!qt) {
-  //     em.error(getPos());
-  //     em << "qualifier is not a record";
-  //   }
-  //   if (qt) {
-  //     // TODO: *v should come from a list of autounraveled variables.
-  //     // Then we don't need *t (although if we did, it should be the
-  //     // same as v->getType()).
-  //     ty *t = e.e.lookupType(intSymbol());
-  //     assert(t);
-  //     varEntry *v = qt->e.ve.lookByType(src, t);
-  //     if (!v->checkPerm(READ, e.c)) {
-  //       em.error(getPos());
-  //       em << "no matching types or fields of name '" << src << "'";
-  //       return;
-  //     }
-  //     if (r) {
-  //       r->e.ve.enter(src, qualifyVarEntry(qv, v));
-  //     }
-  //     e.e.ve.enter(src, qualifyVarEntry(qv, v));
-  //   }
-  // }
 }
 
 types::ty *nameTy::trans(coenv &e, bool tacit)
