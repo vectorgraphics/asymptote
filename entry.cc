@@ -95,18 +95,19 @@ varEntry *qualifyVarEntry(varEntry *qv, varEntry *v)
 }
 
 
-bool tenv::add(symbol dest,
+tyEntry *tenv::add(symbol dest,
                names_t::value_type &x, varEntry *qualifier, coder &c)
 {
   mem::list<tyEntry *>& ents=x.second;
   if (!ents.empty()) {
     tyEntry *ent=ents.front();
     if (ent->checkPerm(READ, c)) {
-      enter(dest, qualifyTyEntry(qualifier, ent));
-      return true;
+      tyEntry *qEnt = qualifyTyEntry(qualifier, ent);
+      enter(dest, qEnt);
+      return qEnt;
     }
   }
-  return false;
+  return nullptr;
 }
 
 void tenv::add(tenv& source, varEntry *qualifier, coder &c) {
@@ -115,13 +116,13 @@ void tenv::add(tenv& source, varEntry *qualifier, coder &c) {
     add(p->first, *p, qualifier, c);
 }
 
-bool tenv::add(symbol src, symbol dest,
+tyEntry *tenv::add(symbol src, symbol dest,
                tenv& source, varEntry *qualifier, coder &c) {
   names_t::iterator p = source.names.find(src);
   if (p != source.names.end())
     return add(dest, *p, qualifier, c);
   else
-    return false;
+    return nullptr;
 }
 
 // To avoid writing qualifiers everywhere.
@@ -709,9 +710,10 @@ void venv::add(venv& source, varEntry *qualifier, coder &c)
     }
 }
 
-bool venv::add(symbol src, symbol dest,
-               venv& source, varEntry *qualifier, coder &c)
-{
+bool venv::add(
+  symbol src, symbol dest, venv& source, varEntry *qualifier, coder &c,
+  mem::vector<varEntry*> *addedVec
+) {
   ty *t=source.getType(src);
 
   if (!t)
@@ -723,7 +725,11 @@ bool venv::add(symbol src, symbol dest,
       {
         varEntry *v=source.lookByType(src, *i);
         if (v->checkPerm(READ, c)) {
-          enter(dest, qualifyVarEntry(qualifier, v));
+          varEntry *qve=qualifyVarEntry(qualifier, v);
+          enter(dest, qve);
+          if (addedVec != nullptr) {
+            addedVec->push_back(qve);
+          }
           added=true;
         }
       }
@@ -732,7 +738,11 @@ bool venv::add(symbol src, symbol dest,
   else {
     varEntry *v=source.lookByType(src, t);
     if (v->checkPerm(READ, c)) {
-      enter(dest, qualifyVarEntry(qualifier, v));
+      varEntry *qve=qualifyVarEntry(qualifier, v);
+      enter(dest, qve);
+      if (addedVec != nullptr) {
+        addedVec->push_back(qve);
+      }
       return true;
     }
     return false;

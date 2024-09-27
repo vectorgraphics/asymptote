@@ -527,8 +527,8 @@ struct idpair : public absyn {
 
   // Translates as: from _ unravel src as dest;
   // where _ is the qualifier record with source as its fields and types.
-  void transAsUnravel(coenv &e, record *r,
-                      protoenv &source, varEntry *qualifier);
+  trans::tyEntry *transAsUnravel(coenv &e, record *r,
+                                 protoenv &source, varEntry *qualifier);
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
@@ -544,8 +544,9 @@ struct idpairlist : public gc {
 
   void transAsAccess(coenv &e, record *r);
 
-  void transAsUnravel(coenv &e, record *r,
-                      protoenv &source, varEntry *qualifier);
+  mem::vector<trans::tyEntry*> transAsUnravel(
+    coenv &e, record *r, protoenv &source, varEntry *qualifier
+  );
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext);
 

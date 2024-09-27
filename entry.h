@@ -165,8 +165,8 @@ inline tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent) {
 
 // The type environment.
 class tenv : public sym::table<tyEntry *> {
-  bool add(symbol dest, names_t::value_type &x, varEntry *qualifier,
-           coder &c);
+  tyEntry *add(symbol dest, names_t::value_type &x, varEntry *qualifier,
+               coder &c);
 public:
   // Add the entries in one environment to another, if qualifier is
   // non-null, it is a record and the source environment is its types.  The
@@ -175,8 +175,8 @@ public:
 
   // Adds entries of the name src in source as the name dest, returning true if
   // any were added.
-  bool add(symbol src, symbol dest,
-           tenv& source, varEntry *qualifier, coder &c);
+  tyEntry *add(symbol src, symbol dest,
+               tenv& source, varEntry *qualifier, coder &c);
 };
 
 
@@ -461,7 +461,8 @@ public:
   // Add all unshadowed variables from source of the name src as variables
   // named dest.  Returns true if at least one was added.
   bool add(symbol src, symbol dest,
-           venv& source, varEntry *qualifier, coder &c);
+           venv& source, varEntry *qualifier, coder &c,
+           mem::vector<varEntry *> *addedVec=nullptr);
 
   // Look for a function that exactly matches the type given.
   varEntry *lookByType(symbol name, ty *t) {

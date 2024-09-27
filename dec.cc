@@ -1082,17 +1082,19 @@ void idpair::transAsAccess(coenv &e, record *r)
     addVar(e, r, v, dest);
 }
 
-void idpair::transAsUnravel(coenv &e, record *r,
-                            protoenv &source, varEntry *qualifier)
+tyEntry *idpair::transAsUnravel(coenv &e, record *r,
+                                protoenv &source, varEntry *qualifier)
 {
   checkValidity();
 
   if (r)
     r->e.add(src, dest, source, qualifier, e.c);
-  if (!e.e.add(src, dest, source, qualifier, e.c)) {
+  protoenv::Added *added = e.e.add(src, dest, source, qualifier, e.c);
+  if (added->empty()) {
     em.error(getPos());
     em << "no matching types or fields of name '" << src << "'";
   }
+  return added->typeAdded;
 }
 
 void idpair::createSymMap(AsymptoteLsp::SymbolContext* symContext)
@@ -1142,13 +1144,18 @@ void idpairlist::transAsAccess(coenv &e, record *r)
     (*p)->transAsAccess(e,r);
 }
 
-void idpairlist::transAsUnravel(coenv &e, record *r,
-                                protoenv &source, varEntry *qualifier)
-{
+mem::vector<tyEntry*> idpairlist::transAsUnravel(
+  coenv &e, record *r, protoenv &source, varEntry *qualifier
+) {
+  mem::vector<tyEntry*> result;
   for (list<idpair *>::iterator p=base.begin();
        p != base.end();
        ++p)
-    (*p)->transAsUnravel(e,r,source,qualifier);
+  {
+    tyEntry *typeAdded = (*p)->transAsUnravel(e,r,source,qualifier);
+    result.push_back(typeAdded);
+  }
+  return result;
 }
 
 void idpairlist::createSymMap(AsymptoteLsp::SymbolContext* symContext)
@@ -1381,9 +1388,18 @@ void fromdec::transAsField(coenv &e, record *r)
       if (r)
         r->e.add(q.t->e, q.v, e.c);
       e.e.add(q.t->e, q.v, e.c);
+    } else {
+      auto typesAdded = fields->transAsUnravel(e, r, q.t->e, q.v);
+      for (tyEntry *te : typesAdded) {
+        if (te) {
+          record *t = dynamic_cast<record*>(te->t);
+          if (t) {
+            addNameOps(e, r, t, te->v, getPos());
+          }
+        }
+      }
+
     }
-    else
-      fields->transAsUnravel(e, r, q.t->e, q.v);
   }
 }
 
