@@ -55,3 +55,49 @@ assert(CC.yy == -2);
 CC.yy = -3;
 assert(yy == -3);
 EndTest();
+
+StartTest("autounravel: field is unraveled");
+struct AAAA {
+  static int z = -1;
+}
+struct BBBB {
+  static struct CCCC {
+    autounravel from AAAA unravel z as zz;
+  }
+}
+from BBBB unravel CCCC;
+assert(zz == -1);
+assert(CCCC.zz == -1);
+zz = -2;
+assert(CCCC.zz == -2);
+assert(AAAA.z == -2);
+CCCC.zz = -3;
+assert(zz == -3);
+assert(AAAA.z == -3);
+AAAA.z = -4;
+assert(CCCC.zz == -4);
+assert(zz == -4);
+EndTest();
+
+StartTest('autounravel: whole struct is unraveled');
+struct A5 {
+  static int z5 = -1;
+}
+struct B5 {
+  static struct C5 {
+    autounravel unravel A5;
+  }
+}
+from B5 unravel C5;
+assert(z5 == -1);
+assert(C5.z5 == -1);
+z5 = -2;
+assert(C5.z5 == -2);
+assert(A5.z5 == -2);
+C5.z5 = -3;
+assert(z5 == -3);
+assert(A5.z5 == -3);
+A5.z5 = -4;
+assert(C5.z5 == -4);
+assert(z5 == -4);
+EndTest();

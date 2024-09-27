@@ -698,16 +698,19 @@ varEntry *venv::lookBySignature(symbol name, signature *sig) {
 
 void venv::add(venv& source, varEntry *qualifier, coder &c)
 {
-  core_venv::const_iterator end = source.core.end();
-  for (core_venv::const_iterator p = source.core.begin(); p != end; ++p)
-    {
-      DEBUG_CACHE_ASSERT(p->filled());
+  bool isAutoUnravel = c.isAutoUnravel();
+  for (const cell& p : source.core) {
+    DEBUG_CACHE_ASSERT(p.filled());
 
-      varEntry *v=p->ent;
-      if (v->checkPerm(READ, c)) {
-        enter(p->name, qualifyVarEntry(qualifier, v));
+    varEntry *v=p.ent;
+    if (v->checkPerm(READ, c)) {
+      varEntry *qve=qualifyVarEntry(qualifier, v);
+      enter(p.name, qve);
+      if (isAutoUnravel) {
+        registerAutoUnravel(p.name, qve);
       }
     }
+  }
 }
 
 bool venv::add(

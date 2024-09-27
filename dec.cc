@@ -1039,8 +1039,14 @@ tyEntry *idpair::transAsUnravel(coenv &e, record *r,
 {
   checkValidity();
 
-  if (r)
-    r->e.add(src, dest, source, qualifier, e.c);
+  if (r) {
+    auto fieldsAdded = r->e.add(src, dest, source, qualifier, e.c)->varsAdded;
+    if (e.c.isAutoUnravel()) {
+      for (varEntry *v : fieldsAdded) {
+        r->e.ve.registerAutoUnravel(dest, v);
+      }
+    }
+  }
   protoenv::Added *added = e.e.add(src, dest, source, qualifier, e.c);
   if (added->empty()) {
     em.error(getPos());
