@@ -498,11 +498,18 @@ void modifiedRunnable::prettyprint(ostream &out, Int indent)
 void modifiedRunnable::transAsField(coenv &e, record *r)
 {
   if (mods->staticSet()) {
+    modifier mod = mods->getModifier();
     if (e.c.isTopLevel()) {
-      em.warning(getPos());
-      em << "static modifier is meaningless at top level";
+      if (mod == AUTOUNRAVEL) {
+        em.error(getPos());
+        em << "top-level fields cannot be autounraveled";
+        return;
+      } else {
+        em.warning(getPos());
+        em << "static modifier is meaningless at top level";
+      }
     }
-    e.c.pushModifier(mods->getModifier());
+    e.c.pushModifier(mod);
   }
 
   permission p = mods->getPermission();
@@ -1523,6 +1530,10 @@ void recorddec::addPostRecordEnvironment(coenv &e, record *r, record *parent) {
 
 void recorddec::transAsField(coenv &e, record *parent)
 {
+  if (e.c.isAutoUnravel()) {
+    em.error(getPos());
+    em << "types cannot be autounraveled";
+  }
   record *r = parent ? parent->newRecord(id, e.c.isStatic()) :
     e.c.newRecord(id);
 
