@@ -54,7 +54,7 @@ public:
 
   // If we introduced a new type, automatically add corresponding functions for
   // that type.
-  virtual void addOps(coenv &, record *) {}
+  virtual void addOps(coenv &, record *, bool applyAutoUnravel = true) {}
 
   // Returns the internal representation of the type.  This method can
   // be called by exp::getType which does not report errors, so tacit is
@@ -83,7 +83,7 @@ public:
 
   void prettyprint(ostream &out, Int indent) override;
 
-  void addOps(coenv &e, record *r) override;
+  void addOps(coenv &e, record *r, bool applyAutoUnravel = true) override;
   types::ty *trans(coenv &e, bool tacit = false) override;
   trans::tyEntry *transAsTyEntry(coenv &e, record *where) override;
 
@@ -121,7 +121,7 @@ public:
 
   void prettyprint(ostream &out, Int indent) override;
 
-  void addOps(coenv &e, record *r) override;
+  void addOps(coenv &e, record *r, bool applyAutoUnravel = true) override;
 
   types::ty *trans(coenv &e, bool tacit = false) override;
 
@@ -480,7 +480,7 @@ public:
 
   void transAsField(coenv &e, record *r) override
   {
-    base->addOps(e, r);
+    base->addOps(e, r, false);
     decs->transAsField(e, r, base->trans(e));
   }
 
