@@ -988,7 +988,7 @@ bool picture::display(const string& outname, const string& outputformat,
             return false;
           }
 
-          if (reinterpret_cast<INT_PTR>(execInfo.hInstApp) <= 32)
+          if (!w32::checkShellExecuteResult(reinterpret_cast<INT_PTR>(execInfo.hInstApp),false))
           {
             // see https://learn.microsoft.com/en-us/windows/win32/api/shellapi/ns-shellapi-shellexecuteinfoa
             return false;
