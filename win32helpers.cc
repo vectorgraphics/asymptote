@@ -7,11 +7,47 @@
 #if defined(_WIN32)
 #include "win32helpers.h"
 #include "errormsg.h"
+#include <shellapi.h>
 
 using camp::reportError;
 
 namespace camp::w32
 {
+
+bool checkShellExecuteResult(INT_PTR const shellExecResult, bool const reportWarning)
+{
+  switch (shellExecResult)
+  {
+    // see https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecutea
+    // ERROR_FILE_NOT_FOUND and ERROR_PATH_NOT_FOUND shares the same error code as
+    // SE_ERR_FNF and SE_ERR_PNF, respectively
+    case 0:
+    case ERROR_BAD_FORMAT:
+    case SE_ERR_ACCESSDENIED:
+    case SE_ERR_ASSOCINCOMPLETE:
+    case SE_ERR_DDEBUSY:
+    case SE_ERR_DDEFAIL:
+    case SE_ERR_DDETIMEOUT:
+    case SE_ERR_DLLNOTFOUND:
+    case SE_ERR_FNF:
+    case SE_ERR_NOASSOC:
+    case SE_ERR_OOM:
+    case SE_ERR_PNF:
+    case SE_ERR_SHARE:
+    {
+      if (reportWarning)
+      {
+        DWORD const errorCode= GetLastError();
+        ostringstream msg;
+        msg << "Error code: 0x" << std::hex << errorCode << std::dec << "; message: " << getErrorMessage(errorCode);
+        camp::reportWarning(msg.str());
+      }
+    }
+      return false;
+    default:
+      return true;
+  }
+}
 
 void reportAndFailWithLastError(string const& message)
 {

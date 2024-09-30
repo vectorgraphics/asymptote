@@ -14,7 +14,13 @@
 namespace camp::w32
 {
 
-void checkResult(BOOL result, string const& message="");
+/**
+ * Checks if result from ShellExecute/ShellExecuteEx indicates a successful execution or not.
+ * This function does not raise an error in itself, but can generate a warning if specified
+ */
+bool checkShellExecuteResult(INT_PTR shellExecResult, bool reportWarning=false);
+
+void checkResult(BOOL result, string const& message= "");
 void checkLStatus(LSTATUS result, string const& message="");
 
 string buildWindowsCmd(const mem::vector<string>& command);
