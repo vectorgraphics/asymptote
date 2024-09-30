@@ -31,6 +31,7 @@
 #else
 #include <Windows.h>
 #include <Shlwapi.h>
+#include <Shellapi.h>
 #include <direct.h>
 #include "win32helpers.h"
 
@@ -569,23 +570,36 @@ void push_command(mem::vector<string>& a, const string& s)
 
 void popupHelp() {
 #if defined(_WIN32)
-  mem::vector<string> cmd;
-  push_command(cmd, getSetting<string>("pdfviewer"));
-  if (auto viewerOpts = getSetting<string>("pdfviewerOptions"); !viewerOpts.empty())
+  auto const pdfviewer= getSetting<string>("pdfviewer");
+  string const docPath= docdir + dirsep + "asymptote.pdf";
+  if (!pdfviewer.empty())
   {
-    istringstream viewerOptStream(viewerOpts);
-    string tmp;
-    while (viewerOptStream >> tmp)
+    mem::vector<string> cmd;
+    push_command(cmd, pdfviewer);
+
+    if (auto const viewerOpts= getSetting<string>("pdfviewerOptions"); !viewerOpts.empty())
     {
-      if (!tmp.empty())
+      istringstream viewerOptStream(viewerOpts);
+      string tmp;
+      while (viewerOptStream >> tmp)
       {
-        cmd.push_back(tmp);
+        if (!tmp.empty())
+        {
+          cmd.push_back(tmp);
+        }
       }
     }
+    cmd.push_back(docPath);
+    System(cmd, 0, false, "pdfviewer", "your PDF viewer");
   }
-
-  cmd.push_back(docdir+dirsep+"asymptote.pdf");
-  System(cmd,0,false,"pdfviewer","your PDF viewer");
+  else
+  {
+    // pdf viewer not given, let windows decide which program to use
+    camp::w32::checkShellExecuteResult(
+            reinterpret_cast<INT_PTR>(ShellExecuteA(nullptr, "open", docPath.c_str(), nullptr, nullptr, SW_SHOWNORMAL)),
+            false
+    );
+  }
 #else
   // If the popped-up help is already running, pid stores the pid of the viewer.
   static int pid=0;
