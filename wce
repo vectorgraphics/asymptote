@@ -1,8 +1,7 @@
-#!/bin/bash
-# TODO: Remove the deduplication and go back to using sh instead of bash.
+#!/bin/sh
 printf "Testing errors..."
 ./asy -q -sysdir base -noautoplain -debug errortest 2> errors.temp
-result=$(diff <(cat errors.temp | uniq) <(cat errors | uniq))
+result=`diff errors.temp errors`
 if test "$result" = ""; then
 echo PASSED.
 else

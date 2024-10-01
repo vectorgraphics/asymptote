@@ -75,7 +75,7 @@ void addNameOps(coenv &e, record *r, record *qt, varEntry *qv, position pos) {
 void nameTy::addOps(coenv &e, record *r, bool applyAutoUnravel)
 {
   if (!applyAutoUnravel) { return; }
-  record *qt=dynamic_cast<record *>(id->getType(e, false));
+  record *qt=dynamic_cast<record *>(id->getType(e, true));
   if (!qt) { return; }
   varEntry *qv = id->getVarEntry(e);
   addNameOps(e, r, qt, qv, getPos());
