@@ -98,7 +98,8 @@ void shipout(string prefix=defaultfilename, frame f,
     }
   }
 
-  bool defaultprefix=prefix==defaultfilename;
+  bool defaultprefix=prefix == defaultfilename &&
+    outformat(format) == outformat("");
 
   if(settings.xasy || (!implicitshipout && defaultprefix)) {
     if(defaultprefix) {

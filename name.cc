@@ -82,8 +82,7 @@ varEntry *simpleName::getVarEntry(coenv &e)
   // Otherwise, the name refers to a type.
   // Return its varEntry.
   tyEntry *ent = e.e.lookupTyEntry(id);
-  assert(ent);
-  return ent->v;
+  return ent ? ent->v : 0;
 }
 
 void simpleName::varTrans(action act, coenv &e, types::ty *target)

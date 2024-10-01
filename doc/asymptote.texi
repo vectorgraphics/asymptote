@@ -3623,6 +3623,8 @@ are only relevant for 3D pictures. If @code{defaultfilename} is an
 empty string, the prefix @code{outprefix()} will be used.
 
 A @code{shipout()} command is added implicitly at file exit.
+Explicit @code{shipout()} commands to the same file as the final implicit
+shipout are ignored.
 @cindex @code{orientation}
 @cindex @code{Portrait}
 @cindex @code{Landscape}
