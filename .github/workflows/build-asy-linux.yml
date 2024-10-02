@@ -89,7 +89,7 @@ jobs:
       - name: delete cache file
         run: rm -f cmake-build-linux/release/CMakeCache.txt
       - name: reconfigure with documentation
-        run: cmake --preset linux/release-ccache
+        run: ASY_VERSION_OVERRIDE="${{ inputs.version_override }}" cmake --preset linux/release-ccache
       - name: touch asymptote binary (to avoid need for rebuilding)
         run: touch cmake-build-linux/release/asy
       - name: build documentation
