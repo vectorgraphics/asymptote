@@ -11,15 +11,6 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set_property(CACHE CMAKE_INSTALL_PREFIX PROPERTY VALUE "${CMAKE_CURRENT_SOURCE_DIR}/cmake-install-win32")
 endif()
 
-# if a component is not buildable
-macro(action_if_component_not_buildable message)
-    if (ALLOW_PARTIAL_INSTALLATION)
-        install(CODE "message(WARNING ${message})")
-    else()
-        install(CODE "message(FATAL_ERROR ${message})")
-    endif()
-endmacro()
-
 # helper target for files needed
 add_custom_target(asy-pre-nsis-targets DEPENDS asy asy-basefiles)
 
@@ -82,6 +73,16 @@ install(
         FILES_MATCHING PATTERN "*.nsh"
 )
 
+# if a component is not buildable
+macro(action_if_component_not_buildable message)
+    message(WARNING "Please ensure this issue is resolved before installing. Message: ${message}")
+    if (ALLOW_PARTIAL_INSTALLATION)
+        install(CODE "message(WARNING \"${message}\")" COMPONENT ${ASY_PRE_NSIS_COMPONENT_NAME})
+    else()
+        install(CODE "message(FATAL_ERROR \"${message}\")" COMPONENT ${ASY_PRE_NSIS_COMPONENT_NAME})
+    endif()
+endmacro()
+
 # unfortuantely, we have to first call the "docgen" target manually
 # this can also be called from asy-pre-nsis-targets, which includes asy-with-basefiles alongside docgen.
 # this is a limitation of cmake currently (https://discourse.cmake.org/t/install-file-with-custom-target/2984/2)
@@ -92,11 +93,15 @@ endif()
 
 macro(install_from_external_documentation_dir docfile_name)
     set(DOCFILE_LOCATION ${EXTERNAL_DOCUMENTATION_DIR}/${docfile_name})
-    if(EXISTS ${DOCFILE_LOCATION})
-        install(FILES ${DOCFILE_LOCATION} ${ASY_NSIS_INSTALL_ARGUMENT})
-    else()
-        action_if_component_not_buildable("${docfile_name} cannot be found")
+    message(STATUS "Using external documentation file at ${DOCFILE_LOCATION}")
+
+    if (NOT EXISTS ${DOCFILE_LOCATION})
+        message(WARNING "${DOCFILE_LOCATION} not found.
+Please ensure this file exists before running \"cmake --install\"."
+        )
     endif()
+
+    install(FILES ${DOCFILE_LOCATION} ${ASY_NSIS_INSTALL_ARGUMENT})
 endmacro()
 
 
@@ -125,6 +130,7 @@ endif()
 
 # asymptote.pdf
 if(ENABLE_ASYMPTOTE_PDF_DOCGEN)
+    message(STATUS "Using asymptote.pdf from ${ASY_TEX_BUILD_ROOT}/asymptote.pdf")
     install(
             FILES ${ASY_TEX_BUILD_ROOT}/asymptote.pdf
             ${ASY_NSIS_INSTALL_ARGUMENT}
