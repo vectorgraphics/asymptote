@@ -235,5 +235,17 @@ else
 # building for CTAN
 
 buildAsy msvc/release-with-external-doc-file-ctan asymptote/cmake-build-msvc/release
-New-Item -ItemType Directory -Path CTAN -Force
-Copy-Item asymptote/cmake-build-msvc/release/asy.exe -Destination CTAN/asy.exe
+
+if ($env:ASYMPTOTE_BUILD_SHARED_DIRECTORY)
+{
+    Write-Output "Using shared build directory at $ASYMPTOTE_BUILD_SHARED_DIRECTORY for CTAN output"
+    $ctanOutputDir = "$env:ASYMPTOTE_BUILD_SHARED_DIRECTORY/CTAN"
+}
+else
+{
+    Write-Output "No shared directory specified. Using CTAN directory at top-level"
+    $ctanOutputDir = "CTAN"
+}
+
+New-Item -ItemType Directory -Path "$ctanOutputDir" -Force
+Copy-Item asymptote/cmake-build-msvc/release/asy.exe -Destination "$ctanOutputDir/asy.exe"
