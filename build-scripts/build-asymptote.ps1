@@ -16,7 +16,16 @@ $usageString="Usage: $PSCommandPath -Version <version>"
 
 # ----------------------------------------------------
 # checking documentation files
-$extfilesRoot="Z:\asy\asydoc"
+
+if ($env:ASYMPTOTE_BUILD_SHARED_DIRECTORY)
+{
+    $extfilesRoot="$env:ASYMPTOTE_BUILD_SHARED_DIRECTORY/asydoc"
+}
+else
+{
+    $extfilesRoot = "asydoc"
+}
+
 $requiredDocumentationFiles=@(
     "asymptote.sty"
     "asymptote.pdf"
