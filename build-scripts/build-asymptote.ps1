@@ -257,4 +257,7 @@ else
 }
 
 New-Item -ItemType Directory -Path "$ctanOutputDir" -Force
+New-Item -ItemType Directory -Path "$ctanOutputDir/dll" -Force
+Get-ChildItem "asymptote/cmake-install-w32-nsis-release/build-$Version/" `
+    -Filter "*.dll" | Copy-Item -Destination "$ctanOutputDir/dll"
 Copy-Item asymptote/cmake-build-msvc/release/asy.exe -Destination "$ctanOutputDir/asy.exe"
