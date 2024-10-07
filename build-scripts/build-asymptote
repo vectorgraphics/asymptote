@@ -1,7 +1,9 @@
 #!/bin/sh -x
 
-HOME=~bowman
+HOME=/home/$USER
 SHARED=$HOME/shared/asy
+ASYMPTOTE=$HOME/asymptote
+BUILD=/usr/local/src
 
 GCVERSION=8.2.4
 ATOMICVERSION=7.6.12
@@ -9,8 +11,7 @@ GC=gc-$GCVERSION
 
 MAKEFLAGS=-j8
 export MAKEFLAGS
-ASYMPTOTE=$HOME/asymptote
-BUILD=/usr/local/src
+
 BINDIR=usr
 test /usr -ef $BUILD/$BINDIR && exit
 LATEXDIR=$BUILD/$BINDIR/share/texmf/tex/latex/asymptote
