@@ -141,7 +141,10 @@ class MainWindow1(Qw.QMainWindow):
             self.settings.get('additionalAsyArgs', "")
 
         self.asyPath = self.args.asypath or self.settings.get('asyPath')
-        self.asyEngine = x2a.AsymptoteEngine(self.asyPath, addrAsyArgsRaw.split(','))
+        self.asyEngine = x2a.AsymptoteEngine(
+            self.asyPath,
+            None if not addrAsyArgsRaw else addrAsyArgsRaw.split(',')
+        )
 
         try:
             self.asyEngine.start()
