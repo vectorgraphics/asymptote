@@ -75,6 +75,9 @@ varEntry::varEntry(varEntry &qv, varEntry &v)
 
 frame *varEntry::getLevel() {
   record *r=dynamic_cast<record *>(t);
+  if (!r) {
+    std::cerr << std::endl << boost::stacktrace::stacktrace() << std::endl;
+  }
   assert(r);
   return r->getLevel();
 }

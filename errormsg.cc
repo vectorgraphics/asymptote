@@ -87,6 +87,7 @@ void errorstream::runtime(position pos)
 
 void errorstream::error(position pos)
 {
+  std::cerr << boost::stacktrace::stacktrace();
   message(pos,"");
   anyErrors = true;
 }

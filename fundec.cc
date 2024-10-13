@@ -270,8 +270,11 @@ function *fundef::transType(coenv &e, bool tacit) {
 }
 
 function *fundef::transTypeAndAddOps(coenv &e, record *r, bool tacit) {
-  result->addOps(e,r);
+  std::cerr << "CCC" << std::endl;
+  result->addOps(e,r,false);
+  std::cerr << "DDD" << std::endl;
   params->addOps(e,r);
+  std::cerr << "EEE" << std::endl;
 
   function *ft=transType(e, tacit);
   e.e.addFunctionOps(ft);
