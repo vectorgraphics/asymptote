@@ -118,3 +118,26 @@ C6.y6 = new int() { return -3; };
 assert(y6() == -3);
 assert(C6.y6() == -3);
 EndTest();
+
+StartTest('autounravel: multiple fields');
+struct B7 {
+  static struct C7 {
+    autounravel int y7 = -1;
+    autounravel int z7 = 1;
+  }
+}
+from B7 unravel C7;
+assert(y7 == -1);
+assert(C7.y7 == -1);
+assert(z7 == 1);
+assert(C7.z7 == 1);
+y7 = -2;
+assert(C7.y7 == -2);
+assert(z7 == 1);
+assert(C7.z7 == 1);
+C7.z7 = 2;
+assert(y7 == -2);
+assert(C7.y7 == -2);
+assert(z7 == 2);
+assert(C7.z7 == 2);
+EndTest();

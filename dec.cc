@@ -55,19 +55,18 @@ void addNameOps(coenv &e, record *r, record *qt, varEntry *qv, position pos) {
       em << "cannot access '" << auName << "' in current scope";
       continue;
     }
-
-    qv = qualifyVarEntry(qv, v);
+    varEntry *qqv = qualifyVarEntry(qv, v);
     if (r) {
-      if (!r->e.ve.lookByType(auName, qv->getType()))
+      if (!r->e.ve.lookByType(auName, qqv->getType()))
       // Add op only if it does not already exist.
       {
-        r->e.ve.enter(auName, qv);
+        r->e.ve.enter(auName, qqv);
       }
     }
-    if (!e.e.ve.lookByType(auName, qv->getType()))
+    if (!e.e.ve.lookByType(auName, qqv->getType()))
     // Add op only if it does not already exist.
     {
-      e.e.ve.enter(auName, qv);
+      e.e.ve.enter(auName, qqv);
     }
   }
 }
