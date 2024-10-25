@@ -59,3 +59,13 @@ assert(T.au == -4);
 assert(c.au == -4);
 au = -1;  // Reset for next test
 EndTest();
+
+StartTest(Lib.testName + ': Equality, inequality, and alias');
+T h = new T;
+assert(h == h);
+assert(!(h == null));
+assert(h != null);
+assert(!(h != h));
+assert(alias(h, h));
+assert(!alias(h, null));
+EndTest();

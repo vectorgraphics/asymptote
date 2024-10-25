@@ -500,7 +500,11 @@ public:
   void completions(mem::list<symbol>& l, string start);
 
   void registerAutoUnravel(symbol name, varEntry *v) {
-    autoUnravels.emplace_back(name, v);
+    // If two fields have the same name and signature, the most recently
+    // declared field should be autounraveled first. Then there is already a
+    // variable with that name and signature, so the earlier field will
+    // have its autounravel skipped.
+    autoUnravels.emplace_front(name, v);
   }
 
   const mem::list<mem::pair<symbol, varEntry *>>& getAutoUnravels() {
