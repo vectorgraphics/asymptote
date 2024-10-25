@@ -4138,7 +4138,7 @@ comma). Here are some simple examples of data output:
 @verbatim
 file fout=output("test.txt");
 write(fout,1);                  // Writes "1"
-write(fout);                    // Writes a new line
+write(fout, endl);              // Writes a new line
 write(fout,"List: ",1,2,3);     // Writes "List: 1     2     3"
 @end verbatim
 @noindent
