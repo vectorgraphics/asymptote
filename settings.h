@@ -40,7 +40,7 @@ void endwait(pthread_cond_t& signal, pthread_mutex_t& lock);
 
 namespace settings {
 extern const char PROGRAM[];
-extern const char VERSION[];
+extern const char ASYVERSION[];
 extern const char BUGREPORT[];
 
 extern char *argv0;

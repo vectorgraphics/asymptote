@@ -212,7 +212,7 @@ void queryRegistry()
 #endif
 
 const char PROGRAM[]=PACKAGE_NAME;
-const char VERSION[]=PACKAGE_VERSION;
+const char ASYVERSION[]=PACKAGE_VERSION;
 const char BUGREPORT[]=PACKAGE_BUGREPORT;
 
 // The name of the program (as called).  Used when displaying help info.
