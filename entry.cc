@@ -267,6 +267,14 @@ size_t specialHash(symbol name, const ty *t) {
   DEBUG_CACHE_ASSERT(t);
   return name.hash() * 107 + t->hash();
 }
+size_t hash(symbol name, const ty *t) {
+  if (name.special()) {
+    return specialHash(name, t);
+  } else {
+    return nonSpecialHash(name, t);
+  }
+}
+
 
 varEntry *core_venv::storeNonSpecial(symbol name, varEntry *ent) {
   DEBUG_CACHE_ASSERT(name.notSpecial());
@@ -407,6 +415,22 @@ size_t numFormals(ty *t) {
   signature *sig = t->getSignature();
   return sig ? sig->getNumFormals() : 0;
 }
+
+bool SigEquiv::operator()(const mem::pair<symbol, ty*>& p1,
+                            const mem::pair<symbol, ty*>& p2) const {
+  symbol name1 = p1.first, name2 = p2.first;
+  if (name1 != name2)
+    return false;
+  ty *t1 = p1.second, *t2 = p2.second;
+  DEBUG_CACHE_ASSERT(t1);
+  DEBUG_CACHE_ASSERT(t2);
+  if (name1.special()) {
+    return equivalent(t1, t2);
+  } else {
+    return equivalent(t1->getSignature(), t2->getSignature());
+  }
+}
+
 
 void venv::checkName(symbol name)
 {
@@ -796,6 +820,23 @@ void venv::completions(mem::list<symbol >& l, string start)
   for(namemap::iterator N = names.begin(); N != names.end(); ++N)
     if (prefix(start, N->first) && N->second.t)
       l.push_back(N->first);
+}
+
+void venv::registerAutoUnravel(symbol name, varEntry *v, bool shadowable) {
+  mem::pair<symbol, ty*> p = {name, v->getType()};
+  if (nonShadowableAutoUnravels.find(p) != nonShadowableAutoUnravels.end()) {
+    em.error(v->getPos());
+    em << "cannot shadow autounravel " << name;
+  }
+  // If two fields have the same name and signature, the most recently
+  // declared field should be autounraveled first. Then there is already a
+  // variable with that name and signature, so the earlier field will
+  // have its autounravel skipped.
+  autoUnravels.emplace_front(name, v);
+  if (!shadowable) {
+    // The value doesn't matter, we just need to know that the key exists.
+    nonShadowableAutoUnravels[p] = nullptr;
+  }
 }
 
 } // namespace trans

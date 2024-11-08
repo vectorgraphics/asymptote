@@ -181,10 +181,12 @@ public:
 
 
 // For speed reasons, many asserts are only tested when DEBUG_CACHE is set.
-#ifdef DEBUG_CACHE
-#define DEBUG_CACHE_ASSERT(x) assert(x)
-#else
-#define DEBUG_CACHE_ASSERT(x) (void)(x)
+#ifndef DEBUG_CACHE_ASSERT
+#  ifdef DEBUG_CACHE
+#    define DEBUG_CACHE_ASSERT(x) assert(x)
+#  else
+#    define DEBUG_CACHE_ASSERT(x) (void)(x)
+#  endif
 #endif
 
 // The hash table which is at the core of the variable environment venv.
@@ -348,6 +350,22 @@ public:
   }
 };
 
+size_t hashSig(const signature *sig);
+size_t nonSpecialHash(symbol name, const signature *sig);
+size_t nonSpecialHash(symbol name, const ty *t);
+size_t specialHash(symbol name, const ty *t);
+size_t hash(symbol name, const ty *t);
+
+struct SigHash {
+  size_t operator()(const mem::pair<symbol, ty *>& p) const {
+    return hash(p.first, p.second);
+  }
+};
+
+struct SigEquiv {
+  bool operator()(const mem::pair<symbol, ty *>& p1,
+                  const mem::pair<symbol, ty *>& p2) const;
+};
 
 // venv implemented with a hash table.
 class venv {
@@ -370,6 +388,10 @@ class venv {
   // A list of variables that need to be unraveled whenever the containing
   // record (if any) becomes available.
   mem::list<mem::pair<symbol, varEntry *>> autoUnravels;
+  mem::unordered_map<mem::pair<symbol, ty*>,
+                     nullptr_t,
+                     SigHash,
+                     SigEquiv> nonShadowableAutoUnravels;
 
   // A scope can be recorded by the size of the addition stack at the time the
   // scope began.
@@ -499,13 +521,7 @@ public:
   // Adds to l, all names prefixed by start.
   void completions(mem::list<symbol>& l, string start);
 
-  void registerAutoUnravel(symbol name, varEntry *v) {
-    // If two fields have the same name and signature, the most recently
-    // declared field should be autounraveled first. Then there is already a
-    // variable with that name and signature, so the earlier field will
-    // have its autounravel skipped.
-    autoUnravels.emplace_front(name, v);
-  }
+  void registerAutoUnravel(symbol name, varEntry *v, bool shadowable=false);
 
   const mem::list<mem::pair<symbol, varEntry *>>& getAutoUnravels() {
     return autoUnravels;

@@ -1,6 +1,7 @@
 import TestLib;
+
+StartTest('autounravel: struct declaration');
 {
-  StartTest("autounravel: struct declaration");
   struct A {
     autounravel int x = -1;
   }
@@ -10,11 +11,11 @@ import TestLib;
   assert(A.x == -2);
   A.x = -3;
   assert(x == -3);
-  EndTest();
 }
+EndTest();
 
+StartTest('autounravel: typedef');
 {
-  StartTest("autounravel: typedef");
   struct B {
     static struct C {
       autounravel int y = -1;
@@ -27,11 +28,11 @@ import TestLib;
   assert(C.y == -2);
   C.y = -3;
   assert(y == -3);
-  EndTest();
 }
+EndTest();
 
+StartTest('autounravel: unravel *');
 {
-  StartTest("autounravel: unravel *");
   struct B {
     static struct C {
       autounravel int y = -1;
@@ -44,11 +45,11 @@ import TestLib;
   assert(C.y == -2);
   C.y = -3;
   assert(y == -3);
-  EndTest();
 }
+EndTest();
 
+StartTest('autounravel: unravel');
 {
-  StartTest("autounravel: unravel");
   struct B {
     static struct C {
       autounravel int y = -1;
@@ -61,11 +62,11 @@ import TestLib;
   assert(C.y == -2);
   C.y = -3;
   assert(y == -3);
-  EndTest();
 }
+EndTest();
 
+StartTest('autounravel: field is unraveled');
 {
-  StartTest("autounravel: field is unraveled");
   struct A {
     static int z = -1;
   }
@@ -86,11 +87,11 @@ import TestLib;
   A.z = -4;
   assert(C.zz == -4);
   assert(zz == -4);
-  EndTest();
 }
+EndTest();
 
+StartTest('autounravel: whole struct is unraveled');
 {
-  StartTest('autounravel: whole struct is unraveled');
   struct A {
     static int z = -1;
   }
@@ -111,11 +112,11 @@ import TestLib;
   A.z = -4;
   assert(C.z == -4);
   assert(z == -4);
-  EndTest();
 }
+EndTest();
 
+StartTest('autounravel: function');
 {
-  StartTest('autounravel: function');
   struct B {
     static struct C {
       autounravel int y() { return -1; }
@@ -130,11 +131,11 @@ import TestLib;
   C.y = new int() { return -3; };
   assert(y() == -3);
   assert(C.y() == -3);
-  EndTest();
 }
+EndTest();
 
+StartTest('autounravel: multiple fields');
 {
-  StartTest('autounravel: multiple fields');
   struct B {
     static struct C {
       autounravel int y = -1;
@@ -155,11 +156,11 @@ import TestLib;
   assert(C.y == -2);
   assert(z == 2);
   assert(C.z == 2);
-  EndTest();
 }
+EndTest();
 
+StartTest('autounravel: builtin operators');
 {
-  StartTest('autounravel: builtin operators');
   struct B {
     static struct C {}
   }
@@ -168,26 +169,4 @@ import TestLib;
   assert(alias(x, x));
   assert(!alias(x, null));
 }
-
-{
-  StartTest('autounravel: shadowing');
-  struct B {
-    static struct C {
-      autounravel int y = -1;
-      static bool equalsFirstY(int z) {
-        return y == z;
-      }
-      autounravel int y = 1;
-      static bool equalsSecondY(int z) {
-        return y == z;
-      }
-    }
-  }
-  from B unravel C;
-  assert(y == 1);
-  assert(C.equalsFirstY(-1));
-  assert(C.equalsSecondY(1));
-  y = 2;
-  assert(C.equalsFirstY(-1));
-  assert(C.equalsSecondY(2));
-}
+EndTest();

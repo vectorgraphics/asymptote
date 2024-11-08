@@ -1,7 +1,7 @@
 import TestLib;
 
+StartTest("overrideEquals: external");
 {
-  StartTest("overrideEquals: external");
   struct Outer {
     static struct Inner {}
   }
@@ -16,11 +16,11 @@ import TestLib;
   // Even if autounravel is rerun, it should not shadow something that was
   // already shadowed.
   assert(a == null);
-  EndTest();
 }
+EndTest();
 
+StartTest('overrideEquals: internal');
 {
-  StartTest('overrideEquals: internal');
   struct Outer {
     static struct Inner {
       autounravel bool operator ==(Inner a, Inner b) {
@@ -32,3 +32,4 @@ import TestLib;
   Inner a = new Inner;
   assert(a == null);  // Use the overridden operator.
 }
+EndTest();
