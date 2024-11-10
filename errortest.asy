@@ -556,3 +556,11 @@
     autounravel int qaz;  // cannot shadow autounravel qaz
   }
 }
+{
+  // Even if the first (implicitly defined) instance of a function is allowed
+  // to be shadowed, the (explicit) shadower cannot itself be shadowed.
+  struct A {
+    autounravel bool alias(A, A);  // no error
+    autounravel bool alias(A, A);  // cannot shadow autounravel alias
+  }
+}

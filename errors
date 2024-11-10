@@ -175,3 +175,4 @@ errortest.asy: 546.5: too many static modifiers
 errortest.asy: 547.17: types cannot be autounraveled
 errortest.asy: 551.3: top-level fields cannot be autounraveled
 errortest.asy: 556.21: cannot shadow autounravel qaz
+errortest.asy: 564.22: cannot shadow autounravel alias
