@@ -168,3 +168,10 @@ errortest.asy: 531.3: could not load module 'errortestTemplate'
 errortest.asy: 533.37: template argument name does not match module: passed C, expected B
 errortest.asy: 533.3: could not load module 'errortestTemplate'
 errortestTemplate.asy: 5.1: 'typedef import(<types>)' must precede any other code
+errortest.asy: 541.5: too many static modifiers
+errortest.asy: 544.5: too many autounravel modifiers
+errortest.asy: 545.5: too many autounravel modifiers
+errortest.asy: 546.5: too many static modifiers
+errortest.asy: 547.17: types cannot be autounraveled
+errortest.asy: 551.3: top-level fields cannot be autounraveled
+errortest.asy: 556.21: cannot shadow autounravel qaz
