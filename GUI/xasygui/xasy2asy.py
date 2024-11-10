@@ -21,7 +21,6 @@ import subprocess
 import sys
 import tempfile
 import threading
-from cgitb import text
 from typing import Optional
 
 import PyQt5.QtCore as QtCore
