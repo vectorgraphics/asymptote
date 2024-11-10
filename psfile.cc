@@ -154,7 +154,7 @@ void psfile::prologue(const bbox& box)
 {
   header(true);
   BoundingBox(box);
-  *out << "%%Creator: " << settings::PROGRAM << " " << settings::VERSION
+  *out << "%%Creator: " << PACKAGE_NAME << " " << PACKAGE_VERSION
        << REVISION <<  newl;
 
   time_t t; time(&t);

@@ -322,10 +322,6 @@ void queryRegistry()
 
 #endif
 
-const char PROGRAM[]=PACKAGE_NAME;
-const char VERSION[]=PACKAGE_VERSION;
-const char BUGREPORT[]=PACKAGE_BUGREPORT;
-
 // The name of the program (as called).  Used when displaying help info.
 char *argv0;
 
@@ -1007,7 +1003,7 @@ void addOption(option *o) {
 
 void version()
 {
-  cerr << PROGRAM << " version " << REVISION
+  cerr << PACKAGE_NAME << " version " << REVISION
        << " [(C) 2004 Andy Hammerlindl, John C. Bowman, Tom Prince]"
        << endl;
 }
