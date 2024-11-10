@@ -65,8 +65,8 @@ install(
 # extra doc files
 install(
         FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/doc/latexusage.tex
-        ${CMAKE_CURRENT_SOURCE_DIR}/doc/externalprc.tex
+        ${ASY_DOC_DIR}/latexusage.tex
+        ${ASY_DOC_DIR}/externalprc.tex
         ${ASY_NSIS_TARGET_EXAMPLES_INSTALL_ARGUMENT}
 )
 
