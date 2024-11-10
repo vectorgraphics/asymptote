@@ -14,6 +14,14 @@ param(
 )
 $usageString="Usage: $PSCommandPath -Version <version>"
 
+$asymptoteRoot="$(Split-Path -Parent $PSCommandPath)/.."
+
+if (-Not (Test-Path -PathType container $asymptoteRoot))
+{
+    Write-Error "No asymptote root found. Exiting."
+    Break
+}
+
 # ----------------------------------------------------
 # checking documentation files
 
@@ -162,17 +170,13 @@ if (Test-Path asymptote)
 {
     Remove-Item -Force -Recurse asymptote
 }
-# TODO: Once this is merged into master, the "-b msvc-suppoort-make" argument which
-#       tells git to checkout to msvc-support-make branch can be removed
-git clone --depth=1 -b msvc-support-make https://github.com/vectorgraphics/asymptote
-Copy-Item -Recurse -Force -Path "$extfilesRoot" -Destination "asymptote/extfiles"
 
 # ----------------------------------------------------
 # determine version, if not given in arguments
 
 if (0 -eq $Version.Length) {
     Write-Host "Version not given; will try to determine version"
-    Push-Location asymptote
+    Push-Location $asymptoteRoot
     $Version=python generate_asy_ver_info.py --version-for-release
     if (0 -ne $LASTEXITCODE) {
         Write-Error $usageString
@@ -187,7 +191,7 @@ if (0 -eq $Version.Length) {
 # ----------------------------------------------------
 # build GUI
 & $pyXasyActivateScript
-Push-Location asymptote/GUI
+Push-Location $asymptoteRoot/GUI
 & python -m pip install -r requirements.txt -r requirements.dev.txt
 & python buildtool.py build --version-override=$Version
 Pop-Location
@@ -204,24 +208,23 @@ function buildAsy($preset, $cfgDir) {
     {
         $env:VCPKG_ROOT = $vcpkgToolsCacheLoc
     }
-    Push-Location asymptote
+    Push-Location $asymptoteRoot
     cmake --preset $preset
     Pop-Location
-    cmake --build $cfgDir --target asy-pre-nsis-targets -j
+    cmake --build $asymptoteRoot/$cfgDir --target asy-pre-nsis-targets -j
     Pop-EnvironmentBlock  # ASY_VERSION_OVERRIDE, VCPKG_ROOT
     Pop-EnvironmentBlock  # Visual studio vars
     # install to pre-installation root
 }
 
-buildAsy msvc/release-with-external-doc-files asymptote/cmake-build-msvc/release
-cmake --install asymptote/cmake-build-msvc/release --component asy-pre-nsis
+buildAsy msvc/release-with-external-doc-files cmake-build-msvc/release
+cmake --install $asymptoteRoot/cmake-build-msvc/release --component asy-pre-nsis
 
 # ------------------------------------------------------
 # Generate NSIS installer file
-& ./asymptote/cmake-install-w32-nsis-release/build-asy-installer.ps1 "$makeNsisLoc"
+& $asymptoteRoot/cmake-install-w32-nsis-release/build-asy-installer.ps1 "$makeNsisLoc"
 
-
-$asySetupFile="./asymptote/cmake-install-w32-nsis-release/asymptote-$Version-setup.exe"
+$asySetupFile="$asymptoteRoot/cmake-install-w32-nsis-release/asymptote-$Version-setup.exe"
 
 if (Test-Path -PathType leaf "asymptote-$Version-setup.exe")
 {
@@ -242,7 +245,7 @@ else
 # ------------------------------------------------------
 # building for CTAN
 
-buildAsy msvc/release-with-external-doc-file-ctan asymptote/cmake-build-msvc/release
+buildAsy msvc/release-with-external-doc-file-ctan cmake-build-msvc/release
 
 if ($env:ASYMPTOTE_BUILD_SHARED_DIRECTORY)
 {
@@ -257,6 +260,8 @@ else
 
 New-Item -ItemType Directory -Path "$ctanOutputDir" -Force
 New-Item -ItemType Directory -Path "$ctanOutputDir/dll" -Force
-Get-ChildItem "asymptote/cmake-install-w32-nsis-release/build-$Version/" `
+Get-ChildItem "$asymptoteRoot/cmake-install-w32-nsis-release/build-$Version/" `
     -Filter "*.dll" | Copy-Item -Destination "$ctanOutputDir/dll"
-Copy-Item asymptote/cmake-build-msvc/release/asy.exe -Destination "$ctanOutputDir/asy.exe"
+Copy-Item $asymptoteRoot/cmake-build-msvc/release/asy.exe -Destination "$ctanOutputDir/asy.exe"
+
+Pop-Location  # asymptote
