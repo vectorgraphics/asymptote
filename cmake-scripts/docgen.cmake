@@ -2,7 +2,6 @@ if (NOT ENABLE_DOCGEN)
     message(FATAL_ERROR "Documentation generation is disabled")
 endif()
 
-set(ASY_DOC_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/doc)
 set(ASY_TEX_BUILD_ROOT ${CMAKE_CURRENT_BINARY_DIR}/docbuild)
 file(MAKE_DIRECTORY ${ASY_TEX_BUILD_ROOT})
 configure_file(${ASY_RESOURCE_DIR}/version.texi.in ${ASY_TEX_BUILD_ROOT}/version.texi)
@@ -22,25 +21,25 @@ list(
 
 add_custom_command(
         OUTPUT ${ASY_TEX_BUILD_ROOT}/asy-latex.pdf ${ASY_TEX_BUILD_ROOT}/asymptote.sty
-        DEPENDS ${ASY_DOC_ROOT}/asy-latex.dtx
-        COMMAND ${PDFLATEX_BASE_ARGUMENTS} ${ASY_DOC_ROOT}/asy-latex.dtx
-        WORKING_DIRECTORY ${ASY_DOC_ROOT}
+        DEPENDS ${ASY_DOC_DIR}/asy-latex.dtx
+        COMMAND ${PDFLATEX_BASE_ARGUMENTS} ${ASY_DOC_DIR}/asy-latex.dtx
+        WORKING_DIRECTORY ${ASY_DOC_DIR}
         BYPRODUCTS ${ASY_LATEX_DTX_ARTIFACTS}
 )
 
 add_custom_command(
         OUTPUT ${ASY_TEX_BUILD_ROOT}/latexusage.pdf
         DEPENDS
-            ${ASY_DOC_ROOT}/latexusage.tex
+            ${ASY_DOC_DIR}/latexusage.tex
             ${ASY_TEX_BUILD_ROOT}/asymptote.sty
             asy ${ASY_OUTPUT_BASE_FILES}
-        COMMAND ${PY3_INTERPRETER} ${ASY_DOC_ROOT}/build-latexusage-pdf.py
+        COMMAND ${PY3_INTERPRETER} ${ASY_DOC_DIR}/build-latexusage-pdf.py
             --build-dir=${ASY_TEX_BUILD_ROOT}
-            --latexusage-source-dir=${ASY_DOC_ROOT}
+            --latexusage-source-dir=${ASY_DOC_DIR}
             --pdflatex-executable=${PDFLATEX_COMPILER}
             --asy-executable=$<TARGET_FILE:asy>
             --asy-base-dir=${ASY_BUILD_BASE_DIR}
-        WORKING_DIRECTORY ${ASY_DOC_ROOT}
+        WORKING_DIRECTORY ${ASY_DOC_DIR}
         BYPRODUCTS ${ASY_TEX_BUILD_ROOT}/latexusage.log
 )
 
@@ -51,7 +50,7 @@ set(ASY_BASE_ARGUMENTS asy -dir ${ASY_BUILD_BASE_DIR} -config '' -render=0 -nopr
 macro(add_additional_pdf_outputs filename_base num_times_to_call_pdflatex compiler)
     # ARGN can be used to specify additional dependencies
     foreach (DUMMY_VAR RANGE 1 ${num_times_to_call_pdflatex})
-        list(APPEND COMMAND_ARGS COMMAND ${compiler} ${ASY_DOC_ROOT}/${filename_base}.tex)
+        list(APPEND COMMAND_ARGS COMMAND ${compiler} ${ASY_DOC_DIR}/${filename_base}.tex)
     endforeach()
 
     set(PDFLATEX_OUTPUT_PREFIX ${ASY_TEX_BUILD_ROOT}/${filename_base})
@@ -60,8 +59,8 @@ macro(add_additional_pdf_outputs filename_base num_times_to_call_pdflatex compil
     # with pdflatex, hence we have to copy the files to the build root first
     add_custom_command(
             OUTPUT ${PDFLATEX_OUTPUT_PREFIX}.tex
-            DEPENDS ${ASY_DOC_ROOT}/${filename_base}.tex
-            COMMAND ${CMAKE_COPY_ASY_FILE_TO_DOCBUILD_BASE_ARGS} ${ASY_DOC_ROOT}/${filename_base}.tex
+            DEPENDS ${ASY_DOC_DIR}/${filename_base}.tex
+            COMMAND ${CMAKE_COPY_ASY_FILE_TO_DOCBUILD_BASE_ARGS} ${ASY_DOC_DIR}/${filename_base}.tex
     )
 
     add_custom_command(
@@ -88,9 +87,9 @@ macro(add_asy_pdf_dependency_basic asyfile)
     # and output directory not matching, so a workaround is to copy to the doc build root
     add_custom_command(
             OUTPUT ${ASY_DOC_FILE_OUTPUT}
-            DEPENDS ${ASY_DOC_ROOT}/${asyfile}.asy asy ${ASY_OUTPUT_BASE_FILES}
+            DEPENDS ${ASY_DOC_DIR}/${asyfile}.asy asy ${ASY_OUTPUT_BASE_FILES}
             # copy <docroot>/file.asy -> <buildroot>/file.asy
-            COMMAND ${CMAKE_COPY_ASY_FILE_TO_DOCBUILD_BASE_ARGS} ${ASY_DOC_ROOT}/${asyfile}.asy
+            COMMAND ${CMAKE_COPY_ASY_FILE_TO_DOCBUILD_BASE_ARGS} ${ASY_DOC_DIR}/${asyfile}.asy
             COMMAND ${ASY_BASE_ARGUMENTS} -fpdf ${asyfile}.asy
             # cleanup <buildroot>/file.asy
             COMMAND ${CMAKE_RM_BASE_ARGUMENTS}
@@ -158,12 +157,12 @@ macro(add_asy_file_with_extension asy_file extra_ext)
     add_custom_command(
             OUTPUT ${ASY_DOC_FILE_OUTPUT}
             DEPENDS
-                ${ASY_DOC_ROOT}/${asy_file}.asy
-                ${ASY_DOC_ROOT}/${ASY_AUX_FILE_NAME}
+                ${ASY_DOC_DIR}/${asy_file}.asy
+                ${ASY_DOC_DIR}/${ASY_AUX_FILE_NAME}
                 asy ${ASY_OUTPUT_BASE_FILES}
             COMMAND ${CMAKE_COPY_ASY_FILE_TO_DOCBUILD_BASE_ARGS}
-                ${ASY_DOC_ROOT}/${asy_file}.asy
-                ${ASY_DOC_ROOT}/${ASY_AUX_FILE_NAME}
+                ${ASY_DOC_DIR}/${asy_file}.asy
+                ${ASY_DOC_DIR}/${ASY_AUX_FILE_NAME}
             COMMAND ${ASY_BASE_ARGUMENTS} -fpdf ${ASY_DOC_FILE_PREFIX}.asy
             COMMAND ${CMAKE_RM_BASE_ARGUMENTS}
                 ${ASY_TEX_BUILD_ROOT}/${asy_file}.asy
@@ -191,8 +190,8 @@ macro(copy_doc_asy_file_to_docbuild_root asyfile)
     add_custom_command(
             OUTPUT ${ASY_TEX_BUILD_ROOT}/${asyfile}.asy
             COMMAND ${CMAKE_COPY_ASY_FILE_TO_DOCBUILD_BASE_ARGS}
-            ${ASY_DOC_ROOT}/${asyfile}.asy
-            DEPENDS ${ASY_DOC_ROOT}/${asyfile}.asy
+            ${ASY_DOC_DIR}/${asyfile}.asy
+            DEPENDS ${ASY_DOC_DIR}/${asyfile}.asy
     )
 endmacro()
 
@@ -209,9 +208,9 @@ function(add_asy_file_with_asy_dependency asyfile) # <asydep1> [asydep2] ...
 
     add_custom_command(
             OUTPUT ${ASY_TEX_BUILD_ROOT}/${asyfile}.pdf
-            DEPENDS ${ASY_DOC_ROOT}/${asyfile}.asy asy ${ASY_OUTPUT_BASE_FILES} ${ASY_REQUIRED_DEPS}
+            DEPENDS ${ASY_DOC_DIR}/${asyfile}.asy asy ${ASY_OUTPUT_BASE_FILES} ${ASY_REQUIRED_DEPS}
             # copy <docroot>/file.asy -> <buildroot>/file.asy
-            COMMAND ${CMAKE_COPY_ASY_FILE_TO_DOCBUILD_BASE_ARGS} ${ASY_DOC_ROOT}/${asyfile}.asy
+            COMMAND ${CMAKE_COPY_ASY_FILE_TO_DOCBUILD_BASE_ARGS} ${ASY_DOC_DIR}/${asyfile}.asy
             COMMAND ${ASY_BASE_ARGUMENTS} -fpdf ${asyfile}.asy
             # cleanup <buildroot>/file.asy
             COMMAND ${CMAKE_RM_BASE_ARGUMENTS} ${ASY_TEX_BUILD_ROOT}/${asyfile}.asy
@@ -252,8 +251,8 @@ list(APPEND ASY_DOC_PDF_FILES
 # options file
 add_custom_command(
         OUTPUT ${ASY_TEX_BUILD_ROOT}/options
-        DEPENDS asy ${ASY_DOC_ROOT}/gen-asy-options-file.py
-        COMMAND ${PY3_INTERPRETER} ${ASY_DOC_ROOT}/gen-asy-options-file.py
+        DEPENDS asy ${ASY_DOC_DIR}/gen-asy-options-file.py
+        COMMAND ${PY3_INTERPRETER} ${ASY_DOC_DIR}/gen-asy-options-file.py
         --asy-executable=$<TARGET_FILE:asy>
         --output-file=${ASY_TEX_BUILD_ROOT}/options
 )
@@ -278,13 +277,13 @@ add_custom_command(
         DEPENDS
             ${ASY_TEX_BUILD_ROOT}/options
             ${ASY_TEX_BUILD_ROOT}/latexusage.pdf
-            ${ASY_DOC_ROOT}/asymptote.texi
+            ${ASY_DOC_DIR}/asymptote.texi
             ${ASY_DOC_PDF_FILES}
         COMMAND ${PY3_INTERPRETER}
-            ${ASY_DOC_ROOT}/build-asymptote-pdf-win.py
+            ${ASY_DOC_DIR}/build-asymptote-pdf-win.py
             --texify-loc=${TEXIFY}
             --texindex-loc=${TEXINDEX_WRAPPER}
-            --texi-file=${ASY_DOC_ROOT}/asymptote.texi
+            --texi-file=${ASY_DOC_DIR}/asymptote.texi
         WORKING_DIRECTORY ${ASY_TEX_BUILD_ROOT}
         BYPRODUCTS ${ASYMPTOTE_PDF_EXTRA_ARTIFACTS}
 )
@@ -294,9 +293,9 @@ add_custom_command(
         DEPENDS
         ${ASY_TEX_BUILD_ROOT}/options
         ${ASY_TEX_BUILD_ROOT}/latexusage.pdf
-        ${ASY_DOC_ROOT}/asymptote.texi
+        ${ASY_DOC_DIR}/asymptote.texi
         ${ASY_DOC_PDF_FILES}
-        COMMAND ${TEXI2DVI} --pdf ${ASY_DOC_ROOT}/asymptote.texi
+        COMMAND ${TEXI2DVI} --pdf ${ASY_DOC_DIR}/asymptote.texi
         WORKING_DIRECTORY ${ASY_TEX_BUILD_ROOT}
         BYPRODUCTS ${ASYMPTOTE_PDF_EXTRA_ARTIFACTS}
 )
