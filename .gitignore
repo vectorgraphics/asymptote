@@ -234,3 +234,5 @@ extbuilds
 
 extfiles/
 tools-cache
+CTAN
+asydoc
