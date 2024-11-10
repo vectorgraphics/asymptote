@@ -233,3 +233,4 @@ extbuilds
 *.raw.i
 
 extfiles/
+tools-cache
