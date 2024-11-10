@@ -1,7 +1,9 @@
 #!/bin/sh -x
 
-HOME=~bowman
+HOME=/home/$USER
 SHARED=$HOME/shared/asy
+ASYMPTOTE=$HOME/asymptote
+BUILD=/usr/local/src
 
 GCVERSION=8.2.4
 ATOMICVERSION=7.6.12
@@ -9,8 +11,7 @@ GC=gc-$GCVERSION
 
 MAKEFLAGS=-j8
 export MAKEFLAGS
-ASYMPTOTE=$HOME/asymptote
-BUILD=/usr/local/src
+
 BINDIR=usr
 test /usr -ef $BUILD/$BINDIR && exit
 LATEXDIR=$BUILD/$BINDIR/share/texmf/tex/latex/asymptote
@@ -68,8 +69,11 @@ rm -rf $SHARED/asydoc
 mkdir -p $SHARED/asydoc/png
 mkdir -p $SHARED/asydoc/FAQ
 cp -a *.pdf ../../man/man1/asy.1 $SHARED/asydoc
+cp -a *.pdf ../../man/man1/asy.1 $BUILD/asymptote-$VERSION/doc
 cp -a /usr/local/share/info/asymptote/asymptote.info $SHARED/asydoc/png
+cp -a /usr/local/share/info/asymptote/asymptote.info $BUILD/asymptote-$VERSION/doc/png
 cp -a /usr/local/share/info/asy-faq.info $SHARED/asydoc/FAQ
+cp -a /usr/local/share/info/asy-faq.info $BUILD/asymptote-$VERSION/doc/FAQ
 cd $BUILD
 tar cfz $SRC asymptote-$VERSION
 tar cfz asymptote-$VERSION.x86_64.tgz $BINDIR
