@@ -37,6 +37,12 @@ set(ASY_NSIS_INSTALL_ARGUMENT
         DESTINATION ${ASY_INSTALL_DIRECTORY}
 )
 
+set(ASY_NSIS_TARGET_EXAMPLES_INSTALL_ARGUMENT
+        COMPONENT ${ASY_PRE_NSIS_COMPONENT_NAME}
+        DESTINATION ${ASY_INSTALL_DIRECTORY}/examples
+)
+
+
 set(ASY_NSIS_INSTALL_RESOURCES_ARGUMENT
         COMPONENT ${ASY_PRE_NSIS_COMPONENT_NAME}
         DESTINATION .
@@ -61,7 +67,16 @@ install(
         FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/doc/latexusage.tex
         ${CMAKE_CURRENT_SOURCE_DIR}/doc/externalprc.tex
-        ${ASY_NSIS_INSTALL_ARGUMENT}
+        ${ASY_NSIS_TARGET_EXAMPLES_INSTALL_ARGUMENT}
+)
+
+install(
+        DIRECTORY ${ASY_DOC_DIR}/
+        ${ASY_NSIS_TARGET_EXAMPLES_INSTALL_ARGUMENT}
+        FILES_MATCHING
+            PATTERN "*.asy"
+            PATTERN "*.csv"
+            PATTERN "*.dat"
 )
 
 # resources files for installer + nsi files
