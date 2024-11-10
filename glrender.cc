@@ -2141,7 +2141,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
         glutSetOption(GLUT_MULTISAMPLE,multisample);
 #endif
 #endif
-      string title=string(settings::PROGRAM)+": "+prefix;
+      string title=string(PACKAGE_NAME)+": "+prefix;
       fpu_trap(false); // Work around FE_INVALID
       window=glutCreateWindow(title.c_str());
       fpu_trap(settings::trap());

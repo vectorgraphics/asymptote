@@ -62,12 +62,13 @@ make DESTDIR="$BUILD/" latexdir=$LATEXDIR install
 rm $BUILD/$BINDIR/local/info/dir
 cp -a $BUILD/asymptote-$VERSION/ChangeLog .
 cp -a $ASYMPTOTE/ReleaseNotes .
-make distclean
-rm -rf autom4te.cache
-cd /usr/local/share/doc/asymptote
 rm -rf $SHARED/asydoc
 mkdir -p $SHARED/asydoc/png
 mkdir -p $SHARED/asydoc/FAQ
+cp -a $BUILD/asymptote-$VERSION/doc/asymptote.sty $SHARED/asydoc
+make distclean
+rm -rf autom4te.cache
+cd /usr/local/share/doc/asymptote
 cp -a *.pdf ../../man/man1/asy.1 $SHARED/asydoc
 cp -a *.pdf ../../man/man1/asy.1 $BUILD/asymptote-$VERSION/doc
 cp -a /usr/local/share/info/asymptote/asymptote.info $SHARED/asydoc/png
