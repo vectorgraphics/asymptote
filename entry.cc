@@ -416,6 +416,10 @@ size_t numFormals(ty *t) {
   return sig ? sig->getNumFormals() : 0;
 }
 
+size_t SigHash::operator()(const mem::pair<symbol, ty*>& p) const {
+  return hash(p.first, p.second);
+}
+
 bool SigEquiv::operator()(const mem::pair<symbol, ty*>& p1,
                             const mem::pair<symbol, ty*>& p2) const {
   symbol name1 = p1.first, name2 = p2.first;

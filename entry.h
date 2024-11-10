@@ -350,16 +350,8 @@ public:
   }
 };
 
-size_t hashSig(const signature *sig);
-size_t nonSpecialHash(symbol name, const signature *sig);
-size_t nonSpecialHash(symbol name, const ty *t);
-size_t specialHash(symbol name, const ty *t);
-size_t hash(symbol name, const ty *t);
-
 struct SigHash {
-  size_t operator()(const mem::pair<symbol, ty *>& p) const {
-    return hash(p.first, p.second);
-  }
+  size_t operator()(const mem::pair<symbol, ty *>& p) const;
 };
 
 struct SigEquiv {
