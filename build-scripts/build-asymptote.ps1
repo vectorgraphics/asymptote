@@ -3,7 +3,8 @@
 .SYNOPSIS
     Script to build asymptote
 .DESCRIPTION
-    Builds asymptote installer file
+    Builds asymptote installer file.
+    This script uses asymptote source directory. If building fails, try removing cmake-build-msvc/release directory
 .PARAMETER Version
     Specifies Asymptote version to build. If not given, will automatically determine version from configure.ac.
 #>
