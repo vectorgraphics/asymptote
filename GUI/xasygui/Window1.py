@@ -29,8 +29,9 @@ from . import (
     xasyOptions as xo,
     xasyStrings as xs,
     xasyUtils as xu,
-    xasyTransform as xT
 )
+
+from .xasyTransform import xasyTransform as xT
 
 
 class ActionChanges:
