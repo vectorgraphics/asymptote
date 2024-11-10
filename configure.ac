@@ -523,7 +523,7 @@ AC_DEFUN([CHECK_LIB_STATIC],[
    fi
    LDFLAGS_SAVE=$LDFLAGS
    LDFLAGS="$LDFLAGS "$STATIC"$PKG_FLAGS "$DYNAMIC
-   AC_MSG_NOTICE([Checking $2 for function $3 ... PKG_FLAGS is $PKG_FLAGS])
+   AC_MSG_NOTICE([Checking $2 for function $3... PKG_FLAGS:$PKG_FLAGS])
    AC_CHECK_LIB(
       $2,$3,
       AC_DEFINE($4,1,DEFINE_LIB($2)),
