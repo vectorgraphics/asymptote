@@ -56,6 +56,14 @@ install(
         ${ASY_NSIS_INSTALL_ARGUMENT}
 )
 
+# extra doc files
+install(
+        FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/doc/latexusage.tex
+        ${CMAKE_CURRENT_SOURCE_DIR}/doc/externalprc.tex
+        ${ASY_NSIS_INSTALL_ARGUMENT}
+)
+
 # resources files for installer + nsi files
 
 install(
@@ -118,7 +126,6 @@ elseif(EXTERNAL_DOCUMENTATION_DIR)
             CAD.pdf
             TeXShopAndAsymptote.pdf
             asyRefCard.pdf
-            latexusage.pdf
     )
     foreach(ASY_DOC_FILE ${ASY_DOC_FILES_TO_COPY})
         install_from_external_documentation_dir(${ASY_DOC_FILE})

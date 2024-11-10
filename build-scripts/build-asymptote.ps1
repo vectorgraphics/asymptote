@@ -33,7 +33,6 @@ $requiredDocumentationFiles=@(
     "CAD.pdf"
     "TeXShopAndAsymptote.pdf"
     "asyRefCard.pdf"
-    "latexusage.pdf"
 )
 
 $hasDocFiles=$true

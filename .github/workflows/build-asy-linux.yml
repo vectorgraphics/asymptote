@@ -109,7 +109,6 @@ jobs:
             cmake-build-linux/release/docbuild/CAD.pdf
             cmake-build-linux/release/docbuild/asyRefCard.pdf
             cmake-build-linux/release/docbuild/TeXShopAndAsymptote.pdf
-            cmake-build-linux/release/docbuild/latexusage.pdf
   package-asymptote-artifacts:
     needs: [linux-asy-docgen]
     runs-on: "ubuntu-22.04"

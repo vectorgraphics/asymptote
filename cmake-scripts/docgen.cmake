@@ -123,7 +123,6 @@ set(
         ${ASY_TEX_BUILD_ROOT}/CAD.pdf
         ${ASY_TEX_BUILD_ROOT}/TeXShopAndAsymptote.pdf
         ${ASY_TEX_BUILD_ROOT}/asyRefCard.pdf
-        ${ASY_TEX_BUILD_ROOT}/latexusage.pdf
 )
 
 add_custom_target(docgen DEPENDS ${BASE_ASYMPTOTE_DOC_AND_TEX_FILES})

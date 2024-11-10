@@ -141,4 +141,3 @@ jobs:
             cmake-build-msvc/release/docbuild/CAD.pdf
             cmake-build-msvc/release/docbuild/TeXShopAndAsymptote.pdf
             cmake-build-msvc/release/docbuild/asyRefCard.pdf
-            cmake-build-msvc/release/docbuild/latexusage.pdf
