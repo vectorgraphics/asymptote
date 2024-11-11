@@ -293,7 +293,7 @@ opsymbols.h: camp.l opsymbols.pl
 
 envcompleter.d: keywords.h
 
-asy-keywords.el: asy
+asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy
 	@echo Creating $@;
 	$(ASY) -l > asy.list
 	ls $(addsuffix /*.asy,$(KEYWORDS)) | grep -v plain\* | \
