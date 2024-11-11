@@ -3,7 +3,7 @@
 import sys
 import pathlib
 
-sys.path.append(str(pathlib.Path(__file__).parent))
+sys.path.append(str(pathlib.Path(__file__).resolve().parent))
 
 import signal, os
 import PyQt5.QtWidgets as QtWidgets
