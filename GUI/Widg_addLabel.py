@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-import PyQt5.QtGui as QtGui
-import PyQt5.QtWidgets as QtWidgets
 
-from xasyqtui.widg_addLabel import Ui_Form
-from . import labelEditor, xasyUtils as xu
+from pyUIClass.widg_addLabel import Ui_Form
+import PyQt5.QtWidgets as QtWidgets
+import PyQt5.QtGui as QtGui
+
+import labelEditor
+import xasyUtils as xu
 
 
 class Widg_addLabel(QtWidgets.QWidget):

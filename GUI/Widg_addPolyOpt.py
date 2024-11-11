@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-
-import PyQt5.QtGui as QtGui
+from pyUIClass.widg_addPolyOpt import Ui_Form
 import PyQt5.QtWidgets as QtWidgets
+import PyQt5.QtGui as QtGui
 
-from xasyqtui.widg_addPolyOpt import Ui_Form
+import sys
 
 
 class Widg_addPolyOpt(QtWidgets.QWidget):

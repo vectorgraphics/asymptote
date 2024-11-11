@@ -3,7 +3,7 @@
 import PyQt5.QtWidgets as QtWidgets
 import PyQt5.QtGui as QtGui
 import PyQt5.QtCore as QtCore
-from xasyqtui.setCustomAnchor import Ui_Dialog
+from pyUIClass.setCustomAnchor import Ui_Dialog
 
 
 class CustomAnchorDialog(QtWidgets.QDialog):

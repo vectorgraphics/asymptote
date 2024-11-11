@@ -10,9 +10,9 @@
 ############################################################################
 
 from string import *
+import xasy2asy as xasy2asy
 import io
 import re
-from . import xasy2asy
 
 
 class xasyParseError(Exception):

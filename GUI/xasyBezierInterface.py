@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-import math
 
+
+import PyQt5.QtWidgets as QtWidgets
 import PyQt5.QtCore as QtCore
 import PyQt5.QtGui as QtGui
+import xasy2asy as xasy2asy
+import xasyUtils as xasyUtils
+import Widg_editBezier as Web
 
-from . import xasy2asy, xasyUtils, InplaceAddObj, Widg_editBezier as Web
-
+import InplaceAddObj
+import math
 
 class CurrentlySelctedType:
     none = -1

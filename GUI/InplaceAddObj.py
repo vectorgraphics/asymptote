@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-import math
 
 import PyQt5.QtCore as QtCore
 import PyQt5.QtGui as QtGui
+import xasy2asy as xasy2asy
 
-from . import PrimitiveShape, Widg_addLabel, Widg_addPolyOpt, xasy2asy as xasy2asy
+import PrimitiveShape
+import math
+
+import Widg_addPolyOpt
+import Widg_addLabel
 
 
 class InplaceObjProcess(QtCore.QObject):
