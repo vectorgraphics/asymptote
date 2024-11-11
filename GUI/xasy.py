@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
-import sys, signal, os
+import sys
+import pathlib
+
+sys.path.append(str(pathlib.Path(__file__).parent))
+
+import signal, os
 import PyQt5.QtWidgets as QtWidgets
 import PyQt5.QtCore as QtCore
 from Window1 import MainWindow1
