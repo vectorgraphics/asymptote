@@ -56,7 +56,11 @@ def copy_gui_files(asy_install_root: pathlib.Path):
     gui_install_dir.mkdir(exist_ok=True)
 
     exclude_prefixes = {
+        ".vscode",
+        ".fleet",
+        ".idea"
         "__pycache__",
+        ".python-version",
         ".gitignore",
         "buildtool.py",
         "requirements.",
