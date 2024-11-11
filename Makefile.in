@@ -316,7 +316,7 @@ install-asy: asy sty $(PYFILES)
 	${INSTALL} -d $(shaderdir) $(webgldir) \
 		$(GUIdir) $(GUIdir)/configs \
 		$(GUIdir)/res $(GUIdir)/res/icons \
-		$(GUIdir)/xasygui $(GUIdir)/xasyicons $(GUIdir)/xasyqtui $(GUIdir)/xasyversion
+		$(GUIdir)/xasyicons $(GUIdir)/xasyqtui $(GUIdir)/xasyversion
 	-${INSTALL} -d $(latexdir)
 	-${INSTALL} -d $(contextdir)
 	${INSTALL} -p -m 755 $(NAME) $(bindir)
@@ -326,7 +326,7 @@ install-asy: asy sty $(PYFILES)
 	${INSTALL} -p -m 644 base/webgl/asygl.js \
 		$(webgldir)
 	${INSTALL} -p -m 755 GUI/xasy.py $(GUIdir)
-	${INSTALL} -p -m 644 GUI/xasygui/*.py $(GUIdir)/xasygui
+	${INSTALL} -p -m 644 GUI/*.py $(GUIdir)
 	-${INSTALL} -p -m 644 GUI/xasyicons/*.py $(GUIdir)/xasyicons
 	-${INSTALL} -p -m 644 GUI/xasyqtui/*.py $(GUIdir)/xasyqtui
 	-${INSTALL} -p -m 644 GUI/xasyversion/*.py $(GUIdir)/xasyversion
@@ -360,8 +360,6 @@ uninstall-asy:
 	-cd $(exampledir) && rm -f $(EXEXTRA) $(DOCEXTRA)
 	-rmdir $(exampledir)
 	-cd $(GUIdir) && rm -f *.py
-	-cd $(GUIdir)/xasygui && rm -f *.py
-	-rmdir $(GUIdir)/xasygui
 	-cd $(GUIdir)/xasyicons && rm -f *.py
 	-rmdir $(GUIdir)/xasyicons
 	-cd $(GUIdir)/xasyqtui && rm -f *.py
