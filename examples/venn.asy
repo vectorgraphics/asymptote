@@ -1,4 +1,3 @@
-xmap("34.5",(5.24802,-0.356347,1,0,0,1));
 size(0,150);
 
 pen colour1=red;
@@ -35,4 +34,3 @@ draw(z--z1,Arrow,Margin(0,m));
 draw(KEY="34.5",z--z2,Arrow,Margin(0,m));
 
 shipout(bbox(0.25cm));
-size((0,0,30.8688,0,0,30.8688)); // Resize to initial xasy transform
