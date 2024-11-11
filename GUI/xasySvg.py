@@ -3,7 +3,7 @@ import PyQt5.QtGui as QtGui
 import PyQt5.QtWidgets as QtWidgets
 import subprocess
 import sys
-from xasygui import xasyOptions as xo
+import xasyOptions as xo
 
 
 class SvgObject:

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-from pyUIClass.window1 import Ui_MainWindow
+from xasyqtui.window1 import Ui_MainWindow
 
 import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc
-import xasyVersion
+from xasyversion.version import VERSION as xasyVersion
 
 import numpy as np
 import os
@@ -937,7 +937,7 @@ class MainWindow1(Qw.QMainWindow):
         webbrowser.open_new(asyManualURL)
 
     def actionAbout(self):
-        Qw.QMessageBox.about(self,"xasy","This is xasy "+xasyVersion.xasyVersion+"; a graphical front end to the Asymptote vector graphics language: https://asymptote.sourceforge.io/")
+        Qw.QMessageBox.about(self,"xasy","This is xasy "+xasyVersion+"; a graphical front end to the Asymptote vector graphics language: https://asymptote.sourceforge.io/")
 
     def actionExport(self, pathToFile):
         asyFile = io.open(os.path.realpath(pathToFile), 'w')

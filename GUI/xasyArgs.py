@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import argparse
-import xasyVersion
+from xasyversion.version import VERSION as xasyVersion
 import PyQt5.QtCore as QtCore
 # Add arguments here.
 
@@ -11,7 +11,7 @@ def parseArgs(args):
                         help='Custom path to asy executable')
     parser.add_argument('-v', '-version', '--version',
                         help='Version number', action='version',
-                        version='xasy v{0}'.format(xasyVersion.xasyVersion))
+                        version='xasy v{0}'.format(xasyVersion))
     parser.add_argument('-l', '-language', '--language',
                         help='language')
     parser.add_argument('-x', '-mag', '--mag',
