@@ -50,7 +50,7 @@ TINYEXR_REF=v1.0.7
 # FETCH_FROM_GITHUB(REPO,REF,OUT_VAR_SRC_DIRECTORY)
 AC_DEFUN([FETCH_FROM_GITHUB],[
    AC_MSG_NOTICE([Fetching from github: $1@$2])
-   $3=$EXTERNAL_CODE_ROOT/$1/$2
+   $3=$EXTERNAL_CODE_ROOT/$1
    AC_MSG_NOTICE([Creating directory $$3])
    mkdir -p $$3
    curl -L https://github.com/$1/archive/$2.tar.gz | tar -xz --strip-components=1 -C $$3 -f -
@@ -449,7 +449,7 @@ AC_SUBST(LSP_ROOT)
 LSPLIBS=
 LSPLIB=
 if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
-   LSP_BUILD_ROOT="$EXTERNAL_BUILD_ROOT/$LSP_GITHUB_REPO/$LSP_REF"
+   LSP_BUILD_ROOT="$EXTERNAL_BUILD_ROOT/$LSP_GITHUB_REPO"
    ROOT_DIR_RELATIVE_TO_LSP=$(realpath -s --relative-to $LSP_BUILD_ROOT .)
    LSPLIB=$LSP_BUILD_ROOT/liblspcpp.a
    LSPLIBS=$LSPLIBS" -L$LSP_BUILD_ROOT -L$LSP_BUILD_ROOT/third_party/uri/src -llspcpp -lnetwork-uri -lboost_filesystem -lboost_thread"
