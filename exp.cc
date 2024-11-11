@@ -22,7 +22,7 @@
 #include "stm.h"
 #include "inst.h"
 #include "opsymbols.h"
-#include "process.h"
+#include "asyprocess.h"
 
 //void runCode(absyntax::block *code);
 

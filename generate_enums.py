@@ -12,11 +12,11 @@
 
 from typing import List, Tuple, Any, Union
 from datetime import datetime, timezone
+import os
+import time
 import io
 import argparse
-import os
 import sys
-import time
 import re
 
 def cleanComment(s):
@@ -58,7 +58,6 @@ def generate_enum_cpp(outname, enums, name, comment=None, *args, **kwargs):
         fil.write('// Enum class for {0}\n'.format(name))
         if comment is not None:
             fil.write('// {0}\n'.format(comment))
-        fil.write('// Generated at {0}\n\n'.format(datetime_now()))
         if 'namespace' in kwargs:
             fil.write('namespace {0}\n'.format(kwargs['namespace']))
             fil.write('{\n')
@@ -67,11 +66,11 @@ def generate_enum_cpp(outname, enums, name, comment=None, *args, **kwargs):
         fil.write('{\n')
 
         for enumTxt, enumNum, *ar in enums:
-            fil.write('{0}={1},\n'.format(enumTxt, enumNum))
             if len(ar) > 0:
                 comment=cleanComment(ar[-1])
                 if comment is not None:
-                    fil.write('// {0}\n\n'.format(comment.strip()))
+                    fil.write('// {0}\n'.format(comment.strip()))
+            fil.write('{0}={1},\n\n'.format(enumTxt, enumNum))
 
         fil.write('};\n\n')
 
@@ -85,8 +84,6 @@ def generate_enum_java(outname, enums, name, comment=None, *args, **kwargs):
         fil.write('// Enum class for {0}\n'.format(name))
         if comment is not None:
             fil.write('// {0}\n'.format(comment))
-        fil.write('// Generated at {0}\n\n'.format(datetime_now()))
-
         if 'package' in kwargs:
             fil.write('package {0};\n'.format(kwargs['package']))
         fil.write('\n')
@@ -128,8 +125,6 @@ def generate_enum_asy(outname, enums, name, comment=None, *args, **kwargs):
         fil.write('// Enum class for {0}\n'.format(name))
         if comment is not None:
             fil.write('// {0}\n'.format(comment))
-        fil.write('// Generated at {0}\n\n'.format(datetime_now()))
-
         fil.write('struct {0}\n'.format(name))
         fil.write('{\n')
 
@@ -151,7 +146,6 @@ def generate_enum_py(outname, enums, name, comment=None, *args, **kwargs):
         fil.write('# Enum class for {0}\n'.format(name))
         if comment is not None:
             fil.write('""" {0} """\n'.format(comment))
-        fil.write('# Generated at {0}\n\n'.format(datetime_now()))
         fil.write('class {0}:\n'.format(name))
         for enumTxt, enumNum, *ar in enums:
             fil.write('    {0}_{2}={1}\n'.format(name, enumNum, enumTxt))

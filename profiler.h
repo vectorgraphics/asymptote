@@ -8,7 +8,9 @@
 #ifndef PROFILER_H
 #define PROFILER_H
 
+#if !defined(_WIN32)
 #include <sys/time.h>
+#endif
 
 #include <iostream>
 

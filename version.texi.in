@@ -1,0 +1,3 @@
+@set VERSION ${ASY_VERSION}
+@set Datadir asy-datadir
+@set Docdir asy-docdir
