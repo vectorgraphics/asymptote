@@ -80,6 +80,7 @@ endif()
 
 enable_testing()
 include(cmake-scripts/tests-asy.cmake)
+include(cmake-scripts/tests-wce.cmake)
 
 if (ENABLE_ASY_CXXTEST)
     add_subdirectory(cxxtests)

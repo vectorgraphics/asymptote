@@ -44,3 +44,5 @@ jobs:
       - run: chmod +x cmake-build-linux/release/asy
       - name: asy test
         run: ctest --test-dir cmake-build-linux/release -R "^asy.*" -E "asy.(gc.*|pic.trans)"
+      - name: wce test
+        run: ctest --test-dir cmake-build-linux/release -R "^wce"
