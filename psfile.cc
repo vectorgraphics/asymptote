@@ -154,8 +154,7 @@ void psfile::prologue(const bbox& box)
 {
   header(true);
   BoundingBox(box);
-  *out << "%%Creator: " << PACKAGE_NAME << " " << PACKAGE_VERSION
-       << REVISION <<  newl;
+  *out << "%%Creator: " << PACKAGE_NAME << " " << REVISION <<  newl;
 
   time_t t; time(&t);
   struct tm *tt = localtime(&t);
