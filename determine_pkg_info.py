@@ -9,17 +9,17 @@ import pathlib
 from typing import TextIO
 import re
 
-REGEXES: dict[str, re.Pattern[str]] = {
+REGEXES = {
     "base": re.compile(
         r"AC_INIT\(\s*\[\s*(.+)\s*]\s*,"  # pkg name
         + r"\s*\[\s*(.+)\s*]\s*,"  # pkg version
         + r"\s*\[\s*(.+)\s*]\s*\)"  # issue url
     ),
-    "asygl": re.compile(r"ASYGLVERSION\s*=\s*(.+)"),
+    "asygl": re.compile(r"ASYGLVERSION=(.+)"),
 }
 
 
-def process_configure_ac_file(f: TextIO) -> dict:
+def process_configure_ac_file(f):
     """
     Returns a dictionary containing version information, if found
     from the configure.ac file object
@@ -48,7 +48,7 @@ def process_configure_ac_file(f: TextIO) -> dict:
     return result
 
 
-def determine_asy_pkg_info(ac_file: os.PathLike = "configure.ac") -> dict:
+def determine_asy_pkg_info(ac_file="configure.ac"):
     """
     Returns a dictionary containing version information, if found
     from the ac_file specified

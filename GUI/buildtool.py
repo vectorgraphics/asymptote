@@ -7,8 +7,9 @@ from typing import Optional
 
 import click
 from PyQt5.uic import compileUiDir
+import os
 
-BUILD_ROOT_DIRECTORY = pathlib.Path(__file__).parent
+BUILD_ROOT_DIRECTORY = pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(str(BUILD_ROOT_DIRECTORY.parent))
 
 import determine_pkg_info
