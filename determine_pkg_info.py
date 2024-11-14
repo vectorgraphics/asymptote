@@ -48,7 +48,7 @@ def process_configure_ac_file(f):
     return result
 
 
-def determine_asy_pkg_info(ac_file):
+def determine_asy_pkg_info(ac_file="configure.ac"):
     """
     Returns a dictionary containing version information, if found
     from the ac_file specified
