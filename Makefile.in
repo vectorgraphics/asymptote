@@ -173,8 +173,8 @@ LSP_ROOT=@LSP_ROOT@
 
 $(LSP_BUILD_ROOT)/Makefile:
 	$(CMAKE) -B$(LSP_BUILD_ROOT) -S$(LSP_ROOT) \
-		-DCMAKE_CXX_FLAGS="-fPIE @OPTIONS@ @LSP_CXX_BUILD_FLAGS@ -I@ROOT_DIR_RELATIVE_TO_LSP@/$(GC)" \
-		@LSP_CMAKE_OPTIONS@
+		-DCMAKE_CXX_FLAGS="-fPIE @OPTIONS@ @LSP_CXX_BUILD_FLAGS@ \
+		-I@ROOT_DIR_RELATIVE_TO_LSP@/$(GC)" @LSP_CMAKE_OPTIONS@
 
 $(LSP_BUILD_ROOT)/liblspcpp.a: $(LSP_BUILD_ROOT)/Makefile
 	$(MAKE) -C $(LSP_BUILD_ROOT)
@@ -268,7 +268,7 @@ icons_rc.py: GUI/res/icons.qrc
 	-$(PYRCC) GUI/res/icons.qrc -o GUI/icons_rc.py
 
 GUI/xasyicons: GUI/res/icons.qrc GUI/buildtool.py
-	cd GUI && $(PYTHON) buildtool.py buildicons
+	-cd GUI && $(PYTHON) buildtool.py buildicons
 
 GUI/xasyqtui: $(UIFILES) GUI/buildtool.py
 	cd GUI && $(PYTHON) buildtool.py buildui
