@@ -15,7 +15,7 @@ REGEXES = {
         + r"\s*\[\s*(.+)\s*]\s*,"  # pkg version
         + r"\s*\[\s*(.+)\s*]\s*\)"  # issue url
     ),
-    "asygl": re.compile(r"ASYGLVERSION=(.+)"),
+    "asygl": re.compile(r"ASYGLVERSION\s*=\s*(.+)"),
 }
 
 
