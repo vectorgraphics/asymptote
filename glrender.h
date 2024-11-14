@@ -39,6 +39,10 @@
 #ifndef APIENTRY
 #define APIENTRY
 #endif
+#ifndef GLAPI
+#define GLAPI
+#endif
+#define GLEW_OSMESA
 #include <GL/osmesa.h>
 #endif
 
@@ -51,6 +55,9 @@
 #ifdef HAVE_LIBOSMESA
 #ifndef APIENTRY
 #define APIENTRY
+#endif
+#ifndef GLAPI
+#define GLAPI
 #endif
 #include <GL/osmesa.h>
 #endif
