@@ -166,13 +166,6 @@ if (-Not (Test-Path -PathType leaf $pyXasyActivateScript))
 }
 
 # ----------------------------------------------------
-# cloning asymptote
-if (Test-Path asymptote)
-{
-    Remove-Item -Force -Recurse asymptote
-}
-
-# ----------------------------------------------------
 # determine version, if not given in arguments
 
 if (0 -eq $Version.Length) {
