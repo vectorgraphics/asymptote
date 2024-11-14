@@ -236,7 +236,7 @@ $(RUNTIME_FILES:=.cc): %.cc: runtime.pl opsymbols.h runtimebase.in %.in
 
 GEN_PREOROCESSED_DEPFILE_BASE_ARGS = \
     $(PYTHON) gen_preprocessed_depfile.py \
-        --cxx-compiler=$(CXX) \
+        --cxx-compiler="$(CXX)" \
         --additional-raw-arguments="$(OPTS)" \
         --cxx-standard=$(subst gnu,,$(subst c++,,$(CXX_STANDARD)))
 
