@@ -95,3 +95,8 @@ add_asy_tests(
         TEST_DIR template
         TESTS initTest functionTest mapArrayTest multiImport singletype sortedsetTest splaytreeTest structTest
 )
+
+add_asy_tests(
+        TEST_DIR gs
+        TESTS ghostscript
+)
