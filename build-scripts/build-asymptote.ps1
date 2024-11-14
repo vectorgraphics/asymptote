@@ -209,9 +209,22 @@ function buildAsy($preset, $cfgDir) {
     {
         $env:VCPKG_ROOT = $vcpkgToolsCacheLoc
     }
+
+    # ------------------------------------
+    # clear CMakeCache.txt
+    if (Test-Path -Type Leaf "$asymptoteRoot/$cfgDir/CMakeCache.txt")
+    {
+        Remove-Item -Force "$asymptoteRoot/$cfgDir/CMakeCache.txt"
+    }
+
+    # ------------------------------------
+    # configure
     Push-Location $asymptoteRoot
     cmake --preset $preset
     Pop-Location
+
+    # ------------------------------------
+    # build
     cmake --build $asymptoteRoot/$cfgDir --target asy-pre-nsis-targets -j
     Pop-EnvironmentBlock  # ASY_VERSION_OVERRIDE, VCPKG_ROOT
     Pop-EnvironmentBlock  # Visual studio vars
