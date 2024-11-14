@@ -236,3 +236,6 @@ extfiles/
 tools-cache
 CTAN
 asydoc
+
+tests/out
+tests/out.*
