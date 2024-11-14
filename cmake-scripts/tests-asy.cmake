@@ -16,6 +16,7 @@ function(add_individual_asy_tests)
             NAME "asy.${ASY_TEST_DIR}.${ASY_TEST_FILE}"
             COMMAND asy
                 -dir ${ASY_BUILD_BASE_DIR} ${TEST_PATH}
+                -noV
                 -o out
                 -globalwrite
                 ${ASY_TEST_ADDR_ASY_ARGS}
