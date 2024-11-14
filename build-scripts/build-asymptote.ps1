@@ -236,6 +236,14 @@ if (Test-Path -PathType leaf "asymptote-$Version-setup.exe")
 if (Test-Path -PathType leaf $asySetupFile)
 {
     Move-Item $asySetupFile . -Force
+
+    # ---------------------------------------
+    # copy setup file to shared directory, if given
+    if ($env:ASYMPTOTE_BUILD_SHARED_DIRECTORY)
+    {
+        Write-Host "Copying setup file to shared directory."
+        Copy-Item -Force $asySetupFile "$env:ASYMPTOTE_BUILD_SHARED_DIRECTORY/asymptote-$Version-setup.exe"
+    }
 }
 else
 {
