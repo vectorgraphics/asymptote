@@ -62,7 +62,7 @@ if (-Not $hasDocFiles) {
 # copy documentation files to asymptote directory
 
 New-Item -ItemType Directory -Path "$asymptoteRoot/extfiles" -Force
-Copy-Item -Recurse "$extfilesRoot/*" -Destination "$asymptoteRoot/extfiles"
+Copy-Item -Force -Recurse "$extfilesRoot/*" -Destination "$asymptoteRoot/extfiles"
 
 # ----------------------------------------------------
 # tools cache
