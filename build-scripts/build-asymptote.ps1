@@ -59,6 +59,12 @@ if (-Not $hasDocFiles) {
 }
 
 # ----------------------------------------------------
+# copy documentation files to asymptote directory
+
+New-Item -ItemType Directory -Path "$asymptoteRoot/extfiles" -Force
+Copy-Item -Force -Recurse "$extfilesRoot/*" -Destination "$asymptoteRoot/extfiles"
+
+# ----------------------------------------------------
 # tools cache
 $toolscacheRoot="tools-cache"
 New-Item -ItemType Directory -Path $toolscacheRoot -Force
@@ -166,13 +172,6 @@ if (-Not (Test-Path -PathType leaf $pyXasyActivateScript))
 }
 
 # ----------------------------------------------------
-# cloning asymptote
-if (Test-Path asymptote)
-{
-    Remove-Item -Force -Recurse asymptote
-}
-
-# ----------------------------------------------------
 # determine version, if not given in arguments
 
 if (0 -eq $Version.Length) {
@@ -209,9 +208,22 @@ function buildAsy($preset, $cfgDir) {
     {
         $env:VCPKG_ROOT = $vcpkgToolsCacheLoc
     }
+
+    # ------------------------------------
+    # clear CMakeCache.txt
+    if (Test-Path -Type Leaf "$asymptoteRoot/$cfgDir/CMakeCache.txt")
+    {
+        Remove-Item -Force "$asymptoteRoot/$cfgDir/CMakeCache.txt"
+    }
+
+    # ------------------------------------
+    # configure
     Push-Location $asymptoteRoot
     cmake --preset $preset
     Pop-Location
+
+    # ------------------------------------
+    # build
     cmake --build $asymptoteRoot/$cfgDir --target asy-pre-nsis-targets -j
     Pop-EnvironmentBlock  # ASY_VERSION_OVERRIDE, VCPKG_ROOT
     Pop-EnvironmentBlock  # Visual studio vars
@@ -225,9 +237,10 @@ cmake --install $asymptoteRoot/cmake-build-msvc/release --component asy-pre-nsis
 # Generate NSIS installer file
 & $asymptoteRoot/cmake-install-w32-nsis-release/build-asy-installer.ps1 "$makeNsisLoc"
 
-$asySetupFile="$asymptoteRoot/cmake-install-w32-nsis-release/asymptote-$Version-setup.exe"
+$asySetupName="asymptote-$Version-setup.exe"
+$asySetupFile="$asymptoteRoot/cmake-install-w32-nsis-release/$asySetupName"
 
-if (Test-Path -PathType leaf "asymptote-$Version-setup.exe")
+if (Test-Path -PathType leaf "$asySetupName")
 {
     Write-Host "Found old setup file. Will delete the file."
     Remove-Item -Force "asymptote-$Version-setup.exe"
@@ -235,6 +248,14 @@ if (Test-Path -PathType leaf "asymptote-$Version-setup.exe")
 
 if (Test-Path -PathType leaf $asySetupFile)
 {
+    # ---------------------------------------
+    # copy setup file to shared directory, if given
+    if ($env:ASYMPTOTE_BUILD_SHARED_DIRECTORY)
+    {
+        Write-Host "Copying setup file to shared directory."
+        Copy-Item -Force $asySetupFile "$env:ASYMPTOTE_BUILD_SHARED_DIRECTORY/$asySetupName"
+    }
+
     Move-Item $asySetupFile . -Force
 }
 else
