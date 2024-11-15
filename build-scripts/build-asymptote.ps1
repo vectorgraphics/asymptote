@@ -237,9 +237,10 @@ cmake --install $asymptoteRoot/cmake-build-msvc/release --component asy-pre-nsis
 # Generate NSIS installer file
 & $asymptoteRoot/cmake-install-w32-nsis-release/build-asy-installer.ps1 "$makeNsisLoc"
 
-$asySetupFile="$asymptoteRoot/cmake-install-w32-nsis-release/asymptote-$Version-setup.exe"
+$asySetupName="asymptote-$Version-setup.exe"
+$asySetupFile="$asymptoteRoot/cmake-install-w32-nsis-release/$asySetupName"
 
-if (Test-Path -PathType leaf "asymptote-$Version-setup.exe")
+if (Test-Path -PathType leaf "$asySetupName")
 {
     Write-Host "Found old setup file. Will delete the file."
     Remove-Item -Force "asymptote-$Version-setup.exe"
@@ -247,15 +248,15 @@ if (Test-Path -PathType leaf "asymptote-$Version-setup.exe")
 
 if (Test-Path -PathType leaf $asySetupFile)
 {
-    Move-Item $asySetupFile . -Force
-
     # ---------------------------------------
     # copy setup file to shared directory, if given
     if ($env:ASYMPTOTE_BUILD_SHARED_DIRECTORY)
     {
         Write-Host "Copying setup file to shared directory."
-        Copy-Item -Force $asySetupFile "$env:ASYMPTOTE_BUILD_SHARED_DIRECTORY/asymptote-$Version-setup.exe"
+        Copy-Item -Force $asySetupFile "$env:ASYMPTOTE_BUILD_SHARED_DIRECTORY/$asySetupName"
     }
+
+    Move-Item $asySetupFile . -Force
 }
 else
 {
