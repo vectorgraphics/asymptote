@@ -58,6 +58,18 @@
         "freeglut"
       ]
     },
+    "gl-offscreen": {
+      "description": "Offscreen rendering support",
+      "supports": "!windows",
+      "dependencies": [
+        {
+          "name": "mesa",
+          "features": [
+            "offscreen"
+          ]
+        }
+      ]
+    },
     "lsp": {
       "description": "Language Server Protocol Support",
       "dependencies": [
