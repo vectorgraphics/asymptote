@@ -1,5 +1,4 @@
-// this file is not used by cmake build. An equivalent handling of libosmesa is done in
-// backports/glew/CMakeLists.txt for cmake builds.
+// this file is not used by cmake build.
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
