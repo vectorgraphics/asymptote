@@ -1933,7 +1933,7 @@ void glrender(GLRenderArgs const& args, int oldpid)
 {
   Iconify=getSetting<bool>("iconify");
 
-  auto zoomVal = fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
+  auto zoomVal=std::fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
 
   Prefix=args.prefix;
   Picture=args.pic;
