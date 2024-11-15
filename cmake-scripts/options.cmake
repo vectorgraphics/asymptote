@@ -87,6 +87,11 @@ cmake_dependent_option(ENABLE_GL_COMPUTE_SHADERS
 cmake_dependent_option(ENABLE_GL_SSBO
         "Whether to enable compute SSBO. Requires OpenGL >= 4.3 and GL_ARB_shader_storage_buffer_object"
         true "ENABLE_OPENGL" false)
+cmake_dependent_option(
+        ENABLE_GL_OFFSCREEN_RENDERING
+        "Enables offscreen rendering. Only applicable to UNIX systems"
+        false "ENABLE_OPENGL;UNIX" false
+)
 
 option(
         ENABLE_RPC_FEATURES

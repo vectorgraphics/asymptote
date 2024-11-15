@@ -24,6 +24,10 @@ endif()
 
 if (ENABLE_OPENGL)
     list(APPEND VCPKG_MANIFEST_FEATURES opengl)
+
+    if (ENABLE_GL_OFFSCREEN_RENDERING)
+        list(APPEND VCPKG_MANIFEST_FEATURES gl-offscreen)
+    endif()
 endif()
 
 if (ENABLE_THREADING)
