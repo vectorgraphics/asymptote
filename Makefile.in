@@ -148,7 +148,7 @@ version.txt: FORCE
 	fi
 
 GUI/xasyversion: version.txt GUI/buildtool.py
-	cd GUI && $(PYTHON) buildtool.py buildversionmodule --version-override="$(shell cat $<)"
+	-cd GUI && $(PYTHON) buildtool.py buildversionmodule --version-override="$(shell cat $<)"
 
 revision.cc: version.txt
 	  echo $(REVISION)\"$(shell cat $<)\"\; > $@
@@ -271,7 +271,7 @@ GUI/xasyicons: GUI/res/icons.qrc GUI/buildtool.py
 	-cd GUI && $(PYTHON) buildtool.py buildicons
 
 GUI/xasyqtui: $(UIFILES) GUI/buildtool.py
-	cd GUI && $(PYTHON) buildtool.py buildui
+	-cd GUI && $(PYTHON) buildtool.py buildui
 
 camp.tab.cc: camp.y
 	$(BISON) -t --header=camp.tab.h -o $@ $<
