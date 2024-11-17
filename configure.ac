@@ -63,9 +63,8 @@ AC_DEFUN([FETCH_FROM_GITHUB],[
 # with_vcpkg is yes/no, depending if user wants to use vcpkg or not
 # vcpkg_exec is the executable of vcpkg. this is only given if use_vcpkg is yes.
 
-AC_ARG_WITH(vcpkg,[
-   AS_HELP_STRING(
-      --with-vcpkg=[[[no]]],
+AC_ARG_WITH(vcpkg,
+       [AS_HELP_STRING(--with-vcpkg=[[[no]]],
       [Use vcpkg. If VCPKG_ROOT environment variable is set, will use that vcpkg. Otherwise searches in PATH.]
       )
 ],[
@@ -217,8 +216,7 @@ LIBS=""
 # vcpkg_triplet
 
 AC_ARG_WITH(vcpkg-target-triplet,
-   AS_HELP_STRING(
-      --with-vcpkg-target-triplet[[[=<target-triplet>]]],
+   AS_HELP_STRING(--with-vcpkg-target-triplet[[[=<target-triplet>]]],
       [
          specify custom vcpkg triplet. This option is only relevant if vcpkg is used.
          If left blank, will try to determine the triplet
@@ -276,8 +274,7 @@ fi
 
 
 AC_ARG_WITH(vcpkg-host-triplet,
-   AS_HELP_STRING(
-      --with-vcpkg-host-triplet[[[=<host-triplet>]]],
+   AS_HELP_STRING(--with-vcpkg-host-triplet[[[=<host-triplet>]]],
       [
          specify custom vcpkg host triplet. This option is only relevant if vcpkg is ued.
          If left blank, will try to determine the triplet
