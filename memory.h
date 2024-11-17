@@ -52,11 +52,11 @@
 #define GC_ATTR_EXPLICIT
 #define GC_NOEXCEPT
 #endif
-#include <gc/gc.h>
+#include <gc.h>
 
 #ifdef GC_DEBUG
 extern "C" {
-#include <gc/gc_backptr.h>
+#include <gc_backptr.h>
 }
 #endif
 
@@ -69,8 +69,8 @@ void* asy_malloc_atomic(size_t n);
 #define GC_MALLOC(sz) asy_malloc(sz)
 #define GC_MALLOC_ATOMIC(sz) asy_malloc_atomic(sz)
 
-#include <gc/gc_allocator.h>
-#include <gc/gc_cpp.h>
+#include <gc_allocator.h>
+#include <gc_cpp.h>
 
 #define gc_allocator gc_allocator_ignore_off_page
 
