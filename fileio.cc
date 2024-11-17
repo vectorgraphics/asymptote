@@ -38,8 +38,6 @@ string locatefile(string name)
   return s.empty() ? name : s;
 }
 
-#pragma region "class file"
-
 bool file::Standard()
 {
   return standard;
@@ -114,10 +112,6 @@ void file::unsupported(char const* rw, char const* type)
       << " mode";
   reportError(buf);
 }
-
-#pragma endregion
-
-#pragma region "class ifile"
 
 void ifile::open()
 {
@@ -330,8 +324,6 @@ void ifile::Read(string& val)
   val=whitespace+s;
 }
 
-#pragma endregion
-
 void ofile::writeline()
 {
   if(standard && interact::query && !vm::indebugger) {
@@ -409,8 +401,6 @@ bool ofile::enabled()
         interact::interactive || !settings::getSetting<bool>("quiet");
 }
 
-
-#pragma region opipe
 void opipe::write(const string& val) {
   if (fprintf(pipeout,"%s",val.c_str()) < 0)
   {
@@ -428,8 +418,6 @@ void opipe::flush()
     }
   }
 }
-
-#pragma endregion
 
 void iofile::writeline()
 {
