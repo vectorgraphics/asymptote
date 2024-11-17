@@ -424,7 +424,7 @@ fi
 
 # --------------- sigsegv ------------------------------
 
-if test "x$with_vcpkg" = "no"; then  # I couldn't find sigsegv on vcpkg, so this is only enabled if
+if test "x$with_vcpkg" = "xno"; then
    AC_ARG_ENABLE(sigsegv,
    [AS_HELP_STRING(--enable-sigsegv[[[=yes]]],enable GNU Stack Overflow Handler)])
 
@@ -437,7 +437,7 @@ fi
 
 # ----------------- lsp -------------------------------
 
-# LSP is needed regardless of
+# LSP is needed regardless
 
 FETCH_FROM_GITHUB($LSP_GITHUB_REPO,$LSP_REF,LSP_ROOT)
 INCL=$INCL"-I$LSP_ROOT/include "
