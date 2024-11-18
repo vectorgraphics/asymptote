@@ -15,6 +15,8 @@ LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@
 CXX_STANDARD = @CXX_STANDARD@
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
+LSP_BUILD_ROOT=@LSP_BUILD_ROOT@
+LSP_ROOT=@LSP_ROOT@
 
 EXTLIB_BUILD_ROOT = @EXTLIB_BUILD_ROOT@
 
@@ -92,8 +94,7 @@ DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
-	-Iprc/include
-
+	-Iprc/include -I$(LSP_ROOT)/include -I.
 GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
 
 # Options for compiling the object files for the shared library.
@@ -167,9 +168,6 @@ doc/version.texi: version.txt
 
 asymptote.so: $(COREFILES:=.pic.o) glew.o
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
-
-LSP_BUILD_ROOT=@LSP_BUILD_ROOT@
-LSP_ROOT=@LSP_ROOT@
 
 $(LSP_BUILD_ROOT)/Makefile:
 	$(CMAKE) -B$(LSP_BUILD_ROOT) -S$(LSP_ROOT) \
