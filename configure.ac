@@ -38,8 +38,8 @@ test "$CFLAGS" || CFLAGS="-g -O3"
 # --------------- external refs ---------------------------
 
 # we need LSP regardless
-EXTERNAL_CODE_ROOT=acextlibs
-EXTERNAL_BUILD_ROOT=acextbuilds
+EXTERNAL_CODE_ROOT=.
+EXTERNAL_BUILD_ROOT=.
 
 LSP_GITHUB_REPO=vectorgraphics/LspCpp
 LSP_REF=master
@@ -440,7 +440,6 @@ fi
 # LSP is needed regardless
 
 FETCH_FROM_GITHUB($LSP_GITHUB_REPO,$LSP_REF,LSP_ROOT)
-INCL=$INCL"-I$LSP_ROOT/include "
 AC_SUBST(LSP_ROOT)
 
 LSPLIBS=
