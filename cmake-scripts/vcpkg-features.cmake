@@ -26,7 +26,11 @@ if (ENABLE_OPENGL)
     list(APPEND VCPKG_MANIFEST_FEATURES opengl)
 
     if (ENABLE_GL_OFFSCREEN_RENDERING)
-        list(APPEND VCPKG_MANIFEST_FEATURES gl-offscreen)
+        # using mesa from vcpkg requires building LLVM, which takes
+        # a disproportionally long time compared to other packages
+
+        # For now, we can use the system's OSMesa
+        # list(APPEND VCPKG_MANIFEST_FEATURES gl-offscreen)
     endif()
 endif()
 
