@@ -96,8 +96,20 @@ if (ENABLE_GC)
     find_package(BDWgc CONFIG)
     if (BDWgc_FOUND)
         list(APPEND ASY_STATIC_LIBARIES BDWgc::gc BDWgc::gccpp)
-	list(APPEND ASYMPTOTE_INCLUDES ${CMAKE_SOURCE_DIR}/cmake-build-msvc/release/vcpkg_installed/x64-windows/include/gc)
-	if (WIN32)
+
+        # We use #include <gc.h> as opposed to <gc/gc.h> (and also for other gc include files) to allow
+        # linking directly to the compiled source for testing different GC versions.
+
+        # In GC tarballs downloaded from https://www.hboehm.info/gc/, the header files are in include/gc.h, and not
+        # include/gc/gc.h, hence we need a way to allow inclusion of "gc.h". In vcpkg gc distributions, the include
+        # files are provided in include/gc/gc.h (and other files). Hence we append "/gc" to the include directories.
+	    list(APPEND
+                ASYMPTOTE_INCLUDES
+                $<LIST:TRANSFORM,$<TARGET_PROPERTY:BDWgc::gc,INTERFACE_INCLUDE_DIRECTORIES>,APPEND,/gc>
+                $<LIST:TRANSFORM,$<TARGET_PROPERTY:BDWgc::gccpp,INTERFACE_INCLUDE_DIRECTORIES>,APPEND,/gc>
+        )
+
+        if (WIN32)
             list(APPEND ASY_STATIC_LIBARIES BDWgc::gctba)
         endif()
         list(APPEND ASY_MACROS USEGC)
