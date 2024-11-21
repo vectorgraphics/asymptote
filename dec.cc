@@ -1540,6 +1540,10 @@ void recorddec::transAsField(coenv &e, record *parent)
   addTypeWithPermission(e, parent, new trans::tyEntry(r,0,parent,getPos()),
                         id);
   e.e.addRecordOps(r);
+  // Note: the following two lines *may* be unnecessary now that the record ops
+  // are autounraveled. Unfortunately, if you trace back the history of this
+  // code, the comments suggest it's doing something else that is not covered
+  // by the autounraveling.
   if (parent)
     parent->e.addRecordOps(r);
 
