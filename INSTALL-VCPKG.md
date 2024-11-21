@@ -1,4 +1,4 @@
-# Building Asymptote with CMake
+# Building Asymptote with VCPKG and CMake (Experimental)
 
 ## Dependency management
 
