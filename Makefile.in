@@ -158,7 +158,7 @@ revision.cc: version.txt
 base/webgl/asygl.js: base/webgl/asygl-$(ASYGLVERSION).js
 	cp $< $@;
 
-base/version.asy: version.txt
+base/version.asy: version.txt base/webgl/asygl.js
 	echo string VERSION=\"$(shell cat $<)\"\; > $@
 
 doc/version.texi: version.txt
