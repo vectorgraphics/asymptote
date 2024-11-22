@@ -158,7 +158,7 @@ revision.cc: version.txt
 base/webgl/asygl.js: base/webgl/asygl-$(ASYGLVERSION).js
 	cp $< $@;
 
-base/version.asy: version.txt base/webgl/asygl.js asy-keywords.el
+base/version.asy: version.txt base/webgl/asygl.js
 	echo string VERSION=\"$(shell cat $<)\"\; > $@
 
 doc/version.texi: version.txt
@@ -177,7 +177,7 @@ $(LSP_BUILD_ROOT)/Makefile:
 $(LSP_BUILD_ROOT)/liblspcpp.a: $(LSP_BUILD_ROOT)/Makefile
 	$(MAKE) -C $(LSP_BUILD_ROOT)
 
-all:  	asy sty man faq
+all:  	asy sty man faq asy-keywords.el
 
 $(GCLIB): $(GC).tar.gz
 	gunzip -c $(GC).tar.gz > $(GC).tar
@@ -298,7 +298,7 @@ asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy
           grep -v three_\* | grep -v map | xargs $(ASY) -l >> asy.list
 	$(PERL) ./asy-list.pl asy.list $(revision)
 
-install-notexhash: install-asy install-man
+install-notexhash: asy-keywords.el install-asy install-man
 
 install: install-notexhash install-texhash
 
