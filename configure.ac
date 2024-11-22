@@ -341,6 +341,7 @@ if test "x$ac_cv_use_gc" != "xno" ; then
       # we are not installing the dependencies until we collect all the features,
       # hence the library files will not be available
       ADD_VCPKG_LIB_FOR_PKGCONFIG(bdw-gc)
+      INCL=$INCL" -Ivcpkg_installed/$vcpkg_triplet/include/gc "
       LIBS=$LIBS"-lgccpp "
    else  # else, determine by prefix or system
       case _$ac_cv_use_gc in
