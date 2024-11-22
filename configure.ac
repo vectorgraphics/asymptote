@@ -334,7 +334,6 @@ GCPPLIB=
 GCNAME="Boehm Garbage Collector"
 if test "x$ac_cv_use_gc" != "xno" ; then
    AC_DEFINE(USEGC,1,[GC Enabled])
-   AC_DEFINE(LSPCPP_USEGC,1,[LSP GC enabled])
    if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
       ADD_VCPKG_FEATURE(gc)
       # The reason we are not using AC_CHECK_LIB is because
@@ -453,7 +452,15 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
    ROOT_DIR_RELATIVE_TO_LSP=$(realpath -s --relative-to $LSP_BUILD_ROOT .)
    LSPLIB=$LSP_BUILD_ROOT/liblspcpp.a
    LSPLIBS=$LSPLIBS" -L$LSP_BUILD_ROOT -L$LSP_BUILD_ROOT/third_party/uri/src -llspcpp -lnetwork-uri -lboost_filesystem -lboost_thread"
-   LSP_CMAKE_OPTIONS=
+   LSP_CMAKE_OPTIONS="-DLSPCPP_USE_CPP17=ON "
+
+   if test "x$ac_cv_use_gc" != "xno"; then
+    if test "x$ac_cv_use_gc" = "xsystem"; then
+        LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DLSPCPP_SUPPORT_BOEHM_GC=ON "
+    else
+        AC_MSG_ERROR([*** TODO: Support LSP with non-system GC (going to need a bit of work) ***])
+    fi
+   fi
 
    AC_DEFUN(ENABLE_LSP_MACRO,
       AC_SUBST(ROOT_DIR_RELATIVE_TO_LSP)
@@ -466,7 +473,7 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
       ADD_VCPKG_FEATURE(lsp)
       RELATIVE_LSP_VCPKG_ROOT=$(realpath -s --relative-to=$LSP_BUILD_ROOT vcpkg_installed/$vcpkg_triplet)
       LSP_CXX_BUILD_FLAGS=$LSP_BUILD_FLAGS"-I$RELATIVE_LSP_VCPKG_ROOT/include -L$RELATIVE_LSP_VCPKG_ROOT/lib "
-      LSP_CMAKE_OPTIONS="-DUSE_SYSTEM_RAPIDJSON=True -DCMAKE_PREFIX_PATH=\"$RELATIVE_LSP_VCPKG_ROOT\""
+      LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DUSE_SYSTEM_RAPIDJSON=True -DCMAKE_PREFIX_PATH=\"$RELATIVE_LSP_VCPKG_ROOT\" "
    fi
    ENABLE_LSP_MACRO],
    AC_MSG_NOTICE([*** Could not find libboost_thread: will compile without optional Language Server Protocol. ***]))],
