@@ -12,12 +12,12 @@ if (ENABLE_LSP)
     message(STATUS "LSP Enabled.")
     # disable New Boost version warning
     set(Boost_NO_WARN_NEW_VERSIONS 1)
-    set(USE_SYSTEM_RAPIDJSON 1)
-    set(LSPCPP_USE_CPP17 1)
-    set(LSPCPP_SUPPORT_BOEHM_GC 1)
+    set(USE_SYSTEM_RAPIDJSON ON CACHE INTERNAL "Use system rapidjson")
+    set(LSPCPP_USE_CPP17 ON CACHE INTERNAL "C++17 mode")
+    set(LSPCPP_SUPPORT_BOEHM_GC ON CACHE INTERNAL "Use boehm GC")
     # For transitive URI dependency
-    set(Uri_BUILD_DOCS 0)
-    set(Uri_BUILD_TESTS 0)
+    set(Uri_BUILD_DOCS OFF CACHE INTERNAL "build docs for uri")
+    set(Uri_BUILD_TESTS OFF CACHE INTERNAL "build tests for uri")
     FetchContent_MakeAvailable(lspcpp)
     list(APPEND ASY_STATIC_LIBARIES lspcpp)
     list(APPEND ASY_MACROS HAVE_LSP=1)
@@ -289,14 +289,14 @@ if (ENABLE_RPC_FEATURES)
     if (WIN32)
         # win32 does not have native open_memstream support
         set(OLD_BUILD_TESTING ${BUILD_TESTING})
-        set(BUILD_TESTING false)
+        set(BUILD_TESTING OFF CACHE INTERNAL "build testing")
         FetchContent_Declare(
                 fmem
                 GIT_REPOSITORY https://github.com/Kreijstal/fmem.git
                 GIT_TAG 6274a441380a8fcfd4e1a6e47b3d1f0b28b3c48a
         )
         FetchContent_MakeAvailable(fmem)
-        set(BUILD_TESTING ${OLD_BUILD_TESTING})
+        set(BUILD_TESTING ${OLD_BUILD_TESTING} CACHE INTERNAL "build testing")
 
         list(APPEND ASY_STATIC_LIBARIES fmem)
         list(APPEND ASYMPTOTE_INCLUDES $<TARGET_PROPERTY:fmem,INCLUDE_DIRECTORIES>)
