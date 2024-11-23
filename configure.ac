@@ -757,11 +757,20 @@ case "$OSTYPE" in
                              GLEW=$GLEW"-lGLX ")],
                                    AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
 esac
+fi
+   # ------------------------ offscreen rendering
+   # while we could also use vcpkg to get mesa, building it takes an
+   # /incredibly/ long time since it also has to build llvm, hence
+   # we rely on using the system package for now
    if test "x$enable_offscreen" = "xyes"; then
-           AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
+           AC_CHECK_LIB([OSMesa],OSMesaCreateContext,
+			[
+			 GLEW_ADDITIONAL_OPTS=$GLEW_ADDITIONAL_OPTS" -DGLEW_OSMESA"
+			 LIBS=$LIBS"-lOSMesa "
+			 AC_DEFINE(HAVE_LIBOSMESA,1,DEFINE_LIB([OSMesa]))
+			 ],
                         AC_MSG_NOTICE([*** Could not find libOSMesa: will compile without offscreen rendering support ***]))
    fi
-fi
 fi
 
 # ------------------- VCPKG INSTALL
@@ -816,6 +825,7 @@ AC_SUBST(CXX_STANDARD)
 AC_SUBST(DEFS)
 AC_SUBST(OPTIONS)
 AC_SUBST(GLEW)
+AC_SUBST(GLEW_ADDITIONAL_OPTS)
 
 # we are on C++ >= 11, so unordered map is a guarantee
 AC_DEFINE(HAVE_UNORDERED_MAP,1,[Unordered map is present])
