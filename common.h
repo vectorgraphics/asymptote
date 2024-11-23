@@ -42,7 +42,9 @@ using std::make_pair;
 #if !defined(FOR_SHARED) &&                                             \
   ((defined(HAVE_LIBGL) && defined(HAVE_LIBGLUT) && defined(HAVE_LIBGLM)) || \
    defined(HAVE_LIBOSMESA))
+#if !defined(HAVE_GL)
 #define HAVE_GL
+#endif // !define(HAVE_GL)
 #endif
 
 #if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDIT)
