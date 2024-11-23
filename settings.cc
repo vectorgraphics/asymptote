@@ -1522,10 +1522,10 @@ void initSettings() {
   addOption(new boolSetting("lsp", 0, "Interactive mode for the Language Server Protocol"));
   addOption(new envSetting("lspport", ""));
   addOption(new envSetting("lsphost", "127.0.0.1"));
-#endif
 
 #if defined(LINUX_SYSTEM)
-  addOption(new boolSetting("wsl", 0, "Run asy under the Windows Subsystem for Linux"));
+  addOption(new boolSetting("wsl", 0, "Run asy LSP under the Windows Subsystem for Linux backend"));
+#endif
 #endif
 
   addOption(new boolSetting("wait", 0,
