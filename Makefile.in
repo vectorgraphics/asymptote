@@ -429,7 +429,7 @@ check-all: asy FORCE
 	./wce
 	$(MAKE) -C tests all
 
-glew.o: glew.c config.h
+glew.o: backports/glew/src/glew.c config.h
 	$(CC) -I. $(GLEWOPTS) -o $@ -c $<
 
 .SUFFIXES: .c .cc .o .d .ui .py
