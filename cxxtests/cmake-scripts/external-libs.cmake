@@ -7,6 +7,7 @@ if (DOWNLOAD_GTEST_FROM_SRC)
             googletest
             GIT_REPOSITORY https://github.com/google/googletest
             GIT_TAG v1.14.0
+            EXCLUDE_FROM_ALL
     )
 
     if (WIN32)

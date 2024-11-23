@@ -5,6 +5,7 @@ FetchContent_Declare(
         lspcpp
         GIT_REPOSITORY https://github.com/vectorgraphics/LspCpp
         GIT_TAG master
+        EXCLUDE_FROM_ALL
 )
 
 if (ENABLE_LSP)
@@ -54,6 +55,7 @@ elseif(WIN32)
                 winflexbison
                 URL https://github.com/lexxmark/winflexbison/releases/download/v2.5.25/win_flex_bison-2.5.25.zip
                 URL_HASH SHA256=8D324B62BE33604B2C45AD1DD34AB93D722534448F55A16CA7292DE32B6AC135
+                EXCLUDE_FROM_ALL
         )
         FetchContent_MakeAvailable(winflexbison)
         message(STATUS "Downloaded winflexbison")
@@ -302,6 +304,7 @@ if (ENABLE_RPC_FEATURES)
                 fmem
                 GIT_REPOSITORY https://github.com/Kreijstal/fmem.git
                 GIT_TAG 6274a441380a8fcfd4e1a6e47b3d1f0b28b3c48a
+                EXCLUDE_FROM_ALL
         )
         FetchContent_MakeAvailable(fmem)
         set(BUILD_TESTING ${OLD_BUILD_TESTING} CACHE INTERNAL "build testing")
