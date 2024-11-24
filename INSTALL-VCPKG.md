@@ -1,4 +1,4 @@
-# Building Asymptote with VCPKG and CMake (Experimental)
+# Building Asymptote with VCPKG and CMake
 
 ## Dependency management
 
@@ -11,8 +11,10 @@ git clone https://github.com/microsoft/vcpkg.git
 cd vcpkg && ./bootstrap-vcpkg.sh
 export VCPKG_ROOT=~/dev/vcpkg
 ```
+# On Windows
+See INSTALL-WIN.md for windows-specific instructions.
 
-## Linux-specific dependency
+## Linux-specific dependency (Experimental)
 
 Make sure flex and bison is available in path, if not, install them manually first.
 
@@ -114,5 +116,3 @@ These tests can be run by CTest. For example, after building on linux/release,
 ctest --test-dir cmake-build-linux/release/ -R "asy.types.*"
 ```
 
-# On Windows
-See INSTALL-WIN.md for windows-specific instructions.
