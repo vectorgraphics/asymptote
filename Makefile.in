@@ -18,8 +18,6 @@ DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 LSP_BUILD_ROOT=@LSP_BUILD_ROOT@
 LSP_ROOT=@LSP_ROOT@
 
-EXTLIB_BUILD_ROOT = @EXTLIB_BUILD_ROOT@
-
 CMAKE ?= cmake
 PERL ?= perl
 PYTHON ?= python3

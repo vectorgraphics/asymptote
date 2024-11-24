@@ -41,22 +41,24 @@ test "$CFLAGS" || CFLAGS="-g -O3"
 EXTERNAL_CODE_ROOT=.
 EXTERNAL_BUILD_ROOT=.
 
-LSP_GITHUB_REPO=vectorgraphics/LspCpp
+LSP_GITHUB_ORG=vectorgraphics
+LSP_GITHUB_REPO=LspCpp
 LSP_REF=master
 
-TINYEXR_GITHUB_REPO=syoyo/tinyexr
+TINYEXR_GITHUB_ORG=syoyo
+TINYEXR_GITHUB_REPO=tinyexr
 TINYEXR_REF=v1.0.7
+
 #
-# FETCH_FROM_GITHUB(REPO,REF,OUT_VAR_SRC_DIRECTORY)
+# FETCH_FROM_GITHUB(ORGANIZATION,REPO,REF,OUT_VAR_SRC_DIRECTORY)
 AC_DEFUN([FETCH_FROM_GITHUB],[
-   AC_MSG_NOTICE([Fetching from github: $1@$2])
-   $3=$EXTERNAL_CODE_ROOT/$1
-   AC_MSG_NOTICE([Creating directory $$3])
-   mkdir -p $$3
-   curl -L https://github.com/$1/archive/$2.tar.gz | tar -xz --strip-components=1 -C $$3 -f -
+   AC_MSG_NOTICE([Fetching from github: $1/$2@$3])
+   $4=$EXTERNAL_CODE_ROOT/$2
+   AC_MSG_NOTICE([Creating directory $$4])
+   mkdir -p $$4
+   curl -L https://github.com/$1/$2/archive/$3.tar.gz | tar -xz --strip-components=1 -C $$4 -f -
    AC_MSG_NOTICE([Fetch successful])
 ])
-
 
 # --------------- begin vcpkg option/check ---------------------
 # result:
@@ -439,7 +441,7 @@ fi
 
 # LSP is needed regardless
 
-FETCH_FROM_GITHUB($LSP_GITHUB_REPO,$LSP_REF,LSP_ROOT)
+FETCH_FROM_GITHUB($LSP_GITHUB_ORG,$LSP_GITHUB_REPO,$LSP_REF,LSP_ROOT)
 AC_SUBST(LSP_ROOT)
 
 LSPLIBS=
@@ -713,7 +715,7 @@ else
    )
 fi
 
-FETCH_FROM_GITHUB($TINYEXR_GITHUB_REPO,$TINYEXR_REF,TINYEXR_ROOT)
+FETCH_FROM_GITHUB($TINYEXR_GITHUB_ORG,$TINYEXR_GITHUB_REPO,$TINYEXR_REF,TINYEXR_ROOT)
 INCL=$INCL"-I$TINYEXR_ROOT "
 AC_SUBST(TINYEXR_ROOT)
 
