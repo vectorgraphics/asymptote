@@ -429,7 +429,7 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
   AC_CHECK_LIB([boost_filesystem],[opendir],
   [AC_CHECK_LIB([boost_thread],[pthread_attr_getdetachstate],
   [
-   LSP_BUILD_ROOT="$EXTERNAL_BUILD_ROOT/$LSP_GITHUB_REPO"
+   LSP_BUILD_ROOT="LspBuild"
    ROOT_DIR_RELATIVE=$(realpath -s --relative-to $LSP_BUILD_ROOT .)
    ROOT_DIR_RELATIVE_TO_SRC=$(realpath -s --relative-to=$LSP_ROOT .)
 
