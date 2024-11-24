@@ -168,8 +168,8 @@ asymptote.so: $(COREFILES:=.pic.o) glew.o
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
 $(LSP_BUILD_ROOT)/liblspcpp.a:
-	$(CMAKE) -B$(LSP_BUILD_ROOT) -S$(LSP_ROOT) -DCMAKE_CXX_FLAGS= \
-	"-fPIE @OPTIONS@ @LSP_CXX_BUILD_FLAGS@ -I@ROOT_DIR_RELATIVE@/$(GC)" \
+	$(CMAKE) -B$(LSP_BUILD_ROOT) -S$(LSP_ROOT) -DCMAKE_CXX_FLAGS=\
+	"-fPIE @OPTIONS@ @LSP_CXX_BUILD_FLAGS@" \
 	@LSP_CMAKE_OPTIONS@
 	$(MAKE) -C $(LSP_BUILD_ROOT)
 
