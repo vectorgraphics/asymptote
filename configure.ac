@@ -41,25 +41,6 @@ test "$CFLAGS" || CFLAGS="-g -O3"
 EXTERNAL_CODE_ROOT=.
 EXTERNAL_BUILD_ROOT=.
 
-LSP_GITHUB_ORG=vectorgraphics
-LSP_GITHUB_REPO=LspCpp
-LSP_REF=master
-
-TINYEXR_GITHUB_ORG=syoyo
-TINYEXR_GITHUB_REPO=tinyexr
-TINYEXR_REF=v1.0.7
-
-#
-# FETCH_FROM_GITHUB(ORGANIZATION,REPO,REF,OUT_VAR_SRC_DIRECTORY)
-AC_DEFUN([FETCH_FROM_GITHUB],[
-   AC_MSG_NOTICE([Fetching from github: $1/$2@$3])
-   $4=$EXTERNAL_CODE_ROOT/$2
-   AC_MSG_NOTICE([Creating directory $$4])
-   mkdir -p $$4
-   curl -L https://github.com/$1/$2/archive/$3.tar.gz | tar -xz --strip-components=1 -C $$4 -f -
-   AC_MSG_NOTICE([Fetch successful])
-])
-
 # --------------- begin vcpkg option/check ---------------------
 # result:
 # with_vcpkg is yes/no, depending if user wants to use vcpkg or not
@@ -439,9 +420,7 @@ fi
 
 # ----------------- lsp -------------------------------
 
-# LSP is needed regardless
-
-FETCH_FROM_GITHUB($LSP_GITHUB_ORG,$LSP_GITHUB_REPO,$LSP_REF,LSP_ROOT)
+LSP_ROOT=LspCpp
 AC_SUBST(LSP_ROOT)
 
 LSPLIBS=
@@ -451,7 +430,7 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
   [AC_CHECK_LIB([boost_thread],[pthread_attr_getdetachstate],
   [
    LSP_BUILD_ROOT="$EXTERNAL_BUILD_ROOT/$LSP_GITHUB_REPO"
-   ROOT_DIR_RELATIVE_TO_LSP=$(realpath -s --relative-to $LSP_BUILD_ROOT .)
+   ROOT_DIR_RELATIVE=$(realpath -s --relative-to $LSP_BUILD_ROOT .)
    LSPLIB=$LSP_BUILD_ROOT/liblspcpp.a
    LSPLIBS=$LSPLIBS" -L$LSP_BUILD_ROOT -L$LSP_BUILD_ROOT/third_party/uri/src -llspcpp -lnetwork-uri -lboost_filesystem -lboost_thread"
    LSP_CMAKE_OPTIONS="-DLSPCPP_USE_CPP17=ON "
@@ -465,7 +444,7 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
    fi
 
    AC_DEFUN(ENABLE_LSP_MACRO,
-      AC_SUBST(ROOT_DIR_RELATIVE_TO_LSP)
+      AC_SUBST(ROOT_DIR_RELATIVE)
       AC_SUBST(LSP_CXX_BUILD_FLAGS)
       AC_SUBST(LSP_CMAKE_OPTIONS)
       AC_SUBST(LSP_BUILD_ROOT)
@@ -715,7 +694,7 @@ else
    )
 fi
 
-FETCH_FROM_GITHUB($TINYEXR_GITHUB_ORG,$TINYEXR_GITHUB_REPO,$TINYEXR_REF,TINYEXR_ROOT)
+TINYEXR_ROOT=tinyexr
 INCL=$INCL"-I$TINYEXR_ROOT "
 AC_SUBST(TINYEXR_ROOT)
 

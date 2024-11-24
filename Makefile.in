@@ -167,12 +167,10 @@ doc/version.texi: version.txt
 asymptote.so: $(COREFILES:=.pic.o) glew.o
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
-$(LSP_BUILD_ROOT)/Makefile:
-	$(CMAKE) -B$(LSP_BUILD_ROOT) -S$(LSP_ROOT) \
-		-DCMAKE_CXX_FLAGS="-fPIE @OPTIONS@ @LSP_CXX_BUILD_FLAGS@ \
-		-I@ROOT_DIR_RELATIVE_TO_LSP@/$(GC)" @LSP_CMAKE_OPTIONS@
-
-$(LSP_BUILD_ROOT)/liblspcpp.a: $(LSP_BUILD_ROOT)/Makefile
+$(LSP_BUILD_ROOT)/liblspcpp.a:
+	$(CMAKE) -B$(LSP_BUILD_ROOT) -S$(LSP_ROOT) -DCMAKE_CXX_FLAGS= \
+	"-fPIE @OPTIONS@ @LSP_CXX_BUILD_FLAGS@ -I@ROOT_DIR_RELATIVE@/$(GC)" \
+	@LSP_CMAKE_OPTIONS@
 	$(MAKE) -C $(LSP_BUILD_ROOT)
 
 all:  	asy sty man faq asy-keywords.el
@@ -390,7 +388,7 @@ uninstall-docdir:
 
 clean:  FORCE
 	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
-	-rm -rf acextbuilds
+	-cd LspCpp && $(MAKE) clean
 	-cd GUI && $(PYTHON) buildtool.py clean
 
 gc-clean: FORCE clean
