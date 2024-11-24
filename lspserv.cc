@@ -56,10 +56,9 @@ namespace AsymptoteLsp
     }
   };
 
-#if defined(LINUX_SYSTEM) // WSL mode is only relevant if we are compiling under linux
-
 std::string wslDos2Unix(std::string const& dosPath)
   {
+#ifndef _WIN32
     bool isDrivePath=false;
     char drive;
     if (dosPath.length() >= 3)
@@ -77,13 +76,15 @@ std::string wslDos2Unix(std::string const& dosPath)
       sstream << "/mnt/" << (char) tolower(drive) << dosPath.substr(3);
       return sstream.str();
     } else
+#endif
     {
-      return std::string(dosPath);
+      return dosPath;
     }
   }
 
 std::string wslUnix2Dos(std::string const& unixPath)
   {
+#ifndef _WIN32
     bool isMntPath=false;
     char drive;
 
@@ -111,10 +112,12 @@ std::string wslUnix2Dos(std::string const& unixPath)
       return sstream.str();
     } else
     {
-      return std::string(fullPath);
+      return fullPath;
     }
-  }
+#else
+      return unixPath;
 #endif
+  }
 
   TextDocumentHover::Either fromString(std::string const& str)
   {
@@ -156,12 +159,8 @@ std::string wslUnix2Dos(std::string const& unixPath)
   std::string getDocIdentifierRawPath(lsTextDocumentIdentifier const& textDocIdentifier)
   {
     lsDocumentUri fileUri(textDocIdentifier.uri);
-#if defined(LINUX_SYSTEM)
-    std::string rawPath=settings::getSetting<bool>("wsl") ?
-      wslDos2Unix(fileUri.GetRawPath()) : std::string(fileUri.GetRawPath());
-#else
     std::string rawPath=std::string(fileUri.GetRawPath());
-#endif
+    if(settings::getSetting<bool>("wsl")) rawPath=wslDos2Unix(rawPath);
     return static_cast<std::string>(rawPath);
   }
 
@@ -596,12 +595,9 @@ std::string wslUnix2Dos(std::string const& unixPath)
               auto& posEnd=std::get<2>(posRange);
               lsRange rng(toLsPosition(posBegin), toLsPosition(posEnd));
 
-#if defined(LINUX_SYSTEM)
               std::string filReturn(
-                      settings::getSetting<bool>("wsl") ? static_cast<std::string>(wslUnix2Dos(fil)) : fil);
-#else
-              std::string filReturn(fil);
-#endif
+                settings::getSetting<bool>("wsl") ?
+                static_cast<std::string>(wslUnix2Dos(fil)) : fil);
 
               lsDocumentUri uri(filReturn);
               return lsLocation(uri, rng);
@@ -612,11 +608,8 @@ std::string wslUnix2Dos(std::string const& unixPath)
 //#pragma endregion
   void AsymptoteLspServer::reloadFile(std::string const& filename)
   {
-#if defined(LINUX_SYSTEM)
-    std::string rawPath=settings::getSetting<bool>("wsl") ? wslDos2Unix(filename) : std::string(filename);
-#else
     std::string rawPath(filename);
-#endif
+    if(settings::getSetting<bool>("wsl")) rawPath=wslDos2Unix(filename);
     reloadFileRaw(static_cast<std::string>(rawPath));
   }
 
