@@ -436,11 +436,7 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
    LSP_CMAKE_OPTIONS="-DLSPCPP_USE_CPP17=ON "
 
    if test "x$ac_cv_use_gc" != "xno"; then
-    if test "x$ac_cv_use_gc" = "xsystem"; then
-        LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DLSPCPP_SUPPORT_BOEHM_GC=ON "
-    else
-        AC_MSG_ERROR([*** TODO: Support LSP with non-system GC (going to need a bit of work) ***])
-    fi
+      LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DLSPCPP_SUPPORT_BOEHM_GC=ON "
    fi
 
    AC_DEFUN(ENABLE_LSP_MACRO,
