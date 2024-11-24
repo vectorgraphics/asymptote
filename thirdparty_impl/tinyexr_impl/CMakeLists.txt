@@ -4,17 +4,11 @@ cmake_minimum_required(VERSION 3.27)
 project(tinyexr-impl)
 
 # fetch content
-include(FetchContent)
-FetchContent_Declare(
-        tinyexr
-        GIT_REPOSITORY https://github.com/syoyo/tinyexr
-        GIT_TAG v1.0.7
-)
-FetchContent_Populate(tinyexr)
 
+set(TINYEXR_REPO_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../../tinyexr" CACHE PATH "Tinyexr repo location")
 add_library(tinyexr-impl src/tinyexr_impl.cc)
 target_include_directories(
-        tinyexr-impl PUBLIC ${tinyexr_SOURCE_DIR}
+        tinyexr-impl PUBLIC ${TINYEXR_REPO_LOCATION}
 )
 
 # zlib
