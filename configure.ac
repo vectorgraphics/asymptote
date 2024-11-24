@@ -190,7 +190,7 @@ Define to 1 if you have the `$1` library (-l$1).
 ASYGLVERSION=1.02
 
 DEFS=""
-OPTIONS=$OPTIONS"-D_FILE_OFFSET_BIS=64 "
+OPTIONS=$OPTIONS"-D_FILE_OFFSET_BITS=64 "
 INCL="-I. "
 OPTIONS=""
 LIBS=""
