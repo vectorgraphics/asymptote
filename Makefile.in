@@ -139,24 +139,25 @@ asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o @LSPLIB@ @GLEW@
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
 $(XNAME): $(PYFILES)
-	ln -sf GUI/xasy.py $(XNAME)
+	@ln -sf GUI/xasy.py $(XNAME)
 
 version.txt: FORCE
-	if test ! -s $@ || test "$(revision)" != "$(last)"; then \
+	@if test ! -s $@ || test "$(revision)" != "$(last)"; then \
 		echo "$(revision)" > $@; \
 	fi
 
+	@if test ! -e base/webgl/asygl.js; then \
+	  cp base/webgl/asygl-$(ASYGLVERSION).js base/webgl/asygl.js; \
+	fi
+
 GUI/xasyversion: version.txt GUI/buildtool.py
-	-cd GUI && $(PYTHON) buildtool.py buildversionmodule --version-override="$(shell cat $<)"
+	-@cd GUI && $(PYTHON) buildtool.py buildversionmodule --version-override="$(shell cat $<)"
 
 revision.cc: version.txt
-	  echo $(REVISION)\"$(shell cat $<)\"\; > $@
-	  echo const char *AsyGLVersion=\"$(ASYGLVERSION)\"\; >> $@;
+	echo $(REVISION)\"$(shell cat $<)\"\; > $@
+	echo const char *AsyGLVersion=\"$(ASYGLVERSION)\"\; >> $@;
 
-base/webgl/asygl.js: base/webgl/asygl-$(ASYGLVERSION).js
-	cp $< $@;
-
-base/version.asy: version.txt base/webgl/asygl.js
+base/version.asy: version.txt
 	echo string VERSION=\"$(shell cat $<)\"\; > $@
 
 doc/version.texi: version.txt
