@@ -429,10 +429,8 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
   AC_CHECK_LIB([boost_filesystem],[opendir],
   [AC_CHECK_LIB([boost_thread],[pthread_attr_getdetachstate],
   [
-   LSP_BUILD_ROOT="LspBuild"
-   ROOT_DIR_RELATIVE=$(realpath -s --relative-to $LSP_BUILD_ROOT .)
-   ROOT_DIR_RELATIVE_TO_SRC=$(realpath -s --relative-to=$LSP_ROOT .)
-
+   LSP_BUILD_ROOT=$EXTERNAL_BUILD_ROOT/$LSP_ROOT
+   ROOT_DIR_RELATIVE_TO_SRC=$(realpath -s --relative-to $LSP_ROOT .)
    LSPLIB=$LSP_BUILD_ROOT/liblspcpp.a
    LSPLIBS=$LSPLIBS" -L$LSP_BUILD_ROOT -L$LSP_BUILD_ROOT/third_party/uri/src -llspcpp -lnetwork-uri -lboost_filesystem -lboost_thread"
    LSP_CMAKE_OPTIONS="-DLSPCPP_USE_CPP17=ON "
@@ -445,7 +443,6 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
    fi
 
    AC_DEFUN(ENABLE_LSP_MACRO,
-      AC_SUBST(ROOT_DIR_RELATIVE)
       AC_SUBST(LSP_CXX_BUILD_FLAGS)
       AC_SUBST(LSP_CMAKE_OPTIONS)
       AC_SUBST(LSP_BUILD_ROOT)
