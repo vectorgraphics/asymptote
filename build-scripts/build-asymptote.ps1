@@ -13,6 +13,9 @@ param(
     [Parameter()]
     [string]$Version
 )
+$ErrorActionPreference = "Stop"
+$PSNativeCommandUseErrorActionPreference = $true
+
 $usageString="Usage: $PSCommandPath -Version <version>"
 
 $asymptoteRoot="$(Split-Path -Parent $PSCommandPath)/.."
@@ -283,7 +286,7 @@ else
 New-Item -ItemType Directory -Path "$ctanOutputDir" -Force
 New-Item -ItemType Directory -Path "$ctanOutputDir/dll" -Force
 Get-ChildItem "$asymptoteRoot/cmake-install-w32-nsis-release/build-$Version/" `
-    -Filter "*.dll" | Copy-Item -Destination "$ctanOutputDir/dll"
-Copy-Item $asymptoteRoot/cmake-build-msvc/release/asy.exe -Destination "$ctanOutputDir/asy.exe"
+    -Filter "*.dll" | Copy-Item -Force -Destination "$ctanOutputDir/dll"
+Copy-Item $asymptoteRoot/cmake-build-msvc/release/asy.exe -Force -Destination "$ctanOutputDir/asy.exe"
 
 Pop-Location  # asymptote
