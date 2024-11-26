@@ -1163,10 +1163,10 @@ void typeParam::prettyprint(ostream &out, Int indent) {
   out << "typeParam (" << paramSym <<  ")\n";
 }
 
-void recordInitializer(coenv &e, symbol id, record *parent, position here)
+void recordInitializer(coenv &e, symbol id, record *r, position here)
 {
   // This is equivalent to the code
-  //   A operator init() { return new A; }
+  //   autounravel A operator init() { return new A; }
   // where A is the name of the record.
   formals formals(here);
   simpleName recordName(here, id);
@@ -1174,7 +1174,12 @@ void recordInitializer(coenv &e, symbol id, record *parent, position here)
   newRecordExp exp(here, &result);
   returnStm stm(here, &exp);
   fundec init(here, &result, symbol::opTrans("init"), &formals, &stm);
-  init.transAsField(e, parent);
+  // TODO: Make this a "low-priority" autounravel, so it won't throw an error
+  // if there is already a user-defined operator init.
+  modifierList autoUnravel(here);
+  autoUnravel.add(AUTOUNRAVEL);
+  modifiedRunnable mr(here, &autoUnravel, &init);
+  mr.transAsField(e, r);
 }
 
 bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
@@ -1214,13 +1219,12 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
       entry=arg->ent;
     }
     addTypeWithPermission(e, r, entry, paramSym);
-    recordInitializer(e,paramSym,r,pos);
 
-    // // Add any autounravel fields.
-    // record *qt = dynamic_cast<record *>(entry->t);
-    // assert(qt);  // Should always pass since arg->ent->t->kind == ty_record
-    // varEntry *qv = entry->v;
-    // addNameOps(e, r, qt, qv, pos);
+    // Add any autounravel fields.
+    record *qt = dynamic_cast<record *>(entry->t);
+    assert(qt);  // Should always pass since arg->ent->t->kind == ty_record
+    varEntry *qv = entry->v;
+    addNameOps(e, r, qt, qv, pos);
   } else
     addTypeWithPermission(e, r, arg->ent, paramSym);
 
@@ -1526,6 +1530,8 @@ void recorddec::addPostRecordEnvironment(coenv &e, record *r, record *parent) {
   if (parent)
     parent->e.add(r->postdefenv, 0, e.c);
   e.e.add(r->postdefenv, 0, e.c);
+  // Add the autounravel fields also.
+  addNameOps(e, parent, r, nullptr, getPos());
 }
 
 void recorddec::transAsField(coenv &e, record *parent)
@@ -1551,12 +1557,16 @@ void recorddec::transAsField(coenv &e, record *parent)
   coder c=e.c.newRecordInit(getPos(), r);
   coenv re(c,e.e);
 
-  body->transAsRecordBody(re, r);
+  {  // body->transAsRecordBody(re, r) but with something extra before closing
+    body->transAsField(re, r);
+    // After the record is translated, add a default initializer so that a
+    // variable of the type of the record is initialized to a new instance by
+    // default.
+    transRecordInitializer(re, r);
 
-  // After the record is translated, add a default initializer so that a
-  // variable of the type of the record is initialized to a new instance by
-  // default.
-  transRecordInitializer(e, parent);
+    re.c.closeRecord();
+  }
+
 
   // Add types and variables defined during the record that should be added to
   // the enclosing environment.  These are the implicit constructors defined by
