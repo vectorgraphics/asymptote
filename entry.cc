@@ -826,18 +826,28 @@ void venv::completions(mem::list<symbol >& l, string start)
       l.push_back(N->first);
 }
 
-void venv::registerAutoUnravel(symbol name, varEntry *v, bool shadowable) {
+void venv::registerAutoUnravel(symbol name, varEntry *v,
+                               AutounravelPriority priority)
+{
+  if (priority == AutounravelPriority::MODE) {
+    priority = this->auMode;
+  }
   mem::pair<symbol, ty*> p = {name, v->getType()};
   if (nonShadowableAutoUnravels.find(p) != nonShadowableAutoUnravels.end()) {
-    em.error(v->getPos());
-    em << "cannot shadow autounravel " << name;
+    if (priority == AutounravelPriority::FORCE) {
+      em.error(v->getPos());
+      em << "cannot shadow autounravel " << name;
+    } else {
+      cout << "skipping autounravel " << name << endl;
+      return;
+    }
   }
   // If two fields have the same name and signature, the most recently
   // declared field should be autounraveled first. Then there is already a
   // variable with that name and signature, so the earlier field will
   // have its autounravel skipped.
   autoUnravels.emplace_front(name, v);
-  if (!shadowable) {
+  if (priority == AutounravelPriority::FORCE) {
     // The value doesn't matter, we just need to know that the key exists.
     nonShadowableAutoUnravels[p] = nullptr;
   }

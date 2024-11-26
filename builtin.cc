@@ -675,9 +675,11 @@ void addRecordOps(venv &ve, record *r)
     formal(r, SYM(b))
   );
   if (r) {
-    r->e.ve.registerAutoUnravel(SYM(alias), aliasFunc, true);
-    r->e.ve.registerAutoUnravel(SYM_EQ, eqFunc, true);
-    r->e.ve.registerAutoUnravel(SYM_NEQ, neqFunc, true);
+    auto oldMode = r->e.ve.setAutounravelMode(AutounravelPriority::OFFER);
+    r->e.ve.registerAutoUnravel(SYM(alias), aliasFunc);
+    r->e.ve.registerAutoUnravel(SYM_EQ, eqFunc);
+    r->e.ve.registerAutoUnravel(SYM_NEQ, neqFunc);
+    r->e.ve.setAutounravelMode(oldMode);
   }
 }
 

@@ -694,6 +694,7 @@ void addVar(coenv &e, record *r, varEntry *v, symbol id)
   if (definesImplicitConstructor(e, r, v, id))
     addConstructorFromInitializer(position(), e, r, v);
 
+  bool addToEnvironment = true;
   // Add to the record so it can be accessed when qualified; add to the
   // environment so it can be accessed unqualified in the scope of the
   // record definition.
@@ -701,9 +702,24 @@ void addVar(coenv &e, record *r, varEntry *v, symbol id)
     r->e.addVar(id, v);
     if (e.c.isAutoUnravel()) {
       r->e.ve.registerAutoUnravel(id, v);
+      {
+        // Hacky way to identify the operator init implicitly defined at the
+        // end of every record. We don't want this to override any autounravel
+        // operator init the user may have defined.
+        // TODO: Find a better way to deal with this! 
+        auto oldMode = r->e.ve.setAutounravelMode(AutounravelPriority::MODE);
+        r->e.ve.setAutounravelMode(oldMode);
+        if (oldMode == AutounravelPriority::OFFER &&
+            id == symbol::opTrans("init")
+        ) {
+          addToEnvironment = false;
+        }
+      }
     }
   }
-  e.e.addVar(id, v);
+  if (addToEnvironment) {
+    e.e.addVar(id, v);
+  }
 }
 
 void initializeVar(position pos, coenv &e, varEntry *v, varinit *init)
@@ -1176,10 +1192,12 @@ void recordInitializer(coenv &e, symbol id, record *r, position here)
   fundec init(here, &result, symbol::opTrans("init"), &formals, &stm);
   // TODO: Make this a "low-priority" autounravel, so it won't throw an error
   // if there is already a user-defined operator init.
+  auto oldMode = r->e.ve.setAutounravelMode(AutounravelPriority::OFFER);
   modifierList autoUnravel(here);
   autoUnravel.add(AUTOUNRAVEL);
   modifiedRunnable mr(here, &autoUnravel, &init);
   mr.transAsField(e, r);
+  r->e.ve.setAutounravelMode(oldMode);
 }
 
 bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
