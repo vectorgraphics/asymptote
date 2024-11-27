@@ -171,7 +171,7 @@ $pyVenvLocation="$toolscacheRoot/pyxasy"
 $pyXasyActivateScript="$pyVenvLocation/Scripts/activate.ps1"
 if (-Not (Test-Path -PathType leaf $pyXasyActivateScript))
 {
-    python -m virtualenv $pyVenvLocation
+    python -m virtualenv -p C:\\Users\\jamievl\\AppData\\Local\\Programs\\Python\\Python39\\python.exe $pyVenvLocation
 }
 
 # ----------------------------------------------------
@@ -290,3 +290,4 @@ Get-ChildItem "$asymptoteRoot/cmake-install-w32-nsis-release/build-$Version/" `
 Copy-Item $asymptoteRoot/cmake-build-msvc/release/asy.exe -Force -Destination "$ctanOutputDir/asy.exe"
 
 Pop-Location  # asymptote
+deactivate  # pyxasy build environment
