@@ -293,7 +293,7 @@ if (ENABLE_RPC_FEATURES)
         FetchContent_Declare(
                 fmem
                 GIT_REPOSITORY https://github.com/Kreijstal/fmem.git
-                GIT_TAG 6274a441380a8fcfd4e1a6e47b3d1f0b28b3c48a
+                GIT_TAG 5f79fef3606be5dac54d62c7d0e2123363afabd7
         )
         FetchContent_MakeAvailable(fmem)
         set(BUILD_TESTING ${OLD_BUILD_TESTING} CACHE INTERNAL "build testing")
