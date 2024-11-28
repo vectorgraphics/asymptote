@@ -362,7 +362,6 @@ struct SigEquiv {
 enum class AutounravelPriority {
   OFFER,
   FORCE,
-  MODE,
 };
 
 // venv implemented with a hash table.
@@ -390,7 +389,6 @@ class venv {
                      nullptr_t,
                      SigHash,
                      SigEquiv> nonShadowableAutoUnravels;
-  AutounravelPriority auMode = AutounravelPriority::FORCE;
 
   // A scope can be recorded by the size of the addition stack at the time the
   // scope began.
@@ -523,15 +521,8 @@ public:
   void registerAutoUnravel(
     symbol name,
     varEntry *v,
-    AutounravelPriority priority=AutounravelPriority::MODE
+    AutounravelPriority priority=AutounravelPriority::FORCE
   );
-
-  // Changes the mode; returns the previous mode.
-  AutounravelPriority setAutounravelMode(AutounravelPriority mode) {
-    AutounravelPriority oldMode = this->auMode;
-    this->auMode = mode;
-    return oldMode;
-  }
 
   const mem::list<mem::pair<symbol, varEntry *>>& getAutoUnravels() {
     return autoUnravels;

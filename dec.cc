@@ -694,7 +694,6 @@ void addVar(coenv &e, record *r, varEntry *v, symbol id)
   if (definesImplicitConstructor(e, r, v, id))
     addConstructorFromInitializer(position(), e, r, v);
 
-  bool addToEnvironment = true;
   // Add to the record so it can be accessed when qualified; add to the
   // environment so it can be accessed unqualified in the scope of the
   // record definition.
@@ -702,24 +701,9 @@ void addVar(coenv &e, record *r, varEntry *v, symbol id)
     r->e.addVar(id, v);
     if (e.c.isAutoUnravel()) {
       r->e.ve.registerAutoUnravel(id, v);
-      {
-        // Hacky way to identify the operator init implicitly defined at the
-        // end of every record. We don't want this to override any autounravel
-        // operator init the user may have defined.
-        // TODO: Find a better way to deal with this! 
-        auto oldMode = r->e.ve.setAutounravelMode(AutounravelPriority::MODE);
-        r->e.ve.setAutounravelMode(oldMode);
-        if (oldMode == AutounravelPriority::OFFER &&
-            id == symbol::opTrans("init")
-        ) {
-          addToEnvironment = false;
-        }
-      }
     }
   }
-  if (addToEnvironment) {
-    e.e.addVar(id, v);
-  }
+  e.e.addVar(id, v);
 }
 
 void initializeVar(position pos, coenv &e, varEntry *v, varinit *init)
@@ -1181,23 +1165,38 @@ void typeParam::prettyprint(ostream &out, Int indent) {
 
 void recordInitializer(coenv &e, symbol id, record *r, position here)
 {
-  // This is equivalent to the code
+  // This is almost equivalent to the code
   //   autounravel A operator init() { return new A; }
-  // where A is the name of the record.
+  // where A is the name of the record. The "almost" is because the code below
+  // does not add the operator init to the environment, since in practice it
+  // would be added to the outer environment, not the record's environment.
+  // Since it is always added *after* any code in the record, we lose nothing
+  // by not adding it to the environment.
+  // Additionally, the "autounravel" is made low-priority (will not override
+  // user-defined operator init) which is possible only for built-in functions.
   formals formals(here);
   simpleName recordName(here, id);
   nameTy result(here, &recordName);
   newRecordExp exp(here, &result);
   returnStm stm(here, &exp);
-  fundec init(here, &result, symbol::opTrans("init"), &formals, &stm);
-  // TODO: Make this a "low-priority" autounravel, so it won't throw an error
-  // if there is already a user-defined operator init.
-  auto oldMode = r->e.ve.setAutounravelMode(AutounravelPriority::OFFER);
-  modifierList autoUnravel(here);
-  autoUnravel.add(AUTOUNRAVEL);
-  modifiedRunnable mr(here, &autoUnravel, &init);
-  mr.transAsField(e, r);
-  r->e.ve.setAutounravelMode(oldMode);
+  fundef fun(here, &result, &formals, &stm);
+  assert(r);
+  {
+    e.c.pushModifier(AUTOUNRAVEL);
+    function *ft = fun.transTypeAndAddOps(e, r, false);
+    assert(ft);
+
+    symbol initSym=symbol::opTrans("init");
+    varinit *init=fun.makeVarInit(ft);
+
+    assert(ft->kind != types::ty_inferred);
+
+    varEntry *v=makeVarEntry(here, e, r, ft);
+    r->e.addVar(initSym, v);
+    r->e.ve.registerAutoUnravel(initSym, v, trans::AutounravelPriority::OFFER);
+    initializeVar(here, e, v, init);
+    e.c.popModifier();
+  }
 }
 
 bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {

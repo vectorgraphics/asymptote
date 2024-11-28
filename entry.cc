@@ -829,9 +829,6 @@ void venv::completions(mem::list<symbol >& l, string start)
 void venv::registerAutoUnravel(symbol name, varEntry *v,
                                AutounravelPriority priority)
 {
-  if (priority == AutounravelPriority::MODE) {
-    priority = this->auMode;
-  }
   mem::pair<symbol, ty*> p = {name, v->getType()};
   if (nonShadowableAutoUnravels.find(p) != nonShadowableAutoUnravels.end()) {
     if (priority == AutounravelPriority::FORCE) {
@@ -842,10 +839,6 @@ void venv::registerAutoUnravel(symbol name, varEntry *v,
       return;
     }
   }
-  // If two fields have the same name and signature, the most recently
-  // declared field should be autounraveled first. Then there is already a
-  // variable with that name and signature, so the earlier field will
-  // have its autounravel skipped.
   autoUnravels.emplace_front(name, v);
   if (priority == AutounravelPriority::FORCE) {
     // The value doesn't matter, we just need to know that the key exists.
