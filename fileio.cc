@@ -67,16 +67,12 @@ void file::dimension(Int Nx, Int Ny, Int Nz)
   nx=Nx; ny=Ny; nz=Nz;
 }
 
-file::file(
-        string const& name, bool check,
-        Mode type, bool binary,
-        bool closed
-        ) :
+file::file(string const& name, bool check, Mode type, bool binary, bool closed) :
     name(name), check(check), type(type), linemode(false), csvmode(false),
     wordmode(false), singlereal(false), singleint(true), signedint(true),
-    closed(closed), standard(name.empty()), binary(binary), nullfield(false),
-    whitespace("")
+    closed(closed), standard(name.empty()), binary(binary), nullfield(false)
 {
+  whitespace="";
   dimension();
 }
 
