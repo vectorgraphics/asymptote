@@ -19,7 +19,8 @@ def parse_args():
     parser.add_argument(
         "--base-version",
         type=str,
-        help="Base version string. If blank, this information is fetched from configure.ac",
+        help="Base version string. If blank, this information is "
+        + "fetched from configure.ac",
     )
     version_mode = parser.add_mutually_exclusive_group()
     version_mode.add_argument("--version-for-release", action="store_true")

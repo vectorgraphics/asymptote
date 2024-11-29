@@ -95,7 +95,9 @@ def main():
     copy_gui_files(asy_install_root)
 
     # generate uninstall file
-    with open(cmake_install_root / "AsymptoteUninstallList.nsi", "w") as f:
+    with open(
+        cmake_install_root / "AsymptoteUninstallList.nsi", "w", encoding="utf-8"
+    ) as f:
         for file in asy_install_root.iterdir():
             if file.is_dir():
                 f.write("RMDir /r $INSTDIR\\" + file.name)

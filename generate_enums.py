@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pylint: disable=too-many-locals,unused-argument,keyword-arg-before-vararg
 
 # A script to generate enums in different languages from a CSV file.
 # A CSV File contains
@@ -17,7 +18,7 @@ import re
 import sys
 import time
 from datetime import datetime, timezone
-from typing import Any, List, Tuple, Union
+from typing import List, Tuple, Union
 
 
 def cleanComment(s):
@@ -36,7 +37,7 @@ def parse_args():
 
 def create_enums(filename: str) -> List[Union[Tuple[str, int, str], Tuple[str, int]]]:
     final_list = []
-    with io.open(filename, newline="") as rawfile:
+    with io.open(filename, newline="", encoding="utf-8") as rawfile:
         for line in rawfile.readlines():
             if line.startswith("#") or line.strip() == "":
                 continue
@@ -58,61 +59,61 @@ def datetime_now():
 
 
 def generate_enum_cpp(outname, enums, name, comment=None, *args, **kwargs):
-    with io.open(outname, "w") as fil:
-        fil.write("// Enum class for {0}\n".format(name))
+    with io.open(outname, "w", encoding="utf-8") as fil:
+        fil.write(f"// Enum class for {name}\n")
         if comment is not None:
-            fil.write("// {0}\n".format(comment))
+            fil.write(f"// {comment}\n")
         if "namespace" in kwargs:
-            fil.write("namespace {0}\n".format(kwargs["namespace"]))
+            fil.write(f"namespace {kwargs['namespace']}\n")
             fil.write("{\n")
 
-        fil.write("enum {0} : uint32_t\n".format(name))
+        fil.write(f"enum {name} : uint32_t\n")
         fil.write("{\n")
 
         for enumTxt, enumNum, *ar in enums:
             if len(ar) > 0:
                 comment = cleanComment(ar[-1])
                 if comment is not None:
-                    fil.write("// {0}\n".format(comment.strip()))
-            fil.write("{0}={1},\n\n".format(enumTxt, enumNum))
+                    fil.write(f"// {comment.strip()}\n")
+            fil.write(f"{enumTxt}={enumNum},\n\n")
 
         fil.write("};\n\n")
 
         if "namespace" in kwargs:
-            fil.write("}} // namespace {0}\n".format(kwargs["namespace"]))
+            fil.write(f"}} // namespace {kwargs['namespace']}\n")
         fil.write("// End of File\n")
 
 
 def generate_enum_java(outname, enums, name, comment=None, *args, **kwargs):
-    with io.open(outname, "w") as fil:
-        fil.write("// Enum class for {0}\n".format(name))
+    with io.open(outname, "w", encoding="utf-8") as fil:
+        fil.write(f"// Enum class for {name}\n")
         if comment is not None:
-            fil.write("// {0}\n".format(comment))
+            fil.write(f"// {comment}\n")
         if "package" in kwargs:
-            fil.write("package {0};\n".format(kwargs["package"]))
+            fil.write(f"package {kwargs['package']};\n")
         fil.write("\n")
 
-        fil.write("public enum {0} {{\n".format(name))
+        fil.write(f"public enum {name} {{\n")
 
         spaces = kwargs.get("spaces", 4)
         spaces_tab = " " * spaces
 
-        for i in range(len(enums)):
-            enumTxt, enumNum, *ar = enums[i]
+        for i, enum in enumerate(enums):
+            enumTxt, enumNum, *ar = enum
             endsep = "," if i < len(enums) - 1 else ";"
-            fil.write("{2}{0}({1}){3}\n".format(enumTxt, enumNum, spaces_tab, endsep))
+            fil.write(f"{spaces_tab}{enumTxt}({enumNum}){endsep}\n")
             if len(ar) > 0:
                 comment = cleanComment(ar[-1])
                 if comment is not None:
-                    fil.write("// {0}\n\n".format(comment.strip()))
+                    fil.write(f"// {comment.strip()}\n\n")
 
         out_lines = [
             "",
-            "{0}(int value) {{".format(name),
-            "{0}this.value=value;".format(spaces_tab),
+            f"{name}(int value) {{",
+            f"{spaces_tab}this.value=value;",
             "}",
             "public String toString() {",
-            "{0}return Integer.toString(value);".format(spaces_tab),
+            f"{spaces_tab}return Integer.toString(value);",
             "}",
             "private int value;",
         ]
@@ -126,38 +127,38 @@ def generate_enum_java(outname, enums, name, comment=None, *args, **kwargs):
 
 
 def generate_enum_asy(outname, enums, name, comment=None, *args, **kwargs):
-    with io.open(outname, "w") as fil:
-        fil.write("// Enum class for {0}\n".format(name))
+    with io.open(outname, "w", encoding="utf-8") as fil:
+        fil.write(f"// Enum class for {name}\n")
         if comment is not None:
-            fil.write("// {0}\n".format(comment))
-        fil.write("struct {0}\n".format(name))
+            fil.write(f"// {comment}\n")
+        fil.write(f"struct {name}\n")
         fil.write("{\n")
 
         for enumTxt, enumNum, *ar in enums:
-            fil.write("  int {0}={1};\n".format(enumTxt, enumNum))
+            fil.write(f"  int {enumTxt}={enumNum};\n")
             if len(ar) > 0:
                 comment = cleanComment(ar[-1])
                 if comment is not None:
-                    fil.write("// {0}\n\n".format(comment.strip()))
+                    fil.write(f"// {comment.strip()}\n\n")
         fil.write("};\n\n")
-        fil.write("{0} {0};".format(name))
+        fil.write(f"{name} {name};")
 
         fil.write("// End of File\n")
 
 
 def generate_enum_py(outname, enums, name, comment=None, *args, **kwargs):
-    with io.open(outname, "w") as fil:
+    with io.open(outname, "w", encoding="utf-8") as fil:
         fil.write("#!/usr/bin/env python3\n")
-        fil.write("# Enum class for {0}\n".format(name))
+        fil.write(f"# Enum class for {name}\n")
         if comment is not None:
-            fil.write('""" {0} """\n'.format(comment))
-        fil.write("class {0}:\n".format(name))
+            fil.write(f'""" {comment} """\n')
+        fil.write(f"class {name}:\n")
         for enumTxt, enumNum, *ar in enums:
-            fil.write("    {0}_{2}={1}\n".format(name, enumNum, enumTxt))
+            fil.write(f"    {name}_{enumTxt}={enumNum}\n")
             if len(ar) > 0:
                 comment = cleanComment(ar[-1])
                 if comment is not None:
-                    fil.write("    # {0}\n\n".format(comment.strip()))
+                    fil.write(f"    # {comment.strip()}\n\n")
         fil.write("# End of File\n")
 
 
@@ -174,7 +175,7 @@ def main():
     else:
         return 1
 
-    custom_args = dict()
+    custom_args = {}
     if arg.xopt is not None:
         for xopt in arg.xopt:
             key, val = xopt.split("=")
@@ -182,6 +183,7 @@ def main():
 
     enums = create_enums(arg.input)
     fn(arg.output, enums, arg.name, "AUTO-GENERATED from " + arg.input, **custom_args)
+    return 0
 
 
 if __name__ == "__main__":

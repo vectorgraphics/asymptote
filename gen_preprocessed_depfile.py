@@ -87,14 +87,13 @@ class CompileOptions:
         compiler: str,
         include_dirs: Optional[List[str]] = None,
         macros: Optional[List[str]] = None,
-        extra_flags: Optional[List[str]] = None,
-        standard: Optional[str] = None,
+        **kwargs,
     ):
         self._compiler = compiler
         self._include_dirs = include_dirs or []
         self._macros = macros or []
-        self._extra_flags = extra_flags or []
-        self._standard = standard or "17"
+        self._extra_flags: List[str] = kwargs.get("extra_flags") or []
+        self._standard: str = kwargs.get("standard") or "17"
 
     @property
     def compiler(self):
