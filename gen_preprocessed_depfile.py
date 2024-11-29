@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import io
-from argparse import ArgumentParser
-from typing import List, Optional
+import json
+import shlex
 import subprocess as sp
 import sys
 import tempfile
-import shlex
-import json
+from argparse import ArgumentParser
+from typing import List, Optional
 
 
 def execute_and_report_err(args: List[str], error_heading="Error"):
@@ -87,14 +87,24 @@ class CompileOptions:
         compiler: str,
         include_dirs: Optional[List[str]] = None,
         macros: Optional[List[str]] = None,
-        extra_flags: Optional[List[str]] = None,
-        standard: Optional[str] = None,
+        **kwargs,
     ):
+        """
+        :param compiler: C++ compiler to use for preprocessing
+        :param include_dirs: List of include directories to pass to C++ compiler for
+            preprocessing
+        :param macros: List of macros to pass to the C++ compiler for preprocessing.
+            Must be in 'MACRO' or 'MACRO=VALUE' form.
+        :param kwargs: Accepts two extra arguments:
+            - "extra_flags": Extra flags to pass to compiler for preprocessing
+            - "standard": C++ standard to use.
+            This is passed to the compiler as "-std=c++<standard>".
+        """
         self._compiler = compiler
         self._include_dirs = include_dirs or []
         self._macros = macros or []
-        self._extra_flags = extra_flags or []
-        self._standard = standard or "17"
+        self._extra_flags: List[str] = kwargs.get("extra_flags") or []
+        self._standard: str = kwargs.get("standard") or "17"
 
     @property
     def compiler(self):

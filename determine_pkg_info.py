@@ -4,9 +4,7 @@ Determine package version information from configure.ac file for Asymptote
 """
 __author__ = "Supakorn 'Jamie' Rassameemasmuang <jamievlin@outlook.com>"
 
-import os
 import pathlib
-from typing import TextIO
 import re
 
 REGEXES = {
@@ -25,7 +23,7 @@ def process_configure_ac_file(f):
     from the configure.ac file object
     """
     regexes_to_search = dict(REGEXES)
-    result = dict()
+    result = {}
     for line in f:
         if not regexes_to_search:
             return result  # done now, can return

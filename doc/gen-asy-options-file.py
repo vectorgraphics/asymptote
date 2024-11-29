@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import argparse
-import subprocess
 import subprocess as sp
 
 
@@ -16,8 +15,8 @@ def main():
     asy_output = sp.run(
         [args.asy_executable, "-h"],
         check=True,
-        stderr=subprocess.STDOUT,
-        stdout=subprocess.PIPE,
+        stderr=sp.STDOUT,
+        stdout=sp.PIPE,
         text=True,
     )
 

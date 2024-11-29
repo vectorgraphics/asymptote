@@ -1,13 +1,16 @@
 name: pull-request-precheck
 
 on:
-  workflow_dispatch:
   pull_request:
     branches:
       - "master"
       - "a/*"
 
 jobs:
+  lint-non-gui-files:
+    uses: ./.github/workflows/lint-non-gui-py-files.yml
+    with:
+      target-branch: ${{ github.github.base_ref }}
   determine_asy_version:
     runs-on: ubuntu-22.04
     outputs:
@@ -55,6 +58,7 @@ jobs:
       - test-asy-linux
       - test-asy-windows
       - package-asy-install-file
+      - lint-non-gui-files
     runs-on: "ubuntu-22.04"
     steps:
       - run: echo All prechecks pass!

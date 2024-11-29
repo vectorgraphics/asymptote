@@ -1,0 +1,49 @@
+name: lint-non-gui-py-files
+on:
+  workflow_call:
+    inputs:
+      target-branch:
+        type: string
+        required: True
+
+jobs:
+  check-if-non-gui-py-files-changed:
+    runs-on: "ubuntu-22.04"
+    outputs:
+      files-changed: ${{ steps.determine_nongui_py_files_changed.outputs.files_changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: check if any changed files are lintable python files
+        id: determine_nongui_py_files_changed
+        run: |
+          mkdir -p idir
+          python3 misc/print_non_gui_py_files_for_linting.py | sort > idir/lintable-files.txt
+          git diff --name-only HEAD ${{ inputs.target-branch }} > idir/changed-files.txt
+          files_changed=$(comm -12 idir/lintable-files.txt idir/changed-files.txt && echo "true" || echo "false")
+          
+          if [ $files_changed = 'true' ]; then
+            echo "Non-GUI python files changed. Will lint these files."
+          fi
+          echo "files_changed=$files_changed" >> "$GITHUB_OUTPUT"
+  lint-python-files:
+    runs-on: "ubuntu-22.04"
+    needs: check-if-non-gui-py-files-changed
+    if: ${{ needs.check-if-non-gui-py-files-changed.outputs.files-changed == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup python environment
+        run: python3 -m pip install -r requirements.lint.txt
+      - name: gather lintable files
+        run: | 
+          mkdir -p idir
+          python3 misc/print_non_gui_py_files_for_linting.py > idir/lintable-files.txt
+      - name: black check
+        run: python3 -m black --check $(cat idir/lintable-files.txt)
+      - name: isort check
+        run: python3 -m isort --sp=.isort.cfg --check $(cat idir/lintable-files.txt)
+      - name: pylint check
+        run: python3 -m pylint --rcfile=.pylintrc $(cat idir/lintable-files.txt)

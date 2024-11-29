@@ -4,9 +4,9 @@ import argparse
 import contextlib
 import os
 import pathlib
-import sys
 import shutil
 import subprocess as sp
+import sys
 
 
 def parse_args():
