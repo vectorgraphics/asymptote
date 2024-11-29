@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import io
-from argparse import ArgumentParser
-from typing import List, Optional
+import json
+import shlex
 import subprocess as sp
 import sys
 import tempfile
-import shlex
-import json
+from argparse import ArgumentParser
+from typing import List, Optional
 
 
 def execute_and_report_err(args: List[str], error_heading="Error"):

@@ -58,7 +58,7 @@ def copy_gui_files(asy_install_root: pathlib.Path):
     exclude_prefixes = {
         ".vscode",
         ".fleet",
-        ".idea"
+        ".idea",
         "__pycache__",
         ".python-version",
         ".gitignore",

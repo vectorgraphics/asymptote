@@ -4,9 +4,7 @@ Determine package version information from configure.ac file for Asymptote
 """
 __author__ = "Supakorn 'Jamie' Rassameemasmuang <jamievlin@outlook.com>"
 
-import os
 import pathlib
-from typing import TextIO
 import re
 
 REGEXES = {
