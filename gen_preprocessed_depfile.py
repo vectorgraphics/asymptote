@@ -89,6 +89,17 @@ class CompileOptions:
         macros: Optional[List[str]] = None,
         **kwargs,
     ):
+        """
+        :param compiler: C++ compiler to use for preprocessing
+        :param include_dirs: List of include directories to pass to C++ compiler for
+            preprocessing
+        :param macros: List of macros to pass to the C++ compiler for preprocessing.
+            Must be in 'MACRO' or 'MACRO=VALUE' form.
+        :param kwargs: Accepts two extra arguments:
+            - "extra_flags": Extra flags to pass to compiler for preprocessing
+            - "standard": C++ standard to use.
+            This is passed to the compiler as "-std=c++<standard>".
+        """
         self._compiler = compiler
         self._include_dirs = include_dirs or []
         self._macros = macros or []
