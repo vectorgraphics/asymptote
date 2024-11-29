@@ -162,9 +162,9 @@ function(symfile_preprocess src_dir symfile symfile_raw_output_varname header_ou
             OUTPUT ${processed_output_file}
             COMMAND ${PY3_INTERPRETER} ${ASY_SCRIPTS_DIR}/gen_preprocessed_depfile.py
             --cxx-compiler=${cxx_preprocessor}
-            "$<$<BOOL:${asy_includes_list}>:--include-dirs=${asy_includes_list}>"
+            "$<$<BOOL:${asy_includes_list}>:--include-dirs=$<REMOVE_DUPLICATES:${asy_includes_list}>>"
             "$<$<BOOL:${asy_cxx_std}>:--cxx-standard=${asy_cxx_std}>"
-            "$<$<BOOL:${asy_macros_list}>:--macro-defs=${asy_macros_list}>"
+            "$<$<BOOL:${asy_macros_list}>:--macro-defs=$<REMOVE_DUPLICATES:${asy_macros_list}>>"
             --out-dep-file=${GENERATED_AUX_DIR}/${symfile}.d
             --out-i-file=${processed_output_file}
             --in-src-file=${src_dir}/${symfile}.cc
