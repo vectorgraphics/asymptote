@@ -220,6 +220,8 @@ def compile_for_preproc_and_depfile_msvc(
 
 def main():
     args = parse_args()
+    sys.stderr.write("Args: \n%s\n".format('\n'.join(sys.argv)))
+    sys.stderr.flush()
     opt = CompileOptions(
         args.cxx_compiler,
         args.include_dirs.split(";") if args.include_dirs else None,
