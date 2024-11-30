@@ -14,7 +14,7 @@
         ],
             "compilerPath": "/usr/bin/g++",
             "cStandard": "c99",
-            "cppStandard": "c++11",
+            "cppStandard": "c++17",
             "intelliSenseMode": "clang-x64"
         }
     ],
