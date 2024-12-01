@@ -20,10 +20,14 @@ jobs:
         run: |
           mkdir -p idir
           python3 misc/print_non_gui_py_files_for_linting.py | sort > idir/lintable-files.txt
+          
+          # we need to print out the absolute path since the python script prints out absolute paths
           git diff-tree \
             --name-only -r --no-commit-id \
             --line-prefix=`git rev-parse --show-toplevel`/ \
             origin/${{ inputs.target-branch }} HEAD > idir/changed-files.txt
+          
+          # check if idir/lintable-files.txt and idir/changed-files.txt has any common entries
           lintable_changed_files=$(comm -12 idir/lintable-files.txt idir/changed-files.txt)
           
           if [ "x$lintable_changed_files" != "x" ]; then
