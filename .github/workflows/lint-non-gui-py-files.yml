@@ -20,12 +20,25 @@ jobs:
         run: |
           mkdir -p idir
           python3 misc/print_non_gui_py_files_for_linting.py | sort > idir/lintable-files.txt
-          git diff --name-only HEAD ${{ inputs.target-branch }} > idir/changed-files.txt
-          files_changed=$(comm -12 idir/lintable-files.txt idir/changed-files.txt && echo "true" || echo "false")
           
-          if [ $files_changed = 'true' ]; then
+          # we need to print out the absolute path since the python script prints out absolute paths
+          git diff-tree \
+            --name-only -r --no-commit-id \
+            --line-prefix=`git rev-parse --show-toplevel`/ \
+            origin/${{ inputs.target-branch }} HEAD > idir/changed-files.txt
+          
+          # check if idir/lintable-files.txt and idir/changed-files.txt has any common entries
+          lintable_changed_files=$(comm -12 idir/lintable-files.txt idir/changed-files.txt)
+          
+          if [ "x$lintable_changed_files" != "x" ]; then
             echo "Non-GUI python files changed. Will lint these files."
+            printf "Lintable changed files:\n%s" "$lintable_changed_files"
+            files_changed=true
+          else
+            echo "No lintable changed files detected. Linting of non-GUI python files will be skipped."
+            files_changed=false
           fi
+          
           echo "files_changed=$files_changed" >> "$GITHUB_OUTPUT"
   lint-python-files:
     runs-on: "ubuntu-22.04"

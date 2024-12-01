@@ -10,7 +10,7 @@ jobs:
   lint-non-gui-files:
     uses: ./.github/workflows/lint-non-gui-py-files.yml
     with:
-      target-branch: ${{ github.github.base_ref }}
+      target-branch: ${{ github.base_ref }}
   determine_asy_version:
     runs-on: ubuntu-22.04
     outputs:
