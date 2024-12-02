@@ -101,6 +101,7 @@ public:
   penv() : _ge(0), _pd() {
     // Push the processData first, as it needs to be on the stack before genv
     // is initialized.
+    _pd.topPos = nullPos;
     processDataStack.push(&_pd);
     _ge = new genv;
   }

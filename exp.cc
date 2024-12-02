@@ -143,9 +143,9 @@ types::ty *tempExp::trans(coenv &e) {
 
 
 varEntryExp::varEntryExp(position pos, types::ty *t, access *a)
-  : exp(pos), v(new trans::varEntry(t, a, 0, position())) {}
+  : exp(pos), v(new trans::varEntry(t, a, 0, nullPos)) {}
 varEntryExp::varEntryExp(position pos, types::ty *t, vm::bltin f)
-  : exp(pos), v(new trans::varEntry(t, new bltinAccess(f), 0, position())) {}
+  : exp(pos), v(new trans::varEntry(t, new bltinAccess(f), 0, nullPos)) {}
 
 void varEntryExp::prettyprint(ostream &out, Int indent) {
   prettyname(out, "varEntryExp", indent, getPos());
