@@ -50,6 +50,8 @@ jobs:
         run: |
           echo set\(ASY_VERSION_SUFFIX \"/github-ci/ref=${{ github.sha }}\"\) > asy-pkg-version-suffix.cmake
       - run: cmake --build --preset linux/release --target asy-with-basefiles -j
+      - name: build misc files
+        run: cmake --build --preset linux/release-ccache --target asy-dist-misc-files -j
       - name: Archive build files
         uses: actions/upload-artifact@v4
         with:
@@ -57,6 +59,12 @@ jobs:
           path: |
             cmake-build-linux/release/asy
             cmake-build-linux/release/base
+      - name: Archive misc files
+        uses: actions/upload-artifact@v4
+        with:
+          name: asy-miscfiles
+          path: |
+            cmake-build-linux/release/misc-output
       - name: Build Asymptote google test files
         run: cmake --build --preset linux/release --target asyCxxTests -j
       - name: Archive Asymptote gtest files
