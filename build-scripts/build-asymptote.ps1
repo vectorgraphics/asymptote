@@ -63,9 +63,32 @@ if (-Not $hasDocFiles) {
 
 # ----------------------------------------------------
 # copy documentation files to asymptote directory
+$localAsyDocRoot="$asymptoteRoot/asydoc"
 
-New-Item -ItemType Directory -Path "$asymptoteRoot/extfiles" -Force
-Copy-Item -Force -Recurse "$extfilesRoot/*" -Destination "$asymptoteRoot/extfiles"
+if (-Not (Test-Path -Type Container $localAsyDocRoot))
+{
+    New-Item -ItemType Directory -Path $localAsyDocRoot -Force
+}
+
+foreach ($requiredDocFile in $requiredDocumentationFiles)
+{
+    $sourceDocFile="$extfilesRoot/$requiredDocFile"
+    $destDocFile="$localAsyDocRoot/$requiredDocFile"
+
+    $docFileHash=Get-FileHash -Algorithm SHA256 -Path $sourceDocFile
+    if (Test-Path -Type Leaf "$destDocFile")
+    {
+        $asyDocFilehash=Get-FileHash -Algorithm SHA256 -Path $destDocFile
+        if ($docFileHash.Hash -eq $asyDocFilehash.Hash)
+        {
+            Write-Host "File $requiredDocFile exists in asydoc directory; not copying"
+            continue
+        }
+    }
+
+    Write-Host "Copying $sourceDocFile to $destDocFile"
+    Copy-Item -Force $sourceDocFile -Destination $destDocFile
+}
 
 # ----------------------------------------------------
 # tools cache
