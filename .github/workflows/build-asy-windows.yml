@@ -101,6 +101,10 @@ jobs:
         run: |
           ${{ env.pwsh_initialize_devenv }}
           cmake --build cmake-build-msvc/release --target asy-with-basefiles -j
+      - name: Build misc files on windows
+        run: |
+          ${{ env.pwsh_initialize_devenv }}
+          cmake --build cmake-build-msvc/release --target asy-dist-misc-files -j
       - name: Archive Asymptote build
         uses: actions/upload-artifact@v4
         with:
@@ -109,6 +113,12 @@ jobs:
             cmake-build-msvc/release/asy.exe
             cmake-build-msvc/release/base
             cmake-build-msvc/release/*.dll
+      - name: Archive Asymptote misc files
+        uses: actions/upload-artifact@v4
+        with:
+          name: asy-win-x64-miscfiles
+          path: |
+            cmake-build-msvc/release/misc-output
       - name: Build Asymptote google test
         run: |
           ${{ env.pwsh_initialize_devenv }}
