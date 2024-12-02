@@ -62,6 +62,14 @@ install(
         ${ASY_NSIS_INSTALL_ARGUMENT}
 )
 
+# <build-root>/base/asy-{init,mode}.el -> <install-root>/
+install(
+        FILES
+        ${ASY_SOURCE_BASE_DIR}/asy-init.el
+        ${ASY_SOURCE_BASE_DIR}/asy-mode.el
+        ${ASY_NSIS_INSTALL_ARGUMENT}
+)
+
 # extra doc files
 install(
         FILES
