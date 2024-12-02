@@ -137,7 +137,8 @@
       "displayName": "[MSVC-x86/64] Release (with external documentation)",
       "inherits": ["msvc/release-with-existing-asymptote-pdf"],
       "cacheVariables": {
-        "ENABLE_DOCGEN": "false"
+        "ENABLE_DOCGEN": "false",
+        "ENABLE_MISCFILES_GEN": "false"
       }
     },
     {
