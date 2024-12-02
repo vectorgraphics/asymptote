@@ -33,6 +33,12 @@ jobs:
         with:
           name: cmake-windows-gui-files
           path: GUI/
+      - name: Download misc files
+        uses: actions/download-artifact@v4
+        with:
+          name: asy-win-x64-miscfiles
+          path: |
+            cmake-build-msvc/release/misc-output
       - name: Download asymptote.pdf
         uses: actions/download-artifact@v4
         with:
