@@ -70,6 +70,12 @@ install(
         ${ASY_NSIS_INSTALL_ARGUMENT}
 )
 
+# misc files -> <install-root>/
+install(
+        FILES ${ASY_OUTPUT_MISC_FILES}
+        ${ASY_NSIS_INSTALL_ARGUMENT}
+)
+
 # extra doc files
 install(
         FILES
@@ -122,6 +128,11 @@ if (ASY_TEX_BUILD_ROOT)
     add_dependencies(asy-pre-nsis-targets docgen)
 endif()
 
+if (ENABLE_MISCFILES_GEN)
+    add_dependencies(asy-pre-nsis-targets asy-dist-misc-files)
+endif()
+
+
 macro(install_from_external_documentation_dir docfile_name)
     set(DOCFILE_LOCATION ${EXTERNAL_DOCUMENTATION_DIR}/${docfile_name})
     message(STATUS "Using external documentation file at ${DOCFILE_LOCATION}")
@@ -170,6 +181,19 @@ elseif (EXTERNAL_DOCUMENTATION_DIR)
 else()
     action_if_component_not_buildable("asymptote.pdf cannot be found and is not buildable")
 endif()
+
+# asy-keywords.el (and potentially other misc files)
+if (ENABLE_MISCFILES_GEN)
+    install(
+            FILES ${ASY_OUTPUT_DIST_MISC_FILES}
+            ${ASY_NSIS_INSTALL_ARGUMENT}
+    )
+elseif(EXTERNAL_DOCUMENTATION_DIR)
+    install_from_external_documentation_dir(asy-keywords.el)
+else()
+    action_if_component_not_buildable("Non-essential, non-documentation asymptote files cannot be found")
+endif()
+
 
 # README files
 install(
