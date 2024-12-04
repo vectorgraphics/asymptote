@@ -652,9 +652,6 @@ void fundecidstart::addOps(types::ty *base, coenv &e, record *r)
   types::function *ft=dynamic_cast<types::function *>(getType(base, e, true));
   assert(ft);
 
-  e.e.addFunctionOps(ft);
-  if (r)
-    r->e.addFunctionOps(ft);
 }
 
 
@@ -1245,27 +1242,6 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
   } else
     addTypeWithPermission(e, r, arg->ent, paramSym);
 
-  //e.e.addType(paramSym, arg->ent);
-  // The code below would add e.g. operator== to the context, but potentially
-  // ignore overrides of operator==:
-  //
-  // types::astType *t = arg.ent->t;
-  // if (t->kind == types::ty_record) {
-  //   record *r = dynamic_cast<record *>(t);
-  //   if (r) {
-  //     trans::addRecordOps(e.e.ve, r);
-  //   }
-  // } else if (t->kind == types::ty_array) {
-  //   array *a = dynamic_cast<array *>(t);
-  //   if (a) {
-  //     trans::addArrayOps(e.e.ve, a);
-  //   }
-  // } else if (t->kind == types::ty_function) {
-  //   function *f = dynamic_cast<function *>(t);
-  //   if (f) {
-  //     trans::addFunctionOps(e.e.ve, f);
-  //   }
-  // }
   return true;
 }
 

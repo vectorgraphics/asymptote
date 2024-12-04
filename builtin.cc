@@ -683,12 +683,6 @@ void addRecordOps(venv &ve, record *r)
   }
 }
 
-void addFunctionOps(venv &ve, function *f)
-{
-  // No function ops.
-}
-
-
 void addOperators(venv &ve)
 {
   addSimpleOperator(ve,binaryOp<string,plus>,primString(),SYM_PLUS);
