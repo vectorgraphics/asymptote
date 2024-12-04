@@ -129,6 +129,11 @@ jobs:
       with:
         name: asy-buildfiles
         path: tar-stage
+    - name: Download misc files
+      uses: actions/download-artifact@v4
+      with:
+        name: asy-miscfiles
+        path: tar-stage/misc/
     - name: Download asymptote.pdf
       uses: actions/download-artifact@v4
       with:
@@ -144,7 +149,7 @@ jobs:
     - name: Set asy's +x flag
       run: chmod +x tar-stage/asy
     - name: tar package
-      run: tar -C tar-stage -cvhf asymptote-build-linux.tar asy base examples doc
+      run: tar -C tar-stage -cvhf asymptote-build-linux.tar asy base examples doc misc
     - name: Archive Asymptote test files
       uses: actions/upload-artifact@v4
       with:
