@@ -22,6 +22,15 @@ assert(1#-2 == -1);
 assert(-1#-2 == 0);
 assert(-3#2 == -2);
 EndTest();
+StartTest("integer mod");
+assert(12%5 == 2);
+assert(-12%5 == 3);
+assert(12%-5 == -3);
+assert(-12%-5 == -2);
+assert(13%4 == 1);
+assert(-13%4 == 3);
+assert(13%-4 == -3);
+assert(-13%-4 == -1);
 StartTest("integer self ops");
 { int x=3; assert(++x == 4); assert(x == 4); }
 { int x=3; assert(--x == 2); assert(x == 2); }
