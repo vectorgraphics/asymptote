@@ -206,8 +206,8 @@ are present in the system.
 
 #### If using a pre-built `asymptote.pdf`
 
-Place `asymptote.pdf` in the directory `<asymptote-repo>/extfiles/`.
-That is, the file `<asymptote-repo>/extfiles/asymptote.pdf` is present.
+Place `asymptote.pdf` in the directory `<asymptote-repo>/asydoc/`.
+That is, the file `<asymptote-repo>/asydoc/asymptote.pdf` is present.
 After that, configure cmake with the preset `msvc/release-with-existing-asymptote-pdf` - that is,
 
 ```powershell

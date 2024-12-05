@@ -129,7 +129,7 @@
       "inherits": ["msvc/release"],
       "cacheVariables": {
         "ENABLE_ASYMPTOTE_PDF_DOCGEN": "false",
-        "EXTERNAL_DOCUMENTATION_DIR": "${sourceDir}/extfiles"
+        "EXTERNAL_DOCUMENTATION_DIR": "${sourceDir}/asydoc"
       }
     },
     {
@@ -137,7 +137,8 @@
       "displayName": "[MSVC-x86/64] Release (with external documentation)",
       "inherits": ["msvc/release-with-existing-asymptote-pdf"],
       "cacheVariables": {
-        "ENABLE_DOCGEN": "false"
+        "ENABLE_DOCGEN": "false",
+        "ENABLE_MISCFILES_GEN": "false"
       }
     },
     {
