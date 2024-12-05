@@ -54,18 +54,15 @@ symbols = set()
 # of C++ source files to process.
 for inname in innames:
   # Attempt to open the current input file in read mode.
-  try:
-    with open(inname, "r") as infile:
-      # Read the input file line by line.
-      for line in infile:
-        # Use a regular expression to find all occurrences of the SYM macro
-        # with a valid symbol name inside parentheses.
-        matches = re.findall(r'SYM\(([_A-Za-z][_A-Za-z0-9]*)\)', line)
-        for match in matches:
-          # Add each matched symbol name to the symbols set.
-          symbols.add(match)
-  except IOError:
-    sys.exit(f"Couldn't open {inname}")
+  with open(inname, "r") as infile:
+    # Read the input file line by line.
+    for line in infile:
+      # Use a regular expression to find all occurrences of the SYM macro
+      # with a valid symbol name inside parentheses.
+      matches = re.findall(r'SYM\(([_A-Za-z][_A-Za-z0-9]*)\)', line)
+      for match in matches:
+        # Add each matched symbol name to the symbols set.
+        symbols.add(match)
 
 # After collecting all unique symbols, iterate over the sorted list of symbol names.
 for symbol in sorted(symbols):
