@@ -834,10 +834,8 @@ void venv::registerAutoUnravel(symbol name, varEntry *v,
     if (priority == AutounravelPriority::FORCE) {
       em.error(v->getPos());
       em << "cannot shadow autounravel " << name;
-    } else {
-      cout << "skipping autounravel " << name << endl;
-      return;
     }
+    return;
   }
   autoUnravels.emplace_front(name, v);
   if (priority == AutounravelPriority::FORCE) {

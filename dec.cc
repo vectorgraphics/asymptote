@@ -1180,7 +1180,7 @@ void recordInitializer(coenv &e, symbol id, record *r, position here)
   assert(r);
   {
     e.c.pushModifier(AUTOUNRAVEL);
-    function *ft = fun.transTypeAndAddOps(e, r, false);
+    function *ft = fun.transType(e, false);
     assert(ft);
 
     symbol initSym=symbol::opTrans("init");
