@@ -44,7 +44,7 @@ path cross(int n, bool round=true, real r=0)
 path plus=rotate(45)*cross(4);
 path diamond=rotate(45)*polygon(4);
 
-typedef void markroutine(picture pic=currentpicture, frame f, path g);
+using markroutine = void(picture pic=currentpicture, frame f, path g);
 
 // On picture pic, add frame f about every node of path g.
 void marknodes(picture pic=currentpicture, frame f, path g) {
