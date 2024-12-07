@@ -283,8 +283,8 @@ lex.yy.d: $(GCLIB) lex.yy.cc camp.tab.h
 keywords.h: camp.l keywords.pl asyprocess.cc
 	$(PERL) ./keywords.pl --camplfile $< --output $@ --process-file asyprocess.cc
 
-opsymbols.h: camp.l opsymbols.pl
-	$(PERL) ./opsymbols.pl --campfile $< --output $@
+opsymbols.h: camp.l opsymbols.py
+	$(PYTHON) ./opsymbols.py --campfile $< --output $@
 
 envcompleter.d: keywords.h
 

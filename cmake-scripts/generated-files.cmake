@@ -14,12 +14,12 @@ file(MAKE_DIRECTORY ${GENERATED_SRC_DIR})
 # opsymbols.h
 add_custom_command(
         OUTPUT ${GENERATED_INCLUDE_DIR}/opsymbols.h
-        COMMAND ${PERL_INTERPRETER}
-            ${ASY_SCRIPTS_DIR}/opsymbols.pl
+        COMMAND ${PY3_INTERPRETER}
+            ${ASY_SCRIPTS_DIR}/opsymbols.py
             --campfile ${ASY_RESOURCE_DIR}/camp.l
             --output ${GENERATED_INCLUDE_DIR}/opsymbols.h
         MAIN_DEPENDENCY ${ASY_RESOURCE_DIR}/camp.l
-        DEPENDS ${ASY_SCRIPTS_DIR}/opsymbols.pl
+        DEPENDS ${ASY_SCRIPTS_DIR}/opsymbols.py
 )
 
 list(APPEND ASYMPTOTE_INCLUDES ${GENERATED_INCLUDE_DIR})
