@@ -31,6 +31,7 @@ assert(13%4 == 1);
 assert(-13%4 == 3);
 assert(13%-4 == -3);
 assert(-13%-4 == -1);
+EndTest();
 StartTest("integer self ops");
 { int x=3; assert(++x == 4); assert(x == 4); }
 { int x=3; assert(--x == 2); assert(x == 2); }
