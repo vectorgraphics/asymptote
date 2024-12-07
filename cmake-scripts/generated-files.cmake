@@ -130,7 +130,7 @@ endforeach ()
 
 # raw.i files
 # generating preprocessed files
-set(FINDSYM_FILE ${ASY_SCRIPTS_DIR}/findsym.pl)
+set(FINDSYM_FILE ${ASY_SCRIPTS_DIR}/findsym.py)
 # combine all files into allsymbols.h
 function(symfile_preprocess src_dir symfile symfile_raw_output_varname header_output_varname)
     set(symfile_raw_output_var ${symfile_raw_output_varname})
@@ -182,7 +182,7 @@ function(symfile_preprocess src_dir symfile symfile_raw_output_varname header_ou
     set(${symfile_raw_output_var} ${sym_header_file} PARENT_SCOPE)
     add_custom_command(
             OUTPUT ${sym_header_file}
-            COMMAND ${PERL_INTERPRETER} ${FINDSYM_FILE}
+            COMMAND ${PY3_INTERPRETER} ${FINDSYM_FILE}
                 ${sym_header_file}
                 ${processed_output_file}
             MAIN_DEPENDENCY ${processed_output_file}
@@ -205,7 +205,7 @@ endforeach ()
 # allsymbols.h
 add_custom_command(
         OUTPUT ${GENERATED_INCLUDE_DIR}/allsymbols.h
-        COMMAND ${PERL_INTERPRETER} ${FINDSYM_FILE}
+        COMMAND ${PY3_INTERPRETER} ${FINDSYM_FILE}
             ${GENERATED_INCLUDE_DIR}/allsymbols.h
             ${SYMFILE_OUT_LIST}
         DEPENDS ${FINDSYM_FILE} ${SYMFILE_OUT_LIST}

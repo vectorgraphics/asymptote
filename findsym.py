@@ -64,7 +64,8 @@ for inname in innames:
         # Add each matched symbol name to the symbols set.
         symbols.add(match)
 
-# After collecting all unique symbols, iterate over the sorted list of symbol names.
+# After collecting all unique symbols, iterate over the sorted list of symbol
+# names.
 for symbol in sorted(symbols):
   # Call the 'add' function to write its declaration to the header file.
   add(symbol)
