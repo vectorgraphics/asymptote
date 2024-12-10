@@ -41,7 +41,7 @@ include plain_debugger;
 
 real RELEASE=(real) split(VERSION,"-")[0];
 
-typedef void exitfcn();
+using exitfcn = void();
 
 void updatefunction()
 {
@@ -63,8 +63,8 @@ atexit(exitfunction);
 
 // A restore thunk is a function, that when called, restores the graphics state
 // to what it was when the restore thunk was created.
-typedef void restoreThunk();
-typedef restoreThunk saveFunction();
+using restoreThunk = void();
+using saveFunction = restoreThunk();
 saveFunction[] saveFunctions={};
 
 // When save is called, this will be redefined to do the corresponding restore.
