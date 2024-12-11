@@ -3307,8 +3307,8 @@ following foreground--background blending operations:
 "HardLight","ColorDodge","ColorBurn","Darken","Lighten","Difference",
 "Exclusion","Hue","Saturation","Color","Luminosity",
 @end verbatim
-as described in
-@url{https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf}.
+as described in Tables 136 and 137 of
+@url{https://opensource.adobe.com/dc-acrobat-sdk-docs/standards/pdfstandards/pdf/PDF32000_2008.pdf}.
 Since @code{PostScript} does not support transparency, this feature is
 only effective with the @code{-f pdf} output format option; other
 formats can be produced from the resulting @acronym{PDF} file with the
@@ -5597,15 +5597,16 @@ returns the indices of all @code{true} values in the boolean array @code{a};
 @cindex @code{search}
 @item int search(T[] a, T key)
 For built-in ordered types @code{T}, searches a sorted array
-@code{a} of @code{n} elements for k, returning the index @code{i}
+@code{a} of @code{n} elements for @code{key}, returning the index @code{i}
 if @code{a[i] <= key < a[i+1]}, @code{-1} if @code{key} is
 less than all elements of @code{a}, or @code{n-1} if @code{key} is
 greater than or equal to the last element of @code{a};
 
 @cindex @code{search}
 @item int search(T[] a, T key, bool less(T i, T j))
-searches an array @code{a} sorted in ascending order such that element
-@code{i} precedes element @code{j} if @code{less(i,j)} is true;
+searches an array @code{a} for @code{key} sorted in ascending order
+such that element @code{i} precedes element @code{j} if
+@code{less(i,j)} is true;
 
 @cindex @code{copy}
 @item T[] copy(T[] a)
