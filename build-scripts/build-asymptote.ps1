@@ -98,7 +98,7 @@ New-Item -ItemType Directory -Path $toolscacheRoot -Force
 $useToolsCacheVcpkg=$false
 
 # tools cache variables
-$vcpkgSha256="e590c2b30c08caf1dd8d612ec602a003f9784b7d"
+$vcpkgSha256="5e5d0e1cd7785623065e77eff011afdeec1a3574"
 
 # vcpkg
 if (-Not $env:VCPKG_ROOT)
