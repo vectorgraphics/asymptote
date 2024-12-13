@@ -369,7 +369,7 @@ types::record *getSettingsModule() {
 
 void noWarn(const string& s)
 {
-  array *Warn=getSetting<array *>("suppress");
+  array *Warn=getSetting<array *>(optionList::suppress);
   size_t size=checkArray(Warn);
   if(s.empty()) return;
   for(size_t i=0; i < size; i++)
@@ -379,7 +379,7 @@ void noWarn(const string& s)
 
 void Warn(const string& s)
 {
-  array *Warn=getSetting<array *>("suppress");
+  array *Warn=getSetting<array *>(optionList::suppress);
   size_t size=checkArray(Warn);
   for(size_t i=0; i < size; i++)
     if(vm::read<string>(Warn,i) == s)
@@ -388,8 +388,8 @@ void Warn(const string& s)
 
 bool warn(const string& s)
 {
-  if(getSetting<bool>("debug")) return true;
-  array *Warn=getSetting<array *>("suppress");
+  if(getSetting<bool>(optionList::debug)) return true;
+  array *Warn=getSetting<array *>(optionList::suppress);
   size_t size=checkArray(Warn);
   for(size_t i=0; i < size; i++)
     if(vm::read<string>(Warn,i) == s) return false;
@@ -562,6 +562,15 @@ item& Setting(string name) {
   itemSetting *s=dynamic_cast<itemSetting *>(optionsMap[name]);
   if(!s) {
     cerr << "Cannot find setting named '" << name << "'" << endl;
+    exit(-1);
+  }
+  return s->value;
+}
+
+item& Setting(int optionId) {
+  itemSetting *s=dynamic_cast<itemSetting *>(internal::options[optionId]);
+  if(!s) {
+    cerr << "Cannot find setting with id " << optionId << endl;
     exit(-1);
   }
   return s->value;
@@ -1226,9 +1235,9 @@ c_option *build_longopts() {
        ++p, ++i)
     p->second->longopt(longopts[i]);
 
-  longopts[n].name=NULL;
+  longopts[n].name=nullptr;
   longopts[n].has_arg=0;
-  longopts[n].flag=NULL;
+  longopts[n].flag=nullptr;
   longopts[n].val=0;
 
   return longopts;
@@ -1298,340 +1307,862 @@ array* stringArray(const char **s)
   return a;
 }
 
+namespace internal {
+mem::vector<option *> options(optionList::numOptions, nullptr);
+#define OPTION(name) #name,  // Stringify the name and add a comma
+const char *optionNames[] = {
+  ASYOPTIONLIST
+};
+#undef OPTION
+}
+
+template <typename T, typename... Args>
+T *makeOption(int optionId, Args&&... args) {
+  T *op = new T(internal::optionNames[optionId],
+                     std::forward<Args>(args)...);
+  internal::options[optionId] = op;
+  return op;
+}
+
+template <typename T, typename... Args>
+void makeAndAddOption(int optionId, Args&&... args) {
+  addOption(makeOption<T>(optionId, std::forward<Args>(args)...));
+}
+
 void initSettings() {
-  static bool initialize=true;
-  if(initialize) {
+  static bool initialize= true;
+  if (initialize)
+  {
 #if defined(_WIN32)
     queryRegistry();
 #endif
-    initialize=false;
+    initialize= false;
   }
 
-  settingsModule=new types::dummyRecord(symbol::literalTrans("settings"));
+  settingsModule= new types::dummyRecord(symbol::literalTrans("settings"));
 
-// Default mouse bindings
+  // Default mouse bindings
 
-// LEFT: rotate
-// SHIFT LEFT: zoom
-// CTRL LEFT: shift
-// ALT LEFT: pan
-  const char *leftbutton[]={"rotate","zoom","shift","pan",NULL};
+  // LEFT: rotate
+  // SHIFT LEFT: zoom
+  // CTRL LEFT: shift
+  // ALT LEFT: pan
+  const char* leftbutton[]= {"rotate", "zoom", "shift", "pan", nullptr};
 
-// MIDDLE:
-  const char *middlebutton[]={NULL};
+  // MIDDLE:
+  const char* middlebutton[]= {nullptr};
 
-// RIGHT: zoom
-// SHIFT RIGHT: rotateX
-// CTRL RIGHT: rotateY
-// ALT RIGHT: rotateZ
-  const char *rightbutton[]={"zoom","rotateX","rotateY","rotateZ",NULL};
+  // RIGHT: zoom
+  // SHIFT RIGHT: rotateX
+  // CTRL RIGHT: rotateY
+  // ALT RIGHT: rotateZ
+  const char* rightbutton[]=
+          {"zoom", "rotateX", "rotateY", "rotateZ", nullptr};
 
-// WHEEL_UP: zoomin
-  const char *wheelup[]={"zoomin",NULL};
+  // WHEEL_UP: zoomin
+  const char* wheelup[]= {"zoomin", nullptr};
 
-// WHEEL_DOWN: zoomout
-  const char *wheeldown[]={"zoomout",NULL};
+  // WHEEL_DOWN: zoomout
+  const char* wheeldown[]= {"zoomout", nullptr};
 
-  addOption(new stringArraySetting("leftbutton", stringArray(leftbutton)));
-  addOption(new stringArraySetting("middlebutton", stringArray(middlebutton)));
-  addOption(new stringArraySetting("rightbutton", stringArray(rightbutton)));
-  addOption(new stringArraySetting("wheelup", stringArray(wheelup)));
-  addOption(new stringArraySetting("wheeldown", stringArray(wheeldown)));
-  addOption(new stringArraySetting("suppress", new array));
 
-  addOption(new warnSetting("warn", 0, "str", "Enable warning"));
+  makeAndAddOption<stringArraySetting>(
+          optionList::leftbutton,
+          stringArray(leftbutton)
+  );
 
-  multiOption *view=new multiOption("View", 'V', "View output");
-  view->add(new boolSetting("batchView", 0, "View output in batch mode",
-                            msdos));
-  view->add(new boolSetting("multipleView", 0,
-                            "View output from multiple batch-mode files",
-                            false));
-  view->add(new boolSetting("interactiveView", 0,
-                            "View output in interactive mode", true));
+  makeAndAddOption<stringArraySetting>(
+          optionList::middlebutton,
+          stringArray(middlebutton)
+  );
+
+  makeAndAddOption<stringArraySetting>(
+          optionList::rightbutton,
+          stringArray(rightbutton)
+  );
+
+  makeAndAddOption<stringArraySetting>(
+          optionList::wheelup,
+          stringArray(wheelup)
+  );
+
+  makeAndAddOption<stringArraySetting>(
+          optionList::wheeldown,
+          stringArray(wheeldown)
+  );
+
+  makeAndAddOption<stringArraySetting>(optionList::suppress, new array);
+
+
+  makeAndAddOption<warnSetting>(optionList::warn, 0, "str", "Enable warning");
+
+  multiOption* view=
+          makeOption<multiOption>(optionList::View, 'V', "View output");
+  view->add(makeOption<boolSetting>(
+          optionList::batchView,
+          0,
+          "View output in batch mode",
+          msdos
+  ));
+  view->add(makeOption<boolSetting>(
+          optionList::multipleView,
+          0,
+          "View output from multiple batch-mode files",
+          false
+  ));
+  view->add(makeOption<boolSetting>(
+          optionList::interactiveView,
+          0,
+          "View output in interactive mode",
+          true
+  ));
   addOption(view);
-  addOption(new stringSetting("outformat", 'f', "format",
-                              "Convert each output file to specified format",
-                              ""));
-  addOption(new boolSetting("svgemulation", 0,
-                            "Emulate unimplemented SVG shading", true));
-  addOption(new boolSetting("prc", 0,
-                            "Embed 3D PRC graphics in PDF output", false));
-  addOption(new boolSetting("v3d", 0,
-                            "Embed 3D V3D graphics in PDF output", false));
-  addOption(new boolSetting("toolbar", 0,
-                            "Show 3D toolbar in PDF output", true));
-  addOption(new boolSetting("axes3", 0,
-                            "Show 3D axes in PDF output", true));
-  addOption(new boolSetting("ibl", 0,
-                            "Enable environment map image-based lighting", false));
-  addOption(new stringSetting("image", 0,"str","Environment image name","snowyField"));
-  addOption(new stringSetting("imageDir", 0,"str","Environment image library directory","ibl"));
-  addOption(new stringSetting("imageURL", 0,"str","Environment image library URL","https://vectorgraphics.gitlab.io/asymptote/ibl"));
-  addOption(new realSetting("render", 0, "n",
-                            "Render 3D graphics using n pixels per bp (-1=auto)",
-                            havegl ? -1.0 : 0.0));
-  addOption(new realSetting("devicepixelratio", 0, "n", "Ratio of physical to logical pixels", 1.0));
-  addOption(new IntSetting("antialias", 0, "n",
-                           "Antialiasing width for rasterized output", 2));
-  addOption(new IntSetting("multisample", 0, "n",
-                           "Multisampling width for screen images", 4));
-  addOption(new boolSetting("twosided", 0,
-                            "Use two-sided 3D lighting model for rendering",
-                            true));
-  addOption(new boolSetting("GPUindexing", 0,
-                            "Compute indexing partial sums on GPU", true));
-  addOption(new boolSetting("GPUinterlock", 0,
-                            "Use fragment shader interlock", true));
-  addOption(new boolSetting("GPUcompress", 0,
-                            "Compress GPU transparent fragment counts",
-                            false));
-  addOption(new IntSetting("GPUlocalSize", 0, "n",
-                           "Compute shader local size", 256));
-  addOption(new IntSetting("GPUblockSize", 0, "n",
-                           "Compute shader block size", 8));
+  // addOption(new stringSetting("outformat", 'f', "format",
+  //                             "Convert each output file to specified format",
+  //                             ""));
+  makeAndAddOption<stringSetting>(
+          optionList::outformat,
+          'f',
+          "format",
+          "Convert each output file to specified format",
+          ""
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::svgemulation,
+          0,
+          "Emulate unimplemented SVG shading",
+          true
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::prc,
+          0,
+          "Embed 3D PRC graphics in PDF output",
+          false
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::v3d,
+          0,
+          "Embed 3D V3D graphics in PDF output",
+          false
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::toolbar,
+          0,
+          "Show 3D toolbar in PDF output",
+          true
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::axes3,
+          0,
+          "Show 3D axes in PDF output",
+          true
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::ibl,
+          0,
+          "Enable environment map image-based lighting",
+          false
+  );
+  makeAndAddOption<stringSetting>(
+          optionList::image,
+          0,
+          "str",
+          "Environment image name",
+          "snowyField"
+  );
+  makeAndAddOption<stringSetting>(
+          optionList::imageDir,
+          0,
+          "str",
+          "Environment image library directory",
+          "ibl"
+  );
+  makeAndAddOption<stringSetting>(
+          optionList::imageURL,
+          0,
+          "str",
+          "Environment image library URL",
+          "https://vectorgraphics.gitlab.io/asymptote/ibl"
+  );
+  makeAndAddOption<realSetting>(
+          optionList::render,
+          0,
+          "n",
+          "Render 3D graphics using n pixels per bp (-1=auto)",
+          havegl ? -1.0 : 0.0
+  );
+  makeAndAddOption<realSetting>(
+          optionList::devicepixelratio,
+          0,
+          "n",
+          "Ratio of physical to logical pixels",
+          1.0
+  );
+  makeAndAddOption<IntSetting>(
+          optionList::antialias,
+          0,
+          "n",
+          "Antialiasing width for rasterized output",
+          2
+  );
+  makeAndAddOption<IntSetting>(
+          optionList::multisample,
+          0,
+          "n",
+          "Multisampling width for screen images",
+          4
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::twosided,
+          0,
+          "Use two-sided 3D lighting model for rendering",
+          true
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::GPUindexing,
+          0,
+          "Compute indexing partial sums on GPU",
+          true
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::GPUinterlock,
+          0,
+          "Use fragment shader interlock",
+          true
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::GPUcompress,
+          0,
+          "Compress GPU transparent fragment counts",
+          false
+  );
+  makeAndAddOption<IntSetting>(
+          optionList::GPUlocalSize,
+          0,
+          "n",
+          "Compute shader local size",
+          256
+  );
+  makeAndAddOption<IntSetting>(
+          optionList::GPUblockSize,
+          0,
+          "n",
+          "Compute shader block size",
+          8
+  );
 
-  addOption(new pairSetting("position", 0, "pair",
-                            "Initial 3D rendering screen position"));
-  addOption(new pairSetting("maxviewport", 0, "pair",
-                            "Maximum viewport size",pair(0,0)));
-  addOption(new pairSetting("viewportmargin", 0, "pair",
-                            "Horizontal and vertical 3D viewport margin",
-                            pair(0.5,0.5)));
-  addOption(new boolSetting("webgl2", 0,
-                            "Use webgl2 if available", false));
-  addOption(new boolSetting("absolute", 0,
-                            "Use absolute WebGL dimensions", false));
-  addOption(new pairSetting("maxtile", 0, "pair",
-                            "Maximum rendering tile size",pair(1024,768)));
-  addOption(new boolSetting("iconify", 0,
-                            "Iconify rendering window", false));
-  addOption(new boolSetting("thick", 0,
-                            "Render thick 3D lines", true));
-  addOption(new boolSetting("thin", 0,
-                            "Render thin 3D lines", true));
-  addOption(new boolSetting("autobillboard", 0,
-                            "3D labels always face viewer by default", true));
-  addOption(new boolSetting("threads", 0,
-                            "Use POSIX threads for 3D rendering", true));
-  addOption(new boolSetting("fitscreen", 0,
-                            "Fit rendered image to screen", true));
-  addOption(new boolSetting("interactiveWrite", 0,
-                            "Write expressions entered at the prompt to stdout",
-                            true));
-  addOption(new helpOption("help", 'h', "Show summary of options"));
-  addOption(new helpOption("environment", 'e', "Show summary of environment settings"));
-  addOption(new versionOption("version", 0, "Show version"));
+  makeAndAddOption<pairSetting>(
+          optionList::position,
+          0,
+          "pair",
+          "Initial 3D rendering screen position"
+  );
+  makeAndAddOption<pairSetting>(
+          optionList::maxviewport,
+          0,
+          "pair",
+          "Maximum viewport size",
+          pair(0, 0)
+  );
+  makeAndAddOption<pairSetting>(
+          optionList::viewportmargin,
+          0,
+          "pair",
+          "Horizontal and vertical 3D viewport margin",
+          pair(0.5, 0.5)
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::webgl2,
+          0,
+          "Use webgl2 if available",
+          false
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::absolute,
+          0,
+          "Use absolute WebGL dimensions",
+          false
+  );
+  makeAndAddOption<pairSetting>(
+          optionList::maxtile,
+          0,
+          "pair",
+          "Maximum rendering tile size",
+          pair(1024, 768)
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::iconify,
+          0,
+          "Iconify rendering window",
+          false
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::thick,
+          0,
+          "Render thick 3D lines",
+          true
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::thin,
+          0,
+          "Render thin 3D lines",
+          true
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::autobillboard,
+          0,
+          "3D labels always face viewer by default",
+          true
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::threads,
+          0,
+          "Use POSIX threads for 3D rendering",
+          true
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::fitscreen,
+          0,
+          "Fit rendered image to screen",
+          true
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::interactiveWrite,
+          0,
+          "Write expressions entered at the prompt to stdout",
+          true
+  );
+  makeAndAddOption<helpOption>(
+          optionList::help,
+          'h',
+          "Show summary of options"
+  );
+  makeAndAddOption<helpOption>(
+          optionList::environment,
+          'e',
+          "Show summary of environment settings"
+  );
+  makeAndAddOption<versionOption>(optionList::version, 0, "Show version");
 
-  addOption(new pairSetting("offset", 'O', "pair", "PostScript offset"));
-  addOption(new pairSetting("aligndir", 0, "pair",
-                            "Directional page alignment (overrides align)"));
-  addOption(new alignSetting("align", 'a', "C|B|T|Z",
-                             "Center, Bottom, Top, or Zero page alignment",
-                             "C"));
+  makeAndAddOption<pairSetting>(
+          optionList::offset,
+          'O',
+          "pair",
+          "PostScript offset"
+  );
+  makeAndAddOption<pairSetting>(
+          optionList::aligndir,
+          0,
+          "pair",
+          "Directional page alignment (overrides align)"
+  );
+  makeAndAddOption<alignSetting>(
+          optionList::align,
+          'a',
+          "C|B|T|Z",
+          "Center, Bottom, Top, or Zero page alignment",
+          "C"
+  );
 
-  addOption(new boolSetting("debug", 'd', "Enable debugging messages and traceback"));
-  addOption(new incrementSetting("verbose", 'v',
-                                 "Increase verbosity level (can specify multiple times)", &verbose));
+  makeAndAddOption<boolSetting>(
+          optionList::debug,
+          'd',
+          "Enable debugging messages and traceback"
+  );
+  makeAndAddOption<incrementSetting>(
+          optionList::verbose,
+          'v',
+          "Increase verbosity level (can specify multiple times)",
+          &verbose
+  );
   // Resolve ambiguity with --version
-  addOption(new incrementOption("vv", 0,"", &verbose,2));
-  addOption(new incrementOption("novv", 0,"", &verbose,-2));
+  makeAndAddOption<incrementOption>(optionList::vv, 0, "", &verbose, 2);
+  makeAndAddOption<incrementOption>(optionList::novv, 0, "", &verbose, -2);
 
-  addOption(new boolSetting("keep", 'k', "Keep intermediate files"));
-  addOption(new boolSetting("keepaux", 0,
-                            "Keep intermediate LaTeX .aux files"));
-  addOption(new engineSetting("tex", 0, "engine",
-                              "latex|pdflatex|xelatex|lualatex|tex|pdftex|luatex|context|none",
-                              "latex"));
+  makeAndAddOption<boolSetting>(
+          optionList::keep,
+          'k',
+          "Keep intermediate files"
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::keepaux,
+          0,
+          "Keep intermediate LaTeX .aux files"
+  );
+  makeAndAddOption<engineSetting>(
+          optionList::tex,
+          0,
+          "engine",
+          "latex|pdflatex|xelatex|lualatex|tex|pdftex|luatex|context|none",
+          "latex"
+  );
 
-  addOption(new boolSetting("twice", 0,
-                            "Run LaTeX twice (to resolve references)"));
-  addOption(new boolSetting("inlinetex", 0, "Generate inline TeX code"));
-  addOption(new boolSetting("embed", 0, "Embed rendered preview image", true));
-  addOption(new boolSetting("auto3D", 0, "Automatically activate 3D scene",
-                            true));
-  addOption(new boolSetting("autoplay", 0, "Autoplay 3D animations", false));
-  addOption(new boolSetting("loop", 0, "Loop 3D animations", false));
-  addOption(new boolSetting("interrupt", 0, "", false));
-  addOption(new boolSetting("animating", 0, "", false));
-  addOption(new boolSetting("reverse", 0, "reverse 3D animations", false));
+  makeAndAddOption<boolSetting>(
+          optionList::twice,
+          0,
+          "Run LaTeX twice (to resolve references)"
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::inlinetex,
+          0,
+          "Generate inline TeX code"
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::embed,
+          0,
+          "Embed rendered preview image",
+          true
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::auto3D,
+          0,
+          "Automatically activate 3D scene",
+          true
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::autoplay,
+          0,
+          "Autoplay 3D animations",
+          false
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::loop,
+          0,
+          "Loop 3D animations",
+          false
+  );
+  makeAndAddOption<boolSetting>(optionList::interrupt, 0, "", false);
+  makeAndAddOption<boolSetting>(optionList::animating, 0, "", false);
+  makeAndAddOption<boolSetting>(
+          optionList::reverse,
+          0,
+          "reverse 3D animations",
+          false
+  );
 
-  addOption(new boolSetting("inlineimage", 0,
-                            "Generate inline embedded image"));
-  addOption(new boolSetting("compress", 0,
-                            "Compress images in PDF output", true));
-  addOption(new boolSetting("parseonly", 'p', "Parse file"));
-  addOption(new boolSetting("translate", 's',
-                            "Show translated virtual machine code"));
-  addOption(new boolSetting("tabcompletion", 0,
-                            "Interactive prompt auto-completion", true));
-  addOption(new realSetting("prerender", 0, "resolution",
-                            "Prerender V3D objects (0 implies vector output)", 0));
-  addOption(new boolSetting("lossy", 0,
-                            "Use single precision for V3D reals", false));
-  addOption(new boolSetting("listvariables", 'l',
-                            "List available global functions and variables"));
-  addOption(new boolSetting("where", 0,
-                            "Show where listed variables are declared"));
+  makeAndAddOption<boolSetting>(
+          optionList::inlineimage,
+          0,
+          "Generate inline embedded image"
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::compress,
+          0,
+          "Compress images in PDF output",
+          true
+  );
+  makeAndAddOption<boolSetting>(optionList::parseonly, 'p', "Parse file");
+  makeAndAddOption<boolSetting>(
+          optionList::translate,
+          's',
+          "Show translated virtual machine code"
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::tabcompletion,
+          0,
+          "Interactive prompt auto-completion",
+          true
+  );
+  makeAndAddOption<realSetting>(
+          optionList::prerender,
+          0,
+          "resolution",
+          "Prerender V3D objects (0 implies vector output)",
+          0
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::lossy,
+          0,
+          "Use single precision for V3D reals",
+          false
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::listvariables,
+          'l',
+          "List available global functions and variables"
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::where,
+          0,
+          "Show where listed variables are declared"
+  );
 
-  multiOption *mask=new multiOption("mask", 'm',
-                                    "Mask fpu exceptions");
-  mask->add(new boolSetting("batchMask", 0,
-                            "Mask fpu exceptions in batch mode", false));
-  mask->add(new boolSetting("interactiveMask", 0,
-                            "Mask fpu exceptions in interactive mode", true));
+  multiOption* mask= makeOption<multiOption>(
+          optionList::mask,
+          'm',
+          "Mask fpu exceptions"
+  );
+  mask->add(makeOption<boolSetting>(
+          optionList::batchMask,
+          0,
+          "Mask fpu exceptions in batch mode",
+          false
+  ));
+  mask->add(makeOption<boolSetting>(
+          optionList::interactiveMask,
+          0,
+          "Mask fpu exceptions in interactive mode",
+          true
+  ));
   addOption(mask);
 
-  addOption(new boolrefSetting("bw", 0,
-                               "Convert all colors to black and white",&bw));
-  addOption(new boolrefSetting("gray", 0, "Convert all colors to grayscale",
-                               &gray));
-  addOption(new boolrefSetting("rgb", 0, "Convert cmyk colors to rgb",&rgb));
-  addOption(new boolrefSetting("cmyk", 0, "Convert rgb colors to cmyk",&cmyk));
+  makeAndAddOption<boolrefSetting>(
+          optionList::bw,
+          0,
+          "Convert all colors to black and white",
+          &bw
+  );
+  makeAndAddOption<boolrefSetting>(
+          optionList::gray,
+          0,
+          "Convert all colors to grayscale",
+          &gray
+  );
+  makeAndAddOption<boolrefSetting>(
+          optionList::rgb,
+          0,
+          "Convert cmyk colors to rgb",
+          &rgb
+  );
+  makeAndAddOption<boolrefSetting>(
+          optionList::cmyk,
+          0,
+          "Convert rgb colors to cmyk",
+          &cmyk
+  );
 
-  addSecureSetting(new boolrefSetting("safe", 0, "Disable system call",
-                                      &safe, true));
-  addSecureSetting(new boolrefSetting("globalwrite", 0,
-                                      "Allow write to other directory",
-                                      &globalWrite, false));
-  addSecureSetting(new boolrefSetting("globalread", 0,
-                                      "Allow read from other directory",
-                                      &globalRead, true));
-  addSecureSetting(new stringSetting("outname", 'o', "name",
-                                     "Alternative output directory/file prefix"));
-  addOption(new stringOption("cd", 0, "directory", "Set current directory",
-                             &startpath));
+  addSecureSetting(makeOption<boolrefSetting>(
+          optionList::safe,
+          0,
+          "Disable system call",
+          &safe,
+          true
+  ));
+  addSecureSetting(makeOption<boolrefSetting>(
+          optionList::globalwrite,
+          0,
+          "Allow write to other directory",
+          &globalWrite,
+          false
+  ));
+  addSecureSetting(makeOption<boolrefSetting>(
+          optionList::globalread,
+          0,
+          "Allow read from other directory",
+          &globalRead,
+          true
+  ));
+  addSecureSetting(makeOption<stringSetting>(
+          optionList::outname,
+          'o',
+          "name",
+          "Alternative output directory/file prefix"
+  ));
+  makeAndAddOption<stringOption>(
+          optionList::cd,
+          0,
+          "directory",
+          "Set current directory",
+          &startpath
+  );
 
 #ifdef USEGC
-  addOption(new compactSetting("compact", 0,
-                               "Conserve memory at the expense of speed",
-                               &compact));
-  addOption(new divisorOption("divisor", 0, "n",
-                              "Garbage collect using purge(divisor=n) [2]"));
+  makeAndAddOption<compactSetting>(
+          optionList::compact,
+          0,
+          "Conserve memory at the expense of speed",
+          &compact
+  );
+  makeAndAddOption<divisorOption>(
+          optionList::divisor,
+          0,
+          "n",
+          "Garbage collect using purge(divisor=n) [2]"
+  );
 #endif
 
-  addOption(new stringSetting("prompt", 0,"str","Prompt","> "));
-  addOption(new stringSetting("prompt2", 0,"str",
-                              "Continuation prompt for multiline input ",
-                              ".."));
-  addOption(new boolSetting("multiline", 0,
-                            "Input code over multiple lines at the prompt"));
-  addOption(new boolSetting("xasy", 0,
-                            "Interactive mode for xasy"));
+  makeAndAddOption<stringSetting>(
+          optionList::prompt,
+          0,
+          "str",
+          "Prompt",
+          "> "
+  );
+  makeAndAddOption<stringSetting>(
+          optionList::prompt2,
+          0,
+          "str",
+          "Continuation prompt for multiline input ",
+          ".."
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::multiline,
+          0,
+          "Input code over multiple lines at the prompt"
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::xasy,
+          0,
+          "Interactive mode for xasy"
+  );
 #ifdef HAVE_LSP
-  addOption(new boolSetting("lsp", 0, "Interactive mode for the Language Server Protocol"));
-  addOption(new envSetting("lspport", ""));
-  addOption(new envSetting("lsphost", "127.0.0.1"));
+  makeAndAddOption<boolSetting>(
+          optionList::lsp,
+          0,
+          "Interactive mode for the Language Server Protocol"
+  );
+  makeAndAddOption<envSetting>(optionList::lspport, "");
+  makeAndAddOption<envSetting>(optionList::lsphost, "127.0.0.1");
 #endif
 
-  addOption(new boolSetting("wsl", 0, "Run asy under the Windows Subsystem for Linux"));
+  makeAndAddOption<boolSetting>(
+          optionList::wsl,
+          0,
+          "Run asy under the Windows Subsystem for Linux"
+  );
 
-  addOption(new boolSetting("wait", 0,
-                            "Wait for child processes to finish before exiting"));
-  addOption(new IntSetting("inpipe", 0, "n","Input pipe",-1));
-  addOption(new IntSetting("outpipe", 0, "n","Output pipe",-1));
-  addOption(new boolSetting("exitonEOF", 0, "Exit interactive mode on EOF",
-                            true));
+  makeAndAddOption<boolSetting>(
+          optionList::wait,
+          0,
+          "Wait for child processes to finish before exiting"
+  );
+  makeAndAddOption<IntSetting>(optionList::inpipe, 0, "n", "Input pipe", -1);
+  makeAndAddOption<IntSetting>(optionList::outpipe, 0, "n", "Output pipe", -1);
+  makeAndAddOption<boolSetting>(
+          optionList::exitonEOF,
+          0,
+          "Exit interactive mode on EOF",
+          true
+  );
 
-  addOption(new boolSetting("quiet", 'q',
-                            "Suppress welcome text and noninteractive stdout"));
-  addOption(new boolSetting("localhistory", 0,
-                            "Use a local interactive history file"));
-  addOption(new IntSetting("historylines", 0, "n",
-                           "Retain n lines of history",1000));
-  addOption(new IntSetting("scroll", 0, "n",
-                           "Scroll standard output n lines at a time",0));
-  addOption(new IntSetting("level", 0, "n", "Postscript level",3));
-  addOption(new boolSetting("autoplain", 0,
-                            "Enable automatic importing of plain",
-                            true));
-  addOption(new boolSetting("autorotate", 0,
-                            "Enable automatic PDF page rotation",
-                            false));
-  addOption(new boolSetting("offline", 0,
-                            "Produce offline html files",false));
-  addOption(new boolSetting("pdfreload", 0,
-                            "Automatically reload document in pdfviewer",
-                            false));
-  addOption(new IntSetting("pdfreloaddelay", 0, "usec",
-                           "Delay before attempting initial pdf reload"
-                           ,750000));
-  addOption(new stringSetting("autoimport", 0, "str",
-                              "Module to automatically import"));
-  addOption(new userSetting("command", 'c', "str",
-                            "Command to autoexecute"));
-  addOption(new userSetting("user", 'u', "str",
-                            "General purpose user string"));
+  makeAndAddOption<boolSetting>(
+          optionList::quiet,
+          'q',
+          "Suppress welcome text and noninteractive stdout"
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::localhistory,
+          0,
+          "Use a local interactive history file"
+  );
+  makeAndAddOption<IntSetting>(
+          optionList::historylines,
+          0,
+          "n",
+          "Retain n lines of history",
+          1000
+  );
+  makeAndAddOption<IntSetting>(
+          optionList::scroll,
+          0,
+          "n",
+          "Scroll standard output n lines at a time",
+          0
+  );
+  makeAndAddOption<IntSetting>(
+          optionList::level,
+          0,
+          "n",
+          "Postscript level",
+          3
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::autoplain,
+          0,
+          "Enable automatic importing of plain",
+          true
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::autorotate,
+          0,
+          "Enable automatic PDF page rotation",
+          false
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::offline,
+          0,
+          "Produce offline html files",
+          false
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::pdfreload,
+          0,
+          "Automatically reload document in pdfviewer",
+          false
+  );
+  makeAndAddOption<IntSetting>(
+          optionList::pdfreloaddelay,
+          0,
+          "usec",
+          "Delay before attempting initial pdf reload",
+          750000
+  );
+  makeAndAddOption<stringSetting>(
+          optionList::autoimport,
+          0,
+          "str",
+          "Module to automatically import"
+  );
+  makeAndAddOption<userSetting>(
+          optionList::command,
+          'c',
+          "str",
+          "Command to autoexecute"
+  );
+  makeAndAddOption<userSetting>(
+          optionList::user,
+          'u',
+          "str",
+          "General purpose user string"
+  );
 
-  addOption(new realSetting("zoomfactor", 0, "factor", "Zoom step factor",
-                            1.05));
-  addOption(new realSetting("zoomPinchFactor", 0, "n",
-                            "WebGL zoom pinch sensitivity", 10));
-  addOption(new realSetting("zoomPinchCap", 0, "limit",
-                            "WebGL maximum zoom pinch", 100));
-  addOption(new realSetting("zoomstep", 0, "step", "Mouse motion zoom step",
-                            0.1));
-  addOption(new realSetting("shiftHoldDistance", 0, "n",
-                            "WebGL touch screen distance limit for shift mode",
-                            20));
-  addOption(new realSetting("shiftWaitTime", 0, "ms",
-                            "WebGL touch screen shift mode delay",
-                            200));
-  addOption(new realSetting("vibrateTime", 0, "ms",
-                            "WebGL shift mode vibrate duration",
-                            25));
-  addOption(new realSetting("spinstep", 0, "deg/s", "Spin speed",
-                            60.0));
-  addOption(new realSetting("framerate", 0, "frames/s", "Animation speed",
-                            30.0));
-  addOption(new realSetting("resizestep", 0, "step", "Resize step", 1.2));
-  addOption(new IntSetting("digits", 0, "n",
-                           "Default output file precision", 7));
+  makeAndAddOption<realSetting>(
+          optionList::zoomfactor,
+          0,
+          "factor",
+          "Zoom step factor",
+          1.05
+  );
+  makeAndAddOption<realSetting>(
+          optionList::zoomPinchFactor,
+          0,
+          "n",
+          "WebGL zoom pinch sensitivity",
+          10
+  );
+  makeAndAddOption<realSetting>(
+          optionList::zoomPinchCap,
+          0,
+          "limit",
+          "WebGL maximum zoom pinch",
+          100
+  );
+  makeAndAddOption<realSetting>(
+          optionList::zoomstep,
+          0,
+          "step",
+          "Mouse motion zoom step",
+          0.1
+  );
+  makeAndAddOption<realSetting>(
+          optionList::shiftHoldDistance,
+          0,
+          "n",
+          "WebGL touch screen distance limit for shift mode",
+          20
+  );
+  makeAndAddOption<realSetting>(
+          optionList::shiftWaitTime,
+          0,
+          "ms",
+          "WebGL touch screen shift mode delay",
+          200
+  );
+  makeAndAddOption<realSetting>(
+          optionList::vibrateTime,
+          0,
+          "ms",
+          "WebGL shift mode vibrate duration",
+          25
+  );
+  makeAndAddOption<realSetting>(
+          optionList::spinstep,
+          0,
+          "deg/s",
+          "Spin speed",
+          60.0
+  );
+  makeAndAddOption<realSetting>(
+          optionList::framerate,
+          0,
+          "frames/s",
+          "Animation speed",
+          30.0
+  );
+  makeAndAddOption<realSetting>(
+          optionList::resizestep,
+          0,
+          "step",
+          "Resize step",
+          1.2
+  );
+  makeAndAddOption<IntSetting>(
+          optionList::digits,
+          0,
+          "n",
+          "Default output file precision",
+          7
+  );
 
-  addOption(new realSetting("paperwidth", 0, "bp", "Default page width"));
-  addOption(new realSetting("paperheight", 0, "bp", "Default page height"));
+  makeAndAddOption<realSetting>(
+          optionList::paperwidth,
+          0,
+          "bp",
+          "Default page width"
+  );
+  makeAndAddOption<realSetting>(
+          optionList::paperheight,
+          0,
+          "bp",
+          "Default page height"
+  );
 
-  addOption(new stringSetting("dvipsOptions", 0, "str", ""));
-  addOption(new stringSetting("dvisvgmOptions", 0, "str", "", "--optimize"));
-  addOption(new boolSetting("dvisvgmMultipleFiles", 0,
-                            "dvisvgm supports multiple files", true));
-  addOption(new stringSetting("convertOptions", 0, "str", ""));
-  addOption(new stringSetting("gsOptions", 0, "str", ""));
-  addOption(new stringSetting("htmlviewerOptions", 0, "str", ""));
-  addOption(new stringSetting("psviewerOptions", 0, "str", ""));
-  addOption(new stringSetting("pdfviewerOptions", 0, "str", ""));
-  addOption(new stringSetting("pdfreloadOptions", 0, "str", ""));
-  addOption(new stringSetting("glOptions", 0, "str", ""));
-  addOption(new stringSetting("hyperrefOptions", 0, "str",
-                              "","setpagesize=false,unicode,pdfborder=0 0 0"));
+  makeAndAddOption<stringSetting>(optionList::dvipsOptions, 0, "str", "");
+  makeAndAddOption<stringSetting>(
+          optionList::dvisvgmOptions,
+          0,
+          "str",
+          "",
+          "--optimize"
+  );
+  makeAndAddOption<boolSetting>(
+          optionList::dvisvgmMultipleFiles,
+          0,
+          "dvisvgm supports multiple files",
+          true
+  );
+  makeAndAddOption<stringSetting>(optionList::convertOptions, 0, "str", "");
+  makeAndAddOption<stringSetting>(optionList::gsOptions, 0, "str", "");
+  makeAndAddOption<stringSetting>(optionList::htmlviewerOptions, 0, "str", "");
+  makeAndAddOption<stringSetting>(optionList::psviewerOptions, 0, "str", "");
+  makeAndAddOption<stringSetting>(optionList::pdfviewerOptions, 0, "str", "");
+  makeAndAddOption<stringSetting>(optionList::pdfreloadOptions, 0, "str", "");
+  makeAndAddOption<stringSetting>(optionList::glOptions, 0, "str", "");
+  makeAndAddOption<stringSetting>(
+          optionList::hyperrefOptions,
+          0,
+          "str",
+          "",
+          "setpagesize=false,unicode,pdfborder=0 0 0"
+  );
 
-  addOption(new envSetting("config","config."+suffix));
-  addOption(new envSetting("htmlviewer", defaultHTMLViewer));
-  addOption(new envSetting("pdfviewer", defaultPDFViewer));
-  addOption(new envSetting("psviewer", defaultPSViewer));
-  addOption(new envSetting("gs", defaultGhostscript));
-  addOption(new envSetting("libgs", defaultGhostscriptLibrary));
-  addOption(new envSetting("epsdriver", defaultEPSdriver));
-  addOption(new envSetting("psdriver", defaultPSdriver));
-  addOption(new envSetting("pngdriver", defaultPNGdriver));
-  addOption(new envSetting("asygl", defaultAsyGL));
-  addOption(new envSetting("texpath", ""));
-  addOption(new envSetting("texcommand", ""));
-  addOption(new envSetting("dvips", "dvips"));
-  addOption(new envSetting("dvisvgm", "dvisvgm"));
-  addOption(new envSetting("convert", "magick"));
-  addOption(new envSetting("display", defaultDisplay));
-  addOption(new envSetting("animate", defaultAnimate));
-  addOption(new envSetting("papertype", "letter"));
-  addOption(new envSetting("dir", ""));
-  addOption(new envSetting("sysdir", systemDir));
-  addOption(new envSetting("textcommand","groff"));
-  addOption(new envSetting("textcommandOptions","-e -P -b16"));
-  addOption(new envSetting("textextension", "roff"));
-  addOption(new envSetting("textoutformat", "ps"));
-  addOption(new envSetting("textprologue", ".EQ\ndelim $$\n.EN"));
-  addOption(new envSetting("textinitialfont", ".fam T\n.ps 12"));
-  addOption(new envSetting("textepilogue", ".bp"));
+  makeAndAddOption<envSetting>(optionList::config, "config." + suffix);
+  makeAndAddOption<envSetting>(optionList::htmlviewer, defaultHTMLViewer);
+  makeAndAddOption<envSetting>(optionList::pdfviewer, defaultPDFViewer);
+  makeAndAddOption<envSetting>(optionList::psviewer, defaultPSViewer);
+  makeAndAddOption<envSetting>(optionList::gs, defaultGhostscript);
+  makeAndAddOption<envSetting>(optionList::libgs, defaultGhostscriptLibrary);
+  makeAndAddOption<envSetting>(optionList::epsdriver, defaultEPSdriver);
+  makeAndAddOption<envSetting>(optionList::psdriver, defaultPSdriver);
+  makeAndAddOption<envSetting>(optionList::pngdriver, defaultPNGdriver);
+  makeAndAddOption<envSetting>(optionList::asygl, defaultAsyGL);
+  makeAndAddOption<envSetting>(optionList::texpath, "");
+  makeAndAddOption<envSetting>(optionList::texcommand, "");
+  makeAndAddOption<envSetting>(optionList::dvips, "dvips");
+  makeAndAddOption<envSetting>(optionList::dvisvgm, "dvisvgm");
+  makeAndAddOption<envSetting>(optionList::convert, "magick");
+  makeAndAddOption<envSetting>(optionList::display, defaultDisplay);
+  makeAndAddOption<envSetting>(optionList::animate, defaultAnimate);
+  makeAndAddOption<envSetting>(optionList::papertype, "letter");
+  makeAndAddOption<envSetting>(optionList::dir, "");
+  makeAndAddOption<envSetting>(optionList::sysdir, systemDir);
+  makeAndAddOption<envSetting>(optionList::textcommand, "groff");
+  makeAndAddOption<envSetting>(optionList::textcommandOptions, "-e -P -b16");
+  makeAndAddOption<envSetting>(optionList::textextension, "roff");
+  makeAndAddOption<envSetting>(optionList::textoutformat, "ps");
+  makeAndAddOption<envSetting>(optionList::textprologue, ".EQ\ndelim $$\n.EN");
+  makeAndAddOption<envSetting>(optionList::textinitialfont, ".fam T\n.ps 12");
+  makeAndAddOption<envSetting>(optionList::textepilogue, ".bp");
 }
 
 // Access the arguments once options have been parsed.
@@ -1640,24 +2171,24 @@ char *getArg(int n) { return argList[n]; }
 
 void setInteractive()
 {
-  bool xasy=getSetting<bool>("xasy");
-  if(xasy && getSetting<Int>("outpipe") < 0) {
+  bool xasy=getSetting<bool>(optionList::xasy);
+  if(xasy && getSetting<Int>(optionList::outpipe) < 0) {
     cerr << "Missing outpipe." << endl;
     exit(-1);
   }
 
 #if defined(HAVE_LSP)
-  bool lspmode=getSetting<Int>("lsp");
+  bool lspmode=getSetting<Int>(optionList::lsp);
 #else
   bool lspmode=false;
 #endif
 
-  if(numArgs() == 0 && !getSetting<bool>("listvariables") &&
-     getSetting<string>("command").empty() &&
+  if(numArgs() == 0 && !getSetting<bool>(optionList::listvariables) &&
+     getSetting<string>(optionList::command).empty() &&
      (isatty(STDIN_FILENO) || xasy || lspmode))
     interact::interactive=true;
 
-  if(getSetting<bool>("localhistory"))
+  if(getSetting<bool>(optionList::localhistory))
     historyname=string(getPath())+dirsep+"."+suffix+"_history";
   else {
 #if defined(_WIN32)
@@ -1678,23 +2209,23 @@ void setInteractive()
 bool view()
 {
   if (interact::interactive)
-    return getSetting<bool>("interactiveView");
+    return getSetting<bool>(optionList::interactiveView);
   else
-    return getSetting<bool>("batchView") &&
-      (numArgs() == 1 || getSetting<bool>("multipleView"));
+    return getSetting<bool>(optionList::batchView) &&
+      (numArgs() == 1 || getSetting<bool>(optionList::multipleView));
 }
 
 bool trap()
 {
   if (interact::interactive)
-    return !getSetting<bool>("interactiveMask");
+    return !getSetting<bool>(optionList::interactiveMask);
   else
-    return !getSetting<bool>("batchMask");
+    return !getSetting<bool>(optionList::batchMask);
 }
 
 string outname()
 {
-  string name=getSetting<string>("outname");
+  string name=getSetting<string>(optionList::outname);
   if(name.empty() && interact::interactive) return standardprefix;
   if(msdos) backslashToSlash(name);
   return name;
@@ -1722,7 +2253,7 @@ string lookup(const string& symbol)
 }
 
 void initDir() {
-  if(getSetting<string>("sysdir").empty()) {
+  if(getSetting<string>(optionList::sysdir).empty()) {
     string s=lookup("TEXMFMAIN");
     if(s.size() > 1) {
       string texmf=s+dirsep;
@@ -1756,7 +2287,7 @@ void initDir() {
 void setPath() {
   searchPath.clear();
   searchPath.push_back(".");
-  string asydir=getSetting<string>("dir");
+  string asydir=getSetting<string>(optionList::dir);
   if(asydir != "") {
     size_t p,i=0;
     while((p=asydir.find(pathSeparator,i)) < string::npos) {
@@ -1774,30 +2305,30 @@ void setPath() {
 
   if(dirExists)
     searchPath.push_back(initdir);
-  string sysdir=getSetting<string>("sysdir");
+  string sysdir=getSetting<string>(optionList::sysdir);
   if(sysdir != "")
     searchPath.push_back(sysdir);
   searchPath.push_back(docdir+"/examples");
 }
 
 void SetPageDimensions() {
-  string paperType=getSetting<string>("papertype");
+  string paperType=getSetting<string>(optionList::papertype);
 
   if(paperType.empty() &&
-     getSetting<double>("paperwidth") != 0.0 &&
-     getSetting<double>("paperheight") != 0.0) return;
+     getSetting<double>(optionList::paperwidth) != 0.0 &&
+     getSetting<double>(optionList::paperheight) != 0.0) return;
 
   if(paperType == "letter") {
-    Setting("paperwidth")=8.5*inches;
-    Setting("paperheight")=11.0*inches;
+    Setting(optionList::paperwidth)=8.5*inches;
+    Setting(optionList::paperheight)=11.0*inches;
   } else {
-    Setting("paperwidth")=21.0*cm;
-    Setting("paperheight")=29.7*cm;
+    Setting(optionList::paperwidth)=21.0*cm;
+    Setting(optionList::paperheight)=29.7*cm;
 
     if(paperType != "a4") {
       cerr << "Unknown paper size \'" << paperType << "\'; assuming a4."
            << endl;
-      Setting("papertype")=string("a4");
+      Setting(optionList::papertype)=string("a4");
     }
   }
 }
@@ -1831,12 +2362,12 @@ bool latex(const string& texengine)
 
 string nativeformat()
 {
-  return pdf(getSetting<string>("tex")) ? "pdf" : "eps";
+  return pdf(getSetting<string>(optionList::tex)) ? "pdf" : "eps";
 }
 
 string defaultformat()
 {
-  string format=getSetting<string>("outformat");
+  string format=getSetting<string>(optionList::outformat);
   return (format.empty()) ? nativeformat() : format;
 }
 
@@ -1923,23 +2454,23 @@ const char *endspecial()
 
 string texcommand()
 {
-  string command=getSetting<string>("texcommand");
-  return command.empty() ? getSetting<string>("tex") : command;
+  string command=getSetting<string>(optionList::texcommand);
+  return command.empty() ? getSetting<string>(optionList::tex) : command;
 }
 
 string texprogram()
 {
-  string path=getSetting<string>("texpath");
+  string path=getSetting<string>(optionList::texpath);
   string engine=texcommand();
   return path.empty() ? engine : (string) (path+"/"+engine);
 }
 
 Int getScroll()
 {
-  Int scroll=settings::getSetting<Int>("scroll");
+  Int scroll=settings::getSetting<Int>(optionList::scroll);
   if(scroll < 0) {
 #ifdef HAVE_LIBCURSES
-    static char *terminal=NULL;
+    static char *terminal=nullptr;
     if(!terminal)
       terminal=getenv("TERM");
     if(terminal) {
@@ -1959,15 +2490,15 @@ Int getScroll()
 
 void doConfig(string file)
 {
-  bool autoplain=getSetting<bool>("autoplain");
-  bool listvariables=getSetting<bool>("listvariables");
-  if(autoplain) Setting("autoplain")=false; // Turn off for speed.
-  if(listvariables) Setting("listvariables")=false;
+  bool autoplain=getSetting<bool>(optionList::autoplain);
+  bool listvariables=getSetting<bool>(optionList::listvariables);
+  if(autoplain) Setting(optionList::autoplain)=false; // Turn off for speed.
+  if(listvariables) Setting(optionList::listvariables)=false;
 
   runFile(file);
 
-  if(autoplain) Setting("autoplain")=true;
-  if(listvariables) Setting("listvariables")=true;
+  if(autoplain) Setting(optionList::autoplain)=true;
+  if(listvariables) Setting(optionList::listvariables)=true;
 }
 
 void setOptions(int argc, char *argv[])
@@ -1983,19 +2514,19 @@ void setOptions(int argc, char *argv[])
   // verbose, and quiet.
   getOptions(argc,argv);
 
-  quiet=getSetting<bool>("quiet");
+  quiet=getSetting<bool>(optionList::quiet);
 
   // Make configuration and history directory
   initDir();
 
   Int Verbose=verbose;
-  string sysdir=getSetting<string>("sysdir");
+  string sysdir=getSetting<string>(optionList::sysdir);
 
   resetOptions();
 
   // Read user configuration file.
   setPath();
-  string filename=getSetting<string>("config");
+  string filename=getSetting<string>(optionList::config);
   if(!filename.empty()) {
     string file=locateFile(filename);
     if(!file.empty()) {
@@ -2008,19 +2539,20 @@ void setOptions(int argc, char *argv[])
   // Read command-line options again to override configuration file defaults.
   getOptions(argc,argv);
 
-  if(getSetting<Int>("outpipe") == 2) // Redirect cerr to cout
+  if(getSetting<Int>(optionList::outpipe) == 2) // Redirect cerr to cout
     std::cerr.rdbuf(std::cout.rdbuf());
 
-  Setting("sysdir")=sysdir;
+  Setting(optionList::sysdir)=sysdir;
 
   if(docdir.empty())
-    docdir=getSetting<string>("dir");
+    docdir=getSetting<string>(optionList::dir);
 
 #ifdef USEGC
-  if(verbose == 0 && !getSetting<bool>("debug")) GC_set_warn_proc(no_GCwarn);
+  if (verbose == 0 && !getSetting<bool>(optionList::debug))
+    GC_set_warn_proc(no_GCwarn);
 #endif
 
-  if(setlocale (LC_ALL, "") == NULL && getSetting<bool>("debug"))
+  if (setlocale(LC_ALL, "") == nullptr && getSetting<bool>(optionList::debug))
     perror("setlocale");
 
   // Set variables for the file arguments.
@@ -2030,9 +2562,9 @@ void setOptions(int argc, char *argv[])
   // Recompute search path.
   setPath();
 
-  if(getSetting<double>("paperwidth") != 0.0 &&
-     getSetting<double>("paperheight") != 0.0)
-    Setting("papertype")=string("");
+  if (getSetting<double>(optionList::paperwidth) != 0.0 &&
+      getSetting<double>(optionList::paperheight) != 0.0)
+    Setting(optionList::papertype)= string("");
 
   SetPageDimensions();
 

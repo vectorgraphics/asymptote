@@ -168,9 +168,10 @@ void tryToWriteExp(coenv &e, exp *expr)
 
 void expStm::interactiveTrans(coenv &e)
 {
+  namespace optionList = settings::optionList;
   // First check if it is the kind of expression that should be written.
   if (body->writtenToPrompt() &&
-      settings::getSetting<bool>("interactiveWrite"))
+      settings::getSetting<bool>(optionList::interactiveWrite))
     tryToWriteExp(e, body);
   else
     baseExpTrans(e, body);

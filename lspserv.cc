@@ -160,7 +160,8 @@ std::string wslUnix2Dos(std::string const& unixPath)
   {
     lsDocumentUri fileUri(textDocIdentifier.uri);
     std::string rawPath=std::string(fileUri.GetRawPath());
-    if(settings::getSetting<bool>("wsl")) rawPath=wslDos2Unix(rawPath);
+    if (settings::getSetting<bool>(settings::optionList::wsl))
+      rawPath= wslDos2Unix(rawPath);
     return static_cast<std::string>(rawPath);
   }
 
@@ -596,8 +597,10 @@ std::string wslUnix2Dos(std::string const& unixPath)
               lsRange rng(toLsPosition(posBegin), toLsPosition(posEnd));
 
               std::string filReturn(
-                settings::getSetting<bool>("wsl") ?
-                static_cast<std::string>(wslUnix2Dos(fil)) : fil);
+                      settings::getSetting<bool>(settings::optionList::wsl)
+                              ? static_cast<std::string>(wslUnix2Dos(fil))
+                              : fil
+              );
 
               lsDocumentUri uri(filReturn);
               return lsLocation(uri, rng);
@@ -609,7 +612,8 @@ std::string wslUnix2Dos(std::string const& unixPath)
   void AsymptoteLspServer::reloadFile(std::string const& filename)
   {
     std::string rawPath(filename);
-    if(settings::getSetting<bool>("wsl")) rawPath=wslDos2Unix(filename);
+    if (settings::getSetting<bool>(settings::optionList::wsl))
+      rawPath= wslDos2Unix(filename);
     reloadFileRaw(static_cast<std::string>(rawPath));
   }
 

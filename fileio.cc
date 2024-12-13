@@ -14,6 +14,8 @@
 
 namespace camp {
 
+namespace optionList = settings::optionList;
+
 FILE *pipeout=NULL;
 
 string tab="\t";
@@ -24,7 +26,7 @@ file nullfile("",false,NOMODE,false,true);
 
 void openpipeout()
 {
-  int fd=intcast(settings::getSetting<Int>("outpipe"));
+  int fd=intcast(settings::getSetting<Int>(optionList::outpipe));
   if(!pipeout && fd >= 0) pipeout=_fdopen(fd,"w");
   if(!pipeout) {
     cerr << "Cannot open outpipe " << fd << endl;
@@ -353,7 +355,7 @@ void ofile::open()
   } else {
     name=outpath(name);
     stream=fstream=new std::ofstream(name.c_str(),mode | std::ios::trunc);
-    stream->precision(settings::getSetting<Int>("digits"));
+    stream->precision(settings::getSetting<Int>(optionList::digits));
     index=processData().ofile.add(fstream);
     Check();
   }
@@ -372,8 +374,10 @@ void ofile::close()
 
 Int ofile::precision(Int p)
 {
-  return p == 0 ? stream->precision(settings::getSetting<Int>("digits")) :
-         stream->precision(p);
+  return p == 0 ? stream->precision(
+                          settings::getSetting<Int>(optionList::digits)
+                  )
+                : stream->precision(p);
 }
 
 void ofile::seek(Int pos, bool begin)
@@ -393,8 +397,8 @@ size_t ofile::tell()
 
 bool ofile::enabled()
 {
-  return !standard || settings::verbose > 1 ||
-        interact::interactive || !settings::getSetting<bool>("quiet");
+  return !standard || settings::verbose > 1 || interact::interactive ||
+         !settings::getSetting<bool>(optionList::quiet);
 }
 
 void opipe::write(const string& val) {

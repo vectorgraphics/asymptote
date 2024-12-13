@@ -196,6 +196,7 @@ using vm::read;
 using camp::bbox3;
 using settings::getSetting;
 using settings::Setting;
+namespace optionList=settings::optionList;
 
 bool Iconify=false;
 bool ignorezoom;
@@ -498,8 +499,8 @@ void initIBL()
 {
   GLTexturesFmt fmt;
   fmt.internalFmt=GL_RGB16F;
-  string imageDir=locateFile(getSetting<string>("imageDir"))+"/";
-  string imagePath=imageDir+getSetting<string>("image")+"/";
+  string imageDir=locateFile(getSetting<string>(optionList::imageDir))+"/";
+  string imagePath=imageDir+getSetting<string>(optionList::image)+"/";
   irradiance=fromEXR(imagePath+"diffuse.exr",fmt,1);
 
   GLTexturesFmt fmtRefl;
@@ -684,7 +685,7 @@ void initShaders()
 #ifdef HAVE_LIBOSMESA
   interlock=false;
 #else
-  interlock=ssbo && getSetting<bool>("GPUinterlock");
+  interlock=ssbo && getSetting<bool>(optionList::GPUinterlock);
 #endif
 
   if(!ssbo && settings::verbose > 2)
@@ -999,11 +1000,11 @@ void quit()
 #endif
 #ifdef HAVE_LIBGLUT
   if(glthread) {
-    bool animating=getSetting<bool>("animating");
+    bool animating=getSetting<bool>(optionList::animating);
     if(animating)
       Setting("interrupt")=true;
     home();
-    Animate=getSetting<bool>("autoplay");
+    Animate=getSetting<bool>(optionList::autoplay);
 #ifdef HAVE_PTHREAD
     if(!interact::interactive || animating) {
       idle();
@@ -1031,7 +1032,7 @@ void mode()
   switch(Mode) {
     case 0: // regular
       outlinemode=false;
-      ibl=getSetting<bool>("ibl");
+      ibl=getSetting<bool>(optionList::ibl);
       nlights=nlights0;
       lastshader=-1;
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
@@ -1096,7 +1097,7 @@ void reshape0(int width, int height)
 
 void windowposition(int& x, int& y, int width=Width, int height=Height)
 {
-  pair z=getSetting<pair>("position");
+  pair z=getSetting<pair>(optionList::position);
   x=(int) z.getx();
   y=(int) z.gety();
   if(x < 0) {
@@ -1164,7 +1165,7 @@ void fitscreen(bool reposition=true)
     case 0: // Original size
     {
       Xfactor=Yfactor=1.0;
-      double pixelRatio=getSetting<double>("devicepixelratio");
+      double pixelRatio=getSetting<double>(optionList::devicepixelratio);
       setsize(oldWidth*pixelRatio,oldHeight*pixelRatio,reposition);
       break;
     }
@@ -1207,7 +1208,7 @@ void nextframe()
 #ifdef HAVE_PTHREAD
   endwait(readySignal,readyLock);
 #endif
-  double delay=getSetting<double>("framerate");
+  double delay=getSetting<double>(optionList::framerate);
   if(delay != 0.0) delay=1.0/delay;
   double seconds=frameTimer.seconds(true);
   delay -= seconds;
@@ -1363,9 +1364,9 @@ void pan(int x, int y)
 void zoom(int x, int y)
 {
   if(ignorezoom) {ignorezoom=false; y0=y; return;}
-  double zoomFactor=getSetting<double>("zoomfactor");
+  double zoomFactor=getSetting<double>(optionList::zoomfactor);
   if(zoomFactor > 0.0) {
-    double zoomStep=getSetting<double>("zoomstep");
+    double zoomStep=getSetting<double>(optionList::zoomstep);
     const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
     double stepPower=zoomStep*(y0-y);
     if(fabs(stepPower) < limit) {
@@ -1380,7 +1381,7 @@ void zoom(int x, int y)
 
 void mousewheel(int wheel, int direction, int x, int y)
 {
-  double zoomFactor=getSetting<double>("zoomfactor");
+  double zoomFactor=getSetting<double>(optionList::zoomfactor);
   if(zoomFactor > 0.0) {
     if(direction > 0)
       Zoom *= zoomFactor;
@@ -1538,11 +1539,11 @@ string action(int button, int mod)
   }
 
   if(Button < nButtons) {
-    array *left=getSetting<array *>("leftbutton");
-    array *middle=getSetting<array *>("middlebutton");
-    array *right=getSetting<array *>("rightbutton");
-    array *wheelup=getSetting<array *>("wheelup");
-    array *wheeldown=getSetting<array *>("wheeldown");
+    array *left=getSetting<array *>(optionList::leftbutton);
+    array *middle=getSetting<array *>(optionList::middlebutton);
+    array *right=getSetting<array *>(optionList::rightbutton);
+    array *wheelup=getSetting<array *>(optionList::wheelup);
+    array *wheeldown=getSetting<array *>(optionList::wheeldown);
     array *Buttons[]={left,middle,right,wheelup,wheeldown};
     array *a=Buttons[button];
     size_t size=checkArray(a);
@@ -1602,7 +1603,7 @@ void mouse(int button, int state, int x, int y)
 
 double spinstep()
 {
-  return getSetting<double>("spinstep")*spinTimer.seconds(true);
+  return getSetting<double>(optionList::spinstep)*spinTimer.seconds(true);
 }
 
 void xspin()
@@ -1622,14 +1623,14 @@ void zspin()
 
 void expand()
 {
-  double resizeStep=getSetting<double>("resizestep");
+  double resizeStep=getSetting<double>(optionList::resizestep);
   if(resizeStep > 0.0)
     setsize((int) (Width*resizeStep+0.5),(int) (Height*resizeStep+0.5));
 }
 
 void shrink()
 {
-  double resizeStep=getSetting<double>("resizestep");
+  double resizeStep=getSetting<double>(optionList::resizestep);
   if(resizeStep > 0.0)
     setsize(max((int) (Width/resizeStep+0.5),1),
             max((int) (Height/resizeStep+0.5),1));
@@ -1732,13 +1733,13 @@ void keyboard(unsigned char key, int x, int y)
       shrink();
       break;
     case 'p':
-      if(getSetting<bool>("reverse")) Animate=false;
-      Setting("reverse")=Step=false;
+      if(getSetting<bool>(optionList::reverse)) Animate=false;
+      Setting(optionList::reverse)=Step=false;
       animate();
       break;
     case 'r':
-      if(!getSetting<bool>("reverse")) Animate=false;
-      Setting("reverse")=true;
+      if(!getSetting<bool>(optionList::reverse)) Animate=false;
+      Setting(optionList::reverse)=true;
       Step=false;
       animate();
       break;
@@ -1839,7 +1840,7 @@ void init()
   cmd.push_back(settings::argv0);
   if(!interact::interactive && Iconify)
     cmd.push_back("-iconic");
-  push_split(cmd,getSetting<string>("glOptions"));
+  push_split(cmd,getSetting<string>(optionList::glOptions));
   char **argv=args(cmd,true);
   int argc=cmd.size();
 
@@ -1931,7 +1932,7 @@ bool NVIDIA()
 // angle=0 means orthographic.
 void glrender(GLRenderArgs const& args, int oldpid)
 {
-  Iconify=getSetting<bool>("iconify");
+  Iconify=getSetting<bool>(optionList::iconify);
 
   auto zoomVal=std::fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
 
@@ -1967,7 +1968,7 @@ void glrender(GLRenderArgs const& args, int oldpid)
   ignorezoom=false;
   Xfactor=Yfactor=1.0;
 
-  pair maxtile=getSetting<pair>("maxtile");
+  pair maxtile=getSetting<pair>(optionList::maxtile);
   maxTileWidth=(int) maxtile.getx();
   maxTileHeight=(int) maxtile.gety();
   if(maxTileWidth <= 0) maxTileWidth=1024;
@@ -2014,15 +2015,16 @@ void glrender(GLRenderArgs const& args, int oldpid)
   static bool initialized=false;
 
   if(!(initialized && (interact::interactive ||
-                       getSetting<bool>("animating")))) {
-    antialias=getSetting<Int>("antialias") > 1;
+                       getSetting<bool>(optionList::animating)))) {
+    antialias=getSetting<Int>(optionList::antialias) > 1;
     double expand;
     if(format3d)
       expand=1.0;
     else {
-      expand=getSetting<double>("render");
-      if(expand < 0)
-        expand *= (Format.empty() || Format == "eps" || Format == "pdf")                 ? -2.0 : -1.0;
+      expand=getSetting<double>(optionList::render);
+      if (expand < 0)
+        expand*= (Format.empty() || Format == "eps" || Format == "pdf") ? -2.0
+                                                                        : -1.0;
       if(antialias) expand *= 2.0;
     }
 
@@ -2033,7 +2035,7 @@ void glrender(GLRenderArgs const& args, int oldpid)
     // Force a hard viewport limit to work around direct rendering bugs.
     // Alternatively, one can use -glOptions=-indirect (with a performance
     // penalty).
-    pair maxViewport=getSetting<pair>("maxviewport");
+    pair maxViewport=getSetting<pair>(optionList::maxviewport);
     int maxWidth=maxViewport.getx() > 0 ? (int) ceil(maxViewport.getx()) :
       screenWidth;
     int maxHeight=maxViewport.gety() > 0 ? (int) ceil(maxViewport.gety()) :
@@ -2126,7 +2128,7 @@ void glrender(GLRenderArgs const& args, int oldpid)
     windowposition(x,y);
     glutInitWindowPosition(x,y);
     glutInitWindowSize(1,1);
-    Int multisample=getSetting<Int>("multisample");
+    Int multisample=getSetting<Int>(optionList::multisample);
     if(multisample <= 1) multisample=0;
     if(multisample)
       displaymode |= GLUT_MULTISAMPLE;
@@ -2184,8 +2186,8 @@ void glrender(GLRenderArgs const& args, int oldpid)
   initialized=true;
 
 #if defined(HAVE_COMPUTE_SHADER) && !defined(HAVE_LIBOSMESA)
-  GPUindexing=getSetting<bool>("GPUindexing");
-  GPUcompress=getSetting<bool>("GPUcompress");
+  GPUindexing=getSetting<bool>(optionList::GPUindexing);
+  GPUcompress=getSetting<bool>(optionList::GPUcompress);
 #else
   GPUindexing=false;
   GPUcompress=false;
@@ -2195,8 +2197,8 @@ void glrender(GLRenderArgs const& args, int oldpid)
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
 
   if(GPUindexing) {
-    gl::localSize=getSetting<Int>("GPUlocalSize");
-    gl::blockSize=getSetting<Int>("GPUblockSize");
+    gl::localSize=getSetting<Int>(optionList::GPUlocalSize);
+    gl::blockSize=getSetting<Int>(optionList::GPUblockSize);
     gl::groupSize=gl::localSize*gl::blockSize;
   }
 
@@ -2225,19 +2227,24 @@ void glrender(GLRenderArgs const& args, int oldpid)
       exit(-1);
     }
 
-    ibl=getSetting<bool>("ibl");
+    ibl=getSetting<bool>(optionList::ibl);
     initShaders();
     setBuffers();
   }
 
-  glClearColor(args.background[0],args.background[1],args.background[2],args.background[3]);
+  glClearColor(
+          args.background[0],
+          args.background[1],
+          args.background[2],
+          args.background[3]
+  );
 
 #ifdef HAVE_LIBGLUT
 #ifndef HAVE_LIBOSMESA
-  Animate=getSetting<bool>("autoplay") && glthread;
+  Animate=getSetting<bool>(optionList::autoplay) && glthread;
 
   if(View) {
-    if(!getSetting<bool>("fitscreen"))
+    if(!getSetting<bool>(optionList::fitscreen))
       Fitscreen=0;
     firstFit=true;
     fitscreen();
@@ -2630,7 +2637,7 @@ void setUniforms(vertexBuffer& data, GLint shader)
                   (GLfloat) gl::Diffuse[i4+2]);
     }
 
-    if(settings::getSetting<bool>("ibl")) {
+    if(settings::getSetting<bool>(settings::optionList::ibl)) {
       gl::IBLbrdfTex.setUniform(glGetUniformLocation(shader,
                                                      "reflBRDFSampler"));
       gl::irradiance.setUniform(glGetUniformLocation(shader,

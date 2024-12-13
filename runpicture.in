@@ -347,7 +347,7 @@ void texpreamble(string s)
 
 void deletepreamble()
 {
-  if(getSetting<bool>("inlinetex")) {
+  if(getSetting<bool>(optionList::inlinetex)) {
     unlink(buildname(outname(),"pre").c_str());
   }
 }
@@ -408,12 +408,12 @@ string nativeformat()
 
 bool latex()
 {
-  return latex(getSetting<string>("tex"));
+  return latex(getSetting<string>(optionList::tex));
 }
 
 bool pdf()
 {
-  return pdf(getSetting<string>("tex"));
+  return pdf(getSetting<string>(optionList::tex));
 }
 
 void _shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
@@ -518,7 +518,7 @@ void xmap(string key, transform t=identity)
 void deconstruct(picture *f, picture *preamble=NULL, transform T=identity)
 {
   unsigned level=0;
-  bool first=pdf(getSetting<string>("tex"));
+  bool first=pdf(getSetting<string>(optionList::tex));
 
   string prefix=outname();
   const string xformat="svg";

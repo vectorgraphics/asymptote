@@ -26,6 +26,7 @@ using namespace trans;
 using namespace types;
 
 using mem::list;
+namespace optionList = settings::optionList;
 
 trans::tyEntry *astType::transAsTyEntry(coenv &e, record *where)
 {
@@ -194,7 +195,7 @@ void block::transAsField(coenv &e, record *r)
   Scope scopeHolder(e, scope);
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
     (*p)->markTransAsField(e, r);
-    if (em.errors() && !settings::getSetting<bool>("debug"))
+    if (em.errors() && !settings::getSetting<bool>(optionList::debug))
       break;
   }
 }
@@ -220,7 +221,7 @@ bool block::transAsTemplatedField(
 
   while (++p != stms.end()) {
     (*p)->markTransAsField(e, r);
-    if (em.errors() && !settings::getSetting<bool>("debug")) {
+    if (em.errors() && !settings::getSetting<bool>(optionList::debug)) {
       return false;
     }
   }
@@ -255,7 +256,7 @@ record *block::transAsFile(genv& ge, symbol id)
   coenv ce(c, e);
 
   // Translate the abstract syntax.
-  if (settings::getSetting<bool>("autoplain")) {
+  if (settings::getSetting<bool>(optionList::autoplain)) {
     autoplainRunnable()->transAsField(ce, r);
   }
   transAsRecordBody(ce, r);
@@ -297,7 +298,7 @@ record *block::transAsTemplatedFile(
   coenv ce(c, e);
 
   // Translate the abstract syntax.
-  if (settings::getSetting<bool>("autoplain")) {
+  if (settings::getSetting<bool>(optionList::autoplain)) {
     autoplainRunnable()->transAsField(ce, r);
   }
 

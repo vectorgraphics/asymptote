@@ -24,12 +24,13 @@ using camp::newl;
 
 ostream& operator<< (ostream& out, const position& pos)
 {
+  namespace optionList = settings::optionList;
   if (!pos)
     return out;
 
   string filename=pos.file->name();
 
-  if(filename != "-" && !settings::getSetting<bool>("quiet")) {
+  if(filename != "-" && !settings::getSetting<bool>(optionList::quiet)) {
     std::ifstream fin(filename.c_str());
     string s;
     size_t count=pos.line;
@@ -46,7 +47,7 @@ ostream& operator<< (ostream& out, const position& pos)
   out << filename << ": ";
   out << pos.line << "." << pos.column;
 
-  if(settings::getSetting<bool>("xasy")) {
+  if(settings::getSetting<bool>(optionList::xasy)) {
     camp::openpipeout();
     fprintf(camp::pipeout,"Error\n");
     fflush(camp::pipeout);

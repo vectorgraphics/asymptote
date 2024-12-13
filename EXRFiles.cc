@@ -13,19 +13,21 @@ using std::endl;
 
 IEXRFile::IEXRFile(const string& File)
 {
+  namespace optionList = settings::optionList;
   char const* err;
   int ret;
   string file=settings::locateFile(File);
-  string image=settings::getSetting<string>("image");
+  string image=settings::getSetting<string>(optionList::image);
   if(file.empty()) {
     cerr << "EXR file not found: " << File << endl
          << "Precomputed image directories like ibl/" << image << " can be "
-         << "downloaded into the Asymptote search path like this:"
-         << endl << endl
+         << "downloaded into the Asymptote search path like this:" << endl
+         << endl
          << "wget -q --show-progress -nH -np -r --cut-dirs=1 "
-         << settings::getSetting<string>("imageURL") << "/refl.exr" << endl
+         << settings::getSetting<string>(optionList::imageURL) << "/refl.exr"
+         << endl
          << "wget -q --show-progress -nH -np -r --cut-dirs=1 "
-         << settings::getSetting<string>("imageURL") << "/" << image
+         << settings::getSetting<string>(optionList::imageURL) << "/" << image
          << endl;
     exit(-1);
   }

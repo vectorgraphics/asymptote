@@ -63,7 +63,8 @@ public:
   }
 
   bool pdf() {
-    return settings::pdf(settings::getSetting<string>("tex"));
+    using settings::optionList::tex;
+    return settings::pdf(settings::getSetting<string>(tex));
   }
 
   // Shading in SVG is incomplete and not supported at all by dvisvgm --pdf.
@@ -184,7 +185,12 @@ public:
     : drawElement(key), drawShade(src,stroke,pentype,key), pens(pens),
       vertices(vertices), edges(edges) {}
 
-  bool svgpng() {return settings::getSetting<bool>("xasy") || !settings::getSetting<bool>("svgemulation") || pdf();}
+  bool svgpng()
+  {
+    namespace optionList=settings::optionList;
+    return settings::getSetting<bool>(optionList::xasy) ||
+           !settings::getSetting<bool>(optionList::svgemulation) || pdf();
+  }
 
   void palette(psfile *out) {
     out->gsave();
@@ -233,7 +239,7 @@ public:
   drawFunctionShade(const vm::array& src, bool stroke,
                     pen pentype, const string& shader, const string& key="")
     : drawFill(src,stroke,pentype,key), shader(shader) {
-    string texengine=settings::getSetting<string>("tex");
+    string texengine=settings::getSetting<string>(settings::optionList::tex);
     if(!settings::pdf(texengine))
       reportError("functionshade is not implemented for the '"+texengine+
                   "' tex engine");

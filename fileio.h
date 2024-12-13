@@ -79,8 +79,11 @@ protected:
 public:
 
   bool Standard();
-  bool enabled() {return !standard || settings::verbose > 1 ||
-      interact::interactive || !settings::getSetting<bool>("quiet");}
+  bool enabled()
+  {
+    return !standard || settings::verbose > 1 || interact::interactive ||
+           !settings::getSetting<bool>(settings::optionList::quiet);
+  }
 
   void standardEOF();
 
@@ -377,9 +380,12 @@ public:
   iofile(const string& name, char comment=0) :
     ifile(name,comment,true,UPDATE,std::ios::in | std::ios::out) {}
 
-  Int precision(Int p) {
-    return p == 0 ? stream->precision(settings::getSetting<Int>("digits")) :
-      stream->precision(p);
+  Int precision(Int p)
+  {
+    return p == 0 ? stream->precision(settings::getSetting<Int>(
+                            settings::optionList::digits
+                    ))
+                  : stream->precision(p);
   }
   void flush() {if(fstream) fstream->flush();}
 

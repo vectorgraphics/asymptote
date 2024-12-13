@@ -122,7 +122,8 @@ public:
   }
 
   double renderResolution() {
-    double prerender=settings::getSetting<double>("prerender");
+    using namespace settings;
+    double prerender=getSetting<double>(optionList::prerender);
     if(prerender <= 0.0) return 0.0;
     prerender=1.0/prerender;
     double perspective=gl::orthographic ? 0.0 : 1.0/gl::Zmax;

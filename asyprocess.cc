@@ -164,7 +164,7 @@ bool runRunnable(runnable *r, coenv &e, istack &s, transMode tm=TRANS_NORMAL) {
     r->transAsCodelet(e);
   em.sync();
   if(!em.errors()) {
-    if(getSetting<bool>("translate")) print(cout,codelet->code);
+    if(getSetting<bool>(optionList::translate)) print(cout,codelet->code);
     s.run(codelet);
 
     // Commits the changes made to the environment.
@@ -192,7 +192,7 @@ void runAutoplain(coenv &e, istack &s) {
 // after running the code specified.  They can be overridden by a derived
 // class that wishes different behaviour.
 void icore::preRun(coenv &e, istack &s) {
-  if(getSetting<bool>("autoplain"))
+  if(getSetting<bool>(optionList::autoplain))
     runAutoplain(e,s);
 }
 
@@ -241,9 +241,9 @@ void icore::doRun(bool purge, transMode tm) {
 
 
 void icore::process(bool purge) {
-  if (!interactive && getSetting<bool>("parseonly"))
+  if (!interactive && getSetting<bool>(optionList::parseonly))
     doParse();
-  else if (getSetting<bool>("listvariables"))
+  else if (getSetting<bool>(optionList::listvariables))
     doList();
   else
     doRun(purge);
@@ -290,7 +290,7 @@ void itree::run(coenv &e, istack &s, transMode tm) {
     for(mem::list<runnable *>::iterator r=tree->stms.begin();
         r != tree->stms.end(); ++r) {
       processData().fileName=(*r)->getPos().filename();
-      if(!em.errors() || getSetting<bool>("debug"))
+      if(!em.errors() || getSetting<bool>(optionList::debug))
         runRunnable(*r,e,s,tm);
     }
   }
@@ -303,7 +303,7 @@ void itree::doExec(transMode tm) {
 }
 
 void printGreeting(bool interactive) {
-  if(!getSetting<bool>("quiet")) {
+  if(!getSetting<bool>(optionList::quiet)) {
     cout << "Welcome to " << PACKAGE_NAME << " version " << REVISION;
     if(interactive)
       cout << " (to view the manual, type help)";
@@ -321,9 +321,9 @@ block *ifile::buildTree() {
 }
 
 void ifile::preRun(coenv& e, istack& s) {
-  outname_save=getSetting<string>("outname");
+  outname_save=getSetting<string>(optionList::outname);
   if(stripDir(outname_save).empty())
-    Setting("outname")=outname_save+outname;
+    Setting(optionList::outname)=outname_save+outname;
 
   itree::preRun(e, s);
 }
@@ -331,7 +331,7 @@ void ifile::preRun(coenv& e, istack& s) {
 void ifile::postRun(coenv &e, istack& s) {
   itree::postRun(e, s);
 
-  Setting("outname")=outname_save;
+  Setting(optionList::outname)=outname_save;
 }
 
 void ifile::process(bool purge) {
@@ -702,8 +702,12 @@ class iprompt : public icore {
   // detecting it in multiline mode).
   string getline(bool continuation) {
     string prompt;
-    if(!getSetting<bool>("xasy"))
-      prompt=getSetting<string>(continuation ? "prompt2" : "prompt");
+    if (!getSetting<bool>(optionList::xasy))
+    {
+      prompt= getSetting<string>(
+              continuation ? optionList::prompt2 : optionList::prompt
+      );
+    }
     string line=interact::simpleline(prompt);
 
     if (continuation)
@@ -740,12 +744,12 @@ class iprompt : public icore {
 
   void runLine(coenv &e, istack &s, string line) {
     try {
-      if(getSetting<bool>("multiline")) {
+      if(getSetting<bool>(optionList::multiline)) {
         block *code=parseExtendableLine(line);
 
         icode i(code);
         i.run(e,s,TRANS_INTERACTIVE);
-      } else if(getSetting<bool>("xasy")) {
+      } else if(getSetting<bool>(optionList::xasy)) {
         block *code=parseXasyLine(line);
 
         icode i(code);
@@ -875,7 +879,7 @@ void doUnrestrictedList() {
   coder base_coder(nullPos, "doUnrestictedList");
   coenv e(base_coder,base_env);
 
-  if (getSetting<bool>("autoplain"))
+  if (getSetting<bool>(optionList::autoplain))
     absyntax::autoplainRunnable()->trans(e);
 
   e.e.list(0);

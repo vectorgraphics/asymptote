@@ -101,7 +101,7 @@ array *readpath(const string& psname, bool keep,
   }
 
   mem::vector<string> cmd;
-  cmd.push_back(getSetting<string>("gs"));
+  cmd.push_back(getSetting<string>(optionList::gs));
   cmd.push_back("-q");
   cmd.push_back("-dBATCH");
   cmd.push_back("-P");
@@ -111,7 +111,7 @@ array *readpath(const string& psname, bool keep,
 #else
   const string null="/dev/null";
 #endif
-  string psdriver=getSetting<string>("psdriver");
+  string psdriver=getSetting<string>(optionList::psdriver);
   cmd.push_back("-sDEVICE="+psdriver);
   cmd.push_back("-sOutputFile="+null);
   cmd.push_back(stripDir(psname));
@@ -227,7 +227,7 @@ realarray *texsize(string *s, pen p=CURRENTPEN)
   texinit();
   processDataStruct &pd=processData();
 
-  string texengine=getSetting<string>("tex");
+  string texengine=getSetting<string>(optionList::tex);
   setpen(pd.tex,texengine,p);
 
   double width,height,depth;
@@ -250,7 +250,7 @@ patharray2 *_texpath(stringarray *s, penarray *p)
   string texname=auxname(prefix,"tex");
   string dviname=auxname(prefix,"dvi");
   bbox b;
-  string texengine=getSetting<string>("tex");
+  string texengine=getSetting<string>(optionList::tex);
   bool xe=settings::xe(texengine) || settings::lua(texengine) ||
     settings::context(texengine);
   texfile tex(texname,b,true);
@@ -286,11 +286,11 @@ patharray2 *_texpath(stringarray *s, penarray *p)
   int status=opentex(texname,prefix,!xe);
 
   string pdfname,psname2;
-  bool keep=getSetting<bool>("keep");
+  bool keep=getSetting<bool>(optionList::keep);
 
   if(!status) {
     if(xe) {
-      string psdriver=getSetting<string>("psdriver");
+      string psdriver=getSetting<string>(optionList::psdriver);
       pdfname=auxname(prefix,"pdf");
       psname2=auxname(prefix+"_","ps");
       if(!fs::exists(pdfname)) return new array(n);
@@ -300,7 +300,7 @@ patharray2 *_texpath(stringarray *s, penarray *p)
       showpath(ps);
 
       mem::vector<string> cmd;
-      cmd.push_back(getSetting<string>("gs"));
+      cmd.push_back(getSetting<string>(optionList::gs));
       cmd.push_back("-q");
       cmd.push_back("-dNoOutputFonts");
       cmd.push_back("-dNOPAUSE");
@@ -317,11 +317,11 @@ patharray2 *_texpath(stringarray *s, penarray *p)
     } else {
       if(!fs::exists(dviname)) return new array(n);
       mem::vector<string> dcmd;
-      dcmd.push_back(getSetting<string>("dvips"));
+      dcmd.push_back(getSetting<string>(optionList::dvips));
       dcmd.push_back("-R");
       dcmd.push_back("-Pdownload35");
       dcmd.push_back("-D600");
-      push_split(dcmd,getSetting<string>("dvipsOptions"));
+      push_split(dcmd,getSetting<string>(optionList::dvipsOptions));
       if(verbose <= 2) dcmd.push_back("-q");
       dcmd.push_back("-o"+psname);
       dcmd.push_back(dviname);
@@ -332,7 +332,7 @@ patharray2 *_texpath(stringarray *s, penarray *p)
 
   if(!keep) { // Delete temporary files.
     unlink(texname.c_str());
-    if(!getSetting<bool>("keepaux"))
+    if(!getSetting<bool>(optionList::keepaux))
       unlink(auxname(prefix,"aux").c_str());
     unlink(auxname(prefix,"log").c_str());
     unlink(xe ? pdfname.c_str() : dviname.c_str());
@@ -352,18 +352,18 @@ patharray2 *textpath(stringarray *s, penarray *p)
   if(n == 0) return new array(0);
 
   string prefix=cleanpath(outname());
-  string outputname=auxname(prefix,getSetting<string>("textoutformat"));
+  string outputname=auxname(prefix,getSetting<string>(optionList::textoutformat));
 
-  string textname=auxname(prefix,getSetting<string>("textextension"));
+  string textname=auxname(prefix,getSetting<string>(optionList::textextension));
   std::ofstream text(textname.c_str());
 
   if(!text) cannotwrite(textname);
 
   for(size_t i=0; i < n; ++i) {
-    text << getSetting<string>("textprologue") << newl
+    text << getSetting<string>(optionList::textprologue) << newl
          << read<pen>(p,i).Font() << newl
          << read<string>(s,i) << newl
-         << getSetting<string>("textepilogue") << endl;
+         << getSetting<string>(optionList::textepilogue) << endl;
   }
   text.close();
 
@@ -374,21 +374,21 @@ patharray2 *textpath(stringarray *s, penarray *p)
   showpath(ps);
 
   mem::vector<string> cmd;
-  cmd.push_back(getSetting<string>("textcommand"));
-  push_split(cmd,getSetting<string>("textcommandOptions"));
+  cmd.push_back(getSetting<string>(optionList::textcommand));
+  push_split(cmd,getSetting<string>(optionList::textcommandOptions));
   cmd.push_back(textname);
   iopipestream typesetter(cmd);
   typesetter.block(true,false);
 
   mem::vector<string> cmd2;
-  cmd2.push_back(getSetting<string>("gs"));
+  cmd2.push_back(getSetting<string>(optionList::gs));
   cmd2.push_back("-q");
   cmd2.push_back("-dNoOutputFonts");
   cmd2.push_back("-dNOPAUSE");
   cmd2.push_back("-dBATCH");
   cmd2.push_back("-P");
   if(safe) cmd2.push_back("-dSAFER");
-  cmd2.push_back("-sDEVICE="+getSetting<string>("psdriver"));
+  cmd2.push_back("-sDEVICE="+getSetting<string>(optionList::psdriver));
   cmd2.push_back("-sOutputFile=-");
   cmd2.push_back("-");
   iopipestream gs(cmd2,"gs","Ghostscript");
@@ -414,7 +414,7 @@ patharray2 *textpath(stringarray *s, penarray *p)
 
   if(verbose > 2) cout << endl;
 
-  bool keep=getSetting<bool>("keep");
+  bool keep=getSetting<bool>(optionList::keep);
   if(!keep) // Delete temporary files.
     unlink(textname.c_str());
   return readpath(psname,keep,0.1);
@@ -441,6 +441,6 @@ patharray *_strokepath(path g, pen p=CURRENTPEN)
   ps.verbatimline("(M) "+currentpoint);
   ps.epilogue();
   ps.close();
-  array *a=readpath(psname,getSetting<bool>("keep"));
+  array *a=readpath(psname,getSetting<bool>(optionList::keep));
   return a->size() > 0 ? read<array *>(a,0) : a;
 }

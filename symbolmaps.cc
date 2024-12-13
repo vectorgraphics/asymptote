@@ -13,7 +13,8 @@ namespace AsymptoteLsp
   {
     bool isSettings=filename=="settings";
 #ifdef HAVE_LIBGSL
-    bool isGSL=filename=="gsl" and settings::getSetting<bool>("gsl");
+    bool isGSL= filename == "gsl" and
+                settings::getSetting<bool>(settings::optionList::gsl);
 #else
     bool isGSL=false;
 #endif

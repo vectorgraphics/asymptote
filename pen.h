@@ -435,13 +435,14 @@ public:
   }
 
   string Font() const {
+    namespace optionList = settings::optionList;
     if(font.empty()) {
       if(defaultpen().font.empty()) {
-        string texengine=settings::getSetting<string>("tex");
+        string texengine=settings::getSetting<string>(optionList::tex);
         if(settings::latex(texengine))
           return DEFLATEXFONT;
         else if(texengine == "none")
-          return settings::getSetting<string>("textinitialfont");
+          return settings::getSetting<string>(optionList::textinitialfont);
         else {
           ostringstream buf;
           // Work around misalignment in ConTeXt switchtobodyfont if font is not found.

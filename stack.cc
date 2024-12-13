@@ -342,8 +342,10 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
   string& fileName=P.fileName;
   unsigned int offset=P.xmapCount;
 
-  bool traceless=!settings::getSetting<bool>("debug");
-  bool xasy=settings::getSetting<bool>("xasy") || offset;
+  namespace optionList = settings::optionList;
+  static const bool traceless=!settings::getSetting<bool>(optionList::debug);
+  static const bool xasySettings=settings::getSetting<bool>(optionList::xasy);
+  bool xasy=xasySettings || offset;
   if(xasy && curPos.filename() == fileName)
     topPos=curPos.shift(offset);
 

@@ -142,17 +142,17 @@ void *asymain(void *A)
   if(interactive) {
     Signal(SIGINT,interruptHandler);
 #ifdef HAVE_LSP
-    if (getSetting<bool>("lsp")) {
+    if (getSetting<bool>(optionList::lsp)) {
       AsymptoteLsp::LspLog log;
       auto jsonHandler=std::make_shared<lsp::ProtocolJsonHandler>();
       auto endpoint=std::make_shared<GenericEndpoint>(log);
 
       unique_ptr<AsymptoteLsp::AsymptoteLspServer> asylsp;
 
-      if(getSetting<string>("lspport") != "") {
+      if(getSetting<string>(optionList::lspport) != "") {
         asylsp=make_unique<AsymptoteLsp::TCPAsymptoteLSPServer>(
-          (std::string)getSetting<string>("lsphost").c_str(),
-          (std::string)getSetting<string>("lspport").c_str(),
+          (std::string)getSetting<string>(optionList::lsphost).c_str(),
+          (std::string)getSetting<string>(optionList::lspport).c_str(),
           jsonHandler, endpoint, log);
       } else {
         asylsp=make_unique<AsymptoteLsp::AsymptoteLspServer>(jsonHandler,
@@ -163,7 +163,7 @@ void *asymain(void *A)
     } else
 #endif
       processPrompt();
-  } else if (getSetting<bool>("listvariables") && numArgs()==0) {
+  } else if (getSetting<bool>(optionList::listvariables) && numArgs()==0) {
     try {
       doUnrestrictedList();
     } catch(handled_error const&) {
@@ -172,7 +172,7 @@ void *asymain(void *A)
   } else {
     int n=numArgs();
     if(n == 0) {
-      int inpipe=intcast(settings::getSetting<Int>("inpipe"));
+      int inpipe=intcast(settings::getSetting<Int>(optionList::inpipe));
       bool hasInpipe=inpipe >= 0;
       if(hasInpipe) {
 #if !defined(_WIN32)
@@ -215,7 +215,7 @@ void *asymain(void *A)
   vm::dumpProfile();
 #endif
 
-  if(getSetting<bool>("wait")) {
+  if(getSetting<bool>(optionList::wait)) {
 #if defined(_WIN32)
 #pragma message("TODO: wait option not implement yet")
 #else
@@ -269,7 +269,7 @@ int main(int argc, char *argv[])
 #else
   bool usethreads=view();
 #endif
-  gl::glthread=usethreads ? getSetting<bool>("threads") : false;
+  gl::glthread=usethreads ? getSetting<bool>(optionList::threads) : false;
 #if HAVE_PTHREAD
 #ifndef HAVE_LIBOSMESA
   if(gl::glthread) {

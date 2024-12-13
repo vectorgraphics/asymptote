@@ -112,7 +112,7 @@ char *readpipeline(const char *prompt)
 
 void pre_readline()
 {
-  int fd=intcast(settings::getSetting<Int>("inpipe"));
+  int fd=intcast(settings::getSetting<Int>(optionList::inpipe));
   if(fd >= 0) {
     if(!fin)
     {
@@ -142,11 +142,11 @@ void init_readline(bool tabcompletion)
 
 void init_interactive()
 {
-  if(getSetting<bool>("xasy")) tty=false;
+  if(getSetting<bool>(optionList::xasy)) tty=false;
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   if(tty) {
     init_completion();
-    interact::init_readline(getSetting<bool>("tabcompletion"));
+    interact::init_readline(getSetting<bool>(optionList::tabcompletion));
     read_history(historyname.c_str());
   }
 #endif
@@ -174,7 +174,7 @@ string simpleline(string prompt) {
     return s;
   } else {
 #if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
-    if(!tty || getSetting<bool>("exitonEOF"))
+    if(!tty || getSetting<bool>(optionList::exitonEOF))
 #endif
       {
         cout << endl;
@@ -246,7 +246,7 @@ void cleanup_interactive() {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   // Write the history file.
   if(tty) {
-    stifle_history(intcast(getSetting<Int>("historylines")));
+    stifle_history(intcast(getSetting<Int>(optionList::historylines)));
     write_history(historyname.c_str());
   }
 #endif

@@ -92,7 +92,7 @@ void cleanup()
 {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   store_history(&history_save);
-  int nlines=intcast(getSetting<Int>("historylines"));
+  int nlines=intcast(getSetting<Int>(optionList::historylines));
   for(historyMap_t::iterator h=historyMap.begin(); h != historyMap.end();
       ++h) {
     history_set_history_state(&h->second.state);
@@ -163,7 +163,7 @@ string readline(string prompt=emptystring, string name=emptystring,
                 bool tabcompletion=false)
 {
   bool stdinIsTty=isatty(STDIN_FILENO);
-  bool hasInpipe=getSetting<Int>("inpipe") >= 0;
+  bool hasInpipe=getSetting<Int>(optionList::inpipe) >= 0;
   if(!(stdinIsTty || hasInpipe))
   {
     return emptystring;

@@ -68,7 +68,7 @@ void jsfile::meta(string name, bool svg)
   else
     out << "<meta name=\"viewport\" content=\"user-scalable=no\"/>";
   out << newl << "<style>" << newl;
-  if(svg && !getSetting<bool>("absolute"))
+  if(svg && !getSetting<bool>(optionList::absolute))
     out << "svg, #container {" << newl
         << "display: block;" << newl
         << "width: 100vw;" << newl
@@ -124,21 +124,21 @@ void jsfile::open(string name)
   meta(name,false);
 
 #ifdef HAVE_LIBGLM
-  out.precision(getSetting<Int>("digits"));
+  out.precision(getSetting<Int>(optionList::digits));
 
-  bool ibl=getSetting<bool>("ibl");
-  bool webgl2=ibl || getSetting<bool>("webgl2");
+  bool ibl=getSetting<bool>(optionList::ibl);
+  bool webgl2=ibl || getSetting<bool>(optionList::webgl2);
   if(ibl)
     out << "<script src=\"https://vectorgraphics.gitlab.io/asymptote/ibl/tinyexr.js\">"
         << newl << "</script>" << newl;
 
-  if(getSetting<bool>("offline")) {
+  if(getSetting<bool>(optionList::offline)) {
     out << "<script>" << newl;
     copy(locateFile(AsyGL));
     out << newl << "</script>" << newl;
   } else
     out << "<script" << newl << "src=\""
-        << getSetting<string>("asygl") << "\">" << newl << "</script>" << newl;
+        << getSetting<string>(optionList::asygl) << "\">" << newl << "</script>" << newl;
 
   out << newl << "<script>" << newl;
   out << newl
@@ -148,11 +148,11 @@ void jsfile::open(string name)
       << newl
       << s << "ibl=" << std::boolalpha << ibl << ";"
       << newl
-      << s << "absolute=" << std::boolalpha << getSetting<bool>("absolute") << ";"
+      << s << "absolute=" << std::boolalpha << getSetting<bool>(optionList::absolute) << ";"
       << newl;
   if(ibl) {
-    out << s << "imageURL=\"" << getSetting<string>("imageURL")+"/\";" << newl;
-    out << s << "image=\"" << getSetting<string>("image") << "\";" << newl << newl;
+    out << s << "imageURL=\"" << getSetting<string>(optionList::imageURL)+"/\";" << newl;
+    out << s << "image=\"" << getSetting<string>(optionList::image) << "\";" << newl << newl;
   }
   out << newl
       <<  s << "minBound=[" << gl::Xmin << "," << gl::Ymin << "," << gl::Zmin << "];"
@@ -167,16 +167,16 @@ void jsfile::open(string name)
     if(gl::Shift != pair(0.0,0.0))
       out << s << "viewportShift=" << gl::Shift*gl::Zoom0 << ";" << newl;
     out << s << "viewportMargin=" << gl::Margin << ";" << newl << newl
-        << s << "zoomFactor=" << getSetting<double>("zoomfactor") << ";" << newl
-        << s << "zoomPinchFactor=" << getSetting<double>("zoomPinchFactor") << ";"
+        << s << "zoomFactor=" << getSetting<double>(optionList::zoomfactor) << ";" << newl
+        << s << "zoomPinchFactor=" << getSetting<double>(optionList::zoomPinchFactor) << ";"
       << newl
-        << s << "zoomPinchCap=" << getSetting<double>("zoomPinchCap") << ";" << newl
-        << s << "zoomStep=" << getSetting<double>("zoomstep") << ";" << newl
-        << s << "shiftHoldDistance=" << getSetting<double>("shiftHoldDistance") << ";"
+        << s << "zoomPinchCap=" << getSetting<double>(optionList::zoomPinchCap) << ";" << newl
+        << s << "zoomStep=" << getSetting<double>(optionList::zoomstep) << ";" << newl
+        << s << "shiftHoldDistance=" << getSetting<double>(optionList::shiftHoldDistance) << ";"
       << newl
-        << s << "shiftWaitTime=" << getSetting<double>("shiftWaitTime") << ";"
+        << s << "shiftWaitTime=" << getSetting<double>(optionList::shiftWaitTime) << ";"
       << newl
-        << s << "vibrateTime=" << getSetting<double>("vibrateTime") << ";"
+        << s << "vibrateTime=" << getSetting<double>(optionList::vibrateTime) << ";"
         << newl << newl;
   out << s << "background=[" << gl::Background[0] << "," << gl::Background[1] << ","
       << gl::Background[2] << "," << gl::Background[3] << "];"

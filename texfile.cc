@@ -15,6 +15,7 @@ using std::ofstream;
 using settings::getSetting;
 using settings::ps2tex;
 using settings::tex2ps;
+namespace optionList = settings::optionList;
 using vm::array;
 using vm::read;
 
@@ -23,9 +24,9 @@ namespace camp {
 texfile::texfile(const string& texname, const bbox& box, bool pipe)
   : box(box)
 {
-  texengine=getSetting<string>("tex");
+  texengine=getSetting<string>(optionList::tex);
   pdf=settings::pdf(texengine);
-  inlinetex=getSetting<bool>("inlinetex");
+  inlinetex=getSetting<bool>(optionList::inlinetex);
   Hoffset=inlinetex ? box.right : box.left;
   out=new ofstream(texname.c_str());
   if(!out || !*out)
@@ -477,7 +478,7 @@ void svgtexfile::properties(const pen& p)
   const LineType *lastlinetype=lastpen.linetype();
 
   if(!(linetype->pattern == lastlinetype->pattern)) {
-    bool xasy=getSetting<bool>("xasy");
+    bool xasy=getSetting<bool>(optionList::xasy);
     auto qtfix=[&](double x) {
       return xasy ? max(x,1.0e-6) : x;
     };

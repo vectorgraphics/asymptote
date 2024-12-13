@@ -414,7 +414,7 @@ void execError(const char *command, const char *hint, const char *application)
   if(hint) {
     string s=string(hint);
     transform(s.begin(), s.end(), s.begin(), toupper);
-    cerr << "Please put in a file " << getSetting<string>("config")
+    cerr << "Please put in a file " << getSetting<string>(optionList::config)
          << ": " << endl << endl
          << "import settings;" << endl
          << hint << "=\"LOCATION\";" << endl << endl
@@ -570,14 +570,16 @@ void push_command(mem::vector<string>& a, const string& s)
 
 void popupHelp() {
 #if defined(_WIN32)
-  auto const pdfviewer= getSetting<string>("pdfviewer");
+  auto const pdfviewer= getSetting<string>(optionList::pdfviewer);
   string const docPath= docdir + dirsep + "asymptote.pdf";
   if (!pdfviewer.empty())
   {
     mem::vector<string> cmd;
     push_command(cmd, pdfviewer);
 
-    if (auto const viewerOpts= getSetting<string>("pdfviewerOptions"); !viewerOpts.empty())
+    if (auto const viewerOpts=
+                getSetting<string>(optionList::pdfviewerOptions);
+        !viewerOpts.empty())
     {
       istringstream viewerOptStream(viewerOpts);
       string tmp;
@@ -611,8 +613,8 @@ void popupHelp() {
   // viewer again.
   if (pid==0 || (waitpid(pid, &status, WNOHANG) == pid)) {
     mem::vector<string> cmd;
-    push_command(cmd,getSetting<string>("pdfviewer"));
-    string viewerOptions=getSetting<string>("pdfviewerOptions");
+    push_command(cmd,getSetting<string>(optionList::pdfviewer));
+    string viewerOptions=getSetting<string>(optionList::pdfviewerOptions);
     if(!viewerOptions.empty())
       cmd.push_back(viewerOptions);
     cmd.push_back(docdir+dirsep+"asymptote.pdf");

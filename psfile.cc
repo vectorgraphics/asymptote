@@ -25,6 +25,8 @@ using vm::stack;
 using vm::callable;
 using vm::pop;
 
+namespace optionList = settings::optionList;
+
 namespace camp {
 
 void checkColorSpace(ColorSpace colorspace)
@@ -143,7 +145,7 @@ psfile::~psfile()
 
 void psfile::header(bool eps)
 {
-  Int level=settings::getSetting<Int>("level");
+  Int level=settings::getSetting<Int>(optionList::level);
   *out << "%!PS-Adobe-" << level << ".0";
   if(eps)
     *out << " EPSF-" << level << ".0";
@@ -227,7 +229,7 @@ bool psfile::transparentFormat(string outputformat)
 
 void psfile::setopacity(const pen& p)
 {
-  if(transparentFormat(settings::getSetting<string>("outformat"))) {
+  if(transparentFormat(settings::getSetting<string>(optionList::outformat))) {
     if(p.blend() != lastpen.blend())
       *out << "/" << p.blend() << " .setblendmode" << newl;
 
@@ -541,7 +543,7 @@ void psfile::write(pen *p, size_t ncomponents)
 
 string filter()
 {
-  return settings::getSetting<Int>("level") >= 3 ?
+  return settings::getSetting<Int>(optionList::level) >= 3 ?
     "1 (~>) /SubFileDecode filter /ASCII85Decode filter\n/FlateDecode" :
     "1 (~>) /SubFileDecode filter /ASCII85Decode";
 }
@@ -693,7 +695,7 @@ void psfile::outImage(bool antialias, size_t width, size_t height,
                       size_t ncomponents)
 {
   if(antialias) dealias(buffer,width,height,ncomponents);
-  if(settings::getSetting<Int>("level") >= 3)
+  if(settings::getSetting<Int>(optionList::level) >= 3)
     writeCompressed(buffer,count);
   else {
     encode85 e(out);

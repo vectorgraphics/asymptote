@@ -183,8 +183,8 @@ bool readURL(stringstream& buf, const string& filename)
   if(settings::verbose > 3)
     curl_easy_setopt(curl,CURLOPT_VERBOSE,true);
 #ifdef __MSDOS__
-  string cert=settings::getSetting<string>("sysdir")+settings::dirsep+
-    "ca-bundle.crt";
+  string cert= settings::getSetting<string>(settings::optionList::sysdir) +
+               settings::dirsep + "ca-bundle.crt";
   curl_easy_setopt(curl,CURLOPT_CAINFO,cert.c_str());
 #endif
   curl_easy_setopt(curl,CURLOPT_URL,filename.c_str());

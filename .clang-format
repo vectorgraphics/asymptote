@@ -36,7 +36,7 @@ BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon
 BreakInheritanceList: BeforeColon
 BinPackArguments: false
-ColumnLimit: 120
+ColumnLimit: 79
 CompactNamespaces: false
 ContinuationIndentWidth: 8
 IndentCaseLabels: true

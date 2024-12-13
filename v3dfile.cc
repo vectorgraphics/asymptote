@@ -19,6 +19,7 @@ namespace camp
 {
 
 using settings::getSetting;
+namespace optionList = settings::optionList;
 
 void v3dfile::writeInit()
 {
@@ -35,45 +36,100 @@ void v3dfile::addHeaders()
   getXDRFile() << v3dtypes::header;
   std::vector<std::unique_ptr<AHeader>> headers;
 
-  headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::canvasWidth, gl::fullWidth));
-  headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::canvasHeight, gl::fullHeight));
-  headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::absolute, getSetting<bool>("absolute")));
-  headers.emplace_back(make_unique<TripleHeader>(v3dheadertypes::minBound, triple(gl::Xmin, gl::Ymin, gl::Zmin)));
-  headers.emplace_back(make_unique<TripleHeader>(v3dheadertypes::maxBound, triple(gl::Xmax, gl:: Ymax, gl::Zmax)));
-  headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::orthographic, gl::orthographic));
-  headers.emplace_back(make_unique<DoubleHeader>(v3dheadertypes::angleOfView, gl::Angle));
-  headers.emplace_back(make_unique<DoubleHeader>(v3dheadertypes::initialZoom, gl::Zoom0));
-  if(gl::Shift != pair(0.0,0.0))
-    headers.emplace_back(make_unique<PairHeader>(v3dheadertypes::viewportShift, gl::Shift*gl::Zoom0));
-  headers.emplace_back(make_unique<PairHeader>(v3dheadertypes::viewportMargin, gl::Margin));
+  headers.emplace_back(
+          make_unique<Uint32Header>(v3dheadertypes::canvasWidth, gl::fullWidth)
+  );
+  headers.emplace_back(make_unique<Uint32Header>(
+          v3dheadertypes::canvasHeight,
+          gl::fullHeight
+  ));
+  headers.emplace_back(make_unique<Uint32Header>(
+          v3dheadertypes::absolute,
+          getSetting<bool>(optionList::absolute)
+  ));
+  headers.emplace_back(make_unique<TripleHeader>(
+          v3dheadertypes::minBound,
+          triple(gl::Xmin, gl::Ymin, gl::Zmin)
+  ));
+  headers.emplace_back(make_unique<TripleHeader>(
+          v3dheadertypes::maxBound,
+          triple(gl::Xmax, gl::Ymax, gl::Zmax)
+  ));
+  headers.emplace_back(make_unique<Uint32Header>(
+          v3dheadertypes::orthographic,
+          gl::orthographic
+  ));
+  headers.emplace_back(
+          make_unique<DoubleHeader>(v3dheadertypes::angleOfView, gl::Angle)
+  );
+  headers.emplace_back(
+          make_unique<DoubleHeader>(v3dheadertypes::initialZoom, gl::Zoom0)
+  );
+  if (gl::Shift != pair(0.0, 0.0))
+    headers.emplace_back(make_unique<PairHeader>(
+            v3dheadertypes::viewportShift,
+            gl::Shift * gl::Zoom0
+    ));
+  headers.emplace_back(
+          make_unique<PairHeader>(v3dheadertypes::viewportMargin, gl::Margin)
+  );
 
-  for(size_t i=0; i < gl::nlights; ++i) {
-    size_t i4=4*i;
+  for (size_t i= 0; i < gl::nlights; ++i)
+  {
+    size_t i4= 4 * i;
     headers.emplace_back(make_unique<LightHeader>(
-                           gl::Lights[i],
-                           prc::RGBAColour(gl::Diffuse[i4], gl::Diffuse[i4+1], gl::Diffuse[i4+2], 1.0)
-                           ));
+            gl::Lights[i],
+            prc::RGBAColour(
+                    gl::Diffuse[i4],
+                    gl::Diffuse[i4 + 1],
+                    gl::Diffuse[i4 + 2],
+                    1.0
+            )
+    ));
   }
 
   headers.emplace_back(make_unique<RGBAHeader>(
-                         v3dheadertypes::background,
-                         prc::RGBAColour(gl::Background[0],gl::Background[1],gl::Background[2],gl::Background[3])));
+          v3dheadertypes::background,
+          prc::RGBAColour(
+                  gl::Background[0],
+                  gl::Background[1],
+                  gl::Background[2],
+                  gl::Background[3]
+          )
+  ));
 
-  headers.emplace_back(make_unique<DoubleHeader>(v3dheadertypes::zoomFactor, getSetting<double>("zoomfactor")));
   headers.emplace_back(make_unique<DoubleHeader>(
-                         v3dheadertypes::zoomPinchFactor, getSetting<double>("zoomPinchFactor")));
+          v3dheadertypes::zoomFactor,
+          getSetting<double>(optionList::zoomfactor)
+  ));
   headers.emplace_back(make_unique<DoubleHeader>(
-                         v3dheadertypes::zoomPinchCap, getSetting<double>("zoomPinchCap")));
-  headers.emplace_back(make_unique<DoubleHeader>(v3dheadertypes::zoomStep, getSetting<double>("zoomstep")));
+          v3dheadertypes::zoomPinchFactor,
+          getSetting<double>(optionList::zoomPinchFactor)
+  ));
   headers.emplace_back(make_unique<DoubleHeader>(
-                         v3dheadertypes::shiftHoldDistance, getSetting<double>("shiftHoldDistance")));
+          v3dheadertypes::zoomPinchCap,
+          getSetting<double>(optionList::zoomPinchCap)
+  ));
   headers.emplace_back(make_unique<DoubleHeader>(
-                         v3dheadertypes::shiftWaitTime, getSetting<double>("shiftWaitTime")));
+          v3dheadertypes::zoomStep,
+          getSetting<double>(optionList::zoomstep)
+  ));
   headers.emplace_back(make_unique<DoubleHeader>(
-                         v3dheadertypes::vibrateTime, getSetting<double>("vibrateTime")));
+          v3dheadertypes::shiftHoldDistance,
+          getSetting<double>(optionList::shiftHoldDistance)
+  ));
+  headers.emplace_back(make_unique<DoubleHeader>(
+          v3dheadertypes::shiftWaitTime,
+          getSetting<double>(optionList::shiftWaitTime)
+  ));
+  headers.emplace_back(make_unique<DoubleHeader>(
+          v3dheadertypes::vibrateTime,
+          getSetting<double>(optionList::vibrateTime)
+  ));
 
   getXDRFile() << (uint32_t) headers.size();
-  for(const auto& header : headers) {
+  for (const auto& header : headers)
+  {
     getXDRFile() << header->ty << header->getWordSize(singleprecision);
     header->writeContent(getXDRFile());
   }

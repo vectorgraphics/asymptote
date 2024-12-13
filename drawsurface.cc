@@ -30,6 +30,7 @@ const triple drawElement::zero;
 
 using vm::array;
 using settings::getSetting;
+namespace optionList = settings::optionList;
 
 #ifdef HAVE_LIBGLM
 
@@ -249,7 +250,7 @@ bool drawBezierPatch::write(abs3Doutfile *out)
     } else
       out->addPatch(controls,colors);
   }
-  out->precision(getSetting<Int>("digits"));
+  out->precision(getSetting<Int>(optionList::digits));
 
 #endif
   return true;
@@ -510,7 +511,7 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
     } else
       out->addBezierTriangle(controls,colors);
   }
-  out->precision(getSetting<Int>("digits"));
+  out->precision(getSetting<Int>(optionList::digits));
 
 #endif
   return true;

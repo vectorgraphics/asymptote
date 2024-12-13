@@ -212,7 +212,7 @@ Int convert(string args=emptystring, string file=emptystring,
 {
   string name=convertname(file,format);
   mem::vector<string> cmd;
-  string s=getSetting<string>("convert");
+  string s=getSetting<string>(optionList::convert);
   cmd.push_back(s);
   push_split(cmd,args);
   cmd.push_back(name);
@@ -242,7 +242,7 @@ Int animate(string args=emptystring, string file=emptystring,
   string name=convertname(file,format);
   if(view()) {
     mem::vector<string> cmd;
-    string s=getSetting<string>("animate");
+    string s=getSetting<string>(optionList::animate);
     cmd.push_back(s);
     if(s == "magick")
       cmd.push_back("animate");

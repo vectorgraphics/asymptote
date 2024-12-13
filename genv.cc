@@ -52,13 +52,14 @@ genv::genv()
   imap[symbol::literalTrans("settings")]=settings::getSettingsModule();
 
   // Translate plain in advance, if we're using autoplain.
-  if(getSetting<bool>("autoplain")) {
-    Setting("autoplain")=false;
+  namespace optionList = settings::optionList;
+  if(getSetting<bool>(optionList::autoplain)) {
+    Setting(optionList::autoplain)=false;
 
     // Translate plain without autoplain.
     getModule(symbol::trans("plain"), "plain");
 
-    Setting("autoplain")=true;
+    Setting(optionList::autoplain)=true;
   }
 #ifdef HAVE_LIBGSL
   imap[symbol::literalTrans("gsl")]=trans::getGSLModule();

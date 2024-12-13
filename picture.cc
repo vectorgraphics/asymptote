@@ -36,7 +36,7 @@ using namespace settings;
 using namespace gl;
 
 texstream::~texstream() {
-  string texengine=getSetting<string>("tex");
+  string texengine=getSetting<string>(optionList::tex);
   bool context=settings::context(texengine);
   string name;
   if(!context)
@@ -159,8 +159,9 @@ public:
 
 const char *texpathmessage() {
   ostringstream buf;
-  buf << "the directory containing your " << getSetting<string>("tex")
-      << " engine (" << texcommand() << ")";
+  buf << "the directory containing your "
+      << getSetting<string>(optionList::tex) << " engine (" << texcommand()
+      << ")";
   return Strdup(buf.str());
 }
 
@@ -225,14 +226,18 @@ void picture::prepend(picture &pic)
 bool picture::havelabels()
 {
   size_t n=nodes.size();
-  if(n > lastnumber && !labels && getSetting<string>("tex") != "none") {
+  if (n > lastnumber && !labels &&
+      getSetting<string>(optionList::tex) != "none")
+  {
     // Check to see if there are any labels yet
-    nodelist::iterator p=nodes.begin();
-    for(size_t i=0; i < lastnumber; ++i) ++p;
-    for(; p != nodes.end(); ++p) {
+    nodelist::iterator p= nodes.begin();
+    for (size_t i= 0; i < lastnumber; ++i) ++p;
+    for (; p != nodes.end(); ++p)
+    {
       assert(*p);
-      if((*p)->islabel()) {
-        labels=true;
+      if ((*p)->islabel())
+      {
+        labels= true;
         break;
       }
     }
@@ -362,7 +367,7 @@ void texinit()
     return;
   }
 
-  bool context=settings::context(getSetting<string>("tex"));
+  bool context=settings::context(getSetting<string>(optionList::tex));
   string dir=stripFile(outname());
   string logname;
   if(!context) logname=dir;
@@ -389,16 +394,19 @@ void texinit()
     if(!dir.empty())
       cmd.push_back("-output-directory="+dir);
     string jobname="texput";
-    if(getSetting<bool>("inlineimage") || getSetting<bool>("inlinetex")) {
-      string name=stripDir(stripExt((outname())));
-      size_t pos=name.rfind("-");
-      if(pos < string::npos) {
-        name=stripExt(name).substr(0,pos);
-        unlink((name+".aux").c_str());
-        jobname=name.substr(0,pos);
-        cmd.push_back("-jobname="+jobname);
+    if (getSetting<bool>(optionList::inlineimage) ||
+        getSetting<bool>(optionList::inlinetex))
+    {
+      string name= stripDir(stripExt((outname())));
+      size_t pos= name.rfind("-");
+      if (pos < string::npos)
+      {
+        name= stripExt(name).substr(0, pos);
+        unlink((name + ".aux").c_str());
+        jobname= name.substr(0, pos);
+        cmd.push_back("-jobname=" + jobname);
 #ifdef __MSDOS__
-        cmd.push_back("NUL"); // For MikTeX
+        cmd.push_back("NUL");// For MikTeX
 #endif
       }
     }
@@ -418,7 +426,7 @@ int opentex(const string& texname, const string& prefix, bool dvi)
 {
   string aux=auxname(prefix,"aux");
   unlink(aux.c_str());
-  bool context=settings::context(getSetting<string>("tex"));
+  bool context=settings::context(getSetting<string>(optionList::tex));
   mem::vector<string> cmd;
   cmd.push_back(texprogram());
   if(dvi)
@@ -442,7 +450,7 @@ int opentex(const string& texname, const string& prefix, bool dvi)
 
   bool quiet=verbose <= 1;
   int status=System(cmd,quiet ? 1 : 0,true,"texpath",texpathmessage());
-  if(!status && getSetting<bool>("twice"))
+  if(!status && getSetting<bool>(optionList::twice))
     status=System(cmd,quiet ? 1 : 0,true,"texpath",texpathmessage());
   if(status) {
     if(quiet) {
@@ -463,13 +471,13 @@ string dvisvgmCommand(mem::vector<string>& cmd, const string& outname)
     oldPath=getPath();
     setPath(dir.c_str());
   }
-  cmd.push_back(getSetting<string>("dvisvgm"));
+  cmd.push_back(getSetting<string>(optionList::dvisvgm));
   cmd.push_back("-n");
   cmd.push_back("-v3");
-  string libgs=getSetting<string>("libgs");
+  string libgs=getSetting<string>(optionList::libgs);
   if(!libgs.empty())
     cmd.push_back("--libgs="+libgs);
-  push_split(cmd,getSetting<string>("dvisvgmOptions"));
+  push_split(cmd,getSetting<string>(optionList::dvisvgmOptions));
   string outfile=stripDir(outname);
   if(!outfile.empty())
     cmd.push_back("-o"+outfile);
@@ -484,13 +492,13 @@ bool picture::texprocess(const string& texname, const string& outname,
   ifstream outfile;
 
   outfile.open(texname.c_str());
-  bool keep=getSetting<bool>("keep");
+  bool keep=getSetting<bool>(optionList::keep);
 
   if(outfile) {
     outfile.close();
 
     status=opentex(texname,prefix);
-    string texengine=getSetting<string>("tex");
+    string texengine=getSetting<string>(optionList::tex);
 
     if(status == 0) {
       string dviname=auxname(prefix,"dvi");
@@ -517,12 +525,12 @@ bool picture::texprocess(const string& texname, const string& outname,
           double vertical=height;
           if(!latex(texengine)) vertical += 2.0;
           double voffset=(vertical < 13.0) ? -137.8+vertical : -124.8;
-          double paperHeight=getSetting<double>("paperheight");
+          double paperHeight=getSetting<double>(optionList::paperheight);
 
           hoffset += b.left+bboxshift.getx();
           voffset += paperHeight-height-b.bottom-bboxshift.gety();
 
-          string dvipsrc=getSetting<string>("dir");
+          string dvipsrc=getSetting<string>(optionList::dir);
           if(dvipsrc.empty()) dvipsrc=systemDir;
           dvipsrc += dirsep+"nopapersize.ps";
 #if !defined(_WIN32)
@@ -534,18 +542,22 @@ bool picture::texprocess(const string& texname, const string& outname,
               camp::reportError("Cannot set DVIPSRC environment variable");
           }
 #endif
-          string papertype=getSetting<string>("papertype") == "letter" ?
-            "letterSize" : "a4size";
-          cmd.push_back(getSetting<string>("dvips"));
+          string papertype=
+                  getSetting<string>(optionList::papertype) == "letter"
+                          ? "letterSize"
+                          : "a4size";
+          cmd.push_back(getSetting<string>(optionList::dvips));
           cmd.push_back("-R");
           cmd.push_back("-Pdownload35");
           cmd.push_back("-D600");
           cmd.push_back("-O"+String(hoffset)+"bp,"+String(voffset)+"bp");
           bool ps=pagecount() > 1;
-          cmd.push_back("-T"+String(getSetting<double>("paperwidth"))+"bp,"+
-                        String(paperHeight)+"bp");
-          push_split(cmd,getSetting<string>("dvipsOptions"));
-          if(ps && getSetting<string>("papertype") != "")
+          cmd.push_back(
+                  "-T" + String(getSetting<double>(optionList::paperwidth)) +
+                  "bp," + String(paperHeight) + "bp"
+          );
+          push_split(cmd,getSetting<string>(optionList::dvipsOptions));
+          if(ps && getSetting<string>(optionList::papertype) != "")
             cmd.push_back("-t"+papertype);
           if(verbose <= 1) cmd.push_back("-q");
           cmd.push_back("-o"+psname);
@@ -625,7 +637,7 @@ bool picture::texprocess(const string& texname, const string& outname,
 
     if(!keep) {
       unlink(texname.c_str());
-      if(!getSetting<bool>("keepaux"))
+      if(!getSetting<bool>(optionList::keepaux))
         unlink(auxname(prefix,"aux").c_str());
       unlink(auxname(prefix,"log").c_str());
       unlink(auxname(prefix,"out").c_str());
@@ -647,13 +659,13 @@ bool picture::texprocess(const string& texname, const string& outname,
 
 int picture::epstopdf(const string& epsname, const string& pdfname)
 {
-  string outputformat=getSetting<string>("outformat");
-  bool pdf=settings::pdf(getSetting<string>("tex"));
+  string outputformat=getSetting<string>(optionList::outformat);
+  bool pdf=settings::pdf(getSetting<string>(optionList::tex));
   bool pdfformat=(pdf && outputformat == "") || outputformat == "pdf";
-  string compress=getSetting<bool>("compress") && pdfformat ?
+  string compress=getSetting<bool>(optionList::compress) && pdfformat ?
     "true" : "false";
   mem::vector<string> cmd;
-  cmd.push_back(getSetting<string>("gs"));
+  cmd.push_back(getSetting<string>(optionList::gs));
   cmd.push_back("-q");
   cmd.push_back("-dNOPAUSE");
   cmd.push_back("-dBATCH");
@@ -670,13 +682,13 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   cmd.push_back("-dEncodeGrayImages="+compress);
   cmd.push_back("-dCompatibilityLevel=1.5");
   cmd.push_back("-dTransferFunctionInfo=/Apply");
-  if(!getSetting<bool>("autorotate"))
+  if(!getSetting<bool>(optionList::autorotate))
     cmd.push_back("-dAutoRotatePages=/None");
-  cmd.push_back("-g"+String(max(ceil(getSetting<double>("paperwidth")),1.0))
-                +"x"+String(max(ceil(getSetting<double>("paperheight")),1.0)));
+  cmd.push_back("-g"+String(max(ceil(getSetting<double>(optionList::paperwidth)),1.0))
+                +"x"+String(max(ceil(getSetting<double>(optionList::paperheight)),1.0)));
   cmd.push_back("-dDEVICEWIDTHPOINTS="+String(max(b.right-b.left,3.0)));
   cmd.push_back("-dDEVICEHEIGHTPOINTS="+String(max(b.top-b.bottom,3.0)));
-  push_split(cmd,getSetting<string>("gsOptions"));
+  push_split(cmd,getSetting<string>(optionList::gsOptions));
   cmd.push_back("-sOutputFile="+stripDir(pdfname));
   if(safe) {
     cmd.push_back("-c");
@@ -700,7 +712,7 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
 int picture::pdftoeps(const string& pdfname, const string& epsname, bool eps)
 {
   mem::vector<string> cmd;
-  cmd.push_back(getSetting<string>("gs"));
+  cmd.push_back(getSetting<string>(optionList::gs));
   cmd.push_back("-q");
   cmd.push_back("-dNoOutputFonts");
   cmd.push_back("-dNOPAUSE");
@@ -708,8 +720,13 @@ int picture::pdftoeps(const string& pdfname, const string& epsname, bool eps)
   cmd.push_back("-P");
   if(safe)
     cmd.push_back("-dSAFER");
-  string texengine=getSetting<string>("tex");
-  cmd.push_back("-sDEVICE="+getSetting<string>(eps ? "epsdriver": "psdriver"));
+  string texengine=getSetting<string>(optionList::tex);
+  cmd.push_back(
+          "-sDEVICE=" +
+          getSetting<string>(
+                  eps ? optionList::epsdriver : optionList::psdriver
+          )
+  );
   cmd.push_back("-sOutputFile="+stripDir(epsname));
   cmd.push_back(stripDir(pdfname));
 
@@ -742,7 +759,7 @@ bool picture::reloadPDF(const string& Viewer, const string& outname) const
   if(haveReload) {
     mem::vector<string> cmd;
     push_command(cmd,Viewer);
-    string pdfreloadOptions=getSetting<string>("pdfreloadOptions");
+    string pdfreloadOptions=getSetting<string>(optionList::pdfreloadOptions);
     if(!pdfreloadOptions.empty())
       cmd.push_back(pdfreloadOptions);
     cmd.push_back(reloadprefix+".pdf");
@@ -756,7 +773,7 @@ int picture::epstosvg(const string& epsname, const string& outname,
 {
   string oldPath;
   int status=0;
-  if(deconstruct && getSetting<bool>("dvisvgmMultipleFiles")) {
+  if(deconstruct && getSetting<bool>(optionList::dvisvgmMultipleFiles)) {
     mem::vector<string> cmd;
     oldPath=dvisvgmCommand(cmd,stripFile(outname));
     for(unsigned i=1; i <= pages; ++i) {
@@ -769,7 +786,7 @@ int picture::epstosvg(const string& epsname, const string& outname,
     for(unsigned i=1; i <= pages; ++i) {
       ostringstream buf;
       buf << epsname << i << ".ps";
-      if(!getSetting<bool>("keep"))
+      if(!getSetting<bool>(optionList::keep))
         unlink(buf.str().c_str());
     }
     if(!oldPath.empty())
@@ -789,7 +806,7 @@ int picture::epstosvg(const string& epsname, const string& outname,
       cmd.push_back(buf.str());
       cmd.push_back("-E");
       status=System(cmd,0,true,"dvisvgm");
-      if(!getSetting<bool>("keep"))
+      if(!getSetting<bool>(optionList::keep))
         unlink(buf.str().c_str());
       if(!oldPath.empty())
         setPath(oldPath.c_str());
@@ -801,7 +818,7 @@ int picture::epstosvg(const string& epsname, const string& outname,
 
 void htmlView(string name)
 {
-  string const browser=getSetting<string>("htmlviewer");
+  string const browser=getSetting<string>(optionList::htmlviewer);
   string const htmlFile=locateFile(name, true);
 
   if (browser.empty())
@@ -829,7 +846,8 @@ void htmlView(string name)
   }
   else
   {
-    string const browserOptions= getSetting<string>("htmlviewerOptions");
+    string const browserOptions=
+            getSetting<string>(optionList::htmlviewerOptions);
     mem::vector<string> cmd;
     push_command(cmd, browser);
     cmd.push_back(htmlFile);
@@ -847,7 +865,7 @@ bool picture::postprocess(const string& prename, const string& outname,
                           bool epsformat, bool svg)
 {
   int status=0;
-  bool pdf=settings::pdf(getSetting<string>("tex"));
+  bool pdf=settings::pdf(getSetting<string>(optionList::tex));
   bool pdfformat=(pdf && outputformat == "") || outputformat == "pdf";
 
   mem::vector<string> cmd;
@@ -869,36 +887,36 @@ bool picture::postprocess(const string& prename, const string& outname,
       } else
         status=pdftoeps(prename,outname);
     } else {
-      double render=fabs(getSetting<double>("render"));
+      double render=fabs(getSetting<double>(optionList::render));
       if(render == 0) render=1.0;
       double res=render*72.0;
-      Int antialias=getSetting<Int>("antialias");
+      Int antialias=getSetting<Int>(optionList::antialias);
       if(outputformat == "png" && antialias == 2) {
-        cmd.push_back(getSetting<string>("gs"));
+        cmd.push_back(getSetting<string>(optionList::gs));
         cmd.push_back("-q");
         cmd.push_back("-dNOPAUSE");
         cmd.push_back("-dBATCH");
         cmd.push_back("-P");
-        cmd.push_back("-sDEVICE="+getSetting<string>("pngdriver"));
+        cmd.push_back("-sDEVICE="+getSetting<string>(optionList::pngdriver));
         if(safe)
           cmd.push_back("-dSAFER");
         cmd.push_back("-r"+String(res)+"x"+String(res));
-        push_split(cmd,getSetting<string>("gsOptions"));
+        push_split(cmd,getSetting<string>(optionList::gsOptions));
         cmd.push_back("-sOutputFile="+outname);
         cmd.push_back(prename);
         status=System(cmd,0,true,"gs","Ghostscript");
-      } else if(!svg && !getSetting<bool>("xasy")) {
+      } else if(!svg && !getSetting<bool>(optionList::xasy)) {
         double expand=antialias;
         if(expand < 2.0) expand=1.0;
         res *= expand;
-        string s=getSetting<string>("convert");
+        string s=getSetting<string>(optionList::convert);
         cmd.push_back(s);
         cmd.push_back("-density");
         cmd.push_back(String(res)+"x"+String(res));
         cmd.push_back(prename);
         if(expand == 1.0)
           cmd.push_back("+antialias");
-        push_split(cmd,getSetting<string>("convertOptions"));
+        push_split(cmd,getSetting<string>(optionList::convertOptions));
         cmd.push_back("-resize");
         cmd.push_back(String(100.0/expand)+"%x");
         if(outputformat == "jpg") cmd.push_back("-flatten");
@@ -906,7 +924,7 @@ bool picture::postprocess(const string& prename, const string& outname,
         status=System(cmd,0,true,"convert");
       }
     }
-    if(!getSetting<bool>("keep"))
+    if(!getSetting<bool>(optionList::keep))
       unlink(prename.c_str());
   }
   if(status != 0) return false;
@@ -925,16 +943,15 @@ bool picture::display(const string& outname, const string& outputformat,
   {
     int status;
 
-    bool const pdf=settings::pdf(getSetting<string>("tex"));
+    bool const pdf=settings::pdf(getSetting<string>(optionList::tex));
     bool pdfformat=(pdf && outputformat.empty()) || outputformat == "pdf";
 
     if(epsformat || pdfformat) {
       // Check to see if there is an existing viewer for this outname.
       mem::map<CONST string,int>::iterator const p=pids.find(outname);
       bool running=(p != pids.end());
-      string Viewer=
-        pdfformat ?
-        getSetting<string>("pdfviewer") : getSetting<string>("psviewer");
+      string Viewer= pdfformat ? getSetting<string>(optionList::pdfviewer)
+                               : getSetting<string>(optionList::psviewer);
       int pid;
       if(running) {
         pid=p->second;
@@ -948,7 +965,7 @@ bool picture::display(const string& outname, const string& outputformat,
         }
       }
 
-      bool pdfreload=pdfformat && getSetting<bool>("pdfreload");
+      bool pdfreload=pdfformat && getSetting<bool>(optionList::pdfreload);
       if(running) {
 #if defined(_WIN32)
         if (pdfreload)
@@ -1010,7 +1027,10 @@ bool picture::display(const string& outname, const string& outputformat,
         }
         else
         {
-          string viewerOptions= getSetting<string>(pdfformat ? "pdfviewerOptions" : "psviewerOptions");
+          string viewerOptions= getSetting<string>(
+                  pdfformat ? optionList::pdfviewerOptions
+                            : optionList::psviewerOptions
+          );
           mem::vector<string> cmd;
 
           push_command(cmd, Viewer);
@@ -1032,7 +1052,7 @@ bool picture::display(const string& outname, const string& outputformat,
         if(pdfreload) {
           // Work around race conditions in acroread initialization script
           std::this_thread::sleep_for(std::chrono::microseconds(
-            getSetting<Int>("pdfreloaddelay")
+            getSetting<Int>(optionList::pdfreloaddelay)
           ));
           // Only reload if pdf viewer process is already running
 #if defined(_WIN32)
@@ -1048,7 +1068,7 @@ bool picture::display(const string& outname, const string& outputformat,
       if(outputformat == "svg" || outputformat == "html")
         htmlView(outname);
       else {
-        string displayProgram=getSetting<string>("display");
+        string displayProgram=getSetting<string>(optionList::display);
         if (displayProgram.empty())
         {
 #if defined(_WIN32)
@@ -1093,7 +1113,7 @@ string Outname(const string& prefix, const string& outputformat,
 bool picture::shipout(picture *preamble, const string& Prefix,
                       const string& format, bool wait, bool view)
 {
-  bool keep=getSetting<bool>("keep");
+  bool keep=getSetting<bool>(optionList::keep);
 
   string aux="";
   b=bounds();
@@ -1115,7 +1135,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   bool svgformat=outputformat == "svg";
   bool png=outputformat == "png";
 
-  string texengine=getSetting<string>("tex");
+  string texengine=getSetting<string>(optionList::tex);
 
   string texengineSave;
 
@@ -1126,7 +1146,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   }
 
   bool usetex=texengine != "none";
-  bool TeXmode=getSetting<bool>("inlinetex") && usetex;
+  bool TeXmode=getSetting<bool>(optionList::inlinetex) && usetex;
   bool pdf=settings::pdf(texengine);
 
   bool standardout=Prefix == "-";
@@ -1137,7 +1157,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   bool pdfformat=pdf || png || outputformat == "pdf";
   bool dvi=false;
   bool svg=svgformat && usetex &&
-    (!have3D() || getSetting<double>("render") == 0.0);
+    (!have3D() || getSetting<double>(optionList::render) == 0.0);
   if(svg) {
     if(pdf) epsformat=true;
     else dvi=true;
@@ -1178,17 +1198,17 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 
   SetPageDimensions();
 
-  pair aligndir=getSetting<pair>("aligndir");
-  string origin=getSetting<string>("align");
+  pair aligndir=getSetting<pair>(optionList::aligndir);
+  string origin=getSetting<string>(optionList::align);
 
   pair bboxshift=(origin == "Z" && epsformat) ?
     pair(0.0,0.0) : pair(-b.left,-b.bottom);
 
   if(epsformat) {
-    bboxshift += getSetting<pair>("offset");
-    double yexcess=max(getSetting<double>("paperheight")-
+    bboxshift += getSetting<pair>(optionList::offset);
+    double yexcess=max(getSetting<double>(optionList::paperheight)-
                        (b.top-b.bottom+1.0),0.0);
-    double xexcess=max(getSetting<double>("paperwidth")-
+    double xexcess=max(getSetting<double>(optionList::paperwidth)-
                        (b.right-b.left+1.0),0.0);
     if(aligndir == pair(0,0)) {
       if(origin != "Z" && origin != "B") {
@@ -1467,7 +1487,7 @@ bool picture::shipout3(const string& prefix, const string& format,
                        size_t nlights, triple *lights, double *diffuse,
                        double *specular, bool view)
 {
-  if(getSetting<bool>("interrupt"))
+  if(getSetting<bool>(optionList::interrupt))
     return true;
 
   if(width <= 0 || height <= 0) return false;
@@ -1517,7 +1537,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
 
   const string outputformat=format.empty() ?
-    getSetting<string>("outformat") : format;
+    getSetting<string>(optionList::outformat) : format;
 
 #ifdef HAVE_LIBGLM
   static int oldpid=0;
@@ -1530,7 +1550,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   offscreen=true;
 #endif
 #ifdef HAVE_PTHREAD
-  bool animating=getSetting<bool>("animating");
+  bool animating=getSetting<bool>(optionList::animating);
   bool Wait=!interact::interactive || !View || animating;
 #endif
 #endif
@@ -1630,8 +1650,8 @@ bool picture::shipout3(const string& prefix, const string& format,
       fileObj=new jsfile(name);
     else if(v3d)
 #ifdef HAVE_LIBTIRPC
-      fileObj=new gzv3dfile(name,getSetting<bool>("lossy") ||
-                            getSetting<double>("prerender") > 0.0);
+      fileObj=new gzv3dfile(name,getSetting<bool>(optionList::lossy) ||
+                            getSetting<double>(optionList::prerender) > 0.0);
 #else
     {
     ostringstream buf;

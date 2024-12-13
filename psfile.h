@@ -137,7 +137,11 @@ protected:
   std::ostream *out;
 
 public:
-  bool pdftex() {return settings::pdf(settings::getSetting<string>("tex"));}
+  bool pdftex()
+  {
+    namespace optionList = settings::optionList;
+    return settings::pdf(settings::getSetting<string>(optionList::tex));
+  }
 
   psfile(const string& filename, bool pdfformat);
 
@@ -263,7 +267,8 @@ public:
   virtual void endpsclip(const pen &p) {endclip(p);}
 
   void checkLevel() {
-    int n=settings::getSetting<Int>("level");
+    namespace optionList = settings::optionList;
+    int n=settings::getSetting<Int>(optionList::level);
     if(n < 3)
       reportError("PostScript shading requires -level 3");
   }

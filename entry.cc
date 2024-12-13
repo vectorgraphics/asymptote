@@ -748,7 +748,8 @@ void listValue(symbol name, varEntry *v, record *module)
 {
   if (!module || v->whereDefined() == module)
     {
-      if (settings::getSetting<bool>("where"))
+      using namespace settings;
+      if (getSetting<bool>(optionList::where))
         cout << v->getPos();
 
       v->getType()->printVar(cout, name);

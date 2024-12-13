@@ -29,8 +29,9 @@ namespace camp {
 template<class T>
 void texdocumentclass(T& out, bool pipe=false)
 {
-  if(settings::latex(settings::getSetting<string>("tex")) &&
-     (pipe || !settings::getSetting<bool>("inlinetex")))
+  namespace optionList = settings::optionList;
+  if(settings::latex(settings::getSetting<string>(optionList::tex)) &&
+     (pipe || !settings::getSetting<bool>(optionList::inlinetex)))
     out << "\\documentclass[12pt]{article}" << newl;
 }
 
@@ -63,8 +64,9 @@ template<class T>
 void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
                  bool pipe=false, bool ASYbox=true)
 {
+  namespace optionList = settings::optionList;
   texuserpreamble(out,preamble,pipe);
-  string texengine=settings::getSetting<string>("tex");
+  string texengine=settings::getSetting<string>(optionList::tex);
   string outPath=stripFile(settings::outname());
   if(settings::context(texengine))
     out << "\\disabledirectives[system.errorcontext]%" << newl;
@@ -98,7 +100,8 @@ void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
 template<class T>
 void dvipsfix(T &out)
 {
-  if(!settings::pdf(settings::getSetting<string>("tex"))) {
+  namespace optionList = settings::optionList;
+  if(!settings::pdf(settings::getSetting<string>(optionList::tex))) {
     out << "\\makeatletter" << newl
         << "\\def\\Ginclude@eps#1{%" << newl
         << " \\message{<#1>}%" << newl
@@ -126,9 +129,10 @@ template<class T>
 void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
                 bool pipe=false)
 {
-  string texengine=settings::getSetting<string>("tex");
+  namespace optionList = settings::optionList;
+  string texengine=settings::getSetting<string>(optionList::tex);
   bool latex=settings::latex(texengine);
-  bool inlinetex=settings::getSetting<bool>("inlinetex");
+  bool inlinetex=settings::getSetting<bool>(optionList::inlinetex);
   if(pipe || !inlinetex) {
     bool lua=settings::lua(texengine);
     if(latex) {

@@ -120,7 +120,7 @@ void drawLabel::getbounds(iopipestream& tex, const string& texengine)
 void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
                        bboxlist&)
 {
-  string texengine=getSetting<string>("tex");
+  string texengine=getSetting<string>(optionList::tex);
   if(texengine == "none") {b += position; return;}
 
   getbounds(tex,texengine);
@@ -205,7 +205,7 @@ drawElement *drawLabel::transformed(const transform& t)
 
 void drawLabelPath::bounds(bbox& b, iopipestream& tex, boxvector&, bboxlist&)
 {
-  string texengine=getSetting<string>("tex");
+  string texengine=getSetting<string>(optionList::tex);
   if(texengine == "none") {b += position; return;}
 
   getbounds(tex,texengine);
@@ -244,7 +244,8 @@ void drawLabelPath::bounds(bbox& b, iopipestream& tex, boxvector&, bboxlist&)
 
 bool drawLabelPath::write(texfile *out, const bbox&)
 {
-  double Hoffset=getSetting<bool>("inlinetex") ? Box.right : Box.left;
+  double Hoffset=
+          getSetting<bool>(optionList::inlinetex) ? Box.right : Box.left;
   Box=Box.shift(pair(-Hoffset,-Box.bottom));
 
   checkbounds();
