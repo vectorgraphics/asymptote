@@ -3308,8 +3308,8 @@ following foreground--background blending operations:
 "HardLight","ColorDodge","ColorBurn","Darken","Lighten","Difference",
 "Exclusion","Hue","Saturation","Color","Luminosity",
 @end verbatim
-as described in
-@url{https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf}.
+as described in Tables 136 and 137 of
+@url{https://opensource.adobe.com/dc-acrobat-sdk-docs/standards/pdfstandards/pdf/PDF32000_2008.pdf}.
 Since @code{PostScript} does not support transparency, this feature is
 only effective with the @code{-f pdf} output format option; other
 formats can be produced from the resulting @acronym{PDF} file with the
@@ -5600,15 +5600,16 @@ returns the indices of all @code{true} values in the boolean array @code{a};
 @cindex @code{search}
 @item int search(T[] a, T key)
 For built-in ordered types @code{T}, searches a sorted array
-@code{a} of @code{n} elements for k, returning the index @code{i}
+@code{a} of @code{n} elements for @code{key}, returning the index @code{i}
 if @code{a[i] <= key < a[i+1]}, @code{-1} if @code{key} is
 less than all elements of @code{a}, or @code{n-1} if @code{key} is
 greater than or equal to the last element of @code{a};
 
 @cindex @code{search}
 @item int search(T[] a, T key, bool less(T i, T j))
-searches an array @code{a} sorted in ascending order such that element
-@code{i} precedes element @code{j} if @code{less(i,j)} is true;
+searches an array @code{a} for @code{key} sorted in ascending order
+such that element @code{i} precedes element @code{j} if
+@code{less(i,j)} is true;
 
 @cindex @code{copy}
 @item T[] copy(T[] a)
@@ -6490,110 +6491,90 @@ to the type.  This is regardless of what fields the variable actually possesses.
 @section Autounravel
 @cindex @code{autounravel}
 
-The @code{autounravel} keyword can be used to automatically unravel a field
-whenever the surrounding structure is available. Note that @code{autounravel}
-also incorporates the effects of the @code{static} keyword. This is primarily
-useful to build an "associated library" of functions that operate on a
-structure. For instance, consider a @code{Rational} structure:
+The @code{autounravel} modifier can be used to automatically unravel a field.
+This is useful when building an associated library of functions
+that operate on a structure. For instance, consider a simple
+implementation of the @code{rational} structure defined in @code{rational.asy}:
 
 @verbatim
-int gcd(int a, int b) { return b == 0 ? a : gcd(b, a%b); }
-struct Rational {
-  int numerator, denominator;
-  void operator init(int n, int d) {
-    int g=gcd(n,d);
-    numerator=n#g;
-    denominator=d#g;
+struct rational {
+  int p=0, q=1;
+  void operator init(int p, int q) {
+    this.p=p;
+    this.q=q;
   }
 }
-
-// See next example for a better way to do this.
-/*NOT RECOMMENDED*/Rational operator +(Rational a, Rational b) {
-  return Rational(a.numerator*b.denominator+b.numerator*a.denominator,
-                  a.denominator*b.denominator);
+rational operator +(rational a, rational b) {
+  return rational(a.p*b.q+b.p*a.q, a.q*b.q);
 }
 @end verbatim
 
-This will work most of the time, but not if @code{Rational} is used as a type
-parameter for a templated import that expects to be able to add instances of
-the type. To fix this, we can move the @code{operator +} function into the body
-of the @code{Rational} structure and add the @code{autounravel} keyword:
+To allow @code{rational} to be used as a type parameter for a templated import
+that adds instances of @code{rational}, we should move @code{operator +}
+into the body of the @code{rational} structure and add the
+@code{autounravel} modifier:
 
 @verbatim
-int gcd(int a, int b) { return b == 0 ? a : gcd(b, a%b); }
-struct Rational {
-  int numerator, denominator;
-  void operator init(int n, int d) {
-    int g=gcd(n,d);
-    numerator=n#g;
-    denominator=d#g;
+struct rational {
+  int p=0, q=1;
+  void operator init(int p, int q) {
+    this.p=p;
+    this.q=q;
   }
-  autounravel Rational operator +(Rational b) {
-    return Rational(numerator*b.denominator+b.numerator*denominator,
-                    denominator*b.denominator);
+  autounravel rational operator +(rational a, rational b) {
+    return rational(a.p*b.q+b.p*a.q, a.q*b.q);
   }
 }
 @end verbatim
 
 This is almost equivalent to the previous code, but now the @code{+} operator
-will be available whenever the @code{Rational} structure is available.
+will be accessible wherever the @code{rational} structure is.
 
-@strong{Warning: Types cannot be autounraveled.} Attempting to autounravel
-a type will usually result in an error, but even if it does not (e.g., in the
-command @code{autounravel from three access surface;}), the type will not be
-autounraveled.
-(We could not think of a strong use case for 
-autounraveling a type. Users with such a use case in mind are free to submit a
-feature request at @uref{https://github.com/vectorgraphics/asymptote/issues},
-although we cannot promise anything.)
+@strong{Currently, types cannot be autounraveled.}
+Users who encounter a case where this might be useful can submit a
+feature request at @uref{https://github.com/vectorgraphics/asymptote/issues}.
 
 @node When fields are autounraveled
 @subsection When fields are autounraveled
 
-If a struct has one or more fields (including functions) that are declared with
-@code{autounravel}, these fields will be unraveled from the struct at the
-following code locations:
+If a struct contains fields (including functions) that are declared with
+@code{autounravel}, these fields will be unraveled from the struct at:
 
 @itemize
 @item
-At the end of the struct definition.
+the end of the struct definition;
 @item
-At a @code{typedef import} statement, if the struct is the argument for one of
-the type parameters.
+a @code{typedef import} statement, if the struct is the argument for one of
+the type parameters;
 @item
-At an @code{unravel} or @code{access} statement that unravels the struct from
-a module or outer struct. For instance, if the example code above were placed
-into a module called @code{rational.asy}, then
-@code{from rational access Rational;}
-would make the it possible to add rationals using the @code{+} operator, in
-addition to making the @code{Rational} struct and its constructor available.
+an @code{unravel} or @code{access} statement that unravels the struct from
+a module or outer struct (for instance,
+@code{from rational access rational;} would make the @code{+} operator available
+from the struct @code{rational} defined in @code{rational.asy});
+
 @item
-At a @code{typedef} statement that renames the struct, for instance,
-@code{typedef rational.Rational rat;}.
+A @code{typedef} statement like @code{typedef rational.rational rat;}
+that renames a struct.
 @end itemize
 
 @node Where autounravel is legal
 @subsection Where @code{autounravel} is legal
 
-For the most part, the @code{autounravel} keyword can be used in the same
-places as the @code{static} keyword. (Recall that @code{autounravel} implies
-@code{static}.) However, there are certain places where @code{autounravel} will
-give an error (described in the next two paragraphs).
+For the most part, @code{autounravel} can be used in the same
+places as @code{static}. However, there are certain places
+where @code{autounravel} will give an error.
 
-At the top level of a module (i.e., outside of any struct or function), the
-@code{autounravel} keyword will give an error, whereas @code{static} gives only
-a warning. If top-level @code{autounravel} were allowed, some users would
-assume that the variable would be unraveled whenever the module was
-@code{access}ed, which is not the case. The @code{static} keyword is allowed at
+Specifying @code{autounravel} at the top level of a module (i.e.,
+outside of any struct or function) is an error, whereas @code{static}
+gives only a warning. If top-level @code{autounravel} were allowed,
+a user might incorrectly assume that the field would be unraveled
+whenever the module is @code{access}ed. The @code{static} modifier is allowed at
 the top level because, while it does nothing, it does not mislead the user.
-
-In front of a @code{struct} definition or @code{typedef} statement, the
-@code{autounravel} keyword is forbidden, because types cannot be autounraveled.
-
-Final note: while @code{static static} results in an error,
-@code{static autounravel} and @code{autounravel static} are both legal. They
-are, however, redundant, having exactly the same effect as @code{autounravel}
-alone.
+In front of a @code{struct} definition or @code{typedef} statement,
+@code{autounravel} is forbidden, because types cannot be autounraveled.
+While @code{static static} results in an error,
+@code{static autounravel} and @code{autounravel static} are both legal
+and have exactly the same effect as @code{autounravel} alone.
 
 
 @node LaTeX usage
