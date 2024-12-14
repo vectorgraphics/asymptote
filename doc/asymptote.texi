@@ -6491,11 +6491,10 @@ to the type.  This is regardless of what fields the variable actually possesses.
 @section Autounravel
 @cindex @code{autounravel}
 
-The @code{autounravel} keyword can be used to automatically unravel a field.
-Note that @code{autounravel} implies @code{static}. This is primarily
-useful for building an associated library of functions that operate on a
-structure. For instance, consider a simple implementation of the
-@code{rational} structure defined in @code{rational.asy}:
+The @code{autounravel} modifier can be used to automatically unravel a field.
+This is useful when building an associated library of functions
+that operate on a structure. For instance, consider a simple
+implementation of the @code{rational} structure defined in @code{rational.asy}:
 
 @verbatim
 struct rational {
@@ -6513,7 +6512,7 @@ rational operator +(rational a, rational b) {
 To allow @code{rational} to be used as a type parameter for a templated import
 that adds instances of @code{rational}, we should move @code{operator +}
 into the body of the @code{rational} structure and add the
-@code{autounravel} keyword:
+@code{autounravel} modifier:
 
 @verbatim
 struct rational {
@@ -6538,49 +6537,44 @@ feature request at @uref{https://github.com/vectorgraphics/asymptote/issues}.
 @node When fields are autounraveled
 @subsection When fields are autounraveled
 
-If a struct has one or more fields (including functions) that are declared with
-@code{autounravel}, these fields will be unraveled from the struct at the
-following code locations:
+If a struct contains fields (including functions) that are declared with
+@code{autounravel}, these fields will be unraveled from the struct at:
 
 @itemize
 @item
-At the end of the struct definition.
+the end of the struct definition;
 @item
-At a @code{typedef import} statement, if the struct is the argument for one of
-the type parameters.
+a @code{typedef import} statement, if the struct is the argument for one of
+the type parameters;
 @item
-At an @code{unravel} or @code{access} statement that unravels the struct from
-a module or outer struct. For instance,
+an @code{unravel} or @code{access} statement that unravels the struct from
+a module or outer struct (for instance,
 @code{from rational access rational;} would make the @code{+} operator available
-from the struct @code{rational} defined in @code{rational.asy}.
+from the struct @code{rational} defined in @code{rational.asy});
 
 @item
-At a @code{typedef} statement that renames the struct, for instance,
-@code{typedef rational.rational rat;}.
+A @code{typedef} statement like @code{typedef rational.rational rat;}
+that renames a struct.
 @end itemize
 
 @node Where autounravel is legal
 @subsection Where @code{autounravel} is legal
 
-For the most part, the @code{autounravel} keyword can be used in the same
-places as the @code{static} keyword. (Recall that @code{autounravel} implies
-@code{static}.) However, there are certain places where @code{autounravel} will
-give an error.
+For the most part, @code{autounravel} can be used in the same
+places as @code{static}. However, there are certain places
+where @code{autounravel} will give an error.
 
-At the top level of a module (i.e., outside of any struct or function), the
-@code{autounravel} keyword will give an error, whereas @code{static} gives only
-a warning. If top-level @code{autounravel} were allowed, some users would
-assume that the variable would be unraveled whenever the module was
-@code{access}ed, which is not the case. The @code{static} keyword is allowed at
+Specifying @code{autounravel} at the top level of a module (i.e.,
+outside of any struct or function) is an error, whereas @code{static}
+gives only a warning. If top-level @code{autounravel} were allowed,
+a user might incorrectly assume that the field would be unraveled
+whenever the module is @code{access}ed. The @code{static} modifier is allowed at
 the top level because, while it does nothing, it does not mislead the user.
-
-In front of a @code{struct} definition or @code{typedef} statement, the
-@code{autounravel} keyword is forbidden, because types cannot be autounraveled.
-
-Final note: while @code{static static} results in an error,
-@code{static autounravel} and @code{autounravel static} are both legal. They
-are, however, redundant, having exactly the same effect as @code{autounravel}
-alone.
+In front of a @code{struct} definition or @code{typedef} statement,
+@code{autounravel} is forbidden, because types cannot be autounraveled.
+While @code{static static} results in an error,
+@code{static autounravel} and @code{autounravel static} are both legal
+and have exactly the same effect as @code{autounravel} alone.
 
 
 @node LaTeX usage
