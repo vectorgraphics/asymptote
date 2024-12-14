@@ -44,7 +44,7 @@ namespace camp
 class picture;
 
 // Comment out when not debugging:
-//#if defined(ENABLE_VK_VALIDATION)
+#if defined(ENABLE_VK_VALIDATION)
 #define VALIDATION
 #endif
 
