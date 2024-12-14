@@ -1,13 +1,11 @@
+// this file is not used by cmake build.
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#ifdef __MSDOS__
-#define _WIN32
-#endif
-
 #ifndef GLEW_INCLUDE
-#include <GL/glew.h>
+#include "GL/glew.h"
 #else
 #include GLEW_INCLUDE
 #endif
@@ -18,5 +16,5 @@
 #define APIENTRY
 #endif
 
-#include "GL/glew.c"
+#include "backports/glew/src/glew.c"
 #endif /* HAVE_LIBGL */

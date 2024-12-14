@@ -1,0 +1,63 @@
+name: package-asy-installer-win
+on:
+  workflow_call:
+
+jobs:
+  package-asy-installer:
+    runs-on: "windows-2022"
+    steps:
+      - name: Install prerequisite
+        run: choco install nsis -y
+      - name: Test nsis version
+        run: makensis /version
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Download install-file
+        uses: actions/download-artifact@v4
+        with:
+          name: asy-win-x64-install-file
+          path: cmake-build-msvc/release/
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: asy-win-x64-buildfiles
+          path: cmake-build-msvc/release/
+      - name: Download asymptote misc docs
+        uses: actions/download-artifact@v4
+        with:
+          name: asy-win-x64-misc-docs
+          path: cmake-build-msvc/release/docbuild
+      - name: Download GUI files
+        uses: actions/download-artifact@v4
+        with:
+          name: cmake-windows-gui-files
+          path: GUI/
+      - name: Download misc files
+        uses: actions/download-artifact@v4
+        with:
+          name: asy-win-x64-miscfiles
+          path: |
+            cmake-build-msvc/release/misc-output
+      - name: Download asymptote.pdf
+        uses: actions/download-artifact@v4
+        with:
+          name: asy-pdf-file
+          path: asydoc/
+      - name: do cmake install
+        run: cmake --install cmake-build-msvc/release --component asy-pre-nsis
+      - name: Build installer file
+        run: |
+          & ./cmake-install-w32-nsis-release/build-asy-installer.ps1 "$((Get-Command makensis).Path)"
+      - name: upload raw build files
+        uses: actions/upload-artifact@v4
+        with:
+          name: asymptote-windows-zip
+          path: |
+            cmake-install-w32-nsis-release/build-*
+            !cmake-install-w32-nsis-release/build-*.ps1
+      - name: Upload generated installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: asymptote-windows-installer
+          path: cmake-install-w32-nsis-release/asymptote-*-setup.exe

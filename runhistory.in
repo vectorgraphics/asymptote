@@ -14,6 +14,13 @@ stringarray* => stringArray()
 #include "mathop.h"
 #include "builtin.h"
 
+#if defined(_WIN32)
+#include <io.h>
+#define isatty _isatty
+#else
+#include <unistd.h>
+#endif
+
 using namespace camp;
 using namespace settings;
 using namespace vm;
@@ -155,8 +162,12 @@ stringarray* history(Int n=0)
 string readline(string prompt=emptystring, string name=emptystring,
                 bool tabcompletion=false)
 {
-  if(!(isatty(STDIN_FILENO) || getSetting<Int>("inpipe") >= 0))
+  bool stdinIsTty=isatty(STDIN_FILENO);
+  bool hasInpipe=getSetting<Int>("inpipe") >= 0;
+  if(!(stdinIsTty || hasInpipe))
+  {
     return emptystring;
+  }
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   interact::init_readline(tabcompletion);
 

@@ -17,7 +17,7 @@
 #include "modifier.h"
 #include "runtime.h"
 #include "locate.h"
-#include "parser.h"
+#include "asyparser.h"
 // #include "builtin.h"  // for trans::addRecordOps
 
 namespace absyntax {
@@ -168,7 +168,7 @@ arrayTy::operator string() const
 }
 
 tyEntryTy::tyEntryTy(position pos, types::ty *t)
-  : astType(pos), ent(new trans::tyEntry(t, 0, 0, position()))
+  : astType(pos), ent(new trans::tyEntry(t, 0, 0, nullPos))
 {
 }
 
@@ -689,7 +689,7 @@ void addVar(coenv &e, record *r, varEntry *v, symbol id)
 {
   // Test for 'operator init' definitions that implicitly define constructors:
   if (definesImplicitConstructor(e, r, v, id))
-    addConstructorFromInitializer(position(), e, r, v);
+    addConstructorFromInitializer(nullPos, e, r, v);
 
   // Add to the record so it can be accessed when qualified; add to the
   // environment so it can be accessed unqualified in the scope of the
@@ -1588,7 +1588,7 @@ void recorddec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 runnable *autoplainRunnable() {
   // Abstract syntax for the code:
   //   private import plain;
-  position pos=position();
+  position pos=nullPos;
   static importdec ap(pos, new idpair(pos, symbol::literalTrans("plain")));
   static modifiedRunnable mr(pos, trans::PRIVATE, &ap);
 

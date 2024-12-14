@@ -6,6 +6,8 @@
  *****/
 
 #include <sstream>
+#include <random>
+#include <chrono>
 
 #include "drawlabel.h"
 #include "settings.h"
@@ -66,8 +68,10 @@ void texbounds(double& width, double& height, double& depth,
 
 inline double urand()
 {
-  static const double factor=2.0/RANDOM_MAX;
-  return random()*factor-1.0;
+  auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+  std::minstd_rand engine(seed);
+  std::uniform_real_distribution<double> dist(-1.0, 1.0);
+  return dist(engine);
 }
 
 void setpen(iopipestream& tex, const string& texengine, const pen& pentype)

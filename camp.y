@@ -116,7 +116,7 @@ using mem::string;
              '{' '}' '(' ')' '.' ','  '[' ']' ';' ELLIPSIS
              ACCESS UNRAVEL IMPORT INCLUDE FROM QUOTE STRUCT TYPEDEF NEW
              IF ELSE WHILE DO FOR BREAK CONTINUE RETURN_
-             THIS EXPLICIT
+             THIS_TOK EXPLICIT
              GARBAGE
 %token <e>   LIT
 %token <stre> STRING
@@ -487,7 +487,7 @@ value:
                    { $$ = $2; }
 | '(' name ')' %prec EXP_IN_PARENS_RULE
                    { $$ = new nameExp($2->getPos(), $2); }
-| THIS             { $$ = new thisExp($1); }
+| THIS_TOK         { $$ = new thisExp($1); }
 ;
 
 argument:

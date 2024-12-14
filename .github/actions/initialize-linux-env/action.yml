@@ -1,0 +1,36 @@
+name: initialize-env
+description: Initialize environment
+runs:
+  using: 'composite'
+  steps:
+    - name: Update apt
+      shell: bash
+      run: sudo apt-get update
+    - name: Install ninja
+      shell: bash
+      run: sudo apt-get install ninja-build
+    - name: Setup OpenGL
+      shell: bash
+      run: |
+        sudo apt-get install libxi-dev libgl1-mesa-dev libglu1-mesa-dev \
+        mesa-common-dev libxrandr-dev libxxf86vm-dev
+        sudo apt-get install ccache
+    - name: Set environment variables
+      shell: bash
+      run: |
+        echo VCPKG_ROOT="$VCPKG_INSTALLATION_ROOT" >> "$GITHUB_ENV"
+        echo CCACHE_DIR=/home/runner/.ccache >> "$GITHUB_ENV"
+        echo CCACHE_TEMP_DIR=/home/runner/.ccache >> "$GITHUB_ENV"
+        echo CCACHE_MAXSIZE=1G >> "$GITHUB_ENV"
+    - name: Cache Vcpkg
+      id: cache-vcpkg
+      uses: actions/cache@v4
+      with:
+        path: /home/runner/.cache/vcpkg/archives
+        key: ${{ runner.os }}-vcpkg-cache
+    - name: Cache ccache
+      id: cache-ccache
+      uses: actions/cache@v4
+      with:
+        path: /home/runner/.ccache
+        key: ${{ runner.os }}-ccache-cache
