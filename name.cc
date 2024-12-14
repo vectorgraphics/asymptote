@@ -131,7 +131,7 @@ tyEntry *simpleName::tyEntryTrans(coenv &e)
   if (!ent) {
     em.error(getPos());
     em << "no type of name \'" << id << "\'";
-    return new tyEntry(primError(), 0, 0, position());
+    return new tyEntry(primError(), 0, 0, nullPos);
   }
   return ent;
 }
@@ -298,14 +298,14 @@ tyEntry *qualifiedName::tyEntryTrans(coenv &e)
 
   record *r = castToRecord(rt, false);
   if (!r)
-    return new tyEntry(primError(), 0, 0, position());
+    return new tyEntry(primError(), 0, 0, nullPos);
 
   tyEntry *ent = r->e.lookupTyEntry(id);
   if (!ent) {
     em.error(getPos());
     em << "no matching type of name \'" << id << "\' in \'"
        << *r << "\'";
-    return new tyEntry(primError(), 0, 0, position());
+    return new tyEntry(primError(), 0, 0, nullPos);
   }
   ent->reportPerm(READ, getPos(), e.c);
 

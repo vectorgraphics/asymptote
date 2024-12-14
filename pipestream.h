@@ -19,11 +19,15 @@
 
 #ifndef PIPESTREAM_H
 #define PIPESTREAM_H
+#if defined(_WIN32)
+
+#include "win32pipestream.h"
+typedef w32::Win32IoPipeStream iopipestream;
+
+#else
 
 #include <sys/wait.h>
 #include <unistd.h>
-#include <fcntl.h>
-
 #include "common.h"
 
 // bidirectional stream for reading and writing to pipes
@@ -102,4 +106,5 @@ public:
   }
 };
 
+#endif
 #endif

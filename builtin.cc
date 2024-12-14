@@ -81,7 +81,7 @@ void gen_rungsl_venv(venv &ve);
 
 void addType(tenv &te, symbol name, ty *t)
 {
-  te.enter(name, new tyEntry(t,0,0,position()));
+  te.enter(name, new tyEntry(t,0,0,nullPos));
 }
 
 // The base environments for built-in types and functions
@@ -140,7 +140,7 @@ varEntry *addFunc(venv &ve, access *a, ty *result, symbol id,
 
   // NOTE: If the function is a field, we should encode the defining record in
   // the entry
-  varEntry *ent = new varEntry(fun, a, 0, position());
+  varEntry *ent = new varEntry(fun, a, 0, nullPos);
 
   ve.enter(id, ent);
   return ent;
@@ -183,7 +183,7 @@ void addOpenFunc(venv &ve, bltin f, ty *result, symbol name)
   REGISTER_BLTIN(f, name);
   access *a= new bltinAccess(f);
 
-  varEntry *ent = new varEntry(fun, a, 0, position());
+  varEntry *ent = new varEntry(fun, a, 0, nullPos);
 
   ve.enter(name, ent);
 }
@@ -211,7 +211,7 @@ void addRestFunc(venv &ve, bltin f, ty *result, symbol name, formal frest,
 
   if (frest.t) fun->addRest(frest);
 
-  varEntry *ent = new varEntry(fun, a, 0, position());
+  varEntry *ent = new varEntry(fun, a, 0, nullPos);
 
   ve.enter(name, ent);
 }
@@ -302,7 +302,7 @@ template<class T>
 void addVariable(venv &ve, T *ref, ty *t, symbol name,
                  record *module=settings::getSettingsModule()) {
   access *a = new refAccess<T>(ref);
-  varEntry *ent = new varEntry(t, a, PUBLIC, module, 0, position());
+  varEntry *ent = new varEntry(t, a, PUBLIC, module, 0, nullPos);
   ve.enter(name, ent);
 }
 
@@ -313,7 +313,7 @@ void addVariable(venv &ve, T value, ty *t, symbol name,
   item* ref=new item;
   *ref=value;
   access *a = new itemRefAccess(ref);
-  varEntry *ent = new varEntry(t, a, perm, module, 0, position());
+  varEntry *ent = new varEntry(t, a, perm, module, 0, nullPos);
   ve.enter(name, ent);
 }
 

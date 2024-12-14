@@ -23,19 +23,22 @@ inline T portableMod(T x,T y)
 // Implementation-independent definition of mod; ensure that result has
 // same sign as divisor
   T val=Mod(x,y);
-  if((y > 0 && val < 0) || (y < 0 && val > 0)) val += y;
-  return val;
+  return ((y > 0 && val >= 0) || (y < 0 && val <= 0)) ? val : val+y;
 }
 
 inline Int imod(Int x, Int y)
 {
-  return portableMod<Int>(x,y);
+  if(y > 0 && (y & (y-1)) == 0)
+    return x & (y-1); // Use mask if y is a power of two
+  else
+    return portableMod<Int>(x,y);
 }
 
-inline Int imod(Int i, size_t n) {
-  i %= (Int) n;
-  if(i < 0) i += (Int) n;
-  return i;
+inline Int imod(Int x, size_t y) {
+  if((y & (y-1)) == 0)
+    return x & (y-1); // Use mask if y is a power of two
+  x %= (Int) y;
+  return (x >= 0) ? x : x+(Int) y;
 }
 
 #endif

@@ -1,0 +1,14 @@
+name: initialize-env
+description: Initialize environment
+runs:
+  using: 'composite'
+  steps:
+    - name: Install ninja
+      shell: pwsh
+      run: choco install ninja -y
+    - name: Cache Vcpkg
+      id: cache-vcpkg
+      uses: actions/cache@v4
+      with:
+        path: ~\AppData\Local\vcpkg\archives
+        key: ${{ runner.os }}-vcpkg-cache
