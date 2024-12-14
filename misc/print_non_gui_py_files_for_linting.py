@@ -26,7 +26,6 @@ EXCLUDED_FILE_GLOB_PATTERNS = [
     "base/asymptote.py",
     "misc/aspy.py",
     "misc/profile.py",
-    "base/asymptote.pdf",
 ]
 
 
