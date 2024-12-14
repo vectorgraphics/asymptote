@@ -19,6 +19,7 @@ EXCLUDED_ROOT_FOLDERS = [
     "vcpkg_installed",
     "LspCpp",
     "tinyexr",
+    "VulkanMemoryAllocator",
 ]
 
 EXCLUDED_FILE_GLOB_PATTERNS = [
