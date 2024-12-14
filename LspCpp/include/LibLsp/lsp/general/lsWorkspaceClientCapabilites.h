@@ -98,6 +98,25 @@ MAKE_REFLECT_STRUCT(DynamicRegistrationCapabilities,
         dynamicRegistration);
 
 
+struct InlayHintLazyProperties {
+    optional< std::vector<std::string> > properties;
+
+    MAKE_SWAP_METHOD(InlayHintLazyProperties, properties)
+};
+
+MAKE_REFLECT_STRUCT(InlayHintLazyProperties, properties)
+
+struct InlayHintClientCapabilities {
+    // Whether inlay hints support dynamic registration.
+    optional<bool> dynamicRegistration;
+
+    optional< InlayHintLazyProperties > resolveSupport;
+
+    MAKE_SWAP_METHOD(InlayHintClientCapabilities, dynamicRegistration, resolveSupport);
+
+};
+
+MAKE_REFLECT_STRUCT(InlayHintClientCapabilities, dynamicRegistration, resolveSupport)
 
 // Workspace specific client capabilities.
 struct SymbolKindCapabilities

@@ -380,6 +380,21 @@ MAKE_REFLECT_STRUCT(SemanticTokensWithRegistrationOptions, legend, range, full, 
 
 using  DocumentColorOptions = WorkDoneProgressOptions;
 using  FoldingRangeOptions = WorkDoneProgressOptions;
+
+struct InlayHintOptions : WorkDoneProgressOptions {
+
+    /**
+     * The server provides support to resolve additional
+     * information for an inlay hint item.
+     */
+    optional<bool> resolveProvider;
+
+    MAKE_SWAP_METHOD(InlayHintOptions, workDoneProgress, resolveProvider);
+
+};
+
+MAKE_REFLECT_STRUCT(InlayHintOptions, workDoneProgress, resolveProvider)
+
 struct lsServerCapabilities {
         // Defines how text documents are synced. Is either a detailed structure
         // defining each notification or for backwards compatibility the
@@ -527,6 +542,14 @@ struct lsServerCapabilities {
           //
          optional< std::pair< optional<bool>,
                  optional<StaticRegistrationOptions> > >  monikerProvider;
+
+        /**
+        * The server provides inlay hints.
+        *
+        * @since 3.17.0
+        */
+        optional< std::pair< optional<bool>,
+                optional<InlayHintOptions> > > inlayHintProvider;
 
         optional<lsp::Any> experimental;
 
