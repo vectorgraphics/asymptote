@@ -541,15 +541,10 @@ void checkpow2(unsigned int n, string s) {
 
 void closeWindowHandler(GLFWwindow *);
 
-void AsyVkRender::vkrender(const string& prefix, const picture* pic, const string& format,
-                           double Width, double Height, double angle, double zoom,
-                           const triple& mins, const triple& maxs, const pair& shift,
-                           const pair& margin, double* t, double *tup,
-                           double* background, size_t nlightsin, triple* lights,
-                           double* diffuse, double* specular, bool view, int oldpid/*=0*/)
+void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 {
-  bool v3d=format == "v3d";
-  bool webgl=format == "html";
+  bool v3d=args.format == "v3d";
+  bool webgl=args.format == "html";
   bool format3d=webgl || v3d;
 
   offscreen=settings::getSetting<bool>("offscreen");
@@ -561,36 +556,36 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
     if(!monitor) offscreen=true;
   }
 
-  this->pic = pic;
-  this->Prefix=prefix;
-  this->Format = format;
+  this->pic = args.pic;
+  this->Prefix=args.prefix;
+  this->Format = args.format;
   this->redraw = true;
   this->remesh = true;
-  this->nlights = nlightsin;
-  this->Lights = lights;
-  this->LightsDiffuse = diffuse;
-  this->Oldpid = oldpid;
+  this->nlights = args.nlightsin;
+  this->Lights = args.lights;
+  this->LightsDiffuse = args.diffuse;
+  this->Oldpid = args.oldpid;
 
-  this->Angle = angle * radians;
+  this->Angle = args.angle * radians;
   this->lastZoom = 0;
-  this->Zoom0 = zoom;
-  this->Shift = shift / zoom;
-  this->Margin = margin;
+  this->Zoom0 = args.zoom;
+  this->Shift = args.shift / args.zoom;
+  this->Margin = args.margin;
 
   for (int i = 0; i < 4; i++)
-    this->Background[i] = static_cast<float>(background[i]);
+    this->Background[i] = static_cast<float>(args.background[i]);
 
-  this->ViewExport=view;
-  this->View = view && !offscreen;
+  this->ViewExport=args.view;
+  this->View = args.view && !offscreen;
 
-  this->title = std::string(PACKAGE_NAME)+": "+prefix.c_str();
+  this->title = std::string(PACKAGE_NAME)+": "+ args.prefix.c_str();
 
-  Xmin = mins.getx();
-  Xmax = maxs.getx();
-  Ymin = mins.gety();
-  Ymax = maxs.gety();
-  Zmin = mins.getz();
-  Zmax = maxs.getz();
+  Xmin = args.m.getx();
+  Xmax = args.M.getx();
+  Ymin = args.m.gety();
+  Ymax = args.M.gety();
+  Zmin = args.m.getz();
+  Zmax = args.M.getz();
 
   orthographic = (this->Angle == 0.0);
   H = orthographic ? 0.0 : -tan(0.5 * this->Angle) * Zmax;
@@ -603,10 +598,10 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 #endif
 
   for(int i=0; i < 16; ++i)
-    T[i]=t[i];
+    T[i]=args.t[i];
 
   for(int i=0; i < 16; ++i)
-    Tup[i]=tup[i];
+    Tup[i]=args.tup[i];
 
   if(!(initialized && (interact::interactive ||
                        settings::getSetting<bool>("animating")))) {
@@ -621,8 +616,8 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
       if(antialias) expand *= 2.0;
     }
 
-    fullWidth=(int) ceil(expand*Width);
-    fullHeight=(int) ceil(expand*Height);
+    fullWidth=(int) ceil(expand*args.width);
+    fullHeight=(int) ceil(expand*args.height);
 
     if(!format3d) {
       if(offscreen) {
@@ -634,9 +629,9 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
       }
     }
 
-    oWidth=Width;
-    oHeight=Height;
-    Aspect=Width/Height;
+    oWidth=args.width;
+    oHeight=args.height;
+    Aspect=args.width / args.height;
 
     if(format3d) {
       width=fullWidth;

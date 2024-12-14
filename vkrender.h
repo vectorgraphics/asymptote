@@ -357,12 +357,36 @@ public:
   AsyVkRender() = default;
   ~AsyVkRender();
 
-  void vkrender(const string& prefix, const picture* pic, const string& format,
-                double width, double height, double angle, double zoom,
-                const triple& m, const triple& M, const pair& shift,
-                const pair& margin, double* t, double *tup,
-                double* background, size_t nlightsin, triple* lights,
-                double* diffuse, double* specular, bool view, int oldpid=0);
+  /** Argument for AsyVkRender::vkrender function */
+  struct VkrenderFunctionArgs: public gc
+  {
+    string prefix;
+    picture const* pic;
+    string format;
+    double width;
+    double height;
+    double angle;
+    double zoom;
+    triple m;
+    triple M;
+    pair shift;
+    pair margin;
+
+    double* t;
+    double* tup;
+    double* background;
+
+    size_t nlightsin;
+
+    triple* lights;
+    double* diffuse;
+    double* specular;
+
+    bool view;
+    int oldpid=0;
+  };
+
+  void vkrender(VkrenderFunctionArgs const& args);
 
   triple billboardTransform(const triple& center, const triple& v) const;
   double getRenderResolution(triple Min) const;

@@ -1439,28 +1439,7 @@ void picture::render(double size2, const triple& Min, const triple& Max,
   }
 }
 
-struct Communicate : public gc {
-  string prefix;
-  picture* pic;
-  string format;
-  double width;
-  double height;
-  double angle;
-  double zoom;
-  triple m;
-  triple M;
-  pair shift;
-  pair margin;
-  double *t;
-  double *background;
-  size_t nlights;
-  triple *lights;
-  double *diffuse;
-  double *specular;
-  bool view;
-};
-
-Communicate com;
+AsyVkRender::VkrenderFunctionArgs com = {};
 
 extern bool allowRender;
 
@@ -1472,9 +1451,7 @@ void glrenderWrapper()
   vk->endwait(vk->initSignal,vk->initLock);
 #endif
   if(allowRender) {
-    vk->vkrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
-                com.zoom,com.m,com.M,com.shift,com.margin,com.t,com.background,
-                com.nlights,com.lights,com.diffuse,com.specular,com.view);
+    vk->vkrender(com);
   }
 #endif
 }
@@ -1570,7 +1547,7 @@ bool picture::shipout3(const string& prefix, const string& format,
         com.t=t;
         com.tup=tup;
         com.background=background;
-        com.nlights=nlights;
+        com.nlightsin=nlights;
         com.lights=lights;
         com.diffuse=diffuse;
         com.specular=specular;
@@ -1612,11 +1589,28 @@ bool picture::shipout3(const string& prefix, const string& format,
    }
 
  #if HAVE_LIBGLM
-  vk->vkrender(prefix,pic,format,width,height,angle,
-               zoom,m,M,shift,margin,t,background,
-               nlights,lights,diffuse,specular,View,
-               oldpid);
+  AsyVkRender::VkrenderFunctionArgs args = {};
+  args.prefix = prefix;
+  args.pic = pic;
+  args.format = format;
+  args.width = width;
+  args.height = height;
+  args.angle = angle;
+  args.zoom = zoom;
+  args.m = m;
+  args.M = M;
+  args.shift = shift;
+  args.margin = margin;
+  args.t = t;
+  args.background = background;
+  args.nlightsin = nlights;
+  args.lights = lights;
+  args.diffuse = diffuse;
+  args.specular = specular;
+  args.view = view;
+  args.oldpid = oldpid;
 
+  vk->vkrender(args);
    if(format3d) {
      string name=buildname(prefix,format);
      abs3Doutfile *fileObj=nullptr;
