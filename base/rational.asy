@@ -165,6 +165,30 @@ bool operator ==(rational[][] r, rational[][] s)
   return all(sequence(new bool(int i) {return r[i] == s[i];},r.length));
 }
 
+rational[] operator +(rational[] r, rational[] s)
+{
+  assert(r.length == s.length);
+  return sequence(new rational(int i) {return r[i]+s[i];},r.length);
+}
+
+rational[] operator -(rational[] r, rational[] s)
+{
+  assert(r.length == s.length);
+  return sequence(new rational(int i) {return r[i]-s[i];},r.length);
+}
+
+rational[] operator *(rational[] r, rational[] s)
+{
+  assert(r.length == s.length);
+  return sequence(new rational(int i) {return r[i]*s[i];},r.length);
+}
+
+rational[] operator /(rational[] r, rational[] s)
+{
+  assert(r.length == s.length);
+  return sequence(new rational(int i) {return r[i]/s[i];},r.length);
+}
+
 bool[] operator <(rational[] r, rational s)
 {
   return sequence(new bool(int i) {return r[i] < s;},r.length);

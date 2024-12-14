@@ -26,6 +26,7 @@
 #include <deque>
 #include <list>
 
+#include "PRCuniversalendianness.h"
 #include "PRC.h"
 #include "PRCbitStream.h"
 #include <float.h>

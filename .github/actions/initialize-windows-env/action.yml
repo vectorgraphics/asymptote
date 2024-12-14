@@ -3,13 +3,12 @@ description: Initialize environment
 runs:
   using: 'composite'
   steps:
-    - name: Setup Ninja
-      uses: ashutoshvarma/setup-ninja@v1.1
-      with:
-        version: 1.10.0
+    - name: Install ninja
+      shell: pwsh
+      run: choco install ninja -y
     - name: Cache Vcpkg
       id: cache-vcpkg
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~\AppData\Local\vcpkg\archives
         key: ${{ runner.os }}-vcpkg-cache

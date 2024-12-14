@@ -1,9 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
 
+  "builtin-baseline": "76d153790caf0592fce8fc4484aa6db18c7d00d4",
   "name": "asymptote",
   "version": "0.0-snapshot",
-  "builtin-baseline": "c591ac6466a55ef0a05a3d56bb1489ca36e50102",
   "dependencies": [
     "zlib",
     "glm",

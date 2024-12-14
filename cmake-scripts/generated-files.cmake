@@ -68,9 +68,9 @@ add_custom_command(
         COMMAND ${PERL_INTERPRETER} ${ASY_SCRIPTS_DIR}/keywords.pl
             --camplfile ${ASY_RESOURCE_DIR}/camp.l
             --output ${GENERATED_INCLUDE_DIR}/keywords.h
-            --process-file ${ASY_SRC_DIR}/process.cc
+            --process-file ${ASY_SRC_DIR}/asyprocess.cc
         MAIN_DEPENDENCY ${ASY_RESOURCE_DIR}/camp.l
-        DEPENDS ${ASY_SCRIPTS_DIR}/keywords.pl ${ASY_SRC_DIR}/process.cc
+        DEPENDS ${ASY_SCRIPTS_DIR}/keywords.pl ${ASY_SRC_DIR}/asyprocess.cc
 )
 
 list(APPEND ASYMPTOTE_GENERATED_HEADERS ${KEYWORDS_HEADER_OUT})
@@ -151,13 +151,20 @@ function(symfile_preprocess src_dir symfile symfile_raw_output_varname header_ou
     set(asy_macros_list "$<TARGET_PROPERTY:asy,COMPILE_DEFINITIONS>")
     set(asy_cxx_std "$<TARGET_PROPERTY:asy,CXX_STANDARD>")
 
+    if (UNIX)
+        # for unix systems, need verbatim flag because
+        # the arguments contains semicolon, though somehow
+        # verbatim option causes problems for windows
+        set(ADDITIONAL_ADD_CUSTOM_CMD_ARGS VERBATIM)
+    endif()
+
     add_custom_command(
             OUTPUT ${processed_output_file}
             COMMAND ${PY3_INTERPRETER} ${ASY_SCRIPTS_DIR}/gen_preprocessed_depfile.py
             --cxx-compiler=${cxx_preprocessor}
-            "$<$<BOOL:${asy_includes_list}>:--include-dirs=${asy_includes_list}>"
+            "$<$<BOOL:${asy_includes_list}>:--include-dirs=$<REMOVE_DUPLICATES:${asy_includes_list}>>"
             "$<$<BOOL:${asy_cxx_std}>:--cxx-standard=${asy_cxx_std}>"
-            "$<$<BOOL:${asy_macros_list}>:--macro-defs=${asy_macros_list}>"
+            "$<$<BOOL:${asy_macros_list}>:--macro-defs=$<REMOVE_DUPLICATES:${asy_macros_list}>>"
             --out-dep-file=${GENERATED_AUX_DIR}/${symfile}.d
             --out-i-file=${processed_output_file}
             --in-src-file=${src_dir}/${symfile}.cc
@@ -167,7 +174,7 @@ function(symfile_preprocess src_dir symfile symfile_raw_output_varname header_ou
             DEPENDS ${src_dir}/${symfile}.cc
             ${ASY_SCRIPTS_DIR}/gen_preprocessed_depfile.py
             ${ASYMPTOTE_SYM_PROCESS_NEEDED_HEADERS}
-            VERBATIM
+            ${ADDITIONAL_ADD_CUSTOM_CMD_ARGS}
     )
     # *.symbols.h file
     set(symfile_raw_output_var ${header_output_varname})

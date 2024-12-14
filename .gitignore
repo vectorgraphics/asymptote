@@ -3,6 +3,9 @@
 *.d
 *.d.*
 
+### python files
+__pycache__
+
 ### Compressed packages and Garbage Collector
 gc-*
 *.tar.gz
@@ -15,8 +18,8 @@ xasy
 
 ### Version info
 *version.*
+!version.texi.in
 revision.*
-/GUI/xasyVersion.py
 
 ### Runtime objects
 run*.cc
@@ -27,7 +30,6 @@ history
 
 
 ### Generated files
-newDrawing.asy
 /Makefile
 /doc/Makefile
 /doc/png/Makefile
@@ -41,9 +43,6 @@ newDrawing.asy
 *.svg
 *.roff
 /doc/png/*.html
-GUI/*.pyc
-GUI/*/*.pyc
-GUI/*/__pycache__
 /.wisdom
 /allsymbols.h
 /asy-keywords.el
@@ -80,6 +79,7 @@ GUI/*/__pycache__
 *.out
 *.toc
 *.tuc
+*.hd
 
 ## Intermediate documents:
 *.dvi
@@ -91,6 +91,7 @@ GUI/*/__pycache__
 *.pre
 *.m9
 #*-[0-9].*
+/doc/latexusage-[0-9]*
 /doc/**/asymptote.*
 !/doc/asymptote.texi
 /doc/options
@@ -113,11 +114,7 @@ core.*
 \#*
 .\#*
 
-### Generated python UI files
-/GUI/pyUIClass/*
-/GUI/__pycache__/*
 /.idea/*
-/GUI/.env
 
 examples/_ig_*.asy
 
@@ -129,16 +126,10 @@ _ig_*/*
 
 ### IDE Files
 .vscode
+.fleet
+.cache/jb
 ### Translation binary files
 *.mo
-
-### SVG Icons
-GUI/res/*
-!GUI/res/*/*.svg
-
-### RC Icons
-GUI/icons_rc.py
-
 
 # apitrace outputs
 *.trace
@@ -154,6 +145,7 @@ renderDocSettings
 
 *.html
 !index.html
+/doc/png/index.html
 !webgl/WebGL*.html
 
 v3dheadertypes.h
@@ -206,3 +198,72 @@ ehthumbs_vista.db
 
 # version package
 asy-pkg-version-suffix.cmake
+
+# CMake files
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+cmake-build-*
+cmake-install-*
+CMakeUserPresets.json
+
+# visual studio files
+.vs
+*.DotSettings.user
+
+# ignore directory
+idir
+
+# windows-specific ignore
+*.aps
+*.exe
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+*.lnk
+*.stackdump
+
+# version package
+asy-pkg-version-suffix.cmake
+
+# vcpkg
+vcpkg_installed
+
+# temporary configuration header/sources
+/confdefs.cc
+/confdefs.h
+/conftest.cpp
+/conftest.cc
+/conftest.c
+
+acextlibs
+acextbuilds
+extbuilds
+
+# generated files from
+*.raw.i
+
+extfiles/
+tools-cache
+CTAN
+asydoc
+
+tests/out
+tests/out.*

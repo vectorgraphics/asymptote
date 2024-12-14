@@ -4,7 +4,7 @@ import palette;
 size(200,300,keepAspect=false);
 //settings.nothin=true;
 
-currentprojection=orthographic(10,10,30);
+currentprojection=orthographic(dir(70,60));
 currentlight=(10,10,5);
 triple f(pair t) {return (exp(t.x)*cos(t.y),exp(t.x)*sin(t.y),t.y);}
 

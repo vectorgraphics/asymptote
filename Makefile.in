@@ -1,0 +1,481 @@
+# @configure_input@
+
+ARCH = unix
+POLL = poll
+
+ASYGLVERSION = @ASYGLVERSION@
+GCVERSION = @GCVERSION@
+GC = gc-$(GCVERSION)
+LIBATOMIC = libatomic_ops-@ATOMICVERSION@
+GCOPTIONS = @GCOPTIONS@
+GCLIB = @GCLIB@
+GCPPLIB = @GCPPLIB@
+GCLIBS = $(GCPPLIB) $(GCLIB)
+LFLAGS = @LDFLAGS@
+LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@
+CXX_STANDARD = @CXX_STANDARD@
+DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
+LSP_BUILD_ROOT=@LSP_BUILD_ROOT@
+LSP_ROOT=@LSP_ROOT@
+
+CMAKE ?= cmake
+PERL ?= perl
+PYTHON ?= python3
+BISON ?= bison
+PYRCC ?= pyrcc5
+PYUIC ?= pyuic5
+
+# Libraries needed to make asymptote.so.
+# We have to remove OpenGL, threading, GC, etc from this.
+SHAREDLIBS = $(filter-out -lglut -GL -pthread $(GCLIBS), $(LIBS))
+
+vpath %.cc prc
+vpath %.cc thirdparty_impl/tinyexr_impl/src
+vpath %.ui GUI/windows
+vpath %.py GUI/pyUIClass
+vpath %.py GUI
+
+CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
+       guide flatguide knot drawfill path3 drawpath3 drawsurface \
+       beziercurve bezierpatch pen pipestream
+
+RUNTIME_FILES = runtime runbacktrace runpicture runlabel runhistory runarray \
+	runfile runsystem runpair runtriple runpath runpath3d runstring \
+	runmath
+
+# Files to be scanned for pre-translated symbols defined by SYM(name).
+SYMBOL_FILES = $(RUNTIME_FILES) types builtin gsl
+
+PRC =  PRCbitStream oPRCFile PRCdouble writePRC
+
+TINYEXR_FILES = tinyexr_impl
+
+COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
+	env genv stm dec errormsg \
+    callable name symbol entry exp newexp stack exithandlers camp.tab lex.yy \
+	access virtualfieldaccess absyn record interact fileio \
+	fftw++asy parallel simpson coder coenv impdatum locate asyparser program application \
+	varinit fundec refaccess envcompleter asyprocess constructor array memory \
+	Delaunay predicates glrender tr shaders jsfile v3dfile \
+	EXRFiles GLTextures lspserv symbolmaps win32helpers win32pipestream \
+	win32xdr xstream
+
+FILES = $(COREFILES) main
+
+SYMBOLSH = opsymbols.h allsymbols.h $(SYMBOL_FILES:=.symbols.h)
+UIFILES = $(wildcard GUI/windows/*.ui)
+PYFILES = GUI/xasyqtui GUI/xasyicons GUI/xasyversion
+
+GENERATEDENUMS=v3dtypes v3dheadertypes
+ASYGENERATEDENUMS=$(addprefix base/,$(GENERATEDENUMS:=.asy))
+PYGENERATEDENUMS=$(GENERATEDENUMS:=.py)
+
+DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.h \
+	asy-keywords.el $(RUNTIME_FILES:=.cc) asy.list \
+        $(SYMBOLSH) $(GENERATEDENUMS:=.h) $(ASYGENERATEDENUMS) $(PYFILES)
+
+NAME = asy
+XNAME = x$(NAME)
+CLEAN = camp.output base/version.asy doc/version.texi \
+        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH) \
+		version.txt
+EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
+        asymptote.py reload.js nopapersize.ps
+EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
+DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
+KEYWORDS = base $(ASYMPTOTE_SITEDIR)
+LATEXFILES = asymptote.sty asycolors.sty latexmkrc
+CONTEXTFILES = colo-asy.tex
+ASY = ./asy -dir base -config "" -render=0
+
+DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall
+CFLAGS = @CFLAGS@
+OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
+	-Ibackports/optional/include \
+	-Iprc/include -I$(LSP_ROOT)/include -I.
+GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
+
+# Options for compiling the object files for the shared library.
+# gc has to be configured with the option --disable-threads in order to make a
+# shared library that doesn't seg fault.  For now, just disable gc in the
+# shared library.
+SHAREDOPTS = $(filter-out -DUSEGC, $(OPTS)) -fPIC -DFOR_SHARED
+
+CXX = @CXX@
+CC = @CC@
+MAKEDEPEND = $(OPTS) -O0 -M -MG -DDEPEND
+LEX = @LEX@
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+datarootdir = @datarootdir@
+bindir = $(DESTDIR)@bindir@
+mandir = $(DESTDIR)@mandir@
+infodir = $(DESTDIR)@infodir@
+datadir = $(DESTDIR)@datadir@
+asydir = $(datadir)/asymptote
+GUIdir = $(asydir)/GUI
+shaderdir = $(asydir)/shaders
+webgldir = $(asydir)/webgl
+docdir = $(DESTDIR)@docdir@
+exampledir = $(docdir)/examples
+animationsdir = $(exampledir)/animations
+latexdir = $(DESTDIR)@latexdir@
+contextdir = $(DESTDIR)@contextdir@
+INSTALL = @INSTALL@
+REVISION = "const char *REVISION="
+last = $(shell head -1 revision.cc | sed -e 's/.*\"\(.*\)\";/\1/')
+usinggit = $(shell if test -d ".git"; then echo yes; fi)
+ifeq ($(usinggit),yes)
+	revision = $(shell LC_ALL="C" git describe --long | \
+	sed -e 's/git-\([0-9]*\)-g.*/-\1/' | sed -e 's/-0-g.*//')
+else
+	revision = @VERSION@
+endif
+
+export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
+
+asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o @LSPLIB@ @GLEW@
+	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
+
+$(XNAME): $(PYFILES)
+	@ln -sf GUI/xasy.py $(XNAME)
+
+version.txt: FORCE
+	@if test ! -s $@ || test "$(revision)" != "$(last)"; then \
+		echo "$(revision)" > $@; \
+	fi
+
+	@if test ! -e base/webgl/asygl.js; then \
+	  cp base/webgl/asygl-$(ASYGLVERSION).js base/webgl/asygl.js; \
+	fi
+
+GUI/xasyversion: version.txt GUI/buildtool.py
+	-@cd GUI && $(PYTHON) buildtool.py buildversionmodule --version-override="$(shell cat $<)"
+
+revision.cc: version.txt
+	echo $(REVISION)\"$(shell cat $<)\"\; > $@
+	echo const char *AsyGLVersion=\"$(ASYGLVERSION)\"\; >> $@;
+
+base/version.asy: version.txt
+	echo string VERSION=\"$(shell cat $<)\"\; > $@
+
+doc/version.texi: version.txt
+	echo @set VERSION $(shell cat $<) > $@
+	echo @set Datadir @datadir@ >> $@
+	echo @set Docdir @docdir@ >> $@
+
+asymptote.so: $(COREFILES:=.pic.o) glew.o
+	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
+
+$(LSP_BUILD_ROOT)/liblspcpp.a:
+	$(CMAKE) -B$(LSP_BUILD_ROOT) -S$(LSP_ROOT) -DCMAKE_CXX_FLAGS=\
+	"-fPIE @OPTIONS@ @LSP_CXX_BUILD_FLAGS@" \
+	@LSP_CMAKE_OPTIONS@
+	$(MAKE) -C $(LSP_BUILD_ROOT)
+
+all:  	asy sty man faq asy-keywords.el
+
+$(GCLIB): $(GC).tar.gz
+	gunzip -c $(GC).tar.gz > $(GC).tar
+	tar -xf $(GC).tar
+	rm -f $(GC).tar
+	if test -r $(LIBATOMIC).tar.gz; then \
+	  gunzip -c $(LIBATOMIC).tar.gz > $(LIBATOMIC).tar; \
+	  tar -xf $(LIBATOMIC).tar; \
+	  rm -f $(LIBATOMIC).tar; \
+          mv $(LIBATOMIC) $(GC)/libatomic_ops; \
+	fi
+	if test "$(GC)" = "gc-7.0"; then \
+	  cd $(GC)/include/private && \
+            patch < ../../../patches/gc-7.0nomem.patch; \
+	fi
+	if test "$(GC)" = "gc-7.2b"; then \
+	  mv gc-7.2 gc-7.2b; \
+	fi
+	if test "$(GC)" = "gc-7.2c"; then \
+	  mv gc-7.2 gc-7.2c; \
+	fi
+	if test "$(GC)" = "gc-7.2d"; then \
+	  mv gc-7.2 gc-7.2d; \
+	fi
+	cd $(GC) && \
+	./configure CC="$(CC)" CXX="$(CXX)" $(GCOPTIONS); \
+	$(MAKE) check
+
+$(GCPPLIB): $(GCLIB)
+
+sty: doc/version.texi
+	cd doc && $(MAKE) asy-latex.pdf
+
+dvi:	asy sty
+	cd doc && $(MAKE) dvi
+
+html:	asy sty
+	cd doc && $(MAKE) doc
+
+man:	asy sty
+	cd doc && $(MAKE) man
+
+faq:	asy sty
+	cd doc && $(MAKE) faq
+
+$(RUNTIME_FILES:=.cc): %.cc: runtime.pl opsymbols.h runtimebase.in %.in
+	$(PERL) ./runtime.pl --prefix $(@:.cc=) --opsym-file opsymbols.h \
+		--runtime-base-file runtimebase.in \
+		--src-template-dir . \
+		--header-out-dir . \
+		--src-out-dir .
+
+# symbol files
+
+GEN_PREOROCESSED_DEPFILE_BASE_ARGS = \
+    $(PYTHON) gen_preprocessed_depfile.py \
+        --cxx-compiler="$(CXX)" \
+        --additional-raw-arguments="$(OPTS)" \
+        --cxx-standard=$(subst gnu,,$(subst c++,,$(CXX_STANDARD)))
+
+$(SYMBOL_FILES:=.raw.i): %.raw.i: %.cc gen_preprocessed_depfile.py
+	@echo Generating $@ from $<
+	@$(GEN_PREOROCESSED_DEPFILE_BASE_ARGS) \
+		--out-i-file=$@ \
+		--in-src-file=$<
+
+$(SYMBOL_FILES:=.d): %.d: %.cc gen_preprocessed_depfile.py
+	@echo Generating $@ from $<
+	@$(GEN_PREOROCESSED_DEPFILE_BASE_ARGS) \
+		--out-dep-file=$@ \
+		--dep-file-only \
+		--out-i-file=$*.raw.i \
+		--in-src-file=$<
+
+$(SYMBOL_FILES:=.symbols.h): %.symbols.h: %.raw.i findsym.pl
+	$(PERL) findsym.pl $@ $<
+
+$(SYMBOL_FILES:=.o): %.o: %.symbols.h
+
+allsymbols.h: $(SYMBOL_FILES:=.raw.i) findsym.pl
+	$(PERL) ./findsym.pl $@ $(filter-out findsym.pl,$^)
+
+symbol.o: $(SYMBOLSH)
+
+icons_rc.py: GUI/res/icons.qrc
+	-$(PYRCC) GUI/res/icons.qrc -o GUI/icons_rc.py
+
+GUI/xasyicons: GUI/res/icons.qrc GUI/buildtool.py
+	-cd GUI && $(PYTHON) buildtool.py buildicons
+
+GUI/xasyqtui: $(UIFILES) GUI/buildtool.py
+	-cd GUI && $(PYTHON) buildtool.py buildui
+
+camp.tab.cc: camp.y
+	$(BISON) -t --header=camp.tab.h -o $@ $<
+
+camp.tab.h: camp.tab.cc
+	@test -f $@ || rm -f $<
+	@test -f $@ || $(MAKE) $(AM_MAKEFLAGS) $<
+
+lex.yy.cc: camp.l
+	$(LEX) -d -olex.yy.cc camp.l
+
+lex.yy.d: $(GCLIB) lex.yy.cc camp.tab.h
+
+keywords.h: camp.l keywords.pl asyprocess.cc
+	$(PERL) ./keywords.pl --camplfile $< --output $@ --process-file asyprocess.cc
+
+opsymbols.h: camp.l opsymbols.pl
+	$(PERL) ./opsymbols.pl --campfile $< --output $@
+
+envcompleter.d: keywords.h
+
+asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy
+	@echo Creating $@;
+	$(ASY) -l > asy.list
+	ls $(addsuffix /*.asy,$(KEYWORDS)) | grep -v plain\* | \
+          grep -v three_\* | grep -v map | xargs $(ASY) -l >> asy.list
+	revision=`cat version.txt`
+	$(PERL) ./asy-list.pl --asy-list-file asy.list --revision $(revision) --output-file $@
+
+install-notexhash: asy-keywords.el install-asy install-man
+
+install: install-notexhash install-texhash
+
+install-all: install install-html
+
+install-texhash: install-asy
+	-if test -z "$(DESTDIR)"; then \
+	  texhash; \
+	fi
+
+install-asy: asy sty $(PYFILES)
+	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
+	${INSTALL} -d $(shaderdir) $(webgldir) \
+		$(GUIdir) $(GUIdir)/configs \
+		$(GUIdir)/res $(GUIdir)/res/icons \
+		$(GUIdir)/xasyicons $(GUIdir)/xasyqtui $(GUIdir)/xasyversion
+	-${INSTALL} -d $(latexdir)
+	-${INSTALL} -d $(contextdir)
+	${INSTALL} -p -m 755 $(NAME) $(bindir)
+	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) \
+		asy-keywords.el $(asydir)
+	${INSTALL} -p -m 644 base/shaders/*.glsl $(shaderdir)
+	${INSTALL} -p -m 644 base/webgl/asygl.js \
+		$(webgldir)
+	${INSTALL} -p -m 755 GUI/xasy.py $(GUIdir)
+	${INSTALL} -p -m 644 GUI/*.py $(GUIdir)
+	-${INSTALL} -p -m 644 GUI/xasyicons/*.py $(GUIdir)/xasyicons
+	-${INSTALL} -p -m 644 GUI/xasyqtui/*.py $(GUIdir)/xasyqtui
+	-${INSTALL} -p -m 644 GUI/xasyversion/*.py $(GUIdir)/xasyversion
+	${INSTALL} -p -m 644 GUI/configs/*.cson $(GUIdir)/configs
+	${INSTALL} -p -m 644 GUI/res/icons/*.svg $(GUIdir)/res/icons
+	ln -sf @datadir@/asymptote/GUI/xasy.py $(bindir)/$(XNAME)
+	${INSTALL} -p -m 644 examples/*.asy $(addprefix examples/,$(EXEXTRA)) \
+	  doc/extra/*.asy $(addprefix doc/,$(DOCEXTRA)) $(exampledir)
+	${INSTALL} -p -m 644 examples/animations/*.asy \
+          examples/animations/inlinemovie.tex \
+	  examples/animations/inlinemovie3.tex $(animationsdir)
+	-${INSTALL} -p -m 644 $(addprefix doc/,$(LATEXFILES)) $(latexdir)
+	-${INSTALL} -p -m 644 $(addprefix doc/,$(CONTEXTFILES)) $(contextdir)
+
+install-html: html
+	cd doc && $(MAKE) install-all
+
+install-man: man
+	cd doc && $(MAKE) install
+
+install-prebuilt: install-asy
+	cd doc && $(MAKE) install-prebuilt
+
+uninstall: uninstall-all
+
+uninstall-all: uninstall-man uninstall-asy uninstall-docdir
+
+uninstall-asy:
+	-cd $(animationsdir) && rm -f *.asy *.tex
+	-rmdir $(animationsdir)
+	-cd $(exampledir) && rm -f $(EXEXTRA) $(DOCEXTRA)
+	-rmdir $(exampledir)
+	-cd $(GUIdir) && rm -f *.py
+	-cd $(GUIdir)/xasyicons && rm -f *.py
+	-rmdir $(GUIdir)/xasyicons
+	-cd $(GUIdir)/xasyqtui && rm -f *.py
+	-rmdir $(GUIdir)/xasyqtui
+	-cd $(GUIdir)/xasyversion && rm -f *.py
+	-rmdir $(GUIdir)/xasyversion
+	-cd $(GUIdir)/configs && rm -f *.cson
+	-rmdir $(GUIdir)/configs
+	-cd $(GUIdir)/res/icons && rm -f *.svg
+	-rmdir $(GUIdir)/res/icons
+	-cd $(GUIdir) && rm -f icons_rc.py
+	-rmdir $(GUIdir)/res
+	-rmdir $(GUIdir)
+	-cd $(shaderdir) && rm -f *.glsl
+	-rmdir $(shaderdir)
+	-cd $(webgldir) && rm -f *.html *.js
+	-rmdir $(webgldir)
+	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA)
+	-rmdir $(asydir)
+	-cd $(latexdir) && rm -f $(LATEXFILES)
+	-rmdir $(latexdir)
+	-cd $(contextdir) && rm -f $(CONTEXTFILES)
+	-rmdir $(contextdir)
+	-cd $(bindir) && rm -f $(NAME) $(XNAME)
+
+uninstall-man:
+	cd doc && $(MAKE) uninstall
+
+uninstall-docdir:
+	-rmdir $(docdir)
+
+clean:  FORCE
+	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
+	-rm LspCpp/liblspcpp.a
+	-cd LspCpp && $(MAKE) distclean
+	-cd tinyexr && $(MAKE) clean
+	-cd GUI && $(PYTHON) buildtool.py clean
+
+gc-clean: FORCE clean
+	-if test -d $(GC); then \
+		$(MAKE) -C $(GC) clean; \
+	fi
+
+cleaner: FORCE clean
+	-if test -d $(GC); then \
+		rm -rf $(GC); \
+	fi
+	-rm -f Makefile config.h config.log config.status errors.temp
+	-rm -rf acextlibs
+	cd doc && $(MAKE) clean
+	cd tests && $(MAKE) distclean
+
+distclean: FORCE cleaner
+	cd doc && $(MAKE) distclean
+
+cleanest: FORCE maintainer-clean
+maintainer-clean: FORCE distclean
+	-rm -f configure config.h.in $(DIST)
+	-rm -rf autom4te.cache
+	-rm -rf GUI/pyUIClass
+	-rm -rf vcpkg_installed
+
+test: asy FORCE
+	./wce
+	$(MAKE) -C tests
+
+check: test
+
+check-all: asy FORCE
+	./wce
+	$(MAKE) -C tests all
+
+glew.o: glew.c config.h
+	$(CC) -I. $(GLEWOPTS) -o $@ -c $<
+
+.SUFFIXES: .c .cc .o .d .ui .py
+%.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.cc)
+	$(CXX) $(OPTS) -o $@ -c $<
+%.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
+	@echo Creating $@; \
+	rm -f $@; \
+	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
+	sed 's,\($*\)\.o[ :]*,\1.o \1.pic.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+%.d: %.c
+	@echo Creating $@; \
+	rm -f $@; \
+	${CC} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+%.py: %.ui
+	mkdir -p GUI/pyUIClass
+	-$(PYUIC) -o GUI/pyUIClass/$(notdir $@) $<
+# Compile for the shared library.  OpenGL must be disabled as it causes
+# crashes inside a shared library.
+%.pic.o: %.cc
+	$(CXX) $(SHAREDOPTS) -o $@ -c $<
+
+# Generate V3D headers
+
+%.h: %.csv generate_enums.py $(GENERATEDENUMS:=.csv)
+	$(PYTHON) generate_enums.py -language cxx -o $@ -i $< -name $(notdir $*) -xopt namespace=camp
+
+base/%.asy: %.csv generate_enums.py $(GENERATEDENUMS:=.csv)
+	$(PYTHON) generate_enums.py -language asy -o $@ -i $< -name $(notdir $*)
+
+%.py: %.csv generate_enums.py $(GENERATEDENUMS:=.csv)
+	$(PYTHON) generate_enums.py -language python -o $@ -i $< -name $(notdir $*)
+
+ifeq (,$(findstring clean,${MAKECMDGOALS}))
+-include $(FILES:=.d)
+endif
+
+FORCE:
+
+configure: configure.ac
+	autoheader && autoconf
+
+Makefile: Makefile.in config.status
+	./config.status
+
+config.status: configure
+	./config.status --recheck

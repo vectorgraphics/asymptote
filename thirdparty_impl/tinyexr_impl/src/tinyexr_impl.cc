@@ -3,6 +3,10 @@
  * @brief Implementation file for tinyexr
  */
 
+#if defined(HAVE_CONFIG_H)
+#include "config.h"
+#endif
+
 // zlib
 #if defined(HAVE_ZLIB)
 #define TINYEXR_USE_MINIZ 0

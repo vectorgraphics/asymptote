@@ -23,8 +23,8 @@ set(CORE_BUILD_FILES
         env genv stm dec errormsg
         callable name symbol entry exp newexp stack exithandlers
         access virtualfieldaccess absyn record interact fileio
-        fftw++asy parallel simpson coder coenv impdatum locate parser program application
-        varinit fundec refaccess envcompleter process constructor array memory
+        fftw++asy parallel simpson coder coenv impdatum locate asyparser program application
+        varinit fundec refaccess envcompleter asyprocess constructor array memory
         Delaunay predicates jsfile v3dfile vkrender
         EXRFiles lspserv symbolmaps win32helpers win32pipestream
         win32xdr xstream vkutils vkdispatchstorage

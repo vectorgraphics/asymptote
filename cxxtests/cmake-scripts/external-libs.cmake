@@ -10,7 +10,7 @@ if (DOWNLOAD_GTEST_FROM_SRC)
     )
 
     if (WIN32)
-        set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+        set(gtest_force_shared_crt ON CACHE INTERNAL "Force shared CRT")
     endif()
 
     FetchContent_MakeAvailable(googletest)

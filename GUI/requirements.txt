@@ -1,4 +1,3 @@
-numpy==1.22.0
-cson==0.7
-PyQt5==5.11
-rsvg-convert==2.42.3
+numpy~=1.26.4
+cson~=0.8
+PyQt5~=5.15.0

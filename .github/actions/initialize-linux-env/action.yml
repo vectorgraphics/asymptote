@@ -3,22 +3,35 @@ description: Initialize environment
 runs:
   using: 'composite'
   steps:
-    - name: Setup Ninja
-      uses: ashutoshvarma/setup-ninja@v1.1
-      with:
-        version: 1.10.0
     - name: Update apt
       shell: bash
       run: sudo apt-get update
+    - name: Install ninja
+      shell: bash
+      run: sudo apt-get install ninja-build
     - name: Setup build dependencies
       shell: bash
       run: |
-        sudo apt install \
+        sudo apt-get install \
           libxinerama-dev libxcursor-dev xorg-dev \
           libglu1-mesa-dev pkg-config libwayland-dev autopoint
+        sudo apt-get install ccache
+    - name: Set environment variables
+      shell: bash
+      run: |
+        echo VCPKG_ROOT="$VCPKG_INSTALLATION_ROOT" >> "$GITHUB_ENV"
+        echo CCACHE_DIR=/home/runner/.ccache >> "$GITHUB_ENV"
+        echo CCACHE_TEMP_DIR=/home/runner/.ccache >> "$GITHUB_ENV"
+        echo CCACHE_MAXSIZE=1G >> "$GITHUB_ENV"
     - name: Cache Vcpkg
       id: cache-vcpkg
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
-        path: ~/.cache/vcpkg/archives
+        path: /home/runner/.cache/vcpkg/archives
         key: ${{ runner.os }}-vcpkg-cache
+    - name: Cache ccache
+      id: cache-ccache
+      uses: actions/cache@v4
+      with:
+        path: /home/runner/.ccache
+        key: ${{ runner.os }}-ccache-cache

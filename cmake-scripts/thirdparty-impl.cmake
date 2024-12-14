@@ -1,8 +1,8 @@
 # tinyexr
 
-set(THIRDPARTY_IMPL_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty_impl)
+set(TINYEXR_REPO_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/tinyexr CACHE INTERNAL "tinyexr repo location")
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty_impl/tinyexr_impl/)
 
-add_subdirectory(${THIRDPARTY_IMPL_ROOT}/tinyexr_impl/)
 list(APPEND ASY_STATIC_LIBARIES tinyexr-impl)
 list(APPEND ASYMPTOTE_INCLUDES $<TARGET_PROPERTY:tinyexr-impl,INCLUDE_DIRECTORIES>)
 
