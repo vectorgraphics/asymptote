@@ -27,7 +27,6 @@
 #include <cstdlib>
 #include <cerrno>
 #include <sys/types.h>
-#endif
 
 #if !defined(_WIN32)
 #include <sys/wait.h>
@@ -248,7 +247,7 @@ int main(int argc, char *argv[])
   unsetenv("GSL_RNG_TYPE");
 #endif
 #endif
-#endif
+
   setsignal(signalHandler);
 
   try {
