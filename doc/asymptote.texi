@@ -6560,18 +6560,17 @@ that renames a struct.
 @node Where autounravel is legal
 @subsection Where @code{autounravel} is legal
 
-For the most part, @code{autounravel} can be used in the same
-places as @code{static}. However, there are certain places
-where @code{autounravel} will give an error.
-
-Specifying @code{autounravel} at the top level of a module (i.e.,
+The @code{autounravel} modifier implies @code{static} and can be used
+in many of the same places as @code{static}. However, specifying
+@code{autounravel} at the top level of a module (i.e.,
 outside of any struct or function) is an error, whereas @code{static}
-gives only a warning. If top-level @code{autounravel} were allowed,
+gives only a warning. @footnote{If top-level @code{autounravel} were allowed,
 a user might incorrectly assume that the field would be unraveled
-whenever the module is @code{access}ed. The @code{static} modifier is allowed at
-the top level because, while it does nothing, it does not mislead the user.
+whenever the module is @code{access}ed. The @code{static} modifier
+is allowed at the top level because, while it does nothing, it does
+not mislead the user.} 
 In front of a @code{struct} definition or @code{typedef} statement,
-@code{autounravel} is forbidden, because types cannot be autounraveled.
+@code{autounravel} is forbidden because types cannot be autounraveled.
 While @code{static static} results in an error,
 @code{static autounravel} and @code{autounravel static} are both legal
 and have exactly the same effect as @code{autounravel} alone.
