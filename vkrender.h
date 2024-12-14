@@ -1,12 +1,7 @@
 #pragma once
 
-#include <algorithm>
 #include <chrono>
 #include <cmath>
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <iterator>
 #include <utility>
 #include <memory>
 #include <set>
@@ -26,7 +21,6 @@
 #include <vma_cxx.h>
 
 #include <glslang/Public/ShaderLang.h>
-#include <glslang/SPIRV/GlslangToSpv.h>
 #include <GLFW/glfw3.h>
 #endif
 
