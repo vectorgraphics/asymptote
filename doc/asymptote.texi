@@ -6491,62 +6491,49 @@ to the type.  This is regardless of what fields the variable actually possesses.
 @section Autounravel
 @cindex @code{autounravel}
 
-The @code{autounravel} keyword can be used to automatically unravel a field
-whenever the surrounding structure is available. Note that @code{autounravel}
-also incorporates the effects of the @code{static} keyword. This is primarily
-useful to build an "associated library" of functions that operate on a
-structure. For instance, consider a @code{Rational} structure:
+The @code{autounravel} keyword can be used to automatically unravel a field.
+Note that @code{autounravel} implies @code{static}. This is primarily
+useful for building an associated library of functions that operate on a
+structure. For instance, consider a simple implementation of the
+@code{rational} structure defined in @code{rational.asy}:
 
 @verbatim
-int gcd(int a, int b) { return b == 0 ? a : gcd(b, a%b); }
-struct Rational {
-  int numerator, denominator;
-  void operator init(int n, int d) {
-    int g=gcd(n,d);
-    numerator=n#g;
-    denominator=d#g;
+struct rational {
+  int p=0, q=1;
+  void operator init(int p, int q) {
+    this.p=p;
+    this.q=q;
   }
 }
-
-// See next example for a better way to do this.
-/*NOT RECOMMENDED*/Rational operator +(Rational a, Rational b) {
-  return Rational(a.numerator*b.denominator+b.numerator*a.denominator,
-                  a.denominator*b.denominator);
+rational operator +(rational a, rational b) {
+  return rational(a.p*b.q+b.p*a.q, a.q*b.q);
 }
 @end verbatim
 
-This will work most of the time, but not if @code{Rational} is used as a type
-parameter for a templated import that expects to be able to add instances of
-the type. To fix this, we can move the @code{operator +} function into the body
-of the @code{Rational} structure and add the @code{autounravel} keyword:
+To allow @code{rational} to be used as a type parameter for a templated import
+that adds instances of @code{rational}, we should move @code{operator +}
+into the body of the @code{rational} structure and add the
+@code{autounravel} keyword:
 
 @verbatim
-int gcd(int a, int b) { return b == 0 ? a : gcd(b, a%b); }
-struct Rational {
-  int numerator, denominator;
-  void operator init(int n, int d) {
-    int g=gcd(n,d);
-    numerator=n#g;
-    denominator=d#g;
+struct rational {
+  int p=0, q=1;
+  void operator init(int p, int q) {
+    this.p=p;
+    this.q=q;
   }
-  autounravel Rational operator +(Rational b) {
-    return Rational(numerator*b.denominator+b.numerator*denominator,
-                    denominator*b.denominator);
+  autounravel rational operator +(rational a, rational b) {
+    return rational(a.p*b.q+b.p*a.q, a.q*b.q);
   }
 }
 @end verbatim
 
 This is almost equivalent to the previous code, but now the @code{+} operator
-will be available whenever the @code{Rational} structure is available.
+will be accessible wherever the @code{rational} structure is.
 
-@strong{Warning: Types cannot be autounraveled.} Attempting to autounravel
-a type will usually result in an error, but even if it does not (e.g., in the
-command @code{autounravel from three access surface;}), the type will not be
-autounraveled.
-(We could not think of a strong use case for 
-autounraveling a type. Users with such a use case in mind are free to submit a
-feature request at @uref{https://github.com/vectorgraphics/asymptote/issues},
-although we cannot promise anything.)
+@strong{Currently, types cannot be autounraveled.}
+Users who encounter a case where this might be useful can submit a
+feature request at @uref{https://github.com/vectorgraphics/asymptote/issues}.
 
 @node When fields are autounraveled
 @subsection When fields are autounraveled
@@ -6563,14 +6550,13 @@ At a @code{typedef import} statement, if the struct is the argument for one of
 the type parameters.
 @item
 At an @code{unravel} or @code{access} statement that unravels the struct from
-a module or outer struct. For instance, if the example code above were placed
-into a module called @code{rational.asy}, then
-@code{from rational access Rational;}
-would make the it possible to add rationals using the @code{+} operator, in
-addition to making the @code{Rational} struct and its constructor available.
+a module or outer struct. For instance,
+@code{from rational access rational;} would make the @code{+} operator available
+from the struct @code{rational} defined in @code{rational.asy}.
+
 @item
 At a @code{typedef} statement that renames the struct, for instance,
-@code{typedef rational.Rational rat;}.
+@code{typedef rational.rational rat;}.
 @end itemize
 
 @node Where autounravel is legal
@@ -6579,7 +6565,7 @@ At a @code{typedef} statement that renames the struct, for instance,
 For the most part, the @code{autounravel} keyword can be used in the same
 places as the @code{static} keyword. (Recall that @code{autounravel} implies
 @code{static}.) However, there are certain places where @code{autounravel} will
-give an error (described in the next two paragraphs).
+give an error.
 
 At the top level of a module (i.e., outside of any struct or function), the
 @code{autounravel} keyword will give an error, whereas @code{static} gives only
