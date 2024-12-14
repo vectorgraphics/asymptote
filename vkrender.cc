@@ -257,7 +257,7 @@ double AsyVkRender::getRenderResolution(triple Min) const
   double perspective = orthographic ? 0.0 : 1.0 / Zmax;
   double s = perspective ? Min.getz() * perspective : 1.0;
   triple b(Xmin, Ymin, Zmin);
-  triple B(Xmax, Ymin, Zmax);
+  triple B(Xmax, Ymax, Zmax);
   pair size3(s * (B.getx() - b.getx()), s * (B.gety() - b.gety()));
   pair size2(width, height);
   return prerender * size3.length() / size2.length();
@@ -393,13 +393,12 @@ void AsyVkRender::scrollCallback(GLFWwindow* window, double xoffset, double yoff
   auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
   auto zoomFactor = settings::getSetting<double>("zoomfactor");
 
-  if (zoomFactor == 0.0)
-    return;
-
-  if (yoffset > 0)
-    app->Zoom0 *= zoomFactor;
-  else
-    app->Zoom0 /= zoomFactor;
+  if(zoomFactor > 0.0) {
+    if (yoffset > 0)
+      app->Zoom0 *= zoomFactor;
+    else
+      app->Zoom0 /= zoomFactor;
+  }
 
   app->update();
 }
@@ -541,23 +540,27 @@ void checkpow2(unsigned int n, string s) {
   }
 }
 
+void closeWindowHandler(GLFWwindow *);
+
 void AsyVkRender::vkrender(const string& prefix, const picture* pic, const string& format,
                            double Width, double Height, double angle, double zoom,
                            const triple& mins, const triple& maxs, const pair& shift,
-                           const pair& margin, double* t,
+                           const pair& margin, double* t, double *tup,
                            double* background, size_t nlightsin, triple* lights,
                            double* diffuse, double* specular, bool view, int oldpid/*=0*/)
 {
-#if !defined(_WIN32)
-  // By default use discrete GPU.
-  setenv("DRI_PRIME","1",0);
-#endif
-
-  glfwInit();
+  bool v3d=format == "v3d";
+  bool webgl=format == "html";
+  bool format3d=webgl || v3d;
 
   offscreen=settings::getSetting<bool>("offscreen");
-  GLFWmonitor* monitor=glfwGetPrimaryMonitor();
-  if(!monitor) offscreen=true;
+
+  GLFWmonitor* monitor=NULL;
+  if(!(offscreen || format3d)) {
+    glfwInit();
+    monitor=glfwGetPrimaryMonitor();
+    if(!monitor) offscreen=true;
+  }
 
   this->pic = pic;
   this->Prefix=prefix;
@@ -594,10 +597,6 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   H = orthographic ? 0.0 : -tan(0.5 * this->Angle) * Zmax;
   Xfactor = Yfactor = 1.0;
 
-  bool v3d=format == "v3d";
-  bool webgl=format == "html";
-  bool format3d=webgl || v3d;
-
 #ifdef HAVE_PTHREAD
   static bool initializedView=false;
   if(vkinitialize)
@@ -606,6 +605,9 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 
   for(int i=0; i < 16; ++i)
     T[i]=t[i];
+
+  for(int i=0; i < 16; ++i)
+    Tup[i]=tup[i];
 
   if(!(initialized && (interact::interactive ||
                        settings::getSetting<bool>("animating")))) {
@@ -623,12 +625,14 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
     fullWidth=(int) ceil(expand*Width);
     fullHeight=(int) ceil(expand*Height);
 
-    if(offscreen) {
-      screenWidth=fullWidth;
-      screenHeight=fullHeight;
-    } else {
-      int mx, my;
-      glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
+    if(!format3d) {
+      if(offscreen) {
+        screenWidth=fullWidth;
+        screenHeight=fullHeight;
+      } else {
+        int mx, my;
+        glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
+      }
     }
 
     oWidth=Width;
@@ -742,8 +746,10 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   if(window)
     glfwShowWindow(window);
 
-  mainLoop();
+  if(View)
+    glfwSetWindowCloseCallback(window,closeWindowHandler);
 
+  mainLoop();
 #endif
 }
 
@@ -828,7 +834,7 @@ void AsyVkRender::recreateSwapChain()
     glfwWaitEvents();
   }
 
-//  device->waitIdle();
+  device->waitIdle();
 
   createSwapChain();
 
@@ -840,6 +846,7 @@ void AsyVkRender::recreateSwapChain()
   createImmediateRenderTargets();
   writeDescriptorSets();
   createImageViews();
+  createSyncObjects();
   createCountRenderPass();
   createGraphicsRenderPass();
   createGraphicsPipelines();
@@ -892,8 +899,9 @@ void AsyVkRender::createInstance()
     VK_MAKE_VERSION(1, 0, 0),
     VK_API_VERSION_1_2
   );
-  auto extensions = getRequiredInstanceExtensions();
+  auto supportedExtensions = getInstanceExtensions();
   auto supportedLayers = vk::enumerateInstanceLayerProperties();
+  auto extensions = getRequiredInstanceExtensions();
 
   auto isLayerSupported = [supportedLayers](std::string layerName) {
     return std::find_if(
@@ -902,6 +910,15 @@ void AsyVkRender::createInstance()
       [layerName](vk::LayerProperties const& layer) {
         return layer.layerName.data() == layerName;
       }) != supportedLayers.end();
+  };
+
+  auto isExtensionSupported = [supportedExtensions](std::string extension) {
+    return std::find_if(
+      supportedExtensions.begin(),
+      supportedExtensions.end(),
+      [extension](std::string const& supportedExt) {
+        return supportedExt == extension;
+      }) != supportedExtensions.end();
   };
 
 #ifdef VALIDATION
@@ -923,11 +940,18 @@ void AsyVkRender::createInstance()
   }
 #endif
 
+  std::vector<const char*> all_extensions;
+  all_extensions.reserve(supportedExtensions.size());
+
+  for (const auto& str : supportedExtensions) {
+      all_extensions.push_back(str.c_str());
+  }
+
   auto const instanceCI = vk::InstanceCreateInfo(
     {},
     &appInfo,
     VEC_VIEW(validationLayers),
-    VEC_VIEW(extensions)
+    VEC_VIEW(all_extensions)
   );
   instance = vk::createInstanceUnique(instanceCI);
   VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
@@ -1016,6 +1040,10 @@ void AsyVkRender::createAllocator()
   VmaVulkanFunctions vkFuncs = {};
   vkFuncs.vkGetInstanceProcAddr = vk::defaultDispatchLoaderDynamic.vkGetInstanceProcAddr;
   vkFuncs.vkGetDeviceProcAddr = vk::defaultDispatchLoaderDynamic.vkGetDeviceProcAddr;
+  vkFuncs.vkGetBufferMemoryRequirements2KHR = vk::defaultDispatchLoaderDynamic.vkGetBufferMemoryRequirements2 ? vk::defaultDispatchLoaderDynamic.vkGetBufferMemoryRequirements2 : vk::defaultDispatchLoaderDynamic.vkGetBufferMemoryRequirements2KHR;
+  vkFuncs.vkGetImageMemoryRequirements2KHR = vk::defaultDispatchLoaderDynamic.vkGetImageMemoryRequirements2 ? vk::defaultDispatchLoaderDynamic.vkGetImageMemoryRequirements2 : vk::defaultDispatchLoaderDynamic.vkGetImageMemoryRequirements2KHR;
+  vkFuncs.vkBindBufferMemory2KHR = vk::defaultDispatchLoaderDynamic.vkBindBufferMemory2 ? vk::defaultDispatchLoaderDynamic.vkBindBufferMemory2 : vk::defaultDispatchLoaderDynamic.vkBindBufferMemory2KHR;
+  vkFuncs.vkBindImageMemory2KHR = vk::defaultDispatchLoaderDynamic.vkBindImageMemory2 ? vk::defaultDispatchLoaderDynamic.vkBindImageMemory2 : vk::defaultDispatchLoaderDynamic.vkBindImageMemory2KHR;
 
   VmaAllocatorCreateInfo createInfo = {};
   createInfo.vulkanApiVersion = VK_API_VERSION_1_2;
@@ -1029,8 +1057,11 @@ void AsyVkRender::createAllocator()
 
 void AsyVkRender::pickPhysicalDevice()
 {
+  char *display=getenv("DISPLAY");
+  bool remote=display ? string(display).find(":") != 0 : false;
+
   auto const getDeviceScore =
-  [this](vk::PhysicalDevice& device) -> std::size_t
+    [this,remote](vk::PhysicalDevice& device) -> std::size_t
   {
     std::size_t score = 0u;
 
@@ -1062,14 +1093,17 @@ void AsyVkRender::pickPhysicalDevice()
 
     auto const props = device.getProperties();
 
+    bool software=offscreen || remote;
+
     if(vk::PhysicalDeviceType::eDiscreteGpu == props.deviceType) {
+      if(software) return 0;
       score += 10;
-    }
-    else if(vk::PhysicalDeviceType::eIntegratedGpu == props.deviceType) {
+    } else if(vk::PhysicalDeviceType::eIntegratedGpu == props.deviceType) {
+      if(software) return 0;
       score += 5;
-    }
-    else if (vk::PhysicalDeviceType::eCpu == props.deviceType && offscreen) {
-      // Force using cpu for offscreen
+    } else if(vk::PhysicalDeviceType::eCpu == props.deviceType &&
+            software) {
+      // Force using software renderer for remote or offscreen rendering
       score += 100;
     }
 
@@ -1208,9 +1242,11 @@ void AsyVkRender::createLogicalDevice()
 {
   auto const supportedDeviceExtensions = getDeviceExtensions(physicalDevice);
   std::vector<const char*> extensions(deviceExtensions.begin(), deviceExtensions.end());
+  bool usePortability = false;
 
   if (supportedDeviceExtensions.find(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
     extensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
+    usePortability = true;
   }
   if (View) {
     extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
@@ -1222,6 +1258,17 @@ void AsyVkRender::createLogicalDevice()
     else {
       extensions.emplace_back(VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME);
     }
+  }
+
+  if (supportedDeviceExtensions.find(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
+    extensions.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+    if (settings::verbose > 1)
+      std::cout << "Using logical device memory requirements extension."
+                << std::endl;
+  }
+
+  if (supportedDeviceExtensions.find(VK_KHR_BIND_MEMORY_2_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
+    extensions.push_back(VK_KHR_BIND_MEMORY_2_EXTENSION_NAME);
   }
 
 #if defined(DEBUG)
@@ -1257,6 +1304,7 @@ void AsyVkRender::createLogicalDevice()
     queueCIs.push_back(queueCI);
   }
 
+  void * extensionChain = nullptr;
   auto portabilityFeatures = vk::PhysicalDevicePortabilitySubsetFeaturesKHR(
     false,
     true
@@ -1277,13 +1325,23 @@ void AsyVkRender::createLogicalDevice()
 
   vk::PhysicalDeviceFeatures deviceFeatures;
   deviceFeatures.fillModeNonSolid = true;
-  deviceFeatures.shaderStorageImageWriteWithoutFormat=true;
-  deviceFeatures.shaderStorageImageReadWithoutFormat=true;
+  // Needed for some Mac machines.
+  deviceFeatures.fragmentStoresAndAtomics = true;
+//  deviceFeatures.shaderStorageImageWriteWithoutFormat=true;
+//  deviceFeatures.shaderStorageImageReadWithoutFormat=true;
 
   physicalDevice.getProperties2(&props);
 
+  if (usePortability) {
+    extensionChain = &portabilityFeatures;
+  }
+
   if (interlock) {
-    portabilityFeatures.pNext = &interlockFeatures;
+    if (usePortability) {
+      portabilityFeatures.pNext = &interlockFeatures;
+    } else {
+      extensionChain = &interlockFeatures;
+    }
   }
 
   auto deviceCI = vk::DeviceCreateInfo(
@@ -1292,7 +1350,7 @@ void AsyVkRender::createLogicalDevice()
     VEC_VIEW(validationLayers),
     VEC_VIEW(extensions),
     &deviceFeatures,
-    &portabilityFeatures
+    extensionChain
   );
 
   device = physicalDevice.createDeviceUnique(deviceCI, nullptr);
@@ -1594,6 +1652,11 @@ vk::CommandBuffer AsyVkRender::beginSingleCommands()
 void AsyVkRender::endSingleCommands(vk::CommandBuffer cmd)
 {
   vk::UniqueFence fence = device->createFenceUnique(vk::FenceCreateInfo());
+
+  if (!fence.get()) {
+    std::cout << "Fence failed to allocate." << std::endl;
+  }
+
   cmd.end();
 
   auto info = vk::SubmitInfo();
@@ -2616,21 +2679,23 @@ void AsyVkRender::createBuffers()
 
 
 void AsyVkRender::createMaterialAndLightBuffers() {
-  materialBf = createBufferUnique(
-                      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
-                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                      sizeof(camp::Material) * nmaterials,
-                      0,
-                      VMA_MEMORY_USAGE_AUTO,
-                      VARIABLE_NAME(materialBf));
+  if(nmaterials > 0)
+    materialBf = createBufferUnique(
+      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      sizeof(camp::Material) * nmaterials,
+      0,
+      VMA_MEMORY_USAGE_AUTO,
+      VARIABLE_NAME(materialBf));
 
-  lightBf = createBufferUnique(
-                     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
-                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                     sizeof(camp::Light) * nlights,
-                     0,
-                     VMA_MEMORY_USAGE_AUTO,
-                     VARIABLE_NAME(lightBf));
+  if(nlights > 0)
+    lightBf = createBufferUnique(
+      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      sizeof(camp::Light) * nlights,
+      0,
+      VMA_MEMORY_USAGE_AUTO,
+      VARIABLE_NAME(lightBf));
 }
 
 void AsyVkRender::createImmediateRenderTargets()
@@ -2968,6 +3033,10 @@ void AsyVkRender::createCountRenderPass()
   );
 
   countRenderPass = device->createRenderPass2Unique(renderPassCI);
+
+  if (!countRenderPass) {
+    throw std::runtime_error("Failed to create the count render pass.");
+  }
 }
 
 void AsyVkRender::createGraphicsRenderPass()
@@ -3077,9 +3146,21 @@ void AsyVkRender::createGraphicsRenderPass()
   opaqueGraphicsRenderPass= device->createRenderPass2Unique(opaqueRenderPassCI);
   setDebugObjectName(*opaqueGraphicsRenderPass, "opaqueGraphicsRenderPass");
 
-  auto const renderPassCI=
-          vk::RenderPassCreateInfo2({}, VEC_VIEW(attachments), VEC_VIEW(subpasses), VEC_VIEW(dependencies));
-  graphicsRenderPass= device->createRenderPass2Unique(renderPassCI);
+  if (!opaqueGraphicsRenderPass) {
+    throw std::runtime_error("Failed to create the opaque render pass.");
+  }
+
+  auto renderPassCI = vk::RenderPassCreateInfo2(
+    vk::RenderPassCreateFlags(),
+    VEC_VIEW(attachments),
+    VEC_VIEW(subpasses),
+    VEC_VIEW(dependencies)
+  );
+  graphicsRenderPass = device->createRenderPass2Unique(renderPassCI);
+
+  if (!graphicsRenderPass) {
+    throw std::runtime_error("Failed to create the graphics render pass.");
+  }
   setDebugObjectName(*graphicsRenderPass, "graphicsRenderPass");
 }
 
@@ -3339,7 +3420,7 @@ void AsyVkRender::createGraphicsPipelines()
   for (auto u = 0u; u < PIPELINE_MAX; u++)
     createGraphicsPipeline<MaterialVertex>
                           (PipelineType(u), linePipelines[u], vk::PrimitiveTopology::eLineList,
-                          vk::PolygonMode::eFill,
+                          vk::PolygonMode::eLine,
                           materialShaderOptions,
                           "vertex",
                           "fragment",
@@ -3347,8 +3428,8 @@ void AsyVkRender::createGraphicsPipelines()
 
   for (auto u = 0u; u < PIPELINE_MAX; u++)
     createGraphicsPipeline<PointVertex>
-                          (PipelineType(u), pointPipelines[u], vk::PrimitiveTopology::eTriangleList,
-                          drawMode,
+                          (PipelineType(u), pointPipelines[u], vk::PrimitiveTopology::ePointList,
+                          vk::PolygonMode::ePoint,
                           pointShaderOptions,
                           "vertex",
                           "fragment",
@@ -3538,8 +3619,10 @@ void AsyVkRender::updateBuffers()
     createMaterialAndLightBuffers();
     writeMaterialAndLightDescriptors();
 
-    copyToBuffer(lightBf.getBuffer(), &lights[0], lights.size() * sizeof(Light));
-    copyToBuffer(materialBf.getBuffer(), &materials[0], materials.size() * sizeof(camp::Material));
+    if(lights.size() > 0)
+      copyToBuffer(lightBf.getBuffer(), lights.data(), lights.size() * sizeof(Light));
+    if(materials.size() > 0)
+      copyToBuffer(materialBf.getBuffer(), materials.data(), materials.size() * sizeof(camp::Material));
 
     shouldUpdateBuffers=false;
   }
@@ -3649,7 +3732,7 @@ void AsyVkRender::drawBuffer(DeviceBuffer & vertexBuffer,
 
   auto const badBuffer = static_cast<void*>(vertexBuffer._buffer.getBuffer()) == nullptr;
   auto const rendered = data->renderCount >= maxFramesInFlight;
-  auto const copy = (remesh || data->partial || !rendered || badBuffer) && !copied && !data->copiedThisFrame;
+  auto const copy = (remesh || !rendered || badBuffer) && !copied && !data->copiedThisFrame;
 
   if (copy) {
 
@@ -4147,6 +4230,10 @@ void AsyVkRender::drawFrame()
     recreatePipeline = false;
   }
 
+  checkVkResult(device->waitForFences(
+    1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
+  ));
+
   uint32_t imageIndex=0; // index of the current swap chain image to render to
 
   // Get the image index from the swapchain if not viewing.
@@ -4160,11 +4247,7 @@ void AsyVkRender::drawFrame()
     else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
       throw std::runtime_error("Failed to acquire next swapchain image.");
   }
-
-  vkutils::checkVkResult(device->waitForFences(
-    1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
-  ));
-  vkutils::checkVkResult(device->resetFences(
+  checkVkResult(device->resetFences(
     1, &*frameObject.inFlightFence
   ));
   frameObject.commandBuffer->reset(vk::CommandBufferResetFlagBits());
@@ -4351,6 +4434,11 @@ void AsyVkRender::display()
 
   drawFrame();
 
+  if(hidden) {
+    glfwShowWindow(window);
+    hidden=false;
+  }
+
   if (mode != DRAWMODE_OUTLINE)
     remesh = false;
 
@@ -4520,12 +4608,6 @@ void AsyVkRender::clearMaterials()
 {
   materials.clear();
   materialMap.clear();
-
-  pointData.partial=false;
-  lineData.partial=false;
-  materialData.partial=false;
-  colorData.partial=false;
-  triangleData.partial=false;
 }
 
 #ifdef HAVE_VULKAN
@@ -4579,7 +4661,7 @@ projection AsyVkRender::camera(bool user)
         double R3=Rotate[j4+3];
         double T4ij=T[i4+j];
         sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
-        sumUp += T4ij*R1;
+        sumUp += Tup[i4+j]*R1;
         sumTarget += T4ij*(R3-cx*R0-cy*R1);
       }
       vCamera[i]=sumCamera;
@@ -4773,6 +4855,12 @@ void AsyVkRender::quit()
 
 #ifdef HAVE_VULKAN
 
+void closeWindowHandler(GLFWwindow *window)
+{
+  cout << endl;
+  exitHandler(0);
+}
+
 void AsyVkRender::idleFunc(std::function<void()> f)
 {
   spinTimer.reset();
@@ -4919,17 +5007,14 @@ void AsyVkRender::capzoom()
 void AsyVkRender::zoom(double dx, double dy)
 {
   double zoomFactor=settings::getSetting<double>("zoomfactor");
-
-  if (zoomFactor == 0.0)
-    return;
-
-  double zoomStep=settings::getSetting<double>("zoomstep");
-  const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
-  double stepPower=zoomStep*dy;
-  if(fabs(stepPower) < limit) {
-    Zoom0 *= std::pow(zoomFactor,-stepPower);
-    capzoom();
-    update();
+  if (zoomFactor > 0.0) {
+    double zoomStep=settings::getSetting<double>("zoomstep");
+    const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
+    double stepPower=zoomStep*dy;
+    if(fabs(stepPower) < limit) {
+      Zoom0 *= std::pow(zoomFactor,-stepPower);
+      update();
+    }
   }
 }
 
@@ -4970,7 +5055,6 @@ void AsyVkRender::windowposition(int& x, int& y, int Width, int Height)
 }
 
 void AsyVkRender::setsize(int w, int h, bool reposition) {
-
   int x,y;
 
   capsize(w,h);
@@ -5032,6 +5116,8 @@ void AsyVkRender::reshape0(int Width, int Height) {
     lastHeight=height;
   }
 
+  glfwHideWindow(window);
+  hidden=true;
   setProjection();
 }
 
@@ -5041,7 +5127,6 @@ void AsyVkRender::setosize() {
 }
 
 void AsyVkRender::fitscreen(bool reposition) {
-
   if(Animate && Fitscreen == 2) Fitscreen=0;
 
   switch(Fitscreen) {
@@ -5074,6 +5159,8 @@ void AsyVkRender::fitscreen(bool reposition) {
 
 void AsyVkRender::toggleFitScreen() {
 
+  glfwHideWindow(window);
+  hidden=true;
   Fitscreen = (Fitscreen + 1) % 3;
   fitscreen();
 }

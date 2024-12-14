@@ -724,22 +724,43 @@ case "$OSTYPE" in
         ;;
      *)
          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
-         AC_CHECK_LIB([glut], [glutMainLoop],,
-                       AC_MSG_NOTICE([*** Could not find libglut: will compile without OpenGL support ***]))
-         AC_CHECK_LIB([GL], [glDepthMask],
-                                 [AC_DEFINE(HAVE_LIBGL,1,
-                             DEFINE_LIB([GL]))
-                             LIBS=$LIBS"-lGL "
-                             GLEW="glew.o "
-                             INCL=$INCL" -Ibackports/glew/include "
-                             AC_CHECK_LIB([GLX],[glXGetProcAddressARB],
-                             GLEW=$GLEW"-lGLX ")],
-                                   AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
+          AC_CHECK_LIB([glfw], [glfwShowWindow],
+          [
+          AC_CHECK_LIB([vulkan], [vkCreateInstance],
+          [
+          LIBS_SAVE=$LIBS
+          VULKAN_LIBS="-lMachineIndependent -lOSDependent -lGenericCodeGen "
+          LIBS=$LIBS"-lglfw -lvulkan "$VULKAN_LIBS"-lSPIRV "
+          AC_CHECK_LIB([glslang],[glslang_initialize_process],
+          [
+          AC_DEFINE(HAVE_LIBVULKAN,1,
+          DEFINE_LIB([vulkan]))
+          LIBS=$LIBS"-lglslang "
+          OPTIONS=$OPTIONS"-DYYDEBUG=0 "
+          ],
+
+          [
+          LIBS=$LIBS"-lOGLCompiler "
+          AC_CHECK_LIB([glslang],[glslang_finalize_process],
+          [
+          AC_DEFINE(HAVE_LIBVULKAN,1,
+          DEFINE_LIB([vulkan]))
+          LIBS=$LIBS"-lglslang "
+          OPTIONS=$OPTIONS"-DYYDEBUG=0 "
+          ],
+          [
+          AC_MSG_NOTICE([*** Could not find libglslang: will compile without Vulkan support ***])
+          LIBS=$LIBS_SAVE
+          ]
+          )
+          ]
+          )
+          ],
+          AC_MSG_NOTICE([*** Could not find libvulkan: will compile without Vulkan support ***]))
+          ],
+          AC_MSG_NOTICE([*** Could not find libglfw: will compile without Vulkan support ***]))
 esac
-   if test "x$enable_offscreen" = "xyes"; then
-           AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
-                        AC_MSG_NOTICE([*** Could not find libOSMesa: will compile without offscreen rendering support ***]))
-   fi
+fi
 fi
 fi
 

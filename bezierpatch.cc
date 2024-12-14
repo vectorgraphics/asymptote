@@ -793,45 +793,6 @@ void BezierTriangle::render(const triple *p,
 
 std::vector<float> zbuffer;
 
-void transform(const std::vector<ColorVertex>& b)
-{
-  unsigned n=b.size();
-  zbuffer.resize(n);
-
-  double Tz0=glm::value_ptr(vk->viewMat)[2];
-  double Tz1=glm::value_ptr(vk->viewMat)[6];
-  double Tz2=glm::value_ptr(vk->viewMat)[10];
-  for(unsigned i=0; i < n; ++i) {
-    const glm::vec3 v=b[i].position;
-    zbuffer[i]=Tz0*v.x+Tz1*v.y+Tz2*v.z;
-  }
-}
-
-// Sort nonintersecting triangles by depth.
-int compare(const void *p, const void *P)
-{
-  unsigned Ia=((uint32_t *) p)[0];
-  unsigned Ib=((uint32_t *) p)[1];
-  unsigned Ic=((uint32_t *) p)[2];
-
-  unsigned IA=((uint32_t *) P)[0];
-  unsigned IB=((uint32_t *) P)[1];
-  unsigned IC=((uint32_t *) P)[2];
-
-  return zbuffer[Ia]+zbuffer[Ib]+zbuffer[Ic] <
-    zbuffer[IA]+zbuffer[IB]+zbuffer[IC] ? -1 : 1;
-}
-
-// what is this for?
-void sortTriangles()
-{
-  if(!vk->transparentData.indices.empty()) {
-    transform(vk->transparentData.colorVertices);
-    qsort(&vk->transparentData.indices[0],vk->transparentData.indices.size()/3,
-          3*sizeof(uint32_t),compare);
-  }
-}
-
 void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
                       size_t nC, const prc::RGBAColour* C, size_t nI,
                       const uint32_t (*PP)[3], const uint32_t (*NN)[3],
@@ -842,6 +803,7 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
   data.clear();
   Onscreen=true;
   transparent=Transparent;
+  notRendered();
 
   data.colorVertices.resize(nP);
 
@@ -872,9 +834,9 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
       data.colorVertices[PI1]=ColorVertex{P1,N[NI[1]],MaterialIndex,glm::make_vec4(c1)};
       data.colorVertices[PI2]=ColorVertex{P2,N[NI[2]],MaterialIndex,glm::make_vec4(c2)};
     } else {
-      data.colorVertices[PI0]=ColorVertex{P0,N[NI[0]],MaterialIndex,glm::vec4(1.0f)};
-      data.colorVertices[PI1]=ColorVertex{P1,N[NI[1]],MaterialIndex,glm::vec4(1.0f)};
-      data.colorVertices[PI2]=ColorVertex{P2,N[NI[2]],MaterialIndex,glm::vec4(1.0f)};
+      data.colorVertices[PI0]=ColorVertex{P0,N[NI[0]],MaterialIndex};
+      data.colorVertices[PI1]=ColorVertex{P1,N[NI[1]],MaterialIndex};
+      data.colorVertices[PI2]=ColorVertex{P2,N[NI[2]],MaterialIndex};
     }
     triple Q[]={P0,P1,P2};
     std::vector<GLuint> &q=data.indices;

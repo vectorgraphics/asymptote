@@ -51,7 +51,7 @@ namespace camp
 class picture;
 
 // Comment out when not debugging:
-#if defined(ENABLE_VK_VALIDATION)
+//#if defined(ENABLE_VK_VALIDATION)
 #define VALIDATION
 #endif
 
@@ -63,7 +63,7 @@ class picture;
 #define RAW_VIEW(x) static_cast<uint32_t>(sizeof(x)), x
 #define ST_VIEW(s) static_cast<uint32_t>(sizeof(s)), &s
 
-typedef std::unordered_map<const Material, size_t> MaterialMap;
+typedef std::map<CONST Material, size_t> MaterialMap;
 
 template<class T>
 inline T ceilquotient(T a, T b)
@@ -206,7 +206,6 @@ struct VertexBuffer {
   std::vector<std::uint32_t> indices;
 
   int renderCount=0;  // Are all patches in this buffer fully rendered?
-  bool partial=false; // Does buffer contain incomplete data?
   bool copiedThisFrame=false;
 
   void clear()
@@ -374,7 +373,7 @@ public:
   void vkrender(const string& prefix, const picture* pic, const string& format,
                 double width, double height, double angle, double zoom,
                 const triple& m, const triple& M, const pair& shift,
-                const pair& margin, double* t,
+                const pair& margin, double* t, double *tup,
                 double* background, size_t nlightsin, triple* lights,
                 double* diffuse, double* specular, bool view, int oldpid=0);
 
@@ -390,6 +389,7 @@ public:
   bool ibl=false;
   bool offscreen=false;
   bool vkexit=false;
+  bool hidden=false;
 
   bool vkthread=false;;
   bool initialize=true;
@@ -478,6 +478,7 @@ public:
 
   double BBT[9];
   double T[16];
+  double Tup[16];
 
   void updateProjection();
   void frustum(double left, double right, double bottom,
@@ -1080,7 +1081,7 @@ private:
   void travelHome(bool webgl=false);
   void cycleMode();
 
-  friend class SwapChainDetails;
+  friend struct SwapChainDetails;
 };
 
 extern AsyVkRender* vk;

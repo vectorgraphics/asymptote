@@ -1434,6 +1434,7 @@ void picture::render(double size2, const triple& Min, const triple& Max,
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
     if(remesh) (*p)->meshinit();
+
     (*p)->render(size2,Min,Max,perspective,remesh);
   }
 }
@@ -1593,8 +1594,8 @@ bool picture::shipout3(const string& prefix, const string& format,
        if(Wait)
          pthread_mutex_lock(&vk->readyLock);
 #endif
-    } else {
-#if !defined(_WIN32)
+     } else {
+ #if !defined(_WIN32)
       int pid=fork();
       if(pid == -1)
         camp::reportError("Cannot fork process");
@@ -1606,9 +1607,9 @@ bool picture::shipout3(const string& prefix, const string& format,
 #else
 #pragma message("TODO: Check if (1) we need detach-based VK renderer")
 #endif
-    }
-#endif
-  }
+     }
+ #endif
+   }
 
  #if HAVE_LIBGLM
   vk->vkrender(prefix,pic,format,width,height,angle,
@@ -1616,9 +1617,9 @@ bool picture::shipout3(const string& prefix, const string& format,
                nlights,lights,diffuse,specular,View,
                oldpid);
 
-  if(format3d) {
-    string name=buildname(prefix,format);
-    abs3Doutfile *fileObj=nullptr;
+   if(format3d) {
+     string name=buildname(prefix,format);
+     abs3Doutfile *fileObj=nullptr;
 
     if(webgl)
       fileObj=new jsfile(name);
@@ -1634,18 +1635,18 @@ bool picture::shipout3(const string& prefix, const string& format,
     }
 #endif
 
-    if(fileObj) {
-      for (auto& p : pic->nodes) {
-        assert(p);
-        p->write(fileObj);
-      }
+     if(fileObj) {
+       for (auto& p : pic->nodes) {
+         assert(p);
+         p->write(fileObj);
+       }
 
-      fileObj->close();
-      delete fileObj;
-    }
+       fileObj->close();
+       delete fileObj;
+     }
 
-    if(webgl && View)
-      htmlView(name);
+     if(webgl && View)
+       htmlView(name);
 
      return true;
    }
