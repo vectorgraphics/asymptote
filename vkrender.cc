@@ -1,4 +1,3 @@
-#define VMA_IMPLEMENTATION
 #include "vkrender.h"
 #include "shaderResources.h"
 #include "picture.h"
@@ -584,7 +583,7 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   this->ViewExport=view;
   this->View = view && !offscreen;
 
-  this->title = std::string(settings::PROGRAM)+": "+prefix.c_str();
+  this->title = std::string(PACKAGE_NAME)+": "+prefix.c_str();
 
   Xmin = mins.getx();
   Xmax = maxs.getx();
@@ -4230,7 +4229,7 @@ void AsyVkRender::drawFrame()
     recreatePipeline = false;
   }
 
-  checkVkResult(device->waitForFences(
+  vkutils::checkVkResult(device->waitForFences(
     1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
   ));
 
@@ -4247,7 +4246,7 @@ void AsyVkRender::drawFrame()
     else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
       throw std::runtime_error("Failed to acquire next swapchain image.");
   }
-  checkVkResult(device->resetFences(
+  vkutils::checkVkResult(device->resetFences(
     1, &*frameObject.inFlightFence
   ));
   frameObject.commandBuffer->reset(vk::CommandBufferResetFlagBits());
