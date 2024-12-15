@@ -62,10 +62,6 @@
 #include <combaseapi.h>
 #endif
 
-#if defined(_WIN32)
-#include <combaseapi.h>
-#endif
-
 using namespace settings;
 
 using interact::interactive;
