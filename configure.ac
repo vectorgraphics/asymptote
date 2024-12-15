@@ -645,37 +645,6 @@ else
 fi
 fi
 
-# ----------------- OpenGL -----------------
-
-AC_ARG_ENABLE(gl,
-[AS_HELP_STRING(--enable-gl[[[=yes]]],enable OpenGL Library)])
-
-if test "x$with_vcpkg" != "xno"; then
-   AC_DEFINE(HAVE_SSBO,1)  # SSBO/Compute shader check should be done at runtime, not at compilation
-   AC_DEFINE(HAVE_COMPUTE_SHADER,1)
-else
-   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-      [#include <GL/gl.h>]
-      [#if !defined(GL_VERSION_4_3) && !defined(GL_ARB_shader_storage_buffer_object)]
-      [#error]
-      [#endif ]
-      )],
-      AC_DEFINE(HAVE_SSBO,1,DEFINE([GLSL shader storage buffer objects])))
-
-   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-      [#include <GL/gl.h>]
-      [#if !defined(GL_VERSION_4_3) && !defined(GL_ARB_compute_shader)]
-      [#error]
-      [#endif ]
-      )],
-      AC_DEFINE(HAVE_COMPUTE_SHADER,1,DEFINE([GLSL compute shaders])))
-fi
-
-# -------------- offscreen rendering
-
-AC_ARG_ENABLE(offscreen,
-[AS_HELP_STRING(--enable-offscreen[[[=no]]],use OSMesa library to implement offscreen rendering)])
-
 # ----------- glm
 if test "x$with_vcpkg" != "xno"; then
    AC_DEFINE(HAVE_LIBGLM,1)
@@ -692,25 +661,29 @@ else
    )
 fi
 
+# ----------- tinyexr
 TINYEXR_ROOT=tinyexr
 INCL=$INCL"-I$TINYEXR_ROOT "
 AC_SUBST(TINYEXR_ROOT)
 
-if test "x$enable_gl" != "xno"; then
-if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
-   ADD_VCPKG_FEATURE(opengl)
-   AC_DEFINE(HAVE_GL,1,[OpenGL is enabled])
-   AC_DEFINE(FREEGLUT,1,[Freeglut is enabled])
-   AC_DEFINE(HAVE_LIBGLUT,1,[Freeglut library is available])
-   INCL=$INCL" -Ibackports/glew/include "
-   GLEW="glew.o "
-   ADD_VCPKG_LIB_FOR_PKGCONFIG(glut)
-else  # managed by the system
-   AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
-   AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
+# ----------- vulkan
+AC_ARG_ENABLE(vulkan,
+[AS_HELP_STRING(--enable-vulkan[[[=yes]]],enable Vulkan Library)])
 
+VMA_REPO_ROOT=VulkanMemoryAllocator
+VMA_IMPL_FILES=""
+if test "x$enable_vulkan" != "xno"; then
+INCL="-I$VMA_REPO_ROOT/include "$INCL"-Ithirdparty_impl/vk-mem-allocator_impl/include "
+VMA_IMPL_FILES=$VMA_IMPL_FILES" vma_cxx vma_impl"
+
+if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
+   ADD_VCPKG_FEATURE(vulkan)
+   AC_DEFINE(HAVE_LIBVULKAN,1,[Vulkan is enabled])
+   ADD_VCPKG_LIB_FOR_PKGCONFIG(glfw3)
+   LIBS=$LIBS"-lvulkan -lMachineIndependent -lOSDependent -lGenericCodeGen -lSPIRV -lglslang "
+else  # managed by the system
 case "$OSTYPE" in
-     darwin*)
+ darwin*)
               AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL,1,
@@ -762,7 +735,7 @@ case "$OSTYPE" in
 esac
 fi
 fi
-fi
+
 
 # ------------------- VCPKG INSTALL
 
@@ -816,6 +789,7 @@ AC_SUBST(CXX_STANDARD)
 AC_SUBST(DEFS)
 AC_SUBST(OPTIONS)
 AC_SUBST(GLEW)
+AC_SUBST(VMA_IMPL_FILES)
 
 # we are on C++ >= 11, so unordered map is a guarantee
 AC_DEFINE(HAVE_UNORDERED_MAP,1,[Unordered map is present])

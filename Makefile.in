@@ -12,7 +12,7 @@ GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@
-LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@
+LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS) @LSPLIBS@
 CXX_STANDARD = @CXX_STANDARD@
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 LSP_BUILD_ROOT=@LSP_BUILD_ROOT@
@@ -31,6 +31,7 @@ SHAREDLIBS = $(filter-out -lglut -GL -pthread $(GCLIBS), $(LIBS))
 
 vpath %.cc prc
 vpath %.cc thirdparty_impl/tinyexr_impl/src
+vpath %.cc thirdparty_impl/vk-mem-allocator_impl/src
 vpath %.ui GUI/windows
 vpath %.py GUI/pyUIClass
 vpath %.py GUI
@@ -50,15 +51,18 @@ PRC =  PRCbitStream oPRCFile PRCdouble writePRC
 
 TINYEXR_FILES = tinyexr_impl
 
+VMA_IMPL_FILES = @VMA_IMPL_FILES@
+
 COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	env genv stm dec errormsg \
     callable name symbol entry exp newexp stack exithandlers camp.tab lex.yy \
 	access virtualfieldaccess absyn record interact fileio \
 	fftw++asy parallel simpson coder coenv impdatum locate asyparser program application \
 	varinit fundec refaccess envcompleter asyprocess constructor array memory \
-	Delaunay predicates glrender tr shaders jsfile v3dfile \
-	EXRFiles GLTextures lspserv symbolmaps win32helpers win32pipestream \
-	win32xdr xstream
+	Delaunay predicates jsfile v3dfile \
+	EXRFiles lspserv symbolmaps win32helpers win32pipestream \
+	win32xdr xstream \
+	$(VMA_IMPL_FILES) vkrender vkdispatchstorage vkutils
 
 FILES = $(COREFILES) main
 
@@ -93,7 +97,6 @@ CFLAGS = @CFLAGS@
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
 	-Iprc/include -I$(LSP_ROOT)/include -I.
-GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
 
 # Options for compiling the object files for the shared library.
 # gc has to be configured with the option --disable-threads in order to make a
@@ -135,7 +138,7 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o @LSPLIB@ @GLEW@
+asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o @LSPLIB@
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
 $(XNAME): $(PYFILES)
@@ -165,7 +168,7 @@ doc/version.texi: version.txt
 	echo @set Datadir @datadir@ >> $@
 	echo @set Docdir @docdir@ >> $@
 
-asymptote.so: $(COREFILES:=.pic.o) glew.o
+asymptote.so: $(COREFILES:=.pic.o)
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
 $(LSP_BUILD_ROOT)/liblspcpp.a:
@@ -427,9 +430,6 @@ check: test
 check-all: asy FORCE
 	./wce
 	$(MAKE) -C tests all
-
-glew.o: glew.c config.h
-	$(CC) -I. $(GLEWOPTS) -o $@ -c $<
 
 .SUFFIXES: .c .cc .o .d .ui .py
 %.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.cc)
