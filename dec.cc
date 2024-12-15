@@ -71,13 +71,16 @@ void addNameOps(coenv &e, record *r, record *qt, varEntry *qv, position pos) {
   }
 }
 
-void nameTy::addOps(coenv &e, record *r, bool applyAutoUnravel)
+void nameTy::addOps(coenv &e, record *r, AutounravelOption opt)
 {
-  if (!applyAutoUnravel) { return; }
-  record *qt=dynamic_cast<record *>(id->getType(e, true));
-  if (!qt) { return; }
-  varEntry *qv = id->getVarEntry(e);
-  addNameOps(e, r, qt, qv, getPos());
+  if (opt == AutounravelOption::Apply)
+  {
+    if (record* qt= dynamic_cast<record*>(id->getType(e, true)); qt)
+    {
+      varEntry* qv= id->getVarEntry(e);
+      addNameOps(e, r, qt, qv, getPos());
+    }
+  }
 }
 
 types::ty *nameTy::trans(coenv &e, bool tacit)
@@ -127,7 +130,7 @@ void arrayTy::prettyprint(ostream &out, Int indent)
 }
 
 // NOTE: Can this be merged with trans somehow?
-void arrayTy::addOps(coenv &e, record *r, bool applyAutoUnravel)
+void arrayTy::addOps(coenv &e, record *r, AutounravelOption)
 {
   types::ty *t=trans(e, true);
 
