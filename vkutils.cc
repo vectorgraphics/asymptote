@@ -2,7 +2,6 @@
 
 #if defined(HAVE_VULKAN)
 
-#include "common.h"
 #include "errormsg.h"
 
 namespace camp

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common.h"
+
 #if defined(HAVE_VULKAN)
 
 // We undefined NDEBUG for common.h, but some files
