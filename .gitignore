@@ -155,6 +155,7 @@ base/v3dheadertypes.asy
 v3dtypes.h
 v3dtypes.py
 base/v3dtypes.asy
+base/webgl/asygl.js
 shaders/*.spv
 # CMake files
 CMakeLists.txt.user
