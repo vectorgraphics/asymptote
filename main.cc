@@ -130,7 +130,10 @@ void *asymain(void *A)
 
 #if defined(_WIN32)
   // see https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecuteexa
-  CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+  if (!SUCCEEDED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE)))
+  {
+    camp::reportError("CoInitializeEx Failed");
+  }
 #endif
 
   if(interactive) {
