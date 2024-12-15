@@ -6,6 +6,12 @@
 
 #pragma once
 
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include "common.h"
+
 #if defined(HAVE_VULKAN)
 
 // We undefined NDEBUG for common.h, but some files
