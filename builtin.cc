@@ -662,25 +662,32 @@ void addArrayOps(venv &ve, types::array *t)
 
 void addRecordOps(venv &ve, record *r)
 {
-  varEntry *aliasFunc = addFunc(
-    ve, run::boolMemEq, primBoolean(), SYM(alias), formal(r, SYM(a)),
-    formal(r, SYM(b))
-  );
-  varEntry *eqFunc = addFunc(
-    ve, run::boolMemEq, primBoolean(), SYM_EQ, formal(r, SYM(a)),
-    formal(r, SYM(b))
-  );
-  varEntry *neqFunc = addFunc(
-    ve, run::boolMemNeq, primBoolean(), SYM_NEQ, formal(r, SYM(a)),
-    formal(r, SYM(b))
-  );
-  if (r) {
-    r->e.ve.registerAutoUnravel(
-      SYM(alias), aliasFunc, AutounravelPriority::OFFER
-    );
-    r->e.ve.registerAutoUnravel(SYM_EQ, eqFunc, AutounravelPriority::OFFER);
-    r->e.ve.registerAutoUnravel(SYM_NEQ, neqFunc, AutounravelPriority::OFFER);
-  }
+  auto addOp= [&](vm::bltin f, ty* result, symbol name, auto&&... formals) {
+    varEntry* fVar=
+            addFunc(ve, f, result, name, std::forward<formal>(formals)...);
+    if (r)
+    {
+      r->e.ve.registerAutoUnravel(name, fVar, AutounravelPriority::OFFER);
+    }
+  };
+  // alias
+  addOp(run::boolMemEq,
+        primBoolean(),
+        SYM(alias),
+        formal(r, SYM(a)),
+        formal(r, SYM(b)));
+  // operator==
+  addOp(run::boolMemEq,
+        primBoolean(),
+        SYM_EQ,
+        formal(r, SYM(a)),
+        formal(r, SYM(b)));
+  // operator!=
+  addOp(run::boolMemNeq,
+        primBoolean(),
+        SYM_NEQ,
+        formal(r, SYM(a)),
+        formal(r, SYM(b)));
 }
 
 void addOperators(venv &ve)
