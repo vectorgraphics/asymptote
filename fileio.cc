@@ -421,6 +421,8 @@ void iofile::writeline()
   if(errorstream::interrupt) throw interrupted();
 }
 
+#ifdef HAVE_LIBTIRPC
+
 void igzxfile::open()
 {
   name=locatefile(inpath(name));
@@ -447,5 +449,7 @@ void igzxfile::closeFile()
     processData().ixfile.remove(index);
   }
 }
+
+#endif
 
 } // namespace camp
