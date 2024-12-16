@@ -74,10 +74,10 @@ struct animation {
 
   int merge(int loops=0, real delay=animationdelay, string format="gif",
             string options="", bool keep=settings.keep) {
-    string args="-loop " +(string) loops+" -delay "+(string)(delay/10)+
-      " -alpha Off -dispose Background "+options;
+    string args="-loop " +(string) loops+" -delay "+(string)(delay/10);
     for(int i=0; i < files.length; ++i)
-      args += " " +files[i];
+      args += " "+files[i];
+    args += " -alpha Off -dispose Background "+options;
     int rc=convert(args,prefix+"."+format,format=format);
     this.purge(keep);
     if(rc == 0) animate(file=prefix+"."+format,format=format);

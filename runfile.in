@@ -12,8 +12,10 @@ file*    => primFile()
 #include "triple.h"
 #include "array.h"
 
-#ifdef __CYGWIN__
-  extern "C" int mkstemp(char *c);
+#if defined(_WIN32)
+#include <io.h>
+#else
+#include <unistd.h>
 #endif
 
 using namespace camp;
@@ -351,14 +353,46 @@ Int rename(string from, string to)
 // Create a uniquely named temporary file.
 string mktemp(string s)
 {
-  char *S=StrdupMalloc(s+"XXXXXX");
+  string baseTemplate=s+"XXXXXX";
+  char *S=StrdupMalloc(baseTemplate);
+  bool success=true;
+#if defined(_WIN32)
+  if (_mktemp_s(S,baseTemplate.length()+1) != 0)
+  {
+    success = false;
+  }
+  FILE* fp;
+  if (success && (fopen_s(&fp,S,"w") != 0))
+  {
+    success = false;
+  }
+#else
   int fd=mkstemp(S);
-  if(fd < 0) {
+  if (fd < 0)
+  {
+    success = false;
+  }
+#endif
+  if(!success)
+  {
     ostringstream buf;
     buf << "Could not create unique temporary filename based on " << s;
     error(buf);
   }
   string T(S);
   free(S);
+
+#if defined(_WIN32)
+  bool closeSuccess = fclose(fp) == 0;
+#else
+  bool closeSuccess = close(fd) == 0;
+#endif
+
+  if (!closeSuccess)
+  {
+    ostringstream buf;
+    buf << "Could not finalize temporary file based on " << s;
+    error(buf);
+  }
   return T;
 }

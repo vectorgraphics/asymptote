@@ -5,7 +5,7 @@ import PyQt5.QtGui as QtGui
 import PyQt5.QtCore as QtCore
 import numpy as numpy
 import xasy2asy as xasy2asy
-from pyUIClass.custMatTransform import Ui_Dialog
+from xasyqtui.custMatTransform import Ui_Dialog
 
 
 class CustMatTransform(QtWidgets.QDialog):

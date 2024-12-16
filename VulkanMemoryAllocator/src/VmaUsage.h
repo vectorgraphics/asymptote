@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017-2022 Advanced Micro Devices, Inc. All rights reserved.
+// Copyright (c) 2017-2024 Advanced Micro Devices, Inc. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -64,6 +64,7 @@ include all public interface declarations. Example:
 //#define VMA_MEMORY_BUDGET 0
 //#define VMA_STATS_STRING_ENABLED 0
 //#define VMA_MAPPING_HYSTERESIS_ENABLED 0
+//#define VMA_KHR_MAINTENANCE5 0
 
 //#define VMA_VULKAN_VERSION 1003000 // Vulkan 1.3
 //#define VMA_VULKAN_VERSION 1002000 // Vulkan 1.2
@@ -94,6 +95,9 @@ include all public interface declarations. Example:
     #pragma clang diagnostic ignored "-Wmissing-field-initializers"
     #pragma clang diagnostic ignored "-Wnullability-completeness"
 #endif
+
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_win32.h>
 
 #include "vk_mem_alloc.h"
 

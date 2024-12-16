@@ -18,7 +18,7 @@
 #include "runtriple.h"
 #include "access.h"
 #include "virtualfieldaccess.h"
-#include "process.h"
+#include "asyprocess.h"
 
 namespace run {
 void arrayDeleteHelper(vm::stack *Stack);
@@ -30,6 +30,8 @@ void arrayDeleteHelper(vm::stack *Stack);
 #endif
 
 namespace types {
+
+const signature::OPEN_t signature::OPEN;
 
 /* Base types */
 #define PRIMITIVE(name,Name,asyName)            \
@@ -74,14 +76,14 @@ void ty::print(ostream& out) const
 #define FIELD(Type, name, func)                                 \
   if (sig == 0 && id == name) {                                 \
     static trans::virtualFieldAccess a(run::func);              \
-    static trans::varEntry v(Type(), &a, 0, position());        \
+    static trans::varEntry v(Type(), &a, 0, nullPos);        \
     return &v;                                                  \
   }
 
 #define RWFIELD(Type, name, getter, setter)                             \
   if (sig == 0 && id == name) {                                         \
     static trans::virtualFieldAccess a(run::getter, run::setter);       \
-    static trans::varEntry v(Type(), &a, 0, position());                \
+    static trans::varEntry v(Type(), &a, 0, nullPos);                \
     return &v;                                                          \
   }
 
@@ -90,7 +92,7 @@ void ty::print(ostream& out) const
       equivalent(sig, Type()->getSignature()))                          \
     {                                                                   \
       static trans::virtualFieldAccess a(run::func, 0, run::func##Helper); \
-      static trans::varEntry v(Type(), &a, 0, position());              \
+      static trans::varEntry v(Type(), &a, 0, nullPos);              \
       return &v;                                                        \
     }
 
@@ -102,7 +104,7 @@ void ty::print(ostream& out) const
       /* for some fields, v needs to be dynamic */                      \
       /* e.g. when the function type depends on an array type. */       \
       trans::varEntry *v =                                              \
-        new trans::varEntry(name##Type(), &a, 0, position());           \
+        new trans::varEntry(name##Type(), &a, 0, nullPos);           \
       return v;                                                         \
     }
 

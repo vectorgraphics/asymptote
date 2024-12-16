@@ -17,8 +17,6 @@ real pageheight=-2pagemargin;
 bool landscape=orientation == Landscape || orientation == Seascape;
 
 if(landscape) {
-  usepackage("geometry");
-  texpreamble("\geometry{landscape}");
   orientation=Portrait;
   pagewidth += settings.paperheight;
   pageheight += settings.paperwidth;
@@ -26,6 +24,9 @@ if(landscape) {
   pagewidth += settings.paperwidth;
   pageheight += settings.paperheight;
 }
+
+texpreamble("\paperwidth="+string(pagewidth)+"bp");
+texpreamble("\paperheight"+string(pageheight)+"bp");
 
 size(pagewidth,pageheight,IgnoreAspect);
 picture background;

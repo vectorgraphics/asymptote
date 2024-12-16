@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-import xasyVersion
+from xasyversion import version
 from setuptools import setup
 
 setup(
     name="xasy",
-    version=xasyVersion.xasyVersion,
+    version=version.VERSION,
     author="Supakorn Rassameemasmuang, Orest Shardt, and John C. Bowman",
     description="User interface for Asymptote, a vector graphics language",
     url="https://asymptote.sourceforge.io",

@@ -21,14 +21,14 @@
 #ifndef __READPRC_H
 #define __READPRC_H
 
-#include <iostream>
+#include "../include/prc/PRC.h"
+#include "inflation.h"
 #include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
-#include <sstream>
-#include <iomanip>
-#include "../PRC.h"
-#include "inflation.h"
 
 struct FileStructureInformation
 {

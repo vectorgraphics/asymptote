@@ -1,0 +1,64 @@
+name: pull-request-precheck
+
+on:
+  pull_request:
+    branches:
+      - "master"
+      - "a/*"
+
+jobs:
+  lint-non-gui-files:
+    uses: ./.github/workflows/lint-non-gui-py-files.yml
+    with:
+      target-branch: ${{ github.base_ref }}
+  determine_asy_version:
+    runs-on: ubuntu-22.04
+    outputs:
+      asyver: ${{ steps.determine_asyver.outputs.asyver }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Determine version suffix
+        shell: bash
+        id: determine_asyver
+        run: |
+          asyver="$(python3 generate_asy_ver_info.py --version-with-git-info)ci"
+          echo "Asymptote version is $asyver"
+          echo "asyver=$asyver" >> "$GITHUB_OUTPUT"
+  build-asy-linux:
+    needs: determine_asy_version
+    uses: ./.github/workflows/build-asy-linux.yml
+    with:
+      version_override: ${{ needs.determine_asy_version.outputs.asyver }}
+  build-asy-windows:
+    needs: determine_asy_version
+    uses: ./.github/workflows/build-asy-windows.yml
+    with:
+      version_override: ${{ needs.determine_asy_version.outputs.asyver }}
+  test-asy-linux:
+    needs: [build-asy-linux]
+    uses: ./.github/workflows/test-asy-linux.yml
+  test-asy-windows:
+    needs: [build-asy-windows]
+    uses: ./.github/workflows/test-asy-windows.yml
+  build-gui:
+    needs: determine_asy_version
+    uses: ./.github/workflows/build-gui.yml
+    with:
+      version_override: ${{ needs.determine_asy_version.outputs.asyver }}
+  package-asy-install-file:
+    needs:
+      - build-asy-windows
+      - build-gui
+      - build-asy-linux
+    uses: ./.github/workflows/package-asy-installer-win.yml
+  precheck-pass:  # this is a dummy step with the sole purpose of making the PR need only this job to pass
+    needs:
+      - test-asy-linux
+      - test-asy-windows
+      - package-asy-install-file
+      - lint-non-gui-files
+    runs-on: "ubuntu-22.04"
+    steps:
+      - run: echo All prechecks pass!

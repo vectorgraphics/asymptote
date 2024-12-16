@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15...3.26)
 
-project(VMA LANGUAGES CXX)
+project(VMA VERSION 3.1.0 LANGUAGES CXX)
 
 add_library(VulkanMemoryAllocator INTERFACE)
 add_library(GPUOpen::VulkanMemoryAllocator ALIAS VulkanMemoryAllocator)
@@ -12,12 +12,17 @@ if (CMAKE_VERSION VERSION_LESS "3.21")
     string(COMPARE EQUAL ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR} PROJECT_IS_TOP_LEVEL)
 endif()
 
-if (PROJECT_IS_TOP_LEVEL)
+option(VMA_ENABLE_INSTALL "Install VulkanMemoryAllocator" ${PROJECT_IS_TOP_LEVEL})
+if (VMA_ENABLE_INSTALL)
     include(GNUInstallDirs)
+    include(CMakePackageConfigHelpers)
 
     install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
     install(TARGETS VulkanMemoryAllocator EXPORT VulkanMemoryAllocatorConfig INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
     install(EXPORT VulkanMemoryAllocatorConfig NAMESPACE "GPUOpen::" DESTINATION "share/cmake/VulkanMemoryAllocator")
+
+    write_basic_package_version_file(VulkanMemoryAllocatorConfigVersion.cmake COMPATIBILITY SameMajorVersion ARCH_INDEPENDENT)
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/VulkanMemoryAllocatorConfigVersion.cmake" DESTINATION "share/cmake/VulkanMemoryAllocator")
 
     option(VMA_BUILD_DOCUMENTATION "Create and install the HTML based API documentation")
     if(VMA_BUILD_DOCUMENTATION)

@@ -16,7 +16,7 @@ struct keyValue {
 
 struct map {
   keyValue[] M;
-  int Default;
+  Value Default;
 
   void operator init(Value Default) {
     this.Default=Default;

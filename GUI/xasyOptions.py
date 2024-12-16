@@ -68,8 +68,16 @@ class xasyOptions:
         self.options = self.defaultOptions()
         self.load()
 
-    def __getitem__(self, item):
-        return self.options[item]
+    def __getitem__(self, key):
+        return self.options[key]
+
+    def __contains__(self, key):
+        return key in self.options
+
+    def get(self, key, default=None):
+        if key not in self.options:
+            return default
+        return self.options[key]
 
     def __setitem__(self, key, value):
         self.options[key] = value
@@ -91,9 +99,10 @@ class xasyOptions:
         except (IOError, ModuleNotFoundError):
             self.setDefaults()
         else:
-            for key in self.options.keys():
+            for key, val in self.options.items():
                 if key in newOptions:
-                    assert isinstance(newOptions[key], type(self.options[key]))
+                    if val is not None:
+                        assert isinstance(newOptions[key], type(val))
                 else:
                     newOptions[key] = self.options[key]
             self.options = newOptions

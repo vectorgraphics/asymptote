@@ -14,7 +14,7 @@
 #include "errormsg.h"
 #include "util.h"
 #include "runtime.h"
-#include "process.h"
+#include "asyprocess.h"
 
 #include "profiler.h"
 
@@ -159,10 +159,10 @@ void stack::marshall(size_t args, stack::vars_t vars)
 #ifdef PROFILE
 
 #ifndef DEBUG_FRAME
-#warning "profiler needs DEBUG_FRAME for function names"
+#pragma message("WARNING: profiler needs DEBUG_FRAME for function names")
 #endif
 #ifndef DEBUG_BLTIN
-#warning "profiler needs DEBUG_BLTIN for builtin function names"
+#pragma message("WARNING: profiler needs DEBUG_BLTIN for builtin function names")
 #endif
 
 profiler prof;
@@ -343,14 +343,14 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
   unsigned int offset=P.xmapCount;
 
   bool traceless=!settings::getSetting<bool>("debug");
+  bool xasy=settings::getSetting<bool>("xasy") || offset;
+  if(xasy && curPos.filename() == fileName)
+    topPos=curPos.shift(offset);
 
   try {
     for (;;) {
       const inst &i = *ip;
       curPos = i.pos;
-
-      if(curPos.filename() == fileName)
-        topPos=curPos.shift(offset);
 
 #ifdef PROFILE
       prof.recordInstruction();
@@ -522,6 +522,9 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 
           case inst::popcall: {
             /* get the function reference off of the stack */
+            if(xasy && curPos.filename() == fileName)
+              topPos=curPos.shift(offset);
+
             callable* f = pop<callable*>();
             if(traceless)
               f->call(this);

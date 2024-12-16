@@ -31,6 +31,6 @@ margin BigMargin=Margin(0,m*dot(unit(z1-z),unit(z0-z)));
 draw(Label("$A\cap B$",0),conj(z)--z0,Arrow,BigMargin);
 draw(Label("$A\cup B$",0),z--z0,Arrow,BigMargin);
 draw(z--z1,Arrow,Margin(0,m));
-draw(z--z2,Arrow,Margin(0,m));
+draw(KEY="34.5",z--z2,Arrow,Margin(0,m));
 
 shipout(bbox(0.25cm));

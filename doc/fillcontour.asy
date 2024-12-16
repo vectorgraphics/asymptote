@@ -21,9 +21,6 @@ pen[] Palette=quantize(BWRainbow(),n);
 
 bounds range=image(f,Automatic,a,b,3N,Palette,n);
 
-real[] Cvals=uniform(range.min,range.max,Divs);
-draw(contour(f,a,b,Cvals,N,operator --),Tickpen+squarecap+beveljoin);
-
 // Major contours
 real[] Cvals=uniform(range.min,range.max,Divs);
 draw(contour(f,a,b,Cvals,N,operator --),Tickpen+squarecap+beveljoin);
