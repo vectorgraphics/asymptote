@@ -4,6 +4,7 @@ struct BareStruct {
 struct A {
   static int global = 17;
   int local = 3;
+  autounravel int au = -1;
 }
 access 'template/imports/structTemplate'(T=A, Lib=BareStruct) as bareStruct;
 
@@ -14,6 +15,7 @@ struct B {
   static struct C {
     static int global = 17;
     int local = 3;
+    autounravel int au = -1;
   }
 }
 access 'template/imports/structTemplate'(T=B.C, Lib=NestedStruct)
@@ -26,6 +28,7 @@ struct D {
   struct E {
     static int global = 17;
     int local = 3;
+    autounravel int au = -1;
   }
 }
 D d;
@@ -41,6 +44,7 @@ struct G {
     static struct I {
       static int global = 17;
       int local = 3;
+      autounravel int au = -1;
     }
   }
 }

@@ -41,107 +41,108 @@ struct rational {
     this.q=q;
     if(reduce) reduce();
   }
-}
 
-rational operator cast(int p)
-{
-  return rational(p,false);
-}
+  autounravel rational operator cast(int p)
+  {
+    return rational(p,false);
+  }
 
-rational[] operator cast(int[] a)
-{
-  return sequence(new rational(int i) {return a[i];},a.length);
-}
+  autounravel rational[] operator cast(int[] a)
+  {
+    return sequence(new rational(int i) {return a[i];},a.length);
+  }
 
-rational[][] operator cast(int[][] a)
-{
-  return sequence(new rational[](int i) {return a[i];},a.length);
-}
+  autounravel rational[][] operator cast(int[][] a)
+  {
+    return sequence(new rational[](int i) {return a[i];},a.length);
+  }
 
-real operator ecast(rational r)
-{
-  return r.p/r.q;
-}
+  real operator ecast(rational r)
+  {
+    return r.p/r.q;
+  }
 
-rational operator ecast(real x)
-{
-  int sign=x >= 0.0 ? 1 : -1;
-  x=abs(x);
-  int a=floor(x); int b=1;
-  int c=a+1; int d=1;
+  autounravel rational operator ecast(real x)
+  {
+    int sign=x >= 0.0 ? 1 : -1;
+    x=abs(x);
+    int a=floor(x); int b=1;
+    int c=a+1; int d=1;
 
-  while(true) {
-    int e=a+c;
-    int f=b+d;
-    if(f > maxDenominator) break;
-    if(e/f == x)
-      return rational(sign*e,f);
-    else {
-      if(e/f < x) {
-        a=e;
-        b=f;
-      } else {
-        c=e;
-        d=f;
+    while(true) {
+      int e=a+c;
+      int f=b+d;
+      if(f > maxDenominator) break;
+      if(e/f == x)
+        return rational(sign*e,f);
+      else {
+        if(e/f < x) {
+          a=e;
+          b=f;
+        } else {
+          c=e;
+          d=f;
+        }
       }
     }
+    return abs(a/b-x) < abs(c/d-x) ? rational(sign*a,b) : rational(sign*c,d);
   }
-  return abs(a/b-x) < abs(c/d-x) ? rational(sign*a,b) : rational(sign*c,d);
-}
 
-rational operator -(rational r)
-{
-  return rational(-r.p,r.q,false);
-}
+  autounravel rational operator -(rational r)
+  {
+    return rational(-r.p,r.q,false);
+  }
 
-rational operator +(rational r, rational s)
-{
-  return rational(r.p*s.q+s.p*r.q,r.q*s.q);
-}
+  autounravel rational operator +(rational r, rational s)
+  {
+    return rational(r.p*s.q+s.p*r.q,r.q*s.q);
+  }
 
-rational operator -(rational r, rational s)
-{
-  return rational(r.p*s.q-s.p*r.q,r.q*s.q);
-}
+  autounravel rational operator -(rational r, rational s)
+  {
+    return rational(r.p*s.q-s.p*r.q,r.q*s.q);
+  }
 
-rational operator *(rational r, rational s)
-{
-  return rational(r.p*s.p,r.q*s.q);
-}
+  autounravel rational operator *(rational r, rational s)
+  {
+    return rational(r.p*s.p,r.q*s.q);
+  }
 
-rational operator /(rational r, rational s)
-{
-  return rational(r.p*s.q,r.q*s.p);
-}
+  autounravel rational operator /(rational r, rational s)
+  {
+    return rational(r.p*s.q,r.q*s.p);
+  }
 
-bool operator ==(rational r, rational s)
-{
-  return r.p == s.p && r.q == s.q;
-}
+  autounravel bool operator ==(rational r, rational s)
+  {
+    return r.p == s.p && r.q == s.q;
+  }
 
-bool operator !=(rational r, rational s)
-{
-  return r.p != s.p || r.q != s.q;
-}
+  autounravel bool operator !=(rational r, rational s)
+  {
+    return r.p != s.p || r.q != s.q;
+  }
 
-bool operator <(rational r, rational s)
-{
-  return r.p*s.q-s.p*r.q < 0;
-}
+  autounravel bool operator <(rational r, rational s)
+  {
+    return r.p*s.q-s.p*r.q < 0;
+  }
 
-bool operator >(rational r, rational s)
-{
-  return r.p*s.q-s.p*r.q > 0;
-}
+  autounravel bool operator >(rational r, rational s)
+  {
+    return r.p*s.q-s.p*r.q > 0;
+  }
 
-bool operator <=(rational r, rational s)
-{
-  return r.p*s.q-s.p*r.q <= 0;
-}
+  autounravel bool operator <=(rational r, rational s)
+  {
+    return r.p*s.q-s.p*r.q <= 0;
+  }
 
-bool operator >=(rational r, rational s)
-{
-  return r.p*s.q-s.p*r.q >= 0;
+  autounravel bool operator >=(rational r, rational s)
+  {
+    return r.p*s.q-s.p*r.q >= 0;
+  }
+
 }
 
 bool[] operator ==(rational[] r, rational s)

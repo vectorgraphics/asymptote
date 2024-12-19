@@ -149,8 +149,13 @@ public:
     assert(s != DEFAULT_STATIC && s != DEFAULT_DYNAMIC);
 
     /* Non-default static overrules. */
-    if (sord != EXPLICIT_STATIC)
+    if (s == AUTOUNRAVEL || sord == AUTOUNRAVEL) {
+      sord = AUTOUNRAVEL;
+    } else if (s == EXPLICIT_STATIC || sord == EXPLICIT_STATIC) {
+      sord = EXPLICIT_STATIC;
+    } else {
       sord = s;
+    }
 
     sord_stack.push(sord);
   }
@@ -161,6 +166,7 @@ public:
     switch(sord) {
       case DEFAULT_STATIC:
       case EXPLICIT_STATIC:
+      case AUTOUNRAVEL:
         return true;
       case DEFAULT_DYNAMIC:
       case EXPLICIT_DYNAMIC:
@@ -169,6 +175,11 @@ public:
         assert(False);
         return false;
     }
+  }
+
+  bool isAutoUnravel()
+  {
+    return sord == AUTOUNRAVEL;
   }
 
 

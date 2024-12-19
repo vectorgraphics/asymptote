@@ -191,11 +191,6 @@ void protoenv::addRecordOps(record *r)
   trans::addRecordOps(ve, r);
 }
 
-void protoenv::addFunctionOps(function *f)
-{
-  trans::addFunctionOps(ve, f);
-}
-
 env::env(genv &ge)
   : protoenv(venv::file_env_tag()), ge(ge)
 {
