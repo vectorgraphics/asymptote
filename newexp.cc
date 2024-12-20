@@ -44,7 +44,7 @@ bool newRecordExp::encodeLevel(position pos, coenv &e, trans::tyEntry *ent)
 
   if (ent->v) {
     // Put the record on the stack.  For instance, in code like
-    //   import imp;
+    //   access imp;
     //   new imp.t;
     // we are putting the instance of imp on the stack, so we can use it to
     // allocate an instance of imp.t.

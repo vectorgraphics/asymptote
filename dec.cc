@@ -17,7 +17,7 @@
 #include "modifier.h"
 #include "runtime.h"
 #include "locate.h"
-#include "parser.h"
+#include "asyparser.h"
 // #include "builtin.h"  // for trans::addRecordOps
 
 namespace absyntax {
@@ -27,7 +27,13 @@ using namespace types;
 
 using mem::list;
 
-trans::tyEntry *ty::transAsTyEntry(coenv &e, record *where)
+symbol intSymbol() {
+  const static symbol* intSymbol = new symbol(symbol::literalTrans("int"));
+  return *intSymbol;
+}
+
+
+trans::tyEntry *astType::transAsTyEntry(coenv &e, record *where)
 {
   return new trans::tyEntry(trans(e, false), 0, where, getPos());
 }
@@ -38,6 +44,43 @@ void nameTy::prettyprint(ostream &out, Int indent)
   prettyname(out, "nameTy",indent, getPos());
 
   id->prettyprint(out, indent+1);
+}
+
+void addNameOps(coenv &e, record *r, record *qt, varEntry *qv, position pos) {
+  for (auto au : qt->e.ve.getAutoUnravels()) {
+    symbol auName = au.first;
+    varEntry *v = au.second;
+    if (!v->checkPerm(READ, e.c)) {
+      em.error(pos);
+      em << "cannot access '" << auName << "' in current scope";
+      continue;
+    }
+    varEntry *qqv = qualifyVarEntry(qv, v);
+    if (r) {
+      if (!r->e.ve.lookByType(auName, qqv->getType()))
+      // Add op only if it does not already exist.
+      {
+        r->e.ve.enter(auName, qqv);
+      }
+    }
+    if (!e.e.ve.lookByType(auName, qqv->getType()))
+    // Add op only if it does not already exist.
+    {
+      e.e.ve.enter(auName, qqv);
+    }
+  }
+}
+
+void nameTy::addOps(coenv &e, record *r, AutounravelOption opt)
+{
+  if (opt == AutounravelOption::Apply)
+  {
+    if (record* qt= dynamic_cast<record*>(id->getType(e, true)); qt)
+    {
+      varEntry* qv= id->getVarEntry(e);
+      addNameOps(e, r, qt, qv, getPos());
+    }
+  }
 }
 
 types::ty *nameTy::trans(coenv &e, bool tacit)
@@ -87,7 +130,7 @@ void arrayTy::prettyprint(ostream &out, Int indent)
 }
 
 // NOTE: Can this be merged with trans somehow?
-void arrayTy::addOps(coenv &e, record *r)
+void arrayTy::addOps(coenv &e, record *r, AutounravelOption)
 {
   types::ty *t=trans(e, true);
 
@@ -128,7 +171,7 @@ arrayTy::operator string() const
 }
 
 tyEntryTy::tyEntryTy(position pos, types::ty *t)
-  : ty(pos), ent(new trans::tyEntry(t, 0, 0, position()))
+  : astType(pos), ent(new trans::tyEntry(t, 0, 0, nullPos))
 {
 }
 
@@ -200,7 +243,8 @@ void block::transAsField(coenv &e, record *r)
 }
 
 bool block::transAsTemplatedField(
-    coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args
+  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args,
+  frame *caller
 ) {
   Scope scopeHolder(e, scope);
   auto p = stms.begin();
@@ -211,10 +255,10 @@ bool block::transAsTemplatedField(
   if (!dec) {
     em.error(getPos());
     em << "expected 'typedef import(<types>);'";
-    em.sync();
+    em.sync(true);
     return false;
   }
-  if(!dec->transAsParamMatcher(e, r, args))
+  if(!dec->transAsParamMatcher(e, r, args, caller))
     return false;
 
   while (++p != stms.end()) {
@@ -234,9 +278,10 @@ void block::transAsRecordBody(coenv &e, record *r)
 }
 
 bool block::transAsTemplatedRecordBody(
-    coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args
+  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args,
+  frame *caller
 ) {
-  bool succeeded = transAsTemplatedField(e, r, args);
+  bool succeeded = transAsTemplatedField(e, r, args, caller);
   e.c.closeRecord();
   return succeeded;
 }
@@ -267,10 +312,26 @@ record *block::transAsTemplatedFile(
     genv& ge,
     symbol id,
     mem::vector<absyntax::namedTyEntry*>* args,
-    frame *parent
+    coenv& cE
 ) {
+
+  for (auto p = args->rbegin(); p != args->rend(); ++p) {
+    namedTyEntry *arg = *p;
+    tyEntry *ent = arg->ent;
+    if(ent->t->kind == types::ty_record) {
+      varEntry *v = ent->v;
+      if (v) {
+        // Push the value of v to the stack.
+        v->getLocation()->encode(READ, arg->pos, cE.c);
+      } else  {
+        // Push the appropriate frame to the stack.
+        newRecordExp::encodeLevel(arg->pos,cE,ent);
+      }
+    }
+  }
+
   // Create the new module.
-  record *r = new record(id, new frame(id,parent,0));
+  record *r = new record(id, new frame(id, 0, 0));
 
   // Create coder and environment to translate the module.
   // File-level modules have dynamic fields by default.
@@ -283,7 +344,7 @@ record *block::transAsTemplatedFile(
     autoplainRunnable()->transAsField(ce, r);
   }
 
-  bool succeeded = transAsTemplatedRecordBody(ce, r, args);
+  bool succeeded = transAsTemplatedRecordBody(ce, r, args, cE.c.getFrame());
   if (!succeeded) {
     return nullptr;
   }
@@ -386,13 +447,36 @@ bool modifierList::staticSet()
 
 modifier modifierList::getModifier()
 {
-  if (mods.size() > 1) {
-    em.error(getPos());
-    em << "too many modifiers";
-  }
-
   assert(staticSet());
-  return mods.front();
+  int numAutounravel = 0;
+  int numStatic = 0;
+  for (modifier m : mods) {
+    switch (m) {
+      case AUTOUNRAVEL:
+        ++numAutounravel;
+        break;
+      case EXPLICIT_STATIC:
+      case DEFAULT_STATIC:
+        ++numStatic;
+        break;
+      default:
+        em.compiler(getPos());
+        em << "invalid modifier";
+    }
+  }
+  if (numAutounravel > 1) {
+    em.error(getPos());
+    em << "too many autounravel modifiers";
+  }
+  if (numStatic > 1) {
+    em.error(getPos());
+    em << "too many static modifiers";
+  }
+  if (numAutounravel) {
+    return AUTOUNRAVEL;
+  } else {
+    return mods.front();
+  }
 }
 
 permission modifierList::getPermission()
@@ -417,11 +501,18 @@ void modifiedRunnable::prettyprint(ostream &out, Int indent)
 void modifiedRunnable::transAsField(coenv &e, record *r)
 {
   if (mods->staticSet()) {
+    modifier mod = mods->getModifier();
     if (e.c.isTopLevel()) {
-      em.warning(getPos());
-      em << "static modifier is meaningless at top level";
+      if (mod == AUTOUNRAVEL) {
+        em.error(getPos());
+        em << "top-level fields cannot be autounraveled";
+        return;
+      } else {
+        em.warning(getPos());
+        em << "static modifier is meaningless at top level";
+      }
     }
-    e.c.pushModifier(mods->getModifier());
+    e.c.pushModifier(mod);
   }
 
   permission p = mods->getPermission();
@@ -491,7 +582,7 @@ void decidstart::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 }
 
 void decidstart::createSymMapWType(
-    AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+    AsymptoteLsp::SymbolContext* symContext, absyntax::astType* base
 ) {
 #ifdef HAVE_LSP
   std::string name(static_cast<std::string>(getName()));
@@ -564,9 +655,6 @@ void fundecidstart::addOps(types::ty *base, coenv &e, record *r)
   types::function *ft=dynamic_cast<types::function *>(getType(base, e, true));
   assert(ft);
 
-  e.e.addFunctionOps(ft);
-  if (r)
-    r->e.addFunctionOps(ft);
 }
 
 
@@ -604,13 +692,17 @@ void addVar(coenv &e, record *r, varEntry *v, symbol id)
 {
   // Test for 'operator init' definitions that implicitly define constructors:
   if (definesImplicitConstructor(e, r, v, id))
-    addConstructorFromInitializer(position(), e, r, v);
+    addConstructorFromInitializer(nullPos, e, r, v);
 
   // Add to the record so it can be accessed when qualified; add to the
   // environment so it can be accessed unqualified in the scope of the
   // record definition.
-  if (r)
+  if (r) {
     r->e.addVar(id, v);
+    if (e.c.isAutoUnravel()) {
+      r->e.ve.registerAutoUnravel(id, v);
+    }
+  }
   e.e.addVar(id, v);
 }
 
@@ -733,7 +825,7 @@ void decid::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 }
 
 void decid::createSymMapWType(
-    AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+    AsymptoteLsp::SymbolContext* symContext, absyntax::astType* base
 ) {
 #ifdef HAVE_LSP
   start->createSymMapWType(symContext, base);
@@ -775,7 +867,7 @@ void decidlist::createSymMap(AsymptoteLsp::SymbolContext* symContext) {
 }
 
 void decidlist::createSymMapWType(
-    AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+    AsymptoteLsp::SymbolContext* symContext, absyntax::astType* base
 ) {
 #ifdef HAVE_LSP
   for (auto const& p : decs)
@@ -834,7 +926,7 @@ class loadModuleExp : public exp {
 
 public:
   loadModuleExp(position pos, record *imp)
-    : exp(pos) {ft=new function(imp,primString(),primString());}
+    : exp(pos) {ft=new function(imp,primString());}
 
   void prettyprint(ostream &out, Int indent) {
     prettyname(out, "loadModuleExp", indent, getPos());
@@ -865,18 +957,19 @@ public:
 // the import, but doesn't add the import to the environment.
 varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
 {
-  record *imp=e.e.getModule(id, (string)id);
+  string filename=(string) id;
+  record *imp=e.e.getModule(id, filename);
   if (!imp) {
     em.error(pos);
-    em << "could not load module '" << id << "'";
-    em.sync();
+    em << "could not load module '" << filename << "'";
+    em.sync(true);
     return 0;
   }
   else {
     // Create a varinit that evaluates to the module.
-    // This is effectively the expression 'loadModule(filename,"")'.
+    // This is effectively the expression 'loadModule(filename)'.
     callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, (string)id), new stringExp(pos, ""));
+                 new stringExp(pos, filename));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -891,19 +984,20 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
 varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
                                 formals *args)
 {
-  stringstream s;
-  s << args->getSignature(e)->handle();
-  string sigHandle=s.str();
+  string filename=(string) id;
+  stringstream buf;
+  buf << id << '/' << args->getSignature(e)->handle() << '/';
+  symbol index=symbol::literalTrans(buf.str());
 
   auto *computedArgs = new mem::vector<namedTyEntry*>();
   mem::vector<tySymbolPair> *fields = args->getFields();
   for (auto p = fields->begin(); p != fields->end(); ++p) {
-    ty* theType = p->ty;
+    astType* theType = p->ty;
     symbol theName = p->sym;
     if (theName == symbol::nullsym) {
       em.error(theType->getPos());
       em << "expected typename=";
-      em.sync();
+      em.sync(true);
       return nullptr;
     }
     computedArgs->push_back(new namedTyEntry(
@@ -911,22 +1005,17 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     ));
   }
 
-  record *imp=e.e.getTemplatedModule(id,
-                                     (string) id,
-                                     sigHandle,
-                                     computedArgs,
-                                     e.c.getFrame());
+  record *imp=e.e.getTemplatedModule(index,filename,computedArgs,e);
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
-    em.sync();
+    em.sync(true);
     return nullptr;
   }
   else {
     // Create a varinit that evaluates to the module.
-    // This is effectively the expression 'loadModule(filename,index)'.
-    callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, (string) id), new stringExp(pos, sigHandle));
+    // This is effectively the expression 'loadModule(index)'.
+    callExp init(pos, new loadModuleExp(pos, imp), new stringExp(pos, index));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -952,17 +1041,25 @@ void idpair::transAsAccess(coenv &e, record *r)
     addVar(e, r, v, dest);
 }
 
-void idpair::transAsUnravel(coenv &e, record *r,
-                            protoenv &source, varEntry *qualifier)
+tyEntry *idpair::transAsUnravel(coenv &e, record *r,
+                                protoenv &source, varEntry *qualifier)
 {
   checkValidity();
 
-  if (r)
-    r->e.add(src, dest, source, qualifier, e.c);
-  if (!e.e.add(src, dest, source, qualifier, e.c)) {
+  if (r) {
+    auto fieldsAdded = r->e.add(src, dest, source, qualifier, e.c)->varsAdded;
+    if (e.c.isAutoUnravel()) {
+      for (varEntry *v : fieldsAdded) {
+        r->e.ve.registerAutoUnravel(dest, v);
+      }
+    }
+  }
+  protoenv::Added *added = e.e.add(src, dest, source, qualifier, e.c);
+  if (added->empty()) {
     em.error(getPos());
     em << "no matching types or fields of name '" << src << "'";
   }
+  return added->typeAdded;
 }
 
 void idpair::createSymMap(AsymptoteLsp::SymbolContext* symContext)
@@ -1012,13 +1109,18 @@ void idpairlist::transAsAccess(coenv &e, record *r)
     (*p)->transAsAccess(e,r);
 }
 
-void idpairlist::transAsUnravel(coenv &e, record *r,
-                                protoenv &source, varEntry *qualifier)
-{
+mem::vector<tyEntry*> idpairlist::transAsUnravel(
+  coenv &e, record *r, protoenv &source, varEntry *qualifier
+) {
+  mem::vector<tyEntry*> result;
   for (list<idpair *>::iterator p=base.begin();
        p != base.end();
        ++p)
-    (*p)->transAsUnravel(e,r,source,qualifier);
+  {
+    tyEntry *typeAdded = (*p)->transAsUnravel(e,r,source,qualifier);
+    result.push_back(typeAdded);
+  }
+  return result;
 }
 
 void idpairlist::createSymMap(AsymptoteLsp::SymbolContext* symContext)
@@ -1061,7 +1163,44 @@ void typeParam::prettyprint(ostream &out, Int indent) {
   out << "typeParam (" << paramSym <<  ")\n";
 }
 
+void recordInitializer(coenv &e, symbol id, record *r, position here)
+{
+  // This is almost equivalent to the code
+  //   autounravel A operator init() { return new A; }
+  // where A is the name of the record. The "almost" is because the code below
+  // does not add the operator init to the environment, since in practice it
+  // would be added to the outer environment, not the record's environment.
+  // Since it is always added *after* any code in the record, we lose nothing
+  // by not adding it to the environment.
+  // Additionally, the "autounravel" is made low-priority (will not override
+  // user-defined operator init) which is possible only for built-in functions.
+  formals formals(here);
+  simpleName recordName(here, id);
+  nameTy result(here, &recordName);
+  newRecordExp exp(here, &result);
+  returnStm stm(here, &exp);
+  fundef fun(here, &result, &formals, &stm);
+  assert(r);
+  {
+    e.c.pushModifier(AUTOUNRAVEL);
+    function *ft = fun.transType(e, false);
+    assert(ft);
+
+    symbol initSym=symbol::opTrans("init");
+    varinit *init=fun.makeVarInit(ft);
+
+    assert(ft->kind != types::ty_inferred);
+
+    varEntry *v=makeVarEntry(here, e, r, ft);
+    r->e.addVar(initSym, v);
+    r->e.ve.registerAutoUnravel(initSym, v, trans::AutounravelPriority::OFFER);
+    initializeVar(here, e, v, init);
+    e.c.popModifier();
+  }
+}
+
 bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
+  position pos=arg->pos;
   if (arg->dest != paramSym) {
     em.error(arg->pos);
     em << "template argument name does not match module: passed "
@@ -1070,38 +1209,42 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
        << paramSym;
     return false;
   }
-  addTypeWithPermission(e, r, arg->ent, paramSym);
-  types::ty *t = arg->ent->t;
-  if (t->kind == types::ty_record) {
-    record *local = dynamic_cast<record *>(t);
-    // copied from recorddecc::addPostRecordEnvironment, mutatis mutandis
-    if (r) {
-      r->e.add(local->postdefenv, 0, e.c);
-    }
-    e.e.add(local->postdefenv, 0, e.c);
-  }
 
-  //e.e.addType(paramSym, arg->ent);
-  // The code below would add e.g. operator== to the context, but potentially
-  // ignore overrides of operator==:
-  //
-  // types::ty *t = arg.ent->t;
-  // if (t->kind == types::ty_record) {
-  //   record *r = dynamic_cast<record *>(t);
-  //   if (r) {
-  //     trans::addRecordOps(e.e.ve, r);
-  //   }
-  // } else if (t->kind == types::ty_array) {
-  //   array *a = dynamic_cast<array *>(t);
-  //   if (a) {
-  //     trans::addArrayOps(e.e.ve, a);
-  //   }
-  // } else if (t->kind == types::ty_function) {
-  //   function *f = dynamic_cast<function *>(t);
-  //   if (f) {
-  //     trans::addFunctionOps(e.e.ve, f);
-  //   }
-  // }
+  if(arg->ent->t->kind == types::ty_record) {
+    record *module = dynamic_cast<record *>(arg->ent->v->getType());
+    symbol Module=symbol::literalTrans(module->getName());
+    record *imp=e.e.getLoadedModule(Module);
+
+    tyEntry *entry;
+    if(imp) {
+      callExp init(pos, new loadModuleExp(pos, imp),
+                   new stringExp(pos, module->getName()));
+      varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
+      initializeVar(pos, e, v, &init);
+      if (v)
+        addVar(e, r, v, Module);
+
+      record *src = dynamic_cast<record *>(arg->ent->t);
+      qualifiedName *qn=new qualifiedName(
+        pos,
+        new simpleName(pos,module->getName()),
+        src->getName()
+        );
+
+      entry=nameTy(pos,qn).transAsTyEntry(e, r);
+    } else {
+      entry=arg->ent;
+    }
+    addTypeWithPermission(e, r, entry, paramSym);
+
+    // Add any autounravel fields.
+    record *qt = dynamic_cast<record *>(entry->t);
+    assert(qt);  // Should always pass since arg->ent->t->kind == ty_record
+    varEntry *qv = entry->v;
+    addNameOps(e, r, qt, qv, pos);
+  } else
+    addTypeWithPermission(e, r, arg->ent, paramSym);
+
   return true;
 }
 
@@ -1116,7 +1259,7 @@ void typeParamList::add(typeParam *tp) {
 }
 
 bool typeParamList::transAsParamMatcher(
-    coenv &e, record *r, mem::vector<namedTyEntry*> *args
+  coenv &e, record *r, mem::vector<namedTyEntry*> *args, frame *caller
 ) {
   if (args->size() != params.size()) {
     position pos = getPos();
@@ -1133,16 +1276,34 @@ bool typeParamList::transAsParamMatcher(
     }
     return false;
   }
+  mem::vector<namedTyEntry*> *qualifiedArgs = new mem::vector<namedTyEntry*>();
+
+  const string callerContextName="callerContext/";
+  const static symbol *id0=new symbol(symbol::literalTrans(callerContextName));
+  record *callerContext = new record(*id0, caller);
+  for (namedTyEntry *arg : *args) {
+    if (arg->ent->t->kind == types::ty_record) {
+      varEntry *v = arg->ent->v;
+      varEntry *newV = makeVarEntryWhere(
+          e, r, v ? v->getType() : callerContext, nullptr, arg->pos
+      );
+      newV->getLocation()->encode(WRITE, arg->pos, e.c);
+      e.c.encodePop();
+
+      tyEntry *newEnt = qualifyTyEntry(newV, arg->ent);
+      qualifiedArgs->push_back(
+        new namedTyEntry(arg->pos, arg->dest, newEnt)
+        );
+    } else {
+      qualifiedArgs->push_back(arg);
+    }
+  }
+
   for (size_t i = 0; i < params.size(); ++i) {
-    bool succeeded = params[i]->transAsParamMatcher(e, r, (*args)[i]);
+    bool succeeded = params[i]->transAsParamMatcher(e, r, (*qualifiedArgs)[i]);
     if (!succeeded) return false;
   }
   return true;
-}
-
-symbol intSymbol() {
-  const static symbol* intSymbol = new symbol(symbol::literalTrans("int"));
-  return *intSymbol;
 }
 
 symbol templatedSymbol() {
@@ -1152,9 +1313,9 @@ symbol templatedSymbol() {
 }
 
 bool receiveTypedefDec::transAsParamMatcher(
-    coenv& e, record *r, mem::vector<namedTyEntry*> *args
+  coenv& e, record *r, mem::vector<namedTyEntry*> *args, frame *caller
 ) {
-  bool succeeded = params->transAsParamMatcher(e, r, args);
+  bool succeeded = params->transAsParamMatcher(e, r, args, caller);
 
   types::ty *intTy = e.e.lookupType(intSymbol());
   assert(intTy);
@@ -1174,7 +1335,7 @@ void receiveTypedefDec::transAsField(coenv& e, record *r) {
   } else {
     em << "templated module access requires template parameters";
   }
-  em.sync();
+  em.sync(true);
 }
 
 
@@ -1192,9 +1353,18 @@ void fromdec::transAsField(coenv &e, record *r)
       if (r)
         r->e.add(q.t->e, q.v, e.c);
       e.e.add(q.t->e, q.v, e.c);
+    } else {
+      auto typesAdded = fields->transAsUnravel(e, r, q.t->e, q.v);
+      for (tyEntry *te : typesAdded) {
+        if (te) {
+          record *t = dynamic_cast<record*>(te->t);
+          if (t) {
+            addNameOps(e, r, t, te->v, getPos());
+          }
+        }
+      }
+
     }
-    else
-      fields->transAsUnravel(e, r, q.t->e, q.v);
   }
 }
 
@@ -1303,7 +1473,7 @@ void includedec::loadFailed(coenv &)
 {
   em.warning(getPos());
   em << "could not parse file of name '" << filename << "'";
-  em.sync();
+  em.sync(true);
 }
 
 void includedec::transAsField(coenv &e, record *r)
@@ -1349,35 +1519,33 @@ void recorddec::prettyprint(ostream &out, Int indent)
 
 void recorddec::transRecordInitializer(coenv &e, record *parent)
 {
-  position here=getPos();
-
-  // This is equivalent to the code
-  //   A operator init() { return new A; }
-  // where A is the name of the record.
-  formals formals(here);
-  simpleName recordName(here, id);
-  nameTy result(here, &recordName);
-  newRecordExp exp(here, &result);
-  returnStm stm(here, &exp);
-  fundec init(here, &result, symbol::opTrans("init"), &formals, &stm);
-
-  init.transAsField(e, parent);
+  recordInitializer(e,id,parent,getPos());
 }
 
 void recorddec::addPostRecordEnvironment(coenv &e, record *r, record *parent) {
   if (parent)
     parent->e.add(r->postdefenv, 0, e.c);
   e.e.add(r->postdefenv, 0, e.c);
+  // Add the autounravel fields also.
+  addNameOps(e, parent, r, nullptr, getPos());
 }
 
 void recorddec::transAsField(coenv &e, record *parent)
 {
+  if (e.c.isAutoUnravel()) {
+    em.error(getPos());
+    em << "types cannot be autounraveled";
+  }
   record *r = parent ? parent->newRecord(id, e.c.isStatic()) :
     e.c.newRecord(id);
 
   addTypeWithPermission(e, parent, new trans::tyEntry(r,0,parent,getPos()),
                         id);
   e.e.addRecordOps(r);
+  // Note: the following two lines *may* be unnecessary now that the record ops
+  // are autounraveled. Unfortunately, if you trace back the history of this
+  // code, the comments suggest it's doing something else that is not covered
+  // by the autounraveling.
   if (parent)
     parent->e.addRecordOps(r);
 
@@ -1385,12 +1553,16 @@ void recorddec::transAsField(coenv &e, record *parent)
   coder c=e.c.newRecordInit(getPos(), r);
   coenv re(c,e.e);
 
-  body->transAsRecordBody(re, r);
+  {  // body->transAsRecordBody(re, r) but with something extra before closing
+    body->transAsField(re, r);
+    // After the record is translated, add a default initializer so that a
+    // variable of the type of the record is initialized to a new instance by
+    // default.
+    transRecordInitializer(re, r);
 
-  // After the record is translated, add a default initializer so that a
-  // variable of the type of the record is initialized to a new instance by
-  // default.
-  transRecordInitializer(e, parent);
+    re.c.closeRecord();
+  }
+
 
   // Add types and variables defined during the record that should be added to
   // the enclosing environment.  These are the implicit constructors defined by
@@ -1419,8 +1591,8 @@ void recorddec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 runnable *autoplainRunnable() {
   // Abstract syntax for the code:
   //   private import plain;
-  position pos=position();
-  static importdec ap(pos, new idpair(pos, symbol::trans("plain")));
+  position pos=nullPos;
+  static importdec ap(pos, new idpair(pos, symbol::literalTrans("plain")));
   static modifiedRunnable mr(pos, trans::PRIVATE, &ap);
 
   return &mr;

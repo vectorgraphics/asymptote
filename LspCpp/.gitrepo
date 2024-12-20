@@ -1,12 +1,12 @@
 ; DO NOT EDIT (unless you know what you are doing)
 ;
 ; This subdirectory is a git "subrepo", and this file is maintained by the
-; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
 ;
 [subrepo]
 	remote = git@github.com:vectorgraphics/LspCpp
 	branch = master
-	commit = 87a67d1623e03cc5f3b054e7529a42f6b19c2869
-	parent = a45d527a2a81bb8662b4ca8a25ed287a739ccfed
+	commit = 220a861ca2bfaf14fa402549ddcf484459f36406
+	parent = f240306af01490de4880237ba21eff585cb07e52
 	method = merge
-	cmdver = 0.4.6
+	cmdver = 0.4.9

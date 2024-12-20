@@ -1,5 +1,4 @@
 // Pre picture <<<1
-import plain_scaling;
 import plain_bounds;
 
 include plain_prethree;
@@ -222,6 +221,8 @@ struct picture { // <<<1
   node3[] nodes3;
 
   bool uptodate=true;
+  bool queueErase=false;
+  bool queueErase3=false;
 
   struct bounds3 {
     coords3 point,min,max;
@@ -286,6 +287,8 @@ struct picture { // <<<1
 
   // Erase the current picture, retaining bounds.
   void clear() {
+    queueErase=nodes.length > 0;
+    queueErase3=nodes3.length > 0;
     nodes.delete();
     nodes3.delete();
     legend.delete();
@@ -730,7 +733,7 @@ struct picture { // <<<1
     add(new void(frame f, transform t) {
         picture opic=new picture;
         d(opic,t);
-        add(f,opic.fit(identity()));
+        add(f,opic.fit(identity));
       },exact);
   }
 
@@ -742,12 +745,12 @@ struct picture { // <<<1
       },exact,above);
   }
 
-  void add(void d(picture, transform3, transform3, triple, triple),
+  void add(void d(picture, transform3, transform3, projection, triple, triple),
            bool exact=false, bool above=true) {
     add(new void(frame f, transform3 t, transform3 T, picture pic2,
                  projection P, triple lb, triple rt) {
           picture opic=new picture;
-          d(opic,t,T,lb,rt);
+          d(opic,t,T,P,lb,rt);
           add(f,opic.fit3(identity4,pic2,P));
         },exact,above);
   }
@@ -1129,6 +1132,26 @@ pair size(picture pic, bool user=false)
   if(!user) return M-m;
   t=inverse(t);
   return t*M-t*m;
+}
+
+// Return a projection adjusted to view center of pic from specified direction.
+projection centered(projection P, picture pic=currentpicture) {
+  projection P=P.copy();
+  if(P.autoadjust && P.center) {
+    triple min=pic.userMin3();
+    triple max=pic.userMax3();
+    if(min != max) {
+      triple target=0.5*(max+min);
+      if(pic.keepAspect)
+        P.camera=target+P.vector();
+      else
+        P.camera=target+realmult(unit(P.vector()),max-min);
+      P.target=target;
+      P.normal=P.vector();
+      P.calculate();
+    }
+  }
+  return P;
 }
 
 // Frame Alignment <<<
@@ -1587,13 +1610,11 @@ void add(picture src, bool group=true, filltype filltype=NoFill,
   currentpicture.add(src,group,filltype,above);
 }
 
-// Fit the picture src using the identity transformation (so user
-// coordinates and truesize coordinates agree) and add it about the point
-// position to picture dest.
+// Fit the picture src and add it about the point position to picture dest.
 void add(picture dest, picture src, pair position, bool group=true,
          filltype filltype=NoFill, bool above=true)
 {
-  add(dest,src.fit(identity()),position,group,filltype,above);
+  add(dest,src.fit(),position,group,filltype,true);
 }
 
 void add(picture src, pair position, bool group=true, filltype filltype=NoFill,
@@ -1607,7 +1628,7 @@ void fill(pair origin, picture pic=currentpicture, path[] g, pen p=currentpen)
 {
   picture opic;
   fill(opic,g,p);
-  add(pic,opic,origin);
+  add(pic,opic.fit(identity),origin);
 }
 
 void postscript(picture pic=currentpicture, string s)

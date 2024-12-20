@@ -274,9 +274,7 @@ function *fundef::transTypeAndAddOps(coenv &e, record *r, bool tacit) {
   params->addOps(e,r);
 
   function *ft=transType(e, tacit);
-  e.e.addFunctionOps(ft);
-  if (r)
-    r->e.addFunctionOps(ft);
+  // No function ops to add.
 
   return ft;
 }
@@ -341,18 +339,7 @@ void fundef::baseTrans(coenv &e, types::function *ft)
 }
 
 types::ty *fundef::trans(coenv &e) {
-  // I don't see how addFunctionOps can be useful here.
-  // For instance, in
-  //
-  //   new void() {} == null
-  //
-  // callExp has to search for == before translating either argument, and the
-  // operator cannot be added before translation.  (getType() is not allowed to
-  // manipulate the environment.)
-  // A new function expression is assigned to a variable, given as a return
-  // value, or used as an argument to a function.  In any of these
-  //
-  // We must still addOps though, for the return type and formals.  ex:
+  // We must addOps for the return type and formals.  ex:
   //
   //   new guide[] (guide f(int)) {
   //     return sequence(f, 10);

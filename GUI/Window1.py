@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-from pyUIClass.window1 import Ui_MainWindow
+from xasyqtui.window1 import Ui_MainWindow
 
 import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc
-import xasyVersion
+from xasyversion.version import VERSION as xasyVersion
 
 import numpy as np
 import os
@@ -143,13 +143,14 @@ class MainWindow1(Qw.QMainWindow):
         if self.settings['asyBaseLocation'] is not None:
             os.environ['ASYMPTOTE_DIR'] = self.settings['asyBaseLocation']
 
-        if self.args.asypath is not None:
-            asyPath = self.args.asypath
-        else:
-            asyPath = self.settings['asyPath']
+        addrAsyArgsRaw: str = self.args.additionalAsyArgs or \
+            self.settings.get('additionalAsyArgs', "")
 
-        self.asyPath = asyPath
-        self.asyEngine = x2a.AsymptoteEngine(self.asyPath)
+        self.asyPath = self.args.asypath or self.settings.get('asyPath')
+        self.asyEngine = x2a.AsymptoteEngine(
+            self.asyPath,
+            None if not addrAsyArgsRaw else addrAsyArgsRaw.split(',')
+        )
 
         try:
             self.asyEngine.start()
@@ -936,7 +937,7 @@ class MainWindow1(Qw.QMainWindow):
         webbrowser.open_new(asyManualURL)
 
     def actionAbout(self):
-        Qw.QMessageBox.about(self,"xasy","This is xasy "+xasyVersion.xasyVersion+"; a graphical front end to the Asymptote vector graphics language: https://asymptote.sourceforge.io/")
+        Qw.QMessageBox.about(self,"xasy","This is xasy "+xasyVersion+"; a graphical front end to the Asymptote vector graphics language: https://asymptote.sourceforge.io/")
 
     def actionExport(self, pathToFile):
         asyFile = io.open(os.path.realpath(pathToFile), 'w')

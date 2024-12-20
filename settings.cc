@@ -11,9 +11,18 @@
 #include <cerrno>
 #include <sys/stat.h>
 #include <cfloat>
-#include <locale.h>
-#include <unistd.h>
+#include <clocale>
 #include <algorithm>
+
+#if defined(_WIN32)
+#include <Windows.h>
+#include <io.h>
+#define isatty _isatty
+
+#include "win32helpers.h"
+#else
+#include <unistd.h>
+#endif
 
 #include "common.h"
 
@@ -41,14 +50,21 @@
 extern "C" {
 
 #ifdef HAVE_NCURSES_CURSES_H
+#define USE_SETUPTERM
 #include <ncurses/curses.h>
 #include <ncurses/term.h>
 #elif HAVE_NCURSES_H
+#define USE_SETUPTERM
 #include <ncurses.h>
 #include <term.h>
 #elif HAVE_CURSES_H
 #include <curses.h>
+
+#if defined(HAVE_TERM_H)
+#define USE_SETUPTERM
 #include <term.h>
+#endif
+
 #endif
 }
 #endif
@@ -81,7 +97,9 @@ const bool havegl=true;
 const bool havegl=false;
 #endif
 
+#if !defined(_WIN32)
 mode_t mask;
+#endif
 
 string systemDir=ASYMPTOTE_SYSDIR;
 string defaultPSdriver="ps2write";
@@ -90,7 +108,7 @@ string defaultPNGdriver="png16m"; // pngalpha has issues at high resolutions
 string defaultAsyGL="https://vectorgraphics.github.io/asymptote/base/webgl/asygl-"+
   string(AsyGLVersion)+".js";
 
-#ifndef __MSDOS__
+#if !defined(_WIN32)
 
 bool msdos=false;
 string HOME="HOME";
@@ -108,7 +126,7 @@ string defaultHTMLViewer="google-chrome";
 string defaultGhostscript="gs";
 string defaultGhostscriptLibrary="";
 string defaultDisplay="display";
-string defaultAnimate="animate";
+string defaultAnimate="magick";
 void queryRegistry() {}
 const string dirsep="/";
 
@@ -118,102 +136,191 @@ bool msdos=true;
 string HOME="USERPROFILE";
 string docdir="c:\\Program Files\\Asymptote";
 const char pathSeparator=';';
-string defaultPSViewer="cmd";
+string defaultPSViewer;
 //string defaultPDFViewer="AcroRd32.exe";
-string defaultPDFViewer="cmd";
-string defaultHTMLViewer="cmd";
+string defaultPDFViewer;
+string defaultHTMLViewer;
 string defaultGhostscript;
 string defaultGhostscriptLibrary;
-string defaultDisplay="cmd";
-//string defaultAnimate="animate";
-string defaultAnimate="cmd";
+string defaultDisplay;
+//string defaultAnimate="magick";
+string defaultAnimate="";
 const string dirsep="\\";
 
-#include <dirent.h>
-
-// Use key to look up an entry in the MSWindows registry, respecting wild cards
-string getEntry(const string& location, const string& key)
+/**
+ * Use key to look up an entry in the MSWindows registry,
+ * @param baseRegLocation base location for a key
+ * @param key Key to look up, respecting wild cards
+ * @remark Wildcards can only be in keys, not in the final value
+ * @return Entry value, or an empty string if not found
+ */
+string getEntry(const HKEY& baseRegLocation, const string& key)
 {
-  string path="/proc/registry"+location+key;
+  string path=key;
   size_t star;
   string head;
-  while((star=path.find("*")) < string::npos) {
+  while((star=path.find('*')) < string::npos)
+  {
+    // has asterisk in the path
+
     string prefix=path.substr(0,star);
-    string suffix=path.substr(star+1);
-    size_t slash=suffix.find("/");
+    string pathSuffix=path.substr(star+1);
+    // path = prefix [*] pathSuffix
+    size_t slash=pathSuffix.find('\\');
     if(slash < string::npos) {
-      path=suffix.substr(slash);
-      suffix=suffix.substr(0,slash);
+      // pathsuffix is not leaf yet
+      // pathSuffix = <new path suffix>[/<new path>]
+      path=pathSuffix.substr(slash);
+      pathSuffix=pathSuffix.substr(0,slash);
     } else {
-      path=suffix;
-      suffix="";
+      // pathSuffix is entirely part of registry value name
+      // pathSuffix = <new path>, new path suffix is empty
+      path=pathSuffix;
+      pathSuffix="";
     }
     string directory=head+stripFile(prefix);
     string file=stripDir(prefix);
-    DIR *dir=opendir(directory.c_str());
-    if(dir == NULL) return "";
-    dirent *p;
-    string rsuffix=suffix;
-    reverse(rsuffix.begin(),rsuffix.end());
-    while((p=readdir(dir)) != NULL) {
-      string dname=p->d_name;
+    // prefix = directory/file
+    // [old path] = directory/file [*] pathSuffix [/path]
+    // or, if asterisk is in the leaf
+    // [old path] = directory/file[*]path, pathSuffix is empty
+
+    camp::w32::RegKeyWrapper currRegDirectory;
+    if (RegOpenKeyExA(baseRegLocation, directory.c_str(), 0, KEY_READ, currRegDirectory.put()) != ERROR_SUCCESS)
+    {
+      currRegDirectory.release();
+      return "";
+    }
+
+    DWORD numSubKeys;
+    DWORD longestSubkeySize;
+
+    if (RegQueryInfoKeyA(
+                currRegDirectory.getKey(),
+                nullptr, nullptr, nullptr,
+                &numSubKeys, &longestSubkeySize,
+                nullptr, nullptr, nullptr, nullptr, nullptr, nullptr) != ERROR_SUCCESS)
+    {
+      numSubKeys = 0;
+      longestSubkeySize = 0;
+    }
+    mem::vector<char> subkeyBuffer(longestSubkeySize + 1);
+    bool found=false;
+
+    string rsuffix= pathSuffix;
+    reverse(rsuffix.begin(), rsuffix.end());
+    for (DWORD i=0;i<numSubKeys;++i)
+    {
+      DWORD cchValue=longestSubkeySize + 1;
+
+      if (auto const regQueryResult= RegEnumKeyExA(
+                  currRegDirectory.getKey(),
+                  i,
+                  subkeyBuffer.data(),
+                  &cchValue,
+                  nullptr,
+                  nullptr,
+                  nullptr,
+                  nullptr
+          );
+          regQueryResult != ERROR_SUCCESS)
+      {
+        continue;
+      }
+
+      string const dname(subkeyBuffer.data());
       string rdname=dname;
       reverse(rdname.begin(),rdname.end());
-      if(dname != "." && dname != ".." &&
-         dname.substr(0,file.size()) == file &&
-         rdname.substr(0,suffix.size()) == rsuffix) {
-        head=directory+p->d_name;
+      if(dname.substr(0,file.size()) == file &&
+         rdname.substr(0, pathSuffix.size()) == rsuffix) {
+        // dname matches file [*} pathSuffix
+        head=directory+dname;
+        found=true;
         break;
       }
     }
-    if(p == NULL) return "";
+
+    if (!found)
+    {
+      return "";
+    }
   }
-  std::ifstream fin((head+path).c_str());
-  if(fin) {
-    string s;
-    getline(fin,s);
-    size_t end=s.find('\0');
-    if(end < string::npos)
-      return s.substr(0,end);
+
+  if (path.find('\\') == 0)
+  {
+    path = path.substr(1); // strip the prefix separator
   }
-  return "";
+
+  if (path == "@")
+  {
+    path= "";// default registry key
+  }
+
+  DWORD requiredStrSize=0;
+  // FIXME: Add handling of additional types
+  if (RegGetValueA(baseRegLocation, head.c_str(), path.c_str(), RRF_RT_REG_SZ, nullptr, nullptr, &requiredStrSize) !=
+    ERROR_SUCCESS)
+  {
+    return "";
+  }
+
+  mem::vector<BYTE> outputBuffer(requiredStrSize);
+
+  if (auto const retCheck = RegGetValueA(baseRegLocation, head.c_str(), path.c_str(),
+              RRF_RT_REG_SZ,
+              nullptr,
+              outputBuffer.data(),
+              &requiredStrSize
+      );
+      retCheck != ERROR_SUCCESS)
+  {
+    return "";
+  }
+
+  return reinterpret_cast<char const*>(outputBuffer.data());
 }
 
 // Use key to look up an entry in the MSWindows registry, respecting wild cards
 string getEntry(const string& key)
 {
-  string entry=getEntry("64/HKEY_CURRENT_USER/Software/",key);
-  if(entry.empty()) entry=getEntry("64/HKEY_LOCAL_MACHINE/SOFTWARE/",key);
-  if(entry.empty()) entry=getEntry("/HKEY_CURRENT_USER/Software/",key);
-  if(entry.empty()) entry=getEntry("/HKEY_LOCAL_MACHINE/SOFTWARE/",key);
-  return entry;
+  for (HKEY const keyToSearch : { HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER })
+  {
+    camp::w32::RegKeyWrapper baseRegKey;
+    if (RegOpenKeyExA(keyToSearch, "Software", 0, KEY_READ, baseRegKey.put()) != ERROR_SUCCESS)
+    {
+      baseRegKey.release();
+      continue;
+    }
+
+    if (string entry=getEntry(baseRegKey.getKey(),key); !entry.empty())
+    {
+      return entry;
+    }
+  }
+
+  return "";
 }
 
 void queryRegistry()
 {
-  string defaultGhostscriptLibrary=getEntry("GPL Ghostscript/*/GS_DLL");
+  defaultGhostscriptLibrary= getEntry(R"(GPL Ghostscript\*\GS_DLL)");
   if(defaultGhostscriptLibrary.empty())
-    defaultGhostscriptLibrary=getEntry("AFPL Ghostscript/*/GS_DLL");
+    defaultGhostscriptLibrary=getEntry(R"(AFPL Ghostscript\*\GS_DLL)");
 
   string gslib=stripDir(defaultGhostscriptLibrary);
   defaultGhostscript=stripFile(defaultGhostscriptLibrary)+
     ((gslib.empty() || gslib.substr(5,2) == "32") ? "gswin32c.exe" : "gswin64c.exe");
-  if(defaultPDFViewer != "cmd")
-    defaultPDFViewer=getEntry("Adobe/Acrobat Reader/*/InstallPath/@")+"\\"+
-      defaultPDFViewer;
-  string s;
-  s=getEntry("Microsoft/Windows/CurrentVersion/App Paths/Asymptote/Path");
-  if(!s.empty()) docdir=s;
+
+  if (string const s= getEntry(R"(Microsoft\Windows\CurrentVersion\App Paths\Asymptote\Path)"); !s.empty())
+  {
+    docdir= s;
+  }
   // An empty systemDir indicates a TeXLive build
   if(!systemDir.empty() && !docdir.empty())
     systemDir=docdir;
 }
 
 #endif
-
-const char PROGRAM[]=PACKAGE_NAME;
-const char VERSION[]=PACKAGE_VERSION;
-const char BUGREPORT[]=PACKAGE_BUGREPORT;
 
 // The name of the program (as called).  Used when displaying help info.
 char *argv0;
@@ -896,7 +1003,7 @@ void addOption(option *o) {
 
 void version()
 {
-  cerr << PROGRAM << " version " << REVISION
+  cerr << PACKAGE_NAME << " version " << REVISION
        << " [(C) 2004 Andy Hammerlindl, John C. Bowman, Tom Prince]"
        << endl;
 }
@@ -1194,11 +1301,13 @@ array* stringArray(const char **s)
 void initSettings() {
   static bool initialize=true;
   if(initialize) {
+#if defined(_WIN32)
     queryRegistry();
+#endif
     initialize=false;
   }
 
-  settingsModule=new types::dummyRecord(symbol::trans("settings"));
+  settingsModule=new types::dummyRecord(symbol::literalTrans("settings"));
 
 // Default mouse bindings
 
@@ -1321,7 +1430,7 @@ void initSettings() {
                              "Center, Bottom, Top, or Zero page alignment",
                              "C"));
 
-  addOption(new boolSetting("debug", 'd', "Enable debugging messages"));
+  addOption(new boolSetting("debug", 'd', "Enable debugging messages and traceback"));
   addOption(new incrementSetting("verbose", 'v',
                                  "Increase verbosity level (can specify multiple times)", &verbose));
   // Resolve ambiguity with --version
@@ -1510,7 +1619,7 @@ void initSettings() {
   addOption(new envSetting("texcommand", ""));
   addOption(new envSetting("dvips", "dvips"));
   addOption(new envSetting("dvisvgm", "dvisvgm"));
-  addOption(new envSetting("convert", "convert"));
+  addOption(new envSetting("convert", "magick"));
   addOption(new envSetting("display", defaultDisplay));
   addOption(new envSetting("animate", defaultAnimate));
   addOption(new envSetting("papertype", "letter"));
@@ -1537,15 +1646,28 @@ void setInteractive()
     exit(-1);
   }
 
+#if defined(HAVE_LSP)
+  bool lspmode=getSetting<Int>("lsp");
+#else
+  bool lspmode=false;
+#endif
+
   if(numArgs() == 0 && !getSetting<bool>("listvariables") &&
      getSetting<string>("command").empty() &&
-     (isatty(STDIN_FILENO) || xasy || getSetting<Int>("lsp")))
+     (isatty(STDIN_FILENO) || xasy || lspmode))
     interact::interactive=true;
 
   if(getSetting<bool>("localhistory"))
     historyname=string(getPath())+dirsep+"."+suffix+"_history";
   else {
-    if(mkdir(initdir.c_str(),0777) != 0 && errno != EEXIST)
+#if defined(_WIN32)
+    bool mkdirResult = CreateDirectoryA(initdir.c_str(), nullptr);
+    bool mkdirSuccess = mkdirResult || GetLastError() == ERROR_ALREADY_EXISTS;
+#else
+    int mkdirResult = mkdir(initdir.c_str(),0777);
+    bool mkdirSuccess = mkdirResult == 0 || errno == EEXIST;
+#endif
+    if(!mkdirSuccess)
       cerr << "failed to create directory "+initdir+"." << endl;
     historyname=initdir+"/history";
   }
@@ -1618,12 +1740,14 @@ void initDir() {
   if(initdir.empty())
     initdir=Getenv(HOME.c_str(),msdos)+dirsep+"."+suffix;
 
-#ifdef __MSDOS__
-  mask=umask(0);
-  if(mask == 0) mask=0027;
-  umask(mask);
+#if defined(_WIN32)
+  DWORD dirAttrib = GetFileAttributesA(initdir.c_str());
+  bool dirExists = dirAttrib != INVALID_FILE_ATTRIBUTES && ((dirAttrib & FILE_ATTRIBUTE_DIRECTORY) != 0);
+#else
+  bool dirExists = access(initdir.c_str(),F_OK) == 0;
 #endif
-  if(access(initdir.c_str(),F_OK) == 0) {
+
+  if(dirExists) {
     if(!quiet && verbose > 1)
       cerr << "Using configuration directory " << initdir << endl;
   }
@@ -1641,7 +1765,14 @@ void setPath() {
     }
     if(i < asydir.length()) searchPath.push_back(asydir.substr(i));
   }
-  if(access(initdir.c_str(),F_OK) == 0)
+#if defined(_WIN32)
+  DWORD dirAttrib = GetFileAttributesA(initdir.c_str());
+  bool dirExists = dirAttrib != INVALID_FILE_ATTRIBUTES && ((dirAttrib & FILE_ATTRIBUTE_DIRECTORY) != 0);
+#else
+  bool dirExists = access(initdir.c_str(),F_OK) == 0;
+#endif
+
+  if(dirExists)
     searchPath.push_back(initdir);
   string sysdir=getSetting<string>("sysdir");
   if(sysdir != "")
@@ -1812,7 +1943,7 @@ Int getScroll()
     if(!terminal)
       terminal=getenv("TERM");
     if(terminal) {
-#ifndef __MSDOS__
+#if defined(USE_SETUPTERM)
       int error=setupterm(terminal,1,&error);
       if(error == 0) scroll=lines > 2 ? lines-1 : 1;
       else

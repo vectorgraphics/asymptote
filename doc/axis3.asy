@@ -3,7 +3,7 @@ import graph3;
 size(0,200);
 size3(200,IgnoreAspect);
 
-currentprojection=perspective(5,2,2);
+currentprojection=perspective(dir(75,20));
 
 scale(Linear,Linear,Log);
 

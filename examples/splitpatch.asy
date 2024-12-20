@@ -80,8 +80,6 @@ triple[][] B=
 
 split S=split(B,A);
 
-defaultrender.merge=true;
-
 for(int i=0; i < S.S[0].s.length; ++i)
   draw(surface(S.S[0].s[i]),Pen(i));
 
