@@ -39,24 +39,22 @@ struct SortedSet_T {
     return result;
   }
   
-  autounravel Set_T operator cast(SortedSet_T set);
+  autounravel Set_T operator cast(SortedSet_T sorted_set) {
+    Set_T set = new Set_T;
+    set.size = sorted_set.size;
+    set.empty = sorted_set.empty;
+    set.contains = sorted_set.contains;
+    set.add = sorted_set.add;
+    set.update = sorted_set.update;
+    set.get = sorted_set.get;
+    set.delete = sorted_set.delete;
+    set.forEach = sorted_set.forEach;
+    return set;
+  }
 
 }
 
-Set_T unSort(SortedSet_T sorted_set) {
-  Set_T set = new Set_T;
-  set.size = sorted_set.size;
-  set.empty = sorted_set.empty;
-  set.contains = sorted_set.contains;
-  set.add = sorted_set.add;
-  set.update = sorted_set.update;
-  set.get = sorted_set.get;
-  set.delete = sorted_set.delete;
-  set.forEach = sorted_set.forEach;
-  return set;
-}
-
-Set_T.operator cast = unSort;
+Set_T unSort(SortedSet_T sorted_set) = new Set_T(SortedSet_T sorted_set) { return sorted_set; };
 
 // For testing purposes, we provide a naive implementation of SortedSet_T.
 // This implementation is highly inefficient, but it is correct, and can be
@@ -68,48 +66,25 @@ struct NaiveSortedSet_T {
 
   private bool leq(T, T), gt(T, T), geq(T, T), equiv(T, T);
   
-  if type (bool operator <= (T, T)) unravel {
-    leq = operator <=;
-  } else unravel {
-    leq = new bool(T a, T b) {
-      return !lt(b, a);
-    }
-  }
+  leq = new bool(T a, T b) {
+    return !lt(b, a);
+  };
 
-  if type (bool operator > (T, T)) unravel {
-    gt = operator <;
-  } else unravel {
-    gt = new bool(T a, T b) {
-      return lt(b, a);
-    }
-  }
+  gt = new bool(T a, T b) {
+    return lt(b, a);
+  };
 
-  if type (bool operator >= (T, T)) unravel {
-    geq = operator >=;
-  } else unravel {
-    geq = new bool(T a, T b) {
-      return leq(b, a);
-    }
-  }
+  geq = new bool(T a, T b) {
+    return leq(b, a);
+  };
   
-  if type (bool operator == (T, T)) unravel {
-    equiv = operator ==;
-  } else unravel {
-    equiv = new bool(T a, T b) {
-      return leq(a, b) && leq(b, a);
-    }
-  }
+  equiv = new bool(T a, T b) {
+    return leq(a, b) && leq(b, a);
+  };
 
   void operator init(bool lessThan(T, T), T emptyresponse) {
     this.lt = lessThan;
     this.emptyresponse = emptyresponse;
-  }
-
-  if type (bool operator < (T, T), T null) unravel {
-    void operator init() {
-      this.lt = operator <;
-      this.emptyresponse = null;
-    }
   }
 
   int size() {

@@ -20,15 +20,16 @@ struct Map_K_V {
   // Returns the previous value associated with key, or emptyresponse if there
   // was no mapping for key.
   V pop(K key);  
-}
 
-Pair_K_V[] operator cast(Map_K_V map) {
-  Pair_K_V[] result;
-  map.forEach(new bool(K key, V value) {
-    result.push(key >> value);
-    return true;
-  });
-  return result;
+  autounravel Pair_K_V[] operator cast(Map_K_V map) {
+    Pair_K_V[] result;
+    map.forEach(new bool(K key, V value) {
+      result.push(key >> value);
+      return true;
+    });
+    return result;
+  }
+
 }
 
 from pureset(T=Pair_K_V) access

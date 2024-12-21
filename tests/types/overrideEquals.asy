@@ -27,9 +27,21 @@ StartTest('overrideEquals: internal');
         return true;
       }
     }
+    private typedef bool F(Inner, Inner);
+    assert(((F)operator ==) != ((F)alias));
   }
   from Outer unravel Inner;
   Inner a = new Inner;
   assert(a == null);  // Use the overridden operator.
+}
+
+{
+  struct A {
+    autounravel bool operator ==(A a, A b) {
+      return true;
+    }
+  }
+  typedef bool F(A, A);
+  assert(((F)operator ==) != ((F)alias));
 }
 EndTest();

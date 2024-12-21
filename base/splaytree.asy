@@ -152,32 +152,10 @@ struct SplayTree_T {
 
   private T emptyresponse;
 
-  // Add whatever default arguments are available. 
-  if type (bool operator < (T, T), T null) unravel {
-    private bool operator < (T a, T b);
-    void operator init(bool lessThan(T, T) = operator<, T emptyresponse = null)
-    {
-      this.operator< = lessThan;
-      this.emptyresponse = emptyresponse;
-    }
-  } else if type (bool operator < (T, T)) unravel {
-    private bool operator < (T a, T b);
-    void operator init(bool lessThan(T, T) = operator<, T emptyresponse) {
-      this.operator< = lessThan;
-      this.emptyresponse = emptyresponse;
-    }
-  } else if type (T null) unravel {
-    private bool operator < (T a, T b);
-    void operator init(bool lessThan(T, T), T emptyresponse = null) {
-      this.operator< = lessThan;
-      this.emptyresponse = emptyresponse;
-    }
-  } else unravel {
-    private bool operator < (T a, T b);
-    void operator init(bool lessthan(T,T), T emptyresponse) {
-      operator< = lessthan;
-      this.emptyresponse = emptyresponse;
-    }
+  private bool operator < (T a, T b);
+  void operator init(bool lessthan(T,T), T emptyresponse) {
+    operator< = lessthan;
+    this.emptyresponse = emptyresponse;
   }
 
   int size() {
@@ -537,34 +515,33 @@ struct SplayTree_T {
   void forEach(bool run(T)) {
     inOrderNonRecursive(root, run);
   }
-  
-}
 
-SortedSet_T operator cast(SplayTree_T splaytree) {
-  SortedSet_T result = new SortedSet_T;
-  result.size = splaytree.size;
-  result.empty = splaytree.empty;
-  result.contains = splaytree.contains;
-  result.after = splaytree.after;
-  result.before = splaytree.before;
-  result.firstGEQ = splaytree.firstGEQ;
-  result.firstLEQ = splaytree.firstLEQ;
-  result.min = splaytree.min;
-  result.popMin = splaytree.popMin;
-  result.max = splaytree.max;
-  result.popMax = splaytree.popMax;
-  result.add = splaytree.add;
-  result.update = splaytree.update;
-  result.get = splaytree.get;
-  result.delete = splaytree.delete;
-  result.forEach = splaytree.forEach;
-  return result;
-}
+  autounravel SortedSet_T operator cast(SplayTree_T splaytree) {
+    SortedSet_T result = new SortedSet_T;
+    result.size = splaytree.size;
+    result.empty = splaytree.empty;
+    result.contains = splaytree.contains;
+    result.after = splaytree.after;
+    result.before = splaytree.before;
+    result.firstGEQ = splaytree.firstGEQ;
+    result.firstLEQ = splaytree.firstLEQ;
+    result.min = splaytree.min;
+    result.popMin = splaytree.popMin;
+    result.max = splaytree.max;
+    result.popMax = splaytree.popMax;
+    result.add = splaytree.add;
+    result.update = splaytree.update;
+    result.get = splaytree.get;
+    result.delete = splaytree.delete;
+    result.forEach = splaytree.forEach;
+    return result;
+  }
 
-Set_T operator cast(SplayTree_T splaytree) {
-  return (SortedSet_T)splaytree;
-}
+  autounravel Set_T operator cast(SplayTree_T splaytree) {
+    return (SortedSet_T)splaytree;
+  }
 
-T[] operator cast(SplayTree_T splaytree) {
-  return (SortedSet_T)splaytree;
+  autounravel T[] operator cast(SplayTree_T splaytree) {
+    return (SortedSet_T)splaytree;
+  }
 }
