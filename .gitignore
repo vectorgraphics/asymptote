@@ -9,7 +9,6 @@ __pycache__
 ### Compressed packages and Garbage Collector
 *.tar.gz
 *.tgz
-libatomic*
 
 ### Binaries
 asy
