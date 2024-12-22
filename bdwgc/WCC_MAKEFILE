@@ -1,0 +1,286 @@
+# Makefile for Watcom C/C++ 10.5, 10.6, 11.0 on NT, OS2 and DOS4GW.
+# May work with Watcom 10.0.
+
+# Uncomment one of the lines below for cross compilation.
+SYSTEM=MSWIN32
+#SYSTEM=DOS4GW
+#SYSTEM=OS2
+
+# The collector can be built either as dynamic (the default) or as static
+# library. The latter is selected by setting ENABLE_STATIC variable.
+#ENABLE_STATIC=1
+
+# Select calling conventions.
+# Possible choices are r and s.
+CALLING=s
+
+# Select target CPU.
+# Possible choices are 3, 4, 5, and 6.
+# The last choice available only since version 11.0.
+CPU=5
+
+# Set optimization options.
+# Watcom before 11.0 does not support option "-oh".
+OPTIM=-oneatx -s
+#OPTIM=-ohneatx -s
+
+DEFS=-DALL_INTERIOR_POINTERS -DENABLE_DISCLAIM -DGC_ATOMIC_UNCOLLECTABLE -DGC_GCJ_SUPPORT -DJAVA_FINALIZATION -DNO_EXECUTE_PERMISSION #-DSMALL_CONFIG
+
+
+#####
+
+!ifndef SYSTEM
+!ifdef __MSDOS__
+SYSTEM=DOS4GW
+!else ifdef __NT__
+SYSTEM=MSWIN32
+!else ifdef __OS2__
+SYSTEM=OS2
+!else
+SYSTEM=Unknown
+!endif
+!endif
+
+!define $(SYSTEM)
+
+!ifdef DOS4GW
+SYSFLAG=-DDOS4GW -bt=dos
+!else ifdef MSWIN32
+SYSFLAG=-DMSWIN32 -bt=nt
+DEFS=$(DEFS) -DUSE_MUNMAP
+!else ifdef OS2
+SYSFLAG=-DOS2 -bt=os2
+!else
+!error undefined or unsupported target platform: $(SYSTEM)
+!endif
+
+!ifdef ENABLE_STATIC
+DLLFLAG=
+TEST_DLLFLAG=-DGC_NOT_DLL
+CORDFLAG=
+!else
+DLLFLAG=-bd -DGC_DLL
+TEST_DLLFLAG=-DGC_DLL
+# cord.dll and its clients should not link C library statically otherwise
+# FILE-related functions might not work (because own set of opened FILEs
+# is maintained by each copy of the C library thus making impossible to pass
+# FILE pointer from, e.g., .exe code to .dll one).
+CORDFLAG=-br
+!endif
+
+CC=wcc386
+CXX=wpp386
+
+CFLAGS=-$(CPU)$(CALLING) $(OPTIM) -iinclude -zp4 -zc $(SYSFLAG) $(DLLFLAG) $(DEFS)
+CXXFLAGS= $(CFLAGS) -xs
+TEST_CFLAGS=-$(CPU)$(CALLING) $(OPTIM) -iinclude -zp4 -zc $(SYSFLAG) $(TEST_DLLFLAG) $(DEFS)
+TEST_CXXFLAGS= $(TEST_CFLAGS) -xs
+
+COBJS= cordbscs.obj cordxtra.obj cordprnt.obj
+
+all: gc.lib gccpp.lib gctba.lib cord.lib
+
+check: gctest.exe test_cpp.exe cordtest.exe .SYMBOLIC
+        *gctest.exe
+        *test_cpp.exe
+        *cordtest.exe
+
+!ifdef ENABLE_STATIC
+
+OBJS= alloc.obj reclaim.obj allchblk.obj misc.obj &
+      mach_dep.obj os_dep.obj mark_rts.obj headers.obj mark.obj &
+      obj_map.obj blacklst.obj finalize.obj new_hblk.obj &
+      dbg_mlc.obj malloc.obj dyn_load.obj &
+      typd_mlc.obj ptr_chck.obj mallocx.obj fnlz_mlc.obj gcj_mlc.obj
+
+gc.lib: $(OBJS)
+        @%create $*.lb1
+        @for %i in ($(OBJS)) do @%append $*.lb1 +'%i'
+        *wlib -b -c -n -p=512 $@ @$*.lb1
+
+cord.lib: $(COBJS)
+        @%create $*.lb1
+        @for %i in ($(COBJS)) do @%append $*.lb1 +'%i'
+        *wlib -b -c -n -p=512 $@ @$*.lb1
+
+gccpp.lib: gc_badalc.obj gc_cpp.obj
+        @%create $*.lb1
+        @%append $*.lb1 +'gc_badalc.obj'
+        @%append $*.lb1 +'gc_cpp.obj'
+        *wlib -b -c -n -p=512 $@ @$*.lb1
+
+# The same as gccpp.lib but contains only gc_badalc.obj.
+gctba.lib: gc_badalc.obj
+        @%create $*.lb1
+        @%append $*.lb1 +'gc_badalc.obj'
+        *wlib -b -c -n -p=512 $@ @$*.lb1
+
+!else
+
+gc.obj: extra\gc.c .AUTODEPEND
+        $(CC) $(CFLAGS) extra\gc.c
+
+gc.lib: gc.dll
+        *wlib -b -c -n -p=512 $@ +gc.dll
+
+gc.dll: gc.obj .AUTODEPEND
+        @%create $*.lnk
+!ifdef DOS4GW
+        @%append $*.lnk sys os2v2_dll
+!else ifdef MSWIN32
+        @%append $*.lnk sys nt_dll
+!else ifdef OS2
+        @%append $*.lnk sys os2v2_dll
+!endif
+        @%append $*.lnk op case
+        @%append $*.lnk name $*
+        @%append $*.lnk file 'gc.obj'
+        *wlink @$*.lnk
+
+cord.lib: cord.dll
+        *wlib -b -c -n -p=512 $@ +cord.dll
+
+cord.dll: $(COBJS) gc.lib .AUTODEPEND
+        @%create $*.lnk
+!ifdef DOS4GW
+        @%append $*.lnk sys os2v2_dll
+!else ifdef MSWIN32
+        @%append $*.lnk sys nt_dll
+!else ifdef OS2
+        @%append $*.lnk sys os2v2_dll
+!endif
+        @%append $*.lnk op case
+        @%append $*.lnk name $*
+        @for %i in ($(COBJS)) do @%append $*.lnk file '%i'
+        @%append $*.lnk library gc.lib
+        *wlink @$*.lnk
+
+gccpp.lib: gccpp.dll
+        *wlib -b -c -n -p=512 $@ +gccpp.dll
+
+gccpp.dll: gc_badalc.obj gc_cpp.obj gc.lib .AUTODEPEND
+        @%create $*.lnk
+!ifdef DOS4GW
+        @%append $*.lnk sys os2v2_dll
+!else ifdef MSWIN32
+        @%append $*.lnk sys nt_dll
+!else ifdef OS2
+        @%append $*.lnk sys os2v2_dll
+!endif
+        @%append $*.lnk op case
+        @%append $*.lnk name $*
+        @%append $*.lnk file 'gc_badalc.obj'
+        @%append $*.lnk file 'gc_cpp.obj'
+        @%append $*.lnk library gc.lib
+        @%append $*.lnk library wr7$(CALLING)dll.lib
+        *wlink @$*.lnk
+
+gctba.lib: gctba.dll
+        *wlib -b -c -n -p=512 $@ +gctba.dll
+
+gctba.dll: gc_badalc.obj gc.lib .AUTODEPEND
+        @%create $*.lnk
+!ifdef DOS4GW
+        @%append $*.lnk sys os2v2_dll
+!else ifdef MSWIN32
+        @%append $*.lnk sys nt_dll
+!else ifdef OS2
+        @%append $*.lnk sys os2v2_dll
+!endif
+        @%append $*.lnk op case
+        @%append $*.lnk name $*
+        @%append $*.lnk file 'gc_badalc.obj'
+        @%append $*.lnk library gc.lib
+        @%append $*.lnk library wr7$(CALLING)dll.lib
+        *wlink @$*.lnk
+
+!endif
+
+gctest.exe: test.obj gc.lib
+        %create $*.lnk
+!ifdef DOS4GW
+        @%append $*.lnk sys dos4g
+!else ifdef MSWIN32
+        @%append $*.lnk sys nt
+!else ifdef OS2
+        @%append $*.lnk sys os2v2
+!endif
+        @%append $*.lnk op case
+        @%append $*.lnk op stack=256K
+        @%append $*.lnk name $*
+        @%append $*.lnk file test.obj
+        @%append $*.lnk library gc.lib
+        *wlink @$*.lnk
+
+cordtest.exe: cordtest.obj gc.lib cord.lib
+        %create $*.lnk
+!ifdef DOS4GW
+        @%append $*.lnk sys dos4g
+!else ifdef MSWIN32
+        @%append $*.lnk sys nt
+!else ifdef OS2
+        @%append $*.lnk sys os2v2
+!endif
+        @%append $*.lnk op case
+        @%append $*.lnk op stack=256K
+        @%append $*.lnk name $*
+        @%append $*.lnk file cordtest.obj
+        @%append $*.lnk library gc.lib
+        @%append $*.lnk library cord.lib
+        *wlink @$*.lnk
+
+test_cpp.exe: test_cpp.obj gc.lib gccpp.lib
+        %create $*.lnk
+!ifdef DOS4GW
+        @%append $*.lnk sys dos4g
+!else ifdef MSWIN32
+        @%append $*.lnk sys nt
+!else ifdef OS2
+        @%append $*.lnk sys os2v2
+!endif
+        @%append $*.lnk op case
+        @%append $*.lnk op stack=256K
+        @%append $*.lnk name $*
+        @%append $*.lnk file test_cpp.obj
+        @%append $*.lnk library gc.lib
+        @%append $*.lnk library gccpp.lib
+        *wlink @$*.lnk
+
+cordbscs.obj: cord\cordbscs.c .AUTODEPEND
+        $(CC) $(CFLAGS) $(CORDFLAG) cord\cordbscs.c
+cordxtra.obj: cord\cordxtra.c .AUTODEPEND
+        $(CC) $(CFLAGS) $(CORDFLAG) cord\cordxtra.c
+cordprnt.obj: cord\cordprnt.c .AUTODEPEND
+        $(CC) $(CFLAGS) $(CORDFLAG) cord\cordprnt.c
+
+gc_badalc.obj: gc_badalc.cc .AUTODEPEND
+        $(CXX) $(TEST_CXXFLAGS) $*.cc
+gc_cpp.obj: gc_cpp.cc .AUTODEPEND
+        $(CXX) $(TEST_CXXFLAGS) $*.cc
+
+test.obj: tests\test.c .AUTODEPEND
+        $(CC) $(TEST_CFLAGS) /wcd=201 tests\test.c
+cordtest.obj: cord\tests\cordtest.c .AUTODEPEND
+        $(CC) $(TEST_CFLAGS) $(CORDFLAG) cord\tests\cordtest.c
+test_cpp.obj: tests\test_cpp.cc .AUTODEPEND
+        $(CXX) $(TEST_CXXFLAGS) tests\test_cpp.cc
+
+.c.obj: .AUTODEPEND
+        $(CC) $(CFLAGS) $*.c
+
+.cc.obj: .AUTODEPEND
+        $(CXX) $(CXXFLAGS) $*.cc
+
+clean: .SYMBOLIC
+    @if exist *.obj del *.obj
+    @if exist *.map del *.map
+    @if exist *.lnk del *.lnk
+    @if exist *.lb1 del *.lb1
+    @if exist *.sym del *.sym
+    @if exist *.err del *.err
+    @if exist *.tmp del *.tmp
+    @if exist *.lst del *.lst
+    @if exist *.exe del *.exe
+    @if exist *.log del *.log
+    @if exist *.lib del *.lib
+    @if exist *.dll del *.dll
