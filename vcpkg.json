@@ -31,10 +31,6 @@
         }
       ]
     },
-    "gc": {
-      "description": "Enable garbage collection support",
-      "dependencies": ["bdwgc"]
-    },
     "curl": {
       "description": "Enable curl support",
       "dependencies": ["curl"]
