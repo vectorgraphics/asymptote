@@ -222,6 +222,7 @@ We are using a separate glslang package
     find_package(Vulkan COMPONENTS glslang)
     if (Vulkan_FOUND AND Vulkan_glslang_FOUND)
         list(APPEND ASY_STATIC_LIBARIES Vulkan::Vulkan Vulkan::glslang)
+        list(APPEND ASY_MACROS HAVE_LIBVULKAN)
     else()
         message(FATAL_ERROR "Vulkan not found")
     endif()
@@ -232,8 +233,6 @@ We are using a separate glslang package
     else()
         message(FATAL_ERROR "glfw3 not found")
     endif()
-
-    list(APPEND ASY_MACROS HAVE_VULKAN)
 
     if (ENABLE_VK_VALIDATION_LAYERS)
         list(APPEND ASY_MACROS ENABLE_VK_VALIDATION)
