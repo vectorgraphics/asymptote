@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017-2022 Advanced Micro Devices, Inc. All rights reserved.
+// Copyright (c) 2017-2024 Advanced Micro Devices, Inc. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -28,15 +28,16 @@
 #include "Common.h"
 #include <atomic>
 #include <Shlwapi.h>
+#include <unordered_set>
 
 #pragma comment(lib, "shlwapi.lib")
 
-static const char* const SHADER_PATH1 = "./";
+static const char* const SHADER_PATH1 = "./Shaders/";
 static const char* const SHADER_PATH2 = "../bin/";
 static const wchar_t* const WINDOW_CLASS_NAME = L"VULKAN_MEMORY_ALLOCATOR_SAMPLE";
 static const char* const VALIDATION_LAYER_NAME = "VK_LAYER_KHRONOS_validation";
-static const char* const APP_TITLE_A =     "Vulkan Memory Allocator Sample 3.0.1";
-static const wchar_t* const APP_TITLE_W = L"Vulkan Memory Allocator Sample 3.0.1";
+static const char* const APP_TITLE_A =     "Vulkan Memory Allocator Sample 3.1.0";
+static const wchar_t* const APP_TITLE_W = L"Vulkan Memory Allocator Sample 3.1.0";
 
 static const bool VSYNC = true;
 static const uint32_t COMMAND_BUFFER_COUNT = 2;
@@ -67,6 +68,8 @@ bool VK_AMD_device_coherent_memory_enabled = false;
 bool VK_KHR_buffer_device_address_enabled = false;
 bool VK_EXT_memory_priority_enabled = false;
 bool VK_EXT_debug_utils_enabled = false;
+bool VK_KHR_maintenance5_enabled = false;
+bool VK_KHR_external_memory_win32_enabled = false;
 bool g_SparseBindingEnabled = false;
 
 // # Pointers to functions from extensions
@@ -85,11 +88,14 @@ static std::vector<VkImageView> g_SwapchainImageViews;
 static std::vector<VkFramebuffer> g_Framebuffers;
 static VkCommandPool g_hCommandPool;
 static VkCommandBuffer g_MainCommandBuffers[COMMAND_BUFFER_COUNT];
-static VkFence g_MainCommandBufferExecutedFances[COMMAND_BUFFER_COUNT];
+static VkFence g_MainCommandBufferExecutedFences[COMMAND_BUFFER_COUNT];
 VkFence g_ImmediateFence;
 static uint32_t g_NextCommandBufferIndex;
-static VkSemaphore g_hImageAvailableSemaphore;
-static VkSemaphore g_hRenderFinishedSemaphore;
+// Notice we need as many semaphores as there are swapchain images
+static std::vector<VkSemaphore> g_hImageAvailableSemaphores;
+static std::vector<VkSemaphore> g_hRenderFinishedSemaphores;
+static uint32_t g_SwapchainImageCount = 0;
+static uint32_t g_SwapchainImageIndex = 0;
 static uint32_t g_GraphicsQueueFamilyIndex = UINT_MAX;
 static uint32_t g_PresentQueueFamilyIndex = UINT_MAX;
 static uint32_t g_SparseBindingQueueFamilyIndex = UINT_MAX;
@@ -257,16 +263,16 @@ struct CommandLineParameters
     }
 } g_CommandLineParameters;
 
-void SetDebugUtilsObjectName(VkObjectType type, uint64_t handle, const char* name)
+void SetDebugUtilsObjectName(VkObjectType type, uint64_t handle, const std::string &name)
 {
-    if(vkSetDebugUtilsObjectNameEXT_Func == nullptr)
+    if (vkSetDebugUtilsObjectNameEXT_Func == nullptr)
         return;
 
     VkDebugUtilsObjectNameInfoEXT info = { VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT };
     info.objectType = type;
     info.objectHandle = handle;
-    info.pObjectName = name;
-    vkSetDebugUtilsObjectNameEXT_Func(g_hDevice, &info);
+    info.pObjectName = name.c_str();
+    ERR_GUARD_VULKAN( vkSetDebugUtilsObjectNameEXT_Func(g_hDevice, &info) );
 }
 
 void BeginSingleTimeCommands()
@@ -279,6 +285,8 @@ void BeginSingleTimeCommands()
 void EndSingleTimeCommands()
 {
     ERR_GUARD_VULKAN( vkEndCommandBuffer(g_hTemporaryCommandBuffer) );
+
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_COMMAND_BUFFER, reinterpret_cast<std::uint64_t>(g_hTemporaryCommandBuffer), "g_hTemporaryCommandBuffer");
 
     VkSubmitInfo submitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
     submitInfo.commandBufferCount = 1;
@@ -696,6 +704,7 @@ static void CreateMesh()
     vbInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     vbAllocCreateInfo.flags = 0;
     ERR_GUARD_VULKAN( vmaCreateBuffer(g_hAllocator, &vbInfo, &vbAllocCreateInfo, &g_hVertexBuffer, &g_hVertexBufferAlloc, nullptr) );
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_BUFFER, reinterpret_cast<std::uint64_t>(g_hVertexBuffer), "g_hVertexBuffer");
 
     // Create index buffer
 
@@ -720,6 +729,7 @@ static void CreateMesh()
     ibInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
     ibAllocCreateInfo.flags = 0;
     ERR_GUARD_VULKAN( vmaCreateBuffer(g_hAllocator, &ibInfo, &ibAllocCreateInfo, &g_hIndexBuffer, &g_hIndexBufferAlloc, nullptr) );
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_BUFFER, reinterpret_cast<std::uint64_t>(g_hIndexBuffer), "g_hIndexBuffer");
 
     // Copy buffers
 
@@ -801,7 +811,11 @@ static void CreateTexture(uint32_t sizeX, uint32_t sizeY)
     VmaAllocationCreateInfo imageAllocCreateInfo = {};
     imageAllocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
 
-    ERR_GUARD_VULKAN( vmaCreateImage(g_hAllocator, &imageInfo, &imageAllocCreateInfo, &g_hTextureImage, &g_hTextureImageAlloc, nullptr) );
+    VmaAllocationInfo textureImageAllocInfo = {};
+
+    ERR_GUARD_VULKAN( vmaCreateImage(g_hAllocator, &imageInfo, &imageAllocCreateInfo, &g_hTextureImage, &g_hTextureImageAlloc, &textureImageAllocInfo) );
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_IMAGE, reinterpret_cast<std::uint64_t>(g_hTextureImage), "g_hTextureImage");
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_DEVICE_MEMORY, reinterpret_cast<std::uint64_t>(textureImageAllocInfo.deviceMemory), "textureImageAllocInfo.deviceMemory");
 
     // Transition image layouts, copy image.
 
@@ -870,6 +884,7 @@ static void CreateTexture(uint32_t sizeX, uint32_t sizeY)
     textureImageViewInfo.subresourceRange.baseArrayLayer = 0;
     textureImageViewInfo.subresourceRange.layerCount = 1;
     ERR_GUARD_VULKAN( vkCreateImageView(g_hDevice, &textureImageViewInfo, g_Allocs, &g_hTextureImageView) );
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_IMAGE_VIEW, reinterpret_cast<std::uint64_t>(g_hTextureImageView), "g_hTextureImageView");
 }
 
 struct UniformBufferObject
@@ -936,16 +951,16 @@ static void CreateSwapchain()
     VkPresentModeKHR presentMode = ChooseSwapPresentMode();
     g_Extent = ChooseSwapExtent();
 
-    uint32_t imageCount = g_SurfaceCapabilities.minImageCount + 1;
+    g_SwapchainImageCount = g_SurfaceCapabilities.minImageCount + 1;
     if((g_SurfaceCapabilities.maxImageCount > 0) &&
-        (imageCount > g_SurfaceCapabilities.maxImageCount))
+        (g_SwapchainImageCount > g_SurfaceCapabilities.maxImageCount))
     {
-        imageCount = g_SurfaceCapabilities.maxImageCount;
+        g_SwapchainImageCount = g_SurfaceCapabilities.maxImageCount;
     }
 
     VkSwapchainCreateInfoKHR swapChainInfo = { VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
     swapChainInfo.surface = g_hSurface;
-    swapChainInfo.minImageCount = imageCount;
+    swapChainInfo.minImageCount = g_SwapchainImageCount;
     swapChainInfo.imageFormat = g_SurfaceFormat.format;
     swapChainInfo.imageColorSpace = g_SurfaceFormat.colorSpace;
     swapChainInfo.imageExtent = g_Extent;
@@ -975,12 +990,19 @@ static void CreateSwapchain()
         vkDestroySwapchainKHR(g_hDevice, g_hSwapchain, g_Allocs);
     g_hSwapchain = hNewSwapchain;
 
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_SWAPCHAIN_KHR, reinterpret_cast<std::uint64_t>(g_hSwapchain), "g_hSwapchain");
+
     // Retrieve swapchain images.
 
     uint32_t swapchainImageCount = 0;
     ERR_GUARD_VULKAN( vkGetSwapchainImagesKHR(g_hDevice, g_hSwapchain, &swapchainImageCount, nullptr) );
     g_SwapchainImages.resize(swapchainImageCount);
     ERR_GUARD_VULKAN( vkGetSwapchainImagesKHR(g_hDevice, g_hSwapchain, &swapchainImageCount, g_SwapchainImages.data()) );
+
+    for (size_t i = 0; i < swapchainImageCount; i++) {
+        std::string swapchainImgName = "g_SwapchainImages[" + std::to_string(i) + "]";
+        SetDebugUtilsObjectName(VK_OBJECT_TYPE_IMAGE, reinterpret_cast<std::uint64_t>(g_SwapchainImages[i]), swapchainImgName);
+    }
 
     // Create swapchain image views.
 
@@ -1005,6 +1027,8 @@ static void CreateSwapchain()
         swapchainImageViewInfo.subresourceRange.baseArrayLayer = 0;
         swapchainImageViewInfo.subresourceRange.layerCount = 1;
         ERR_GUARD_VULKAN( vkCreateImageView(g_hDevice, &swapchainImageViewInfo, g_Allocs, &g_SwapchainImageViews[i]) );
+        std::string imgViewName = "g_SwapchainImageViews["+ std::to_string(i) + "]";
+        SetDebugUtilsObjectName(VK_OBJECT_TYPE_IMAGE_VIEW, reinterpret_cast<std::uint64_t>(g_SwapchainImageViews[i]), imgViewName);
     }
 
     // Create depth buffer
@@ -1030,7 +1054,11 @@ static void CreateSwapchain()
     VmaAllocationCreateInfo depthImageAllocCreateInfo = {};
     depthImageAllocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
 
-    ERR_GUARD_VULKAN( vmaCreateImage(g_hAllocator, &depthImageInfo, &depthImageAllocCreateInfo, &g_hDepthImage, &g_hDepthImageAlloc, nullptr) );
+    VmaAllocationInfo depthImageAllocInfo = {};
+
+    ERR_GUARD_VULKAN( vmaCreateImage(g_hAllocator, &depthImageInfo, &depthImageAllocCreateInfo, &g_hDepthImage, &g_hDepthImageAlloc, &depthImageAllocInfo) );
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_IMAGE, reinterpret_cast<std::uint64_t>(g_hDepthImage), "g_hDepthImage");
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_DEVICE_MEMORY, reinterpret_cast<std::uint64_t>(depthImageAllocInfo.deviceMemory), "depthImageAllocInfo.deviceMemory");
 
     VkImageViewCreateInfo depthImageViewInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
     depthImageViewInfo.image = g_hDepthImage;
@@ -1043,6 +1071,7 @@ static void CreateSwapchain()
     depthImageViewInfo.subresourceRange.layerCount = 1;
 
     ERR_GUARD_VULKAN( vkCreateImageView(g_hDevice, &depthImageViewInfo, g_Allocs, &g_hDepthImageView) );
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_IMAGE_VIEW, reinterpret_cast<std::uint64_t>(g_hDepthImageView), "g_hDepthImageView");
 
     // Create pipeline layout
     {
@@ -1065,6 +1094,7 @@ static void CreateSwapchain()
         pipelineLayoutInfo.pushConstantRangeCount = 1;
         pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges;
         ERR_GUARD_VULKAN( vkCreatePipelineLayout(g_hDevice, &pipelineLayoutInfo, g_Allocs, &g_hPipelineLayout) );
+        SetDebugUtilsObjectName(VK_OBJECT_TYPE_PIPELINE_LAYOUT, reinterpret_cast<std::uint64_t>(g_hPipelineLayout), "g_hPipelineLayout");
     }
 
     // Create render pass
@@ -1117,6 +1147,7 @@ static void CreateSwapchain()
         renderPassInfo.pSubpasses = &subpassDesc;
         renderPassInfo.dependencyCount = 0;
         ERR_GUARD_VULKAN( vkCreateRenderPass(g_hDevice, &renderPassInfo, g_Allocs, &g_hRenderPass) );
+        SetDebugUtilsObjectName(VK_OBJECT_TYPE_RENDER_PASS, reinterpret_cast<std::uint64_t>(g_hRenderPass), "g_hRenderPass");
     }
 
     // Create pipeline
@@ -1128,6 +1159,7 @@ static void CreateSwapchain()
         shaderModuleInfo.pCode = (const uint32_t*)vertShaderCode.data();
         VkShaderModule hVertShaderModule = VK_NULL_HANDLE;
         ERR_GUARD_VULKAN( vkCreateShaderModule(g_hDevice, &shaderModuleInfo, g_Allocs, &hVertShaderModule) );
+        SetDebugUtilsObjectName(VK_OBJECT_TYPE_SHADER_MODULE, reinterpret_cast<std::uint64_t>(hVertShaderModule), "hVertShaderModule");
 
         std::vector<char> hFragShaderCode;
         LoadShader(hFragShaderCode, "Shader.frag.spv");
@@ -1135,6 +1167,7 @@ static void CreateSwapchain()
         shaderModuleInfo.pCode = (const uint32_t*)hFragShaderCode.data();
         VkShaderModule fragShaderModule = VK_NULL_HANDLE;
         ERR_GUARD_VULKAN( vkCreateShaderModule(g_hDevice, &shaderModuleInfo, g_Allocs, &fragShaderModule) );
+        SetDebugUtilsObjectName(VK_OBJECT_TYPE_SHADER_MODULE, reinterpret_cast<std::uint64_t>(fragShaderModule), "fragShaderModule");
 
         VkPipelineShaderStageCreateInfo vertPipelineShaderStageInfo = { VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
         vertPipelineShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -1274,6 +1307,8 @@ static void CreateSwapchain()
             g_Allocs,
             &g_hPipeline) );
 
+        SetDebugUtilsObjectName(VK_OBJECT_TYPE_PIPELINE, reinterpret_cast<std::uint64_t>(g_hPipeline), "g_hPipeline");
+
         vkDestroyShaderModule(g_hDevice, fragShaderModule, g_Allocs);
         vkDestroyShaderModule(g_hDevice, hVertShaderModule, g_Allocs);
     }
@@ -1297,37 +1332,54 @@ static void CreateSwapchain()
         framebufferInfo.height = g_Extent.height;
         framebufferInfo.layers = 1;
         ERR_GUARD_VULKAN( vkCreateFramebuffer(g_hDevice, &framebufferInfo, g_Allocs, &g_Framebuffers[i]) );
+        std::string framebufName = "g_Framebuffers["+ std::to_string(i) + "]";
+        SetDebugUtilsObjectName(VK_OBJECT_TYPE_FRAMEBUFFER, reinterpret_cast<std::uint64_t>(g_Framebuffers[i]), framebufName);
     }
 
-    // Create semaphores
+    // Destroy the old semaphores and create new ones
 
-    if(g_hImageAvailableSemaphore != VK_NULL_HANDLE)
-    {
-        vkDestroySemaphore(g_hDevice, g_hImageAvailableSemaphore, g_Allocs);
-        g_hImageAvailableSemaphore = VK_NULL_HANDLE;
+    if (g_hImageAvailableSemaphores.size() < g_SwapchainImageCount) {
+        g_hImageAvailableSemaphores.resize(g_SwapchainImageCount);
     }
-    if(g_hRenderFinishedSemaphore != VK_NULL_HANDLE)
-    {
-        vkDestroySemaphore(g_hDevice, g_hRenderFinishedSemaphore, g_Allocs);
-        g_hRenderFinishedSemaphore = VK_NULL_HANDLE;
+    if (g_hRenderFinishedSemaphores.size() < g_SwapchainImageCount) {
+        g_hRenderFinishedSemaphores.resize(g_SwapchainImageCount);
     }
 
     VkSemaphoreCreateInfo semaphoreInfo = { VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
-    ERR_GUARD_VULKAN( vkCreateSemaphore(g_hDevice, &semaphoreInfo, g_Allocs, &g_hImageAvailableSemaphore) );
-    ERR_GUARD_VULKAN( vkCreateSemaphore(g_hDevice, &semaphoreInfo, g_Allocs, &g_hRenderFinishedSemaphore) );
+
+    for (std::size_t swapchain_img_index = 0; swapchain_img_index < g_SwapchainImageCount; swapchain_img_index++) {
+        if (g_hImageAvailableSemaphores.at(swapchain_img_index) != VK_NULL_HANDLE) {
+            vkDestroySemaphore(g_hDevice, g_hImageAvailableSemaphores[swapchain_img_index], g_Allocs);
+            g_hImageAvailableSemaphores[swapchain_img_index] = VK_NULL_HANDLE;
+        }
+        if (g_hRenderFinishedSemaphores.at(swapchain_img_index) != VK_NULL_HANDLE) {
+            vkDestroySemaphore(g_hDevice, g_hRenderFinishedSemaphores[swapchain_img_index], g_Allocs);
+            g_hRenderFinishedSemaphores[swapchain_img_index] = VK_NULL_HANDLE;
+        }
+    }
+
+    for (std::size_t swapchain_img_index = 0; swapchain_img_index < g_SwapchainImageCount; swapchain_img_index++) {
+        ERR_GUARD_VULKAN(vkCreateSemaphore(g_hDevice, &semaphoreInfo, g_Allocs, &g_hImageAvailableSemaphores[swapchain_img_index]));
+        std::string semaphoreName = "g_hImageAvailableSemaphores[" + std::to_string(swapchain_img_index) + "]";
+        SetDebugUtilsObjectName(VK_OBJECT_TYPE_SEMAPHORE, reinterpret_cast<std::uint64_t>(g_hImageAvailableSemaphores[swapchain_img_index]), semaphoreName);
+
+        ERR_GUARD_VULKAN(vkCreateSemaphore(g_hDevice, &semaphoreInfo, g_Allocs, &g_hRenderFinishedSemaphores[swapchain_img_index]));
+        semaphoreName = "g_hRenderFinishedSemaphores[" + std::to_string(swapchain_img_index) + "]";
+        SetDebugUtilsObjectName(VK_OBJECT_TYPE_SEMAPHORE, reinterpret_cast<std::uint64_t>(g_hRenderFinishedSemaphores[swapchain_img_index]), semaphoreName);
+    }
 }
 
 static void DestroySwapchain(bool destroyActualSwapchain)
 {
-    if(g_hImageAvailableSemaphore != VK_NULL_HANDLE)
-    {
-        vkDestroySemaphore(g_hDevice, g_hImageAvailableSemaphore, g_Allocs);
-        g_hImageAvailableSemaphore = VK_NULL_HANDLE;
-    }
-    if(g_hRenderFinishedSemaphore != VK_NULL_HANDLE)
-    {
-        vkDestroySemaphore(g_hDevice, g_hRenderFinishedSemaphore, g_Allocs);
-        g_hRenderFinishedSemaphore = VK_NULL_HANDLE;
+    for (std::size_t swapchain_img_index = 0; swapchain_img_index < g_SwapchainImageCount; swapchain_img_index++) {
+        if (g_hImageAvailableSemaphores.at(swapchain_img_index) != VK_NULL_HANDLE) {
+            vkDestroySemaphore(g_hDevice, g_hImageAvailableSemaphores[swapchain_img_index], g_Allocs);
+            g_hImageAvailableSemaphores[swapchain_img_index] = VK_NULL_HANDLE;
+        }
+        if (g_hRenderFinishedSemaphores.at(swapchain_img_index) != VK_NULL_HANDLE) {
+            vkDestroySemaphore(g_hDevice, g_hRenderFinishedSemaphores[swapchain_img_index], g_Allocs);
+            g_hRenderFinishedSemaphores[swapchain_img_index] = VK_NULL_HANDLE;
+        }
     }
 
     for(size_t i = g_Framebuffers.size(); i--; )
@@ -1396,7 +1448,9 @@ static void PrintEnabledFeatures()
     {
         wprintf(L"bufferDeviceAddress: %d\n", VK_KHR_buffer_device_address_enabled ? 1 : 0);
     }
-    wprintf(L"VK_EXT_memory_priority: %d\n", VK_EXT_memory_priority ? 1 : 0);
+    wprintf(L"VK_EXT_memory_priority: %d\n", VK_EXT_memory_priority_enabled ? 1 : 0);
+    wprintf(L"VK_KHR_maintenance5: %d\n", VK_KHR_maintenance5_enabled? 1 : 0);
+    wprintf(L"VK_KHR_external_memory_win32: %d\n", VK_KHR_external_memory_win32_enabled ? 1 : 0);
 }
 
 void SetAllocatorCreateInfo(VmaAllocatorCreateInfo& outInfo)
@@ -1437,6 +1491,15 @@ void SetAllocatorCreateInfo(VmaAllocatorCreateInfo& outInfo)
         outInfo.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_PRIORITY_BIT;
     }
 #endif
+    if(VK_KHR_maintenance5_enabled)
+    {
+        outInfo.flags |= VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE5_BIT;
+    }
+
+    if(VK_KHR_external_memory_win32_enabled)
+    {
+        outInfo.flags |= VMA_ALLOCATOR_CREATE_KHR_EXTERNAL_MEMORY_WIN32_BIT;
+    }
 
     if(USE_CUSTOM_CPU_ALLOCATION_CALLBACKS)
     {
@@ -1449,13 +1512,6 @@ void SetAllocatorCreateInfo(VmaAllocatorCreateInfo& outInfo)
     vulkanFunctions.vkGetDeviceProcAddr = vkGetDeviceProcAddr;
     outInfo.pVulkanFunctions = &vulkanFunctions;
 #endif
-
-    // Uncomment to enable recording to CSV file.
-    /*
-    static VmaRecordSettings recordSettings = {};
-    recordSettings.pFilePath = "VulkanSample.csv";
-    outInfo.pRecordSettings = &recordSettings;
-    */
 
     // Uncomment to enable HeapSizeLimit.
     /*
@@ -1570,17 +1626,6 @@ static void PrintMemoryTypes()
         }
     }
 }
-
-#if 0
-template<typename It, typename MapFunc>
-inline VkDeviceSize MapSum(It beg, It end, MapFunc mapFunc)
-{
-    VkDeviceSize result = 0;
-    for(It it = beg; it != end; ++it)
-        result += mapFunc(*it);
-    return result;
-}
-#endif
 
 static bool CanCreateVertexBuffer(uint32_t allowedMemoryTypeBits)
 {
@@ -1836,6 +1881,10 @@ static void InitializeApplication()
         }
         else if(strcmp(physicalDeviceExtensionProperties[i].extensionName, VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME) == 0)
             VK_EXT_memory_priority_enabled = true;
+        else if(strcmp(physicalDeviceExtensionProperties[i].extensionName, VK_KHR_MAINTENANCE_5_EXTENSION_NAME) == 0)
+            VK_KHR_maintenance5_enabled = true;
+        else if (strcmp(physicalDeviceExtensionProperties[i].extensionName, VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME) == 0)
+            VK_KHR_external_memory_win32_enabled = VMA_DYNAMIC_VULKAN_FUNCTIONS;
     }
 
     if(GetVulkanApiVersion() >= VK_API_VERSION_1_2)
@@ -1994,6 +2043,10 @@ static void InitializeApplication()
         enabledDeviceExtensions.push_back(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
     if(VK_EXT_memory_priority_enabled)
         enabledDeviceExtensions.push_back(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME);
+    if(VK_KHR_maintenance5_enabled)
+        enabledDeviceExtensions.push_back(VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
+    if (VK_KHR_external_memory_win32_enabled)
+        enabledDeviceExtensions.push_back(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
 
     VkPhysicalDeviceFeatures2 deviceFeatures = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 };
     deviceFeatures.features.samplerAnisotropy = VK_TRUE;
@@ -2025,6 +2078,10 @@ static void InitializeApplication()
     deviceCreateInfo.pQueueCreateInfos = queueCreateInfo;
 
     ERR_GUARD_VULKAN( vkCreateDevice(g_hPhysicalDevice, &deviceCreateInfo, g_Allocs, &g_hDevice) );
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_DEVICE, reinterpret_cast<std::uint64_t>(g_hDevice), "g_hDevice");
+    // Only now that SetDebugUtilsObjectName is loaded, we can assign a name to g_hVulkanInstance as well
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_INSTANCE, reinterpret_cast<std::uint64_t>(g_hVulkanInstance), "g_hVulkanInstance");
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_PHYSICAL_DEVICE, reinterpret_cast<std::uint64_t>(g_hPhysicalDevice), "g_hPhysicalDevice");
 
     // Fetch pointers to extension functions
     if(VK_KHR_buffer_device_address_enabled)
@@ -2059,6 +2116,8 @@ static void InitializeApplication()
     vkGetDeviceQueue(g_hDevice, g_PresentQueueFamilyIndex, 0, &g_hPresentQueue);
     assert(g_hGraphicsQueue);
     assert(g_hPresentQueue);
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_QUEUE, reinterpret_cast<std::uint64_t>(g_hGraphicsQueue), "g_hGraphicsQueue");
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_QUEUE, reinterpret_cast<std::uint64_t>(g_hPresentQueue), "g_hPresentQueue");
 
     if(g_SparseBindingEnabled)
     {
@@ -2072,24 +2131,33 @@ static void InitializeApplication()
     commandPoolInfo.queueFamilyIndex = g_GraphicsQueueFamilyIndex;
     commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     ERR_GUARD_VULKAN( vkCreateCommandPool(g_hDevice, &commandPoolInfo, g_Allocs, &g_hCommandPool) );
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_COMMAND_POOL, reinterpret_cast<std::uint64_t>(g_hCommandPool), "g_hCommandPool");
 
     VkCommandBufferAllocateInfo commandBufferInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
     commandBufferInfo.commandPool = g_hCommandPool;
     commandBufferInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     commandBufferInfo.commandBufferCount = COMMAND_BUFFER_COUNT;
     ERR_GUARD_VULKAN( vkAllocateCommandBuffers(g_hDevice, &commandBufferInfo, g_MainCommandBuffers) );
+    for (size_t i = 0; i < COMMAND_BUFFER_COUNT; i++) {
+        std::string cmdBufName = "g_MainCommandBuffers[" + std::to_string(i) + "]";
+        SetDebugUtilsObjectName(VK_OBJECT_TYPE_COMMAND_BUFFER, reinterpret_cast<std::uint64_t>(g_MainCommandBuffers[i]), cmdBufName);
+    }
 
     VkFenceCreateInfo fenceInfo = { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
     for(size_t i = 0; i < COMMAND_BUFFER_COUNT; ++i)
     {
-        ERR_GUARD_VULKAN( vkCreateFence(g_hDevice, &fenceInfo, g_Allocs, &g_MainCommandBufferExecutedFances[i]) );
+        ERR_GUARD_VULKAN( vkCreateFence(g_hDevice, &fenceInfo, g_Allocs, &g_MainCommandBufferExecutedFences[i]) );
+        std::string fenceName = "g_MainCommandBufferExecutedFences[" + std::to_string(i) + "]";
+        SetDebugUtilsObjectName(VK_OBJECT_TYPE_FENCE, reinterpret_cast<std::uint64_t>(g_MainCommandBufferExecutedFences[i]), fenceName);
     }
 
     ERR_GUARD_VULKAN( vkCreateFence(g_hDevice, &fenceInfo, g_Allocs, &g_ImmediateFence) );
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_FENCE, reinterpret_cast<std::uint64_t>(g_ImmediateFence), "g_ImmediateFence");
 
     commandBufferInfo.commandBufferCount = 1;
     ERR_GUARD_VULKAN( vkAllocateCommandBuffers(g_hDevice, &commandBufferInfo, &g_hTemporaryCommandBuffer) );
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_COMMAND_BUFFER, reinterpret_cast<std::uint64_t>(g_hTemporaryCommandBuffer), "g_hTemporaryCommandBuffer");
 
     // Create texture sampler
 
@@ -2110,6 +2178,7 @@ static void InitializeApplication()
     samplerInfo.minLod = 0.f;
     samplerInfo.maxLod = FLT_MAX;
     ERR_GUARD_VULKAN( vkCreateSampler(g_hDevice, &samplerInfo, g_Allocs, &g_hSampler) );
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_SAMPLER, reinterpret_cast<std::uint64_t>(g_hSampler), "g_hSampler");
 
     CreateTexture(128, 128);
     CreateMesh();
@@ -2124,6 +2193,7 @@ static void InitializeApplication()
     descriptorSetLayoutInfo.bindingCount = 1;
     descriptorSetLayoutInfo.pBindings = &samplerLayoutBinding;
     ERR_GUARD_VULKAN( vkCreateDescriptorSetLayout(g_hDevice, &descriptorSetLayoutInfo, g_Allocs, &g_hDescriptorSetLayout) );
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT, reinterpret_cast<std::uint64_t>(g_hDescriptorSetLayout), "g_hDescriptorSetLayout");
 
     // Create descriptor pool
 
@@ -2139,6 +2209,7 @@ static void InitializeApplication()
     descriptorPoolInfo.pPoolSizes = descriptorPoolSizes;
     descriptorPoolInfo.maxSets = 1;
     ERR_GUARD_VULKAN( vkCreateDescriptorPool(g_hDevice, &descriptorPoolInfo, g_Allocs, &g_hDescriptorPool) );
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_DESCRIPTOR_POOL, reinterpret_cast<std::uint64_t>(g_hDescriptorPool), "g_hDescriptorPool");
 
     // Create descriptor set layout
 
@@ -2148,6 +2219,7 @@ static void InitializeApplication()
     descriptorSetInfo.descriptorSetCount = 1;
     descriptorSetInfo.pSetLayouts = descriptorSetLayouts;
     ERR_GUARD_VULKAN( vkAllocateDescriptorSets(g_hDevice, &descriptorSetInfo, &g_hDescriptorSet) );
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_DESCRIPTOR_SET, reinterpret_cast<std::uint64_t>(g_hDescriptorSet), "g_hDescriptorSet");
 
     VkDescriptorImageInfo descriptorImageInfo = {};
     descriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -2221,10 +2293,10 @@ static void FinalizeApplication()
 
     for(size_t i = COMMAND_BUFFER_COUNT; i--; )
     {
-        if(g_MainCommandBufferExecutedFances[i] != VK_NULL_HANDLE)
+        if(g_MainCommandBufferExecutedFences[i] != VK_NULL_HANDLE)
         {
-            vkDestroyFence(g_hDevice, g_MainCommandBufferExecutedFances[i], g_Allocs);
-            g_MainCommandBufferExecutedFances[i] = VK_NULL_HANDLE;
+            vkDestroyFence(g_hDevice, g_MainCommandBufferExecutedFences[i], g_Allocs);
+            g_MainCommandBufferExecutedFences[i] = VK_NULL_HANDLE;
         }
     }
     if(g_MainCommandBuffers[0] != VK_NULL_HANDLE)
@@ -2285,7 +2357,7 @@ static void DrawFrame()
     // Begin main command buffer
     size_t cmdBufIndex = (g_NextCommandBufferIndex++) % COMMAND_BUFFER_COUNT;
     VkCommandBuffer hCommandBuffer = g_MainCommandBuffers[cmdBufIndex];
-    VkFence hCommandBufferExecutedFence = g_MainCommandBufferExecutedFances[cmdBufIndex];
+    VkFence hCommandBufferExecutedFence = g_MainCommandBufferExecutedFences[cmdBufIndex];
 
     ERR_GUARD_VULKAN( vkWaitForFences(g_hDevice, 1, &hCommandBufferExecutedFence, VK_TRUE, UINT64_MAX) );
     ERR_GUARD_VULKAN( vkResetFences(g_hDevice, 1, &hCommandBufferExecutedFence) );
@@ -2293,10 +2365,11 @@ static void DrawFrame()
     VkCommandBufferBeginInfo commandBufferBeginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
     commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
     ERR_GUARD_VULKAN( vkBeginCommandBuffer(hCommandBuffer, &commandBufferBeginInfo) );
+    SetDebugUtilsObjectName(VK_OBJECT_TYPE_COMMAND_BUFFER, reinterpret_cast<std::uint64_t>(hCommandBuffer), "hCommandBuffer");
 
     // Acquire swapchain image
     uint32_t imageIndex = 0;
-    VkResult res = vkAcquireNextImageKHR(g_hDevice, g_hSwapchain, UINT64_MAX, g_hImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+    VkResult res = vkAcquireNextImageKHR(g_hDevice, g_hSwapchain, UINT64_MAX, g_hImageAvailableSemaphores.at(g_SwapchainImageIndex), VK_NULL_HANDLE, &imageIndex);
     if(res == VK_ERROR_OUT_OF_DATE_KHR)
     {
         RecreateSwapChain();
@@ -2374,9 +2447,9 @@ static void DrawFrame()
 
     // Submit command buffer
 
-    VkSemaphore submitWaitSemaphores[] = { g_hImageAvailableSemaphore };
+    VkSemaphore submitWaitSemaphores[] = { g_hImageAvailableSemaphores.at(g_SwapchainImageIndex)};
     VkPipelineStageFlags submitWaitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-    VkSemaphore submitSignalSemaphores[] = { g_hRenderFinishedSemaphore };
+    VkSemaphore submitSignalSemaphores[] = { g_hRenderFinishedSemaphores.at(g_SwapchainImageIndex)};
     VkSubmitInfo submitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = submitWaitSemaphores;
@@ -2387,7 +2460,7 @@ static void DrawFrame()
     submitInfo.pSignalSemaphores = submitSignalSemaphores;
     ERR_GUARD_VULKAN( vkQueueSubmit(g_hGraphicsQueue, 1, &submitInfo, hCommandBufferExecutedFence) );
 
-    VkSemaphore presentWaitSemaphores[] = { g_hRenderFinishedSemaphore };
+    VkSemaphore presentWaitSemaphores[] = { g_hRenderFinishedSemaphores.at(g_SwapchainImageIndex) };
 
     VkSwapchainKHR swapchains[] = { g_hSwapchain };
     VkPresentInfoKHR presentInfo = { VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
@@ -2404,6 +2477,11 @@ static void DrawFrame()
     }
     else
         ERR_GUARD_VULKAN(res);
+
+    g_SwapchainImageIndex++;
+    if (g_SwapchainImageIndex >= g_SwapchainImageCount) {
+        g_SwapchainImageIndex = 0;
+    }
 }
 
 static void HandlePossibleSizeChange()

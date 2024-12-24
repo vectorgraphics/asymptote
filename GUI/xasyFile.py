@@ -32,7 +32,7 @@ def extractTransform(line):
     testMatch = re.match(
         r'^{0:s}\s*\(\s*\"([^\"]+)\"\s*,\s*\(([-\d, .]+)\)\s*\)'.format(mapString), line.strip())
     if testMatch is None:
-        mapOnlyMatch = re.match(r'^{0:s}\s*\(\s *\"([^\"]+)\"\s*\)'.format(mapString), line.strip())
+        mapOnlyMatch = re.match(r'^{0:s}\s*\(\s*\"([^\"]+)\"\s*\)'.format(mapString), line.strip())
         if mapOnlyMatch is None:
             return None
         else:
@@ -66,14 +66,18 @@ def extractTransformsFromFile(fileStr):
     return final_str, transfDict
 
 def xasy2asyCode(xasyItems, asy2psmap):
-    asyCode = ''
-    for item in xasyItems:
-        asyCode += item.getTransformCode(asy2psmap)
-    for item in xasyItems:
-        asyCode += item.getObjectCode(asy2psmap)
+    with io.StringIO() as asyCode:
+        for item in xasyItems:
+            asyCode.write(item.getTransformCode(asy2psmap))
+        for item in xasyItems:
+            asyCode.write(item.getObjectCode(asy2psmap))
 
-    asyCode += 'size('+str(asy2psmap*xasy2asy.yflip())+'); '+ xasy2asy.xasyItem.resizeComment+'\n'
-    return asyCode
+        asyCode.write(
+            'size('+str(asy2psmap*xasy2asy.yflip())+'); ' +
+            xasy2asy.xasyItem.resizeComment +
+            '\n'
+        )
+        return asyCode.getvalue()
 
 def saveFile(file, xasyItems, asy2psmap):
     """Write a list of xasyItems to a file"""

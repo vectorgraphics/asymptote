@@ -1,0 +1,1 @@
+!define PRODUCT_VERSION "${ASY_VERSION}"

@@ -538,3 +538,8 @@ FodyWeavers.xsd
 
 *.tar.gz
 .DS_Store
+
+
+# Cmake directories
+cmake-*
+CMakeUserPresets.json

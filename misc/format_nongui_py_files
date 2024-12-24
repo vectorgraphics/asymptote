@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+SCRIPT_ROOT_DIR=$(dirname "$0")
+black $(python3 "$SCRIPT_ROOT_DIR/print_non_gui_py_files_for_linting.py")

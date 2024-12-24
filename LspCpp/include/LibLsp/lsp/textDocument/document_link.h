@@ -2,7 +2,9 @@
 
 #include "LibLsp/JsonRpc/RequestInMessage.h"
 #include "LibLsp/JsonRpc/lsResponseMessage.h"
-
+#include "LibLsp/lsp/lsTextDocumentIdentifier.h"
+#include "LibLsp/lsp/lsRange.h"
+#include "LibLsp/lsp/lsAny.h"
 
 namespace TextDocumentDocumentLink  {
 

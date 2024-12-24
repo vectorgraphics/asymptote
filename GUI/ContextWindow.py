@@ -3,25 +3,11 @@
 import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc
-import xasyVersion
 
-import xasyUtils as xu
 import xasy2asy as x2a
-import xasyFile as xf
-import xasyOptions as xo
-import UndoRedoStack as Urs
-import xasyArgs as xa
-import xasyBezierInterface as xbi
+
 from xasyTransform import xasyTransform as xT
-import xasyStrings as xs
 
-import PrimitiveShape
-import InplaceAddObj
-
-import CustMatTransform
-import SetCustomAnchor
-import GuidesManager
-import time
 
 class AnotherWindow(Qw.QWidget):
     def __init__(self, shape, parent):

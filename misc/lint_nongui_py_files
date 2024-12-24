@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+SCRIPT_ROOT_DIR=$(dirname "$0")
+FILES_TO_LINT=$(python3 "$SCRIPT_ROOT_DIR/print_non_gui_py_files_for_linting.py")
+
+isort --settings-file "$SCRIPT_ROOT_DIR/../.isort.cfg" --check $FILES_TO_LINT
+pylint --rcfile "$SCRIPT_ROOT_DIR/../.pylintrc" $FILES_TO_LINT

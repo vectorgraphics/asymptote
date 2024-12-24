@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from pyUIClass.widg_editBezier import Ui_Form
+from xasyqtui.widg_editBezier import Ui_Form
 
 import PyQt5.QtWidgets as QtWidgets
 import PyQt5.QtCore as QtCore

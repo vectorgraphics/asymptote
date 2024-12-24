@@ -1,4 +1,3 @@
-#define VMA_IMPLEMENTATION
 #include "vkrender.h"
 #include "shaderResources.h"
 #include "picture.h"
@@ -8,6 +7,7 @@
 
 #include <chrono>
 #include <thread>
+#include "vkutils.h"
 #include "ThreadSafeQueue.h"
 
 #define SHADER_DIRECTORY "shaders/"
@@ -15,6 +15,13 @@
 #define MESA_OVERLAY_LAYER "VK_LAYER_MESA_overlay"
 
 #define VARIABLE_NAME(var) (#var)
+
+#if defined(_WIN32)
+#include <Windows.h>
+#include <vulkan/vulkan_win32.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#endif
 
 //using namespace settings;
 
@@ -25,15 +32,15 @@ static bool initialized=false;
 void exitHandler(int);
 
 #ifdef HAVE_VULKAN
-VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE;
-
 std::vector<const char*> instanceExtensions
 {
   VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
-  VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
-#ifdef VALIDATION
-  VK_EXT_DEBUG_UTILS_EXTENSION_NAME
+  // VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
+#if defined(VALIDATION) || defined(DEBUG)
+  VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+  VK_EXT_DEBUG_REPORT_EXTENSION_NAME
 #endif
+
 };
 #endif
 
@@ -534,15 +541,10 @@ void checkpow2(unsigned int n, string s) {
 
 void closeWindowHandler(GLFWwindow *);
 
-void AsyVkRender::vkrender(const string& prefix, const picture* pic, const string& format,
-                           double Width, double Height, double angle, double zoom,
-                           const triple& mins, const triple& maxs, const pair& shift,
-                           const pair& margin, double* t, double *tup,
-                           double* background, size_t nlightsin, triple* lights,
-                           double* diffuse, double* specular, bool view, int oldpid/*=0*/)
+void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 {
-  bool v3d=format == "v3d";
-  bool webgl=format == "html";
+  bool v3d=args.format == "v3d";
+  bool webgl=args.format == "html";
   bool format3d=webgl || v3d;
 
   offscreen=settings::getSetting<bool>("offscreen");
@@ -554,36 +556,36 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
     if(!monitor) offscreen=true;
   }
 
-  this->pic = pic;
-  this->Prefix=prefix;
-  this->Format = format;
+  this->pic = args.pic;
+  this->Prefix=args.prefix;
+  this->Format = args.format;
   this->redraw = true;
   this->remesh = true;
-  this->nlights = nlightsin;
-  this->Lights = lights;
-  this->LightsDiffuse = diffuse;
-  this->Oldpid = oldpid;
+  this->nlights = args.nlightsin;
+  this->Lights = args.lights;
+  this->LightsDiffuse = args.diffuse;
+  this->Oldpid = args.oldpid;
 
-  this->Angle = angle * radians;
+  this->Angle = args.angle * radians;
   this->lastZoom = 0;
-  this->Zoom0 = zoom;
-  this->Shift = shift / zoom;
-  this->Margin = margin;
+  this->Zoom0 = args.zoom;
+  this->Shift = args.shift / args.zoom;
+  this->Margin = args.margin;
 
   for (int i = 0; i < 4; i++)
-    this->Background[i] = static_cast<float>(background[i]);
+    this->Background[i] = static_cast<float>(args.background[i]);
 
-  this->ViewExport=view;
-  this->View = view && !offscreen;
+  this->ViewExport=args.view;
+  this->View = args.view && !offscreen;
 
-  this->title = std::string(settings::PROGRAM)+": "+prefix.c_str();
+  this->title = std::string(PACKAGE_NAME)+": "+ args.prefix.c_str();
 
-  Xmin = mins.getx();
-  Xmax = maxs.getx();
-  Ymin = mins.gety();
-  Ymax = maxs.gety();
-  Zmin = mins.getz();
-  Zmax = maxs.getz();
+  Xmin = args.m.getx();
+  Xmax = args.M.getx();
+  Ymin = args.m.gety();
+  Ymax = args.M.gety();
+  Zmin = args.m.getz();
+  Zmax = args.M.getz();
 
   orthographic = (this->Angle == 0.0);
   H = orthographic ? 0.0 : -tan(0.5 * this->Angle) * Zmax;
@@ -596,10 +598,10 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
 #endif
 
   for(int i=0; i < 16; ++i)
-    T[i]=t[i];
+    T[i]=args.t[i];
 
   for(int i=0; i < 16; ++i)
-    Tup[i]=tup[i];
+    Tup[i]=args.tup[i];
 
   if(!(initialized && (interact::interactive ||
                        settings::getSetting<bool>("animating")))) {
@@ -614,8 +616,8 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
       if(antialias) expand *= 2.0;
     }
 
-    fullWidth=(int) ceil(expand*Width);
-    fullHeight=(int) ceil(expand*Height);
+    fullWidth=(int) ceil(expand*args.width);
+    fullHeight=(int) ceil(expand*args.height);
 
     if(!format3d) {
       if(offscreen) {
@@ -627,9 +629,9 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
       }
     }
 
-    oWidth=Width;
-    oHeight=Height;
-    Aspect=Width/Height;
+    oWidth=args.width;
+    oHeight=args.height;
+    Aspect=args.width / args.height;
 
     if(format3d) {
       width=fullWidth;
@@ -713,10 +715,11 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   initWindow();
 
   if(View) {
-    if(!settings::getSetting<bool>("fitscreen"))
+    auto const fitscreenSetting= settings::getSetting<bool>("fitscreen");
+    if (!fitscreenSetting)
       Fitscreen=0;
     firstFit=true;
-    fitscreen();
+    fitscreen(fitscreenSetting);
     setosize();
   }
 
@@ -724,10 +727,11 @@ void AsyVkRender::vkrender(const string& prefix, const picture* pic, const strin
   }
 
   if(View) {
-    if(!settings::getSetting<bool>("fitscreen"))
+  auto const fitscreenSetting= settings::getSetting<bool>("fitscreen");
+  if (!fitscreenSetting)
       Fitscreen=0;
     firstFit=true;
-    fitscreen();
+    fitscreen(fitscreenSetting);
     setosize();
     initializedView=true;
   }
@@ -759,9 +763,8 @@ void AsyVkRender::initVulkan()
     std::cout << "Using " << maxFramesInFlight
               << " maximum frame(s) in flight." << std::endl;
   }
-
   createInstance();
-#ifdef VALIDATION
+#if defined(VALIDATION)
   createDebugMessenger();
 #endif
   if (View) createSurface();
@@ -804,8 +807,9 @@ void AsyVkRender::initVulkan()
   createGraphicsRenderPass();
   createGraphicsPipelineLayout();
   createGraphicsPipelines();
-  createComputePipelines();   // gpu indexing + post processing
 
+  // gpu indexing + post processing
+  createComputePipelines();// gpu indexing + post processing
   fpu_trap(settings::trap()); // Work around FE_INVALID.
 
   createAttachments();
@@ -919,6 +923,8 @@ void AsyVkRender::createInstance()
   }
 #endif
 
+#if !defined(_WIN32)
+  // mesa is only supported by linux, ignore on windows
   if (settings::verbose > 2) {
     if (isLayerSupported(MESA_OVERLAY_LAYER)) {
       validationLayers.emplace_back(MESA_OVERLAY_LAYER);
@@ -926,6 +932,7 @@ void AsyVkRender::createInstance()
       std::cout << "Mesa overlay layer is not supported by the current Vulkan instance." << std::endl;
     }
   }
+#endif
 
   std::vector<const char*> all_extensions;
   all_extensions.reserve(supportedExtensions.size());
@@ -935,18 +942,16 @@ void AsyVkRender::createInstance()
   }
 
   auto const instanceCI = vk::InstanceCreateInfo(
-    vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR,
+    {},
     &appInfo,
-    validationLayers.size(),
-    validationLayers.data(),
-    all_extensions.size(),
-    all_extensions.data()
+    VEC_VIEW(validationLayers),
+    VEC_VIEW(all_extensions)
   );
   instance = vk::createInstanceUnique(instanceCI);
   VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
 }
 
-#ifdef VALIDATION
+#if defined(VALIDATION)
 void AsyVkRender::createDebugMessenger()
 {
   vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
@@ -991,22 +996,13 @@ void AsyVkRender::createDebugMessenger()
                 break;
             }
 
-            return false;
+            return vk::False;
           },
           this
   );
   debugMessenger = instance->createDebugUtilsMessengerEXTUnique(debugCreateInfo);
 }
 #endif
-
-void checkVkResult(vk::Result const& result)
-{
-  if (result != vk::Result::eSuccess)
-  {
-    cerr << "Vulkan operation failed; message: " << to_string(result) << endl;
-    exit(-1);
-  }
-}
 
 void AsyVkRender::createSurface()
 {
@@ -1017,7 +1013,7 @@ void AsyVkRender::createSurface()
 
   vk::SurfaceKHR tmpSurface;
 
-  checkVkResult(instance->createWin32SurfaceKHR(
+  vkutils::checkVkResult(instance->createWin32SurfaceKHR(
     &createInfo,
     nullptr,
     &tmpSurface
@@ -1029,7 +1025,7 @@ void AsyVkRender::createSurface()
   if (glfwCreateWindowSurface(*instance, window, nullptr, &surfaceTmp) != VK_SUCCESS) {
     throw std::runtime_error("Failed to create window surface!");
   }
-  surface = vk::UniqueSurfaceKHR(surfaceTmp, *instance);
+  surface=vk::UniqueSurfaceKHR(surfaceTmp, *instance);
 #endif
 }
 
@@ -1150,23 +1146,23 @@ AsyVkRender::getMaxMSAASamples( vk::PhysicalDevice & gpu )
 
   gpu.getProperties( &props );
 
-	auto const count = props.limits.framebufferColorSampleCounts & props.limits.framebufferDepthSampleCounts;
+  auto const count = props.limits.framebufferColorSampleCounts & props.limits.framebufferDepthSampleCounts;
   auto const maxSamples = settings::getSetting<Int>("multisample");
 
-	if (count & vk::SampleCountFlagBits::e64 && maxSamples >= 64)
-		return std::make_pair(64, vk::SampleCountFlagBits::e64);
-	if (count & vk::SampleCountFlagBits::e32 && maxSamples >= 32)
-		return std::make_pair(32, vk::SampleCountFlagBits::e32);
-	if (count & vk::SampleCountFlagBits::e16 && maxSamples >= 16)
-		return std::make_pair(16, vk::SampleCountFlagBits::e16);
-	if (count & vk::SampleCountFlagBits::e8 && maxSamples >= 8)
-		return std::make_pair(8, vk::SampleCountFlagBits::e8);
-	if (count & vk::SampleCountFlagBits::e4 && maxSamples >= 4)
-		return std::make_pair(4, vk::SampleCountFlagBits::e4);
-	if (count & vk::SampleCountFlagBits::e2 && maxSamples >= 2)
-		return std::make_pair(2, vk::SampleCountFlagBits::e2);
+  if (count & vk::SampleCountFlagBits::e64 && maxSamples >= 64)
+    return std::make_pair(64, vk::SampleCountFlagBits::e64);
+  if (count & vk::SampleCountFlagBits::e32 && maxSamples >= 32)
+    return std::make_pair(32, vk::SampleCountFlagBits::e32);
+  if (count & vk::SampleCountFlagBits::e16 && maxSamples >= 16)
+    return std::make_pair(16, vk::SampleCountFlagBits::e16);
+  if (count & vk::SampleCountFlagBits::e8 && maxSamples >= 8)
+    return std::make_pair(8, vk::SampleCountFlagBits::e8);
+  if (count & vk::SampleCountFlagBits::e4 && maxSamples >= 4)
+    return std::make_pair(4, vk::SampleCountFlagBits::e4);
+  if (count & vk::SampleCountFlagBits::e2 && maxSamples >= 2)
+    return std::make_pair(2, vk::SampleCountFlagBits::e2);
 
-	return std::make_pair(1, vk::SampleCountFlagBits::e1);
+  return std::make_pair(1, vk::SampleCountFlagBits::e1);
 }
 
 QueueFamilyIndices AsyVkRender::findQueueFamilies(vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* surface)
@@ -1269,6 +1265,21 @@ void AsyVkRender::createLogicalDevice()
     extensions.push_back(VK_KHR_BIND_MEMORY_2_EXTENSION_NAME);
   }
 
+#if defined(DEBUG)
+  auto const hasDebugMarkerExt=
+    supportedDeviceExtensions.find(VK_EXT_DEBUG_MARKER_EXTENSION_NAME) != supportedDeviceExtensions.end();
+
+  if (hasDebugMarkerExt)
+  {
+    hasDebugMarker=true;
+    extensions.emplace_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+  }
+  else
+  {
+    reportWarning("Debug marker extension not supported");
+  }
+#endif
+
   queueFamilyIndices = findQueueFamilies(physicalDevice, View ? &*surface : nullptr);
 
   std::vector<vk::DeviceQueueCreateInfo> queueCIs;
@@ -1348,13 +1359,13 @@ void AsyVkRender::createLogicalDevice()
 
 void AsyVkRender::transitionImageLayout(vk::CommandBuffer cmd,
                              vk::Image image,
-			                       vk::AccessFlags srcAccessMask,
-			                       vk::AccessFlags dstAccessMask,
-			                       vk::ImageLayout oldImageLayout,
-			                       vk::ImageLayout newImageLayout,
-			                       vk::PipelineStageFlags srcStageMask,
-			                       vk::PipelineStageFlags dstStageMask,
-			                       vk::ImageSubresourceRange subresourceRange)
+                             vk::AccessFlags srcAccessMask,
+                             vk::AccessFlags dstAccessMask,
+                             vk::ImageLayout oldImageLayout,
+                             vk::ImageLayout newImageLayout,
+                             vk::PipelineStageFlags srcStageMask,
+                             vk::PipelineStageFlags dstStageMask,
+                             vk::ImageSubresourceRange subresourceRange)
 {
   auto barrier = vk::ImageMemoryBarrier(
     srcAccessMask,
@@ -1459,10 +1470,22 @@ void AsyVkRender::createOffscreenBuffers() {
 
 void AsyVkRender::createImageViews()
 {
-  backbufferImageViews.resize(backbufferImages.size());
-  for (size_t i = 0; i < backbufferImages.size(); i++) {
-    vk::ImageViewCreateInfo viewCI = vk::ImageViewCreateInfo(vk::ImageViewCreateFlags(), backbufferImages[i], vk::ImageViewType::e2D, backbufferImageFormat, vk::ComponentMapping(), vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
-    backbufferImageViews[i] = device->createImageViewUnique(viewCI, nullptr);
+  auto const bufferCount= backbufferImages.size();
+  backbufferImageViews.clear();
+  backbufferImageViews.reserve(bufferCount);
+  for (size_t i= 0; i < bufferCount; ++i)
+  {
+    vk::ImageViewCreateInfo const viewCI(
+            vk::ImageViewCreateFlags(),
+            backbufferImages[i],
+            vk::ImageViewType::e2D,
+            backbufferImageFormat,
+            vk::ComponentMapping(),
+            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+    );
+    auto const& imgView= backbufferImageViews.emplace_back(device->createImageViewUnique(viewCI, nullptr));
+
+    setDebugObjectName(*imgView, "backbufferImageView" + std::to_string(i));
   }
 }
 
@@ -1567,9 +1590,13 @@ void AsyVkRender::createFramebuffers()
       1
     );
 
-    depthFramebuffers[i] = device->createFramebufferUnique(depthFramebufferCI);
-    opaqueGraphicsFramebuffers[i] = device->createFramebufferUnique(opaqueGraphicsFramebufferCI);
-    graphicsFramebuffers[i] = device->createFramebufferUnique(graphicsFramebufferCI);
+    depthFramebuffers[i]= device->createFramebufferUnique(depthFramebufferCI);
+    opaqueGraphicsFramebuffers[i]= device->createFramebufferUnique(opaqueGraphicsFramebufferCI);
+    graphicsFramebuffers[i]= device->createFramebufferUnique(graphicsFramebufferCI);
+
+    setDebugObjectName(*depthFramebuffers[i], "depthFrameBuffer" + std::to_string(i));
+    setDebugObjectName(*opaqueGraphicsFramebuffers[i], "opaqueGraphicsFramebuffers" + std::to_string(i));
+    setDebugObjectName(*graphicsFramebuffers[i], "graphicsFramebuffers" + std::to_string(i));
   }
 }
 
@@ -1631,8 +1658,8 @@ void AsyVkRender::endSingleCommands(vk::CommandBuffer cmd)
   info.commandBufferCount = 1;
   info.pCommandBuffers = &cmd;
 
-  checkVkResult(renderQueue.submit(1, &info, *fence)); // todo transfer queue
-  checkVkResult(device->waitForFences(
+  vkutils::checkVkResult(renderQueue.submit(1, &info, *fence)); // todo transfer queue
+  vkutils::checkVkResult(device->waitForFences(
     1, &*fence, true, std::numeric_limits<std::uint64_t>::max()
   ));
 
@@ -1710,7 +1737,7 @@ void AsyVkRender::copyBufferToBuffer(const vk::Buffer& srcBuffer, const vk::Buff
   auto submitInfo = vk::SubmitInfo(0, nullptr, nullptr, 1, &*commandBuffer);
   auto submitResult = transferQueue.submit(1, &submitInfo, *fence);
   if (submitResult != vk::Result::eSuccess) throw std::runtime_error("failed to submit command buffer!");
-  checkVkResult(device->waitForFences(
+  vkutils::checkVkResult(device->waitForFences(
     1, &*fence, VK_TRUE, std::numeric_limits<uint64_t>::max()
   ));
 }
@@ -1733,6 +1760,21 @@ void AsyVkRender::copyToBuffer(
     memcpy(stgBufMemPtr.getCopyPtr(), data, size);
     copyBufferToBuffer(stagingBuffer.getBuffer(), buffer, size);
   }
+}
+
+void AsyVkRender::setDebugObjectName(
+        uint64_t const& object,
+        vk::DebugReportObjectTypeEXT const& objType,
+        std::string const& name
+        )
+{
+#if defined(DEBUG)
+  if (hasDebugMarker)
+  {
+    vk::DebugMarkerObjectNameInfoEXT const tagInfo(objType, object, name.c_str());
+    device->debugMarkerSetObjectNameEXT(tagInfo);
+  }
+#endif
 }
 
 void AsyVkRender::copyToBuffer(
@@ -2600,13 +2642,14 @@ void AsyVkRender::createBuffers()
     VARIABLE_NAME(feedbackBf)
   );
 
-  if(GPUcompress) {
-    elementBf = createBufferUnique(
-      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc,
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
-      elementBufferSize,
-      VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-      VMA_MEMORY_USAGE_AUTO,
+  if(GPUcompress)
+  {
+    elementBf= createBufferUnique(
+            vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+            elementBufferSize,
+            VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+    VMA_MEMORY_USAGE_AUTO,
       VARIABLE_NAME(elementBf)
     );
   }
@@ -2679,6 +2722,7 @@ void AsyVkRender::createImmediateRenderTargets()
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     ));
 
+    setDebugObjectName(vk::Image(immRenderTarget.getImage()), "immediateRenderTargetImg" + std::to_string(i));
 
     auto& immRenderImgView= immRenderTargetViews.emplace_back();
     createImageView(
@@ -2687,9 +2731,10 @@ void AsyVkRender::createImmediateRenderTargets()
             immRenderTarget.getImage(),
             immRenderImgView
     );
+    setDebugObjectName(*immRenderImgView, "immediateRenderTargetImgView" + std::to_string(i));
 
     // for sampling imm render target
-    immRenderTargetSampler.emplace_back(device->createSamplerUnique(vk::SamplerCreateInfo(
+    auto& sampler = immRenderTargetSampler.emplace_back(device->createSamplerUnique(vk::SamplerCreateInfo(
             {},
             vk::Filter::eLinear, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest,
             vk::SamplerAddressMode::eClampToEdge, vk::SamplerAddressMode::eClampToEdge,
@@ -2697,6 +2742,8 @@ void AsyVkRender::createImmediateRenderTargets()
             0.f, false, 0.0, false, vk::CompareOp::eNever, 0.0, 0.0, vk::BorderColor::eFloatTransparentBlack,
             true
     )));
+    setDebugObjectName(*sampler, "immRtImgSampler" + std::to_string(i));
+
 
     // for pre-presentation (after post-processing)
     auto const& prePresentationTarget= prePresentationImages.emplace_back(createImage(
@@ -2716,6 +2763,8 @@ void AsyVkRender::createImmediateRenderTargets()
             prePresentationImageView
     );
 
+    setDebugObjectName(vk::Image(prePresentationTarget.getImage()), "prePresentationTarget" + std::to_string(i));
+    setDebugObjectName(*prePresentationImageView, "prePresentationImgView" + std::to_string(i));
   }
 }
 
@@ -3033,88 +3082,63 @@ void AsyVkRender::createGraphicsRenderPass()
 
   auto colorAttachmentRef = vk::AttachmentReference2(0, vk::ImageLayout::eColorAttachmentOptimal);
   auto depthAttachmentRef = vk::AttachmentReference2(1, vk::ImageLayout::eDepthStencilAttachmentOptimal);
-  auto colorResolveAttachmentRef = vk::AttachmentReference2(2, vk::ImageLayout::eColorAttachmentOptimal);
+  auto colorResolveAttachmentRef= vk::AttachmentReference2(2, vk::ImageLayout::eColorAttachmentOptimal);
 
-  std::array<vk::SubpassDescription2, 3> subpasses;
-
-  subpasses[0] = vk::SubpassDescription2(
-    vk::SubpassDescriptionFlags(),
-    vk::PipelineBindPoint::eGraphics,
-    0,
-    0,
-    nullptr,
-    1,
-    &colorAttachmentRef,
-    &colorResolveAttachmentRef,
-    &depthAttachmentRef
-  );
-  subpasses[1] = vk::SubpassDescription2(
-    vk::SubpassDescriptionFlags(),
-    vk::PipelineBindPoint::eGraphics,
-    0,
-    0,
-    nullptr,
-    0,
-    nullptr,
-    nullptr,
-    nullptr
-  );
-  subpasses[2] = vk::SubpassDescription2(
-    vk::SubpassDescriptionFlags(),
-    vk::PipelineBindPoint::eGraphics,
-    0,
-    0,
-    nullptr,
-    1,
-    &colorResolveAttachmentRef
-  );
-
+  std::vector subpasses{
+          vk::SubpassDescription2(
+                  {},
+                  vk::PipelineBindPoint::eGraphics,
+                  0,
+                  0,
+                  nullptr,
+                  1,
+                  &colorAttachmentRef,
+                  &colorResolveAttachmentRef,
+                  &depthAttachmentRef
+          ),
+          vk::SubpassDescription2({}, vk::PipelineBindPoint::eGraphics, 0, 0, nullptr, 0, nullptr, nullptr, nullptr),
+          vk::SubpassDescription2({}, vk::PipelineBindPoint::eGraphics, 0, 0, nullptr, 1, &colorResolveAttachmentRef)
+  };
   if (msaaSamples == vk::SampleCountFlagBits::e1)
   {
-    colorAttachment.loadOp = vk::AttachmentLoadOp::eDontCare;
+    colorAttachment.loadOp= vk::AttachmentLoadOp::eDontCare;
     colorResolveAttachment.loadOp = vk::AttachmentLoadOp::eClear;
 
     subpasses[0].pColorAttachments = &colorResolveAttachmentRef;
     subpasses[0].pResolveAttachments = nullptr;
   }
 
-  std::vector<vk::AttachmentDescription2> attachments
+  std::vector const attachments
   {
     colorAttachment,
     depthAttachment,
     colorResolveAttachment
   };
 
-  std::array<vk::SubpassDependency2, 2> dependencies;
-
-  dependencies[0] = vk::SubpassDependency2(
-    VK_SUBPASS_EXTERNAL,
-    0,
-    vk::PipelineStageFlagBits::eColorAttachmentOutput,
-    vk::PipelineStageFlagBits::eColorAttachmentOutput,
-    vk::AccessFlagBits::eNone,
-    vk::AccessFlagBits::eNone
-  );
-  dependencies[1] = vk::SubpassDependency2(
-    0,
-    2,
-    vk::PipelineStageFlagBits::eColorAttachmentOutput,
-    vk::PipelineStageFlagBits::eColorAttachmentOutput,
-    vk::AccessFlagBits::eNone,
-    vk::AccessFlagBits::eNone
-  );
+  std::vector const dependencies{
+          vk::SubpassDependency2(
+                  VK_SUBPASS_EXTERNAL,
+                  0,
+                  vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                  vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                  vk::AccessFlagBits::eNone,
+                  vk::AccessFlagBits::eNone
+          ),
+          vk::SubpassDependency2(
+                  0,
+                  2,
+                  vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                  vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                  vk::AccessFlagBits::eNone,
+                  vk::AccessFlagBits::eNone
+          )
+  };
 
   // only use the first subpass and first dependency
-  auto opaqueRenderPassCI = vk::RenderPassCreateInfo2(
-    vk::RenderPassCreateFlags(),
-    attachments.size(),
-    &attachments[0],
-    1,
-    subpasses.data(),
-    1,
-    dependencies.data()
-  );
-  opaqueGraphicsRenderPass = device->createRenderPass2Unique(opaqueRenderPassCI);
+  auto const opaqueRenderPassCI=
+          vk::RenderPassCreateInfo2({}, VEC_VIEW(attachments), 1, subpasses.data(), 1, dependencies.data());
+  opaqueGraphicsRenderPass= device->createRenderPass2Unique(opaqueRenderPassCI);
+  setDebugObjectName(*opaqueGraphicsRenderPass, "opaqueGraphicsRenderPass");
 
   if (!opaqueGraphicsRenderPass) {
     throw std::runtime_error("Failed to create the opaque render pass.");
@@ -3122,18 +3146,16 @@ void AsyVkRender::createGraphicsRenderPass()
 
   auto renderPassCI = vk::RenderPassCreateInfo2(
     vk::RenderPassCreateFlags(),
-    attachments.size(),
-    &attachments[0],
-    subpasses.size(),
-    subpasses.data(),
-    dependencies.size(),
-    dependencies.data()
+    VEC_VIEW(attachments),
+    VEC_VIEW(subpasses),
+    VEC_VIEW(dependencies)
   );
   graphicsRenderPass = device->createRenderPass2Unique(renderPassCI);
 
   if (!graphicsRenderPass) {
     throw std::runtime_error("Failed to create the graphics render pass.");
   }
+  setDebugObjectName(*graphicsRenderPass, "graphicsRenderPass");
 }
 
 void AsyVkRender::createGraphicsPipelineLayout()
@@ -3528,18 +3550,24 @@ void AsyVkRender::createAttachments()
               vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   createImageView(backbufferImageFormat, vk::ImageAspectFlagBits::eColor, colorImg.getImage(), colorImageView);
+  setDebugObjectName(vk::Image(colorImg.getImage()), "colorImg");
+  setDebugObjectName(*colorImageView, "colorImageView");
 
   depthImg = createImage(backbufferExtent.width, backbufferExtent.height, msaaSamples, vk::Format::eD32Sfloat,
           vk::ImageUsageFlagBits::eDepthStencilAttachment,
           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
   );
   createImageView(vk::Format::eD32Sfloat, vk::ImageAspectFlagBits::eDepth, depthImg.getImage(), depthImageView);
+  setDebugObjectName(vk::Image(depthImg.getImage()), "depthImg");
+  setDebugObjectName(*depthImageView, "depthImageView");
 
   depthResolveImg = createImage(backbufferExtent.width, backbufferExtent.height, vk::SampleCountFlagBits::e1, vk::Format::eD32Sfloat,
           vk::ImageUsageFlagBits::eDepthStencilAttachment,
           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
   );
   createImageView(vk::Format::eD32Sfloat, vk::ImageAspectFlagBits::eDepth, depthResolveImg.getImage(), depthResolveImageView);
+  setDebugObjectName(vk::Image(depthResolveImg.getImage()), "depthResolve");
+  setDebugObjectName(*depthResolveImageView, "depthResolveImageView");
 }
 
 void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
@@ -3893,7 +3921,7 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
 
   if (fragments>maxFragments) {
     maxFragments=11*fragments/10;
-    checkVkResult(device->waitForFences(
+    vkutils::checkVkResult(device->waitForFences(
       1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<std::uint64_t>::max()
     ));
     updateSceneDependentBuffers();
@@ -3963,6 +3991,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
 
   if (GPUcompress) {
+
     static auto elemBfMappedMem=make_unique<vma::cxx::MemoryMapperLock>(elementBf);
     static std::uint32_t* p = nullptr;
     if (p == nullptr) {
@@ -3980,7 +4009,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     info.commandBufferCount = 1;
     info.pCommandBuffers = &currentCommandBuffer;
 
-    checkVkResult(renderQueue.submit(
+    vkutils::checkVkResult(renderQueue.submit(
       1,
       &info,
       nullptr
@@ -4050,7 +4079,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   info.commandBufferCount = commandsToSubmit.size();
   info.pCommandBuffers = commandsToSubmit.data();
 
-  checkVkResult(renderQueue.submit(1, &info, *object.inComputeFence));
+  vkutils::checkVkResult(renderQueue.submit(1, &info, *object.inComputeFence));
 
   if(settings::verbose >= timePartialSumVerbosity) {
     // Wait until the render queue isn't being used, so we only time
@@ -4064,7 +4093,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
     // Send all the partial sum commands to the GPU, where they will wait
     // until we signal them through the startTimedSums event
-    (void) renderQueue.submit(1, &partialSumsInfo, nullptr);
+    vkutils::checkVkResult(renderQueue.submit(1, &partialSumsInfo, nullptr));
 
     // Start recording the time
     utils::stopWatch Timer;
@@ -4102,10 +4131,10 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
 
   if (transparent) {
 
-    checkVkResult(device->waitForFences(
+    vkutils::checkVkResult(device->waitForFences(
       1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
     ));
-    checkVkResult(device->resetFences(
+    vkutils::checkVkResult(device->resetFences(
       1, &*object.inComputeFence
     ));
     device->resetEvent(*object.sumFinishedEvent);
@@ -4195,7 +4224,7 @@ void AsyVkRender::drawFrame()
     recreatePipeline = false;
   }
 
-  checkVkResult(device->waitForFences(
+  vkutils::checkVkResult(device->waitForFences(
     1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
   ));
 
@@ -4212,7 +4241,7 @@ void AsyVkRender::drawFrame()
     else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
       throw std::runtime_error("Failed to acquire next swapchain image.");
   }
-  checkVkResult(device->resetFences(
+  vkutils::checkVkResult(device->resetFences(
     1, &*frameObject.inFlightFence
   ));
   frameObject.commandBuffer->reset(vk::CommandBufferResetFlagBits());
@@ -4337,7 +4366,7 @@ void AsyVkRender::drawFrame()
   }
 
   if (recreateBlendPipeline) {
-    checkVkResult(device->waitForFences(
+    vkutils::checkVkResult(device->waitForFences(
       1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
     ));
     createBlendPipeline();
@@ -4345,7 +4374,7 @@ void AsyVkRender::drawFrame()
   }
 
   if(queueExport) {
-    checkVkResult(device->waitForFences(
+    vkutils::checkVkResult(device->waitForFences(
       1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
     ));
     Export(imageIndex);
@@ -4365,12 +4394,7 @@ void AsyVkRender::nextFrame()
   double seconds=frameTimer.seconds(true);
   delay -= seconds;
   if(delay > 0) {
-    timespec req;
-    timespec rem;
-    req.tv_sec=(unsigned int) delay;
-    req.tv_nsec=(unsigned int) (1.0e9*(delay-req.tv_sec));
-    while(nanosleep(&req,&rem) < 0 && errno == EINTR)
-      req=rem;
+    std::this_thread::sleep_for(std::chrono::duration<double>(delay));
   }
   if(Step) Animate=false;
 }
@@ -4437,17 +4461,23 @@ void AsyVkRender::display()
   }
 #endif
   if(!vkthread) {
+#if defined(_WIN32)
+#pragma message("TODO: Check if we need a threadless-based vk renderer")
+#else
     if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
       kill(Oldpid,SIGHUP);
       Oldpid=0;
     }
+#endif
   }
 }
 
 optional<VulkanRendererMessage> AsyVkRender::poll()
 {
   if (View) {
-    vkexit |= glfwWindowShouldClose(window);
+    if (glfwWindowShouldClose(window)) {
+      vkexit = true;
+    }
   }
 
   if (vkexit) {
@@ -4474,7 +4504,6 @@ void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
       }
     }
     break;
-
     case updateRenderer: {
       if (readyForUpdate)
       {
@@ -4482,7 +4511,6 @@ void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
       }
     }
     break;
-
     default:
       break;
   }
@@ -4662,7 +4690,7 @@ void AsyVkRender::exportHandler(int) {
 void AsyVkRender::Export(int imageIndex) {
 
   exportCommandBuffer->reset();
-  checkVkResult(device->resetFences(1, &*exportFence));
+  vkutils::checkVkResult(device->resetFences(1, &*exportFence));
   exportCommandBuffer->begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 
   auto const size = device->getImageMemoryRequirements(backbufferImages[0]).size;
@@ -4741,7 +4769,7 @@ void AsyVkRender::Export(int imageIndex) {
   if (renderQueue.submit(1, &submitInfo, *exportFence) != vk::Result::eSuccess)
     throw std::runtime_error("failed to submit draw command buffer!");
 
-   checkVkResult(device->waitForFences(
+  vkutils::checkVkResult(device->waitForFences(
     1, &*exportFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
   ));
 
@@ -4755,7 +4783,7 @@ void AsyVkRender::Export(int imageIndex) {
       for (auto k = 0u; k < 3; k++)
         // need to flip vertically and swap byte order due to little endian in image data
         // 4 for sizeof unsigned (RGBA)
-        fmt[(backbufferExtent.height-1-i)*backbufferExtent.width*3+j*3+(2-k)]=data[i*backbufferExtent.width*4+j*4+k];
+        fmt[(backbufferExtent.height-1-i)*backbufferExtent.width*3+j*3+(2-k)]=mappedMemory.getCopyPtr<unsigned char>()[i*backbufferExtent.width*4+j*4+k];
 
   picture pic;
   double w=oWidth;

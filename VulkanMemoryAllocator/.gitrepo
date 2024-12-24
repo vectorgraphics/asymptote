@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
 ;
 [subrepo]
-	remote = git@github.com:GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+	remote = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
 	branch = master
-	commit = 5e43c795daf43dd09398d8307212e85025215052
-	parent = e692289bb958a652a9a35f76870e9136fdd30922
+	commit = f3f5a98ae8570d8e8415992f22595047a095fb20
+	parent = 152ca3ba173546e6a6efe344e5e0746ceb19d334
 	method = merge
-	cmdver = 0.4.6
+	cmdver = 0.4.9

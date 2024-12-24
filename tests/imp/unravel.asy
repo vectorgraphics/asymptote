@@ -92,4 +92,22 @@ StartTest("unravel");
   from A.B unravel x;
   assert(x==4);
 }
+{
+  struct A {
+    static struct B {
+      static int x=4;
+    }
+  }
+  int x=3;
+  from A unravel B;
+  from B unravel x;
+  assert(x==4);
+}
+{
+  access 'imp/imports/A' as A;
+  int x=3;
+  from A unravel B;
+  from B unravel x;
+  assert(x==4);
+}
 EndTest();

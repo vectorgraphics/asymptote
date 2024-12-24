@@ -1,52 +1,26 @@
 #pragma once
 
-#include <algorithm>
 #include <chrono>
 #include <cmath>
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <iterator>
 #include <utility>
 #include <memory>
 #include <set>
 #include <sstream>
 #include <stdlib.h>
 #include <string>
-#include <sys/time.h>
 #include <unordered_map>
 #include <vector>
 #include <array>
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/string_cast.hpp>
-#include <glm/gtx/transform.hpp>
+#include "glmCommon.h"
 
 #include "common.h"
 
+#include "vk.h"
 #ifdef HAVE_VULKAN
-#define VK_ENABLE_BETA_EXTENSIONS
-
-#if defined(_WIN32)
-#define VK_USE_PLATFORM_WIN32_KHR
-#endif
-
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
-#include <vulkan/vulkan.hpp>
-
-#define VMA_STATIC_VULKAN_FUNCTIONS 0
-#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
-#include "vk_mem_alloc.h"
-
 #include <vma_cxx.h>
 
 #include <glslang/Public/ShaderLang.h>
-#include <glslang/SPIRV/GlslangToSpv.h>
 #include <GLFW/glfw3.h>
 #endif
 
@@ -64,7 +38,9 @@ namespace camp
 class picture;
 
 // Comment out when not debugging:
-//#define VALIDATION
+#if defined(ENABLE_VK_VALIDATION)
+#define VALIDATION
+#endif
 
 #define EMPTY_VIEW 0, nullptr
 #define SINGLETON_VIEW(x) 1, &(x)
@@ -381,12 +357,36 @@ public:
   AsyVkRender() = default;
   ~AsyVkRender();
 
-  void vkrender(const string& prefix, const picture* pic, const string& format,
-                double width, double height, double angle, double zoom,
-                const triple& m, const triple& M, const pair& shift,
-                const pair& margin, double* t, double *tup,
-                double* background, size_t nlightsin, triple* lights,
-                double* diffuse, double* specular, bool view, int oldpid=0);
+  /** Argument for AsyVkRender::vkrender function */
+  struct VkrenderFunctionArgs: public gc
+  {
+    string prefix;
+    picture const* pic;
+    string format;
+    double width;
+    double height;
+    double angle;
+    double zoom;
+    triple m;
+    triple M;
+    pair shift;
+    pair margin;
+
+    double* t;
+    double* tup;
+    double* background;
+
+    size_t nlightsin;
+
+    triple* lights;
+    double* diffuse;
+    double* specular;
+
+    bool view;
+    int oldpid=0;
+  };
+
+  void vkrender(VkrenderFunctionArgs const& args);
 
   triple billboardTransform(const triple& center, const triple& v) const;
   double getRenderResolution(triple Min) const;
@@ -563,6 +563,10 @@ private:
   bool GPUcompress=false;
   bool fxaa=false;
   bool srgb=false;
+
+#if defined(DEBUG)
+  bool hasDebugMarker=false;
+#endif
 
   std::int32_t gs2;
   std::int32_t gs;
@@ -909,9 +913,38 @@ private:
   void createSyncObjects();
   void waitForEvent(vk::Event event);
 
-  uint32_t selectMemory(const vk::MemoryRequirements memRequirements, const vk::MemoryPropertyFlags properties);
+  /**
+   * Sets debug object name. This function is inert if compiling under release mode or if
+   * hardware does not support Debug Markers
+   * @param object Handle to a vulkan object, in uint64_t form
+   * @param objType Debug object reporting type
+   * @param name Name of the object to set
+   */
+  void setDebugObjectName(
+          uint64_t const& object,
+          vk::DebugReportObjectTypeEXT const& objType,
+          std::string const& name
+          );
 
-  void zeroBuffer(vk::Buffer & buf, vk::DeviceSize size);
+  /**
+   * Sets debug object name. This function is inert if compiling under release mode or if
+   * hardware does not support Debug Markers
+   * @tparam TVkObj Type of the Vulkan object. Requires debugReportType static constant.
+   * @param object Handle to a vulkan object, under vk:: namespace
+   * @param name Name of the object to set
+   */
+  template<typename TVkObj>
+  void setDebugObjectName(
+          TVkObj object,
+          std::string const& name)
+  {
+    setDebugObjectName(
+            reinterpret_cast<uint64_t>(static_cast<typename TVkObj::NativeType>(object)),
+            TVkObj::debugReportObjectType,
+            name);
+  }
+
+  uint32_t selectMemory(const vk::MemoryRequirements memRequirements, const vk::MemoryPropertyFlags properties);
   vma::cxx::UniqueBuffer createBufferUnique(
           vk::BufferUsageFlags const& usage,
           VkMemoryPropertyFlags const& properties,

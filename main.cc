@@ -26,38 +26,40 @@
 #include <iostream>
 #include <cstdlib>
 #include <cerrno>
-#include <sys/wait.h>
 #include <sys/types.h>
 
-#define GC_PTHREAD_SIGMASK_NEEDED
+#if !defined(_WIN32)
+#include <sys/wait.h>
+#endif
 
-#include "vkrender.h"
+#include "common.h"
 
 #ifdef HAVE_LIBSIGSEGV
 #include <sigsegv.h>
 #endif
 
+#define GC_PTHREAD_SIGMASK_NEEDED
+
+#ifdef HAVE_LSP
+#include "lspserv.h"
+#endif
+
+#include "exithandlers.h"
 #include "errormsg.h"
 #include "fpu.h"
 #include "settings.h"
 #include "locate.h"
 #include "interact.h"
 #include "fileio.h"
+#include "vkrender.h"
+#include "stack.h"
 
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
 #endif
 
-#ifdef HAVE_LSP
-#include "lspserv.h"
-#endif
-
-#include "stack.h"
-
-#ifdef HAVE_LIBCURSES
-#ifdef HAVE_LIBREADLINE
-#include <readline/readline.h>
-#endif
+#if defined(_WIN32)
+#include <combaseapi.h>
 #endif
 
 using namespace settings;
@@ -105,31 +107,10 @@ void setsignal(void (*handler)(int))
                                 mystack,sizeof (mystack));
   sigsegv_install_handler(&sigsegv_handler);
 #endif
+#if !defined(_WIN32)
   Signal(SIGBUS,handler);
-  Signal(SIGFPE,handler);
-}
-
-void signalHandler(int)
-{
-  // Print the position and trust the shell to print an error message.
-  em.runtime(vm::getPos());
-
-  Signal(SIGBUS,SIG_DFL);
-  Signal(SIGFPE,SIG_DFL);
-}
-
-void interruptHandler(int)
-{
-#ifdef HAVE_LIBFFTW3
-  fftwpp::saveWisdom();
 #endif
-  em.Interrupt(true);
-}
-
-bool hangup=false;
-void hangup_handler(int sig)
-{
-  hangup=true;
+  Signal(SIGFPE,handler);
 }
 
 struct Args
@@ -139,17 +120,20 @@ struct Args
   Args(int argc, char **argv) : argc(argc), argv(argv) {}
 };
 
-int returnCode()
-{
-  return em.processStatus() || interact::interactive ? 0 : 1;
-}
-
 void *asymain(void *A)
 {
   setsignal(signalHandler);
   Args *args=(Args *) A;
 #ifdef HAVE_LIBFFTW3
   fftwpp::wisdomName=".wisdom";
+#endif
+
+#if defined(_WIN32)
+  // see https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecuteexa
+  if (!SUCCEEDED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE)))
+  {
+    camp::reportError("CoInitializeEx Failed");
+  }
 #endif
 
   if(interactive) {
@@ -186,8 +170,11 @@ void *asymain(void *A)
     int n=numArgs();
     if(n == 0) {
       int inpipe=intcast(settings::getSetting<Int>("inpipe"));
-      if(inpipe >= 0) {
+      bool hasInpipe=inpipe >= 0;
+      if(hasInpipe) {
+#if !defined(_WIN32)
         Signal(SIGHUP,hangup_handler);
+#endif
         camp::openpipeout();
         fprintf(camp::pipeout,"\n");
         fflush(camp::pipeout);
@@ -226,8 +213,12 @@ void *asymain(void *A)
 #endif
 
   if(getSetting<bool>("wait")) {
+#if defined(_WIN32)
+#pragma message("TODO: wait option not implement yet")
+#else
     int status;
     while(wait(&status) > 0);
+#endif
   }
 #ifdef HAVE_VULKAN
 #ifdef HAVE_PTHREAD
@@ -244,20 +235,18 @@ void *asymain(void *A)
   exit(returnCode());
 }
 
-void exitHandler(int)
-{
-#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
-  rl_cleanup_after_signal();
-#endif
-  exit(returnCode());
-}
-
 int main(int argc, char *argv[])
 {
 #ifdef HAVE_LIBGSL
+#if defined(_WIN32)
+  _putenv("GSL_RNG_SEED=");
+  _putenv("GSL_RNG_TYPE=");
+#else
   unsetenv("GSL_RNG_SEED");
   unsetenv("GSL_RNG_TYPE");
 #endif
+#endif
+
   setsignal(signalHandler);
 
   try {
@@ -269,24 +258,50 @@ int main(int argc, char *argv[])
   fpu_trap(trap());
   Args args(argc,argv);
 #ifdef HAVE_VULKAN
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(_WIN32)
+
+#if defined(_WIN32)
+#pragma message("TODO: Check if (1) we need detach-based gl renderer")
+#endif
   bool usethreads=true;
 #else
   bool usethreads=view();
-#endif
+#endif // defined(__APPLE__) || defined(_WIN32)
   camp::vk->vkthread=usethreads && getSetting<bool>("threads");
 #if HAVE_PTHREAD
   if(camp::vk->vkthread) {
     pthread_t thread;
     try {
-      if(pthread_create(&thread,NULL,asymain,&args) == 0) {
+#if defined(_WIN32)
+      auto asymainPtr = [](void* args) -> void*
+      {
+#if defined(USEGC)
+        GC_stack_base gsb {};
+        GC_get_stack_base(&gsb);
+        GC_register_my_thread(&gsb);
+#endif // defined(USEGC)
+        auto* ret = asymain(args);
+
+#if defined(USEGC)
+        GC_unregister_my_thread();
+#endif // defined(USEGC)
+        return reinterpret_cast<void*>(ret);
+      };
+#else // defined(_WIN32)
+      auto* asymainPtr = asymain;
+#endif // defined(_WIN32)
+      if(pthread_create(&thread,NULL,asymainPtr,&args) == 0) {
         camp::vk->mainthread=pthread_self();
+#if !defined(_WIN32)
         sigset_t set;
         sigemptyset(&set);
         sigaddset(&set, SIGCHLD);
         pthread_sigmask(SIG_BLOCK, &set, NULL);
-        for(;;) {
+#endif // !defined(_WIN32)
+        for (;;) {
+#if !defined(_WIN32)
           Signal(SIGURG,exitHandler);
+#endif // !defined(_WIN32)
           camp::glrenderWrapper();
           camp::vk->initialize=true;
         }
@@ -295,14 +310,8 @@ int main(int argc, char *argv[])
       outOfMemory();
     }
   }
-#endif
+#endif // HAVE_PTHREAD
   camp::vk->vkthread=false;
-#endif
+#endif // HAVE_VULKAN
   asymain(&args);
 }
-
-#ifdef USEGC
-GC_API void GC_CALL GC_throw_bad_alloc() {
-  std::bad_alloc();
-}
-#endif
