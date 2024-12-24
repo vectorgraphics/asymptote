@@ -47,7 +47,9 @@ jobs:
     - CPPCHECK_OUT_FILTER="Z"
     - NO_CLONE_LIBATOMIC_OPS=true
   - env:
-    - CPPCHECK_ENABLE="-j4 --enable=information,performance,portability,style,warning --force -U GC_PRIVATE_H -I libatomic_ops/src *.c"
+    - CPPCHECK_ENABLE="-j4 --enable=information,performance,portability,style,warning --force -U GC_PRIVATE_H -I libatomic_ops/src a*.c b*.c c*.c d*.c f*.c g*.c h*.c m*.c"
+  - env:
+    - CPPCHECK_ENABLE="-j4 --enable=information,performance,portability,style,warning --force -U GC_PRIVATE_H -I libatomic_ops/src n*.c o*.c p*.c r*.c s*.c t*.c w*.c"
   - env:
     - CPPCHECK_ENABLE="-j4 --enable=information,performance,portability,style,warning --force -U GC_PRIVATE_H -I libatomic_ops/src *.cc cord/*.c cord/tests/*.c extra/AmigaOS.c extra/MacOS.c extra/msvc_dbg.c extra/symbian.cpp tests/*.c tests/*.cc tools/*.c"
   - arch: arm64
@@ -67,15 +69,9 @@ jobs:
     - CFLAGS_EXTRA="-O3"
     - CONF_OPTIONS="--enable-gc-assertions --enable-cplusplus --disable-shared"
     - NO_CLONE_LIBATOMIC_OPS=true
-  - addons:
-      apt:
-        packages:
-        - gcc-11
-        sources:
-        - ubuntu-toolchain-r-test
-    arch: arm64
-    compiler: gcc-11
-    dist: bionic
+  - arch: arm64
+    compiler: gcc
+    dist: focal
     env:
     - CFLAGS_EXTRA="-O3 -march=native"
     - CONF_OPTIONS="--enable-cplusplus --disable-gcj-support"
@@ -133,42 +129,28 @@ jobs:
     - MAKEFILE_TARGETS="check cord/de"
   - arch: ppc64le
     compiler: clang
+    dist: focal
   - arch: ppc64le
     compiler: gcc
-  - addons:
-      apt:
-        packages:
-        - clang-12
-        sources:
-        - ubuntu-toolchain-r-test
-    arch: ppc64le
-    compiler: clang-12
+    dist: focal
+    env:
+    - CONF_OPTIONS="--disable-shared --disable-threads"
+  - arch: ppc64le
+    compiler: clang
     dist: focal
     env:
     - CFLAGS_EXTRA="-O3"
     - CONF_OPTIONS="--enable-gc-assertions --enable-cplusplus --enable-static"
     - NO_CLONE_LIBATOMIC_OPS=true
-  - addons:
-      apt:
-        packages:
-        - gcc-11
-        sources:
-        - ubuntu-toolchain-r-test
-    arch: ppc64le
-    compiler: gcc-11
-    dist: bionic
+  - arch: ppc64le
+    compiler: gcc
+    dist: focal
     env:
     - CFLAGS_EXTRA="-O3 -D NO_MPROTECT_VDB"
     - CONF_OPTIONS="--enable-cplusplus"
     - NO_CLONE_LIBATOMIC_OPS=true
-  - addons:
-      apt:
-        packages:
-        - clang-12
-        sources:
-        - ubuntu-toolchain-r-test
-    arch: ppc64le
-    compiler: clang-12
+  - arch: ppc64le
+    compiler: clang
     dist: focal
     language: c
     env:
@@ -178,12 +160,14 @@ jobs:
     - TESTS_CUSTOM_RUN=true
   - arch: ppc64le
     compiler: clang
+    dist: focal
     env:
     - CMAKE_CONFIG="Release"
     - CMAKE_OPTIONS="-Dbuild_tests=ON -Denable_cplusplus=ON -Denable_gc_assertions=ON"
     - NO_CLONE_LIBATOMIC_OPS=true
   - arch: ppc64le
     compiler: clang
+    dist: focal
     env:
     - MAKEFILE_NAME=Makefile.direct
     - MAKEFILE_TARGETS="check cord/de"
@@ -191,6 +175,8 @@ jobs:
     compiler: clang
   - arch: s390x
     compiler: gcc
+    env:
+    - CONF_OPTIONS="--disable-disclaim"
   - addons:
       apt:
         packages:
@@ -248,14 +234,8 @@ jobs:
     - MAKEFILE_NAME=Makefile.direct
     - MAKEFILE_TARGETS="check cord/de"
     - MAKE_NPROC=8
-  - addons:
-      apt:
-        packages:
-        - gcc-11
-        sources:
-        - ubuntu-toolchain-r-test
-    compiler: gcc-11
-    dist: bionic
+  - compiler: gcc
+    dist: jammy
     env:
     - CFLAGS_EXTRA="-O3 -march=native"
     - CONF_OPTIONS="--enable-cplusplus"
@@ -775,6 +755,12 @@ after_success:
     lcov --list coverage.info;
     coveralls-lcov --repo-token ${COVERALLS_TOKEN} coverage.info;
   fi
+
+before_deploy:
+- yes | gem update --system --force
+- gem install bundler
+- gem install uri
+- gem install logger
 
 deploy:
   provider: releases

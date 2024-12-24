@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/ivmai/bdwgc
-	branch = d1ff06cc503a74dca0150d5e988f2c93158b0cdf
-	commit = d1ff06cc503a74dca0150d5e988f2c93158b0cdf
-	parent = 5cf1ed4457f398b1d0c71d6b4b7b12599b685f86
+	branch = v8.2.8
+	commit = ee59af3722e56de8404de6cd0c21c2493cc4d855
+	parent = e2af319e39aeb939b67edd0c81c9bab80d8276c2
 	method = merge
 	cmdver = 0.4.9
