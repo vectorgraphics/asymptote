@@ -40,11 +40,8 @@ using nonstd::make_optional;
 using std::make_pair;
 
 #if !defined(FOR_SHARED) && defined(HAVE_LIBVULKAN) && defined(HAVE_LIBGLM)
-
-#if !defined(HAVE_VULKAN)
  #define HAVE_VULKAN
-#endif
-#endif
+ #endif
 
 #if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDIT)
 #define HAVE_READLINE
