@@ -189,7 +189,7 @@ if (ENABLE_OPENGL)
     endif()
 
     if (OPENGL_GLU_FOUND)
-        list(APPEND ASY_MACROS HAVE_GL)
+        list(APPEND ASY_MACROS HAVE_LIBGL)
     else()
         message(FATAL_ERROR "GL components incomplete; will not use OpenGL")
     endif()
