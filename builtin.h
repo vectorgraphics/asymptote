@@ -36,7 +36,7 @@ varEntry *addFunc(venv &ve, vm::bltin f, types::ty *result, symbol name,
 
 // Adds standard functions for a newly added types.
 void addArrayOps(venv &ve, types::array *t);
-void addRecordOps(venv &ve, types::record *r);
+void addRecordOps(types::record *r);
 
 #ifdef HAVE_LIBGSL
 types::record *getGSLModule();

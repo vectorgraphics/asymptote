@@ -21,7 +21,7 @@ BreakBeforeBraces: Custom
 BraceWrapping:
   AfterCaseLabel: false
   AfterClass: true
-  AfterControlStatement: Always
+  AfterControlStatement: false
   AfterEnum: true
   AfterFunction: true
   AfterNamespace: true
@@ -35,7 +35,7 @@ BreakBeforeBinaryOperators: None
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon
 BreakInheritanceList: BeforeColon
-BinPackArguments: false
+BinPackArguments: true
 ColumnLimit: 80
 CompactNamespaces: false
 ContinuationIndentWidth: 8
@@ -49,7 +49,7 @@ ObjCSpaceAfterProperty: false
 ObjCSpaceBeforeProtocolList: true
 PointerAlignment: Left
 ReferenceAlignment: Left
-ReflowComments: false
+ReflowComments: true
 SpaceAfterCStyleCast: true
 SpaceAfterLogicalNot: false
 SpaceAfterTemplateKeyword: false

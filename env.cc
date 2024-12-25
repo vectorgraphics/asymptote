@@ -188,7 +188,7 @@ void protoenv::addArrayOps(array *a)
 
 void protoenv::addRecordOps(record *r)
 {
-  trans::addRecordOps(ve, r);
+  trans::addRecordOps(r);
 }
 
 env::env(genv &ge)
