@@ -660,33 +660,23 @@ void addArrayOps(venv &ve, types::array *t)
   }
 }
 
-void addRecordOps(venv &ve, record *r)
+void addRecordOps(record* r)
 {
-  auto addOp= [&](vm::bltin f, ty* result, symbol name, auto&&... formals) {
+  assert(r);
+  trans::venv &ve = r->e.ve;
+  auto addOp= [&ve](vm::bltin f, ty* result, symbol name, auto&&... formals) {
     varEntry* fVar=
             addFunc(ve, f, result, name, std::forward<formal>(formals)...);
-    if (r)
-    {
-      r->e.ve.registerAutoUnravel(name, fVar, AutounravelPriority::OFFER);
-    }
+    ve.registerAutoUnravel(name, fVar, AutounravelPriority::OFFER);
   };
   // alias
-  addOp(run::boolMemEq,
-        primBoolean(),
-        SYM(alias),
-        formal(r, SYM(a)),
+  addOp(run::boolMemEq, primBoolean(), SYM(alias), formal(r, SYM(a)),
         formal(r, SYM(b)));
   // operator==
-  addOp(run::boolMemEq,
-        primBoolean(),
-        SYM_EQ,
-        formal(r, SYM(a)),
+  addOp(run::boolMemEq, primBoolean(), SYM_EQ, formal(r, SYM(a)),
         formal(r, SYM(b)));
   // operator!=
-  addOp(run::boolMemNeq,
-        primBoolean(),
-        SYM_NEQ,
-        formal(r, SYM(a)),
+  addOp(run::boolMemNeq, primBoolean(), SYM_NEQ, formal(r, SYM(a)),
         formal(r, SYM(b)));
 }
 
@@ -770,7 +760,7 @@ dummyRecord *createDummyRecord(venv &ve, symbol name)
   dummyRecord *r=new dummyRecord(name);
   vm::vmFrame *f = make_dummyframe(name);
   addConstant(ve, f, r, name);
-  addRecordOps(ve, r);
+  addRecordOps(r);
   return r;
 }
 

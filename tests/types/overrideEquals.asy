@@ -32,4 +32,12 @@ StartTest('overrideEquals: internal');
   Inner a = new Inner;
   assert(a == null);  // Use the overridden operator.
 }
+struct A {
+  static assert((A)null == (A)null);
+  autounravel bool operator ==(A a, A b) {
+    return false;
+  }
+  static assert(!((A)null == (A)null));
+}
+assert(!((A)null == (A)null));
 EndTest();

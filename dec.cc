@@ -18,7 +18,7 @@
 #include "runtime.h"
 #include "locate.h"
 #include "asyparser.h"
-// #include "builtin.h"  // for trans::addRecordOps
+#include "builtin.h"  // for trans::addRecordOps
 
 namespace absyntax {
 
@@ -56,18 +56,16 @@ void addNameOps(coenv &e, record *r, record *qt, varEntry *qv, position pos) {
       continue;
     }
     varEntry *qqv = qualifyVarEntry(qv, v);
-    if (r) {
-      if (!r->e.ve.lookByType(auName, qqv->getType()))
+    auto enter= [&](trans::venv& ve) {
       // Add op only if it does not already exist.
-      {
-        r->e.ve.enter(auName, qqv);
+      if (!ve.lookByType(auName, qqv->getType())) {
+        ve.enter(auName, qqv);
       }
+    };
+    if (r) {
+      enter(r->e.ve);
     }
-    if (!e.e.ve.lookByType(auName, qqv->getType()))
-    // Add op only if it does not already exist.
-    {
-      e.e.ve.enter(auName, qqv);
-    }
+    enter(e.e.ve);
   }
 }
 
@@ -1541,32 +1539,44 @@ void recorddec::transAsField(coenv &e, record *parent)
 
   addTypeWithPermission(e, parent, new trans::tyEntry(r,0,parent,getPos()),
                         id);
-  e.e.addRecordOps(r);
-  // Note: the following two lines *may* be unnecessary now that the record ops
-  // are autounraveled. Unfortunately, if you trace back the history of this
-  // code, the comments suggest it's doing something else that is not covered
-  // by the autounraveling.
-  if (parent)
-    parent->e.addRecordOps(r);
+  trans::addRecordOps(r);
 
   // Start translating the initializer.
   coder c=e.c.newRecordInit(getPos(), r);
   coenv re(c,e.e);
 
-  {  // body->transAsRecordBody(re, r) but with something extra before closing
+  {
+    // Make sure the autounraveled fields are limited to the record's scope.
+    // If the scope is too broad, then user-provide autounravel overrides will
+    // defer to already-defined ops when they should not.
+    bool useScope = body->scope;
+    // RAII: Close the scope when scopeHolder runs its destructor.
+    Scope scopeHolder(re, useScope);
+    // Autounravel the record ops into the record's environment.
+    addNameOps(re, nullptr, r, nullptr, getPos());
+    // We've already handled the scope ourselves, so tell `body` not to add an
+    // additional scope when running `transAsField`.
+    body->scope = false;  
+    // Translate the main body of the record.
     body->transAsField(re, r);
-    // After the record is translated, add a default initializer so that a
-    // variable of the type of the record is initialized to a new instance by
-    // default.
-    transRecordInitializer(re, r);
+    // Restore the original value of the `scope` boolean. This probably makes no
+    // difference but is included out of an abundance of caution.
+    body->scope = useScope;
+  }  // Close the scope.
+  // After the record is translated, add a default initializer so that a
+  // variable of the type of the record is initialized to a new instance by
+  // default.
+  transRecordInitializer(re, r);
 
-    re.c.closeRecord();
-  }
+  // This would normally be done right after transAsField, but we needed to add
+  // the default initializer first. See also block::transAsRecordBody().
+  re.c.closeRecord();
 
 
   // Add types and variables defined during the record that should be added to
   // the enclosing environment.  These are the implicit constructors defined by
-  // "operator init".
+  // "operator init", as well as the autounravel fields (both builtin and user
+  // defined).
   addPostRecordEnvironment(e, r, parent);
 }
 
