@@ -270,62 +270,6 @@ AC_ARG_WITH(vcpkg-host-triplet,
 )
 
 
-# --------------- GC -------------------------------
-ac_cv_use_gc="yes"
-
-AC_ARG_ENABLE(gc,
-   [AS_HELP_STRING(--enable-gc[[[=yes]]], enable system Boehm garbage collector)],
-   [  # if true
-      if test "x$enableval" != "xyes" ; then  # system, no or else
-         ac_cv_use_gc=$enableval
-      fi
-   ]
-)
-
-AC_ARG_ENABLE(gc-debug,
-[AS_HELP_STRING(--enable-gc-debug,enable (slow) garbage collector debugging)],
-[ if test "x$ac_cv_use_gc" != "xno" ; then
-    if test "x$enableval" = "xyes" ; then
-      AC_DEFINE(GC_DEBUG,1,[GC Debug is enabled])
-      AC_MSG_NOTICE([*** Enabling GC debugging: remember to make clean ***])
-      AC_MSG_NOTICE([*** Set the environment variable GC_FIND_LEAK at runtime ***])
-    fi
- fi
-])
-
-AC_ARG_ENABLE(gc-full-debug,
-[AS_HELP_STRING(--enable-gc-full-debug,enable (very slow) garbage collector backtrace)],
-[ if test "x$ac_cv_use_gc" != "xno" ; then
-    if test "x$enableval" = "xyes" ; then
-      AC_DEFINE(GC_DEBUG,1,[GC Debug is enabled])
-      AC_DEFINE(GC_BACKTRACE,1,[GC backtrace is enabled])
-      GCOPTIONS=$GCOPTIONS"--enable-gc-debug "
-      AC_MSG_NOTICE([*** Enabling GC backtrace debugging; remember to make gc-clean ***])
-    fi
- fi
-])
-
-
-GCNAME="Boehm Garbage Collector"
-if test "x$ac_cv_use_gc" != "xno" ; then
-   AC_DEFINE(USEGC,1,[GC Enabled])
-      case _$ac_cv_use_gc in
-      _|_system|_*[[\\/]]*)
-         AC_MSG_ERROR([*** System gc is not supported ***])
-         # for some reason, if this line is removed, configure produces an error
-         AC_CHECK_HEADER(_.h,AC_CHECK_LIB([_],[__],[],[]),)
-         ;;
-      *)
-         AC_MSG_NOTICE([enabling local gc])
-         GCLIB="\$(GC)/.libs/libgc.a"
-         INCL=$INCL" -I\$(GC)/include "
-         ;;
-      esac
-else
-   AC_MSG_NOTICE([disabling the $GCNAME])
-fi
-
-# -------------------------- end gc ------------------
 
 # Checks for libraries.
 #AC_SEARCH_LIBS([lgamma],[m c],,
@@ -419,28 +363,11 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
    AC_MSG_NOTICE([*** Could not find libboost_filesystem: will compile without optional Language Server Protocol. ***]))
 fi
 
-# ------------- arguments for readline & static linking ---
-
 AC_ARG_ENABLE(readline,
 [AS_HELP_STRING(--enable-readline[[[=yes]]],enable GNU Readline Library)])
 
 AC_ARG_ENABLE(static,
 [AS_HELP_STRING(--enable-static[[[=no]]],link against static libraries)])
-
-STATIC=""
-DYNAMIC=""
-if test "x$enable_static" = "xyes"; then
-  STATIC="-Wl,-Bstatic "
-  DYNAMIC="-Wl,-Bdynamic "
-fi
-
-# ------------- readline & defines --------------------
-
-AC_DEFUN([READLINE],[
-AC_MSG_NOTICE([*** Could not find GNU readline 4.3 or later: will compile without readline support ***])
-AC_CHECK_LIB([edit],[readline])
-AC_CHECK_HEADERS(editline/readline.h)
-])
 
 AC_DEFUN([PKG_CONFIG],[
 ifdef(
@@ -449,6 +376,13 @@ ifdef(
    $1="$2 "
 )
 ])
+
+STATIC=""
+DYNAMIC=""
+if test "x$enable_static" = "xyes"; then
+  STATIC="-Wl,-Bstatic "
+  DYNAMIC="-Wl,-Bdynamic "
+fi
 
 AC_DEFUN([CHECK_LIB_STATIC],[
    PKG_CONFIG(PKG_FLAGS,,--libs,$1)
@@ -487,7 +421,6 @@ AC_DEFUN([CHECK_LIB_STATIC],[
       $PKG_FLAGS
    )
 ])
-# --------------- end readline ----------------
 
 if test "x$enable_readline" != "xno"; then
 if test "x$with_vcpkg" != "xno"; then  # vcpkg
@@ -510,8 +443,14 @@ else  # managed by the system
    abort
    #endif
    ])],
-   CHECK_LIB_STATIC(readline,readline,history_list,HAVE_LIBREADLINE,READLINE),
-   READLINE)
+   CHECK_LIB_STATIC(readline,readline,history_list,HAVE_LIBREADLINE,
+   readline="no"),readline="no")
+
+   if test "x$readline" == "xno"; then
+     AC_MSG_NOTICE([*** Could not find GNU readline 4.3 or later: will compile without readline support ***])
+     AC_CHECK_LIB([edit],[readline])
+     AC_CHECK_HEADERS(editline/readline.h)
+   fi
 
    PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,tinfo)
    CHECK_LIB_STATIC(tinfo,tinfo,tgetent,HAVE_LIBTINFO,AC_MSG_NOTICE([perhaps tgetent is in -lncurses]))
@@ -522,6 +461,47 @@ else  # managed by the system
                      AC_CHECK_LIB(curses,setupterm))
 fi
 fi
+
+# --------------- gc -------------------------------
+
+GCNAME="Boehm Garbage Collector"
+
+AC_ARG_ENABLE(gc,
+[AS_HELP_STRING(--enable-gc[[[=yes]]],enable local $GCNAME)])
+
+if test "x$enable_gc" != "xno" ; then
+  if test "x$with_vcpkg" == "xno"; then
+    AC_DEFINE(USEGC,1,[GC Enabled])
+    GCLIB="\$(GC)/.libs/libgc.a"
+    INCL=$INCL" -I\$(GC)/include "
+    AC_MSG_NOTICE([$GCNAME is enabled])
+  fi
+else
+  AC_MSG_NOTICE([*** $GCNAME disabled by configure flag: will compile without garbage collection. ***])
+fi
+
+AC_ARG_ENABLE(gc-debug,
+[AS_HELP_STRING(--enable-gc-debug,enable (slow) garbage collector debugging)],
+[ if test "x$enable_gc" != "xno" ; then
+    if test "x$enableval" = "xyes" ; then
+      AC_DEFINE(GC_DEBUG,1,[GC Debug is enabled])
+      AC_MSG_NOTICE([*** Enabling GC debugging: remember to make clean ***])
+      AC_MSG_NOTICE([*** Set the environment variable GC_FIND_LEAK at runtime ***])
+    fi
+ fi
+])
+
+AC_ARG_ENABLE(gc-full-debug,
+[AS_HELP_STRING(--enable-gc-full-debug,enable (very slow) garbage collector backtrace)],
+[ if test "x$enable_gc" != "xno" ; then
+    if test "x$enableval" = "xyes" ; then
+      AC_DEFINE(GC_DEBUG,1,[GC Debug is enabled])
+      AC_DEFINE(GC_BACKTRACE,1,[GC backtrace is enabled])
+      GCOPTIONS=$GCOPTIONS"--enable-gc-debug "
+      AC_MSG_NOTICE([*** Enabling GC backtrace debugging; remember to make gc-clean ***])
+    fi
+ fi
+])
 
 # ---------------- curl ------------------------
 
