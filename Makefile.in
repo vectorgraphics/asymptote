@@ -5,7 +5,6 @@ POLL = poll
 
 ASYGLVERSION = @ASYGLVERSION@
 GC = gc
-LIBATOMIC = libatomic_ops
 GCOPTIONS = @GCOPTIONS@
 GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
@@ -175,7 +174,7 @@ $(LSP_BUILD_ROOT)/liblspcpp.a:
 
 all:  	asy sty man faq asy-keywords.el
 
-$(GC)/libatomic_ops: $(LIBATOMIC)
+$(GC)/libatomic_ops:
 	ln -sf ../$< $@
 
 $(GC)/Makefile: $(GC)/libatomic_ops
