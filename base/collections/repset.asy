@@ -1,5 +1,5 @@
 typedef import(T);
-from 'datastructures/iter'(T=T) access Iter_T, Iterable_T;
+from 'collections/iter'(T=T) access Iter_T, Iterable_T;
 
 // RepSet: set of representatives of equivalence classes. Contains at most one
 // element from each equivalence class.

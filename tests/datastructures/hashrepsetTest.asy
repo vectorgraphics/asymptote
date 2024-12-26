@@ -1,5 +1,7 @@
 import TestLib;
 
+srand(4282308941601638229);
+
 StartTest("HashRepSet");
 
 // from wrapper(T=int) access
@@ -13,7 +15,6 @@ struct wrapped_int {
   autounravel bool operator ==(wrapped_int a, wrapped_int b) {
     if (alias(a, null)) return alias(b, null);
     if (alias(b, null)) return false;
-    write('difference: ' + string(a.t - b.t));
     return a.t == b.t;
   }
   autounravel bool operator !=(wrapped_int a, wrapped_int b) {
@@ -37,11 +38,11 @@ wrapped_int wrap(int t) = wrapped_int;  // `wrap` is alias for constructor
 // from pureset(T=wrapped_int) access
 //     Set_T as Set_wrapped_int,
 //     makeNaiveSet;
-from 'datastructures/repset'(T=wrapped_int) access
+from 'collections/repset'(T=wrapped_int) access
     RepSet_T as Set_wrapped_int,
     NaiveRepSet_T as NaiveSet_wrapped_int;
 
-from 'datastructures/hashrepset'(T=wrapped_int) access
+from 'collections/hashrepset'(T=wrapped_int) access
     HashRepSet_T as HashSet_wrapped_int;
 
 struct ActionEnum {
@@ -116,6 +117,22 @@ string string(int[] a) {
   return result;
 }
 
+string string(wrapped_int[] a) {
+  string result = '[';
+  for (int i = 0; i < a.length; ++i) {
+    if (i > 0) {
+      result += ', ';
+    }
+    if (alias(a[i], null)) {
+      result += 'null';
+    } else {
+      result += string(a[i].t);
+    }
+  }
+  result += ']';
+  return result;
+}
+
 string string(bool[] a) {
   string result = '[';
   for (int i = 0; i < a.length; ++i) {
@@ -133,7 +150,7 @@ typedef void Action(int ...Set_wrapped_int[]);
 Action[] actions = new Action[ActionEnum.num];
 actions[ADD] = new void(int maxItem ...Set_wrapped_int[] sets) {
   wrapped_int toInsert = wrap(rand() % maxItem);
-  write('Inserting ' + string(toInsert.t) + '\n');
+  // write('Inserting ' + string(toInsert.t) + '\n');
   bool[] results = new bool[];
   for (Set_wrapped_int s : sets) {
     results.push(s.add(toInsert));
@@ -147,7 +164,7 @@ actions[ADD] = new void(int maxItem ...Set_wrapped_int[] sets) {
 };
 actions[UPDATE] = new void(int maxItem ...Set_wrapped_int[] sets) {
   wrapped_int toReplace = wrap(rand() % maxItem);
-  write('Replacing ' + string(toReplace.t) + '\n');
+  // write('Replacing ' + string(toReplace.t) + '\n');
   wrapped_int[] results = new wrapped_int[];
   for (Set_wrapped_int s : sets) {
     results.push(s.update(toReplace));
@@ -156,6 +173,7 @@ actions[UPDATE] = new void(int maxItem ...Set_wrapped_int[] sets) {
     wrapped_int expected = results[0];
     for (wrapped_int r : results) {
       if (!alias(r, expected)) {
+        write(flush);
         assert(false, 'Different results: ' + string(results));
       }
     }
@@ -163,7 +181,7 @@ actions[UPDATE] = new void(int maxItem ...Set_wrapped_int[] sets) {
 };
 actions[DELETE] = new void(int maxItem ...Set_wrapped_int[] sets) {
   wrapped_int toDelete = wrap(rand() % maxItem);
-  write('Deleting ' + string(toDelete.t) + '\n');
+  // write('Deleting ' + string(toDelete.t) + '\n');
   wrapped_int[] results = new wrapped_int[];
   for (Set_wrapped_int s : sets) {
     results.push(s.delete(toDelete));
@@ -180,7 +198,7 @@ actions[DELETE] = new void(int maxItem ...Set_wrapped_int[] sets) {
 actions[CONTAINS] = new void(int maxItem ...Set_wrapped_int[] sets)
 {
   int toCheck = rand() % maxItem;
-  write('Checking ' + string(toCheck) + '\n');
+  // write('Checking ' + string(toCheck) + '\n');
   bool[] results = new bool[];
   for (Set_wrapped_int s : sets) {
     results.push(s.contains(wrap(toCheck)));
@@ -195,7 +213,7 @@ actions[CONTAINS] = new void(int maxItem ...Set_wrapped_int[] sets)
 actions[GET] = new void(int maxItem ...Set_wrapped_int[] sets)
 {
   int toCheck = rand() % maxItem;
-  write('Getting ' + string(toCheck) + '\n');
+  // write('Getting ' + string(toCheck) + '\n');
   wrapped_int[] results = new wrapped_int[];
   for (Set_wrapped_int s : sets) {
     results.push(s.get(wrap(toCheck)));
@@ -218,23 +236,20 @@ actions[DELETE_CONTAINS] = new void(int ...Set_wrapped_int[] sets) {
     return;
   }
   int indexToDelete = rand() % initialSize;
-  write('Iterating to ' + string(indexToDelete));
+  // write('Iterating to ' + string(indexToDelete));
   var it = sets[0].iter();
   for (int i = 0; i < indexToDelete; ++i) {
     it.advance();
   }
   wrapped_int toDelete = wrap(it.get().t);
-  write('Deleting ' + string(toDelete.t));
+  // write('Deleting ' + string(toDelete.t));
   int i = 0;
   for (Set_wrapped_int s : sets) {
     assert(s.contains(toDelete), 'Contains failed ' + string(i));
     wrapped_int deleted = s.delete(toDelete);
     assert(!alias(deleted, null), 'Delete returned null');
-    write('AAA');
     typedef bool F(wrapped_int, wrapped_int);
     assert(((F)operator ==) != ((F)alias));
-    write(deleted == toDelete);
-    write('BBB');
     assert(deleted == toDelete, 'Delete returned ' + string(deleted.t) + ' instead of ' + string(toDelete.t));
     assert(!s.contains(toDelete), 'Contains failed');
     assert(s.size() == initialSize - 1, 'Size failed');
@@ -282,6 +297,9 @@ for (int i = 0; i < 2000; ++i) {
   bool differenceFound = false;
   assert(naiveSet.iter != null, 'Naive set has no iter');
   assert(hashSet.iter != null, 'Hash set has no iter');
+  // write('sizes: Naive: ' + string(naiveSet.size()) + ', Hash: ' + string(hashSet.size()) + '\n');
+  // write('Naive: ' + string((wrapped_int[])naiveSet) + '\n');
+  // write('Hash:  ' + string((wrapped_int[])hashSet) + '\n');
   for (var ita = naiveSet.iter(), itb = hashSet.iter(); ita.valid() && itb.valid(); ita.advance(), itb.advance()) {
     if (!alias(ita.get(), itb.get())) {
       differenceFound = true;
@@ -301,8 +319,21 @@ for (int i = 0; i < 2000; ++i) {
 //   real[] probs = i < 800 ? increasingProbs : decreasingProbs;
 //   int choice = chooseAction(probs);
 //   actions[choice](1000, naiveSet, hashSet);
-//   string diffs = differences(naiveSet, hashSet);
-//   assert(diffs == '', 'Naive vs hash: \n' + diffs);
+//   bool differenceFound = false;
+//   assert(naiveSet.iter != null, 'Naive set has no iter');
+//   assert(hashSet.iter != null, 'Hash set has no iter');
+//   // write('sizes: Naive: ' + string(naiveSet.size()) + ', Hash: ' + string(hashSet.size()) + '\n');
+//   // write('Naive: ' + string((wrapped_int[])naiveSet) + '\n');
+//   // write('Hash:  ' + string((wrapped_int[])hashSet) + '\n');
+//   for (var ita = naiveSet.iter(), itb = hashSet.iter(); ita.valid() && itb.valid(); ita.advance(), itb.advance()) {
+//     if (!alias(ita.get(), itb.get())) {
+//       differenceFound = true;
+//       break;
+//     }
+//   }
+//   if (differenceFound) {
+//     assert(false, 'Naive vs hash: \n' + differences((wrapped_int[])naiveSet, (wrapped_int[])hashSet));
+//   }
 //   maxSize = max(maxSize, naiveSet.size());
 // }
 // write('Max size: ' + string(maxSize) + '\n');

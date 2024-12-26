@@ -1,6 +1,6 @@
 typedef import(T);
 
-from 'datastructures/repset'(T=T) access Iter_T, Iterable_T, RepSet_T;
+from 'collections/repset'(T=T) access Iter_T, Iterable_T, RepSet_T;
 
 private struct HashEntry {
   T item;
@@ -10,7 +10,7 @@ private struct HashEntry {
 }
 
 struct HashRepSet_T {
-  RepSet_T super;
+  restricted RepSet_T super;
   unravel super;
 
   // These fields are mutable.
@@ -45,7 +45,7 @@ struct HashRepSet_T {
     int bucket = hash(item);
     for (int i = 0; i < buckets.length; ++i) {
       HashEntry entry = buckets[bucket + i];
-      if (entry == null || entry.hash < 0) {
+      if (entry == null) {
         return false;
       }
       if (entry.hash == bucket && equiv(entry.item, item)) {
@@ -56,11 +56,10 @@ struct HashRepSet_T {
   };
 
   get = new T(T item) {
-    write('get');
     int bucket = hash(item);
     for (int i = 0; i < buckets.length; ++i) {
       HashEntry entry = buckets[bucket + i];
-      if (entry == null || entry.hash < 0) {
+      if (entry == null) {
         return super.emptyresponse;
       }
       if (entry.hash == bucket && equiv(entry.item, item)) {
@@ -91,32 +90,9 @@ struct HashRepSet_T {
     return result;
   };
 
-  private void addUnsafe(T item) {
-    int bucket = hash(item);
-    for (int i = 0; i < buckets.length; ++i) {
-      HashEntry entry = buckets[bucket + i];
-      if (entry == null) {
-        entry = buckets[bucket + i] = new HashEntry;
-      }
-      if (entry.hash < 0) {
-        entry.item = item;
-        entry.hash = bucket;
-        entry.older = newest;
-        if (newest != null) {
-          newest.newer = entry;
-        }
-        newest = entry;
-        if (oldest == null) {
-          oldest = entry;
-        }
-        return;
-      }
-    }
-    assert(false, 'No space in hash table');
-  }
-
-  private void changeCapacity(int newCapacity = 2 * buckets.length) {
+  private void changeCapacity() {
     ++numChanges;
+    int newCapacity = (zombies > size ? buckets.length : 2 * buckets.length);
     zombies = 0;
     buckets = array(newCapacity, (HashEntry)null);
     buckets.cyclic = true;
@@ -137,7 +113,7 @@ struct HashRepSet_T {
     if (isEmpty != null && isEmpty(item)) {
       return false;
     }
-    if (2 * size >= buckets.length) {
+    if (2 * (size + zombies) >= buckets.length) {
       changeCapacity();
     }
     int bucket = hash(item);
@@ -145,11 +121,6 @@ struct HashRepSet_T {
       HashEntry entry = buckets[bucket + i];
       if (entry == null) {
         entry = buckets[bucket + i] = new HashEntry;
-      }
-      if (entry.hash == bucket && equiv(entry.item, item)) {
-        return false;
-      }
-      if (entry.hash < 0) {
         entry.item = item;
         entry.hash = bucket;
         entry.older = newest;
@@ -162,6 +133,8 @@ struct HashRepSet_T {
         }
         ++size;
         return true;
+      } else if (entry.hash == bucket && equiv(entry.item, item)) {
+        return false;
       }
     }
     assert(false, 'No space in hash table');
@@ -173,7 +146,7 @@ struct HashRepSet_T {
     if (isEmpty != null && isEmpty(item)) {
       return emptyresponse;
     }
-    if (2 * size >= buckets.length) {
+    if (2 * (size + zombies) >= buckets.length) {
       changeCapacity();
     }
     int bucket = hash(item);
@@ -181,13 +154,6 @@ struct HashRepSet_T {
       HashEntry entry = buckets[bucket + i];
       if (entry == null) {
         entry = buckets[bucket + i] = new HashEntry;
-      }
-      if (entry.hash == bucket && equiv(entry.item, item)) {
-        T result = entry.item;
-        entry.item = item;
-        return result;
-      }
-      if (entry.hash < 0) {
         assert(isEmpty != null, 'Unable to report empty update.');
         entry.item = item;
         entry.hash = bucket;
@@ -201,6 +167,11 @@ struct HashRepSet_T {
         }
         ++size;
         return emptyresponse;
+      }
+      if (entry.hash == bucket && equiv(entry.item, item)) {
+        T result = entry.item;
+        entry.item = item;
+        return result;
       }
     }
     assert(false, 'No space in hash table');
@@ -232,7 +203,7 @@ struct HashRepSet_T {
         }
         --size;
         if (2 * (size + zombies) > buckets.length) {
-          changeCapacity(zombies > size ? buckets.length : 2 * buckets.length);
+          changeCapacity();
         }
         return result;
       }
