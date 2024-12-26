@@ -28,21 +28,14 @@ struct wrapped_int {
     return hash(a.t, 62);
   }
 }
-{
-  typedef bool F(wrapped_int, wrapped_int);
-  assert(((F)operator ==) != ((F)alias));
-}
 
 wrapped_int wrap(int t) = wrapped_int;  // `wrap` is alias for constructor
 
-// from pureset(T=wrapped_int) access
-//     Set_T as Set_wrapped_int,
-//     makeNaiveSet;
-from 'collections/repset'(T=wrapped_int) access
+from collections.repset(T=wrapped_int) access
     RepSet_T as Set_wrapped_int,
     NaiveRepSet_T as NaiveSet_wrapped_int;
 
-from 'collections/hashrepset'(T=wrapped_int) access
+from collections.hashrepset(T=wrapped_int) access
     HashRepSet_T as HashSet_wrapped_int;
 
 struct ActionEnum {

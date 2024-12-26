@@ -1,6 +1,6 @@
 typedef import(T);
 
-from 'collections/repset'(T=T) access Iter_T, Iterable_T, RepSet_T;
+from collections.repset(T=T) access Iter_T, Iterable_T, RepSet_T;
 
 private struct HashEntry {
   T item;

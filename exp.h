@@ -364,6 +364,10 @@ class fieldExp : public nameExp {
     void print(ostream& out) const {
       out << "<exp>";
     }
+    void printPath(ostream& out) const {
+      em.compiler(getPos());
+      em << "expression cannot be used as a path";
+    }
 
     symbol getName() const {
       return object->getName();

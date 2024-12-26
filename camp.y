@@ -331,7 +331,8 @@ idpairlist:
 ;
 
 strid:
-  ID               { $$ = $1; }
+  name             { $$.pos = $1->getPos();
+                     $$.sym = $1->asPath(); }
 | STRING           { $$.pos = $1->getPos();
                      $$.sym = symbol::literalTrans($1->getString()); }
 ;
