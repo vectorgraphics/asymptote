@@ -346,7 +346,7 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
       fi
    fi
 
-   AC_DEFUN(ENABLE_LSP_MACRO,
+   AC_DEFUN([ENABLE_LSP_MACRO],
       AC_SUBST(LSP_CXX_BUILD_FLAGS)
       AC_SUBST(LSP_CMAKE_OPTIONS)
       AC_SUBST(LSP_BUILD_ROOT)
