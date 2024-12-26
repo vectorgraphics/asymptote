@@ -2,7 +2,7 @@
 # Run autoheader and autoconf to produce a header and configure script from
 # this file.
 
-AC_PREREQ(2)
+AC_PREREQ([2.71])
 AC_INIT([Asymptote],[2.96git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
