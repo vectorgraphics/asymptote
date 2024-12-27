@@ -9,6 +9,9 @@ AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
 m4_include([pkg.m4])
 
+AC_CHECK_PROG([LIBTOOLIZE], [libtoolize], [yes], [no])
+AS_IF([test "x$LIBTOOLIZE" = "xno"], [AC_MSG_ERROR([libtoolize not found])])
+
 AH_TOP([#pragma once])
 
 AC_C_BIGENDIAN(
