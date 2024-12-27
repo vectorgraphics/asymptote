@@ -13,12 +13,14 @@ struct Pair_K_V {
     pr.v = v;
     return pr;
   }
-  autounravel bool alias(Pair_K_V, Pair_K_V) = alias;
   autounravel bool operator ==(Pair_K_V a, Pair_K_V b) {
     // NOTE: This won't compile if K or V is an array type since == is
-    // vectorized for arrays.
+    // vectorized for arrays. We could locally define a cast operator from
+    // bool[] to bool, but that would not behave as expected if comparing two
+    // arrays of different lengths. (We would get an error instead of false.)
     return a.k == b.k && a.v == b.v;
   }
+  int hash();  // To be overridden by the user.
 }
 
 Pair_K_V makePair(K k, V v) = Pair_K_V;

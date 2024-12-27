@@ -23,9 +23,8 @@ struct wrapped_int {
   autounravel bool operator <(wrapped_int a, wrapped_int b) {
     return a.t < b.t;
   }
-  autounravel int hash(wrapped_int a) {
-    if (alias(a, null)) return 0;
-    return hash(a.t, 62);
+  int hash() {
+    return hash(t, 62);
   }
 }
 

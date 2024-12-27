@@ -42,7 +42,7 @@ struct HashRepSet_T {
   };
 
   contains = new bool(T item) {
-    int bucket = hash(item);
+    int bucket = item.hash();
     for (int i = 0; i < buckets.length; ++i) {
       HashEntry entry = buckets[bucket + i];
       if (entry == null) {
@@ -56,7 +56,7 @@ struct HashRepSet_T {
   };
 
   get = new T(T item) {
-    int bucket = hash(item);
+    int bucket = item.hash();
     for (int i = 0; i < buckets.length; ++i) {
       HashEntry entry = buckets[bucket + i];
       if (entry == null) {
@@ -116,7 +116,7 @@ struct HashRepSet_T {
     if (2 * (size + zombies) >= buckets.length) {
       changeCapacity();
     }
-    int bucket = hash(item);
+    int bucket = item.hash();
     for (int i = 0; i < buckets.length; ++i) {
       HashEntry entry = buckets[bucket + i];
       if (entry == null) {
@@ -149,7 +149,7 @@ struct HashRepSet_T {
     if (2 * (size + zombies) >= buckets.length) {
       changeCapacity();
     }
-    int bucket = hash(item);
+    int bucket = item.hash();
     for (int i = 0; i < buckets.length; ++i) {
       HashEntry entry = buckets[bucket + i];
       if (entry == null) {
@@ -180,7 +180,7 @@ struct HashRepSet_T {
 
   delete = new T(T item) {
     ++numChanges;
-    int bucket = hash(item);
+    int bucket = item.hash();
     for (int i = 0; i < buckets.length; ++i) {
       HashEntry entry = buckets[bucket + i];
       if (entry == null) {
