@@ -90,7 +90,7 @@ DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
-	-Iprc/include -I$(LSP_ROOT)/include -I.
+	-Iprc/include -I$(LSP_ROOT)/include
 GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
 
 # Options for compiling the object files for the shared library.
@@ -174,14 +174,9 @@ $(LSP_BUILD_ROOT)/liblspcpp.a:
 
 all:  	asy sty man faq asy-keywords.el
 
-$(GC)/libatomic_ops:
-	ln -sf ../$< $@
-
-$(GC)/Makefile: $(GC)/libatomic_ops
-	cd $(GC) && ./autogen.sh
+$(GCLIB):
+	ln -sf ../libatomic_ops libatomic_ops
 	cd $(GC) && ./configure CC="$(CC)" CXX="$(CXX)" $(GCOPTIONS)
-
-$(GCLIB): $(GC)/Makefile $(GC)/libatomic_ops
 	$(MAKE) -C $(GC) check
 
 sty: doc/version.texi

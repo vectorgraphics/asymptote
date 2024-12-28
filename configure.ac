@@ -9,8 +9,8 @@ AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
 m4_include([pkg.m4])
 
-AC_CHECK_PROG([LIBTOOLIZE], [libtoolize], [yes], [no])
-AS_IF([test "x$LIBTOOLIZE" = "xno"], [AC_MSG_ERROR([libtoolize not found])])
+AC_CHECK_PROG([LIBTOOL], [libtool], [yes], [no])
+AS_IF([test "x$LIBTOOL" = "xno"], [AC_MSG_ERROR([libtool not found])])
 
 AH_TOP([#pragma once])
 
@@ -250,8 +250,8 @@ AC_ARG_WITH(vcpkg-target-triplet,
 if test "x$with_vcpkg" != "xno"; then
    VCPKG_INSTALL_ARGUMENTS="--triplet=$vcpkg_triplet "
    VCPKG_PKG_CONFIG_LOC="vcpkg_installed/$vcpkg_triplet/lib/pkgconfig"
-   INCL=$INCL" -Ivcpkg_installed/$vcpkg_triplet/include "
-   LIBS=$LIBS" -Lvcpkg_installed/$vcpkg_triplet/lib "
+   INCL=$INCL" -Ivcpkg_installed/$vcpkg_triplet/include"
+   LIBS=$LIBS"-Lvcpkg_installed/$vcpkg_triplet/lib "
 
    VCPKG_LIBS_TO_USE_PKG_CONFIG=""
    AC_DEFUN([ADD_VCPKG_LIB_FOR_PKGCONFIG],[VCPKG_LIBS_TO_USE_PKG_CONFIG=$VCPKG_LIBS_TO_USE_PKG_CONFIG"$1 "])
@@ -476,7 +476,7 @@ if test "x$enable_gc" != "xno" ; then
   if test "x$with_vcpkg" == "xno"; then
     AC_DEFINE(USEGC,1,[GC Enabled])
     GCLIB="\$(GC)/.libs/libgc.a"
-    INCL=$INCL" -I\$(GC)/include "
+    INCL=$INCL" -I\$(GC)/include"
     AC_MSG_NOTICE([$GCNAME is enabled])
   fi
 else
@@ -636,7 +636,7 @@ else
 fi
 
 TINYEXR_ROOT=tinyexr
-INCL=$INCL"-I$TINYEXR_ROOT "
+INCL=$INCL" -I$TINYEXR_ROOT"
 AC_SUBST(TINYEXR_ROOT)
 
 if test "x$enable_gl" != "xno"; then
@@ -645,7 +645,7 @@ if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
    AC_DEFINE(HAVE_LIBGL,1,[libgl is enabled])
    AC_DEFINE(FREEGLUT,1,[Freeglut is enabled])
    AC_DEFINE(HAVE_LIBGLUT,1,[Freeglut library is available])
-   INCL=$INCL" -Ibackports/glew/include "
+   INCL=$INCL" -Ibackports/glew/include"
    GLEW="glew.o "
    ADD_VCPKG_LIB_FOR_PKGCONFIG(glut)
 else  # managed by the system
@@ -660,7 +660,7 @@ case "$OSTYPE" in
               AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT,1,
                    DEFINE_LIB[GLUT])
                            LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa "
-                           INCL=$INCL" -Ibackports/glew/include "
+                           INCL=$INCL" -Ibackports/glew/include"
                            GLEW="glew.o "],
                                  AC_MSG_NOTICE([*** Could not find GLUT: will compile without OpenGLLUT support ***]))
         ;;
@@ -672,7 +672,7 @@ case "$OSTYPE" in
                              DEFINE_LIB([GL]))
                              LIBS=$LIBS"-lGL "
                              GLEW="glew.o "
-                             INCL=$INCL" -Ibackports/glew/include "
+                             INCL=$INCL" -Ibackports/glew/include"
                              AC_CHECK_LIB([GLX],[glXGetProcAddressARB],
                              GLEW=$GLEW"-lGLX ")],
                                    AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
@@ -692,7 +692,7 @@ $vcpkg_exec install $VCPKG_INSTALL_ARGUMENTS
 
 LIBS=$LIBS"$(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --libs $VCPKG_LIBS_TO_USE_PKG_CONFIG) "
 CFLAGS=$CFLAGS" $(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --cflags-only-other $VCPKG_LIBS_TO_USE_PKG_CONFIG)"
-INCL=$INCL"$(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --cflags-only-I $VCPKG_LIBS_TO_USE_PKG_CONFIG) "
+INCL=$INCL" $(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --cflags-only-I $VCPKG_LIBS_TO_USE_PKG_CONFIG)"
 fi
 
 # ----------------- xdr ------------------------
