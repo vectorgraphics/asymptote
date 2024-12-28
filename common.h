@@ -32,6 +32,9 @@ typedef SSIZE_T ssize_t;
 #include "config.h"
 #endif
 
+#define _GNU_SOURCE
+#include <boost/stacktrace.hpp>
+
 #include <optional.hpp>
 using nonstd::optional;
 using nonstd::nullopt;
