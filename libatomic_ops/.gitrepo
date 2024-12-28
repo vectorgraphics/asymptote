@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/ivmai/libatomic_ops
+	branch = v7.8.2
+	commit = 4c00f978cbafe4eb76929dace4ba8f456e800fec
+	parent = daf3d0972286f43d706be64b6929cbbf288f964a
+	method = merge
+	cmdver = 0.4.9

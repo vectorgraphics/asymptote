@@ -1159,7 +1159,7 @@ struct versionOption : public option {
     feature("LSP      Language Server Protocol",lsp);
     feature("Readline Interactive history and editing",readline);
     if(!readline)
-      feature("Editline interactive editing (if Readline is unavailable)",editline);
+      feature("Editline interactive editing (Readline is unavailable)",editline);
     feature("Sigsegv  Distinguish stack overflows from segmentation faults",
             sigsegv);
     feature("GC       Boehm garbage collector",usegc);

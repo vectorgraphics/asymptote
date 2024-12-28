@@ -54,6 +54,7 @@ where the tar.gz file is extracted to. This directory must be an absolute path.
 If this setting is set, LspCpp will use downloaded GC regardless of whether GC from find_package or
 pkg_config is available or not.
 ")
+option_if_not_defined(LSPCPP_GC_STATIC "Compiling with static gc library. Only used if a custom GC root is given" OFF)
 
 ###########################################################
 # Boehm GC
@@ -187,6 +188,10 @@ function(lspcpp_set_target_options target)
         if (LSPCPP_GC_DOWNLOADED_ROOT)
             message(STATUS "Using manually downloaded GC")
             target_include_directories(${target} PUBLIC ${LSPCPP_GC_DOWNLOADED_ROOT}/include)
+
+            if (LSPCPP_GC_STATIC)
+                target_compile_definitions(${target} PUBLIC GC_NOT_DLL)
+            endif()
         else()
             if (NOT GC_USE_PKGCONFIG)
                 message(STATUS "Using cmake config for locating gc")

@@ -1,7 +1,3 @@
-if (ENABLE_GC)
-    list(APPEND VCPKG_MANIFEST_FEATURES gc)
-endif()
-
 if (ENABLE_READLINE)
     list(APPEND VCPKG_MANIFEST_FEATURES readline)
 endif()

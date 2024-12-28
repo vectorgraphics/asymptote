@@ -5,10 +5,6 @@ SHARED=$HOME/shared/asy
 ASYMPTOTE=$HOME/asymptote
 BUILD=/usr/local/src
 
-GCVERSION=8.2.4
-ATOMICVERSION=7.6.12
-GC=gc-$GCVERSION
-
 MAKEFLAGS=-j8
 export MAKEFLAGS
 
@@ -31,10 +27,6 @@ cd $BUILD
 rm -rf asymptote-$VERSION
 rm -rf $BUILD/$BINDIR
 mv asymptote asymptote-$VERSION
-wget https://github.com/ivmai/bdwgc/releases/download/v$GCVERSION/gc-$GCVERSION.tar.gz
-wget https://github.com/ivmai/libatomic_ops/releases/download/v$ATOMICVERSION/libatomic_ops-$ATOMICVERSION.tar.gz
-cp /usr/local/src/$GC.tar.gz asymptote-$VERSION
-cp /usr/local/src/libatomic_ops-$ATOMICVERSION.tar.gz asymptote-$VERSION
 chown -R root:root asymptote-$VERSION
 cd asymptote-$VERSION
 find . -name ".[^.]*" -exec rm -rf {} \;
@@ -54,11 +46,8 @@ make $MAKEFLAGS asy
 rm base/webgl/asygl-*.js
 make -j1 all
 make -j1 install
-#rm asy
-#make LFLAGS=-static
 strip asy
 make DESTDIR="$BUILD/" latexdir=$LATEXDIR install
-#rm $GC.tar.gz
 rm $BUILD/$BINDIR/local/info/dir
 cp -a $BUILD/asymptote-$VERSION/ChangeLog .
 cp -a $ASYMPTOTE/ReleaseNotes .
