@@ -71,7 +71,11 @@ inline T getSetting(string name)
   return vm::get<T>(Setting(name));
 }
 
+// Global settings accessible as variables
+
 extern Int verbose;
+extern bool debug;
+extern bool xasy;
 extern bool compact;
 extern bool gray;
 extern bool bw;

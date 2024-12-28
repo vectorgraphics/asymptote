@@ -290,7 +290,7 @@ void itree::run(coenv &e, istack &s, transMode tm) {
     for(mem::list<runnable *>::iterator r=tree->stms.begin();
         r != tree->stms.end(); ++r) {
       processData().fileName=(*r)->getPos().filename();
-      if(!em.errors() || getSetting<bool>("debug"))
+      if(!em.errors() || debug)
         runRunnable(*r,e,s,tm);
     }
   }
@@ -702,7 +702,7 @@ class iprompt : public icore {
   // detecting it in multiline mode).
   string getline(bool continuation) {
     string prompt;
-    if(!getSetting<bool>("xasy"))
+    if(!settings::xasy)
       prompt=getSetting<string>(continuation ? "prompt2" : "prompt");
     string line=interact::simpleline(prompt);
 
@@ -745,7 +745,7 @@ class iprompt : public icore {
 
         icode i(code);
         i.run(e,s,TRANS_INTERACTIVE);
-      } else if(getSetting<bool>("xasy")) {
+      } else if(settings::xasy) {
         block *code=parseXasyLine(line);
 
         icode i(code);
