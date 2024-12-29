@@ -248,6 +248,14 @@ cmake_dependent_option(
         false
 )
 
+# misc files
+option(
+        ENABLE_MISCFILES_GEN
+        "Enable generation of non-essential, non-documentation asymptote files (e.g. asy.list, asy-keywords.el) "
+        true
+)
+
+# warnings if external docs dir is not given
 if (NOT EXTERNAL_DOCUMENTATION_DIR)
     if (NOT ENABLE_DOCGEN)
         message(STATUS "Build is not generating documentation.
@@ -257,6 +265,13 @@ documentation files in a directory and specify this directory in EXTERNAL_DOCUME
     elseif(NOT ENABLE_ASYMPTOTE_PDF_DOCGEN)
         message(STATUS "Build is not generating asymptote.pdf.
 If you are planning on generating installation files, please make sure you have access to asymptote.pdf
+in a directory and specify this directory in EXTERNAL_DOCUMENTATION_DIR cache variable.
+")
+    endif()
+
+    if (NOT ENABLE_MISCFILES_GEN)
+        message(STATUS "Build is not generating non-essential, non-documentation asymptote files.
+If you are planning on generating installation files, please make sure you have access to asy-keywords.el
 in a directory and specify this directory in EXTERNAL_DOCUMENTATION_DIR cache variable.
 ")
     endif()

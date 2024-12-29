@@ -129,7 +129,7 @@
       "inherits": ["msvc/release"],
       "cacheVariables": {
         "ENABLE_ASYMPTOTE_PDF_DOCGEN": "false",
-        "EXTERNAL_DOCUMENTATION_DIR": "${sourceDir}/extfiles"
+        "EXTERNAL_DOCUMENTATION_DIR": "${sourceDir}/asydoc"
       }
     },
     {

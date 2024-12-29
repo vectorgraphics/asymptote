@@ -63,9 +63,32 @@ if (-Not $hasDocFiles) {
 
 # ----------------------------------------------------
 # copy documentation files to asymptote directory
+$localAsyDocRoot="$asymptoteRoot/asydoc"
 
-New-Item -ItemType Directory -Path "$asymptoteRoot/extfiles" -Force
-Copy-Item -Force -Recurse "$extfilesRoot/*" -Destination "$asymptoteRoot/extfiles"
+if (-Not (Test-Path -Type Container $localAsyDocRoot))
+{
+    New-Item -ItemType Directory -Path $localAsyDocRoot -Force
+}
+
+foreach ($requiredDocFile in $requiredDocumentationFiles)
+{
+    $sourceDocFile="$extfilesRoot/$requiredDocFile"
+    $destDocFile="$localAsyDocRoot/$requiredDocFile"
+
+    $docFileHash=Get-FileHash -Algorithm SHA256 -Path $sourceDocFile
+    if (Test-Path -Type Leaf "$destDocFile")
+    {
+        $asyDocFilehash=Get-FileHash -Algorithm SHA256 -Path $destDocFile
+        if ($docFileHash.Hash -eq $asyDocFilehash.Hash)
+        {
+            Write-Host "File $requiredDocFile exists in asydoc directory; not copying"
+            continue
+        }
+    }
+
+    Write-Host "Copying $sourceDocFile to $destDocFile"
+    Copy-Item -Force $sourceDocFile -Destination $destDocFile
+}
 
 # ----------------------------------------------------
 # tools cache
@@ -75,7 +98,7 @@ New-Item -ItemType Directory -Path $toolscacheRoot -Force
 $useToolsCacheVcpkg=$false
 
 # tools cache variables
-$vcpkgSha256="e590c2b30c08caf1dd8d612ec602a003f9784b7d"
+$vcpkgSha256="5e5d0e1cd7785623065e77eff011afdeec1a3574"
 
 # vcpkg
 if (-Not $env:VCPKG_ROOT)
