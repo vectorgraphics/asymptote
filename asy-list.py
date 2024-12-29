@@ -12,7 +12,6 @@ import argparse
 import re
 import textwrap
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--asy-list-file", type=str, required=True, help="Path to the asy list file"
