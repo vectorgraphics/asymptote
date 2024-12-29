@@ -1,0 +1,5 @@
+# The Atomic_ops CMake configuration file.
+
+@PACKAGE_INIT@
+include("${CMAKE_CURRENT_LIST_DIR}/Atomic_opsTargets.cmake")
+check_required_components(libatomic_ops)

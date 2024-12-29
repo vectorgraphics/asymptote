@@ -142,7 +142,7 @@ void init_readline(bool tabcompletion)
 
 void init_interactive()
 {
-  if(getSetting<bool>("xasy")) tty=false;
+  if(settings::xasy) tty=false;
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   if(tty) {
     init_completion();
