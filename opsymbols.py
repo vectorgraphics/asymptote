@@ -12,9 +12,7 @@ import textwrap
 
 # Parse command-line arguments
 parser = argparse.ArgumentParser(description="Extract operator symbols.")
-parser.add_argument(
-    "--campfile", required=True, help="Input lex file (camp.l)"
-)
+parser.add_argument("--campfile", required=True, help="Input lex file (camp.l)")
 parser.add_argument("--output", required=True, help="Output header file")
 args = parser.parse_args()
 
@@ -55,9 +53,7 @@ with open(args.output, "w") as header:
             if match:
                 add(match.group(1), match.group(2))
                 continue
-            match = re.search(
-                r"^\s*EXTRASYMBOL\(\s*(\w+)\s*,\s*(\w+)\s*\)", line
-            )
+            match = re.search(r"^\s*EXTRASYMBOL\(\s*(\w+)\s*,\s*(\w+)\s*\)", line)
             if match:
                 add(match.group(1), match.group(2))
                 continue
