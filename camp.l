@@ -101,7 +101,7 @@ void savesymbol(symbol name)
  * etc.  Following the Don't Repeat Yourself principle, the mapping from
  * strings to names is defined only here in camp.l (because we can't produce
  * lex rules from a C style macro).
- * The script opsymbols.pl reads this file scanning for rules using DEFSYMBOL
+ * The script opsymbols.py reads this file scanning for rules using DEFSYMBOL
  * and creates opsymbols.h which defines the names for use in C++ code.
  */
 #define DEFSYMBOL(name) \

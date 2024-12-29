@@ -650,7 +650,7 @@ class iprompt : public icore {
 #define ADDCOMMAND(name, func)                  \
     commands[#name]=&iprompt::func
 
-    // keywords.pl looks for ADDCOMMAND to identify special commands in the
+    // keywords.py looks for ADDCOMMAND to identify special commands in the
     // auto-completion.
     ADDCOMMAND(quit,exit);
     ADDCOMMAND(q,q);

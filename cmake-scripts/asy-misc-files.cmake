@@ -21,12 +21,12 @@ add_custom_command(
 # asy-keywords.el
 add_custom_command(
         OUTPUT ${ASY_MISC_FILES_OUT_DIR}/asy-keywords.el
-        COMMAND ${PERL_INTERPRETER} ${ASY_SCRIPTS_DIR}/asy-list.pl
+        COMMAND ${PY3_INTERPRETER} ${ASY_SCRIPTS_DIR}/asy-list.py
             --asy-list-file ${ASY_MISC_FILES_OUT_DIR}/asy.list
             --revision ${ASY_VERSION}
             --output-file ${ASY_MISC_FILES_OUT_DIR}/asy-keywords.el
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        DEPENDS ${ASY_MISC_FILES_OUT_DIR}/asy.list ${CMAKE_CURRENT_SOURCE_DIR}/camp.l ${ASY_SCRIPTS_DIR}/asy-list.pl
+        DEPENDS ${ASY_MISC_FILES_OUT_DIR}/asy.list ${CMAKE_CURRENT_SOURCE_DIR}/camp.l ${ASY_SCRIPTS_DIR}/asy-list.py
 )
 
 set(ASY_OUTPUT_DIST_MISC_FILES
