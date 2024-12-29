@@ -10,8 +10,8 @@
 # symbol table.
 #####
 
-import sys
 import re
+import sys
 import textwrap
 
 # Retrieve the first command-line argument, which should be the name of the
