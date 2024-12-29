@@ -23,7 +23,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # Open the file 'asy-keywords.el' for writing.
-with open(args.output_file, "w", encoding="ascii") as keywords:
+with open(args.output_file, "w", encoding="utf-8") as keywords:
 
     # Write header information to 'asy-keywords.el'.
     # This includes comments and the definition of 'asy-keywords-version' using a
@@ -49,7 +49,7 @@ with open(args.output_file, "w", encoding="ascii") as keywords:
     keywords.write("(defvar asy-keyword-name '(\n")
 
     # Open the file 'camp.l' for reading.
-    with open("camp.l", "r", encoding="ascii") as camp:
+    with open("camp.l", "r", encoding="utf-8") as camp:
 
         # Read lines from 'camp.l' until reaching a line that contains only '%%'.
         for line in camp:
@@ -70,7 +70,7 @@ with open(args.output_file, "w", encoding="ascii") as keywords:
                 keywords.write(match.group(1) + " ")
 
     # Open an input file specified in the command-line arguments.
-    with open(args.asy_list_file, "r", encoding="ascii") as asylist:
+    with open(args.asy_list_file, "r", encoding="utf-8") as asylist:
 
         # Lists to store types, functions, and variables found in the file.
         types = []  # List to hold data types.

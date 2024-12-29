@@ -25,7 +25,7 @@ process_file = args.process_file
 # Extra keywords to add that aren't automatically extracted, currently none.
 extrawords: List[str] = []
 
-with open(output_keywords_file, "w", encoding="ascii") as keywords:
+with open(output_keywords_file, "w", encoding="utf-8") as keywords:
 
     keywords.write(
         textwrap.dedent(
@@ -45,7 +45,7 @@ with open(output_keywords_file, "w", encoding="ascii") as keywords:
     for word in extrawords:
         add(word)
 
-    with open(camplfile, encoding="ascii") as camp:
+    with open(camplfile, encoding="utf-8") as camp:
         # Search for the %% separator, after which the definitions start.
         for line in camp:
             if re.search(r"^%%\s*$", line):
@@ -60,7 +60,7 @@ with open(output_keywords_file, "w", encoding="ascii") as keywords:
                 add(match.group(1))
 
     # Grab the special commands from the interactive prompt.
-    with open(process_file, encoding="ascii") as process:
+    with open(process_file, encoding="utf-8") as process:
         for line in process:
             match = re.search(
                 r"^\s*ADDCOMMAND\(\s*([A-Za-z_][A-Za-z0-9_]*),",
