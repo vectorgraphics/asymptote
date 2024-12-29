@@ -268,7 +268,7 @@ asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy
 	ls $(addsuffix /*.asy,$(KEYWORDS)) | grep -v plain\* | \
           grep -v three_\* | grep -v map | xargs $(ASY) -l >> asy.list
 	revision=`cat version.txt`
-	$(PYTHON) ./asy-list.py asy.list $(revision)
+	$(PYTHON) ./asy-list.py --asy-list-file asy.list --revision $(revision) --output-file $@
 
 install-notexhash: asy-keywords.el install-asy install-man
 
