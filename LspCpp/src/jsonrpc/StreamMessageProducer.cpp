@@ -248,7 +248,7 @@ void DelimitedStreamMessageProducer::listen(MessageConsumer callBack)
                 if (c == '\n')
                 {
                     if(!lineBuilder.empty()){
-                        lineBuilder.push_back(c);
+                        lineBuilder.push_back(static_cast<char>(c));
                         return true;
                     }
                 }
@@ -293,5 +293,3 @@ void DelimitedStreamMessageProducer::bind(std::shared_ptr<lsp::istream>_in)
 {
     input = _in;
 }
-
-

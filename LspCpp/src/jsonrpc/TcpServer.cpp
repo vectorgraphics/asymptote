@@ -100,7 +100,7 @@ namespace lsp {
             void do_write(const char* data, size_t size)
             {
                 socket_.async_write_some(boost::asio::buffer(data, size),
-                                         boost::asio::bind_executor(strand_,[this](boost::system::error_code ec, std::size_t n)
+                                         boost::asio::bind_executor(strand_,[this](boost::system::error_code ec, std::size_t)
                                          {
                                              if (!ec)
                                              {
@@ -175,7 +175,7 @@ namespace lsp {
     struct TcpServer::Data
     {
         Data(
-            lsp::Log& log, uint32_t _max_workers) :
+            lsp::Log& log, uint32_t) :
                     acceptor_(io_context_), _log(log)
             {
             }
@@ -205,7 +205,7 @@ namespace lsp {
         TcpServer::TcpServer(const std::string& address, const std::string& port,
             std::shared_ptr < MessageJsonHandler> json_handler,
             std::shared_ptr < Endpoint> localEndPoint, lsp::Log& log, uint32_t _max_workers)
-            : point(json_handler, localEndPoint, log,lsp::JSONStreamStyle::Standard, _max_workers),d_ptr(new Data( log, _max_workers))
+            : point(json_handler, localEndPoint, log,lsp::JSONStreamStyle::Standard, static_cast<uint8_t>(_max_workers)),d_ptr(new Data( log, _max_workers))
 
         {
 

@@ -53,6 +53,10 @@ if (ENABLE_LSP)
     set(Uri_BUILD_DOCS OFF CACHE INTERNAL "build docs for uri")
     set(Uri_BUILD_TESTS OFF CACHE INTERNAL "build tests for uri")
 
+    if (WIN32)
+        set(LSPCPP_WIN32_WINNT_VALUE ${ASY_WIN32_WINVER_VERSION} CACHE INTERNAL "lsp win32 winver value")
+    endif()
+
     if (ENABLE_GC)
         set(LSPCPP_SUPPORT_BOEHM_GC ON CACHE INTERNAL "Use boehm GC")
         set(LSPCPP_GC_DOWNLOADED_ROOT ${BOEHM_GC_ROOT} CACHE INTERNAL "gc root for lsp")
