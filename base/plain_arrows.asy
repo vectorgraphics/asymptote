@@ -299,7 +299,7 @@ picture bar(pair a, pair d, pen p=currentpen)
   return pic;
 }
 
-typedef bool arrowbar(picture, path, pen, margin);
+using arrowbar = bool(picture, path, pen, margin);
 
 bool Blank(picture, path, pen, margin)
 {
