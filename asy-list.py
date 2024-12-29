@@ -13,7 +13,7 @@ import sys
 import textwrap
 
 # Open the file 'asy-keywords.el' for writing.
-with open("asy-keywords.el", "w") as keywords:
+with open("asy-keywords.el", "w", encoding="ascii") as keywords:
 
     # Write header information to 'asy-keywords.el'.
     # This includes comments and the definition of 'asy-keywords-version' using a
@@ -39,7 +39,7 @@ with open("asy-keywords.el", "w") as keywords:
     keywords.write("(defvar asy-keyword-name '(\n")
 
     # Open the file 'camp.l' for reading.
-    with open("camp.l", "r") as camp:
+    with open("camp.l", "r", encoding="ascii") as camp:
 
         # Read lines from 'camp.l' until reaching a line that contains only '%%'.
         for line in camp:
@@ -60,7 +60,7 @@ with open("asy-keywords.el", "w") as keywords:
                 keywords.write(match.group(1) + " ")
 
     # Open an input file specified in the command-line arguments.
-    with open(sys.argv[1], "r") as asylist:
+    with open(sys.argv[1], "r", encoding="ascii") as asylist:
 
         # Lists to store types, functions, and variables found in the file.
         types = []  # List to hold data types.

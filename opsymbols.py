@@ -17,8 +17,9 @@ parser.add_argument("--output", required=True, help="Output header file")
 args = parser.parse_args()
 
 # Open output file and write header
-with open(args.output, "w") as header:
+with open(args.output, "w", encoding="ascii") as header:
     header.write(
+        # pylint: disable=line-too-long
         textwrap.dedent(
             """\
             /*****
@@ -43,7 +44,7 @@ with open(args.output, "w") as header:
         header.write(f'OPSYMBOL("{symbol}", {name});\n')
 
     # Open and process campfile
-    with open(args.campfile, "r") as lexer:
+    with open(args.campfile, "r", encoding="ascii") as lexer:
         for line in lexer:
             match = re.search(r'^"(\S+)"\s*{\s*DEFSYMBOL\((\w+)\);', line)
             if match:
