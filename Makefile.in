@@ -223,13 +223,13 @@ $(SYMBOL_FILES:=.d): %.d: %.cc gen_preprocessed_depfile.py
 		--out-i-file=$*.raw.i \
 		--in-src-file=$<
 
-$(SYMBOL_FILES:=.symbols.h): %.symbols.h: %.raw.i findsym.pl
-	$(PERL) findsym.pl $@ $<
+$(SYMBOL_FILES:=.symbols.h): %.symbols.h: %.raw.i findsym.py
+	$(PYTHON) findsym.py $@ $<
 
 $(SYMBOL_FILES:=.o): %.o: %.symbols.h
 
-allsymbols.h: $(SYMBOL_FILES:=.raw.i) findsym.pl
-	$(PERL) ./findsym.pl $@ $(filter-out findsym.pl,$^)
+allsymbols.h: $(SYMBOL_FILES:=.raw.i) findsym.py
+	$(PYTHON) ./findsym.py $@ $(filter-out findsym.py,$^)
 
 symbol.o: $(SYMBOLSH)
 
@@ -254,11 +254,11 @@ lex.yy.cc: camp.l
 
 lex.yy.d: $(GCLIB) lex.yy.cc camp.tab.h
 
-keywords.h: camp.l keywords.pl asyprocess.cc
-	$(PERL) ./keywords.pl --camplfile $< --output $@ --process-file asyprocess.cc
+keywords.h: camp.l keywords.py asyprocess.cc
+	$(PYTHON) ./keywords.py --camplfile $< --output $@ --process-file asyprocess.cc
 
-opsymbols.h: camp.l opsymbols.pl
-	$(PERL) ./opsymbols.pl --campfile $< --output $@
+opsymbols.h: camp.l opsymbols.py
+	$(PYTHON) ./opsymbols.py --campfile $< --output $@
 
 envcompleter.d: keywords.h
 
@@ -268,7 +268,7 @@ asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy
 	ls $(addsuffix /*.asy,$(KEYWORDS)) | grep -v plain\* | \
           grep -v three_\* | grep -v map | xargs $(ASY) -l >> asy.list
 	revision=`cat version.txt`
-	$(PERL) ./asy-list.pl --asy-list-file asy.list --revision $(revision) --output-file $@
+	$(PYTHON) ./asy-list.py --asy-list-file asy.list --revision $(revision) --output-file $@
 
 install-notexhash: asy-keywords.el install-asy install-man
 
