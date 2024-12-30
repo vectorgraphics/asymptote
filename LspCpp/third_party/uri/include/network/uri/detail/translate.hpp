@@ -7,6 +7,7 @@
 #define NETWORK_URI_DETAIL_TRANSLATE_INC
 
 #include <string>
+#include <algorithm>
 
 namespace network {
 namespace detail {
@@ -41,7 +42,14 @@ struct translate_impl<const char[N]> {
 template <>
 struct translate_impl<std::wstring> {
   std::string operator()(const std::wstring &source) const {
-    return std::string(std::begin(source), std::end(source));
+    std::string ret(source.length(), 0);
+    std::transform(
+      source.begin(),
+      source.end(),
+      ret.begin(),
+      [](wchar_t ch) { return static_cast<char>(ch); }
+      );
+    return ret;
   }
 };
 

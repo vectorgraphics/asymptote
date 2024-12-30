@@ -1842,7 +1842,7 @@ infinity..} and the @code{&} connector concatenates two paths, after
 first stripping off the last node of the first path (which normally
 should coincide with the first node of the second path).
 
-@node Programming, LaTeX usage, Bezier curves, Top
+@node Programming
 @chapter Programming
 @cindex programming
 
@@ -1863,6 +1863,7 @@ should coincide with the first node of the second path).
 * Casts::                       Implicit and explicit casts
 * Import::                      Importing external @code{Asymptote} modules
 * Static::                      Where to allocate your variable?
+* Autounravel::                 Adding associated libraries to structures
 @end menu
 
 Here is a short introductory example to the @code{Asymptote} programming
@@ -4770,6 +4771,8 @@ guide g=(0,0){up}..{SW}(100,100){NE}..{curl 3}(50,50)..(10,10);
 write("g=",g);
 @end verbatim
 
+@xref{Autounravel}, for an example overloading the @code{+} operator.
+
 @node Implicit scaling, Functions, Operators, Programming
 @section Implicit scaling
 @cindex implicit scaling
@@ -6357,7 +6360,7 @@ Issues: Certain expected operators (such as
 @code{operator ==}) may only be available for type arguments that are
 builtin or defined in module @code{plain}.
 
-@node Static,  , Import, Programming
+@node Static
 @section Static
 @cindex @code{static}
 
@@ -6484,7 +6487,96 @@ It is the convention in Asymptote that, if there is a non-function variable with
 the same name as the qualifier, the qualifier refers to that variable, and not
 to the type.  This is regardless of what fields the variable actually possesses.
 
-@node LaTeX usage, Base modules, Programming, Top
+@node Autounravel
+@section Autounravel
+@cindex @code{autounravel}
+
+The @code{autounravel} modifier can be used to automatically unravel a field.
+This is useful when building an associated library of functions
+that operate on a structure. For instance, consider a simple
+implementation of the @code{rational} structure defined in @code{rational.asy}:
+
+@verbatim
+struct rational {
+  int p=0, q=1;
+  void operator init(int p, int q) {
+    this.p=p;
+    this.q=q;
+  }
+}
+rational operator +(rational a, rational b) {
+  return rational(a.p*b.q+b.p*a.q, a.q*b.q);
+}
+@end verbatim
+
+To allow @code{rational} to be used as a type parameter for a templated import
+that adds instances of @code{rational}, we should move @code{operator +}
+into the body of the @code{rational} structure and add the
+@code{autounravel} modifier:
+
+@verbatim
+struct rational {
+  int p=0, q=1;
+  void operator init(int p, int q) {
+    this.p=p;
+    this.q=q;
+  }
+  autounravel rational operator +(rational a, rational b) {
+    return rational(a.p*b.q+b.p*a.q, a.q*b.q);
+  }
+}
+@end verbatim
+
+This is almost equivalent to the previous code, but now the @code{+} operator
+will be accessible wherever the @code{rational} structure is.
+
+@strong{Currently, types cannot be autounraveled.}
+Users who encounter a case where this might be useful can submit a
+feature request at @uref{https://github.com/vectorgraphics/asymptote/issues}.
+
+@node When fields are autounraveled
+@subsection When fields are autounraveled
+
+If a @code{struct} contains fields (including functions) that are declared with
+@code{autounravel}, these fields will be unraveled from the @code{struct} at:
+
+@itemize
+@item
+the end of the @code{struct} definition;
+@item
+a @code{typedef import} statement, if the @code{struct} is the argument for one of
+the type parameters;
+@item
+an @code{unravel} or @code{access} statement that unravels the @code{struct} from
+a module or outer @code{struct} (for instance,
+@code{from rational access rational;} would make the @code{+} operator available
+from the @code{struct} @code{rational} defined in @code{rational.asy});
+
+@item
+A @code{typedef} statement like @code{typedef rational.rational rat;}
+that renames a @code{struct}.
+@end itemize
+
+@node Where autounravel is legal
+@subsection Where @code{autounravel} is legal
+
+The @code{autounravel} modifier implies @code{static} and can be used
+in many of the same places as @code{static}. However, specifying
+@code{autounravel} at the top level of a module (i.e.,
+outside of any structure or function) is an error, whereas @code{static}
+gives only a warning. @footnote{If top-level @code{autounravel} were allowed,
+a user might incorrectly assume that the field would be unraveled
+whenever the module is @code{access}ed. The @code{static} modifier
+is allowed at the top level because, while it does nothing, it does
+not mislead the user.}
+In front of a @code{struct} definition or @code{typedef} statement,
+@code{autounravel} is forbidden because types cannot be autounraveled.
+While @code{static static} results in an error,
+@code{static autounravel} and @code{autounravel static} are both legal
+and have exactly the same effect as @code{autounravel} alone.
+
+
+@node LaTeX usage
 @chapter @code{LaTeX} usage
 @cindex @code{LaTeX} usage
 @cindex @code{asymptote.sty}

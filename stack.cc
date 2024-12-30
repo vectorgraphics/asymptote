@@ -342,8 +342,8 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
   string& fileName=P.fileName;
   unsigned int offset=P.xmapCount;
 
-  bool traceless=!settings::getSetting<bool>("debug");
-  bool xasy=settings::getSetting<bool>("xasy") || offset;
+  bool traceless=!settings::debug;
+  bool xasy=settings::debug || offset;
   if(xasy && curPos.filename() == fileName)
     topPos=curPos.shift(offset);
 

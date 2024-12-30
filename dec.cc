@@ -18,7 +18,7 @@
 #include "runtime.h"
 #include "locate.h"
 #include "asyparser.h"
-// #include "builtin.h"  // for trans::addRecordOps
+#include "builtin.h"  // for trans::addRecordOps
 
 namespace absyntax {
 
@@ -26,6 +26,12 @@ using namespace trans;
 using namespace types;
 
 using mem::list;
+
+symbol intSymbol() {
+  const static symbol* intSymbol = new symbol(symbol::literalTrans("int"));
+  return *intSymbol;
+}
+
 
 trans::tyEntry *astType::transAsTyEntry(coenv &e, record *where)
 {
@@ -38,6 +44,41 @@ void nameTy::prettyprint(ostream &out, Int indent)
   prettyname(out, "nameTy",indent, getPos());
 
   id->prettyprint(out, indent+1);
+}
+
+void addNameOps(coenv &e, record *r, record *qt, varEntry *qv, position pos) {
+  for (auto au : qt->e.ve.getAutoUnravels()) {
+    symbol auName = au.first;
+    varEntry *v = au.second;
+    if (!v->checkPerm(READ, e.c)) {
+      em.error(pos);
+      em << "cannot access '" << auName << "' in current scope";
+      continue;
+    }
+    varEntry *qqv = qualifyVarEntry(qv, v);
+    auto enter= [&](trans::venv& ve) {
+      // Add op only if it does not already exist.
+      if (!ve.lookByType(auName, qqv->getType())) {
+        ve.enter(auName, qqv);
+      }
+    };
+    if (r) {
+      enter(r->e.ve);
+    }
+    enter(e.e.ve);
+  }
+}
+
+void nameTy::addOps(coenv &e, record *r, AutounravelOption opt)
+{
+  if (opt == AutounravelOption::Apply)
+  {
+    if (record* qt= dynamic_cast<record*>(id->getType(e, true)); qt)
+    {
+      varEntry* qv= id->getVarEntry(e);
+      addNameOps(e, r, qt, qv, getPos());
+    }
+  }
 }
 
 types::ty *nameTy::trans(coenv &e, bool tacit)
@@ -87,7 +128,7 @@ void arrayTy::prettyprint(ostream &out, Int indent)
 }
 
 // NOTE: Can this be merged with trans somehow?
-void arrayTy::addOps(coenv &e, record *r)
+void arrayTy::addOps(coenv &e, record *r, AutounravelOption)
 {
   types::ty *t=trans(e, true);
 
@@ -194,7 +235,7 @@ void block::transAsField(coenv &e, record *r)
   Scope scopeHolder(e, scope);
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
     (*p)->markTransAsField(e, r);
-    if (em.errors() && !settings::getSetting<bool>("debug"))
+    if (em.errors() && !settings::debug)
       break;
   }
 }
@@ -220,7 +261,7 @@ bool block::transAsTemplatedField(
 
   while (++p != stms.end()) {
     (*p)->markTransAsField(e, r);
-    if (em.errors() && !settings::getSetting<bool>("debug")) {
+    if (em.errors() && !settings::debug) {
       return false;
     }
   }
@@ -404,13 +445,36 @@ bool modifierList::staticSet()
 
 modifier modifierList::getModifier()
 {
-  if (mods.size() > 1) {
-    em.error(getPos());
-    em << "too many modifiers";
-  }
-
   assert(staticSet());
-  return mods.front();
+  int numAutounravel = 0;
+  int numStatic = 0;
+  for (modifier m : mods) {
+    switch (m) {
+      case AUTOUNRAVEL:
+        ++numAutounravel;
+        break;
+      case EXPLICIT_STATIC:
+      case DEFAULT_STATIC:
+        ++numStatic;
+        break;
+      default:
+        em.compiler(getPos());
+        em << "invalid modifier";
+    }
+  }
+  if (numAutounravel > 1) {
+    em.error(getPos());
+    em << "too many autounravel modifiers";
+  }
+  if (numStatic > 1) {
+    em.error(getPos());
+    em << "too many static modifiers";
+  }
+  if (numAutounravel) {
+    return AUTOUNRAVEL;
+  } else {
+    return mods.front();
+  }
 }
 
 permission modifierList::getPermission()
@@ -435,11 +499,18 @@ void modifiedRunnable::prettyprint(ostream &out, Int indent)
 void modifiedRunnable::transAsField(coenv &e, record *r)
 {
   if (mods->staticSet()) {
+    modifier mod = mods->getModifier();
     if (e.c.isTopLevel()) {
-      em.warning(getPos());
-      em << "static modifier is meaningless at top level";
+      if (mod == AUTOUNRAVEL) {
+        em.error(getPos());
+        em << "top-level fields cannot be autounraveled";
+        return;
+      } else {
+        em.warning(getPos());
+        em << "static modifier is meaningless at top level";
+      }
     }
-    e.c.pushModifier(mods->getModifier());
+    e.c.pushModifier(mod);
   }
 
   permission p = mods->getPermission();
@@ -582,9 +653,6 @@ void fundecidstart::addOps(types::ty *base, coenv &e, record *r)
   types::function *ft=dynamic_cast<types::function *>(getType(base, e, true));
   assert(ft);
 
-  e.e.addFunctionOps(ft);
-  if (r)
-    r->e.addFunctionOps(ft);
 }
 
 
@@ -627,8 +695,12 @@ void addVar(coenv &e, record *r, varEntry *v, symbol id)
   // Add to the record so it can be accessed when qualified; add to the
   // environment so it can be accessed unqualified in the scope of the
   // record definition.
-  if (r)
+  if (r) {
     r->e.addVar(id, v);
+    if (e.c.isAutoUnravel()) {
+      r->e.ve.registerAutoUnravel(id, v);
+    }
+  }
   e.e.addVar(id, v);
 }
 
@@ -967,17 +1039,25 @@ void idpair::transAsAccess(coenv &e, record *r)
     addVar(e, r, v, dest);
 }
 
-void idpair::transAsUnravel(coenv &e, record *r,
-                            protoenv &source, varEntry *qualifier)
+tyEntry *idpair::transAsUnravel(coenv &e, record *r,
+                                protoenv &source, varEntry *qualifier)
 {
   checkValidity();
 
-  if (r)
-    r->e.add(src, dest, source, qualifier, e.c);
-  if (!e.e.add(src, dest, source, qualifier, e.c)) {
+  if (r) {
+    auto fieldsAdded = r->e.add(src, dest, source, qualifier, e.c)->varsAdded;
+    if (e.c.isAutoUnravel()) {
+      for (varEntry *v : fieldsAdded) {
+        r->e.ve.registerAutoUnravel(dest, v);
+      }
+    }
+  }
+  protoenv::Added *added = e.e.add(src, dest, source, qualifier, e.c);
+  if (added->empty()) {
     em.error(getPos());
     em << "no matching types or fields of name '" << src << "'";
   }
+  return added->typeAdded;
 }
 
 void idpair::createSymMap(AsymptoteLsp::SymbolContext* symContext)
@@ -1027,13 +1107,18 @@ void idpairlist::transAsAccess(coenv &e, record *r)
     (*p)->transAsAccess(e,r);
 }
 
-void idpairlist::transAsUnravel(coenv &e, record *r,
-                                protoenv &source, varEntry *qualifier)
-{
+mem::vector<tyEntry*> idpairlist::transAsUnravel(
+  coenv &e, record *r, protoenv &source, varEntry *qualifier
+) {
+  mem::vector<tyEntry*> result;
   for (list<idpair *>::iterator p=base.begin();
        p != base.end();
        ++p)
-    (*p)->transAsUnravel(e,r,source,qualifier);
+  {
+    tyEntry *typeAdded = (*p)->transAsUnravel(e,r,source,qualifier);
+    result.push_back(typeAdded);
+  }
+  return result;
 }
 
 void idpairlist::createSymMap(AsymptoteLsp::SymbolContext* symContext)
@@ -1076,18 +1161,40 @@ void typeParam::prettyprint(ostream &out, Int indent) {
   out << "typeParam (" << paramSym <<  ")\n";
 }
 
-void recordInitializer(coenv &e, symbol id, record *parent, position here)
+void recordInitializer(coenv &e, symbol id, record *r, position here)
 {
-  // This is equivalent to the code
-  //   A operator init() { return new A; }
-  // where A is the name of the record.
+  // This is almost equivalent to the code
+  //   autounravel A operator init() { return new A; }
+  // where A is the name of the record. The "almost" is because the code below
+  // does not add the operator init to the environment, since in practice it
+  // would be added to the outer environment, not the record's environment.
+  // Since it is always added *after* any code in the record, we lose nothing
+  // by not adding it to the environment.
+  // Additionally, the "autounravel" is made low-priority (will not override
+  // user-defined operator init) which is possible only for built-in functions.
   formals formals(here);
   simpleName recordName(here, id);
   nameTy result(here, &recordName);
   newRecordExp exp(here, &result);
   returnStm stm(here, &exp);
-  fundec init(here, &result, symbol::opTrans("init"), &formals, &stm);
-  init.transAsField(e, parent);
+  fundef fun(here, &result, &formals, &stm);
+  assert(r);
+  {
+    e.c.pushModifier(AUTOUNRAVEL);
+    function *ft = fun.transType(e, false);
+    assert(ft);
+
+    symbol initSym=symbol::opTrans("init");
+    varinit *init=fun.makeVarInit(ft);
+
+    assert(ft->kind != types::ty_inferred);
+
+    varEntry *v=makeVarEntry(here, e, r, ft);
+    r->e.addVar(initSym, v);
+    r->e.ve.registerAutoUnravel(initSym, v, trans::AutounravelPriority::OFFER);
+    initializeVar(here, e, v, init);
+    e.c.popModifier();
+  }
 }
 
 bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
@@ -1127,31 +1234,15 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
       entry=arg->ent;
     }
     addTypeWithPermission(e, r, entry, paramSym);
-    recordInitializer(e,paramSym,r,pos);
+
+    // Add any autounravel fields.
+    record *qt = dynamic_cast<record *>(entry->t);
+    assert(qt);  // Should always pass since arg->ent->t->kind == ty_record
+    varEntry *qv = entry->v;
+    addNameOps(e, r, qt, qv, pos);
   } else
     addTypeWithPermission(e, r, arg->ent, paramSym);
 
-  //e.e.addType(paramSym, arg->ent);
-  // The code below would add e.g. operator== to the context, but potentially
-  // ignore overrides of operator==:
-  //
-  // types::astType *t = arg.ent->t;
-  // if (t->kind == types::ty_record) {
-  //   record *r = dynamic_cast<record *>(t);
-  //   if (r) {
-  //     trans::addRecordOps(e.e.ve, r);
-  //   }
-  // } else if (t->kind == types::ty_array) {
-  //   array *a = dynamic_cast<array *>(t);
-  //   if (a) {
-  //     trans::addArrayOps(e.e.ve, a);
-  //   }
-  // } else if (t->kind == types::ty_function) {
-  //   function *f = dynamic_cast<function *>(t);
-  //   if (f) {
-  //     trans::addFunctionOps(e.e.ve, f);
-  //   }
-  // }
   return true;
 }
 
@@ -1191,8 +1282,9 @@ bool typeParamList::transAsParamMatcher(
   for (namedTyEntry *arg : *args) {
     if (arg->ent->t->kind == types::ty_record) {
       varEntry *v = arg->ent->v;
-      varEntry *newV = makeVarEntryWhere(e, r, v ? v->getType() : callerContext, nullptr,
-                                         arg->pos);
+      varEntry *newV = makeVarEntryWhere(
+          e, r, v ? v->getType() : callerContext, nullptr, arg->pos
+      );
       newV->getLocation()->encode(WRITE, arg->pos, e.c);
       e.c.encodePop();
 
@@ -1210,11 +1302,6 @@ bool typeParamList::transAsParamMatcher(
     if (!succeeded) return false;
   }
   return true;
-}
-
-symbol intSymbol() {
-  const static symbol* intSymbol = new symbol(symbol::literalTrans("int"));
-  return *intSymbol;
 }
 
 symbol templatedSymbol() {
@@ -1264,9 +1351,18 @@ void fromdec::transAsField(coenv &e, record *r)
       if (r)
         r->e.add(q.t->e, q.v, e.c);
       e.e.add(q.t->e, q.v, e.c);
+    } else {
+      auto typesAdded = fields->transAsUnravel(e, r, q.t->e, q.v);
+      for (tyEntry *te : typesAdded) {
+        if (te) {
+          record *t = dynamic_cast<record*>(te->t);
+          if (t) {
+            addNameOps(e, r, t, te->v, getPos());
+          }
+        }
+      }
+
     }
-    else
-      fields->transAsUnravel(e, r, q.t->e, q.v);
   }
 }
 
@@ -1428,33 +1524,59 @@ void recorddec::addPostRecordEnvironment(coenv &e, record *r, record *parent) {
   if (parent)
     parent->e.add(r->postdefenv, 0, e.c);
   e.e.add(r->postdefenv, 0, e.c);
+  // Add the autounravel fields also.
+  addNameOps(e, parent, r, nullptr, getPos());
 }
 
 void recorddec::transAsField(coenv &e, record *parent)
 {
+  if (e.c.isAutoUnravel()) {
+    em.error(getPos());
+    em << "types cannot be autounraveled";
+  }
   record *r = parent ? parent->newRecord(id, e.c.isStatic()) :
     e.c.newRecord(id);
 
   addTypeWithPermission(e, parent, new trans::tyEntry(r,0,parent,getPos()),
                         id);
-  e.e.addRecordOps(r);
-  if (parent)
-    parent->e.addRecordOps(r);
+  trans::addRecordOps(r);
 
   // Start translating the initializer.
   coder c=e.c.newRecordInit(getPos(), r);
   coenv re(c,e.e);
 
-  body->transAsRecordBody(re, r);
-
+  {
+    // Make sure the autounraveled fields are limited to the record's scope.
+    // If the scope is too broad, then user-provide autounravel overrides will
+    // defer to already-defined ops when they should not.
+    bool useScope = body->scope;
+    // RAII: Close the scope when scopeHolder runs its destructor.
+    Scope scopeHolder(re, useScope);
+    // Autounravel the record ops into the record's environment.
+    addNameOps(re, nullptr, r, nullptr, getPos());
+    // We've already handled the scope ourselves, so tell `body` not to add an
+    // additional scope when running `transAsField`.
+    body->scope = false;  
+    // Translate the main body of the record.
+    body->transAsField(re, r);
+    // Restore the original value of the `scope` boolean. This probably makes no
+    // difference but is included out of an abundance of caution.
+    body->scope = useScope;
+  }  // Close the scope.
   // After the record is translated, add a default initializer so that a
   // variable of the type of the record is initialized to a new instance by
   // default.
-  transRecordInitializer(e, parent);
+  transRecordInitializer(re, r);
+
+  // This would normally be done right after transAsField, but we needed to add
+  // the default initializer first. See also block::transAsRecordBody().
+  re.c.closeRecord();
+
 
   // Add types and variables defined during the record that should be added to
   // the enclosing environment.  These are the implicit constructors defined by
-  // "operator init".
+  // "operator init", as well as the autounravel fields (both builtin and user
+  // defined).
   addPostRecordEnvironment(e, r, parent);
 }
 

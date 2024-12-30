@@ -127,7 +127,7 @@ function *functionFromFormals(ty *result,
   return fun;
 }
 
-void addFunc(venv &ve, access *a, ty *result, symbol id,
+varEntry *addFunc(venv &ve, access *a, ty *result, symbol id,
              formal f1=noformal, formal f2=noformal, formal f3=noformal,
              formal f4=noformal, formal f5=noformal, formal f6=noformal,
              formal f7=noformal, formal f8=noformal, formal f9=noformal,
@@ -143,10 +143,11 @@ void addFunc(venv &ve, access *a, ty *result, symbol id,
   varEntry *ent = new varEntry(fun, a, 0, nullPos);
 
   ve.enter(id, ent);
+  return ent;
 }
 
 // Add a function with one or more default arguments.
-void addFunc(venv &ve, bltin f, ty *result, symbol name,
+varEntry *addFunc(venv &ve, bltin f, ty *result, symbol name,
              formal f1, formal f2, formal f3, formal f4, formal f5, formal f6,
              formal f7, formal f8, formal f9, formal fA, formal fB, formal fC,
              formal fD, formal fE, formal fF, formal fG, formal fH, formal fI)
@@ -171,8 +172,8 @@ void addFunc(venv &ve, bltin f, ty *result, symbol name,
 #endif
 
   access *a = new bltinAccess(f);
-  addFunc(ve,a,result,name,f1,f2,f3,f4,f5,f6,f7,f8,f9,
-          fA,fB,fC,fD,fE,fF,fG,fH,fI);
+  return addFunc(ve,a,result,name,f1,f2,f3,f4,f5,f6,f7,f8,f9,
+                 fA,fB,fC,fD,fE,fF,fG,fH,fI);
 }
 
 void addOpenFunc(venv &ve, bltin f, ty *result, symbol name)
@@ -659,21 +660,25 @@ void addArrayOps(venv &ve, types::array *t)
   }
 }
 
-void addRecordOps(venv &ve, record *r)
+void addRecordOps(record* r)
 {
-  addFunc(ve, run::boolMemEq, primBoolean(), SYM(alias), formal(r, SYM(a)),
-          formal(r, SYM(b)));
-  addFunc(ve, run::boolMemEq, primBoolean(), SYM_EQ, formal(r, SYM(a)),
-          formal(r, SYM(b)));
-  addFunc(ve, run::boolMemNeq, primBoolean(), SYM_NEQ, formal(r, SYM(a)),
-          formal(r, SYM(b)));
+  assert(r);
+  trans::venv &ve = r->e.ve;
+  auto addOp= [&ve](vm::bltin f, ty* result, symbol name, auto&&... formals) {
+    varEntry* fVar=
+            addFunc(ve, f, result, name, std::forward<formal>(formals)...);
+    ve.registerAutoUnravel(name, fVar, AutounravelPriority::OFFER);
+  };
+  // alias
+  addOp(run::boolMemEq, primBoolean(), SYM(alias), formal(r, SYM(a)),
+        formal(r, SYM(b)));
+  // operator==
+  addOp(run::boolMemEq, primBoolean(), SYM_EQ, formal(r, SYM(a)),
+        formal(r, SYM(b)));
+  // operator!=
+  addOp(run::boolMemNeq, primBoolean(), SYM_NEQ, formal(r, SYM(a)),
+        formal(r, SYM(b)));
 }
-
-void addFunctionOps(venv &ve, function *f)
-{
-  // No function ops.
-}
-
 
 void addOperators(venv &ve)
 {
@@ -755,7 +760,7 @@ dummyRecord *createDummyRecord(venv &ve, symbol name)
   dummyRecord *r=new dummyRecord(name);
   vm::vmFrame *f = make_dummyframe(name);
   addConstant(ve, f, r, name);
-  addRecordOps(ve, r);
+  addRecordOps(r);
   return r;
 }
 

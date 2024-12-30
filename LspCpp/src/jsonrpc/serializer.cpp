@@ -7,7 +7,7 @@
 
 //// Elementary types
 
-void JsonNull::swap(JsonNull& arg) noexcept
+void JsonNull::swap(JsonNull&) noexcept
 {
 }
 
@@ -120,11 +120,11 @@ void Reflect(Writer& visitor, std::string& value) {
   visitor.String(value.c_str(), (rapidjson::SizeType)value.size());
 }
 
-void Reflect(Reader& visitor, JsonNull& value) {
+void Reflect(Reader& visitor, JsonNull&) {
   visitor.GetNull();
 }
 
-void Reflect(Writer& visitor, JsonNull& value) {
+void Reflect(Writer& visitor, JsonNull&) {
   visitor.Null();
 }
 
@@ -211,4 +211,3 @@ std::string JsonReader::GetPath() const
         ret.pop_back();
         return ret;
 }
-
