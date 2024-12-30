@@ -293,22 +293,22 @@ void Reflect(Writer& visitor, std::vector<T>& values) {
 inline void DefaultReflectMemberStart(Writer& visitor) {
         visitor.StartObject();
 }
-inline void DefaultReflectMemberStart(Reader& visitor) {}
+inline void DefaultReflectMemberStart(Reader&) {}
 
 template <typename T>
-bool ReflectMemberStart(Reader& visitor, T& value) {
+bool ReflectMemberStart(Reader&, T&) {
         return false;
 }
 template <typename T>
-bool ReflectMemberStart(Writer& visitor, T& value) {
+bool ReflectMemberStart(Writer& visitor, T&) {
         visitor.StartObject();
         return true;
 }
 
 template <typename T>
-void ReflectMemberEnd(Reader& visitor, T& value) {}
+void ReflectMemberEnd(Reader&, T&) {}
 template <typename T>
-void ReflectMemberEnd(Writer& visitor, T& value) {
+void ReflectMemberEnd(Writer& visitor, T&) {
         visitor.EndObject();
 }
 

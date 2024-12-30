@@ -194,7 +194,7 @@ namespace std
                  * @param[in] pos The starting position in the string to copy from
                  * @param[in] n   The number of characters to copy
                  */
-                string_ref(const string &s, size_type pos = 0, size_type n = npos) : string(s, pos, npos) { }
+                string_ref(const string &s, size_type pos = 0, size_type n = npos) : string(s, pos, n) { }
 
                 /**
                  * Construct an string_ref from a null-terminated character array
@@ -1058,4 +1058,3 @@ namespace std
         };
 
 }
-

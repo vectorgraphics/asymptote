@@ -46,7 +46,7 @@ ostream& operator<< (ostream& out, const position& pos)
   out << filename << ": ";
   out << pos.line << "." << pos.column;
 
-  if(settings::getSetting<bool>("xasy")) {
+  if(settings::xasy) {
     camp::openpipeout();
     fprintf(camp::pipeout,"Error\n");
     fflush(camp::pipeout);

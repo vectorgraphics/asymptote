@@ -235,7 +235,7 @@ void block::transAsField(coenv &e, record *r)
   Scope scopeHolder(e, scope);
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
     (*p)->markTransAsField(e, r);
-    if (em.errors() && !settings::getSetting<bool>("debug"))
+    if (em.errors() && !settings::debug)
       break;
   }
 }
@@ -261,7 +261,7 @@ bool block::transAsTemplatedField(
 
   while (++p != stms.end()) {
     (*p)->markTransAsField(e, r);
-    if (em.errors() && !settings::getSetting<bool>("debug")) {
+    if (em.errors() && !settings::debug) {
       return false;
     }
   }

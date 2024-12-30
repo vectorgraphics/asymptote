@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/ivmai/bdwgc
+	branch = v8.2.8
+	commit = ee59af3722e56de8404de6cd0c21c2493cc4d855
+	parent = e2af319e39aeb939b67edd0c81c9bab80d8276c2
+	method = merge
+	cmdver = 0.4.9
