@@ -1648,7 +1648,7 @@ void setInteractive()
   }
 
 #if defined(HAVE_LSP)
-  bool lspmode=getSetting<Int>("lsp");
+  bool lspmode=getSetting<bool>("lsp");
 #else
   bool lspmode=false;
 #endif
