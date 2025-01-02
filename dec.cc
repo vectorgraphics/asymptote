@@ -320,9 +320,11 @@ record *block::transAsTemplatedFile(
       varEntry *v = ent->v;
       if (v) {
         // Push the value of v to the stack.
+        cout << "Pushing v to the stack" << endl;
         v->getLocation()->encode(READ, arg->pos, cE.c);
       } else  {
         // Push the appropriate frame to the stack.
+        cout << "Pushing the appropriate frame to the stack" << endl;
         newRecordExp::encodeLevel(arg->pos,cE,ent);
       }
     }

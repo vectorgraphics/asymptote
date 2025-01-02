@@ -109,7 +109,7 @@ void frameAccess::encode(action act, position pos, coder &e, frame *top)
 /* localAccess */
 static void frameError(position pos) {
   // A local variable is being used when its frame is not active.
-  std::cerr << boost::stacktrace::stacktrace();
+  //std::cerr << boost::stacktrace::stacktrace();
   em.error(pos);
   em << "static use of dynamic variable";
 }
