@@ -62,6 +62,7 @@ bool newRecordExp::encodeLevel(position pos, coenv &e, trans::tyEntry *ent)
     // we push a.b onto the stack, but need a as the enclosing frame for
     // allocating an instance of C.
     record *q = dynamic_cast<record *>(ent->v->getType());
+    assert(q);
     return e.c.encode(level, q->getLevel());
   }
   else
