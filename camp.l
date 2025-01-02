@@ -372,6 +372,8 @@ include            {adjust(); return INCLUDE; }
 quote              {adjust(); return QUOTE; }
 static             {adjust(); makemod(trans::EXPLICIT_STATIC);
                               return MODIFIER; }
+autounravel        {adjust(); makemod(trans::AUTOUNRAVEL);
+                              return MODIFIER; }
 public             {adjust(); makeperm(trans::PUBLIC); return PERM; }
 private            {adjust(); makeperm(trans::PRIVATE); return PERM; }
 restricted         {adjust(); makeperm(trans::RESTRICTED); return PERM; }
