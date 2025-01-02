@@ -4,7 +4,7 @@ import io
 import os
 import re
 import sys
-from typing import Optional, TextIO
+from typing import List, Optional, TextIO
 
 STACK = "Stack"
 
@@ -15,7 +15,9 @@ class Er:
     @classmethod
     def report_error(cls, filename, line, error):
         sys.stderr.write(f"{filename}:{line}: {error}\n")
-        cls.errors = 1
+        cls.errors += 1
+        if cls.errors > 10:
+            raise SystemExit("Too many errors, aborting")
 
     @classmethod
     def assoc_error(cls, filename, line, t):
@@ -205,7 +207,7 @@ class FunctionData:
         section: str,
         prefix: str,
         function_count: int,
-        header_lines: list[str],
+        header_lines: List[str],
     ):
         global STACK
         md = self._pat.search(section)
@@ -272,6 +274,7 @@ class FunctionData:
         )
 
     def write_cc(self, f_out: TextIO, d: RunData, in_line_counter: int) -> None:
+        global STACK
         # Write out any preceding comments
         f_out.write(self.comments)
         in_line_counter += self.comments.count("\n")
@@ -327,7 +330,7 @@ def overwrite_if_changed(filename: str, new_contents: str) -> None:
         f.write(new_contents)
 
 
-def write_trans_namespace(f_out: TextIO, d: RunData, builtin: list[str]) -> None:
+def write_trans_namespace(f_out: TextIO, d: RunData, builtin: List[str]) -> None:
     f_out.write("namespace trans {\n\n")
     f_out.write(f"void gen_{d.prefix}_venv(venv &ve)\n")
     f_out.write("{\n")
@@ -336,7 +339,7 @@ def write_trans_namespace(f_out: TextIO, d: RunData, builtin: list[str]) -> None
     f_out.write("} // namespace trans\n")
 
 
-def read_sections(filename: str) -> list[str]:
+def read_sections(filename: str) -> List[str]:
     # Read *.in files split by form-feed + newline
     with open(filename, "rb") as f:
         # Convert to text with universal newline
@@ -432,7 +435,7 @@ def main(d: RunData) -> None:
         header_lines.append("#pragma once\n")
         header_lines.append("namespace run {\n")
 
-        builtin: list[str] = []
+        builtin: List[str] = []
 
         # 6) read remaining lines from sections_in[3...] for function definitions
         for function_count, section in enumerate(sections_in[3:]):
@@ -475,7 +478,7 @@ def main(d: RunData) -> None:
             os.unlink(outSrcFile)
         except FileNotFoundError:
             pass
-        sys.exit(Er.errors)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
