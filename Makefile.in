@@ -194,8 +194,8 @@ man:	asy sty
 faq:	asy sty
 	cd doc && $(MAKE) faq
 
-$(RUNTIME_FILES:=.cc): %.cc: runtime.pl opsymbols.h runtimebase.in %.in
-	$(PERL) ./runtime.pl --prefix $(@:.cc=) --opsym-file opsymbols.h \
+$(RUNTIME_FILES:=.cc): %.cc: runtime.py opsymbols.h runtimebase.in %.in
+	$(PYTHON) ./runtime.py --prefix $(@:.cc=) --opsym-file opsymbols.h \
 		--runtime-base-file runtimebase.in \
 		--src-template-dir . \
 		--header-out-dir . \
