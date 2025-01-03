@@ -252,14 +252,14 @@ public:
   void transAsField(coenv &e, record *r) override;
 
   bool transAsTemplatedField(
-    coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args,
-    trans::frame *caller
+    coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args
+    //trans::frame *caller
   );
 
   void transAsRecordBody(coenv &e, record *r);
   bool transAsTemplatedRecordBody(
-    coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args,
-    trans::frame *caller
+    coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args
+    //trans::frame *caller
   );
 
   types::record *transAsFile(genv& ge, symbol id);
@@ -267,8 +267,7 @@ public:
   types::record *transAsTemplatedFile(
       genv& ge,
       symbol id,
-      mem::vector<absyntax::namedTyEntry*> *args,
-      coenv &e
+      mem::vector<absyntax::namedTyEntry*> *args
   );
 
   // If the block can be interpreted as a single vardec, return that vardec
@@ -650,7 +649,7 @@ public:
   void add(typeParam *tp);
 
   bool transAsParamMatcher(coenv &e, record *r,
-                           mem::vector<namedTyEntry*> *args, trans::frame *caller);
+                           mem::vector<namedTyEntry*> *args/*, trans::frame *caller*/);
 
   void prettyprint(ostream &out, Int indent);
 };
@@ -665,7 +664,7 @@ public:
 
   void transAsField(coenv& e, record *r) override;
   bool transAsParamMatcher(
-    coenv& e, record *r, mem::vector<namedTyEntry*> *args, trans::frame *caller
+    coenv& e, record *r, mem::vector<namedTyEntry*> *args/*, trans::frame *caller*/
   );
 };
 

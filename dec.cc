@@ -241,8 +241,8 @@ void block::transAsField(coenv &e, record *r)
 }
 
 bool block::transAsTemplatedField(
-  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args,
-  frame *caller
+  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args
+  //frame *caller
 ) {
   Scope scopeHolder(e, scope);
   auto p = stms.begin();
@@ -256,7 +256,7 @@ bool block::transAsTemplatedField(
     em.sync(true);
     return false;
   }
-  if(!dec->transAsParamMatcher(e, r, args, caller))
+  if(!dec->transAsParamMatcher(e, r, args/*, caller*/))
     return false;
 
   while (++p != stms.end()) {
@@ -276,10 +276,10 @@ void block::transAsRecordBody(coenv &e, record *r)
 }
 
 bool block::transAsTemplatedRecordBody(
-  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args,
-  frame *caller
+  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args
+  //frame *caller
 ) {
-  bool succeeded = transAsTemplatedField(e, r, args, caller);
+  bool succeeded = transAsTemplatedField(e, r, args/*, caller*/);
   e.c.closeRecord();
   return succeeded;
 }
@@ -342,7 +342,7 @@ record* block::transAsTemplatedFile(
     autoplainRunnable()->transAsField(ce, r);
   }
 
-  bool succeeded = transAsTemplatedRecordBody(ce, r, args, cE.c.getFrame());
+  bool succeeded = transAsTemplatedRecordBody(ce, r, args);
   if (!succeeded) {
     return nullptr;
   }
@@ -1003,7 +1003,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     ));
   }
 
-  record *imp=e.e.getTemplatedModule(index,filename,computedArgs,e);
+  record *imp=e.e.getTemplatedModule(index,filename,computedArgs);
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
@@ -1271,7 +1271,6 @@ void transTemplateParam(coenv &e, tyEntry *ent, symbol newName, position pos) {
     addTypeWithPermission(e, module, ent, newName);
     return;
   }
-  record *dontNeedToNameThis = dynamic_cast<record *>(t);
   // TODO: When creating the tyEntry, find a way to supply the correct v
   // even if the naive approach would give null.
   varEntry *v = ent->v;
@@ -1285,8 +1284,14 @@ void transTemplateParam(coenv &e, tyEntry *ent, symbol newName, position pos) {
 }
 
 bool typeParamList::transAsParamMatcher(
-  coenv &e, record *r, mem::vector<namedTyEntry*> *args, frame *caller
+  coenv &e, record *r, mem::vector<namedTyEntry*> *args/*, frame *caller*/
 ) {
+
+  em.error(pos);
+  em << "not implemented";
+  return false;
+
+#if 0
   if (args->size() != params.size()) {
     position pos = getPos();
     if (args->size() >= 1) {
@@ -1331,6 +1336,7 @@ bool typeParamList::transAsParamMatcher(
     if (!succeeded) return false;
   }
   return true;
+#endif
 }
 
 symbol templatedSymbol() {
@@ -1340,9 +1346,9 @@ symbol templatedSymbol() {
 }
 
 bool receiveTypedefDec::transAsParamMatcher(
-  coenv& e, record *r, mem::vector<namedTyEntry*> *args, frame *caller
+  coenv& e, record *r, mem::vector<namedTyEntry*> *args/*, frame *caller*/
 ) {
-  bool succeeded = params->transAsParamMatcher(e, r, args, caller);
+  bool succeeded = params->transAsParamMatcher(e, r, args);
 
   types::ty *intTy = e.e.lookupType(intSymbol());
   assert(intTy);

@@ -184,8 +184,7 @@ record *genv::getModule(symbol id, string filename) {
 record *genv::getTemplatedModule(
     symbol index,
     string filename,
-    mem::vector<absyntax::namedTyEntry*>* args,
-    coenv& e
+    mem::vector<absyntax::namedTyEntry*>* args
 ) {
   checkRecursion(filename);
 
@@ -193,7 +192,7 @@ record *genv::getTemplatedModule(
   if (r)
     return r;
   else {
-    record *r=loadTemplatedModule(index, filename, args, e);
+    record *r=loadTemplatedModule(index, filename, args);
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.
     if (!interact::interactive || !em.errors()) {

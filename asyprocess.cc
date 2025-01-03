@@ -10,6 +10,7 @@
 #include "types.h"
 #include "errormsg.h"
 #include "genv.h"
+#include "coenv.h"
 #include "stm.h"
 #include "settings.h"
 #include "vm.h"
