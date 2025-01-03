@@ -21,7 +21,6 @@
 #include "record.h"
 #include "absyn.h"
 #include "access.h"
-#include "coenv.h"
 #include "stack.h"
 
 using types::record;
@@ -47,8 +46,7 @@ class genv : public gc {
   record *loadTemplatedModule(
       symbol id,
       string filename,
-      mem::vector<absyntax::namedTyEntry*> *args,
-      coenv& e
+      mem::vector<absyntax::namedTyEntry*> *args
   );
 
 public:
@@ -59,8 +57,7 @@ public:
   record *getTemplatedModule(
       symbol index,
       string filename,
-      mem::vector<absyntax::namedTyEntry*> *args,
-      coenv& e
+      mem::vector<absyntax::namedTyEntry*> *args
   );
   record *getLoadedModule(symbol index);
 

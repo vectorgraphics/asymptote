@@ -241,8 +241,8 @@ void block::transAsField(coenv &e, record *r)
 }
 
 bool block::transAsTemplatedField(
-  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args,
-  frame *caller
+  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args
+  //frame *caller
 ) {
   Scope scopeHolder(e, scope);
   auto p = stms.begin();
@@ -256,7 +256,7 @@ bool block::transAsTemplatedField(
     em.sync(true);
     return false;
   }
-  if(!dec->transAsParamMatcher(e, r, args, caller))
+  if(!dec->transAsParamMatcher(e, r, args/*, caller*/))
     return false;
 
   while (++p != stms.end()) {
@@ -276,10 +276,10 @@ void block::transAsRecordBody(coenv &e, record *r)
 }
 
 bool block::transAsTemplatedRecordBody(
-  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args,
-  frame *caller
+  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args
+  //frame *caller
 ) {
-  bool succeeded = transAsTemplatedField(e, r, args, caller);
+  bool succeeded = transAsTemplatedField(e, r, args/*, caller*/);
   e.c.closeRecord();
   return succeeded;
 }
@@ -306,29 +306,27 @@ record *block::transAsFile(genv& ge, symbol id)
   return r;
 }
 
-record *block::transAsTemplatedFile(
-    genv& ge,
-    symbol id,
-    mem::vector<absyntax::namedTyEntry*>* args,
-    coenv& cE
-) {
+record* block::transAsTemplatedFile(
+        genv& ge, symbol id, mem::vector<absyntax::namedTyEntry*>* args
+)
+{
 
-  for (auto p = args->rbegin(); p != args->rend(); ++p) {
-    namedTyEntry *arg = *p;
-    tyEntry *ent = arg->ent;
-    if(ent->t->kind == types::ty_record) {
-      varEntry *v = ent->v;
-      if (v) {
-        // Push the value of v to the stack.
-        cout << "Pushing v to the stack" << endl;
-        v->getLocation()->encode(READ, arg->pos, cE.c);
-      } else  {
-        // Push the appropriate frame to the stack.
-        cout << "Pushing the appropriate frame to the stack" << endl;
-        newRecordExp::encodeLevel(arg->pos,cE,ent);
-      }
-    }
-  }
+  // for (auto p = args->rbegin(); p != args->rend(); ++p) {
+  //   namedTyEntry *arg = *p;
+  //   tyEntry *ent = arg->ent;
+  //   if(ent->t->kind == types::ty_record) {
+  //     varEntry *v = ent->v;
+  //     if (v) {
+  //       // Push the value of v to the stack.
+  //       cout << "Pushing v to the stack" << endl;
+  //       v->getLocation()->encode(READ, arg->pos, cE.c);
+  //     } else  {
+  //       // Push the appropriate frame to the stack.
+  //       cout << "Pushing the appropriate frame to the stack" << endl;
+  //       newRecordExp::encodeLevel(arg->pos,cE,ent);
+  //     }
+  //   }
+  // }
 
   // Create the new module.
   record *r = new record(id, new frame(id, 0, 0));
@@ -344,7 +342,7 @@ record *block::transAsTemplatedFile(
     autoplainRunnable()->transAsField(ce, r);
   }
 
-  bool succeeded = transAsTemplatedRecordBody(ce, r, args, cE.c.getFrame());
+  bool succeeded = transAsTemplatedRecordBody(ce, r, args);
   if (!succeeded) {
     return nullptr;
   }
@@ -1005,7 +1003,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     ));
   }
 
-  record *imp=e.e.getTemplatedModule(index,filename,computedArgs,e);
+  record *imp=e.e.getTemplatedModule(index,filename,computedArgs);
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
@@ -1258,9 +1256,42 @@ void typeParamList::add(typeParam *tp) {
   params.push_back(tp);
 }
 
+void transTemplateParam(coenv &e, tyEntry *ent, symbol newName, position pos) {
+  // If the type is not a record, add it to the environment.
+  // If the type is a record,
+  // Pops a parent off of the stack and stores it in a new variable.
+  // Builds a tyEntry where this variable is used when making new instances
+  // of the record.
+  // And then adds the type to the environment.
+  record *module = e.c.thisType();
+  ty *t = ent->t;
+  if (t->kind != types::ty_record) {
+    // TODO: What happens if we pass an array of records?
+    // TODO: Should this always be private?
+    addTypeWithPermission(e, module, ent, newName);
+    return;
+  }
+  // TODO: When creating the tyEntry, find a way to supply the correct v
+  // even if the naive approach would give null.
+  varEntry *v = ent->v;
+  assert(v);
+  varEntry *newV = makeVarEntryWhere(e, module, v->getType(), nullptr, pos);
+  newV->getLocation()->encode(WRITE, pos, e.c);
+  e.c.encodePop();
+
+  tyEntry *newEnt = new tyEntry(t, newV, /*where=*/nullptr, pos);
+  addTypeWithPermission(e, module, newEnt, newName);
+}
+
 bool typeParamList::transAsParamMatcher(
-  coenv &e, record *r, mem::vector<namedTyEntry*> *args, frame *caller
+  coenv &e, record *r, mem::vector<namedTyEntry*> *args/*, frame *caller*/
 ) {
+
+  em.error(pos);
+  em << "not implemented";
+  return false;
+
+#if 0
   if (args->size() != params.size()) {
     position pos = getPos();
     if (args->size() >= 1) {
@@ -1282,6 +1313,7 @@ bool typeParamList::transAsParamMatcher(
   const static symbol *id0=new symbol(symbol::literalTrans(callerContextName));
   record *callerContext = new record(*id0, caller);
   for (namedTyEntry *arg : *args) {
+    // TODO: Replace body of this loop with a call to transTemplateParam.
     if (arg->ent->t->kind == types::ty_record) {
       varEntry *v = arg->ent->v;
       varEntry *newV = makeVarEntryWhere(
@@ -1304,6 +1336,7 @@ bool typeParamList::transAsParamMatcher(
     if (!succeeded) return false;
   }
   return true;
+#endif
 }
 
 symbol templatedSymbol() {
@@ -1313,9 +1346,9 @@ symbol templatedSymbol() {
 }
 
 bool receiveTypedefDec::transAsParamMatcher(
-  coenv& e, record *r, mem::vector<namedTyEntry*> *args, frame *caller
+  coenv& e, record *r, mem::vector<namedTyEntry*> *args/*, frame *caller*/
 ) {
-  bool succeeded = params->transAsParamMatcher(e, r, args, caller);
+  bool succeeded = params->transAsParamMatcher(e, r, args);
 
   types::ty *intTy = e.e.lookupType(intSymbol());
   assert(intTy);

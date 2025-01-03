@@ -195,8 +195,7 @@ public:
   record *getModule(symbol id, string filename);
   record *getTemplatedModule(symbol index,
                              string filename,
-                             mem::vector<absyntax::namedTyEntry*> *args,
-                             coenv& e);
+                             mem::vector<absyntax::namedTyEntry*> *args);
   record *getLoadedModule(symbol id);
 };
 

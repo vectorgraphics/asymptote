@@ -13,6 +13,57 @@
  * in env.h.
  *****/
 
+/* Plan for implementation of templated modules:
+ *    
+ *    Translating an access declaration:
+ *    
+ *    access Map(Key=A, Value=B) as MapAB;
+ *    
+ *    run encodeLevel for both A and B
+ *    this should give the parent records for each struct
+ *    encode pushing the *number* of parents on the stack (i.e., push a
+ *        single int)
+ *    encode pushing the string "Map/1234567" on the stack
+ *    encode call to builtin loadTemplatedModule
+ *    also save into MapAB (varinit)
+ *    
+ *    build list of types (or tyEntry?)
+ *    
+ *    also ensure names match
+ *    
+ *    *****
+ *    
+ *    At runtime, loadTemplatedModule pops the string
+ *    
+ *    if the module is already loaded, it pops the levels
+ *    and returns the already loaded module.
+ *    
+ *    if the module is not loaded, it leaves the levels on the stack
+ *    and calls the initializer for the templated module
+ *    
+ *    it might be easiest to give the number of pushed params as an argument
+ *    to loadTemplatedModule (ints and strings have no push/pop)
+ *    
+ *    *****
+ *    
+ *    Translating a templated module
+ *    
+ *    we start translating a file with a list of (name, tyEntry)
+ *    or (name, type) pairs
+ * 
+ *    for each record type,
+ *    build variables for each parent level
+ *    and encode bytecode to pop the parents off the stack into these vars
+ *
+ *    build tyEntry for each templated type
+ *    if its a record, then use the above variables as ent->v
+ *
+ *    from here,
+ *    translate the file as a module as usual
+ * 
+ *    
+ */
+
 #include <sstream>
 
 #include <algorithm>
@@ -36,11 +87,6 @@
 using namespace types;
 using settings::getSetting;
 using settings::Setting;
-
-// Dynamic loading of external libraries.
-types::record *transExternalModule(
-    trans::genv& ge, string filename, symbol id
-);
 
 namespace trans {
 
@@ -71,13 +117,6 @@ bool endswith(string suffix, string str)
 }
 
 record *genv::loadModule(symbol id, string filename) {
-  // Hackish way to load an external library.
-#if 0
-  if (endswith(".so", filename)) {
-    return transExternalModule(*this, filename, id);
-  }
-#endif
-
   // Get the abstract syntax tree.
   absyntax::file *ast = parser::parseFile(filename,"Loading");
 
@@ -95,15 +134,8 @@ record *genv::loadModule(symbol id, string filename) {
 record *genv::loadTemplatedModule(
       symbol id,
       string filename,
-      mem::vector<absyntax::namedTyEntry*> *args,
-      coenv& e
+      mem::vector<absyntax::namedTyEntry*> *args
 ) {
-  // Hackish way to load an external library.
-#if 0
-  if (endswith(".so", filename)) {
-    return transExternalModule(*this, filename, id);
-  }
-#endif
 
   // Get the abstract syntax tree.
   absyntax::file *ast = parser::parseFile(filename,"Loading");
@@ -112,7 +144,7 @@ record *genv::loadTemplatedModule(
 
   em.sync();
 
-  record *r=ast->transAsTemplatedFile(*this, id, args, e);
+  record *r=ast->transAsTemplatedFile(*this, id, args);
 
   inTranslation.remove(filename);
 
@@ -152,8 +184,7 @@ record *genv::getModule(symbol id, string filename) {
 record *genv::getTemplatedModule(
     symbol index,
     string filename,
-    mem::vector<absyntax::namedTyEntry*>* args,
-    coenv& e
+    mem::vector<absyntax::namedTyEntry*>* args
 ) {
   checkRecursion(filename);
 
@@ -161,7 +192,7 @@ record *genv::getTemplatedModule(
   if (r)
     return r;
   else {
-    record *r=loadTemplatedModule(index, filename, args, e);
+    record *r=loadTemplatedModule(index, filename, args);
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.
     if (!interact::interactive || !em.errors()) {

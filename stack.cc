@@ -567,9 +567,12 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 #undef FRAMEVAR
 }
 
-void stack::load(string index) {
+void stack::loadModule(string index, Int numPushedParents) {
   vmFrame *inst=instMap[index];
   if (inst) {
+    for (Int i = 0; i < numPushedParents; ++i) {
+      pop();
+    }
     push(inst);
   }
   else {

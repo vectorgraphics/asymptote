@@ -108,7 +108,7 @@ public:
 
   // Put an import (indexed by filename and optional template
   // parameter signature) on top of the stack, initializing it if necessary.
-  void load(string index);
+  void loadModule(string index, Int numPushedParents = 0);
 
   // These are so that built-in functions can easily manipulate the stack
   void push(item next) {
