@@ -69,6 +69,44 @@ public:
   vm::stack::importInitMap *getInitMap();
 };
 
+/* Plan for implementation of templated modules:
+ *    
+ *    Translating an access declaration:
+ *    
+ *    access Map(Key=A, Value=B) as MapAB;
+ *    
+ *    run encodeLevel for both A and B
+ *    this should give the parent records for each struct
+ *    encode pushing the string "Map/1234567" on the stack
+ *    encode call to builtin loadTemplatedModule
+ *    also save into MapAB (varinit)
+ *    
+ *    build list of types (or tyEntry?)
+ *    
+ *    also ensure names match
+ *    
+ *    *****
+ *    
+ *    At runtime, loadTemplatedModule pops the string
+ *    
+ *    if the module is already loaded, it pops the levels
+ *    and returns the already loaded module.
+ *    
+ *    if the module is not loaded, it leaves the levels on the stack
+ *    and calls the initializer for the templated module
+ *    
+ *    it might be easiest to give the number of pushed params as an argument
+ *    to loadTemplatedModule (ints and strings have no push/pop)
+ *    
+ *    *****
+ *    
+ *    Translating a templated module
+ *    
+ *    we start translating a file with a list of (name, tyEntry)
+ *    or (name, type) pairs
+ *    
+ */
+
 } // namespace trans
 
 #endif
