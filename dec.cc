@@ -34,23 +34,26 @@ symbol intSymbol() {
 
 bool usableInTemplate(ty *t) {
   assert(t);
+  if (t->primitive()) return true;
   assert(t->kind != ty_null);
   assert(t->kind != ty_overloaded);
 
   if (t->kind == ty_record) {
-    record *r = dynamic_cast<record *>(t);
+    record* r= dynamic_cast<record*>(t);
     assert(r);
     assert(r->getLevel());
-    if (!r->getLevel()->getParent()) return false;  // r is actually a module
-    if (!r->getLevel()->getParent()->getParent()) return true;  // r is a top-level record, or all nestings are static
-    return false;  // r is nested non-statically
+    if (!r->getLevel()->getParent()) return false;// r is actually a module
+    if (!r->getLevel()->getParent()->getParent()) {
+      return true;// r is a top-level record, or all nestings are static
+    }
+    return false; // r is nested non-statically
   }
   if (t->kind == ty_function) {
-    function *f = dynamic_cast<function *>(t);
+    function* f= dynamic_cast<function*>(t);
     assert(f);
     // Check the types of the result and all the parameters.
     if (!usableInTemplate(f->result)) return false;
-    const signature& sig = *f->getSignature();
+    const signature& sig= *f->getSignature();
     for (const types::formal& f : sig.formals) {
       if (!usableInTemplate(f.t)) return false;
     }
@@ -58,12 +61,13 @@ bool usableInTemplate(ty *t) {
     return true;
   }
   if (t->kind == ty_array) {
-    array *a = dynamic_cast<array *>(t);
+    array* a= dynamic_cast<array*>(t);
     assert(a);
     return usableInTemplate(a->celltype);
   }
-  // Remaining types are primitive.
-  return true;
+  // We should have already handled all the cases.
+  assert(false);
+  return false;
 }
 
 
