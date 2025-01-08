@@ -629,6 +629,22 @@ public:
   void transAsField(coenv& e, record* r) override;
 };
 
+// FOR DEBUGGING ONLY
+// TODO: Remove this class before merging.
+class checkdec: public dec {
+  name *base;
+
+public:
+  checkdec(position pos, name *base)
+    : dec(pos), base(base) {}
+
+  void prettyprint(ostream &out, Int indent) override;
+
+  void transAsField(coenv &e, record *r) override;
+
+  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
+};
+
 class typeParam : public absyn {
   const symbol paramSym;
 public:

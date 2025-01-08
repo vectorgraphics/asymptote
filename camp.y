@@ -234,6 +234,7 @@ modifiers:
 
 dec:
   vardec           { $$ = $1; }
+| TYPEDEF '.' name         { $$ = new checkdec($1, $3); }  // FOR DEBUGGING ONLY! Remove before merge
 | fundec           { $$ = $1; }
 | typedec          { $$ = $1; }
 | ACCESS stridpairlist ';'

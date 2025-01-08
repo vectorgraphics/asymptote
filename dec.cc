@@ -909,6 +909,28 @@ void decidlist::createSymMapWType(
 #endif
 }
 
+void checkdec::prettyprint(ostream &out, Int indent)
+{
+  prettyname(out, "checkdec",indent, getPos());
+  base->prettyprint(out, indent+1);
+}
+
+void checkdec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
+{ }
+
+void checkdec::transAsField(coenv &e, record *r)
+{
+  // translate base from name to ty
+  types::ty *t = base->typeTrans(e, false);
+  if (usableInTemplate(t)) {
+    t->print(cout);
+    cout << " is usable in template" << endl;
+  } else {
+    t->print(cout);
+    cout << " is NOT usable in template" << endl;
+  }
+}
+
 
 void vardec::prettyprint(ostream &out, Int indent)
 {
