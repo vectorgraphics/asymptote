@@ -48,8 +48,7 @@
  *    
  *    Translating a templated module
  *    
- *    we start translating a file with a list of (name, tyEntry)
- *    or (name, type) pairs
+ *    we start translating a file with a list of (name, type) pairs
  * 
  *    for each record type,
  *    build variables for each parent level
@@ -134,7 +133,7 @@ record *genv::loadModule(symbol id, string filename) {
 record *genv::loadTemplatedModule(
       symbol id,
       string filename,
-      mem::vector<absyntax::namedTyEntry*> *args
+      mem::vector<absyntax::namedTy*> *args
 ) {
 
   // Get the abstract syntax tree.
@@ -184,7 +183,7 @@ record *genv::getModule(symbol id, string filename) {
 record *genv::getTemplatedModule(
     symbol index,
     string filename,
-    mem::vector<absyntax::namedTyEntry*>* args
+    mem::vector<absyntax::namedTy*>* args
 ) {
   checkRecursion(filename);
 

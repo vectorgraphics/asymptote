@@ -46,7 +46,7 @@ class genv : public gc {
   record *loadTemplatedModule(
       symbol id,
       string filename,
-      mem::vector<absyntax::namedTyEntry*> *args
+      mem::vector<absyntax::namedTy*> *args
   );
 
 public:
@@ -57,7 +57,7 @@ public:
   record *getTemplatedModule(
       symbol index,
       string filename,
-      mem::vector<absyntax::namedTyEntry*> *args
+      mem::vector<absyntax::namedTy*> *args
   );
   record *getLoadedModule(symbol index);
 
