@@ -279,16 +279,12 @@ void block::transAsField(coenv &e, record *r)
 }
 
 bool block::transAsTemplatedField(
-  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args
+  coenv &e, record *r, mem::vector<absyntax::namedTy*>* args
   //frame *caller
 ) {
   Scope scopeHolder(e, scope);
-  auto p = stms.begin();
-  if (p == stms.end()) {
-    return true;  // empty file
-  }
-  receiveTypedefDec *dec = dynamic_cast<receiveTypedefDec *>(*p);
-  if (!dec) {
+  receiveTypedefDec *dec = getTypedefDec();
+  if (dec == nullptr) {
     em.error(getPos());
     em << "expected 'typedef import(<types>);'";
     em.sync(true);
@@ -297,6 +293,7 @@ bool block::transAsTemplatedField(
   if(!dec->transAsParamMatcher(e, r, args/*, caller*/))
     return false;
 
+  auto p = stms.begin();
   while (++p != stms.end()) {
     (*p)->markTransAsField(e, r);
     if (em.errors() && !settings::debug) {
@@ -314,12 +311,22 @@ void block::transAsRecordBody(coenv &e, record *r)
 }
 
 bool block::transAsTemplatedRecordBody(
-  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args
+  coenv &e, record *r, mem::vector<absyntax::namedTy*> *args
   //frame *caller
 ) {
   bool succeeded = transAsTemplatedField(e, r, args/*, caller*/);
   e.c.closeRecord();
   return succeeded;
+}
+
+receiveTypedefDec* block::getTypedefDec()
+{
+  auto p= stms.begin();
+
+  // Check for an empty file
+  if (p == stms.end()) return nullptr;
+
+  return dynamic_cast<receiveTypedefDec*>(*p);
 }
 
 record *block::transAsFile(genv& ge, symbol id)
@@ -337,6 +344,15 @@ record *block::transAsFile(genv& ge, symbol id)
   if (settings::getSetting<bool>("autoplain")) {
     autoplainRunnable()->transAsField(ce, r);
   }
+  // If the file starts with a template declaration and it was accessed
+  // or imported without template arguments, further translation is
+  // likely futile.
+  if (getTypedefDec() != nullptr) {
+    em << "templated module access requires template parameters";
+    em.error(getPos());
+    return nullptr;
+  }
+
   transAsRecordBody(ce, r);
   em.sync();
   if (em.errors()) return nullptr;
@@ -345,12 +361,12 @@ record *block::transAsFile(genv& ge, symbol id)
 }
 
 record* block::transAsTemplatedFile(
-        genv& ge, symbol id, mem::vector<absyntax::namedTyEntry*>* args
+        genv& ge, symbol id, mem::vector<absyntax::namedTy*>* args
 )
 {
 
   // for (auto p = args->rbegin(); p != args->rend(); ++p) {
-  //   namedTyEntry *arg = *p;
+  //   namedTy *arg = *p;
   //   tyEntry *ent = arg->ent;
   //   if(ent->t->kind == types::ty_record) {
   //     varEntry *v = ent->v;
@@ -1047,7 +1063,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
   buf << id << '/' << args->getSignature(e)->handle() << '/';
   symbol index=symbol::literalTrans(buf.str());
 
-  auto *computedArgs = new mem::vector<namedTyEntry*>();
+  auto *computedArgs = new mem::vector<namedTy*>();
   mem::vector<tySymbolPair> *fields = args->getFields();
   for (auto p = fields->begin(); p != fields->end(); ++p) {
     astType* theType = p->ty;
@@ -1058,8 +1074,8 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
       em.sync(true);
       return nullptr;
     }
-    computedArgs->push_back(new namedTyEntry(
-        theType->getPos(), theName, theType->transAsTyEntry(e, r)
+    computedArgs->push_back(new namedTy(
+        theType->getPos(), theName, theType->trans(e)
     ));
   }
 
@@ -1257,18 +1273,46 @@ void recordInitializer(coenv &e, symbol id, record *r, position here)
   }
 }
 
-bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
-  position pos=arg->pos;
-  if (arg->dest != paramSym) {
+bool typeParam::transAsParamMatcher(coenv &e, record *module, namedTy* arg) {
+  symbol name = arg->dest;
+  ty *t = arg->t;
+  if (name != paramSym) {
     em.error(arg->pos);
     em << "template argument name does not match module: passed "
-       << arg->dest
+       << name
        << ", expected "
        << paramSym;
     return false;
   }
+  if (t->kind != types::ty_record) {
+    tyEntry *ent = new tyEntry(t, nullptr, module, getPos());
+    addTypeWithPermission(e, module, ent, name);
+    return true;
+  }
 
-  if(arg->ent->t->kind == types::ty_record) {
+  // We can now assume t is a record (i.e., asy struct).
+  record *r = dynamic_cast<record *>(t);
+  assert(r);
+  //
+  // Build a varEntry v for the parent level and encode the bytecode
+  // to pop the parent off the stack into v. The varEntry needs a type,
+  // but the only thing we use from the type is the level, so make a
+  // new fake record.
+  // TODO: give a better name
+  record* fakeParent = new record(
+          symbol::literalTrans("<fake>"), r->getLevel()->getParent()
+  );
+  varEntry *v = makeVarEntryWhere(e, module, fakeParent, nullptr, getPos());
+  // Encode bytecode to pop the parent off the stack into v.
+  v->encode(WRITE, getPos(), e.c);
+  e.c.encodePop();
+  //
+  // Build tyEntry, using v as ent->v.
+  tyEntry *ent = new tyEntry(t, v, module, getPos());
+  addTypeWithPermission(e, module, ent, name);
+
+# if 0
+  if(arg->t->kind == types::ty_record) {
     record *module = dynamic_cast<record *>(arg->ent->v->getType());
     symbol Module=symbol::literalTrans(module->getName());
     record *imp=e.e.getLoadedModule(Module);
@@ -1302,6 +1346,7 @@ bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
     addNameOps(e, r, qt, qv, pos);
   } else
     addTypeWithPermission(e, r, arg->ent, paramSym);
+# endif
 
   return true;
 }
@@ -1344,14 +1389,14 @@ void transTemplateParam(coenv &e, tyEntry *ent, symbol newName, position pos) {
 }
 
 bool typeParamList::transAsParamMatcher(
-  coenv &e, record *r, mem::vector<namedTyEntry*> *args/*, frame *caller*/
+  coenv &e, record *r, mem::vector<namedTy*> *args
 ) {
 
   em.error(pos);
   em << "not implemented";
   return false;
 
-#if 0
+  // Check that the number of arguments passed matches the number of parameters.
   if (args->size() != params.size()) {
     position pos = getPos();
     if (args->size() >= 1) {
@@ -1367,12 +1412,13 @@ bool typeParamList::transAsParamMatcher(
     }
     return false;
   }
-  mem::vector<namedTyEntry*> *qualifiedArgs = new mem::vector<namedTyEntry*>();
+# if 0
+  mem::vector<namedTy*> *qualifiedArgs = new mem::vector<namedTy*>();
 
   const string callerContextName="callerContext/";
   const static symbol *id0=new symbol(symbol::literalTrans(callerContextName));
   record *callerContext = new record(*id0, caller);
-  for (namedTyEntry *arg : *args) {
+  for (namedTy *arg : *args) {
     // TODO: Replace body of this loop with a call to transTemplateParam.
     if (arg->ent->t->kind == types::ty_record) {
       varEntry *v = arg->ent->v;
@@ -1384,50 +1430,31 @@ bool typeParamList::transAsParamMatcher(
 
       tyEntry *newEnt = qualifyTyEntry(newV, arg->ent);
       qualifiedArgs->push_back(
-        new namedTyEntry(arg->pos, arg->dest, newEnt)
+        new namedTy(arg->pos, arg->dest, newEnt)
         );
     } else {
       qualifiedArgs->push_back(arg);
     }
   }
+# endif
 
   for (size_t i = 0; i < params.size(); ++i) {
-    bool succeeded = params[i]->transAsParamMatcher(e, r, (*qualifiedArgs)[i]);
+    bool succeeded = params[i]->transAsParamMatcher(e, r, (*args)[i]);
     if (!succeeded) return false;
   }
   return true;
-#endif
-}
-
-symbol templatedSymbol() {
-  const static symbol* templatedSymbol =
-      new symbol(symbol::literalTrans("/templated"));
-  return *templatedSymbol;
 }
 
 bool receiveTypedefDec::transAsParamMatcher(
-  coenv& e, record *r, mem::vector<namedTyEntry*> *args/*, frame *caller*/
+  coenv& e, record *r, mem::vector<namedTy*> *args
 ) {
   bool succeeded = params->transAsParamMatcher(e, r, args);
-
-  types::ty *intTy = e.e.lookupType(intSymbol());
-  assert(intTy);
-  e.e.addVar(templatedSymbol(),
-             makeVarEntryWhere(e, nullptr, intTy, r, getPos())
-            );
-
   return succeeded;
 }
 
 void receiveTypedefDec::transAsField(coenv& e, record *r) {
   em.error(getPos());
-  types::ty *intTy = e.e.lookupType(intSymbol());
-  assert(intTy);
-  if (e.e.lookupVarByType(templatedSymbol(), intTy)) {
-    em << "'typedef import(<types>)' must precede any other code";
-  } else {
-    em << "templated module access requires template parameters";
-  }
+  em << "'typedef import(<types>)' must precede any other code";
   em.sync(true);
 }
 
