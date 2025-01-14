@@ -294,6 +294,7 @@ bool block::transAsTemplatedField(
     return false;
 
   auto p = stms.begin();
+  // Start with second statement since the first was a receiveTypedefDec.
   while (++p != stms.end()) {
     (*p)->markTransAsField(e, r);
     if (em.errors() && !settings::debug) {
