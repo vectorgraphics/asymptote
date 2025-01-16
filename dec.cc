@@ -1112,8 +1112,10 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
   }
   // Encode action: Push parents to the stack.
   Int numParents = 0;
-  // TODO: Push parents in order, pop in reverse order.
-  for (auto p = args->fields.rbegin(); p != args->fields.rend(); ++p) {
+  // We push parents in reverse order so that we can later pop them in
+  // order, meaning that if more than one parameter has an error, the first
+  // error will be reported rather than the last.
+  for (auto p = args->rbegin(); p != args->rend(); ++p) {
     numParents += transPushParent(*p, e);
   }
 
@@ -1419,6 +1421,8 @@ bool typeParamList::transAsParamMatcher(
     return false;
   }
 
+  // Pop the parents off the stack. They were pushed in reverse order.
+  // With this approach, the first error will be reported, rather than the last.
   for (size_t i = 0; i < params.size(); ++i) {
     bool succeeded = params[i]->transAsParamMatcher(e, r, (*args)[i]);
     if (!succeeded) return false;
