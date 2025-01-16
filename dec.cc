@@ -304,14 +304,6 @@ bool block::transAsTemplatedField(
   return true;
 }
 
-bool block::transAsTemplatedRecordBody(
-  coenv &e, record *r, mem::vector<absyntax::namedTy*> *args
-) {
-  bool succeeded = transAsTemplatedField(e, r, args);
-  e.c.closeRecord();
-  return succeeded;
-}
-
 receiveTypedefDec* block::getTypedefDec()
 {
   auto p= stms.begin();
@@ -333,7 +325,6 @@ record *block::transAsFile(genv& ge, symbol id)
   env e(ge);
   coenv ce(c, e);
 
-  // Translate the abstract syntax.
   if (settings::getSetting<bool>("autoplain")) {
     autoplainRunnable()->transAsField(ce, r);
   }
@@ -346,6 +337,7 @@ record *block::transAsFile(genv& ge, symbol id)
     return nullptr;
   }
 
+  // Translate the abstract syntax.
   transAsField(ce, r);
   ce.c.closeRecord();
 
@@ -370,12 +362,13 @@ record* block::transAsTemplatedFile(
   env e(ge);
   coenv ce(c, e);
 
-  // Translate the abstract syntax.
   if (settings::getSetting<bool>("autoplain")) {
     autoplainRunnable()->transAsField(ce, r);
   }
 
-  bool succeeded = transAsTemplatedRecordBody(ce, r, args);
+  // Translate the abstract syntax.
+  bool succeeded = transAsTemplatedField(ce, r, args);
+  ce.c.closeRecord();
   if (!succeeded) {
     return nullptr;
   }
