@@ -159,7 +159,7 @@ errortest.asy: 518.29: expected 'as'
 errortest.asy: 519.30: expected 'as'
 errortest.asy: 520.23: expected typename=
 errortest.asy: 521.3: Parametrized imports disallowed to reduce naming conflicts. Try 'access <module>(<type parameters>) as <newname>;'.
-errortest.asy: 524.3: templated module access requires template parameters
+errortest.asy: 524.3: 'typedef import(<types>)' must precede any other code
 errortest.asy: 525.3: Expected 'typedef import(<types>);'
 errortest.asy: 529.30: too few types passed: got 2, expected 3
 errortest.asy: 529.3: could not load module 'errortestTemplate'

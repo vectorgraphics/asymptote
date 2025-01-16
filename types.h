@@ -417,7 +417,7 @@ struct signature : public gc {
   size_t hash() const;
 
   // Return a unique handle for this signature
-  size_t handle();
+  size_t handle(bool debug=false);
 };
 
 struct function : public ty {

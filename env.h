@@ -193,8 +193,7 @@ public:
   ~env();
 
   record *getModule(symbol id, string filename);
-  record *getTemplatedModule(symbol index,
-                             string filename,
+  record *getTemplatedModule(string filename,
                              mem::vector<absyntax::namedTy*> *args);
   record *getLoadedModule(symbol id);
 };
