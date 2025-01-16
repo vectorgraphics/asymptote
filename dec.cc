@@ -362,6 +362,8 @@ record* block::transAsTemplatedFile(
   env e(ge);
   coenv ce(c, e);
 
+  // Import `plain` before even translating "typedef import" since the latter
+  // might change the meanings of symbols provided by `plain`.
   if (settings::getSetting<bool>("autoplain")) {
     autoplainRunnable()->transAsField(ce, r);
   }
