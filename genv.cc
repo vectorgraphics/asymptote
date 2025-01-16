@@ -181,11 +181,18 @@ record *genv::getModule(symbol id, string filename) {
 }
 
 record *genv::getTemplatedModule(
-    symbol index,
     string filename,
     mem::vector<absyntax::namedTy*>* args
 ) {
   checkRecursion(filename);
+
+  types::signature* sig = new types::signature();
+  for (auto arg : *args) {
+    sig->add(formal(arg->t, arg->dest));
+  }
+  stringstream buf;
+  buf << filename << '/' << sig->handle(true) << '/';
+  symbol index=symbol::literalTrans(buf.str());
 
   record *r=imap[index];
   if (r)

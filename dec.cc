@@ -998,10 +998,19 @@ void vardec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 // returning for each use.
 class loadModuleExp : public exp {
   function *ft;
+  bool isTemplated;
 
 public:
-  loadModuleExp(position pos, record *imp)
-    : exp(pos) {ft=new function(imp,primString());}
+  loadModuleExp(position pos, record* imp, bool isTemplated= false)
+      : exp(pos), isTemplated(isTemplated)
+  {
+    if (isTemplated) {
+      ft= new function(imp, primString(), primInt());
+    }
+    else {
+      ft= new function(imp, primString());
+    }
+  }
 
   void prettyprint(ostream &out, Int indent) {
     prettyname(out, "loadModuleExp", indent, getPos());
@@ -1015,7 +1024,11 @@ public:
 
   void transCall(coenv &e, types::ty *t) {
     assert(equivalent(t, ft));
-    e.c.encode(inst::builtin, run::loadModule);
+    if (isTemplated) {
+      e.c.encode(inst::builtin, run::loadTemplatedModule);
+    } else {
+      e.c.encode(inst::builtin, run::loadModule);
+    }
   }
 
   types::ty *getType(coenv &) {
@@ -1043,8 +1056,9 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
   else {
     // Create a varinit that evaluates to the module.
     // This is effectively the expression 'loadModule(filename)'.
-    callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, filename));
+    callExp init(
+            pos, new loadModuleExp(pos, imp), new stringExp(pos, filename)
+    );
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -1054,15 +1068,64 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
   }
 }
 
+bool encodeParentLevel(position pos, coenv &e, trans::tyEntry *ent) {
+
+  // TODO: De-duplicate this code with newRecordExp::encodeLevel in newexp.cc.
+  record *r = dynamic_cast<record *>(ent->t);
+  assert(r);
+
+  // The level needed on which to allocate the record.
+  frame *level = r->getLevel()->getParent();
+
+  if (ent->v) {
+    // Put the record on the stack.  For instance, in code like
+    //   access imp;
+    //   new imp.t;
+    // we are putting the instance of imp on the stack, so we can use it to
+    // allocate an instance of imp.t.
+    ent->v->getLocation()->encode(trans::READ, pos, e.c);
+
+    // Adjust to the right frame.  For instance, in the last new in
+    //   struct A {
+    //     struct B {
+    //       static struct C {}
+    //     }
+    //     B b=new B;
+    //   }
+    //   A a=new A;
+    //   new a.b.C;
+    // we push a.b onto the stack, but need a as the enclosing frame for
+    // allocating an instance of C.
+    record *q = dynamic_cast<record *>(ent->v->getType());
+    assert(q);
+    return e.c.encode(level, q->getLevel());
+  }
+  else
+    return e.c.encode(level);
+}
+
+
+// Returns the number of items that will be added to the stack once the
+// translation has been run (always either 0 or 1).
+Int transPushParent(formal *f, coenv &e) {
+  if (f->getType(e)->kind != types::ty_record) {
+    return 0;
+  }
+  astType *astT = f->getAbsyntaxType();
+  tyEntry *ent = astT->transAsTyEntry(e, nullptr);
+  bool succeeded = encodeParentLevel(f->getPos(), e, ent);
+  assert(succeeded);
+  // TODO: give better error if !succeeded.
+
+  return 1;
+}
+
 // Creates a local variable to hold the import and translate the accessing of
 // the import, but doesn't add the import to the environment.
 varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
                                 formals *args)
 {
-  string filename=(string) id;
-  stringstream buf;
-  buf << id << '/' << args->getSignature(e)->handle() << '/';
-  symbol index=symbol::literalTrans(buf.str());
+  string moduleName=(string) id;
 
   auto *computedArgs = new mem::vector<namedTy*>();
   mem::vector<tySymbolPair> *fields = args->getFields();
@@ -1080,24 +1143,33 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     ));
   }
 
-  record *imp=e.e.getTemplatedModule(index,filename,computedArgs);
+  record *imp=e.e.getTemplatedModule(moduleName,computedArgs);
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
     em.sync(true);
     return nullptr;
   }
-  else {
-    // Create a varinit that evaluates to the module.
-    // This is effectively the expression 'loadModule(index)'.
-    callExp init(pos, new loadModuleExp(pos, imp), new stringExp(pos, index));
-
-    // The varEntry should have whereDefined()==0 as it is not defined inside
-    // the record r.
-    varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
-    initializeVar(pos, e, v, &init);
-    return v;
+  // Encode action: Push parents to the stack.
+  Int numParents = 0;
+  // TODO: Push parents in order, pop in reverse order.
+  for (auto p = args->fields.rbegin(); p != args->fields.rend(); ++p) {
+    numParents += transPushParent(*p, e);
   }
+
+  // Create a varinit that evaluates to the module.
+  // This is effectively the expression 'loadModule(index)'.
+  callExp init(
+          pos, new loadModuleExp(pos, imp, true),
+          new stringExp(pos, imp->getTemplateIndex()),
+          new intExp(pos, numParents)
+  );
+
+  // The varEntry should have whereDefined()==0 as it is not defined inside
+  // the record r.
+  varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
+  initializeVar(pos, e, v, &init);
+  return v;
 }
 
 
@@ -1300,8 +1372,20 @@ bool typeParam::transAsParamMatcher(coenv &e, record *module, namedTy* arg) {
   // but the only thing we use from the type is the level, so make a
   // new fake record.
   // TODO: give a better name
+  string fakeParentName;
+# ifdef DEBUG_FRAME
+  {
+    ostringstream oss;
+    oss << "<fake holding ";
+    print(oss, r->getLevel()->getParent());
+    oss << ">";
+    fakeParentName = oss.str();
+  }
+# else
+  fakeParentName = "<fake frameholder>";
+# endif
   record* fakeParent = new record(
-          symbol::literalTrans("<fake>"), r->getLevel()->getParent()
+          symbol::literalTrans(fakeParentName), r->getLevel()->getParent()
   );
   varEntry *v = makeVarEntryWhere(e, module, fakeParent, nullptr, getPos());
   // Encode bytecode to pop the parent off the stack into v.
@@ -1311,6 +1395,9 @@ bool typeParam::transAsParamMatcher(coenv &e, record *module, namedTy* arg) {
   // Build tyEntry, using v as ent->v.
   tyEntry *ent = new tyEntry(t, v, module, getPos());
   addTypeWithPermission(e, module, ent, name);
+
+  // Add any autounravel fields.
+  addNameOps(e, module, r, v, getPos());
 
 # if 0
   if(arg->t->kind == types::ty_record) {
@@ -1392,10 +1479,6 @@ void transTemplateParam(coenv &e, tyEntry *ent, symbol newName, position pos) {
 bool typeParamList::transAsParamMatcher(
   coenv &e, record *r, mem::vector<namedTy*> *args
 ) {
-
-  em.error(pos);
-  em << "not implemented";
-  return false;
 
   // Check that the number of arguments passed matches the number of parameters.
   if (args->size() != params.size()) {

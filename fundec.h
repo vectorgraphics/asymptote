@@ -70,8 +70,10 @@ struct tySymbolPair : public gc {
 
 class formals : public absyn {
   //friend class funheader;
-
+public:
+// TODO: refactor and make this private
   mem::list<formal *> fields;
+private:
   formal *rest;
 
   // If the list of formals contains at least one keyword-only formal.

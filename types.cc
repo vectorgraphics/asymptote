@@ -424,15 +424,16 @@ bool equivalent(const signature *s1, const signature *s2)
   // Handle null signature
   if (s1 == 0 || s2 == 0)
     return false;
-
+  
   // Two open signatures are always equivalent, as the formals are ignored.
   if (s1->isOpen)
     return s2->isOpen;
   else if (s2->isOpen)
     return false;
-
-  if (s1->formals.size() != s2->formals.size())
+  
+  if (s1->formals.size() != s2->formals.size()) {
     return false;
+  }
 
   if (!std::equal(s1->formals.begin(),s1->formals.end(),s2->formals.begin(),
                   (bool (*)(const formal&,const formal&)) equivalent))
@@ -472,7 +473,7 @@ size_t signature::hash() const {
   return x;
 }
 
-size_t signature::handle() {
+size_t signature::handle(bool debug) {
   processDataStruct *P=&processData();
   size_t h=hash();
   for(;;) {

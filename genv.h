@@ -42,7 +42,7 @@ class genv : public gc {
   void checkRecursion(string filename);
 
   // Translate a module to build the record type.
-  record *loadModule(symbol name, string s);
+  record *loadModule(symbol name, string filename);
   record *loadTemplatedModule(
       symbol id,
       string filename,
@@ -55,7 +55,6 @@ public:
   // Get an imported module, translating if necessary.
   record *getModule(symbol name, string filename);
   record *getTemplatedModule(
-      symbol index,
       string filename,
       mem::vector<absyntax::namedTy*> *args
   );
