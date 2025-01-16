@@ -261,10 +261,6 @@ public:
     coenv &e, record *r, mem::vector<absyntax::namedTy*>* args
   );
 
-  bool transAsTemplatedRecordBody(
-    coenv &e, record *r, mem::vector<absyntax::namedTy*> *args
-  );
-
   types::record *transAsFile(genv& ge, symbol id);
 
   types::record *transAsTemplatedFile(
