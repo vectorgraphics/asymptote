@@ -958,18 +958,11 @@ void vardec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 // returning for each use.
 class loadModuleExp : public exp {
   function *ft;
-  bool isTemplated;
 
 public:
-  loadModuleExp(position pos, record* imp, bool isTemplated= false)
-      : exp(pos), isTemplated(isTemplated)
+  loadModuleExp(position pos, record* imp) : exp(pos)
   {
-    if (isTemplated) {
-      ft= new function(imp, primString(), primInt());
-    }
-    else {
-      ft= new function(imp, primString());
-    }
+    ft= new function(imp, primString(), primInt());
   }
 
   void prettyprint(ostream &out, Int indent) {
@@ -984,11 +977,7 @@ public:
 
   void transCall(coenv &e, types::ty *t) {
     assert(equivalent(t, ft));
-    if (isTemplated) {
-      e.c.encode(inst::builtin, run::loadTemplatedModule);
-    } else {
-      e.c.encode(inst::builtin, run::loadModule);
-    }
+    e.c.encode(inst::builtin, run::loadModule);
   }
 
   types::ty *getType(coenv &) {
@@ -1015,9 +1004,10 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
   }
   else {
     // Create a varinit that evaluates to the module.
-    // This is effectively the expression 'loadModule(filename)'.
+    // This is effectively the expression 'loadModule(filename, 0)'.
     callExp init(
-            pos, new loadModuleExp(pos, imp), new stringExp(pos, filename)
+            pos, new loadModuleExp(pos, imp), new stringExp(pos, filename),
+            new intExp(pos, 0)
     );
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
@@ -1122,7 +1112,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
   // Create a varinit that evaluates to the module.
   // This is effectively the expression 'loadModule(index, numParents)'.
   callExp init(
-          pos, new loadModuleExp(pos, imp, true),
+          pos, new loadModuleExp(pos, imp),
           new stringExp(pos, imp->getTemplateIndex()),
           new intExp(pos, numParents)
   );

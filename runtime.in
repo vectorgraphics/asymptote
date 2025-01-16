@@ -768,13 +768,7 @@ string location() {
 }
 
 // Wrapper for the stack::loadModule() method.
-void :loadModule(string *index)
-{
-  Stack->loadModule(*index, 0);
-}
-
-// Wrapper for the stack::loadModule() method.
-void :loadTemplatedModule(string *index, Int numPushedParents)
+void :loadModule(string *index, Int numPushedParents)
 {
   Stack->loadModule(*index, numPushedParents);
 }
