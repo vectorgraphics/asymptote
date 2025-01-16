@@ -280,7 +280,6 @@ void block::transAsField(coenv &e, record *r)
 
 bool block::transAsTemplatedField(
   coenv &e, record *r, mem::vector<absyntax::namedTy*>* args
-  //frame *caller
 ) {
   Scope scopeHolder(e, scope);
   receiveTypedefDec *dec = getTypedefDec();
@@ -313,9 +312,8 @@ void block::transAsRecordBody(coenv &e, record *r)
 
 bool block::transAsTemplatedRecordBody(
   coenv &e, record *r, mem::vector<absyntax::namedTy*> *args
-  //frame *caller
 ) {
-  bool succeeded = transAsTemplatedField(e, r, args/*, caller*/);
+  bool succeeded = transAsTemplatedField(e, r, args);
   e.c.closeRecord();
   return succeeded;
 }
@@ -366,22 +364,6 @@ record* block::transAsTemplatedFile(
 )
 {
 
-  // for (auto p = args->rbegin(); p != args->rend(); ++p) {
-  //   namedTy *arg = *p;
-  //   tyEntry *ent = arg->ent;
-  //   if(ent->t->kind == types::ty_record) {
-  //     varEntry *v = ent->v;
-  //     if (v) {
-  //       // Push the value of v to the stack.
-  //       cout << "Pushing v to the stack" << endl;
-  //       v->getLocation()->encode(READ, arg->pos, cE.c);
-  //     } else  {
-  //       // Push the appropriate frame to the stack.
-  //       cout << "Pushing the appropriate frame to the stack" << endl;
-  //       newRecordExp::encodeLevel(arg->pos,cE,ent);
-  //     }
-  //   }
-  // }
 
   // Create the new module.
   record *r = new record(id, new frame(id, 0, 0));
@@ -930,28 +912,6 @@ void decidlist::createSymMapWType(
 #endif
 }
 
-void checkdec::prettyprint(ostream &out, Int indent)
-{
-  prettyname(out, "checkdec",indent, getPos());
-  base->prettyprint(out, indent+1);
-}
-
-void checkdec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{ }
-
-void checkdec::transAsField(coenv &e, record *r)
-{
-  // translate base from name to ty
-  types::ty *t = base->typeTrans(e, false);
-  if (usableInTemplate(t)) {
-    t->print(cout);
-    cout << " is usable in template" << endl;
-  } else {
-    t->print(cout);
-    cout << " is NOT usable in template" << endl;
-  }
-}
-
 
 void vardec::prettyprint(ostream &out, Int indent)
 {
@@ -1158,16 +1118,16 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
   }
 
   // Create a varinit that evaluates to the module.
-  // This is effectively the expression 'loadModule(index)'.
+  // This is effectively the expression 'loadModule(index, numParents)'.
   callExp init(
           pos, new loadModuleExp(pos, imp, true),
           new stringExp(pos, imp->getTemplateIndex()),
           new intExp(pos, numParents)
   );
 
-  // The varEntry should have whereDefined()==0 as it is not defined inside
-  // the record r.
-  varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
+  // The varEntry should have whereDefined()==nullptr as it is not defined
+  // inside the record r.
+  varEntry *v=makeVarEntryWhere(e, r, imp, nullptr, pos);
   initializeVar(pos, e, v, &init);
   return v;
 }
@@ -1399,43 +1359,6 @@ bool typeParam::transAsParamMatcher(coenv &e, record *module, namedTy* arg) {
   // Add any autounravel fields.
   addNameOps(e, module, r, v, getPos());
 
-# if 0
-  if(arg->t->kind == types::ty_record) {
-    record *module = dynamic_cast<record *>(arg->ent->v->getType());
-    symbol Module=symbol::literalTrans(module->getName());
-    record *imp=e.e.getLoadedModule(Module);
-
-    tyEntry *entry;
-    if(imp) {
-      callExp init(pos, new loadModuleExp(pos, imp),
-                   new stringExp(pos, module->getName()));
-      varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
-      initializeVar(pos, e, v, &init);
-      if (v)
-        addVar(e, r, v, Module);
-
-      record *src = dynamic_cast<record *>(arg->ent->t);
-      qualifiedName *qn=new qualifiedName(
-        pos,
-        new simpleName(pos,module->getName()),
-        src->getName()
-        );
-
-      entry=nameTy(pos,qn).transAsTyEntry(e, r);
-    } else {
-      entry=arg->ent;
-    }
-    addTypeWithPermission(e, r, entry, paramSym);
-
-    // Add any autounravel fields.
-    record *qt = dynamic_cast<record *>(entry->t);
-    assert(qt);  // Should always pass since arg->ent->t->kind == ty_record
-    varEntry *qv = entry->v;
-    addNameOps(e, r, qt, qv, pos);
-  } else
-    addTypeWithPermission(e, r, arg->ent, paramSym);
-# endif
-
   return true;
 }
 
@@ -1450,12 +1373,11 @@ void typeParamList::add(typeParam *tp) {
 }
 
 void transTemplateParam(coenv &e, tyEntry *ent, symbol newName, position pos) {
-  // If the type is not a record, add it to the environment.
-  // If the type is a record,
-  // Pops a parent off of the stack and stores it in a new variable.
-  // Builds a tyEntry where this variable is used when making new instances
-  // of the record.
-  // And then adds the type to the environment.
+  // If the type is not a record, adds it to the environment.
+  //
+  // If the type is a record, pops a parent off of the stack and stores it in a
+  // new variable. Then builds a tyEntry where this variable is used when making
+  // new instances of the record. And then adds the type to the environment.
   record *module = e.c.thisType();
   ty *t = ent->t;
   if (t->kind != types::ty_record) {
@@ -1496,31 +1418,6 @@ bool typeParamList::transAsParamMatcher(
     }
     return false;
   }
-# if 0
-  mem::vector<namedTy*> *qualifiedArgs = new mem::vector<namedTy*>();
-
-  const string callerContextName="callerContext/";
-  const static symbol *id0=new symbol(symbol::literalTrans(callerContextName));
-  record *callerContext = new record(*id0, caller);
-  for (namedTy *arg : *args) {
-    // TODO: Replace body of this loop with a call to transTemplateParam.
-    if (arg->ent->t->kind == types::ty_record) {
-      varEntry *v = arg->ent->v;
-      varEntry *newV = makeVarEntryWhere(
-          e, r, v ? v->getType() : callerContext, nullptr, arg->pos
-      );
-      newV->getLocation()->encode(WRITE, arg->pos, e.c);
-      e.c.encodePop();
-
-      tyEntry *newEnt = qualifyTyEntry(newV, arg->ent);
-      qualifiedArgs->push_back(
-        new namedTy(arg->pos, arg->dest, newEnt)
-        );
-    } else {
-      qualifiedArgs->push_back(arg);
-    }
-  }
-# endif
 
   for (size_t i = 0; i < params.size(); ++i) {
     bool succeeded = params[i]->transAsParamMatcher(e, r, (*args)[i]);
