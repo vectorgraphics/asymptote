@@ -473,7 +473,7 @@ size_t signature::hash() const {
   return x;
 }
 
-size_t signature::handle(bool debug) {
+size_t signature::handle() {
   processDataStruct *P=&processData();
   size_t h=hash();
   for(;;) {

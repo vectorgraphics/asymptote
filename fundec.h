@@ -70,9 +70,12 @@ struct tySymbolPair : public gc {
 
 class formals : public absyn {
   //friend class funheader;
-public:
-// TODO: refactor and make this private
   mem::list<formal *> fields;
+public:
+  auto begin() { return fields.begin(); }
+  auto end() { return fields.end(); }
+  auto rbegin() { return fields.rbegin(); }
+  auto rend() { return fields.rend(); }
 private:
   formal *rest;
 
