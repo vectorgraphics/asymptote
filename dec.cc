@@ -1055,8 +1055,11 @@ Int transPushParent(formal *f, coenv &e) {
   astType *astT = f->getAbsyntaxType();
   tyEntry *ent = astT->transAsTyEntry(e, nullptr);
   bool succeeded = encodeParentLevel(f->getPos(), e, ent);
-  assert(succeeded);
-  // TODO: give better error if !succeeded.
+  if (!succeeded) {
+    em.compiler(f->getPos());
+    em << "failed to encode parent level";
+    em.sync(true);
+  }
 
   return 1;
 }
