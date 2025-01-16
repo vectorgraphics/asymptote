@@ -304,12 +304,6 @@ bool block::transAsTemplatedField(
   return true;
 }
 
-void block::transAsRecordBody(coenv &e, record *r)
-{
-  transAsField(e, r);
-  e.c.closeRecord();
-}
-
 bool block::transAsTemplatedRecordBody(
   coenv &e, record *r, mem::vector<absyntax::namedTy*> *args
 ) {
@@ -352,7 +346,9 @@ record *block::transAsFile(genv& ge, symbol id)
     return nullptr;
   }
 
-  transAsRecordBody(ce, r);
+  transAsField(ce, r);
+  ce.c.closeRecord();
+
   em.sync();
   if (em.errors()) return nullptr;
 
@@ -1666,7 +1662,7 @@ void recorddec::transAsField(coenv &e, record *parent)
   transRecordInitializer(re, r);
 
   // This would normally be done right after transAsField, but we needed to add
-  // the default initializer first. See also block::transAsRecordBody().
+  // the default initializer first.
   re.c.closeRecord();
 
 

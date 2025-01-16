@@ -261,7 +261,6 @@ public:
     coenv &e, record *r, mem::vector<absyntax::namedTy*>* args
   );
 
-  void transAsRecordBody(coenv &e, record *r);
   bool transAsTemplatedRecordBody(
     coenv &e, record *r, mem::vector<absyntax::namedTy*> *args
   );
