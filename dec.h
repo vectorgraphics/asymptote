@@ -259,13 +259,11 @@ public:
 
   bool transAsTemplatedField(
     coenv &e, record *r, mem::vector<absyntax::namedTy*>* args
-    //trans::frame *caller
   );
 
   void transAsRecordBody(coenv &e, record *r);
   bool transAsTemplatedRecordBody(
     coenv &e, record *r, mem::vector<absyntax::namedTy*> *args
-    //trans::frame *caller
   );
 
   types::record *transAsFile(genv& ge, symbol id);
@@ -635,22 +633,6 @@ public:
   void transAsField(coenv& e, record* r) override;
 };
 
-// FOR DEBUGGING ONLY
-// TODO: Remove this class before merging.
-class checkdec: public dec {
-  name *base;
-
-public:
-  checkdec(position pos, name *base)
-    : dec(pos), base(base) {}
-
-  void prettyprint(ostream &out, Int indent) override;
-
-  void transAsField(coenv &e, record *r) override;
-
-  void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
-};
-
 class typeParam : public absyn {
   const symbol paramSym;
 public:
@@ -671,7 +653,7 @@ public:
   void add(typeParam *tp);
 
   bool transAsParamMatcher(coenv &e, record *r,
-                           mem::vector<namedTy*> *args/*, trans::frame *caller*/);
+                           mem::vector<namedTy*> *args);
 
   void prettyprint(ostream &out, Int indent);
 };
@@ -686,7 +668,7 @@ public:
 
   void transAsField(coenv& e, record *r) override;
   bool transAsParamMatcher(
-    coenv& e, record *r, mem::vector<namedTy*> *args/*, trans::frame *caller*/
+    coenv& e, record *r, mem::vector<namedTy*> *args
   );
 };
 
