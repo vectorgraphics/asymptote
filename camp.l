@@ -39,7 +39,7 @@ Int tokPos;
 Int charPos;
 //int commentDepth = 0;
 
-bool eof;
+bool isEof;
 string eofMessage;
 
 extern errorstream em;
@@ -62,7 +62,7 @@ void setlexer(input_f input, string filename)
   yy_input = input;
   tokPos = charPos = 1;
 
-  eof=false;
+  isEof=false;
   eofMessage="<no eof>";
 }
 
@@ -101,7 +101,7 @@ void savesymbol(symbol name)
  * etc.  Following the Don't Repeat Yourself principle, the mapping from
  * strings to names is defined only here in camp.l (because we can't produce
  * lex rules from a C style macro).
- * The script opsymbols.pl reads this file scanning for rules using DEFSYMBOL
+ * The script opsymbols.py reads this file scanning for rules using DEFSYMBOL
  * and creates opsymbols.h which defines the names for use in C++ code.
  */
 #define DEFSYMBOL(name) \
@@ -151,7 +151,7 @@ void error(void)
 // the error message that should be reported, and may differ if, say the input
 // ends in the middle of a string or comment.
 void setEOF(string message) {
-  eof=true;
+  isEof=true;
   eofMessage=message;
 }
 
@@ -159,16 +159,16 @@ void setEOF(string message) {
 // running out of input.
 bool lexerEOF()
 {
-  return eof;
+  return isEof;
 }
 
 // Called by code outside of the lexer when it wants to report the unexpected
 // eof as an error (instead of looking for more input).
 void reportEOF() {
-  assert(eof);
+  assert(isEof);
   error();
   em << eofMessage;
-  em.sync();
+  em.sync(true);
 }
 
 position stringpos; // The position of the start of the string.
@@ -376,7 +376,7 @@ static             {adjust(); makemod(trans::EXPLICIT_STATIC);
 public             {adjust(); makeperm(trans::PUBLIC); return PERM; }
 private            {adjust(); makeperm(trans::PRIVATE); return PERM; }
 restricted         {adjust(); makeperm(trans::RESTRICTED); return PERM; }
-this               {adjust(); return THIS; }
+this               {adjust(); return THIS_TOK; }
 explicit           {adjust(); return EXPLICIT; }
 
 

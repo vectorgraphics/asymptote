@@ -8,37 +8,29 @@
 #include <cassert>
 #include <iostream>
 #include <sstream>
-#include <sys/wait.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <csignal>
 #include <cstdio>
 #include <cstring>
 
+#if !defined(_WIN32)
+#include <sys/wait.h>
+#include <unistd.h>
+#else
+#include <Windows.h>
+#include <io.h>
+#define isatty _isatty
+#endif
+
 #include "interact.h"
 #include "runhistory.h"
 
-#ifdef HAVE_LIBCURSES
-#ifdef HAVE_LIBREADLINE
-#include <readline/readline.h>
-#include <readline/history.h>
-#else
-#ifdef HAVE_LIBEDIT
-// Work around incorrect declaration in NetBSD readline.h v1.33
-#define rl_completion_entry_function rl_completion_entry_function_declaration
-#ifdef HAVE_EDITLINE_READLINE_H
-#include <editline/readline.h>
-#else
-#include <readline/readline.h>
-#endif
-#undef rl_completion_entry_function
-extern "C" rl_compentry_func_t *rl_completion_entry_function;
-#endif
-#endif
-#endif
-
 #include "util.h"
 #include "errormsg.h"
+
+#if !defined(_WIN32)
+#define _fdopen fdopen
+#endif
 
 using namespace settings;
 
@@ -122,7 +114,10 @@ void pre_readline()
 {
   int fd=intcast(settings::getSetting<Int>("inpipe"));
   if(fd >= 0) {
-    if(!fin) fin=fdopen(fd,"r");
+    if(!fin)
+    {
+      fin=_fdopen(fd,"r");
+    }
     if(!fin) {
       cerr << "Cannot open inpipe " << fd << endl;
       exit(-1);
@@ -147,7 +142,7 @@ void init_readline(bool tabcompletion)
 
 void init_interactive()
 {
-  if(getSetting<bool>("xasy")) tty=false;
+  if(settings::xasy) tty=false;
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   if(tty) {
     init_completion();
@@ -183,7 +178,7 @@ string simpleline(string prompt) {
 #endif
       {
         cout << endl;
-        throw eof();
+        throw EofException();
       }
     return "";
   }

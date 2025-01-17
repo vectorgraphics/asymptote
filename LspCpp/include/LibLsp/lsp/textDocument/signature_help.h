@@ -6,11 +6,6 @@
 #include "LibLsp/lsp/lsMarkedString.h"
 #include "LibLsp/lsp/lsTextDocumentPositionParams.h"
 
-extern  void Reflect(Reader& visitor,
-        std::pair<optional<std::string>, optional<MarkupContent>>& value);
-
-
-
 // Represents a parameter of a callable-signature. A parameter can
 // have a label and a doc-comment.
 struct lsParameterInformation {

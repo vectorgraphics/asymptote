@@ -30,6 +30,8 @@ import queue
 import io
 import atexit
 import DebugFlags
+import threading
+from typing import Optional
 
 import xasyUtils as xu
 import xasyArgs as xa
@@ -70,7 +72,14 @@ class AsymptoteEngine:
     """
 
     xasy=chr(4)+'\n'
-    def __init__(self, path=None, keepFiles=DebugFlags.keepFiles, keepDefaultArgs=True):
+    def __init__(
+        self,
+        path=None,
+        addrArgsParam: Optional[list[str]] = None,
+        keepFiles=DebugFlags.keepFiles,
+        keepDefaultArgs=True
+    ):
+        addrArgs = addrArgsParam or []
         if path is None:
             path = xa.getArgs().asypath
             if path is None:
@@ -92,10 +101,7 @@ class AsymptoteEngine:
             self.istream = os.fdopen(ra, 'r')
 
         self.keepFiles = keepFiles
-        if sys.platform[:3] == 'win':
-            self.tmpdir = tempfile.mkdtemp(prefix='xasyData_',dir='./')+'/'
-        else:
-            self.tmpdir = tempfile.mkdtemp(prefix='xasyData_')+os.sep
+        self.tmpdir = tempfile.mkdtemp(prefix='xasyData_')+os.sep
 
         if xa.getArgs().render:
             renderDensity=xa.getArgs().render
@@ -106,7 +112,15 @@ class AsymptoteEngine:
                 renderDensity = 2
         renderDensity=max(renderDensity,1)
 
-        self.args=['-xasy', '-noV', '-q', '-outformat=', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-render='+str(renderDensity), '-o', self.tmpdir]
+        self.args=addrArgs + [
+            '-xasy',
+            '-noV',
+            '-q',
+            '-outformat=',
+            '-inpipe=' + str(rx),
+            '-outpipe=' + str(wa),
+            '-render='+str(renderDensity),
+            '-o', self.tmpdir]
 
         self.asyPath = path
         self.asyProcess = None
@@ -115,9 +129,11 @@ class AsymptoteEngine:
         """ starts a subprocess (opens a pipe) """
         try:
             if sys.platform[:3] == 'win':
-                self.asyProcess = subprocess.Popen([self.asyPath] + self.args,
-                                                stdin=subprocess.PIPE, stderr=subprocess.PIPE,
-                                                universal_newlines=True)
+                self.asyProcess = subprocess.Popen(
+                    [self.asyPath] + self.args,
+                    stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                    text=True
+                )
                 self.ostream = self.asyProcess.stdin
                 self.istream = self.asyProcess.stderr
             else:
@@ -583,23 +599,6 @@ class asyPath(asyObj):
         newObj.asyengine = oldPath.asyengine
 
         return newObj
-
-    @classmethod
-    def fromBezierPoints(cls, pointList: list, engine=None):
-        if not pointList:
-            return None
-        assert isinstance(pointList[0], BezierCurveEditor.BezierPoint)
-        nodeList = []
-        controlList = []
-        for point in pointList:
-            nodeList.append(BezierCurveEditor.QPoint2Tuple(point.point))
-            if point.rCtrlPoint is not None:  # first
-                controlList.append([BezierCurveEditor.QPoint2Tuple(point.rCtrlPoint)])
-            if point.lCtrlPoint is not None:  # last
-                controlList[-1].append(BezierCurveEditor.QPoint2Tuple(point.lCtrlPoint))
-        newPath = asyPath(asyengine=engine)
-        newPath.initFromControls(nodeList, controlList)
-        return newPath
 
     def setInfo(self, path):
         self.nodeSet = copy.copy(path.nodeSet)

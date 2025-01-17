@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.16)
 
 if(POLICY CMP0025)
     # detect Apple's Clang
@@ -43,15 +43,37 @@ option_if_not_defined(LSPCPP_ASAN "Build lsp with address sanitizer" OFF)
 option_if_not_defined(LSPCPP_MSAN "Build lsp with memory sanitizer" OFF)
 option_if_not_defined(LSPCPP_TSAN "Build lsp with thread sanitizer" OFF)
 option_if_not_defined(LSPCPP_INSTALL "Create lsp install target" OFF)
-option_if_not_defined(LSPCPP_SUPPORT_BOEHM_GC
-    "Enable support for Boehm GC. Boehm GC must be available by find_package(BDWgc CONFIG REQUIRED)." OFF)
+option_if_not_defined(LSPCPP_SUPPORT_BOEHM_GC "\
+Enable support for Boehm GC. GC must be specified LSPCPP_GC_DOWNLOADED_ROOT, if downloaded or by
+find_package(BDWgc CONFIG REQUIRED) or pkg_config." OFF)
 option_if_not_defined(LSPCPP_USE_CPP17 "Use C++17 for compilation. Setting this to off requires boost-optional." OFF)
 
+set(LSPCPP_GC_DOWNLOADED_ROOT "" CACHE STRING "\
+If using downloaded gc root from https://www.hboehm.info/gc/, extract its contents and set this setting to
+where the tar.gz file is extracted to. This directory must be an absolute path.
+If this setting is set, LspCpp will use downloaded GC regardless of whether GC from find_package or
+pkg_config is available or not.
+")
+option_if_not_defined(LSPCPP_GC_STATIC "Compiling with static gc library. Only used if a custom GC root is given" OFF)
+set(LSPCPP_WIN32_WINNT_VALUE "0x0A00" CACHE STRING
+        "Value to specify for _WIN32_WINNT macro when compiling on windows. See
+https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt?view=msvc-170"
+)
 
+###########################################################
 # Boehm GC
+###########################################################
 
-if (LSPCPP_SUPPORT_BOEHM_GC)
-    find_package(BDWgc CONFIG REQUIRED)
+if (LSPCPP_SUPPORT_BOEHM_GC AND NOT LSPCPP_GC_DOWNLOADED_ROOT)
+    message(STATUS "Attempting to find BDWgc by find_package")
+    find_package(BDWgc CONFIG)
+    if (NOT BDWgc_FOUND)
+        set(GC_USE_PKGCONFIG 1)
+        # fallback to pkg-config
+        message(STATUS "CMake config for BDWgc not found; falling back to pkg-config")
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(gc REQUIRED IMPORTED_TARGET bdw-gc)
+    endif()
 endif()
 
 ###########################################################
@@ -167,10 +189,37 @@ function(lspcpp_set_target_options target)
     # endif()
 
     if (LSPCPP_SUPPORT_BOEHM_GC)
-        target_link_libraries(${target} PUBLIC BDWgc::gc)
+        if (LSPCPP_GC_DOWNLOADED_ROOT)
+            message(STATUS "Using manually downloaded GC")
+            target_include_directories(${target} PUBLIC ${LSPCPP_GC_DOWNLOADED_ROOT}/include)
+
+            if (LSPCPP_GC_STATIC)
+                target_compile_definitions(${target} PUBLIC GC_NOT_DLL)
+            endif()
+        else()
+            if (NOT GC_USE_PKGCONFIG)
+                message(STATUS "Using cmake config for locating gc")
+                target_link_libraries(${target} PUBLIC BDWgc::gc)
+                get_target_property(GC_INCLUDE_DIRS_BASE BDWgc::gc INTERFACE_INCLUDE_DIRECTORIES)
+            else()
+                message(STATUS "Using pkg-config for locating gc")
+                target_link_libraries(${target} PUBLIC PkgConfig::gc)
+                get_target_property(GC_INCLUDE_DIRS_BASE PkgConfig::gc INTERFACE_INCLUDE_DIRECTORIES)
+            endif()
+
+            if (NOT GC_INCLUDE_DIRS_BASE STREQUAL "GC_INCLUDE_DIRS_BASE-NOTFOUND")
+                list(TRANSFORM GC_INCLUDE_DIRS_BASE APPEND /gc)
+                target_include_directories(${target} PUBLIC ${GC_INCLUDE_DIRS_BASE})
+            else()
+                message(WARNING "Cannot find GC include directories; compilation may not work")
+            endif()
+        endif()
         target_compile_definitions(${target} PUBLIC LSPCPP_USEGC)
     endif()
 
+    if (WIN32)
+        target_compile_definitions(${target} PRIVATE _WIN32_WINNT=${LSPCPP_WIN32_WINNT_VALUE})
+    endif()
 endfunction()
 
 
@@ -195,12 +244,14 @@ if (CMAKE_GENERATOR MATCHES "Visual Studio.*")
     INSTALL_NUGET(boost_thread-vc141 1.76.0.0)
 else()
 
-    find_package(Boost COMPONENTS date_time  chrono filesystem system thread program_options)
+    find_package(Boost CONFIG COMPONENTS date_time  chrono filesystem system thread program_options)
     if(NOT Boost_FOUND)
         if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
             message(FATAL_ERROR "Can't find boost,lease build boost and install it or install boost with : brew install boost")
         elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
             message(FATAL_ERROR "Can't find boost,please build boost and install it. or install boost with : sudo apt-get install libboost-dev")
+        else()
+            message(FATAL_ERROR "Boost not found. Please ensure boost is available for CMake.")
         endif()
     endif()
 endif()
@@ -361,3 +412,6 @@ if(LSPCPP_BUILD_EXAMPLES)
         build_example(${example})
     endforeach()
 endif()
+
+# Add a distclean target to the Makefile
+ADD_CUSTOM_TARGET(distclean COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/distclean.cmake)

@@ -98,7 +98,8 @@ void shipout(string prefix=defaultfilename, frame f,
     }
   }
 
-  bool defaultprefix=prefix==defaultfilename;
+  bool defaultprefix=prefix == defaultfilename &&
+    outformat(format) == outformat("");
 
   if(settings.xasy || (!implicitshipout && defaultprefix)) {
     if(defaultprefix) {
@@ -122,6 +123,8 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	     string options="", string script="",
 	     light light=currentlight, projection P=currentprojection)
 {
+  projection P=centered(P,pic);
+
   if(!uptodate()) {
     bool inlinetex=settings.inlinetex;
     bool prc=prc(format) || settings.v3d;

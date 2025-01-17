@@ -17,7 +17,7 @@
 #include "modifier.h"
 #include "runtime.h"
 #include "locate.h"
-#include "parser.h"
+#include "asyparser.h"
 // #include "builtin.h"  // for trans::addRecordOps
 
 namespace absyntax {
@@ -128,7 +128,7 @@ arrayTy::operator string() const
 }
 
 tyEntryTy::tyEntryTy(position pos, types::ty *t)
-  : astType(pos), ent(new trans::tyEntry(t, 0, 0, position()))
+  : astType(pos), ent(new trans::tyEntry(t, 0, 0, nullPos))
 {
 }
 
@@ -194,7 +194,7 @@ void block::transAsField(coenv &e, record *r)
   Scope scopeHolder(e, scope);
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
     (*p)->markTransAsField(e, r);
-    if (em.errors() && !settings::getSetting<bool>("debug"))
+    if (em.errors() && !settings::debug)
       break;
   }
 }
@@ -212,7 +212,7 @@ bool block::transAsTemplatedField(
   if (!dec) {
     em.error(getPos());
     em << "expected 'typedef import(<types>);'";
-    em.sync();
+    em.sync(true);
     return false;
   }
   if(!dec->transAsParamMatcher(e, r, args, caller))
@@ -220,7 +220,7 @@ bool block::transAsTemplatedField(
 
   while (++p != stms.end()) {
     (*p)->markTransAsField(e, r);
-    if (em.errors() && !settings::getSetting<bool>("debug")) {
+    if (em.errors() && !settings::debug) {
       return false;
     }
   }
@@ -622,7 +622,7 @@ void addVar(coenv &e, record *r, varEntry *v, symbol id)
 {
   // Test for 'operator init' definitions that implicitly define constructors:
   if (definesImplicitConstructor(e, r, v, id))
-    addConstructorFromInitializer(position(), e, r, v);
+    addConstructorFromInitializer(nullPos, e, r, v);
 
   // Add to the record so it can be accessed when qualified; add to the
   // environment so it can be accessed unqualified in the scope of the
@@ -888,7 +888,7 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << filename << "'";
-    em.sync();
+    em.sync(true);
     return 0;
   }
   else {
@@ -923,7 +923,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
     if (theName == symbol::nullsym) {
       em.error(theType->getPos());
       em << "expected typename=";
-      em.sync();
+      em.sync(true);
       return nullptr;
     }
     computedArgs->push_back(new namedTyEntry(
@@ -935,7 +935,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
-    em.sync();
+    em.sync(true);
     return nullptr;
   }
   else {
@@ -1246,7 +1246,7 @@ void receiveTypedefDec::transAsField(coenv& e, record *r) {
   } else {
     em << "templated module access requires template parameters";
   }
-  em.sync();
+  em.sync(true);
 }
 
 
@@ -1375,7 +1375,7 @@ void includedec::loadFailed(coenv &)
 {
   em.warning(getPos());
   em << "could not parse file of name '" << filename << "'";
-  em.sync();
+  em.sync(true);
 }
 
 void includedec::transAsField(coenv &e, record *r)
@@ -1479,7 +1479,7 @@ void recorddec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
 runnable *autoplainRunnable() {
   // Abstract syntax for the code:
   //   private import plain;
-  position pos=position();
+  position pos=nullPos;
   static importdec ap(pos, new idpair(pos, symbol::literalTrans("plain")));
   static modifiedRunnable mr(pos, trans::PRIVATE, &ap);
 

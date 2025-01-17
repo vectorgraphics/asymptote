@@ -17,8 +17,6 @@ real pageheight=-2pagemargin;
 bool landscape=orientation == Landscape || orientation == Seascape;
 
 if(landscape) {
-  usepackage("geometry");
-  texpreamble("\geometry{landscape}");
   orientation=Portrait;
   pagewidth += settings.paperheight;
   pageheight += settings.paperwidth;
@@ -26,6 +24,9 @@ if(landscape) {
   pagewidth += settings.paperwidth;
   pageheight += settings.paperheight;
 }
+
+texpreamble("\paperwidth="+string(pagewidth)+"bp");
+texpreamble("\paperheight"+string(pageheight)+"bp");
 
 size(pagewidth,pageheight,IgnoreAspect);
 picture background;
@@ -403,21 +404,26 @@ void display(string s, string caption="", pair align=S, pen p=itempen,
 
 void figure(string[] s, string options="", real margin=0,
             string[] captions=new string[], string caption="",
+            string[] url=new string[],
             pair align=S, pen p=itempen, pen figuremattpen=figuremattpen,
             bool final=true)
 {
   string[] S;
   for(int i=0; i < s.length; ++i) {
     S[i]=graphic(s[i],options);
+    if(i < url.length && url[i] != "")
+      S[i]="\href{"+url[i]+"/"+s[i]+".html}{"+S[i]+"}";
   }
 
   display(S,margin,captions,caption,align,itempen,figuremattpen,final);
 }
 
-void figure(string s, string options="", string caption="", pair align=S,
+void figure(string s, string options="", string caption="",
+            string url="", pair align=S,
             pen p=itempen, pen figuremattpen=figuremattpen, bool final=true)
 {
-  figure(new string[] {s},options,caption,align,p,figuremattpen,final);
+  figure(new string[] {s},options,caption,new string[] {url},align,p,
+         figuremattpen,final);
 }
 
 void multifigure(string[] slist, string options="", string caption="",

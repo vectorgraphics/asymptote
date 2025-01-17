@@ -201,7 +201,7 @@ Labels and equations are typeset with @code{LaTeX}, for overall document
 consistency, yielding the same high-quality level of typesetting that
 @code{LaTeX} provides for scientific text. By default it produces
 @code{PostScript} output, but it can also generate @code{OpenGL}, @code{PDF},
-@code{SVG}, @code{WebGL}, @code{V3D}, and @code{PRC} vector graphics,
+@code{SVG}, @code{WebGL}, @code{V3D}, and legacy @code{PRC} vector graphics,
 along with any format that the @code{ImageMagick} package can
 produce. You can even try it out in your Web browser without
 installing it, using the @code{Asymptote Web Application}
@@ -1460,9 +1460,10 @@ In the second form, the elements of @code{z} are taken to be successive
 nodes of path @code{g}. The pens in @code{p} must belong to the same
 color space. Illustrations of Gouraud shading are provided in the example file
 @code{@uref{https://asymptote.sourceforge.io/gallery/PDFs/Gouraud.pdf,,Gouraud}@uref{https://asymptote.sourceforge.io/gallery/PDFs/Gouraud.asy,,.asy}}.
-The edge flags used in Gouraud shading are documented here:
+The edge flags used in Gouraud shading are documented on pages 270--274
+of the PostScript Language Reference (3rd edition):
 @quotation
-@url{https://www.adobe.com/content/dam/acom/en/devnet/postscript/pdfs/TN5600.SmoothShading.pdf}
+@url{https://www.adobe.com/jp/print/postscript/pdfs/PLRM.pdf}
 @end quotation
 
 @cindex Coons shading
@@ -3318,8 +3319,8 @@ following foreground--background blending operations:
 "HardLight","ColorDodge","ColorBurn","Darken","Lighten","Difference",
 "Exclusion","Hue","Saturation","Color","Luminosity",
 @end verbatim
-as described in
-@url{https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf}.
+as described in Tables 136 and 137 of
+@url{https://opensource.adobe.com/dc-acrobat-sdk-docs/standards/pdfstandards/pdf/PDF32000_2008.pdf}.
 Since @code{PostScript} does not support transparency, this feature is
 only effective with the @code{-f pdf} output format option; other
 formats can be produced from the resulting @acronym{PDF} file with the
@@ -3633,6 +3634,8 @@ are only relevant for 3D pictures. If @code{defaultfilename} is an
 empty string, the prefix @code{outprefix()} will be used.
 
 A @code{shipout()} command is added implicitly at file exit.
+Explicit @code{shipout()} commands to the same file as the final implicit
+shipout are ignored.
 @cindex @code{orientation}
 @cindex @code{Portrait}
 @cindex @code{Landscape}
@@ -4147,7 +4150,7 @@ comma). Here are some simple examples of data output:
 @verbatim
 file fout=output("test.txt");
 write(fout,1);                  // Writes "1"
-write(fout);                    // Writes a new line
+write(fout, endl);              // Writes a new line
 write(fout,"List: ",1,2,3);     // Writes "List: 1     2     3"
 @end verbatim
 @noindent
@@ -5253,7 +5256,9 @@ function (equivalent to @code{fabs(real)}), an @code{abs(pair)} function
 @cindex @code{histogram}
 @cindex @code{factorial}
 @cindex @code{choose}
-Random numbers can be seeded with @code{srand(int)} and generated with
+Random numbers can be seeded with @code{srand(int)}
+(for example, with @code{srand(round((cputime().parent.clock%1)*1e9))})
+and generated with
 the @code{int rand()} function, which returns a random integer between 0
 and the integer @code{randMax}. The @code{unitrand()} function returns
 a random number uniformly distributed in the interval [0,1].
@@ -5609,15 +5614,16 @@ returns the indices of all @code{true} values in the boolean array @code{a};
 @cindex @code{search}
 @item int search(T[] a, T key)
 For built-in ordered types @code{T}, searches a sorted array
-@code{a} of @code{n} elements for k, returning the index @code{i}
+@code{a} of @code{n} elements for @code{key}, returning the index @code{i}
 if @code{a[i] <= key < a[i+1]}, @code{-1} if @code{key} is
 less than all elements of @code{a}, or @code{n-1} if @code{key} is
 greater than or equal to the last element of @code{a};
 
 @cindex @code{search}
 @item int search(T[] a, T key, bool less(T i, T j))
-searches an array @code{a} sorted in ascending order such that element
-@code{i} precedes element @code{j} if @code{less(i,j)} is true;
+searches an array @code{a} for @code{key} sorted in ascending order
+such that element @code{i} precedes element @code{j} if
+@code{less(i,j)} is true;
 
 @cindex @code{copy}
 @item T[] copy(T[] a)
@@ -8221,6 +8227,21 @@ other formats. One can request a completely transparent background for
 3D @code{WebGL} images with
 @code{currentlight.background=black+opacity(0.0);}
 
+@code{render}
+
+A function @code{render()} may be assigned to the optional
+@code{render} parameter allows one to pass specialized rendering
+options to the surface drawing routines, via arguments such as:
+@verbatim
+  bool tessellate;   // use tessellated mesh to store straight patches
+  real margin;       // shrink amount for rendered OpenGL viewport, in bp.
+  bool partnames;    // assign part name indices to compound objects
+  bool defaultnames; // assign default names to unnamed objects
+  interaction interaction; // billboard interaction mode
+@end verbatim
+along with the rendering parameters for the legacy @acronym{PRC} format
+described in @code{three.asy}.
+
 @cindex image-based lighting
 @cindex @code{surface}
 @cindex @code{ibl}
@@ -8252,7 +8273,7 @@ The examples @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vertex
 vertex-dependent colors, which are supported by
 @code{Asymptote}'s native @code{OpenGL}/@code{WebGL} renderers
 and the two-dimensional vector output format (@code{settings.render=0}). Since
-the @acronym{PRC} output format does not currently support vertex
+the legacy @acronym{PRC} output format does not support vertex
 shading of Bezier surfaces, @acronym{PRC} patches are shaded with the mean of the four vertex colors.
 
 @cindex @code{surface}
@@ -8466,7 +8487,7 @@ with the setting @code{iconify=true}.
 
 @cindex @code{prc}
 @cindex @code{views}
-@item Embed the 3D @acronym{PRC} format in a @acronym{PDF} file
+@item Embed the 3D legacy @acronym{PRC} format in a @acronym{PDF} file
 and view the resulting @acronym{PDF} file with
 version @code{9.0} or later of @code{Adobe Reader}.
 This requires @code{settings.outformat="pdf"} and @code{settings.prc=true},
@@ -8661,7 +8682,7 @@ positive @math{y} axis is drawn at this angle in degrees.
 @cindex @code{target}
 @cindex @code{showtarget}
 @cindex @code{center}
-@item orthographic(triple camera, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ real zoom=1, pair viewportshift=0, bool showtarget=true, @*@ @ @ @ @ @ @ @ @ @ @ @ @ bool center=false)
+@item orthographic(triple camera, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ real zoom=1, pair viewportshift=0, bool showtarget=true, @*@ @ @ @ @ @ @ @ @ @ @ @ @ bool center=true)
 This projects from three to two dimensions using the view as seen at a point
 infinitely far away in the direction @code{unit(camera)}, orienting the camera
 so that, if possible, the vector @code{up} points upwards. Parallel
@@ -8670,7 +8691,7 @@ to include @code{target} if @code{showtarget=true}.
 If @code{center=true}, the target will be adjusted to the center of the
 bounding volume.
 
-@item orthographic(real x, real y, real z, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ real zoom=1, pair viewportshift=0, bool showtarget=true, @*@ @ @ @ @ @ @ @ @ @ @ @ @ bool center=false)
+@item orthographic(real x, real y, real z, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ real zoom=1, pair viewportshift=0, bool showtarget=true, @*@ @ @ @ @ @ @ @ @ @ @ @ @ bool center=true)
 This is equivalent to
 @verbatim
 orthographic((x,y,z),up,target,zoom,viewportshift,showtarget,center)
@@ -8688,7 +8709,6 @@ at angle @code{beta}, and the @math{z} axis up.
 @cindex @code{autoadjust}
 @item perspective(triple camera, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ real zoom=1, real angle=0, pair viewportshift=0, @*@ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool autoadjust=true, @*@ @ @ @ @ @ @ @ @ @ @ @ bool center=autoadjust)
 @cindex @code{perspective}
-@cindex @code{NURBS}
 This projects from three to two dimensions, taking account of
 perspective, as seen from the location @code{camera} looking at @code{target},
 orienting the camera so that, if possible, the vector @code{up} points upwards.
@@ -9125,7 +9145,9 @@ To draw an @math{x} axis in three dimensions, use the routine
 @verbatim
 void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
             real xmin=-infinity, real xmax=infinity, pen p=currentpen,
-            ticks3 ticks=NoTicks3, arrowbar3 arrow=None, bool above=false);
+            ticks3 ticks=NoTicks3, arrowbar3 arrow=None,
+            margin3 margin=NoMargin3, bool above=false,
+            projection P=currentprojection);
 @end verbatim
 @noindent
 Analogous routines @code{yaxis} and @code{zaxis} can be used to draw
@@ -9137,7 +9159,8 @@ void axes3(picture pic=currentpicture,
            bool extend=false,
            triple min=(-infinity,-infinity,-infinity),
            triple max=(infinity,infinity,infinity),
-           pen p=currentpen, arrowbar3 arrow=None);
+           pen p=currentpen, arrowbar3 arrow=None,
+           margin3 margin=NoMargin3, projection P=currentprojection);
 @end verbatim
 
 @cindex @code{YZEquals}
@@ -10041,6 +10064,10 @@ and the @code{librsvg} package on @code{MacOS X}; under
 
 @url{https://sourceforge.net/projects/tumagcc/files/rsvg-convert-2.40.20.7z}
 
+Ensure that @code{rsvg-convert} is available in @code{PATH}, or
+specify the location of @code{rsvg-convert} in @code{rsvgConverterPath}
+option within @code{xasy}'s settings.
+
 @cindex @code{dvisvgmMultipleFiles}
 Deconstruction of a picture into its components is fastest when using
 the @code{LaTeX} TeX engine. The default setting
@@ -10497,7 +10524,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  NoZero NoZeroFormat abbrevation gsOptions namespace redeclared
 @c  LocalWords:  atLeast intMin globalwrite quarticroots deconsruct substrings
 @c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt DefaultHead
-@c  LocalWords:  SimpleHead HookHead TeXHead multipage NURBS inlinemovie dxmax
+@c  LocalWords:  SimpleHead HookHead TeXHead multipage inlinemovie dxmax
 @c  LocalWords:  simpson NoBox truesize autoscale shadestroke recurses mintimes
 @c  LocalWords:  nonoverlapping texengine maxtimes maxheight pdb TEXMFCONFIG Jn
 @c  LocalWords:  piecewisestraight unitrand graphmarkers antialias nolight newl

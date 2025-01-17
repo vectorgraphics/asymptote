@@ -1,3 +1,5 @@
+settings.tex="pdflatex";
+
 // Slide demo.
 // Command-line options to enable stepping and/or reverse video:
 // asy [-u stepping=true] [-u reverse=true] [-u itemstep=true] slidedemo
