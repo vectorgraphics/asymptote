@@ -3,7 +3,7 @@
 #include <boost/process.hpp>
 
 #ifdef _WIN32
-#include <boost/process/windows.hpp>
+#include <boost/process/v1/windows.hpp>
 #endif
 
 #include <boost/filesystem.hpp>
@@ -59,7 +59,7 @@ struct ParentProcessWatcher::ParentProcessWatcherData : std::enable_shared_from_
 #endif
                         bp::std_out > *read_from_service,
                         bp::std_in < *write_to_service,
-                        bp::on_exit([self](int exit_code, const std::error_code& ec_in) {
+                        bp::on_exit([self](int exit_code, const std::error_code&) {
                                 // the tasklist command should return 0 (parent process exists) or 1 (parent process doesn't exist)
                                 if (exit_code == 1)//
                                 {

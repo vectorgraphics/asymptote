@@ -28,6 +28,7 @@
 #else
 #define ENSURE_STRING_MACRO_ARGUMENT(x) x
 #endif
+#include <boost/utility.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string.hpp>
@@ -294,7 +295,7 @@ bool IsDirectory(const std::string& path) {
 }
 
     std::string ws2s(std::wstring const& wstr) {
-        if(sizeof(wchar_t) == 2){
+        BOOST_IF_CONSTEXPR(sizeof(wchar_t) == 2){
             std::string narrow;
             utf8::utf16to8(wstr.begin(), wstr.end(), std::back_inserter(narrow));
             return narrow;
@@ -307,7 +308,7 @@ bool IsDirectory(const std::string& path) {
     }
     std::wstring s2ws(const std::string& str) {
         std::wstring wide;
-        if(sizeof(wchar_t) == 2){
+        BOOST_IF_CONSTEXPR(sizeof(wchar_t) == 2){
             utf8::utf8to16(str.begin(), str.end(), std::back_inserter(wide));
             return wide;
         }else{
@@ -516,7 +517,7 @@ void scanDirsUseRecursive(const std::wstring& rootPath, std::vector<std::wstring
                                 ret.push_back(iter->path().wstring());
                         }
                 }
-                catch (const std::exception& ex) {
+                catch (const std::exception&) {
                         continue;
                 }
         }

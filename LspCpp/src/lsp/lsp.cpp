@@ -715,12 +715,13 @@ std::string lsDocumentUri::GetRawPath() const {
 #else
         size_t i = 7;
 #endif
-        auto from_hex = [](unsigned char c) {
-                return c - '0' < 10 ? c - '0' : (c | 32) - 'a' + 10;
+        auto from_hex = [](const unsigned char& c) -> unsigned int {
+                unsigned char c_from_zero_char = c - '0';
+                return c_from_zero_char < 10 ? c_from_zero_char : (c | 32) - 'a' + 10;
         };
         for (; i < raw_uri_.size(); i++) {
                 if (i + 3 <= raw_uri_.size() && raw_uri_[i] == '%') {
-                        ret.push_back(from_hex(raw_uri_[i + 1]) * 16 + from_hex(raw_uri_[i + 2]));
+                        ret.push_back(static_cast<char>(from_hex(raw_uri_[i + 1]) * 16 + from_hex(raw_uri_[i + 2])));
                         i += 2;
                 }
                 else

@@ -22,7 +22,8 @@ namespace lsp {
     /// given number \p X (which should be less than 16).
     inline char hexdigit(unsigned X, bool LowerCase = false) {
         const char HexChar = LowerCase ? 'a' : 'A';
-        return X < 10 ? '0' + X : HexChar + X - 10;
+        const auto castedX = static_cast<char>(X);
+        return X < 10 ? '0' + castedX : HexChar + castedX - 10;
     }
 
     /// Given an array of c-style strings terminated by a null pointer, construct
