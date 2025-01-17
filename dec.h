@@ -777,7 +777,7 @@ public:
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
-// Types defined from others in typedef or `using` statement.
+// Types defined from others in `typedef` or `using` statement.
 class typedec : public dec {
   vardec *body;
 
