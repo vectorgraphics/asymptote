@@ -44,7 +44,7 @@ path cross(int n, bool round=true, real r=0)
 path plus=rotate(45)*cross(4);
 path diamond=rotate(45)*polygon(4);
 
-typedef void markroutine(picture pic=currentpicture, frame f, path g);
+using markroutine=void(picture pic=currentpicture, frame f, path g);
 
 // On picture pic, add frame f about every node of path g.
 void marknodes(picture pic=currentpicture, frame f, path g) {
@@ -309,7 +309,7 @@ pair[] pairs(real[] x, real[] y)
   return sequence(new pair(int i) {return (x[i],y[i]);},x.length);
 }
 
-filltype dotfilltype = Fill;
+filltype dotfilltype=Fill;
 
 void dot(frame f, pair z, pen p=currentpen, filltype filltype=dotfilltype)
 {
