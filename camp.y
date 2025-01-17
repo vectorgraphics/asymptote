@@ -463,8 +463,6 @@ typedec:
 | USING ID ASSIGN type ';'
                    { decidstart *dis = new decidstart($2.pos, $2.sym);
                      $$ = new typedec($1, dis, $4); }
-// Not needed since `type` already incorporates `dims`:
-// | USING ID ASSIGN type dims ';'
 | USING ID ASSIGN type '(' ')' ';'
                    { decidstart *dis = new fundecidstart($2.pos, $2.sym,
                                                          0, new formals($5));
