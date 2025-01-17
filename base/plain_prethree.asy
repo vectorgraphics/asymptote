@@ -140,7 +140,7 @@ struct projection {
 
 
   // This is redefined here to make projection as self-contained as possible.
-  static private real sqrtEpsilon = sqrt(realEpsilon);
+  static private real sqrtEpsilon=sqrt(realEpsilon);
 
   // Move the camera so that the box(m,M) rotated about target will always
   // lie in front of the far clipping plane.

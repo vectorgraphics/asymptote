@@ -70,7 +70,7 @@ void DOSendl(file file) {write(file,'\r\n',flush);}
 void DOSnewl(file file) {write(file,'\r\n');}
 void tab(file file) {write(file,'\t');}
 void comma(file file) {write(file,',');}
-using suffix = void(file);
+using suffix=void(file);
 
 // Used by interactive write to warn that the outputted type is the resolution
 // of an overloaded name.
