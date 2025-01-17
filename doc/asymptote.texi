@@ -112,7 +112,7 @@ Programming
 * Structures::                  Organize your data
 * Operators::                   Arithmetic and logical operators
 * Implicit scaling::            Avoiding those ugly *s
-* Functions::                   Traditional and high-order functions
+* Functions::                   Traditional and higher-order functions
 * Arrays::                      Dynamic vectors
 * Casts::                       Implicit and explicit casts
 * Import::                      Importing external @code{Asymptote} modules
@@ -1858,7 +1858,7 @@ should coincide with the first node of the second path).
 * Structures::                  Organize your data
 * Operators::                   Arithmetic and logical operators
 * Implicit scaling::            Avoiding those ugly *s
-* Functions::                   Traditional and high-order functions
+* Functions::                   Traditional and higher-order functions
 * Arrays::                      Dynamic vectors
 * Casts::                       Implicit and explicit casts
 * Import::                      Importing external @code{Asymptote} modules
@@ -2434,7 +2434,7 @@ the equivalent line
 @verbatim
 typedef path[] multipath;
 @end verbatim
-For the most part this is a convenience. However, it is required
+For the most part such type aliasing is a convenience. However, it is required
 when declaring a function whose return type is a function
 (see the example in @ref{Functions}).
 
@@ -4880,7 +4880,7 @@ The return type must be given a signature-free alias with
 @cindex @code{typedef}
 @verbatim
 using intop = int(int);
-typedef int intop(int); // Equivalent to previous line
+// typedef int intop(int); // Equivalent to previous line
 intop adder(int m)
 {
   return new int(int n) {return m+n;};
@@ -10632,7 +10632,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  Ai Ai Ai 5a 5E 5cm 2N 2E devicepixelratio 48kB 2n 5z
 @c  LocalWords:  100d 5y 5unit 144x144 2004-23 2004-24 top-level 3D
 @c  LocalWords:  1filll Command-line Command-Line command-line 2D 15
-@c  LocalWords:  high-order User-defined Python-style Templated V3D
+@c  LocalWords:  higher-order User-defined Python-style Templated V3D
 @c  LocalWords:  coordinate-based high-quality high-level de-facto 56
 @c  LocalWords:  command-driven graphical-user-interface full-fledged
 @c  LocalWords:  script-generated script-based fixed-sized ASYMPTOTE_
@@ -10687,14 +10687,22 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  O--1 5unit three_arrows diamond-shaped right-angled
 @c  LocalWords:  2-y public-domain in-depth field-defining 144x144 'e
 @c  LocalWords:  ASYMPTOTE_CONFIG non-writable 200 semi-colon ctrl-C
-@c  LocalWords:  asy_history auto-completion Button-1 Button-2 LSP
+@c  LocalWords:  asy_history auto-completion Button-1 Button-2 LSP 's
 @c  LocalWords:  rsvg-convert librsvg2-tools dvisvgmMultipleFiles lsp
 @c  LocalWords:  data-binary 'import lsp-mode 'package melpa 'asyls
 @c  LocalWords:  'package-archives package-initialize package-install
 @c  LocalWords:  package-refresh-contents 'lsp-mode make-lsp-client
 @c  LocalWords:  'lsp-language-id-configuration lsp-register-client
-@c  LocalWords:  new-connection lsp-stdio-connection activation-fn
+@c  LocalWords:  new-connection lsp-stdio-connection activation-fn 3D
 @c  LocalWords:  lsp-activate-on major-modes server-id user-generated
-@c  LocalWords:  line-based code-based plain_debugger Guib Skitsko
-@c  LocalWords:  Chaumont Cheng using
+@c  LocalWords:  line-based code-based plain_debugger Guib Skitsko 2D
+@c  LocalWords:  Chaumont Cheng using 0pt 1filll Witholding simplex2
+@c  LocalWords:  magick 'load 'asy 'lasy 'auto 5bp 1cm 3mm 4g abcdefg
+@c  LocalWords:  2S 100pt 3t multipath nondegenerate 12pt 5mm 25cm 3x
+@c  LocalWords:  5cm 5pt 3cm 2pt addPoint 10cm trueMin trueMax addBox
+@c  LocalWords:  userMin userMax 5x 3y 602e 2x 2y 3sin 204e 10x 1e9
+@c  LocalWords:  5a 5E partnames defaultnames 2N 2E 48kB 2n 100d 5z
+@c  LocalWords:  includemedia noplaybutton 200pt Javascript 5y 5unit
+@c  LocalWords:  144x144 rsvgConverterPath 'import MSWindows 'package
+@c  LocalWords:  'lsp fn 'asyls 'e
 
