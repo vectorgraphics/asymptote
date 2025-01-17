@@ -201,7 +201,7 @@ position operator cast(int x) {return (pair) x;}
 
 pair operator cast(position P) {return P.position;}
 
-using embed = transform(transform);
+using embed=transform(transform);
 transform Shift(transform t) {return identity();}
 transform Rotate(transform t) {return rotation(t);}
 transform Slant(transform t) {return scaleless(t);}

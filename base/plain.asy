@@ -1,8 +1,8 @@
 /*****
- * plain.asy
- * Andy Hammerlindl and John Bowman 2004/08/19
+ *plain.asy
+ *Andy Hammerlindl and John Bowman 2004/08/19
  *
- * A package for general purpose drawing, with automatic sizing of pictures.
+ *A package for general purpose drawing, with automatic sizing of pictures.
  *
  *****/
 
@@ -41,7 +41,7 @@ include plain_debugger;
 
 real RELEASE=(real) split(VERSION,"-")[0];
 
-using exitfcn = void();
+using exitfcn=void();
 
 void updatefunction()
 {
@@ -63,8 +63,8 @@ atexit(exitfunction);
 
 // A restore thunk is a function, that when called, restores the graphics state
 // to what it was when the restore thunk was created.
-using restoreThunk = void();
-using saveFunction = restoreThunk();
+using restoreThunk=void();
+using saveFunction=restoreThunk();
 saveFunction[] saveFunctions={};
 
 // When save is called, this will be redefined to do the corresponding restore.
@@ -82,18 +82,18 @@ restoreThunk buildRestoreThunk()
 {
   // Call the save functions in reverse order, storing their restore thunks.
   restoreThunk[] thunks={};
-  for (int i=saveFunctions.length-1; i >= 0; --i)
+  for(int i=saveFunctions.length-1; i >= 0; --i)
     thunks.push(saveFunctions[i]());
 
   return new void() {
     // Call the restore thunks in an order matching the saves.
-    for (int i=thunks.length-1; i >= 0; --i)
+    for(int i=thunks.length-1; i >= 0; --i)
       thunks[i]();
   };
 }
 
 // Add the default save function.
-addSaveFunction(new restoreThunk () {
+addSaveFunction(new restoreThunk() {
     pen defaultpen=defaultpen();
     pen p=currentpen;
     picture pic=currentpicture.copy();
@@ -243,8 +243,8 @@ void asy(string format, bool overwrite=false ... string[] s)
       settings.outformat=outformat;
       settings.interactiveView=interactiveView;
       settings.batchView=batchView;
-    }
-  }
+   }
+ }
 }
 
 void beep()

@@ -3,7 +3,7 @@ struct marginT {
   real begin,end;
 };
 
-using margin = marginT(path, pen);
+using margin=marginT(path, pen);
 
 path trim(path g, real begin, real end=begin) {
   real a=arctime(g,begin);
