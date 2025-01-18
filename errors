@@ -176,3 +176,6 @@ errortest.asy: 547.17: types cannot be autounraveled
 errortest.asy: 551.3: top-level fields cannot be autounraveled
 errortest.asy: 556.21: cannot shadow autounravel qaz
 errortest.asy: 564.22: cannot shadow autounravel alias
+errortest.asy: 573.27: non-statically nested types cannot be used in templates
+errortest.asy: 576.26: non-statically nested types cannot be used in templates
+errortest.asy: 577.26: non-statically nested types cannot be used in templates

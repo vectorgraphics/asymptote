@@ -1029,13 +1029,8 @@ Int transPushParent(formal *f, coenv &e) {
   return 1;
 }
 
-// Creates a local variable to hold the import and translate the accessing of
-// the import, but doesn't add the import to the environment.
-varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
-                                formals *args)
-{
-  string moduleName=(string) id;
-
+// Translates formals into namedTys.
+mem::vector<namedTy*> *computeTemplateArgs(formals *args, coenv &e) {
   auto *computedArgs = new mem::vector<namedTy*>();
   mem::vector<tySymbolPair> *fields = args->getFields();
   for (auto p = fields->begin(); p != fields->end(); ++p) {
@@ -1047,9 +1042,28 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
       em.sync(true);
       return nullptr;
     }
-    computedArgs->push_back(new namedTy(
-        theType->getPos(), theName, theType->trans(e)
-    ));
+    types::ty *t = theType->trans(e);
+    if (!usableInTemplate(t)) {
+      em.error(theType->getPos());
+      em << "non-statically nested types cannot be used in templates";
+      em.sync(true);
+      return nullptr;
+    }
+    computedArgs->push_back(new namedTy(theType->getPos(), theName, t));
+  }
+  return computedArgs;
+}
+
+// Creates a local variable to hold the import and translate the accessing of
+// the import, but doesn't add the import to the environment.
+varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
+                                formals *args)
+{
+  string moduleName=(string) id;
+
+  mem::vector<namedTy*> *computedArgs = computeTemplateArgs(args, e);
+  if (!computedArgs) {
+    return nullptr;
   }
 
   record *imp=e.e.getTemplatedModule(moduleName,computedArgs);

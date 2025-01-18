@@ -564,3 +564,15 @@
     autounravel bool alias(A, A);  // cannot shadow autounravel alias
   }
 }
+{
+  // Non-statically nested types cannot be used as template parameters.
+  struct A {
+    struct B {
+      autounravel int x;
+    }
+    access somefilename(T=B) as somefilename_B;
+  }
+  A a;
+  access somefilename(T=a.B) as somefilename_B;
+  access somefilename(T=A.B) as somefilename_B;
+}
