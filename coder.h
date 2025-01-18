@@ -2,7 +2,7 @@
  * coder.h
  * Andy Hammerlindl 2004/11/06
  *
- * Handles encoding of syntax into programs.  It's methods are called by
+ * Handles encoding of syntax into programs.  Its methods are called by
  * abstract syntax objects during translation to construct the virtual machine
  * code.
  *****/
@@ -322,6 +322,10 @@ public:
     return encode(recordLevel);
   }
 
+  // Puts the frame corresponding to the parent of 'ent' on the stack. Triggers
+  // an error if 'ent' does not correspond to a record (a.k.a. asy struct) type.
+  bool encodeParent(position pos, trans::tyEntry *ent);
+
   // An access that encodes the frame corresponding to "this".
   access *thisLocation()
   {
@@ -402,7 +406,6 @@ public:
   // Turn a no-op into a jump to bypass incorrect code.
   void encodePatch(label from, label to);
 
-public:
   void encodePushFrame() {
     pushframeLabels.push(program->end());
     encode(inst::pushframe, (Int)0);
