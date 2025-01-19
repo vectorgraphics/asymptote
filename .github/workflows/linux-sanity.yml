@@ -1,0 +1,30 @@
+name: build-gui
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build-and-test-asy-compact-zero:
+    runs-on: "ubuntu-22.04"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: ./.github/actions/initialize-linux-env
+      - name: Configure and build asymptote with compact 0
+        run: |
+          cmake --preset linux/release/ci/with-ccache/compact-zero
+          cmake --build --preset linux/release/ci/with-ccache/compact-zero --target asy-with-basefiles -j
+      - name: Run asy base tests
+        run: |
+          ctest --test-dir cmake-build-linux/release-compact-zero \
+            -R "^asy\..*" \
+            -E "asy\.(gc\..*|pic\.trans|gs\.ghostscript)"
+      - name: Run asy wce test
+        run: |
+          ctest --test-dir cmake-build-linux/release-compact-zero -R "^wce"
+      - name: Install LaTeX and ghostscript
+        run: sudo apt-get install texlive texlive-latex-extra texinfo ghostscript
+      - name: Run asy latex tests
+        run: |
+          ctest --test-dir cmake-build-linux/release-compact-zero -R "^asy\.(gs\.ghostscript|pic\.trans)\..*"
