@@ -15,15 +15,12 @@ jobs:
         run: |
           cmake --preset linux/release/ci/with-ccache/compact-zero
           cmake --build --preset linux/release/ci/with-ccache/compact-zero --target asy-with-basefiles -j
+      - uses: ./.github/actions/initialize-linux-latex-and-gs
       - name: Run asy base tests
         run: |
           ctest --test-dir cmake-build-linux/release-compact-zero \
             -R "^asy\..*" \
-            -E "asy\.(gc\..*|pic\.trans|gs\.ghostscript)"
+            -E "asy\.(gc\..*)"
       - name: Run asy wce test
         run: |
           ctest --test-dir cmake-build-linux/release-compact-zero -R "^wce"
-      - uses: ./.github/actions/initialize-linux-latex-and-gs
-      - name: Run asy latex tests
-        run: |
-          ctest --test-dir cmake-build-linux/release-compact-zero -R "^asy\.(gs\.ghostscript|pic\.trans)\..*"
