@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-linux-env
       - run: |
-          ASY_VERSION_OVERRIDE="${{ inputs.version_override }}" cmake --preset linux/release-ccache
+          ASY_VERSION_OVERRIDE="${{ inputs.version_override }}" cmake --preset linux/release/ci/with-ccache
       - name: tar+gz cmake configuration
         run: tar -czf cmake-linux-cfg-artifact.tar.gz --exclude='vcpkg_installed' cmake-build-linux/release
       - name: Upload configuration artifacts
@@ -51,7 +51,7 @@ jobs:
           echo set\(ASY_VERSION_SUFFIX \"/github-ci/ref=${{ github.sha }}\"\) > asy-pkg-version-suffix.cmake
       - run: cmake --build --preset linux/release --target asy-with-basefiles -j
       - name: build misc files
-        run: cmake --build --preset linux/release-ccache --target asy-dist-misc-files -j
+        run: cmake --build --preset linux/release/ci/with-ccache --target asy-dist-misc-files -j
       - name: Archive build files
         uses: actions/upload-artifact@v4
         with:
@@ -97,11 +97,11 @@ jobs:
       - name: delete cache file
         run: rm -f cmake-build-linux/release/CMakeCache.txt
       - name: reconfigure with documentation
-        run: ASY_VERSION_OVERRIDE="${{ inputs.version_override }}" cmake --preset linux/release-ccache
+        run: ASY_VERSION_OVERRIDE="${{ inputs.version_override }}" cmake --preset linux/release/ci/with-ccache
       - name: touch asymptote binary (to avoid need for rebuilding)
         run: touch cmake-build-linux/release/asy
       - name: build documentation
-        run: cmake --build --preset linux/release-ccache --target docgen -j
+        run: cmake --build --preset linux/release/ci/with-ccache --target docgen -j
       - name: Archive asymptote.pdf
         uses: actions/upload-artifact@v4
         with:

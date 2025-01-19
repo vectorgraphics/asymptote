@@ -256,7 +256,7 @@ function buildAsy($preset, $cfgDir) {
     # install to pre-installation root
 }
 
-buildAsy msvc/release-with-external-doc-files cmake-build-msvc/release
+buildAsy msvc/release/with-external-doc-files cmake-build-msvc/release
 cmake --install $asymptoteRoot/cmake-build-msvc/release --component asy-pre-nsis
 
 # ------------------------------------------------------
@@ -293,7 +293,7 @@ else
 # ------------------------------------------------------
 # building for CTAN
 
-buildAsy msvc/release-with-external-doc-file-ctan cmake-build-msvc/release
+buildAsy msvc/release/with-external-doc-files/with-ctan cmake-build-msvc/release
 
 if ($env:ASYMPTOTE_BUILD_SHARED_DIRECTORY)
 {
