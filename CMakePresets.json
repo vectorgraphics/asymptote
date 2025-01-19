@@ -14,6 +14,7 @@
       "displayName": "[linux-x86/64] Release",
       "binaryDir": "${sourceDir}/cmake-build-linux/release",
       "inherits": [
+        "base/linux-only",
         "base/buildBaseWithVcpkg",
         "base/release",
         "base/allow_version_override_from_env"
@@ -86,12 +87,18 @@
     {
       "name": "linux/release",
       "displayName": "[linux-x86/64] Release",
-      "configurePreset": "linux/release"
+      "configurePreset": "linux/release",
+      "inherits": [
+        "build-base/linux-only"
+      ]
     },
     {
       "name": "linux/release-ccache",
       "displayName": "[linux-x86/64] Release (with ccache)",
-      "configurePreset": "linux/release-ccache"
+      "configurePreset": "linux/release-ccache",
+      "inherits": [
+        "build-base/linux-only"
+      ]
     }
   ]
 }
