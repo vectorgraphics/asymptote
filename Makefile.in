@@ -363,7 +363,7 @@ uninstall-docdir:
 
 clean:  FORCE
 	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
-	-rm LspCpp/liblspcpp.a
+	-rm -f LspCpp/liblspcpp.a LspCpp/Makefile LspCpp/CMakeFiles
 	-cd LspCpp && $(MAKE) distclean
 	-cd tinyexr && $(MAKE) clean
 	-cd GUI && $(PYTHON) buildtool.py clean
@@ -374,6 +374,7 @@ gc-clean: FORCE clean
 cleaner: FORCE clean
 	-$(MAKE) -C $(GC) distclean
 	-rm -f Makefile config.h config.log config.status errors.temp
+	-rm -f LspCpp/CMakeCache.txt
 	cd doc && $(MAKE) clean
 	cd tests && $(MAKE) distclean
 

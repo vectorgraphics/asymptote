@@ -342,11 +342,13 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
    LSPLIBS=$LSPLIBS" -L$LSP_BUILD_ROOT -L$LSP_BUILD_ROOT/third_party/uri/src -llspcpp -lnetwork-uri -lboost_filesystem -lboost_thread"
    LSP_CMAKE_OPTIONS="-DLSPCPP_USE_CPP17=ON "
 
-   if test "x$ac_cv_use_gc" != "xno"; then
+   if test "x$enable_gc" != "xno"; then
       LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DLSPCPP_SUPPORT_BOEHM_GC=ON "
       if test "x$with_vcpkg" = "xno"; then
           LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DLSPCPP_GC_DOWNLOADED_ROOT=$ROOT_DIR_RELATIVE_TO_SRC/\$(GC) "
       fi
+   else
+      LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DLSPCPP_SUPPORT_BOEHM_GC=OFF "
    fi
 
    AC_DEFUN([ENABLE_LSP_MACRO],
