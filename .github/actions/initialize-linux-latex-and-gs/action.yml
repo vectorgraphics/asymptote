@@ -1,0 +1,14 @@
+name: initialize-env
+description: Initialize environment
+runs:
+  using: 'composite'
+  steps:
+    - name: Update apt
+      shell: bash
+      run: sudo apt-get update
+    - name: Install latex
+      shell: bash
+      run: sudo apt-get install texlive texlive-latex-extra texinfo
+    - name: Install ghostscript
+      shell: bash
+      run: sudo apt-get install ghostscript
