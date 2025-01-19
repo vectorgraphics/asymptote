@@ -22,7 +22,6 @@
     },
     {
       "name": "linux/release/ci/with-ccache",
-      "displayName": "[linux-x86/64] Release (with ccache)",
       "binaryDir": "${sourceDir}/cmake-build-linux/release",
       "inherits": [
         "linux/release",
@@ -31,7 +30,6 @@
     },
     {
       "name": "linux/release/ci/with-ccache/compact-zero",
-      "displayName": "[linux-x86/64] Release (with ccache + COMPACT=0 mode)",
       "binaryDir": "${sourceDir}/cmake-build-linux/release-compact-zero",
       "inherits": [
         "linux/release/ci/with-ccache",
@@ -56,7 +54,6 @@
     },
     {
       "name": "msvc/release/ci/with-external-asymptote-pdf",
-      "displayName": "[MSVC-x86/64] Release (with external asymptote.pdf)",
       "inherits": [
         "msvc/release"
       ],
@@ -67,7 +64,6 @@
     },
     {
       "name": "msvc/release/with-external-doc-files",
-      "displayName": "[MSVC-x86/64] Release (with external documentation)",
       "inherits": [
         "msvc/release/ci/with-external-asymptote-pdf"
       ],
@@ -77,7 +73,6 @@
     },
     {
       "name": "msvc/release/with-external-doc-files/with-ctan",
-      "displayName": "[MSVC-x86/64] Release (with external documentation) for CTAN",
       "inherits": [
         "msvc/release/with-external-doc-files",
         "base/ctan"
@@ -103,7 +98,6 @@
     },
     {
       "name": "linux/release/ci/with-ccache",
-      "displayName": "[linux-x86/64] Release (with ccache)",
       "configurePreset": "linux/release/ci/with-ccache",
       "inherits": [
         "build-base/linux-only"
