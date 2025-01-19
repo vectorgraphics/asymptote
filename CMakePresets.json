@@ -30,6 +30,15 @@
       ]
     },
     {
+      "name": "linux/release/ci/with-ccache/compact-zero",
+      "displayName": "[linux-x86/64] Release (with ccache + COMPACT=0 mode)",
+      "binaryDir": "${sourceDir}/cmake-build-linux/release-compact-zero",
+      "inherits": [
+        "linux/release/ci/with-ccache",
+        "base/compact-zero-mode"
+      ]
+    },
+    {
       "name": "msvc/release",
       "displayName": "[MSVC-x86/64] Release",
       "binaryDir": "${sourceDir}/cmake-build-msvc/release",
@@ -96,6 +105,13 @@
       "name": "linux/release/ci/with-ccache",
       "displayName": "[linux-x86/64] Release (with ccache)",
       "configurePreset": "linux/release/ci/with-ccache",
+      "inherits": [
+        "build-base/linux-only"
+      ]
+    },
+    {
+      "name": "linux/release/ci/with-ccache/compact-zero",
+      "configurePreset": "linux/release/ci/with-ccache/compact-zero",
       "inherits": [
         "build-base/linux-only"
       ]
