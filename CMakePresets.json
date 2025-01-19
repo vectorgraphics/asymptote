@@ -21,7 +21,7 @@
       ]
     },
     {
-      "name": "linux/release-ccache",
+      "name": "linux/release/ci/with-ccache",
       "displayName": "[linux-x86/64] Release (with ccache)",
       "binaryDir": "${sourceDir}/cmake-build-linux/release",
       "inherits": [
@@ -46,7 +46,7 @@
       }
     },
     {
-      "name": "msvc/release-with-existing-asymptote-pdf",
+      "name": "msvc/release/ci/with-external-asymptote-pdf",
       "displayName": "[MSVC-x86/64] Release (with external asymptote.pdf)",
       "inherits": [
         "msvc/release"
@@ -57,20 +57,20 @@
       }
     },
     {
-      "name": "msvc/release-with-external-doc-files",
+      "name": "msvc/release/with-external-doc-files",
       "displayName": "[MSVC-x86/64] Release (with external documentation)",
       "inherits": [
-        "msvc/release-with-existing-asymptote-pdf"
+        "msvc/release/ci/with-external-asymptote-pdf"
       ],
       "cacheVariables": {
         "ENABLE_DOCGEN": "false"
       }
     },
     {
-      "name": "msvc/release-with-external-doc-file-ctan",
+      "name": "msvc/release/with-external-doc-files/with-ctan",
       "displayName": "[MSVC-x86/64] Release (with external documentation) for CTAN",
       "inherits": [
-        "msvc/release-with-external-doc-files",
+        "msvc/release/with-external-doc-files",
         "base/ctan"
       ]
     }
@@ -93,9 +93,9 @@
       ]
     },
     {
-      "name": "linux/release-ccache",
+      "name": "linux/release/ci/with-ccache",
       "displayName": "[linux-x86/64] Release (with ccache)",
-      "configurePreset": "linux/release-ccache",
+      "configurePreset": "linux/release/ci/with-ccache",
       "inherits": [
         "build-base/linux-only"
       ]
