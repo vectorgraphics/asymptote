@@ -1,0 +1,123 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "base",
+      "generator": "Ninja",
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "hidden": true
+    },
+    {
+      "name": "base/ensure-cl-compiler",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl"
+      },
+      "hidden": true
+    },
+    {
+      "name": "base/vcpkg",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "hidden": true
+    },
+    {
+      "name": "base/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "hidden": true
+    },
+    {
+      "name": "base/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "hidden": true
+    },
+    {
+      "name": "base/relWithDebInfo",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      },
+      "hidden": true
+    },
+    {
+      "name": "base/linuxCcache",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
+      },
+      "hidden": true
+    },
+    {
+      "name": "base/gccCompatCacheVar",
+      "cacheVariables": {
+        "GCCCOMPAT_CXX_COMPILER_FOR_MSVC": "$env{GCCCOMPAT_CXX_COMPILER_FOR_MSVC}"
+      },
+      "hidden": true
+    },
+    {
+      "name": "base/buildBaseWithVcpkg",
+      "inherits": [
+        "base",
+        "base/vcpkg"
+      ],
+      "hidden": true
+    },
+    {
+      "name": "base/windows-only",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "base/linux-only",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "base/allow_version_override_from_env",
+      "hidden": true,
+      "cacheVariables": {
+        "ASY_VERSION_OVERRIDE": "$env{ASY_VERSION_OVERRIDE}"
+      }
+    },
+    {
+      "name": "base/ctan",
+      "hidden": true,
+      "cacheVariables": {
+        "CTAN_BUILD": "true"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build-base/windows-only",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "build-base/linux-only",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    }
+  ]
+}
