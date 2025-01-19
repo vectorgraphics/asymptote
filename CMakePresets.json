@@ -29,15 +29,6 @@
       ]
     },
     {
-      "name": "linux/releaseWithDebugInfo",
-      "displayName": "[linux-x86/64] Release with Debug Info",
-      "binaryDir": "${sourceDir}/cmake-build-linux/release-with-dbginfo",
-      "inherits": [
-        "base/buildBaseWithVcpkg",
-        "base/relWithDebInfo"
-      ]
-    },
-    {
       "name": "msvc/release",
       "displayName": "[MSVC-x86/64] Release",
       "binaryDir": "${sourceDir}/cmake-build-msvc/release",
@@ -81,21 +72,6 @@
         "msvc/release-with-external-doc-files",
         "base/ctan"
       ]
-    },
-    {
-      "name": "msvc/releaseWithDebugInfo",
-      "displayName": "[MSVC-x86/64] Release with debug info",
-      "binaryDir": "${sourceDir}/cmake-build-msvc/release-with-dbginfo",
-      "inherits": [
-        "base/buildBaseWithVcpkg",
-        "base/relWithDebInfo",
-        "base/gccCompatCacheVar",
-        "base/windows-only",
-        "base/ensure-cl-compiler"
-      ],
-      "cacheVariables": {
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/cmake-install-w32-nsis-reldbg"
-      }
     }
   ],
   "buildPresets": [
