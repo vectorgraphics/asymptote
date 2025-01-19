@@ -23,8 +23,7 @@ jobs:
       - name: Run asy wce test
         run: |
           ctest --test-dir cmake-build-linux/release-compact-zero -R "^wce"
-      - name: Install LaTeX and ghostscript
-        run: sudo apt-get install texlive texlive-latex-extra texinfo ghostscript
+      - uses: ./.github/actions/initialize-linux-latex-and-gs
       - name: Run asy latex tests
         run: |
           ctest --test-dir cmake-build-linux/release-compact-zero -R "^asy\.(gs\.ghostscript|pic\.trans)\..*"
