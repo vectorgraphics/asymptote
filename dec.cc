@@ -1356,7 +1356,7 @@ void transTemplateParam(coenv &e, tyEntry *ent, symbol newName, position pos) {
   varEntry *v = ent->v;
   assert(v);
   varEntry *newV = makeVarEntryWhere(e, module, v->getType(), nullptr, pos);
-  newV->getLocation()->encode(WRITE, pos, e.c);
+  newV->encode(WRITE, pos, e.c);
   e.c.encodePop();
 
   tyEntry *newEnt = new tyEntry(t, newV, /*where=*/nullptr, pos);
