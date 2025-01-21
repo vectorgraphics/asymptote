@@ -73,7 +73,7 @@ bool usableInTemplate(ty *t) {
 
 trans::tyEntry *astType::transAsTyEntry(coenv &e, record *where)
 {
-  return new trans::tyEntry(trans(e, false), 0, where, getPos());
+  return new trans::tyEntry(trans(e, false), nullptr, where, getPos());
 }
 
 
@@ -206,10 +206,9 @@ arrayTy::operator string() const
   return ss.str();
 }
 
-tyEntryTy::tyEntryTy(position pos, types::ty *t)
-  : astType(pos), ent(new trans::tyEntry(t, 0, 0, nullPos))
-{
-}
+tyEntryTy::tyEntryTy(position pos, types::ty* t)
+    : astType(pos), ent(new trans::tyEntry(t, nullptr, nullptr, nullPos))
+{}
 
 void tyEntryTy::prettyprint(ostream &out, Int indent)
 {
@@ -575,9 +574,10 @@ types::ty *decidstart::getType(types::ty *base, coenv &, bool)
 trans::tyEntry *decidstart::getTyEntry(trans::tyEntry *base, coenv &e,
                                        record *where)
 {
-  return dims ? new trans::tyEntry(getType(base->t,e,false), 0,
-                                   where, getPos()) :
-    base;
+  return dims ? new trans::tyEntry(
+                        getType(base->t, e, false), nullptr, where, getPos()
+                )
+              : base;
 }
 
 void decidstart::addOps(types::ty *base, coenv &e, record *r)
@@ -669,7 +669,7 @@ types::ty *fundecidstart::getType(types::ty *base, coenv &e, bool tacit)
 trans::tyEntry *fundecidstart::getTyEntry(trans::tyEntry *base, coenv &e,
                                           record *where)
 {
-  return new trans::tyEntry(getType(base->t,e,false), 0, where, getPos());
+  return new trans::tyEntry(getType(base->t,e,false), nullptr, where, getPos());
 }
 
 void fundecidstart::addOps(types::ty *base, coenv &e, record *r)
@@ -1607,8 +1607,9 @@ void recorddec::transAsField(coenv &e, record *parent)
   record *r = parent ? parent->newRecord(id, e.c.isStatic()) :
     e.c.newRecord(id);
 
-  addTypeWithPermission(e, parent, new trans::tyEntry(r,0,parent,getPos()),
-                        id);
+  addTypeWithPermission(
+          e, parent, new trans::tyEntry(r, nullptr, parent, getPos()), id
+  );
   trans::addRecordOps(r);
 
   // Start translating the initializer.
