@@ -1337,32 +1337,6 @@ void typeParamList::add(typeParam *tp) {
   params.push_back(tp);
 }
 
-void transTemplateParam(coenv &e, tyEntry *ent, symbol newName, position pos) {
-  // If the type is not a record, adds it to the environment.
-  //
-  // If the type is a record, pops a parent off of the stack and stores it in a
-  // new variable. Then builds a tyEntry where this variable is used when making
-  // new instances of the record. And then adds the type to the environment.
-  record *module = e.c.thisType();
-  ty *t = ent->t;
-  if (t->kind != types::ty_record) {
-    // TODO: What happens if we pass an array of records?
-    // TODO: Should this always be private?
-    addTypeWithPermission(e, module, ent, newName);
-    return;
-  }
-  // TODO: When creating the tyEntry, find a way to supply the correct v
-  // even if the naive approach would give null.
-  varEntry *v = ent->v;
-  assert(v);
-  varEntry *newV = makeVarEntryWhere(e, module, v->getType(), nullptr, pos);
-  newV->encode(WRITE, pos, e.c);
-  e.c.encodePop();
-
-  tyEntry *newEnt = new tyEntry(t, newV, /*where=*/nullptr, pos);
-  addTypeWithPermission(e, module, newEnt, newName);
-}
-
 bool typeParamList::transAsParamMatcher(
   coenv &e, record *r, mem::vector<namedTy*> *args
 ) {
