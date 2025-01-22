@@ -205,7 +205,7 @@ public:
   virtual bool returns()
   { return false; }
 
-  // Returns true if it is syntatically allowable to modify this
+  // Returns true if it is syntactically allowable to modify this
   // runnable by a PUBLIC or PRIVATE modifier.
   virtual bool allowPermissions()
   { return false; }
