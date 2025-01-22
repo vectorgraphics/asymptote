@@ -576,3 +576,18 @@
   access somefilename(T=a.B) as somefilename_B;
   access somefilename(T=A.B) as somefilename_B;
 }
+{
+  access errorFreeTestTemplate(A=int, B=string) as eft;  // no error
+  // wrongly ordered names after correct load
+  access errorFreeTestTemplate(B=int, A=string) as eft;
+  // completely wrong names after correct load
+  access errorFreeTestTemplate(C=int, D=string) as eft;
+  // first name correct, second name wrong
+  access errorFreeTestTemplate(A=int, D=string) as eft;
+  // first name wrong, second name correct
+  access errorFreeTestTemplate(C=int, B=string) as eft;
+  // too few params
+  access errorFreeTestTemplate(A=int) as eft;
+  // too many params
+  access errorFreeTestTemplate(A=int, B=string, C=real) as eft;
+}

@@ -190,8 +190,13 @@ record *genv::getTemplatedModule(
   for (auto arg : *args) {
     sig->add(formal(arg->t, arg->dest));
   }
+
   stringstream buf;
-  buf << filename << '/' << sig->handle() << '/';
+  buf << filename << "/";
+  for (auto arg : *args) {
+    buf << arg->dest << "/";
+  }
+  buf << sig->handle() << "/";
   symbol index=symbol::literalTrans(buf.str());
 
   record *r=imap[index];

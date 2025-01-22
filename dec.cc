@@ -1032,24 +1032,23 @@ Int transPushParent(formal *f, coenv &e) {
 // Translates formals into namedTys.
 mem::vector<namedTy*> *computeTemplateArgs(formals *args, coenv &e) {
   auto *computedArgs = new mem::vector<namedTy*>();
-  mem::vector<tySymbolPair> *fields = args->getFields();
-  for (auto p = fields->begin(); p != fields->end(); ++p) {
-    astType* theType = p->ty;
-    symbol theName = p->sym;
+  for (formal *f : *args) {
+    symbol theName = f->getName();
+    position sourcePos = f->getPos();
     if (theName == symbol::nullsym) {
-      em.error(theType->getPos());
+      em.error(sourcePos);
       em << "expected typename=";
       em.sync(true);
       return nullptr;
     }
-    types::ty *t = theType->trans(e);
+    types::ty *t = f->getType(e);
     if (!usableInTemplate(t)) {
-      em.error(theType->getPos());
+      em.error(f->getAbsyntaxType()->getPos());
       em << "non-statically nested types cannot be used in templates";
       em.sync(true);
       return nullptr;
     }
-    computedArgs->push_back(new namedTy(theType->getPos(), theName, t));
+    computedArgs->push_back(new namedTy(sourcePos, theName, t));
   }
   return computedArgs;
 }
@@ -1296,18 +1295,17 @@ bool typeParam::transAsParamMatcher(coenv &e, record *module, namedTy* arg) {
   // to pop the parent off the stack into v. The varEntry needs a type,
   // but the only thing we use from the type is the level, so make a
   // new fake record.
-  // TODO: give a better name
   string fakeParentName;
 # ifdef DEBUG_FRAME
   {
     ostringstream oss;
-    oss << "<fake holding ";
+    oss << "<fake parent of " << name << " holding ";
     print(oss, r->getLevel()->getParent());
     oss << ">";
     fakeParentName = oss.str();
   }
 # else
-  fakeParentName = "<fake frameholder>";
+  fakeParentName = "<fake parent of " + static_cast<string>(name) + ">";
 # endif
   record* fakeParent = new record(
           symbol::literalTrans(fakeParentName), r->getLevel()->getParent()
