@@ -302,7 +302,8 @@ template<class T>
 void addVariable(venv &ve, T *ref, ty *t, symbol name,
                  record *module=settings::getSettingsModule()) {
   access *a = new refAccess<T>(ref);
-  varEntry *ent = new varEntry(t, a, PUBLIC, module, 0, nullPos);
+  varEntry* ent=
+          new varEntry(t, a, PUBLIC, module->getLevel(), nullptr, nullPos);
   ve.enter(name, ent);
 }
 
@@ -313,7 +314,7 @@ void addVariable(venv &ve, T value, ty *t, symbol name,
   item* ref=new item;
   *ref=value;
   access *a = new itemRefAccess(ref);
-  varEntry *ent = new varEntry(t, a, perm, module, 0, nullPos);
+  varEntry* ent= new varEntry(t, a, perm, module->getLevel(), nullptr, nullPos);
   ve.enter(name, ent);
 }
 
