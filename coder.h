@@ -240,6 +240,10 @@ public:
       return level;
   }
 
+  frame *getLevel() {
+    return level;
+  }
+
   // Tests if the function or record with the given frame is currently under
   // translation (either by this coder or an ancestor).
   bool inTranslation(frame *f) {

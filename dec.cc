@@ -700,8 +700,8 @@ varEntry *makeVarEntryWhere(coenv &e, record *r, types::ty *t,
   access *a = r ? r->allocField(e.c.isStatic()) :
     e.c.allocLocal();
 
-  return r ? new varEntry(t, a, e.c.getPermission(), r, where, pos) :
-    new varEntry(t, a, where, pos);
+  return r ? new varEntry(t, a, e.c.getPermission(), r->getLevel(), where, pos)
+           : new varEntry(t, a, where, pos);
 }
 
 varEntry *makeVarEntry(position pos, coenv &e, record *r, types::ty *t) {
@@ -801,7 +801,7 @@ void addTypeWithPermission(coenv &e, record *r, tyEntry *base, symbol id)
 {
   // Only bother encoding permissions for private types.
   tyEntry *ent = (r && e.c.getPermission()==PRIVATE) ?
-    new trans::tyEntry(base, PRIVATE, r) :
+    new trans::tyEntry(base, PRIVATE, r->getLevel()) :
     base;
 
   if (r)
@@ -1118,6 +1118,11 @@ tyEntry *idpair::transAsUnravel(coenv &e, record *r,
   checkValidity();
 
   if (r) {
+    if (r->getLevel() == e.c.getLevel()) {
+      cout << "Frame of " << r->getName() << " is same as e.c. when unravelling " << src << endl;
+    } else {
+      cout << "Frame of " << r->getName() << " is different from e.c. when unravelling " << src << endl;
+    }
     auto fieldsAdded = r->e.add(src, dest, source, qualifier, e.c)->varsAdded;
     if (e.c.isAutoUnravel()) {
       for (varEntry *v : fieldsAdded) {
@@ -1184,11 +1189,9 @@ mem::vector<tyEntry*> idpairlist::transAsUnravel(
   coenv &e, record *r, protoenv &source, varEntry *qualifier
 ) {
   mem::vector<tyEntry*> result;
-  for (list<idpair *>::iterator p=base.begin();
-       p != base.end();
-       ++p)
+  for (idpair *p : base)
   {
-    tyEntry *typeAdded = (*p)->transAsUnravel(e,r,source,qualifier);
+    tyEntry *typeAdded = p->transAsUnravel(e,r,source,qualifier);
     result.push_back(typeAdded);
   }
   return result;

@@ -36,10 +36,10 @@ namespace trans {
 class entry : public gc {
   struct pr {
     permission perm;
-    record *r;
+    frame *level;
 
-    pr(permission perm, record *r)
-      : perm(perm), r(r) {}
+    pr(permission perm, frame *level)
+      : perm(perm), level(level) {}
 
     // Returns true if the permission allows access in this context.
     bool check(action act, coder &c);
@@ -50,10 +50,10 @@ class entry : public gc {
 
   mem::list<pr> perms;
 
-  void addPerm(permission perm, record *r) {
+  void addPerm(permission perm, frame *level) {
     // Only store restrictive permissions.
-    if (perm != PUBLIC && r)
-      perms.push_back(pr(perm,r));
+    if (perm != PUBLIC && level)
+      perms.push_back(pr(perm,level));
   }
 
   // The record where the variable or type is defined, or 0 if the entry is
@@ -65,9 +65,9 @@ class entry : public gc {
 
 public:
   entry(record *where, position pos) : where(where), pos(pos) {}
-  entry(permission perm, record *r, record *where, position pos)
+  entry(permission perm, frame *level, record *where, position pos)
     : where(where), pos(pos) {
-    addPerm(perm, r);
+    addPerm(perm, level);
   }
 
   // (Non-destructively) merges two entries, appending permission lists.
@@ -75,7 +75,7 @@ public:
   entry(entry &e1, entry &e2);
 
   // Create an entry with one more permission in the list.
-  entry(entry &base, permission perm, record *r);
+  entry(entry &base, permission perm, frame *level);
 
   bool checkPerm(action act, coder &c);
   void reportPerm(action act, position pos, coder &c);
@@ -97,12 +97,16 @@ public:
   varEntry(ty *t, access *location, record *where, position pos)
     : entry(where, pos), t(t), location(location) {}
 
-  varEntry(ty *t, access *location, permission perm, record *r,
+  varEntry(ty *t, access *location, permission perm, frame *level,
            record *where, position pos)
-    : entry(perm, r, where, pos), t(t), location(location) {}
+    : entry(perm, level, where, pos), t(t), location(location) {}
 
   // (Non-destructively) merges two varEntries, creating a qualified varEntry.
   varEntry(varEntry &qv, varEntry &v);
+
+  // Copies the original varEntry and adds a new permission constraint.
+  varEntry(varEntry &base, permission perm, frame *level)
+    : entry(base, perm, level), t(base.t), location(base.location) {}
 
   ty *getType()
   { return t; }
@@ -135,8 +139,8 @@ public:
   tyEntry(ty *t, varEntry *v, record *where, position pos)
     : entry(where, pos), t(t), v(v) {}
 
-  tyEntry(tyEntry *base, permission perm, record *r)
-    : entry(*base, perm, r), t(base->t), v(base->v) {}
+  tyEntry(tyEntry *base, permission perm, frame *level)
+    : entry(*base, perm, level), t(base->t), v(base->v) {}
 
   // Records need a varEntry that refers back to the qualifier qv; i.e. in
   // the last new of the code
