@@ -1118,11 +1118,6 @@ tyEntry *idpair::transAsUnravel(coenv &e, record *r,
   checkValidity();
 
   if (r) {
-    if (r->getLevel() == e.c.getLevel()) {
-      cout << "Frame of " << r->getName() << " is same as e.c. when unravelling " << src << endl;
-    } else {
-      cout << "Frame of " << r->getName() << " is different from e.c. when unravelling " << src << endl;
-    }
     auto fieldsAdded = r->e.add(src, dest, source, qualifier, e.c)->varsAdded;
     if (e.c.isAutoUnravel()) {
       for (varEntry *v : fieldsAdded) {
