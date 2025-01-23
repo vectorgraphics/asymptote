@@ -591,3 +591,13 @@
   // too many params
   access errorFreeTestTemplate(A=int, B=string, C=real) as eft;
 }
+// Test more permissions.
+{
+  struct A {
+    static int x;
+  }
+  struct T {
+    private static from A unravel x;
+  }
+  T.x;  // incorrectly accessing private field
+}

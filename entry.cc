@@ -773,8 +773,7 @@ bool venv::add(
     }
     if (permission perm = c.getPermission(); perm != PUBLIC) {
       // Add an additional restriction to v based on c.getPermission().
-      cout << "Adding additional restriction to " << dest << " based on c.getPermission()\n";
-      v = new varEntry(*v, perm, c.getFrame());
+      v = new varEntry(*v, perm, c.thisType()->getLevel());
     }
     varEntry *qve=qualifyVarEntry(qualifier, v);
     enter(dest, qve);

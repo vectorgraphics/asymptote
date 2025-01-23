@@ -191,3 +191,4 @@ errortest.asy: 590.32: too few types passed: got 1, expected 2
 errortest.asy: 590.3: could not load module 'errorFreeTestTemplate'
 errortest.asy: 592.32: too many types passed: got 3, expected 2
 errortest.asy: 592.3: could not load module 'errorFreeTestTemplate'
+errortest.asy: 602.4: accessing private field outside of structure
