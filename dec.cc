@@ -93,6 +93,10 @@ void addNameOps(coenv &e, record *r, record *qt, varEntry *qv, position pos) {
       em << "cannot access '" << auName << "' in current scope";
       continue;
     }
+    if (r && e.c.getPermission() != PUBLIC) {
+      // Add an additional restriction to v based on c.getPermission().
+      v = new varEntry(*v, e.c.getPermission(), r);
+    }
     varEntry *qqv = qualifyVarEntry(qv, v);
     auto enter= [&](trans::venv& ve) {
       // Add op only if it does not already exist.
