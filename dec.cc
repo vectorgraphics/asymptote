@@ -700,8 +700,8 @@ varEntry *makeVarEntryWhere(coenv &e, record *r, types::ty *t,
   access *a = r ? r->allocField(e.c.isStatic()) :
     e.c.allocLocal();
 
-  return r ? new varEntry(t, a, e.c.getPermission(), r->getLevel(), where, pos)
-           : new varEntry(t, a, where, pos);
+  return r ? new varEntry(t, a, e.c.getPermission(), r, where, pos) :
+    new varEntry(t, a, where, pos);
 }
 
 varEntry *makeVarEntry(position pos, coenv &e, record *r, types::ty *t) {
@@ -801,7 +801,7 @@ void addTypeWithPermission(coenv &e, record *r, tyEntry *base, symbol id)
 {
   // Only bother encoding permissions for private types.
   tyEntry *ent = (r && e.c.getPermission()==PRIVATE) ?
-    new trans::tyEntry(base, PRIVATE, r->getLevel()) :
+    new trans::tyEntry(base, PRIVATE, r) :
     base;
 
   if (r)

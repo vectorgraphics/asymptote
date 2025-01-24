@@ -27,13 +27,13 @@ namespace trans {
 bool entry::pr::check(action act, coder &c) {
   // We assume PUBLIC permissions and one's without an associated record are not
   // stored.
-  assert(perm!=PUBLIC && level!=nullptr);
-  return c.inTranslation(level) ||
+  assert(perm!=PUBLIC && r!=0);
+  return c.inTranslation(r->getLevel()) ||
     (perm == RESTRICTED && act != WRITE);
 }
 
 void entry::pr::report(action act, position pos, coder &c) {
-  if (!c.inTranslation(level)) {
+  if (!c.inTranslation(r->getLevel())) {
     if (perm == PRIVATE) {
       em.error(pos);
       em << "accessing private field outside of structure";
@@ -50,10 +50,10 @@ entry::entry(entry &e1, entry &e2) : where(e2.where), pos(e2.pos) {
   perms.insert(perms.end(), e2.perms.begin(), e2.perms.end());
 }
 
-entry::entry(entry &base, permission perm, frame *level)
+entry::entry(entry &base, permission perm, record *r)
   : where(base.where), pos(base.pos) {
   perms.insert(perms.end(), base.perms.begin(), base.perms.end());
-  addPerm(perm, level);
+  addPerm(perm, r);
 }
 
 bool entry::checkPerm(action act, coder &c) {
@@ -773,7 +773,7 @@ bool venv::add(
     }
     if (permission perm = c.getPermission(); perm != PUBLIC) {
       // Add an additional restriction to v based on c.getPermission().
-      v = new varEntry(*v, perm, c.thisType()->getLevel());
+      v = new varEntry(*v, perm, c.thisType());
     }
     varEntry *qve=qualifyVarEntry(qualifier, v);
     enter(dest, qve);
