@@ -1337,6 +1337,20 @@ void typeParamList::add(typeParam *tp) {
   params.push_back(tp);
 }
 
+// RAII class to set the permission of a coder to a new value, and then reset it
+// to the old value when the object goes out of scope.
+class PermissionSetter {
+  coder &c;
+  permission oldPerm;
+public:
+  PermissionSetter(coder &c, permission newPerm) : c(c), oldPerm(c.getPermission()) {
+    c.setPermission(newPerm);
+  }
+  ~PermissionSetter() {
+    c.setPermission(oldPerm);
+  }
+};
+
 bool typeParamList::transAsParamMatcher(
   coenv &e, record *r, mem::vector<namedTy*> *args
 ) {
@@ -1358,6 +1372,8 @@ bool typeParamList::transAsParamMatcher(
     return false;
   }
 
+  // Set the permission to PRIVATE while translating type parameters.
+  PermissionSetter ps(e.c, PRIVATE);
   // Pop the parents off the stack. They were pushed in reverse order.
   // With this approach, the first error will be reported, rather than the last.
   for (size_t i = 0; i < params.size(); ++i) {
