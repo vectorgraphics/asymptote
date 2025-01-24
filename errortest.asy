@@ -616,3 +616,14 @@
   U.f();  // incorrectly accessing overloaded private field
   U.R r;  // correctly accessing private type
 }
+{
+  struct A {
+    static struct B {
+      autounravel int x;
+    }
+  }
+  struct T {
+    private from A unravel B;  // x is autounraveled from B
+  }
+  T.x;  // incorrectly accessing private field
+}
