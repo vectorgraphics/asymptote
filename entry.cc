@@ -99,15 +99,20 @@ tyEntry *tenv::add(symbol dest,
                names_t::value_type &x, varEntry *qualifier, coder &c)
 {
   mem::list<tyEntry *>& ents=x.second;
-  if (!ents.empty()) {
-    tyEntry *ent=ents.front();
-    if (ent->checkPerm(READ, c)) {
-      tyEntry *qEnt = qualifyTyEntry(qualifier, ent);
-      enter(dest, qEnt);
-      return qEnt;
-    }
+  if (ents.empty()) {
+    return nullptr;
   }
-  return nullptr;
+  tyEntry *ent=ents.front();
+  if (!ent->checkPerm(READ, c)) {
+    return nullptr;
+  }
+  if (permission perm = c.getPermission(); perm != PUBLIC) {
+    // Add an additional restriction to ent based on c.getPermission().
+    ent = new tyEntry(ent, perm, c.thisType());
+  }
+  tyEntry *qEnt = qualifyTyEntry(qualifier, ent);
+  enter(dest, qEnt);
+  return qEnt;
 }
 
 void tenv::add(tenv& source, varEntry *qualifier, coder &c) {
