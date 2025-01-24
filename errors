@@ -195,3 +195,7 @@ errortest.asy: 607.4: accessing private field outside of structure
 errortest.asy: 608.9: accessing private field outside of structure
 errortest.asy: 609.4: accessing private field outside of structure
 errortest.asy: 610.4: accessing private field outside of structure
+errortest.asy: 614.4: accessing private field outside of structure
+errortest.asy: 615.9: accessing private field outside of structure
+errortest.asy: 616.4: accessing private field outside of structure
+errortest.asy: 617.4: accessing private field outside of structure

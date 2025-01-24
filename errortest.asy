@@ -608,4 +608,11 @@
   (int)T.f;  // incorrectly accessing overloaded private field
   T.f();  // incorrectly accessing overloaded private field
   T.R r;  // correctly accessing private type
+  struct U {
+    private static unravel A;
+  }
+  U.x;  // incorrectly accessing private field
+  (int)U.f;  // incorrectly accessing overloaded private field
+  U.f();  // incorrectly accessing overloaded private field
+  U.R r;  // correctly accessing private type
 }

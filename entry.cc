@@ -737,6 +737,10 @@ void venv::add(venv& source, varEntry *qualifier, coder &c)
 
     varEntry *v=p.ent;
     if (v->checkPerm(READ, c)) {
+      if (permission perm = c.getPermission(); perm != PUBLIC) {
+        // Add an additional restriction to v based on c.getPermission().
+        v = new varEntry(*v, perm, c.thisType());
+      }
       varEntry *qve=qualifyVarEntry(qualifier, v);
       enter(p.name, qve);
       if (isAutoUnravel) {
