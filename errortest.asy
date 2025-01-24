@@ -601,3 +601,14 @@
   }
   T.x;  // incorrectly accessing private field
 }
+{
+  // Same test as above, but with overloaded name.
+  struct A {
+    static int x;
+    static void x();
+  }
+  struct T {
+    private static from A unravel x;
+  }
+  (int)T.x;  // incorrectly accessing private field
+}
