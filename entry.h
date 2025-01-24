@@ -104,6 +104,10 @@ public:
   // (Non-destructively) merges two varEntries, creating a qualified varEntry.
   varEntry(varEntry &qv, varEntry &v);
 
+  // Copies the original varEntry and adds a new permission constraint.
+  varEntry(varEntry &base, permission perm, record *r)
+    : entry(base, perm, r), t(base.t), location(base.location) {}
+
   ty *getType()
   { return t; }
 

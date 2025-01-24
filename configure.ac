@@ -2,12 +2,15 @@
 # Run autoheader and autoconf to produce a header and configure script from
 # this file.
 
-AC_PREREQ(2)
+AC_PREREQ([2.71])
 AC_INIT([Asymptote],[2.96git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
 m4_include([pkg.m4])
+
+AC_CHECK_PROG([LIBTOOL], [libtool], [yes], [no])
+AS_IF([test "x$LIBTOOL" = "xno"], [AC_MSG_ERROR([libtool not found])])
 
 AH_TOP([#pragma once])
 
@@ -205,7 +208,7 @@ AC_ARG_WITH(vcpkg-target-triplet,
          If left blank, will try to determine the triplet
       ]
    ), [  # given
-   if test "x$with_vcpkg" != "xno" -a test "x$withval" != "xno"; then
+   if test "x$with_vcpkg" != "xno" -a "x$withval" != "xno"; then
       vcpkg_triplet=$withval
    fi
    ],[  # not given
@@ -247,8 +250,8 @@ AC_ARG_WITH(vcpkg-target-triplet,
 if test "x$with_vcpkg" != "xno"; then
    VCPKG_INSTALL_ARGUMENTS="--triplet=$vcpkg_triplet "
    VCPKG_PKG_CONFIG_LOC="vcpkg_installed/$vcpkg_triplet/lib/pkgconfig"
-   INCL=$INCL" -Ivcpkg_installed/$vcpkg_triplet/include "
-   LIBS=$LIBS" -Lvcpkg_installed/$vcpkg_triplet/lib "
+   INCL=$INCL" -Ivcpkg_installed/$vcpkg_triplet/include"
+   LIBS=$LIBS"-Lvcpkg_installed/$vcpkg_triplet/lib "
 
    VCPKG_LIBS_TO_USE_PKG_CONFIG=""
    AC_DEFUN([ADD_VCPKG_LIB_FOR_PKGCONFIG],[VCPKG_LIBS_TO_USE_PKG_CONFIG=$VCPKG_LIBS_TO_USE_PKG_CONFIG"$1 "])
@@ -263,109 +266,13 @@ AC_ARG_WITH(vcpkg-host-triplet,
          If left blank, will try to determine the triplet
       ]
    ), [  # given
-   if test "x$with_vcpkg" != "xno" -a test "x$withval" != "xno"; then
+   if test "x$with_vcpkg" != "xno" -a "x$withval" != "xno"; then
       VCPKG_INSTALL_ARGUMENTS=$VCPKG_INSTALL_ARGUMENTS"--host-triplet=$withval "
    fi
    ],
 )
 
 
-# --------------- GC -------------------------------
-ATOMICVERSION=7.6.12
-GCVERSION=8.2.4
-GCFILE=gc-$GCVERSION
-ac_cv_use_gc="system"
-
-AC_CHECK_FILE($GCFILE.tar.gz,
-ac_cv_use_gc=$GCVERSION)
-AC_ARG_ENABLE(gc,
-   [AS_HELP_STRING(--enable-gc[[[=system]]], enable system Boehm garbage collector)]
-   [     [[=VERSION]]   enable local VERSION of Boehm garbage collector]
-   [     [[=PREFIX]]    use Boehm garbage collector installed in PREFIX],
-   [  # if true
-      if test "x$enableval" != "xyes" ; then  # system, no or else
-         ac_cv_use_gc=$enableval
-      fi
-   ]
-)
-
-AC_ARG_ENABLE(gc-debug,
-[AS_HELP_STRING(--enable-gc-debug,enable (slow) garbage collector debugging)],
-[ if test "x$ac_cv_use_gc" != "xno" ; then
-    if test "x$enableval" = "xyes" ; then
-      AC_DEFINE(GC_DEBUG,1,[GC Debug is enabled])
-      AC_MSG_NOTICE([*** Enabling GC debugging: remember to make clean ***])
-      AC_MSG_NOTICE([*** Set the environment variable GC_FIND_LEAK at runtime ***])
-    fi
- fi
-])
-
-AC_ARG_ENABLE(gc-full-debug,
-[AS_HELP_STRING(--enable-gc-full-debug,enable (very slow) garbage collector backtrace)],
-[ if test "x$ac_cv_use_gc" != "xno" ; then
-    if test "x$enableval" = "xyes" ; then
-      AC_DEFINE(GC_DEBUG,1,[GC Debug is enabled])
-      AC_DEFINE(GC_BACKTRACE,1,[GC backtrace is enabled])
-      GCOPTIONS=$GCOPTIONS"--enable-gc-debug "
-      AC_MSG_NOTICE([*** Enabling GC backtrace debugging; remember to make gc-clean ***])
-    fi
- fi
-])
-
-GCLIB=
-GCPPLIB=
-GCNAME="Boehm Garbage Collector"
-if test "x$ac_cv_use_gc" != "xno" ; then
-   AC_DEFINE(USEGC,1,[GC Enabled])
-   if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
-      ADD_VCPKG_FEATURE(gc)
-      # The reason we are not using AC_CHECK_LIB is because
-      # we are not installing the dependencies until we collect all the features,
-      # hence the library files will not be available
-      ADD_VCPKG_LIB_FOR_PKGCONFIG(bdw-gc)
-      INCL=$INCL" -Ivcpkg_installed/$vcpkg_triplet/include/gc "
-      LIBS=$LIBS"-lgccpp "
-   else  # else, determine by prefix or system
-      case _$ac_cv_use_gc in
-      _|_system|_*[[\\/]]*)
-         if test "x$ac_cv_use_gc" = "xsystem" ; then
-            INCL=$INCL" -I$prefix/include/gc -I/usr/include/gc "
-            LIBS=$LIBS"-L$prefix/lib "
-         else
-            INCL=$INCL" -I$ac_cv_use_gc/include/gc "
-            LIBS=$LIBS"-L$ac_cv_use_gc/lib "
-         fi
-         CPPFLAGS_SAVE=$CPPFLAGS
-         CPPFLAGS=$CPPFLAGS" $INCL"
-         AC_CHECK_HEADER(gc.h,
-         AC_CHECK_LIB([gc],[GC_malloc],[
-            LIBS=$LIBS"-lgc "
-            AC_MSG_NOTICE([enabling system $GCNAME])],[
-         GCDIR=$GCFILE
-         INCL=$INCL" -I\$(GC)/include "
-         GCLIB="\$(GC)/.libs/libgc.a"
-         AC_MSG_NOTICE($GCNAME library not found)]),
-         GCDIR=$GCFILE
-         GCLIB="\$(GC)/.libs/libgc.a"
-         INCL=$INCL" -I\$(GC)/include "
-         AC_MSG_NOTICE($GCNAME header file not found))
-         CPPFLAGS=$CPPFLAGS_SAVE
-         ;;
-      *)
-         GCVERSION=$ac_cv_use_gc
-         GCFILE=gc-$GCVERSION
-         GCDIR=$GCFILE
-         AC_MSG_NOTICE([enabling local $GCNAME $GCDIR])
-         GCLIB="\$(GC)/.libs/libgc.a"
-         INCL=$INCL" -I\$(GC)/include "
-         ;;
-      esac
-   fi
-else
-   AC_MSG_NOTICE([disabling the $GCNAME])
-fi
-
-# -------------------------- end gc ------------------
 
 # Checks for libraries.
 #AC_SEARCH_LIBS([lgamma],[m c],,
@@ -435,14 +342,16 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
    LSPLIBS=$LSPLIBS" -L$LSP_BUILD_ROOT -L$LSP_BUILD_ROOT/third_party/uri/src -llspcpp -lnetwork-uri -lboost_filesystem -lboost_thread"
    LSP_CMAKE_OPTIONS="-DLSPCPP_USE_CPP17=ON "
 
-   if test "x$ac_cv_use_gc" != "xno"; then
+   if test "x$enable_gc" != "xno"; then
       LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DLSPCPP_SUPPORT_BOEHM_GC=ON "
-      if test "x$with_vcpkg" = "xno" -a test "x$ac_cv_use_gc" != "xsystem"; then
+      if test "x$with_vcpkg" = "xno"; then
           LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DLSPCPP_GC_DOWNLOADED_ROOT=$ROOT_DIR_RELATIVE_TO_SRC/\$(GC) "
       fi
+   else
+      LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DLSPCPP_SUPPORT_BOEHM_GC=OFF "
    fi
 
-   AC_DEFUN(ENABLE_LSP_MACRO,
+   AC_DEFUN([ENABLE_LSP_MACRO],
       AC_SUBST(LSP_CXX_BUILD_FLAGS)
       AC_SUBST(LSP_CMAKE_OPTIONS)
       AC_SUBST(LSP_BUILD_ROOT)
@@ -459,28 +368,11 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
    AC_MSG_NOTICE([*** Could not find libboost_filesystem: will compile without optional Language Server Protocol. ***]))
 fi
 
-# ------------- arguments for readline & static linking ---
-
 AC_ARG_ENABLE(readline,
 [AS_HELP_STRING(--enable-readline[[[=yes]]],enable GNU Readline Library)])
 
 AC_ARG_ENABLE(static,
 [AS_HELP_STRING(--enable-static[[[=no]]],link against static libraries)])
-
-STATIC=""
-DYNAMIC=""
-if test "x$enable_static" = "xyes"; then
-  STATIC="-Wl,-Bstatic "
-  DYNAMIC="-Wl,-Bdynamic "
-fi
-
-# ------------- readline & defines --------------------
-
-AC_DEFUN([READLINE],[
-AC_MSG_NOTICE([*** Could not find GNU readline 4.3 or later: will compile without readline support ***])
-AC_CHECK_LIB([edit],[readline])
-AC_CHECK_HEADERS(editline/readline.h)
-])
 
 AC_DEFUN([PKG_CONFIG],[
 ifdef(
@@ -489,6 +381,13 @@ ifdef(
    $1="$2 "
 )
 ])
+
+STATIC=""
+DYNAMIC=""
+if test "x$enable_static" = "xyes"; then
+  STATIC="-Wl,-Bstatic "
+  DYNAMIC="-Wl,-Bdynamic "
+fi
 
 AC_DEFUN([CHECK_LIB_STATIC],[
    PKG_CONFIG(PKG_FLAGS,,--libs,$1)
@@ -527,7 +426,6 @@ AC_DEFUN([CHECK_LIB_STATIC],[
       $PKG_FLAGS
    )
 ])
-# --------------- end readline ----------------
 
 if test "x$enable_readline" != "xno"; then
 if test "x$with_vcpkg" != "xno"; then  # vcpkg
@@ -550,8 +448,14 @@ else  # managed by the system
    abort
    #endif
    ])],
-   CHECK_LIB_STATIC(readline,readline,history_list,HAVE_LIBREADLINE,READLINE),
-   READLINE)
+   CHECK_LIB_STATIC(readline,readline,history_list,HAVE_LIBREADLINE,
+   readline="no"),readline="no")
+
+   if test "x$readline" == "xno"; then
+     AC_MSG_NOTICE([*** Could not find GNU readline 4.3 or later: will compile without readline support ***])
+     AC_CHECK_LIB([edit],[readline])
+     AC_CHECK_HEADERS(editline/readline.h)
+   fi
 
    PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,tinfo)
    CHECK_LIB_STATIC(tinfo,tinfo,tgetent,HAVE_LIBTINFO,AC_MSG_NOTICE([perhaps tgetent is in -lncurses]))
@@ -562,6 +466,47 @@ else  # managed by the system
                      AC_CHECK_LIB(curses,setupterm))
 fi
 fi
+
+# --------------- gc -------------------------------
+
+GCNAME="Boehm Garbage Collector"
+
+AC_ARG_ENABLE(gc,
+[AS_HELP_STRING(--enable-gc[[[=yes]]],enable local $GCNAME)])
+
+if test "x$enable_gc" != "xno" ; then
+  if test "x$with_vcpkg" == "xno"; then
+    AC_DEFINE(USEGC,1,[GC Enabled])
+    GCLIB="\$(GC)/.libs/libgc.a"
+    INCL=$INCL" -I\$(GC)/include"
+    AC_MSG_NOTICE([$GCNAME is enabled])
+  fi
+else
+  AC_MSG_NOTICE([*** $GCNAME disabled by configure flag: will compile without garbage collection. ***])
+fi
+
+AC_ARG_ENABLE(gc-debug,
+[AS_HELP_STRING(--enable-gc-debug,enable (slow) garbage collector debugging)],
+[ if test "x$enable_gc" != "xno" ; then
+    if test "x$enableval" = "xyes" ; then
+      AC_DEFINE(GC_DEBUG,1,[GC Debug is enabled])
+      AC_MSG_NOTICE([*** Enabling GC debugging: remember to make clean ***])
+      AC_MSG_NOTICE([*** Set the environment variable GC_FIND_LEAK at runtime ***])
+    fi
+ fi
+])
+
+AC_ARG_ENABLE(gc-full-debug,
+[AS_HELP_STRING(--enable-gc-full-debug,enable (very slow) garbage collector backtrace)],
+[ if test "x$enable_gc" != "xno" ; then
+    if test "x$enableval" = "xyes" ; then
+      AC_DEFINE(GC_DEBUG,1,[GC Debug is enabled])
+      AC_DEFINE(GC_BACKTRACE,1,[GC backtrace is enabled])
+      GCOPTIONS=$GCOPTIONS"--enable-gc-debug "
+      AC_MSG_NOTICE([*** Enabling GC backtrace debugging; remember to make gc-clean ***])
+    fi
+ fi
+])
 
 # ---------------- curl ------------------------
 
@@ -693,20 +638,19 @@ else
 fi
 
 TINYEXR_ROOT=tinyexr
-INCL=$INCL"-I$TINYEXR_ROOT "
+INCL=$INCL" -I$TINYEXR_ROOT"
 AC_SUBST(TINYEXR_ROOT)
 
 if test "x$enable_gl" != "xno"; then
 if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
    ADD_VCPKG_FEATURE(opengl)
-   AC_DEFINE(HAVE_GL,1,[OpenGL is enabled])
+   AC_DEFINE(HAVE_LIBGL,1,[libgl is enabled])
    AC_DEFINE(FREEGLUT,1,[Freeglut is enabled])
    AC_DEFINE(HAVE_LIBGLUT,1,[Freeglut library is available])
-   INCL=$INCL" -Ibackports/glew/include "
+   INCL=$INCL" -Ibackports/glew/include"
    GLEW="glew.o "
    ADD_VCPKG_LIB_FOR_PKGCONFIG(glut)
 else  # managed by the system
-   AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
    AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
 
 case "$OSTYPE" in
@@ -718,12 +662,11 @@ case "$OSTYPE" in
               AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT,1,
                    DEFINE_LIB[GLUT])
                            LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa "
-                           INCL=$INCL" -Ibackports/glew/include "
+                           INCL=$INCL" -Ibackports/glew/include"
                            GLEW="glew.o "],
                                  AC_MSG_NOTICE([*** Could not find GLUT: will compile without OpenGLLUT support ***]))
         ;;
      *)
-         AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
          AC_CHECK_LIB([glut], [glutMainLoop],,
                        AC_MSG_NOTICE([*** Could not find libglut: will compile without OpenGL support ***]))
          AC_CHECK_LIB([GL], [glDepthMask],
@@ -731,7 +674,7 @@ case "$OSTYPE" in
                              DEFINE_LIB([GL]))
                              LIBS=$LIBS"-lGL "
                              GLEW="glew.o "
-                             INCL=$INCL" -Ibackports/glew/include "
+                             INCL=$INCL" -Ibackports/glew/include"
                              AC_CHECK_LIB([GLX],[glXGetProcAddressARB],
                              GLEW=$GLEW"-lGLX ")],
                                    AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
@@ -751,7 +694,7 @@ $vcpkg_exec install $VCPKG_INSTALL_ARGUMENTS
 
 LIBS=$LIBS"$(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --libs $VCPKG_LIBS_TO_USE_PKG_CONFIG) "
 CFLAGS=$CFLAGS" $(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --cflags-only-other $VCPKG_LIBS_TO_USE_PKG_CONFIG)"
-INCL=$INCL"$(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --cflags-only-I $VCPKG_LIBS_TO_USE_PKG_CONFIG) "
+INCL=$INCL" $(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --cflags-only-I $VCPKG_LIBS_TO_USE_PKG_CONFIG)"
 fi
 
 # ----------------- xdr ------------------------
@@ -782,9 +725,7 @@ CPPFLAGS=$CPPFLAGS" $INCL"
 CXX_STANDARD=$cxxstd
 
 AC_SUBST(getopt)
-AC_SUBST(GCVERSION)
 AC_SUBST(ASYGLVERSION)
-AC_SUBST(ATOMICVERSION)
 AC_SUBST(GCOPTIONS)
 AC_SUBST(GCLIB)
 AC_SUBST(GCPPLIB)
@@ -821,17 +762,3 @@ AC_CHECK_FUNCS(strnlen)
 AC_CONFIG_FILES([Makefile doc/Makefile doc/png/Makefile])
 AC_CONFIG_HEADERS([config.h])
 AC_OUTPUT
-
-if test "x$with_vcpkg" = "xno" -a "x$GCDIR" != "x" ; then
-   AC_CHECK_FILE($GCDIR.tar.gz,,[
-   echo
-   echo Please put the Boehm garbage collector tar.gz files in the asymptote directory.
-   echo FOR EXAMPLE, USE THE COMMANDS:
-   echo
-   echo wget https://github.com/ivmai/bdwgc/releases/download/v$GCVERSION/$GCFILE.tar.gz
-   echo wget https://github.com/ivmai/libatomic_ops/releases/download/v$ATOMICVERSION/libatomic_ops-$ATOMICVERSION.tar.gz
-
-   echo
-   exit 1
-   ])
-fi

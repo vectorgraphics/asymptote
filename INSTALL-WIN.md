@@ -123,7 +123,7 @@ There are multiple CMake presets available for building, depending on what you i
 - If you are building Asymptote for release with setup files, depending on how you would build `asymptote.pdf`,
   use either (see #documentation-generation section)
   - The `msvc/release` preset
-  - The `msvc/msvc/release-with-existing-asymptote-pdf`
+  - The `msvc/msvc/release/with-existing-asymptote-pdf`
 - If you are building only asymptote executable for release, or do not care about `asymptote.pdf`, use `msvc/release` preset
 - If you are building Asymptote for development or debug mode,
   you are required to either create your own debug preset or configure cache variables manually.
@@ -144,7 +144,7 @@ There are multiple key targets for building Asymptote.
   See #building-gui-files for instructions on how to build GUI files.
 
 The Asymptote binary is available
-at `cmake-build-msvc/release/asy.exe` if using `msvc/release` or `msvc/msvc/release-with-existing-asymptote-pdf`
+at `cmake-build-msvc/release/asy.exe` if using `msvc/release` or `msvc/msvc/release/ci/with-external-asymptote-pdf`
 targets.
 Instructions for generating a setup file are in the next section
 
@@ -208,10 +208,10 @@ are present in the system.
 
 Place `asymptote.pdf` in the directory `<asymptote-repo>/asydoc/`.
 That is, the file `<asymptote-repo>/asydoc/asymptote.pdf` is present.
-After that, configure cmake with the preset `msvc/release-with-existing-asymptote-pdf` - that is,
+After that, configure cmake with the preset `msvc/release/ci/with-external-asymptote-pdf` - that is,
 
 ```powershell
-cmake --preset msvc/release-with-existing-asymptote-pdf
+cmake --preset msvc/release/ci/with-external-asymptote-pdf
 ```
 
 #### If generating `asymptote.pdf` as part of build process

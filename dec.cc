@@ -32,10 +32,48 @@ symbol intSymbol() {
   return *intSymbol;
 }
 
+bool usableInTemplate(ty *t) {
+  assert(t);
+  if (t->primitive()) return true;
+  assert(t->kind != ty_null);
+  assert(t->kind != ty_overloaded);
+
+  if (t->kind == ty_record) {
+    record* r= dynamic_cast<record*>(t);
+    assert(r);
+    assert(r->getLevel());
+    if (!r->getLevel()->getParent()) return false;// r is actually a module
+    if (!r->getLevel()->getParent()->getParent()) {
+      return true;// r is a top-level record, or all nestings are static
+    }
+    return false; // r is nested non-statically
+  }
+  if (t->kind == ty_function) {
+    function* f= dynamic_cast<function*>(t);
+    assert(f);
+    // Check the types of the result and all the parameters.
+    if (!usableInTemplate(f->result)) return false;
+    const signature& sig= *f->getSignature();
+    for (const types::formal& f : sig.formals) {
+      if (!usableInTemplate(f.t)) return false;
+    }
+    if (sig.hasRest() && !usableInTemplate(sig.getRest().t)) return false;
+    return true;
+  }
+  if (t->kind == ty_array) {
+    array* a= dynamic_cast<array*>(t);
+    assert(a);
+    return usableInTemplate(a->celltype);
+  }
+  // We should have already handled all the cases.
+  assert(false);
+  return false;
+}
+
 
 trans::tyEntry *astType::transAsTyEntry(coenv &e, record *where)
 {
-  return new trans::tyEntry(trans(e, false), 0, where, getPos());
+  return new trans::tyEntry(trans(e, false), nullptr, where, getPos());
 }
 
 
@@ -54,6 +92,10 @@ void addNameOps(coenv &e, record *r, record *qt, varEntry *qv, position pos) {
       em.error(pos);
       em << "cannot access '" << auName << "' in current scope";
       continue;
+    }
+    if (r && e.c.getPermission() != PUBLIC) {
+      // Add an additional restriction to v based on c.getPermission().
+      v = new varEntry(*v, e.c.getPermission(), r);
     }
     varEntry *qqv = qualifyVarEntry(qv, v);
     auto enter= [&](trans::venv& ve) {
@@ -168,10 +210,9 @@ arrayTy::operator string() const
   return ss.str();
 }
 
-tyEntryTy::tyEntryTy(position pos, types::ty *t)
-  : astType(pos), ent(new trans::tyEntry(t, 0, 0, nullPos))
-{
-}
+tyEntryTy::tyEntryTy(position pos, types::ty* t)
+    : astType(pos), ent(new trans::tyEntry(t, nullptr, nullptr, nullPos))
+{}
 
 void tyEntryTy::prettyprint(ostream &out, Int indent)
 {
@@ -235,33 +276,30 @@ void block::transAsField(coenv &e, record *r)
   Scope scopeHolder(e, scope);
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
     (*p)->markTransAsField(e, r);
-    if (em.errors() && !settings::getSetting<bool>("debug"))
+    if (em.errors() && !settings::debug)
       break;
   }
 }
 
 bool block::transAsTemplatedField(
-  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args,
-  frame *caller
+  coenv &e, record *r, mem::vector<absyntax::namedTy*>* args
 ) {
   Scope scopeHolder(e, scope);
-  auto p = stms.begin();
-  if (p == stms.end()) {
-    return true;  // empty file
-  }
-  receiveTypedefDec *dec = dynamic_cast<receiveTypedefDec *>(*p);
-  if (!dec) {
+  receiveTypedefDec *dec = getTypedefDec();
+  if (dec == nullptr) {
     em.error(getPos());
     em << "expected 'typedef import(<types>);'";
     em.sync(true);
     return false;
   }
-  if(!dec->transAsParamMatcher(e, r, args, caller))
+  if(!dec->transAsParamMatcher(e, r, args/*, caller*/))
     return false;
 
+  auto p = stms.begin();
+  // Start with second statement since the first was a receiveTypedefDec.
   while (++p != stms.end()) {
     (*p)->markTransAsField(e, r);
-    if (em.errors() && !settings::getSetting<bool>("debug")) {
+    if (em.errors() && !settings::debug) {
       return false;
     }
   }
@@ -269,19 +307,14 @@ bool block::transAsTemplatedField(
   return true;
 }
 
-void block::transAsRecordBody(coenv &e, record *r)
+receiveTypedefDec* block::getTypedefDec()
 {
-  transAsField(e, r);
-  e.c.closeRecord();
-}
+  auto p= stms.begin();
 
-bool block::transAsTemplatedRecordBody(
-  coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args,
-  frame *caller
-) {
-  bool succeeded = transAsTemplatedField(e, r, args, caller);
-  e.c.closeRecord();
-  return succeeded;
+  // Check for an empty file
+  if (p == stms.end()) return nullptr;
+
+  return dynamic_cast<receiveTypedefDec*>(*p);
 }
 
 record *block::transAsFile(genv& ge, symbol id)
@@ -295,38 +328,33 @@ record *block::transAsFile(genv& ge, symbol id)
   env e(ge);
   coenv ce(c, e);
 
-  // Translate the abstract syntax.
   if (settings::getSetting<bool>("autoplain")) {
     autoplainRunnable()->transAsField(ce, r);
   }
-  transAsRecordBody(ce, r);
+  // If the file starts with a template declaration and it was accessed
+  // or imported without template arguments, further translation is
+  // likely futile.
+  if (getTypedefDec() != nullptr) {
+    em << "templated module access requires template parameters";
+    em.error(getPos());
+    return nullptr;
+  }
+
+  // Translate the abstract syntax.
+  transAsField(ce, r);
+  ce.c.closeRecord();
+
   em.sync();
   if (em.errors()) return nullptr;
 
   return r;
 }
 
-record *block::transAsTemplatedFile(
-    genv& ge,
-    symbol id,
-    mem::vector<absyntax::namedTyEntry*>* args,
-    coenv& cE
-) {
+record* block::transAsTemplatedFile(
+        genv& ge, symbol id, mem::vector<absyntax::namedTy*>* args
+)
+{
 
-  for (auto p = args->rbegin(); p != args->rend(); ++p) {
-    namedTyEntry *arg = *p;
-    tyEntry *ent = arg->ent;
-    if(ent->t->kind == types::ty_record) {
-      varEntry *v = ent->v;
-      if (v) {
-        // Push the value of v to the stack.
-        v->getLocation()->encode(READ, arg->pos, cE.c);
-      } else  {
-        // Push the appropriate frame to the stack.
-        newRecordExp::encodeLevel(arg->pos,cE,ent);
-      }
-    }
-  }
 
   // Create the new module.
   record *r = new record(id, new frame(id, 0, 0));
@@ -337,12 +365,15 @@ record *block::transAsTemplatedFile(
   env e(ge);
   coenv ce(c, e);
 
-  // Translate the abstract syntax.
+  // Import `plain` before even translating "typedef import" since the latter
+  // might change the meanings of symbols provided by `plain`.
   if (settings::getSetting<bool>("autoplain")) {
     autoplainRunnable()->transAsField(ce, r);
   }
 
-  bool succeeded = transAsTemplatedRecordBody(ce, r, args, cE.c.getFrame());
+  // Translate the abstract syntax.
+  bool succeeded = transAsTemplatedField(ce, r, args);
+  ce.c.closeRecord();
   if (!succeeded) {
     return nullptr;
   }
@@ -547,9 +578,10 @@ types::ty *decidstart::getType(types::ty *base, coenv &, bool)
 trans::tyEntry *decidstart::getTyEntry(trans::tyEntry *base, coenv &e,
                                        record *where)
 {
-  return dims ? new trans::tyEntry(getType(base->t,e,false), 0,
-                                   where, getPos()) :
-    base;
+  return dims ? new trans::tyEntry(
+                        getType(base->t, e, false), nullptr, where, getPos()
+                )
+              : base;
 }
 
 void decidstart::addOps(types::ty *base, coenv &e, record *r)
@@ -641,7 +673,7 @@ types::ty *fundecidstart::getType(types::ty *base, coenv &e, bool tacit)
 trans::tyEntry *fundecidstart::getTyEntry(trans::tyEntry *base, coenv &e,
                                           record *where)
 {
-  return new trans::tyEntry(getType(base->t,e,false), 0, where, getPos());
+  return new trans::tyEntry(getType(base->t,e,false), nullptr, where, getPos());
 }
 
 void fundecidstart::addOps(types::ty *base, coenv &e, record *r)
@@ -923,8 +955,10 @@ class loadModuleExp : public exp {
   function *ft;
 
 public:
-  loadModuleExp(position pos, record *imp)
-    : exp(pos) {ft=new function(imp,primString());}
+  loadModuleExp(position pos, record* imp) : exp(pos)
+  {
+    ft= new function(imp, primString(), primInt());
+  }
 
   void prettyprint(ostream &out, Int indent) {
     prettyname(out, "loadModuleExp", indent, getPos());
@@ -965,9 +999,11 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
   }
   else {
     // Create a varinit that evaluates to the module.
-    // This is effectively the expression 'loadModule(filename)'.
-    callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, filename));
+    // This is effectively the expression 'loadModule(filename, 0)'.
+    callExp init(
+            pos, new loadModuleExp(pos, imp), new stringExp(pos, filename),
+            new intExp(pos, 0)
+    );
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -977,50 +1013,91 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
   }
 }
 
+
+
+// Returns the number of items that will be added to the stack once the
+// translation has been run (always either 0 or 1).
+Int transPushParent(formal *f, coenv &e) {
+  if (f->getType(e)->kind != types::ty_record) {
+    return 0;
+  }
+  astType *astT = f->getAbsyntaxType();
+  tyEntry *ent = astT->transAsTyEntry(e, nullptr);
+  bool succeeded = e.c.encodeParent(f->getPos(), ent);
+  if (!succeeded) {
+    em.compiler(f->getPos());
+    em << "failed to encode parent level";
+    em.sync(true);
+  }
+
+  return 1;
+}
+
+// Translates formals into namedTys.
+mem::vector<namedTy*> *computeTemplateArgs(formals *args, coenv &e) {
+  auto *computedArgs = new mem::vector<namedTy*>();
+  for (formal *f : *args) {
+    symbol theName = f->getName();
+    position sourcePos = f->getPos();
+    if (theName == symbol::nullsym) {
+      em.error(sourcePos);
+      em << "expected typename=";
+      em.sync(true);
+      return nullptr;
+    }
+    types::ty *t = f->getType(e);
+    if (!usableInTemplate(t)) {
+      em.error(f->getAbsyntaxType()->getPos());
+      em << "non-statically nested types cannot be used in templates";
+      em.sync(true);
+      return nullptr;
+    }
+    computedArgs->push_back(new namedTy(sourcePos, theName, t));
+  }
+  return computedArgs;
+}
+
 // Creates a local variable to hold the import and translate the accessing of
 // the import, but doesn't add the import to the environment.
 varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
                                 formals *args)
 {
-  string filename=(string) id;
-  stringstream buf;
-  buf << id << '/' << args->getSignature(e)->handle() << '/';
-  symbol index=symbol::literalTrans(buf.str());
+  string moduleName=(string) id;
 
-  auto *computedArgs = new mem::vector<namedTyEntry*>();
-  mem::vector<tySymbolPair> *fields = args->getFields();
-  for (auto p = fields->begin(); p != fields->end(); ++p) {
-    astType* theType = p->ty;
-    symbol theName = p->sym;
-    if (theName == symbol::nullsym) {
-      em.error(theType->getPos());
-      em << "expected typename=";
-      em.sync(true);
-      return nullptr;
-    }
-    computedArgs->push_back(new namedTyEntry(
-        theType->getPos(), theName, theType->transAsTyEntry(e, r)
-    ));
+  mem::vector<namedTy*> *computedArgs = computeTemplateArgs(args, e);
+  if (!computedArgs) {
+    return nullptr;
   }
 
-  record *imp=e.e.getTemplatedModule(index,filename,computedArgs,e);
+  record *imp=e.e.getTemplatedModule(moduleName,computedArgs);
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
     em.sync(true);
     return nullptr;
   }
-  else {
-    // Create a varinit that evaluates to the module.
-    // This is effectively the expression 'loadModule(index)'.
-    callExp init(pos, new loadModuleExp(pos, imp), new stringExp(pos, index));
-
-    // The varEntry should have whereDefined()==0 as it is not defined inside
-    // the record r.
-    varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
-    initializeVar(pos, e, v, &init);
-    return v;
+  // Encode action: Push parents to the stack.
+  Int numParents = 0;
+  // We push parents in reverse order so that we can later pop them in
+  // order, meaning that if more than one parameter has an error, the first
+  // error will be reported rather than the last.
+  for (auto p = args->rbegin(); p != args->rend(); ++p) {
+    numParents += transPushParent(*p, e);
   }
+
+  // Create a varinit that evaluates to the module.
+  // This is effectively the expression 'loadModule(index, numParents)'.
+  callExp init(
+          pos, new loadModuleExp(pos, imp),
+          new stringExp(pos, imp->getTemplateIndex()),
+          new intExp(pos, numParents)
+  );
+
+  // The varEntry should have whereDefined()==nullptr as it is not defined
+  // inside the record r.
+  varEntry *v=makeVarEntryWhere(e, r, imp, nullptr, pos);
+  initializeVar(pos, e, v, &init);
+  return v;
 }
 
 
@@ -1111,11 +1188,9 @@ mem::vector<tyEntry*> idpairlist::transAsUnravel(
   coenv &e, record *r, protoenv &source, varEntry *qualifier
 ) {
   mem::vector<tyEntry*> result;
-  for (list<idpair *>::iterator p=base.begin();
-       p != base.end();
-       ++p)
+  for (idpair *p : base)
   {
-    tyEntry *typeAdded = (*p)->transAsUnravel(e,r,source,qualifier);
+    tyEntry *typeAdded = p->transAsUnravel(e,r,source,qualifier);
     result.push_back(typeAdded);
   }
   return result;
@@ -1197,51 +1272,57 @@ void recordInitializer(coenv &e, symbol id, record *r, position here)
   }
 }
 
-bool typeParam::transAsParamMatcher(coenv &e, record *r, namedTyEntry* arg) {
-  position pos=arg->pos;
-  if (arg->dest != paramSym) {
+bool typeParam::transAsParamMatcher(coenv &e, record *module, namedTy* arg) {
+  symbol name = arg->dest;
+  ty *t = arg->t;
+  if (name != paramSym) {
     em.error(arg->pos);
     em << "template argument name does not match module: passed "
-       << arg->dest
+       << name
        << ", expected "
        << paramSym;
     return false;
   }
+  if (t->kind != types::ty_record) {
+    tyEntry *ent = new tyEntry(t, nullptr, module, getPos());
+    addTypeWithPermission(e, module, ent, name);
+    return true;
+  }
 
-  if(arg->ent->t->kind == types::ty_record) {
-    record *module = dynamic_cast<record *>(arg->ent->v->getType());
-    symbol Module=symbol::literalTrans(module->getName());
-    record *imp=e.e.getLoadedModule(Module);
+  // We can now assume t is a record (i.e., asy struct).
+  record *r = dynamic_cast<record *>(t);
+  assert(r);
+  //
+  // Build a varEntry v for the parent level and encode the bytecode
+  // to pop the parent off the stack into v. The varEntry needs a type,
+  // but the only thing we use from the type is the level, so make a
+  // new fake record.
+  string fakeParentName;
+# ifdef DEBUG_FRAME
+  {
+    ostringstream oss;
+    oss << "<fake parent of " << name << " holding ";
+    print(oss, r->getLevel()->getParent());
+    oss << ">";
+    fakeParentName = oss.str();
+  }
+# else
+  fakeParentName = "<fake parent of " + static_cast<string>(name) + ">";
+# endif
+  record* fakeParent = new record(
+          symbol::literalTrans(fakeParentName), r->getLevel()->getParent()
+  );
+  varEntry *v = makeVarEntryWhere(e, module, fakeParent, nullptr, getPos());
+  // Encode bytecode to pop the parent off the stack into v.
+  v->encode(WRITE, getPos(), e.c);
+  e.c.encodePop();
+  //
+  // Build tyEntry, using v as ent->v.
+  tyEntry *ent = new tyEntry(t, v, module, getPos());
+  addTypeWithPermission(e, module, ent, name);
 
-    tyEntry *entry;
-    if(imp) {
-      callExp init(pos, new loadModuleExp(pos, imp),
-                   new stringExp(pos, module->getName()));
-      varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
-      initializeVar(pos, e, v, &init);
-      if (v)
-        addVar(e, r, v, Module);
-
-      record *src = dynamic_cast<record *>(arg->ent->t);
-      qualifiedName *qn=new qualifiedName(
-        pos,
-        new simpleName(pos,module->getName()),
-        src->getName()
-        );
-
-      entry=nameTy(pos,qn).transAsTyEntry(e, r);
-    } else {
-      entry=arg->ent;
-    }
-    addTypeWithPermission(e, r, entry, paramSym);
-
-    // Add any autounravel fields.
-    record *qt = dynamic_cast<record *>(entry->t);
-    assert(qt);  // Should always pass since arg->ent->t->kind == ty_record
-    varEntry *qv = entry->v;
-    addNameOps(e, r, qt, qv, pos);
-  } else
-    addTypeWithPermission(e, r, arg->ent, paramSym);
+  // Add any autounravel fields.
+  addNameOps(e, module, r, v, getPos());
 
   return true;
 }
@@ -1256,9 +1337,25 @@ void typeParamList::add(typeParam *tp) {
   params.push_back(tp);
 }
 
+// RAII class to set the permission of a coder to a new value, and then reset it
+// to the old value when the object goes out of scope.
+class PermissionSetter {
+  coder &c;
+  permission oldPerm;
+public:
+  PermissionSetter(coder &c, permission newPerm) : c(c), oldPerm(c.getPermission()) {
+    c.setPermission(newPerm);
+  }
+  ~PermissionSetter() {
+    c.setPermission(oldPerm);
+  }
+};
+
 bool typeParamList::transAsParamMatcher(
-  coenv &e, record *r, mem::vector<namedTyEntry*> *args, frame *caller
+  coenv &e, record *r, mem::vector<namedTy*> *args
 ) {
+
+  // Check that the number of arguments passed matches the number of parameters.
   if (args->size() != params.size()) {
     position pos = getPos();
     if (args->size() >= 1) {
@@ -1274,65 +1371,28 @@ bool typeParamList::transAsParamMatcher(
     }
     return false;
   }
-  mem::vector<namedTyEntry*> *qualifiedArgs = new mem::vector<namedTyEntry*>();
 
-  const string callerContextName="callerContext/";
-  const static symbol *id0=new symbol(symbol::literalTrans(callerContextName));
-  record *callerContext = new record(*id0, caller);
-  for (namedTyEntry *arg : *args) {
-    if (arg->ent->t->kind == types::ty_record) {
-      varEntry *v = arg->ent->v;
-      varEntry *newV = makeVarEntryWhere(
-          e, r, v ? v->getType() : callerContext, nullptr, arg->pos
-      );
-      newV->getLocation()->encode(WRITE, arg->pos, e.c);
-      e.c.encodePop();
-
-      tyEntry *newEnt = qualifyTyEntry(newV, arg->ent);
-      qualifiedArgs->push_back(
-        new namedTyEntry(arg->pos, arg->dest, newEnt)
-        );
-    } else {
-      qualifiedArgs->push_back(arg);
-    }
-  }
-
+  // Set the permission to PRIVATE while translating type parameters.
+  PermissionSetter ps(e.c, PRIVATE);
+  // Pop the parents off the stack. They were pushed in reverse order.
+  // With this approach, the first error will be reported, rather than the last.
   for (size_t i = 0; i < params.size(); ++i) {
-    bool succeeded = params[i]->transAsParamMatcher(e, r, (*qualifiedArgs)[i]);
+    bool succeeded = params[i]->transAsParamMatcher(e, r, (*args)[i]);
     if (!succeeded) return false;
   }
   return true;
 }
 
-symbol templatedSymbol() {
-  const static symbol* templatedSymbol =
-      new symbol(symbol::literalTrans("/templated"));
-  return *templatedSymbol;
-}
-
 bool receiveTypedefDec::transAsParamMatcher(
-  coenv& e, record *r, mem::vector<namedTyEntry*> *args, frame *caller
+  coenv& e, record *r, mem::vector<namedTy*> *args
 ) {
-  bool succeeded = params->transAsParamMatcher(e, r, args, caller);
-
-  types::ty *intTy = e.e.lookupType(intSymbol());
-  assert(intTy);
-  e.e.addVar(templatedSymbol(),
-             makeVarEntryWhere(e, nullptr, intTy, r, getPos())
-            );
-
+  bool succeeded = params->transAsParamMatcher(e, r, args);
   return succeeded;
 }
 
 void receiveTypedefDec::transAsField(coenv& e, record *r) {
   em.error(getPos());
-  types::ty *intTy = e.e.lookupType(intSymbol());
-  assert(intTy);
-  if (e.e.lookupVarByType(templatedSymbol(), intTy)) {
-    em << "'typedef import(<types>)' must precede any other code";
-  } else {
-    em << "templated module access requires template parameters";
-  }
+  em << "'typedef import(<types>)' must precede any other code";
   em.sync(true);
 }
 
@@ -1537,8 +1597,9 @@ void recorddec::transAsField(coenv &e, record *parent)
   record *r = parent ? parent->newRecord(id, e.c.isStatic()) :
     e.c.newRecord(id);
 
-  addTypeWithPermission(e, parent, new trans::tyEntry(r,0,parent,getPos()),
-                        id);
+  addTypeWithPermission(
+          e, parent, new trans::tyEntry(r, nullptr, parent, getPos()), id
+  );
   trans::addRecordOps(r);
 
   // Start translating the initializer.
@@ -1569,7 +1630,7 @@ void recorddec::transAsField(coenv &e, record *parent)
   transRecordInitializer(re, r);
 
   // This would normally be done right after transAsField, but we needed to add
-  // the default initializer first. See also block::transAsRecordBody().
+  // the default initializer first.
   re.c.closeRecord();
 
 

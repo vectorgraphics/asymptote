@@ -19,7 +19,7 @@ class record;
 }
 
 namespace absyntax {
-class namedTyEntry;
+class namedTy;
 }
 
 namespace trans {
@@ -193,10 +193,8 @@ public:
   ~env();
 
   record *getModule(symbol id, string filename);
-  record *getTemplatedModule(symbol index,
-                             string filename,
-                             mem::vector<absyntax::namedTyEntry*> *args,
-                             coenv& e);
+  record *getTemplatedModule(string filename,
+                             mem::vector<absyntax::namedTy*> *args);
   record *getLoadedModule(symbol id);
 };
 

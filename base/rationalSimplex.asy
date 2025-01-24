@@ -272,8 +272,6 @@ struct simplex {
     rational[] cB=phase1 ? new rational[m] : c[n-m:n];
     rational[][] D=phase1 ? new rational[m+1][n+1] : E;
     if(phase1) {
-      write("n=",n);
-      write(Bindices);
       // Drive artificial variables out of basis.
       for(int i=0; i < m; ++i) {
         if(Bindices[i] > n) {

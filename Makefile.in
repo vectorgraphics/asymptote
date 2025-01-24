@@ -4,9 +4,7 @@ ARCH = unix
 POLL = poll
 
 ASYGLVERSION = @ASYGLVERSION@
-GCVERSION = @GCVERSION@
-GC = gc-$(GCVERSION)
-LIBATOMIC = libatomic_ops-@ATOMICVERSION@
+GC = gc
 GCOPTIONS = @GCOPTIONS@
 GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
@@ -92,7 +90,7 @@ DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
-	-Iprc/include -I$(LSP_ROOT)/include -Ihighwayhash -I.
+	-Iprc/include -I$(LSP_ROOT)/include -Ihighwayhash
 GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
 
 # Options for compiling the object files for the shared library.
@@ -179,34 +177,10 @@ libhighwayhash.a:
 
 all:  	asy sty man faq asy-keywords.el
 
-$(GCLIB): $(GC).tar.gz
-	gunzip -c $(GC).tar.gz > $(GC).tar
-	tar -xf $(GC).tar
-	rm -f $(GC).tar
-	if test -r $(LIBATOMIC).tar.gz; then \
-	  gunzip -c $(LIBATOMIC).tar.gz > $(LIBATOMIC).tar; \
-	  tar -xf $(LIBATOMIC).tar; \
-	  rm -f $(LIBATOMIC).tar; \
-          mv $(LIBATOMIC) $(GC)/libatomic_ops; \
-	fi
-	if test "$(GC)" = "gc-7.0"; then \
-	  cd $(GC)/include/private && \
-            patch < ../../../patches/gc-7.0nomem.patch; \
-	fi
-	if test "$(GC)" = "gc-7.2b"; then \
-	  mv gc-7.2 gc-7.2b; \
-	fi
-	if test "$(GC)" = "gc-7.2c"; then \
-	  mv gc-7.2 gc-7.2c; \
-	fi
-	if test "$(GC)" = "gc-7.2d"; then \
-	  mv gc-7.2 gc-7.2d; \
-	fi
-	cd $(GC) && \
-	./configure CC="$(CC)" CXX="$(CXX)" $(GCOPTIONS); \
-	$(MAKE) check
-
-$(GCPPLIB): $(GCLIB)
+$(GCLIB):
+	ln -sf ../libatomic_ops libatomic_ops
+	cd $(GC) && ./configure CC="$(CC)" CXX="$(CXX)" $(GCOPTIONS)
+	$(MAKE) -C $(GC) check
 
 sty: doc/version.texi
 	cd doc && $(MAKE) asy-latex.pdf
@@ -252,13 +226,13 @@ $(SYMBOL_FILES:=.d): %.d: %.cc gen_preprocessed_depfile.py
 		--out-i-file=$*.raw.i \
 		--in-src-file=$<
 
-$(SYMBOL_FILES:=.symbols.h): %.symbols.h: %.raw.i findsym.pl
-	$(PERL) findsym.pl $@ $<
+$(SYMBOL_FILES:=.symbols.h): %.symbols.h: %.raw.i findsym.py
+	$(PYTHON) findsym.py $@ $<
 
 $(SYMBOL_FILES:=.o): %.o: %.symbols.h
 
-allsymbols.h: $(SYMBOL_FILES:=.raw.i) findsym.pl
-	$(PERL) ./findsym.pl $@ $(filter-out findsym.pl,$^)
+allsymbols.h: $(SYMBOL_FILES:=.raw.i) findsym.py
+	$(PYTHON) ./findsym.py $@ $(filter-out findsym.py,$^)
 
 symbol.o: $(SYMBOLSH)
 
@@ -283,11 +257,11 @@ lex.yy.cc: camp.l
 
 lex.yy.d: $(GCLIB) lex.yy.cc camp.tab.h
 
-keywords.h: camp.l keywords.pl asyprocess.cc
-	$(PERL) ./keywords.pl --camplfile $< --output $@ --process-file asyprocess.cc
+keywords.h: camp.l keywords.py asyprocess.cc
+	$(PYTHON) ./keywords.py --camplfile $< --output $@ --process-file asyprocess.cc
 
-opsymbols.h: camp.l opsymbols.pl
-	$(PERL) ./opsymbols.pl --campfile $< --output $@
+opsymbols.h: camp.l opsymbols.py
+	$(PYTHON) ./opsymbols.py --campfile $< --output $@
 
 envcompleter.d: keywords.h
 
@@ -297,7 +271,7 @@ asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy
 	ls $(addsuffix /*.asy,$(KEYWORDS)) | grep -v plain\* | \
           grep -v three_\* | grep -v map | xargs $(ASY) -l >> asy.list
 	revision=`cat version.txt`
-	$(PERL) ./asy-list.pl --asy-list-file asy.list --revision $(revision) --output-file $@
+	$(PYTHON) ./asy-list.py --asy-list-file asy.list --revision $(revision) --output-file $@
 
 install-notexhash: asy-keywords.el install-asy install-man
 
@@ -392,23 +366,19 @@ uninstall-docdir:
 
 clean:  FORCE
 	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
-	-rm LspCpp/liblspcpp.a
+	-rm -f LspCpp/liblspcpp.a LspCpp/Makefile LspCpp/CMakeFiles
 	-cd LspCpp && $(MAKE) distclean
 	-cd tinyexr && $(MAKE) clean
 	-cd GUI && $(PYTHON) buildtool.py clean
 	-cd highwayhash && $(MAKE) clean
 
 gc-clean: FORCE clean
-	-if test -d $(GC); then \
-		$(MAKE) -C $(GC) clean; \
-	fi
+	-$(MAKE) -C $(GC) clean
 
 cleaner: FORCE clean
-	-if test -d $(GC); then \
-		rm -rf $(GC); \
-	fi
+	-$(MAKE) -C $(GC) distclean
 	-rm -f Makefile config.h config.log config.status errors.temp
-	-rm -rf acextlibs
+	-rm -f LspCpp/CMakeCache.txt
 	cd doc && $(MAKE) clean
 	cd tests && $(MAKE) distclean
 

@@ -668,6 +668,13 @@ struct lsTextDocumentClientCapabilities {
    //
   optional< DynamicRegistrationCapabilities >  moniker;
 
+  //
+   // Capabilities specific to the `textDocument/inlayHint` request.
+   //
+   // @since 3.17.0
+   //
+  optional< InlayHintClientCapabilities > inlayHint;
+
   MAKE_SWAP_METHOD(lsTextDocumentClientCapabilities,
           synchronization,
           completion,
@@ -687,7 +694,9 @@ struct lsTextDocumentClientCapabilities {
           documentLink, colorProvider,
           rename, publishDiagnostics, foldingRange,
           semanticHighlightingCapabilities, typeHierarchyCapabilities,
-          callHierarchy, selectionRange , linkedEditingRange, semanticTokens, moniker)
+          callHierarchy, selectionRange , linkedEditingRange, semanticTokens, moniker,
+          inlayHint
+  )
 };
 
 
@@ -710,4 +719,6 @@ MAKE_REFLECT_STRUCT(lsTextDocumentClientCapabilities,
         documentLink, colorProvider,
         rename, publishDiagnostics, foldingRange,
         semanticHighlightingCapabilities, typeHierarchyCapabilities,
-        callHierarchy, selectionRange, linkedEditingRange, semanticTokens, moniker)
+        callHierarchy, selectionRange, linkedEditingRange, semanticTokens, moniker,
+        inlayHint
+)

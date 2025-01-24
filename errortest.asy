@@ -564,3 +564,66 @@
     autounravel bool alias(A, A);  // cannot shadow autounravel alias
   }
 }
+{
+  // Non-statically nested types cannot be used as template parameters.
+  struct A {
+    struct B {
+      autounravel int x;
+    }
+    access somefilename(T=B) as somefilename_B;
+  }
+  A a;
+  access somefilename(T=a.B) as somefilename_B;
+  access somefilename(T=A.B) as somefilename_B;
+}
+{
+  access errorFreeTestTemplate(A=int, B=string) as eft;  // no error
+  // wrongly ordered names after correct load
+  access errorFreeTestTemplate(B=int, A=string) as eft;
+  // completely wrong names after correct load
+  access errorFreeTestTemplate(C=int, D=string) as eft;
+  // first name correct, second name wrong
+  access errorFreeTestTemplate(A=int, D=string) as eft;
+  // first name wrong, second name correct
+  access errorFreeTestTemplate(C=int, B=string) as eft;
+  // too few params
+  access errorFreeTestTemplate(A=int) as eft;
+  // too many params
+  access errorFreeTestTemplate(A=int, B=string, C=real) as eft;
+}
+// Test more permissions.
+{
+  struct A {
+    static int x;
+    static int f;
+    static void f();
+    static struct R {}
+  }
+  struct T {
+    private static from A unravel x;
+    private static from A unravel f;
+    private static from A unravel R;
+  }
+  T.x;  // incorrectly accessing private field
+  (int)T.f;  // incorrectly accessing overloaded private field
+  T.f();  // incorrectly accessing overloaded private field
+  T.R r;  // correctly accessing private type
+  struct U {
+    private static unravel A;
+  }
+  U.x;  // incorrectly accessing private field
+  (int)U.f;  // incorrectly accessing overloaded private field
+  U.f();  // incorrectly accessing overloaded private field
+  U.R r;  // correctly accessing private type
+}
+{
+  struct A {
+    static struct B {
+      autounravel int x;
+    }
+  }
+  struct T {
+    private from A unravel B;  // x is autounraveled from B
+  }
+  T.x;  // incorrectly accessing private field
+}

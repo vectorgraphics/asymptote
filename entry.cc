@@ -99,15 +99,20 @@ tyEntry *tenv::add(symbol dest,
                names_t::value_type &x, varEntry *qualifier, coder &c)
 {
   mem::list<tyEntry *>& ents=x.second;
-  if (!ents.empty()) {
-    tyEntry *ent=ents.front();
-    if (ent->checkPerm(READ, c)) {
-      tyEntry *qEnt = qualifyTyEntry(qualifier, ent);
-      enter(dest, qEnt);
-      return qEnt;
-    }
+  if (ents.empty()) {
+    return nullptr;
   }
-  return nullptr;
+  tyEntry *ent=ents.front();
+  if (!ent->checkPerm(READ, c)) {
+    return nullptr;
+  }
+  if (permission perm = c.getPermission(); perm != PUBLIC) {
+    // Add an additional restriction to ent based on c.getPermission().
+    ent = new tyEntry(ent, perm, c.thisType());
+  }
+  tyEntry *qEnt = qualifyTyEntry(qualifier, ent);
+  enter(dest, qEnt);
+  return qEnt;
 }
 
 void tenv::add(tenv& source, varEntry *qualifier, coder &c) {
@@ -732,6 +737,10 @@ void venv::add(venv& source, varEntry *qualifier, coder &c)
 
     varEntry *v=p.ent;
     if (v->checkPerm(READ, c)) {
+      if (permission perm = c.getPermission(); perm != PUBLIC) {
+        // Add an additional restriction to v based on c.getPermission().
+        v = new varEntry(*v, perm, c.thisType());
+      }
       varEntry *qve=qualifyVarEntry(qualifier, v);
       enter(p.name, qve);
       if (isAutoUnravel) {
@@ -756,6 +765,10 @@ bool venv::add(
       {
         varEntry *v=source.lookByType(src, *i);
         if (v->checkPerm(READ, c)) {
+          if (permission perm = c.getPermission(); perm != PUBLIC) {
+            // Add an additional restriction to v based on c.getPermission().
+            v = new varEntry(*v, perm, c.thisType());
+          }
           varEntry *qve=qualifyVarEntry(qualifier, v);
           enter(dest, qve);
           if (addedVec != nullptr) {
@@ -768,15 +781,19 @@ bool venv::add(
   }
   else {
     varEntry *v=source.lookByType(src, t);
-    if (v->checkPerm(READ, c)) {
-      varEntry *qve=qualifyVarEntry(qualifier, v);
-      enter(dest, qve);
-      if (addedVec != nullptr) {
-        addedVec->push_back(qve);
-      }
-      return true;
+    if (!v->checkPerm(READ, c)) {
+      return false;
     }
-    return false;
+    if (permission perm = c.getPermission(); perm != PUBLIC) {
+      // Add an additional restriction to v based on c.getPermission().
+      v = new varEntry(*v, perm, c.thisType());
+    }
+    varEntry *qve=qualifyVarEntry(qualifier, v);
+    enter(dest, qve);
+    if (addedVec != nullptr) {
+      addedVec->push_back(qve);
+    }
+    return true;
   }
 }
 

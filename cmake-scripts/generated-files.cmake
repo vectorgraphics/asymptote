@@ -14,12 +14,12 @@ file(MAKE_DIRECTORY ${GENERATED_SRC_DIR})
 # opsymbols.h
 add_custom_command(
         OUTPUT ${GENERATED_INCLUDE_DIR}/opsymbols.h
-        COMMAND ${PERL_INTERPRETER}
-            ${ASY_SCRIPTS_DIR}/opsymbols.pl
+        COMMAND ${PY3_INTERPRETER}
+            ${ASY_SCRIPTS_DIR}/opsymbols.py
             --campfile ${ASY_RESOURCE_DIR}/camp.l
             --output ${GENERATED_INCLUDE_DIR}/opsymbols.h
         MAIN_DEPENDENCY ${ASY_RESOURCE_DIR}/camp.l
-        DEPENDS ${ASY_SCRIPTS_DIR}/opsymbols.pl
+        DEPENDS ${ASY_SCRIPTS_DIR}/opsymbols.py
 )
 
 list(APPEND ASYMPTOTE_INCLUDES ${GENERATED_INCLUDE_DIR})
@@ -65,12 +65,12 @@ endforeach()
 set(KEYWORDS_HEADER_OUT ${GENERATED_INCLUDE_DIR}/keywords.h)
 add_custom_command(
         OUTPUT ${KEYWORDS_HEADER_OUT}
-        COMMAND ${PERL_INTERPRETER} ${ASY_SCRIPTS_DIR}/keywords.pl
+        COMMAND ${PY3_INTERPRETER} ${ASY_SCRIPTS_DIR}/keywords.py
             --camplfile ${ASY_RESOURCE_DIR}/camp.l
             --output ${GENERATED_INCLUDE_DIR}/keywords.h
             --process-file ${ASY_SRC_DIR}/asyprocess.cc
         MAIN_DEPENDENCY ${ASY_RESOURCE_DIR}/camp.l
-        DEPENDS ${ASY_SCRIPTS_DIR}/keywords.pl ${ASY_SRC_DIR}/asyprocess.cc
+        DEPENDS ${ASY_SCRIPTS_DIR}/keywords.py ${ASY_SRC_DIR}/asyprocess.cc
 )
 
 list(APPEND ASYMPTOTE_GENERATED_HEADERS ${KEYWORDS_HEADER_OUT})
@@ -130,7 +130,7 @@ endforeach ()
 
 # raw.i files
 # generating preprocessed files
-set(FINDSYM_FILE ${ASY_SCRIPTS_DIR}/findsym.pl)
+set(FINDSYM_FILE ${ASY_SCRIPTS_DIR}/findsym.py)
 # combine all files into allsymbols.h
 function(symfile_preprocess src_dir symfile symfile_raw_output_varname header_output_varname)
     set(symfile_raw_output_var ${symfile_raw_output_varname})
@@ -182,7 +182,7 @@ function(symfile_preprocess src_dir symfile symfile_raw_output_varname header_ou
     set(${symfile_raw_output_var} ${sym_header_file} PARENT_SCOPE)
     add_custom_command(
             OUTPUT ${sym_header_file}
-            COMMAND ${PERL_INTERPRETER} ${FINDSYM_FILE}
+            COMMAND ${PY3_INTERPRETER} ${FINDSYM_FILE}
                 ${sym_header_file}
                 ${processed_output_file}
             MAIN_DEPENDENCY ${processed_output_file}
@@ -205,7 +205,7 @@ endforeach ()
 # allsymbols.h
 add_custom_command(
         OUTPUT ${GENERATED_INCLUDE_DIR}/allsymbols.h
-        COMMAND ${PERL_INTERPRETER} ${FINDSYM_FILE}
+        COMMAND ${PY3_INTERPRETER} ${FINDSYM_FILE}
             ${GENERATED_INCLUDE_DIR}/allsymbols.h
             ${SYMFILE_OUT_LIST}
         DEPENDS ${FINDSYM_FILE} ${SYMFILE_OUT_LIST}

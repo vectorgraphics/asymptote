@@ -2,7 +2,7 @@
  * dec.h
  * Andy Hammerlindl 2002/8/29
  *
- * Represents the abstract syntax tree for declatations in the language.
+ * Represents the abstract syntax tree for declarations in the language.
  * Also included is abstract syntax for types as they are most often
  * used with declarations.
  *****/
@@ -205,7 +205,7 @@ public:
   virtual bool returns()
   { return false; }
 
-  // Returns true if it is syntatically allowable to modify this
+  // Returns true if it is syntactically allowable to modify this
   // runnable by a PUBLIC or PRIVATE modifier.
   virtual bool allowPermissions()
   { return false; }
@@ -214,15 +214,16 @@ public:
 // Forward declaration.
 class formals;
 
-class namedTyEntry : public gc {
+class namedTy : public gc {
 public:
   symbol dest;
-  trans::tyEntry *ent;
+  types::ty *t;
   position pos;
-  namedTyEntry(position pos, symbol dest, trans::tyEntry *ent)
-    : dest(dest), ent(ent), pos(pos) {}
+  namedTy(position pos, symbol dest, types::ty *t)
+    : dest(dest), t(t), pos(pos) {}
 };
 
+class receiveTypedefDec;
 
 class block : public runnable {
 public:
@@ -233,6 +234,11 @@ public:
 
 protected:
   void prettystms(ostream &out, Int indent);
+
+private:
+  // If the first runnable exists and is a receiveTypedefDec*, return it;
+  // otherwise return nullptr.
+  receiveTypedefDec* getTypedefDec();
 
 public:
   block(position pos, bool scope=true)
@@ -252,14 +258,7 @@ public:
   void transAsField(coenv &e, record *r) override;
 
   bool transAsTemplatedField(
-    coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args,
-    trans::frame *caller
-  );
-
-  void transAsRecordBody(coenv &e, record *r);
-  bool transAsTemplatedRecordBody(
-    coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args,
-    trans::frame *caller
+    coenv &e, record *r, mem::vector<absyntax::namedTy*>* args
   );
 
   types::record *transAsFile(genv& ge, symbol id);
@@ -267,8 +266,7 @@ public:
   types::record *transAsTemplatedFile(
       genv& ge,
       symbol id,
-      mem::vector<absyntax::namedTyEntry*> *args,
-      coenv &e
+      mem::vector<absyntax::namedTy*> *args
   );
 
   // If the block can be interpreted as a single vardec, return that vardec
@@ -636,7 +634,7 @@ public:
   typeParam(position pos, symbol paramSym)
     : absyn(pos), paramSym(paramSym) {}
 
-  bool transAsParamMatcher(coenv &e, record *r, namedTyEntry *arg);
+  bool transAsParamMatcher(coenv &e, record *r, namedTy *arg);
 
   void prettyprint(ostream &out, Int indent);
 };
@@ -650,7 +648,7 @@ public:
   void add(typeParam *tp);
 
   bool transAsParamMatcher(coenv &e, record *r,
-                           mem::vector<namedTyEntry*> *args, trans::frame *caller);
+                           mem::vector<namedTy*> *args);
 
   void prettyprint(ostream &out, Int indent);
 };
@@ -665,7 +663,7 @@ public:
 
   void transAsField(coenv& e, record *r) override;
   bool transAsParamMatcher(
-    coenv& e, record *r, mem::vector<namedTyEntry*> *args, trans::frame *caller
+    coenv& e, record *r, mem::vector<namedTy*> *args
   );
 };
 
@@ -790,13 +788,20 @@ public:
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
-// Types defined from others in typedef.
+// Types defined from others in `typedef` or `using` statement.
 class typedec : public dec {
   vardec *body;
 
 public:
   typedec(position pos, vardec *body)
     : dec(pos), body(body) {}
+
+  typedec(position pos, decidstart *id_with_signature, astType *return_type) 
+    : dec(pos)
+  {
+    decid *di = new decid(id_with_signature->getPos(), id_with_signature);
+    body = new vardec(return_type->getPos(), return_type, di);
+  }
 
   void prettyprint(ostream &out, Int indent);
 
