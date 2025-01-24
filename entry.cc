@@ -756,6 +756,10 @@ bool venv::add(
       {
         varEntry *v=source.lookByType(src, *i);
         if (v->checkPerm(READ, c)) {
+          if (permission perm = c.getPermission(); perm != PUBLIC) {
+            // Add an additional restriction to v based on c.getPermission().
+            v = new varEntry(*v, perm, c.thisType());
+          }
           varEntry *qve=qualifyVarEntry(qualifier, v);
           enter(dest, qve);
           if (addedVec != nullptr) {
