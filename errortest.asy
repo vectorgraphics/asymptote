@@ -595,20 +595,17 @@
 {
   struct A {
     static int x;
+    static int f;
+    static void f();
+    static struct R {}
   }
   struct T {
     private static from A unravel x;
+    private static from A unravel f;
+    private static from A unravel R;
   }
   T.x;  // incorrectly accessing private field
-}
-{
-  // Same test as above, but with overloaded name.
-  struct A {
-    static int x;
-    static void x();
-  }
-  struct T {
-    private static from A unravel x;
-  }
-  (int)T.x;  // incorrectly accessing private field
+  (int)T.f;  // incorrectly accessing overloaded private field
+  T.f();  // incorrectly accessing overloaded private field
+  T.R r;  // correctly accessing private type
 }
