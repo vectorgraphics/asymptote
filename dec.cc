@@ -1617,7 +1617,7 @@ void recorddec::transAsField(coenv &e, record *parent)
     addNameOps(re, nullptr, r, nullptr, getPos());
     // We've already handled the scope ourselves, so tell `body` not to add an
     // additional scope when running `transAsField`.
-    body->scope = false;  
+    body->scope = false;
     // Translate the main body of the record.
     body->transAsField(re, r);
     // Restore the original value of the `scope` boolean. This probably makes no
