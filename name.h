@@ -86,6 +86,12 @@ public:
   virtual void print(ostream& out) const {
     out << "<base name>";
   }
+  virtual void printPath(ostream& out) const { print(out); }
+  virtual symbol asPath() const {
+    ostringstream out;
+    printPath(out);
+    return symbol::literalTrans(out.str());  
+  }
 
   [[nodiscard]]
   virtual symbol getName() const = 0;
@@ -122,7 +128,9 @@ public:
   void print(ostream& out) const override {
     out << id;
   }
-
+  void printPath(ostream& out) const override {
+    out << id;
+  }
   [[nodiscard]]
   symbol getName() const override {
     return id;
@@ -168,6 +176,10 @@ public:
   void prettyprint(ostream &out, Int indent) override;
   void print(ostream& out) const override {
     out << *qualifier << "." << id;
+  }
+  void printPath(ostream& out) const override {
+    qualifier->printPath(out);
+    out << "/" << id;
   }
 
   [[nodiscard]]

@@ -104,7 +104,7 @@ StartTest("unravel");
   assert(x==4);
 }
 {
-  access 'imp/imports/A' as A;
+  access imp.imports.A as A;
   int x=3;
   from A unravel B;
   from B unravel x;
