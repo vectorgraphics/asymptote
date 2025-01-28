@@ -9,8 +9,10 @@ else()
     set(ASYMPTOTE_SYSDIR_VALUE ${DATADIR}/asymptote)
 endif()
 
+    set(ASYMPTOTE_DOCDIR_VALUE ${DATADIR}/doc/asymptote)
+
     list(APPEND ASY_MACROS
-            ASYMPTOTE_SYSDIR="${DATADIR}/asymptote"
-            ASYMPTOTE_DOCDIR="${DATADIR}/doc/asymptote"
+            ASYMPTOTE_SYSDIR="${ASYMPTOTE_SYSDIR_VALUE}"
+            ASYMPTOTE_DOCDIR="${ASYMPTOTE_DOCDIR_VALUE}"
     )
 endif()
