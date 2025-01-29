@@ -430,7 +430,7 @@ bool equivalent(const signature *s1, const signature *s2)
     return s2->isOpen;
   else if (s2->isOpen)
     return false;
-  
+
   if (s1->formals.size() != s2->formals.size()) {
     return false;
   }

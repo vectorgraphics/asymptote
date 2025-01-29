@@ -298,8 +298,8 @@ install-asy: asy sty $(PYFILES)
 	${INSTALL} -p -m 644 base/shaders/*.glsl $(shaderdir)
 	${INSTALL} -p -m 644 base/webgl/asygl.js \
 		$(webgldir)
-	${INSTALL} -p -m 755 GUI/xasy.py $(GUIdir)
 	${INSTALL} -p -m 644 GUI/*.py $(GUIdir)
+	${INSTALL} -p -m 755 GUI/xasy.py $(GUIdir)
 	-${INSTALL} -p -m 644 GUI/xasyicons/*.py $(GUIdir)/xasyicons
 	-${INSTALL} -p -m 644 GUI/xasyqtui/*.py $(GUIdir)/xasyqtui
 	-${INSTALL} -p -m 644 GUI/xasyversion/*.py $(GUIdir)/xasyversion
