@@ -130,5 +130,13 @@ if (ENABLE_DOCGEN)
             DESTINATION ${ASY_INSTALL_DOCDIR_VALUE}
             PERMISSIONS ${PERMISSION_644_LIST}
     )
+
+    # manpage
+    install(
+            FILES ${ASY_TEX_BUILD_ROOT}/asy.1
+            COMPONENT ${ASY_DOCS_INSTALL_COMPONENT}
+            DESTINATION ${CMAKE_INSTALL_MANDIR}/man1
+            PERMISSIONS ${PERMISSION_644_LIST}
+    )
 endif()
 #endregion
