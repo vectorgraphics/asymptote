@@ -88,12 +88,16 @@ add_asy_tests(
 )
 add_asy_tests(
         TEST_DIR types
-        TESTS cast constructor ecast guide init keyword order resolve shadow spec var
+        TESTS
+        autounravel builtinOps cast constructor ecast guide
+        init keyword order resolve shadow spec var
 )
 
 add_asy_tests(
         TEST_DIR template
-        TESTS initTest functionTest mapArrayTest multiImport singletype sortedsetTest splaytreeTest structTest
+        TESTS
+        initTest functionTest mapArrayTest multiImport nestedImport
+        singletype sortedsetTest splaytreeTest structTest
 )
 
 add_asy_tests(
