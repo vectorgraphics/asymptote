@@ -14,12 +14,6 @@ AS_IF([test "x$LIBTOOL" = "xno"], [AC_MSG_ERROR([libtool not found])])
 
 AH_TOP([#pragma once])
 
-AC_C_BIGENDIAN(
-   [AC_DEFINE(WORDS_BIGENDIAN,1,[Build is big endian])],
-   [],
-   [],
-   [AC_DEFINE(UNIVERSAL_ENDIAN_BUILD,1,[Endianness is determined at compile time])]
-)
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
@@ -34,9 +28,17 @@ AC_ARG_ENABLE(lsp,
 cxxstd="c++17"
 
 test "$CXXFLAGS" || CXXFLAGS="-std=$cxxstd"
-echo Compiling with $CXXFLAGS
 
 test "$CFLAGS" || CFLAGS="-g -O3"
+
+AC_C_BIGENDIAN(
+   [AC_DEFINE(WORDS_BIGENDIAN,1,[Build is big endian])],
+   [],
+   [],
+   [AC_DEFINE(UNIVERSAL_ENDIAN_BUILD,1,[Endianness is determined at compile time])]
+)
+
+echo Compiling with $CXXFLAGS $CFLAGS
 
 # --------------- external refs ---------------------------
 
