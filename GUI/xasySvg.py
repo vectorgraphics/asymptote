@@ -31,7 +31,7 @@ class SvgObject:
             QtWidgets.QMessageBox.about(
                 None,
                 "rsvg-convert missing",
-                "Please install rsvg-convert version >= 2.40 is available.",
+                "Please install rsvg-convert version >= 2.40.",
             )
             sys.exit(-1)
 
