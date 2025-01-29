@@ -43,7 +43,5 @@ jobs:
           name: asy-testfiles
           path: cmake-build-linux/release/
       - run: chmod +x cmake-build-linux/release/asy
-      - name: asy test
-        run: ctest --test-dir cmake-build-linux/release -R "^asy\..*" -E "asy\.(gc\..*|pic\.trans|gs\.ghostscript)"
-      - name: wce test
-        run: ctest --test-dir cmake-build-linux/release -R "^wce"
+      - name: asy check tests
+        run: ctest --output-on-failure --test-dir cmake-build-linux/release -L "asy-check-tests"
