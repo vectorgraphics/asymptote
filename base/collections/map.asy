@@ -22,20 +22,22 @@ struct Map_K_V {
   bool empty() { return size() == 0; }
   bool contains(K key);
   // If the key was not present already, returns emptyresponse, or throws error
-  // if emptyresponse was never set. Someday we might have an operator[] for this.
+  // if emptyresponse was never set.
+  // TODO: Replace with operator[].
   V get(K key);
   // Adds the key-value pair, replacing both the key and value if the key was
-  // already present. Someday we might have an operator[]= for this.
+  // already present.
+  // TODO: Replace with operator []=.
   void put(K key, V value);
   // Removes the entry with the given key, if it exists.
   // QUESTION: Should we throw an error if the key was not present? (Current
   // implementation: yes.)
   void delete(K key);
 
+  // TODO: Replace with operator iter.
   // This will be implemented later, once we have made `for (K key : map)`
   // syntactic sugar for
   // `for (var iter = map.iter(); iter.valid(); iter.advance()) { K key = iter.get(); ... }`
-  // Iter_K operator iter();
   Iter_K iter();
 
   autounravel Iterable_K operator cast(Map_K_V map) {

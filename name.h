@@ -86,9 +86,7 @@ public:
   virtual void print(ostream& out) const {
     out << "<base name>";
   }
-  virtual void printPath(ostream& out) const {
-    out << "<base name>";
-  }
+  virtual void printPath(ostream& out) const { print(out); }
   virtual symbol asPath() const {
     ostringstream out;
     printPath(out);
@@ -180,9 +178,9 @@ public:
     out << *qualifier << "." << id;
   }
   void printPath(ostream& out) const override {
-    out << *qualifier << "/" << id;
+    qualifier->printPath(out);
+    out << "/" << id;
   }
-
 
   [[nodiscard]]
   symbol getName() const override {
