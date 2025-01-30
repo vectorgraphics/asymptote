@@ -43,7 +43,7 @@ struct HashMap_K_V {
     return pairs.contains((key, map.emptyresponse));
   };
 
-  map.get = new V(K key) {
+  map.operator[] = new V(K key) {
     Pair_K_V pair = pairs.get((key, map.emptyresponse));
     if (!alias(pair, null)) {
       return pair.v;
@@ -52,12 +52,13 @@ struct HashMap_K_V {
     return map.emptyresponse;
   };
 
-  map.put = new void(K key, V value) {
+  map.operator []= = new V(K key, V value) {
     if (map.isEmpty != null && map.isEmpty(value)) {
       pairs.delete((key, value));
     } else {
       pairs.update((key, value));
     }
+    return value;
   };
 
   map.delete = new void(K key) {

@@ -12,6 +12,8 @@
 #include "entry.h"
 #include "types.h"
 #include "runtime.h"
+#include "runstring.h"
+#include "runarray.h"
 #include "runarray.h"
 #include "runfile.h"
 #include "runpair.h"
@@ -113,6 +115,10 @@ void ty::print(ostream& out) const
   SIGFIELD(SetType,sym,name##Set);
 
 
+ty *stringHashType() {
+    return new function(primInt());
+}
+
 ty *dimensionType() {
   return new function(primFile(),
                       formal(primInt(),SYM(nx),true),
@@ -131,6 +137,8 @@ ty *readType() {
 trans::varEntry *primitiveTy::virtualField(symbol id, signature *sig)
 {
   switch (kind) {
+    case ty_string:
+      SIGFIELD(stringHashType,SYM(hash),stringHash);
     case ty_pair:
       FIELD(primReal,SYM(x),pairXPart);
       FIELD(primReal,SYM(y),pairYPart);
@@ -197,6 +205,12 @@ ty *ty::virtualFieldGetType(symbol id)
 
 ty *primitiveTy::virtualFieldGetType(symbol id)
 {
+  if (kind == ty_string) {
+    if (id == SYM(hash)) {
+      return stringHashType();
+    }
+  }
+
   if(kind == ty_file) {
     if (id == SYM(dimension))
       return overloadedDimensionType();

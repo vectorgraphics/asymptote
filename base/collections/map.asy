@@ -24,14 +24,14 @@ struct Map_K_V {
   // If the key was not present already, returns emptyresponse, or throws error
   // if emptyresponse was never set.
   // TODO: Replace with operator[].
-  V get(K key);
+  V operator [] (K key);
   // Adds the key-value pair, replacing both the key and value if the key was
   // already present.
   // TODO: Replace with operator []=.
-  void put(K key, V value);
+  V operator []= (K key, V value);
   // Removes the entry with the given key, if it exists.
   // QUESTION: Should we throw an error if the key was not present? (Current
-  // implementation: yes.)
+  // implementation: yes, unless there is an emptyresponse to return.)
   void delete(K key);
 
   // TODO: Replace with operator iter.
@@ -52,7 +52,7 @@ struct Map_K_V {
   void addAll(Iterable_K_V other) {
     for (var iter = other.iter(); iter.valid(); iter.advance()) {
       Pair_K_V kv = iter.get();
-      put(kv.k, kv.v);
+      this[kv.k] = kv.v;
     }
   }
   void removeAll(Iterable_K other) {
@@ -95,7 +95,7 @@ struct NaiveMap_K_V {
     }
     return false;
   };
-  map.get = new V(K key) {
+  map.operator[] = new V(K key) {
     for (int i = 0; i < size; ++i) {
       if (keys[i] == key) {
         return values[i];
@@ -104,7 +104,7 @@ struct NaiveMap_K_V {
     assert(map.isEmpty != null, 'Unable to report missing key');
     return map.emptyresponse;
   };
-  map.put = new void(K key, V value) {
+  map.operator[]= = new V(K key, V value) {
     ++numChanges;
     bool delete = false;
     if (map.isEmpty != null && map.isEmpty(value)) {
@@ -116,17 +116,19 @@ struct NaiveMap_K_V {
           keys.delete(i);
           values.delete(i);
           --size;
-          return;
+          return value;
         }
         keys[i] = key;
         values[i] = value;
-        return;
+        return value;
       }
     }
-    if (delete) return;
-    keys.push(key);
-    values.push(value);
-    ++size;
+    if (!delete) {
+      keys.push(key);
+      values.push(value);
+      ++size;
+    }
+    return value;
   };
   map.delete = new void(K key) {
     ++numChanges;

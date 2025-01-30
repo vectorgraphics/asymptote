@@ -420,7 +420,7 @@ operator           {adjust(); BEGIN opname; }
                      BEGIN INITIAL;
                      return ID;
                    }
-[-+*/#%^!<>]|==|!=|<=|>=|&|\||\^\^|\.\.|::|--|---|\+\+|{EXTRAOPS} {
+[-+*/#%^!<>]|==|!=|<=|>=|&|\||\^\^|\.\.|::|--|---|\+\+|\[\]|\[\]=|{EXTRAOPS} {
   makeopsymbol();
   BEGIN INITIAL;
   return ID;}

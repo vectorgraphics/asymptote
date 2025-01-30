@@ -97,10 +97,10 @@ actions[ActionEnum.FOR_EACH_CONTAINS] = new void(
       for (Map_int_real map_ : maps) {
         wrapped_int key = it.get();
         assert(map_.contains(key));
-        if (isnan(map.get(key)))
-          assert(isnan(map_.get(key)));
+        if (isnan(map[key]))
+          assert(isnan(map_[key]));
         else
-          assert(map_.get(key) == map.get(key));
+          assert(map_[key] == map[key]);
       }
     }
   }
@@ -109,13 +109,13 @@ actions[ActionEnum.PUT] = new void(int maxItem ...Map_int_real[] maps) {
   wrapped_int key = rand() % maxItem;
   real value = rand();
   for (Map_int_real map : maps) {
-    map.put(key, value);
+    map[key] = value;
   }
 };
 actions[ActionEnum.SOFT_DELETE] = new void(int maxItem ...Map_int_real[] maps) {
   wrapped_int key = rand() % maxItem;
   for (Map_int_real map : maps) {
-    map.put(key, nan);
+    map[key] = nan;
   }
 };
 actions[ActionEnum.FIND_DELETE] = new void(int maxItem ...Map_int_real[] maps) {
@@ -227,7 +227,7 @@ for (int i = 0; i < n; ++i) {
       keyDifferenceFound = true;
       break;
     }
-    if (naiveMap.get(a) != hashMap.get(b)) {
+    if (naiveMap[a] != hashMap[b]) {
       valueDifferenceFound = true;
       break;
     }
@@ -240,8 +240,8 @@ for (int i = 0; i < n; ++i) {
     for (var ita = naiveMap.iter(), itb = hashMap.iter(); ita.valid() && itb.valid(); ita.advance(), itb.advance()) {
       wrapped_int a = ita.get();
       wrapped_int b = itb.get();
-      if (naiveMap.get(a) != hashMap.get(b)) {
-        write("key: " + (string)a.t + " value: " + (string)naiveMap.get(a) + " " + (string)hashMap.get(b));
+      if (naiveMap[a] != hashMap[b]) {
+        write("key: " + (string)a.t + " value: " + (string)naiveMap[a] + " " + (string)hashMap[b]);
       }
     }
     assert(false);

@@ -304,8 +304,35 @@ void subscriptExp::prettyprint(ostream &out, Int indent)
   index->prettyprint(out, indent+1);
 }
 
+callExp *buildSubscriptReadCall(exp *object, exp *index) {
+
+    // Convert object[index] into
+    // object.operator[](index)
+    position pos = object->getPos();
+    return new callExp(pos,
+            new fieldExp(pos, object, symbol::trans("[]")),
+            index);
+}
+
+callExp *buildSubscriptWriteCall(exp *object, exp *index, exp *value) {
+
+    // Convert object[index] = value into
+    // object.operator[]=(index, value)
+    position pos = object->getPos();
+    return new callExp(pos,
+            new fieldExp(pos, object, symbol::trans("[]=")),
+            index,
+            value);
+}
+
 types::ty *subscriptExp::trans(coenv &e)
 {
+  // EXPERIMENTAL
+  if (!isAnArray(e, set)) {
+      callExp *call = buildSubscriptReadCall(set, index);
+      return call->trans(e);
+  }
+
   array *a = transArray(e);
   if (!a)
     return primError();
@@ -326,6 +353,12 @@ types::ty *subscriptExp::trans(coenv &e)
 
 types::ty *subscriptExp::getType(coenv &e)
 {
+  // EXPERIMENTAL
+  if (!isAnArray(e, set)) {
+      callExp *call = buildSubscriptReadCall(set, index);
+      return call->getType(e);
+  }
+
   array *a = getArrayType(e);
   return a ? (isAnArray(e, index) ? a : a->celltype) :
     primError();
@@ -333,6 +366,13 @@ types::ty *subscriptExp::getType(coenv &e)
 
 void subscriptExp::transWrite(coenv &e, types::ty *t, exp *value)
 {
+  // EXPERIMENTAL
+  if (!isAnArray(e, set)) {
+      callExp *call = buildSubscriptWriteCall(set, index, value);
+      call->trans(e);
+      return;
+  }
+
   // Put array, index, and value on the stack in that order, then call
   // arrayWrite.
   array *a = transArray(e);

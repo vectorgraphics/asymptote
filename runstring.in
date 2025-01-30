@@ -130,6 +130,17 @@ Int length(string *s)
   return (Int) s->length();
 }
 
+Int :stringHashHelper(string s)
+{
+    symbol t = symbol::trans(s);
+    return (Int)(t.hash());
+}
+
+callable* :stringHash(string s)
+{
+    return new thunk(new bfunc(stringHashHelper), s);
+}
+
 Int find(string *s, string t, Int pos=0)
 {
   size_t n=s->find(t,pos);
