@@ -16,11 +16,6 @@ jobs:
           cmake --preset linux/release/ci/with-ccache/compact-zero
           cmake --build --preset linux/release/ci/with-ccache/compact-zero --target asy-with-basefiles -j
       - uses: ./.github/actions/initialize-linux-latex-and-gs
-      - name: Run asy base tests
+      - name: Run asy check tests
         run: |
-          ctest --test-dir cmake-build-linux/release-compact-zero \
-            -R "^asy\..*" \
-            -E "asy\.(gc\..*)"
-      - name: Run asy wce test
-        run: |
-          ctest --test-dir cmake-build-linux/release-compact-zero -R "^wce"
+          ctest --test-dir cmake-build-linux/release-compact-zero --output-on-failure -L "asy-check-tests"
