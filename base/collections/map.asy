@@ -60,6 +60,7 @@ struct Map_K_V {
   }
 }
 
+// Reference implementation for testing purposes.
 struct NaiveMap_K_V {
   private K[] keys;
   private V[] values;
@@ -77,7 +78,11 @@ struct NaiveMap_K_V {
     keys = new K[0];
     values = new V[0];
     size = 0;
-    map.operator init(emptyresponse, isEmpty);
+    if (isEmpty == null) {
+      map.operator init(emptyresponse);  // Let operator init supply its own default.
+    } else {
+      map.operator init(emptyresponse, isEmpty);
+    }
   }
   map.size = new int() { return size; };
   map.contains = new bool(K key) {
