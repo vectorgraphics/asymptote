@@ -99,7 +99,7 @@ struct NaiveMap_K_V {
         return values[i];
       }
     }
-    assert(map.isEmpty != null, 'Unable to report missing key');
+    assert(map.isEmpty != null, 'Key not found in map');
     return map.emptyresponse;
   };
   map.operator[=] = new V(K key, V value) {
