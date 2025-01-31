@@ -52,7 +52,7 @@ struct HashMap_K_V {
     return map.emptyresponse;
   };
 
-  map.operator []= = new V(K key, V value) {
+  map.operator [=] = new V(K key, V value) {
     if (map.isEmpty != null && map.isEmpty(value)) {
       pairs.delete((key, value));
     } else {

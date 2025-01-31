@@ -317,10 +317,10 @@ callExp *buildSubscriptReadCall(exp *object, exp *index) {
 callExp *buildSubscriptWriteCall(exp *object, exp *index, exp *value) {
 
     // Convert object[index] = value into
-    // object.operator[]=(index, value)
+    // object.operator[=](index, value)
     position pos = object->getPos();
     return new callExp(pos,
-            new fieldExp(pos, object, symbol::trans("[]=")),
+            new fieldExp(pos, object, symbol::trans("[=]")),
             index,
             value);
 }

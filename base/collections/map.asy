@@ -23,12 +23,10 @@ struct Map_K_V {
   bool contains(K key);
   // If the key was not present already, returns emptyresponse, or throws error
   // if emptyresponse was never set.
-  // TODO: Replace with operator[].
   V operator [] (K key);
   // Adds the key-value pair, replacing both the key and value if the key was
   // already present.
-  // TODO: Replace with operator []=.
-  V operator []= (K key, V value);
+  V operator [=] (K key, V value);
   // Removes the entry with the given key, if it exists.
   // QUESTION: Should we throw an error if the key was not present? (Current
   // implementation: yes, unless there is an emptyresponse to return.)
@@ -104,7 +102,7 @@ struct NaiveMap_K_V {
     assert(map.isEmpty != null, 'Unable to report missing key');
     return map.emptyresponse;
   };
-  map.operator[]= = new V(K key, V value) {
+  map.operator[=] = new V(K key, V value) {
     ++numChanges;
     bool delete = false;
     if (map.isEmpty != null && map.isEmpty(value)) {

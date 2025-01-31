@@ -10,8 +10,8 @@ private struct HashEntry {
 }
 
 struct HashRepSet_T {
-  restricted RepSet_T super;
-  unravel super;
+  struct _ { autounravel restricted RepSet_T super; }
+  from super unravel emptyresponse, equiv, isEmpty;
 
   // These fields are mutable.
   private HashEntry[] buckets = array(16, (HashEntry)null);
@@ -37,11 +37,11 @@ struct HashRepSet_T {
     return HashRepSet_T(emptyresponse, equiv, isEmpty).super;
   }
 
-  size = new int() {
+  super.size = new int() {
     return size;
   };
 
-  contains = new bool(T item) {
+  super.contains = new bool(T item) {
     int bucket = item.hash();
     for (int i = 0; i < buckets.length; ++i) {
       HashEntry entry = buckets[bucket + i];
@@ -55,7 +55,7 @@ struct HashRepSet_T {
     return false;
   };
 
-  get = new T(T item) {
+  super.get = new T(T item) {
     int bucket = item.hash();
     for (int i = 0; i < buckets.length; ++i) {
       HashEntry entry = buckets[bucket + i];
@@ -69,7 +69,7 @@ struct HashRepSet_T {
     return super.emptyresponse;
   };
 
-  iter = new Iter_T() {
+  super.iter = new Iter_T() {
     Iter_T result = new Iter_T;
     HashEntry current = oldest;
     int expectedChanges = numChanges;
@@ -108,7 +108,7 @@ struct HashRepSet_T {
     }
   }
 
-  add = new bool(T item) {
+  super.add = new bool(T item) {
     ++numChanges;
     if (isEmpty != null && isEmpty(item)) {
       return false;
@@ -141,7 +141,7 @@ struct HashRepSet_T {
     return false;
   };
 
-  update = new T(T item) {
+  super.update = new T(T item) {
     ++numChanges;
     if (isEmpty != null && isEmpty(item)) {
       return emptyresponse;
@@ -178,7 +178,7 @@ struct HashRepSet_T {
     return emptyresponse;
   };
 
-  delete = new T(T item) {
+  super.delete = new T(T item) {
     ++numChanges;
     int bucket = item.hash();
     for (int i = 0; i < buckets.length; ++i) {
@@ -216,8 +216,6 @@ struct HashRepSet_T {
   };
 
   autounravel T[] operator ecast(HashRepSet_T set) {
-    // Make `operator ecast` static again:
-    from RepSet_T unravel operator ecast;
     return (T[])set.super;
   }
 
@@ -226,7 +224,8 @@ struct HashRepSet_T {
   }
 
   autounravel Iterable_T operator cast(HashRepSet_T set) {
-    return Iterable_T(set.iter);
+    return Iterable_T(set.super.iter);
   }
+  unravel super;
 }
     
