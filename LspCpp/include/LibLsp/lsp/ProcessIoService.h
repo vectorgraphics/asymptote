@@ -7,8 +7,8 @@ namespace lsp
         class ProcessIoService
         {
         public:
-                using IOService = boost::asio::io_service;
-                using Work = boost::asio::io_service::work;
+                using IOService = boost::asio::io_context;
+                using Work = boost::asio::io_context::work;
                 using WorkPtr = std::unique_ptr<Work>;
 
                 ProcessIoService() {
@@ -24,7 +24,7 @@ namespace lsp
                 ProcessIoService(const ProcessIoService&) = delete;
                 ProcessIoService& operator=(const ProcessIoService&) = delete;
 
-                boost::asio::io_service& getIOService()
+                boost::asio::io_context& getIOService()
                 {
                         return ioService_;
                 }

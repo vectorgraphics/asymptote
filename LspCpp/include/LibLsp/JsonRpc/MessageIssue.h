@@ -15,7 +15,7 @@ namespace lsp
                           * OFF is a special level that can be used to turn off logging.
 
                           */
-                        OFF = 1,
+                        OFF = 0,
 
                         /**
                          * SEVERE is a message level indicating a serious failure.
@@ -26,7 +26,7 @@ namespace lsp
                          * to end users and to system administrators.
 
                          */
-                         SEVERE = 2,
+                         SEVERE = 1,
 
                          /**
                           * WARNING is a message level indicating a potential problem.
@@ -37,7 +37,7 @@ namespace lsp
 
                           *
                           */
-                          WARNING = 3,
+                          WARNING = 2,
                           /**
                          * INFO is a message level for informational messages.
                          * <p>

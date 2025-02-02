@@ -141,7 +141,7 @@ namespace lsp {
             /// The io_context used to perform asynchronous operations.
             boost::asio::io_context io_context_;
 
-            std::shared_ptr<boost::asio::io_service::work> work;
+            std::shared_ptr<boost::asio::io_context::work> work;
 
             /// Acceptor used to listen for incoming connections.
             boost::asio::ip::tcp::acceptor acceptor_;
@@ -243,7 +243,7 @@ namespace lsp {
 
         {
 
-            d_ptr->work = std::make_shared<boost::asio::io_service::work>(d_ptr->io_context_);
+            d_ptr->work = std::make_shared<boost::asio::io_context::work>(d_ptr->io_context_);
 
             // Open the acceptor with the option to reuse the address (i.e. SO_REUSEADDR).
             boost::asio::ip::tcp::resolver resolver(d_ptr->io_context_);

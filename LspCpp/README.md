@@ -38,8 +38,10 @@
  Some code from :[cquery][1]
 
 ## Projects using LspCpp:
-* [JCIDE](https://www.javacardos.com/tools)
+* [JCIDE](https://www.javacardos.com/javacardforum/viewtopic.php?f=5&t=3569&sid=e01238adf55cd08696fbf495dfa6c8e5)
 * [LPG-language-server](https://github.com/kuafuwang/LPG-language-server)
+* [Asymptote](https://github.com/vectorgraphics)
+* [chemical](https://github.com/chemicallang/chemical)
 ## License
    MIT
    
