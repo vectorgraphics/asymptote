@@ -68,7 +68,8 @@
         "msvc/release/ci/with-external-asymptote-pdf"
       ],
       "cacheVariables": {
-        "ENABLE_DOCGEN": "false"
+        "ENABLE_DOCGEN": "false",
+        "ENABLE_MISCFILES_GEN": "false"
       }
     },
     {
