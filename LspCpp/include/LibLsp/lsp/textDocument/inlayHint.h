@@ -9,22 +9,24 @@
 #include "LibLsp/lsp/lsTextEdit.h"
 #include "LibLsp/lsp/lsAny.h"
 
-namespace TextDocumentInlayHint  {
+namespace TextDocumentInlayHint
+{
 
-  struct Params {
+struct Params
+{
     // The text document
     lsTextDocumentIdentifier textDocument;
     // The visible document range for which inlay hints should be computed.
     lsRange range;
 
     MAKE_SWAP_METHOD(Params, textDocument, range)
-  };
-
 };
+
+}; // namespace TextDocumentInlayHint
 MAKE_REFLECT_STRUCT(TextDocumentInlayHint::Params, textDocument, range);
 
-
-struct lsInlayHintLabelPart {
+struct lsInlayHintLabelPart
+{
 
     /**
      * The value of this label part.
@@ -62,19 +64,18 @@ struct lsInlayHintLabelPart {
     optional<lsCommand<lsp::Any>> command;
 
     MAKE_SWAP_METHOD(lsInlayHintLabelPart, value, tooltip, location, command)
-
 };
 
 MAKE_REFLECT_STRUCT(lsInlayHintLabelPart, value, tooltip, location, command);
 
-enum class lsInlayHintKind {
+enum class lsInlayHintKind
+{
 
     // An inlay hint that for a type annotation.
     Type = 1,
 
     // An inlay hint that is for a parameter.
     Parameter = 2
-
 };
 
 MAKE_REFLECT_TYPE_PROXY(lsInlayHintKind);
@@ -84,7 +85,8 @@ MAKE_REFLECT_TYPE_PROXY(lsInlayHintKind);
  * that acts like a hint, for example parameter names in function calls are displayed in editors
  * as inlay hints
  */
-struct lsInlayHint {
+struct lsInlayHint
+{
 
     /**
     * The position of this hint.
@@ -152,18 +154,16 @@ struct lsInlayHint {
 	 */
     optional<lsp::Any> data;
 
-  MAKE_SWAP_METHOD(lsInlayHint, position, label, kind, textEdits, tooltip, paddingLeft, paddingRight, data)
-
+    MAKE_SWAP_METHOD(lsInlayHint, position, label, kind, textEdits, tooltip, paddingLeft, paddingRight, data)
 };
 
 MAKE_REFLECT_STRUCT(lsInlayHint, position, label, kind, textEdits, tooltip, paddingLeft, paddingRight, data)
 
-
-DEFINE_REQUEST_RESPONSE_TYPE(td_inlayHint, TextDocumentInlayHint::Params, std::vector<lsInlayHint>, "textDocument/inlayHint");
-
+DEFINE_REQUEST_RESPONSE_TYPE(
+    td_inlayHint, TextDocumentInlayHint::Params, std::vector<lsInlayHint>, "textDocument/inlayHint"
+);
 
 /**
  * The document link resolve request is sent from the client to the server to resolve the target of a given document link.
  */
 DEFINE_REQUEST_RESPONSE_TYPE(td_inlayHintResolve, lsInlayHint, lsInlayHint, "inlayHint/resolve");
-

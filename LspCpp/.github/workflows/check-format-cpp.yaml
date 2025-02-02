@@ -1,0 +1,22 @@
+name: format-cpp
+on:
+  workflow_call
+
+jobs:
+  check-format-cpp:
+    runs-on: "ubuntu-24.04"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+      - name: Print clang-format version
+        run: clang-format --version
+      - name: Generate list of files to be formatted
+        run: |
+          mkdir -p idir
+          find src include -type f -regex ".*\.\(cpp\|cc\|h\|hpp\)$" > idir/files-to-check-fmt.txt
+      - name: Run clang-format
+        run: clang-format --dry-run -Werror --files=idir/files-to-check-fmt.txt
