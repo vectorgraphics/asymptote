@@ -28,7 +28,7 @@ set(CORE_BUILD_FILES
         Delaunay predicates glrender tr shaders jsfile v3dfile
         EXRFiles GLTextures lspserv symbolmaps win32helpers win32pipestream
         win32xdr xstream
-        lspdec
+        lspdec lspexp
 )
 
 set(ASY_CSV_ENUM_FILES v3dtypes v3dheadertypes)
