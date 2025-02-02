@@ -324,7 +324,12 @@ set (LSP_INCLUDE_LIST ${LSPCPP_INCLUDE_DIR}
         ${RapidJSON_INCLUDE_DIRS}
         ${Uri_SOURCE_DIR}/include)
 ### Includes
-target_include_directories(lspcpp PRIVATE ${LSP_INCLUDE_LIST})
+
+if (LSPCPP_INSTALL)
+    target_include_directories(lspcpp PRIVATE ${LSP_INCLUDE_LIST})
+else()
+    target_include_directories(lspcpp PUBLIC ${LSP_INCLUDE_LIST})
+endif()
 
 target_link_libraries(lspcpp PUBLIC network-uri  ${Boost_LIBRARIES})
 
