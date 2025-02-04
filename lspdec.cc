@@ -9,7 +9,7 @@
 
 
 #ifdef HAVE_LSP
-#  include <locate.h>
+#  include "locate.h"
 #endif
 
 #define DEC_CREATE_SYM_MAP_FUNCTION_DEF(derived_class)                         \
