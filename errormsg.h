@@ -208,6 +208,9 @@ public:
   void warning(position pos);
   void warning(position pos, string s);
 
+  // Silently skip translating the remainder of this file.
+  void skip();
+
   // Single a fatal error and execute the main process.
   void fatal(position pos);
 

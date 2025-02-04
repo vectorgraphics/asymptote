@@ -169,7 +169,7 @@ record *genv::getModule(symbol id, string filename) {
   if (r)
     return r;
   else {
-    record *r=loadModule(id, filename);
+    r=loadModule(id, filename);
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.
     if (!interact::interactive || !em.errors()) {
@@ -200,7 +200,7 @@ record *genv::getTemplatedModule(
   if (r)
     return r;
   else {
-    record *r=loadTemplatedModule(index, filename, args);
+    r=loadTemplatedModule(index, filename, args);
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.
     if (!interact::interactive || !em.errors()) {
