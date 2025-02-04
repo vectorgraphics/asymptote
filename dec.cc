@@ -335,9 +335,12 @@ record *block::transAsFile(genv& ge, symbol id)
   // or imported without template arguments, further translation is
   // likely futile.
   if (getTypedefDec() != nullptr) {
-    em << "templated module access requires template parameters";
-    em.error(getPos());
-    return nullptr;
+    if(!settings::getSetting<bool>("listvariables")) {
+      em.error(getPos());
+      em << "templated module access requires template parameters";
+      em.sync();
+    }
+    return r;
   }
 
   // Translate the abstract syntax.
@@ -888,11 +891,14 @@ public:
 varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
 {
   string filename=(string) id;
+  bool tainted=settings::debug && em.errors();
   record *imp=e.e.getModule(id, filename);
   if (!imp) {
-    em.error(pos);
-    em << "could not load module '" << filename << "'";
-    em.sync(true);
+    if(!tainted) {
+      em.error(pos);
+      em << "could not load module '" << filename << "'";
+      em.sync(true);
+    }
     return 0;
   }
   else {
@@ -1242,9 +1248,13 @@ bool receiveTypedefDec::transAsParamMatcher(
 }
 
 void receiveTypedefDec::transAsField(coenv& e, record *r) {
-  em.error(getPos());
-  em << "'typedef import(<types>)' must precede any other code";
-  em.sync(true);
+  if(settings::getSetting<bool>("listvariables"))
+    em.skip();
+  else {
+    em.error(getPos());
+    em << "unexpected 'typedef import'";
+    em.sync();
+  }
 }
 
 

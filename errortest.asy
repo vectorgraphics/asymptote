@@ -519,13 +519,14 @@
   access somefilename(T=int) notas somefilename_int;  // "as" misspelled
   access somefilename(int) as somefilename_int;  // missing keyword
   import somefilename(T=int);  // Templated import not defined.
+  access version(T=int) as version;  // unexpected template parameters
 }
 {
   typedef import(T);  // this file isn't accessed as a template
   import typedef(T);  // should be "typedef import"
 }
 {
-  // wrong number of params
+  // wrong number of parameters
   access errortestTemplate(A=int, B=string) as ett_a;
   // third param incorrectly named
   access errortestTemplate(A=int, B=string, T=real) as ett_b;
@@ -533,6 +534,8 @@
   access errortestTemplate(A=int, C=real, B=string) as ett_c;
   // errortestTemplate.asy has extra "typedef import"
   access errortestTemplate(A=int, B=string, C=real) as ett_d;
+  // expected template parameters
+  access errortestTemplate as ett_e;
 }
 
 // autounravel errors
@@ -577,7 +580,8 @@
   access somefilename(T=A.B) as somefilename_B;
 }
 {
-  access errorFreeTestTemplate(A=int, B=string) as eft;  // no error
+  // no error
+  access errorFreeTestTemplate(A=int, B=string) as eft;
   // wrongly ordered names after correct load
   access errorFreeTestTemplate(B=int, A=string) as eft;
   // completely wrong names after correct load
@@ -586,10 +590,12 @@
   access errorFreeTestTemplate(A=int, D=string) as eft;
   // first name wrong, second name correct
   access errorFreeTestTemplate(C=int, B=string) as eft;
-  // too few params
+  // too few parameters
   access errorFreeTestTemplate(A=int) as eft;
-  // too many params
+  // too many parameters
   access errorFreeTestTemplate(A=int, B=string, C=real) as eft;
+  // templated imports cannot be run directly
+  include errortestTemplate;
 }
 // Test more permissions.
 {

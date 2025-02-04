@@ -103,6 +103,11 @@ void errorstream::warning(position pos)
   anyWarnings = true;
 }
 
+void errorstream::skip()
+{
+  anyErrors = true;
+}
+
 void errorstream::fatal(position pos)
 {
   message(pos,"abort: ");
