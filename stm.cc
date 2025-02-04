@@ -443,7 +443,7 @@ void extendedForStm::trans(coenv &e) {
   symbol i=symbol::gensym("i");
 
   // Get the start type.  Handle type inference as a special case.
-  types::ty *t = start->trans(e, true);
+  types::ty *t = start->trans(e, ErrorMode::SUPPRESS);
   if (t->kind == types::ty_inferred) {
 
     // First ensure the array expression is an unambiguous array.

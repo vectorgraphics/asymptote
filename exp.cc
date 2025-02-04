@@ -52,6 +52,15 @@ void exp::transToType(coenv &e, types::ty *target)
 {
   types::ty *ct=cgetType(e);
 
+  // stringstream ss;
+  // target->print(ss);
+  // ss << " <- ";
+  // this->cgetType(e)->print(ss);
+  // string targetStr = ss.str();
+  // if (targetStr == "int <- B") {
+  //   cout << "transToType: " << targetStr << endl;
+  // }
+
   if (equivalent(target, ct)) {
     transAsType(e, target);
     return;
@@ -141,6 +150,15 @@ types::ty *tempExp::trans(coenv &e) {
   return t;
 }
 
+exp *tempExp::evaluate(coenv &e, types::ty *target) {
+  if (equivalent(target, t)) {
+    // A tempExp, by design, has no side effects.
+    return this;
+  }
+  // Apply implicit cast.
+  return new tempExp(e, this, target);
+}
+
 
 varEntryExp::varEntryExp(position pos, types::ty *t, access *a)
   : exp(pos), v(new trans::varEntry(t, a, 0, nullPos)) {}
@@ -185,6 +203,15 @@ void nameExp::prettyprint(ostream &out, Int indent)
   prettyname(out, "nameExp",indent, getPos());
 
   value->prettyprint(out, indent+1);
+}
+
+exp *nameExp::evaluate(coenv &e, types::ty *target) {
+  // Names have no side effects unless an implicit cast is needed.
+  if (equivalent(target, cgetType(e))) {
+    // No side effects.
+    return this;
+  }
+  return new tempExp(e, this, target);
 }
 
 void nameExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
@@ -239,6 +266,16 @@ types::ty *fieldExp::getObject(coenv& e)
   return t;
 }
 
+exp *fieldExp::evaluate(coenv &e, types::ty *t) {
+  if (equivalent(cgetType(e), t)) {
+    // Evaluate the object.
+    return new fieldExp(getPos(),
+                        object->evaluate(e, getObject(e)),
+                        field);
+  }
+  // Evaluate `this` and cast it to the correct type.
+  return new tempExp(e, this, t);
+}
 
 array *arrayExp::getArrayType(coenv &e)
 {
@@ -309,9 +346,9 @@ callExp *buildSubscriptReadCall(exp *object, exp *index) {
     // Convert object[index] into
     // object.operator[](index)
     position pos = object->getPos();
-    return new callExp(pos,
-            new fieldExp(pos, object, symbol::trans("[]")),
-            index);
+    return new callExp(
+            pos, new fieldExp(pos, object, symbol::trans("[]")), index
+    );
 }
 
 callExp *buildSubscriptWriteCall(exp *object, exp *index, exp *value) {
@@ -319,18 +356,17 @@ callExp *buildSubscriptWriteCall(exp *object, exp *index, exp *value) {
     // Convert object[index] = value into
     // object.operator[=](index, value)
     position pos = object->getPos();
-    return new callExp(pos,
-            new fieldExp(pos, object, symbol::trans("[=]")),
-            index,
-            value);
+    return new callExp(
+            pos, new fieldExp(pos, object, symbol::trans("[=]")), index, value
+    );
 }
 
 types::ty *subscriptExp::trans(coenv &e)
 {
   // EXPERIMENTAL
   if (!isAnArray(e, set)) {
-      callExp *call = buildSubscriptReadCall(set, index);
-      return call->trans(e);
+    callExp *call = buildSubscriptReadCall(set, index);
+    return call->trans(e);
   }
 
   array *a = transArray(e);
@@ -355,8 +391,18 @@ types::ty *subscriptExp::getType(coenv &e)
 {
   // EXPERIMENTAL
   if (!isAnArray(e, set)) {
-      callExp *call = buildSubscriptReadCall(set, index);
-      return call->getType(e);
+    ty *t = set->cgetType(e);
+    if (t->kind == ty_overloaded) {
+      t = ((overloaded *)t)->signatureless();
+      if (!t)
+        return primError();
+    }
+    if (t->kind != ty_record) {
+      return primError();
+    }
+    return static_cast<record*>(t)->valType();
+    // callExp *call = buildSubscriptReadCall(set, index);
+    // return call->getType(e);
   }
 
   array *a = getArrayType(e);
@@ -368,9 +414,18 @@ void subscriptExp::transWrite(coenv &e, types::ty *t, exp *value)
 {
   // EXPERIMENTAL
   if (!isAnArray(e, set)) {
-      callExp *call = buildSubscriptWriteCall(set, index, value);
-      call->trans(e);
-      return;
+    // {
+    //   ty *v_t = value->cgetType(e);
+    //   cout << "subscriptExp::transWrite: value type: ";
+    //   v_t->print(cout);
+    //   cout << endl;
+    // }
+    value = value->evaluate(e, t);
+    //value = new tempExp(e, value, t);
+    callExp* call= buildSubscriptWriteCall(set, index, value);
+    call->trans(e);
+    value->transAsType(e, t);
+    return;
   }
 
   // Put array, index, and value on the stack in that order, then call
@@ -394,6 +449,28 @@ void subscriptExp::transWrite(coenv &e, types::ty *t, exp *value)
   value->transToType(e, t);
 
   e.c.encode(inst::builtin, run::arrayWrite);
+}
+
+exp *subscriptExp::evaluate(coenv &e, types::ty *)
+{
+  types::ty *base = set->cgetType(e);
+  if (base->kind == ty_overloaded) {
+    base = ((overloaded *)base)->signatureless();
+  }
+  if (!base) {
+    em.error(set->getPos());
+    em << "object to index cannot be resolved";
+    return nullptr;
+  }
+  types::ty *indexType = base->keyType();
+  if (indexType->kind == ty_error) {
+    em.error(set->getPos());
+    em << "object does not have operator[=] set up correctly";
+    return nullptr;
+  }
+  return new subscriptExp(getPos(),
+                          new tempExp(e, set, base),
+                          new tempExp(e, index, indexType));
 }
 
 
@@ -1309,7 +1386,7 @@ types::ty *castExp::trans(coenv &e)
 
 types::ty *castExp::getType(coenv &e)
 {
-  return target->trans(e, true);
+  return target->trans(e, ErrorMode::SUPPRESS);
 }
 
 void castExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)

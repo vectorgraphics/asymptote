@@ -30,13 +30,13 @@ public:
   virtual void prettyprint(ostream &out, Int indent) override;
 
   // Build the corresponding types::formal to put into a signature.
-  types::formal trans(coenv &e, bool encodeDefVal, bool tacit=false);
+  types::formal trans(coenv &e, bool encodeDefVal, ErrorMode tacit=ErrorMode::NORMAL);
 
   // Add the formal parameter to the environment to prepare for the
   // function body's translation.
   virtual void transAsVar(coenv &e, Int index);
 
-  types::ty *getType(coenv &e, bool tacit=false);
+  types::ty *getType(coenv &e, ErrorMode tacit=ErrorMode::NORMAL);
 
   absyntax::astType *getAbsyntaxType() { return base; }
 
@@ -84,7 +84,7 @@ private:
   bool keywordOnly;
 
   void addToSignature(types::signature& sig,
-                      coenv &e, bool encodeDefVal, bool tacit);
+                      coenv &e, bool encodeDefVal, ErrorMode tacit);
 public:
   formals(position pos)
     : absyn(pos), rest(0), keywordOnly(false) {}
@@ -126,13 +126,13 @@ public:
   // the default values into the signature
   types::signature *getSignature(coenv &e,
                                  bool encodeDefVal = false,
-                                 bool tacit = false);
+                                 ErrorMode tacit = ErrorMode::NORMAL);
 
   // Returns the corresponding function type, assuming it has a return
   // value of "result."
   types::function *getType(types::ty *result, coenv &e,
                            bool encodeDefVal = false,
-                           bool tacit = false);
+                           ErrorMode tacit = ErrorMode::NORMAL);
   
   mem::vector<tySymbolPair> *getFields();
 
@@ -167,10 +167,10 @@ public:
   virtual void baseTrans(coenv &e, types::function *ft);
   virtual types::ty *trans(coenv &e) override;
 
-  virtual types::function *transType(coenv &e, bool tacit);
-  virtual types::function *transTypeAndAddOps(coenv &e, record *r, bool tacit);
+  virtual types::function *transType(coenv &e, ErrorMode tacit);
+  virtual types::function *transTypeAndAddOps(coenv &e, record *r, ErrorMode tacit);
   virtual types::ty *getType(coenv &e) override {
-    return transType(e, true);
+    return transType(e, ErrorMode::SUPPRESS);
   }
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;

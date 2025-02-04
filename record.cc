@@ -47,6 +47,110 @@ trans::access *record::initializer() {
   return &a;
 }
 
+mem::pair<ty*, ty*> computeKVTypes(trans::venv& ve, const position& pos)
+{
+  mem::pair<ty*, ty*> errorPair(primError(), primError());
+
+  ty* getTy= ve.getType(symbol::trans("[]"));
+  ty* setTy= ve.getType(symbol::trans("[=]"));
+  if (getTy == nullptr || setTy == nullptr) {
+    if (getTy != nullptr) {
+      em.error(pos);
+      em << "operator[] defined without operator[=]";
+    } else if (setTy != nullptr) {
+      em.error(pos);
+      em << "operator[=] defined without operator[]";
+    }
+    return errorPair;
+  }
+
+  // Find the keytype and valuetype based on operator[].
+  if (getTy->isOverloaded()) {
+    em.error(pos);
+    em << "multiple operator[] definitions in one struct";
+    return errorPair;
+  }
+  if (getTy->kind != ty_function) {
+    em.error(pos);
+    em << "operator[] is not a function";
+    return errorPair;
+  }
+  types::function* get= static_cast<types::function*>(getTy);
+  types::ty* valTy= get->getResult();
+  signature* getSig= get->getSignature();
+  // TODO: Can we get the position of the definition of operator[] rather than
+  // the end of the struct?
+  if (getSig->hasRest() || getSig->getNumFormals() != 1) {
+    em.error(pos);
+    em << "operator[] must have exactly one parameter";
+    return errorPair;
+  }
+  ty* keyTy= getSig->getFormal(0).t;
+
+  // Find the keytype and valuetype based on operator[=].
+  if (setTy->isOverloaded()) {
+    em.error(pos);
+    em << "multiple operator[=] definitions in one struct";
+    return errorPair;
+  }
+  if (setTy->kind != ty_function) {
+    em.error(pos);
+    em << "operator[=] is not a function";
+    return errorPair;
+  }
+  types::function* set= static_cast<types::function*>(setTy);
+  types::ty* setResult= set->getResult();
+  if (setResult->kind != ty_void) {
+    em.error(pos);
+    em << "operator[=] must return void";
+    return errorPair;
+  }
+  signature* setSig= set->getSignature();
+  if (setSig->hasRest() || setSig->getNumFormals() != 2) {
+    em.error(pos);
+    em << "operator[=] must have exactly two parameters";
+    return errorPair;
+  }
+  ty* setKeyTy= setSig->getFormal(0).t;
+  ty* setValTy= setSig->getFormal(1).t;
+
+  // Check that they agree.
+  if (!keyTy->equiv(setKeyTy) || !setKeyTy->equiv(keyTy)) {
+    em.error(pos);
+    em << "first parameter of operator[] and operator[=] must match";
+    return errorPair;
+  }
+  if (!valTy->equiv(setValTy) || !setValTy->equiv(valTy)) {
+    em.error(pos);
+    em << "return type of operator[] and second parameter of operator[=] must "
+          "match";
+    return errorPair;
+  }
+
+  return mem::pair<ty*, ty*>(keyTy, valTy);
+}
+
+void record::computeKVTypes(const position& pos)
+{
+  std::tie(kType, vType)= types::computeKVTypes(e.ve, pos);
+}
+
+ty *record::keyType() {
+  if (kType != nullptr) {
+    return kType;
+  }
+  // TODO: Use an actual position.
+  return types::computeKVTypes(e.ve, nullPos).first;
+}
+
+ty *record::valType() {
+  if (vType != nullptr) {
+    return vType;
+  }
+  // TODO: Use an actual position.
+  return types::computeKVTypes(e.ve, nullPos).second;
+}
+
 dummyRecord::dummyRecord(symbol name)
   : record(name, new frame(name, 0,0))
 {

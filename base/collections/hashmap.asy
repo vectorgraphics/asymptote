@@ -15,12 +15,12 @@ struct HashMap_K_V {
   struct _ { autounravel restricted Map_K_V map; }
 
   private HashRepSet_K_V pairs = HashRepSet_K_V(
-    emptyresponse=null,
+    nullT=null,
     equiv = new bool(Pair_K_V a, Pair_K_V b) {
       // NOTE: This should never be called on a null pair.
       return a.k == b.k;
     },
-    isEmpty = new bool(Pair_K_V kv) { return alias(kv, null); }
+    isNullT = new bool(Pair_K_V kv) { return alias(kv, null); }
   );
 
   void operator init() {
@@ -28,41 +28,42 @@ struct HashMap_K_V {
     ((F)map.operator init)();
   }
 
-  void operator init(V emptyresponse, bool isEmpty(V) = null) {
-    using F = void(V, bool isEmpty(V)=null);  // The default value here is ignored.
-    if (isEmpty == null) {
-      ((F)map.operator init)(emptyresponse);  // Let operator init supply its own default.
+  // TODO: Change "isNullValue" to "isNullValue", and similar.
+
+  void operator init(V nullValue, bool isNullValue(V) = null) {
+    using F = void(V, bool isNullValue(V)=null);  // The default value here is ignored.
+    if (isNullValue == null) {
+      ((F)map.operator init)(nullValue);  // Let operator init supply its own default.
     } else {
-      ((F)map.operator init)(emptyresponse, isEmpty);
+      ((F)map.operator init)(nullValue, isNullValue);
     }
   }
 
   map.size = pairs.size;
 
   map.contains = new bool(K key) {
-    return pairs.contains((key, map.emptyresponse));
+    return pairs.contains((key, map.nullValue));
   };
 
   map.operator[] = new V(K key) {
-    Pair_K_V pair = pairs.get((key, map.emptyresponse));
+    Pair_K_V pair = pairs.get((key, map.nullValue));
     if (!alias(pair, null)) {
       return pair.v;
     }
-    assert(map.isEmpty != null, 'Unable to report missing key');
-    return map.emptyresponse;
+    assert(map.isNullValue != null, 'Unable to report missing key');
+    return map.nullValue;
   };
 
-  map.operator [=] = new V(K key, V value) {
-    if (map.isEmpty != null && map.isEmpty(value)) {
+  map.operator [=] = new void(K key, V value) {
+    if (map.isNullValue != null && map.isNullValue(value)) {
       pairs.delete((key, value));
     } else {
       pairs.update((key, value));
     }
-    return value;
   };
 
   map.delete = new void(K key) {
-    Pair_K_V removed = pairs.delete((key, map.emptyresponse));
+    Pair_K_V removed = pairs.delete((key, map.nullValue));
     assert(!alias(removed, null), 'Nonexistent key cannot be deleted');
   };
 

@@ -7,29 +7,29 @@ from collections.iter(T=Pair_K_V) access
     Iterable_T as Iterable_K_V;
 
 struct Map_K_V {
-  restricted V emptyresponse;
-  restricted bool isEmpty(V) = null;
+  restricted V nullValue;
+  restricted bool isNullValue(V) = null;
   void operator init() {}
-  void operator init(V emptyresponse,
-    bool isEmpty(V) = new bool(V v) { return v == emptyresponse; }
+  void operator init(V nullValue,
+    bool isNullValue(V) = new bool(V v) { return v == nullValue; }
   ) {
-    this.emptyresponse = emptyresponse;
-    this.isEmpty = isEmpty;
-    assert(isEmpty(emptyresponse), 'Emptyresponse must be empty');
+    this.nullValue = nullValue;
+    this.isNullValue = isNullValue;
+    assert(isNullValue(nullValue), 'nullValue must satisfy isNullValue');
   }
   // Remaining methods are not implemented here.
   int size();
   bool empty() { return size() == 0; }
   bool contains(K key);
-  // If the key was not present already, returns emptyresponse, or throws error
-  // if emptyresponse was never set.
+  // If the key was not present already, returns nullValue, or throws error
+  // if nullValue was never set.
   V operator [] (K key);
   // Adds the key-value pair, replacing both the key and value if the key was
   // already present.
-  V operator [=] (K key, V value);
+  void operator [=] (K key, V value);
   // Removes the entry with the given key, if it exists.
   // QUESTION: Should we throw an error if the key was not present? (Current
-  // implementation: yes, unless there is an emptyresponse to return.)
+  // implementation: yes, unless there is a nullValue to return.)
   void delete(K key);
 
   // TODO: Replace with operator iter.
@@ -74,14 +74,14 @@ struct NaiveMap_K_V {
     using F = void();
     ((F)map.operator init)();
   }
-  void operator init(V emptyresponse, bool isEmpty(V) = null) {
+  void operator init(V nullValue, bool isNullValue(V) = null) {
     keys = new K[0];
     values = new V[0];
     size = 0;
-    if (isEmpty == null) {
-      map.operator init(emptyresponse);  // Let operator init supply its own default.
+    if (isNullValue == null) {
+      map.operator init(nullValue);  // Let operator init supply its own default.
     } else {
-      map.operator init(emptyresponse, isEmpty);
+      map.operator init(nullValue, isNullValue);
     }
   }
   map.size = new int() { return size; };
@@ -99,13 +99,13 @@ struct NaiveMap_K_V {
         return values[i];
       }
     }
-    assert(map.isEmpty != null, 'Key not found in map');
-    return map.emptyresponse;
+    assert(map.isNullValue != null, 'Key not found in map');
+    return map.nullValue;
   };
-  map.operator[=] = new V(K key, V value) {
+  map.operator[=] = new void(K key, V value) {
     ++numChanges;
     bool delete = false;
-    if (map.isEmpty != null && map.isEmpty(value)) {
+    if (map.isNullValue != null && map.isNullValue(value)) {
       delete = true;
     }
     for (int i = 0; i < size; ++i) {
@@ -114,11 +114,11 @@ struct NaiveMap_K_V {
           keys.delete(i);
           values.delete(i);
           --size;
-          return value;
+        } else {
+          keys[i] = key;
+          values[i] = value;
         }
-        keys[i] = key;
-        values[i] = value;
-        return value;
+        return;
       }
     }
     if (!delete) {
@@ -126,7 +126,6 @@ struct NaiveMap_K_V {
       values.push(value);
       ++size;
     }
-    return value;
   };
   map.delete = new void(K key) {
     ++numChanges;

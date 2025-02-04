@@ -70,7 +70,7 @@ types::ty *newRecordExp::trans(coenv &e)
 
 types::ty *newRecordExp::getType(coenv &e)
 {
-  types::ty *t = result->trans(e, true);
+  types::ty *t = result->trans(e, ErrorMode::SUPPRESS);
   if (t->kind != ty_error && t->kind != ty_record)
     return primError();
   else

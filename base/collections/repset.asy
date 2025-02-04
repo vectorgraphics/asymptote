@@ -6,20 +6,20 @@ from collections.iter(T=T) access Iter_T, Iterable_T;
 
 
 struct RepSet_T {
-  restricted T emptyresponse;
+  restricted T nullT;
   restricted bool equiv(T, T) = operator ==;
-  restricted bool isEmpty(T) = null;
+  restricted bool isNullT(T) = null;
   restricted void operator init() {}
-  restricted void operator init(T emptyresponse,
+  restricted void operator init(T nullT,
       bool equiv(T a, T b) = operator ==,
-      bool isEmpty(T) = new bool(T t) { return equiv(t, emptyresponse); }) {
-    this.emptyresponse = emptyresponse;
+      bool isNullT(T) = new bool(T t) { return equiv(t, nullT); }) {
+    this.nullT = nullT;
     this.equiv = equiv;
-    this.isEmpty = isEmpty;
+    this.isNullT = isNullT;
   }
 
-  // Creates a new, empty RepSet with the same implemention, emptyresponse,
-  // isEmpty, and equiv as this one.
+  // Creates a new, empty RepSet with the same implemention, nullT,
+  // isNullT, and equiv as this one.
   RepSet_T newEmpty();
 
   int size();
@@ -27,25 +27,25 @@ struct RepSet_T {
     return size() == 0;
   }
   bool contains(T item);
-  // Returns the equivalent item in the set, or emptyresponse if the set
-  // contains no equivalent item. Throws error if emptyresponse was never set.
+  // Returns the equivalent item in the set, or nullT if the set
+  // contains no equivalent item. Throws error if nullT was never set.
   T get(T item);
   // We can make this an operator later, once we have made `for (T item : set)`
   // syntactic sugar for
   // `for (var iter = set.iter(); iter.valid(); iter.advance()) { T item = iter.get(); ... }`
   Iter_T iter();
   // If an equivalent item was already present, returns false. Otherwise, adds
-  // the item and returns true. Noop if isEmpty is defined and item is empty.
+  // the item and returns true. Noop if isNullT is defined and item is empty.
   bool add(T item);  
-  // Inserts item, and returns the item that was replaced, or emptyresponse if
-  // no item was replaced. Throws error if emptyresponse was never set.
-  // Noop if isEmpty is defined and item is empty.
-  // QUESTION: Should we throw an error even if emptyresponse was not needed,
+  // Inserts item, and returns the item that was replaced, or nullT if
+  // no item was replaced. Throws error if nullT was never set.
+  // Noop if isNullT is defined and item is empty.
+  // QUESTION: Should we throw an error even if nullT was not needed,
   // i.e., if there was already an equivalent item in the collection?
   T update(T item);
   // Removes the equivalent item from the set, and returns it. Returns
-  // emptyresponse if there is no equivalent item. Throws error if
-  // there is not equivalent item and emptyresponse was never set.
+  // nullT if there is no equivalent item. Throws error if
+  // there is not equivalent item and nullT was never set.
   T delete(T item);
 
   autounravel Iterable_T operator cast(RepSet_T set) {
@@ -139,11 +139,11 @@ struct NaiveRepSet_T {
     typedef void F();
     ((F)super.operator init)();
   }
-  restricted void operator init(T emptyresponse,
+  restricted void operator init(T nullT,
       bool equiv(T a, T b) = operator ==,
-      bool isEmpty(T) = new bool(T t) { return equiv(t, emptyresponse); }) {
-    typedef void F(T, bool equiv(T, T), bool isEmpty(T));
-    ((F)super.operator init)(emptyresponse, equiv, isEmpty);
+      bool isNullT(T) = new bool(T t) { return equiv(t, nullT); }) {
+    typedef void F(T, bool equiv(T, T), bool isNullT(T));
+    ((F)super.operator init)(nullT, equiv, isNullT);
   }
 
   super.size = new int() {
@@ -165,7 +165,7 @@ struct NaiveRepSet_T {
         return i;
       }
     }
-    return emptyresponse;
+    return nullT;
   };
 
   super.iter = new Iter_T() {
@@ -173,7 +173,7 @@ struct NaiveRepSet_T {
   };
 
   super.add = new bool(T item) {
-    if (isEmpty != null && isEmpty(item)) {
+    if (isNullT != null && isNullT(item)) {
       return false;
     }
     if (contains(item)) {
@@ -184,8 +184,8 @@ struct NaiveRepSet_T {
   };
 
   super.update = new T(T item) {
-    if (isEmpty != null && isEmpty(item)) {
-      return emptyresponse;
+    if (isNullT != null && isNullT(item)) {
+      return nullT;
     }
     for (int i = 0; i < items.length; ++i) {
       if (equiv(items[i], item)) {
@@ -195,8 +195,8 @@ struct NaiveRepSet_T {
       }
     }
     items.push(item);
-    assert(isEmpty != null, 'No way to signal emptyresponse.');
-    return emptyresponse;
+    assert(isNullT != null, 'item not found');
+    return nullT;
   };
 
   super.delete = new T(T item) {
@@ -207,8 +207,8 @@ struct NaiveRepSet_T {
         return result;
       }
     }
-    assert(isEmpty != null, 'No way to signal emptyresponse.');
-    return emptyresponse;
+    assert(isNullT != null, 'item not found');
+    return nullT;
   };
 
   autounravel Iterable_T operator cast(NaiveRepSet_T set) {
@@ -220,7 +220,7 @@ struct NaiveRepSet_T {
   }
 
   super.newEmpty = new RepSet_T() {
-    return NaiveRepSet_T(emptyresponse, equiv, isEmpty);
+    return NaiveRepSet_T(nullT, equiv, isNullT);
   };
 
   autounravel T[] operator ecast(NaiveRepSet_T set) {

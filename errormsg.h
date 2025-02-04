@@ -253,4 +253,9 @@ void outOfMemory();
 
 GC_DECLARE_PTRFREE(nullPosInitializer);
 
+enum class ErrorMode {
+  NORMAL,
+  SUPPRESS,
+};
+
 #endif

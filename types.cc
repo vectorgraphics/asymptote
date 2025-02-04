@@ -197,6 +197,10 @@ ty *overloadedModeType() {
   return o;
 }
 
+ty *ty::keyType() {
+  return primError();
+}
+
 ty *ty::virtualFieldGetType(symbol id)
 {
   trans::varEntry *v = virtualField(id, 0);
@@ -298,6 +302,11 @@ ty *array::deleteType()
                               formal(primInt(),SYM(j),true));
 
   return deletetype;
+}
+
+ty *array::keyType()
+{
+  return primInt();
 }
 
 ty *initializedType() {

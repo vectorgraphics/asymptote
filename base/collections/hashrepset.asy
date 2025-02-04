@@ -11,7 +11,7 @@ private struct HashEntry {
 
 struct HashRepSet_T {
   struct _ { autounravel restricted RepSet_T super; }
-  from super unravel emptyresponse, equiv, isEmpty;
+  from super unravel nullT, equiv, isNullT;
 
   // These fields are mutable.
   private HashEntry[] buckets = array(16, (HashEntry)null);
@@ -26,15 +26,15 @@ struct HashRepSet_T {
     typedef void F();
     ((F)super.operator init)();
   }
-  void operator init(T emptyresponse,
+  void operator init(T nullT,
       bool equiv(T a, T b) = operator ==,
-      bool isEmpty(T) = new bool(T t) { return equiv(t, emptyresponse); }) {
-    typedef void F(T, bool equiv(T, T), bool isEmpty(T));
-    ((F)super.operator init)(emptyresponse, equiv, isEmpty);
+      bool isNullT(T) = new bool(T t) { return equiv(t, nullT); }) {
+    typedef void F(T, bool equiv(T, T), bool isNullT(T));
+    ((F)super.operator init)(nullT, equiv, isNullT);
   }
 
   RepSet_T newEmpty() {
-    return HashRepSet_T(emptyresponse, equiv, isEmpty).super;
+    return HashRepSet_T(nullT, equiv, isNullT).super;
   }
 
   super.size = new int() {
@@ -60,13 +60,13 @@ struct HashRepSet_T {
     for (int i = 0; i < buckets.length; ++i) {
       HashEntry entry = buckets[bucket + i];
       if (entry == null) {
-        return super.emptyresponse;
+        return super.nullT;
       }
       if (entry.hash == bucket && equiv(entry.item, item)) {
         return entry.item;
       }
     }
-    return super.emptyresponse;
+    return super.nullT;
   };
 
   super.iter = new Iter_T() {
@@ -110,7 +110,7 @@ struct HashRepSet_T {
 
   super.add = new bool(T item) {
     ++numChanges;
-    if (isEmpty != null && isEmpty(item)) {
+    if (isNullT != null && isNullT(item)) {
       return false;
     }
     if (2 * (size + zombies) >= buckets.length) {
@@ -143,8 +143,8 @@ struct HashRepSet_T {
 
   super.update = new T(T item) {
     ++numChanges;
-    if (isEmpty != null && isEmpty(item)) {
-      return emptyresponse;
+    if (isNullT != null && isNullT(item)) {
+      return nullT;
     }
     if (2 * (size + zombies) >= buckets.length) {
       changeCapacity();
@@ -154,7 +154,8 @@ struct HashRepSet_T {
       HashEntry entry = buckets[bucket + i];
       if (entry == null) {
         entry = buckets[bucket + i] = new HashEntry;
-        assert(isEmpty != null, 'Unable to report empty update.');
+        assert(isNullT != null,
+               'Unable to report item addition of new item via update().');
         entry.item = item;
         entry.hash = bucket;
         entry.older = newest;
@@ -166,7 +167,7 @@ struct HashRepSet_T {
           oldest = entry;
         }
         ++size;
-        return emptyresponse;
+        return nullT;
       }
       if (entry.hash == bucket && equiv(entry.item, item)) {
         T result = entry.item;
@@ -175,7 +176,7 @@ struct HashRepSet_T {
       }
     }
     assert(false, 'No space in hash table');
-    return emptyresponse;
+    return nullT;
   };
 
   super.delete = new T(T item) {
@@ -184,8 +185,8 @@ struct HashRepSet_T {
     for (int i = 0; i < buckets.length; ++i) {
       HashEntry entry = buckets[bucket + i];
       if (entry == null) {
-        assert(isEmpty != null, 'Unable to report empty deletion.');
-        return emptyresponse;
+        assert(isNullT != null, 'Item is not present.');
+        return nullT;
       }
       if (entry.hash == bucket && equiv(entry.item, item)) {
         T result = entry.item;
@@ -211,8 +212,8 @@ struct HashRepSet_T {
     assert(false, 'Overcrowded hash table; zombies: ' + string(zombies) +
            '; size: ' + string(size) +
            '; buckets.length: ' + string(buckets.length));
-    assert(isEmpty != null, 'Unable to report empty deletion.');
-    return emptyresponse;
+    assert(isNullT != null, 'Item is not present.');
+    return nullT;
   };
 
   autounravel T[] operator ecast(HashRepSet_T set) {

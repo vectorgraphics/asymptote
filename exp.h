@@ -193,13 +193,15 @@ class tempExp : public exp {
 public:
   tempExp(coenv &e, varinit *v, types::ty *t);
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
 
-  types::ty *trans(coenv &e);
+  types::ty *trans(coenv &e) override;
 
-  types::ty *getType(coenv &) {
+  types::ty *getType(coenv &) override {
     return t;
   }
+
+  exp *evaluate(coenv &e, types::ty *target) override;
 };
 
 // Wrap a varEntry so that it can be used as an expression.
@@ -267,10 +269,8 @@ public:
       em << "use of variable \'" << *value << "\' is ambiguous";
       return types::primError();
     }
-    else {
-      transAsType(e, t);
-      return t;
-    }
+    transAsType(e, t);
+    return t;
   }
 
   types::ty *getType(coenv &e) override {
@@ -298,10 +298,7 @@ public:
     ct=0;  // See note in transAsType.
   }
 
-  exp *evaluate(coenv &, types::ty *) override {
-    // Names have no side-effects.
-    return this;
-  }
+  exp *evaluate(coenv &, types::ty *) override;
 };
 
 // Most fields accessed are handled as parts of qualified names, but in cases
@@ -336,8 +333,8 @@ class fieldExp : public nameExp {
     }
 
     // As a type:
-    types::ty *typeTrans(coenv &, bool tacit = false) {
-      if (!tacit) {
+    types::ty *typeTrans(coenv &, ErrorMode tacit = ErrorMode::NORMAL) {
+      if (tacit == ErrorMode::NORMAL) {
         em.error(getPos());
         em << "expression is not a type";
       }
@@ -396,14 +393,10 @@ public:
     return field;
   }
 
-  exp *evaluate(coenv &e, types::ty *) {
-    // Evaluate the object.
-    return new fieldExp(getPos(),
-                        new tempExp(e, object, getObject(e)),
-                        field);
-  }
+  exp *evaluate(coenv &e, types::ty *);
 };
 
+// Common functionality for subscriptExp and sliceExp.
 class arrayExp : public exp {
 protected:
   exp *set;
@@ -430,11 +423,7 @@ public:
   types::ty *getType(coenv &e);
   void transWrite(coenv &e, types::ty *t, exp *value);
 
-  exp *evaluate(coenv &e, types::ty *) {
-    return new subscriptExp(getPos(),
-                            new tempExp(e, set, getArrayType(e)),
-                            new tempExp(e, index, types::primInt()));
-  }
+  exp *evaluate(coenv &e, types::ty *);
 };
 
 class slice : public absyn {

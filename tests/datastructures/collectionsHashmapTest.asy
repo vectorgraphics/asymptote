@@ -215,6 +215,10 @@ for (int i = 0; i < n; ++i) {
   int choice = chooseAction(probs);
   actions[choice](maxKey, naiveMap, hashMap);
   //write(naiveMap.size());
+  if (naiveMap.size() != hashMap.size()) {
+    write('Naive size: ' + (string)naiveMap.size() + ' Hash size: ' + (string)hashMap.size());
+    assert(false, 'Sizes do not match');
+  }
 
   bool keyDifferenceFound = false;
   bool valueDifferenceFound = false;
@@ -236,12 +240,12 @@ for (int i = 0; i < n; ++i) {
     assert(false, 'Naive vs hash: \n' + differences((wrapped_int[])naiveMap, (wrapped_int[])hashMap));
   }
   if (valueDifferenceFound) {
-    write("value difference found");
+    write('value difference found');
     for (var ita = naiveMap.iter(), itb = hashMap.iter(); ita.valid() && itb.valid(); ita.advance(), itb.advance()) {
       wrapped_int a = ita.get();
       wrapped_int b = itb.get();
       if (naiveMap[a] != hashMap[b]) {
-        write("key: " + (string)a.t + " value: " + (string)naiveMap[a] + " " + (string)hashMap[b]);
+        write('key: ' + (string)a.t + ' value: ' + (string)naiveMap[a] + ' ' + (string)hashMap[b]);
       }
     }
     assert(false);
