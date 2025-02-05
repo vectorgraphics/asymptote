@@ -414,14 +414,7 @@ void subscriptExp::transWrite(coenv &e, types::ty *t, exp *value)
 {
   // EXPERIMENTAL
   if (!isAnArray(e, set)) {
-    // {
-    //   ty *v_t = value->cgetType(e);
-    //   cout << "subscriptExp::transWrite: value type: ";
-    //   v_t->print(cout);
-    //   cout << endl;
-    // }
     value = value->evaluate(e, t);
-    //value = new tempExp(e, value, t);
     callExp* call= buildSubscriptWriteCall(set, index, value);
     call->trans(e);
     value->transAsType(e, t);
