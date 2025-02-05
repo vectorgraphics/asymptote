@@ -155,53 +155,52 @@ errortest.asy: 452.16: expression is not an array of inferable type
 errortest.asy: 457.16: expression is not an array of inferable type
 errortest.asy: 463.16: expression is not an array of inferable type
 errortest.asy: 470.7: array expression cannot be used as an address
-errortest.asy: 518.29: expected 'as'
-errortest.asy: 519.30: expected 'as'
-errortest.asy: 520.23: expected typename=
-errortest.asy: 521.3: Parametrized imports disallowed to reduce naming conflicts. Try 'access <module>(<type parameters>) as <newname>;'.
-base/version.asy: 1.1: expected 'typedef import(<types>);'
-errortest.asy: 522.3: could not load module 'base/version.asy'
-errortest.asy: 525.3: unexpected 'typedef import'
-errortest.asy: 526.3: Expected 'typedef import(<types>);'
-errortest.asy: 530.28: too few types passed: got 2, expected 3
-errortest.asy: 530.3: could not load module 'errortestTemplate'
-errortest.asy: 532.45: template argument name does not match module: passed T, expected C
-errortest.asy: 532.3: could not load module 'errortestTemplate'
-errortest.asy: 534.35: template argument name does not match module: passed C, expected B
-errortest.asy: 534.3: could not load module 'errortestTemplate'
-errortestTemplate.asy: 5.1: unexpected 'typedef import'
-errortestTemplate.asy: 1.1: templated module access requires template parameters
-errortest.asy: 544.5: too many static modifiers
-errortest.asy: 547.5: too many autounravel modifiers
-errortest.asy: 548.5: too many autounravel modifiers
+errortest.asy: 519.29: expected 'as'
+errortest.asy: 521.30: expected 'as'
+errortest.asy: 523.23: expected typename=
+errortest.asy: 525.3: Parametrized imports disallowed to reduce naming conflicts. Try 'access <module>(<type parameters>) as <newname>;'.
+errortestNonTemplate.asy: 1.1: expected 'typedef import(<types>);'
+errortest.asy: 527.3: could not load module 'errortestNonTemplate'
+errortest.asy: 530.3: unexpected 'typedef import'
+errortest.asy: 531.3: Expected 'typedef import(<types>);'
+errortest.asy: 535.34: too few types passed: got 2, expected 3
+errortest.asy: 535.3: could not load module 'errortestBrokenTemplate'
+errortest.asy: 537.51: template argument name does not match module: passed T, expected C
+errortest.asy: 537.3: could not load module 'errortestBrokenTemplate'
+errortest.asy: 539.41: template argument name does not match module: passed C, expected B
+errortest.asy: 539.3: could not load module 'errortestBrokenTemplate'
+errortestBrokenTemplate.asy: 5.1: unexpected 'typedef import'
+errortestBrokenTemplate.asy: 1.1: templated module access requires template parameters
 errortest.asy: 549.5: too many static modifiers
-errortest.asy: 550.17: types cannot be autounraveled
-errortest.asy: 554.3: top-level fields cannot be autounraveled
-errortest.asy: 559.21: cannot shadow autounravel qaz
-errortest.asy: 567.22: cannot shadow autounravel alias
-errortest.asy: 576.27: non-statically nested types cannot be used in templates
-errortest.asy: 579.26: non-statically nested types cannot be used in templates
-errortest.asy: 580.26: non-statically nested types cannot be used in templates
-errortest.asy: 586.32: template argument name does not match module: passed B, expected A
-errortest.asy: 586.3: could not load module 'errorFreeTestTemplate'
-errortest.asy: 588.32: template argument name does not match module: passed C, expected A
-errortest.asy: 588.3: could not load module 'errorFreeTestTemplate'
-errortest.asy: 590.39: template argument name does not match module: passed D, expected B
-errortest.asy: 590.3: could not load module 'errorFreeTestTemplate'
-errortest.asy: 592.32: template argument name does not match module: passed C, expected A
-errortest.asy: 592.3: could not load module 'errorFreeTestTemplate'
-errortest.asy: 594.32: too few types passed: got 1, expected 2
-errortest.asy: 594.3: could not load module 'errorFreeTestTemplate'
-errortest.asy: 596.32: too many types passed: got 3, expected 2
-errortest.asy: 596.3: could not load module 'errorFreeTestTemplate'
-errortestTemplate.asy: 2.1: unexpected 'typedef import'
-errortestTemplate.asy: 5.1: unexpected 'typedef import'
-errortest.asy: 613.4: accessing private field outside of structure
-errortest.asy: 614.9: accessing private field outside of structure
-errortest.asy: 615.4: accessing private field outside of structure
-errortest.asy: 616.4: accessing private field outside of structure
+errortest.asy: 552.5: too many autounravel modifiers
+errortest.asy: 553.5: too many autounravel modifiers
+errortest.asy: 554.5: too many static modifiers
+errortest.asy: 555.17: types cannot be autounraveled
+errortest.asy: 559.3: top-level fields cannot be autounraveled
+errortest.asy: 564.21: cannot shadow autounravel qaz
+errortest.asy: 572.22: cannot shadow autounravel alias
+errortest.asy: 581.27: non-statically nested types cannot be used in templates
+errortest.asy: 584.26: non-statically nested types cannot be used in templates
+errortest.asy: 585.26: non-statically nested types cannot be used in templates
+errortest.asy: 591.28: template argument name does not match module: passed B, expected A
+errortest.asy: 591.3: could not load module 'errortestTemplate'
+errortest.asy: 593.28: template argument name does not match module: passed C, expected A
+errortest.asy: 593.3: could not load module 'errortestTemplate'
+errortest.asy: 595.35: template argument name does not match module: passed D, expected B
+errortest.asy: 595.3: could not load module 'errortestTemplate'
+errortest.asy: 597.28: template argument name does not match module: passed C, expected A
+errortest.asy: 597.3: could not load module 'errortestTemplate'
+errortest.asy: 599.28: too few types passed: got 1, expected 2
+errortest.asy: 599.3: could not load module 'errortestTemplate'
+errortest.asy: 601.28: too many types passed: got 3, expected 2
+errortest.asy: 601.3: could not load module 'errortestTemplate'
+errortestTemplate.asy: 1.1: unexpected 'typedef import'
+errortest.asy: 618.4: accessing private field outside of structure
+errortest.asy: 619.9: accessing private field outside of structure
 errortest.asy: 620.4: accessing private field outside of structure
-errortest.asy: 621.9: accessing private field outside of structure
-errortest.asy: 622.4: accessing private field outside of structure
-errortest.asy: 623.4: accessing private field outside of structure
-errortest.asy: 634.4: accessing private field outside of structure
+errortest.asy: 621.4: accessing private field outside of structure
+errortest.asy: 625.4: accessing private field outside of structure
+errortest.asy: 626.9: accessing private field outside of structure
+errortest.asy: 627.4: accessing private field outside of structure
+errortest.asy: 628.4: accessing private field outside of structure
+errortest.asy: 639.4: accessing private field outside of structure

@@ -515,11 +515,16 @@
 
 // template import errors
 {
-  access somefilename(T=int);  // Need to specify new name.
-  access somefilename(T=int) notas somefilename_int;  // "as" misspelled
-  access somefilename(int) as somefilename_int;  // missing keyword
-  import somefilename(T=int);  // Templated import not defined.
-  access "base/version.asy"(T=int) as version;  // unexpected template parameters
+  // Need to specify new name.
+  access somefilename(T=int);
+  // "as" misspelled
+  access somefilename(T=int) notas somefilename_int;
+  // missing keyword
+  access somefilename(int) as somefilename_int;
+  // Templated import unsupported
+  import somefilename(T=int);
+  // unexpected template parameters
+  access errortestNonTemplate(T=int) as version;
 }
 {
   typedef import(T);  // this file isn't accessed as a template
@@ -527,15 +532,15 @@
 }
 {
   // wrong number of parameters
-  access errortestTemplate(A=int, B=string) as ett_a;
+  access errortestBrokenTemplate(A=int, B=string) as ett_a;
   // third param incorrectly named
-  access errortestTemplate(A=int, B=string, T=real) as ett_b;
+  access errortestBrokenTemplate(A=int, B=string, T=real) as ett_b;
   // keywords in wrong order
-  access errortestTemplate(A=int, C=real, B=string) as ett_c;
-  // errortestTemplate.asy has extra "typedef import"
-  access errortestTemplate(A=int, B=string, C=real) as ett_d;
+  access errortestBrokenTemplate(A=int, C=real, B=string) as ett_c;
+  // errortestBrokenTemplate.asy has extra "typedef import"
+  access errortestBrokenTemplate(A=int, B=string, C=real) as ett_d;
   // expected template parameters
-  access errortestTemplate as ett_e;
+  access errortestBrokenTemplate as ett_e;
 }
 
 // autounravel errors
@@ -581,19 +586,19 @@
 }
 {
   // no error
-  access errorFreeTestTemplate(A=int, B=string) as eft;
+  access errortestTemplate(A=int, B=string) as eft;
   // wrongly ordered names after correct load
-  access errorFreeTestTemplate(B=int, A=string) as eft;
+  access errortestTemplate(B=int, A=string) as eft;
   // completely wrong names after correct load
-  access errorFreeTestTemplate(C=int, D=string) as eft;
+  access errortestTemplate(C=int, D=string) as eft;
   // first name correct, second name wrong
-  access errorFreeTestTemplate(A=int, D=string) as eft;
+  access errortestTemplate(A=int, D=string) as eft;
   // first name wrong, second name correct
-  access errorFreeTestTemplate(C=int, B=string) as eft;
+  access errortestTemplate(C=int, B=string) as eft;
   // too few parameters
-  access errorFreeTestTemplate(A=int) as eft;
+  access errortestTemplate(A=int) as eft;
   // too many parameters
-  access errorFreeTestTemplate(A=int, B=string, C=real) as eft;
+  access errortestTemplate(A=int, B=string, C=real) as eft;
   // templated imports cannot be run directly
   include errortestTemplate;
 }
