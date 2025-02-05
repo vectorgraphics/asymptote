@@ -98,7 +98,7 @@ DEC_CREATE_SYM_MAP_FUNDEC_EMPTY(formal)
 void formals::addArgumentsToFnInfo(AsymptoteLsp::FunctionInfo& fnInfo) {}
 void fundef::addArgumentsToFnInfo(AsymptoteLsp::FunctionInfo& fnInfo) {}
 
-std::pair<std::string, optional<std::string>> fnInfo() const
+std::pair<std::string, optional<std::string>> formal::fnInfo() const
 {
   return std::make_pair("", nullopt);
 }
