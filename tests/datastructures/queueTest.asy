@@ -2,7 +2,7 @@ import TestLib;
 
 StartTest("Queue");
 
-from queue(T=int) access
+from collections.queue(T=int) access
     Queue_T as Queue_int,
     makeNaiveQueue,
     makeArrayQueue,

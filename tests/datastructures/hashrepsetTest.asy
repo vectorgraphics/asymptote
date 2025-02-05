@@ -24,7 +24,7 @@ struct wrapped_int {
     return a.t < b.t;
   }
   int hash() {
-    return hash(t, 62);
+    return hash(t);
   }
 }
 

@@ -936,29 +936,19 @@ Intarray* complement(Intarray *a, Int n)
   return r;
 }
 
-Int hash(Intarray *a, Int bits)
+Int hash(Intarray *a)
 {
-  if (bits > 62) {
-    ostringstream buf;
-    buf << "hash can produce at most 62 bits, requested " << bits;
-    error(buf);
-  } else if (bits < 0) {
-    ostringstream buf;
-    buf << "hash cannot produce negative bits, requested " << bits;
-    error(buf);
-  }
-  int8_t bits8 = static_cast<int8_t>(bits);
   size_t asize=checkArray(a);
 #if COMPACT
   const uint64_t *start = reinterpret_cast<uint64_t*>(a->data());
   span<const uint64_t> s = {start, asize};
-  return hashing::hashSpan(s, bits8);
+  return hashing::hashSpan(s);
 #else
   std::vector<uint64_t> v{asize};
   for (size_t i = 0; i < asize; ++i) {
     v[i] = static_cast<uint64_t>(read<Int>(a,i));
   }
-  return hashing::hashSpan(v, bits8);
+  return hashing::hashSpan(v);
 #endif
 }
 

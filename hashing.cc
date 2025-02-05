@@ -23,7 +23,6 @@ uint64_t constexpr shiftLeftDefined(uint64_t x, int8_t shift) {
   return shift >= 64 ? 0 : x << shift;
 }
 
-
 uint64_t random_bits(int8_t bits) {
   static std::random_device *rd = new std::random_device();
   static auto *gen = new std::mt19937_64((*rd)());
@@ -33,18 +32,18 @@ uint64_t random_bits(int8_t bits) {
   return dist(*gen);
 }
 
-uint64_t hashSpan(span<const char> s, int8_t bits) {
+uint64_t hashSpan(span<const char> s) {
   HH_ALIGNAS(32) static const HHKey key = {random_bits(64), random_bits(64),
                                            random_bits(64), random_bits(64)};
   HHResult64 result;
   InstructionSets::Run<HighwayHash>(key, s.data(), s.size(), &result);
-  return result & (shiftLeftDefined(1, bits) - 1);
+  return result & (shiftLeftDefined(1, 62) - 1);
 }
 
-uint64_t hashSpan(span<const uint64_t> s, int8_t bits) {
+uint64_t hashSpan(span<const uint64_t> s) {
   span<const char> sChar = {reinterpret_cast<const char*>(s.data()),
                             s.size() * (sizeof(uint64_t) / sizeof(char))};
-  return hashSpan(sChar, bits);
+  return hashSpan(sChar);
 }
 
 std::array<uint64_t, 4> fingerprint(span<const char> s) {
@@ -65,9 +64,9 @@ std::array<uint64_t, 4> fingerprint(span<const char> s) {
   return fingerprint;
 }
 
-uint64_t hashInt(uint64_t i, int8_t bits) {
+uint64_t hashInt(uint64_t i) {
   span<const uint64_t> s = {&i, 1};
-  return hashSpan(s, bits);
+  return hashSpan(s);
 }
 
 

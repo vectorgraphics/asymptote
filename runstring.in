@@ -132,13 +132,13 @@ Int length(string *s)
 
 Int :stringHashHelper(string s)
 {
-    symbol t = symbol::trans(s);
-    return (Int)(t.hash());
+  span<const char> sSpan = {s.data(), s.length()};
+  return hashing::hashSpan(s);
 }
 
 callable* :stringHash(string s)
 {
-    return new thunk(new bfunc(stringHashHelper), s);
+  return new thunk(new bfunc(stringHashHelper), s);
 }
 
 Int find(string *s, string t, Int pos=0)
@@ -425,20 +425,10 @@ Int ascii(string s)
   return s.empty() ? -1 : (unsigned char) s[0];
 }
 
-Int hash(string s, Int bits)
+Int hash(string s)
 {
-  if (bits > 62) {
-    ostringstream buf;
-    buf << "hash can produce at most 62 bits, requested " << bits;
-    error(buf);
-  } else if (bits < 0) {
-    ostringstream buf;
-    buf << "hash cannot produce negative bits, requested " << bits;
-    error(buf);
-  }
-  int8_t bits8 = static_cast<int8_t>(bits);
   span<const char> sSpan = {s.data(), s.length()};
-  return hashing::hashSpan(s, bits8);
+  return hashing::hashSpan(s);
 }
 
 Intarray* fingerprint2024(string s)

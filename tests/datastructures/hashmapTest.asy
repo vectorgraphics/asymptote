@@ -1,19 +1,41 @@
 import TestLib;
 
-StartTest('HashMap');
+StartTest('collections.hashmap');
 
-from genericpair(K=int, V=real) access
-    Pair_K_V as Pair_int_real;
+struct wrapped_int {
+  restricted int t;
+  void operator init(int t) {
+    this.t = t;
+  }
+  autounravel bool operator ==(wrapped_int a, wrapped_int b) {
+    if (alias(a, null)) return alias(b, null);
+    if (alias(b, null)) return false;
+    return a.t == b.t;
+  }
+  autounravel bool operator !=(wrapped_int a, wrapped_int b) {
+    return !(a == b);
+  }
+  autounravel bool operator <(wrapped_int a, wrapped_int b) {
+    return a.t < b.t;
+  }
+  int hash() {
+    return hash(t);
+  }
+}
 
-from puremap(K=int, V=real) access
+wrapped_int wrap(int t) = wrapped_int;  // `wrap` is alias for constructor
+wrapped_int operator cast(int t) = wrap;
+
+
+from collections.map(K=wrapped_int, V=real) access
     Map_K_V as Map_int_real,
-    makeNaiveMap;
+    NaiveMap_K_V as NaiveMap_int_real;
 
-from hashmap(K=int, V=real) access
-    makeHashMap;
+from collections.hashmap(K=wrapped_int, V=real) access
+    HashMap_K_V as HashMap_int_real;
 
-from map_smallint(T=real) access
-    makeMapSmallint;
+// from collections.smallintmap(T=real) access
+//     SmallIntMap_V as MapSmallint_real;
 
 struct ActionEnum {
   static restricted int num = 0;
@@ -27,8 +49,8 @@ struct ActionEnum {
   static restricted int CONTAINS = next();
   static restricted int FOR_EACH_CONTAINS = next();
   static restricted int PUT = next();
-  static restricted int POP = next();
-  static restricted int GET_POP = next();
+  static restricted int SOFT_DELETE = next();
+  static restricted int FIND_DELETE = next();
 
   static string toString(int action) {
     if (action == SIZE) return 'SIZE';
@@ -36,26 +58,13 @@ struct ActionEnum {
     if (action == CONTAINS) return 'CONTAINS';
     if (action == FOR_EACH_CONTAINS) return 'FOR_EACH_CONTAINS';
     if (action == PUT) return 'PUT';
-    if (action == POP) return 'POP';
-    if (action == GET_POP) return 'GET_POP';
+    if (action == SOFT_DELETE) return 'SOFT_DELETE';
+    if (action == FIND_DELETE) return 'FIND_DELETE';
     return 'UNKNOWN';
   }
 }
 
-struct PutEnum {
-  static restricted int num = 0;
-  static private int next() {
-    return ++num - 1;
-  }
-  static restricted int PAIR = next();
-  static restricted int COMMA_SEPARATED = next();
-
-  static int random() {
-    return rand() % num;
-  }
-}
-
-typedef void Action(int maxItem...Map_int_real[]);
+using Action=void(int maxItem...Map_int_real[]);
 
 Action[] actions = new Action[ActionEnum.num];
 actions[ActionEnum.SIZE] = new void(int maxItem ...Map_int_real[] maps) {
@@ -84,64 +93,42 @@ actions[ActionEnum.FOR_EACH_CONTAINS] = new void(
     ...Map_int_real[] maps
 ) {
   for (Map_int_real map : maps) {
-    map.forEach(new bool(int key, real value) {
+    for (var it=map.iter(); it.valid(); it.advance()) {
       for (Map_int_real map_ : maps) {
+        wrapped_int key = it.get();
         assert(map_.contains(key));
-        if (isnan(value))
-          assert(isnan(map_.get(key)));
+        if (isnan(map[key]))
+          assert(isnan(map_[key]));
         else
-          assert(map_.get(key) == value);
+          assert(map_[key] == map[key]);
       }
-      return true;
-    });
+    }
   }
 };
 actions[ActionEnum.PUT] = new void(int maxItem ...Map_int_real[] maps) {
-  int key = rand() % maxItem;
+  wrapped_int key = rand() % maxItem;
   real value = rand();
-  real[] returned;
   for (Map_int_real map : maps) {
-    if (PutEnum.random() == PutEnum.PAIR)
-      returned.push(map.put(key >> value));
-    else
-      returned.push(map.put(key, value));
-  }
-  real reference = returned[0];
-  for (real value : returned) {
-    if (isnan(reference))
-      assert(isnan(value));
-    else
-      assert(value == reference);
+    map[key] = value;
   }
 };
-actions[ActionEnum.POP] = new void(int maxItem ...Map_int_real[] maps) {
-  int key = rand() % maxItem;
-  real[] returned;
+actions[ActionEnum.SOFT_DELETE] = new void(int maxItem ...Map_int_real[] maps) {
+  wrapped_int key = rand() % maxItem;
   for (Map_int_real map : maps) {
-    returned.push(map.pop(key));
-  }
-  real reference = returned[0];
-  for (real value : returned) {
-    if (isnan(reference))
-      assert(isnan(value));
-    else
-      assert(value == reference);
+    map[key] = nan;
   }
 };
-actions[ActionEnum.GET_POP] = new void(int maxItem ...Map_int_real[] maps) {
-  Map_int_real referenceMap = maps[rand() % maps.length];
+actions[ActionEnum.FIND_DELETE] = new void(int maxItem ...Map_int_real[] maps) {
+  int whichmap = rand() % maps.length;
+  Map_int_real referenceMap = maps[whichmap];
   int size = referenceMap.size();
   if (size == 0)
     return;
   int index = rand() % size;
-  Pair_int_real referencePair = ((Pair_int_real[])referenceMap)[index];
-  unravel referencePair;
+  wrapped_int key = ((wrapped_int[])referenceMap)[index];
   for (Map_int_real map : maps) {
-    real value = map.pop(k);
-    if (isnan(v))
-      assert(isnan(value));
-    else
-      assert(value == v);
+    assert(map.contains(key));
+    map.delete(key);
   }
 };
 
@@ -151,8 +138,8 @@ increasingProbs[ActionEnum.EMPTY] = 0.1;
 increasingProbs[ActionEnum.CONTAINS] = 0.1;
 increasingProbs[ActionEnum.FOR_EACH_CONTAINS] = 0.05;
 increasingProbs[ActionEnum.PUT] = 0.4;
-increasingProbs[ActionEnum.POP] = 0.15;
-increasingProbs[ActionEnum.GET_POP] = 0.1;
+increasingProbs[ActionEnum.SOFT_DELETE] = 0.15;
+increasingProbs[ActionEnum.FIND_DELETE] = 0.1;
 assert(sum(increasingProbs) == 1, 'Probabilities do not sum to 1');
 
 real[] decreasingProbs = new real[ActionEnum.num];
@@ -161,8 +148,8 @@ decreasingProbs[ActionEnum.EMPTY] = 0.1;
 decreasingProbs[ActionEnum.CONTAINS] = 0.1;
 decreasingProbs[ActionEnum.FOR_EACH_CONTAINS] = 0.05;
 decreasingProbs[ActionEnum.PUT] = 0.1;
-decreasingProbs[ActionEnum.POP] = 0.35;
-decreasingProbs[ActionEnum.GET_POP] = 0.2;
+decreasingProbs[ActionEnum.SOFT_DELETE] = 0.35;
+decreasingProbs[ActionEnum.FIND_DELETE] = 0.2;
 assert(sum(decreasingProbs) == 1, 'Probabilities do not sum to 1');
 
 int chooseAction(real[] probs) {
@@ -178,14 +165,91 @@ int chooseAction(real[] probs) {
 } 
 
 bool intsEqual(int, int) = operator ==;
-Map_int_real pureMap = makeNaiveMap(intsEqual, nan);
-Map_int_real hashMap = makeHashMap(hash, intsEqual, nan);
-Map_int_real smallintMap = makeMapSmallint(nan, isnan);
+Map_int_real naiveMap = NaiveMap_int_real(nan, isnan);
+Map_int_real hashMap = HashMap_int_real(nan, isnan);
+// Map_int_real smallintMap = makeMapSmallint(nan, isnan);
 
-for (int i = 0; i < 2000; ++i) {
-  real[] probs = i < 800 ? increasingProbs : decreasingProbs;
+from zip(T=int) access zip;
+from mapArray(Src=wrapped_int, Dst=int) access map;
+int get(wrapped_int a) {
+  return a.t;
+}
+
+int[] operator cast(wrapped_int[] a) {
+  for (wrapped_int x : a) {
+    assert(!alias(x, null), 'Null element in array');
+  }
+  return map(get, a);
+}
+
+string differences(wrapped_int[] aArray, wrapped_int[] bArray) {
+  if (aArray.length != bArray.length) {
+    return 'Different sizes: ' + string(aArray.length) + ' vs ' + string(bArray.length);
+  }
+  int[] aIntArray = map(get, aArray);
+  int[] bIntArray = map(get, bArray);
+  string arrayValues = '[\n';
+  bool different = false;
+  for (int i = 0; i < aIntArray.length; ++i) {
+    arrayValues += '  [' + format('%5d', aIntArray[i]) + ',' 
+                   + format('%5d', bIntArray[i]) + ']';
+    if (!alias(aArray[i], bArray[i])) {
+      arrayValues += '  <---';
+      different = true;
+    }
+    arrayValues += '\n';
+  }
+  arrayValues += ']';
+  // write(arrayValues + '\n');
+  if (different) {
+    return arrayValues;
+  }
+  return '';
+}
+
+int n = 2000;
+int startDecreasing = n * 2 # 5;  // two-fifths of the way through
+int maxKey = 100;
+for (int i = 0; i < n; ++i) {
+  real[] probs = i < startDecreasing ? increasingProbs : decreasingProbs;
   int choice = chooseAction(probs);
-  actions[choice](100, pureMap, hashMap, smallintMap);
+  actions[choice](maxKey, naiveMap, hashMap);
+  //write(naiveMap.size());
+  if (naiveMap.size() != hashMap.size()) {
+    write('Naive size: ' + (string)naiveMap.size() + ' Hash size: ' + (string)hashMap.size());
+    assert(false, 'Sizes do not match');
+  }
+
+  bool keyDifferenceFound = false;
+  bool valueDifferenceFound = false;
+  assert(naiveMap.iter != null, 'Naive set has no iter');
+  assert(hashMap.iter != null, 'Hash set has no iter');
+  for (var ita = naiveMap.iter(), itb = hashMap.iter(); ita.valid() && itb.valid(); ita.advance(), itb.advance()) {
+    wrapped_int a = ita.get();
+    wrapped_int b = itb.get();
+    if (!alias(a, b)) {
+      keyDifferenceFound = true;
+      break;
+    }
+    if (naiveMap[a] != hashMap[b]) {
+      valueDifferenceFound = true;
+      break;
+    }
+  }
+  if (keyDifferenceFound) {
+    assert(false, 'Naive vs hash: \n' + differences((wrapped_int[])naiveMap, (wrapped_int[])hashMap));
+  }
+  if (valueDifferenceFound) {
+    write('value difference found');
+    for (var ita = naiveMap.iter(), itb = hashMap.iter(); ita.valid() && itb.valid(); ita.advance(), itb.advance()) {
+      wrapped_int a = ita.get();
+      wrapped_int b = itb.get();
+      if (naiveMap[a] != hashMap[b]) {
+        write('key: ' + (string)a.t + ' value: ' + (string)naiveMap[a] + ' ' + (string)hashMap[b]);
+      }
+    }
+    assert(false);
+  }
 }
 
 
