@@ -159,8 +159,8 @@ errortest.asy: 518.29: expected 'as'
 errortest.asy: 519.30: expected 'as'
 errortest.asy: 520.23: expected typename=
 errortest.asy: 521.3: Parametrized imports disallowed to reduce naming conflicts. Try 'access <module>(<type parameters>) as <newname>;'.
-/u/bowman/asymptote/base/version.asy: 1.1: expected 'typedef import(<types>);'
-errortest.asy: 522.3: could not load module 'version'
+base/version.asy: 1.1: expected 'typedef import(<types>);'
+errortest.asy: 522.3: could not load module 'base/version.asy'
 errortest.asy: 525.3: unexpected 'typedef import'
 errortest.asy: 526.3: Expected 'typedef import(<types>);'
 errortest.asy: 530.28: too few types passed: got 2, expected 3
