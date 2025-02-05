@@ -1248,13 +1248,9 @@ bool receiveTypedefDec::transAsParamMatcher(
 }
 
 void receiveTypedefDec::transAsField(coenv& e, record *r) {
-  if(settings::getSetting<bool>("listvariables"))
-    em.skip();
-  else {
-    em.error(getPos());
-    em << "unexpected 'typedef import'";
-    em.sync();
-  }
+  em.error(getPos());
+  em << "unexpected 'typedef import'";
+  em.sync();
 }
 
 

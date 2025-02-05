@@ -281,7 +281,8 @@ void itree::doList() {
   if (tree) {
     penv pe;
     record *r=tree->transAsFile(pe.ge(), symbol::trans(getName()));
-    r->e.list(r);
+    if(r)
+      r->e.list(r);
   }
 }
 
