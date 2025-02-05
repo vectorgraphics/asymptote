@@ -519,7 +519,7 @@
   access somefilename(T=int) notas somefilename_int;  // "as" misspelled
   access somefilename(int) as somefilename_int;  // missing keyword
   import somefilename(T=int);  // Templated import not defined.
-  access "base/version.asy"(T=int) as version;  // unexpected template parameters
+  access "errorsNonTemplate.asy"(T=int) as version;  // unexpected template parameters
 }
 {
   typedef import(T);  // this file isn't accessed as a template
