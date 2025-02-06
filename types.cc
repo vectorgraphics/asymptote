@@ -116,7 +116,7 @@ void ty::print(ostream& out) const
 
 
 ty *hashMethodType() {
-    return new function(primInt());
+  return new function(primInt());
 }
 
 ty *dimensionType() {
@@ -142,6 +142,9 @@ trans::varEntry *primitiveTy::virtualField(symbol id, signature *sig)
       break;
     case ty_Int:
       SIGFIELD(hashMethodType,SYM(hash),intHash);
+      break;
+    case ty_real:
+      SIGFIELD(hashMethodType,SYM(hash),realHash);
       break;
     case ty_pair:
       FIELD(primReal,SYM(x),pairXPart);
@@ -214,7 +217,7 @@ ty *ty::virtualFieldGetType(symbol id)
 ty *primitiveTy::virtualFieldGetType(symbol id)
 {
   if (id == SYM(hash)) {
-    if (kind == ty_string || kind == ty_Int) {
+    if (kind == ty_string || kind == ty_Int || kind == ty_real) {
       return hashMethodType();
     }
   }

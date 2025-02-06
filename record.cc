@@ -53,11 +53,8 @@ mem::pair<ty*, ty*> computeKVTypes(trans::venv& ve, const position& pos)
 
   ty* getTy= ve.getType(symbol::trans("[]"));
   ty* setTy= ve.getType(symbol::trans("[=]"));
-  if (getTy == nullptr || setTy == nullptr) {
-    if (getTy != nullptr) {
-      em.error(pos);
-      em << "operator[] defined without operator[=]";
-    } else if (setTy != nullptr) {
+  if (getTy == nullptr) {
+    if (setTy != nullptr) {
       em.error(pos);
       em << "operator[=] defined without operator[]";
     }
@@ -87,44 +84,47 @@ mem::pair<ty*, ty*> computeKVTypes(trans::venv& ve, const position& pos)
   }
   ty* keyTy= getSig->getFormal(0).t;
 
-  // Find the keytype and valuetype based on operator[=].
-  if (setTy->isOverloaded()) {
-    em.error(pos);
-    em << "multiple operator[=] definitions in one struct";
-    return errorPair;
-  }
-  if (setTy->kind != ty_function) {
-    em.error(pos);
-    em << "operator[=] is not a function";
-    return errorPair;
-  }
-  types::function* set= static_cast<types::function*>(setTy);
-  types::ty* setResult= set->getResult();
-  if (setResult->kind != ty_void) {
-    em.error(pos);
-    em << "operator[=] must return void";
-    return errorPair;
-  }
-  signature* setSig= set->getSignature();
-  if (setSig->hasRest() || setSig->getNumFormals() != 2) {
-    em.error(pos);
-    em << "operator[=] must have exactly two parameters";
-    return errorPair;
-  }
-  ty* setKeyTy= setSig->getFormal(0).t;
-  ty* setValTy= setSig->getFormal(1).t;
+  if (setTy != nullptr) {
+    // Find the keytype and valuetype based on operator[=].
+    if (setTy->isOverloaded()) {
+      em.error(pos);
+      em << "multiple operator[=] definitions in one struct";
+      return errorPair;
+    }
+    if (setTy->kind != ty_function) {
+      em.error(pos);
+      em << "operator[=] is not a function";
+      return errorPair;
+    }
+    types::function* set= static_cast<types::function*>(setTy);
+    types::ty* setResult= set->getResult();
+    if (setResult->kind != ty_void) {
+      em.error(pos);
+      em << "operator[=] must return void";
+      return errorPair;
+    }
+    signature* setSig= set->getSignature();
+    if (setSig->hasRest() || setSig->getNumFormals() != 2) {
+      em.error(pos);
+      em << "operator[=] must have exactly two parameters";
+      return errorPair;
+    }
+    ty* setKeyTy= setSig->getFormal(0).t;
+    ty* setValTy= setSig->getFormal(1).t;
 
-  // Check that they agree.
-  if (!keyTy->equiv(setKeyTy) || !setKeyTy->equiv(keyTy)) {
-    em.error(pos);
-    em << "first parameter of operator[] and operator[=] must match";
-    return errorPair;
-  }
-  if (!valTy->equiv(setValTy) || !setValTy->equiv(valTy)) {
-    em.error(pos);
-    em << "return type of operator[] and second parameter of operator[=] must "
-          "match";
-    return errorPair;
+    // Check that they agree.
+    if (!keyTy->equiv(setKeyTy) || !setKeyTy->equiv(keyTy)) {
+      em.error(pos);
+      em << "first parameter of operator[] and operator[=] must match";
+      return errorPair;
+    }
+    if (!valTy->equiv(setValTy) || !setValTy->equiv(valTy)) {
+      em.error(pos);
+      em << "return type of operator[] and second parameter of operator[=] "
+            "must "
+            "match";
+      return errorPair;
+    }
   }
 
   return mem::pair<ty*, ty*>(keyTy, valTy);

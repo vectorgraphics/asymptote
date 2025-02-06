@@ -627,3 +627,9 @@
   }
   T.x;  // incorrectly accessing private field
 }
+{
+  struct A {
+    int operator[](string);
+    int operator[](int);
+  }
+}
