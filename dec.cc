@@ -71,9 +71,11 @@ bool usableInTemplate(ty *t) {
 }
 
 
-trans::tyEntry *astType::transAsTyEntry(coenv &e, record *where)
+trans::tyEntry* astType::transAsTyEntry(coenv& e, record* where)
 {
-  return new trans::tyEntry(trans(e, ErrorMode::NORMAL), nullptr, where, getPos());
+  return new trans::tyEntry(
+          trans(e, ErrorMode::NORMAL), nullptr, where, getPos()
+  );
 }
 
 
@@ -113,10 +115,9 @@ void addNameOps(coenv &e, record *r, record *qt, varEntry *qv, position pos) {
 
 void nameTy::addOps(coenv &e, record *r, AutounravelOption opt)
 {
-  if (opt == AutounravelOption::Apply)
-  {
-    if (record* qt= dynamic_cast<record*>(id->getType(e, ErrorMode::SUPPRESS)); qt)
-    {
+  if (opt == AutounravelOption::Apply) {
+    if (record* qt= dynamic_cast<record*>(id->getType(e, ErrorMode::SUPPRESS));
+        qt) {
       varEntry* qv= id->getVarEntry(e);
       addNameOps(e, r, qt, qv, getPos());
     }
@@ -579,7 +580,8 @@ trans::tyEntry *decidstart::getTyEntry(trans::tyEntry *base, coenv &e,
                                        record *where)
 {
   return dims ? new trans::tyEntry(
-                        getType(base->t, e, ErrorMode::NORMAL), nullptr, where, getPos()
+                        getType(base->t, e, ErrorMode::NORMAL), nullptr, where,
+                        getPos()
                 )
               : base;
 }
@@ -670,21 +672,23 @@ types::ty *fundecidstart::getType(types::ty *base, coenv &e, ErrorMode tacit)
   }
 }
 
-trans::tyEntry *fundecidstart::getTyEntry(trans::tyEntry *base, coenv &e,
-                                          record *where)
+trans::tyEntry*
+fundecidstart::getTyEntry(trans::tyEntry* base, coenv& e, record* where)
 {
-  return new trans::tyEntry(getType(base->t,e,ErrorMode::NORMAL), nullptr, where, getPos());
+  return new trans::tyEntry(
+          getType(base->t, e, ErrorMode::NORMAL), nullptr, where, getPos()
+  );
 }
 
-void fundecidstart::addOps(types::ty *base, coenv &e, record *r)
+void fundecidstart::addOps(types::ty* base, coenv& e, record* r)
 {
   decidstart::addOps(base, e, r);
 
   params->addOps(e, r);
 
-  types::function *ft=dynamic_cast<types::function *>(getType(base, e, ErrorMode::SUPPRESS));
+  types::function* ft=
+          dynamic_cast<types::function*>(getType(base, e, ErrorMode::SUPPRESS));
   assert(ft);
-
 }
 
 
@@ -1343,7 +1347,9 @@ class PermissionSetter {
   coder &c;
   permission oldPerm;
 public:
-  PermissionSetter(coder &c, permission newPerm) : c(c), oldPerm(c.getPermission()) {
+  PermissionSetter(coder& c, permission newPerm)
+      : c(c), oldPerm(c.getPermission())
+  {
     c.setPermission(newPerm);
   }
   ~PermissionSetter() {

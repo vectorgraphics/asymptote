@@ -30,7 +30,8 @@ public:
   virtual void prettyprint(ostream &out, Int indent) override;
 
   // Build the corresponding types::formal to put into a signature.
-  types::formal trans(coenv &e, bool encodeDefVal, ErrorMode tacit=ErrorMode::NORMAL);
+  types::formal
+  trans(coenv& e, bool encodeDefVal, ErrorMode tacit= ErrorMode::NORMAL);
 
   // Add the formal parameter to the environment to prepare for the
   // function body's translation.
@@ -168,7 +169,8 @@ public:
   virtual types::ty *trans(coenv &e) override;
 
   virtual types::function *transType(coenv &e, ErrorMode tacit);
-  virtual types::function *transTypeAndAddOps(coenv &e, record *r, ErrorMode tacit);
+  virtual types::function*
+  transTypeAndAddOps(coenv& e, record* r, ErrorMode tacit);
   virtual types::ty *getType(coenv &e) override {
     return transType(e, ErrorMode::SUPPRESS);
   }

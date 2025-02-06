@@ -463,3 +463,14 @@ Int hash(real h)
   span<const uint64_t> s = {&hAsInt, 1};
   return hashing::hashSpan(s);
 }
+
+Int :intHashHelper(Int h)
+{
+  uint64_t h2 = static_cast<uint64_t>(h);
+  return hashing::hashInt(h2);
+}
+
+callable* :intHash(Int h)
+{
+  return new vm::thunk(new vm::bfunc(intHashHelper), h);
+}

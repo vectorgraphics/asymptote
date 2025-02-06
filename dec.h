@@ -362,7 +362,8 @@ public:
 
   virtual void prettyprint(ostream &out, Int indent) override;
 
-  virtual types::ty *getType(types::ty *base, coenv &, ErrorMode tacit=ErrorMode::NORMAL);
+  virtual types::ty*
+  getType(types::ty* base, coenv&, ErrorMode tacit= ErrorMode::NORMAL);
   virtual trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e,
                                      record *where);
 
@@ -391,9 +392,10 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::ty *getType(types::ty *base, coenv &e, ErrorMode tacit=ErrorMode::NORMAL);
-  trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e, record *where);
-  void addOps(types::ty *base, coenv &e, record *r);
+  types::ty*
+  getType(types::ty* base, coenv& e, ErrorMode tacit= ErrorMode::NORMAL);
+  trans::tyEntry* getTyEntry(trans::tyEntry* base, coenv& e, record* where);
+  void addOps(types::ty* base, coenv& e, record* r);
 };
 
 class decid : public absyn {

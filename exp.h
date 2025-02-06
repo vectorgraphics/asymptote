@@ -372,7 +372,8 @@ class fieldExp : public nameExp {
 
     AsymptoteLsp::SymbolLit getLit() const
     {
-      return AsymptoteLsp::SymbolLit(static_cast<std::string>(object->getName()));
+      return AsymptoteLsp::SymbolLit(static_cast<std::string>(object->getName())
+      );
     }
   };
 
@@ -819,8 +820,8 @@ public:
   using colorInfo = std::tuple<double, double, double>;
 
   /**
-   * @return nullopt if callExp is not a color, pair<color, nullopt> if color is RGB,
-   * and pair<color, alpha> if color is RGBA.
+   * @return nullopt if callExp is not a color, pair<color, nullopt> if color is
+   * RGB, and pair<color, alpha> if color is RGBA.
    */
   optional<std::tuple<colorInfo, optional<double>,
     AsymptoteLsp::posInFile, AsymptoteLsp::posInFile>> getColorInformation();

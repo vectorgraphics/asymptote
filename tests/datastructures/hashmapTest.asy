@@ -184,7 +184,8 @@ int[] operator cast(wrapped_int[] a) {
 
 string differences(wrapped_int[] aArray, wrapped_int[] bArray) {
   if (aArray.length != bArray.length) {
-    return 'Different sizes: ' + string(aArray.length) + ' vs ' + string(bArray.length);
+    return 'Different sizes: ' + string(aArray.length) + ' vs '
+            + string(bArray.length);
   }
   int[] aIntArray = map(get, aArray);
   int[] bIntArray = map(get, bArray);
@@ -216,7 +217,8 @@ for (int i = 0; i < n; ++i) {
   actions[choice](maxKey, naiveMap, hashMap);
   //write(naiveMap.size());
   if (naiveMap.size() != hashMap.size()) {
-    write('Naive size: ' + (string)naiveMap.size() + ' Hash size: ' + (string)hashMap.size());
+    write('Naive size: ' + (string)naiveMap.size() + ' Hash size: '
+          + (string)hashMap.size());
     assert(false, 'Sizes do not match');
   }
 
@@ -224,7 +226,10 @@ for (int i = 0; i < n; ++i) {
   bool valueDifferenceFound = false;
   assert(naiveMap.iter != null, 'Naive set has no iter');
   assert(hashMap.iter != null, 'Hash set has no iter');
-  for (var ita = naiveMap.iter(), itb = hashMap.iter(); ita.valid() && itb.valid(); ita.advance(), itb.advance()) {
+  for (var ita = naiveMap.iter(), itb = hashMap.iter();
+       ita.valid() && itb.valid();
+       ita.advance(), itb.advance())
+  {
     wrapped_int a = ita.get();
     wrapped_int b = itb.get();
     if (!alias(a, b)) {
@@ -237,15 +242,21 @@ for (int i = 0; i < n; ++i) {
     }
   }
   if (keyDifferenceFound) {
-    assert(false, 'Naive vs hash: \n' + differences((wrapped_int[])naiveMap, (wrapped_int[])hashMap));
+    assert(false, 'Naive vs hash: \n'
+                  + differences((wrapped_int[])naiveMap, (wrapped_int[])hashMap)
+          );
   }
   if (valueDifferenceFound) {
     write('value difference found');
-    for (var ita = naiveMap.iter(), itb = hashMap.iter(); ita.valid() && itb.valid(); ita.advance(), itb.advance()) {
+    for (var ita = naiveMap.iter(), itb = hashMap.iter();
+         ita.valid() && itb.valid();
+         ita.advance(), itb.advance())
+    {
       wrapped_int a = ita.get();
       wrapped_int b = itb.get();
       if (naiveMap[a] != hashMap[b]) {
-        write('key: ' + (string)a.t + ' value: ' + (string)naiveMap[a] + ' ' + (string)hashMap[b]);
+        write('key: ' + (string)a.t + ' value: ' + (string)naiveMap[a] + ' '
+              + (string)hashMap[b]);
       }
     }
     assert(false);

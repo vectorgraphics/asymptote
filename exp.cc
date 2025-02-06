@@ -1212,7 +1212,9 @@ void callExp::createSymMap(AsymptoteLsp::SymbolContext* symContext)
       auto const& red=std::get<0>(colVal);
       auto const& green=std::get<1>(colVal);
       auto const& blue=std::get<2>(colVal);
-      std::tuple<double, double, double, double> rgba(red, green, blue, alpha.value());
+      std::tuple<double, double, double, double> rgba(
+              red, green, blue, alpha.value()
+      );
 
       symContext->addRGBAColor(rgba, beginArgPos, lastArgPos);
     }
