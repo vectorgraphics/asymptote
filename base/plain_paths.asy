@@ -1,6 +1,6 @@
 path nullpath;
 
-typedef guide interpolate(... guide[]);
+using interpolate=guide(... guide[]);
 
 // These numbers identify the side of a specifier in an operator spec or
 // operator curl expression:

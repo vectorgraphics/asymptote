@@ -1,0 +1,33 @@
+name: build-lsp-windows
+on:
+  workflow_call
+
+jobs:
+  build-lsp-windows:
+    strategy:
+      matrix:
+        with_gc: [with-gc, without-gc]
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: ./.github/actions/initialize-windows-env
+      - name: Add gc option to cmake build
+        if: ${{ matrix.with_gc == 'with-gc' }}
+        run: |
+          Write-Output LSPCPP_SUPPORT_BOEHM_GC=true >> "$env:GITHUB_ENV"
+          Write-Output LSPCPP_CI_VCPKG_FEATURES=bdwgc >> "$env:GITHUB_ENV"
+      - name: configure and build cmake
+        run: |
+          $VsInfo = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
+          & "$($VsInfo.InstallLocation)\\Common7\\Tools\\Launch-VsDevShell.ps1" `
+            -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
+          cmake --preset ci/default
+          cmake --build --preset ci/default -j --target lspcpp
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          name: liblspcpp-windows-${{ matrix.with_gc }}
+          path: cmake-build-ci/lspcpp.lib

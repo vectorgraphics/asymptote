@@ -72,7 +72,7 @@ path ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
   return ellipse(f,xmargin,ymargin,p,filltype,above);
 }
 
-typedef path envelope(frame dest, frame src=dest, real xmargin=0,
+using envelope=path(frame dest, frame src=dest, real xmargin=0,
                       real ymargin=xmargin, pen p=currentpen,
                       filltype filltype=NoFill, bool above=true);
 

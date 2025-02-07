@@ -1,0 +1,30 @@
+name: build-lsp-linux
+on:
+  workflow_call
+
+jobs:
+  build-lsp-linux:
+    strategy:
+      matrix:
+        with_gc: [with-gc, without-gc]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: ./.github/actions/initialize-linux-env
+      - name: Add gc option to cmake build
+        if: ${{ matrix.with_gc == 'with-gc' }}
+        run: |
+          echo LSPCPP_SUPPORT_BOEHM_GC=true >> "$GITHUB_ENV"
+          echo LSPCPP_CI_VCPKG_FEATURES=bdwgc >> "$GITHUB_ENV"
+      - name: configure cmake
+        run: cmake --preset ci/default
+      - name: build cmake
+        run: cmake --build --preset ci/default -j --target lspcpp
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          name: liblspcpp-linux-${{ matrix.with_gc }}
+          path: cmake-build-ci/liblspcpp.a

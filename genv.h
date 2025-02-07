@@ -21,7 +21,6 @@
 #include "record.h"
 #include "absyn.h"
 #include "access.h"
-#include "coenv.h"
 #include "stack.h"
 
 using types::record;
@@ -43,12 +42,11 @@ class genv : public gc {
   void checkRecursion(string filename);
 
   // Translate a module to build the record type.
-  record *loadModule(symbol name, string s);
+  record *loadModule(symbol name, string filename);
   record *loadTemplatedModule(
       symbol id,
       string filename,
-      mem::vector<absyntax::namedTyEntry*> *args,
-      coenv& e
+      mem::vector<absyntax::namedTy*> *args
   );
 
 public:
@@ -57,10 +55,8 @@ public:
   // Get an imported module, translating if necessary.
   record *getModule(symbol name, string filename);
   record *getTemplatedModule(
-      symbol index,
       string filename,
-      mem::vector<absyntax::namedTyEntry*> *args,
-      coenv& e
+      mem::vector<absyntax::namedTy*> *args
   );
   record *getLoadedModule(symbol index);
 

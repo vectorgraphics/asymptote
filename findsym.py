@@ -26,7 +26,7 @@ if len(sys.argv) < 2:
 _, outname, *innames = sys.argv
 
 # Attempt to open the output file in write mode.
-with open(outname, "w", encoding="ascii") as header:
+with open(outname, "w", encoding="utf-8") as header:
 
     # Write a predefined header comment block to the output file.
     header.write(
@@ -56,7 +56,7 @@ with open(outname, "w", encoding="ascii") as header:
     # of C++ source files to process.
     for inname in innames:
         # Attempt to open the current input file in read mode.
-        with open(inname, "r", encoding="ascii") as infile:
+        with open(inname, "r", encoding="utf-8") as infile:
             # Read the input file line by line.
             for line in infile:
                 # Use a regular expression to find all occurrences of the SYM macro

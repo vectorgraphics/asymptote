@@ -9,27 +9,38 @@
 #include "LibLsp/JsonRpc/Context.h"
 #include <cassert>
 
-namespace lsp {
+namespace lsp
+{
 
-
-Context Context::empty() { return Context(/*dataPtr=*/nullptr); }
-
-Context::Context(std::shared_ptr<const Data> DataPtr)
-    : dataPtr(std::move(DataPtr)) {}
-
-Context Context::clone() const { return Context(dataPtr); }
-
-static Context &currentContext() {
-  static thread_local auto c = Context::empty();
-  return c;
+Context Context::empty()
+{
+    return Context(/*dataPtr=*/nullptr);
 }
 
-const Context &Context::current() { return currentContext(); }
-
-Context Context::swapCurrent(Context Replacement) {
-  std::swap(Replacement, currentContext());
-  return Replacement;
+Context::Context(std::shared_ptr<Data const> DataPtr) : dataPtr(std::move(DataPtr))
+{
 }
 
+Context Context::clone() const
+{
+    return Context(dataPtr);
+}
 
-} // lsp clang
+static Context& currentContext()
+{
+    static thread_local auto c = Context::empty();
+    return c;
+}
+
+Context const& Context::current()
+{
+    return currentContext();
+}
+
+Context Context::swapCurrent(Context Replacement)
+{
+    std::swap(Replacement, currentContext());
+    return Replacement;
+}
+
+} // namespace lsp

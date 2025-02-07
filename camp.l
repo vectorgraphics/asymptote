@@ -363,6 +363,7 @@ break              {adjust(); return BREAK; }
 continue           {adjust(); return CONTINUE; }
 struct             {adjust(); return STRUCT; }
 typedef            {adjust(); return TYPEDEF; }
+using              {adjust(); return USING; }
 new                {adjust(); return NEW; }
 access             {adjust(); return ACCESS; }
 import             {adjust(); return IMPORT; }
@@ -371,6 +372,8 @@ from               {adjust(); return FROM; }
 include            {adjust(); return INCLUDE; }
 quote              {adjust(); return QUOTE; }
 static             {adjust(); makemod(trans::EXPLICIT_STATIC);
+                              return MODIFIER; }
+autounravel        {adjust(); makemod(trans::AUTOUNRAVEL);
                               return MODIFIER; }
 public             {adjust(); makeperm(trans::PUBLIC); return PERM; }
 private            {adjust(); makeperm(trans::PRIVATE); return PERM; }

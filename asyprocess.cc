@@ -10,6 +10,7 @@
 #include "types.h"
 #include "errormsg.h"
 #include "genv.h"
+#include "coenv.h"
 #include "stm.h"
 #include "settings.h"
 #include "vm.h"
@@ -280,7 +281,8 @@ void itree::doList() {
   if (tree) {
     penv pe;
     record *r=tree->transAsFile(pe.ge(), symbol::trans(getName()));
-    r->e.list(r);
+    if(r)
+      r->e.list(r);
   }
 }
 

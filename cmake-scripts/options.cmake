@@ -99,6 +99,13 @@ option(DEBUG_GC_ENABLE "Enable debug mode for gc" false)
 option(DEBUG_GC_BACKTRACE_ENABLE "Enable backtrace for gc" false)
 option(CTAN_BUILD "Build for CTAN." false)
 
+option(
+        ENABLE_COMPACT_ZERO_BUILD "\
+Set COMPACT flag to 0. \
+Unless if building for debugging/testing with an explicit need for additional type verification, \
+this option should be turned off."
+        false)
+
 # additional optimization options
 
 if (CMAKE_BUILD_TYPE IN_LIST cmake_release_build_types)

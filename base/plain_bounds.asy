@@ -28,9 +28,9 @@ private void addIfMaximal(coord[] coords, real user, real truesize) {
 
   // The coordinate is not dominated by any existing extreme, so it is
   // maximal and will be added, but first remove any coords it now dominates.
-  int i = 0;
+  int i=0;
   while (i < coords.length) {
-    coord c = coords[i];
+    coord c=coords[i];
     if (c.user <= user && c.truesize <= truesize)
       coords.delete(i);
     else
@@ -54,9 +54,9 @@ private void addIfMinimal(coord[] coords, real user, real truesize) {
     if (user >= c.user && truesize >= c.truesize)
       return;
 
-  int i = 0;
+  int i=0;
   while (i < coords.length) {
-    coord c = coords[i];
+    coord c=coords[i];
     if (c.user >= user && c.truesize >= truesize)
       coords.delete(i);
     else
@@ -76,9 +76,9 @@ private void addIfMinimal(coord[] dest, coord[] src)
 // frozen, then it cannot be modified further, and therefore can be safely
 // passed by reference and stored in the sizing data for multiple pictures.
 private struct freezableBounds {
-  restricted bool frozen = false;
+  restricted bool frozen=false;
   void freeze() {
-    frozen = true;
+    frozen=true;
   }
 
   // Optional links to further (frozen) sizing data.
@@ -105,7 +105,7 @@ private struct freezableBounds {
 
     void operator init(path g, pen p) {
       this.g.push(g);
-      this.p = p;
+      this.p=p;
     }
   }
   private static pathpen operator *(transform t, pathpen pp) {
@@ -113,7 +113,7 @@ private struct freezableBounds {
     pathpen newpp;
     for (path g : pp.g)
       newpp.g.push(t*g);
-    newpp.p = pp.p;
+    newpp.p=pp.p;
     return newpp;
   }
 
@@ -129,10 +129,10 @@ private struct freezableBounds {
 
     void operator init(coord[] left, coord[] bottom,
                        coord[] right, coord[] top) {
-      this.left = left;
-      this.bottom = bottom;
-      this.right = right;
-      this.top = top;
+      this.left=left;
+      this.bottom=bottom;
+      this.right=right;
+      this.top=top;
     }
 
   }
@@ -153,13 +153,13 @@ private struct freezableBounds {
     addIfMinimal(e.bottom, coords.y);
   }
 
-  private extremes cachedExtremes = null;
+  private extremes cachedExtremes=null;
 
   // Once frozen, getMutable returns a new object based on this one, which can
   // be modified.
   freezableBounds getMutable() {
     assert(frozen);
-    var f = new freezableBounds;
+    var f=new freezableBounds;
     f.links.push(this);
     return f;
   }
@@ -168,11 +168,11 @@ private struct freezableBounds {
     // Freeze these bounds, as we are storing a reference to them.
     freeze();
 
-    var tlink = new transformedBounds;
-    tlink.t = t;
-    tlink.link = this;
+    var tlink=new transformedBounds;
+    tlink.t=t;
+    tlink.link=this;
 
-    var b = new freezableBounds;
+    var b=new freezableBounds;
     b.tlinks.push(tlink);
 
     return b;
@@ -220,7 +220,7 @@ private struct freezableBounds {
   private void addPathToNonEmptyArray(path g, pen p) {
     //assert(!frozen);
     //assert(!pathpenBounds.empty());
-    var pp = pathpenBounds[0];
+    var pp=pathpenBounds[0];
 
     // Test if the pens are equal or have the same bounds.
     if (pp.p == p || (min(pp.p) == min(p) && max(pp.p) == max(p))) {
@@ -231,7 +231,7 @@ private struct freezableBounds {
     else {
       // A different pen.  Start a new bound and put it on the front.  Put
       // the old bound at the end of the array.
-      pathpenBounds[0] = pathpen(g,p);
+      pathpenBounds[0]=pathpen(g,p);
       pathpenBounds.push(pp);
     }
   }
@@ -240,11 +240,11 @@ private struct freezableBounds {
     //assert(pathpenBounds.empty());
 
     pathpenBounds.push(pathpen(g,p));
-    addPath = addPathToNonEmptyArray;
+    addPath=addPathToNonEmptyArray;
   }
 
   // Initial setting for addPath.
-  addPath = addPathToEmptyArray;
+  addPath=addPathToEmptyArray;
 
   // Transform the sizing info by t then add the result to the coords
   // structure.
@@ -258,15 +258,15 @@ private struct freezableBounds {
     addTransformedCoords(coords, t, this.point, this.min, this.max);
 
     for (var g : pathBounds) {
-      g = t*g;
+      g=t*g;
       coords.push(min(g), (0,0));
       coords.push(max(g), (0,0));
     }
 
     for (var pp: pathpenBounds) {
-      pair pm = min(pp.p), pM = max(pp.p);
+      pair pm=min(pp.p), pM=max(pp.p);
       for (var g : pp.g) {
-        g = t*g;
+        g=t*g;
         coords.push(min(g), pm);
         coords.push(max(g), pM);
       }
@@ -291,7 +291,7 @@ private struct freezableBounds {
     }
 
     for (var pp: pathpenBounds) {
-      pair pm = min(pp.p), pM = max(pp.p);
+      pair pm=min(pp.p), pM=max(pp.p);
       for (var g : pp.g) {
         coords.push(min(g), pm);
         coords.push(max(g), pM);
@@ -390,7 +390,7 @@ private struct freezableBounds {
 
       extremes e;
       addToExtremes(e);
-      cachedExtremes = e;
+      cachedExtremes=e;
     }
 
     return cachedExtremes;
@@ -421,7 +421,7 @@ private struct freezableBounds {
 
     void push(transform t, userbounds b) {
       if (b.areSet) {
-        pair[] box = { t*(b.min.x,b.max.y), t*b.max,
+        pair[] box={ t*(b.min.x,b.max.y), t*b.max,
                        t*b.min,             t*(b.max.x,b.min.y) };
         for (var z : box)
           push(z,z);
@@ -429,12 +429,12 @@ private struct freezableBounds {
     }
 
     void pushUserCoords(coords2 min, coords2 max) {
-      int n = min.x.length;
+      int n=min.x.length;
       assert(min.y.length == n);
       assert(max.x.length == n);
       assert(max.y.length == n);
 
-      for (int i = 0; i < n; ++i)
+      for (int i=0; i < n; ++i)
         push((min.x[i].user, min.y[i].user),
              (max.x[i].user, max.y[i].user));
     }
@@ -442,19 +442,19 @@ private struct freezableBounds {
     userbounds collapse() {
       userbounds b;
       if (mins.length > 0) {
-        b.areSet = true;
-        b.min = minbound(mins);
-        b.max = maxbound(maxs);
+        b.areSet=true;
+        b.min=minbound(mins);
+        b.max=maxbound(maxs);
       }
       else {
-        b.areSet = false;
+        b.areSet=false;
       }
       return b;
     }
   }
 
   // The user bounds already calculated for this data.
-  private userbounds storedUserBounds = null;
+  private userbounds storedUserBounds=null;
 
   private void accumulateUserBounds(boundsAccumulator acc)
   {
@@ -485,7 +485,7 @@ private struct freezableBounds {
     freeze();
     boundsAccumulator acc;
     accumulateUserBounds(acc);
-    storedUserBounds = acc.collapse();
+    storedUserBounds=acc.collapse();
   }
 
   private userbounds userBounds() {
@@ -523,16 +523,16 @@ private struct freezableBounds {
     computeUserBounds();
     assert(frozen);
 
-    var b = storedUserBounds;
+    var b=storedUserBounds;
     if (which == "minx")
-      b.min = (val, b.min.y);
+      b.min=(val, b.min.y);
     else if (which == "miny")
-      b.min = (b.min.x, val);
+      b.min=(b.min.x, val);
     else if (which == "maxx")
-      b.max = (val, b.max.y);
+      b.max=(val, b.max.y);
     else {
       assert(which == "maxy");
-      b.max = (b.max.x, val);
+      b.max=(b.max.x, val);
     }
   }
 
@@ -546,7 +546,7 @@ private struct freezableBounds {
     computeUserBounds();
 
     // Calculate all coordinates.
-    coords2 coords = allCoords();
+    coords2 coords=allCoords();
 
     // Erase all the old data.
     point.erase();
@@ -554,12 +554,12 @@ private struct freezableBounds {
     max.erase();
     pathBounds.delete();
     pathpenBounds.delete();
-    addPath = addPathToEmptyArray;
+    addPath=addPathToEmptyArray;
     links.delete();
     tlinks.delete();
 
     // Put all of the coordinates into point.
-    point = coords;
+    point=coords;
   }
 
   void xclip(real Min, real Max) {
@@ -570,9 +570,9 @@ private struct freezableBounds {
     max.xclip(Min,Max);
 
     // Cap the userBounds.
-    userbounds b = storedUserBounds;
-    b.min = (max(Min, b.min.x), b.min.y);
-    b.max = (min(Max, b.max.x), b.max.y);
+    userbounds b=storedUserBounds;
+    b.min=(max(Min, b.min.x), b.min.y);
+    b.max=(min(Max, b.max.x), b.max.y);
   }
 
   void yclip(real Min, real Max) {
@@ -583,14 +583,14 @@ private struct freezableBounds {
     max.yclip(Min,Max);
 
     // Cap the userBounds.
-    userbounds b = storedUserBounds;
-    b.min = (b.min.x, max(Min, b.min.y));
-    b.max = (b.max.x, min(Max, b.max.y));
+    userbounds b=storedUserBounds;
+    b.min=(b.min.x, max(Min, b.min.y));
+    b.max=(b.max.x, min(Max, b.max.y));
   }
 
   // Calculate the min for the final frame, given the coordinate transform.
   pair min(transform t) {
-    extremes e = extremes();
+    extremes e=extremes();
     if (e.left.length == 0)
       return 0;
 
@@ -603,7 +603,7 @@ private struct freezableBounds {
 
   // Calculate the max for the final frame, given the coordinate transform.
   pair max(transform t) {
-    extremes e = extremes();
+    extremes e=extremes();
     if (e.right.length == 0)
       return 0;
 
@@ -622,7 +622,7 @@ private struct freezableBounds {
       return identity();
 
     // Get the extremal coordinates.
-    extremes e = extremes();
+    extremes e=extremes();
 
     real sx;
     if(xunitsize == 0) {
@@ -630,7 +630,7 @@ private struct freezableBounds {
     } else sx=xunitsize;
 
     /* Possible alternative code :
-       real sx = xunitsize != 0 ? xunitsize :
+       real sx=xunitsize != 0 ? xunitsize :
        xsize != 0     ? calculateScaling("x", Coords.x, xsize, warn) :
        0; */
 
@@ -654,10 +654,10 @@ private struct freezableBounds {
 }
 
 struct bounds {
-  private var base = new freezableBounds;
+  private var base=new freezableBounds;
 
   // We should probably put this back into picture.
-  bool exact = true;
+  bool exact=true;
 
   // Called just before modifying the sizing data.  It ensures base is
   // non-frozen.
@@ -665,13 +665,13 @@ struct bounds {
   // called methods below.
   private void makeMutable() {
     if (base.frozen)
-      base = base.getMutable();
+      base=base.getMutable();
     //assert(!base.frozen); // Disabled for speed reasons.
   }
 
   void erase() {
     // Just discard the old bounds.
-    base = new freezableBounds;
+    base=new freezableBounds;
 
     // We don't reset the 'exact' field, for backward compatibility.
   }
@@ -680,16 +680,16 @@ struct bounds {
     // Freeze the underlying bounds and make a shallow copy.
     base.freeze();
 
-    var b = new bounds;
-    b.base = this.base;
-    b.exact = this.exact;
+    var b=new bounds;
+    b.base=this.base;
+    b.exact=this.exact;
     return b;
   }
 
   bounds transformed(transform t) {
-    var b = new bounds;
-    b.base = base.transformed(t);
-    b.exact = this.exact;
+    var b=new bounds;
+    b.base=base.transformed(t);
+    b.exact=this.exact;
     return b;
   }
 
@@ -719,21 +719,21 @@ struct bounds {
   void addPath(path g) {
     //makeMutable(); // Manually inlined here for speed reasons.
     if (base.frozen)
-      base = base.getMutable();
+      base=base.getMutable();
     base.addPath(g);
   }
 
   void addPath(path[] g) {
     //makeMutable(); // Manually inlined here for speed reasons.
     if (base.frozen)
-      base = base.getMutable();
+      base=base.getMutable();
     base.addPath(g);
   }
 
   void addPath(path g, pen p) {
     //makeMutable(); // Manually inlined here for speed reasons.
     if (base.frozen)
-      base = base.getMutable();
+      base=base.getMutable();
     base.addPath(g, p);
   }
 

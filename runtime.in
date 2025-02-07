@@ -767,10 +767,10 @@ string location() {
   return buf.str();
 }
 
-// Wrapper for the stack::load() method.
-void :loadModule(string *index)
+// Wrapper for the stack::loadModule() method.
+void :loadModule(string *index, Int numPushedParents)
 {
-  Stack->load(*index);
+  Stack->loadModule(*index, numPushedParents);
 }
 
 string cd(string s=emptystring)

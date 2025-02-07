@@ -42,7 +42,7 @@ file LICENSE in the top-level source directory).
 @contents
 
 @ifnottex
-@node Top, Description, (dir), (dir)
+@node Top
 @top Asymptote
 
 @insertcopying
@@ -112,7 +112,7 @@ Programming
 * Structures::                  Organize your data
 * Operators::                   Arithmetic and logical operators
 * Implicit scaling::            Avoiding those ugly *s
-* Functions::                   Traditional and high-order functions
+* Functions::                   Traditional and higher-order functions
 * Arrays::                      Dynamic vectors
 * Casts::                       Implicit and explicit casts
 * Import::                      Importing external @code{Asymptote} modules
@@ -190,7 +190,7 @@ Graphical User Interface
 @end detailmenu
 @end menu
 
-@node Description, Installation, Top, Top
+@node Description
 @chapter Description
 @cindex description
 
@@ -298,7 +298,7 @@ A quick reference card for @code{Asymptote} is available at
 @url{https://asymptote.sourceforge.io/asyRefCard.pdf}
 @end quotation
 
-@node Installation, Tutorial, Description, Top
+@node Installation
 @chapter Installation
 @cindex installation
 
@@ -330,7 +330,7 @@ Users may also wish to monitor the @code{Asymptote} forum:
 @end quotation
 @noindent
 
-@node UNIX binary distributions, MacOS X binary distributions, Installation, Installation
+@node UNIX binary distributions
 @section UNIX binary distributions
 @cindex UNIX binary distributions
 
@@ -367,7 +367,7 @@ prebuilt @code{Asymptote} binaries from
 @url{http://ftp.debian.org/debian/pool/main/a/asymptote}
 @end quotation
 
-@node MacOS X binary distributions, Microsoft Windows, UNIX binary distributions, Installation
+@node MacOS X binary distributions
 @section MacOS X binary distributions
 @cindex @code{MacOS X} binary distributions
 @code{MacOS X} users can either compile the @code{UNIX} source code
@@ -386,7 +386,7 @@ Note that many @code{MacOS X} (and FreeBSD) systems lack the
 functionality, @acronym{GNU} @code{readline} version 4.3 or later must
 be installed.
 
-@node Microsoft Windows, Configuring, MacOS X binary distributions, Installation
+@node Microsoft Windows
 @section Microsoft Windows
 @cindex Microsoft Windows
 Users of the @code{Microsoft Windows} operating system can install the
@@ -417,7 +417,7 @@ Example code will be installed by default in the @code{examples}
 subdirectory of the installation directory (by default,
 @code{C:\Program Files\Asymptote}).
 
-@node Configuring, Search paths, Microsoft Windows, Installation
+@node Configuring
 @section Configuring
 @cindex configuring
 @cindex @code{-V}
@@ -572,7 +572,7 @@ under @code{Microsoft Windows XP}:
 @item Click the @code{Environment Variables} button.
 @end enumerate
 
-@node Search paths, Compiling from UNIX source, Configuring, Installation
+@node Search paths
 @section Search paths
 @cindex search paths
 
@@ -603,7 +603,7 @@ The @code{Asymptote} examples directory (by default,
 @code{C:\Program Files\Asymptote\examples} under @code{MSDOS}).
 @end enumerate
 
-@node Compiling from UNIX source, Editing modes, Search paths, Installation
+@node Compiling from UNIX source
 @section Compiling from UNIX source
 @cindex Compiling from UNIX source
 
@@ -700,7 +700,7 @@ your path and set the configuration variable @code{dir} to point
 to the directory @code{base} (in the top level directory of the
 @code{Asymptote} source code).
 
-@node Editing modes, Git, Compiling from UNIX source, Installation
+@node Editing modes
 @section Editing modes
 @cindex Editing modes
 @cindex @code{emacs}
@@ -772,7 +772,7 @@ can be enabled by running @code{asy-kate.sh} in the
 @code{@value{Datadir}/asymptote} directory and putting the generated
 @code{asymptote.xml} file in @code{~/.local/share/org.kde.syntax-highlighting/syntax/}.
 
-@node Git, Uninstall, Editing modes, Installation
+@node Git
 @section Git
 @cindex git
 
@@ -789,7 +789,7 @@ make install
 @end verbatim
 
 @noindent
-To compile without optimization, use the command @code{make CFLAGS=-g}.
+To compile without optimization
 On @code{Ubuntu} systems, you may need to first install the required
 dependencies:
 @verbatim
@@ -812,11 +812,11 @@ executing @code{make} from @code{doc} folder first.
 The @code{asy} executable is required for compiling the diagrams
 in the documentation.
 
-@node Uninstall,  , Git, Installation
+@node Uninstall
 @section Uninstall
 @cindex uninstall
 
-To uninstall a @code{Linux x86_64} binary distribution, use the commands
+To uninstall a @code{Linux x86_64} binary distribution
 @verbatim
 tar -zxvf asymptote-x.xx.x86_64.tgz | xargs --replace=% rm /%
 texhash
@@ -829,7 +829,7 @@ distribution, use the command
 make uninstall
 @end verbatim
 
-@node Tutorial, Drawing commands, Installation, Top
+@node Tutorial
 @chapter Tutorial
 @cindex tutorial
 
@@ -852,7 +852,7 @@ with images rendered by an online Asymptote engine:
 
 @url{https://www.artofproblemsolving.com/wiki/?title=Asymptote_(Vector_Graphics_Language)}
 
-@node Drawing in batch mode, Drawing in interactive mode, Tutorial, Tutorial
+@node Drawing in batch mode
 @section Drawing in batch mode
 @cindex batch mode
 To draw a line from coordinate (0,0) to coordinate (100,100),
@@ -886,7 +886,7 @@ can immediately view the result:
 Here, the @code{--} connector joins the two points @code{(0,0)} and
 @code{(100,100)} with a line segment.
 
-@node Drawing in interactive mode, Figure size, Drawing in batch mode, Tutorial
+@node Drawing in interactive mode
 @section Drawing in interactive mode
 @cindex interactive mode
 Another method is @emph{interactive mode}, where @code{Asymptote} reads
@@ -917,7 +917,7 @@ The tab key will automatically complete unambiguous words;
 otherwise, hitting tab again will show the possible choices. Further
 commands specific to interactive mode are described in @ref{Interactive mode}.
 
-@node Figure size, Labels, Drawing in interactive mode, Tutorial
+@node Figure size
 @section Figure size
 @cindex @code{size}
 @cindex @code{pair}
@@ -972,7 +972,7 @@ draw(unitsquare);
 @end verbatim
 @noindent
 
-@node Labels, Paths, Figure size, Tutorial
+@node Labels
 @section Labels
 @cindex @code{label}
 Adding labels is easy in @code{Asymptote}; one specifies the
@@ -995,7 +995,7 @@ module @code{plain} (a user who has a local variable named @code{E}
 may access the compass direction @code{E} by prefixing it with the name
 of the module where it is defined: @code{plain.E}).
 
-@node Paths,  , Labels, Tutorial
+@node Paths
 @section Paths
 @cindex @code{path}
 This example draws a path that approximates a quarter circle,
@@ -1067,7 +1067,7 @@ further examples, including two-dimensional and interactive
 three-dimensional scientific graphs. Additional examples have been
 posted by Philippe Ivaldi at @url{https://web.archive.org/web/20201130113133/http://www.piprime.fr/asymptote}.
 
-@node Drawing commands, Bezier curves, Tutorial, Top
+@node Drawing commands
 @chapter Drawing commands
 @cindex drawing commands
 
@@ -1118,7 +1118,7 @@ currentpicture).
 * label::                       Label a point on a picture
 @end menu
 
-@node draw, fill, Drawing commands, Drawing commands
+@node draw
 @section draw
 @cindex @code{draw}
 @verbatim
@@ -1350,7 +1350,7 @@ void draw(pair origin, picture pic=currentpicture, Label L="", path g,
 @end verbatim
 
 @cindex @code{fill}
-@node fill, clip, draw, Drawing commands
+@node fill
 @section fill
 @cindex @code{fill}
 @verbatim
@@ -1525,7 +1525,7 @@ The following routine uses @code{evenodd} clipping together with the
 void unfill(picture pic=currentpicture, path g);
 @end verbatim
 
-@node clip, label, fill, Drawing commands
+@node clip
 @section clip
 @cindex @code{clip}
 @cindex @code{stroke}
@@ -1543,7 +1543,7 @@ of depth (it transcends layers and even pages), one can localize clipping
 to a temporary picture, which can then be added to @code{pic}.
 For an illustration of picture clipping, see the first example in @ref{LaTeX usage}.
 
-@node label,  , clip, Drawing commands
+@node label
 @section label
 @cindex @code{label}
 @cindex @code{labelmargin}
@@ -1732,7 +1732,7 @@ produce a CD label:
 @center @image{./CDlabel}
 @verbatiminclude CDlabel.asy
 
-@node Bezier curves, Programming, Drawing commands, Top
+@node Bezier curves
 @chapter Bezier curves
 @cindex Bezier curves
 @cindex direction specifier
@@ -1842,7 +1842,7 @@ infinity..} and the @code{&} connector concatenates two paths, after
 first stripping off the last node of the first path (which normally
 should coincide with the first node of the second path).
 
-@node Programming, LaTeX usage, Bezier curves, Top
+@node Programming
 @chapter Programming
 @cindex programming
 
@@ -1858,11 +1858,12 @@ should coincide with the first node of the second path).
 * Structures::                  Organize your data
 * Operators::                   Arithmetic and logical operators
 * Implicit scaling::            Avoiding those ugly *s
-* Functions::                   Traditional and high-order functions
+* Functions::                   Traditional and higher-order functions
 * Arrays::                      Dynamic vectors
 * Casts::                       Implicit and explicit casts
 * Import::                      Importing external @code{Asymptote} modules
 * Static::                      Where to allocate your variable?
+* Autounravel::                 Adding associated libraries to structures
 @end menu
 
 Here is a short introductory example to the @code{Asymptote} programming
@@ -1919,7 +1920,7 @@ for(int k : array) {
 In addition, it supports many features beyond the ones found in those
 languages.
 
-@node Data types, Paths and guides, Programming, Programming
+@node Data types
 @section Data types
 @cindex data types
 @code{Asymptote} supports the following data types (in addition to
@@ -2420,13 +2421,25 @@ produces a beep on the console;
 @end table
 
 @cindex @code{typedef}
+@cindex @code{using}
 
 @end table
 
 As in C/C++, complicated types may be abbreviated with @code{typedef}
+or @code{using}. For instance, the line
+@verbatim
+using multipath = path[];
+@end verbatim
+will make @code{multipath} a type equivalent @code{path[]}, as will
+the equivalent line
+@verbatim
+typedef path[] multipath;
+@end verbatim
+For the most part such type aliasing is a convenience. However, it is required
+when declaring a function whose return type is a function
 (see the example in @ref{Functions}).
 
-@node Paths and guides, Pens, Data types, Programming
+@node Paths and guides
 @section Paths and guides
 
 @table @code
@@ -2905,7 +2918,7 @@ e{down}..nullpath..{up}f;
 
 @end table
 
-@node Pens, Transforms, Paths and guides, Programming
+@node Pens
 @section Pens
 
 @cindex @code{pen}
@@ -3420,7 +3433,7 @@ The routine @code{defaultpen()} returns the current default pen attributes.
 Calling the routine @code{resetdefaultpen()} resets all pen default
 attributes to their initial values.
 
-@node Transforms, Frames and pictures, Pens, Programming
+@node Transforms
 @section Transforms
 
 @cindex @code{transform}
@@ -3505,7 +3518,7 @@ is an isometry (preserves distance).
 @cindex @code{max}
 Frames are canvases for drawing in @code{PostScript} coordinates. While working
 with frames directly is occasionally necessary for constructing deferred
-drawing routines, pictures are usually more convenient to work with.
+drawing routines
 The implicit initializer for frames is @code{newframe}. The function
 @code{bool empty(frame f)} returns @code{true} only if the frame @code{f}
 is empty. A frame may be erased with the @code{erase(frame)} routine.
@@ -4031,7 +4044,7 @@ binary files.
 @cindex @code{input}
 An input file can be opened with
 @verbatim
-input(string name="", bool check=true, string comment="#", string mode="");
+input(string name=""
 @end verbatim
 reading is then done by assignment:
 @cindex open
@@ -4296,7 +4309,7 @@ from the strings @code{file} and @code{format}.
 @cindex @code{operator init}
 @cindex initializers
 
-A variable can be assigned a value when it is declared, as in
+A variable can be assigned a value when it is declared
 @code{int x=3;} where the variable @code{x} is assigned the value @code{3}.
 As well as literal constants such as @code{3}, arbitary expressions can be used
 as initializers, as in @code{real x=2*sin(pi/2);}.
@@ -4378,7 +4391,7 @@ for (var x : a)
   write(x);
 @end verbatim
 
-@node Structures, Operators, Variable initializers, Programming
+@node Structures
 @section Structures
 @cindex @code{struct}
 @cindex structures
@@ -4567,7 +4580,7 @@ write(c.y);                     // Outputs 3;
 For further examples of structures, see @code{Legend} and @code{picture} in
 the @code{Asymptote} base module @code{plain}.
 
-@node Operators, Implicit scaling, Structures, Programming
+@node Operators
 @section Operators
 @cindex operators
 
@@ -4577,7 +4590,7 @@ the @code{Asymptote} base module @code{plain}.
 * User-defined operators::      Overloading operators
 @end menu
 
-@node Arithmetic & logical, Self & prefix operators, Operators, Operators
+@node Arithmetic & logical
 @subsection Arithmetic & logical operators
 @cindex arithmetic operators
 @cindex binary operators
@@ -4694,7 +4707,7 @@ for nonintegral built-in arithmetic types @code{T}. If @code{a} and
 @code{int bitreverse(int a, int bits)} (reverse bits within a word of
 length bits).
 
-@node Self & prefix operators, User-defined operators, Arithmetic & logical, Operators
+@node Self & prefix operators
 @subsection Self & prefix operators
 @cindex self operators
 @cindex prefix operators
@@ -4733,7 +4746,7 @@ path-joining operator). In the rare instances where @code{i++}
 and @code{i--} are really needed, one can substitute the expressions
 @code{(++i-1)} and @code{(--i+1)}, respectively.
 
-@node User-defined operators,  , Self & prefix operators, Operators
+@node User-defined operators
 @subsection User-defined operators
 @cindex user-defined operators
 @cindex @code{operator}
@@ -4769,6 +4782,8 @@ guide operator ..(... guide[] g) {
 guide g=(0,0){up}..{SW}(100,100){NE}..{curl 3}(50,50)..(10,10);
 write("g=",g);
 @end verbatim
+
+@xref{Autounravel}, for an example overloading the @code{+} operator.
 
 @node Implicit scaling, Functions, Operators, Programming
 @section Implicit scaling
@@ -4809,7 +4824,7 @@ This produces the output
 283.464008929116
 @end verbatim
 
-@node Functions, Arrays, Implicit scaling, Programming
+@node Functions
 @section Functions
 @cindex functions
 
@@ -4860,16 +4875,21 @@ int c();
 c=a;                // Valid: only one possible assignment.
 @end verbatim
 
-@item Anonymous (so-called "high-order") functions are also allowed:
+@item ``Higher-order'' functions, in other words functions that return
+functions, are allowed.
+The return type must be given a signature-free alias with
+@code{using} or @code{typedef}:
+@cindex @code{using}
 @cindex @code{typedef}
 @verbatim
-typedef int intop(int);
+using intop = int(int);
+// typedef int intop(int); // Equivalent to previous line
 intop adder(int m)
 {
   return new int(int n) {return m+n;};
 }
 intop addby7=adder(7);
-write(addby7(1));   // Writes 8.
+write(addby7(1));       // Writes 8.
 @end verbatim
 
 @item
@@ -4937,7 +4957,7 @@ segmentation fault, unless a fully working version of the @acronym{GNU}
 library @code{libsigsegv} (e.g.@ 2.4 or later) is installed at
 configuration time).
 
-@node Default arguments, Named arguments, Functions, Functions
+@node Default arguments
 @subsection Default arguments
 @cindex default arguments
 @cindex arguments
@@ -4958,7 +4978,7 @@ The value of a default argument is determined by evaluating the
 given @code{Asymptote} expression in the scope where the called
 function is defined.
 
-@node Named arguments, Rest arguments, Default arguments, Functions
+@node Named arguments
 @subsection Named arguments
 @cindex keywords
 @cindex named arguments
@@ -5039,7 +5059,7 @@ int f(int x=3, int x()) {
 then @code{f(x=seven)} would be illegal, even though @code{f(seven)}
 obviously would be allowed.
 
-@node Rest arguments, Mathematical functions, Named arguments, Functions
+@node Rest arguments
 @subsection Rest arguments
 @cindex rest arguments
 
@@ -5142,7 +5162,7 @@ i(3,4); // ambiguous; the first candidate is better for the first argument,
         // but the second candidate is better for the second one
 @end verbatim
 
-@node Mathematical functions,  , Rest arguments, Functions
+@node Mathematical functions
 @subsection Mathematical functions
 @cindex mathematical functions
 @cindex functions
@@ -5390,7 +5410,7 @@ the total system cputime followed by ``S''.
 
 @end table
 
-@node Arrays, Casts, Functions, Programming
+@node Arrays
 @section Arrays
 @cindex arrays
 
@@ -5932,7 +5952,7 @@ One, two, and three-dimensional arrays of the basic data types can be
 output with the functions @code{write(file,T[])},
 @code{write(file,T[][])}, @code{write(file,T[][][])}, respectively.
 
-@node Slices,  , Arrays, Arrays
+@node Slices
 @subsection Slices
 @cindex slices
 
@@ -6020,7 +6040,7 @@ so assigning to this slice will insert values at the start of the array.
 It is illegal to assign to a slice of a cyclic array that repeats any of the
 cells.
 
-@node Casts, Import, Arrays, Programming
+@node Casts
 @section Casts
 @cindex casts
 @cindex implicit casts
@@ -6105,7 +6125,7 @@ real operator cast(int x)=convert;
 @cindex @code{operator ecast}
 Explicit casts are implemented similarly, with @code{operator ecast}.
 
-@node Import, Static, Casts, Programming
+@node Import
 @section Import
 @cindex @code{access}
 While @code{Asymptote} provides many features by default,
@@ -6313,8 +6333,8 @@ Imported global functions and variables are also listed if
 
 @strong{Warning:} This feature is experimental: it has known issues and its behavior may change in the future.
 
-In Asymptote, it is possible to create modules that must have one or more
-types specified when they are imported. The first executable line of any such
+In Asymptote
+types are specified when they are imported. The first executable line of any such
 module must be of the form @code{typedef import(<types>)}, where
 @code{<types>} is a list of required type parameters. For instance,
 @verbatim
@@ -6357,7 +6377,7 @@ Issues: Certain expected operators (such as
 @code{operator ==}) may only be available for type arguments that are
 builtin or defined in module @code{plain}.
 
-@node Static,  , Import, Programming
+@node Static
 @section Static
 @cindex @code{static}
 
@@ -6484,7 +6504,95 @@ It is the convention in Asymptote that, if there is a non-function variable with
 the same name as the qualifier, the qualifier refers to that variable, and not
 to the type.  This is regardless of what fields the variable actually possesses.
 
-@node LaTeX usage, Base modules, Programming, Top
+@node Autounravel
+@section Autounravel
+@cindex @code{autounravel}
+
+The @code{autounravel} modifier can be used to automatically unravel a field.
+This is useful when building an associated library of functions
+that operate on a structure. For instance, consider a simple
+implementation of the @code{rational} structure defined in @code{rational.asy}:
+
+@verbatim
+struct rational {
+  int p=0, q=1;
+  void operator init(int p, int q) {
+    this.p=p;
+    this.q=q;
+  }
+}
+rational operator +(rational a, rational b) {
+  return rational(a.p*b.q+b.p*a.q, a.q*b.q);
+}
+@end verbatim
+
+To allow @code{rational} to be used as a type parameter for a templated import
+that adds instances of @code{rational}, we should move @code{operator +}
+into the body of the @code{rational} structure and add the
+@code{autounravel} modifier:
+
+@verbatim
+struct rational {
+  int p=0, q=1;
+  void operator init(int p, int q) {
+    this.p=p;
+    this.q=q;
+  }
+  autounravel rational operator +(rational a, rational b) {
+    return rational(a.p*b.q+b.p*a.q, a.q*b.q);
+  }
+}
+@end verbatim
+
+This is almost equivalent to the previous code, but now the @code{+} operator
+will be accessible wherever the @code{rational} structure is.
+
+@strong{Currently, types cannot be autounraveled.}
+Users who encounter a case where this might be useful can submit a
+feature request at @uref{https://github.com/vectorgraphics/asymptote/issues}.
+
+@node When fields are autounraveled
+@subsection When fields are autounraveled
+
+If a @code{struct} contains fields (including functions) that are declared with
+@code{autounravel}, these fields will be unraveled from the @code{struct} at:
+
+@itemize
+@item
+the end of the @code{struct} definition;
+@item
+a @code{typedef import} statement, if the @code{struct} is the argument for one of
+the type parameters;
+@item
+an @code{unravel} or @code{access} statement that unravels the @code{struct} from
+a module or outer @code{struct} (for instance,
+@code{from rational access rational;} would make the @code{+} operator available
+from the @code{struct} @code{rational} defined in @code{rational.asy});
+
+@item
+A @code{typedef} statement like @code{typedef rational.rational rat;}
+that renames a @code{struct}.
+@end itemize
+
+@node Where autounravel is legal
+@subsection Where @code{autounravel} is legal
+
+The @code{autounravel} modifier implies @code{static} and can be used
+in many of the same places as @code{static}. However, specifying
+@code{autounravel} at the top level of a module (i.e.,
+outside of any structure or function) is an error, whereas @code{static}
+gives only a warning. @footnote{If top-level @code{autounravel} were allowed,
+a user might incorrectly assume that the field would be unraveled
+whenever the module is @code{access}ed. The @code{static} modifier
+is allowed at the top level because, while it does nothing, it does
+not mislead the user.}
+In front of a @code{struct} definition or @code{typedef} statement,
+@code{autounravel} is forbidden because types cannot be autounraveled.
+While @code{static static} results in an error,
+@code{static autounravel} and @code{autounravel static} are both legal
+and have exactly the same effect as @code{autounravel} alone.
+
+@node LaTeX usage
 @chapter @code{LaTeX} usage
 @cindex @code{LaTeX} usage
 @cindex @code{asymptote.sty}
@@ -6590,7 +6698,7 @@ Here now is @code{latexusage.tex}:
 @page
 @image{./latexusage,,25cm}
 
-@node Base modules, Options, LaTeX usage, Top
+@node Base modules
 @chapter Base modules
 @cindex base modules
 
@@ -6639,11 +6747,11 @@ Here now is @code{latexusage.tex}:
 * ode::                         Ordinary differential equations
 @end menu
 
-@node plain, simplex, Base modules, Base modules
+@node plain
 @section @code{plain}
 @cindex @code{plain}
 
-This is the default @code{Asymptote} base file, which defines key parts of the
+This is the default @code{Asymptote} base file
 drawing language (such as the @code{picture} structure).
 
 By default, an implicit @code{private import plain;} occurs before
@@ -6654,13 +6762,13 @@ the types and functions defined in @code{plain} are accessible in
 almost all @code{Asymptote} code. Use the @code{-noautoplain} command-line
 option to disable this feature.
 
-@node simplex, math, plain, Base modules
+@node simplex
 @section @code{simplex}
 @cindex @code{simplex}
 This module solves the general linear programming problem using the
 simplex method.
 
-@node simplex2, math, plain, Base modules
+@node simplex2
 @section @code{simplex2}
 @cindex @code{simplex2}
 @cindex @code{deferred drawing}
@@ -6668,7 +6776,7 @@ This module solves a special case of the two-variable linear programming
 problem used by the module @code{plain} for automatic sizing of
 pictures (@pxref{deferred drawing}).
 
-@node math, interpolate, simplex, Base modules
+@node math
 @section @code{math}
 @cindex @code{math}
 This module extends @code{Asymptote}'s mathematical capabilities with
@@ -6677,7 +6785,7 @@ useful functions such as
 @table @code
 
 @cindex @code{drawline}
-@item void drawline(picture pic=currentpicture, pair P, pair Q, pen p=currentpen);
+@item void drawline(picture pic=currentpicture
 draw the visible portion of the (infinite) line going through
 @code{P} and @code{Q}, without altering the size of picture @code{pic},
 using pen @code{p}.
@@ -6757,14 +6865,14 @@ returns the strict lexicographical partial order of @code{a} and @code{b}.
 returns the strict lexicographical partial order of @code{a} and @code{b}.
 @end table
 
-@node interpolate, geometry, math, Base modules
+@node interpolate
 @section @code{interpolate}
 @cindex @code{interpolate}
 This module implements Lagrange, Hermite, and standard cubic spline
 interpolation in @code{Asymptote}, as illustrated in the example
 @code{interpolate1.asy}.
 
-@node geometry, trembling, interpolate, Base modules
+@node geometry
 @section @code{geometry}
 @cindex @code{geometry}
 @cindex @code{triangle}
@@ -6780,14 +6888,14 @@ including an extensive set of examples,
 @url{https://web.archive.org/web/20201130113133/http://www.piprime.fr/files/asymptote/geometry/modules/geometry.asy.index.type.html}
 @end quotation
 
-@node trembling, stats, geometry, Base modules
+@node trembling
 @section @code{trembling}
 @cindex @code{trembling}
 This module, written by Philippe Ivaldi and illustrated in the example
 @code{@uref{https://asymptote.sourceforge.io/gallery/floatingdisk.svg,,floatingdisk}@uref{https://asymptote.sourceforge.io/gallery/floatingdisk.asy,,.asy}}, allows one to draw wavy lines, as if drawn by
 hand.
 
-@node stats, patterns, trembling, Base modules
+@node stats
 @section @code{stats}
 @cindex @code{stats}
 @cindex @code{leastsquares}
@@ -6795,13 +6903,13 @@ This module implements a Gaussian random number generator
 and a collection of statistics routines, including @code{histogram}
 and @code{leastsquares}.
 
-@node patterns, markers, stats, Base modules
+@node patterns
 @section @code{patterns}
 @cindex @code{patterns}
 This module implements @code{PostScript} tiling patterns and includes
 several convenient pattern generation routines.
 
-@node markers, map, patterns, Base modules
+@node markers
 @section @code{markers}
 @cindex @code{markers}
 This module implements specialized routines for marking paths and angles.
@@ -6864,7 +6972,7 @@ as illustrated in the example @code{@uref{https://asymptote.sourceforge.io/galle
 @sp 1
 @center @image{./markers2}
 
-@node map, tree, markers, Base modules
+@node map
 @section @code{map}
 @cindex @code{map}
 This module creates a struct parameterized by the types specified in
@@ -6882,12 +6990,12 @@ write(M.lookup("a"));
 write(M.lookup("y"));
 @end verbatim
 
-@node tree, binarytree, map, Base modules
+@node tree
 @section @code{tree}
 @cindex @code{tree}
 This module implements an example of a dynamic binary search tree.
 
-@node binarytree, drawtree, tree, Base modules
+@node binarytree
 @section @code{binarytree}
 @cindex @code{binarytree}
 This module can be used to draw an arbitrary binary tree and includes an
@@ -6897,32 +7005,32 @@ illustrated in the example @code{@uref{https://asymptote.sourceforge.io/gallery/
 @sp 1
 @center @image{./binarytreetest}
 
-@node drawtree, syzygy, binarytree, Base modules
+@node drawtree
 @section @code{drawtree}
 @cindex @code{drawtree}
 This is a simple tree drawing module used by the example @code{@uref{https://asymptote.sourceforge.io/gallery/treetest.svg,,treetest}@uref{https://asymptote.sourceforge.io/gallery/treetest.asy,,.asy}}.
 
-@node syzygy, feynman, drawtree, Base modules
+@node syzygy
 @section @code{syzygy}
 @cindex @code{syzygy}
 This module automates the drawing of braids, relations, and syzygies,
 along with the corresponding equations, as illustrated in the example
 @code{@uref{https://asymptote.sourceforge.io/gallery/knots.svg,,knots}@uref{https://asymptote.sourceforge.io/gallery/knots.asy,,.asy}}.
 
-@node feynman, roundedpath, syzygy, Base modules
+@node feynman
 @section @code{feynman}
 @cindex @code{feynman}
 This module, contributed by Martin Wiebusch, is useful for drawing
 Feynman diagrams, as illustrated by the examples @code{@uref{https://asymptote.sourceforge.io/gallery/eetomumu.svg,,eetomumu}@uref{https://asymptote.sourceforge.io/gallery/eetomumu.asy,,.asy}}
 and @code{@uref{https://asymptote.sourceforge.io/gallery/fermi.svg,,fermi}@uref{https://asymptote.sourceforge.io/gallery/fermi.asy,,.asy}}.
 
-@node roundedpath, animation, feynman, Base modules
+@node roundedpath
 @section @code{roundedpath}
 @cindex @code{roundedpath}
 This module, contributed by Stefan Knorr, is useful for rounding the
 sharp corners of paths, as illustrated in the example file @code{@uref{https://asymptote.sourceforge.io/gallery/roundpath.svg,,roundpath}@uref{https://asymptote.sourceforge.io/gallery/roundpath.asy,,.asy}}.
 
-@node animation, embed, roundedpath, Base modules
+@node animation
 @section @code{animation}
 @cindex @code{animation}
 @cindex @code{magick}
@@ -6967,7 +7075,7 @@ as described here:
 @url{http://mirror.ctan.org/macros/latex/contrib/animate/doc/animate.pdf}
 @end quotation
 
-@node embed, slide, animation, Base modules
+@node embed
 @section @code{embed}
 @cindex @code{embed}
 This module provides an interface to the @code{LaTeX} package
@@ -6996,7 +7104,7 @@ For a higher quality embedded movie generated directly by
 An example of embedding @code{U3D} code is provided in the file
 @code{embeddedu3d}.
 
-@node slide, MetaPost, embed, Base modules
+@node slide
 @section @code{slide}
 @cindex @code{slide}
 This module provides a simple yet high-quality facility for making
@@ -7004,7 +7112,7 @@ presentation slides, including portable embedded @acronym{PDF} animations (see
 the file @code{@uref{https://asymptote.sourceforge.io/gallery/animations/slidemovies.pdf,,slidemovies}@uref{https://asymptote.sourceforge.io/gallery/animations/slidemovies.asy,,.asy}}). A simple example is provided in
 @code{slidedemo.asy}.
 
-@node MetaPost, babel, slide, Base modules
+@node MetaPost
 @section @code{MetaPost}
 @cindex @code{MetaPost}
 This module provides some useful routines to help @code{MetaPost} users
@@ -7022,7 +7130,7 @@ intersection point of the lines through @code{P}, @code{Q} and
 @code{p}, @code{q}. For less common occurrences of @code{whatever}, one
 can use the built-in explicit linear equation solver @code{solve} instead.
 
-@node babel, labelpath, MetaPost, Base modules
+@node babel
 @section @code{babel}
 @cindex @code{babel}
 This module implements the @code{LaTeX} @code{babel} package in
@@ -7032,7 +7140,7 @@ import babel;
 babel("german");
 @end verbatim
 
-@node labelpath, labelpath3, babel, Base modules
+@node labelpath
 @section @code{labelpath}
 @cindex @code{labelpath}
 This module uses the @code{PSTricks} @code{pstextpath} macro to fit labels
@@ -7051,14 +7159,14 @@ All other Label transforms are ignored. This module requires the
 @code{latex} tex engine and inherits the limitations of the
 @code{PSTricks} @code{\pstextpath} macro.
 
-@node labelpath3, annotate, labelpath, Base modules
+@node labelpath3
 @section @code{labelpath3}
 @cindex @code{labelpath3}
 This module, contributed by Jens Schwaiger, implements a 3D version of
 @code{labelpath} that does not require the @code{PSTricks} package.
 An example is provided in @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/curvedlabel3.html,,curvedlabel3}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/curvedlabel3.asy,,.asy}}.
 
-@node annotate, CAD, labelpath3, Base modules
+@node annotate
 @section @code{annotate}
 @cindex @code{annotate}
 This module supports @acronym{PDF} annotations for viewing with
@@ -7072,7 +7180,7 @@ Annotations are illustrated in the example file @code{@uref{https://asymptote.so
 Currently, annotations are only implemented for the @code{latex}
 (default) and @code{tex} @TeX{} engines.
 
-@node CAD, graph, annotate, Base modules
+@node CAD
 @section @code{CAD}
 @cindex @code{CAD}
 This module, contributed by Mark Henning, provides basic pen
@@ -7080,7 +7188,7 @@ definitions and measurement functions for simple 2D CAD drawings
 according to DIN 15. It is documented separately, in the file
 @code{CAD.pdf}.
 
-@node graph, palette, CAD, Base modules
+@node graph
 @section @code{graph}
 @cindex @code{graph}
 @cindex 2D graphs
@@ -7902,7 +8010,7 @@ data in @code{@uref{https://asymptote.sourceforge.io/gallery/2Dgraphs/diatom.csv
 @end enumerate
 
 @page
-@node palette, three, graph, Base modules
+@node palette
 @section @code{palette}
 @anchor{images}
 @cindex images
@@ -8076,7 +8184,7 @@ pen[] palette(real[] f, pen[] palette);
 pen[][] palette(real[][] f, pen[] palette);
 @end verbatim
 
-@node three, obj, palette, Base modules
+@node three
 @section @code{three}
 @cindex @code{three}
 @cindex @code{guide3}
@@ -9108,14 +9216,14 @@ intersecting planes:
 @sp 1
 @center @image{./planes}
 
-@node obj, graph3, three, Base modules
+@node obj
 @section @code{obj}
 @cindex @code{obj}
 This module allows one to construct surfaces from simple obj files,
 as illustrated in the example files @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/galleon.html,,galleon}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/galleon.asy,,.asy}} and
 @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/triceratops.html,,triceratops}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/triceratops.asy,,.asy}}.
 
-@node graph3, grid3, obj, Base modules
+@node graph3
 @section @code{graph3}
 @cindex @code{graph3}
 @cindex 3D graphs
@@ -9275,7 +9383,7 @@ picture vectorfield(path3 vector(pair v), triple f(pair z), pair a, pair b,
 as illustrated in the examples @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/vectorfield3.html,,vectorfield3}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/vectorfield3.asy,,.asy}} and
 @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vectorfieldsphere.html,,vectorfieldsphere}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vectorfieldsphere.asy,,.asy}}.
 
-@node grid3, solids, graph3, Base modules
+@node grid3
 @section @code{grid3}
 @cindex @code{grid3}
 @cindex 3D grids
@@ -9287,7 +9395,7 @@ This module, contributed by Philippe Ivaldi, can be used for drawing
 @sp 1
 @center @image{./grid3xyz}
 
-@node solids, tube, grid3, Base modules
+@node solids
 @section @code{solids}
 @cindex @code{solids}
 This solid geometry module defines a structure @code{revolution} that
@@ -9316,7 +9424,7 @@ struct skeleton {
 }
 @end verbatim
 
-@node tube, flowchart, solids, Base modules
+@node tube
 @section @code{tube}
 @cindex @code{tube}
 This module extends the @code{tube} surfaces constructed in
@@ -9377,7 +9485,7 @@ An example of @code{tube} is provided in the file
 @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/trefoilknot.html,,trefoilknot}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/trefoilknot.asy,,.asy}}. Further examples can be found at
 @url{https://web.archive.org/web/20201130113133/http://www.piprime.fr/files/asymptote/tube}.
 
-@node flowchart, contour, tube, Base modules
+@node flowchart
 @section @code{flowchart}
 @cindex @code{flowchart}
 This module provides routines for drawing flowcharts. The primary
@@ -9512,7 +9620,7 @@ Here is a simple flowchart example (see also the example
 @sp 1
 @center @image{./flowchartdemo}
 
-@node contour, contour3, flowchart, Base modules
+@node contour
 @section @code{contour}
 @cindex @code{contour}
 This module draws contour lines.
@@ -9611,14 +9719,14 @@ density images over such irregular triangular meshes.
 algorithm based on the public-domain exact arithmetic predicates written by
 Jonathan Shewchuk.
 
-@node contour3, smoothcontour3, contour, Base modules
+@node contour3
 @section @code{contour3}
 @cindex @code{contour3}
 This module draws surfaces described as the null space of real-valued
 functions of @math{(x,y,z)} or @code{real[][][]} matrices.
 Its usage is illustrated in the example file @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/magnetic.html,,magnetic}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/magnetic.asy,,.asy}}.
 
-@node smoothcontour3, slopefield, contour3, Base modules
+@node smoothcontour3
 @section @code{smoothcontour3}
 @cindex @code{smoothcontour3}
 This module, written by Charles Staats, draws implicitly defined surfaces
@@ -9656,7 +9764,7 @@ Additional examples, together with a more in-depth explanation of
 the module's usage and pitfalls, are available at
 @url{https://github.com/charlesstaats/smoothcontour3}.
 
-@node slopefield, ode, smoothcontour3, Base modules
+@node slopefield
 @section @code{slopefield}
 @cindex @code{slopefield}
 To draw a slope field for the differential equation @math{dy/dx=f(x,y)} (or
@@ -9695,14 +9803,14 @@ Both @code{slopefield} and @code{curve} alternatively accept a function
 @sp 1
 @center @image{./slopefield1}
 
-@node ode,  , slopefield, Base modules
+@node ode
 @section @code{ode}
 @cindex @code{ode}
 The @code{ode} module, illustrated in the example @code{@uref{https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/examples/odetest.asy,,odetest.asy}},
 implements a number of explicit numerical integration schemes for
 ordinary differential equations.
 
-@node Options, Interactive mode, Base modules, Top
+@node Options
 @chapter Command-line options
 @cindex options
 @cindex command-line options
@@ -9900,7 +10008,7 @@ Also output knot guide solver diagnostics.
 Also output @code{Asymptote} traceback diagnostics.
 @end table
 
-@node Interactive mode, GUI, Options, Top
+@node Interactive mode
 @chapter Interactive mode
 @cindex interactive mode
 Interactive mode is entered by executing the command @code{asy} with
@@ -10005,7 +10113,7 @@ g.clip("unitcircle")
 g.label("\"$O$\", (0,0), SW")
 @end verbatim
 
-@node GUI, Command-Line Interface, Interactive mode, Top
+@node GUI
 @chapter Graphical User Interface
 @cindex graphical user interface
 @cindex @acronym{GUI}
@@ -10025,7 +10133,7 @@ preliminary Graphical User Interface (@acronym{GUI}) @code{xasy} included with
 @code{Asymptote} allows you to move graphical objects and draw new ones.
 The modified figure can then be saved as a normal @code{Asymptote} file.
 
-@node GUI installation, GUI usage, GUI, GUI
+@node GUI installation
 @section GUI installation
 @cindex GUI installation
 
@@ -10057,7 +10165,7 @@ the @code{LaTeX} TeX engine. The default setting
 @code{dvisvgmMultipleFiles=true} speeds up deconstruction
 under @acronym{PDF} TeX engines.
 
-@node GUI usage,  , GUI installation, GUI
+@node GUI usage
 @section GUI usage
 @cindex GUI usage
 @cindex arrow keys
@@ -10082,13 +10190,13 @@ together on adding them to a picture. However, the elements of a frame
 added to another frame are not grouped together by default: their
 elements will be individually deconstructed (@pxref{add}).
 
-@node Command-Line Interface, PostScript to Asymptote, GUI, Top
+@node Command-Line Interface
 @chapter Command-Line Interface
 @cindex command-line interface
 
 @code{Asymptote} code may be sent to the
 @url{http://asymptote.ualberta.ca} server directly from the command
-line, specifying any options directly in the @acronym{URL}:
+line
 
 @itemize @bullet
 
@@ -10125,7 +10233,7 @@ line, specifying any options directly in the @acronym{URL}:
 The source code for the command-line interface is available at
 @url{https://github.com/vectorgraphics/asymptote-http-server}.
 
-@node Language server protocol, PostScript to Asymptote, Command-Line Interface, Top
+@node Language server protocol
 @chapter Language server protocol
 @cindex @acronym{LSP}
 @cindex language server protocol
@@ -10177,7 +10285,7 @@ M-x lsp
 
 @end itemize
 
-@node PostScript to Asymptote, Help, Command-Line Interface, Top
+@node PostScript to Asymptote
 @chapter @code{PostScript} to @code{Asymptote}
 @cindex @code{pstoedit}
 The excellent @code{PostScript} editor @code{pstoedit} (version 3.50 or later;
@@ -10199,7 +10307,7 @@ If the line widths aren't quite correct, try giving @code{pstoedit} the
 If the fonts aren't typeset correctly, try giving @code{pstoedit} the
 @code{-dt} option.
 
-@node Help, Debugger, PostScript to Asymptote, Top
+@node Help
 @chapter Help
 @cindex help
 @cindex forum
@@ -10259,7 +10367,7 @@ from true segmentation faults (due to internal C++ programming errors;
 please submit the @code{Asymptote} code that generates such segmentation
 faults along with your bug report).
 
-@node Debugger, Credits, Help, Top
+@node Debugger
 @chapter Debugger
 @cindex debugger
 Asymptote now includes a line-based (as opposed to code-based)
@@ -10356,7 +10464,7 @@ The debugging prompt may be entered manually with the call
 void breakpoint(code s=quote{});
 @end verbatim
 
-@node Credits, Index, Debugger, Top
+@node Credits
 @chapter Acknowledgments
 @cindex acknowledgments
 
@@ -10382,7 +10490,7 @@ developed the @code{Asymptote Web Application} hosted at
 
 @url{https://github.com/vectorgraphics/asymptoteWebApplication}
 
-@node Index,  , Credits, Top
+@node Index
 @unnumbered Index
 
 @printindex cp
@@ -10615,7 +10723,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  Ai Ai Ai 5a 5E 5cm 2N 2E devicepixelratio 48kB 2n 5z
 @c  LocalWords:  100d 5y 5unit 144x144 2004-23 2004-24 top-level 3D
 @c  LocalWords:  1filll Command-line Command-Line command-line 2D 15
-@c  LocalWords:  high-order User-defined Python-style Templated V3D
+@c  LocalWords:  higher-order User-defined Python-style Templated V3D
 @c  LocalWords:  coordinate-based high-quality high-level de-facto 56
 @c  LocalWords:  command-driven graphical-user-interface full-fledged
 @c  LocalWords:  script-generated script-based fixed-sized ASYMPTOTE_
@@ -10670,13 +10778,22 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  O--1 5unit three_arrows diamond-shaped right-angled
 @c  LocalWords:  2-y public-domain in-depth field-defining 144x144 'e
 @c  LocalWords:  ASYMPTOTE_CONFIG non-writable 200 semi-colon ctrl-C
-@c  LocalWords:  asy_history auto-completion Button-1 Button-2 LSP
+@c  LocalWords:  asy_history auto-completion Button-1 Button-2 LSP 's
 @c  LocalWords:  rsvg-convert librsvg2-tools dvisvgmMultipleFiles lsp
 @c  LocalWords:  data-binary 'import lsp-mode 'package melpa 'asyls
 @c  LocalWords:  'package-archives package-initialize package-install
 @c  LocalWords:  package-refresh-contents 'lsp-mode make-lsp-client
 @c  LocalWords:  'lsp-language-id-configuration lsp-register-client
-@c  LocalWords:  new-connection lsp-stdio-connection activation-fn
+@c  LocalWords:  new-connection lsp-stdio-connection activation-fn 3D
 @c  LocalWords:  lsp-activate-on major-modes server-id user-generated
-@c  LocalWords:  line-based code-based plain_debugger Guib Skitsko
-@c  LocalWords:  Chaumont Cheng
+@c  LocalWords:  line-based code-based plain_debugger Guib Skitsko 2D
+@c  LocalWords:  Chaumont Cheng using 0pt 1filll Witholding simplex2
+@c  LocalWords:  magick 'load 'asy 'lasy 'auto 5bp 1cm 3mm 4g abcdefg
+@c  LocalWords:  2S 100pt 3t multipath nondegenerate 12pt 5mm 25cm 3x
+@c  LocalWords:  5cm 5pt 3cm 2pt addPoint 10cm trueMin trueMax addBox
+@c  LocalWords:  userMin userMax 5x 3y 602e 2x 2y 3sin 204e 10x 1e9
+@c  LocalWords:  5a 5E partnames defaultnames 2N 2E 48kB 2n 100d 5z
+@c  LocalWords:  includemedia noplaybutton 200pt Javascript 5y 5unit
+@c  LocalWords:  144x144 rsvgConverterPath 'import MSWindows 'package
+@c  LocalWords:  'lsp fn 'asyls 'e
+

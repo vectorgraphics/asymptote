@@ -1,0 +1,11 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=@CMAKE_INSTALL_PREFIX@
+libdir=@libdir_for_pc_file@
+includedir=@includedir_for_pc_file@
+
+Name: lsp
+Description: A Language Server Protocol implementation in C++
+Version: @LIB_VERSION_STRING@
+Libs: -L${libdir} -l@LSPCPP_LIB_NAME@
+Cflags: -I${includedir}
+

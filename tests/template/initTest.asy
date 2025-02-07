@@ -11,13 +11,11 @@ EndTest();
 
 StartTest("new");
 struct X {
-  struct A {
+  static struct A {
     int x=1;
   }
 }
 
-X x;
-
-access "template/imports/C"(T=x.A) as p;
+access "template/imports/C"(T=X.A) as p;
 
 EndTest();

@@ -14,12 +14,6 @@ AS_IF([test "x$LIBTOOL" = "xno"], [AC_MSG_ERROR([libtool not found])])
 
 AH_TOP([#pragma once])
 
-AC_C_BIGENDIAN(
-   [AC_DEFINE(WORDS_BIGENDIAN,1,[Build is big endian])],
-   [],
-   [],
-   [AC_DEFINE(UNIVERSAL_ENDIAN_BUILD,1,[Endianness is determined at compile time])]
-)
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
@@ -33,10 +27,18 @@ AC_ARG_ENABLE(lsp,
 [AS_HELP_STRING(--enable-lsp[[[=yes]]],enable Language Server Protocol)])
 cxxstd="c++17"
 
-test "$CXXFLAGS" || CXXFLAGS="-std=$cxxstd"
-echo Compiling with $CXXFLAGS
+CXXFLAGS += "-std=$cxxstd"
 
 test "$CFLAGS" || CFLAGS="-g -O3"
+
+AC_C_BIGENDIAN(
+   [AC_DEFINE(WORDS_BIGENDIAN,1,[Build is big endian])],
+   [],
+   [],
+   [AC_DEFINE(UNIVERSAL_ENDIAN_BUILD,1,[Endianness is determined at compile time])]
+)
+
+echo Compiling with $CXXFLAGS $CFLAGS
 
 # --------------- external refs ---------------------------
 
@@ -342,11 +344,13 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
    LSPLIBS=$LSPLIBS" -L$LSP_BUILD_ROOT -L$LSP_BUILD_ROOT/third_party/uri/src -llspcpp -lnetwork-uri -lboost_filesystem -lboost_thread"
    LSP_CMAKE_OPTIONS="-DLSPCPP_USE_CPP17=ON "
 
-   if test "x$ac_cv_use_gc" != "xno"; then
+   if test "x$enable_gc" != "xno"; then
       LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DLSPCPP_SUPPORT_BOEHM_GC=ON "
       if test "x$with_vcpkg" = "xno"; then
           LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DLSPCPP_GC_DOWNLOADED_ROOT=$ROOT_DIR_RELATIVE_TO_SRC/\$(GC) "
       fi
+   else
+      LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DLSPCPP_SUPPORT_BOEHM_GC=OFF "
    fi
 
    AC_DEFUN([ENABLE_LSP_MACRO],
@@ -672,9 +676,7 @@ case "$OSTYPE" in
                              DEFINE_LIB([GL]))
                              LIBS=$LIBS"-lGL "
                              GLEW="glew.o "
-                             INCL=$INCL" -Ibackports/glew/include"
-                             AC_CHECK_LIB([GLX],[glXGetProcAddressARB],
-                             GLEW=$GLEW"-lGLX ")],
+                             INCL=$INCL" -Ibackports/glew/include"],
                                    AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
 esac
    if test "x$enable_offscreen" = "xyes"; then

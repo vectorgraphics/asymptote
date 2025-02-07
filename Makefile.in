@@ -56,7 +56,8 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	varinit fundec refaccess envcompleter asyprocess constructor array memory \
 	Delaunay predicates glrender tr shaders jsfile v3dfile \
 	EXRFiles GLTextures lspserv symbolmaps win32helpers win32pipestream \
-	win32xdr xstream
+	win32xdr xstream \
+	lspdec lspexp lspfundec lspstm
 
 FILES = $(COREFILES) main
 
@@ -70,15 +71,15 @@ PYGENERATEDENUMS=$(GENERATEDENUMS:=.py)
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.h \
 	asy-keywords.el $(RUNTIME_FILES:=.cc) asy.list \
-        $(SYMBOLSH) $(GENERATEDENUMS:=.h) $(ASYGENERATEDENUMS) $(PYFILES)
+	$(SYMBOLSH) $(GENERATEDENUMS:=.h) $(ASYGENERATEDENUMS) $(PYFILES)
 
 NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output base/version.asy doc/version.texi \
-        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH) \
+	GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH) \
 		version.txt
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
-        asymptote.py reload.js nopapersize.ps
+	asymptote.py reload.js nopapersize.ps
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
 DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
@@ -172,7 +173,7 @@ $(LSP_BUILD_ROOT)/liblspcpp.a:
 	@LSP_CMAKE_OPTIONS@
 	$(MAKE) -C $(LSP_BUILD_ROOT)
 
-all:  	asy sty man faq asy-keywords.el
+all:	asy sty man faq asy-keywords.el
 
 $(GCLIB):
 	ln -sf ../libatomic_ops libatomic_ops
@@ -205,9 +206,9 @@ $(RUNTIME_FILES:=.cc): %.cc: runtime.py opsymbols.h runtimebase.in %.in
 
 GEN_PREOROCESSED_DEPFILE_BASE_ARGS = \
     $(PYTHON) gen_preprocessed_depfile.py \
-        --cxx-compiler="$(CXX)" \
-        --additional-raw-arguments="$(OPTS)" \
-        --cxx-standard=$(subst gnu,,$(subst c++,,$(CXX_STANDARD)))
+	--cxx-compiler="$(CXX)" \
+	--additional-raw-arguments="$(OPTS)" \
+	--cxx-standard=$(subst gnu,,$(subst c++,,$(CXX_STANDARD)))
 
 $(SYMBOL_FILES:=.raw.i): %.raw.i: %.cc gen_preprocessed_depfile.py
 	@echo Generating $@ from $<
@@ -265,8 +266,11 @@ envcompleter.d: keywords.h
 asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy
 	@echo Creating $@;
 	$(ASY) -l > asy.list
-	ls $(addsuffix /*.asy,$(KEYWORDS)) | grep -v plain\* | \
-          grep -v three_\* | grep -v map | xargs $(ASY) -l >> asy.list
+	for dir in $(KEYWORDS); do \
+	  cd $$dir && /bin/ls *.asy | \
+	  grep -v ^plain.asy$ | grep -v ^plain_ | grep -v ^three_ | \
+	  xargs ../$(ASY) -l >> ../asy.list; \
+	done
 	revision=`cat version.txt`
 	$(PYTHON) ./asy-list.py --asy-list-file asy.list --revision $(revision) --output-file $@
 
@@ -295,8 +299,8 @@ install-asy: asy sty $(PYFILES)
 	${INSTALL} -p -m 644 base/shaders/*.glsl $(shaderdir)
 	${INSTALL} -p -m 644 base/webgl/asygl.js \
 		$(webgldir)
-	${INSTALL} -p -m 755 GUI/xasy.py $(GUIdir)
 	${INSTALL} -p -m 644 GUI/*.py $(GUIdir)
+	${INSTALL} -p -m 755 GUI/xasy.py $(GUIdir)
 	-${INSTALL} -p -m 644 GUI/xasyicons/*.py $(GUIdir)/xasyicons
 	-${INSTALL} -p -m 644 GUI/xasyqtui/*.py $(GUIdir)/xasyqtui
 	-${INSTALL} -p -m 644 GUI/xasyversion/*.py $(GUIdir)/xasyversion
@@ -306,7 +310,7 @@ install-asy: asy sty $(PYFILES)
 	${INSTALL} -p -m 644 examples/*.asy $(addprefix examples/,$(EXEXTRA)) \
 	  doc/extra/*.asy $(addprefix doc/,$(DOCEXTRA)) $(exampledir)
 	${INSTALL} -p -m 644 examples/animations/*.asy \
-          examples/animations/inlinemovie.tex \
+	  examples/animations/inlinemovie.tex \
 	  examples/animations/inlinemovie3.tex $(animationsdir)
 	-${INSTALL} -p -m 644 $(addprefix doc/,$(LATEXFILES)) $(latexdir)
 	-${INSTALL} -p -m 644 $(addprefix doc/,$(CONTEXTFILES)) $(contextdir)
@@ -361,9 +365,9 @@ uninstall-man:
 uninstall-docdir:
 	-rmdir $(docdir)
 
-clean:  FORCE
+clean:	FORCE
 	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
-	-rm LspCpp/liblspcpp.a
+	-rm -f LspCpp/liblspcpp.a LspCpp/Makefile LspCpp/CMakeFiles
 	-cd LspCpp && $(MAKE) distclean
 	-cd tinyexr && $(MAKE) clean
 	-cd GUI && $(PYTHON) buildtool.py clean
@@ -374,6 +378,7 @@ gc-clean: FORCE clean
 cleaner: FORCE clean
 	-$(MAKE) -C $(GC) distclean
 	-rm -f Makefile config.h config.log config.status errors.temp
+	-rm -f LspCpp/CMakeCache.txt
 	cd doc && $(MAKE) clean
 	cd tests && $(MAKE) distclean
 

@@ -18,7 +18,7 @@ env:
         -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
       $env:VCPKG_ROOT = "$env:VCPKG_INSTALLATION_ROOT"
       $env:ASY_VERSION_OVERRIDE = "${{ inputs.version_override }}"
-  cmake_msvc_profile: msvc/release-with-existing-asymptote-pdf
+  cmake_msvc_profile: msvc/release/ci/with-external-asymptote-pdf
 jobs:
   configure-windows-msvc-x64:
     runs-on: "windows-2022"
