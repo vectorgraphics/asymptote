@@ -19,6 +19,7 @@ SRC=/usr/local/src/asymptote-$VERSION.src.tgz
 rm -rf asymptote-$VERSION
 tar -zxf $SRC
 cd asymptote-$VERSION
+find . -name ".[^.]*" -exec rm -rf {} \;
 mkdir -p binaries/$BINDIR/texlive
 cd binaries/$BINDIR
 cp $SHARED/CTAN/asy.exe texlive
