@@ -342,17 +342,20 @@ void drawGhost(picture pic = currentpicture,
   draw(pic, p, fgpen, arrow);
 }
 
-// draw a double line on picture pic, along path p with pen fgpen, an inner
-// spacing of dlspacint and an arrowhead arrow. If erasebg is true, bgpen is
-// used to erase the background at a margin margin around the line. The
-// background is not erased at a certain distance to the endpoints, which is
+arrowbar DoubleLineMidArrow=MidArrow(Fill(doublelinepen));
+
+// draw a double line on picture pic, along path p with pen fgpen and
+// an inner spacing of dlspacint. An optional arrowhead DoubleLineMidArrow
+// can be specified. If erasebg is true, bgpen is used to erase the
+// background at a margin margin around the line. The background is
+// not erased at a certain distance to the endpoints, which is
 // determined by vertexangle (see comments to the default parameter
 // minvertexangle).
 void drawDoubleLine(picture pic = currentpicture,
                     path p,
                     pen fgpen = doublelinepen,
                     real dlspacing = doublelinespacing,
-                    arrowbar arrow = currentarrow,
+                    arrowbar arrow = None,
                     bool erasebg = overpaint,
                     pen bgpen = backgroundpen,
                     real vertexangle = minvertexangle,
@@ -618,5 +621,3 @@ void texshipout(string stem,
   close(tf);
   shipout(stem+suffix, pic);
 }
-
-
