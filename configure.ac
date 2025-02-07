@@ -676,9 +676,7 @@ case "$OSTYPE" in
                              DEFINE_LIB([GL]))
                              LIBS=$LIBS"-lGL "
                              GLEW="glew.o "
-                             INCL=$INCL" -Ibackports/glew/include"
-                             AC_CHECK_LIB([GLX],[glXGetProcAddressARB],
-                             GLEW=$GLEW"-lGLX ")],
+                             INCL=$INCL" -Ibackports/glew/include"],
                                    AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
 esac
    if test "x$enable_offscreen" = "xyes"; then
