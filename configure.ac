@@ -27,7 +27,7 @@ AC_ARG_ENABLE(lsp,
 [AS_HELP_STRING(--enable-lsp[[[=yes]]],enable Language Server Protocol)])
 cxxstd="c++17"
 
-test "$CXXFLAGS" || CXXFLAGS="-std=$cxxstd"
+CXXFLAGS += "-std=$cxxstd"
 
 test "$CFLAGS" || CFLAGS="-g -O3"
 
