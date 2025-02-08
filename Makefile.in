@@ -367,8 +367,8 @@ uninstall-docdir:
 
 clean:	FORCE
 	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
-	-rm -f LspCpp/liblspcpp.a LspCpp/Makefile LspCpp/CMakeFiles
 	-cd LspCpp && $(MAKE) distclean
+	-cd LspCpp && rm -rf liblspcpp.a Makefile CMakeFiles third_party/uri/src/CMakeFiles
 	-cd tinyexr && $(MAKE) clean
 	-cd GUI && $(PYTHON) buildtool.py clean
 
@@ -376,14 +376,14 @@ gc-clean: FORCE clean
 	-$(MAKE) -C $(GC) clean
 
 cleaner: FORCE clean
-	-cd gc && rm -rf gc/libatomic_ops gc/.deps gc/cord/.deps gc/cord/tests/.deps gc/extra/.deps gc/tests/.deps
 	-rm -rf __pycache__
 	-rm -rf GUI/__pycache__
 	-rm -rf GUI/pyUIClass/__pycache__
 	-rm -rf GUI/configs/__pycache__
 	-$(MAKE) -C $(GC) distclean
+	-cd $(GC) && rm -rf libatomic_ops .deps cord/.deps cord/tests/.deps extra/.deps tests/.deps
 	-rm -f Makefile config.h config.log config.status errors.temp
-	-rm -f LspCpp/CMakeCache.txt LspCpp/CMakeFiles LspCpp/third_party/uri/src/CMakeFiles
+	-rm -rf LspCpp/CMakeCache.txt
 	cd doc && $(MAKE) clean
 	cd tests && $(MAKE) distclean
 
