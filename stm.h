@@ -170,6 +170,9 @@ class extendedForStm : public stm {
 
   stm *body;
 
+  // Declares an array a, initialized to `set`. May involve an implicit cast.
+  bool transObjectDec(symbol a, coenv& e);
+
 public:
   extendedForStm(position pos, astType *start, symbol var, exp *set, stm *body)
     : stm(pos), start(start), var(var), set(set), body(body) {}

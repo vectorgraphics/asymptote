@@ -358,6 +358,59 @@ void extendedForStm::prettyprint(ostream &out, Int indent)
   body->prettyprint(out, indent+1);
 }
 
+runnable *forArrayInit(position pos, symbol i) {
+  // int i = 0;
+  return new vardec(pos, new tyEntryTy(pos, primInt()),
+                    new decid(pos,
+                              new decidstart(pos, i),
+                              new intExp(pos, 0)));
+}
+
+exp *forArrayTest(position pos, symbol i, symbol a) {
+  // i < a.length;
+  return new binaryExp(pos,
+                       new nameExp(pos, i),
+                       SYM_LT,
+                       new nameExp(pos,
+                                   new qualifiedName(pos,
+                                                     new simpleName(pos, a),
+                                                     symbol::trans("length"))));
+}
+
+runnable *forArrayUpdate(position pos, symbol i) {
+  // ++i;
+  return new expStm(pos, new prefixExp(pos, new nameExp(pos, i), SYM_PLUS));
+}
+
+bool extendedForStm::transObjectDec(symbol a, coenv &e) {
+  // Get the start type.  Handle type inference as a special case.
+  types::ty *t = start->trans(e, true);
+  if (t->kind == types::ty_inferred) {
+
+    // First ensure the array expression is an unambiguous array.
+    types::ty *at = set->cgetType(e);
+    if (at->kind != ty_array) {
+      em.error(set->getPos());
+      em << "expression is not an array of inferable type";
+
+      // On failure, don't bother trying to translate the loop.
+      return false;
+    }
+
+    // var a=set;
+    tyEntryTy tet(pos, primInferred());
+    decid dec1(pos, new decidstart(pos, a), set);
+    vardec(pos, &tet, &dec1).trans(e);
+  }
+  else {
+    // start[] a=set;
+    arrayTy at(pos, start, new dimensions(pos));
+    decid dec1(pos, new decidstart(pos, a), set);
+    vardec(pos, &at, &dec1).trans(e);
+  }
+  return true;
+}
+
 void extendedForStm::trans(coenv &e) {
   // Translate into the syntax:
   //
@@ -373,31 +426,10 @@ void extendedForStm::trans(coenv &e) {
   symbol a=symbol::gensym("a");
   symbol i=symbol::gensym("i");
 
-  // Get the start type.  Handle type inference as a special case.
-  types::ty *t = start->trans(e, true);
-  if (t->kind == types::ty_inferred) {
-
-    // First ensure the array expression is an unambiguous array.
-    types::ty *at = set->cgetType(e);
-    if (at->kind != ty_array) {
-      em.error(set->getPos());
-      em << "expression is not an array of inferable type";
-
-      // On failure, don't bother trying to translate the loop.
-      return;
-    }
-
-    // var a=set;
-    tyEntryTy tet(pos, primInferred());
-    decid dec1(pos, new decidstart(pos, a), set);
-    vardec(pos, &tet, &dec1).trans(e);
-  }
-  else {
-    // start[] a=set;
-    arrayTy at(pos, start, new dimensions(pos));
-    decid dec1(pos, new decidstart(pos, a), set);
-    vardec(pos, &at, &dec1).trans(e);
-  }
+  bool succeeded = transObjectDec(a, e);
+  // On failure, don't bother trying to translate the loop.
+  if (!succeeded)
+    return;
 
   // { start var=a[i]; body }
   block b(pos);
@@ -411,18 +443,9 @@ void extendedForStm::trans(coenv &e) {
   // for (int i=0; i < a.length; ++i)
   //   <block>
   forStm(pos,
-         new vardec(pos, new tyEntryTy(pos, primInt()),
-                    new decid(pos,
-                              new decidstart(pos, i),
-                              new intExp(pos, 0))),
-         new binaryExp(pos,
-                       new nameExp(pos, i),
-                       SYM_LT,
-                       new nameExp(pos,
-                                   new qualifiedName(pos,
-                                                     new simpleName(pos, a),
-                                                     symbol::trans("length")))),
-         new expStm(pos, new prefixExp(pos, new nameExp(pos, i), SYM_PLUS)),
+         forArrayInit(pos, i),
+         forArrayTest(pos, i, a),
+         forArrayUpdate(pos, i),
          new blockStm(pos, &b)).trans(e);
 }
 
