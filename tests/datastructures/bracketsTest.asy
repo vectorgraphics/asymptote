@@ -173,5 +173,34 @@ assert(d['z'] == -1010);
   assert(d['y'] == 10191);
   assert(d['z'] == -1010);
 }
+{
+  // Test the order of evaluation of the object, key, and value.
+  int objectCount = 0;
+  int keyCount = 0;
+  int valueCount = 0;
+  struct Bar {
+    assert(++objectCount == 1);
+    assert(keyCount == 0);
+    assert(valueCount == 0);
+    int operator[](string key) {
+      return 0;
+    }
+    void operator[=](string key, int value) {
+    }
+  }
+  string getKey() {
+    assert(objectCount == 1);
+    assert(++keyCount == 1);
+    assert(valueCount == 0);
+    return '';
+  }
+  int getValue() {
+    assert(objectCount == 1);
+    assert(keyCount == 1);
+    assert(++valueCount == 1);
+    return 0;
+  }
+  (new Bar)[getKey()] = getValue();
+}
 
 EndTest();

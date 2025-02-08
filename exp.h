@@ -398,25 +398,26 @@ public:
 };
 
 // Common functionality for subscriptExp and sliceExp.
-class arrayExp : public exp {
+class bracketsExp : public exp {
 protected:
-  exp *set;
+  exp *object;
 
+  types::ty *getObjectType(coenv &e);
   array *getArrayType(coenv &e);
   array *transArray(coenv &e);
 
 public:
-  arrayExp(position pos, exp *set)
-    : exp(pos), set(set) {}
+  bracketsExp(position pos, exp *set)
+    : exp(pos), object(set) {}
 };
 
 
-class subscriptExp : public arrayExp {
+class subscriptExp : public bracketsExp {
   exp *index;
 
 public:
   subscriptExp(position pos, exp *set, exp *index)
-    : arrayExp(pos, set), index(index) {}
+    : bracketsExp(pos, set), index(index) {}
 
   void prettyprint(ostream &out, Int indent);
 
@@ -452,12 +453,12 @@ public:
   }
 };
 
-class sliceExp : public arrayExp {
+class sliceExp : public bracketsExp {
   slice *index;
 
 public:
   sliceExp(position pos, exp *set, slice *index)
-    : arrayExp(pos, set), index(index) {}
+    : bracketsExp(pos, set), index(index) {}
 
   void prettyprint(ostream &out, Int indent);
 
@@ -467,7 +468,7 @@ public:
 
   exp *evaluate(coenv &e, types::ty *) {
     return new sliceExp(getPos(),
-                        new tempExp(e, set, getArrayType(e)),
+                        new tempExp(e, object, getArrayType(e)),
                         index->evaluate(e));
   }
 };

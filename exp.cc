@@ -277,13 +277,19 @@ exp *fieldExp::evaluate(coenv &e, types::ty *t) {
   return new tempExp(e, this, t);
 }
 
-array *arrayExp::getArrayType(coenv &e)
+types::ty *bracketsExp::getObjectType(coenv &e) {
+  types::ty *t = object->cgetType(e);
+  if (t->kind == ty_overloaded) {
+    t = ((overloaded *)t)->signatureless();
+  }
+  return t;
+}
+
+array *bracketsExp::getArrayType(coenv &e)
 {
-  types::ty *a = set->cgetType(e);
-  if (a->kind == ty_overloaded) {
-    a = ((overloaded *)a)->signatureless();
-    if (!a)
-      return 0;
+  types::ty *a = getObjectType(e);
+  if (a == nullptr) {
+    return nullptr;
   }
 
   switch (a->kind) {
@@ -296,19 +302,19 @@ array *arrayExp::getArrayType(coenv &e)
   }
 }
 
-array *arrayExp::transArray(coenv &e)
+array *bracketsExp::transArray(coenv &e)
 {
-  types::ty *a = set->cgetType(e);
+  types::ty *a = object->cgetType(e);
   if (a->kind == ty_overloaded) {
     a = ((overloaded *)a)->signatureless();
     if (!a) {
-      em.error(set->getPos());
+      em.error(object->getPos());
       em << "expression is not an array";
       return 0;
     }
   }
 
-  set->transAsType(e, a);
+  object->transAsType(e, a);
 
   switch (a->kind) {
     case ty_array:
@@ -316,7 +322,7 @@ array *arrayExp::transArray(coenv &e)
     case ty_error:
       return 0;
     default:
-      em.error(set->getPos());
+      em.error(object->getPos());
       em << "expression is not an array";
       return 0;
   }
@@ -337,7 +343,7 @@ void subscriptExp::prettyprint(ostream &out, Int indent)
   prettyindent(out, indent);
   out << "subscriptExp\n";
 
-  set->prettyprint(out, indent+1);
+  object->prettyprint(out, indent+1);
   index->prettyprint(out, indent+1);
 }
 
@@ -364,8 +370,8 @@ callExp *buildSubscriptWriteCall(exp *object, exp *index, exp *value) {
 types::ty *subscriptExp::trans(coenv &e)
 {
   // EXPERIMENTAL
-  if (!isAnArray(e, set)) {
-    callExp *call = buildSubscriptReadCall(set, index);
+  if (!isAnArray(e, object)) {
+    callExp *call = buildSubscriptReadCall(object, index);
     return call->trans(e);
   }
 
@@ -390,8 +396,8 @@ types::ty *subscriptExp::trans(coenv &e)
 types::ty *subscriptExp::getType(coenv &e)
 {
   // EXPERIMENTAL
-  if (!isAnArray(e, set)) {
-    ty *t = set->cgetType(e);
+  if (!isAnArray(e, object)) {
+    ty *t = object->cgetType(e);
     if (t->kind == ty_overloaded) {
       t = ((overloaded *)t)->signatureless();
       if (!t)
@@ -413,11 +419,27 @@ types::ty *subscriptExp::getType(coenv &e)
 void subscriptExp::transWrite(coenv &e, types::ty *t, exp *value)
 {
   // EXPERIMENTAL
-  if (!isAnArray(e, set)) {
-    value = value->evaluate(e, t);
-    callExp* call= buildSubscriptWriteCall(set, index, value);
+  if (!isAnArray(e, object)) {
+    // Find the types of object and index.
+    types::ty *objectType = getObjectType(e);
+    assert(objectType);
+    types::ty *indexType = objectType->keyType();
+    if (!indexType || indexType->kind == ty_error) {
+      em.error(object->getPos());
+      em << "object does not have operator[]";
+      return;
+    }
+    // Evaluate them to control the order in which side effects occur.
+    exp *objectEvaluated = object->evaluate(e, objectType);
+    exp *indexEvaluated = index->evaluate(e, indexType);
+    exp *valueEvaluated = value->evaluate(e, t);
+    // Call object.operator[=](index, value).
+    callExp* call= buildSubscriptWriteCall(
+            objectEvaluated, indexEvaluated, valueEvaluated
+    );
     call->trans(e);
-    value->transAsType(e, t);
+    // Push the value back on the stack as the result of the assignment.
+    valueEvaluated->transAsType(e, t);
     return;
   }
 
@@ -446,23 +468,23 @@ void subscriptExp::transWrite(coenv &e, types::ty *t, exp *value)
 
 exp *subscriptExp::evaluate(coenv &e, types::ty *)
 {
-  types::ty *base = set->cgetType(e);
+  types::ty *base = object->cgetType(e);
   if (base->kind == ty_overloaded) {
     base = ((overloaded *)base)->signatureless();
   }
   if (!base) {
-    em.error(set->getPos());
+    em.error(object->getPos());
     em << "object to index cannot be resolved";
     return nullptr;
   }
   types::ty *indexType = base->keyType();
   if (indexType->kind == ty_error) {
-    em.error(set->getPos());
+    em.error(object->getPos());
     em << "object does not have operator[=] set up correctly";
     return nullptr;
   }
   return new subscriptExp(getPos(),
-                          new tempExp(e, set, base),
+                          new tempExp(e, object, base),
                           new tempExp(e, index, indexType));
 }
 
@@ -496,7 +518,7 @@ void slice::trans(coenv &e)
 void sliceExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "sliceExp", indent, getPos());
-  set->prettyprint(out, indent+1);
+  object->prettyprint(out, indent+1);
   index->prettyprint(out, indent+1);
 }
 
