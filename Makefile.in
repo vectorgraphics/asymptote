@@ -376,6 +376,7 @@ gc-clean: FORCE clean
 	-$(MAKE) -C $(GC) clean
 
 cleaner: FORCE clean
+	-cd gc && rm -rf gc/libatomic_ops gc/.deps gc/cord/.deps gc/cord/tests/.deps gc/extra/.deps gc/tests/.deps
 	-rm -rf __pycache__
 	-rm -rf GUI/__pycache__
 	-rm -rf GUI/pyUIClass/__pycache__
