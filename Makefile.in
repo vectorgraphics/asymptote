@@ -376,6 +376,10 @@ gc-clean: FORCE clean
 	-$(MAKE) -C $(GC) clean
 
 cleaner: FORCE clean
+	-rm -rf __pycache__
+	-rm -rf GUI/__pycache__
+	-rm -rf GUI/pyUIClass/__pycache__
+	-rm -rf GUI/configs/__pycache__
 	-$(MAKE) -C $(GC) distclean
 	-rm -f Makefile config.h config.log config.status errors.temp
 	-rm -f LspCpp/CMakeCache.txt LspCpp/CMakeFiles LspCpp/third_party/uri/src/CMakeFiles
