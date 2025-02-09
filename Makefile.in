@@ -176,8 +176,8 @@ $(LSP_BUILD_ROOT)/liblspcpp.a:
 all:	asy sty man faq asy-keywords.el
 
 $(GCLIB):
-	ln -sf ../libatomic_ops libatomic_ops
-	cd $(GC) && ./configure CC="$(CC)" CXX="$(CXX)" $(GCOPTIONS)
+	cd $(GC) && ln -sf ../libatomic_ops . && \
+		./configure CC="$(CC)" CXX="$(CXX)" $(GCOPTIONS)
 	$(MAKE) -C $(GC) check
 
 sty: doc/version.texi
