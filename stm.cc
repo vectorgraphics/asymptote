@@ -382,7 +382,7 @@ runnable *forArrayUpdate(position pos, symbol i) {
   return new expStm(pos, new prefixExp(pos, new nameExp(pos, i), SYM_PLUS));
 }
 
-bool extendedForStm::transObjectDec(symbol a, coenv &e) {
+extendedForStm::LoopType extendedForStm::transObjectDec(symbol a, coenv &e) {
   // Get the start type.  Handle type inference as a special case.
   types::ty *t = start->trans(e, true);
   if (t->kind == types::ty_inferred) {
@@ -394,13 +394,14 @@ bool extendedForStm::transObjectDec(symbol a, coenv &e) {
       em << "expression is not an array of inferable type";
 
       // On failure, don't bother trying to translate the loop.
-      return false;
+      return LoopType::ERROR;
     }
 
     // var a=set;
     tyEntryTy tet(pos, primInferred());
     decid dec1(pos, new decidstart(pos, a), set);
     vardec(pos, &tet, &dec1).trans(e);
+    return LoopType::ARRAY;
   }
   else {
     // start[] a=set;
@@ -408,7 +409,7 @@ bool extendedForStm::transObjectDec(symbol a, coenv &e) {
     decid dec1(pos, new decidstart(pos, a), set);
     vardec(pos, &at, &dec1).trans(e);
   }
-  return true;
+  return LoopType::ARRAY;
 }
 
 void extendedForStm::trans(coenv &e) {
@@ -426,9 +427,9 @@ void extendedForStm::trans(coenv &e) {
   symbol a=symbol::gensym("a");
   symbol i=symbol::gensym("i");
 
-  bool succeeded = transObjectDec(a, e);
+  LoopType loopType = transObjectDec(a, e);
   // On failure, don't bother trying to translate the loop.
-  if (!succeeded)
+  if (loopType == LoopType::ERROR)
     return;
 
   // { start var=a[i]; body }
