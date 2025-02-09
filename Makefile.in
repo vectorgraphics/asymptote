@@ -87,9 +87,9 @@ LATEXFILES = asymptote.sty asycolors.sty latexmkrc
 CONTEXTFILES = colo-asy.tex
 ASY = ./asy -dir base -config "" -render=0
 
-DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -std=@CXX_STANDARD@
+DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall
 CFLAGS = @CFLAGS@
-OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
+OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ -std=@CXX_STANDARD@ $(CFLAGS) \
 	-Ibackports/optional/include \
 	-Iprc/include -I$(LSP_ROOT)/include
 GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
