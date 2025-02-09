@@ -302,9 +302,13 @@ print "} // namespace trans\n";
 push @header, "}\n\n";
 
 undef $/;
-open my $HEADER, "<", $outHeaderFile;
-my $orig_header = <$HEADER>;
-close $HEADER;
+my $orig_header = "";
+my $HEADER;
+if (-e $outHeaderFile) {
+    open $HEADER, "<", $outHeaderFile;
+    $orig_header = <$HEADER>;
+    close $HEADER;
+}
 
 my $new_header = join "", @header;
 if ($new_header ne $orig_header) {
