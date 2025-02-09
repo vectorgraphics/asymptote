@@ -176,8 +176,8 @@ $(LSP_BUILD_ROOT)/liblspcpp.a:
 all:	asy sty man faq asy-keywords.el
 
 $(GCLIB):
-	ln -sf ../libatomic_ops libatomic_ops
-	cd $(GC) && ./configure CC="$(CC)" CXX="$(CXX)" $(GCOPTIONS)
+	cd $(GC) && ln -sf ../libatomic_ops . && \
+		./configure CC="$(CC)" CXX="$(CXX)" $(GCOPTIONS)
 	$(MAKE) -C $(GC) check
 
 sty: doc/version.texi
@@ -367,8 +367,8 @@ uninstall-docdir:
 
 clean:	FORCE
 	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
-	-rm -f LspCpp/liblspcpp.a LspCpp/Makefile LspCpp/CMakeFiles
 	-cd LspCpp && $(MAKE) distclean
+	-cd LspCpp && rm -rf liblspcpp.a Makefile CMakeFiles third_party/uri/src/CMakeFiles
 	-cd tinyexr && $(MAKE) clean
 	-cd GUI && $(PYTHON) buildtool.py clean
 
@@ -376,9 +376,14 @@ gc-clean: FORCE clean
 	-$(MAKE) -C $(GC) clean
 
 cleaner: FORCE clean
+	-rm -rf __pycache__
+	-rm -rf GUI/__pycache__
+	-rm -rf GUI/pyUIClass/__pycache__
+	-rm -rf GUI/configs/__pycache__
 	-$(MAKE) -C $(GC) distclean
+	-cd $(GC) && rm -rf libatomic_ops .deps cord/.deps cord/tests/.deps extra/.deps tests/.deps
 	-rm -f Makefile config.h config.log config.status errors.temp
-	-rm -f LspCpp/CMakeCache.txt
+	-rm -rf LspCpp/CMakeCache.txt
 	cd doc && $(MAKE) clean
 	cd tests && $(MAKE) distclean
 

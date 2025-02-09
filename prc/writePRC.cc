@@ -1375,7 +1375,7 @@ void  PRCCompressedFace::serializeCompressedNurbs(PRCbitStream &pbs, double brep
    for(uint32_t i=0;i<number_of_control_point_in_u;i++)
    for(uint32_t j=0;j<number_of_control_point_in_v;j++)
       P[i][j] = control_point[i*number_of_control_point_in_v+j];
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
    itriple compressed_control_point[number_of_control_point_in_u][number_of_control_point_in_v];
    uint32_t control_point_type[number_of_control_point_in_u][number_of_control_point_in_v];
 #else
