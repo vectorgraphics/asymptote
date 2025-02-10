@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ([2.71])
-AC_INIT([Asymptote],[2.97git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_INIT([Asymptote],[2.99git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -296,7 +296,7 @@ AC_DEFINE(HAVE_ZLIB,1,[ZLib library present])
 # -------------- threads -------------------
 
 
-GCOPTIONS="--disable-shared "
+GCOPTIONS="--disable-shared --disable-dependency-tracking"
 AC_ARG_ENABLE(
    threads,
    [AS_HELP_STRING(--enable-threads[[[=yes]]],enable POSIX threads)]
