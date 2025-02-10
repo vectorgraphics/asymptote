@@ -9,9 +9,6 @@ AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
 m4_include([pkg.m4])
 
-AC_CHECK_PROG([LIBTOOL], [libtool], [yes], [no])
-AS_IF([test "x$LIBTOOL" = "xno"], [AC_MSG_ERROR([libtool not found])])
-
 AH_TOP([#pragma once])
 
 AC_CANONICAL_HOST
