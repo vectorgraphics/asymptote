@@ -11,4 +11,7 @@ fi
 
 autoheader && autoconf
 
-cd gc && ./autogen.sh
+cd gc
+autoreconf -if
+automake --add-missing
+cd ..
