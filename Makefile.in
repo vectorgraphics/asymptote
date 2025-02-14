@@ -87,7 +87,7 @@ LATEXFILES = asymptote.sty asycolors.sty latexmkrc
 CONTEXTFILES = colo-asy.tex
 ASY = ./asy -dir base -config "" -render=0
 
-DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall
+DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -I.
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
@@ -380,7 +380,9 @@ cleaner: FORCE clean
 	-rm -rf GUI/pyUIClass/__pycache__
 	-rm -rf GUI/configs/__pycache__
 	-$(MAKE) -C $(GC) distclean
+	-$(MAKE) -C libatomic_ops distclean
 	-cd $(GC) && rm -rf libatomic_ops .deps cord/.deps cord/tests/.deps extra/.deps tests/.deps
+
 	-rm -f Makefile config.h config.log config.status errors.temp
 	-rm -rf LspCpp/CMakeCache.txt
 	cd doc && $(MAKE) clean
@@ -391,10 +393,13 @@ distclean: FORCE cleaner
 
 cleanest: FORCE maintainer-clean
 maintainer-clean: FORCE distclean
-	-rm -f configure config.h.in $(DIST)
-	-rm -rf autom4te.cache
+	-rm -f configure config.h.in
+	-rm -f ltmain.sh compile missing depcomp test-driver
+	-cd $(GC) && -rm -rf ltmain.sh compile missing depcomp test-driver \
+		configure autom4te.cache m4/l*.m4
+	-cd libatomic_ops && rm -rf autom4te.cache configure m4/l*.m4
 	-cd GUI && $(PYTHON) buildtool.py clean
-	-rm -rf GUI/pyUIClass
+	-rm -rf autom4te.cache $(DIST)
 	-rm -rf vcpkg_installed
 
 test: asy FORCE
@@ -408,7 +413,7 @@ check-all: asy FORCE
 	$(MAKE) -C tests all
 
 glew.o: glew.c config.h
-	$(CC) -I. $(GLEWOPTS) -o $@ -c $<
+	$(CC) $(GLEWOPTS) -o $@ -c $<
 
 .SUFFIXES: .c .cc .o .d .ui .py
 %.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.cc)
