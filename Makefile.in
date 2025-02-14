@@ -87,7 +87,7 @@ LATEXFILES = asymptote.sty asycolors.sty latexmkrc
 CONTEXTFILES = colo-asy.tex
 ASY = ./asy -dir base -config "" -render=0
 
-DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall
+DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -I.
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
@@ -413,7 +413,7 @@ check-all: asy FORCE
 	$(MAKE) -C tests all
 
 glew.o: glew.c config.h
-	$(CC) -I. $(GLEWOPTS) -o $@ -c $<
+	$(CC) $(GLEWOPTS) -o $@ -c $<
 
 .SUFFIXES: .c .cc .o .d .ui .py
 %.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.cc)
