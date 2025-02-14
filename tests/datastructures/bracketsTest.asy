@@ -178,29 +178,90 @@ assert(d['z'] == -1010);
   int objectCount = 0;
   int keyCount = 0;
   int valueCount = 0;
+  int setCount = 0;
   struct Bar {
     assert(++objectCount == 1);
     assert(keyCount == 0);
     assert(valueCount == 0);
+    assert(setCount == 0);
     int operator[](string key) {
+      assert(false);
       return 0;
     }
     void operator[=](string key, int value) {
+      assert(objectCount == 1);
+      assert(keyCount == 1);
+      assert(valueCount == 1);
+      assert(++setCount == 1);
     }
   }
   string getKey() {
     assert(objectCount == 1);
     assert(++keyCount == 1);
     assert(valueCount == 0);
+    assert(setCount == 0);
     return '';
   }
   int getValue() {
     assert(objectCount == 1);
     assert(keyCount == 1);
     assert(++valueCount == 1);
+    assert(setCount == 0);
     return 0;
   }
   (new Bar)[getKey()] = getValue();
+}
+{
+  // Test the order of evaluation for a self-expression.
+  int objectCount = 0;
+  int keyCount = 0;
+  int getCount = 0;
+  int valueCount = 0;
+  int setCount = 0;
+  struct Bar {
+    assert(++objectCount == 1);
+    assert(keyCount == 0);
+    assert(getCount == 0);
+    assert(valueCount == 0);
+    assert(setCount == 0);
+    int operator[](string key) {
+      assert(objectCount == 1);
+      assert(keyCount == 1);
+      assert(++getCount == 1);
+      assert(valueCount == 0);
+      assert(setCount == 0);
+      return 0;
+    }
+    void operator[=](string key, int value) {
+      assert(objectCount == 1);
+      assert(keyCount == 1);
+      assert(getCount == 1);
+      assert(valueCount == 1);
+      assert(++setCount == 1);
+    }
+  }
+  string getKey() {
+    assert(objectCount == 1);
+    assert(++keyCount == 1);
+    assert(getCount == 0);
+    assert(valueCount == 0);
+    assert(setCount == 0);
+    return '';
+  }
+  int getValue() {
+    assert(objectCount == 1);
+    assert(keyCount == 1);
+    assert(getCount == 1);
+    assert(++valueCount == 1);
+    assert(setCount == 0);
+    return 0;
+  }
+  (new Bar)[getKey()] += getValue();
+  assert(objectCount == 1);
+  assert(keyCount == 1);
+  assert(getCount == 1);
+  assert(valueCount == 1);
+  assert(setCount == 1);
 }
 
 EndTest();
