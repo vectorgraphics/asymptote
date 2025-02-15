@@ -702,10 +702,7 @@ AC_ARG_ENABLE(xdr,
 [AS_HELP_STRING(--enable-xdr[[[=yes]]],enable XDR/V3D support)])
 if test "x$enable_xdr" != "xno"; then
 case "$OSTYPE" in
-   darwin*)
-         AC_DEFINE(HAVE_LIBTIRPC,1,DEFINE_LIB([tirpc]))
-   ;;
-   FreeBSD)
+   darwin* | FreeBSD)
          AC_DEFINE(HAVE_LIBTIRPC,1,DEFINE_LIB([tirpc]))
    ;;
    *)
