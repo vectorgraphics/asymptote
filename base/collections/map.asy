@@ -103,7 +103,6 @@ struct NaiveMap_K_V {
     return map.nullValue;
   };
   map.operator[=] = new void(K key, V value) {
-    ++numChanges;
     bool delete = false;
     if (map.isNullValue != null && map.isNullValue(value)) {
       delete = true;
@@ -113,6 +112,7 @@ struct NaiveMap_K_V {
         if (delete) {
           keys.delete(i);
           values.delete(i);
+          ++numChanges;
           --size;
         } else {
           keys[i] = key;
@@ -124,6 +124,7 @@ struct NaiveMap_K_V {
     if (!delete) {
       keys.push(key);
       values.push(value);
+      ++numChanges;
       ++size;
     }
   };
@@ -144,15 +145,18 @@ struct NaiveMap_K_V {
     int i = 0;
     Iter_K result;
     result.valid = new bool() {
-      assert(numChanges == numChangesAtStart, 'Map changed during iteration');
+      assert(numChanges == numChangesAtStart,
+             'Map keys changed during iteration');
       return i < size;
     };
     result.advance = new void() { 
-      assert(numChanges == numChangesAtStart, 'Map changed during iteration');
+      assert(numChanges == numChangesAtStart,
+             'Map keys changed during iteration');
       ++i;
     };
     result.get = new K() {
-      assert(numChanges == numChangesAtStart, 'Map changed during iteration');
+      assert(numChanges == numChangesAtStart,
+             'Map keys changed during iteration');
       return keys[i];
     };
     return result;

@@ -23,7 +23,7 @@ struct HashRepSet_T {
   HashEntry oldest = null;
 
   void operator init() {
-    typedef void F();
+    using F = void();
     ((F)super.operator init)();
   }
   void operator init(T nullT,
@@ -66,6 +66,7 @@ struct HashRepSet_T {
         return entry.item;
       }
     }
+    assert(isNullT != null, 'Item is not present.');
     return super.nullT;
   };
 
@@ -103,9 +104,29 @@ struct HashRepSet_T {
           buckets[bucket + i] = current;
           break;
         }
-        assert(i < buckets.length - 1, 'No space in hash table; is the linked list circular?');
+        assert(i < buckets.length - 1, 'No space in hash table; '
+                                       'is the linked list circular?');
       }
     }
+  }
+
+  // Returns an int as follows (note: "index" is modulo buckets.length):
+  //   * If an equivalent item is in the set, returns its index.
+  //   * Otherwise, if least one bucket is empty, returns the index of the empty
+  //     bucket in which the item should be placed if added.
+  //   * Otherwise, returns -1.
+  private int find(T item, int hash) {
+    for (int i = 0; i < buckets.length; ++i) {
+      int index = hash + i;
+      HashEntry entry = buckets[index];
+      if (entry == null) {
+        return index;
+      }
+      if (entry.hash == hash && equiv(entry.item, item)) {
+        return index;
+      }
+    }
+    return -1;
   }
 
   super.add = new bool(T item) {
@@ -117,103 +138,113 @@ struct HashRepSet_T {
       changeCapacity();
     }
     int bucket = item.hash();
-    for (int i = 0; i < buckets.length; ++i) {
-      HashEntry entry = buckets[bucket + i];
-      if (entry == null) {
-        entry = buckets[bucket + i] = new HashEntry;
-        entry.item = item;
-        entry.hash = bucket;
-        entry.older = newest;
-        if (newest != null) {
-          newest.newer = entry;
-        }
-        newest = entry;
-        if (oldest == null) {
-          oldest = entry;
-        }
-        ++size;
-        return true;
-      } else if (entry.hash == bucket && equiv(entry.item, item)) {
-        return false;
-      }
+    int index = find(item, bucket);
+    if (index == -1) {
+      changeCapacity();
+      index = find(item, bucket);
+      assert(index != -1, 'No space in hash table');
     }
-    assert(false, 'No space in hash table');
-    return false;
+    HashEntry entry = buckets[index];
+    if (entry != null) {
+      return false;
+    }
+
+    ++numChanges;
+    if (2 * (size + zombies) >= buckets.length) {
+      changeCapacity();
+      index = find(item, bucket);
+      assert(index != -1);
+      assert(buckets[index] == null);
+    }
+    entry = buckets[index] = new HashEntry;
+    entry.item = item;
+    entry.hash = bucket;
+    entry.older = newest;
+    if (newest != null) {
+      newest.newer = entry;
+    }
+    newest = entry;
+    if (oldest == null) {
+      oldest = entry;
+    }
+    ++size;
+    return true;
   };
 
   super.update = new T(T item) {
-    ++numChanges;
     if (isNullT != null && isNullT(item)) {
       return nullT;
     }
+    int bucket = item.hash();
+    int index = find(item, bucket);
+    if (index == -1) {
+      changeCapacity();
+      index = find(item, bucket);
+      assert(index != -1, 'No space in hash table');
+    }
+    HashEntry entry = buckets[index];
+    if (entry != null) {
+      T result = entry.item;
+      entry.item = item;
+      return result;
+    }
+    ++numChanges;
     if (2 * (size + zombies) >= buckets.length) {
       changeCapacity();
+      index = find(item, bucket);
+      assert(index != -1);
+      assert(buckets[index] == null);
     }
-    int bucket = item.hash();
-    for (int i = 0; i < buckets.length; ++i) {
-      HashEntry entry = buckets[bucket + i];
-      if (entry == null) {
-        entry = buckets[bucket + i] = new HashEntry;
-        assert(isNullT != null,
-               'Unable to report item addition of new item via update().');
-        entry.item = item;
-        entry.hash = bucket;
-        entry.older = newest;
-        if (newest != null) {
-          newest.newer = entry;
-        }
-        newest = entry;
-        if (oldest == null) {
-          oldest = entry;
-        }
-        ++size;
-        return nullT;
-      }
-      if (entry.hash == bucket && equiv(entry.item, item)) {
-        T result = entry.item;
-        entry.item = item;
-        return result;
-      }
+    entry = buckets[index] = new HashEntry;
+    assert(isNullT != null,
+           'Adding item via update() without defining nullT.');
+    entry.item = item;
+    entry.hash = bucket;
+    entry.older = newest;
+    if (newest != null) {
+      newest.newer = entry;
     }
-    assert(false, 'No space in hash table');
+    newest = entry;
+    if (oldest == null) {
+      oldest = entry;
+    }
+    ++size;
     return nullT;
   };
 
   super.delete = new T(T item) {
-    ++numChanges;
     int bucket = item.hash();
-    for (int i = 0; i < buckets.length; ++i) {
-      HashEntry entry = buckets[bucket + i];
-      if (entry == null) {
-        assert(isNullT != null, 'Item is not present.');
-        return nullT;
-      }
-      if (entry.hash == bucket && equiv(entry.item, item)) {
-        T result = entry.item;
-        entry.hash = -1;
-        ++zombies;
-        if (entry.older != null) {
-          entry.older.newer = entry.newer;
-        } else {
-          oldest = entry.newer;
-        }
-        if (entry.newer != null) {
-          entry.newer.older = entry.older;
-        } else {
-          newest = entry.older;
-        }
-        --size;
-        if (2 * (size + zombies) > buckets.length) {
-          changeCapacity();
-        }
-        return result;
-      }
+    int index = find(item, bucket);
+    HashEntry entry = buckets[index];
+    if (index == -1) {
+      assert(false, 'Overcrowded hash table; zombies: ' + string(zombies) +
+             '; size: ' + string(size) +
+             '; buckets.length: ' + string(buckets.length));
+      return nullT;
     }
-    assert(false, 'Overcrowded hash table; zombies: ' + string(zombies) +
-           '; size: ' + string(size) +
-           '; buckets.length: ' + string(buckets.length));
-    assert(isNullT != null, 'Item is not present.');
-    return nullT;
+    if (entry == null) {
+      assert(isNullT != null, 'Item is not present.');
+      return nullT;
+    }
+    ++numChanges;
+    T result = entry.item;
+    entry.hash = -1;
+    ++zombies;
+    if (entry.older != null) {
+      entry.older.newer = entry.newer;
+    } else {
+      oldest = entry.newer;
+    }
+    if (entry.newer != null) {
+      entry.newer.older = entry.older;
+    } else {
+      newest = entry.older;
+    }
+    --size;
+    if (2 * (size + zombies) > buckets.length) {
+      changeCapacity();
+    }
+    return result;
   };
 
   autounravel T[] operator ecast(HashRepSet_T set) {

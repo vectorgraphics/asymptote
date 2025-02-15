@@ -50,7 +50,7 @@ struct HashMap_K_V {
     if (!alias(pair, null)) {
       return pair.v;
     }
-    assert(map.isNullValue != null, 'Unable to report missing key');
+    assert(map.isNullValue != null, 'Key not found in map');
     return map.nullValue;
   };
 
