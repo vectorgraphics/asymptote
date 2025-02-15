@@ -193,9 +193,10 @@ ASYGLVERSION=1.02
 
 DEFS=""
 OPTIONS=$OPTIONS"-D_FILE_OFFSET_BITS=64 "
-INCL="-I. "
+INCL=""
 OPTIONS=""
 LIBS=""
+CPPFLAGS="-I. "
 
 # ------------- vcpkg initialization ---------------
 # vcpkg_triplet
@@ -702,6 +703,9 @@ AC_ARG_ENABLE(xdr,
 if test "x$enable_xdr" != "xno"; then
 case "$OSTYPE" in
    darwin*)
+         AC_DEFINE(HAVE_LIBTIRPC,1,DEFINE_LIB([tirpc]))
+   ;;
+   FreeBSD)
          AC_DEFINE(HAVE_LIBTIRPC,1,DEFINE_LIB([tirpc]))
    ;;
    *)
