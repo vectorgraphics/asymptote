@@ -366,6 +366,18 @@ runnable *forArrayInit(position pos, symbol i) {
                               new intExp(pos, 0)));
 }
 
+runnable *forIterInit(position pos, symbol it, exp *object) {
+  // var it = object.operator iter();
+  return new vardec(pos, new tyEntryTy(pos, primInferred()),
+                    new decid(pos,
+                              new decidstart(pos, it),
+                              new callExp(pos,
+                                          new fieldExp(pos,
+                                                       object,
+                                                       symbol::opTrans("iter")))
+                             ));
+}
+
 exp *forArrayTest(position pos, symbol i, symbol a) {
   // i < a.length;
   return new binaryExp(pos,
@@ -377,38 +389,68 @@ exp *forArrayTest(position pos, symbol i, symbol a) {
                                                      symbol::trans("length"))));
 }
 
+exp* forIterTest(position pos, symbol it)
+{
+  // it.valid();
+  return new callExp(
+          pos,
+          new fieldExp(pos, new nameExp(pos, it), symbol::literalTrans("valid"))
+  );
+}
+
 runnable *forArrayUpdate(position pos, symbol i) {
   // ++i;
   return new expStm(pos, new prefixExp(pos, new nameExp(pos, i), SYM_PLUS));
+}
+
+runnable* forIterUpdate(position pos, symbol it)
+{
+  // it.advance();
+  return new expStm(
+          pos, new callExp(
+                       pos, new fieldExp(
+                                    pos, new nameExp(pos, it),
+                                    symbol::literalTrans("advance")
+                            )
+               )
+  );
 }
 
 extendedForStm::LoopType extendedForStm::transObjectDec(symbol a, coenv &e) {
   // Get the start type.  Handle type inference as a special case.
   types::ty *t = start->trans(e, true);
   if (t->kind == types::ty_inferred) {
-
     // First ensure the array expression is an unambiguous array.
     types::ty *at = set->cgetType(e);
-    if (at->kind != ty_array) {
-      em.error(set->getPos());
-      em << "expression is not an array of inferable type";
-
-      // On failure, don't bother trying to translate the loop.
-      return LoopType::ERROR;
+    if (at->kind == ty_array) {
+      // var a=set;
+      tyEntryTy tet(pos, primInferred());
+      decid dec1(pos, new decidstart(pos, a), set);
+      vardec(pos, &tet, &dec1).trans(e);
+      return LoopType::ARRAY;
     }
+    if (at->kind == ty_record) {
+      return LoopType::ITERABLE;
+    }
+    em.error(set->getPos());
+    // TODO: Change the error message to account for the iterable case.
+    em << "expression is not an array of inferable type";
 
-    // var a=set;
-    tyEntryTy tet(pos, primInferred());
-    decid dec1(pos, new decidstart(pos, a), set);
-    vardec(pos, &tet, &dec1).trans(e);
-    return LoopType::ARRAY;
+    // On failure, don't bother trying to translate the loop.
+    return LoopType::ERROR;
+
   }
-  else {
-    // start[] a=set;
-    arrayTy at(pos, start, new dimensions(pos));
-    decid dec1(pos, new decidstart(pos, a), set);
-    vardec(pos, &at, &dec1).trans(e);
+  // Is `set.operator iter()` a valid expression?
+  // TODO: Avoid forming this expression twice.
+  exp* iterExp=
+          new callExp(pos, new fieldExp(pos, set, symbol::opTrans("iter")));
+  if (!iterExp->getType(e)->isError()) {
+    return LoopType::ITERABLE;
   }
+  // start[] a=set;
+  arrayTy at(pos, start, new dimensions(pos));
+  decid dec1(pos, new decidstart(pos, a), set);
+  vardec(pos, &at, &dec1).trans(e);
   return LoopType::ARRAY;
 }
 
@@ -431,23 +473,46 @@ void extendedForStm::trans(coenv &e) {
   // On failure, don't bother trying to translate the loop.
   if (loopType == LoopType::ERROR)
     return;
-
-  // { start var=a[i]; body }
+  exp *varInitExp = nullptr;
+  if (loopType == LoopType::ITERABLE) {
+    // start var=i.get();
+    varInitExp = new callExp(
+            pos,
+            new fieldExp(pos, new nameExp(pos, i), symbol::literalTrans("get"))
+    );
+    // qualifiedName* iDotGet= new qualifiedName(
+    //         pos, new simpleName(pos, i), symbol::trans("get"));
+    // varInitExp = new callExp(pos, new nameExp(pos, iDotGet));
+  } else {
+    // start var=a[i];
+    varInitExp = new subscriptExp(pos, new nameExp(pos, a),
+                                  new nameExp(pos, i));
+  }
+  // { start var = <varInitExp>; body }
   block b(pos);
   decid dec2(pos,
              new decidstart(pos, var),
-             new subscriptExp(pos, new nameExp(pos, a),
-                              new nameExp(pos, i)));
+             varInitExp);
   b.add(new vardec(pos, start, &dec2));
   b.add(body);
 
-  // for (int i=0; i < a.length; ++i)
-  //   <block>
-  forStm(pos,
-         forArrayInit(pos, i),
-         forArrayTest(pos, i, a),
-         forArrayUpdate(pos, i),
-         new blockStm(pos, &b)).trans(e);
+  if (loopType == LoopType::ARRAY) {
+    // for (int i=0; i < a.length; ++i)
+    //   <block>
+    forStm(pos,
+           forArrayInit(pos, i),
+           forArrayTest(pos, i, a),
+           forArrayUpdate(pos, i),
+           new blockStm(pos, &b)).trans(e);
+  } else {
+    // for (var i=set.operator iter(); i.valid(); i.advance())
+    //   <block>
+    forStm(pos,
+           forIterInit(pos, i, set),
+           forIterTest(pos, i),
+           forIterUpdate(pos, i),
+           new blockStm(pos, &b)).trans(e);
+  }
 }
 
 
