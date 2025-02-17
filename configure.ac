@@ -196,7 +196,7 @@ OPTIONS=$OPTIONS"-D_FILE_OFFSET_BITS=64 "
 INCL=""
 OPTIONS=""
 LIBS=""
-CPPFLAGS="-I. "
+CPPFLAGS=$CPPFLAGS" -I. "
 
 # ------------- vcpkg initialization ---------------
 # vcpkg_triplet
