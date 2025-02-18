@@ -102,6 +102,10 @@ public:
     return 0;
   }
 
+  virtual ty *signatureless() {
+    return getSignature() == nullptr ? this : nullptr;
+  }
+
   virtual bool primitive() {
     return false;
   }
@@ -522,7 +526,7 @@ public:
     : ty(ty_overloaded) { add(t); }
   virtual ~overloaded() {}
 
-  bool equiv(const ty *other) const
+  bool equiv(const ty *other) const override
   {
     for(ty_vector::const_iterator i=sub.begin();i!=sub.end();++i)
       if (equivalent(*i,other))
@@ -530,7 +534,7 @@ public:
     return false;
   }
 
-  size_t hash() const {
+  size_t hash() const override {
     // Overloaded types should not be hashed.
     assert(False);
     return 0;
@@ -565,10 +569,10 @@ public:
   }
 
   // Returns the signature-less type of the set.
-  ty *signatureless();
+  ty *signatureless() override;
 
   // True if one of the subtypes is castable.
-  bool castable(ty *target, caster &c);
+  bool castable(ty *target, caster &c) override;
 
   size_t size() const { return sub.size(); }
 

@@ -366,16 +366,12 @@ runnable *forArrayInit(position pos, symbol i) {
                               new intExp(pos, 0)));
 }
 
-runnable *forIterInit(position pos, symbol it, exp *object) {
+runnable *forIterInit(position pos, symbol it, exp *iterExp) {
   // var it = object.operator iter();
   return new vardec(pos, new tyEntryTy(pos, primInferred()),
                     new decid(pos,
                               new decidstart(pos, it),
-                              new callExp(pos,
-                                          new fieldExp(pos,
-                                                       object,
-                                                       symbol::opTrans("iter")))
-                             ));
+                              iterExp));
 }
 
 exp *forArrayTest(position pos, symbol i, symbol a) {
@@ -421,31 +417,22 @@ extendedForStm::LoopType extendedForStm::transObjectDec(symbol a, coenv &e) {
   types::ty *t = start->trans(e, true);
   if (t->kind == types::ty_inferred) {
     // First ensure the array expression is an unambiguous array.
-    types::ty *at = set->cgetType(e);
-    if (at->kind == ty_array) {
+
+    types::ty *at = set->cgetType(e)->signatureless();
+    if (at && at->kind == ty_array) {
       // var a=set;
-      tyEntryTy tet(pos, primInferred());
+      tyEntryTy tet(pos, at);
       decid dec1(pos, new decidstart(pos, a), set);
       vardec(pos, &tet, &dec1).trans(e);
       return LoopType::ARRAY;
     }
-    if (at->kind == ty_record) {
-      return LoopType::ITERABLE;
-    }
     em.error(set->getPos());
     // TODO: Change the error message to account for the iterable case.
-    em << "expression is not an array of inferable type";
+    em << "expression is neither iterable nor an array of inferable type";
 
     // On failure, don't bother trying to translate the loop.
     return LoopType::ERROR;
 
-  }
-  // Is `set.operator iter()` a valid expression?
-  // TODO: Avoid forming this expression twice.
-  exp* iterExp=
-          new callExp(pos, new fieldExp(pos, set, symbol::opTrans("iter")));
-  if (!iterExp->getType(e)->isError()) {
-    return LoopType::ITERABLE;
   }
   // start[] a=set;
   arrayTy at(pos, start, new dimensions(pos));
@@ -469,7 +456,15 @@ void extendedForStm::trans(coenv &e) {
   symbol a=symbol::gensym("a");
   symbol i=symbol::gensym("i");
 
-  LoopType loopType = transObjectDec(a, e);
+  // Is `set.operator iter()` a valid expression?
+  exp* iterExp=
+          new callExp(pos, new fieldExp(pos, set, symbol::opTrans("iter")));
+  LoopType loopType;
+  if (!iterExp->cgetType(e)->isError()) {
+    loopType = LoopType::ITERABLE;
+  } else {
+    loopType = transObjectDec(a, e);
+  }
   // On failure, don't bother trying to translate the loop.
   if (loopType == LoopType::ERROR)
     return;
@@ -480,9 +475,6 @@ void extendedForStm::trans(coenv &e) {
             pos,
             new fieldExp(pos, new nameExp(pos, i), symbol::literalTrans("get"))
     );
-    // qualifiedName* iDotGet= new qualifiedName(
-    //         pos, new simpleName(pos, i), symbol::trans("get"));
-    // varInitExp = new callExp(pos, new nameExp(pos, iDotGet));
   } else {
     // start var=a[i];
     varInitExp = new subscriptExp(pos, new nameExp(pos, a),
@@ -490,9 +482,7 @@ void extendedForStm::trans(coenv &e) {
   }
   // { start var = <varInitExp>; body }
   block b(pos);
-  decid dec2(pos,
-             new decidstart(pos, var),
-             varInitExp);
+  decid dec2(pos, new decidstart(pos, var), varInitExp);
   b.add(new vardec(pos, start, &dec2));
   b.add(body);
 
@@ -508,7 +498,7 @@ void extendedForStm::trans(coenv &e) {
     // for (var i=set.operator iter(); i.valid(); i.advance())
     //   <block>
     forStm(pos,
-           forIterInit(pos, i, set),
+           forIterInit(pos, i, iterExp),
            forIterTest(pos, i),
            forIterUpdate(pos, i),
            new blockStm(pos, &b)).trans(e);

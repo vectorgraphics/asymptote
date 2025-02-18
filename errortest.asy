@@ -638,3 +638,21 @@
   }
   T.x;  // incorrectly accessing private field
 }
+{  // operator iter returns a non-iterable type
+  struct A {
+    int operator iter() { return 0; }
+  }
+  A a;
+  for (var i : a)
+    ;
+}
+{
+  // Implicitly cast a function to an array
+  using Function = int(int);
+  int[] operator cast(Function f) {
+    return sequence(f, 10);
+  }
+  int f(int i) { return i + 17; }
+  for (var i : f)  // This would work if we used `int` rather than `var`.
+    ;
+}
