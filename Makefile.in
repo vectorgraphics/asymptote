@@ -383,9 +383,11 @@ cleaner: FORCE clean
 	-rm -rf GUI/configs/__pycache__
 	-$(MAKE) -C $(GC) distclean
 	-$(MAKE) -C libatomic_ops distclean
-	-cd $(GC) && rm -rf libatomic_ops .deps cord/.deps cord/tests/.deps extra/.deps tests/.deps
+	-cd $(GC) && rm -rf libatomic_ops .deps cord/.deps \
+		cord/tests/.deps extra/.deps tests/.deps
 
-	-rm -f Makefile config.h config.log config.status errors.temp
+	-rm -f Makefile config.h config.log config.status \
+		errors.temp
 	-rm -rf LspCpp/CMakeCache.txt
 	cd doc && $(MAKE) clean
 	cd tests && $(MAKE) distclean
@@ -396,10 +398,10 @@ distclean: FORCE cleaner
 cleanest: FORCE maintainer-clean
 maintainer-clean: FORCE distclean
 	-rm -f configure config.h.in
-	-rm -f ltmain.sh compile missing depcomp test-driver
-	-cd $(GC) && -rm -rf ltmain.sh compile missing depcomp test-driver \
-		configure autom4te.cache m4/l*.m4
-	-cd libatomic_ops && rm -rf autom4te.cache configure m4/l*.m4
+	-cd $(GC) && rm -rf ltmain.sh missing \
+		test-driver configure autom4te.cache m4/l*.m4
+	-cd libatomic_ops && rm -rf ltmain.sh missing \
+		test-driver configure autom4te.cache m4/l*.m4
 	-cd GUI && $(PYTHON) buildtool.py clean
 	-rm -rf autom4te.cache $(DIST)
 	-rm -rf vcpkg_installed
