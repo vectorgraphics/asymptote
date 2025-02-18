@@ -1,5 +1,7 @@
 # @configure_input@
 
+SILENT_MAKE = @
+
 ARCH = unix
 POLL = poll
 
@@ -138,19 +140,19 @@ asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o @LSPLIB@ @GLEW@
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
 $(XNAME): $(PYFILES)
-	@ln -sf GUI/xasy.py $(XNAME)
+	$(SILENT_MAKE)ln -sf GUI/xasy.py $(XNAME)
 
 version.txt: FORCE
-	@if test ! -s $@ || test "$(revision)" != "$(last)"; then \
+	$(SILENT_MAKE)if test ! -s $@ || test "$(revision)" != "$(last)"; then \
 		echo "$(revision)" > $@; \
 	fi
 
-	@if test ! -e base/webgl/asygl.js; then \
+	$(SILENT_MAKE)if test ! -e base/webgl/asygl.js; then \
 	  cp base/webgl/asygl-$(ASYGLVERSION).js base/webgl/asygl.js; \
 	fi
 
 GUI/xasyversion: version.txt GUI/buildtool.py
-	-@cd GUI && $(PYTHON) buildtool.py buildversionmodule --version-override="$(shell cat $<)"
+	-$(SILENT_MAKE)cd GUI && $(PYTHON) buildtool.py buildversionmodule --version-override="$(shell cat $<)"
 
 revision.cc: version.txt
 	echo $(REVISION)\"$(shell cat $<)\"\; > $@
@@ -212,13 +214,13 @@ GEN_PREPROCESSED_DEPFILE_BASE_ARGS = \
 
 $(SYMBOL_FILES:=.raw.i): %.raw.i: %.cc gen_preprocessed_depfile.py
 	@echo Generating $@ from $<
-	@$(GEN_PREPROCESSED_DEPFILE_BASE_ARGS) \
+	$(SILENT_MAKE)$(GEN_PREPROCESSED_DEPFILE_BASE_ARGS) \
 		--out-i-file=$@ \
 		--in-src-file=$<
 
 $(SYMBOL_FILES:=.d): %.d: %.cc gen_preprocessed_depfile.py
 	@echo Generating $@ from $<
-	@$(GEN_PREPROCESSED_DEPFILE_BASE_ARGS) \
+	$(SILENT_MAKE)$(GEN_PREPROCESSED_DEPFILE_BASE_ARGS) \
 		--out-dep-file=$@ \
 		--dep-file-only \
 		--out-i-file=$*.raw.i \
@@ -247,8 +249,8 @@ camp.tab.cc: camp.y
 	$(BISON) -t --header=camp.tab.h -o $@ $<
 
 camp.tab.h: camp.tab.cc
-	@test -f $@ || rm -f $<
-	@test -f $@ || $(MAKE) $(AM_MAKEFLAGS) $<
+	$(SILENT_MAKE)test -f $@ || rm -f $<
+	$(SILENT_MAKE)test -f $@ || $(MAKE) $(AM_MAKEFLAGS) $<
 
 lex.yy.cc: camp.l
 	$(LEX) -d -olex.yy.cc camp.l
