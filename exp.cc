@@ -430,6 +430,9 @@ void subscriptExp::transWrite(coenv &e, types::ty *t, exp *value)
       return;
     }
     // Evaluate them to control the order in which side effects occur.
+    // We need value evaluated because we use it twice. We need the other two
+    // because any side effects from their translation should occur before the
+    // side effects from translating value.
     exp *objectEvaluated = object->evaluate(e, objectType);
     exp *indexEvaluated = index->evaluate(e, indexType);
     exp *valueEvaluated = value->evaluate(e, t);

@@ -51,6 +51,7 @@ mem::pair<ty*, ty*> computeKVTypes(trans::venv& ve, const position& pos)
 {
   mem::pair<ty*, ty*> errorPair(primError(), primError());
 
+  // TODO: Make the lookup more efficient. (See DEFSYMBOL in camp.l.)
   ty* getTy= ve.getType(symbol::trans("[]"));
   ty* setTy= ve.getType(symbol::trans("[=]"));
   if (getTy == nullptr) {
@@ -121,8 +122,7 @@ mem::pair<ty*, ty*> computeKVTypes(trans::venv& ve, const position& pos)
     if (!valTy->equiv(setValTy) || !setValTy->equiv(valTy)) {
       em.error(pos);
       em << "return type of operator[] and second parameter of operator[=] "
-            "must "
-            "match";
+            "must match";
       return errorPair;
     }
   }
