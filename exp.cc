@@ -348,23 +348,23 @@ void subscriptExp::prettyprint(ostream &out, Int indent)
 }
 
 callExp *buildSubscriptReadCall(exp *object, exp *index) {
-
-    // Convert object[index] into
-    // object.operator[](index)
-    position pos = object->getPos();
-    return new callExp(
-            pos, new fieldExp(pos, object, symbol::trans("[]")), index
-    );
+  // Convert object[index] into
+  // object.operator[](index)
+  const static symbol SYM_BRACKETS = symbol::trans("[]");
+  position pos = object->getPos();
+  return new callExp(
+          pos, new fieldExp(pos, object, SYM_BRACKETS), index
+  );
 }
 
 callExp *buildSubscriptWriteCall(exp *object, exp *index, exp *value) {
-
-    // Convert object[index] = value into
-    // object.operator[=](index, value)
-    position pos = object->getPos();
-    return new callExp(
-            pos, new fieldExp(pos, object, symbol::trans("[=]")), index, value
-    );
+  // Convert object[index] = value into
+  // object.operator[=](index, value)
+  const static symbol SYM_BRACKETS_ASSIGN = symbol::trans("[=]");
+  position pos = object->getPos();
+  return new callExp(
+          pos, new fieldExp(pos, object, SYM_BRACKETS_ASSIGN), index, value
+  );
 }
 
 types::ty *subscriptExp::trans(coenv &e)

@@ -52,8 +52,10 @@ mem::pair<ty*, ty*> computeKVTypes(trans::venv& ve, const position& pos)
   mem::pair<ty*, ty*> errorPair(primError(), primError());
 
   // TODO: Make the lookup more efficient. (See DEFSYMBOL in camp.l.)
-  ty* getTy= ve.getType(symbol::trans("[]"));
-  ty* setTy= ve.getType(symbol::trans("[=]"));
+  const symbol SYM_BRACKETS= symbol::trans("[]");
+  const symbol SYM_BRACKETS_ASSIGN= symbol::trans("[=]");
+  ty* getTy= ve.getType(SYM_BRACKETS);
+  ty* setTy= ve.getType(SYM_BRACKETS_ASSIGN);
   if (getTy == nullptr) {
     if (setTy != nullptr) {
       em.error(pos);
