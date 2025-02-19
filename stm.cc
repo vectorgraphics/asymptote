@@ -418,7 +418,8 @@ extendedForStm::LoopType extendedForStm::transObjectDec(symbol a, coenv &e) {
   if (t->kind == types::ty_inferred) {
     // First ensure the array expression is an unambiguous array.
 
-    types::ty *at = set->cgetType(e)->signatureless();
+    types::ty *atOriginal = set->cgetType(e);
+    types::ty *at = atOriginal->signatureless();
     if (at && at->kind == ty_array) {
       // var a=set;
       tyEntryTy tet(pos, at);
@@ -428,7 +429,11 @@ extendedForStm::LoopType extendedForStm::transObjectDec(symbol a, coenv &e) {
     }
     em.error(set->getPos());
     // TODO: Change the error message to account for the iterable case.
-    em << "expression is neither iterable nor an array of inferable type";
+    if (atOriginal->isOverloaded()) {
+      em << "cannot resolve type for iteration";
+    } else {
+      em << "cannot iterate over expression of type '" << *atOriginal << "'";
+    }
 
     // On failure, don't bother trying to translate the loop.
     return LoopType::ERROR;
