@@ -428,7 +428,6 @@ extendedForStm::LoopType extendedForStm::transObjectDec(symbol a, coenv &e) {
       return LoopType::ARRAY;
     }
     em.error(set->getPos());
-    // TODO: Change the error message to account for the iterable case.
     if (atOriginal->isOverloaded()) {
       em << "cannot resolve type for iteration";
     } else {
