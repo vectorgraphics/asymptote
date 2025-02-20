@@ -47,8 +47,11 @@ trans::access *record::initializer() {
   return &a;
 }
 
-mem::pair<ty*, ty*> computeKVTypes(trans::venv& ve, const position& pos)
+mem::pair<ty*, ty*> computeKVTypes(
+        trans::venv& ve, const position& pos, ErrorMode tacit= ErrorMode::NORMAL
+)
 {
+  auto modeGuard = em.modeGuard(tacit);
   mem::pair<ty*, ty*> errorPair(primError(), primError());
 
   // TODO: Make the lookup more efficient. (See DEFSYMBOL in camp.l.)
@@ -141,16 +144,14 @@ ty *record::keyType() {
   if (kType != nullptr) {
     return kType;
   }
-  // TODO: Use an actual position.
-  return types::computeKVTypes(e.ve, nullPos).first;
+  return types::computeKVTypes(e.ve, nullPos, ErrorMode::SUPPRESS).first;
 }
 
 ty *record::valType() {
   if (vType != nullptr) {
     return vType;
   }
-  // TODO: Use an actual position.
-  return types::computeKVTypes(e.ve, nullPos).second;
+  return types::computeKVTypes(e.ve, nullPos, ErrorMode::SUPPRESS).second;
 }
 
 dummyRecord::dummyRecord(symbol name)
