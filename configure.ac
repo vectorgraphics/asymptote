@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ([2.71])
-AC_INIT([Asymptote],[2.96git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_INIT([Asymptote],[2.97git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -27,7 +27,7 @@ AC_ARG_ENABLE(lsp,
 [AS_HELP_STRING(--enable-lsp[[[=yes]]],enable Language Server Protocol)])
 cxxstd="c++17"
 
-test "$CXXFLAGS" || CXXFLAGS="-std=$cxxstd"
+CXXFLAGS=$CXXFLAGS" -std=$cxxstd"
 
 test "$CFLAGS" || CFLAGS="-g -O3"
 
@@ -676,9 +676,7 @@ case "$OSTYPE" in
                              DEFINE_LIB([GL]))
                              LIBS=$LIBS"-lGL "
                              GLEW="glew.o "
-                             INCL=$INCL" -Ibackports/glew/include"
-                             AC_CHECK_LIB([GLX],[glXGetProcAddressARB],
-                             GLEW=$GLEW"-lGLX ")],
+                             INCL=$INCL" -Ibackports/glew/include"],
                                    AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
 esac
    if test "x$enable_offscreen" = "xyes"; then

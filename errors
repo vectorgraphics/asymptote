@@ -151,53 +151,62 @@ errortest.asy: 438.17: cannot cast 'int' to 'var'
 errortest.asy: 442.7: could not infer type of initializer
 errortest.asy: 446.7: could not infer type of initializer
 errortest.asy: 448.7: could not infer type of initializer
-errortest.asy: 452.16: expression is not an array of inferable type
-errortest.asy: 457.16: expression is not an array of inferable type
-errortest.asy: 463.16: expression is not an array of inferable type
+errortest.asy: 452.16: cannot iterate over expression of type 'int'
+errortest.asy: 457.16: cannot resolve type for iteration
 errortest.asy: 470.7: array expression cannot be used as an address
-errortest.asy: 518.29: expected 'as'
-errortest.asy: 519.30: expected 'as'
-errortest.asy: 520.23: expected typename=
-errortest.asy: 521.3: Parametrized imports disallowed to reduce naming conflicts. Try 'access <module>(<type parameters>) as <newname>;'.
-errortest.asy: 524.3: 'typedef import(<types>)' must precede any other code
-errortest.asy: 525.3: Expected 'typedef import(<types>);'
-errortest.asy: 529.28: too few types passed: got 2, expected 3
-errortest.asy: 529.3: could not load module 'errortestTemplate'
-errortest.asy: 531.45: template argument name does not match module: passed T, expected C
-errortest.asy: 531.3: could not load module 'errortestTemplate'
-errortest.asy: 533.35: template argument name does not match module: passed C, expected B
-errortest.asy: 533.3: could not load module 'errortestTemplate'
-errortestTemplate.asy: 5.1: 'typedef import(<types>)' must precede any other code
-errortest.asy: 541.5: too many static modifiers
-errortest.asy: 544.5: too many autounravel modifiers
-errortest.asy: 545.5: too many autounravel modifiers
-errortest.asy: 546.5: too many static modifiers
-errortest.asy: 547.17: types cannot be autounraveled
-errortest.asy: 551.3: top-level fields cannot be autounraveled
-errortest.asy: 556.21: cannot shadow autounravel qaz
-errortest.asy: 564.22: cannot shadow autounravel alias
-errortest.asy: 573.27: non-statically nested types cannot be used in templates
-errortest.asy: 576.26: non-statically nested types cannot be used in templates
-errortest.asy: 577.26: non-statically nested types cannot be used in templates
-errortest.asy: 582.32: template argument name does not match module: passed B, expected A
-errortest.asy: 582.3: could not load module 'errorFreeTestTemplate'
-errortest.asy: 584.32: template argument name does not match module: passed C, expected A
-errortest.asy: 584.3: could not load module 'errorFreeTestTemplate'
-errortest.asy: 586.39: template argument name does not match module: passed D, expected B
-errortest.asy: 586.3: could not load module 'errorFreeTestTemplate'
-errortest.asy: 588.32: template argument name does not match module: passed C, expected A
-errortest.asy: 588.3: could not load module 'errorFreeTestTemplate'
-errortest.asy: 590.32: too few types passed: got 1, expected 2
-errortest.asy: 590.3: could not load module 'errorFreeTestTemplate'
-errortest.asy: 592.32: too many types passed: got 3, expected 2
-errortest.asy: 592.3: could not load module 'errorFreeTestTemplate'
-errortest.asy: 607.4: accessing private field outside of structure
-errortest.asy: 608.9: accessing private field outside of structure
-errortest.asy: 609.4: accessing private field outside of structure
-errortest.asy: 610.4: accessing private field outside of structure
-errortest.asy: 614.4: accessing private field outside of structure
-errortest.asy: 615.9: accessing private field outside of structure
-errortest.asy: 616.4: accessing private field outside of structure
-errortest.asy: 617.4: accessing private field outside of structure
+errortest.asy: 519.29: expected 'as'
+errortest.asy: 521.30: expected 'as'
+errortest.asy: 523.23: expected typename=
+errortest.asy: 525.3: Parametrized imports disallowed to reduce naming conflicts. Try 'access <module>(<type parameters>) as <newname>;'.
+errortestNonTemplate.asy: 1.1: expected 'typedef import(<types>);'
+errortest.asy: 527.3: could not load module 'errortestNonTemplate'
+errortest.asy: 530.3: unexpected 'typedef import'
+errortest.asy: 531.3: Expected 'typedef import(<types>);'
+errortest.asy: 535.34: too few types passed: got 2, expected 3
+errortest.asy: 535.3: could not load module 'errortestBrokenTemplate'
+errortest.asy: 537.51: template argument name does not match module: passed T, expected C
+errortest.asy: 537.3: could not load module 'errortestBrokenTemplate'
+errortest.asy: 539.41: template argument name does not match module: passed C, expected B
+errortest.asy: 539.3: could not load module 'errortestBrokenTemplate'
+errortestBrokenTemplate.asy: 5.1: unexpected 'typedef import'
+errortestBrokenTemplate.asy: 1.1: templated module access requires template parameters
+errortest.asy: 549.5: too many static modifiers
+errortest.asy: 552.5: too many autounravel modifiers
+errortest.asy: 553.5: too many autounravel modifiers
+errortest.asy: 554.5: too many static modifiers
+errortest.asy: 555.17: types cannot be autounraveled
+errortest.asy: 559.3: top-level fields cannot be autounraveled
+errortest.asy: 564.21: cannot shadow autounravel qaz
+errortest.asy: 572.22: cannot shadow autounravel alias
+errortest.asy: 581.27: non-statically nested types cannot be used in templates
+errortest.asy: 584.26: non-statically nested types cannot be used in templates
+errortest.asy: 585.26: non-statically nested types cannot be used in templates
+errortest.asy: 591.28: template argument name does not match module: passed B, expected A
+errortest.asy: 591.3: could not load module 'errortestTemplate'
+errortest.asy: 593.28: template argument name does not match module: passed C, expected A
+errortest.asy: 593.3: could not load module 'errortestTemplate'
+errortest.asy: 595.35: template argument name does not match module: passed D, expected B
+errortest.asy: 595.3: could not load module 'errortestTemplate'
+errortest.asy: 597.28: template argument name does not match module: passed C, expected A
+errortest.asy: 597.3: could not load module 'errortestTemplate'
+errortest.asy: 599.28: too few types passed: got 1, expected 2
+errortest.asy: 599.3: could not load module 'errortestTemplate'
+errortest.asy: 601.28: too many types passed: got 3, expected 2
+errortest.asy: 601.3: could not load module 'errortestTemplate'
+errortestTemplate.asy: 1.1: unexpected 'typedef import'
+errortest.asy: 618.4: accessing private field outside of structure
+errortest.asy: 619.9: accessing private field outside of structure
+errortest.asy: 620.4: accessing private field outside of structure
+errortest.asy: 621.4: accessing private field outside of structure
+errortest.asy: 625.4: accessing private field outside of structure
+errortest.asy: 626.9: accessing private field outside of structure
+errortest.asy: 627.4: accessing private field outside of structure
 errortest.asy: 628.4: accessing private field outside of structure
-errortest.asy: 631.3: multiple operator[] definitions in one struct
+errortest.asy: 639.4: accessing private field outside of structure
+errortest.asy: 643.3: multiple operator[] definitions in one struct
+errortest.asy: 650.3: operator[=] defined without operator[]
+errortest.asy: 656.3: operator[=] must return void
+errortest.asy: 667.3: no matching variable '<exp>.valid'
+errortest.asy: 667.3: no matching variable '<exp>.get'
+errortest.asy: 667.3: no matching variable '<exp>.advance'
+errortest.asy: 677.16: cannot iterate over expression of type 'int(int i)'

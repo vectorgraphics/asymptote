@@ -6334,7 +6334,7 @@ Imported global functions and variables are also listed if
 @strong{Warning:} This feature is experimental: it has known issues and its behavior may change in the future.
 
 In Asymptote
-types specified when they are imported. The first executable line of any such
+types are specified when they are imported. The first executable line of any such
 module must be of the form @code{typedef import(<types>)}, where
 @code{<types>} is a list of required type parameters. For instance,
 @verbatim

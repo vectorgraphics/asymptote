@@ -1,0 +1,22 @@
+name: pull-req-precheck
+on:
+  pull_request:
+    branches:
+      - "master"
+      - "main"
+
+jobs:
+  check-cpp-format:
+    uses: ./.github/workflows/check-format-cpp.yaml
+  build-lsp-linux:
+    uses: ./.github/workflows/build-lsp-linux.yaml
+  build-lsp-windows:
+    uses: ./.github/workflows/build-lsp-windows.yaml
+  lsp-precheck-pass:
+    runs-on: "ubuntu-22.04"
+    needs:
+      - check-cpp-format
+      - build-lsp-linux
+      - build-lsp-windows
+    steps:
+      - run: echo All prechecks pass!

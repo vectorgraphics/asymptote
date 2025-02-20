@@ -190,20 +190,6 @@ trans::varEntry *primitiveTy::virtualField(symbol id, signature *sig)
   return 0;
 }
 
-ty *overloadedDimensionType() {
-  overloaded *o=new overloaded;
-  o->add(dimensionType());
-  o->add(IntArray());
-  return o;
-}
-
-ty *overloadedModeType() {
-  overloaded *o=new overloaded;
-  o->add(modeType());
-  o->add(primBoolean());
-  return o;
-}
-
 ty *ty::keyType() {
   return primError();
 }
@@ -224,12 +210,12 @@ ty *primitiveTy::virtualFieldGetType(symbol id)
 
   if(kind == ty_file) {
     if (id == SYM(dimension))
-      return overloadedDimensionType();
+      return dimensionType();
 
     if (id == SYM(line) || id == SYM(csv) ||
         id == SYM(word) || id == SYM(singlereal) ||
         id == SYM(singleint) || id == SYM(signedint))
-      return overloadedModeType();
+      return modeType();
 
     if (id == SYM(read))
       return readType();

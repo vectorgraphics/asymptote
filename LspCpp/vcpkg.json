@@ -1,0 +1,27 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "lspcpp",
+  "builtin-baseline": "5e5d0e1cd7785623065e77eff011afdeec1a3574",
+  "version": "0.0-snapshot",
+  "dependencies": [
+    "rapidjson",
+    "boost-asio",
+    "boost-beast",
+    "boost-date-time",
+    "boost-chrono",
+    "boost-filesystem",
+    "boost-system",
+    "boost-uuid",
+    "boost-thread",
+    "boost-process",
+    "boost-program-options"
+  ],
+  "features": {
+    "bdwgc": {
+      "description": "Build with bdwgc support",
+      "dependencies": [
+        "bdwgc"
+      ]
+    }
+  }
+}

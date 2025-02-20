@@ -336,9 +336,12 @@ record *block::transAsFile(genv& ge, symbol id)
   // or imported without template arguments, further translation is
   // likely futile.
   if (getTypedefDec() != nullptr) {
-    em << "templated module access requires template parameters";
-    em.error(getPos());
-    return nullptr;
+    if(!settings::getSetting<bool>("listvariables")) {
+      em.error(getPos());
+      em << "templated module access requires template parameters";
+      em.sync();
+    }
+    return r;
   }
 
   // Translate the abstract syntax.
@@ -415,14 +418,7 @@ vardec *block::asVardec()
   return var;
 }
 
-void block::createSymMap(AsymptoteLsp::SymbolContext* symContext) {
-#ifdef HAVE_LSP
-  for (auto const& p : stms)
-  {
-    p->createSymMap(symContext);
-  }
-#endif
-}
+
 
 void dec::prettyprint(ostream &out, Int indent)
 {
@@ -596,56 +592,7 @@ void decidstart::addOps(types::ty *base, coenv &e, record *r)
   }
 }
 
-void decidstart::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{
-#ifdef HAVE_LSP
-  std::string name(static_cast<std::string>(getName()));
-  AsymptoteLsp::posInFile pos(getPos().LineColumn());
-  if (auto decCtx=dynamic_cast<AsymptoteLsp::AddDeclContexts*>(symContext))
-  {
-    decCtx->additionalDecs.emplace(std::piecewise_construct,
-            std::forward_as_tuple(name), std::forward_as_tuple(name, pos));
-  }
-  else
-  {
-    symContext->symMap.varDec[name] = AsymptoteLsp::SymbolInfo(name, pos);
-  }
-#endif
-}
 
-void decidstart::createSymMapWType(
-    AsymptoteLsp::SymbolContext* symContext, absyntax::astType* base
-) {
-#ifdef HAVE_LSP
-  std::string name(static_cast<std::string>(getName()));
-  AsymptoteLsp::posInFile pos(getPos().LineColumn());
-  if (auto decCtx=dynamic_cast<AsymptoteLsp::AddDeclContexts*>(symContext))
-  {
-    if (base == nullptr)
-    {
-      decCtx->additionalDecs.emplace(std::piecewise_construct,
-                                     std::forward_as_tuple(name),
-                                     std::forward_as_tuple(name, pos));
-    }
-    else
-    {
-      decCtx->additionalDecs.emplace(
-          std::piecewise_construct,
-          std::forward_as_tuple(name),
-          std::forward_as_tuple(name, static_cast<std::string>(*base), pos)
-      );
-    }
-  }
-  else
-  {
-    symContext->symMap.varDec[name] = base == nullptr ?
-            AsymptoteLsp::SymbolInfo(name, pos) :
-            AsymptoteLsp::SymbolInfo(name,
-                                     static_cast<std::string>(*base),
-                                     pos);
-  }
-#endif
-}
 
 
   void fundecidstart::prettyprint(ostream &out, Int indent)
@@ -847,28 +794,7 @@ void decid::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
   addTypeWithPermission(e, r, ent, start->getName());
 }
 
-void decid::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{
-#ifdef HAVE_LSP
-  start->createSymMap(symContext);
-  if (init)
-  {
-    init->createSymMap(symContext);
-  }
-#endif
-}
 
-void decid::createSymMapWType(
-    AsymptoteLsp::SymbolContext* symContext, absyntax::astType* base
-) {
-#ifdef HAVE_LSP
-  start->createSymMapWType(symContext, base);
-  if (init)
-  {
-    init->createSymMap(symContext);
-  }
-#endif
-}
 
 
 void decidlist::prettyprint(ostream &out, Int indent)
@@ -889,26 +815,6 @@ void decidlist::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
 {
   for (list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
     (*p)->transAsTypedefField(e, base, r);
-}
-
-void decidlist::createSymMap(AsymptoteLsp::SymbolContext* symContext) {
-#ifdef HAVE_LSP
-  for (auto const& p : decs)
-  {
-    p->createSymMap(symContext);
-  }
-#endif
-}
-
-void decidlist::createSymMapWType(
-    AsymptoteLsp::SymbolContext* symContext, absyntax::astType* base
-) {
-#ifdef HAVE_LSP
-  for (auto const& p : decs)
-  {
-    p->createSymMapWType(symContext, base);
-  }
-#endif
 }
 
 
@@ -942,12 +848,7 @@ types::ty *vardec::singleGetType(coenv &e)
   return did->getStart()->getType(base->trans(e), e);
 }
 
-void vardec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{
-#ifdef HAVE_LSP
-  decs->createSymMapWType(symContext, base);
-#endif
-}
+
 
 
 // Helper class for imports.  This essentially evaluates to the run::loadModule
@@ -994,11 +895,14 @@ public:
 varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
 {
   string filename=(string) id;
+  bool tainted=settings::debug && em.errors();
   record *imp=e.e.getModule(id, filename);
   if (!imp) {
-    em.error(pos);
-    em << "could not load module '" << filename << "'";
-    em.sync(true);
+    if(!tainted) {
+      em.error(pos);
+      em << "could not load module '" << filename << "'";
+      em.sync(true);
+    }
     return 0;
   }
   else {
@@ -1141,36 +1045,6 @@ tyEntry *idpair::transAsUnravel(coenv &e, record *r,
   return added->typeAdded;
 }
 
-void idpair::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{
-#ifdef HAVE_LSP
-  if (valid)
-  {
-    string fullSrc(settings::locateFile(src, true));
-    if (not AsymptoteLsp::isVirtualFile((std::string)(fullSrc.c_str())))
-    {
-      if (not fullSrc.empty())
-      {
-        symContext->addEmptyExtRef((std::string)(fullSrc.c_str()));
-      }
-
-      // add (dest, source) to reference map.
-      auto s = symContext->extRefs.fileIdPair.emplace(
-          dest, (std::string) fullSrc.c_str()
-      );
-      auto it=std::get<0>(s);
-      auto success=std::get<1>(s);
-      if (not success)
-      {
-        it->second = (std::string)(fullSrc.c_str());
-      }
-
-      symContext->extRefs.addAccessVal(static_cast<std::string>(dest));
-    }
-  }
-#endif
-}
-
 
 void idpairlist::prettyprint(ostream &out, Int indent)
 {
@@ -1200,29 +1074,12 @@ mem::vector<tyEntry*> idpairlist::transAsUnravel(
   return result;
 }
 
-void idpairlist::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{
-#ifdef HAVE_LSP
-  for (auto& idp : base)
-  {
-    idp->createSymMap(symContext);
-  }
-#endif
-}
-
-  idpairlist * const WILDCARD = 0;
+idpairlist * const WILDCARD = 0;
 
 void accessdec::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "accessdec", indent, getPos());
   base->prettyprint(out, indent+1);
-}
-
-void accessdec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{
-#ifdef HAVE_LSP
-  base->createSymMap(symContext);
-#endif
 }
 
 void templateAccessDec::transAsField(coenv& e, record* r) {
@@ -1398,8 +1255,8 @@ bool receiveTypedefDec::transAsParamMatcher(
 
 void receiveTypedefDec::transAsField(coenv& e, record *r) {
   em.error(getPos());
-  em << "'typedef import(<types>)' must precede any other code";
-  em.sync(true);
+  em << "unexpected 'typedef import'";
+  em.sync();
 }
 
 
@@ -1453,17 +1310,6 @@ fromdec::qualifier unraveldec::getQualifier(coenv &e, record *)
   return qualifier(qt,id->getVarEntry(e));
 }
 
-void unraveldec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{
-#ifdef HAVE_LSP
-  std::string fileName = static_cast<std::string>(id->getName());
-  if (not AsymptoteLsp::isVirtualFile(fileName))
-  {
-    symContext->extRefs.addUnravelVal(fileName);
-  }
-#endif
-}
-
 void fromaccessdec::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
@@ -1492,27 +1338,7 @@ fromdec::qualifier fromaccessdec::getQualifier(coenv &e, record *r)
     return qualifier(0,0);
 }
 
-void fromaccessdec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{
-#ifdef HAVE_LSP
-  // filename is id;
-  std::string idStr(id);
-  symContext->extRefs.addEmptyExtRef(idStr);
 
-  auto* f=this->fields;
-  if (f)
-  {
-    // add [dest] -> [src, filename] to fromAccessDecls;
-    f->processListFn(
-            [&symContext, &idStr](symbol const& src, symbol const& dest)
-            {
-              std::string srcId(src);
-              std::string destId(dest);
-              symContext->extRefs.addFromAccessVal(idStr, srcId, destId);
-            });
-  }
-#endif
-}
 
 void importdec::prettyprint(ostream &out, Int indent)
 {
@@ -1520,12 +1346,7 @@ void importdec::prettyprint(ostream &out, Int indent)
   base.prettyprint(out, indent+1);
 }
 
-void importdec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{
-#ifdef HAVE_LSP
-  base.createSymMap(symContext);
-#endif
-}
+
 
 void includedec::prettyprint(ostream &out, Int indent)
 {
@@ -1550,19 +1371,7 @@ void includedec::transAsField(coenv &e, record *r)
   ast->transAsField(e, r);
 }
 
-void includedec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{
-#ifdef HAVE_LSP
-  std::string fullname(
-      (std::string) settings::locateFile(filename, true).c_str()
-  );
-  if (not AsymptoteLsp::isVirtualFile(fullname))
-  {
-    symContext->addEmptyExtRef(fullname);
-    symContext->extRefs.includeVals.emplace(fullname);
-  }
-#endif
-}
+
 
 
 void typedec::prettyprint(ostream &out, Int indent)
@@ -1646,24 +1455,6 @@ void recorddec::transAsField(coenv &e, record *parent)
   // "operator init", as well as the autounravel fields (both builtin and user
   // defined).
   addPostRecordEnvironment(e, r, parent);
-}
-
-void recorddec::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{
-#ifdef HAVE_LSP
-  auto* newCtx = symContext->newContext(getPos().LineColumn());
-  auto* structTyInfo = symContext->newTypeDec<AsymptoteLsp::StructDecs>(
-          static_cast<std::string>(id), getPos().LineColumn());
-  if (structTyInfo != nullptr)
-  {
-    structTyInfo->ctx = newCtx;
-    body->createSymMap(newCtx);
-  }
-  else
-  {
-    cerr << "Cannot create new struct context" << endl;
-  }
-#endif
 }
 
 runnable *autoplainRunnable() {

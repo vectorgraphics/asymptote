@@ -1,1 +1,0 @@
-typedef import(A, B);

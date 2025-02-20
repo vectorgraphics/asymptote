@@ -42,12 +42,7 @@ void blockStm::prettyprint(ostream &out, Int indent)
   base->prettyprint(out, indent+1);
 }
 
-void blockStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{
-#ifdef HAVE_LSP
-  base->createSymMap(symContext->newContext(getPos().LineColumn()));
-#endif
-}
+
 
 void expStm::prettyprint(ostream &out, Int indent)
 {
@@ -176,11 +171,6 @@ void expStm::interactiveTrans(coenv &e)
     baseExpTrans(e, body);
 }
 
-void expStm::createSymMap(AsymptoteLsp::SymbolContext* symContext) {
-#ifdef HAVE_LSP
-  body->createSymMap(symContext);
-#endif
-}
 
 
 void ifStm::prettyprint(ostream &out, Int indent)
@@ -216,18 +206,6 @@ void ifStm::trans(coenv &e)
   e.c.defLabel(end);
 }
 
-  void ifStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-  {
-#ifdef HAVE_LSP
-    test->createSymMap(symContext);
-    onTrue->createSymMap(symContext);
-
-    if (onFalse)
-    {
-      onFalse->createSymMap(symContext);
-    }
-#endif
-  }
 
 
 void transLoopBody(coenv &e, stm *body) {
@@ -298,24 +276,6 @@ void whileStm::trans(coenv &e)
   e.c.popLoop();
 }
 
-void whileStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{
-#ifdef HAVE_LSP
-  // while (<xyz>) { <body> }
-  // the <xyz> part belongs in the main context as the while statement,
-  // as it cannot declare new variables and only knows the symbols from that context.
-
-  test->createSymMap(symContext);
-
-  // for the body part, { <body> } are encapsulated in
-  // the blockStm, while <body> are direct statements.
-  // If the while block does not use { <body> }, then the body
-  // can be considered the same context as it cannot declare new variables and again, can
-  // only uses the variable already known before this while statement.
-
-  body->createSymMap(symContext);
-#endif
-}
 
 
   void doStm::prettyprint(ostream &out, Int indent)
@@ -344,15 +304,6 @@ void doStm::trans(coenv &e)
 
   e.c.popLoop();
 }
-
-void doStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{
-#ifdef HAVE_LSP
-  body->createSymMap(symContext);
-  test->createSymMap(symContext);
-#endif
-}
-
 
 void forStm::prettyprint(ostream &out, Int indent)
 {
@@ -395,27 +346,7 @@ void forStm::trans(coenv &e)
   e.e.endScope();
 }
 
-void forStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{
-#ifdef HAVE_LSP
-  AsymptoteLsp::SymbolContext* ctx(symContext);
-  if (init)
-  {
-    auto* declCtx(symContext->newContext(getPos().LineColumn()));
-    init->createSymMap(declCtx);
-    ctx = declCtx;
-  }
-  if (test)
-  {
-    test->createSymMap(ctx);
-  }
-  if (update)
-  {
-    update->createSymMap(ctx);
-  }
-  body->createSymMap(ctx);
-#endif
-}
+
 
 void extendedForStm::prettyprint(ostream &out, Int indent)
 {
@@ -425,6 +356,94 @@ void extendedForStm::prettyprint(ostream &out, Int indent)
   start->prettyprint(out, indent+1);
   set->prettyprint(out, indent+1);
   body->prettyprint(out, indent+1);
+}
+
+runnable *forArrayInit(position pos, symbol i) {
+  // int i = 0;
+  return new vardec(pos, new tyEntryTy(pos, primInt()),
+                    new decid(pos,
+                              new decidstart(pos, i),
+                              new intExp(pos, 0)));
+}
+
+runnable *forIterInit(position pos, symbol it, exp *iterExp) {
+  // var it = object.operator iter();
+  return new vardec(pos, new tyEntryTy(pos, primInferred()),
+                    new decid(pos,
+                              new decidstart(pos, it),
+                              iterExp));
+}
+
+exp *forArrayTest(position pos, symbol i, symbol a) {
+  // i < a.length;
+  return new binaryExp(pos,
+                       new nameExp(pos, i),
+                       SYM_LT,
+                       new nameExp(pos,
+                                   new qualifiedName(pos,
+                                                     new simpleName(pos, a),
+                                                     symbol::trans("length"))));
+}
+
+exp* forIterTest(position pos, symbol it)
+{
+  // it.valid();
+  return new callExp(
+          pos,
+          new fieldExp(pos, new nameExp(pos, it), symbol::literalTrans("valid"))
+  );
+}
+
+runnable *forArrayUpdate(position pos, symbol i) {
+  // ++i;
+  return new expStm(pos, new prefixExp(pos, new nameExp(pos, i), SYM_PLUS));
+}
+
+runnable* forIterUpdate(position pos, symbol it)
+{
+  // it.advance();
+  return new expStm(
+          pos, new callExp(
+                       pos, new fieldExp(
+                                    pos, new nameExp(pos, it),
+                                    symbol::literalTrans("advance")
+                            )
+               )
+  );
+}
+
+extendedForStm::LoopType extendedForStm::transObjectDec(symbol a, coenv &e) {
+  // Get the start type.  Handle type inference as a special case.
+  types::ty *t = start->trans(e, ErrorMode::SUPPRESS);
+  if (t->kind == types::ty_inferred) {
+    // First ensure the array expression is an unambiguous array.
+
+    types::ty *atOriginal = set->cgetType(e);
+    types::ty *at = atOriginal->signatureless();
+    if (at && at->kind == ty_array) {
+      // var a=set;
+      tyEntryTy tet(pos, at);
+      decid dec1(pos, new decidstart(pos, a), set);
+      vardec(pos, &tet, &dec1).trans(e);
+      return LoopType::ARRAY;
+    }
+    em.error(set->getPos());
+    // TODO: Change the error message to account for the iterable case.
+    if (atOriginal->isOverloaded()) {
+      em << "cannot resolve type for iteration";
+    } else {
+      em << "cannot iterate over expression of type '" << *atOriginal << "'";
+    }
+
+    // On failure, don't bother trying to translate the loop.
+    return LoopType::ERROR;
+
+  }
+  // start[] a=set;
+  arrayTy at(pos, start, new dimensions(pos));
+  decid dec1(pos, new decidstart(pos, a), set);
+  vardec(pos, &at, &dec1).trans(e);
+  return LoopType::ARRAY;
 }
 
 void extendedForStm::trans(coenv &e) {
@@ -442,79 +461,56 @@ void extendedForStm::trans(coenv &e) {
   symbol a=symbol::gensym("a");
   symbol i=symbol::gensym("i");
 
-  // Get the start type.  Handle type inference as a special case.
-  types::ty *t = start->trans(e, ErrorMode::SUPPRESS);
-  if (t->kind == types::ty_inferred) {
-
-    // First ensure the array expression is an unambiguous array.
-    types::ty *at = set->cgetType(e);
-    if (at->kind != ty_array) {
-      em.error(set->getPos());
-      em << "expression is not an array of inferable type";
-
-      // On failure, don't bother trying to translate the loop.
-      return;
-    }
-
-    // var a=set;
-    tyEntryTy tet(pos, primInferred());
-    decid dec1(pos, new decidstart(pos, a), set);
-    vardec(pos, &tet, &dec1).trans(e);
+  // Is `set.operator iter()` a valid expression?
+  exp* iterExp=
+          new callExp(pos, new fieldExp(pos, set, symbol::opTrans("iter")));
+  LoopType loopType;
+  if (!iterExp->cgetType(e)->isError()) {
+    loopType = LoopType::ITERABLE;
+  } else {
+    loopType = transObjectDec(a, e);
   }
-  else {
-    // start[] a=set;
-    arrayTy at(pos, start, new dimensions(pos));
-    decid dec1(pos, new decidstart(pos, a), set);
-    vardec(pos, &at, &dec1).trans(e);
+  // On failure, don't bother trying to translate the loop.
+  if (loopType == LoopType::ERROR)
+    return;
+  exp *varInitExp = nullptr;
+  if (loopType == LoopType::ITERABLE) {
+    // start var=i.get();
+    varInitExp = new callExp(
+            pos,
+            new fieldExp(pos, new nameExp(pos, i), symbol::literalTrans("get"))
+    );
+  } else {
+    // start var=a[i];
+    varInitExp = new subscriptExp(pos, new nameExp(pos, a),
+                                  new nameExp(pos, i));
   }
-
-  // { start var=a[i]; body }
+  // { start var = <varInitExp>; body }
   block b(pos);
-  decid dec2(pos,
-             new decidstart(pos, var),
-             new subscriptExp(pos, new nameExp(pos, a),
-                              new nameExp(pos, i)));
+  decid dec2(pos, new decidstart(pos, var), varInitExp);
   b.add(new vardec(pos, start, &dec2));
   b.add(body);
 
-  // for (int i=0; i < a.length; ++i)
-  //   <block>
-  forStm(pos,
-         new vardec(pos, new tyEntryTy(pos, primInt()),
-                    new decid(pos,
-                              new decidstart(pos, i),
-                              new intExp(pos, 0))),
-         new binaryExp(pos,
-                       new nameExp(pos, i),
-                       SYM_LT,
-                       new nameExp(pos,
-                                   new qualifiedName(pos,
-                                                     new simpleName(pos, a),
-                                                     symbol::trans("length")))),
-         new expStm(pos, new prefixExp(pos, new nameExp(pos, i), SYM_PLUS)),
-         new blockStm(pos, &b)).trans(e);
+  if (loopType == LoopType::ARRAY) {
+    // for (int i=0; i < a.length; ++i)
+    //   <block>
+    forStm(pos,
+           forArrayInit(pos, i),
+           forArrayTest(pos, i, a),
+           forArrayUpdate(pos, i),
+           new blockStm(pos, &b)).trans(e);
+  } else {
+    // for (var i=set.operator iter(); i.valid(); i.advance())
+    //   <block>
+    forStm(pos,
+           forIterInit(pos, i, iterExp),
+           forIterTest(pos, i),
+           forIterUpdate(pos, i),
+           new blockStm(pos, &b)).trans(e);
+  }
 }
 
-void extendedForStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{
-#ifdef HAVE_LSP
-  auto* declCtx(symContext->newContext(getPos().LineColumn()));
 
-  std::string varName(var);
-
-  // FIXME: How do we get the position of the actual variable name?
-  //        Right now, we only get the starting position of the type declaration
-  declCtx->symMap.varDec.emplace(std::piecewise_construct,
-          std::forward_as_tuple(varName),
-          std::forward_as_tuple(
-                  varName,
-                  static_cast<std::string>(*start),
-                  start->getPos().LineColumn()
-                  ));
-  set->createSymMap(symContext);
-  body->createSymMap(declCtx);
-#endif
-}
 
 
 void breakStm::prettyprint(ostream &out, Int indent)
@@ -580,15 +576,6 @@ void returnStm::trans(coenv &e)
   e.c.encode(inst::ret);
 }
 
-void returnStm::createSymMap(AsymptoteLsp::SymbolContext* symContext)
-{
-#ifdef HAVE_LSP
-  if (value)
-  {
-    value->createSymMap(symContext);
-  }
-#endif
-}
 
 
 void stmExpList::prettyprint(ostream &out, Int indent)

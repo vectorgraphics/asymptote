@@ -288,7 +288,8 @@ struct picture { // <<<1
   // Erase the current picture, retaining bounds.
   void clear() {
     queueErase=nodes.length > 0;
-    queueErase3=nodes3.length > 0;
+    if(settings.render != 0)
+      queueErase3=nodes3.length > 0;
     nodes.delete();
     nodes3.delete();
     legend.delete();

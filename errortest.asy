@@ -515,24 +515,32 @@
 
 // template import errors
 {
-  access somefilename(T=int);  // Need to specify new name.
-  access somefilename(T=int) notas somefilename_int;  // "as" misspelled
-  access somefilename(int) as somefilename_int;  // missing keyword
-  import somefilename(T=int);  // Templated import not defined.
+  // Need to specify new name.
+  access somefilename(T=int);
+  // "as" misspelled
+  access somefilename(T=int) notas somefilename_int;
+  // missing keyword
+  access somefilename(int) as somefilename_int;
+  // Templated import unsupported
+  import somefilename(T=int);
+  // unexpected template parameters
+  access errortestNonTemplate(T=int) as version;
 }
 {
   typedef import(T);  // this file isn't accessed as a template
   import typedef(T);  // should be "typedef import"
 }
 {
-  // wrong number of params
-  access errortestTemplate(A=int, B=string) as ett_a;
+  // wrong number of parameters
+  access errortestBrokenTemplate(A=int, B=string) as ett_a;
   // third param incorrectly named
-  access errortestTemplate(A=int, B=string, T=real) as ett_b;
+  access errortestBrokenTemplate(A=int, B=string, T=real) as ett_b;
   // keywords in wrong order
-  access errortestTemplate(A=int, C=real, B=string) as ett_c;
-  // errortestTemplate.asy has extra "typedef import"
-  access errortestTemplate(A=int, B=string, C=real) as ett_d;
+  access errortestBrokenTemplate(A=int, C=real, B=string) as ett_c;
+  // errortestBrokenTemplate.asy has extra "typedef import"
+  access errortestBrokenTemplate(A=int, B=string, C=real) as ett_d;
+  // expected template parameters
+  access errortestBrokenTemplate as ett_e;
 }
 
 // autounravel errors
@@ -577,19 +585,22 @@
   access somefilename(T=A.B) as somefilename_B;
 }
 {
-  access errorFreeTestTemplate(A=int, B=string) as eft;  // no error
+  // no error
+  access errortestTemplate(A=int, B=string) as eft;
   // wrongly ordered names after correct load
-  access errorFreeTestTemplate(B=int, A=string) as eft;
+  access errortestTemplate(B=int, A=string) as eft;
   // completely wrong names after correct load
-  access errorFreeTestTemplate(C=int, D=string) as eft;
+  access errortestTemplate(C=int, D=string) as eft;
   // first name correct, second name wrong
-  access errorFreeTestTemplate(A=int, D=string) as eft;
+  access errortestTemplate(A=int, D=string) as eft;
   // first name wrong, second name correct
-  access errorFreeTestTemplate(C=int, B=string) as eft;
-  // too few params
-  access errorFreeTestTemplate(A=int) as eft;
-  // too many params
-  access errorFreeTestTemplate(A=int, B=string, C=real) as eft;
+  access errortestTemplate(C=int, B=string) as eft;
+  // too few parameters
+  access errortestTemplate(A=int) as eft;
+  // too many parameters
+  access errortestTemplate(A=int, B=string, C=real) as eft;
+  // templated imports cannot be run directly
+  include errortestTemplate;
 }
 // Test more permissions.
 {
@@ -628,8 +639,41 @@
   T.x;  // incorrectly accessing private field
 }
 {
+  // multiple signatures for operator[]
   struct A {
     int operator[](string);
     int operator[](int);
   }
+}
+{
+  // operator[=] without operator[]
+  struct A {
+    void operator[=](int);
+  }
+}
+{
+  // non-void operator[=]
+  struct A {
+    int operator[](string);
+    int operator[=](string, int);
+  }
+}
+{
+  // operator iter returns a non-iterable type
+  struct A {
+    int operator iter() { return 0; }
+  }
+  A a;
+  for (var i : a)
+    ;
+}
+{
+  // Implicitly cast a function to an array
+  using Function = int(int);
+  int[] operator cast(Function f) {
+    return sequence(f, 10);
+  }
+  int f(int i) { return i + 17; }
+  for (var i : f)  // This would work if we used `int` rather than `var`.
+    ;
 }
