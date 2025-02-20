@@ -1,5 +1,7 @@
 # @configure_input@
 
+SILENT_MAKE = @
+
 ARCH = unix
 POLL = poll
 
@@ -88,7 +90,7 @@ LATEXFILES = asymptote.sty asycolors.sty latexmkrc
 CONTEXTFILES = colo-asy.tex
 ASY = ./asy -dir base -config "" -render=0
 
-DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall
+DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -I.
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
@@ -139,19 +141,19 @@ asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o @LSPLIB@ @GLEW@ libhighwa
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
 $(XNAME): $(PYFILES)
-	@ln -sf GUI/xasy.py $(XNAME)
+	$(SILENT_MAKE)ln -sf GUI/xasy.py $(XNAME)
 
 version.txt: FORCE
-	@if test ! -s $@ || test "$(revision)" != "$(last)"; then \
+	$(SILENT_MAKE)if test ! -s $@ || test "$(revision)" != "$(last)"; then \
 		echo "$(revision)" > $@; \
 	fi
 
-	@if test ! -e base/webgl/asygl.js; then \
+	$(SILENT_MAKE)if test ! -e base/webgl/asygl.js; then \
 	  cp base/webgl/asygl-$(ASYGLVERSION).js base/webgl/asygl.js; \
 	fi
 
 GUI/xasyversion: version.txt GUI/buildtool.py
-	-@cd GUI && $(PYTHON) buildtool.py buildversionmodule --version-override="$(shell cat $<)"
+	-$(SILENT_MAKE)cd GUI && $(PYTHON) buildtool.py buildversionmodule --version-override="$(shell cat $<)"
 
 revision.cc: version.txt
 	echo $(REVISION)\"$(shell cat $<)\"\; > $@
@@ -180,8 +182,8 @@ libhighwayhash.a:
 all:	asy sty man faq asy-keywords.el
 
 $(GCLIB):
-	ln -sf ../libatomic_ops libatomic_ops
-	cd $(GC) && ./configure CC="$(CC)" CXX="$(CXX)" $(GCOPTIONS)
+	cd $(GC) && ln -sf ../libatomic_ops . && \
+		./configure CC="$(CC)" CXX="$(CXX)" $(GCOPTIONS)
 	$(MAKE) -C $(GC) check
 
 sty: doc/version.texi
@@ -208,7 +210,7 @@ $(RUNTIME_FILES:=.cc): %.cc: runtime.pl opsymbols.h runtimebase.in %.in
 
 # symbol files
 
-GEN_PREOROCESSED_DEPFILE_BASE_ARGS = \
+GEN_PREPROCESSED_DEPFILE_BASE_ARGS = \
     $(PYTHON) gen_preprocessed_depfile.py \
 	--cxx-compiler="$(CXX)" \
 	--additional-raw-arguments="$(OPTS)" \
@@ -216,13 +218,13 @@ GEN_PREOROCESSED_DEPFILE_BASE_ARGS = \
 
 $(SYMBOL_FILES:=.raw.i): %.raw.i: %.cc gen_preprocessed_depfile.py
 	@echo Generating $@ from $<
-	@$(GEN_PREOROCESSED_DEPFILE_BASE_ARGS) \
+	$(SILENT_MAKE)$(GEN_PREPROCESSED_DEPFILE_BASE_ARGS) \
 		--out-i-file=$@ \
 		--in-src-file=$<
 
 $(SYMBOL_FILES:=.d): %.d: %.cc gen_preprocessed_depfile.py
 	@echo Generating $@ from $<
-	@$(GEN_PREOROCESSED_DEPFILE_BASE_ARGS) \
+	$(SILENT_MAKE)$(GEN_PREPROCESSED_DEPFILE_BASE_ARGS) \
 		--out-dep-file=$@ \
 		--dep-file-only \
 		--out-i-file=$*.raw.i \
@@ -251,8 +253,8 @@ camp.tab.cc: camp.y
 	$(BISON) -t --header=camp.tab.h -o $@ $<
 
 camp.tab.h: camp.tab.cc
-	@test -f $@ || rm -f $<
-	@test -f $@ || $(MAKE) $(AM_MAKEFLAGS) $<
+	$(SILENT_MAKE)test -f $@ || rm -f $<
+	$(SILENT_MAKE)test -f $@ || $(MAKE) $(AM_MAKEFLAGS) $<
 
 lex.yy.cc: camp.l
 	$(LEX) -d -olex.yy.cc camp.l
@@ -371,19 +373,27 @@ uninstall-docdir:
 
 clean:	FORCE
 	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
-	-rm -f LspCpp/liblspcpp.a LspCpp/Makefile LspCpp/CMakeFiles
 	-cd LspCpp && $(MAKE) distclean
+	-cd LspCpp && rm -rf liblspcpp.a Makefile CMakeFiles third_party/uri/src/CMakeFiles
 	-cd tinyexr && $(MAKE) clean
-	-cd GUI && $(PYTHON) buildtool.py clean
 	-cd highwayhash && $(MAKE) clean
 
 gc-clean: FORCE clean
 	-$(MAKE) -C $(GC) clean
 
 cleaner: FORCE clean
+	-rm -rf __pycache__
+	-rm -rf GUI/__pycache__
+	-rm -rf GUI/pyUIClass/__pycache__
+	-rm -rf GUI/configs/__pycache__
 	-$(MAKE) -C $(GC) distclean
-	-rm -f Makefile config.h config.log config.status errors.temp
-	-rm -f LspCpp/CMakeCache.txt LspCpp/CMakeFiles LspCpp/third_party/uri/src/CMakeFiles
+	-$(MAKE) -C libatomic_ops distclean
+	-cd $(GC) && rm -rf libatomic_ops .deps cord/.deps \
+		cord/tests/.deps extra/.deps tests/.deps
+
+	-rm -f Makefile config.h config.log config.status \
+		errors.temp
+	-rm -rf LspCpp/CMakeCache.txt
 	cd doc && $(MAKE) clean
 	cd tests && $(MAKE) distclean
 
@@ -394,9 +404,13 @@ distclean: FORCE cleaner
 
 cleanest: FORCE maintainer-clean
 maintainer-clean: FORCE distclean
-	-rm -f configure config.h.in $(DIST)
-	-rm -rf autom4te.cache
-	-rm -rf GUI/pyUIClass
+	-rm -f configure config.h.in
+	-cd $(GC) && rm -rf ltmain.sh missing \
+		test-driver configure autom4te.cache m4/l*.m4
+	-cd libatomic_ops && rm -rf ltmain.sh missing \
+		test-driver configure autom4te.cache m4/l*.m4
+	-cd GUI && $(PYTHON) buildtool.py clean
+	-rm -rf autom4te.cache $(DIST)
 	-rm -rf vcpkg_installed
 
 test: asy FORCE
@@ -410,7 +424,7 @@ check-all: asy FORCE
 	$(MAKE) -C tests all
 
 glew.o: glew.c config.h
-	$(CC) -I. $(GLEWOPTS) -o $@ -c $<
+	$(CC) $(GLEWOPTS) -o $@ -c $<
 
 .SUFFIXES: .c .cc .o .d .ui .py
 %.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.cc)

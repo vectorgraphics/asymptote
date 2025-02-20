@@ -3,14 +3,11 @@
 # this file.
 
 AC_PREREQ([2.71])
-AC_INIT([Asymptote],[2.97git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_INIT([Asymptote],[3.01git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
 m4_include([pkg.m4])
-
-AC_CHECK_PROG([LIBTOOL], [libtool], [yes], [no])
-AS_IF([test "x$LIBTOOL" = "xno"], [AC_MSG_ERROR([libtool not found])])
 
 AH_TOP([#pragma once])
 
@@ -196,9 +193,10 @@ ASYGLVERSION=1.02
 
 DEFS=""
 OPTIONS=$OPTIONS"-D_FILE_OFFSET_BITS=64 "
-INCL="-I. "
+INCL=""
 OPTIONS=""
 LIBS=""
+CPPFLAGS=$CPPFLAGS" -I. "
 
 # ------------- vcpkg initialization ---------------
 # vcpkg_triplet
@@ -296,7 +294,7 @@ AC_DEFINE(HAVE_ZLIB,1,[ZLib library present])
 # -------------- threads -------------------
 
 
-GCOPTIONS="--disable-shared "
+GCOPTIONS="--disable-shared --disable-dependency-tracking"
 AC_ARG_ENABLE(
    threads,
    [AS_HELP_STRING(--enable-threads[[[=yes]]],enable POSIX threads)]
@@ -704,7 +702,7 @@ AC_ARG_ENABLE(xdr,
 [AS_HELP_STRING(--enable-xdr[[[=yes]]],enable XDR/V3D support)])
 if test "x$enable_xdr" != "xno"; then
 case "$OSTYPE" in
-   darwin*)
+   darwin* | FreeBSD)
          AC_DEFINE(HAVE_LIBTIRPC,1,DEFINE_LIB([tirpc]))
    ;;
    *)

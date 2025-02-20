@@ -390,7 +390,7 @@ class venv {
   // record (if any) becomes available.
   mem::list<mem::pair<symbol, varEntry *>> autoUnravels;
   mem::unordered_map<mem::pair<symbol, ty*>,
-                     nullptr_t,
+                     std::nullptr_t,
                      SigHash,
                      SigEquiv> nonShadowableAutoUnravels;
 

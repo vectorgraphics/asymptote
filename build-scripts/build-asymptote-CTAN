@@ -20,6 +20,7 @@ rm -rf asymptote-$VERSION
 tar -zxf $SRC
 cd asymptote-$VERSION
 find . -name ".[^.]*" -exec rm -rf {} \;
+rm -rf libatomic_ops/m4
 mkdir -p binaries/$BINDIR/texlive
 cd binaries/$BINDIR
 cp $SHARED/CTAN/asy.exe texlive
