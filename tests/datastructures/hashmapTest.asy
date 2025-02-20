@@ -167,7 +167,7 @@ Map_int_real naiveMap = NaiveMap_int_real(nan, isnan);
 Map_int_real hashMap = HashMap_int_real(nan, isnan);
 // Map_int_real smallintMap = makeMapSmallint(nan, isnan);
 
-from zip(T=int) access zip;
+from collections.zip(T=int) access zip;
 from mapArray(Src=wrapped_int, Dst=int) access map;
 int get(wrapped_int a) {
   return a.t;

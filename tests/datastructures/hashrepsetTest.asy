@@ -48,7 +48,7 @@ struct ActionEnum {
   autounravel restricted int DELETE_CONTAINS = make();
 }
 
-from zip(T=int) access zip;
+from collections.zip(T=int) access zip;
 from mapArray(Src=wrapped_int, Dst=int) access map;
 int get(wrapped_int a) {
   return a.t;

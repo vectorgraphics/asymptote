@@ -7,12 +7,6 @@ struct Pair_K_V {
     this.k = k;
     this.v = v;
   }
-  autounravel Pair_K_V operator >> (K k, V v) {
-    Pair_K_V pr = new Pair_K_V;
-    pr.k = k;
-    pr.v = v;
-    return pr;
-  }
   autounravel bool operator ==(Pair_K_V a, Pair_K_V b) {
     // NOTE: This won't compile if K or V is an array type since == is
     // vectorized for arrays. We could locally define a cast operator from

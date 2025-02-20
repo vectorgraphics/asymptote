@@ -19,7 +19,7 @@ struct ActionEnum {
   static restricted int POP = next();
 }
 
-from zip(T=int) access zip;
+from collections.zip(T=int) access zip;
 
 string differences(Queue_int a, Queue_int b) {
   if (a.size() != b.size()) {
