@@ -53,6 +53,20 @@ using nonstd::optional;
 using nonstd::nullopt;
 using nonstd::make_optional;
 
+
+#if __cplusplus < 202002L
+#  ifdef HAVE_LSP
+#    include <boost/core/span.hpp>
+     using boost::span;
+#  else
+#    include "span.hpp"
+     using nonstd::span;
+#  endif
+#else
+#  include <span>
+   using std::span;
+#endif
+
 using std::make_pair;
 
 #if !defined(FOR_SHARED) &&                                             \

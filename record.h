@@ -35,6 +35,9 @@ class record : public ty {
   // The runtime representation of the record used by the virtual machine.
   vm::lambda *init;
 
+  ty *kType = nullptr;
+  ty *vType = nullptr;
+
 public:
   // The name bindings for fields of the record.
   protoenv e;
@@ -56,18 +59,18 @@ public:
     return getName(); // May change in the future.
   }
 
-  bool isReference() {
+  bool isReference() override {
     return true;
   }
 
-  size_t hash() const {
+  size_t hash() const override{
     // Use the pointer, as two records are equivalent only if they are the
     // same object.
     return (size_t)this;
   }
 
   // Initialize to null by default.
-  trans::access *initializer();
+  trans::access *initializer() override;
 
   frame *getLevel(bool statically = false)
   {
@@ -95,7 +98,12 @@ public:
   // Create a statically enclosed record from this record.
   record *newRecord(symbol id, bool statically);
 
-  void print(ostream& out) const
+  // Sets the keytype and valuetype based on operator[] and operator[=].
+  void computeKVTypes(const position& pos);
+  ty *keyType() override;
+  ty *valType();
+
+  void print(ostream& out) const override
   {
     out << name;
   }

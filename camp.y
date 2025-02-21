@@ -50,6 +50,20 @@ bool checkKeyword(position pos, symbol sym)
   return true;
 }
 
+// Check if the symbol given is "as".  Returns true in this case and
+// returns false and reports an error otherwise.
+bool checkAs(position pos, symbol sym)
+{
+  if (sym != symbol::trans("as")) {
+    em.error(pos);
+    em << "expected 'as' here";
+
+    return false;
+  }
+  return true;
+}
+
+
 namespace absyntax { file *root; }
 
 using namespace absyntax;
@@ -317,7 +331,8 @@ idpairlist:
 ;
 
 strid:
-  ID               { $$ = $1; }
+  name             { $$.pos = $1->getPos();
+                     $$.sym = $1->asPath(); }
 | STRING           { $$.pos = $1->getPos();
                      $$.sym = symbol::literalTrans($1->getString()); }
 ;
