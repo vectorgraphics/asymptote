@@ -1,7 +1,7 @@
 typedef import(K, V);
 
 from collections.map(K=K, V=V) access Map_K_V, Iter_K, Iter_K_V, Iterable_K;
-from genericpair(K=K, V=V) access Pair_K_V, makePair;
+from collections.genericpair(K=K, V=V) access Pair_K_V, makePair;
 from collections.hashrepset(T=Pair_K_V) access
     HashRepSet_T as HashRepSet_K_V;
 
@@ -67,8 +67,8 @@ struct HashMap_K_V {
     assert(!alias(removed, null), 'Nonexistent key cannot be deleted');
   };
 
-  map.iter = new Iter_K() {
-    Iter_K_V it = pairs.iter();
+  map.operator iter = new Iter_K() {
+    Iter_K_V it = pairs.operator iter();
     Iter_K result;
     result.valid = it.valid;
     result.advance = it.advance;
@@ -77,7 +77,7 @@ struct HashMap_K_V {
   };
 
   autounravel Iterable_K operator cast(HashMap_K_V map) {
-    return Iterable_K(map.map.iter);
+    return Iterable_K(map.map.operator iter);
   }
   autounravel K[] operator ecast(HashMap_K_V map) {
     return (K[])(Iterable_K)map;

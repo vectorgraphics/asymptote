@@ -70,7 +70,7 @@ struct HashRepSet_T {
     return super.nullT;
   };
 
-  super.iter = new Iter_T() {
+  super.operator iter = new Iter_T() {
     Iter_T result = new Iter_T;
     HashEntry current = oldest;
     int expectedChanges = numChanges;
@@ -247,16 +247,12 @@ struct HashRepSet_T {
     return result;
   };
 
-  autounravel T[] operator ecast(HashRepSet_T set) {
-    return (T[])set.super;
-  }
-
   autounravel RepSet_T operator cast(HashRepSet_T set) {
     return set.super;
   }
 
   autounravel Iterable_T operator cast(HashRepSet_T set) {
-    return Iterable_T(set.super.iter);
+    return Iterable_T(set.super.operator iter);
   }
   unravel super;
 }

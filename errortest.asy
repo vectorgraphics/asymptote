@@ -677,3 +677,13 @@
   for (var i : f)  // This would work if we used `int` rather than `var`.
     ;
 }
+{
+  // Iterate over an ill-formed expression
+  int f(int i) { return 7; }
+  // cannot call 'int f(int i)' with parameter 'string'
+  for (int i : f('asdf'))
+    ;
+  // cannot call 'int f(int i)' with parameter 'string'
+  for (var i : f('asdf'))
+    ;
+}

@@ -91,9 +91,8 @@ actions[ActionEnum.FOR_EACH_CONTAINS] = new void(
     ...Map_int_real[] maps
 ) {
   for (Map_int_real map : maps) {
-    for (var it=map.iter(); it.valid(); it.advance()) {
+    for (wrapped_int key : map) {
       for (Map_int_real map_ : maps) {
-        wrapped_int key = it.get();
         assert(map_.contains(key));
         if (isnan(map[key]))
           assert(isnan(map_[key]));
@@ -222,9 +221,9 @@ for (int i = 0; i < n; ++i) {
 
   bool keyDifferenceFound = false;
   bool valueDifferenceFound = false;
-  assert(naiveMap.iter != null, 'Naive set has no iter');
-  assert(hashMap.iter != null, 'Hash set has no iter');
-  for (var ita = naiveMap.iter(), itb = hashMap.iter();
+  assert(naiveMap.operator iter != null, 'Naive set has no iter');
+  assert(hashMap.operator iter != null, 'Hash set has no iter');
+  for (var ita = naiveMap.operator iter(), itb = hashMap.operator iter();
        ita.valid() && itb.valid();
        ita.advance(), itb.advance())
   {
@@ -246,7 +245,7 @@ for (int i = 0; i < n; ++i) {
   }
   if (valueDifferenceFound) {
     write('value difference found');
-    for (var ita = naiveMap.iter(), itb = hashMap.iter();
+    for (var ita = naiveMap.operator iter(), itb = hashMap.operator iter();
          ita.valid() && itb.valid();
          ita.advance(), itb.advance())
     {

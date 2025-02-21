@@ -460,6 +460,12 @@ void extendedForStm::trans(coenv &e) {
   symbol a=symbol::gensym("a");
   symbol i=symbol::gensym("i");
 
+  if (set->cgetType(e)->isError()) {
+    // Translate the object for the error message.
+    set->trans(e);
+    // On failure, don't bother trying to translate the loop.
+    return;
+  }
   // Is `set.operator iter()` a valid expression?
   exp* iterExp=
           new callExp(pos, new fieldExp(pos, set, symbol::opTrans("iter")));

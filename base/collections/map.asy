@@ -1,6 +1,6 @@
 typedef import(K, V);
 
-from genericpair(K=K, V=V) access Pair_K_V;
+from collections.genericpair(K=K, V=V) access Pair_K_V;
 from collections.iter(T=K) access Iter_T as Iter_K, Iterable_T as Iterable_K;
 from collections.iter(T=Pair_K_V) access
     Iter_T as Iter_K_V,
@@ -32,14 +32,10 @@ struct Map_K_V {
   // implementation: yes, unless there is a nullValue to return.)
   void delete(K key);
 
-  // TODO: Replace with operator iter.
-  // This will be implemented later, once we have made `for (K key : map)`
-  // syntactic sugar for
-  // `for (var iter = map.iter(); iter.valid(); iter.advance()) { K key = iter.get(); ... }`
-  Iter_K iter();
+  Iter_K operator iter();
 
   autounravel Iterable_K operator cast(Map_K_V map) {
-    return Iterable_K(map.iter);
+    return Iterable_K(map.operator iter);
   }
 
   // Makes the notation `for (K key: (K[])map)` work for now, albeit inefficiently.
@@ -48,14 +44,13 @@ struct Map_K_V {
   }
 
   void addAll(Iterable_K_V other) {
-    for (var iter = other.iter(); iter.valid(); iter.advance()) {
-      Pair_K_V kv = iter.get();
+    for (Pair_K_V kv : other) {
       this[kv.k] = kv.v;
     }
   }
   void removeAll(Iterable_K other) {
-    for (var iter = other.iter(); iter.valid(); iter.advance()) {
-      delete(iter.get());
+    for (K key : other) {
+      delete(key);
     }
   }
 }
@@ -140,7 +135,7 @@ struct NaiveMap_K_V {
     }
     assert(false, 'Nonexistent key cannot be deleted');
   };
-  map.iter = new Iter_K() {
+  map.operator iter = new Iter_K() {
     int numChangesAtStart = numChanges;
     int i = 0;
     Iter_K result;
@@ -162,7 +157,7 @@ struct NaiveMap_K_V {
     return result;
   };
   autounravel Iterable_K operator cast(NaiveMap_K_V map) {
-    return Iterable_K(map.map.iter);
+    return Iterable_K(map.map.operator iter);
   }
   autounravel K[] operator ecast(NaiveMap_K_V map) {
     return copy(map.keys);

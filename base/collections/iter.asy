@@ -27,15 +27,23 @@ Iter_T Iter_T(T[] items) {
 
 struct Iterable_T {
   // Returns an iterator over the collection.
-  Iter_T iter();
+  Iter_T operator iter();
   void operator init(Iter_T iter()) {
-    this.iter = iter;
+    this.operator iter = iter;
+  }
+  void operator init(T[] items) {
+    this.operator iter = new Iter_T() {
+      return Iter_T(items);
+    };
   }
   autounravel T[] operator ecast(Iterable_T iterable) {
     T[] result;
-    for (var iter = iterable.iter(); iter.valid(); iter.advance()) {
-      result.push(iter.get());
+    for (T item : iterable) {
+      result.push(item);
     }
     return result;
   }
 }
+
+Iterable_T Iterable(Iter_T iter()) = Iterable_T;
+Iterable_T Iterable(T[] items) = Iterable_T;

@@ -30,10 +30,8 @@ struct RepSet_T {
   // Returns the equivalent item in the set, or nullT if the set
   // contains no equivalent item. Throws error if nullT was never set.
   T get(T item);
-  // We can make this an operator later, once we have made `for (T item : set)`
-  // syntactic sugar for
-  // `for (var iter = set.iter(); iter.valid(); iter.advance()) { T item = iter.get(); ... }`
-  Iter_T iter();
+  // Returns an iterator over the items in the set.
+  Iter_T operator iter();
   // If an equivalent item was already present, returns false. Otherwise, adds
   // the item and returns true. Noop if isNullT is defined and item is empty.
   bool add(T item);  
@@ -49,29 +47,23 @@ struct RepSet_T {
   T delete(T item);
 
   autounravel Iterable_T operator cast(RepSet_T set) {
-    return Iterable_T(set.iter);
+    return Iterable_T(set.operator iter);
   }
 
   void addAll(Iterable_T other) {
-    for (var iter = other.iter(); iter.valid(); iter.advance()) {
-      add(iter.get());
+    for (T item : other) {
+      add(item);
     }
   }
   void removeAll(Iterable_T other) {
-    for (var iter = other.iter(); iter.valid(); iter.advance()) {
-      delete(iter.get());
+    for (T item : other) {
+      delete(item);
     }
   }
 
-
-  // Makes the notation `for (T item : (T[])set)` work for now, albeit inefficiently.
-  autounravel T[] operator ecast(RepSet_T set) {
-    return (T[])(Iterable_T)set;
-  }
-
   autounravel bool operator <=(RepSet_T a, RepSet_T b) {
-    for (var iter = a.iter(); iter.valid(); iter.advance()) {
-      if (!b.contains(iter.get())) {
+    for (var item : a) {
+      if (!b.contains(item)) {
         return false;
       }
     }
@@ -94,8 +86,8 @@ struct RepSet_T {
     bool equiv(T ai, T bi) {
       return a.equiv(ai, bi) && b.equiv(ai, bi);
     }
-    var iterA = a.iter();
-    var iterB = b.iter();
+    var iterA = a.operator iter();
+    var iterB = b.operator iter();
     while (iterA.valid() && iterB.valid()) {
       if (!equiv(iterA.get(), iterB.get())) {
         return false;
@@ -108,20 +100,20 @@ struct RepSet_T {
 
   autounravel RepSet_T operator +(RepSet_T a, Iterable_T b) {
     RepSet_T result = a.newEmpty();
-    for (var iter = a.iter(); iter.valid(); iter.advance()) {
-      result.add(iter.get());
+    for (T item : a) {
+      result.add(item);
     }
-    for (var iter = b.iter(); iter.valid(); iter.advance()) {
-      result.add(iter.get());
+    for (T item : b) {
+      result.add(item);
     }
     return result;
   }
 
   autounravel RepSet_T operator -(RepSet_T a, RepSet_T b) {
     RepSet_T result = a.newEmpty();
-    for (var iter = a.iter(); iter.valid(); iter.advance()) {
-      if (!b.contains(iter.get())) {
-        result.add(iter.get());
+    for (T item : a) {
+      if (!b.contains(item)) {
+        result.add(item);
       }
     }
     return result;
@@ -168,7 +160,7 @@ struct NaiveRepSet_T {
     return nullT;
   };
 
-  super.iter = new Iter_T() {
+  super.operator iter = new Iter_T() {
     return Iter_T(items);
   };
 
@@ -212,7 +204,7 @@ struct NaiveRepSet_T {
   };
 
   autounravel Iterable_T operator cast(NaiveRepSet_T set) {
-    return Iterable_T(set.iter);
+    return Iterable_T(set.operator iter);
   }
 
   autounravel RepSet_T operator cast(NaiveRepSet_T set) {

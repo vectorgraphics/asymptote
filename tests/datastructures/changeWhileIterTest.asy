@@ -10,10 +10,10 @@ StartTest('Change collections.map values while iterating');
   map['b'] = 2;
   map['c'] = 3;
   map['d'] = 4;
-  for (var it = map.iter(); it.valid(); it.advance()) {
-    int _ = map[it.get()];  // Okay to read values of existing keys.
+  for (string key : map) {
+    int _ = map[key];  // Okay to read values of existing keys.
     assert(map['e'] == 0);  // Okay to read non-existent keys (given nullValue).
-    map[it.get()] = 5;  // Okay to change values of existing keys.
+    map[key] = 5;  // Okay to change values of existing keys.
     map['b'] = 6;  // Okay to change values of existing keys.
     map['e'] = 0;  // Okay to soft-delete non-existent keys.
     // Uncommenting any of the following should cause errors:
@@ -51,21 +51,16 @@ StartTest('Change collections.hashmap values while iterating');
   map['b'] = 2;
   map['c'] = 3;
   map['d'] = 4;
-  for (var it = map.iter(); it.valid(); it.advance()) {
-    int _ = map[it.get()];  // Okay to read values of existing keys.
-    it.get();
+  for (string key : map) {
+    int _ = map[key];  // Okay to read values of existing keys.
     assert(map['e'] == 0);  // Okay to read non-existent keys (given nullValue).
-    it.get();
-    map[it.get()] = 5;  // Okay to change values of existing keys.
-    it.get();
+    map[key] = 5;  // Okay to change values of existing keys.
     map['b'] = 6;  // Okay to change values of existing keys.
-    it.get();
     map['e'] = 0;  // Okay to soft-delete non-existent keys.
-    it.get();
     // Uncommenting any of the following should cause errors:
     // map['e'] = 7;  // Should cause errors since we are adding a key.
     // map['b'] = 0;  // Should cause errors since we are deleting a key.
-    // map.delete(it.get());  // Not allowed to delete keys while iterating.
+    // map.delete(key);  // Not allowed to delete keys while iterating.
   }
 }
 EndTest();
