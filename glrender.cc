@@ -1214,6 +1214,11 @@ void togglefitscreen()
   fitscreen();
 }
 
+void togglearcball()
+{
+  arcballMode=!arcballMode;
+}
+
 void screen()
 {
   if(glthread && !interact::interactive)
@@ -1293,8 +1298,11 @@ void update()
   lastzoom=Zoom;
   double cz=0.5*(Zmin+Zmax);
 
-  dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
-                     dvec3(0,0,-cz));
+  dviewMat= translate(
+          translate(dmat4(1.0), dvec3(cx, cy, cz)) *
+                  turntableRotation.rotateMat() * drotateMat,
+          dvec3(0, 0, -cz)
+  );
   if(!camp::ssbo)
     dView=value_ptr(dviewMat);
   viewMat=mat4(dviewMat);
@@ -1445,15 +1453,29 @@ inline double gly(int y) {
 
 void rotate(int x, int y)
 {
-  if(x != x0 || y != y0) {
-    arcball A(glx(x0),gly(y0),glx(x),gly(y));
-    triple v=A.axis;
-    drotateMat=glm::rotate<double>(2*A.angle/Zoom*ArcballFactor,
-                                   glm::dvec3(v.getx(),v.gety(),v.getz()))*
-      drotateMat;
-    x0=x; y0=y;
-    update();
+  if (x == x0 && y == y0) {
+    return;
   }
+
+  auto const gx0 = glx(x0);
+  auto const gy0 = gly(y0);
+  auto const gx = glx(x);
+  auto const gy = gly(y);
+
+  if (arcballMode) {
+    arcball const A(gx0,gy0,gx,gy);
+    triple const v=A.axis;
+    drotateMat=glm::rotate<double>(2*A.angle/Zoom*ArcballFactor,
+                        glm::dvec3(v.getx(),v.gety(),v.getz())) *
+                drotateMat;
+  } else {
+    turntableRotation.azimuth+= 5 * (gx - gx0);
+    turntableRotation.altitude -= 5 * (gy - gy0);
+    
+  }
+
+  x0=x; y0=y;
+  update();
 }
 
 double Degrees(int x, int y)
@@ -1719,6 +1741,9 @@ void keyboard(unsigned char key, int x, int y)
       break;
     case 'f':
       togglefitscreen();
+      break;
+    case 't':
+      togglearcball();
       break;
     case 'x':
       spinx();
