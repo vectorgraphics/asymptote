@@ -1751,6 +1751,8 @@ void keyboard(unsigned char key, int x, int y)
       if(!Format.empty()) Export();
       quit();
       break;
+    default:
+      break;
   }
 }
 
