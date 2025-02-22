@@ -200,6 +200,24 @@ using settings::Setting;
 bool Iconify=false;
 bool ignorezoom;
 int Fitscreen=1;
+bool arcballMode=true;
+
+/** angle values for turntable rotation. These are in radians. */
+struct
+{
+
+  double azimuth= 0.0;
+  double altitude= 0.0;
+
+  [[nodiscard]]
+  glm::dmat4 rotateMat() const
+  {
+    return rotate(altitude, glm::dvec3(1.0, 0.0, 0.0)) *
+           rotate(azimuth, glm::dvec3(0.0, 1.0, 0.0));
+  }
+} turntableRotation;
+
+
 bool firstFit;
 
 bool queueExport=false;
@@ -434,6 +452,8 @@ void home(bool webgl=false)
   viewMat=mat4(dviewMat);
 
   drotateMat=dmat4(1.0);
+  turntableRotation.altitude = 0.0;
+  turntableRotation.azimuth= 0.0;
 
   updateModelViewData();
 
