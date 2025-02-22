@@ -1,5 +1,18 @@
 cmake_minimum_required(VERSION 3.27)
 
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)")
+  set(PROCESSOR_IS_AARCH64 TRUE)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
+  set(PROCESSOR_IS_ARM TRUE)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86_64)|(AMD64|amd64)|(^i.86$)")
+  set(PROCESSOR_IS_X86 TRUE)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(powerpc|ppc)")
+  set(PROCESSOR_IS_POWER TRUE)
+else()
+  message(FATAL_ERROR "Unknown processor architecture: ${CMAKE_SYSTEM_PROCESSOR}")
+endif()
+
+
 include(cmake-scripts/common.cmake)
 include(asy-pkg-version-suffix.cmake OPTIONAL RESULT_VARIABLE ASY_ADDR_VERSION_SUFFIX_FILE)
 include(cmake-scripts/options.cmake)
