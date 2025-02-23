@@ -1564,6 +1564,7 @@ bool picture::shipout3(const string& prefix, const string& format,
         com.view=View;
         if(Wait)
           pthread_mutex_lock(&readyLock);
+        allowRender=true;
         wait(initSignal,initLock);
         endwait(initSignal,initLock);
         static bool initialize=true;
