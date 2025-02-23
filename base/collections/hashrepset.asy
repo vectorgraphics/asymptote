@@ -171,7 +171,7 @@ struct HashRepSet_T {
     return true;
   };
 
-  super.update = new T(T item) {
+  super.swap = new T(T item) {
     if (isNullT != null && isNullT(item)) {
       return nullT;
     }
@@ -188,6 +188,8 @@ struct HashRepSet_T {
       entry.item = item;
       return result;
     }
+    assert(isNullT != null,
+           'Adding item via swap() without defining nullT.');
     ++numChanges;
     if (2 * (size + zombies) >= buckets.length) {
       changeCapacity();
@@ -196,8 +198,6 @@ struct HashRepSet_T {
       assert(buckets[index] == null);
     }
     entry = buckets[index] = new HashEntry;
-    assert(isNullT != null,
-           'Adding item via update() without defining nullT.');
     entry.item = item;
     entry.hash = bucket;
     entry.older = newest;

@@ -36,14 +36,12 @@ struct RepSet_T {
   // the item and returns true. Noop if isNullT is defined and item is empty.
   bool add(T item);  
   // Inserts item, and returns the item that was replaced, or nullT if
-  // no item was replaced. Throws error if nullT was never set.
-  // Noop if isNullT is defined and item is empty.
-  // QUESTION: Should we throw an error even if nullT was not needed,
-  // i.e., if there was already an equivalent item in the collection?
-  T update(T item);
+  // no item was replaced. Throws error if there is no equivalent item and nullT
+  // was never set. Noop if isNullT is defined and isNullT(item).
+  T swap(T item);
   // Removes the equivalent item from the set, and returns it. Returns
   // nullT if there is no equivalent item. Throws error if
-  // there is not equivalent item and nullT was never set.
+  // there is no equivalent item and nullT was never set.
   T delete(T item);
 
   autounravel Iterable_T operator cast(RepSet_T set) {
@@ -175,7 +173,7 @@ struct NaiveRepSet_T {
     return true;
   };
 
-  super.update = new T(T item) {
+  super.swap = new T(T item) {
     if (isNullT != null && isNullT(item)) {
       return nullT;
     }
