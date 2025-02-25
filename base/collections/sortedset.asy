@@ -1,6 +1,6 @@
 typedef import(T);
 
-from "template/imports/pureset"(T=T) access Set_T, operator cast, makeNaiveSet;
+from pureset(T=T) access Set_T, makeNaiveSet;
 
 struct SortedSet_T {
   int size();
@@ -21,59 +21,66 @@ struct SortedSet_T {
   T popMin();            // Returns emptyresponse if collection is empty.
   T max();               // Returns emptyresponse if collection is empty.
   T popMax();            // Returns emptyresponse if collection is empty.
-  bool insert(T item);   // Returns true iff the collection is modified.
-  T replace(T item);     // Inserts item, and returns the item that was
+  bool add(T item);      // Returns true iff the collection is modified.
+  T update(T item);      // Inserts item, and returns the item that was
                          // replaced, or emptyresponse if no item was replaced.
-  bool delete(T item);   // Returns true iff the collection is modified.
+  T delete(T item);      // Returns the removed item, or emptyresponse if no
+                         // such item was found.
   // Calls process on each item in the collection, in ascending order,
   // until process returns false.
   void forEach(bool process(T item));
+
+  autounravel T[] operator cast(SortedSet_T set) {
+    T[] result;
+    set.forEach(new bool(T item) {
+                  result.push(item);
+                  return true;
+                });
+    return result;
+  }
+  
+  autounravel Set_T operator cast(SortedSet_T sorted_set) {
+    Set_T set = new Set_T;
+    set.size = sorted_set.size;
+    set.empty = sorted_set.empty;
+    set.contains = sorted_set.contains;
+    set.add = sorted_set.add;
+    set.update = sorted_set.update;
+    set.get = sorted_set.get;
+    set.delete = sorted_set.delete;
+    set.forEach = sorted_set.forEach;
+    return set;
+  }
+
 }
 
-T[] operator cast(SortedSet_T set) {
-  T[] result;
-  set.forEach(new bool(T item) {
-                result.push(item);
-                return true;
-              });
-  return result;
-}
-
-Set_T unSort(SortedSet_T sorted_set) {
-  Set_T set = new Set_T;
-  set.size = sorted_set.size;
-  set.empty = sorted_set.empty;
-  set.contains = sorted_set.contains;
-  set.insert = sorted_set.insert;
-  set.replace = sorted_set.replace;
-  set.get = sorted_set.get;
-  set.delete = sorted_set.delete;
-  set.forEach = sorted_set.forEach;
-  return set;
-}
-
-Set_T operator cast(SortedSet_T) = unSort;
+Set_T unSort(SortedSet_T sorted_set) = new Set_T(SortedSet_T sorted_set) { return sorted_set; };
 
 // For testing purposes, we provide a naive implementation of SortedSet_T.
 // This implementation is highly inefficient, but it is correct, and can be
 // used to test other implementations of SortedSet_T.
 struct NaiveSortedSet_T {
-  private bool lt(T a, T b);
+  private bool lt(T a, T b) = null;
   private T[] buffer = new T[0];
   private T emptyresponse;
 
-  private bool leq(T a, T b) {
+  private bool leq(T, T), gt(T, T), geq(T, T), equiv(T, T);
+  
+  leq = new bool(T a, T b) {
     return !lt(b, a);
-  }
-  private bool gt(T a, T b) {
+  };
+
+  gt = new bool(T a, T b) {
     return lt(b, a);
-  }
-  private bool geq(T a, T b) {
+  };
+
+  geq = new bool(T a, T b) {
     return leq(b, a);
-  }
-  private bool equiv(T a, T b) {
+  };
+  
+  equiv = new bool(T a, T b) {
     return leq(a, b) && leq(b, a);
-  }
+  };
 
   void operator init(bool lessThan(T, T), T emptyresponse) {
     this.lt = lessThan;
@@ -128,7 +135,7 @@ struct NaiveSortedSet_T {
     return buffer.pop();
   }
 
-  bool insert(T item) {
+  bool add(T item) {
     for (int i = 0; i < buffer.length; ++i) {
       if (equiv(buffer[i], item)) return false;
       else if (gt(buffer[i], item)) {
@@ -140,7 +147,7 @@ struct NaiveSortedSet_T {
     return true;
   }
 
-  T replace(T item) {
+  T update(T item) {
     for (int i = 0; i < buffer.length; ++i) {
       if (equiv(buffer[i], item)) {
         T toreturn = buffer[i];
@@ -163,14 +170,15 @@ struct NaiveSortedSet_T {
     return emptyresponse;
   }
 
-  bool delete(T item) {
+  T delete(T item) {
     for (int i = 0; i < buffer.length; ++i) {
-      if (equiv(buffer[i], item)) {
+      T candidate = buffer[i];
+      if (equiv(candidate, item)) {
         buffer.delete(i);
-        return true;
+        return candidate;
       }
     }
-    return false;
+    return emptyresponse;
   }
 
   void forEach(bool process(T item)) {
@@ -190,8 +198,8 @@ SortedSet_T operator cast(NaiveSortedSet_T naive) {
   toreturn.popMin = naive.popMin;
   toreturn.max = naive.max;
   toreturn.popMax = naive.popMax;
-  toreturn.insert = naive.insert;
-  toreturn.replace = naive.replace;
+  toreturn.add = naive.add;
+  toreturn.update = naive.update;
   toreturn.get = naive.get;
   toreturn.delete = naive.delete;
   toreturn.forEach = naive.forEach;

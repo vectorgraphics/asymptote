@@ -9,16 +9,18 @@
 #include <cstdio>
 #include <algorithm>
 
+#include "access.h"
+#include "asyprocess.h"
 #include "entry.h"
-#include "types.h"
-#include "runtime.h"
 #include "runarray.h"
 #include "runfile.h"
+#include "runmath.h"
 #include "runpair.h"
+#include "runstring.h"
+#include "runtime.h"
 #include "runtriple.h"
-#include "access.h"
+#include "types.h"
 #include "virtualfieldaccess.h"
-#include "asyprocess.h"
 
 namespace run {
 void arrayDeleteHelper(vm::stack *Stack);
@@ -113,6 +115,10 @@ void ty::print(ostream& out) const
   SIGFIELD(SetType,sym,name##Set);
 
 
+ty *hashMethodType() {
+  return new function(primInt());
+}
+
 ty *dimensionType() {
   return new function(primFile(),
                       formal(primInt(),SYM(nx),true),
@@ -131,6 +137,15 @@ ty *readType() {
 trans::varEntry *primitiveTy::virtualField(symbol id, signature *sig)
 {
   switch (kind) {
+    case ty_string:
+      SIGFIELD(hashMethodType,SYM(hash),stringHash);
+      break;
+    case ty_Int:
+      SIGFIELD(hashMethodType,SYM(hash),intHash);
+      break;
+    case ty_real:
+      SIGFIELD(hashMethodType,SYM(hash),realHash);
+      break;
     case ty_pair:
       FIELD(primReal,SYM(x),pairXPart);
       FIELD(primReal,SYM(y),pairYPart);
@@ -175,6 +190,10 @@ trans::varEntry *primitiveTy::virtualField(symbol id, signature *sig)
   return 0;
 }
 
+ty *ty::keyType() {
+  return primError();
+}
+
 ty *ty::virtualFieldGetType(symbol id)
 {
   trans::varEntry *v = virtualField(id, 0);
@@ -183,6 +202,12 @@ ty *ty::virtualFieldGetType(symbol id)
 
 ty *primitiveTy::virtualFieldGetType(symbol id)
 {
+  if (id == SYM(hash)) {
+    if (kind == ty_string || kind == ty_Int || kind == ty_real) {
+      return hashMethodType();
+    }
+  }
+
   if(kind == ty_file) {
     if (id == SYM(dimension))
       return dimensionType();
@@ -270,6 +295,11 @@ ty *array::deleteType()
                               formal(primInt(),SYM(j),true));
 
   return deletetype;
+}
+
+ty *array::keyType()
+{
+  return primInt();
 }
 
 ty *initializedType() {
@@ -410,7 +440,7 @@ bool equivalent(const signature *s1, const signature *s2)
   // Handle null signature
   if (s1 == 0 || s2 == 0)
     return false;
-
+  
   // Two open signatures are always equivalent, as the formals are ignored.
   if (s1->isOpen)
     return s2->isOpen;
