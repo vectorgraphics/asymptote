@@ -43,6 +43,12 @@ struct RepSet_T {
   // nullT if there is no equivalent item. Throws error if
   // there is no equivalent item and nullT was never set.
   T delete(T item);
+  // Used primarily in testing to get a random element. Most implementations
+  // will not support this operation.
+  T get_ith(int i) {
+    assert(false, 'get_ith not implemented');
+    return nullT;
+  }
 
   autounravel Iterable_T operator cast(RepSet_T set) {
     return Iterable_T(set.operator iter);
@@ -199,6 +205,10 @@ struct NaiveRepSet_T {
     }
     assert(isNullT != null, 'item not found');
     return nullT;
+  };
+
+  super.get_ith = new T(int i) {
+    return items[i];
   };
 
   autounravel Iterable_T operator cast(NaiveRepSet_T set) {

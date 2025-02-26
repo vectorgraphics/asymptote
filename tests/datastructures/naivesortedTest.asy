@@ -26,7 +26,7 @@ struct wrapped_int {
   autounravel bool operator <(wrapped_int a, wrapped_int b) {
     return a.t < b.t;
   }
-  int hash() = t.hash;
+  int hash() { return t.hash(); }
 }
 
 wrapped_int wrap(int t) = wrapped_int;  // `wrap` is alias for constructor
@@ -40,6 +40,9 @@ from collections.hashrepset(T=wrapped_int) access
 // TODO: Change to sortedrepset
 from collections.sortedset(T=wrapped_int) access
     Naive_T as NaiveSortedSet_wrapped_int;
+
+from collections.btree(T=wrapped_int) access
+    BTreeRepSet_T as BTreeSet_wrapped_int;
 
 from collections.enumerate(T=wrapped_int) access enumerate;
 
@@ -243,13 +246,7 @@ actions[DELETE_CONTAINS] = new void(int ...Set_wrapped_int[] sets) {
   }
   int indexToDelete = rand() % initialSize;
   // write('Iterating to ' + string(indexToDelete));
-  wrapped_int toDelete = null;
-  for (var kv : enumerate(sets[0])) {
-    if (kv.k == indexToDelete) {
-      toDelete = kv.v;
-      break;
-    }
-  }
+  wrapped_int toDelete = sets[0].get_ith(indexToDelete);
   // write('Deleting ' + string(toDelete.t));
   int i = 0;
   for (Set_wrapped_int s : sets) {
@@ -284,7 +281,8 @@ decreasingProbs[DELETE_CONTAINS] = 0.3;
 assert(sum(decreasingProbs) == 1, 'Probabilities do not sum to 1');
 
 Set_wrapped_int naiveSet = NaiveSortedSet_wrapped_int(operator <, null);
-Set_wrapped_int hashSet = HashSet_wrapped_int(null);
+HashSet_wrapped_int hashSet = HashSet_wrapped_int(null);
+Set_wrapped_int btreeSet = BTreeSet_wrapped_int(operator <, null);
 
 int chooseAction(real[] probs) {
   real r = unitrand();
@@ -298,26 +296,44 @@ int chooseAction(real[] probs) {
   return probs.length - 1;
 } 
 
+from collections.zip(T=wrapped_int) access zip;
+
 int maxSize = 0;
 for (int i = 0; i < 2000; ++i) {
   real[] probs = i < 800 ? increasingProbs : decreasingProbs;
   int choice = chooseAction(probs);
-  actions[choice](100, naiveSet, hashSet);
+  actions[choice](100, naiveSet, hashSet, btreeSet);
   bool differenceFound = false;
-  for (wrapped_int ia : naiveSet) {
-    if (!alias(hashSet.get(ia), ia)) {
+  var ia = naiveSet.operator iter();
+  var ib = btreeSet.operator iter();
+  while (ia.valid() && ib.valid()) {
+    var a = ia.get(), b = ib.get();
+    if (!alias(a, b)) {
       differenceFound = true;
       break;
     }
+    if (!alias(a, hashSet.get(a))) {
+      differenceFound = true;
+      break;
+    }
+    ia.advance();
+    ib.advance();
   }
-  for (wrapped_int ib : hashSet) {
-    if (!alias(naiveSet.get(ib), ib)) {
+  if (ia.valid() || ib.valid()) {
+    differenceFound = true;
+  }
+  for (wrapped_int a : hashSet) {
+    if (!btreeSet.contains(a)) {
       differenceFound = true;
       break;
     }
   }
   if (differenceFound) {
-    assert(false, 'Naive vs hash: \n' + differences(naiveSet, hashSet));
+    write('Difference Found:\n');
+    write('Naive vs Hash: ' + differences(naiveSet, hashSet) + '\n');
+    write('Naive vs BTree: ' + differences(naiveSet, btreeSet) + '\n');
+    write('Hash vs BTree: ' + differences(hashSet, btreeSet) + '\n');
+    assert(false);
   }
 
   maxSize = max(maxSize, naiveSet.size());

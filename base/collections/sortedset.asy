@@ -41,23 +41,10 @@ struct Naive_T {
   private bool lt(T a, T b) = null;
   private T[] buffer = new T[0];
 
-  private bool leq(T, T), gt(T, T), geq(T, T), equiv(T, T);
-  
-  leq = new bool(T a, T b) {
-    return !lt(b, a);
-  };
-
-  gt = new bool(T a, T b) {
-    return lt(b, a);
-  };
-
-  geq = new bool(T a, T b) {
-    return leq(b, a);
-  };
-  
-  equiv = new bool(T a, T b) {
-    return leq(a, b) && leq(b, a);
-  };
+  private bool leq(T a, T b) { return !lt(b, a); };
+  private bool gt(T a, T b) { return lt(b, a); };
+  private bool geq(T a, T b) { return leq(b, a); };
+  private bool equiv(T a, T b) { return leq(a, b) && leq(b, a); };
 
   void operator init(bool lessThan(T, T), T nullT) {
     this.lt = lessThan;
@@ -176,6 +163,10 @@ struct Naive_T {
     return Iter_T(buffer);
   };
 
+  super.get_ith = new T(int i) {
+    return buffer[i];
+  };
+
   autounravel SortedRepSet_T operator cast(Naive_T naive) {
     return naive.super;
   }
@@ -187,6 +178,7 @@ struct Naive_T {
   autounravel Iterable_T operator cast(Naive_T naive) {
     return Iterable(naive.super.operator iter);
   }
+
 
   from super unravel *;
 }

@@ -130,7 +130,6 @@ struct HashRepSet_T {
   }
 
   super.add = new bool(T item) {
-    ++numChanges;
     if (isNullT != null && isNullT(item)) {
       return false;
     }
@@ -140,6 +139,7 @@ struct HashRepSet_T {
     int bucket = item.hash();
     int index = find(item, bucket);
     if (index == -1) {
+      ++numChanges;
       changeCapacity();
       index = find(item, bucket);
       assert(index != -1, 'No space in hash table');
