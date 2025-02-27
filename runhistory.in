@@ -30,7 +30,7 @@ typedef array stringarray;
 using types::stringArray;
 
 namespace camp {
-bool allowRender=true;
+bool allowRender=false;
 }
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
@@ -189,9 +189,10 @@ string readline(string prompt=emptystring, string name=emptystring,
   }
 
   /* Get a line from the user. */
+  bool allowRenderSave=allowRender;
   allowRender=false;
   line=readline(prompt.c_str());
-  allowRender=true;
+  allowRender=allowRenderSave;
 
   if(!line) cout << endl;
 
