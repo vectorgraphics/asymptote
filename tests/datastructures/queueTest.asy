@@ -30,8 +30,15 @@ string differences(Queue_int a, Queue_int b) {
       return 'Different peek: ' + string(a.peek()) + ' vs ' + string(b.peek());
     }
   }
-  if (!all(a.toArray() == b.toArray())) {
-    write(zip(a.toArray(), b.toArray()));
+  int[] aArray, bArray;
+  for (int ia : a) {
+    aArray.push(ia);
+  }
+  for (int ib : b) {
+    bArray.push(ib);
+  }
+  if (!all(aArray == bArray)) {
+    write(zip(aArray, bArray));
     return 'Different contents';
   }
   return '';

@@ -1,11 +1,16 @@
 typedef import(T);
 
+from collections.iter(T=T) access Iter_T, Iterable_T;
+
 struct Queue_T {
   void push(T value);
   T peek();
   T pop();
   int size();
-  T[] toArray();
+  Iter_T operator iter();
+  autounravel Iterable_T operator cast(Queue_T queue) {
+    return Iterable_T(queue.operator iter);
+  }
 }
 
 Queue_T makeNaiveQueue(T[] initialData) {
@@ -26,8 +31,8 @@ Queue_T makeNaiveQueue(T[] initialData) {
   queue.size = new int() {
     return data.length;
   };
-  queue.toArray = new T[]() {
-    return copy(data);
+  queue.operator iter = new Iter_T() {
+    return Iter_T(data);
   };
   return queue;
 }
@@ -46,8 +51,19 @@ struct ArrayQueue_T {
     start = 0;
   }
 
-  T[] toArray() {
-    return data[start : start+size];
+  Iter_T operator iter() {
+    int i = 0;
+    Iter_T result;
+    result.advance = new void() {
+      ++i;
+    };
+    result.get = new T() {
+      return data[start+i];
+    };
+    result.valid = new bool() {
+      return i < size;
+    };
+    return result;
   }
 
   void operator init(T[] initialData) {
@@ -89,16 +105,22 @@ struct ArrayQueue_T {
   int size() {
     return size;
   }
-}
 
-Queue_T operator cast(ArrayQueue_T queue) {
-  Queue_T queue_ = new Queue_T;
-  queue_.push = queue.push;
-  queue_.peek = queue.peek; 
-  queue_.pop = queue.pop;
-  queue_.size = queue.size;
-  queue_.toArray = queue.toArray;
-  return queue_;
+  autounravel Iterable_T operator cast(ArrayQueue_T queue) {
+    return Iterable_T(queue.operator iter);
+  }
+
+  autounravel Queue_T operator cast(ArrayQueue_T queue) {
+    Queue_T queue_ = new Queue_T;
+    queue_.push = queue.push;
+    queue_.peek = queue.peek; 
+    queue_.pop = queue.pop;
+    queue_.size = queue.size;
+    queue_.operator iter = queue.operator iter;
+    return queue_;
+  }
+
+
 }
 
 Queue_T makeArrayQueue(T[] initialData /*specify type for overloading*/) {
@@ -114,13 +136,19 @@ struct LinkedQueue_T {
   Node tail = null;
   int size = 0;
 
-  T[] toArray() {
-    T[] retv = new T[];
-    for (Node node = head; node != null; node = node.next) {
-      retv.push(node.value);
-    }
-    assert(retv.length == size, "Size mismatch in toArray");
-    return retv;
+  Iter_T operator iter() {
+    Node node = head;
+    Iter_T result;
+    result.advance = new void() {
+      node = node.next;
+    };
+    result.get = new T() {
+      return node.value;
+    };
+    result.valid = new bool() {
+      return node != null;
+    };
+    return result;
   }
 
   void push(T value) {
@@ -150,16 +178,21 @@ struct LinkedQueue_T {
   int size() {
     return size;
   }
-}
 
-Queue_T operator cast(LinkedQueue_T queue) {
-  Queue_T queue_ = new Queue_T;
-  queue_.push = queue.push;
-  queue_.peek = queue.peek; 
-  queue_.pop = queue.pop;
-  queue_.size = queue.size;
-  queue_.toArray = queue.toArray;
-  return queue_;
+  autounravel Queue_T operator cast(LinkedQueue_T queue) {
+    Queue_T queue_ = new Queue_T;
+    queue_.push = queue.push;
+    queue_.peek = queue.peek; 
+    queue_.pop = queue.pop;
+    queue_.size = queue.size;
+    queue_.operator iter = queue.operator iter;
+    return queue_;
+  }
+
+  autounravel Iterable_T operator cast(LinkedQueue_T queue) {
+    return Iterable_T(queue.operator iter);
+  }
+
 }
 
 Queue_T makeLinkedQueue(T[] initialData) {
