@@ -15,7 +15,7 @@
 #define TINYEXR_USE_MINIZ 1
 #endif
 
-#define TINYEXR_USE_THREAD 1
+#define TINYEXR_USE_THREAD 0
 
 #define TINYEXR_IMPLEMENTATION
 #include <tinyexr.h>

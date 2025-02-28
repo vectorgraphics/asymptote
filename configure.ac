@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ([2.71])
-AC_INIT([Asymptote],[3.00git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_INIT([Asymptote],[3.02git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -196,7 +196,7 @@ OPTIONS=$OPTIONS"-D_FILE_OFFSET_BITS=64 "
 INCL=""
 OPTIONS=""
 LIBS=""
-CPPFLAGS="-I. "
+CPPFLAGS=$CPPFLAGS" -I. "
 
 # ------------- vcpkg initialization ---------------
 # vcpkg_triplet
@@ -702,10 +702,7 @@ AC_ARG_ENABLE(xdr,
 [AS_HELP_STRING(--enable-xdr[[[=yes]]],enable XDR/V3D support)])
 if test "x$enable_xdr" != "xno"; then
 case "$OSTYPE" in
-   darwin*)
-         AC_DEFINE(HAVE_LIBTIRPC,1,DEFINE_LIB([tirpc]))
-   ;;
-   FreeBSD)
+   darwin* | FreeBSD)
          AC_DEFINE(HAVE_LIBTIRPC,1,DEFINE_LIB([tirpc]))
    ;;
    *)
