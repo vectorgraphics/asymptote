@@ -30,12 +30,12 @@ list(APPEND ASYMPTOTE_SYM_PROCESS_NEEDED_HEADERS ${GENERATED_INCLUDE_DIR}/opsymb
 function(_int_add_runtime_file runtime_file)
     set(RUNTIME_FILE_IN_BASE ${ASY_SRC_TEMPLATES_DIR}/${runtime_file})
     set(RUNTIME_FILES_OUT ${GENERATED_SRC_DIR}/${runtime_file}.cc ${GENERATED_INCLUDE_DIR}/${runtime_file}.h)
-    set(RUNTIME_SCRIPT ${ASY_SCRIPTS_DIR}/runtime.pl)
+    set(RUNTIME_SCRIPT ${ASY_SCRIPTS_DIR}/runtime.py)
     set(OPSYM_FILE ${GENERATED_INCLUDE_DIR}/opsymbols.h)
     set(RUNTIME_BASE_FILE ${ASY_SRC_TEMPLATES_DIR}/runtimebase.in)
     add_custom_command(
             OUTPUT ${RUNTIME_FILES_OUT}
-            COMMAND ${PERL_INTERPRETER} ${RUNTIME_SCRIPT}
+            COMMAND ${PY3_INTERPRETER} ${RUNTIME_SCRIPT}
             --opsym-file ${OPSYM_FILE}
             --runtime-base-file ${RUNTIME_BASE_FILE}
             --src-template-dir ${ASY_SRC_TEMPLATES_DIR}
