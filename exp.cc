@@ -460,9 +460,9 @@ exp *subscriptExp::evaluate(coenv &e, types::ty *)
     em << "object does not have operator[=] set up correctly";
     return nullptr;
   }
-  return new subscriptExp(getPos(),
-                          new tempExp(e, object, base),
-                          new tempExp(e, index, indexType));
+  exp *a=new tempExp(e, object, base);
+  exp *b=new tempExp(e, index, indexType);
+  return new subscriptExp(getPos(), a, b);
 }
 
 
