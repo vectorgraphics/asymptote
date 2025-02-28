@@ -23,7 +23,7 @@ struct wrapped_int {
   autounravel bool operator <(wrapped_int a, wrapped_int b) {
     return a.t < b.t;
   }
-  int hash() = t.hash;
+  int hash() { return t.hash(); }
 }
 
 wrapped_int wrap(int t) = wrapped_int;  // `wrap` is alias for constructor
