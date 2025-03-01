@@ -173,6 +173,20 @@ string substr(string* s, Int pos, Int n=-1)
   return emptystring;
 }
 
+string :stringBracketsHelper(Int pos, string s)
+{
+  if (pos < 0)
+    pos += s.length();
+  if (pos >= 0 && pos < s.length())
+    return s.substr(pos, 1);
+  return emptystring;
+}
+
+callable* :stringBrackets(string s)
+{
+  return new thunk(new bfunc(stringBracketsHelper), s);
+}
+
 string erase(string s, Int pos, Int n)
 {
   if ((size_t) pos < s.length())
