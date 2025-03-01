@@ -120,6 +120,13 @@ add_asy_tests(
 )
 
 add_asy_tests(
+        TEST_DIR datastructures
+        TESTS
+        bracketsTest changeWhileIterTest enumerateTest hashmapTest
+        hashrepsetTest hashTest iterTest queueTest
+)
+
+add_asy_tests(
         TEST_DIR gs
         TESTS ghostscript
         TEST_NOT_PART_OF_CHECK_TEST true
