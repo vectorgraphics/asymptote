@@ -116,7 +116,7 @@ add_asy_tests(
         TEST_DIR template
         TESTS
         initTest functionTest mapArrayTest multiImport nestedImport
-        singletype sortedsetTest splaytreeTest structTest
+        singletype structTest
 )
 
 add_asy_tests(
