@@ -57,6 +57,9 @@ set(HH_SOURCES
   ${PROJECT_SOURCE_DIR}/highwayhash/hh_portable.cc
   ${PROJECT_SOURCE_DIR}/highwayhash/arch_specific.cc
 
+  ${PROJECT_SOURCE_DIR}/highwayhash/highwayhash_target.cc
+  ${PROJECT_SOURCE_DIR}/highwayhash/instruction_sets.cc
+
   ${PROJECT_SOURCE_DIR}/highwayhash/scalar_sip_tree_hash.cc
   ${PROJECT_SOURCE_DIR}/highwayhash/sip_hash.cc
   ${PROJECT_SOURCE_DIR}/highwayhash/sip_tree_hash.cc

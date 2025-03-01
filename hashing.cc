@@ -5,8 +5,8 @@
 #include <random>
 #include <vector>
 
-#include "highwayhash/highwayhash_target.h"
-#include "highwayhash/instruction_sets.h"
+#include <highwayhash/highwayhash_target.h>
+#include <highwayhash/instruction_sets.h>
 
 namespace hashing {
 using namespace highwayhash;
