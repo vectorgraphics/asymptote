@@ -373,16 +373,18 @@ types::ty *subscriptExp::getType(coenv &e)
   if (!isAnArray(e, object)) {
     ty *t = object->cgetType(e);
     if (t->kind == ty_overloaded) {
-      t = ((overloaded *)t)->signatureless();
+      t = t->signatureless();
       if (!t)
         return primError();
     }
-    if (t->kind != ty_record) {
-      return primError();
+    switch (t->kind) {
+      case ty_record:
+        return static_cast<record*>(t)->valType();
+      case types::ty_string:
+        return primString();
+      default:
+        return primError();
     }
-    return static_cast<record*>(t)->valType();
-    // callExp *call = buildSubscriptReadCall(set, index);
-    // return call->getType(e);
   }
 
   array *a = getArrayType(e);

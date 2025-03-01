@@ -200,6 +200,13 @@ ty *ty::keyType() {
   return primError();
 }
 
+ty *primitiveTy::keyType() {
+  if (kind == ty_string) {
+    return primInt();
+  }
+  return ty::keyType();
+}
+
 ty *ty::virtualFieldGetType(symbol id)
 {
   trans::varEntry *v = virtualField(id, 0);
