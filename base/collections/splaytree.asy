@@ -1,9 +1,6 @@
 typedef import(T);
 
-from "template/imports/sortedset"(T=T) access
-    Set_T,
-    SortedSet_T,
-    operator cast;
+from sortedset(T=T) access Set_T, SortedSet_T;
 
 private struct treenode {
   treenode leftchild;
@@ -152,9 +149,10 @@ private treenode splay(treenode[] ancestors, bool lessthan(T a, T b)) {
 struct SplayTree_T {
   private treenode root = null;
   restricted int size = 0;
-  private bool operator < (T a, T b);
+
   private T emptyresponse;
 
+  private bool operator < (T a, T b);
   void operator init(bool lessthan(T,T), T emptyresponse) {
     operator< = lessthan;
     this.emptyresponse = emptyresponse;
@@ -355,7 +353,7 @@ struct SplayTree_T {
   /*
    * returns true iff the tree was modified
    */
-  bool insert(T value) {
+  bool add(T value) {
     if (root == null) {
       root = treenode(value);
       ++size;
@@ -392,9 +390,9 @@ struct SplayTree_T {
     return true;
   }
 
-  T replace(T item) {
+  T update(T item) {
     if (root == null) {
-      insert(item);
+      add(item);
       return emptyresponse;
     }
     treenode[] ancestors = new treenode[0];
@@ -456,9 +454,9 @@ struct SplayTree_T {
   }
 
   /*
-   * returns true iff the tree was modified
+   * returns the removed item, or emptyresponse if the item was not found
    */
-  bool delete(T value) {
+  T delete(T value) {
     treenode[] ancestors = new treenode[0];
     ancestors.cyclic = true;  // Makes ancestors[-1] refer to the last entry.
     ancestors.push(root);
@@ -468,7 +466,7 @@ struct SplayTree_T {
       if (current == null) {
         ancestors.pop();
         root = splay(ancestors, operator<);
-        return false;
+        return emptyresponse;
       }
       if (value < current.value)
         ancestors.push(current.leftchild);
@@ -478,6 +476,7 @@ struct SplayTree_T {
     }
 
     treenode toDelete = ancestors.pop();
+    T retv = toDelete.value;
     treenode parent = null;
     if (ancestors.length > 0) parent = ancestors[-1];
     
@@ -510,40 +509,39 @@ struct SplayTree_T {
 
     if (parent != null) root = splay(ancestors, operator<);
     --size;
-    return true;    
+    return retv;    
   }
 
   void forEach(bool run(T)) {
     inOrderNonRecursive(root, run);
   }
-  
-}
 
-SortedSet_T operator cast(SplayTree_T splaytree) {
-  SortedSet_T result = new SortedSet_T;
-  result.size = splaytree.size;
-  result.empty = splaytree.empty;
-  result.contains = splaytree.contains;
-  result.after = splaytree.after;
-  result.before = splaytree.before;
-  result.firstGEQ = splaytree.firstGEQ;
-  result.firstLEQ = splaytree.firstLEQ;
-  result.min = splaytree.min;
-  result.popMin = splaytree.popMin;
-  result.max = splaytree.max;
-  result.popMax = splaytree.popMax;
-  result.insert = splaytree.insert;
-  result.replace = splaytree.replace;
-  result.get = splaytree.get;
-  result.delete = splaytree.delete;
-  result.forEach = splaytree.forEach;
-  return result;
-}
+  autounravel SortedSet_T operator cast(SplayTree_T splaytree) {
+    SortedSet_T result = new SortedSet_T;
+    result.size = splaytree.size;
+    result.empty = splaytree.empty;
+    result.contains = splaytree.contains;
+    result.after = splaytree.after;
+    result.before = splaytree.before;
+    result.firstGEQ = splaytree.firstGEQ;
+    result.firstLEQ = splaytree.firstLEQ;
+    result.min = splaytree.min;
+    result.popMin = splaytree.popMin;
+    result.max = splaytree.max;
+    result.popMax = splaytree.popMax;
+    result.add = splaytree.add;
+    result.update = splaytree.update;
+    result.get = splaytree.get;
+    result.delete = splaytree.delete;
+    result.forEach = splaytree.forEach;
+    return result;
+  }
 
-Set_T operator cast(SplayTree_T splaytree) {
-  return (SortedSet_T)splaytree;
-}
+  autounravel Set_T operator cast(SplayTree_T splaytree) {
+    return (SortedSet_T)splaytree;
+  }
 
-T[] operator cast(SplayTree_T splaytree) {
-  return (SortedSet_T)splaytree;
+  autounravel T[] operator cast(SplayTree_T splaytree) {
+    return (SortedSet_T)splaytree;
+  }
 }
