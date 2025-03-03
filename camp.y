@@ -89,6 +89,7 @@ using mem::string;
   absyntax::argument arg;
   absyntax::arglist *alist;
   absyntax::slice *slice;
+  absyntax::sliceList *slicelist;
   absyntax::dimensions *dim;
   absyntax::astType  *t;
   absyntax::decid *di;
@@ -180,6 +181,7 @@ using mem::string;
 %type  <e>   value exp fortest
 %type  <arg> argument
 %type  <slice> slice
+%type  <slicelist> slicelist
 %type  <j>   join basicjoin
 %type  <e>   tension controls
 %type  <se>  dir
@@ -197,8 +199,10 @@ using mem::string;
  *   new ID
  *   the argument id=exp is taken as an argument instead of an assignExp
  *   explicit cast
+ *   name '[' slice ']' '[' slice ']' is taken as name slicelist
+ *   value '[' slice ']' '[' slice ']' is taken as value slicelist
  */
-%expect 4
+%expect 6
 
 /* Enable grammar debugging. */
 /*%debug*/
@@ -494,14 +498,21 @@ slice:
 | exp ':' exp      { $$ = new slice($2, $1, $3); }
 ;
 
+slicelist:
+  '[' slice ']'    { $$ = new sliceList($1); $$->add($2); }
+| slicelist '[' slice ']'
+                   { $$ = $1; $$->add($3); }
+;
+
 value:
   value '.' ID     { $$ = new fieldExp($2, $1, $3.sym); }
 | name '[' exp ']' { $$ = new subscriptExp($2,
                               new nameExp($1->getPos(), $1), $3); }
 | value '[' exp ']'{ $$ = new subscriptExp($2, $1, $3); }
-| name '[' slice ']' { $$ = new sliceExp($2,
-                              new nameExp($1->getPos(), $1), $3); }
-| value '[' slice ']'{ $$ = new sliceExp($2, $1, $3); }
+| name slicelist   { $$ = new sliceExp($2->getPos(),
+                                       new nameExp($1->getPos(), $1),
+                                       $2); }
+| value slicelist  { $$ = new sliceExp($2->getPos(), $1, $2); }
 | name '(' ')'     { $$ = new callExp($2,
                                       new nameExp($1->getPos(), $1),
                                       new arglist()); }

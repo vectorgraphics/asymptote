@@ -448,16 +448,47 @@ public:
 
   slice *evaluate(coenv &e) {
     return new slice(getPos(),
-                     left ? new tempExp(e, left, types::primInt()) : 0,
-                     right ? new tempExp(e, right, types::primInt()) : 0);
+                     left ? left->evaluate(e, types::primInt()) : nullptr,
+                     right ? right->evaluate(e, types::primInt()) : nullptr);
   }
 };
 
-class sliceExp : public bracketsExp {
-  slice *index;
+class sliceList : public absyn {
+  mem::vector<slice *> slices;
 
 public:
-  sliceExp(position pos, exp *set, slice *index)
+  sliceList(position pos)
+    : absyn(pos) {}
+
+  void add(slice *s) {
+    slices.push_back(s);
+  }
+
+  void prettyprint(ostream &out, Int indent);
+
+  size_t size() {
+    return slices.size();
+  }
+
+  auto begin() { return slices.begin(); }
+  auto end() { return slices.end(); }
+
+  sliceList *evaluate(coenv &e) {
+    sliceList *result = new sliceList(getPos());
+    for (slice *s : slices) {
+      result->add(s->evaluate(e));
+    }
+    return result;
+  }
+
+};
+
+
+class sliceExp : public bracketsExp {
+  sliceList *index;
+
+public:
+  sliceExp(position pos, exp *set, sliceList *index)
     : bracketsExp(pos, set), index(index) {}
 
   void prettyprint(ostream &out, Int indent);
