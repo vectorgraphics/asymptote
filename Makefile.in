@@ -176,8 +176,22 @@ $(LSP_BUILD_ROOT)/liblspcpp.a:
 	@LSP_CMAKE_OPTIONS@
 	$(MAKE) -C $(LSP_BUILD_ROOT)
 
+# See https://stackoverflow.com/a/12099167/2318074
+ifneq ($(OS),Windows_NT)
+UNAME_M := $(shell uname -m)
+ifneq (,$(findstring aarch64,$(UNAME_M)))
+HHFLAGS := HH_AARCH64=1
+else ifneq (,$(findstring arm64,$(UNAME_M)))
+HHFLAGS := HH_AARCH64=1
+else ifneq (,$(findstring arm,$(UNAME_M)))
+HHFLAGS := HH_ARM=1
+else ifneq (,$(findstring 86,$(UNAME_M)))
+HHFLAGS := HH_X64=1
+endif
+endif
+
 libhighwayhash.a:
-	cd highwayhash && $(MAKE)
+	cd highwayhash && $(MAKE) $(HHFLAGS)
 
 all:	asy sty man faq asy-keywords.el
 
