@@ -44,6 +44,9 @@ FILE(GLOB TOPDIRECTORIES "${TOPDIR}/lib"
                          "${TOPDIR}/dist"
                          "${TOPDIR}/test"
 )
+FILE(GLOB_RECURSE LIB "${TOPDIR}/*.a")
+FILE(GLOB_RECURSE OBJ "${TOPDIR}/*.cpp.o")
+
 # CMake has trouble finding directories recursively, so locate these
 # files and then save the parent directory of the files
 GET_PARENT_DIRECTORIES(Makefile.cmake CMAKEFILES 0)
@@ -55,6 +58,8 @@ SET(DEL ${TOPDIRECTORIES}
         ${PYCACHE}
         ${PYC}
         ${CBP}
+        ${LIB}
+        ${OBJ}
         ${PYBUILDTEMP}
         ${PYBUILDLIB}
         ${PYBUILDBDIST}
