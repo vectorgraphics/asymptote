@@ -137,7 +137,7 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o @LSPLIB@ @GLEW@ libhighwayhash.a
+asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o @LSPLIB@ @GLEW@ highwayhash/lib/libhighwayhash.a
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
 $(XNAME): $(PYFILES)
@@ -190,8 +190,8 @@ HHFLAGS := HH_X64=1
 endif
 endif
 
-libhighwayhash.a:
-	cd highwayhash && $(MAKE) $(HHFLAGS)
+highwayhash/lib/libhighwayhash.a:
+	cd highwayhash && $(MAKE) $(HHFLAGS) lib/libhighwayhash.a
 
 all:	asy sty man faq asy-keywords.el
 
