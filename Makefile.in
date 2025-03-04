@@ -29,7 +29,7 @@ PYUIC ?= pyuic5
 # We have to remove OpenGL, threading, GC, etc from this.
 SHAREDLIBS = $(filter-out -lglut -GL -pthread $(GCLIBS), $(LIBS))
 
-vpath %.cc prc highwayhash
+vpath %.cc prc
 vpath %.cc thirdparty_impl/tinyexr_impl/src
 vpath %.ui GUI/windows
 vpath %.py GUI/pyUIClass
@@ -176,8 +176,6 @@ $(LSP_BUILD_ROOT)/liblspcpp.a:
 	@LSP_CMAKE_OPTIONS@
 	$(MAKE) -C $(LSP_BUILD_ROOT)
 
-# See https://stackoverflow.com/a/12099167/2318074
-ifneq ($(OS),Windows_NT)
 UNAME_M := $(shell uname -m)
 ifneq (,$(findstring aarch64,$(UNAME_M)))
 HHFLAGS := HH_AARCH64=1
@@ -185,9 +183,16 @@ else ifneq (,$(findstring arm64,$(UNAME_M)))
 HHFLAGS := HH_AARCH64=1
 else ifneq (,$(findstring arm,$(UNAME_M)))
 HHFLAGS := HH_ARM=1
-else ifneq (,$(findstring 86,$(UNAME_M)))
+else ifneq (,$(findstring powerpc,$(UNAME_M)))
+HHFLAGS := HH_POWER=1
+else ifneq (,$(findstring ppc,$(UNAME_M)))
+HHFLAGS := HH_POWER=1
+else ifneq (,$(findstring amd64,$(UNAME_M)))
 HHFLAGS := HH_X64=1
-endif
+else ifneq (,$(findstring AMD64,$(UNAME_M)))
+HHFLAGS := HH_X64=1
+else ifneq (,$(findstring x86_64,$(UNAME_M)))
+HHFLAGS := HH_X64=1
 endif
 
 highwayhash/lib/libhighwayhash.a:
