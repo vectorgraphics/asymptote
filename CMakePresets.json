@@ -14,7 +14,6 @@
       "displayName": "[linux-x86/64] Release",
       "binaryDir": "${sourceDir}/cmake-build-linux/release",
       "inherits": [
-        "base/linux-only",
         "base/buildBaseWithVcpkg",
         "base/release",
         "base/allow_version_override_from_env"
