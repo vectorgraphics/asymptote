@@ -1905,7 +1905,8 @@ for(int i=0; i < 10; ++i) {
 @cindex @code{break}
 @cindex @code{continue}
 @code{Asymptote} supports @code{while}, @code{do}, @code{break}, and
-@code{continue} statements just as in C/C++. It also supports the Java-style
+@code{continue} statements just as in C/C++. It also supports the
+``range-based'' or ``enhanced'' @code{for} loop, which is a convenient
 shorthand for iterating over all elements of an array:
 
 @cindex array iteration
@@ -6304,23 +6305,36 @@ search paths (@pxref{Search paths}) for the matching file.  The file
 corresponding to that name is read and the code within it is interpreted
 as the body of a structure defining the module.
 
-If the file name contains
-nonalphanumeric characters, enclose it with quotation marks:
+If the file is contained in a subdirectory, the directory structure can be
+specified with a dot-separated name.  For instance, the command
+@verbatim
+import directoryName.moduleName;
+@end verbatim
+@noindent will look for the file @code{directoryName/moduleName.asy}. The
+directory @code{directoryName} could be located in the current directory,
+in the @code{base} directory, or elsewhere in the search path
+(@pxref{Search paths}). This approach can only be used if the directory
+and module names would also be valid as variable names. Also note that
+the directory structure cannot start with a dot.
+
+If the file or subdirectory name contains
+nonalphanumeric characters, or if an absolute file path is needed,
+enclose it with quotation marks:
 
 @noindent
-@code{access "@value{Datadir}/asymptote/graph.asy" as graph;}
+@code{access '@value{Datadir}/asymptote/graph.asy' as graph;}
 
 @noindent
-@code{from "@value{Datadir}/asymptote/graph.asy" access axes;}
+@code{from '@value{Datadir}/asymptote/graph.asy' access axes;}
 
 @noindent
-@code{import "@value{Datadir}/asymptote/graph.asy" as graph;}
+@code{import '@value{Datadir}/asymptote/graph.asy' as graph;}
 
 @cindex @acronym{URL}
 @cindex @acronym{libcurl}
 If @code{Asymptote} is compiled with support for @code{libcurl},
 the file name can even be a @acronym{URL}:
-@code{import "https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/axis3.asy" as axis3;}
+@code{import 'https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/axis3.asy' as axis3;}
 
 It is an error if modules import themselves (or each other in a cycle).
 The module name to be imported must be known at compile time.
@@ -6330,7 +6344,7 @@ The module name to be imported must be known at compile time.
 However, you can import an @code{Asymptote} module determined by the
 string @code{s} at runtime like this:
 @verbatim
-eval("import "+s,true);
+eval('import '+s,true);
 @end verbatim
 
 @cindex @code{asy}
@@ -6511,11 +6525,6 @@ a
 c
 e
 @end verbatim
-
-@node Iterator utilities
-@subsection Iterator utilities
-
-TODO
 
 @node Static
 @section Static
@@ -6731,6 +6740,13 @@ In front of a @code{struct} definition or @code{typedef} statement,
 While @code{static static} results in an error,
 @code{static autounravel} and @code{autounravel static} are both legal
 and have exactly the same effect as @code{autounravel} alone.
+
+@node Collections / containers
+@section Collections / containers
+@cindex collections
+@cindex containers
+
+TODO
 
 @node LaTeX usage
 @chapter @code{LaTeX} usage
