@@ -4588,6 +4588,8 @@ the @code{Asymptote} base module @code{plain}.
 * Arithmetic & logical::        Basic mathematical operators
 * Self & prefix operators::     Increment and decrement
 * User-defined operators::      Overloading operators
+* Brackets operators::          Brackets operators 
+* Cast operators::              Type conversion
 @end menu
 
 @node Arithmetic & logical
@@ -4784,6 +4786,70 @@ write("g=",g);
 @end verbatim
 
 @xref{Autounravel}, for an example overloading the @code{+} operator.
+
+@node Brackets operators
+@subsection Brackets operators
+@cindex @code{[]}
+@cindex @code{[=]}
+@cindex @code{operator []}
+@cindex @code{operator [=]}
+@cindex @code{brackets}
+@cindex @code{operator iter}
+
+If @code{a} is not an array, then the notation @code{a[i]} is equivalent to
+@code{a.operator[](i)}. Thus, the @code{[]} operator can be defined to
+provide this notation for a user-defined structure. Similarly, the notation
+@code{a[i]=b} is equivalent to @code{a.operator[=](i,b)} (except that the former
+always returns @code{b}). Note that there are some restrictions on how these
+operators can be defined:
+
+@itemize
+@item Neither operator can be overloaded within a single structure (although
+different structures can have different definitions for these operators).
+@item @code{operator []} must take a single argument and have a non-void return
+type.
+@item @code{operator [=]} can only be defined if @code{operator[]} is also
+defined.
+@item @code{operator[=]} must take two arguments and have a void return type.
+Furthermore, if @code{K} and @code{V} are the types of the first and second
+arguments to @code{operator[=]}, respectively, then @code{K} must be the type of
+the argument to @code{operator[]} and @code{V} must be the return type of
+@code{operator[]}.
+@end itemize
+
+Here is a simple example. (Note that the code below is limited and inefficient;
+for a better way to do the same thing, TODO: ADD REFERENCE TO HASHMAPS.)
+
+@verbatim
+struct slowMap {
+  string[] keys;
+  real[] values;
+  real operator [](string key) {
+    for(int i=0; i < keys.length; ++i) {
+      if(keys[i] == key) return values[i];
+    }
+    return -infinity;
+  }
+  void operator [=](string key, real value) {
+    assert(all(keys != key), 'duplicate key');
+    keys.push(key);
+    values.push(value);
+  }
+}
+
+slowMap m;
+m['pi']=3.14159;
+m['e']=2.71828;
+assert(m['pi']==3.14159);
+assert(m['e']==2.71828);
+assert(m['sqrt(2)'] == -infinity);
+write("m['pi']=", m['pi']);
+@end verbatim
+
+@node Cast operators
+@subsection Cast operators
+
+@xref{Casts} for information on @code{operator cast} and @code{operator ecast}.
 
 @node Implicit scaling, Functions, Operators, Programming
 @section Implicit scaling
