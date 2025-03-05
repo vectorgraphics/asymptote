@@ -1862,6 +1862,7 @@ should coincide with the first node of the second path).
 * Arrays::                      Dynamic vectors
 * Casts::                       Implicit and explicit casts
 * Import::                      Importing external @code{Asymptote} modules
+* Iterators::                   Iterating over structures
 * Static::                      Where to allocate your variable?
 * Autounravel::                 Adding associated libraries to structures
 @end menu
@@ -4794,7 +4795,6 @@ write("g=",g);
 @cindex @code{operator []}
 @cindex @code{operator [=]}
 @cindex @code{brackets}
-@cindex @code{operator iter}
 
 If @code{a} is not an array, then the notation @code{a[i]} is equivalent to
 @code{a.operator[](i)}. Thus, the @code{[]} operator can be defined to
@@ -6442,6 +6442,80 @@ of the @code{Asymptote} source directory.
 Issues: Certain expected operators (such as
 @code{operator ==}) may only be available for type arguments that are
 builtin or defined in module @code{plain}.
+
+@node Iterators
+@section Iterators
+@cindex iterators
+
+If @code{a.operator iter()} is defined, then the code
+@verbatim
+for(var i : a) {
+  <statements>
+}
+@end verbatim
+is syntactic sugar for
+@verbatim
+for(var it=a.operator iter(); it.valid(); it.advance()) {
+  var i=it.get();
+  <statements>
+}
+@end verbatim
+Thus, we can make a class iterable by defining an @code{operator iter}
+method that returns an object with the following methods:
+@table @code
+@item <type> get()
+Returns the value at the iterator's current position. Note that @code{<type>}
+can be any type, builtin or user-defined. Does not change the iterator's
+position.
+
+@item void advance()
+Advances the iterator to the next position.
+
+@item bool valid()
+Returns @code{true} if the iterator is at a valid position. Returns @code{false}
+if the iterator has advanced past the last item.
+@end table
+
+Although the return type of @code{operator iter} can theoretically be any type
+that has these three methods, it is strongly recommended to use the
+@code{Iter_T} class defined in the templated module @code{collections.iter}
+so that other utilities can be used with the iterator. The three methods
+of this class can be set as fields.
+
+As an example, here is an iterator for the even-numbered elements of an
+array of strings:
+@verbatim
+from collections.iter(T=string) access Iter_T as Iter_string;
+struct EvenStrings {
+  string[] a;
+  void operator init(string[] a) {
+    this.a=a;
+  }
+  Iter_string operator iter() {
+    int i = 0;
+    Iter_string result;
+    result.get = new string() { return a[i]; };
+    result.advance = new void() { i += 2; };
+    result.valid = new bool() { return i < a.length; };
+    return result;
+  }
+}
+string[] a = {'a', 'b', 'c', 'd', 'e', 'f'};
+for (string s : EvenStrings(a)) {
+  write(s);
+}
+@end verbatim
+Running this code prints out the following:
+@verbatim
+a
+c
+e
+@end verbatim
+
+@node Iterator utilities
+@subsection Iterator utilities
+
+TODO
 
 @node Static
 @section Static
