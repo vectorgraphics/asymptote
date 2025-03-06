@@ -1865,6 +1865,8 @@ should coincide with the first node of the second path).
 * Iterators::                   Iterating over structures
 * Static::                      Where to allocate your variable?
 * Autounravel::                 Adding associated libraries to structures
+* Hash functions::              Hashing your data
+* Collections / containers::    Maps, Sets, Queues, and Iterator tools
 @end menu
 
 Here is a short introductory example to the @code{Asymptote} programming
@@ -6392,7 +6394,7 @@ include graph;
 @end verbatim
 
 @noindent
-@code{include "@value{Datadir}/asymptote/graph.asy";}
+@code{include '@value{Datadir}/asymptote/graph.asy';}
 
 To list all global functions and variables defined in a module named
 by the contents of the string @code{s}, use the function
@@ -6741,10 +6743,112 @@ While @code{static static} results in an error,
 @code{static autounravel} and @code{autounravel static} are both legal
 and have exactly the same effect as @code{autounravel} alone.
 
+@node Hash functions
+@section Hash functions
+@cindex hash function
+@cindex @code{hash}
+
+For an object to be used as a key in a hashmap
+(@pxref{Maps aka dictionaries}) or a member of a hashset (@pxref{Sets}), it
+must have a method @code{int hash()} that returns a nonnegative integer. For
+correctness, this method must return the same value for two objects of the same
+type that are equal according to the @code{==} operator. For efficiency, it
+should behave like a pseudorandom function, so that the hash values of distinct
+objects are unrelated. Also note that it is not necessary for hash functions to
+be consistent across different runs of the program; @code{a.hash() == a.hash()}
+should always be true, but @code{write(a.hash())} may produce a different
+output each time the program is run.
+
+In @code{Asymptote}, the @code{hash} method is defined for three of the builtin
+types: @code{int}, @code{real}, and @code{string}. Note that things like
+@code{3.hash()} and @code{'hello'.hash()} are @emph{not} valid syntax; the
+correct version of these would be @code{(3).hash()} and @code{('hello').hash()},
+with parentheses around the literal. If you want to hash a @code{real}, there
+are two important things to note: first, even if two @code{real}s are extremely
+close, their hash values will not be; second, the same number will have
+different hash values if it is an @code{int} or a @code{real}.
+
+Additionally, there is a
+function @code{hash(int[])} that can be helpful when constructing hash methods
+for user-defined structures: convert all the fields to integers (possibly by
+hashing them), put these integers into an array, and hash the array.
+
 @node Collections / containers
 @section Collections / containers
 @cindex collections
 @cindex containers
+
+The @code{collections} subdirectory provides a number of useful
+containers and utilities via templated modules. (The terms ``collection''
+and ``container'' are used interchangeably here.)
+
+@xref{Maps aka dictionaries} for information on hashmaps, which are arguably the
+single most useful container in the @code{collections} module. (Many languages
+have a built-in hashmap type, sometimes called a ``dictionary'' or ``associative
+array''.)
+
+@node Pairs
+@subsection Pairs
+
+@code{Asymptote} has a builtin type for pairs of @code{real}s. The
+@code{collections.genericpair(K,V)} templated module provides a pair type for any
+two types. The fields are called @code{k} and @code{v} rather than @code{x} and
+@code{y}. The pair type is called @code{Pair_K_V}, which user are encouraged to
+rename based on the types being used. There is also a function @code{makePair}
+that creates a pair from two values; because of function overloading, the name
+of the function does not need to specify the two types.
+
+Here's an example:
+@verbatim
+from collections.genericpair(K=int, V=string) access
+    Pair_K_V as Pair_int_string,
+    makePair;
+var p=makePair(3, 'hello');
+write(p.k);  // Outputs 3
+write(p.v);  // Outputs hello
+var q = makePair(4, 'hello');
+var s = makePair(3, 'world');
+Pair_int_string t = makePair(3, 'hello');
+assert(p != q);
+assert(p != s);
+assert(p == t);
+@end verbatim
+Note that the @code{==} and @code{!=} operators are overloaded for pairs, and
+the overloads are based on the @code{==} operators of the two types in the pair.
+An unfortunate consequence of this is that this module cannot be used for pairs
+of arrays, because the @code{==} operator for arrays returns a @code{bool[]}
+rather than a @code{bool}.
+
+The @code{Pair_K_V} type also has an @code{int hash()} method initialized to
+@code{null}. If you want to use pairs as keys in a hashmap, you should define
+this method, something like this:
+@verbatim
+from collections.genericpair(K=int, V=string) access
+    Pair_K_V as Pair_int_string;
+Pair_int_string p = makePair(3, 'hello');
+p.hash = new int() {
+  return hash(new int[] {p.k, p.v.hash()});
+};
+@end verbatim
+@xref{Hash functions} for more information.
+
+@node Iterators and utilities
+@subsection Iterators and utilities
+
+TODO
+
+@node Maps aka dictionaries
+@subsection Maps aka dictionaries
+
+TODO
+
+@node Sets
+@subsection Sets
+
+TODO
+
+@node Queues
+@subsection Queues
 
 TODO
 
