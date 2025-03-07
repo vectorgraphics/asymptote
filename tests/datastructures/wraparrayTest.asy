@@ -105,5 +105,10 @@ from collections.hashmap(K=Array_int, V=int) access
 var map = HashMap_Array_int_int();
 map[arrayWithHash] = 10191;
 assert(map[arrayWithHash] == 10191, 'Hashmap test failed');
+Array_int arrayWithHash2 = wrap(new int[], hashElement);
+for (int i : arrayWithHash) {
+  arrayWithHash2.push(i);
+}
+assert(map[arrayWithHash2] == 10191, 'Hashmap test failed');
 
 EndTest();
