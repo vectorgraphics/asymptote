@@ -1,17 +1,11 @@
 typedef import(T);
 
 from collections.iter(T=T) access Iter_T, Iterable_T;
-from arrayMap(Src=T, Dst=int) access map;
+from mapArray(Src=T, Dst=int) access map;
 
 struct Array_T {
   T[] data;
   int hash() = null;
-  void operator init(T[] data, int hashElement(T x) = null) {
-    this.data = data;
-    if (hashElement != null) this.hash = new int() {
-      return hash(map(hashElement, this.data));
-    };
-  }
   // Simulate the brackets and iteration of an array.
   T operator [](int i) { return data[i]; }
   void operator [=](int i, T x) { data[i] = x; }
@@ -22,17 +16,30 @@ struct Array_T {
   void cyclic(bool b) { data.cyclic = b; }
   bool cyclic() { return data.cyclic; }
   int[] keys() { return data.keys; }
-  T push(T x) = data.push;
-  void append(T[] x) = data.append;
+  T push(T x);
+  void append(T[] x);
   void append(Array_T x) { data.append(x.data); }
-  T pop() = data.pop;
-  void insert(int i ... T[] x) = data.insert;
-  void delete(int i, int j=i) = data.delete;
-  bool initialized(int n) = data.initialized;
+  T pop();
+  void insert(int i ... T[] x);
+  void delete(int i, int j=i);
+  bool initialized(int n);
+
+  void operator init(T[] data, int hashElement(T x) = null) {
+    this.data = data;
+    if (hashElement != null) this.hash = new int() {
+      return hash(map(hashElement, this.data));
+    };
+    this.push = data.push;
+    this.append = data.append;
+    this.pop = data.pop;
+    this.insert = data.insert;
+    this.delete = data.delete;
+    this.initialized = data.initialized;
+  }
 
   // Non-vectorized operator== and operator!=.
   autounravel bool operator ==(Array_T a, Array_T b) {
-    if (alias(a, null) return alias(b, null));
+    if (alias(a, null)) return alias(b, null);
     // a is non-null.
     if (alias(b, null)) return false;
     // a and b are non-null.
