@@ -6817,7 +6817,7 @@ Note that the @code{==} and @code{!=} operators are overloaded for pairs, and
 the overloads are based on the @code{==} operators of the two types in the pair.
 An unfortunate consequence of this is that this module cannot be used for pairs
 of arrays, because the @code{==} operator for arrays returns a @code{bool[]}
-rather than a @code{bool}.
+rather than a @code{bool}. @xref{Wrapping arrays} for a workaround.
 
 The @code{Pair_K_V} type also has an @code{int hash()} method initialized to
 @code{null}. If you want to use pairs as keys in a hashmap, you should define
@@ -6851,6 +6851,37 @@ TODO
 @subsection Queues
 
 TODO
+
+@node Wrapping arrays
+@subsection Wrapping arrays
+
+@code{Asymptote} arrays have a builtin @code{==} operator that returns an
+array of bools rather than a single bool. This is useful in a number of
+contexts, but it also prevents them from being used in pairs or as values in
+hashmaps. The @code{collections.wraparray(T)} templated module provides a
+wrapper for arrays that has a more conventional @code{==} operator that returns
+a single bool. It also provides a @code{hash()} method that, if initialized,
+allows the array to be used as a key in a hashmap.
+
+The main type in @code{collections.wraparray(T)} is @code{Array_T},
+which should normally be renamed to replace @code{T} with the type of the
+elements of the array. @code{Array_T} is not a drop-in replacement for
+@code{T[]}, but it is as close as any struct can be. For convenience, the
+function @code{Array_T wrap(T[] data)} can be used to convert an array to
+an @code{Array_T}.
+
+Here are the methods of @code{Array_T}:
+@table @code
+@item int length()
+Returns to the @code{length} virtual field of the wrapped array.
+@item void cyclic(bool b)
+Sets the @code{cyclic} field of the wrapped array.
+@item bool cyclic()
+Returns the @code{cyclic} field of the wrapped array.
+@item int[] keys
+Returns the @code{keys} field of the wrapped array, which is to say,
+@code{sequence(length())}.
+@end table
 
 @node LaTeX usage
 @chapter @code{LaTeX} usage
