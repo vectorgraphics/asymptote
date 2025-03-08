@@ -17,7 +17,11 @@
         "base/buildBaseWithVcpkg",
         "base/release",
         "base/allow_version_override_from_env"
-      ]
+      ],
+      "cacheVariables": {
+        "ENABLE_OPENGL": "false",
+        "ENABLE_RPC_FEATURES": "false"
+      }
     },
     {
       "name": "linux/release/ci/with-ccache",
