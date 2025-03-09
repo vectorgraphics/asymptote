@@ -38,8 +38,12 @@ struct Map_K_V {
     return Iterable_K(map.operator iter);
   }
 
-  autounravel K[] operator ecast(Map_K_V map) {
-    return (K[])(Iterable_K)map;
+  K[] keys() {
+    K[] result;
+    for (K key : this) {
+      result.push(key);
+    }
+    return result;
   }
 
   void addAll(Iterable_K_V other) {
@@ -157,9 +161,6 @@ struct NaiveMap_K_V {
   };
   autounravel Iterable_K operator cast(NaiveMap_K_V map) {
     return Iterable_K(map.map.operator iter);
-  }
-  autounravel K[] operator ecast(NaiveMap_K_V map) {
-    return copy(map.keys);
   }
   autounravel Map_K_V operator cast(NaiveMap_K_V map) {
     return map.map;
