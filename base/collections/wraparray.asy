@@ -4,25 +4,25 @@ from collections.iter(T=T) access Iter_T, Iterable_T;
 from mapArray(Src=T, Dst=int) access map;
 
 struct Array_T {
-  T[] data;
-  int hash() = null;
+  restricted T[] data;
+  restricted int hash() = null;
   // Simulate the brackets and iteration of an array.
-  T operator [](int i) { return data[i]; }
-  void operator [=](int i, T x) { data[i] = x; }
-  Iter_T operator iter() { return Iter_T(data); }
+  restricted T operator [](int i) { return data[i]; }
+  restricted void operator [=](int i, T x) { data[i] = x; }
+  restricted Iter_T operator iter() { return Iter_T(data); }
 
   // Match the array's fields as closely as possible.
-  int length() { return data.length; }
-  void cyclic(bool b) { data.cyclic = b; }
-  bool cyclic() { return data.cyclic; }
-  int[] keys() { return data.keys; }
-  T push(T x);
-  void append(T[] x);
-  void append(Array_T x) { data.append(x.data); }
-  T pop();
-  void insert(int i ... T[] x);
-  void delete(int i, int j=i);
-  bool initialized(int n);
+  restricted int length() { return data.length; }
+  restricted void cyclic(bool b) { data.cyclic = b; }
+  restricted bool cyclic() { return data.cyclic; }
+  restricted int[] keys() { return data.keys; }
+  restricted T push(T x);
+  restricted void append(T[] x);
+  restricted void append(Array_T x) { data.append(x.data); }
+  restricted T pop();
+  restricted void insert(int i ... T[] x);
+  restricted void delete(int i, int j=i);
+  restricted bool initialized(int n);
 
   void operator init(T[] data, int hashElement(T x) = null) {
     this.data = data;
