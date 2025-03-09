@@ -6768,10 +6768,67 @@ are two important things to note: first, even if two @code{real}s are extremely
 close, their hash values will not be; second, the same number will have
 different hash values if it is an @code{int} or a @code{real}.
 
+@node Hashing user-defined structures
+@subsection Hashing user-defined structures
+
 Additionally, there is a
 function @code{hash(int[])} that can be helpful when constructing hash methods
 for user-defined structures: convert all the fields to integers (possibly by
 hashing them), put these integers into an array, and hash the array.
+
+Returning to the example of the @code{Person} structure from @xref{Structures},
+there are two reasonable ways we might define a hash function for it. The first
+is to create a hash function based on the all the fields of the structure:
+@verbatim
+struct Person {
+  string firstname;
+  string lastname;
+  int age;
+  int hash() {
+    return hash(new int[] {firstname.hash(), lastname.hash(), age});
+  }
+  autounravel bool operator ==(Person a, Person b) {
+    if (alias(a, null)) return alias(b, null);
+    if (alias(b, null)) return false;
+    return a.firstname == b.firstname &&
+           a.lastname == b.lastname &&
+           a.age == b.age;
+  }
+}
+@end verbatim
+This approach is necessary if we are redefining the @code{==}
+operator. Two @code{Person}s are equal if they have the same first name,
+last name, and age; a person who has had a birthday needs a new
+@code{Person} object.
+
+On the other hand, we might want a notion of @code{Person} that can remain the
+same even if these fields change. In this case, we can add a field
+that uniquely identifies a @code{Person} object, and use that for hashing: 
+
+@verbatim
+stuct Person {
+  string firstname;
+  string lastname;
+  int age;
+  private static int lastID=-1;
+  restricted int id = ++lastID;
+  int hash() {
+    return id.hash();
+  }
+}
+@end verbatim
+
+The default @code{==} operator for user-defined structs considers two objects
+equal if they are the same object, meaning that changes to one will be reflected
+in the other. This version of hashing plays well with the default @code{==}
+operator.
+
+One additional guideline: Whatever fields you are using for a hash, the ideal
+behavior is to run them through a builtin hash function once, but only once. See
+for instance the way that @code{id} is hashed in the second example above, but
+@code{age} is not independently hashed in the first example. (In the first
+example, @code{firstname} and @code{lastname} are independently hashed only to
+obtain integers that can be put into an array.)
 
 @node Collections / containers
 @section Collections / containers
@@ -6870,18 +6927,40 @@ elements of the array. @code{Array_T} is not a drop-in replacement for
 function @code{Array_T wrap(T[] data)} can be used to convert an array to
 an @code{Array_T}.
 
-Here are the methods of @code{Array_T}:
+The methods and fields of @code{Array_T} should be identical to those of
+@code{T[]}, with the following exceptions:
 @table @code
 @item int length()
-Returns to the @code{length} virtual field of the wrapped array.
+Method rather than a field. (Requires parentheses afterwards.)
 @item void cyclic(bool b)
 Sets the @code{cyclic} field of the wrapped array.
 @item bool cyclic()
 Returns the @code{cyclic} field of the wrapped array.
-@item int[] keys
-Returns the @code{keys} field of the wrapped array, which is to say,
-@code{sequence(length())}.
+@item int[] keys()
+Method rather than a field.
 @end table
+
+Additionally, the iteration syntax @code{for (T x : a)} is supported
+if @code{a} is an @code{Array_T}, as is element access @code{a[i]}. However,
+slices are not supported.
+
+To make an @code{Array_T} hashable, pass a second parameter to the
+@code{wrap} function that computes an integer hash of a single element.
+For instance, the following constructs hashable arrays of strings and integers:
+@verbatim
+from collections.wraparray(T=string) access Array_T as Array_string;
+from collections.wraparray(T=int) access Array_T as Array_int;
+string[] s = {'hello', 'world'};
+Array_string ss = wrap(s, new int(string s) { return s.hash(); });
+int[] a = {1, 2, 3};
+Array_int aa = wrap(a, new int(int i) { return i; });
+@end verbatim
+The resulting hash function works by converting all the elements of the array
+to integers using the provided function, and then hashing the resulting
+@code{int[]}, @pxref{Hash functions}.
+
+Important note: If you use an @code{Array_T} as a key in a hashmap, you must
+ensure that the array is not modified while it is a key in the hashmap.
 
 @node LaTeX usage
 @chapter @code{LaTeX} usage
