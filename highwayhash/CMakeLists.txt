@@ -19,6 +19,8 @@ set(PROCESSOR_IS_AARCH64 FALSE)
 set(PROCESSOR_IS_X86 FALSE)
 set(PROCESSOR_IS_POWER FALSE)
 
+message(STATUS "CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
+
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)")
   set(PROCESSOR_IS_AARCH64 TRUE)
 elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
@@ -28,6 +30,8 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86_64)|(AMD64|amd64)|(^i.86$)")
 elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(powerpc|ppc)")
   set(PROCESSOR_IS_POWER TRUE)
 endif()
+
+message(STATUS "Processor: ARM=${PROCESSOR_IS_ARM}, AARCH64=${PROCESSOR_IS_AARCH64}, X86=${PROCESSOR_IS_X86}, POWER=${PROCESSOR_IS_POWER}")
 
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CLANG)
@@ -52,6 +56,9 @@ set(HH_SOURCES
   ${PROJECT_SOURCE_DIR}/highwayhash/c_bindings.cc
   ${PROJECT_SOURCE_DIR}/highwayhash/hh_portable.cc
   ${PROJECT_SOURCE_DIR}/highwayhash/arch_specific.cc
+
+  ${PROJECT_SOURCE_DIR}/highwayhash/highwayhash_target.cc
+  ${PROJECT_SOURCE_DIR}/highwayhash/instruction_sets.cc
 
   ${PROJECT_SOURCE_DIR}/highwayhash/scalar_sip_tree_hash.cc
   ${PROJECT_SOURCE_DIR}/highwayhash/sip_hash.cc

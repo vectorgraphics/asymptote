@@ -435,7 +435,7 @@ extendedForStm::LoopType extendedForStm::transObjectDec(symbol a, coenv &e) {
     }
 
     // On failure, don't bother trying to translate the loop.
-    return LoopType::ERROR;
+    return LoopType::TY_ERROR;
 
   }
   // start[] a=set;
@@ -476,7 +476,7 @@ void extendedForStm::trans(coenv &e) {
     loopType = transObjectDec(a, e);
   }
   // On failure, don't bother trying to translate the loop.
-  if (loopType == LoopType::ERROR)
+  if (loopType == LoopType::TY_ERROR)
     return;
   exp *varInitExp = nullptr;
   if (loopType == LoopType::ITERABLE) {

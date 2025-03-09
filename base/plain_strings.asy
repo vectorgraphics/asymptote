@@ -256,3 +256,5 @@ void progress(bool3 init=default)
 }
 
 restricted int ocgindex=0;
+
+from collections.hashmap(K=string,V=string) access HashMap_K_V as dict;

@@ -220,7 +220,7 @@ struct Billboard {
 extern Billboard BB;
 
 #ifdef HAVE_LIBGLM
-typedef mem::map<CONST Material,size_t> MaterialMap;
+typedef mem::map<const Material,size_t> MaterialMap;
 
 extern std::vector<Material> materials;
 extern MaterialMap materialMap;

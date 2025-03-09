@@ -84,7 +84,7 @@ add_asy_tests(
 if (ENABLE_GC)
     add_asy_tests(
             TEST_DIR gc
-            TESTS array funcall guide label path shipout string struct transform
+            TESTS array file funcall guide label path pen shipout string struct transform
             TEST_ARTIFACTS .eps
             TEST_NOT_PART_OF_CHECK_TEST true
     )
@@ -98,7 +98,7 @@ if (ENABLE_GSL)
 endif()
 
 add_asy_tests(TEST_DIR imp TESTS unravel)
-add_asy_tests(TEST_DIR io TESTS csv)
+add_asy_tests(TEST_DIR io TESTS csv read)
 add_asy_tests(TEST_DIR output TESTS circle line TEST_ARTIFACTS circle.eps line.eps)
 add_asy_tests(TEST_DIR pic TESTS trans)
 add_asy_tests(
@@ -109,14 +109,21 @@ add_asy_tests(
         TEST_DIR types
         TESTS
         autounravel builtinOps cast constructor ecast guide
-        init keyword order resolve shadow spec var
+        init keyword order overrideEquals resolve shadow spec var
 )
 
 add_asy_tests(
         TEST_DIR template
         TESTS
         initTest functionTest mapArrayTest multiImport nestedImport
-        singletype sortedsetTest splaytreeTest structTest
+        singletype structTest
+)
+
+add_asy_tests(
+        TEST_DIR datastructures
+        TESTS
+        bracketsTest changeWhileIterTest enumerateTest hashmapTest
+        hashrepsetTest hashTest iterTest queueTest wraparrayTest
 )
 
 add_asy_tests(

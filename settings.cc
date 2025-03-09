@@ -400,10 +400,10 @@ bool warn(const string& s)
 
 // The dictionaries of long options and short options.
 struct option;
-typedef mem::map<CONST string, option *> optionsMap_t;
+typedef mem::map<const string, option *> optionsMap_t;
 optionsMap_t optionsMap;
 
-typedef mem::map<CONST char, option *> codeMap_t;
+typedef mem::map<const char, option *> codeMap_t;
 codeMap_t codeMap;
 
 struct option : public gc {

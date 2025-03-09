@@ -16,6 +16,11 @@ set(ASY_STATIC_SHADER_FILES
         sum3 vertex zero
 )
 
+set(ASY_STATIC_BASE_COLLECTIONS_FILES
+    enumerate genericpair hashmap hashrepset iter map queue repset sortedset splaytree
+    wraparray wrapper zip
+)
+
 set(OTHER_STATIC_BASE_FILES nopapersize.ps)
 
 # base dir
@@ -48,6 +53,11 @@ endmacro()
 foreach(ASY_STATIC_BASE_FILE ${ASY_STATIC_BASE_FILES})
     copy_base_file(${ASY_STATIC_BASE_FILE}.asy)
 endforeach ()
+
+file(MAKE_DIRECTORY ${ASY_BUILD_BASE_DIR}/collections)
+foreach (ASY_COLLECTION_BASE_FILE ${ASY_STATIC_BASE_COLLECTIONS_FILES})
+    copy_base_file(collections/${ASY_COLLECTION_BASE_FILE}.asy)
+endforeach()
 
 foreach(OTHER_STATIC_BASE_FILE ${OTHER_STATIC_BASE_FILES})
     copy_base_file(${OTHER_STATIC_BASE_FILE})
