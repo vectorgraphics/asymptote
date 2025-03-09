@@ -38,7 +38,6 @@ struct Map_K_V {
     return Iterable_K(map.operator iter);
   }
 
-  // Makes the notation `for (K key: (K[])map)` work for now, albeit inefficiently.
   autounravel K[] operator ecast(Map_K_V map) {
     return (K[])(Iterable_K)map;
   }
