@@ -6913,7 +6913,50 @@ p.hash = new int() {
 @node Iterators and utilities
 @subsection Iterators and utilities
 
+@node @code{collections.iter}
+@subsubsection @code{collections.iter}
+
+The @code{collections.iter} templated module provides a classes @code{Iter_T}
+and @code{Iterable_T} that can be convenient for defining iterators.
+Additionally, there are several utilities for manipulating iterators of these
+types. Technically, the syntax @code{for (T x : a)} does not require anything
+from this module, but using it will make the utilities in this module available.
+
+The @code{Iter_T} class has the following fields, all of which are null by
+default:
+
+@table @code
+@item T get()
+@item void advance()
+@item bool valid()
+@end table
+
+@code{Iter_T} is intended as the return type of an @code{operator iter} method;
+@xref{Iterators} for more information on how to use these fields.
+
+The @code{Iterable_T} class is a generic class for something that has an
+@code{operator iter} method returning an @code{Iter_T}. This class, not
+@code{Iter_T}, is the type that can appear inside a range-based @code{for} loop.
+Consequently, most of the utilities below manipulate instances of
+@code{Iterable_T} rather than @code{Iter_T}.
+
+It is good practice for a class that defines an @code{operator iter} method to
+also define an implicit cast to @code{Iterable_T} for better compatibility with
+the utilities in this module.
+
+In addition to the @code{operator iter} method (which is null by default), 
+
 TODO
+
+@node Combining (zipping) iterators
+@subsubsection Combining (zipping) iterators
+
+TODO (zip.asy; sip2.asy?)
+
+@node Adding integer indices to iterators
+@subsubsection Adding integer indices to iterators
+
+TODO (enumerate.asy)
 
 @node Maps aka dictionaries
 @subsection Maps aka dictionaries
