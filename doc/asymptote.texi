@@ -6543,10 +6543,11 @@ is 0, the iterator is empty. Note that if, @code{m>n} and @code{skip>0}, the
 iterator will go on indefinitely; likewise, if @code{m<n} and @code{skip<0}.
 @end table
 
-The @code{range} function is provided for situations where an iterator is
-required. If either an iterator or an array is acceptable, it is generally
-more efficient to produce an array with the @code{sequence} function (unless
-the array is very large and memory is a concern).
+Generally speaking, @code{for (int i : range(n))} is equivalent to
+@code{for (int i : sequence(n))}. The latter uses @math{O(n)} memory but is
+usually faster. The former uses @math{O(1)} memory but is slower.
+If an iterator is specifically required, however, @code{range(n)} is faster
+than @code{Iterable(sequence(n))} (as well as being more memory-efficient).
 
 @node Static
 @section Static
