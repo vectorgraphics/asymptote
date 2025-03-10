@@ -6942,11 +6942,27 @@ Consequently, most of the utilities below manipulate instances of
 
 It is good practice for a class that defines an @code{operator iter} method to
 also define an implicit cast to @code{Iterable_T} for better compatibility with
-the utilities in this module.
+the utilities in this module. Additionally, an instance @code{a} of
+@code{Iterable_T} can be cast to a @code{T[]} with the syntax @code{(T[]) a}.
+(This is an explicit cast, so it requires parentheses.)
 
-In addition to the @code{operator iter} method (which is null by default), 
+The @code{collections.iter} module provides the following functions:
 
-TODO
+@table @code
+@item Iterable_T Iterable(Iter_T iter())
+Creates an @code{Iterable_T} with its @code{operator iter} method set to
+@code{iter}.
+@item Iterable_T Iterable(T[] items)
+Creates an @code{Iterable_T} that iterates over the elements of @code{items}.
+Separate calls to @code{operator iter} will return independent iterators.
+@item Iter_T Iter_T(T[] items)
+Creates an @code{Iter_T} that iterates over the elements of @code{items}.
+@end table
+
+Note that the functions called @code{Iterable} do not need to be renamed to
+incorporate the type, since the type is specified by the argument. (The same
+two functions can also be called as @code{Iterable_T}, or whatever
+@code{Iterable_T} was renamed to.)
 
 @node Combining (zipping) iterators
 @subsubsection Combining (zipping) iterators
