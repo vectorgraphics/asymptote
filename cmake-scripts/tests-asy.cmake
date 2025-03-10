@@ -97,7 +97,7 @@ if (ENABLE_GSL)
     )
 endif()
 
-add_asy_tests(TEST_DIR imp TESTS unravel)
+add_asy_tests(TEST_DIR imp TESTS access unravel)
 add_asy_tests(TEST_DIR io TESTS csv read)
 add_asy_tests(TEST_DIR output TESTS circle line TEST_ARTIFACTS circle.eps line.eps)
 add_asy_tests(TEST_DIR pic TESTS trans)
