@@ -5634,11 +5634,11 @@ a null array);
 
 @item int[] sequence(int n, int m)
 if @code{m >= n} returns an array @code{@{n,n+1,...,m@}} (otherwise
-returns a null array);
+returns a null array); @pxref{range};
 
 @item int[] sequence(int n, int m, int skip)
 if @code{m >= n} returns an array @code{@{n,n+1,...,m@}} skipping by
-@code{skip} (otherwise returns a null array);
+@code{skip} (otherwise returns a null array); @pxref{range};
 
 @item T[] sequence(T f(int), int n)
 if @code{n >= 1} returns the sequence @code{@{f_i :i=0,1,...n-1@}} given a
@@ -6527,6 +6527,26 @@ a
 c
 e
 @end verbatim
+
+@node range
+@subsection range
+
+The following functions produce iterators over integers:
+@table @code
+@item Iterable_int range(int n)
+Returns an iterable that produces the integers from 0 to @code{n-1}.
+@item Iterable_int range(int m, int n, int skip=1)
+Returns an iterable over integers less than @code{n} starting at @code{m} by
+increments of @code{skip}. If @code{skip} is negative, the iterator instead
+produces integers greater than @code{n} starting at @code{m}. If @code{skip}
+is 0, the iterator is empty. Note that if, @code{m>n} and @code{skip>0}, the
+iterator will go on indefinitely; likewise, if @code{m<n} and @code{skip<0}.
+@end table
+
+The @code{range} function is provided for situations where an iterator is
+required. If either an iterator or an array is acceptable, it is generally
+more efficient to produce an array with the @code{sequence} function (unless
+the array is very large and memory is a concern).
 
 @node Static
 @section Static
