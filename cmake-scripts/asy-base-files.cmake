@@ -18,7 +18,7 @@ set(ASY_STATIC_SHADER_FILES
 
 set(ASY_STATIC_BASE_COLLECTIONS_FILES
     enumerate genericpair hashmap hashrepset iter map queue repset sortedset splaytree
-    wraparray wrapper zip
+    wraparray wrapper zip zip2
 )
 
 set(OTHER_STATIC_BASE_FILES nopapersize.ps)

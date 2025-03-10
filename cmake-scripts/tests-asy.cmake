@@ -123,7 +123,7 @@ add_asy_tests(
         TEST_DIR datastructures
         TESTS
         bracketsTest changeWhileIterTest enumerateTest hashmapTest
-        hashrepsetTest hashTest iterTest queueTest wraparrayTest
+        hashrepsetTest hashTest iterTest queueTest wraparrayTest zipTest
 )
 
 add_asy_tests(
