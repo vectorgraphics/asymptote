@@ -1866,7 +1866,7 @@ should coincide with the first node of the second path).
 * Static::                      Where to allocate your variable?
 * Autounravel::                 Adding associated libraries to structures
 * Hash functions::              Hashing your data
-* Collections / containers::    Maps, Sets, Queues, and Iterator tools
+* Collections / containers::    Maps, sets, queues, and iterator tools
 @end menu
 
 Here is a short introductory example to the @code{Asymptote} programming
@@ -1907,9 +1907,9 @@ for(int i=0; i < 10; ++i) {
 @cindex @code{break}
 @cindex @code{continue}
 @code{Asymptote} supports @code{while}, @code{do}, @code{break}, and
-@code{continue} statements just as in C/C++. It also supports the
-``range-based'' or ``enhanced'' @code{for} loop, which is a convenient
-shorthand for iterating over all elements of an array:
+@code{continue} statements just as in C/C++. It also supports
+range-based @code{for} loops, which are convenient
+for iterating over all elements of an array:
 
 @cindex array iteration
 @anchor{array iteration}
@@ -4592,7 +4592,7 @@ the @code{Asymptote} base module @code{plain}.
 * Arithmetic & logical::        Basic mathematical operators
 * Self & prefix operators::     Increment and decrement
 * User-defined operators::      Overloading operators
-* Brackets operators::          Brackets operators 
+* Bracket operators::           Bracket operators
 * Cast operators::              Type conversion
 @end menu
 
@@ -4791,16 +4791,16 @@ write("g=",g);
 
 @xref{Autounravel}, for an example overloading the @code{+} operator.
 
-@node Brackets operators
-@subsection Brackets operators
+@node Bracket operators
+@subsection Bracket operators
 @cindex @code{[]}
 @cindex @code{[=]}
 @cindex @code{operator []}
 @cindex @code{operator [=]}
-@cindex @code{brackets}
+@cindex bracket operators
 
-If @code{a} is not an array, then the notation @code{a[i]} is equivalent to
-@code{a.operator[](i)}. Thus, the @code{[]} operator can be defined to
+If @code{a} is not an array, the notation @code{a[i]} is equivalent to
+@code{a.operator[](i)}. Thus, the@tie{}@code{[]} operator can be defined to
 provide this notation for a user-defined structure. Similarly, the notation
 @code{a[i]=b} is equivalent to @code{a.operator[=](i,b)} (except that the former
 always returns @code{b}). Note that there are some restrictions on how these
@@ -4831,7 +4831,7 @@ struct slowMap {
     for(int i=0; i < keys.length; ++i) {
       if(keys[i] == key) return values[i];
     }
-    return -infinity;
+    return -inf;
   }
   void operator [=](string key, real value) {
     assert(all(keys != key), 'duplicate key');
@@ -4845,7 +4845,7 @@ m['pi']=3.14159;
 m['e']=2.71828;
 assert(m['pi']==3.14159);
 assert(m['e']==2.71828);
-assert(m['sqrt(2)'] == -infinity);
+assert(m['sqrt(2)'] == -inf);
 write("m['pi']=", m['pi']);
 @end verbatim
 
@@ -5634,11 +5634,11 @@ a null array);
 
 @item int[] sequence(int n, int m)
 if @code{m >= n} returns an array @code{@{n,n+1,...,m@}} (otherwise
-returns a null array); @pxref{range};
+returns a null array); see also @ref{range};
 
 @item int[] sequence(int n, int m, int skip)
 if @code{m >= n} returns an array @code{@{n,n+1,...,m@}} skipping by
-@code{skip} (otherwise returns a null array); @pxref{range};
+@code{skip} (otherwise returns a null array); see also @ref{range};
 
 @item T[] sequence(T f(int), int n)
 if @code{n >= 1} returns the sequence @code{@{f_i :i=0,1,...n-1@}} given a
@@ -6312,12 +6312,13 @@ specified with a dot-separated name.  For instance, the command
 @verbatim
 import directoryName.moduleName;
 @end verbatim
-@noindent will look for the file @code{directoryName/moduleName.asy}. The
+@noindent will load the file @code{directoryName/moduleName.asy} as module
+@code{moduleName}. The
 directory @code{directoryName} could be located in the current directory,
 in the @code{base} directory, or elsewhere in the search path
-(@pxref{Search paths}). This approach can only be used if the directory
-and module names would also be valid as variable names. Also note that
-the directory structure cannot start with a dot.
+(@pxref{Search paths}). Nested directory specifications are allowed, as long as the directory
+and file names are also valid as variable names. Also note that
+@code{directoryName} cannot start with a dot.
 
 If the file or subdirectory name contains
 nonalphanumeric characters, or if an absolute file path is needed,
