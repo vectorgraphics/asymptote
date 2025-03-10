@@ -42,4 +42,4 @@ struct Iterable_T {
 }
 
 Iterable_T Iterable(Iter_T iter()) = Iterable_T;
-Iterable_T Iterable(T[] items) = Iterable_T;
+Iterable_T range(T[] items) = Iterable_T;
