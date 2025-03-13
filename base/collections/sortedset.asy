@@ -1,141 +1,119 @@
 typedef import(T);
 
-from pureset(T=T) access Set_T, makeNaiveSet;
+from collections.iter(T=T) access Iter_T, Iterable_T, Iterable;
+from collections.repset(T=T) access RepSet_T;
 
-struct SortedSet_T {
-  int size();
-  bool empty() { return size() == 0; }
-  bool contains(T item);
-  T get(T item);         // Returns the item in the collection that is
-                         // equivalent to item, or emptyresponse if there is no
-                         // such item.
-  // Returns the least element > item, or emptyresponse if there is no such
+struct SortedRepSet_T {
+  RepSet_T repset;
+  // Returns the least element > item, or nullT if there is no such
   // element.
   T after(T item);
-  // Returns the greatest element < item, or emptyresponse if there is no such
+  // Returns the greatest element < item, or nullT if there is no such
   // element.
   T before(T item);
-  T firstGEQ(T item) { return contains(item) ? get(item) : after(item); }
-  T firstLEQ(T item) { return contains(item) ? get(item) : before(item); }
-  T min();               // Returns emptyresponse if collection is empty.
-  T popMin();            // Returns emptyresponse if collection is empty.
-  T max();               // Returns emptyresponse if collection is empty.
-  T popMax();            // Returns emptyresponse if collection is empty.
-  bool add(T item);      // Returns true iff the collection is modified.
-  T update(T item);      // Inserts item, and returns the item that was
-                         // replaced, or emptyresponse if no item was replaced.
-  T delete(T item);      // Returns the removed item, or emptyresponse if no
-                         // such item was found.
-  // Calls process on each item in the collection, in ascending order,
-  // until process returns false.
-  void forEach(bool process(T item));
+  T firstGEQ(T item) {
+    return repset.contains(item) ? repset.get(item) : after(item);
+  }
+  T firstLEQ(T item) {
+    return repset.contains(item) ? repset.get(item) : before(item);
+  }
+  T min();               // Returns nullT if collection is empty.
+  T popMin();            // Returns nullT if collection is empty.
+  T max();               // Returns nullT if collection is empty.
+  T popMax();            // Returns nullT if collection is empty.
 
-  autounravel T[] operator cast(SortedSet_T set) {
-    T[] result;
-    set.forEach(new bool(T item) {
-                  result.push(item);
-                  return true;
-                });
-    return result;
+  autounravel Iterable_T operator cast(SortedRepSet_T set) {
+    return Iterable(set.repset.operator iter);
   }
   
-  autounravel Set_T operator cast(SortedSet_T sorted_set) {
-    Set_T set = new Set_T;
-    set.size = sorted_set.size;
-    set.empty = sorted_set.empty;
-    set.contains = sorted_set.contains;
-    set.add = sorted_set.add;
-    set.update = sorted_set.update;
-    set.get = sorted_set.get;
-    set.delete = sorted_set.delete;
-    set.forEach = sorted_set.forEach;
-    return set;
+  autounravel RepSet_T operator cast(SortedRepSet_T sorted_set) {
+    return sorted_set.repset;
   }
-
+  from repset unravel *;
 }
 
-Set_T unSort(SortedSet_T sorted_set) = new Set_T(SortedSet_T sorted_set) { return sorted_set; };
-
-// For testing purposes, we provide a naive implementation of SortedSet_T.
+// For testing purposes, we provide a naive implementation of SortedRepSet_T.
 // This implementation is highly inefficient, but it is correct, and can be
-// used to test other implementations of SortedSet_T.
-struct NaiveSortedSet_T {
+// used to test other implementations of SortedRepSet_T.
+struct Naive_T {
+  restricted SortedRepSet_T super;
+  from super unravel nullT, isNullT;
   private bool lt(T a, T b) = null;
   private T[] buffer = new T[0];
-  private T emptyresponse;
 
-  private bool leq(T, T), gt(T, T), geq(T, T), equiv(T, T);
-  
-  leq = new bool(T a, T b) {
-    return !lt(b, a);
-  };
+  private bool leq(T a, T b) { return !lt(b, a); };
+  private bool gt(T a, T b) { return lt(b, a); };
+  private bool geq(T a, T b) { return leq(b, a); };
+  private bool equiv(T a, T b) { return leq(a, b) && leq(b, a); };
 
-  gt = new bool(T a, T b) {
-    return lt(b, a);
-  };
-
-  geq = new bool(T a, T b) {
-    return leq(b, a);
-  };
-  
-  equiv = new bool(T a, T b) {
-    return leq(a, b) && leq(b, a);
-  };
-
-  void operator init(bool lessThan(T, T), T emptyresponse) {
+  void operator init(bool lessThan(T, T), T nullT) {
     this.lt = lessThan;
-    this.emptyresponse = emptyresponse;
+    super.operator init(nullT, equiv);
   }
 
-  int size() {
+  super.size = new int() {
     return buffer.length;
-  }
+  };
 
-  bool contains(T item) {
+  super.contains = new bool(T item) {
     for (T possibility : buffer) {
       if (equiv(possibility, item)) return true;
     }
     return false;
-  }
+  };
 
-  T after(T item) {
+  super.after = new T(T item) {
     for (T possibility : buffer) {
       if (gt(possibility, item)) return possibility;
     }
-    return emptyresponse;
-  }
+    assert(isNullT != null, 'No element after item to return');
+    return nullT;
+  };
 
-  T before(T item) {
+  super.before = new T(T item) {
     for (int ii = buffer.length - 1; ii >= 0; --ii) {
       T possibility = buffer[ii];
       if (lt(possibility, item)) return possibility;
     }
-    return emptyresponse;
-  }
+    assert(isNullT != null, 'No element before item to return');
+    return nullT;
+  };
 
-  T min() {
-    if (buffer.length == 0) return emptyresponse;
+  super.min = new T() {
+    if (buffer.length == 0) {
+      assert(isNullT != null, 'No minimum element to return');
+      return nullT;
+    }
     return buffer[0];
-  }
+  };
 
-  T popMin() {
-    if (buffer.length == 0) return emptyresponse;
+  super.popMin = new T() {
+    if (buffer.length == 0) {
+      assert(isNullT != null, 'No minimum element to return');
+      return nullT;
+    }
     T toreturn = buffer[0];
     buffer.delete(0);
     return toreturn;
-  }
+  };
 
-  T max() {
-    if (buffer.length == 0) return emptyresponse;
+  super.max = new T() {
+    if (buffer.length == 0) {
+      assert(isNullT != null, 'No maximum element to return');
+      return nullT;
+    }
     return buffer[buffer.length - 1];
-  }
+  };
 
-  T popMax() {
-    if (buffer.length == 0) return emptyresponse;
+  super.popMax = new T() {
+    if (buffer.length == 0) {
+      assert(isNullT != null, 'No maximum element to return');
+      return nullT;
+    }
     return buffer.pop();
-  }
+  };
 
-  bool add(T item) {
+  super.add = new bool(T item) {
     for (int i = 0; i < buffer.length; ++i) {
       if (equiv(buffer[i], item)) return false;
       else if (gt(buffer[i], item)) {
@@ -145,9 +123,9 @@ struct NaiveSortedSet_T {
     }
     buffer.push(item);
     return true;
-  }
+  };
 
-  T update(T item) {
+  super.swap = new T(T item) {
     for (int i = 0; i < buffer.length; ++i) {
       if (equiv(buffer[i], item)) {
         T toreturn = buffer[i];
@@ -156,21 +134,21 @@ struct NaiveSortedSet_T {
       }
       else if (gt(buffer[i], item)) {
         buffer.insert(i, item);
-        return emptyresponse;
+        return nullT;
       }
     }
     buffer.push(item);
-    return emptyresponse;
-  }
+    return nullT;
+  };
 
-  T get(T item) {
+  super.get = new T(T item) {
     for (T possibility : buffer) {
       if (equiv(possibility, item)) return possibility;
     }
-    return emptyresponse;
-  }
+    return nullT;
+  };
 
-  T delete(T item) {
+  super.delete = new T(T item) {
     for (int i = 0; i < buffer.length; ++i) {
       T candidate = buffer[i];
       if (equiv(candidate, item)) {
@@ -178,39 +156,34 @@ struct NaiveSortedSet_T {
         return candidate;
       }
     }
-    return emptyresponse;
-  }
+    return nullT;
+  };
 
-  void forEach(bool process(T item)) {
-    for (T item : buffer) {
-      if (!process(item)) break;
+  super.operator iter = new Iter_T() {
+    return Iter_T(buffer);
+  };
+
+  super.getRandom = new T() {
+    if (buffer.length == 0) {
+      assert(isNullT != null, 'No element to return');
+      return nullT;
     }
+    static int seed = 3567654160488757718;
+    return buffer[(++seed).hash() % buffer.length];
+  };
+
+  autounravel SortedRepSet_T operator cast(Naive_T naive) {
+    return naive.super;
   }
-}
 
-SortedSet_T operator cast(NaiveSortedSet_T naive) {
-  SortedSet_T toreturn;
-  toreturn.size = naive.size;
-  toreturn.contains = naive.contains;
-  toreturn.after = naive.after;
-  toreturn.before = naive.before;
-  toreturn.min = naive.min;
-  toreturn.popMin = naive.popMin;
-  toreturn.max = naive.max;
-  toreturn.popMax = naive.popMax;
-  toreturn.add = naive.add;
-  toreturn.update = naive.update;
-  toreturn.get = naive.get;
-  toreturn.delete = naive.delete;
-  toreturn.forEach = naive.forEach;
-  return toreturn;
-}
+  // Compose cast operators, since implicit casting is not transitive.
+  autounravel RepSet_T operator cast(Naive_T naive) {
+    return (SortedRepSet_T)naive;
+  }
+  autounravel Iterable_T operator cast(Naive_T naive) {
+    return Iterable(naive.super.operator iter);
+  }
 
-// Compose cast operators, since implicit casting is not transitive.
-T[] operator cast(NaiveSortedSet_T naive) {
-  return (SortedSet_T)naive;
-}
 
-SortedSet_T makeNaiveSortedSet(bool lessThan(T, T), T emptyresponse) {
-  return NaiveSortedSet_T(lessThan, emptyresponse);
+  from super unravel *;
 }

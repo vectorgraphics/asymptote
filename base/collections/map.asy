@@ -34,6 +34,27 @@ struct Map_K_V {
 
   Iter_K operator iter();
 
+  // Returns a random, uniformly distributed key from the map. The default
+  // implementation is O(n) in the number of keys. Intended primarily for
+  // testing purposes.
+  K randomKey() {
+    int size = this.size();
+    if (size == 0) {
+      assert(false, 'Cannot get a random key from an empty map');
+    }
+    static int seed = 3567654160488757718;
+    int index = (++seed).hash() % size;
+    for (K key : this) {
+      if (index == 0) {
+        return key;
+      }
+      --index;
+    }
+    assert(false, 'Unreachable code');
+    K unused;
+    return unused;
+  }
+
   autounravel Iterable_K operator cast(Map_K_V map) {
     return Iterable_K(map.operator iter);
   }

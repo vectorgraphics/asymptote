@@ -36,15 +36,29 @@ struct RepSet_T {
   // the item and returns true. Noop if isNullT is defined and item is empty.
   bool add(T item);  
   // Inserts item, and returns the item that was replaced, or nullT if
-  // no item was replaced. Throws error if nullT was never set.
-  // Noop if isNullT is defined and item is empty.
-  // QUESTION: Should we throw an error even if nullT was not needed,
-  // i.e., if there was already an equivalent item in the collection?
-  T update(T item);
+  // no item was replaced. Throws error if there is no equivalent item and nullT
+  // was never set. Noop if isNullT is defined and isNullT(item).
+  T swap(T item);
   // Removes the equivalent item from the set, and returns it. Returns
   // nullT if there is no equivalent item. Throws error if
-  // there is not equivalent item and nullT was never set.
+  // there is no equivalent item and nullT was never set.
   T delete(T item);
+  // Returns a random, uniformly distributed element. The default
+  // implementation is O(n) in the number of elements. Intended primarily for
+  // testing purposes.
+  T getRandom() {
+    int size = this.size();
+    static int seed = 3567654160488757718;
+    int index = (++seed).hash() % size;
+    for (T item : this) {
+      if (index == 0) {
+        return item;
+      }
+      --index;
+    }
+    assert(isNullT != null, 'Cannot get a random item from an empty set');
+    return nullT;
+  }
 
   autounravel Iterable_T operator cast(RepSet_T set) {
     return Iterable_T(set.operator iter);
@@ -175,7 +189,7 @@ struct NaiveRepSet_T {
     return true;
   };
 
-  super.update = new T(T item) {
+  super.swap = new T(T item) {
     if (isNullT != null && isNullT(item)) {
       return nullT;
     }
@@ -201,6 +215,17 @@ struct NaiveRepSet_T {
     }
     assert(isNullT != null, 'item not found');
     return nullT;
+  };
+
+  // This implementation is O(1).
+  super.getRandom = new T() {
+    if (items.length == 0) {
+      assert(isNullT != null, 'Cannot get a random item from an empty set');
+      return nullT;
+    }
+    static int seed = 3567654160488757718;
+    int index = (++seed).hash() % items.length;
+    return items[index];
   };
 
   autounravel Iterable_T operator cast(NaiveRepSet_T set) {

@@ -1,8 +1,11 @@
+// Check that NaiveSortedRepSet behaves identically to HashRepSet except for
+// iteration order. This should increase confidence when using NaiveSortedRepSet
+// to test other implementations of SortedRepSet_T.
 import TestLib;
 
 srand(4282308941601638229);
 
-StartTest("HashRepSet");
+StartTest("NaiveSortedRepSet");
 
 // from wrapper(T=int) access
 //     Wrapper_T as wrapped_int,
@@ -29,13 +32,17 @@ struct wrapped_int {
 wrapped_int wrap(int t) = wrapped_int;  // `wrap` is alias for constructor
 
 from collections.repset(T=wrapped_int) access
-    RepSet_T as Set_wrapped_int,
-    NaiveRepSet_T as NaiveSet_wrapped_int;
+    RepSet_T as Set_wrapped_int;
 
 from collections.hashrepset(T=wrapped_int) access
     HashRepSet_T as HashSet_wrapped_int;
 
-from collections.enumerate(T=wrapped_int) access enumerate;
+// TODO: Change to sortedrepset
+from collections.sortedset(T=wrapped_int) access
+    Naive_T as NaiveSortedSet_wrapped_int;
+
+from collections.btree(T=wrapped_int) access
+    BTreeRepSet_T as BTreeSet_wrapped_int;
 
 struct ActionEnum {
   static restricted int num = 0;
@@ -68,8 +75,8 @@ string differences(wrapped_int[] aArray, wrapped_int[] bArray) {
     return 'Different sizes: ' + string(aArray.length) + ' vs ' +
            string(bArray.length);
   }
-  int[] aIntArray = map(get, aArray);
-  int[] bIntArray = map(get, bArray);
+  int[] aIntArray = sort(map(get, aArray));
+  int[] bIntArray = sort(map(get, bArray));
   string arrayValues = '[\n';
   bool different = false;
   for (int i = 0; i < aIntArray.length; ++i) {
@@ -235,15 +242,7 @@ actions[DELETE_CONTAINS] = new void(int ...Set_wrapped_int[] sets) {
   if (initialSize == 0) {
     return;
   }
-  int indexToDelete = rand() % initialSize;
-  // write('Iterating to ' + string(indexToDelete));
-  wrapped_int toDelete = null;
-  for (var kv : enumerate(sets[0])) {
-    if (kv.k == indexToDelete) {
-      toDelete = kv.v;
-      break;
-    }
-  }
+  wrapped_int toDelete = sets[0].getRandom();
   // write('Deleting ' + string(toDelete.t));
   int i = 0;
   for (Set_wrapped_int s : sets) {
@@ -277,8 +276,9 @@ decreasingProbs[GET] = 0.05;
 decreasingProbs[DELETE_CONTAINS] = 0.3;
 assert(sum(decreasingProbs) == 1, 'Probabilities do not sum to 1');
 
-Set_wrapped_int naiveSet = NaiveSet_wrapped_int(null);
-Set_wrapped_int hashSet = HashSet_wrapped_int(null);
+Set_wrapped_int naiveSet = NaiveSortedSet_wrapped_int(operator <, null);
+HashSet_wrapped_int hashSet = HashSet_wrapped_int(null);
+Set_wrapped_int btreeSet = BTreeSet_wrapped_int(operator <, null);
 
 int chooseAction(real[] probs) {
   real r = unitrand();
@@ -292,22 +292,44 @@ int chooseAction(real[] probs) {
   return probs.length - 1;
 } 
 
+from collections.zip(T=wrapped_int) access zip;
+
 int maxSize = 0;
 for (int i = 0; i < 2000; ++i) {
   real[] probs = i < 800 ? increasingProbs : decreasingProbs;
   int choice = chooseAction(probs);
-  actions[choice](100, naiveSet, hashSet);
+  actions[choice](100, naiveSet, hashSet, btreeSet);
   bool differenceFound = false;
-  for (var ita = naiveSet.operator iter(), itb = hashSet.operator iter();
-       ita.valid() && itb.valid();
-       ita.advance(), itb.advance()) {
-    if (!alias(ita.get(), itb.get())) {
+  var ia = naiveSet.operator iter();
+  var ib = btreeSet.operator iter();
+  while (ia.valid() && ib.valid()) {
+    var a = ia.get(), b = ib.get();
+    if (!alias(a, b)) {
+      differenceFound = true;
+      break;
+    }
+    if (!alias(a, hashSet.get(a))) {
+      differenceFound = true;
+      break;
+    }
+    ia.advance();
+    ib.advance();
+  }
+  if (ia.valid() || ib.valid()) {
+    differenceFound = true;
+  }
+  for (wrapped_int a : hashSet) {
+    if (!btreeSet.contains(a)) {
       differenceFound = true;
       break;
     }
   }
   if (differenceFound) {
-    assert(false, 'Naive vs hash: \n' + differences(naiveSet, hashSet));
+    write('Difference Found:\n');
+    write('Naive vs Hash: ' + differences(naiveSet, hashSet) + '\n');
+    write('Naive vs BTree: ' + differences(naiveSet, btreeSet) + '\n');
+    write('Hash vs BTree: ' + differences(hashSet, btreeSet) + '\n');
+    assert(false);
   }
 
   maxSize = max(maxSize, naiveSet.size());

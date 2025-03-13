@@ -130,7 +130,6 @@ struct HashRepSet_T {
   }
 
   super.add = new bool(T item) {
-    ++numChanges;
     if (isNullT != null && isNullT(item)) {
       return false;
     }
@@ -140,6 +139,7 @@ struct HashRepSet_T {
     int bucket = item.hash();
     int index = find(item, bucket);
     if (index == -1) {
+      ++numChanges;
       changeCapacity();
       index = find(item, bucket);
       assert(index != -1, 'No space in hash table');
@@ -171,7 +171,7 @@ struct HashRepSet_T {
     return true;
   };
 
-  super.update = new T(T item) {
+  super.swap = new T(T item) {
     if (isNullT != null && isNullT(item)) {
       return nullT;
     }
@@ -188,6 +188,8 @@ struct HashRepSet_T {
       entry.item = item;
       return result;
     }
+    assert(isNullT != null,
+           'Adding item via swap() without defining nullT.');
     ++numChanges;
     if (2 * (size + zombies) >= buckets.length) {
       changeCapacity();
@@ -196,8 +198,6 @@ struct HashRepSet_T {
       assert(buckets[index] == null);
     }
     entry = buckets[index] = new HashEntry;
-    assert(isNullT != null,
-           'Adding item via update() without defining nullT.');
     entry.item = item;
     entry.hash = bucket;
     entry.older = newest;
@@ -246,6 +246,33 @@ struct HashRepSet_T {
     }
     return result;
   };
+
+  super.getRandom = new T() {
+    if (size == 0) {
+      assert(isNullT != null, 'Cannot get a random item from an empty set');
+      return nullT;
+    }
+    static int seed = 3567654160488757718;
+    if (size # 2 > buckets.length # size) {
+      // Most buckets are empty, so it's faster to iterate over the linked list
+      // of full buckets.
+      int index = (++seed).hash() % size;
+      for (T item : super) {
+        if (index == 0) {
+          return item;
+        }
+        --index;
+      }
+      assert(false, 'Unreachable code');
+    }
+    HashEntry entry = null;
+    do {
+      int index = (++seed).hash() % buckets.length;
+      entry = buckets[index];
+    } while (entry == null || entry.hash == -1);
+    return entry.item;
+  };
+
 
   autounravel RepSet_T operator cast(HashRepSet_T set) {
     return set.super;
