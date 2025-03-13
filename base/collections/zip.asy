@@ -41,16 +41,16 @@ from collections.iter(T=T) access
     Iter_T as Iter_T,
     Iterable_T as Iterable_T;
 from collections.iter(T=T[]) access
-    Iter_T as Iter_Array_T,
-    Iterable_T as Iterable_Array_T;
+    Iter_T as Iter_array_T,
+    Iterable_T as Iterable_array_T;
 
-Iterable_Array_T zip(...Iterable_T[] iterables) {
-  Iter_Array_T iter() {
+Iterable_array_T zip(...Iterable_T[] iterables) {
+  Iter_array_T iter() {
     Iter_T[] iters = new Iter_T[iterables.length];
     for (int i = 0; i < iterables.length; ++i) {
       iters[i] = iterables[i].operator iter();
     }
-    Iter_Array_T result;
+    Iter_array_T result;
     result.advance = new void() {
       for (int i = 0; i < iters.length; ++i) {
         iters[i].advance();
@@ -73,16 +73,16 @@ Iterable_Array_T zip(...Iterable_T[] iterables) {
     };
     return result;
   }
-  return Iterable_Array_T(iter);
+  return Iterable_array_T(iter);
 }
 
-Iterable_Array_T zip(T keyword default ...Iterable_T[] iterables) {
-  Iter_Array_T iter() {
+Iterable_array_T zip(T keyword default ...Iterable_T[] iterables) {
+  Iter_array_T iter() {
     Iter_T[] iters = new Iter_T[iterables.length];
     for (int i = 0; i < iterables.length; ++i) {
       iters[i] = iterables[i].operator iter();
     }
-    Iter_Array_T result;
+    Iter_array_T result;
     result.advance = new void() {
       for (Iter_T iter : iters) {
         if (iter.valid()) iter.advance();
@@ -109,5 +109,5 @@ Iterable_Array_T zip(T keyword default ...Iterable_T[] iterables) {
     };
     return result;
   }
-  return Iterable_Array_T(iter);
+  return Iterable_array_T(iter);
 }
