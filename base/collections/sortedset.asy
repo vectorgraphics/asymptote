@@ -36,7 +36,7 @@ struct SortedRepSet_T {
 // This implementation is highly inefficient, but it is correct, and can be
 // used to test other implementations of SortedRepSet_T.
 struct Naive_T {
-  struct _ { autounravel restricted SortedRepSet_T super; }
+  restricted SortedRepSet_T super;
   from super unravel nullT, isNullT;
   private bool lt(T a, T b) = null;
   private T[] buffer = new T[0];
@@ -163,8 +163,13 @@ struct Naive_T {
     return Iter_T(buffer);
   };
 
-  super.get_ith = new T(int i) {
-    return buffer[i];
+  super.getRandom = new T() {
+    if (buffer.length == 0) {
+      assert(isNullT != null, 'No element to return');
+      return nullT;
+    }
+    static int seed = 3567654160488757718;
+    return buffer[(++seed).hash() % buffer.length];
   };
 
   autounravel SortedRepSet_T operator cast(Naive_T naive) {

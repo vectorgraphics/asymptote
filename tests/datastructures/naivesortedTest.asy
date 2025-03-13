@@ -44,8 +44,6 @@ from collections.sortedset(T=wrapped_int) access
 from collections.btree(T=wrapped_int) access
     BTreeRepSet_T as BTreeSet_wrapped_int;
 
-from collections.enumerate(T=wrapped_int) access enumerate;
-
 struct ActionEnum {
   static restricted int num = 0;
   static private int make() {
@@ -244,9 +242,7 @@ actions[DELETE_CONTAINS] = new void(int ...Set_wrapped_int[] sets) {
   if (initialSize == 0) {
     return;
   }
-  int indexToDelete = rand() % initialSize;
-  // write('Iterating to ' + string(indexToDelete));
-  wrapped_int toDelete = sets[0].get_ith(indexToDelete);
+  wrapped_int toDelete = sets[0].getRandom();
   // write('Deleting ' + string(toDelete.t));
   int i = 0;
   for (Set_wrapped_int s : sets) {

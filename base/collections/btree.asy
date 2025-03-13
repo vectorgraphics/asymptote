@@ -241,8 +241,20 @@ struct BTreeRepSet_T {
   super.before = new T(T x) { return root.before(x); };
   super.firstGEQ = new T(T x) { return root.firstGEQ(x); };
   super.firstLEQ = new T(T x) { return root.firstLEQ(x); };
-  super.min = new T() { return root.min(); };
-  super.max = new T() { return root.max(); };
+  super.min = new T() {
+    if (size == 0) {
+      assert(isNullT != null, 'No minimum element to return');
+      return nullT;
+    }
+    return root.min();
+  };
+  super.max = new T() {
+    if (size == 0) {
+      assert(isNullT != null, 'No maximum element to return');
+      return nullT;
+    }
+    return root.max();
+  };
 
   super.operator iter = new Iter_T() {
     Iter_T unsafe = root.operator iter();

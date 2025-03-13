@@ -43,10 +43,20 @@ struct RepSet_T {
   // nullT if there is no equivalent item. Throws error if
   // there is no equivalent item and nullT was never set.
   T delete(T item);
-  // Used primarily in testing to get a random element. Most implementations
-  // will not support this operation.
-  T get_ith(int i) {
-    assert(false, 'get_ith not implemented');
+  // Returns a random, uniformly distributed element. The default
+  // implementation is O(n) in the number of elements. Intended primarily for
+  // testing purposes.
+  T getRandom() {
+    int size = this.size();
+    static int seed = 3567654160488757718;
+    int index = (++seed).hash() % size;
+    for (T item : this) {
+      if (index == 0) {
+        return item;
+      }
+      --index;
+    }
+    assert(isNullT != null, 'Cannot get a random item from an empty set');
     return nullT;
   }
 
@@ -207,8 +217,15 @@ struct NaiveRepSet_T {
     return nullT;
   };
 
-  super.get_ith = new T(int i) {
-    return items[i];
+  // This implementation is O(1).
+  super.getRandom = new T() {
+    if (items.length == 0) {
+      assert(isNullT != null, 'Cannot get a random item from an empty set');
+      return nullT;
+    }
+    static int seed = 3567654160488757718;
+    int index = (++seed).hash() % items.length;
+    return items[index];
   };
 
   autounravel Iterable_T operator cast(NaiveRepSet_T set) {

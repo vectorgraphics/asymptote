@@ -258,3 +258,18 @@ void progress(bool3 init=default)
 restricted int ocgindex=0;
 
 from collections.hashmap(K=string,V=string) access HashMap_K_V as dict;
+from collections.map(K=string, V=string) access Map_K_V as Map_string_string;
+void write(file file=stdout, Map_string_string d)
+{
+  int maxLen=0;
+  for (string key : d) {
+    maxLen=max(maxLen,length(key));
+  }
+  for (string key : d) {
+    write(file, key + ': ', flush);
+    for (int i=0; i < maxLen-length(key); ++i) {
+      write(file, ' ', flush);
+    }
+    write(file, d[key], endl);
+  }
+}

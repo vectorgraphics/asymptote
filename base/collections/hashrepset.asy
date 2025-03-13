@@ -247,6 +247,33 @@ struct HashRepSet_T {
     return result;
   };
 
+  super.getRandom = new T() {
+    if (size == 0) {
+      assert(isNullT != null, 'Cannot get a random item from an empty set');
+      return nullT;
+    }
+    static int seed = 3567654160488757718;
+    if (size # 2 > buckets.length # size) {
+      // Most buckets are empty, so it's faster to iterate over the linked list
+      // of full buckets.
+      int index = (++seed).hash() % size;
+      for (T item : super) {
+        if (index == 0) {
+          return item;
+        }
+        --index;
+      }
+      assert(false, 'Unreachable code');
+    }
+    HashEntry entry = null;
+    do {
+      int index = (++seed).hash() % buckets.length;
+      entry = buckets[index];
+    } while (entry == null || entry.hash == -1);
+    return entry.item;
+  };
+
+
   autounravel RepSet_T operator cast(HashRepSet_T set) {
     return set.super;
   }
