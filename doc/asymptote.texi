@@ -5497,7 +5497,7 @@ array to be resized to accommodate the new element.
 One can also index an array @code{A} with an integer array @code{B}:
 the array @code{A[B]} is formed by indexing array @code{A} with
 successive elements of array @code{B}.
-A convenient Java-style shorthand exists for iterating over all elements of an
+A convenient shorthand exists for iterating over all elements of an
 array; see @ref{array iteration}.
 
 The declaration
@@ -5520,9 +5520,25 @@ Arrays can be explicitly initialized like this:
 @verbatim
 real[] A={0,1,2};
 @end verbatim
+@noindent An explicit array initialization can also end with a copy of another
+array:
+@verbatim
+real[] A={0,1};
+real[] B={...A};  // Now B contains {0,1}.
+real[] C={4 ...A};  // Now C contains {4,0,1}.
+@end verbatim
+@noindent (Side note: without the space, @code{4...A} would be parsed as
+@code{4.0 .. A} and thus give a syntax error.)
 
 Array assignment in @code{Asymptote} does a shallow copy: only
 the pointer is copied (if one copy if modified, the other will be too).
+@verbatim
+real[] A = {0,1,2};
+real[] B = A;
+B[0] = 3;
+write(A[0]); // Outputs 3.
+@end verbatim
+@noindent
 The @code{copy} function listed below provides a deep copy of an array.
 
 @cindex @code{length}
