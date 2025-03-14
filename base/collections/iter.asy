@@ -39,7 +39,10 @@ struct Iterable_T {
     }
     return result;
   }
+  autounravel Iterable_T operator cast(T[] items) = Iterable_T;
+  // The following is essentially a constructor, and is made autounravel for
+  // that reason.
+  autounravel Iterable_T Iterable(Iter_T iter()) = Iterable_T;
 }
 
-Iterable_T Iterable(Iter_T iter()) = Iterable_T;
 Iterable_T range(T[] items) = Iterable_T;

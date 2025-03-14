@@ -6955,7 +6955,7 @@ The @code{Iterable_T} class is a generic class for something that has an
 @code{operator iter} method returning an @code{Iter_T}. This class, not
 @code{Iter_T}, is the type that can appear inside a range-based @code{for} loop.
 Consequently, most of the utilities below manipulate instances of
-@code{Iterable_T} rather than @code{Iter_T}.
+@w{@code{Iterable_T}} rather than @code{Iter_T}.
 
 It is good practice for a class that defines an @code{operator iter} method to
 also define an implicit cast to @code{Iterable_T} for better compatibility with
@@ -6968,23 +6968,108 @@ The @code{collections.iter} module provides the following functions:
 @table @code
 @item Iterable_T Iterable(Iter_T iter())
 Creates an @code{Iterable_T} with its @code{operator iter} method set to
-@code{iter}.
-@item Iterable_T Iterable(T[] items)
+@code{iter}. Autounraveled whenever @code{Iterable_T} is accessed.
+@item Iterable_T range(T[] items)
 Creates an @code{Iterable_T} that iterates over the elements of @code{items}.
 Separate calls to @code{operator iter} will return independent iterators.
 @item Iter_T Iter_T(T[] items)
 Creates an @code{Iter_T} that iterates over the elements of @code{items}.
 @end table
 
-Note that the functions called @code{Iterable} do not need to be renamed to
-incorporate the type, since the type is specified by the argument. (The same
-two functions can also be called as @code{Iterable_T}, or whatever
+Note that the pseudo-constructor called @code{Iterable} does not need to be
+renamed to incorporate the type, since the type is specified by the argument.
+(The same function can also be called as @code{Iterable_T}, or whatever
 @code{Iterable_T} was renamed to.)
 
 @node Combining (zipping) iterators
 @subsubsection Combining (zipping) iterators
 
-TODO (zip.asy; sip2.asy?)
+The @code{collections.zip} and @code{collections.zip2} templated modules provide
+ways to iterate over two or more containers in a single @code{for} loop.
+
+The @code{collections.zip2(K,V)} module allows iterating over two containers of
+potentially different types. Here's an example:
+@verbatim
+from collections.zip2(K=int, V=string) access zip, operator cast;
+int[] x = {0, 1, 2, 3};
+string[] y = {'0', '1', '2', '3'};
+for (var ab : zip(x, y)) {
+  assert(string(ab.k) == ab.v);
+}
+@end verbatim
+The casts from @code{int[]} to @code{Iterable_int} and from @code{string[]} to
+@code{Iterable_string} are actually autounraveled from those two types, but in
+this case it was easier to access them both at once from the @code{zip2} module.
+
+Here's the @code{zip} function provided by
+@code{collections.zip2(K,V)}:
+@table @code
+@item Iterable_Pair_K_V zip(Iterable_K a, Iterable_V b)
+Returns an iterable that produces pairs of elements from @code{a} and @code{b}.
+The iterable stops when either @code{a} or @code{b} runs out of elements.
+@end table
+Additionally, the module can be used to access the following types and all
+their autounravels:
+@itemize
+@item @code{Pair_K_V}
+@item @code{Iterable_K}
+@item @code{Iterable_V}
+@item @code{Iterable_Pair_K_V}
+@item @code{Iter_K}
+@item @code{Iter_V}
+@item @code{Iter_Pair_K_V}
+@end itemize
+
+The @code{collections.zip(T)} module is similar, but condenses the iterables
+into an iterable of arrays rather than pairs. This requires that all the
+iterables be over the same type (e.g., all string iterators or all integer
+iterators, but not one of each as above). In exchange, the @code{zip} function
+can take any number of arguments and can also supply a default value to use when
+the iterables are not all the same length. Here's an example:
+@verbatim
+from collections.zip(T=int) access zip;
+int[] x = {0, 1, 2, 3};
+int[] y = {0, 1, 2};
+int[] z = {0, 1, 2, 3, 4};
+for (int[] abc : zip(default=9, x, y, z)) {
+  write(string(abc[0]) + '\t' + string(abc[1]) + '\t' + string(abc[2]));
+}
+// Outputs:
+// 0       0       0
+// 1       1       1
+// 2       2       2
+// 3       9       3
+// 9       9       4
+@end verbatim
+
+The @code{collections.zip(T)} module introduces the types
+@itemize
+@item @code{Iterable_array_T} from @code{collections.iter(T=T[])}
+@item @code{Iter_array_T} from @code{collections.iter(T=T[])}
+@item @code{Iterable_T}
+@item @code{Iter_T}
+@end itemize
+and the following functions (all called @code{zip}):
+
+@table @code
+@item Iterable_array_T zip(...Iterable_T[] iterables)
+Zips together one or more iterables of @code{T}s. If @code{a} is an item from
+the result, then @code{a[0]} is from the first iterable, @code{a[1]} is from the
+second iterable, and so on. If the iterables are not all the same length, the
+result will be the length of the shortest iterable.
+@item Iterable_array_T zip(T keyword default ...Iterable_T[] iterables)
+Similar to the above, except that the result will be the length of the longest
+iterable, and the default value will be used for any missing elements.
+@item T[][] zip(...T[][] arrays)
+Zips together one or more arrays. If the arrays are not all the same length, the
+result will be the length of the shortest array.
+@item T[][] zip(T keyword default ...T[][] arrays)
+Zips together one or more arrays. If the arrays are not all the same length, the
+result will be the length of the longest array, and the default value will be
+used for any missing elements. This is basically equivalent to applying
+@code{transpose} and then replacing any uninitialized elements with the default
+value.
+@end table
 
 @node Adding integer indices to iterators
 @subsubsection Adding integer indices to iterators

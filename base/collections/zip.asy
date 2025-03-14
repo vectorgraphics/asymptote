@@ -37,9 +37,7 @@ T[][] zip(T keyword default ...T[][] arrays) {
   return transpose(padded);
 }
 
-from collections.iter(T=T) access
-    Iter_T as Iter_T,
-    Iterable_T as Iterable_T;
+from collections.iter(T=T) access Iter_T, Iterable_T;
 from collections.iter(T=T[]) access
     Iter_T as Iter_array_T,
     Iterable_T as Iterable_array_T;

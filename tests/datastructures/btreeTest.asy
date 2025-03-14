@@ -79,9 +79,9 @@ string differences(SortedSet_wrapped_int a, SortedSet_wrapped_int b) {
   }
   string arrayValues = '[\n';
   bool diff = false;
-  for (wrapped_int[] ab : zip(a, b)) {
-    wrapped_int aItem = ab[0];
-    wrapped_int bItem = ab[1];
+  for (wrapped_int[] ab : zip(default=null, a, b)) {
+    wrapped_int aItem = ab[0]; assert(!alias(aItem, null));
+    wrapped_int bItem = ab[1]; assert(!alias(bItem, null));
     arrayValues += '  [' + format('%5d', aItem.t) + ',' + format('%5d', bItem.t)
                          + ']';
     if (!alias(aItem, bItem)) {
@@ -95,6 +95,20 @@ string differences(SortedSet_wrapped_int a, SortedSet_wrapped_int b) {
     return arrayValues;
   }
   return '';
+}
+
+bool different(SortedSet_wrapped_int a, SortedSet_wrapped_int b) {
+  if (a.size() != b.size()) {
+    return true;
+  }
+  for (wrapped_int[] ab : zip(default=null, a, b)) {
+    wrapped_int aItem = ab[0];
+    wrapped_int bItem = ab[1];
+    if (!alias(aItem, bItem)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 string string(int[] a) {
@@ -452,8 +466,10 @@ for (int i : range(numActions)) {
   int choice = chooseAction(probs);
   ++counts[choice];
   actions[choice](100, naive, btree);
-  string diffs = differences(naive, btree);
-  assert(diffs == '', 'Naive vs btree: \n' + diffs);
+  if (different(naive, btree)) {
+    write('Different sets after action ' + names[choice]);
+    assert(false, 'Naive vs btree: \n' + differences(naive, btree));
+  }
   assert(isStrictlySorted(btree), 'Not sorted');
   maxSize = max(maxSize, btree.size());
 }
