@@ -152,17 +152,17 @@ using mem::string;
 %type  <d>   dec fundec typedec
 %type  <ps>  strid
 %type  <ip>  idpair stridpair
-%type  <ipl> idpairlist idpairlistc stridpairlist stridpairlistc
+%type  <ipl> idpairlist stridpairlist
 %type  <vd>  vardec barevardec
 %type  <t>   type celltype
 %type  <dim> dims
-%type  <dil> decidlist decidlistc
+%type  <dil> decidlist
 %type  <di>  decid
 %type  <dis> decidstart
 %type  <vi>  varinit
 %type  <ai>  arrayinit basearrayinit varinits
 %type  <fl>  formal decdec
-%type  <fls> formals decdeclist formalsc decdeclistc
+%type  <fls> formals decdeclist
 %type  <e>   value exp fortest
 %type  <arg> argument
 %type  <slice> slice
@@ -170,13 +170,13 @@ using mem::string;
 %type  <e>   tension controls
 %type  <se>  dir
 %type  <elist> dimexps
-%type  <alist> arglist tuple arglistc tuplec
+%type  <alist> arglist tuple
 %type  <s>   stm stmexp blockstm
 %type  <run> forinit
 %type  <sel> forupdate stmexplist
-%type  <boo> explicitornot
+%type  <boo> explicitornot optionalcomma
 %type <tp> typeparam
-%type <tps> typeparamlist typeparamlistc
+%type <tps> typeparamlist
 
 /* There are four shift/reduce conflicts:
  *   the dangling ELSE in IF (exp) IF (exp) stm ELSE stm
@@ -236,14 +236,14 @@ dec:
   vardec           { $$ = $1; }
 | fundec           { $$ = $1; }
 | typedec          { $$ = $1; }
-| ACCESS stridpairlistc ';'
+| ACCESS stridpairlist optionalcomma ';'
                    { $$ = new accessdec($1, $2); }
-| FROM name UNRAVEL idpairlistc ';'
+| FROM name UNRAVEL idpairlist optionalcomma ';'
                    { $$ = new unraveldec($1, $2, $4); }
 | FROM name UNRAVEL '*' ';'
                    { $$ = new unraveldec($1, $2, WILDCARD); }
 | UNRAVEL name ';' { $$ = new unraveldec($1, $2, WILDCARD); }
-| FROM strid ACCESS idpairlistc ';'
+| FROM strid ACCESS idpairlist optionalcomma ';'
                    { $$ = new fromaccessdec($1, $2.sym, $4); }
 | FROM strid ACCESS '*' ';'
                    { $$ = new fromaccessdec($1, $2.sym, WILDCARD); }
@@ -254,27 +254,33 @@ dec:
                    { $$ = new includedec($1, $2->getString()); }
 
 // Experimental - templated imports.
-| TYPEDEF IMPORT '(' typeparamlistc ')' ';'
+| TYPEDEF IMPORT '(' typeparamlist optionalcomma ')' ';'
                    { $$ = new receiveTypedefDec($1, $4); }
-| IMPORT TYPEDEF '(' typeparamlistc ')' ';'
+| IMPORT TYPEDEF '(' typeparamlist optionalcomma ')' ';'
                    { $$ = new badDec($1, $1,
                      "Expected 'typedef import(<types>);'");
                    }
-/* ACCESS strid '(' decdeclistc ')' 'as' ID */
-| ACCESS strid '(' decdeclistc ')' ID ID ';'
+/* ACCESS strid '(' decdeclist optionalcomma ')' 'as' ID */
+| ACCESS strid '(' decdeclist optionalcomma ')' ID ID ';'
                    { $$ = new templateAccessDec(
-                        $1, $2.sym, $4, $6.sym, $7.sym, $6.pos
+                        $1, $2.sym, $4, $7.sym, $8.sym, $7.pos
                       ); }
-| ACCESS strid '(' decdeclistc ')' ';'
-                   { $$ = new badDec($1, $6, "expected 'as'"); }
-| IMPORT strid '(' decdeclistc ')' ';'
+| ACCESS strid '(' decdeclist optionalcomma ')' ';'
+                   { $$ = new badDec($1, $7, "expected 'as'"); }
+| IMPORT strid '(' decdeclist optionalcomma ')' ';'
                    { $$ = new badDec($1, $1,
                         "Parametrized imports disallowed to reduce naming "
                         "conflicts. Try "
                         "'access <module>(<type parameters>) as <newname>;'."
                      ); }
-| FROM strid '(' decdeclistc ')' ACCESS idpairlistc ';'
-                   { $$ = new fromaccessdec($1, $2.sym, $7, $4); }
+| FROM strid '(' decdeclist optionalcomma ')'
+  ACCESS idpairlist optionalcomma ';'
+                   { $$ = new fromaccessdec($1, $2.sym, $8, $4); }
+;
+
+optionalcomma:
+  ','              { $$ = true; }
+|                  { $$ = false; }
 ;
 
 // List mapping dec to dec as in "Key=string, Value=int"
@@ -293,11 +299,6 @@ decdeclist:
                    { $$ = $1; $$->add($3); }
 ;
 
-decdeclistc:
-  decdeclist       { $$ = $1; }
-| decdeclist ','   { $$ = $1; }
-;
-
 typeparam:
     ID { $$ = new typeParam($1.pos, $1.sym); }
 ;
@@ -307,11 +308,6 @@ typeparamlist:
                    { $$ = new typeParamList($1->getPos()); $$->add($1); }
 | typeparamlist ',' typeparam
                    { $$ = $1; $$->add($3); }
-;
-
-typeparamlistc:
-  typeparamlist    { $$ = $1; }
-| typeparamlist ',' { $$ = $1; }
 ;
 
 idpair:
@@ -324,11 +320,6 @@ idpairlist:
   idpair           { $$ = new idpairlist(); $$->add($1); }
 | idpairlist ',' idpair
                    { $$ = $1; $$->add($3); }
-;
-
-idpairlistc:
-  idpairlist       { $$ = $1; }
-| idpairlist ','   { $$ = $1; }
 ;
 
 strid:
@@ -349,17 +340,13 @@ stridpairlist:
                    { $$ = $1; $$->add($3); }
 ;
 
-stridpairlistc:
-  stridpairlist     { $$ = $1; }
-| stridpairlist ',' { $$ = $1; }
-;
-
 vardec:
   barevardec ';'   { $$ = $1; }
 ;
 
 barevardec:
-  type decidlistc  { $$ = new vardec($1->getPos(), $1, $2); }
+  type decidlist optionalcomma 
+                   { $$ = new vardec($1->getPos(), $1, $2); }
 ;
 
 type:
@@ -388,11 +375,6 @@ decidlist:
                    { $$ = $1; $$->add($3); }
 ;
 
-decidlistc:
-  decidlist        { $$ = $1; }
-| decidlist ','    { $$ = $1; }
-;
-
 decid:
   decidstart       { $$ = new decid($1->getPos(), $1); }
 | decidstart ASSIGN varinit
@@ -404,7 +386,7 @@ decidstart:
 | ID dims          { $$ = new decidstart($1.pos, $1.sym, $2); }
 | ID '(' ')'       { $$ = new fundecidstart($1.pos, $1.sym, 0,
                                             new formals($2)); }
-| ID '(' formalsc ')'
+| ID '(' formals optionalcomma ')'
                    { $$ = new fundecidstart($1.pos, $1.sym, 0, $3); }
 ;
 
@@ -446,13 +428,8 @@ formals:
 | ELLIPSIS formal  { $$ = new formals($1); $$->addRest($2); }
 | formals ',' formal
                    { $$ = $1; $$->add($3); }
-| formalsc ELLIPSIS formal
-                   { $$ = $1; $$->addRest($3); }
-;
-
-formalsc:
-  formals          { $$ = $1; }
-| formals ','      { $$ = $1; }
+| formals optionalcomma ELLIPSIS formal
+                   { $$ = $1; $$->addRest($4); }
 ;
 
 explicitornot:
@@ -479,8 +456,8 @@ formal:
 fundec:
   type ID '(' ')' blockstm
                    { $$ = new fundec($3, $1, $2.sym, new formals($3), $5); }
-| type ID '(' formalsc ')' blockstm
-                   { $$ = new fundec($3, $1, $2.sym, $4, $6); }
+| type ID '(' formals optionalcomma ')' blockstm
+                   { $$ = new fundec($3, $1, $2.sym, $4, $7); }
 ;
 
 typedec:
@@ -497,7 +474,7 @@ typedec:
                    { decidstart *dis = new fundecidstart($2.pos, $2.sym,
                                                          0, new formals($5));
                      $$ = new typedec($1, dis, $4); }
-| USING ID ASSIGN type '(' formalsc ')' ';'
+| USING ID ASSIGN type '(' formals optionalcomma ')' ';'
                    { decidstart *dis = new fundecidstart($2.pos, $2.sym, 0, $6);
                      $$ = new typedec($1, dis, $4); }
 ;
@@ -520,12 +497,12 @@ value:
 | name '(' ')'     { $$ = new callExp($2,
                                       new nameExp($1->getPos(), $1),
                                       new arglist()); }
-| name '(' arglistc ')'
+| name '(' arglist optionalcomma ')'
                    { $$ = new callExp($2,
                                       new nameExp($1->getPos(), $1),
                                       $3); }
 | value '(' ')'    { $$ = new callExp($2, $1, new arglist()); }
-| value '(' arglistc ')'
+| value '(' arglist optionalcomma ')'
                    { $$ = new callExp($2, $1, $3); }
 | '(' exp ')' %prec EXP_IN_PARENS_RULE
                    { $$ = $2; }
@@ -545,24 +522,14 @@ arglist:
                    { $$ = new arglist(); $$->addRest($2); }
 | arglist ',' argument
                    { $$ = $1; $$->add($3); }
-| arglistc ELLIPSIS argument
-                   { $$ = $1; $$->addRest($3); }
-;
-
-arglistc:
-  arglist          { $$ = $1; }
-| arglist ','      { $$ = $1; }
+| arglist optionalcomma ELLIPSIS argument
+                   { $$ = $1; $$->addRest($4); }
 ;
 
 /* A list of two or more expressions, separated by commas. */
 tuple:
   exp ',' exp      { $$ = new arglist(); $$->add($1); $$->add($3); }
 | tuple ',' exp    { $$ = $1; $$->add($3); }
-;
-
-tuplec:
-  tuple            { $$ = $1; }
-| tuple ','        { $$ = $1; }
 ;
 
 exp:
@@ -618,17 +585,18 @@ exp:
                                              new arrayTy($2->getPos(), $2, $3),
                                              new formals($4),
                                              $6); }
-| NEW celltype '(' formalsc ')' blockstm
-                   { $$ = new newFunctionExp($1, $2, $4, $6); }
-| NEW celltype dims '(' formalsc ')' blockstm
+| NEW celltype '(' formals optionalcomma ')' blockstm
+                   { $$ = new newFunctionExp($1, $2, $4, $7); }
+| NEW celltype dims '(' formals optionalcomma ')' blockstm
                    { $$ = new newFunctionExp($1,
                                              new arrayTy($2->getPos(), $2, $3),
                                              $5,
-                                             $7); }
+                                             $8); }
 | exp '?' exp ':' exp
                    { $$ = new conditionalExp($2, $1, $3, $5); }
 | exp ASSIGN exp   { $$ = new assignExp($2, $1, $3); }
-| '(' tuplec ')'    { $$ = new callExp($1, new nameExp($1, SYM_TUPLE), $2); }
+| '(' tuple optionalcomma ')'
+                   { $$ = new callExp($1, new nameExp($1, SYM_TUPLE), $2); }
 | exp join exp %prec JOIN_PREC
                    { $2->pushFront($1); $2->pushBack($3); $$ = $2; }
 | exp dir %prec DIRTAG
