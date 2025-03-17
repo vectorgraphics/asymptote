@@ -699,22 +699,22 @@ std::string wslUnix2Dos(std::string const& unixPath)
     serverClosed.wait();
   }
 
-  void AsymptoteLspServer::log(lsp::Log::Level const& level, std::string const& message)
+  void AsymptoteLspServer::log(lsp::Log::Level const& level, std::string const& message) const
   {
     _log.log(level, message);
   }
 
-  void AsymptoteLspServer::logError(std::string const& message)
+  void AsymptoteLspServer::logError(std::string const& message) const
   {
     log(lsp::Log::Level::SEVERE, message);
   }
 
-  void AsymptoteLspServer::logWarning(std::string const& message)
+  void AsymptoteLspServer::logWarning(std::string const& message) const
   {
     log(lsp::Log::Level::WARNING, message);
   }
 
-  void AsymptoteLspServer::logInfo(std::string const& message)
+  void AsymptoteLspServer::logInfo(std::string const& message) const
   {
     log(lsp::Log::Level::INFO, message);
   }

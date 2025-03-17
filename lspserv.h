@@ -149,10 +149,10 @@ namespace AsymptoteLsp
     void updateFileContentsTable(std::string const& filename, std::istream& in);
 
     // logging functions
-    void log(lsp::Log::Level const& level, std::string const& message);
-    void logInfo(std::string const& message);
-    void logWarning(std::string const& message);
-    void logError(std::string const& message);
+    void log(lsp::Log::Level const& level, std::string const& message) const;
+    void logInfo(std::string const& message) const;
+    void logWarning(std::string const& message) const;
+    void logError(std::string const& message) const;
 
     SymbolContext* reloadFileRaw(std::string const&, bool const& fillTree=true);
     SymbolContext* fromRawPath(lsTextDocumentIdentifier const& identifier);
