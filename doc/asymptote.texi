@@ -4544,6 +4544,38 @@ confused with its use to define default values for variables
 first case, the return type of the @code{operator init} must be @code{void}
 while in the second, it must be the (non-@code{void}) type of the variable.
 
+Internally, @code{operator init} implicitly defines a constructor function
+@code{Person(string,string)} as follows, where @var{args} is
+@code{string firstname, string lastname} in this case:
+@example
+struct Person @{
+  string firstname;
+  string lastname;
+
+  static Person Person(@var{args}) @{
+    Person p=new Person;
+    p.operator init(@var{args});
+    return p;
+  @}
+@}
+@end example
+@noindent
+which then can be used as:
+@verbatim
+Person joe=Person.Person("Joe", "Jones");
+@end verbatim
+
+The following is also implicitly generated in the enclosing scope,
+after the end of the structure definition.
+@verbatim
+from Person unravel Person;
+@end verbatim
+@noindent
+It allows us to use the constructor without qualification,
+otherwise we would have to refer to the constructor by the qualified name
+@code{Person.Person}.
+
+
 @cindex inheritance
 @cindex virtual functions
 Much like in C++, casting (@pxref{Casts}) provides for an elegant
@@ -5424,37 +5456,6 @@ If the iteration fails after the maximum allowed number of loops
 @cindex @code{simpson}
 @item @code{real simpson(real f(real), real a, real b, real acc=realEpsilon, real dxmax=b-a)}
 returns the integral of @code{f} from @code{a} to @code{b} using adaptive Simpson integration.
-
-Internally, @code{operator init} implicitly defines a constructor function
-@code{Person(string,string)} as follows, where @var{args} is
-@code{string firstname, string lastname} in this case:
-@example
-struct Person @{
-  string firstname;
-  string lastname;
-
-  static Person Person(@var{args}) @{
-    Person p=new Person;
-    p.operator init(@var{args});
-    return p;
-  @}
-@}
-@end example
-@noindent
-which then can be used as:
-@verbatim
-Person joe=Person.Person("Joe", "Jones");
-@end verbatim
-
-The following is also implicitly generated in the enclosing scope,
-after the end of the structure definition.
-@verbatim
-from Person unravel Person;
-@end verbatim
-@noindent
-It allows us to use the constructor without qualification,
-otherwise we would have to refer to the constructor by the qualified name
-@code{Person.Person}.
 
 @cindex @code{cputime}
 @noindent

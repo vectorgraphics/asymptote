@@ -248,3 +248,6 @@ asydoc
 
 tests/out
 tests/out.*
+
+# editor config
+.editorconfig

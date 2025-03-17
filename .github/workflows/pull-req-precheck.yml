@@ -7,8 +7,8 @@ on:
       - "a/*"
 
 jobs:
-  lint-non-gui-files:
-    uses: ./.github/workflows/lint-non-gui-py-files.yml
+  misc-sanity-checks:
+    uses: ./.github/workflows/misc-sanity-checks.yml
     with:
       target-branch: ${{ github.base_ref }}
   determine_asy_version:
@@ -61,7 +61,7 @@ jobs:
       - test-asy-linux
       - test-asy-windows
       - package-asy-install-file
-      - lint-non-gui-files
+      - misc-sanity-checks
     runs-on: "ubuntu-22.04"
     steps:
       - run: echo All prechecks pass!
