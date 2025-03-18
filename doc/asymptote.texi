@@ -1862,8 +1862,11 @@ should coincide with the first node of the second path).
 * Arrays::                      Dynamic vectors
 * Casts::                       Implicit and explicit casts
 * Import::                      Importing external @code{Asymptote} modules
+* Iterators::                   Iterating over structures
 * Static::                      Where to allocate your variable?
 * Autounravel::                 Adding associated libraries to structures
+* Hash functions::              Hashing your data
+* Collections / containers::    Maps, sets, queues, and iterator tools
 @end menu
 
 Here is a short introductory example to the @code{Asymptote} programming
@@ -1904,8 +1907,9 @@ for(int i=0; i < 10; ++i) {
 @cindex @code{break}
 @cindex @code{continue}
 @code{Asymptote} supports @code{while}, @code{do}, @code{break}, and
-@code{continue} statements just as in C/C++. It also supports the Java-style
-shorthand for iterating over all elements of an array:
+@code{continue} statements just as in C/C++. It also supports
+range-based @code{for} loops, which are convenient
+for iterating over all elements of an array:
 
 @cindex array iteration
 @anchor{array iteration}
@@ -4443,7 +4447,7 @@ T foo=new T;
 T foo;
 @end verbatim
 @noindent
-Here, @code{new T} produces a new instance of the class, which
+Here, @code{new T} produces a new instance of the struct, which
 causes @code{Tcount} to be incremented, tracking the
 number of instances produced. The declarations @code{T foo=new T} and
 @code{T foo} are equivalent: the second form implicitly creates a new
@@ -4620,6 +4624,8 @@ the @code{Asymptote} base module @code{plain}.
 * Arithmetic & logical::        Basic mathematical operators
 * Self & prefix operators::     Increment and decrement
 * User-defined operators::      Overloading operators
+* Bracket operators::           Bracket operators
+* Cast operators::              Type conversion
 @end menu
 
 @node Arithmetic & logical
@@ -4816,6 +4822,69 @@ write("g=",g);
 @end verbatim
 
 @xref{Autounravel}, for an example overloading the @code{+} operator.
+
+@node Bracket operators
+@subsection Bracket operators
+@cindex @code{[]}
+@cindex @code{[=]}
+@cindex @code{operator []}
+@cindex @code{operator [=]}
+@cindex bracket operators
+
+If @code{a} is not an array, the notation @code{a[i]} is equivalent to
+@code{a.operator[](i)}. Thus, the@tie{}@code{[]} operator can be defined to
+provide this notation for a user-defined structure. Similarly, the notation
+@code{a[i]=b} is equivalent to @code{a.operator[=](i,b)} (except that the former
+always returns @code{b}). Note that there are some restrictions on how these
+operators can be defined:
+
+@itemize
+@item Neither operator can be overloaded within a single structure (although
+different structures can have different definitions for these operators).
+@item @code{operator []} must take a single argument and have a non-void return
+type.
+@item @code{operator [=]} can only be defined if @code{operator[]} is also
+defined.
+@item @code{operator[=]} must take two arguments and have a void return type.
+Furthermore, if @code{K} and @code{V} are the types of the first and second
+arguments to @code{operator[=]}, respectively, then @code{K} must be the type of
+the argument to @code{operator[]} and @code{V} must be the return type of
+@code{operator[]}.
+@end itemize
+
+Here is a simple example. (Note that the code below is limited and inefficient;
+for a better way to do the same thing, TODO: ADD REFERENCE TO HASHMAPS.)
+
+@verbatim
+struct slowMap {
+  string[] keys;
+  real[] values;
+  real operator [](string key) {
+    for(int i=0; i < keys.length; ++i) {
+      if(keys[i] == key) return values[i];
+    }
+    return -inf;
+  }
+  void operator [=](string key, real value) {
+    assert(all(keys != key), 'duplicate key');
+    keys.push(key);
+    values.push(value);
+  }
+}
+
+slowMap m;
+m['pi']=3.14159;
+m['e']=2.71828;
+assert(m['pi']==3.14159);
+assert(m['e']==2.71828);
+assert(m['sqrt(2)'] == -inf);
+write("m['pi']=", m['pi']);
+@end verbatim
+
+@node Cast operators
+@subsection Cast operators
+
+@xref{Casts} for information on @code{operator cast} and @code{operator ecast}.
 
 @node Implicit scaling, Functions, Operators, Programming
 @section Implicit scaling
@@ -5429,7 +5498,7 @@ array to be resized to accommodate the new element.
 One can also index an array @code{A} with an integer array @code{B}:
 the array @code{A[B]} is formed by indexing array @code{A} with
 successive elements of array @code{B}.
-A convenient Java-style shorthand exists for iterating over all elements of an
+A convenient shorthand exists for iterating over all elements of an
 array; see @ref{array iteration}.
 
 The declaration
@@ -5452,9 +5521,25 @@ Arrays can be explicitly initialized like this:
 @verbatim
 real[] A={0,1,2};
 @end verbatim
+@noindent An explicit array initialization can also end with a copy of another
+array:
+@verbatim
+real[] A={0,1};
+real[] B={...A};  // Now B contains {0,1}.
+real[] C={4 ...A};  // Now C contains {4,0,1}.
+@end verbatim
+@noindent (Side note: without the space, @code{4...A} would be parsed as
+@code{4.0 .. A} and thus give a syntax error.)
 
 Array assignment in @code{Asymptote} does a shallow copy: only
 the pointer is copied (if one copy if modified, the other will be too).
+@verbatim
+real[] A = {0,1,2};
+real[] B = A;
+B[0] = 3;
+write(A[0]); // Outputs 3.
+@end verbatim
+@noindent
 The @code{copy} function listed below provides a deep copy of an array.
 
 @cindex @code{length}
@@ -5566,11 +5651,11 @@ a null array);
 
 @item int[] sequence(int n, int m)
 if @code{m >= n} returns an array @code{@{n,n+1,...,m@}} (otherwise
-returns a null array);
+returns a null array); see also @ref{range};
 
 @item int[] sequence(int n, int m, int skip)
 if @code{m >= n} returns an array @code{@{n,n+1,...,m@}} skipping by
-@code{skip} (otherwise returns a null array);
+@code{skip} (otherwise returns a null array); see also @ref{range};
 
 @item T[] sequence(T f(int), int n)
 if @code{n >= 1} returns the sequence @code{@{f_i :i=0,1,...n-1@}} given a
@@ -6239,23 +6324,34 @@ search paths (@pxref{Search paths}) for the matching file.  The file
 corresponding to that name is read and the code within it is interpreted
 as the body of a structure defining the module.
 
-If the file name contains
-nonalphanumeric characters, enclose it with quotation marks:
+
+If the file is contained in a subdirectory, the directory structure can be
+specified with a dot-separated name.  For instance, the command
+@verbatim
+import directoryName.moduleName;
+access directoryName.moduleName;
+@end verbatim
+@noindent will load the file @code{directoryName/moduleName.asy} as module
+@code{moduleName}. Likewise,
+@verbatim
+from directoryName.moduleName access functionName;
+@end verbatim
+will access @code{functionName} from @code{directoryName/moduleName.asy}.
+The directory @code{directoryName} is relative to the current directory,
+the @code{base} directory, or any directory in the search path
+(@pxref{Search paths}). Nested directory specifications are allowed, as long as the directory
+and module names are also valid as variable names.
+Otherwise (for example if the directory is an absolute path),
+the filename must be enclosed with quotation marks:
 
 @noindent
-@code{access "@value{Datadir}/asymptote/graph.asy" as graph;}
-
-@noindent
-@code{from "@value{Datadir}/asymptote/graph.asy" access axes;}
-
-@noindent
-@code{import "@value{Datadir}/asymptote/graph.asy" as graph;}
+@code{import '/usr/local/share/asymptote/graph.asy' as graph;}
 
 @cindex @acronym{URL}
 @cindex @acronym{libcurl}
 If @code{Asymptote} is compiled with support for @code{libcurl},
 the file name can even be a @acronym{URL}:
-@code{import "https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/axis3.asy" as axis3;}
+@code{import 'https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/axis3.asy' as axis3;}
 
 It is an error if modules import themselves (or each other in a cycle).
 The module name to be imported must be known at compile time.
@@ -6265,7 +6361,7 @@ The module name to be imported must be known at compile time.
 However, you can import an @code{Asymptote} module determined by the
 string @code{s} at runtime like this:
 @verbatim
-eval("import "+s,true);
+eval('import '+s,true);
 @end verbatim
 
 @cindex @code{asy}
@@ -6313,7 +6409,7 @@ include graph;
 @end verbatim
 
 @noindent
-@code{include "@value{Datadir}/asymptote/graph.asy";}
+@code{include '@value{Datadir}/asymptote/graph.asy';}
 
 To list all global functions and variables defined in a module named
 by the contents of the string @code{s}, use the function
@@ -6377,6 +6473,96 @@ of the @code{Asymptote} source directory.
 Issues: Certain expected operators (such as
 @code{operator ==}) may only be available for type arguments that are
 builtin or defined in module @code{plain}.
+
+@node Iterators
+@section Iterators
+@cindex iterators
+
+If a structure @code{a} has a member function @code{operator iter()}, the code
+@verbatim
+for(var i : a) {
+  <statements>
+}
+@end verbatim
+@noindent
+is syntactic sugar for
+@verbatim
+for(var it=a.operator iter(); it.valid(); it.advance()) {
+  var i=it.get();
+  <statements>
+}
+@end verbatim
+Thus, we can make a struct iterable by defining an @code{operator iter}
+method that returns an object with the following methods:
+@table @code
+@item <type> get()
+returns the value at the iterator's current position (without changing the position). Note that @code{<type>}
+can be any type, builtin or user-defined;
+
+@item void advance()
+advances the iterator to the next position;
+
+@item bool valid()
+returns @code{true} if the iterator is at a valid position or @code{false}
+if the iterator has advanced past the last item.
+@end table
+
+Although the return type of @code{operator iter} can theoretically be any type
+that has these three methods, it is strongly recommended to use the
+@code{Iter_T} struct defined in the templated module @code{collections.iter(T)}
+so that other utilities (@pxref{Iterators and utilities}) can be used with the iterator. The three methods
+of this struct can be set as fields.
+
+As an example, here is an iterator for the even-numbered elements of an
+array of strings:
+@verbatim
+from collections.iter(T=string) access Iter_T as Iter_string;
+struct EvenStrings {
+  string[] a;
+  void operator init(string[] a) {
+    this.a=a;
+  }
+  Iter_string operator iter() {
+    int i = 0;
+    Iter_string result;
+    result.get = new string() { return a[i]; };
+    result.advance = new void() { i += 2; };
+    result.valid = new bool() { return i < a.length; };
+    return result;
+  }
+}
+string[] a = {'a', 'b', 'c', 'd', 'e', 'f'};
+for (string s : EvenStrings(a)) {
+  write(s);
+}
+@end verbatim
+Running this code prints out the following:
+@verbatim
+a
+c
+e
+@end verbatim
+
+@node range
+@subsection range
+
+The following functions produce iterators over integers:
+@table @code
+@item Iterable_int range(int n)
+Returns an iterable that produces the integers from 0 to @code{n-1}.
+@item Iterable_int range(int m, int n, int skip=1)
+Returns an iterable over integers less than @code{n} starting at @code{m} by
+increments of @code{skip}. If @code{skip} is negative, the iterator instead
+produces integers greater than @code{n} starting at @code{m}. If @code{skip}
+is 0, the iterator is empty. Note that if, @code{m>n} and @code{skip>0}, the
+iterator will go on indefinitely; likewise, if @code{m<n} and @code{skip<0}.
+@end table
+
+Generally speaking, @code{for (int i : range(n))} is equivalent to
+@code{for (int i : sequence(n))}. The latter uses @math{O(n)} memory but is
+usually faster. The former uses @math{O(1)} memory but is slower.
+If an iterator is specifically required, however, @code{range(n)} is faster
+than @code{Iterable(sequence(n))} (as well as being more memory-efficient).
 
 @node Static
 @section Static
@@ -6592,6 +6778,444 @@ In front of a @code{struct} definition or @code{typedef} statement,
 While @code{static static} results in an error,
 @code{static autounravel} and @code{autounravel static} are both legal
 and have exactly the same effect as @code{autounravel} alone.
+
+@node Hash functions
+@section Hash functions
+@cindex hash function
+@cindex @code{hash}
+
+For an object to be used as a key in a hashmap
+(@pxref{Maps aka dictionaries}) or a member of a hashset (@pxref{Sets}), it
+must have a method @code{int hash()} that returns a nonnegative integer. For
+correctness, this method must return the same value for two objects of the same
+type that are equal according to the @code{==} operator. For efficiency, it
+should behave like a pseudorandom function, so that the hash values of distinct
+objects are unrelated. Also note that it is not necessary for hash functions to
+be consistent across different runs of the program; @code{a.hash() == a.hash()}
+should always be true, but @code{write(a.hash())} may produce a different
+output each time the program is run.
+
+In @code{Asymptote}, the @code{hash} method is defined for three of the builtin
+types: @code{int}, @code{real}, and @code{string}. Note that things like
+@code{3.hash()} and @code{'hello'.hash()} are @emph{not} valid syntax; the
+correct version of these would be @code{(3).hash()} and @code{('hello').hash()},
+with parentheses around the literal. If you want to hash a @code{real}, there
+are two important things to note: first, even if two @code{real}s are extremely
+close, their hash values will not be; second, the same number will have
+different hash values if it is an @code{int} or a @code{real}.
+
+@node Hashing user-defined structures
+@subsection Hashing user-defined structures
+
+Additionally, there is a
+function @code{hash(int[])} that can be helpful when constructing hash methods
+for user-defined structures: convert all the fields to integers (possibly by
+hashing them), put these integers into an array, and hash the array.
+
+Returning to the example of the @code{Person} structure from @xref{Structures},
+there are two reasonable ways we might define a hash function for it. The first
+is to create a hash function based on the all the fields of the structure:
+@verbatim
+struct Person {
+  string firstname;
+  string lastname;
+  int age;
+  int hash() {
+    return hash(new int[] {firstname.hash(), lastname.hash(), age});
+  }
+  autounravel bool operator ==(Person a, Person b) {
+    if (alias(a, null)) return alias(b, null);
+    if (alias(b, null)) return false;
+    return a.firstname == b.firstname &&
+           a.lastname == b.lastname &&
+           a.age == b.age;
+  }
+}
+@end verbatim
+This approach is necessary if we are redefining the @code{==}
+operator. Two @code{Person}s are equal if they have the same first name,
+last name, and age; a person who has had a birthday needs a new
+@code{Person} object.
+
+On the other hand, we might want a notion of @code{Person} that can remain the
+same even if these fields change. In this case, we can add a field
+that uniquely identifies a @code{Person} object, and use that for hashing: 
+
+@verbatim
+stuct Person {
+  string firstname;
+  string lastname;
+  int age;
+  private static int lastID=-1;
+  restricted int id = ++lastID;
+  int hash() {
+    return id.hash();
+  }
+}
+@end verbatim
+
+The default @code{==} operator for user-defined structs considers two objects
+equal if they are the same object, meaning that changes to one will be reflected
+in the other. This version of hashing plays well with the default @code{==}
+operator.
+
+One additional guideline: Whatever fields you are using for a hash, the ideal
+behavior is to run them through a builtin hash function once, but only once. See
+for instance the way that @code{id} is hashed in the second example above, but
+@code{age} is not independently hashed in the first example. (In the first
+example, @code{firstname} and @code{lastname} are independently hashed only to
+obtain integers that can be put into an array.)
+
+@node Collections / containers
+@section Collections / containers
+@cindex collections
+@cindex containers
+
+The @code{collections} subdirectory provides a number of useful
+containers and utilities via templated modules. (The terms ``collection''
+and ``container'' are used interchangeably here.)
+
+@xref{Maps aka dictionaries} for information on hashmaps, which are arguably the
+single most useful container in the @code{collections} module. (Many languages
+have a built-in hashmap type, sometimes called a ``dictionary'' or ``associative
+array''.)
+
+@node Pairs
+@subsection Pairs
+
+@code{Asymptote} has a builtin type for pairs of @code{real}s. The
+@code{collections.genericpair(K,V)} templated module provides a pair type for any
+two types. The fields are called @code{k} and @code{v} rather than @code{x} and
+@code{y}. The pair type is called @code{Pair_K_V}, which user are encouraged to
+rename based on the types being used. There is also a function @code{makePair}
+that creates a pair from two values; because of function overloading, the name
+of the function does not need to specify the two types.
+
+Here's an example:
+@verbatim
+from collections.genericpair(K=int, V=string) access
+    Pair_K_V as Pair_int_string,
+    makePair;
+var p=makePair(3, 'hello');
+write(p.k);  // Outputs 3
+write(p.v);  // Outputs hello
+var q = makePair(4, 'hello');
+var s = makePair(3, 'world');
+Pair_int_string t = makePair(3, 'hello');
+assert(p != q);
+assert(p != s);
+assert(p == t);
+@end verbatim
+Note that the @code{==} and @code{!=} operators are overloaded for pairs, and
+the overloads are based on the @code{==} operators of the two types in the pair.
+An unfortunate consequence of this is that this module cannot be used for pairs
+of arrays, because the @code{==} operator for arrays returns a @code{bool[]}
+rather than a @code{bool}. @xref{Wrapping arrays} for a workaround.
+
+The @code{Pair_K_V} type also has an @code{int hash()} method initialized to
+@code{null}. If you want to use pairs as keys in a hashmap, you should define
+this method, something like this:
+@verbatim
+from collections.genericpair(K=int, V=string) access
+    Pair_K_V as Pair_int_string;
+Pair_int_string p = makePair(3, 'hello');
+p.hash = new int() {
+  return hash(new int[] {p.k, p.v.hash()});
+};
+@end verbatim
+@xref{Hash functions} for more information.
+
+@node Iterators and utilities
+@subsection Iterators and utilities
+
+@node @code{collections.iter}
+@subsubsection @code{collections.iter}
+
+The @code{collections.iter} templated module provides structs @code{Iter_T}
+and @code{Iterable_T} that can be convenient for defining iterators.
+Additionally, there are several utilities for manipulating iterators of these
+types. Technically, the syntax @code{for (T x : a)} does not require anything
+from this module, but using it will make the utilities in this module available.
+
+The @code{Iter_T} struct has the following fields, all of which are null by
+default:
+
+@table @code
+@item T get()
+@item void advance()
+@item bool valid()
+@end table
+
+@code{Iter_T} is intended as the return type of an @code{operator iter} method;
+@xref{Iterators} for more information on how to use these fields.
+
+The @code{Iterable_T} struct is a generic struct for something that has an
+@code{operator iter} method returning an @code{Iter_T}. This struct, not
+@code{Iter_T}, is the type that can appear inside a range-based @code{for} loop.
+Consequently, most of the utilities below manipulate instances of
+@w{@code{Iterable_T}} rather than @code{Iter_T}.
+
+It is good practice for a struct that defines an @code{operator iter} method to
+also define an implicit cast to @code{Iterable_T} for better compatibility with
+the utilities in this module. Additionally, an instance @code{a} of
+@code{Iterable_T} can be cast to a @code{T[]} with the syntax @code{(T[]) a}.
+(This is an explicit cast, so it requires parentheses.)
+
+The @code{collections.iter} module provides the following functions:
+
+@table @code
+@item Iterable_T Iterable(Iter_T iter())
+Creates an @code{Iterable_T} with its @code{operator iter} method set to
+@code{iter}. Autounraveled whenever @code{Iterable_T} is accessed.
+@item Iterable_T range(T[] items)
+Creates an @code{Iterable_T} that iterates over the elements of @code{items}.
+Separate calls to @code{operator iter} will return independent iterators.
+@item Iter_T Iter_T(T[] items)
+Creates an @code{Iter_T} that iterates over the elements of @code{items}.
+@end table
+
+Note that the pseudo-constructor called @code{Iterable} does not need to be
+renamed to incorporate the type, since the type is specified by the argument.
+(The same function can also be called as @code{Iterable_T}, or whatever
+@code{Iterable_T} was renamed to.)
+
+@node Combining (zipping) iterators
+@subsubsection Combining (zipping) iterators
+
+The @code{collections.zip} and @code{collections.zip2} templated modules provide
+ways to iterate over two or more containers in a single @code{for} loop.
+
+The @code{collections.zip2(K,V)} module allows iterating over two containers of
+potentially different types. Here's an example:
+@verbatim
+from collections.zip2(K=int, V=string) access zip, operator cast;
+int[] x = {0, 1, 2, 3};
+string[] y = {'0', '1', '2', '3'};
+for (var ab : zip(x, y)) {
+  assert(string(ab.k) == ab.v);
+}
+@end verbatim
+The casts from @code{int[]} to @code{Iterable_int} and from @code{string[]} to
+@code{Iterable_string} are actually autounraveled from those two types, but in
+this case it was easier to access them both at once from the @code{zip2} module.
+
+Here's the @code{zip} function provided by
+@code{collections.zip2(K,V)}:
+@table @code
+@item Iterable_Pair_K_V zip(Iterable_K a, Iterable_V b, Pair_K_V keyword default=null)
+Returns an iterable that produces pairs of elements from @code{a} and @code{b}.
+If @code{default} is not provided, the iterable stops when either @code{a} or
+@code{b} runs out of elements. If @code{default} is provided, the returned
+iterable will be the length of the longest of @code{a} and @code{b}, and the
+default value will be used for any missing elements.
+@end table
+Additionally, the module can be used to access the following types and all
+their autounravels:
+@itemize
+@item @code{Pair_K_V}
+@item @code{Iterable_K}
+@item @code{Iterable_V}
+@item @code{Iterable_Pair_K_V}
+@item @code{Iter_K}
+@item @code{Iter_V}
+@item @code{Iter_Pair_K_V}
+@end itemize
+
+The @code{collections.zip(T)} module is similar, but condenses the iterables
+into an iterable of arrays rather than of pairs. This requires that all the
+iterables be over the same type (e.g., all string iterators or all integer
+iterators, but not one of each as above). In exchange, the @code{zip} function
+can take any number of arguments and can also supply a default value to use when
+the iterables are not all the same length. Here's an example:
+@verbatim
+from collections.zip(T=int) access zip;
+int[] x = {0, 1, 2, 3};
+int[] y = {0, 1, 2};
+int[] z = {0, 1, 2, 3, 4};
+for (int[] abc : zip(default=-1, x, y, z)) {
+  write(string(abc[0]) + '\t' + string(abc[1]) + '\t' + string(abc[2]));
+}
+// Outputs:
+// 0       0       0
+// 1       1       1
+// 2       2       2
+// 3       -1      3
+// -1      -1      4
+@end verbatim
+
+The @code{collections.zip(T)} module introduces the types
+@itemize
+@item @code{Iterable_array_T} from @code{collections.iter(T=T[])}
+@item @code{Iter_array_T} from @code{collections.iter(T=T[])}
+@item @code{Iterable_T}
+@item @code{Iter_T}
+@end itemize
+and the following functions (all called @code{zip}):
+
+@table @code
+@item Iterable_array_T zip(...Iterable_T[] iterables)
+Zips together one or more iterables of @code{T}s. If @code{a} is an item from
+the result, then @code{a[0]} is from the first iterable, @code{a[1]} is from the
+second iterable, and so on. If the iterables are not all the same length, the
+result will be the length of the shortest iterable.
+@item Iterable_array_T zip(T keyword default ...Iterable_T[] iterables)
+Similar to the above, except that the result will be the length of the longest
+iterable, and the default value will be used for any missing elements.
+@item T[][] zip(...T[][] arrays)
+Zips together one or more arrays. If the arrays are not all the same length, the
+result will be the length of the shortest array.
+@item T[][] zip(T keyword default ...T[][] arrays)
+Zips together one or more arrays. If the arrays are not all the same length, the
+result will be the length of the longest array, and the default value will be
+used for any missing elements. This is basically equivalent to applying
+@code{transpose} and then replacing any uninitialized elements with the default
+value.
+@end table
+
+@node Adding integer indices to iterators
+@subsubsection Adding integer indices to iterators
+
+The @code{collections.enumerate(T)} module provides a way to keep count of the
+index in an iterator. There are two methods, both called @code{enumerate}:
+@itemize
+@item @code{Iterable_Pair_int_T enumerate(Iterable_T iterable)}
+@item @code{Iterable_Pair_int_T enumerate(T[] array)}
+@end itemize
+Here's a simple example (with questionable English in the output):
+@verbatim
+from collections.enumerate(T=int) access enumerate;
+int[] x = {1, 4, 9, 16};
+for (var ab : enumerate(x)) {
+  write('The ' + string(ab.k) + 'th element is ' + string(ab.v));
+}
+// Outputs:
+// The 0th element is 1
+// The 1th element is 4
+// The 2th element is 9
+// The 3th element is 16
+@end verbatim
+Note that this is not necessarily worthwhile for arrays, since the ``standard''
+@code{for} loop is more efficient:
+@verbatim
+int[] x = {1, 4, 9, 16};
+for (int i=0; i < x.length; ++i) {
+  write('The ' + string(i) + 'th element is ' + string(x[i]));
+}
+@end verbatim
+@noindent However, the Map and Set datastructures discussed below do not have a
+builtin integer index, so @code{enumerate} is more useful for their iterators.
+
+@node Maps aka dictionaries
+@subsection Maps aka dictionaries
+
+@subsubsection Hashmaps
+
+Many modern programming languages have a builtin datastructure that is variously
+called a hashmap, dictionary, or associative array. This datastructure is
+something like an array, but with two major differences:
+@enumerate
+@item The indices can be any type, not just integers.
+@item The indices are not necessarily contiguous.
+@end enumerate
+In @code{Asymptote}, this
+datastructure is provided by the @code{collections.hashmap(K,V)} templated
+module. Here's an example: 
+@verbatim
+from collections.hashmap(K=string, V=int) access
+    HashMap_K_V as HashMap_string_int;
+HashMap_string_int h;
+h['hello'] = 5;
+h['world'] = 3;
+for (string key : h) {
+  write(key + ' ' + string(h[key]));
+}
+// Outputs:
+// hello 5
+// world 3
+@end verbatim
+
+// Additional points (not necessarily in this order):
+//
+// * See next section for the full API.
+// * Initializing with nullValue.
+// * remarks on performance
+// * To use a type as a key, it must have a hash() method, see appropriate
+//   section.
+// * Behavior if nullValue is not specified.
+// * Behavior if nullValue is specified, and how to specify it.
+// * Do not mutate the key while it is a key in the hashmap.
+// * Iterating over keys vs pairs.
+
+@subsubsection Maps
+
+TODO
+
+@subsubsection Sorted maps
+
+TODO
+
+@node Sets
+@subsection Sets
+
+TODO
+
+@node Queues
+@subsection Queues
+
+TODO
+
+@node Wrapping arrays
+@subsection Wrapping arrays
+
+@code{Asymptote} arrays have a builtin @code{==} operator that returns an
+array of bools rather than a single bool. This is useful in a number of
+contexts, but it also prevents them from being used in pairs or as values in
+hashmaps. The @code{collections.wraparray(T)} templated module provides a
+wrapper for arrays that has a more conventional @code{==} operator that returns
+a single bool. It also provides a @code{hash()} method that, if initialized,
+allows the array to be used as a key in a hashmap.
+
+The main type in @code{collections.wraparray(T)} is @code{Array_T},
+which should normally be renamed to replace @code{T} with the type of the
+elements of the array. @code{Array_T} is not a drop-in replacement for
+@code{T[]}, but it is as close as any struct can be. For convenience, the
+function @code{Array_T wrap(T[] data)} can be used to convert an array to
+an @code{Array_T}.
+
+The methods and fields of @code{Array_T} should be identical to those of
+@code{T[]}, with the following exceptions:
+@table @code
+@item int length()
+Method rather than a field. (Requires parentheses afterwards.)
+@item void cyclic(bool b)
+Sets the @code{cyclic} field of the wrapped array.
+@item bool cyclic()
+Returns the @code{cyclic} field of the wrapped array.
+@item int[] keys()
+Method rather than a field.
+@end table
+
+Additionally, the iteration syntax @code{for (T x : a)} is supported
+if @code{a} is an @code{Array_T}, as is element access @code{a[i]}. However,
+slices are not supported.
+
+To make an @code{Array_T} hashable, pass a second parameter to the
+@code{wrap} function that computes an integer hash of a single element.
+For instance, the following constructs hashable arrays of strings and integers:
+@verbatim
+from collections.wraparray(T=string) access Array_T as Array_string;
+from collections.wraparray(T=int) access Array_T as Array_int;
+string[] s = {'hello', 'world'};
+Array_string ss = wrap(s, new int(string s) { return s.hash(); });
+int[] a = {1, 2, 3};
+Array_int aa = wrap(a, new int(int i) { return i; });
+@end verbatim
+The resulting hash function works by converting all the elements of the array
+to integers using the provided function, and then hashing the resulting
+@code{int[]}, @pxref{Hash functions}.
+
+Important note: If you use an @code{Array_T} as a key in a hashmap, you must
+ensure that the array is not modified while it is a key in the hashmap.
 
 @node LaTeX usage
 @chapter @code{LaTeX} usage
