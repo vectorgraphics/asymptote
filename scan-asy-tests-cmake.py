@@ -55,7 +55,7 @@ def generate_tests_list_per_directory(test_dir: os.DirEntry):
             for entry in scanner_it
             if entry.is_file() and entry.name.endswith(".asy")
         )
-    
+
     if not tests:
         return ""
 
