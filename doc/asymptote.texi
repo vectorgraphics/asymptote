@@ -7078,7 +7078,35 @@ value.
 @node Adding integer indices to iterators
 @subsubsection Adding integer indices to iterators
 
-TODO (enumerate.asy)
+The @code{collections.enumerate(T)} module provides a way to keep count of the
+index in an iterator. There are two methods, both called @code{enumerate}:
+@itemize
+@item @code{Iterable_Pair_int_T enumerate(Iterable_T iterable)}
+@item @code{Iterable_Pair_int_T enumerate(T[] array)}
+@end itemize
+Here's a simple example (with questionable English in the output):
+@verbatim
+from collections.enumerate(T=int) access enumerate;
+int[] x = {1, 4, 9, 16};
+for (var ab : enumerate(x)) {
+  write('The ' + string(ab.k) + 'th element is ' + string(ab.v));
+}
+// Outputs:
+// The 0th element is 1
+// The 1th element is 4
+// The 2th element is 9
+// The 3th element is 16
+@end verbatim
+Note that this is not necessarily worthwhile for arrays, since the ``standard''
+@code{for} loop is more efficient:
+@verbatim
+int[] x = {1, 4, 9, 16};
+for (int i=0; i < x.length; ++i) {
+  write('The ' + string(i) + 'th element is ' + string(x[i]));
+}
+@end verbatim
+@noindent However, the Map and Set datastructures discussed below do not have a
+builtin integer index, so @code{enumerate} is more useful for their iterators.
 
 @node Maps aka dictionaries
 @subsection Maps aka dictionaries
