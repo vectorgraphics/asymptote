@@ -7111,6 +7111,50 @@ builtin integer index, so @code{enumerate} is more useful for their iterators.
 @node Maps aka dictionaries
 @subsection Maps aka dictionaries
 
+@subsubsection Hashmaps
+
+Many modern programming languages have a builtin datastructure that is variously
+called a hashmap, dictionary, or associative array. This datastructure is
+something like an array, but with two major differences:
+@enumerate
+@item The indices can be any type, not just integers.
+@item The indices are not necessarily contiguous.
+@end enumerate
+In @code{Asymptote}, this
+datastructure is provided by the @code{collections.hashmap(K,V)} templated
+module. Here's an example: 
+@verbatim
+from collections.hashmap(K=string, V=int) access
+    HashMap_K_V as HashMap_string_int;
+HashMap_string_int h;
+h['hello'] = 5;
+h['world'] = 3;
+for (string key : h) {
+  write(key + ' ' + string(h[key]));
+}
+// Outputs:
+// hello 5
+// world 3
+@end verbatim
+
+// Additional points (not necessarily in this order):
+//
+// * See next section for the full API.
+// * Initializing with nullValue.
+// * remarks on performance
+// * To use a type as a key, it must have a hash() method, see appropriate
+//   section.
+// * Behavior if nullValue is not specified.
+// * Behavior if nullValue is specified, and how to specify it.
+// * Do not mutate the key while it is a key in the hashmap.
+// * Iterating over keys vs pairs.
+
+@subsubsection Maps
+
+TODO
+
+@subsubsection Sorted maps
+
 TODO
 
 @node Sets
