@@ -23,6 +23,14 @@ add_asy_tests(
 
 
 add_asy_tests(
+    TEST_DIR datastructures
+    TESTS bracketsTest btreeTest changeWhileIterTest enumerateTest hashTest hashmapTest hashrepsetTest iterTest naivesortedTest queueTest wraparrayTest zipTest
+
+
+)
+
+
+add_asy_tests(
     TEST_DIR frames
     TESTS loop stat stat2
 
@@ -60,7 +68,7 @@ endif()
 
 add_asy_tests(
     TEST_DIR imp
-    TESTS unravel
+    TESTS access unravel
 
 
 )
@@ -100,7 +108,7 @@ add_asy_tests(
 
 add_asy_tests(
     TEST_DIR template
-    TESTS functionTest initTest mapArrayTest multiImport nestedImport singletype sortedsetTest splaytreeTest structTest
+    TESTS functionTest initTest mapArrayTest multiImport nestedImport singletype structTest
 
 
 )
