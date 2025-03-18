@@ -82,7 +82,7 @@ EndTest();
 
 StartTest('zip_heterogeneous');
 {
-  from collections.zip2(K=int, V=string) access zip;
+  from collections.zip2(K=int, V=string) access zip, makePair;
   from collections.iter(T=int) access range;
   from collections.iter(T=string) access range;
   int[] a = {1, 2, 3};
@@ -102,12 +102,30 @@ StartTest('zip_heterogeneous');
   }
   {
     int i = 0;
+    for (var kv : zip(default=makePair(-1, ''), A, B)) {
+      assert(kv.k == (i < 3 ? a[i] : -1));
+      assert(kv.v == b[i]);
+      ++i;
+    }
+    assert(i == 4);
+  }
+  {
+    int i = 0;
     for (var kv : zip(C, B)) {
       assert(kv.k == c[i]);
       assert(kv.v == b[i]);
       ++i;
     }
     assert(i == 4);
+  }
+  {
+    int i = 0;
+    for (var kv : zip(default=makePair(-1, ''), C, B)) {
+      assert(kv.k == c[i]);
+      assert(kv.v == (i < 4 ? b[i] : ''));
+      ++i;
+    }
+    assert(i == 5);
   }
 }
 EndTest();

@@ -1,6 +1,6 @@
 typedef import(K, V);
 
-from collections.genericpair(K=K, V=V) access Pair_K_V;
+from collections.genericpair(K=K, V=V) access Pair_K_V, makePair;
 
 from collections.iter(T=Pair_K_V) access
     Iter_T as Iter_Pair_K_V,
@@ -29,5 +29,27 @@ Iterable_Pair_K_V zip(Iterable_K a, Iterable_V b) {
     };
     return result;
   }
-  return Iterable_Pair_K_V(iter);
+  return Iterable(iter);
+}
+
+Iterable_Pair_K_V zip(Iterable_K a, Iterable_V b, Pair_K_V keyword default) {
+  Iter_Pair_K_V iter() {
+    Iter_K iterA = a.operator iter();
+    Iter_V iterB = b.operator iter();
+    Iter_Pair_K_V result;
+    result.advance = new void() {
+      iterA.advance();
+      iterB.advance();
+    };
+    result.valid = new bool() {
+      return iterA.valid() || iterB.valid();
+    };
+    result.get = new Pair_K_V() {
+      K k = iterA.valid() ? iterA.get() : default.k;
+      V v = iterB.valid() ? iterB.get() : default.v;
+      return makePair(k, v);
+    };
+    return result;
+  }
+  return Iterable(iter);
 }
