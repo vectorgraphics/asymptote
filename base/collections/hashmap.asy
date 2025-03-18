@@ -1,6 +1,7 @@
 typedef import(K, V);
 
-from collections.map(K=K, V=V) access Map_K_V, Iter_K, Iter_K_V, Iterable_K;
+from collections.map(K=K, V=V) access Map_K_V, Iter_K, Iter_K_V, Iterable_K,
+                                      Iterable_K_V;
 from collections.genericpair(K=K, V=V) access Pair_K_V, makePair;
 from collections.hashrepset(T=Pair_K_V) access
     HashRepSet_T as HashRepSet_K_V;
@@ -75,6 +76,8 @@ struct HashMap_K_V {
     result.get = new K() { return it.get().k; };
     return result;
   };
+
+  map.pairs = new Iterable_K_V() { return pairs; };
 
   autounravel Iterable_K operator cast(HashMap_K_V map) {
     return Iterable_K(map.map.operator iter);

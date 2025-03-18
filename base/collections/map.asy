@@ -34,6 +34,21 @@ struct Map_K_V {
 
   Iter_K operator iter();
 
+  Iterable_K_V pairs() {
+    Iter_K_V iter() {
+      Iter_K iterK = this.operator iter();
+      Iter_K_V result;
+      result.valid = iterK.valid;
+      result.get = new Pair_K_V() {
+        K k = iterK.get();
+        return Pair_K_V(k, this[k]);
+      };
+      result.advance = iterK.advance;
+      return result;
+    }
+    return Iterable(iter);
+  }
+
   // Returns a random, uniformly distributed key from the map. The default
   // implementation is O(n) in the number of keys. Intended primarily for
   // testing purposes.
