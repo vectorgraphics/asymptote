@@ -55,6 +55,9 @@ def generate_tests_list_per_directory(test_dir: os.DirEntry):
             for entry in scanner_it
             if entry.is_file() and entry.name.endswith(".asy")
         )
+    
+    if not tests:
+        return ""
 
     if test_name in TESTS_WITH_ARTIFACTS:
         artifacts_text = f"TEST_ARTIFACTS {' '.join(TESTS_WITH_ARTIFACTS[test_name])}"
@@ -94,8 +97,9 @@ def write_cmake_lists_data_to_file(test_dirs, out_file):
     out_file.write("\n")
     for entry in test_dirs:
         cmake_text = generate_tests_list_per_directory(entry)
-        out_file.write(cmake_text)
-        out_file.write("\n")
+        if cmake_text:
+            out_file.write(cmake_text)
+            out_file.write("\n")
 
 
 def get_test_dirs():

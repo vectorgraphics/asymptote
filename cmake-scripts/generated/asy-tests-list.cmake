@@ -22,7 +22,6 @@ add_asy_tests(
 )
 
 
-
 add_asy_tests(
     TEST_DIR frames
     TESTS loop stat stat2
@@ -113,3 +112,4 @@ add_asy_tests(
 
 
 )
+
