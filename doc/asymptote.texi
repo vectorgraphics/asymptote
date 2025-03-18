@@ -4447,7 +4447,7 @@ T foo=new T;
 T foo;
 @end verbatim
 @noindent
-Here, @code{new T} produces a new instance of the class, which
+Here, @code{new T} produces a new instance of the struct, which
 causes @code{Tcount} to be incremented, tracking the
 number of instances produced. The declarations @code{T foo=new T} and
 @code{T foo} are equivalent: the second form implicitly creates a new
@@ -6324,31 +6324,28 @@ search paths (@pxref{Search paths}) for the matching file.  The file
 corresponding to that name is read and the code within it is interpreted
 as the body of a structure defining the module.
 
+
 If the file is contained in a subdirectory, the directory structure can be
 specified with a dot-separated name.  For instance, the command
 @verbatim
 import directoryName.moduleName;
+access directoryName.moduleName;
 @end verbatim
 @noindent will load the file @code{directoryName/moduleName.asy} as module
-@code{moduleName}. The
-directory @code{directoryName} could be located in the current directory,
-in the @code{base} directory, or elsewhere in the search path
+@code{moduleName}. Likewise,
+@verbatim
+from directoryName.moduleName access functionName;
+@end verbatim
+will access @code{functionName} from @code{directoryName/moduleName.asy}.
+The directory @code{directoryName} is relative to the current directory,
+the @code{base} directory, or any directory in the search path
 (@pxref{Search paths}). Nested directory specifications are allowed, as long as the directory
-and file names are also valid as variable names. Also note that
-@code{directoryName} cannot start with a dot.
-
-If the file or subdirectory name contains
-nonalphanumeric characters, or if an absolute file path is needed,
-enclose it with quotation marks:
+and module names are also valid as variable names.
+Otherwise (for example if the directory is an absolute path),
+the filename must be enclosed with quotation marks:
 
 @noindent
-@code{access '@value{Datadir}/asymptote/graph.asy' as graph;}
-
-@noindent
-@code{from '@value{Datadir}/asymptote/graph.asy' access axes;}
-
-@noindent
-@code{import '@value{Datadir}/asymptote/graph.asy' as graph;}
+@code{import '/usr/local/share/asymptote/graph.asy' as graph;}
 
 @cindex @acronym{URL}
 @cindex @acronym{libcurl}
@@ -6481,12 +6478,13 @@ builtin or defined in module @code{plain}.
 @section Iterators
 @cindex iterators
 
-If @code{a.operator iter()} is defined, then the code
+If a structure @code{a} has a member function @code{operator iter()}, the code
 @verbatim
 for(var i : a) {
   <statements>
 }
 @end verbatim
+@noindent
 is syntactic sugar for
 @verbatim
 for(var it=a.operator iter(); it.valid(); it.advance()) {
@@ -6494,27 +6492,26 @@ for(var it=a.operator iter(); it.valid(); it.advance()) {
   <statements>
 }
 @end verbatim
-Thus, we can make a class iterable by defining an @code{operator iter}
+Thus, we can make a struct iterable by defining an @code{operator iter}
 method that returns an object with the following methods:
 @table @code
 @item <type> get()
-Returns the value at the iterator's current position. Note that @code{<type>}
-can be any type, builtin or user-defined. Does not change the iterator's
-position.
+returns the value at the iterator's current position (without changing the position). Note that @code{<type>}
+can be any type, builtin or user-defined;
 
 @item void advance()
-Advances the iterator to the next position.
+advances the iterator to the next position;
 
 @item bool valid()
-Returns @code{true} if the iterator is at a valid position. Returns @code{false}
+returns @code{true} if the iterator is at a valid position or @code{false}
 if the iterator has advanced past the last item.
 @end table
 
 Although the return type of @code{operator iter} can theoretically be any type
 that has these three methods, it is strongly recommended to use the
-@code{Iter_T} class defined in the templated module @code{collections.iter}
-so that other utilities can be used with the iterator. The three methods
-of this class can be set as fields.
+@code{Iter_T} struct defined in the templated module @code{collections.iter(T)}
+so that other utilities (@pxref{Iterators and utilities}) can be used with the iterator. The three methods
+of this struct can be set as fields.
 
 As an example, here is an iterator for the even-numbered elements of an
 array of strings:
@@ -6934,13 +6931,13 @@ p.hash = new int() {
 @node @code{collections.iter}
 @subsubsection @code{collections.iter}
 
-The @code{collections.iter} templated module provides a classes @code{Iter_T}
+The @code{collections.iter} templated module provides structs @code{Iter_T}
 and @code{Iterable_T} that can be convenient for defining iterators.
 Additionally, there are several utilities for manipulating iterators of these
 types. Technically, the syntax @code{for (T x : a)} does not require anything
 from this module, but using it will make the utilities in this module available.
 
-The @code{Iter_T} class has the following fields, all of which are null by
+The @code{Iter_T} struct has the following fields, all of which are null by
 default:
 
 @table @code
@@ -6952,13 +6949,13 @@ default:
 @code{Iter_T} is intended as the return type of an @code{operator iter} method;
 @xref{Iterators} for more information on how to use these fields.
 
-The @code{Iterable_T} class is a generic class for something that has an
-@code{operator iter} method returning an @code{Iter_T}. This class, not
+The @code{Iterable_T} struct is a generic struct for something that has an
+@code{operator iter} method returning an @code{Iter_T}. This struct, not
 @code{Iter_T}, is the type that can appear inside a range-based @code{for} loop.
 Consequently, most of the utilities below manipulate instances of
 @w{@code{Iterable_T}} rather than @code{Iter_T}.
 
-It is good practice for a class that defines an @code{operator iter} method to
+It is good practice for a struct that defines an @code{operator iter} method to
 also define an implicit cast to @code{Iterable_T} for better compatibility with
 the utilities in this module. Additionally, an instance @code{a} of
 @code{Iterable_T} can be cast to a @code{T[]} with the syntax @code{(T[]) a}.
