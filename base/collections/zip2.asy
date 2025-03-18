@@ -12,43 +12,37 @@ from collections.iter(T=V) access
     Iter_T as Iter_V,
     Iterable_T as Iterable_V;
 
-Iterable_Pair_K_V zip(Iterable_K a, Iterable_V b) {
+Iterable_Pair_K_V zip(Iterable_K a, Iterable_V b, Pair_K_V keyword default=null)
+{
   Iter_Pair_K_V iter() {
     Iter_K iterA = a.operator iter();
     Iter_V iterB = b.operator iter();
     Iter_Pair_K_V result;
-    result.advance = new void() {
-      iterA.advance();
-      iterB.advance();
-    };
-    result.valid = new bool() {
-      return iterA.valid() && iterB.valid();
-    };
-    result.get = new Pair_K_V() {
-      return Pair_K_V(iterA.get(), iterB.get());
-    };
-    return result;
-  }
-  return Iterable(iter);
-}
-
-Iterable_Pair_K_V zip(Iterable_K a, Iterable_V b, Pair_K_V keyword default) {
-  Iter_Pair_K_V iter() {
-    Iter_K iterA = a.operator iter();
-    Iter_V iterB = b.operator iter();
-    Iter_Pair_K_V result;
-    result.advance = new void() {
-      iterA.advance();
-      iterB.advance();
-    };
-    result.valid = new bool() {
-      return iterA.valid() || iterB.valid();
-    };
-    result.get = new Pair_K_V() {
-      K k = iterA.valid() ? iterA.get() : default.k;
-      V v = iterB.valid() ? iterB.get() : default.v;
-      return makePair(k, v);
-    };
+    if (alias(default, null)) {
+      result.advance = new void() {
+        iterA.advance();
+        iterB.advance();
+      };
+      result.valid = new bool() {
+        return iterA.valid() && iterB.valid();
+      };
+      result.get = new Pair_K_V() {
+        return makePair(iterA.get(), iterB.get());
+      };
+    } else {
+      result.advance = new void() {
+        if (iterA.valid()) iterA.advance();
+        if (iterB.valid()) iterB.advance();
+      };
+      result.valid = new bool() {
+        return iterA.valid() || iterB.valid();
+      };
+      result.get = new Pair_K_V() {
+        K k = iterA.valid() ? iterA.get() : default.k;
+        V v = iterB.valid() ? iterB.get() : default.v;
+        return makePair(k, v);
+      };
+    }
     return result;
   }
   return Iterable(iter);

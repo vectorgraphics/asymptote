@@ -7005,9 +7005,12 @@ this case it was easier to access them both at once from the @code{zip2} module.
 Here's the @code{zip} function provided by
 @code{collections.zip2(K,V)}:
 @table @code
-@item Iterable_Pair_K_V zip(Iterable_K a, Iterable_V b)
+@item Iterable_Pair_K_V zip(Iterable_K a, Iterable_V b, Pair_K_V keyword default=null)
 Returns an iterable that produces pairs of elements from @code{a} and @code{b}.
-The iterable stops when either @code{a} or @code{b} runs out of elements.
+If @code{default} is not provided, the iterable stops when either @code{a} or
+@code{b} runs out of elements. If @code{default} is provided, the returned
+iterable will be the length of the longest of @code{a} and @code{b}, and the
+default value will be used for any missing elements.
 @end table
 Additionally, the module can be used to access the following types and all
 their autounravels:
@@ -7022,7 +7025,7 @@ their autounravels:
 @end itemize
 
 The @code{collections.zip(T)} module is similar, but condenses the iterables
-into an iterable of arrays rather than pairs. This requires that all the
+into an iterable of arrays rather than of pairs. This requires that all the
 iterables be over the same type (e.g., all string iterators or all integer
 iterators, but not one of each as above). In exchange, the @code{zip} function
 can take any number of arguments and can also supply a default value to use when
@@ -7032,15 +7035,15 @@ from collections.zip(T=int) access zip;
 int[] x = {0, 1, 2, 3};
 int[] y = {0, 1, 2};
 int[] z = {0, 1, 2, 3, 4};
-for (int[] abc : zip(default=9, x, y, z)) {
+for (int[] abc : zip(default=-1, x, y, z)) {
   write(string(abc[0]) + '\t' + string(abc[1]) + '\t' + string(abc[2]));
 }
 // Outputs:
 // 0       0       0
 // 1       1       1
 // 2       2       2
-// 3       9       3
-// 9       9       4
+// 3       -1      3
+// -1      -1      4
 @end verbatim
 
 The @code{collections.zip(T)} module introduces the types
