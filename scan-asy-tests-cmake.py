@@ -83,6 +83,7 @@ def generate_tests_list_per_directory(test_dir: os.DirEntry):
                 """
             )
         )
+        text_writer.write("\n")
 
         if test_name in TESTS_REQUIRING_CMAKE_FEATURES:
             text_writer.write("endif()\n")
