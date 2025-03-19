@@ -24,7 +24,7 @@ add_asy_tests(
 
 add_asy_tests(
     TEST_DIR datastructures
-    TESTS bracketsTest btreeTest changeWhileIterTest enumerateTest hashTest hashmapTest hashrepsetTest iterTest naivesortedTest queueTest wraparrayTest zipTest
+    TESTS bracketsTest btreeTest changeWhileIterTest enumerateTest hashTest hashmapTest hashrepsetTest iterTest naivesortedTest queueTest rangeTest wraparrayTest zipTest
 
 
 )
