@@ -173,9 +173,9 @@ Iterable_int range(int n, int m, int skip=1) {
     advance = new void() { index += skip; };
     get = new int() { return index; };
     if (skip > 0) {
-      valid = new bool() { return index < m; };
+      valid = new bool() { return index <= m; };
     } else if (skip < 0) {
-      valid = new bool() { return index > m; };
+      valid = new bool() { return index >= m; };
     } else {
       valid = new bool() { return false; };
     }
@@ -185,7 +185,7 @@ Iterable_int range(int n, int m, int skip=1) {
 }
 
 Iterable_int range(int n) {
-  return range(0,n);
+  return range(0,n-1);
 }
 
 int[] reverse(int n) {return sequence(new int(int x){return n-1-x;},n);}

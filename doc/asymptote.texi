@@ -5654,7 +5654,7 @@ if @code{m >= n} returns an array @code{@{n,n+1,...,m@}} (otherwise
 returns a null array); see also @ref{range};
 
 @item int[] sequence(int n, int m, int skip)
-if @code{m >= n} returns an array @code{@{n,n+1,...,m@}} skipping by
+if @code{(m-n)/skip > 0} returns an array @code{@{n,n+skip,...,m@}} skipping by
 @code{skip} (otherwise returns a null array); see also @ref{range};
 
 @item T[] sequence(T f(int), int n)
@@ -6549,20 +6549,18 @@ e
 The following functions produce iterators over integers:
 @table @code
 @item Iterable_int range(int n)
-Returns an iterable that produces the integers from 0 to @code{n-1}.
-@item Iterable_int range(int m, int n, int skip=1)
-Returns an iterable over integers less than @code{n} starting at @code{m} by
-increments of @code{skip}. If @code{skip} is negative, the iterator instead
-produces integers greater than @code{n} starting at @code{m}. If @code{skip}
-is 0, the iterator is empty. Note that if, @code{m>n} and @code{skip>0}, the
-iterator will go on indefinitely; likewise, if @code{m<n} and @code{skip<0}.
+returns an iterable that produces the integers @code{0,...,n-1};
+@item Iterable_int range(int n, int m, int skip=1)
+returns an iterable that produces the integers
+@code{n, n+skip, ..., m} if @code{(m-n)/skip > 0}, and otherwise produces
+no integers.
 @end table
 
 Generally speaking, @code{for (int i : range(n))} is equivalent to
 @code{for (int i : sequence(n))}. The latter uses @math{O(n)} memory but is
 usually faster. The former uses @math{O(1)} memory but is slower.
 If an iterator is specifically required, however, @code{range(n)} is faster
-than @code{Iterable(sequence(n))} (as well as being more memory-efficient).
+than @code{range(sequence(n))} (as well as being more memory-efficient).
 
 @node Static
 @section Static
@@ -6928,10 +6926,13 @@ p.hash = new int() {
 @node Iterators and utilities
 @subsection Iterators and utilities
 
-@node @code{collections.iter}
-@subsubsection @code{collections.iter}
+@node @code{collections.iter(T)}
+@subsubsection @code{collections.iter(T)}
+@cindex @code{collections.iter}
+@cindex @code{Iter_T}
+@cindex @code{Iterable_T}
 
-The @code{collections.iter} templated module provides structs @code{Iter_T}
+The @code{collections.iter(T)} templated module provides structs @code{Iter_T}
 and @code{Iterable_T} that can be convenient for defining iterators.
 Additionally, there are several utilities for manipulating iterators of these
 types. Technically, the syntax @code{for (T x : a)} does not require anything
