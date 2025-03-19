@@ -66,7 +66,7 @@ file LICENSE in the top-level source directory).
 * Help::                        Where to get help and submit bug reports
 * Debugger::                    Squish those bugs!
 * Credits::                     Contributions and acknowledgments
-* Index::                       General index
+* General Index::               General index
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -6475,6 +6475,8 @@ builtin or defined in module @code{plain}.
 @node Iterators
 @section Iterators
 @cindex iterators
+@cindex @code{operator iter}
+@cindex @code{for} @subentry range-based
 
 If a structure @code{a} has a member function @code{operator iter()}, the code
 @verbatim
@@ -6493,13 +6495,16 @@ for(var it=a.operator iter(); it.valid(); it.advance()) {
 Thus, we can make a struct iterable by defining an @code{operator iter}
 method that returns an object with the following methods:
 @table @code
-@item <type> get()
-returns the value at the iterator's current position (without changing the position). Note that @code{<type>}
-can be any type, builtin or user-defined;
+@cindex @code{get}
+@item T get()
+returns the value at the iterator's current position (without changing the
+position). Note that @code{T} can be any type, builtin or user-defined;
 
+@cindex @code{advance}
 @item void advance()
 advances the iterator to the next position;
 
+@cindex @code{valid}
 @item bool valid()
 returns @code{true} if the iterator is at a valid position or @code{false}
 if the iterator has advanced past the last item.
@@ -6507,9 +6512,12 @@ if the iterator has advanced past the last item.
 
 Although the return type of @code{operator iter} can theoretically be any type
 that has these three methods, it is strongly recommended to use the
-@code{Iter_T} struct defined in the templated module @code{collections.iter(T)}
-so that other utilities (@pxref{Iterators and utilities}) can be used with the iterator. The three methods
-of this struct can be set as fields.
+@cindex @code{Iter_T}
+@code{Iter_T} struct defined in the templated module
+@cindex @code{collections.iter}
+@code{collections.iter(T)} so that other utilities
+(@pxref{Iterators and utilities}) can be used with the
+iterator. The three methods of this struct can be set as fields.
 
 As an example, here is an iterator for the even-numbered elements of an
 array of strings:
@@ -11114,8 +11122,8 @@ developed the @code{Asymptote Web Application} hosted at
 
 @url{https://github.com/vectorgraphics/asymptoteWebApplication}
 
-@node Index
-@unnumbered Index
+@node General Index
+@unnumbered General Index
 
 @printindex cp
 
