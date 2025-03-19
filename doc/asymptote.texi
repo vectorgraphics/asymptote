@@ -6428,8 +6428,6 @@ Imported global functions and variables are also listed if
 @subsection Templated imports
 @cindex template
 
-@strong{Warning:} This feature is experimental: it has known issues and its behavior may change in the future.
-
 In Asymptote
 types are specified when they are imported. The first executable line of any such
 module must be of the form @code{typedef import(<types>)}, where
