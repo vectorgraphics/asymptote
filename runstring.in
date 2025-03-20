@@ -15,10 +15,10 @@ Intarray*  => IntArray()
 #include <ctime>
 #include <chrono>
 #include <algorithm>
-#include <random>
 
 #include "array.h"
 #include "hashing.h"
+#include "random.h"
 
 using namespace camp;
 using namespace vm;
@@ -505,4 +505,17 @@ Int seconds(string t=emptystring, string format=emptystring)
   }
 
   return static_cast<Int>(std::mktime(&tmObj));
+}
+
+string randString(Int len, string *chars) {
+  string result(len, ' ');
+  if (chars == nullptr || chars->size() == 0) {
+    chars = new string("abcdefghijklmnopqrstuvwxyz");
+  }
+  Int maxIndex = chars->size() - 1;
+  for (Int i = 0; i < len; ++i) {
+    char toAdd = (*chars)[camp_random::randInt(0, maxIndex)];
+    result[i] = toAdd;
+  }
+  return result;
 }

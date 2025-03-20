@@ -60,7 +60,7 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	EXRFiles GLTextures lspserv symbolmaps win32helpers win32pipestream \
 	win32xdr xstream \
 	lspdec lspexp lspfundec lspstm \
-	hashing
+	hashing random
 
 FILES = $(COREFILES) main
 
