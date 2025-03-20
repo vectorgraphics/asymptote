@@ -3562,7 +3562,7 @@ The @code{size} routine specifies the dimensions of the desired picture:
 @cindex @code{size}
 @verbatim
 void size(picture pic=currentpicture, real x, real y=x,
-          bool keepAspect=Aspect);
+          bool keepAspect=pic.keepAspect);
 @end verbatim
 
 If the @code{x} and @code{y} sizes are both 0, user coordinates will be
@@ -3575,7 +3575,7 @@ direction.
 
 @cindex @code{keepAspect}
 @cindex @code{Aspect}
-If @code{keepAspect} is set to @code{Aspect} or @code{true},
+If @code{keepAspect} is set to @code{Aspect} or @code{true} (the default),
 the picture will be scaled with its aspect ratio preserved such that
 the final width is no more than @code{x} and the final height is
 no more than @code{y}.
