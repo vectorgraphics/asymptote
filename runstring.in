@@ -510,7 +510,8 @@ Int seconds(string t=emptystring, string format=emptystring)
 string randString(Int len, string *chars) {
   string result(len, ' ');
   if (chars == nullptr || chars->size() == 0) {
-    chars = new string("abcdefghijklmnopqrstuvwxyz");
+    chars = new string(
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
   }
   Int maxIndex = chars->size() - 1;
   for (Int i = 0; i < len; ++i) {

@@ -5356,6 +5356,7 @@ function (equivalent to @code{fabs(real)}), an @code{abs(pair)} function
 @cindex @code{rand}
 @cindex @code{randMax}
 @cindex @code{unitrand}
+@cindex @code{randString}
 @cindex @code{Gaussrand}
 @cindex @code{histogram}
 @cindex @code{factorial}
@@ -5365,7 +5366,14 @@ Random numbers can be seeded with @code{srand(int)}
 and generated with
 the @code{int rand()} function, which returns a random integer between 0
 and the integer @code{randMax}. The @code{unitrand()} function returns
-a random number uniformly distributed in the interval [0,1].
+a random number uniformly distributed in the interval [0,1).
+The @code{randString(int len, string chars)} function returns a random
+string of length @code{len} composed of characters from the string @code{chars}.
+If @code{chars} is the empty string, the string
+@code{"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"} is used.
+In each position of the output, the probability of a character appearing is
+proportional to the number of times it appears in @code{chars}.
+
 A Gaussian random number generator
 @code{Gaussrand} and a collection of statistics routines, including
 @code{histogram}, are provided in the module @code{stats}.
