@@ -6551,6 +6551,7 @@ e
 
 @node range
 @subsection range
+@cindex @code{range}
 
 The following functions produce iterators over integers:
 @table @code
@@ -6836,6 +6837,7 @@ struct Person {
   }
 }
 @end verbatim
+@cindex @code{operator ==}
 This approach is necessary if we are redefining the @code{==}
 operator. Two @code{Person}s are equal if they have the same first name,
 last name, and age; a person who has had a birthday needs a new
@@ -6886,10 +6888,14 @@ array''.)
 
 @node Pairs
 @subsection Pairs
+@cindex @code{collections.genericpair}
+@cindex @code{Pair_K_V}
+@cindex @code{makePair}
 
-@code{Asymptote} has a builtin type for pairs of @code{real}s. The
-@code{collections.genericpair(K,V)} templated module provides a pair type for any
-two types. The fields are called @code{k} and @code{v} rather than @code{x} and
+@code{Asymptote} has a builtin type for pairs of @code{real}s. To obtain a pair
+type for @emph{any} two types, one can use the
+@code{collections.genericpair(K,V)} templated module. The fields are called
+@code{k} and @code{v} rather than @code{x} and
 @code{y}. The pair type is called @code{Pair_K_V}, which user are encouraged to
 rename based on the types being used. There is also a function @code{makePair}
 that creates a pair from two values; because of function overloading, the name
@@ -6942,17 +6948,22 @@ The @code{collections.iter(T)} templated module provides structs @code{Iter_T}
 and @code{Iterable_T} that can be convenient for defining iterators.
 Additionally, there are several utilities for manipulating iterators of these
 types. Technically, the syntax @code{for (T x : a)} does not require anything
-from this module, but using it will make the utilities in this module available.
+from this module, but several utilities only work for iterables of type
+@code{Iterable_T}.
 
 The @code{Iter_T} struct has the following fields, all of which are null by
 default:
 
 @table @code
+@cindex @code{get}
 @item T get()
+@cindex @code{advance}
 @item void advance()
+@cindex @code{valid}
 @item bool valid()
 @end table
 
+@cindex @code{operator iter}
 @code{Iter_T} is intended as the return type of an @code{operator iter} method;
 @xref{Iterators} for more information on how to use these fields.
 
@@ -6966,14 +6977,20 @@ It is good practice for a struct that defines an @code{operator iter} method to
 also define an implicit cast to @code{Iterable_T} for better compatibility with
 the utilities in this module. Additionally, an instance @code{a} of
 @code{Iterable_T} can be cast to a @code{T[]} with the syntax @code{(T[]) a}.
-(This is an explicit cast, so it requires parentheses.)
+(This is an explicit cast, so it requires parentheses.) Going the other way, a
+@code{T[]} can be implicitly cast to an @code{Iterable_T} (no parentheses
+required) as long as the appropriate @code{Iterable_T} type has been
+@code{access}ed (@pxref{Autounravel}). This can be done explicitly using the
+@code{range} function listed below.
 
 The @code{collections.iter} module provides the following functions:
 
 @table @code
+@cindex @code{Iterable}
 @item Iterable_T Iterable(Iter_T iter())
 Creates an @code{Iterable_T} with its @code{operator iter} method set to
 @code{iter}. Autounraveled whenever @code{Iterable_T} is accessed.
+@cindex @code{range}
 @item Iterable_T range(T[] items)
 Creates an @code{Iterable_T} that iterates over the elements of @code{items}.
 Separate calls to @code{operator iter} will return independent iterators.
@@ -6989,8 +7006,8 @@ renamed to incorporate the type, since the type is specified by the argument.
 @node Combining (zipping) iterators
 @subsubsection Combining (zipping) iterators
 
-The @code{collections.zip} and @code{collections.zip2} templated modules provide
-ways to iterate over two or more containers in a single @code{for} loop.
+The @code{collections.zip(T)} and @code{collections.zip2(K,V)} templated modules
+provide ways to iterate over two or more containers in a single @code{for} loop.
 
 The @code{collections.zip2(K,V)} module allows iterating over two containers of
 potentially different types. Here's an example:
@@ -7141,17 +7158,17 @@ for (string key : h) {
 // world 3
 @end verbatim
 
-// Additional points (not necessarily in this order):
-//
-// * See next section for the full API.
-// * Initializing with nullValue.
-// * remarks on performance
-// * To use a type as a key, it must have a hash() method, see appropriate
-//   section.
-// * Behavior if nullValue is not specified.
-// * Behavior if nullValue is specified, and how to specify it.
-// * Do not mutate the key while it is a key in the hashmap.
-// * Iterating over keys vs pairs.
+@c // Additional points (not necessarily in this order):
+@c //
+@c // * See next section for the full API.
+@c // * Initializing with nullValue.
+@c // * remarks on performance
+@c // * To use a type as a key, it must have a hash() method, see appropriate
+@c //   section.
+@c // * Behavior if nullValue is not specified.
+@c // * Behavior if nullValue is specified, and how to specify it.
+@c // * Do not mutate the key while it is a key in the hashmap.
+@c // * Iterating over keys vs pairs.
 
 @subsubsection Maps
 
