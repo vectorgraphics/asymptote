@@ -41,19 +41,16 @@ for(int i=0; i < 3; ++i)
 real[] uknot={0,0,1/3,1/2,1,1};
 real[] vknot={0,0,0,0,1,1,1,1};
 
-int N=1;
 
-for(int k=0; k < N; ++k) {
-  for(int i=0; i < 1; ++i) {
-    triple[][] Q=shift(k*Z)*P[i:i+3];
-    if(prc())
-      draw(Q,uknot,vknot,weights,blue);
-    else {
-      NURBSsurface surface2=NURBSsurface(Q,uknot,vknot,weights);
-      surface2.draw(blue+opacity(0.5));
-    }
+for(int i=0; i < 4; ++i) {
+  triple[][] Q=P[i:i+3];
+  if(prc())
+    draw(Q,uknot,vknot,weights,blue);
+  else {
+    NURBSsurface surface2=NURBSsurface(Q,uknot,vknot,weights);
+    surface2.draw(blue+opacity(0.5));
   }
 }
 
-draw(xscale3(-1)*octant1,red);
-draw(xscale3(-1)*zscale3(-1)*octant1,red);
+//draw(xscale3(-1)*octant1,red);
+//draw(xscale3(-1)*zscale3(-1)*octant1,red);
