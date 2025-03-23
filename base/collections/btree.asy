@@ -9,13 +9,13 @@ struct BTreeRepSet_T {
   private bool lt(T, T) = null;
   private int size = 0;
   private int versionNo = 0;
-  private int maxPivots = 16;
-  private int minPivots = 8;
+  private int maxPivots = 128;
+  private int minPivots = maxPivots # 2;
   
   private bool leq(T a, T b) { return !lt(b, a); };
   private bool gt(T a, T b) { return lt(b, a); };
-  private bool geq(T a, T b) { return leq(b, a); };
-  private bool equiv(T a, T b) { return leq(a, b) && leq(b, a); };
+  private bool geq(T a, T b) { return !lt(b, a); };
+  private bool equiv(T a, T b) { return !(lt(a, b) || lt(b, a)); };
 
   struct Node {
     T[] pivots;
@@ -25,7 +25,7 @@ struct BTreeRepSet_T {
       if (i >= 0) {
         // Known: pivots[i] <= x
         T candidate = pivots[i];
-        if (leq(x, candidate)) return candidate;
+        if (/*leq(x, candidate)*/!lt(candidate, x)) return candidate;
       }
       if (alias(children, null)) {
         assert(isNullT != null, 'Item is not present.');
@@ -38,7 +38,7 @@ struct BTreeRepSet_T {
       if (i >= 0) {
         // Known: pivots[i] <= x
         T candidate = pivots[i];
-        if (leq(x, candidate)) return true;
+        if (/*leq(x, candidate)*/!lt(candidate, x)) return true;
       }
       if (alias(children, null)) return false;
       return children[i + 1].contains(x);
@@ -57,7 +57,7 @@ struct BTreeRepSet_T {
       int i = search(pivots, x, lt);
       // Known: pivots[i + 1] > x or i == pivots.length - 1
       // Handle the case that pivots[i] == x:
-      if (i >= 0 && leq(x, pivots[i])) return pivots[i];
+      if (i >= 0 && /*leq(x, pivots[i])*/!lt(pivots[i], x)) return pivots[i];
       ++i;
       // Known: pivots[i] > x or i == pivots.length
       // Handle the childless case:
@@ -99,7 +99,8 @@ struct BTreeRepSet_T {
       }
       // If child.after() cannot return nullT to indicate an empty result, we
       // need an extra check to see if child has anything to return.
-      if (i < pivots.length && leq(child.max(), x)) {
+      if (i < pivots.length && /*leq(child.max(), x)*/
+          !lt(x, child.max())) {
         return pivots[i];
       }
       return child.after(x);
@@ -123,7 +124,7 @@ struct BTreeRepSet_T {
       }
       // If child.firstLEQ() cannot return nullT to indicate an empty result, we
       // need an extra check to see if child has anything to return.
-      if (i >= 0 && gt(child.min(), x)) {
+      if (i >= 0 && lt(x, child.min())) {
         return pivots[i];
       }
       return child.firstLEQ(x);
@@ -133,7 +134,7 @@ struct BTreeRepSet_T {
       int i = search(pivots, x, lt);
       // Known: pivots[i] <= x or i == -1
       // Handle the case that pivots[i] == x:
-      if (i >= 0 && leq(x, pivots[i])) {
+      if (i >= 0 && /*leq(x, pivots[i])*/!lt(pivots[i], x)) {
         --i;
       }
       // Known: pivots[i] < x or i == -1
@@ -152,7 +153,8 @@ struct BTreeRepSet_T {
       }
       // If child.before() cannot return nullT to indicate an empty result, we
       // need an extra check to see if child has anything to return.
-      if (i >= 0 && geq(child.min(), x)) {
+      if (i >= 0 && /*geq(child.min(), x)*/
+          !lt(child.min(), x)) {
         return pivots[i];
       }
       return child.before(x);
@@ -188,7 +190,7 @@ struct BTreeRepSet_T {
     bool locate(T x, Node[] stack, int[] indices) {
       int i = search(pivots, x, lt);
       stack.push(this);
-      if (i >= 0 && leq(x, pivots[i])) {
+      if (i >= 0 && /*leq(x, pivots[i])*/!lt(pivots[i], x)) {
         indices.push(i);
         return true;
       }
