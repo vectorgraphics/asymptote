@@ -14,6 +14,13 @@ stringarray* => stringArray()
 #include "mathop.h"
 #include "builtin.h"
 
+#if defined(_WIN32)
+#include <io.h>
+#define isatty _isatty
+#else
+#include <unistd.h>
+#endif
+
 using namespace camp;
 using namespace settings;
 using namespace vm;
@@ -23,7 +30,7 @@ typedef array stringarray;
 using types::stringArray;
 
 namespace camp {
-bool allowRender=true;
+bool allowRender=false;
 }
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
@@ -35,7 +42,7 @@ struct historyState {
   HISTORY_STATE state;
 };
 
-typedef mem::map<CONST string, historyState> historyMap_t;
+typedef mem::map<const string, historyState> historyMap_t;
 historyMap_t historyMap;
 static HISTORY_STATE history_save;
 
@@ -155,8 +162,12 @@ stringarray* history(Int n=0)
 string readline(string prompt=emptystring, string name=emptystring,
                 bool tabcompletion=false)
 {
-  if(!(isatty(STDIN_FILENO) || getSetting<Int>("inpipe") >= 0))
+  bool stdinIsTty=isatty(STDIN_FILENO);
+  bool hasInpipe=getSetting<Int>("inpipe") >= 0;
+  if(!(stdinIsTty || hasInpipe))
+  {
     return emptystring;
+  }
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   interact::init_readline(tabcompletion);
 
@@ -178,9 +189,10 @@ string readline(string prompt=emptystring, string name=emptystring,
   }
 
   /* Get a line from the user. */
+  bool allowRenderSave=allowRender;
   allowRender=false;
   line=readline(prompt.c_str());
-  allowRender=true;
+  allowRender=allowRenderSave;
 
   if(!line) cout << endl;
 

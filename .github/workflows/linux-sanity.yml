@@ -1,0 +1,21 @@
+name: build-gui
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build-and-test-asy-compact-zero:
+    runs-on: "ubuntu-22.04"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: ./.github/actions/initialize-linux-env
+      - name: Configure and build asymptote with compact 0
+        run: |
+          cmake --preset linux/release/ci/with-ccache/compact-zero
+          cmake --build --preset linux/release/ci/with-ccache/compact-zero --target asy-with-basefiles -j
+      - uses: ./.github/actions/initialize-linux-latex-and-gs
+      - name: Run asy check tests
+        run: |
+          ctest --test-dir cmake-build-linux/release-compact-zero --output-on-failure -L "asy-check-tests"

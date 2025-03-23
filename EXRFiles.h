@@ -3,8 +3,9 @@
 //
 
 #pragma once
+
 #include "common.h"
-#include "cudareflect/tinyexr/tinyexr.h"
+
 
 namespace camp
 {

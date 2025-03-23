@@ -53,9 +53,15 @@ stringarray2* => stringArray2()
 #include <iostream>
 #include <fstream>
 #include <time.h>
-#include <sys/times.h>
-#include <locale.h>
 
+#include <chrono>
+#include <thread>
+
+#if !defined(_WIN32)
+#include <sys/times.h>
+#endif
+
+#include <locale.h>
 #include "angle.h"
 #include "pair.h"
 #include "triple.h"
@@ -71,7 +77,7 @@ stringarray2* => stringArray2()
 #include "builtin.h"
 #include "texfile.h"
 #include "pipestream.h"
-#include "parser.h"
+#include "asyparser.h"
 #include "stack.h"
 #include "util.h"
 #include "locate.h"
@@ -79,7 +85,7 @@ stringarray2* => stringArray2()
 #include "callable.h"
 #include "stm.h"
 #include "lexical.h"
-#include "process.h"
+#include "asyprocess.h"
 #include "arrayop.h"
 #include "seconds.h"
 
@@ -101,7 +107,7 @@ using namespace utils;
 namespace run {
 using camp::pair;
 using vm::array;
-using vm::frame;
+using vm::vmFrame;
 using vm::stack;
 using camp::transform;
 using absyntax::runnable;
@@ -252,7 +258,7 @@ array* :pushNullArray()
   return 0;
 }
 
-frame* :pushNullRecord()
+vmFrame* :pushNullRecord()
 {
   return 0;
 }
@@ -706,13 +712,13 @@ void assert(bool b, string s=emptystring)
 void sleep(Int seconds)
 {
   if(seconds <= 0) return;
-  sleep(seconds);
+  std::this_thread::sleep_for(std::chrono::seconds(seconds));
 }
 
 void usleep(Int microseconds)
 {
   if(microseconds <= 0) return;
-  usleep((unsigned long) microseconds);
+  std::this_thread::sleep_for(std::chrono::microseconds(microseconds));
 }
 
 void _eval(string *s, bool embedded, bool interactiveWrite=false)
@@ -761,10 +767,10 @@ string location() {
   return buf.str();
 }
 
-// Wrapper for the stack::load() method.
-void :loadModule(string *filename, string *index)
+// Wrapper for the stack::loadModule() method.
+void :loadModule(string *index, Int numPushedParents)
 {
-  Stack->load(*filename,*index);
+  Stack->loadModule(*index, numPushedParents);
 }
 
 string cd(string s=emptystring)
@@ -1039,15 +1045,25 @@ guide *reverse(guide *g)
 
 realarray *_cputime()
 {
+#if !defined(_WIN32)
   static const real ticktime=1.0/sysconf(_SC_CLK_TCK);
   struct tms buf;
-
   ::times(&buf);
+
+  real realCutime=((real)buf.tms_cutime)*ticktime;
+  real realCstime=((real)buf.tms_cstime)*ticktime;
+#else
+  // FIXME: See if there's a way to get cutime/cstime on windows,
+  //        if it's possible.
+  real realCutime=0.0;
+  real realCstime=0.0;
+#endif
+
   array *t=new array(5);
   (*t)[0]=cpuTime.seconds(); // Includes system time
   (*t)[1]=0.0;
-  (*t)[2]=((real) buf.tms_cutime)*ticktime;
-  (*t)[3]=((real) buf.tms_cstime)*ticktime;
+  (*t)[2]=realCutime;
+  (*t)[3]=realCstime;
   (*t)[4]=wallClock.seconds();
   return t;
 }

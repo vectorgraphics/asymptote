@@ -14,36 +14,7 @@
 #include <deque>
 #include <string>
 #include <sstream>
-
-#ifndef NOHASH
-
-#ifdef HAVE_TR1_UNORDERED_MAP
-
-#include <memory>
-#include <tr1/unordered_map>
-#define EXT std::tr1
-
-#else
-
-#ifdef HAVE_UNORDERED_MAP
 #include <unordered_map>
-#define EXT std
-#else
-#define EXT __gnu_cxx
-#include <ext/hash_map>
-#define unordered_map hash_map
-#define unordered_multimap hash_multimap
-#endif
-
-#endif
-
-#endif
-
-#ifdef __DECCXX_LIBCXX_RH70
-#define CONST
-#else
-#define CONST const
-#endif
 
 #ifdef USEGC
 
@@ -60,27 +31,8 @@ extern "C" {
 }
 #endif
 
-inline void *asy_malloc(size_t n)
-{
-#ifdef GC_DEBUG
-  if(void *mem=GC_debug_malloc_ignore_off_page(n, GC_EXTRAS))
-#else
-    if(void *mem=GC_malloc_ignore_off_page(n))
-#endif
-      return mem;
-  throw std::bad_alloc();
-}
-
-inline void *asy_malloc_atomic(size_t n)
-{
-#ifdef GC_DEBUG
-  if(void *mem=GC_debug_malloc_atomic_ignore_off_page(n, GC_EXTRAS))
-#else
-    if(void *mem=GC_malloc_atomic_ignore_off_page(n))
-#endif
-      return mem;
-  throw std::bad_alloc();
-}
+void* asy_malloc(size_t n);
+void* asy_malloc_atomic(size_t n);
 
 #undef GC_MALLOC
 #undef GC_MALLOC_ATOMIC
@@ -141,7 +93,7 @@ struct pair : public std::pair<T, S>, public gc {
   pair(T t, S s) : std::pair<T,S>(t,s) {}
 };
 
-#define PAIR_ALLOC gc_allocator<std::pair<CONST Key,T> > /* space */
+#define PAIR_ALLOC gc_allocator<std::pair<const Key,T> > /* space */
 
 #undef GC_CONTAINER
 
@@ -159,24 +111,21 @@ GC_CONTAINER(multimap);
 
 #undef GC_CONTAINER
 
-#ifndef NOHASH
 #define GC_CONTAINER(KIND)                              \
   template <typename Key, typename T,                   \
-            typename Hash = EXT::hash<Key>,             \
+            typename Hash = std::hash<Key>,             \
             typename Eq = std::equal_to<Key> >          \
   struct KIND : public                                  \
-  EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC>, public gc {      \
-    KIND() : EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC> () {}  \
+  std::KIND<Key,T,Hash,Eq,PAIR_ALLOC>, public gc {      \
+    KIND() : std::KIND<Key,T,Hash,Eq,PAIR_ALLOC> () {}  \
     KIND(size_t n)                                      \
-      : EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC> (n) {}      \
+      : std::KIND<Key,T,Hash,Eq,PAIR_ALLOC> (n) {}      \
   }
 
 GC_CONTAINER(unordered_map);
 GC_CONTAINER(unordered_multimap);
 
 #undef GC_CONTAINER
-#undef EXT
-#endif
 
 #undef PAIR_ALLOC
 
@@ -191,17 +140,18 @@ typedef std::basic_ostringstream<char,std::char_traits<char>,
                                  gc_allocator<char> > ostringstream;
 typedef std::basic_stringbuf<char,std::char_traits<char>,
                              gc_allocator<char> > stringbuf;
-inline void compact(int x) {GC_set_dont_expand(x);}
-inline std::string stdString(string s) {return std::string(s.c_str());}
+
+void compact(int x);
 #else
-inline void compact(int x) {}
+inline void compact(int) {}
 typedef std::string string;
 typedef std::stringstream stringstream;
 typedef std::istringstream istringstream;
 typedef std::ostringstream ostringstream;
 typedef std::stringbuf stringbuf;
-inline std::string stdString(string s) {return s;}
 #endif // USEGC
+
+std::string stdString(string s);
 
 } // namespace mem
 

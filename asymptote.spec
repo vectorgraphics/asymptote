@@ -3,7 +3,7 @@
 %global __python %{__python3}
 
 Name:           asymptote
-Version:        2.89
+Version:        3.01
 Release:        1%{?dist}
 Summary:        Descriptive vector graphics language
 
@@ -17,7 +17,6 @@ BuildRequires:  gcc-c++
 BuildRequires:  ncurses-devel
 BuildRequires:  readline-devel
 BuildRequires:  fftw-devel >= 3.0
-BuildRequires:  gc-devel >= 6.7
 BuildRequires:  gsl-devel
 BuildRequires:  glm-devel
 BuildRequires:  tetex-latex

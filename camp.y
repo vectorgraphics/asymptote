@@ -76,7 +76,7 @@ using mem::string;
   absyntax::arglist *alist;
   absyntax::slice *slice;
   absyntax::dimensions *dim;
-  absyntax::ty  *t;
+  absyntax::astType  *t;
   absyntax::decid *di;
   absyntax::decidlist *dil;
   absyntax::decidstart *dis;
@@ -114,9 +114,9 @@ using mem::string;
 %token <pos> LOOSE ASSIGN '?' ':'
              DIRTAG JOIN_PREC AND
              '{' '}' '(' ')' '.' ','  '[' ']' ';' ELLIPSIS
-             ACCESS UNRAVEL IMPORT INCLUDE FROM QUOTE STRUCT TYPEDEF NEW
+             ACCESS UNRAVEL IMPORT INCLUDE FROM QUOTE STRUCT TYPEDEF USING NEW
              IF ELSE WHILE DO FOR BREAK CONTINUE RETURN_
-             THIS EXPLICIT
+             THIS_TOK EXPLICIT
              GARBAGE
 %token <e>   LIT
 %token <stre> STRING
@@ -456,6 +456,20 @@ fundec:
 typedec:
   STRUCT ID block  { $$ = new recorddec($1, $2.sym, $3); }
 | TYPEDEF vardec   { $$ = new typedec($1, $2); }
+// See definition for decidstart. Following C++, "The syntax of the type-id
+// that names type T is exactly the syntax of a declaration of a variable or
+// function of type T, with the identifier omitted."
+// http://en.cppreference.com/w/cpp/language/type#Type_naming
+| USING ID ASSIGN type ';'
+                   { decidstart *dis = new decidstart($2.pos, $2.sym);
+                     $$ = new typedec($1, dis, $4); }
+| USING ID ASSIGN type '(' ')' ';'
+                   { decidstart *dis = new fundecidstart($2.pos, $2.sym,
+                                                         0, new formals($5));
+                     $$ = new typedec($1, dis, $4); }
+| USING ID ASSIGN type '(' formals ')' ';'
+                   { decidstart *dis = new fundecidstart($2.pos, $2.sym, 0, $6);
+                     $$ = new typedec($1, dis, $4); }
 ;
 
 slice:
@@ -487,7 +501,7 @@ value:
                    { $$ = $2; }
 | '(' name ')' %prec EXP_IN_PARENS_RULE
                    { $$ = new nameExp($2->getPos(), $2); }
-| THIS             { $$ = new thisExp($1); }
+| THIS_TOK         { $$ = new thisExp($1); }
 ;
 
 argument:

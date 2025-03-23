@@ -2,7 +2,6 @@ import graph3;
 import solids;
 
 currentlight=White;
-defaultrender.merge=true;
 
 size(10cm,0);
 

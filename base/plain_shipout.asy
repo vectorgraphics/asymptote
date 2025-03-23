@@ -24,7 +24,7 @@ frame Portrait(frame f) {return f;};
 frame Landscape(frame f) {return rotate(90)*f;};
 frame UpsideDown(frame f) {return rotate(180)*f;};
 frame Seascape(frame f) {return rotate(-90)*f;};
-typedef frame orientation(frame);
+using orientation=frame(frame);
 orientation orientation=Portrait;
 
 // Forward references to functions defined in module three.
@@ -98,7 +98,8 @@ void shipout(string prefix=defaultfilename, frame f,
     }
   }
 
-  bool defaultprefix=prefix==defaultfilename;
+  bool defaultprefix=prefix == defaultfilename &&
+    outformat(format) == outformat("");
 
   if(settings.xasy || (!implicitshipout && defaultprefix)) {
     if(defaultprefix) {
@@ -122,7 +123,8 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	     string options="", string script="",
 	     light light=currentlight, projection P=currentprojection)
 {
-  pic.uptodate=true;
+  projection P=centered(P,pic);
+
   if(!uptodate()) {
     bool inlinetex=settings.inlinetex;
     bool prc=prc(format) || settings.v3d;
@@ -139,7 +141,7 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
       settings.inlinetex=settings.inlineimage;
     }
     frame f;
-    transform t=pic.calculateTransform();
+    transform t=empty3 ? pic.calculateTransform() : identity;
     if(currentpicture.fitter == null) {
       pen background=currentlight.background;
       if(settings.outformat == "html" && background == nullpen)
@@ -152,10 +154,14 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
     else
       f=pic.fit(prefix,format,view=view,options,script,light,P);
 
-    if(!prconly() && (!pic.empty2() || settings.render == 0 || prc || empty3))
+     if(!prconly() && (!pic.empty2() || settings.render == 0 || prc ||
+                       pic.queueErase)) {
       shipout(prefix,orientation(f),format,wait,view,t);
+      pic.queueErase=false;
+    }
     settings.inlinetex=inlinetex;
   }
+  pic.uptodate=true;
 }
 
 void newpage(picture pic=currentpicture)

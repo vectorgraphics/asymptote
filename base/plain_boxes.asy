@@ -1,3 +1,12 @@
+void fillbox(frame dest, path g, pen p=currentpen, filltype filltype=NoFill, bool above=true)
+{
+  if(above == false) {
+    frame F;
+    filltype.fill(F,g,p);
+    prepend(dest,F);
+  } else filltype.fill(dest,g,p);
+}
+
 // Draw and/or fill a box on frame dest using the dimensions of frame src.
 path box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
          pen p=currentpen, filltype filltype=NoFill, bool above=true)
@@ -6,11 +15,7 @@ path box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
   int sign=filltype == NoFill ? 1 : -1;
   pair h=0.5*sign*(max(p)-min(p));
   path g=box(min(src)-h-z,max(src)+h+z);
-  frame F;
-  if(above == false) {
-    filltype.fill(F,g,p);
-    prepend(dest,F);
-  } else filltype.fill(dest,g,p);
+  fillbox(dest,g,p,filltype,above);
   return g;
 }
 
@@ -28,12 +33,7 @@ path roundbox(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
   (dw,b)--(a-dw,b){right}..{down}
   (a,b-dw)--(a,dw){down}..{left}
   (a-dw,0)--(dw,0){left}..{up}cycle);
-
-  frame F;
-  if(above == false) {
-    filltype.fill(F,g,p);
-    prepend(dest,F);
-  } else filltype.fill(dest,g,p);
+  fillbox(dest,g,p,filltype,above);
   return g;
 }
 
@@ -47,11 +47,7 @@ path ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
   int sign=filltype == NoFill ? 1 : -1;
   pair h=0.5*sign*(max(p)-min(p));
   path g=ellipse(0.5*(M+m),factor*D.x+h.x+xmargin,factor*D.y+h.y+ymargin);
-  frame F;
-  if(above == false) {
-    filltype.fill(F,g,p);
-    prepend(dest,F);
-  } else filltype.fill(dest,g,p);
+  fillbox(dest,g,p,filltype,above);
   return g;
 }
 
@@ -76,7 +72,7 @@ path ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
   return ellipse(f,xmargin,ymargin,p,filltype,above);
 }
 
-typedef path envelope(frame dest, frame src=dest, real xmargin=0,
+using envelope=path(frame dest, frame src=dest, real xmargin=0,
                       real ymargin=xmargin, pen p=currentpen,
                       filltype filltype=NoFill, bool above=true);
 

@@ -1,5 +1,4 @@
 // Pre picture <<<1
-import plain_scaling;
 import plain_bounds;
 
 include plain_prethree;
@@ -61,7 +60,7 @@ struct coords3 {
 }
 
 // scaleT and Legend <<<
-typedef real scalefcn(real x);
+using scalefcn=real(real);
 
 struct scaleT {
   scalefcn T,Tinv;
@@ -87,7 +86,7 @@ scaleT operator init()
   return S;
 }
 
-typedef void boundRoutine();
+using boundRoutine=void();
 
 struct autoscaleT {
   scaleT scale;
@@ -163,11 +162,11 @@ triple max3(pen p)
 
 // A function that draws an object to frame pic, given that the transform
 // from user coordinates to true-size coordinates is t.
-typedef void drawer(frame f, transform t);
+using drawer=void(frame f, transform t);
 
 // A generalization of drawer that includes the final frame's bounds.
 // TODO: Add documentation as to what T is.
-typedef void drawerBound(frame f, transform t, transform T, pair lb, pair rt);
+using drawerBound=void(frame f, transform t, transform T, pair lb, pair rt);
 
 struct node {
   drawerBound d;
@@ -183,13 +182,13 @@ struct node {
 // pair and a triple depending on the context.
 struct pairOrTriple {
   real x,y,z;
-  void init() { x = y = z = 0; }
+  void init() { x=y=z=0; }
 };
 void copyPairOrTriple(pairOrTriple dest, pairOrTriple src)
 {
-  dest.x = src.x;
-  dest.y = src.y;
-  dest.z = src.z;
+  dest.x=src.x;
+  dest.y=src.y;
+  dest.z=src.z;
 }
 pair operator cast (pairOrTriple a) {
   return (a.x, a.y);
@@ -204,8 +203,8 @@ void write(pairOrTriple a) {
 struct picture { // <<<1
   // Nodes <<<2
   // Three-dimensional version of drawer and drawerBound:
-  typedef void drawer3(frame f, transform3 t, picture pic, projection P);
-  typedef void drawerBound3(frame f, transform3 t, transform3 T,
+  using drawer3=void(frame f, transform3 t, picture pic, projection P);
+  using drawerBound3=void(frame f, transform3 t, transform3 T,
                             picture pic, projection P, triple lb, triple rt);
 
   struct node3 {
@@ -222,6 +221,8 @@ struct picture { // <<<1
   node3[] nodes3;
 
   bool uptodate=true;
+  bool queueErase=false;
+  bool queueErase3=false;
 
   struct bounds3 {
     coords3 point,min,max;
@@ -286,6 +287,9 @@ struct picture { // <<<1
 
   // Erase the current picture, retaining bounds.
   void clear() {
+    queueErase=nodes.length > 0;
+    if(settings.render != 0)
+      queueErase3=nodes3.length > 0;
     nodes.delete();
     nodes3.delete();
     legend.delete();
@@ -328,7 +332,7 @@ struct picture { // <<<1
   bool userSety3() { return usety; }
   bool userSetz3() { return usetz; }
 
-  private typedef real binop(real, real);
+  private using binop=real(real, real);
 
   // Helper functions for finding the minimum/maximum of two data, one of
   // which may not be defined.
@@ -338,20 +342,20 @@ struct picture { // <<<1
   }
   private pairOrTriple userExtreme(pair u2(), triple u3(), binop m)
   {
-    bool setx2 = userSetx2();
-    bool sety2 = userSety2();
-    bool setx3 = userSetx3();
-    bool sety3 = userSety3();
+    bool setx2=userSetx2();
+    bool sety2=userSety2();
+    bool setx3=userSetx3();
+    bool sety3=userSety3();
 
     pair p;
     if (setx2 || sety2)
-      p = u2();
-    triple t = u3();
+      p=u2();
+    triple t=u3();
 
     pairOrTriple r;
-    r.x = merge(p.x, setx2, t.x, setx3, m);
-    r.y = merge(p.y, sety2, t.y, sety3, m);
-    r.z = t.z;
+    r.x=merge(p.x, setx2, t.x, setx3, m);
+    r.y=merge(p.y, sety2, t.y, sety3, m);
+    r.z=t.z;
 
     return r;
   }
@@ -366,7 +370,7 @@ struct picture { // <<<1
 
   bool userSetx() { return userSetx2() || userSetx3(); }
   bool userSety() { return userSety2() || userSety3(); }
-  bool userSetz() = userSetz3;
+  bool userSetz()=userSetz3;
 
   // Functions for setting the user bounds.
   void userMinx3(real x) {
@@ -407,17 +411,17 @@ struct picture { // <<<1
   void userMaxx(real x) { userMaxx2(x); userMaxx3(x); }
   void userMaxy2(real y) { bounds.alterUserBound("maxy", y); }
   void userMaxy(real y) { userMaxy2(y); userMaxy3(y); }
-  void userMinz(real z) = userMinz3;
-  void userMaxz(real z) = userMaxz3;
+  void userMinz(real z)=userMinz3;
+  void userMaxz(real z)=userMaxz3;
 
   void userCorners3(triple c000, triple c001, triple c010, triple c011,
                     triple c100, triple c101, triple c110, triple c111) {
-    umin.x = min(c000.x,c001.x,c010.x,c011.x,c100.x,c101.x,c110.x,c111.x);
-    umin.y = min(c000.y,c001.y,c010.y,c011.y,c100.y,c101.y,c110.y,c111.y);
-    umin.z = min(c000.z,c001.z,c010.z,c011.z,c100.z,c101.z,c110.z,c111.z);
-    umax.x = max(c000.x,c001.x,c010.x,c011.x,c100.x,c101.x,c110.x,c111.x);
-    umax.y = max(c000.y,c001.y,c010.y,c011.y,c100.y,c101.y,c110.y,c111.y);
-    umax.z = max(c000.z,c001.z,c010.z,c011.z,c100.z,c101.z,c110.z,c111.z);
+    umin.x=min(c000.x,c001.x,c010.x,c011.x,c100.x,c101.x,c110.x,c111.x);
+    umin.y=min(c000.y,c001.y,c010.y,c011.y,c100.y,c101.y,c110.y,c111.y);
+    umin.z=min(c000.z,c001.z,c010.z,c011.z,c100.z,c101.z,c110.z,c111.z);
+    umax.x=max(c000.x,c001.x,c010.x,c011.x,c100.x,c101.x,c110.x,c111.x);
+    umax.y=max(c000.y,c001.y,c010.y,c011.y,c100.y,c101.y,c110.y,c111.y);
+    umax.z=max(c000.z,c001.z,c010.z,c011.z,c100.z,c101.z,c110.z,c111.z);
   }
 
   // Cache the current user-space bounding box x coodinates
@@ -643,7 +647,7 @@ struct picture { // <<<1
   // Returns the transform for turning user-space pairs into true-space pairs.
   transform scaling(real xsize, real ysize, bool keepAspect=true,
                     bool warn=true) {
-    bounds b = (T == identity()) ? this.bounds : T * this.bounds;
+    bounds b=(T == identity()) ? this.bounds : T * this.bounds;
 
     return b.scaling(xsize, ysize, xunitsize, yunitsize, keepAspect, warn);
   }
@@ -730,7 +734,7 @@ struct picture { // <<<1
     add(new void(frame f, transform t) {
         picture opic=new picture;
         d(opic,t);
-        add(f,opic.fit(identity()));
+        add(f,opic.fit(identity));
       },exact);
   }
 
@@ -742,12 +746,12 @@ struct picture { // <<<1
       },exact,above);
   }
 
-  void add(void d(picture, transform3, transform3, triple, triple),
+  void add(void d(picture, transform3, transform3, projection, triple, triple),
            bool exact=false, bool above=true) {
     add(new void(frame f, transform3 t, transform3 T, picture pic2,
                  projection P, triple lb, triple rt) {
           picture opic=new picture;
-          d(opic,t,T,lb,rt);
+          d(opic,t,T,P,lb,rt);
           add(f,opic.fit3(identity4,pic2,P));
         },exact,above);
   }
@@ -971,15 +975,15 @@ struct picture { // <<<1
     picture dest=drawcopy();
 
     // Replace nodes with a single drawer that realizes the transform.
-    node[] oldnodes = dest.nodes;
+    node[] oldnodes=dest.nodes;
     void drawAll(frame f, transform tt, transform T, pair lb, pair rt) {
-      transform Tt = T*t;
+      transform Tt=T*t;
       for (node n : oldnodes) {
         xasyKEY(n.key);
         n.d(f,tt,Tt,lb,rt);
       }
     }
-    dest.nodes = new node[] {node(drawAll)};
+    dest.nodes=new node[] {node(drawAll)};
 
     dest.uptodate=uptodate;
     dest.bounds=bounds.transformed(t);
@@ -1131,6 +1135,26 @@ pair size(picture pic, bool user=false)
   return t*M-t*m;
 }
 
+// Return a projection adjusted to view center of pic from specified direction.
+projection centered(projection P, picture pic=currentpicture) {
+  projection P=P.copy();
+  if(P.autoadjust && P.center) {
+    triple min=pic.userMin3();
+    triple max=pic.userMax3();
+    if(min != max) {
+      triple target=0.5*(max+min);
+      if(pic.keepAspect)
+        P.camera=target+P.vector();
+      else
+        P.camera=target+realmult(unit(P.vector()),max-min);
+      P.target=target;
+      P.normal=P.vector();
+      P.calculate();
+    }
+  }
+  return P;
+}
+
 // Frame Alignment <<<
 pair rectify(pair dir)
 {
@@ -1175,8 +1199,8 @@ frame align(frame f, pair align)
 
 pair point(picture pic=currentpicture, pair dir, bool user=true)
 {
-  pair umin = pic.userMin2();
-  pair umax = pic.userMax2();
+  pair umin=pic.userMin2();
+  pair umax=pic.userMax2();
 
   pair z=umin+realmult(rectify(dir),umax-umin);
   return user ? z : pic.calculateTransform()*z;
@@ -1202,7 +1226,7 @@ void add(picture pic=currentpicture, drawer d, bool exact=false)
   pic.add(d,exact);
 }
 
-typedef void drawer3(frame f, transform3 t, picture pic, projection P);
+using drawer3=void(frame f, transform3 t, picture pic, projection P);
 void add(picture pic=currentpicture, drawer3 d, bool exact=false)
 {
   pic.add(d,exact);
@@ -1466,16 +1490,16 @@ void endclip(picture pic=currentpicture)
   pair min,max;
   if (pic.clipmin.length > 0 && pic.clipmax.length > 0)
     {
-      min = pic.clipmin.pop();
-      max = pic.clipmax.pop();
+      min=pic.clipmin.pop();
+      max=pic.clipmax.pop();
     }
   else
     {
       // We should probably abort here, since the PostScript output will be
       // garbage.
       warning("endclip", "endclip without beginclip");
-      min = pic.userMin2();
-      max = pic.userMax2();
+      min=pic.userMin2();
+      max=pic.userMax2();
     }
 
   pic.clip(min, max,
@@ -1587,13 +1611,11 @@ void add(picture src, bool group=true, filltype filltype=NoFill,
   currentpicture.add(src,group,filltype,above);
 }
 
-// Fit the picture src using the identity transformation (so user
-// coordinates and truesize coordinates agree) and add it about the point
-// position to picture dest.
+// Fit the picture src and add it about the point position to picture dest.
 void add(picture dest, picture src, pair position, bool group=true,
          filltype filltype=NoFill, bool above=true)
 {
-  add(dest,src.fit(identity()),position,group,filltype,above);
+  add(dest,src.fit(),position,group,filltype,true);
 }
 
 void add(picture src, pair position, bool group=true, filltype filltype=NoFill,
@@ -1607,7 +1629,7 @@ void fill(pair origin, picture pic=currentpicture, path[] g, pen p=currentpen)
 {
   picture opic;
   fill(opic,g,p);
-  add(pic,opic,origin);
+  add(pic,opic.fit(identity),origin);
 }
 
 void postscript(picture pic=currentpicture, string s)

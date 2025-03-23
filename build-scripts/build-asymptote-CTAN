@@ -1,0 +1,34 @@
+#!/bin/sh -x
+GC=7.6.2
+
+MACHINE=`uname -m`
+BINDIR=x86_64-windows
+HOME=/home/$USER
+SHARED=$HOME/shared/asy
+ASYMPTOTE=$HOME/asymptote
+
+MAKEFLAGS=-j8
+export MAKEFLAGS
+
+cd $ASYMPTOTE
+VERSION=`grep AC_INIT configure.ac | cut -s -d[ -f3 | cut -s -d] -f1 | sed -e 's/git//'`
+
+cd /tmp
+echo Building asymptote-$VERSION-CTAN
+SRC=/usr/local/src/asymptote-$VERSION.src.tgz
+rm -rf asymptote-$VERSION
+tar -zxf $SRC
+cd asymptote-$VERSION
+find . -name ".[^.]*" -exec rm -rf {} \;
+rm -rf libatomic_ops/m4
+mkdir -p binaries/$BINDIR/texlive
+cd binaries/$BINDIR
+cp $SHARED/CTAN/asy.exe texlive
+cp $SHARED/CTAN/dll/*.dll .
+cp -a ../../README .
+cp -a ../../build-scripts/README-binaries texlive/README
+cd ../../..
+rm -rf asymptote
+mv asymptote-$VERSION asymptote
+tar cfz asymptote-$VERSION-CTAN.tgz asymptote
+cp asymptote-$VERSION-CTAN.tgz $SHARED

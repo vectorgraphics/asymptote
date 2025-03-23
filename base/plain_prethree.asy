@@ -2,7 +2,7 @@
 
 pair viewportmargin=settings.viewportmargin;
 
-typedef real[][] transform3;
+using transform3=real[][];
 restricted transform3 identity4=identity(4);
 
 // A uniform 3D scaling.
@@ -70,7 +70,7 @@ struct projection {
   real zoom=1;          // Zoom factor.
   real angle;           // Lens angle (for perspective projection).
   bool showtarget=true; // Expand bounding volume to include target?
-  typedef transformation projector(triple camera, triple up, triple target);
+  using projector=transformation(triple camera, triple up, triple target);
   projector projector;
   bool autoadjust=true; // Adjust camera to lie outside bounding volume?
   bool center=false;    // Center target within bounding volume?
@@ -140,10 +140,10 @@ struct projection {
 
 
   // This is redefined here to make projection as self-contained as possible.
-  static private real sqrtEpsilon = sqrt(realEpsilon);
+  static private real sqrtEpsilon=sqrt(realEpsilon);
 
   // Move the camera so that the box(m,M) rotated about target will always
-  // lie in front of the clipping plane.
+  // lie in front of the far clipping plane.
   bool adjust(triple m, triple M) {
     triple v=camera-target;
     real d=distance(m,M);
@@ -161,7 +161,7 @@ projection currentprojection;
 
 struct light {
   real[][] diffuse;
-  real[][] specular; // For PRC only
+  real[][] specular;
   pen background=nullpen; // Background color of the 3D canvas.
   real specularfactor;
   triple[] position; // Only directional lights are currently implemented.

@@ -1,0 +1,115 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 27,
+    "patch": 0
+  },
+  "include": [
+    "cmake-preset-files/base-presets.json"
+  ],
+  "configurePresets": [
+    {
+      "name": "linux/release",
+      "displayName": "[linux-x86/64] Release",
+      "binaryDir": "${sourceDir}/cmake-build-linux/release",
+      "inherits": [
+        "base/linux-only",
+        "base/buildBaseWithVcpkg",
+        "base/release",
+        "base/allow_version_override_from_env"
+      ]
+    },
+    {
+      "name": "linux/release/ci/with-ccache",
+      "binaryDir": "${sourceDir}/cmake-build-linux/release",
+      "inherits": [
+        "linux/release",
+        "base/linuxCcache"
+      ]
+    },
+    {
+      "name": "linux/release/ci/with-ccache/compact-zero",
+      "binaryDir": "${sourceDir}/cmake-build-linux/release-compact-zero",
+      "inherits": [
+        "linux/release/ci/with-ccache",
+        "base/compact-zero-mode"
+      ]
+    },
+    {
+      "name": "msvc/release",
+      "displayName": "[MSVC-x86/64] Release",
+      "binaryDir": "${sourceDir}/cmake-build-msvc/release",
+      "inherits": [
+        "base/buildBaseWithVcpkg",
+        "base/release",
+        "base/gccCompatCacheVar",
+        "base/windows-only",
+        "base/ensure-cl-compiler",
+        "base/allow_version_override_from_env"
+      ],
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/cmake-install-w32-nsis-release"
+      }
+    },
+    {
+      "name": "msvc/release/ci/with-external-asymptote-pdf",
+      "inherits": [
+        "msvc/release"
+      ],
+      "cacheVariables": {
+        "ENABLE_ASYMPTOTE_PDF_DOCGEN": "false",
+        "EXTERNAL_DOCUMENTATION_DIR": "${sourceDir}/asydoc"
+      }
+    },
+    {
+      "name": "msvc/release/with-external-doc-files",
+      "inherits": [
+        "msvc/release/ci/with-external-asymptote-pdf"
+      ],
+      "cacheVariables": {
+        "ENABLE_DOCGEN": "false",
+        "ENABLE_MISCFILES_GEN": "false"
+      }
+    },
+    {
+      "name": "msvc/release/with-external-doc-files/with-ctan",
+      "inherits": [
+        "msvc/release/with-external-doc-files",
+        "base/ctan"
+      ]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "msvc/release",
+      "displayName": "[MSVC-x86/64] Release",
+      "inherits": [
+        "build-base/windows-only"
+      ],
+      "configurePreset": "msvc/release"
+    },
+    {
+      "name": "linux/release",
+      "displayName": "[linux-x86/64] Release",
+      "configurePreset": "linux/release",
+      "inherits": [
+        "build-base/linux-only"
+      ]
+    },
+    {
+      "name": "linux/release/ci/with-ccache",
+      "configurePreset": "linux/release/ci/with-ccache",
+      "inherits": [
+        "build-base/linux-only"
+      ]
+    },
+    {
+      "name": "linux/release/ci/with-ccache/compact-zero",
+      "configurePreset": "linux/release/ci/with-ccache/compact-zero",
+      "inherits": [
+        "build-base/linux-only"
+      ]
+    }
+  ]
+}

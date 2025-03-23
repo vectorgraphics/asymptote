@@ -6,7 +6,7 @@ currentlight=Viewport;
 
 if(settings.render <= 0) settings.prc=false;
 
-currentprojection=orthographic(1,2,13);
+currentprojection=orthographic(dir(40,60));
 
 size(400,300,IgnoreAspect);
 
@@ -15,7 +15,7 @@ real f(pair z) {return cos(2*pi*z.x)*sin(2*pi*z.y);}
 surface s=surface(f,(-1/2,-1/2),(1/2,1/2),20,Spline);
 s.colors(palette(s.map(zpart),Rainbow()));
 
-draw(s);
+draw(s,render(tessellate=false));
 
 scale(true);
 

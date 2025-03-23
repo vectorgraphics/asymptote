@@ -2,7 +2,7 @@
  * dec.h
  * Andy Hammerlindl 2002/8/29
  *
- * Represents the abstract syntax tree for declatations in the language.
+ * Represents the abstract syntax tree for declarations in the language.
  * Also included is abstract syntax for types as they are most often
  * used with declarations.
  *****/
@@ -45,16 +45,23 @@ using sym::symbol;
 
 class vardec;
 
-class ty : public absyn {
+enum class AutounravelOption {
+  Apply,
+  DoNotApply,
+};
+
+class astType : public absyn {
 public:
-  ty(position pos)
+  astType(position pos)
     : absyn(pos) {}
 
   virtual void prettyprint(ostream &out, Int indent) = 0;
 
   // If we introduced a new type, automatically add corresponding functions for
   // that type.
-  virtual void addOps(coenv &, record *) {}
+  virtual void
+  addOps(coenv&, record*, AutounravelOption opt= AutounravelOption::Apply)
+  {}
 
   // Returns the internal representation of the type.  This method can
   // be called by exp::getType which does not report errors, so tacit is
@@ -71,18 +78,21 @@ public:
 #endif
 };
 
-class nameTy : public ty {
+class nameTy : public astType {
   name *id;
 
 public:
   nameTy(position pos, name *id)
-    : ty(pos), id(id) {}
+    : astType(pos), id(id) {}
 
   nameTy(name *id)
-    : ty(id->getPos()), id(id) {}
+    : astType(id->getPos()), id(id) {}
 
   void prettyprint(ostream &out, Int indent) override;
 
+  void
+  addOps(coenv& e, record* r,
+         AutounravelOption opt= AutounravelOption::Apply) override;
   types::ty *trans(coenv &e, bool tacit = false) override;
   trans::tyEntry *transAsTyEntry(coenv &e, record *where) override;
 
@@ -107,20 +117,22 @@ public:
   types::array *truetype(types::ty *base, bool tacit=false);
 };
 
-class arrayTy : public ty {
-  ty *cell;
+class arrayTy : public astType {
+  astType *cell;
   dimensions *dims;
 
 public:
-  arrayTy(position pos, ty *cell, dimensions *dims)
-    : ty(pos), cell(cell), dims(dims) {}
+  arrayTy(position pos, astType *cell, dimensions *dims)
+    : astType(pos), cell(cell), dims(dims) {}
 
   arrayTy(name *id, dimensions *dims)
-    : ty(dims->getPos()), cell(new nameTy(id)), dims(dims) {}
+    : astType(dims->getPos()), cell(new nameTy(id)), dims(dims) {}
 
   void prettyprint(ostream &out, Int indent) override;
 
-  void addOps(coenv &e, record *r) override;
+  void
+  addOps(coenv& e, record* r,
+         AutounravelOption opt= AutounravelOption::Apply) override;
 
   types::ty *trans(coenv &e, bool tacit = false) override;
 
@@ -129,11 +141,11 @@ public:
 
 // Similar to varEntryExp, this helper class always translates to the same
 // fixed type.
-class tyEntryTy : public ty {
+class tyEntryTy : public astType {
   trans::tyEntry *ent;
 public:
   tyEntryTy(position pos, trans::tyEntry *ent)
-    : ty(pos), ent(ent) {}
+    : astType(pos), ent(ent) {}
 
   tyEntryTy(position pos, types::ty *t);
 
@@ -193,7 +205,7 @@ public:
   virtual bool returns()
   { return false; }
 
-  // Returns true if it is syntatically allowable to modify this
+  // Returns true if it is syntactically allowable to modify this
   // runnable by a PUBLIC or PRIVATE modifier.
   virtual bool allowPermissions()
   { return false; }
@@ -202,15 +214,16 @@ public:
 // Forward declaration.
 class formals;
 
-class namedTyEntry : public gc {
+class namedTy : public gc {
 public:
   symbol dest;
-  trans::tyEntry *ent;
+  types::ty *t;
   position pos;
-  namedTyEntry(position pos, symbol dest, trans::tyEntry *ent)
-    : dest(dest), ent(ent), pos(pos) {}
+  namedTy(position pos, symbol dest, types::ty *t)
+    : dest(dest), t(t), pos(pos) {}
 };
 
+class receiveTypedefDec;
 
 class block : public runnable {
 public:
@@ -221,6 +234,11 @@ public:
 
 protected:
   void prettystms(ostream &out, Int indent);
+
+private:
+  // If the first runnable exists and is a receiveTypedefDec*, return it;
+  // otherwise return nullptr.
+  receiveTypedefDec* getTypedefDec();
 
 public:
   block(position pos, bool scope=true)
@@ -240,12 +258,7 @@ public:
   void transAsField(coenv &e, record *r) override;
 
   bool transAsTemplatedField(
-      coenv &e, record *r, mem::vector<absyntax::namedTyEntry*>* args
-  );
-
-  void transAsRecordBody(coenv &e, record *r);
-  bool transAsTemplatedRecordBody(
-      coenv &e, record *r, mem::vector<absyntax::namedTyEntry*> *args
+    coenv &e, record *r, mem::vector<absyntax::namedTy*>* args
   );
 
   types::record *transAsFile(genv& ge, symbol id);
@@ -253,8 +266,7 @@ public:
   types::record *transAsTemplatedFile(
       genv& ge,
       symbol id,
-      mem::vector<absyntax::namedTyEntry*> *args,
-      trans::frame *parent
+      mem::vector<absyntax::namedTy*> *args
   );
 
   // If the block can be interpreted as a single vardec, return that vardec
@@ -363,7 +375,7 @@ public:
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
   void createSymMapWType(
-      AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+      AsymptoteLsp::SymbolContext* symContext, absyntax::astType* base
   );
 };
 
@@ -406,7 +418,7 @@ public:
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
   void createSymMapWType(
-      AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+      AsymptoteLsp::SymbolContext* symContext, absyntax::astType* base
   );
 };
 
@@ -441,7 +453,7 @@ public:
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
   void createSymMapWType(
-      AsymptoteLsp::SymbolContext* symContext, absyntax::ty* base
+      AsymptoteLsp::SymbolContext* symContext, absyntax::astType* base
   );
 };
 
@@ -461,14 +473,14 @@ void createVar(position pos, coenv &e, record *r,
                symbol id, types::ty *t, varinit *init);
 
 class vardec : public dec {
-  ty *base;
+  astType *base;
   decidlist *decs;
 
 public:
-  vardec(position pos, ty *base, decidlist *decs)
+  vardec(position pos, astType *base, decidlist *decs)
     : dec(pos), base(base), decs(decs) {}
 
-  vardec(position pos, ty *base, decid *di)
+  vardec(position pos, astType *base, decid *di)
     : dec(pos), base(base), decs(new decidlist(pos))
   {
     decs->add(di);
@@ -477,7 +489,7 @@ public:
 
   void transAsField(coenv &e, record *r) override
   {
-    base->addOps(e, r);
+    base->addOps(e, r, AutounravelOption::DoNotApply);
     decs->transAsField(e, r, base->trans(e));
   }
 
@@ -524,8 +536,8 @@ struct idpair : public absyn {
 
   // Translates as: from _ unravel src as dest;
   // where _ is the qualifier record with source as its fields and types.
-  void transAsUnravel(coenv &e, record *r,
-                      protoenv &source, varEntry *qualifier);
+  trans::tyEntry *transAsUnravel(coenv &e, record *r,
+                                 protoenv &source, varEntry *qualifier);
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
@@ -541,8 +553,9 @@ struct idpairlist : public gc {
 
   void transAsAccess(coenv &e, record *r);
 
-  void transAsUnravel(coenv &e, record *r,
-                      protoenv &source, varEntry *qualifier);
+  mem::vector<trans::tyEntry*> transAsUnravel(
+    coenv &e, record *r, protoenv &source, varEntry *qualifier
+  );
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext);
 
@@ -621,7 +634,7 @@ public:
   typeParam(position pos, symbol paramSym)
     : absyn(pos), paramSym(paramSym) {}
 
-  bool transAsParamMatcher(coenv &e, record *r, namedTyEntry *arg);
+  bool transAsParamMatcher(coenv &e, record *r, namedTy *arg);
 
   void prettyprint(ostream &out, Int indent);
 };
@@ -634,7 +647,8 @@ public:
 
   void add(typeParam *tp);
 
-  bool transAsParamMatcher(coenv &e, record *r, mem::vector<namedTyEntry*> *args);
+  bool transAsParamMatcher(coenv &e, record *r,
+                           mem::vector<namedTy*> *args);
 
   void prettyprint(ostream &out, Int indent);
 };
@@ -649,7 +663,7 @@ public:
 
   void transAsField(coenv& e, record *r) override;
   bool transAsParamMatcher(
-      coenv& e, record *r, mem::vector<namedTyEntry*> *args
+    coenv& e, record *r, mem::vector<namedTy*> *args
   );
 };
 
@@ -774,13 +788,20 @@ public:
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
 
-// Types defined from others in typedef.
+// Types defined from others in `typedef` or `using` statement.
 class typedec : public dec {
   vardec *body;
 
 public:
   typedec(position pos, vardec *body)
     : dec(pos), body(body) {}
+
+  typedec(position pos, decidstart *id_with_signature, astType *return_type)
+    : dec(pos)
+  {
+    decid *di = new decid(id_with_signature->getPos(), id_with_signature);
+    body = new vardec(return_type->getPos(), return_type, di);
+  }
 
   void prettyprint(ostream &out, Int indent);
 
