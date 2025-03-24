@@ -5370,7 +5370,7 @@ a random number uniformly distributed in the interval [0,1).
 The @code{randString(int len, string chars)} function returns a random
 string of length @code{len} composed of characters from the string @code{chars}.
 If @code{chars} is the empty string, the string
-@code{"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"} is used.
+@code{'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'} is used.
 In each position of the output, the probability of a character appearing is
 proportional to the number of times it appears in @code{chars}.
 
@@ -5662,7 +5662,7 @@ if @code{m >= n} returns an array @code{@{n,n+1,...,m@}} (otherwise
 returns a null array); see also @ref{range};
 
 @item int[] sequence(int n, int m, int skip)
-if @code{(m-n)/skip > 0} returns an array @code{@{n,n+skip,...,m@}} skipping by
+if @code{(m-n)/skip >= 0} returns an array @code{@{n,n+skip,...,m@}} skipping by
 @code{skip} (otherwise returns a null array); see also @ref{range};
 
 @item T[] sequence(T f(int), int n)
@@ -6567,12 +6567,13 @@ The following functions produce iterators over integers:
 returns an iterable that produces the integers @code{0,...,n-1};
 @item Iterable_int range(int n, int m, int skip=1)
 returns an iterable that produces the integers
-@code{n, n+skip, ..., m} if @code{(m-n)/skip > 0}, and otherwise produces
+@code{n, n+skip, ..., m} if @code{(m-n)/skip >= 0}, and otherwise produces
 no integers.
 @end table
 
 Generally speaking, @code{for (int i : range(n))} is equivalent to
-@code{for (int i : sequence(n))}. The latter uses @math{O(n)} memory but is
+@code{for (int i : sequence(n))}. The latter uses @math{O(}@code{n}@math{)}
+memory but is
 usually faster. The former uses @math{O(1)} memory but is slower.
 If an iterator is specifically required, however, @code{range(n)} is faster
 than @code{range(sequence(n))} (as well as being more memory-efficient).
@@ -6814,8 +6815,9 @@ types: @code{int}, @code{real}, and @code{string}. Note that things like
 correct version of these would be @code{(3).hash()} and @code{('hello').hash()},
 with parentheses around the literal. If you want to hash a @code{real}, there
 are two important things to note: first, even if two @code{real}s are extremely
-close, their hash values will not be; second, the same number will have
-different hash values if it is an @code{int} or a @code{real}.
+close, their hash values will almost certainly not be; second, the same number
+will almost certainly have
+different hash values when hashed as an @code{int} versus a @code{real}.
 
 @node Hashing user-defined structures
 @subsection Hashing user-defined structures
@@ -6825,9 +6827,9 @@ function @code{hash(int[])} that can be helpful when constructing hash methods
 for user-defined structures: convert all the fields to integers (possibly by
 hashing them), put these integers into an array, and hash the array.
 
-Returning to the example of the @code{Person} structure from @xref{Structures},
+Returning to the example of the @code{Person} structure from @ref{Structures},
 there are two reasonable ways we might define a hash function for it. The first
-is to create a hash function based on the all the fields of the structure:
+is to create a hash function based on all the fields of the structure:
 @verbatim
 struct Person {
   string firstname;
@@ -6843,20 +6845,26 @@ struct Person {
            a.lastname == b.lastname &&
            a.age == b.age;
   }
+  autounravel bool operator !=(Person a, Person b) {
+    return !(a == b);
+  }
 }
 @end verbatim
 @cindex @code{operator ==}
 This approach is necessary if we are redefining the @code{==}
 operator. Two @code{Person}s are equal if they have the same first name,
-last name, and age; a person who has had a birthday needs a new
-@code{Person} object.
+last name, and age.
 
-On the other hand, we might want a notion of @code{Person} that can remain the
-same even if these fields change. In this case, we can add a field
+The default @code{==} operator for user-defined structs considers two objects
+equal if they are the same object, meaning that changes to one will be reflected
+in the other. A hash method that plays well with the default @code{==}
+operator must remain the
+same even if the fields change. In this case, we can add a never-changing
+@code{id} field
 that uniquely identifies a @code{Person} object, and use that for hashing: 
 
 @verbatim
-stuct Person {
+struct Person {
   string firstname;
   string lastname;
   int age;
@@ -6868,17 +6876,10 @@ stuct Person {
 }
 @end verbatim
 
-The default @code{==} operator for user-defined structs considers two objects
-equal if they are the same object, meaning that changes to one will be reflected
-in the other. This version of hashing plays well with the default @code{==}
-operator.
-
-One additional guideline: Whatever fields you are using for a hash, the ideal
+One additional guideline: whatever fields you are using for a hash, the ideal
 behavior is to run them through a builtin hash function once, but only once. See
 for instance the way that @code{id} is hashed in the second example above, but
-@code{age} is not independently hashed in the first example. (In the first
-example, @code{firstname} and @code{lastname} are independently hashed only to
-obtain integers that can be put into an array.)
+@code{age} is not independently hashed in the first example.
 
 @node Collections / containers
 @section Collections / containers
@@ -7140,28 +7141,32 @@ builtin integer index, so @code{enumerate} is more useful for their iterators.
 @node Maps aka dictionaries
 @subsection Maps aka dictionaries
 
-@subsubsection Hashmaps
-
 Many modern programming languages have a builtin datastructure that is variously
-called a hashmap, dictionary, or associative array. This datastructure is
-something like an array, but with two major differences:
-@enumerate
-@item The indices can be any type, not just integers.
-@item The indices are not necessarily contiguous.
-@end enumerate
-In @code{Asymptote}, this
-datastructure is provided by the @code{collections.hashmap(K,V)} templated
-module. Here's an example: 
+called a map, dictionary, or associative array.
+
+In programming languages such as Asymptote, @code{Map}s and @code{function}s
+are different tools based on the mathematical concept of a function. 
+A @code{function} computes each output value from the input. A @code{Map}
+stores a set of input-output pairs; it has a finite domain consisting of those
+inputs whose outputs were explicitly added. Typically, the inputs to a
+@code{Map} are called keys, and the outputs are called values. Here is an
+example of using a @code{Map}:
+
 @verbatim
 from collections.hashmap(K=string, V=int) access
     HashMap_K_V as HashMap_string_int;
+// Create a Map called h.
 HashMap_string_int h;
+// Add some key-value pairs to h.
 h['hello'] = 5;
 h['world'] = 3;
+// Iterate over the keys (i.e., the domain) of h.
 for (string key : h) {
-  write(key + ' ' + string(h[key]));
+  // Compute the output for the given input.
+  int value = h[key];
+  write(key + ' ' + string(value));
 }
-// Outputs:
+// Result of running the above code:
 // hello 5
 // world 3
 @end verbatim
