@@ -1,9 +1,3 @@
-// from collections.map(K=int, V=int) access
-//     Map_K_V as Map_int_int,
-//     NaiveMap_K_V as NaiveMap_int_int;
-// from collections.hashmap(K=int, V=int) access
-//     HashMap_K_V as HashMap_int_int;
-// from collections.zip2(K=Map_int_int, V=string) access zip, operator cast;
 from collections.repset(T=int) access RepSet_T as RepSet_int;
 from collections.hashrepset(T=int) access HashRepSet_T as HashRepSet_int;
 from collections.btree(T=int) access BTreeRepSet_T as BTreeRepSet_int;
@@ -47,13 +41,13 @@ string[] names;
 RepSet_int[] sets;
 sets.push(HashRepSet_int(nullT=-1));
 names.push('HashRepSet');
-// sets.push(BTreeRepSet_int(operator <, nullT=-1));
-// names.push('BTreeRepSet');
-// sets.push(BTreeRepSet_int(operator <, nullT=-1, maxPivots=8));
-// names.push('BTreeRepSet (8 pivots max)');
+sets.push(BTreeRepSet_int(operator <, nullT=-1));
+names.push('BTreeRepSet');
+sets.push(BTreeRepSet_int(operator <, nullT=-1, maxPivots=8));
+names.push('BTreeRepSet (8 pivots max)');
 
 // Run a benchmark
-int operations = 500000;
+int operations = 5000000;
 for (var labeledMap : zip(sets, names)) {
   cputime time = benchmark(labeledMap.k, operations);
   write(labeledMap.v + ': user time for ' + (string)operations + ' operations: ', suffix=flush);

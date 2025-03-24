@@ -57,13 +57,18 @@ struct HashRepSet_T {
 
   super.get = new T(T item) {
     int bucket = item.hash();
-    for (int i = 0; i < buckets.length; ++i) {
-      HashEntry entry = buckets[bucket + i];
+    int end = bucket;
+    int start = end - buckets.length;
+    for (int i = start; i < end; ++i) {
+      HashEntry entry = buckets[i];
       if (entry == null) {
         return super.nullT;
       }
-      if (entry.hash == bucket && equiv(entry.item, item)) {
-        return entry.item;
+      if (entry.hash == bucket) {
+        var entryItem = entry.item;
+        if (equiv(entryItem, item)) {
+          return entryItem;
+        }
       }
     }
     assert(isNullT != null, 'Item is not present.');
@@ -116,8 +121,7 @@ struct HashRepSet_T {
   //     bucket in which the item should be placed if added.
   //   * Otherwise, returns -1.
   private int find(T item, int hash) {
-    for (int i = 0; i < buckets.length; ++i) {
-      int index = hash + i;
+    for (int index = hash - buckets.length; index < hash; ++index) {
       HashEntry entry = buckets[index];
       if (entry == null) {
         return index;
@@ -133,14 +137,17 @@ struct HashRepSet_T {
     if (isNullT != null && isNullT(item)) {
       return false;
     }
-    if (2 * (size + zombies) >= buckets.length) {
+    int capacity = buckets.length;
+    if (2 * (size + zombies) >= capacity) {
       changeCapacity();
+      capacity = buckets.length;
     }
     int bucket = item.hash();
     int index = find(item, bucket);
     if (index == -1) {
       ++numChanges;
       changeCapacity();
+      capacity = buckets.length;
       index = find(item, bucket);
       assert(index != -1, 'No space in hash table');
     }
@@ -150,8 +157,9 @@ struct HashRepSet_T {
     }
 
     ++numChanges;
-    if (2 * (size + zombies) >= buckets.length) {
+    if (2 * (size + zombies) >= capacity) {
       changeCapacity();
+      capacity = buckets.length;
       index = find(item, bucket);
       assert(index != -1);
       assert(buckets[index] == null);
