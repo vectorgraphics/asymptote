@@ -123,6 +123,14 @@ def main():
             actual_file_contents = in_f.read().strip()
 
         if expected_file_contents != actual_file_contents:
+
+            print(
+                "asy-tests-list.cmake has not been updated properly. "
+                + "It may be missing some unit tests. "
+                + f"\nPlease run {pathlib.Path(__file__).name} to "
+                + "regenerate asy-tests-list.cmake."
+            )
+
             raise RuntimeError("File contents do not match")
 
         print("test file has no missing tests!")

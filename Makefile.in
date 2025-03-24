@@ -15,7 +15,6 @@ LFLAGS = @LDFLAGS@ -Lhighwayhash/lib
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@ -lhighwayhash
 CXX_STANDARD = @CXX_STANDARD@
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
-LSP_BUILD_ROOT=@LSP_BUILD_ROOT@
 LSP_ROOT=@LSP_ROOT@
 
 CMAKE ?= cmake
@@ -170,11 +169,11 @@ doc/version.texi: version.txt
 asymptote.so: $(COREFILES:=.pic.o) glew.o
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
-$(LSP_BUILD_ROOT)/liblspcpp.a:
-	$(CMAKE) -B$(LSP_BUILD_ROOT) -S$(LSP_ROOT) -DCMAKE_CXX_FLAGS=\
+$(LSP_ROOT)/liblspcpp.a:
+	$(CMAKE) -B$(LSP_ROOT) -S$(LSP_ROOT) -DCMAKE_CXX_FLAGS=\
 	"-fPIE @OPTIONS@ @LSP_CXX_BUILD_FLAGS@" \
 	@LSP_CMAKE_OPTIONS@
-	$(MAKE) -C $(LSP_BUILD_ROOT)
+	$(MAKE) -C $(LSP_ROOT)
 
 UNAME_M := $(shell uname -m)
 ifneq (,$(findstring aarch64,$(UNAME_M)))
