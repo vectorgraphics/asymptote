@@ -13,8 +13,10 @@ struct BTreeRepSet_T {
   private int minPivots = maxPivots # 2;
   
   private bool leq(T a, T b) { return !lt(b, a); };
-  private bool gt(T a, T b) { return lt(b, a); };
-  private bool geq(T a, T b) { return !lt(b, a); };
+  // The following functions have been manually inlined to avoid the overhead of
+  // function calls.
+  // private bool gt(T a, T b) { return lt(b, a); };
+  // private bool geq(T a, T b) { return !lt(b, a); };
   private bool equiv(T a, T b) { return !(lt(a, b) || lt(b, a)); };
 
   struct Node {
@@ -234,6 +236,16 @@ struct BTreeRepSet_T {
                      bool isNullT(T) = new bool(T t) { return t == nullT; }) {
     this.lt = lessThan;
     super.operator init(nullT, equiv, isNullT);
+  }
+
+  // Allows for adjusting the maximum number of pivots in a node. Intended
+  // primarily for testing.
+  void operator init(bool lessThan(T, T), T nullT,
+                     bool isNullT(T) = new bool(T t) { return t == nullT; },
+                     int keyword maxPivots) {
+    this.maxPivots = maxPivots;
+    this.minPivots = maxPivots # 2;
+    this.operator init(lessThan, nullT, isNullT);
   }
 
   super.size = new int() { return size; };

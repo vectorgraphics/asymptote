@@ -428,7 +428,8 @@ decreasingProbs[ActionEnum.DELETE_CONTAINS] = 1 / 8;
 assert(sum(decreasingProbs) == 1, 'Probabilities do not sum to 1');
 
 SortedSet_wrapped_int naive = NaiveSortedSet_wrapped_int(operator <, null);
-SortedSet_wrapped_int btree = BTreeSet_wrapped_int(operator <, null);
+SortedSet_wrapped_int btree1 = BTreeSet_wrapped_int(operator <, null, maxPivots=4);
+SortedSet_wrapped_int btree2 = BTreeSet_wrapped_int(operator <, null, maxPivots=128);
 
 bool isStrictlySorted(SortedSet_wrapped_int s) {
   wrapped_int last = null;
@@ -465,13 +466,15 @@ for (int i : range(numActions)) {
   real[] probs = i < numActions * 2 # 5 ? increasingProbs : decreasingProbs;
   int choice = chooseAction(probs);
   ++counts[choice];
-  actions[choice](100, naive, btree);
-  if (different(naive, btree)) {
-    write('Different sets after action ' + names[choice]);
-    assert(false, 'Naive vs btree: \n' + differences(naive, btree));
+  actions[choice](100, naive, btree1, btree2);
+  for (var btree : new SortedSet_wrapped_int[] {btree1, btree2}) {
+    if (different(naive, btree)) {
+      write('Different sets after action ' + names[choice]);
+      assert(false, 'Naive vs btree: \n' + differences(naive, btree));
+    }
+    assert(isStrictlySorted(btree), 'Not sorted');
+    maxSize = max(maxSize, btree.size());
   }
-  assert(isStrictlySorted(btree), 'Not sorted');
-  maxSize = max(maxSize, btree.size());
 }
 
 if (false) {
