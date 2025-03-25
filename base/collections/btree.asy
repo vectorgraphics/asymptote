@@ -224,12 +224,6 @@ struct BTreeRepSet_T {
   }
   private Node root = new Node;
 
-  void operator init() {
-    this.lt = operator<;
-    using Initializer = void();
-    ((Initializer)super.operator init)();
-  }
-
   // NOTE: The default isNullT uses operator == rather than equiv. Consequently,
   // lessThan does not necessarily need to be defined for nullT.
   void operator init(bool lessThan(T, T), T nullT,

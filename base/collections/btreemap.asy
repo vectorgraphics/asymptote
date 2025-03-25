@@ -3,27 +3,20 @@ typedef import(K, V);
 from collections.map(K=K, V=V) access Map_K_V, Iter_K, Iter_K_V, Iterable_K,
                                       Iterable_K_V;
 from collections.genericpair(K=K, V=V) access Pair_K_V, makePair;
-from collections.hashrepset(T=Pair_K_V) access
-    HashRepSet_T as HashRepSet_K_V;
 
-private Pair_K_V operator tuple(K k, V v) {
-  Pair_K_V pair = makePair(k, v); 
-  pair.hash = k.hash;
-  return pair;
-}
+from collections.btree(T=Pair_K_V) access BTreeRepSet_T as BTreeSet_K_V;
 
-struct HashMap_K_V {
-  struct _ { autounravel restricted Map_K_V map; }
+bool keysLT(Pair_K_V a, Pair_K_V b) { return a.k < b.k; }
 
-  private HashRepSet_K_V pairs = HashRepSet_K_V(
+struct BTreeMap_K_V {
+  restricted Map_K_V map;
+  
+  private BTreeSet_K_V pairs = BTreeSet_K_V(
+    lessThan=keysLT,
     nullT=null,
-    equiv = new bool(Pair_K_V a, Pair_K_V b) {
-      // NOTE: This should never be called on a null pair.
-      return a.k == b.k;
-    },
     isNullT = new bool(Pair_K_V kv) { return alias(kv, null); }
   );
-
+  
   void operator init() {
     using F = void();
     ((F)map.operator init)();
@@ -41,11 +34,11 @@ struct HashMap_K_V {
   map.size = pairs.size;
 
   map.contains = new bool(K key) {
-    return pairs.contains((key, map.nullValue));
+    return pairs.contains(makePair(key, map.nullValue));
   };
 
   map.operator[] = new V(K key) {
-    Pair_K_V pair = pairs.get((key, map.nullValue));
+    Pair_K_V pair = pairs.get(makePair(key, map.nullValue));
     if (!alias(pair, null)) {
       return pair.v;
     }
@@ -55,14 +48,14 @@ struct HashMap_K_V {
 
   map.operator [=] = new void(K key, V value) {
     if (map.isNullValue != null && map.isNullValue(value)) {
-      pairs.delete((key, value));
+      pairs.delete(makePair(key, value));
     } else {
-      pairs.swap((key, value));
+      pairs.swap(makePair(key, value));
     }
   };
 
   map.delete = new void(K key) {
-    Pair_K_V removed = pairs.delete((key, map.nullValue));
+    Pair_K_V removed = pairs.delete(makePair(key, map.nullValue));
     assert(!alias(removed, null), 'Nonexistent key cannot be deleted');
   };
 
@@ -77,13 +70,13 @@ struct HashMap_K_V {
 
   map.pairs = new Iterable_K_V() { return pairs; };
 
-  autounravel Iterable_K operator cast(HashMap_K_V map) {
+  autounravel Iterable_K operator cast(BTreeMap_K_V map) {
     return Iterable_K(map.map.operator iter);
   }
-  autounravel K[] operator ecast(HashMap_K_V map) {
+  autounravel K[] operator ecast(BTreeMap_K_V map) {
     return (K[])(Iterable_K)map;
   }
-  autounravel Map_K_V operator cast(HashMap_K_V map) {
+  autounravel Map_K_V operator cast(BTreeMap_K_V map) {
     return map.map;
   }
 
