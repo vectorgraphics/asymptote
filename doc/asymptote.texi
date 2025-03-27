@@ -5296,7 +5296,7 @@ Random numbers can be seeded with @code{srand(int)}
 and generated with
 the @code{int rand()} function, which returns a random integer between 0
 and the integer @code{randMax}. The @code{unitrand()} function returns
-a random number uniformly distributed in the interval [0,1].
+a random number uniformly distributed in the interval [0,1).
 A Gaussian random number generator
 @code{Gaussrand} and a collection of statistics routines, including
 @code{histogram}, are provided in the module @code{stats}.

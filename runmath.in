@@ -231,7 +231,7 @@ void srand(Int seed)
   Srand(seed);
 }
 
-// a random number uniformly distributed in the interval [0,1]
+// a random number uniformly distributed in the interval [0,1)
 real unitrand()
 {
   std::uniform_real_distribution<double> dist(0.0, 1.0);
