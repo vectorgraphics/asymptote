@@ -358,6 +358,93 @@ void extendedForStm::prettyprint(ostream &out, Int indent)
   body->prettyprint(out, indent+1);
 }
 
+runnable *forArrayInit(position pos, symbol i) {
+  // int i = 0;
+  return new vardec(pos, new tyEntryTy(pos, primInt()),
+                    new decid(pos,
+                              new decidstart(pos, i),
+                              new intExp(pos, 0)));
+}
+
+runnable *forIterInit(position pos, symbol it, exp *iterExp) {
+  // var it = object.operator iter();
+  return new vardec(pos, new tyEntryTy(pos, primInferred()),
+                    new decid(pos,
+                              new decidstart(pos, it),
+                              iterExp));
+}
+
+exp *forArrayTest(position pos, symbol i, symbol a) {
+  // i < a.length;
+  return new binaryExp(pos,
+                       new nameExp(pos, i),
+                       SYM_LT,
+                       new nameExp(pos,
+                                   new qualifiedName(pos,
+                                                     new simpleName(pos, a),
+                                                     symbol::trans("length"))));
+}
+
+exp* forIterTest(position pos, symbol it)
+{
+  // it.valid();
+  return new callExp(
+          pos,
+          new fieldExp(pos, new nameExp(pos, it), symbol::literalTrans("valid"))
+  );
+}
+
+runnable *forArrayUpdate(position pos, symbol i) {
+  // ++i;
+  return new expStm(pos, new prefixExp(pos, new nameExp(pos, i), SYM_PLUS));
+}
+
+runnable* forIterUpdate(position pos, symbol it)
+{
+  // it.advance();
+  return new expStm(
+          pos, new callExp(
+                       pos, new fieldExp(
+                                    pos, new nameExp(pos, it),
+                                    symbol::literalTrans("advance")
+                            )
+               )
+  );
+}
+
+extendedForStm::LoopType extendedForStm::transObjectDec(symbol a, coenv &e) {
+  // Get the start type.  Handle type inference as a special case.
+  types::ty *t = start->trans(e, ErrorMode::SUPPRESS);
+  if (t->kind == types::ty_inferred) {
+    // First ensure the array expression is an unambiguous array.
+
+    types::ty *atOriginal = set->cgetType(e);
+    types::ty *at = atOriginal->signatureless();
+    if (at && at->kind == ty_array) {
+      // var a=set;
+      tyEntryTy tet(pos, at);
+      decid dec1(pos, new decidstart(pos, a), set);
+      vardec(pos, &tet, &dec1).trans(e);
+      return LoopType::ARRAY;
+    }
+    em.error(set->getPos());
+    if (atOriginal->isOverloaded()) {
+      em << "cannot resolve type for iteration";
+    } else {
+      em << "cannot iterate over expression of type '" << *atOriginal << "'";
+    }
+
+    // On failure, don't bother trying to translate the loop.
+    return LoopType::TY_ERROR;
+
+  }
+  // start[] a=set;
+  arrayTy at(pos, start, new dimensions(pos));
+  decid dec1(pos, new decidstart(pos, a), set);
+  vardec(pos, &at, &dec1).trans(e);
+  return LoopType::ARRAY;
+}
+
 void extendedForStm::trans(coenv &e) {
   // Translate into the syntax:
   //
@@ -373,57 +460,59 @@ void extendedForStm::trans(coenv &e) {
   symbol a=symbol::gensym("a");
   symbol i=symbol::gensym("i");
 
-  // Get the start type.  Handle type inference as a special case.
-  types::ty *t = start->trans(e, true);
-  if (t->kind == types::ty_inferred) {
-
-    // First ensure the array expression is an unambiguous array.
-    types::ty *at = set->cgetType(e);
-    if (at->kind != ty_array) {
-      em.error(set->getPos());
-      em << "expression is not an array of inferable type";
-
-      // On failure, don't bother trying to translate the loop.
-      return;
-    }
-
-    // var a=set;
-    tyEntryTy tet(pos, primInferred());
-    decid dec1(pos, new decidstart(pos, a), set);
-    vardec(pos, &tet, &dec1).trans(e);
+  if (set->cgetType(e)->isError()) {
+    // Translate the object for the error message.
+    set->trans(e);
+    // On failure, don't bother trying to translate the loop.
+    return;
   }
-  else {
-    // start[] a=set;
-    arrayTy at(pos, start, new dimensions(pos));
-    decid dec1(pos, new decidstart(pos, a), set);
-    vardec(pos, &at, &dec1).trans(e);
+  // Is `set.operator iter()` a valid expression?
+  exp* iterExp=
+          new callExp(pos, new fieldExp(pos, set, symbol::opTrans("iter")));
+  LoopType loopType;
+  if (!iterExp->cgetType(e)->isError()) {
+    loopType = LoopType::ITERABLE;
+  } else {
+    loopType = transObjectDec(a, e);
   }
-
-  // { start var=a[i]; body }
+  // On failure, don't bother trying to translate the loop.
+  if (loopType == LoopType::TY_ERROR)
+    return;
+  exp *varInitExp = nullptr;
+  if (loopType == LoopType::ITERABLE) {
+    // start var=i.get();
+    varInitExp = new callExp(
+            pos,
+            new fieldExp(pos, new nameExp(pos, i), symbol::literalTrans("get"))
+    );
+  } else {
+    // start var=a[i];
+    varInitExp = new subscriptExp(pos, new nameExp(pos, a),
+                                  new nameExp(pos, i));
+  }
+  // { start var = <varInitExp>; body }
   block b(pos);
-  decid dec2(pos,
-             new decidstart(pos, var),
-             new subscriptExp(pos, new nameExp(pos, a),
-                              new nameExp(pos, i)));
+  decid dec2(pos, new decidstart(pos, var), varInitExp);
   b.add(new vardec(pos, start, &dec2));
   b.add(body);
 
-  // for (int i=0; i < a.length; ++i)
-  //   <block>
-  forStm(pos,
-         new vardec(pos, new tyEntryTy(pos, primInt()),
-                    new decid(pos,
-                              new decidstart(pos, i),
-                              new intExp(pos, 0))),
-         new binaryExp(pos,
-                       new nameExp(pos, i),
-                       SYM_LT,
-                       new nameExp(pos,
-                                   new qualifiedName(pos,
-                                                     new simpleName(pos, a),
-                                                     symbol::trans("length")))),
-         new expStm(pos, new prefixExp(pos, new nameExp(pos, i), SYM_PLUS)),
-         new blockStm(pos, &b)).trans(e);
+  if (loopType == LoopType::ARRAY) {
+    // for (int i=0; i < a.length; ++i)
+    //   <block>
+    forStm(pos,
+           forArrayInit(pos, i),
+           forArrayTest(pos, i, a),
+           forArrayUpdate(pos, i),
+           new blockStm(pos, &b)).trans(e);
+  } else {
+    // for (var i=set.operator iter(); i.valid(); i.advance())
+    //   <block>
+    forStm(pos,
+           forIterInit(pos, i, iterExp),
+           forIterTest(pos, i),
+           forIterUpdate(pos, i),
+           new blockStm(pos, &b)).trans(e);
+  }
 }
 
 

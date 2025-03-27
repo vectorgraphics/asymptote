@@ -98,8 +98,9 @@ def write_cmake_lists_data_to_file(test_dirs, out_file):
     out_file.write("\n")
     for entry in test_dirs:
         cmake_text = generate_tests_list_per_directory(entry)
-        out_file.write(cmake_text)
-        out_file.write("\n")
+        if cmake_text:
+            out_file.write(cmake_text)
+            out_file.write("\n")
 
 
 def get_test_dirs():
