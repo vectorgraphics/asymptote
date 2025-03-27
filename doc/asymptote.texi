@@ -7155,17 +7155,22 @@ example of using a @code{Map}:
 @verbatim
 from collections.hashmap(K=string, V=int) access
     HashMap_K_V as HashMap_string_int;
+
 // Create a Map called h.
 HashMap_string_int h;
+
 // Add some key-value pairs to h.
 h['hello'] = 5;
 h['world'] = 3;
+
 // Iterate over the keys (i.e., the domain) of h.
 for (string key : h) {
+
   // Compute the output for the given input.
   int value = h[key];
   write(key + ' ' + string(value));
 }
+
 // Result of running the above code:
 // hello 5
 // world 3
@@ -7183,9 +7188,29 @@ for (string key : h) {
 @c // * Do not mutate the key while it is a key in the hashmap.
 @c // * Iterating over keys vs pairs.
 
-@subsubsection Maps
+@subsubsection Initializing a @code{Map}
+The @code{Map_K_V} struct itself is defined in the templated module
+@code{collections.map(K,V)}. However, to initialize a @code{Map_K_V}, you need
+to choose a function from a different module.
 
-TODO
+@table @code
+@item HashMap_K_V()
+@itemx HashMap_K_V(V nullValue, bool isNullValue(V v) =@*@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ new bool(V v) @{return v == nullValue; @})
+These two functions must be accessed from the @code{collections.hashmap(K,V)}
+templated module. They create a HashMap, which should be your default choice
+for a map. The key type must have a @code{hash} method, @pxref{Hash functions}.
+@item BTreeMap_K_V()
+@itemx BTreeMap_K_V(V nullValue, bool isNullValue(V v) =@*@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ new bool(V v) @{return v == nullValue; @})
+These two functions must be accessed from the @code{collections.btreemap(K,V)}
+templated module. They create a BTreeMap, which stores its keys in sorted order.
+The key type must have a @code{<} operator.
+@end table
+
+
+@subsubsection The @code{Map} API
+
+
+
 
 @subsubsection Sorted maps
 
