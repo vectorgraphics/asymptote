@@ -87,7 +87,7 @@ Installation
 Tutorial
 
 * Drawing in batch mode::       Run @code{Asymptote} on a text file
-* Drawing in interactive mode::  Running @code{Asymptote} interactively
+* Drawing in interactive mode:: Running @code{Asymptote} interactively
 * Figure size::                 Specifying the figure size
 * Labels::                      Adding @code{LaTeX} labels
 * Paths::                       Drawing lines and curves
@@ -116,13 +116,19 @@ Programming
 * Arrays::                      Dynamic vectors
 * Casts::                       Implicit and explicit casts
 * Import::                      Importing external @code{Asymptote} modules
+* Iterators::                   Iterating over structures
 * Static::                      Where to allocate your variable?
+* Autounravel::                 Adding associated libraries to structures
+* Hash functions::              Hashing your data
+* Collections (containers)::    Maps, sets, queues, and iterator tools
 
 Operators
 
 * Arithmetic & logical::        Basic mathematical operators
 * Self & prefix operators::     Increment and decrement
 * User-defined operators::      Overloading operators
+* Bracket operators::           Bracket operators
+* Cast operators::              Type conversion
 
 Functions
 
@@ -137,7 +143,35 @@ Arrays
 
 Import
 
-* Templated imports::
+* Templated imports::           Imports parametrized by generic types
+
+Iterators
+
+* range::                       Iterating over integers
+
+Autounravel
+
+* When fields are autounraveled::
+* Where autounravel is legal::
+
+Hash functions
+
+* Hashing user-defined structures::
+
+Collections (containers)
+
+* Pairs::
+* Iterators and utilities::
+* Maps::
+* Sets::
+* Queues::
+* Wrapping arrays::             Arrays that can be used as keys or values
+
+Iterators and utilities
+
+* @code{collections.iter(T)}::  Iterable structures
+* Combining (zipping) iterators::
+* Adding integer indices to iterators::
 
 Base modules
 
@@ -1866,7 +1900,7 @@ should coincide with the first node of the second path).
 * Static::                      Where to allocate your variable?
 * Autounravel::                 Adding associated libraries to structures
 * Hash functions::              Hashing your data
-* Collections / containers::    Maps, sets, queues, and iterator tools
+* Collections (containers)::    Maps, sets, queues, and iterator tools
 @end menu
 
 Here is a short introductory example to the @code{Asymptote} programming
@@ -2668,7 +2702,7 @@ time @code{b}, in the sense of @code{point(path, real)}. If @code{a} >
 
 @cindex @code{intersect}
 @item real[] intersect(path p, path q, real fuzz=-1);
-If @code{p} and @code{q} have at least one intersection point, return a
+if @code{p} and @code{q} have at least one intersection point, return a
 real array of length 2 containing the times representing the respective
 path times along @code{p} and @code{q}, in the sense of
 @code{point(path, real)}, for one such intersection point (as chosen by
@@ -2679,14 +2713,14 @@ intersect, return a real array of length 0.
 
 @cindex @code{intersections}
 @item real[][] intersections(path p, path q, real fuzz=-1);
-Return all (unless there are infinitely many) intersection times of
+returns all (unless there are infinitely many) intersection times of
 paths @code{p} and @code{q} as a sorted array of real arrays of length 2
 (@pxref{sort}). The computations are performed to the absolute error
 specified by @code{fuzz}, or if @code{fuzz < 0}, to machine precision.
 
 @cindex @code{intersections}
 @item real[] intersections(path p, explicit pair a, explicit pair b, real fuzz=-1);
-Return all (unless there are infinitely many) intersection times of path
+returns all (unless there are infinitely many) intersection times of path
 @code{p} with the (infinite) line through points @code{a} and @code{b}
 as a sorted array. The intersections returned are guaranteed to be
 correct to within the absolute error specified by @code{fuzz}, or if
@@ -5843,13 +5877,13 @@ returns the unnormalized three-dimensional Fourier transform of
 @cindex @code{realschur}
 @cindex @code{schur}
 @item realschur schur(real[][] a)
-returns a struct @code{realschur} containing a unitary matrix @code{U} and
+returns a structure @code{realschur} containing a unitary matrix @code{U} and
 a quasitriangular matrix @code{T} such that
 @code{a=U*T*transpose(U)};
 
 @cindex @code{schur}
 @item schur schur(pair[][] a)
-returns a struct @code{schur} containing a unitary matrix @code{U} and
+returns a structure @code{schur} containing a unitary matrix @code{U} and
 a triangular matrix @code{T} such that
 @code{a=U*T*conj(transpose(U))};
 
@@ -6429,7 +6463,7 @@ Imported global functions and variables are also listed if
 @code{imports} is @code{true}.
 
 @menu
-* Templated imports::
+* Templated imports::           Imports parametrized by generic types
 @end menu
 
 @node Templated imports
@@ -6500,7 +6534,7 @@ for(var it=a.operator iter(); it.valid(); it.advance()) {
   <statements>
 }
 @end verbatim
-Thus, we can make a struct iterable by defining an @code{operator iter}
+Thus, we can make a structure iterable by defining an @code{operator iter}
 method that returns an object with the following methods:
 @table @code
 @cindex @code{get}
@@ -6521,11 +6555,11 @@ if the iterator has advanced past the last item.
 Although the return type of @code{operator iter} can theoretically be any type
 that has these three methods, it is strongly recommended to use the
 @cindex @code{Iter_T}
-@code{Iter_T} struct defined in the templated module
+@code{Iter_T} structure defined in the templated module
 @cindex @code{collections.iter}
 @code{collections.iter(T)} so that other utilities
 (@pxref{Iterators and utilities}) can be used with the
-iterator. The three methods of this struct can be set as fields.
+iterator. The three methods of this structure can be set as fields.
 
 As an example, here is an iterator for the even-numbered elements of an
 array of strings:
@@ -6556,6 +6590,10 @@ a
 c
 e
 @end verbatim
+
+@menu
+* range::                       Iterating over integers
+@end menu
 
 @node range
 @subsection range
@@ -6752,6 +6790,11 @@ will be accessible wherever the @code{rational} structure is.
 Users who encounter a case where this might be useful can submit a
 feature request at @uref{https://github.com/vectorgraphics/asymptote/issues}.
 
+@menu
+* When fields are autounraveled::
+* Where autounravel is legal::
+@end menu
+
 @node When fields are autounraveled
 @subsection When fields are autounraveled
 
@@ -6799,7 +6842,7 @@ and have exactly the same effect as @code{autounravel} alone.
 @cindex @code{hash}
 
 For an object to be used as a key in a hashmap
-(@pxref{Maps aka dictionaries}) or a member of a hashset (@pxref{Sets}), it
+(@pxref{Maps}) or a member of a hashset (@pxref{Sets}), it
 must have a method @code{int hash()} that returns a nonnegative integer. For
 correctness, this method must return the same value for two objects of the same
 type that are equal according to the @code{==} operator. For efficiency, it
@@ -6818,6 +6861,10 @@ are two important things to note: first, even if two @code{real}s are extremely
 close, their hash values will almost certainly not be; second, the same number
 will almost certainly have
 different hash values when hashed as an @code{int} versus a @code{real}.
+
+@menu
+* Hashing user-defined structures::
+@end menu
 
 @node Hashing user-defined structures
 @subsection Hashing user-defined structures
@@ -6876,24 +6923,32 @@ struct Person {
 }
 @end verbatim
 
-One additional guideline: whatever fields you are using for a hash, the ideal
-behavior is to run them through a builtin hash function once, but only once. See
-for instance the way that @code{id} is hashed in the second example above, but
-@code{age} is not independently hashed in the first example.
+The builtin hash functions are designed to remove undesirable
+regularity (with respect to modular arithmetic) when applied exactly once.
+This explains why the second example returns @code{id.hash()} instead
+of @code{id}, while @code{age} is not independently hashed in the
+first example.
 
-@node Collections / containers
-@section Collections / containers
+@node Collections (containers)
+@section Collections (containers)
 @cindex collections
 @cindex containers
 
 The @code{collections} subdirectory provides a number of useful
-containers and utilities via templated modules. (The terms ``collection''
-and ``container'' are used interchangeably here.)
+containers and utilities via templated modules.
 
-@xref{Maps aka dictionaries} for information on hashmaps, which are arguably the
-single most useful container in the @code{collections} module. (Many languages
-have a built-in hashmap type, sometimes called a ``dictionary'' or ``associative
-array''.)
+@xref{Maps} for information on hashmaps (sometimes called dictionaries
+or associative arrays), which are arguably the single most useful
+container in the @code{collections} module.
+
+@menu
+* Pairs::
+* Iterators and utilities::
+* Maps::
+* Sets::
+* Queues::
+* Wrapping arrays::             Arrays that can be used as keys or values
+@end menu
 
 @node Pairs
 @subsection Pairs
@@ -6905,7 +6960,7 @@ array''.)
 type for @emph{any} two types, one can use the
 @code{collections.genericpair(K,V)} templated module. The fields are called
 @code{k} and @code{v} rather than @code{x} and
-@code{y}. The pair type is called @code{Pair_K_V}, which user are encouraged to
+@code{y}. The pair type is called @code{Pair_K_V}, which users are encouraged to
 rename based on the types being used. There is also a function @code{makePair}
 that creates a pair from two values; because of function overloading, the name
 of the function does not need to specify the two types.
@@ -6947,6 +7002,12 @@ p.hash = new int() {
 @node Iterators and utilities
 @subsection Iterators and utilities
 
+@menu
+* @code{collections.iter(T)}::  Iterable structures
+* Combining (zipping) iterators::
+* Adding integer indices to iterators::
+@end menu
+
 @node @code{collections.iter(T)}
 @subsubsection @code{collections.iter(T)}
 @cindex @code{collections.iter}
@@ -6956,33 +7017,33 @@ p.hash = new int() {
 The @code{collections.iter(T)} templated module provides structs @code{Iter_T}
 and @code{Iterable_T} that can be convenient for defining iterators.
 Additionally, there are several utilities for manipulating iterators of these
-types. Technically, the syntax @code{for (T x : a)} does not require anything
+types. Technically, the syntax @code{for(T x : a)} does not require anything
 from this module, but several utilities only work for iterables of type
 @code{Iterable_T}.
 
-The @code{Iter_T} struct has the following fields, all of which are null by
+The @code{Iter_T} structure has the following fields, all of which are null by
 default:
 
-@table @code
+@itemize
 @cindex @code{get}
-@item T get()
+@item @code{T get()}
 @cindex @code{advance}
-@item void advance()
+@item @code{void advance()}
 @cindex @code{valid}
-@item bool valid()
-@end table
+@item @code{bool valid()}
+@end itemize
 
 @cindex @code{operator iter}
 @code{Iter_T} is intended as the return type of an @code{operator iter} method;
 @xref{Iterators} for more information on how to use these fields.
 
-The @code{Iterable_T} struct is a generic struct for something that has an
-@code{operator iter} method returning an @code{Iter_T}. This struct, not
+@code{Iterable_T} is a generic structure for something that has an
+@code{operator iter} method returning an @code{Iter_T}. This structure, not
 @code{Iter_T}, is the type that can appear inside a range-based @code{for} loop.
 Consequently, most of the utilities below manipulate instances of
 @w{@code{Iterable_T}} rather than @code{Iter_T}.
 
-It is good practice for a struct that defines an @code{operator iter} method to
+It is good practice for a structure that defines an @code{operator iter} method to
 also define an implicit cast to @code{Iterable_T} for better compatibility with
 the utilities in this module. Additionally, an instance @code{a} of
 @code{Iterable_T} can be cast to a @code{T[]} with the syntax @code{(T[]) a}.
@@ -6997,20 +7058,19 @@ The @code{collections.iter} module provides the following functions:
 @table @code
 @cindex @code{Iterable}
 @item Iterable_T Iterable(Iter_T iter())
-Creates an @code{Iterable_T} with its @code{operator iter} method set to
-@code{iter}. Autounraveled whenever @code{Iterable_T} is accessed.
+creates an @code{Iterable_T} with its @code{operator iter} method set
+to @code{iter} (autounraveled whenever @code{Iterable_T} is accessed).
+This function is an alias for the constructor @code{Iterable_T(Iter_T iter())}.
 @cindex @code{range}
 @item Iterable_T range(T[] items)
-Creates an @code{Iterable_T} that iterates over the elements of @code{items}.
-Separate calls to @code{operator iter} will return independent iterators.
+creates an @code{Iterable_T} that iterates over the elements of
+@code{items}.  Separate calls to @code{operator iter} return
+independent iterators.
 @item Iter_T Iter_T(T[] items)
-Creates an @code{Iter_T} that iterates over the elements of @code{items}.
+creates an @code{Iter_T} that iterates over the elements of
+@code{items}.
 @end table
 
-Note that the pseudo-constructor called @code{Iterable} does not need to be
-renamed to incorporate the type, since the type is specified by the argument.
-(The same function can also be called as @code{Iterable_T}, or whatever
-@code{Iterable_T} was renamed to.)
 
 @node Combining (zipping) iterators
 @subsubsection Combining (zipping) iterators
@@ -7138,8 +7198,8 @@ for (int i=0; i < x.length; ++i) {
 @noindent However, the Map and Set datastructures discussed below do not have a
 builtin integer index, so @code{enumerate} is more useful for their iterators.
 
-@node Maps aka dictionaries
-@subsection Maps aka dictionaries
+@node Maps
+@subsection Maps
 
 Many modern programming languages have a builtin datastructure that is variously
 called a map, dictionary, or associative array.
@@ -7189,7 +7249,7 @@ for (string key : h) {
 @c // * Iterating over keys vs pairs.
 
 @subsubsection Initializing a @code{Map}
-The @code{Map_K_V} struct itself is defined in the templated module
+The @code{Map_K_V} structure itself is defined in the templated module
 @code{collections.map(K,V)}. However, to initialize a @code{Map_K_V}, you need
 to choose a function from a different module.
 
@@ -7240,7 +7300,7 @@ allows the array to be used as a key in a hashmap.
 The main type in @code{collections.wraparray(T)} is @code{Array_T},
 which should normally be renamed to replace @code{T} with the type of the
 elements of the array. @code{Array_T} is not a drop-in replacement for
-@code{T[]}, but it is as close as any struct can be. For convenience, the
+@code{T[]}, but it is as close as any structure can be. For convenience, the
 function @code{Array_T wrap(T[] data)} can be used to convert an array to
 an @code{Array_T}.
 
@@ -7662,7 +7722,7 @@ as illustrated in the example @code{@uref{https://asymptote.sourceforge.io/galle
 @node map
 @section @code{map}
 @cindex @code{map}
-This module creates a struct parameterized by the types specified in
+This module creates a structure parameterized by the types specified in
 strings @code{key} and @code{value}, mapping keys to values with a
 specified default:
 @verbatim
