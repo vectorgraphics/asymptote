@@ -1,12 +1,12 @@
 # @configure_input@
 
+SILENT_MAKE = @
+
 ARCH = unix
 POLL = poll
 
 ASYGLVERSION = @ASYGLVERSION@
-GCVERSION = @GCVERSION@
-GC = gc-$(GCVERSION)
-LIBATOMIC = libatomic_ops-@ATOMICVERSION@
+GC = gc
 GCOPTIONS = @GCOPTIONS@
 GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
@@ -15,7 +15,6 @@ LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS) @LSPLIBS@
 CXX_STANDARD = @CXX_STANDARD@
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
-LSP_BUILD_ROOT=@LSP_BUILD_ROOT@
 LSP_ROOT=@LSP_ROOT@
 
 CMAKE ?= cmake
@@ -62,7 +61,8 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	Delaunay predicates jsfile v3dfile \
 	EXRFiles lspserv symbolmaps win32helpers win32pipestream \
 	win32xdr xstream \
-	$(VMA_IMPL_FILES) vkrender vkdispatchstorage vkutils
+	$(VMA_IMPL_FILES) vkrender vkdispatchstorage vkutils \
+	lspdec lspexp lspfundec lspstm
 
 FILES = $(COREFILES) main
 
@@ -76,15 +76,15 @@ PYGENERATEDENUMS=$(GENERATEDENUMS:=.py)
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.h \
 	asy-keywords.el $(RUNTIME_FILES:=.cc) asy.list \
-        $(SYMBOLSH) $(GENERATEDENUMS:=.h) $(ASYGENERATEDENUMS) $(PYFILES)
+	$(SYMBOLSH) $(GENERATEDENUMS:=.h) $(ASYGENERATEDENUMS) $(PYFILES)
 
 NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output base/version.asy doc/version.texi \
-        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH) \
+	GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH) \
 		version.txt
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
-        asymptote.py reload.js nopapersize.ps
+	asymptote.py reload.js nopapersize.ps
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
 DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
@@ -92,7 +92,7 @@ LATEXFILES = asymptote.sty asycolors.sty latexmkrc
 CONTEXTFILES = colo-asy.tex
 ASY = ./asy -dir base -config "" -render=0
 
-DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall
+DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -I.
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
@@ -142,19 +142,19 @@ asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o @LSPLIB@
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
 $(XNAME): $(PYFILES)
-	@ln -sf GUI/xasy.py $(XNAME)
+	$(SILENT_MAKE)ln -sf GUI/xasy.py $(XNAME)
 
 version.txt: FORCE
-	@if test ! -s $@ || test "$(revision)" != "$(last)"; then \
+	$(SILENT_MAKE)if test ! -s $@ || test "$(revision)" != "$(last)"; then \
 		echo "$(revision)" > $@; \
 	fi
 
-	@if test ! -e base/webgl/asygl.js; then \
+	$(SILENT_MAKE)if test ! -e base/webgl/asygl.js; then \
 	  cp base/webgl/asygl-$(ASYGLVERSION).js base/webgl/asygl.js; \
 	fi
 
 GUI/xasyversion: version.txt GUI/buildtool.py
-	-@cd GUI && $(PYTHON) buildtool.py buildversionmodule --version-override="$(shell cat $<)"
+	-$(SILENT_MAKE)cd GUI && $(PYTHON) buildtool.py buildversionmodule --version-override="$(shell cat $<)"
 
 revision.cc: version.txt
 	echo $(REVISION)\"$(shell cat $<)\"\; > $@
@@ -171,42 +171,18 @@ doc/version.texi: version.txt
 asymptote.so: $(COREFILES:=.pic.o)
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
-$(LSP_BUILD_ROOT)/liblspcpp.a:
-	$(CMAKE) -B$(LSP_BUILD_ROOT) -S$(LSP_ROOT) -DCMAKE_CXX_FLAGS=\
+$(LSP_ROOT)/liblspcpp.a:
+	$(CMAKE) -B$(LSP_ROOT) -S$(LSP_ROOT) -DCMAKE_CXX_FLAGS=\
 	"-fPIE @OPTIONS@ @LSP_CXX_BUILD_FLAGS@" \
 	@LSP_CMAKE_OPTIONS@
-	$(MAKE) -C $(LSP_BUILD_ROOT)
+	$(MAKE) -C $(LSP_ROOT)
 
-all:  	asy sty man faq asy-keywords.el
+all:	asy sty man faq asy-keywords.el
 
-$(GCLIB): $(GC).tar.gz
-	gunzip -c $(GC).tar.gz > $(GC).tar
-	tar -xf $(GC).tar
-	rm -f $(GC).tar
-	if test -r $(LIBATOMIC).tar.gz; then \
-	  gunzip -c $(LIBATOMIC).tar.gz > $(LIBATOMIC).tar; \
-	  tar -xf $(LIBATOMIC).tar; \
-	  rm -f $(LIBATOMIC).tar; \
-          mv $(LIBATOMIC) $(GC)/libatomic_ops; \
-	fi
-	if test "$(GC)" = "gc-7.0"; then \
-	  cd $(GC)/include/private && \
-            patch < ../../../patches/gc-7.0nomem.patch; \
-	fi
-	if test "$(GC)" = "gc-7.2b"; then \
-	  mv gc-7.2 gc-7.2b; \
-	fi
-	if test "$(GC)" = "gc-7.2c"; then \
-	  mv gc-7.2 gc-7.2c; \
-	fi
-	if test "$(GC)" = "gc-7.2d"; then \
-	  mv gc-7.2 gc-7.2d; \
-	fi
-	cd $(GC) && \
-	./configure CC="$(CC)" CXX="$(CXX)" $(GCOPTIONS); \
-	$(MAKE) check
-
-$(GCPPLIB): $(GCLIB)
+$(GCLIB):
+	cd $(GC) && ln -sf ../libatomic_ops . && \
+		./configure CC="$(CC)" CXX="$(CXX)" $(GCOPTIONS)
+	$(MAKE) -C $(GC) check
 
 sty: doc/version.texi
 	cd doc && $(MAKE) asy-latex.pdf
@@ -232,33 +208,33 @@ $(RUNTIME_FILES:=.cc): %.cc: runtime.pl opsymbols.h runtimebase.in %.in
 
 # symbol files
 
-GEN_PREOROCESSED_DEPFILE_BASE_ARGS = \
+GEN_PREPROCESSED_DEPFILE_BASE_ARGS = \
     $(PYTHON) gen_preprocessed_depfile.py \
-        --cxx-compiler="$(CXX)" \
-        --additional-raw-arguments="$(OPTS)" \
-        --cxx-standard=$(subst gnu,,$(subst c++,,$(CXX_STANDARD)))
+	--cxx-compiler="$(CXX)" \
+	--additional-raw-arguments="$(OPTS)" \
+	--cxx-standard=$(subst gnu,,$(subst c++,,$(CXX_STANDARD)))
 
 $(SYMBOL_FILES:=.raw.i): %.raw.i: %.cc gen_preprocessed_depfile.py
 	@echo Generating $@ from $<
-	@$(GEN_PREOROCESSED_DEPFILE_BASE_ARGS) \
+	$(SILENT_MAKE)$(GEN_PREPROCESSED_DEPFILE_BASE_ARGS) \
 		--out-i-file=$@ \
 		--in-src-file=$<
 
 $(SYMBOL_FILES:=.d): %.d: %.cc gen_preprocessed_depfile.py
 	@echo Generating $@ from $<
-	@$(GEN_PREOROCESSED_DEPFILE_BASE_ARGS) \
+	$(SILENT_MAKE)$(GEN_PREPROCESSED_DEPFILE_BASE_ARGS) \
 		--out-dep-file=$@ \
 		--dep-file-only \
 		--out-i-file=$*.raw.i \
 		--in-src-file=$<
 
-$(SYMBOL_FILES:=.symbols.h): %.symbols.h: %.raw.i findsym.pl
-	$(PERL) findsym.pl $@ $<
+$(SYMBOL_FILES:=.symbols.h): %.symbols.h: %.raw.i findsym.py
+	$(PYTHON) findsym.py $@ $<
 
 $(SYMBOL_FILES:=.o): %.o: %.symbols.h
 
-allsymbols.h: $(SYMBOL_FILES:=.raw.i) findsym.pl
-	$(PERL) ./findsym.pl $@ $(filter-out findsym.pl,$^)
+allsymbols.h: $(SYMBOL_FILES:=.raw.i) findsym.py
+	$(PYTHON) ./findsym.py $@ $(filter-out findsym.py,$^)
 
 symbol.o: $(SYMBOLSH)
 
@@ -275,29 +251,32 @@ camp.tab.cc: camp.y
 	$(BISON) -t --header=camp.tab.h -o $@ $<
 
 camp.tab.h: camp.tab.cc
-	@test -f $@ || rm -f $<
-	@test -f $@ || $(MAKE) $(AM_MAKEFLAGS) $<
+	$(SILENT_MAKE)test -f $@ || rm -f $<
+	$(SILENT_MAKE)test -f $@ || $(MAKE) $(AM_MAKEFLAGS) $<
 
 lex.yy.cc: camp.l
 	$(LEX) -d -olex.yy.cc camp.l
 
 lex.yy.d: $(GCLIB) lex.yy.cc camp.tab.h
 
-keywords.h: camp.l keywords.pl asyprocess.cc
-	$(PERL) ./keywords.pl --camplfile $< --output $@ --process-file asyprocess.cc
+keywords.h: camp.l keywords.py asyprocess.cc
+	$(PYTHON) ./keywords.py --camplfile $< --output $@ --process-file asyprocess.cc
 
-opsymbols.h: camp.l opsymbols.pl
-	$(PERL) ./opsymbols.pl --campfile $< --output $@
+opsymbols.h: camp.l opsymbols.py
+	$(PYTHON) ./opsymbols.py --campfile $< --output $@
 
 envcompleter.d: keywords.h
 
 asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy
 	@echo Creating $@;
 	$(ASY) -l > asy.list
-	ls $(addsuffix /*.asy,$(KEYWORDS)) | grep -v plain\* | \
-          grep -v three_\* | grep -v map | xargs $(ASY) -l >> asy.list
+	for dir in $(KEYWORDS); do \
+	  cd $$dir && /bin/ls *.asy | \
+	  grep -v ^plain.asy$ | grep -v ^plain_ | grep -v ^three_ | \
+	  xargs ../$(ASY) -l >> ../asy.list; \
+	done
 	revision=`cat version.txt`
-	$(PERL) ./asy-list.pl --asy-list-file asy.list --revision $(revision) --output-file $@
+	$(PYTHON) ./asy-list.py --asy-list-file asy.list --revision $(revision) --output-file $@
 
 install-notexhash: asy-keywords.el install-asy install-man
 
@@ -324,8 +303,8 @@ install-asy: asy sty $(PYFILES)
 	${INSTALL} -p -m 644 base/shaders/*.glsl $(shaderdir)
 	${INSTALL} -p -m 644 base/webgl/asygl.js \
 		$(webgldir)
-	${INSTALL} -p -m 755 GUI/xasy.py $(GUIdir)
 	${INSTALL} -p -m 644 GUI/*.py $(GUIdir)
+	${INSTALL} -p -m 755 GUI/xasy.py $(GUIdir)
 	-${INSTALL} -p -m 644 GUI/xasyicons/*.py $(GUIdir)/xasyicons
 	-${INSTALL} -p -m 644 GUI/xasyqtui/*.py $(GUIdir)/xasyqtui
 	-${INSTALL} -p -m 644 GUI/xasyversion/*.py $(GUIdir)/xasyversion
@@ -335,7 +314,7 @@ install-asy: asy sty $(PYFILES)
 	${INSTALL} -p -m 644 examples/*.asy $(addprefix examples/,$(EXEXTRA)) \
 	  doc/extra/*.asy $(addprefix doc/,$(DOCEXTRA)) $(exampledir)
 	${INSTALL} -p -m 644 examples/animations/*.asy \
-          examples/animations/inlinemovie.tex \
+	  examples/animations/inlinemovie.tex \
 	  examples/animations/inlinemovie3.tex $(animationsdir)
 	-${INSTALL} -p -m 644 $(addprefix doc/,$(LATEXFILES)) $(latexdir)
 	-${INSTALL} -p -m 644 $(addprefix doc/,$(CONTEXTFILES)) $(contextdir)
@@ -390,24 +369,28 @@ uninstall-man:
 uninstall-docdir:
 	-rmdir $(docdir)
 
-clean:  FORCE
+clean:	FORCE
 	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
-	-rm LspCpp/liblspcpp.a
 	-cd LspCpp && $(MAKE) distclean
+	-cd LspCpp && rm -rf liblspcpp.a Makefile CMakeFiles third_party/uri/src/CMakeFiles
 	-cd tinyexr && $(MAKE) clean
-	-cd GUI && $(PYTHON) buildtool.py clean
 
 gc-clean: FORCE clean
-	-if test -d $(GC); then \
-		$(MAKE) -C $(GC) clean; \
-	fi
+	-$(MAKE) -C $(GC) clean
 
 cleaner: FORCE clean
-	-if test -d $(GC); then \
-		rm -rf $(GC); \
-	fi
-	-rm -f Makefile config.h config.log config.status errors.temp
-	-rm -rf acextlibs
+	-rm -rf __pycache__
+	-rm -rf GUI/__pycache__
+	-rm -rf GUI/pyUIClass/__pycache__
+	-rm -rf GUI/configs/__pycache__
+	-$(MAKE) -C $(GC) distclean
+	-$(MAKE) -C libatomic_ops distclean
+	-cd $(GC) && rm -rf libatomic_ops .deps cord/.deps \
+		cord/tests/.deps extra/.deps tests/.deps
+
+	-rm -f Makefile config.h config.log config.status \
+		errors.temp
+	-rm -rf LspCpp/CMakeCache.txt
 	cd doc && $(MAKE) clean
 	cd tests && $(MAKE) distclean
 
@@ -416,9 +399,13 @@ distclean: FORCE cleaner
 
 cleanest: FORCE maintainer-clean
 maintainer-clean: FORCE distclean
-	-rm -f configure config.h.in $(DIST)
-	-rm -rf autom4te.cache
-	-rm -rf GUI/pyUIClass
+	-rm -f configure config.h.in
+	-cd $(GC) && rm -rf ltmain.sh missing \
+		test-driver configure autom4te.cache m4/l*.m4
+	-cd libatomic_ops && rm -rf ltmain.sh missing \
+		test-driver configure autom4te.cache m4/l*.m4
+	-cd GUI && $(PYTHON) buildtool.py clean
+	-rm -rf autom4te.cache $(DIST)
 	-rm -rf vcpkg_installed
 
 test: asy FORCE

@@ -4,6 +4,7 @@ struct BareStruct {
 struct A {
   static int global = 17;
   int local = 3;
+  autounravel int au = -1;
 }
 access 'template/imports/structTemplate'(T=A, Lib=BareStruct) as bareStruct;
 
@@ -14,33 +15,22 @@ struct B {
   static struct C {
     static int global = 17;
     int local = 3;
+    autounravel int au = -1;
   }
 }
 access 'template/imports/structTemplate'(T=B.C, Lib=NestedStruct)
     as nestedStruct;
-
-struct InnerStruct {
-  static string testName = "inner struct";
-}
-struct D {
-  struct E {
-    static int global = 17;
-    int local = 3;
-  }
-}
-D d;
-access 'template/imports/structTemplate'(T=d.E, Lib=InnerStruct)
-    as innerStruct;
 
 struct DeeplyNestedStruct {
   static string testName = "deeply nested struct";
 }
 
 struct G {
-  struct H {
+  static struct H {
     static struct I {
       static int global = 17;
       int local = 3;
+      autounravel int au = -1;
     }
   }
 }

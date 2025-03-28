@@ -302,4 +302,27 @@ add_custom_command(
 endif()
 add_custom_target(asymptote_pdf_file DEPENDS ${ASY_TEX_BUILD_ROOT}/asymptote.pdf)
 add_dependencies(docgen asymptote_pdf_file)
+
+# manual page
+add_custom_command(
+        OUTPUT ${ASY_TEX_BUILD_ROOT}/asy.1
+        DEPENDS
+            ${ASY_DOC_DIR}/asy.1.begin
+            ${ASY_DOC_DIR}/asy.1.end
+            ${ASY_TEX_BUILD_ROOT}/options
+            ${ASY_DOC_DIR}/build-asy-1-file.py
+        COMMAND ${PY3_INTERPRETER} ${ASY_DOC_DIR}/build-asy-1-file.py
+            --options-file=${ASY_TEX_BUILD_ROOT}/options
+            --asy-1-begin-file=${ASY_DOC_DIR}/asy.1.begin
+            --asy-1-end-file=${ASY_DOC_DIR}/asy.1.end
+            --out-file=${ASY_TEX_BUILD_ROOT}/asy.1
+        WORKING_DIRECTORY ${ASY_TEX_BUILD_ROOT}
+)
+
+    add_custom_target(manpage DEPENDS ${ASY_TEX_BUILD_ROOT}/asy.1)
+
+if (UNIX)
+    add_dependencies(docgen manpage)
+endif()
+
 endif() # ENABLE_ASYMPTOTE_PDF_DOCGEN

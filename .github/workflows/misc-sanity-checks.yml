@@ -1,0 +1,69 @@
+name: lint-non-gui-py-files
+on:
+  workflow_call:
+    inputs:
+      target-branch:
+        type: string
+        required: True
+
+jobs:
+  check-if-non-gui-py-files-changed:
+    runs-on: "ubuntu-22.04"
+    outputs:
+      files-changed: ${{ steps.determine_nongui_py_files_changed.outputs.files_changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: check if any changed files are lintable python files
+        id: determine_nongui_py_files_changed
+        run: |
+          mkdir -p idir
+          python3 misc/print_non_gui_py_files_for_linting.py | sort > idir/lintable-files.txt
+          
+          # we need to print out the absolute path since the python script prints out absolute paths
+          git diff-tree \
+            --name-only -r --no-commit-id \
+            --line-prefix=`git rev-parse --show-toplevel`/ \
+            origin/${{ inputs.target-branch }} HEAD > idir/changed-files.txt
+          
+          # check if idir/lintable-files.txt and idir/changed-files.txt has any common entries
+          lintable_changed_files=$(comm -12 idir/lintable-files.txt idir/changed-files.txt)
+          
+          if [ "x$lintable_changed_files" != "x" ]; then
+            echo "Non-GUI python files changed. Will lint these files."
+            printf "Lintable changed files:\n%s" "$lintable_changed_files"
+            files_changed=true
+          else
+            echo "No lintable changed files detected. Linting of non-GUI python files will be skipped."
+            files_changed=false
+          fi
+          
+          echo "files_changed=$files_changed" >> "$GITHUB_OUTPUT"
+  lint-python-files:
+    runs-on: "ubuntu-22.04"
+    needs: check-if-non-gui-py-files-changed
+    if: ${{ needs.check-if-non-gui-py-files-changed.outputs.files-changed == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: setup python environment
+        run: python3 -m pip install -r requirements.lint.txt
+      - name: gather lintable files
+        run: | 
+          mkdir -p idir
+          python3 misc/print_non_gui_py_files_for_linting.py > idir/lintable-files.txt
+      - name: black check
+        run: python3 -m black --check $(cat idir/lintable-files.txt)
+      - name: isort check
+        run: python3 -m isort --sp=.isort.cfg --check $(cat idir/lintable-files.txt)
+      - name: pylint check
+        run: python3 -m pylint --rcfile=.pylintrc $(cat idir/lintable-files.txt)
+  check-no-missing-asy-tests:
+    runs-on: "ubuntu-22.04"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - run: python3 scan-asy-tests-cmake.py --verify-no-missing-tests

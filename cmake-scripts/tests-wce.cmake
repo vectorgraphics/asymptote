@@ -7,3 +7,8 @@ add_test(
             -P ${ASY_MISC_CMAKE_SCRIPTS_DIR}/wce.script.cmake
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+set_property(
+        TEST wce
+        PROPERTY LABELS asy-check-tests
+)

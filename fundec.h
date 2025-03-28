@@ -70,8 +70,14 @@ struct tySymbolPair : public gc {
 
 class formals : public absyn {
   //friend class funheader;
-
   mem::list<formal *> fields;
+public:
+  // NOTE: Iterators do NOT include the rest parameter.
+  auto begin() { return fields.begin(); }
+  auto end() { return fields.end(); }
+  auto rbegin() { return fields.rbegin(); }
+  auto rend() { return fields.rend(); }
+private:
   formal *rest;
 
   // If the list of formals contains at least one keyword-only formal.

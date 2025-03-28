@@ -32,6 +32,22 @@ typedef SSIZE_T ssize_t;
 #include "config.h"
 #endif
 
+#ifdef DEBUG_CSTACKTRACE
+// To output a stacktrace when you are compiling with
+// CFLAGS="-g -O0 -DDEBUG_CSTACKTRACE", insert code like the following:
+// cerr << boost::stacktrace::stacktrace();
+// at the appropriate place.
+// NOTE: This gives useful information on MacOS, but seems to give only
+// hex addresses (rather than function names) on Linux. Possible remedies
+// may be found at https://stackoverflow.com/q/52583544/2318074 and linked
+// pages.
+#  ifndef _GNU_SOURCE
+#    define _GNU_SOURCE
+#  endif
+
+#  include <boost/stacktrace.hpp>
+#endif
+
 #include <optional.hpp>
 using nonstd::optional;
 using nonstd::nullopt;

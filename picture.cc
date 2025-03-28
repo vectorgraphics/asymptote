@@ -888,7 +888,7 @@ bool picture::postprocess(const string& prename, const string& outname,
         cmd.push_back("-sOutputFile="+outname);
         cmd.push_back(prename);
         status=System(cmd,0,true,"gs","Ghostscript");
-      } else if(!svg && !getSetting<bool>("xasy")) {
+      } else if(!svg && !xasy) {
         double expand=antialias;
         if(expand < 2.0) expand=1.0;
         res *= expand;
@@ -921,7 +921,7 @@ bool picture::postprocess(const string& prename, const string& outname,
 bool picture::display(const string& outname, const string& outputformat,
                       bool wait, bool view, bool epsformat)
 {
-  static mem::map<CONST string,int> pids;
+  static mem::map<const string,int> pids;
   if (settings::view() && view)
   {
     int status;
@@ -931,7 +931,7 @@ bool picture::display(const string& outname, const string& outputformat,
 
     if(epsformat || pdfformat) {
       // Check to see if there is an existing viewer for this outname.
-      mem::map<CONST string,int>::iterator const p=pids.find(outname);
+      mem::map<const string,int>::iterator const p=pids.find(outname);
       bool running=(p != pids.end());
       string Viewer=
         pdfformat ?
@@ -1554,6 +1554,7 @@ bool picture::shipout3(const string& prefix, const string& format,
         com.view=View;
         if(Wait)
           pthread_mutex_lock(&vk->readyLock);
+        allowRender=true;
         vk->wait(vk->initSignal,vk->initLock);
         vk->endwait(vk->initSignal,vk->initLock);
         static bool initialize=true;

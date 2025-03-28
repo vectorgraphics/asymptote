@@ -9,7 +9,6 @@ macro(map_option_to_vcpkg_feat option_name)
     endif()
 endmacro()
 
-map_option_to_vcpkg_feat(ENABLE_GC gc)
 map_option_to_vcpkg_feat(ENABLE_READLINE readline)
 map_option_to_vcpkg_feat(ENABLE_CURL curl)
 map_option_to_vcpkg_feat(ENABLE_GSL gsl)

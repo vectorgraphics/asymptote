@@ -150,151 +150,116 @@ const string dirsep="\\";
 /**
  * Use key to look up an entry in the MSWindows registry,
  * @param baseRegLocation base location for a key
- * @param key Key to look up, respecting wild cards
+ * @param key Key to look up, respecting wild cards. Note that wildcards
+ * only support single-level glob. Recursive globs are not supported.
+ * @param value Value to look up
  * @remark Wildcards can only be in keys, not in the final value
- * @return Entry value, or an empty string if not found
+ * @return Entry value, or nullopt if not found
  */
-string getEntry(const HKEY& baseRegLocation, const string& key)
+optional<string>
+getEntry(HKEY const& baseRegLocation, string const& key, string const& value)
 {
-  string path=key;
-  size_t star;
-  string head;
-  while((star=path.find('*')) < string::npos)
-  {
-    // has asterisk in the path
-
-    string prefix=path.substr(0,star);
-    string pathSuffix=path.substr(star+1);
-    // path = prefix [*] pathSuffix
-    size_t slash=pathSuffix.find('\\');
-    if(slash < string::npos) {
-      // pathsuffix is not leaf yet
-      // pathSuffix = <new path suffix>[/<new path>]
-      path=pathSuffix.substr(slash);
-      pathSuffix=pathSuffix.substr(0,slash);
-    } else {
-      // pathSuffix is entirely part of registry value name
-      // pathSuffix = <new path>, new path suffix is empty
-      path=pathSuffix;
-      pathSuffix="";
-    }
-    string directory=head+stripFile(prefix);
-    string file=stripDir(prefix);
-    // prefix = directory/file
-    // [old path] = directory/file [*] pathSuffix [/path]
-    // or, if asterisk is in the leaf
-    // [old path] = directory/file[*]path, pathSuffix is empty
-
-    camp::w32::RegKeyWrapper currRegDirectory;
-    if (RegOpenKeyExA(baseRegLocation, directory.c_str(), 0, KEY_READ, currRegDirectory.put()) != ERROR_SUCCESS)
-    {
-      currRegDirectory.release();
-      return "";
-    }
-
-    DWORD numSubKeys;
-    DWORD longestSubkeySize;
-
-    if (RegQueryInfoKeyA(
-                currRegDirectory.getKey(),
-                nullptr, nullptr, nullptr,
-                &numSubKeys, &longestSubkeySize,
-                nullptr, nullptr, nullptr, nullptr, nullptr, nullptr) != ERROR_SUCCESS)
-    {
-      numSubKeys = 0;
-      longestSubkeySize = 0;
-    }
-    mem::vector<char> subkeyBuffer(longestSubkeySize + 1);
-    bool found=false;
-
-    string rsuffix= pathSuffix;
-    reverse(rsuffix.begin(), rsuffix.end());
-    for (DWORD i=0;i<numSubKeys;++i)
-    {
-      DWORD cchValue=longestSubkeySize + 1;
-
-      if (auto const regQueryResult= RegEnumKeyExA(
-                  currRegDirectory.getKey(),
-                  i,
-                  subkeyBuffer.data(),
-                  &cchValue,
-                  nullptr,
-                  nullptr,
-                  nullptr,
-                  nullptr
-          );
-          regQueryResult != ERROR_SUCCESS)
-      {
-        continue;
-      }
-
-      string const dname(subkeyBuffer.data());
-      string rdname=dname;
-      reverse(rdname.begin(),rdname.end());
-      if(dname.substr(0,file.size()) == file &&
-         rdname.substr(0, pathSuffix.size()) == rsuffix) {
-        // dname matches file [*} pathSuffix
-        head=directory+dname;
-        found=true;
-        break;
-      }
-    }
-
-    if (!found)
-    {
-      return "";
-    }
+  string path= key;
+  if (key.find('\\') == 0) {
+    path= path.substr(1);// strip the prefix separator
   }
 
-  if (path.find('\\') == 0)
-  {
-    path = path.substr(1); // strip the prefix separator
+  size_t const star= path.find('*');
+  if (star == string::npos) {
+    // absolute path, can return right away
+    DWORD dataSize= 0;
+    if (RegGetValueA(
+                baseRegLocation, path.c_str(), value.c_str(), RRF_RT_REG_SZ,
+                nullptr, nullptr, &dataSize
+        ) != ERROR_SUCCESS) {
+      return nullopt;
+    }
+
+    mem::vector<BYTE> outputBuffer(dataSize);
+
+    if (RegGetValueA(
+                baseRegLocation, path.c_str(), value.c_str(), RRF_RT_REG_SZ,
+                nullptr, outputBuffer.data(), &dataSize
+        ) != ERROR_SUCCESS) {
+      return nullopt;
+    }
+
+    return make_optional<string>(
+            reinterpret_cast<char const*>(outputBuffer.data())
+    );
   }
 
-  if (path == "@")
-  {
-    path= "";// default registry key
+  // has a glob, search until we find one
+  string const prefix= path.substr(0, star);
+  string const pathSuffix= path.substr(star + 1);
+
+  // open the key in prefix
+
+  camp::w32::RegKeyWrapper directoryWithPrefix;
+  if (RegOpenKeyExA(
+              baseRegLocation, prefix.c_str(), 0, KEY_READ,
+              directoryWithPrefix.put()
+      ) != ERROR_SUCCESS) {
+    return nullopt;// prefix path does not exist, or some other error
   }
 
-  DWORD requiredStrSize=0;
-  // FIXME: Add handling of additional types
-  if (RegGetValueA(baseRegLocation, head.c_str(), path.c_str(), RRF_RT_REG_SZ, nullptr, nullptr, &requiredStrSize) !=
-    ERROR_SUCCESS)
-  {
-    return "";
+  DWORD numSubKeys= 0;
+  DWORD longestSubkeySize= 0;
+
+  // querying # of subkeys + their longest path length
+  if (RegQueryInfoKeyA(
+              directoryWithPrefix.getKey(), nullptr, nullptr, nullptr,
+              &numSubKeys, &longestSubkeySize, nullptr, nullptr, nullptr,
+              nullptr, nullptr, nullptr
+      ) != ERROR_SUCCESS) {
+    return nullopt;
   }
 
-  mem::vector<BYTE> outputBuffer(requiredStrSize);
+  mem::vector<CHAR> subkeyBuffer(longestSubkeySize + 1);
 
-  if (auto const retCheck = RegGetValueA(baseRegLocation, head.c_str(), path.c_str(),
-              RRF_RT_REG_SZ,
-              nullptr,
-              outputBuffer.data(),
-              &requiredStrSize
-      );
-      retCheck != ERROR_SUCCESS)
-  {
-    return "";
-  }
+  for (DWORD i= 0; i < numSubKeys; ++i) {
+    DWORD cchValue= longestSubkeySize + 1;
 
-  return reinterpret_cast<char const*>(outputBuffer.data());
-}
-
-// Use key to look up an entry in the MSWindows registry, respecting wild cards
-string getEntry(const string& key)
-{
-  for (HKEY const keyToSearch : { HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER })
-  {
-    camp::w32::RegKeyWrapper baseRegKey;
-    if (RegOpenKeyExA(keyToSearch, "Software", 0, KEY_READ, baseRegKey.put()) != ERROR_SUCCESS)
-    {
-      baseRegKey.release();
+    // get subkey's name
+    if (RegEnumKeyExA(
+                directoryWithPrefix.getKey(), i, subkeyBuffer.data(), &cchValue,
+                nullptr, nullptr, nullptr, nullptr
+        ) != ERROR_SUCCESS) {
       continue;
     }
 
-    if (string entry=getEntry(baseRegKey.getKey(),key); !entry.empty())
-    {
-      return entry;
+    // open the subkey
+    camp::w32::RegKeyWrapper searchKey;
+    if (RegOpenKeyExA(
+                directoryWithPrefix.getKey(), subkeyBuffer.data(), 0, KEY_READ,
+                searchKey.put()
+        ) != ERROR_SUCCESS) {
+      continue;
+    }
+
+    // do a recursive search starting at the opened key
+    if (auto retResult= getEntry(searchKey.getKey(), pathSuffix, value);
+        retResult.has_value()) {
+      return retResult;
+    }
+  }
+  return nullopt;
+}
+
+// Use key to look up an entry in the MSWindows registry, respecting wild cards
+string getEntry(const string& key, const string& value)
+{
+  for (HKEY const keyToSearch : {HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER}) {
+    camp::w32::RegKeyWrapper baseRegKey;
+    if (RegOpenKeyExA(keyToSearch, "SOFTWARE", 0, KEY_READ, baseRegKey.put()) !=
+        ERROR_SUCCESS) {
+      baseRegKey.release();
+      continue;
+    }
+    optional<string> entry= getEntry(baseRegKey.getKey(), key, value);
+
+    if (entry.has_value()) {
+      return entry.value();
     }
   }
 
@@ -303,21 +268,25 @@ string getEntry(const string& key)
 
 void queryRegistry()
 {
-  defaultGhostscriptLibrary= getEntry(R"(GPL Ghostscript\*\GS_DLL)");
-  if(defaultGhostscriptLibrary.empty())
-    defaultGhostscriptLibrary=getEntry(R"(AFPL Ghostscript\*\GS_DLL)");
+  defaultGhostscriptLibrary= getEntry(R"(GPL Ghostscript\*)", "GS_DLL");
+  if (defaultGhostscriptLibrary.empty())
+    defaultGhostscriptLibrary= getEntry(R"(AFPL Ghostscript\*)", "GS_DLL");
 
-  string gslib=stripDir(defaultGhostscriptLibrary);
-  defaultGhostscript=stripFile(defaultGhostscriptLibrary)+
-    ((gslib.empty() || gslib.substr(5,2) == "32") ? "gswin32c.exe" : "gswin64c.exe");
+  string gslib= stripDir(defaultGhostscriptLibrary);
+  defaultGhostscript=
+          stripFile(defaultGhostscriptLibrary) +
+          ((gslib.empty() || gslib.substr(5, 2) == "32") ? "gswin32c.exe"
+                                                         : "gswin64c.exe");
 
-  if (string const s= getEntry(R"(Microsoft\Windows\CurrentVersion\App Paths\Asymptote\Path)"); !s.empty())
-  {
+  string const s= getEntry(
+          R"(Microsoft\Windows\CurrentVersion\App Paths\Asymptote)", "Path"
+  );
+  if (!s.empty()) {
     docdir= s;
   }
   // An empty systemDir indicates a TeXLive build
-  if(!systemDir.empty() && !docdir.empty())
-    systemDir=docdir;
+  if (!systemDir.empty() && !docdir.empty())
+    systemDir= docdir;
 }
 
 #endif
@@ -325,8 +294,10 @@ void queryRegistry()
 // The name of the program (as called).  Used when displaying help info.
 char *argv0;
 
-// The verbosity setting, a global variable.
 Int verbose;
+bool debug;
+bool xasy;
+
 bool quiet=false;
 
 // Conserve memory at the expense of speed.
@@ -388,7 +359,7 @@ void Warn(const string& s)
 
 bool warn(const string& s)
 {
-  if(getSetting<bool>("debug")) return true;
+  if(debug) return true;
   array *Warn=getSetting<array *>("suppress");
   size_t size=checkArray(Warn);
   for(size_t i=0; i < size; i++)
@@ -398,10 +369,10 @@ bool warn(const string& s)
 
 // The dictionaries of long options and short options.
 struct option;
-typedef mem::map<CONST string, option *> optionsMap_t;
+typedef mem::map<const string, option *> optionsMap_t;
 optionsMap_t optionsMap;
 
-typedef mem::map<CONST char, option *> codeMap_t;
+typedef mem::map<const char, option *> codeMap_t;
 codeMap_t codeMap;
 
 struct option : public gc {
@@ -1149,7 +1120,7 @@ struct versionOption : public option {
     feature("LSP      Language Server Protocol",lsp);
     feature("Readline Interactive history and editing",readline);
     if(!readline)
-      feature("Editline interactive editing (if Readline is unavailable)",editline);
+      feature("Editline interactive editing (Readline is unavailable)",editline);
     feature("Sigsegv  Distinguish stack overflows from segmentation faults",
             sigsegv);
     feature("GC       Boehm garbage collector",usegc);
@@ -1426,7 +1397,7 @@ void initSettings() {
                              "Center, Bottom, Top, or Zero page alignment",
                              "C"));
 
-  addOption(new boolSetting("debug", 'd', "Enable debugging messages and traceback"));
+  addOption(new boolrefSetting("debug", 'd', "Enable debugging messages and traceback",&debug));
   addOption(new incrementSetting("verbose", 'v',
                                  "Increase verbosity level (can specify multiple times)", &verbose));
   // Resolve ambiguity with --version
@@ -1498,13 +1469,11 @@ void initSettings() {
   addOption(new stringOption("cd", 0, "directory", "Set current directory",
                              &startpath));
 
-#ifdef USEGC
   addOption(new compactSetting("compact", 0,
                                "Conserve memory at the expense of speed",
                                &compact));
   addOption(new divisorOption("divisor", 0, "n",
                               "Garbage collect using purge(divisor=n) [2]"));
-#endif
 
   addOption(new stringSetting("prompt", 0,"str","Prompt","> "));
   addOption(new stringSetting("prompt2", 0,"str",
@@ -1512,13 +1481,12 @@ void initSettings() {
                               ".."));
   addOption(new boolSetting("multiline", 0,
                             "Input code over multiple lines at the prompt"));
-  addOption(new boolSetting("xasy", 0,
-                            "Interactive mode for xasy"));
-#ifdef HAVE_LSP
+  addOption(new boolrefSetting("xasy", 0,
+                            "Interactive mode for xasy",&xasy));
+
   addOption(new boolSetting("lsp", 0, "Interactive mode for the Language Server Protocol"));
   addOption(new envSetting("lspport", ""));
   addOption(new envSetting("lsphost", "127.0.0.1"));
-#endif
 
   addOption(new boolSetting("wsl", 0, "Run asy under the Windows Subsystem for Linux"));
 
@@ -1636,17 +1604,12 @@ char *getArg(int n) { return argList[n]; }
 
 void setInteractive()
 {
-  bool xasy=getSetting<bool>("xasy");
   if(xasy && getSetting<Int>("outpipe") < 0) {
     cerr << "Missing outpipe." << endl;
     exit(-1);
   }
 
-#if defined(HAVE_LSP)
-  bool lspmode=getSetting<Int>("lsp");
-#else
-  bool lspmode=false;
-#endif
+  bool lspmode=getSetting<bool>("lsp");
 
   if(numArgs() == 0 && !getSetting<bool>("listvariables") &&
      getSetting<string>("command").empty() &&
@@ -2013,10 +1976,10 @@ void setOptions(int argc, char *argv[])
     docdir=getSetting<string>("dir");
 
 #ifdef USEGC
-  if(verbose == 0 && !getSetting<bool>("debug")) GC_set_warn_proc(no_GCwarn);
+  if(verbose == 0 && !debug) GC_set_warn_proc(no_GCwarn);
 #endif
 
-  if(setlocale (LC_ALL, "") == NULL && getSetting<bool>("debug"))
+  if(setlocale (LC_ALL, "") == NULL && debug)
     perror("setlocale");
 
   // Set variables for the file arguments.

@@ -11,7 +11,8 @@ endif()
 set(LIB_MAJOR_VERSION "1")
 set(LIB_MINOR_VERSION "0")
 set(LIB_PATCH_VERSION "0")
-set(LIB_VERSION_STRING "${LIB_MAJOR_VERSION}.${LIB_MINOR_VERSION}.${LIB_PATCH_VERSION}")
+set(LIB_TWEAK_VERSION "0")
+set(LIB_VERSION_STRING "${LIB_MAJOR_VERSION}.${LIB_MINOR_VERSION}.${LIB_PATCH_VERSION}.${LIB_TWEAK_VERSION}")
 
 # Without this, paths are not relative in the sources list
 cmake_policy(SET CMP0076 NEW)
@@ -25,6 +26,39 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif()
 
+set(LSPCPP_DEBUG_POSTFIX d CACHE STRING "Debug library postfix.")
+# Set LSPCPP_LIB_NAME for pkg-config lspcpp.pc. We cannot use the OUTPUT_NAME target
+# property because it's not set by default.
+set(LSPCPP_LIB_NAME lspcpp)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(LSPCPP_LIB_NAME ${LSPCPP_LIB_NAME}${LSPCPP_DEBUG_POSTFIX})
+endif ()
+
+include(CMakeParseArguments)
+# Joins arguments and places the results in ${result_var}.
+function(join result_var)
+    set(result "")
+    foreach (arg ${ARGN})
+        set(result "${result}${arg}")
+    endforeach ()
+    set(${result_var} "${result}" PARENT_SCOPE)
+endfunction()
+# Sets a cache variable with a docstring joined from multiple arguments:
+#   set(<variable> <value>... CACHE <type> <docstring>...)
+# This allows splitting a long docstring for readability.
+function(set_verbose)
+    # cmake_parse_arguments is broken in CMake 3.4 (cannot parse CACHE) so use
+    # list instead.
+    list(GET ARGN 0 var)
+    list(REMOVE_AT ARGN 0)
+    list(GET ARGN 0 val)
+    list(REMOVE_AT ARGN 0)
+    list(REMOVE_AT ARGN 0)
+    list(GET ARGN 0 type)
+    list(REMOVE_AT ARGN 0)
+    join(doc ${ARGN})
+    set(${var} ${val} CACHE ${type} ${doc})
+endfunction()
 ###########################################################
 # Options
 ###########################################################
@@ -54,6 +88,11 @@ where the tar.gz file is extracted to. This directory must be an absolute path.
 If this setting is set, LspCpp will use downloaded GC regardless of whether GC from find_package or
 pkg_config is available or not.
 ")
+option_if_not_defined(LSPCPP_GC_STATIC "Compiling with static gc library. Only used if a custom GC root is given" OFF)
+set(LSPCPP_WIN32_WINNT_VALUE "0x0A00" CACHE STRING
+        "Value to specify for _WIN32_WINNT macro when compiling on windows. See
+https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt?view=msvc-170"
+)
 
 ###########################################################
 # Boehm GC
@@ -187,6 +226,10 @@ function(lspcpp_set_target_options target)
         if (LSPCPP_GC_DOWNLOADED_ROOT)
             message(STATUS "Using manually downloaded GC")
             target_include_directories(${target} PUBLIC ${LSPCPP_GC_DOWNLOADED_ROOT}/include)
+
+            if (LSPCPP_GC_STATIC)
+                target_compile_definitions(${target} PUBLIC GC_NOT_DLL)
+            endif()
         else()
             if (NOT GC_USE_PKGCONFIG)
                 message(STATUS "Using cmake config for locating gc")
@@ -208,6 +251,9 @@ function(lspcpp_set_target_options target)
         target_compile_definitions(${target} PUBLIC LSPCPP_USEGC)
     endif()
 
+    if (WIN32)
+        target_compile_definitions(${target} PRIVATE _WIN32_WINNT=${LSPCPP_WIN32_WINNT_VALUE})
+    endif()
 endfunction()
 
 
@@ -232,12 +278,14 @@ if (CMAKE_GENERATOR MATCHES "Visual Studio.*")
     INSTALL_NUGET(boost_thread-vc141 1.76.0.0)
 else()
 
-    find_package(Boost COMPONENTS date_time  chrono filesystem system thread program_options)
+    find_package(Boost CONFIG COMPONENTS date_time  chrono filesystem system thread program_options)
     if(NOT Boost_FOUND)
         if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
             message(FATAL_ERROR "Can't find boost,lease build boost and install it or install boost with : brew install boost")
         elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
             message(FATAL_ERROR "Can't find boost,please build boost and install it. or install boost with : sudo apt-get install libboost-dev")
+        else()
+            message(FATAL_ERROR "Boost not found. Please ensure boost is available for CMake.")
         endif()
     endif()
 endif()
@@ -271,15 +319,17 @@ endif()
 
 # lsp
 add_library(lspcpp STATIC)
-
+set (LSP_INCLUDE_LIST ${LSPCPP_INCLUDE_DIR}
+        ${Boost_INCLUDE_DIRS}
+        ${RapidJSON_INCLUDE_DIRS}
+        ${Uri_SOURCE_DIR}/include)
 ### Includes
-target_include_directories(lspcpp
-        PUBLIC
-            ${LSPCPP_INCLUDE_DIR}
-            ${Boost_INCLUDE_DIRS}
-            ${RapidJSON_INCLUDE_DIRS}
-            ${Uri_SOURCE_DIR}/include
-        )
+
+if (LSPCPP_INSTALL)
+    target_include_directories(lspcpp PRIVATE ${LSP_INCLUDE_LIST})
+else()
+    target_include_directories(lspcpp PUBLIC ${LSP_INCLUDE_LIST})
+endif()
 
 target_link_libraries(lspcpp PUBLIC network-uri  ${Boost_LIBRARIES})
 
@@ -338,10 +388,67 @@ target_sources(lspcpp PRIVATE
 lspcpp_set_target_options(lspcpp)
 
 set_target_properties(lspcpp PROPERTIES POSITION_INDEPENDENT_CODE 1)
+set_target_properties(lspcpp PROPERTIES
+        DEBUG_POSTFIX "${LSPCPP_DEBUG_POSTFIX}"
+
+        # Workaround for Visual Studio 2017:
+        # Ensure the .pdb is created with the same name and in the same directory
+        # as the .lib. Newer VS versions already do this by default, but there is no
+        # harm in setting it for those too. Ignored by other generators.
+        COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+        COMPILE_PDB_NAME "lspcpp"
+        COMPILE_PDB_NAME_DEBUG "lspcpp${LSPCPP_DEBUG_POSTFIX}")
 
 # install
 if(LSPCPP_INSTALL)
+    include(${CMAKE_CURRENT_SOURCE_DIR}/support/cmake/JoinPaths.cmake)
     include(GNUInstallDirs)
+    include(CMakePackageConfigHelpers)
+    set(targets_export_name lspcpp-targets)
+    set(project_config ${PROJECT_BINARY_DIR}/lspcpp-config.cmake)
+    set(version_config ${PROJECT_BINARY_DIR}/lspcpp-config-version.cmake)
+    set(pkgconfig ${PROJECT_BINARY_DIR}/lspcpp.pc)
+
+    set_verbose(LSPCPP_LIB_DIR ${CMAKE_INSTALL_LIBDIR} CACHE STRING
+            "Installation directory for libraries, a relative path that "
+            "will be joined to ${CMAKE_INSTALL_PREFIX} or an absolute path.")
+
+    set_verbose(LSPCPP_PKGCONFIG_DIR ${CMAKE_INSTALL_LIBDIR}/pkgconfig CACHE STRING
+            "Installation directory for pkgconfig (.pc) files, a relative "
+            "path that will be joined with ${CMAKE_INSTALL_PREFIX} or an "
+            "absolute path.")
+
+    set_verbose(LSPCPP_CMAKE_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/lspcpp CACHE STRING
+            "Installation directory for cmake files, a relative path that "
+            "will be joined with ${CMAKE_INSTALL_PREFIX} or an absolute "
+            "path.")
+
+    configure_package_config_file(
+            ${PROJECT_SOURCE_DIR}/support/cmake/lspcpp-config.cmake.in
+            ${project_config}
+            INSTALL_DESTINATION ${LSPCPP_CMAKE_DIR} )
+    write_basic_package_version_file(
+            ${version_config}
+            VERSION ${LIB_VERSION_STRING}
+            COMPATIBILITY SameMajorVersion
+    )
+    join_paths(libdir_for_pc_file "\${exec_prefix}" "${LSPCPP_LIB_DIR}")
+    join_paths(includedir_for_pc_file "\${prefix}" "${CMAKE_INSTALL_INCLUDEDIR}")
+
+    configure_file(
+            "${PROJECT_SOURCE_DIR}/support/cmake/lspcpp.pc.in"
+            "${pkgconfig}"
+            @ONLY)
+
+    install(TARGETS network-uri
+            EXPORT NetworkURITargets
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            RUNTIME DESTINATION bin
+            INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    install(EXPORT NetworkURITargets
+            FILE NetworkURITargets.cmake
+            DESTINATION lib/cmake/NetworkURI)
 
     install(DIRECTORY ${LSPCPP_INCLUDE_DIR}/LibLsp
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
@@ -349,18 +456,22 @@ if(LSPCPP_INSTALL)
             )
 
     install(TARGETS lspcpp
-            EXPORT lspcpp-targets
+            EXPORT ${targets_export_name}
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
             INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
             )
 
-    install(EXPORT lspcpp-targets
-            FILE lspcpp-config.cmake
+    install(EXPORT ${targets_export_name}
             NAMESPACE lspcpp::
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/lspcpp
+            DESTINATION ${LSPCPP_CMAKE_DIR}
             )
+    install(
+            FILES ${project_config} ${version_config}
+            DESTINATION ${LSPCPP_CMAKE_DIR}
+    )
+    install(FILES "${pkgconfig}" DESTINATION "${LSPCPP_PKGCONFIG_DIR}")
 endif()
 
 # examples
@@ -379,7 +490,7 @@ if(LSPCPP_BUILD_EXAMPLES)
 
     function(build_example target)
         add_executable(${target} "${CMAKE_CURRENT_SOURCE_DIR}/examples/${target}.cpp")
-        target_include_directories(${target} PRIVATE ${Uri_SOURCE_DIR}/include)
+        target_include_directories(${target} PRIVATE ${LSP_INCLUDE_LIST})
         set_target_properties(${target} PROPERTIES
                 FOLDER "Examples"
                 )
@@ -400,4 +511,4 @@ if(LSPCPP_BUILD_EXAMPLES)
 endif()
 
 # Add a distclean target to the Makefile
-ADD_CUSTOM_TARGET(distclean COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/distclean.cmake)
+ADD_CUSTOM_TARGET(distclean COMMAND ${CMAKE_COMMAND} -P  ${PROJECT_SOURCE_DIR}/support/cmake/distclean.cmake)

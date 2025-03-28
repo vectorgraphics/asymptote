@@ -449,6 +449,7 @@ void igzxfile::closeFile()
     processData().ixfile.remove(index);
   }
 }
+#endif
 
 #endif
 

@@ -64,7 +64,7 @@ private:
   // The stack stores a map of initialized imported modules by name, so that
   // each module is initialized only once and each import refers to the same
   // instance.
-  using importInstanceMap = mem::map<CONST mem::string, vmFrame*>;
+  using importInstanceMap = mem::map<const mem::string, vmFrame*>;
   importInstanceMap instMap;
 
   // One can associate an environment to embedded code while running.
@@ -108,7 +108,7 @@ public:
 
   // Put an import (indexed by filename and optional template
   // parameter signature) on top of the stack, initializing it if necessary.
-  void load(string index);
+  void loadModule(string index, Int numPushedParents = 0);
 
   // These are so that built-in functions can easily manipulate the stack
   void push(item next) {

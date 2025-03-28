@@ -92,8 +92,13 @@ if (ENABLE_ASY_CXXTEST)
     add_subdirectory(cxxtests)
 endif()
 
-
-# installation (on windows, pre-NSIS)
+# installation
 if (WIN32)
+    # on windows, pre-NSIS
     include(cmake-scripts/win32-pre-nsis-installer.cmake)
+else()
+    # on unix systems
+    if (NOT CTAN_BUILD)
+        include(cmake-scripts/linux-install.cmake)
+    endif()
 endif()
