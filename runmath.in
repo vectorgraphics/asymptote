@@ -218,11 +218,11 @@ Int sgn(real x)
   return sgn(x);
 }
 
-Int rand()
+Int rand(Int a=0, Int b=Int_MAX)
 {
   if(initializeRandom)
     Srand(1);
-  std::uniform_int_distribution dist(0ULL, (unsigned long long) Int_MAX);
+  std::uniform_int_distribution dist((unsigned long long) a, (unsigned long long) b);
   return dist(randEngine);
 }
 

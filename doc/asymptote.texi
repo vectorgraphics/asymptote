@@ -5294,8 +5294,8 @@ function (equivalent to @code{fabs(real)}), an @code{abs(pair)} function
 Random numbers can be seeded with @code{srand(int)}
 (for example, with @code{srand(round((cputime().parent.clock%1)*1e9))})
 and generated with
-the @code{int rand()} function, which returns a random integer in
-[0,@code{randMax}]. The @code{unitrand()} function returns
+the @code{int rand(int a=0, int b=@code{randMax})} function, which returns a random integer in
+[a,b]. The @code{unitrand()} function returns
 a random number uniformly distributed in the interval [0,1).
 A Gaussian random number generator
 @code{Gaussrand} and a collection of statistics routines, including
