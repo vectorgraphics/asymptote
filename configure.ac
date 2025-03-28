@@ -244,7 +244,7 @@ AC_ARG_WITH(vcpkg-target-triplet,
 if test "x$with_vcpkg" != "xno"; then
    VCPKG_INSTALL_ARGUMENTS="--triplet=$vcpkg_triplet "
    VCPKG_PKG_CONFIG_LOC="vcpkg_installed/$vcpkg_triplet/lib/pkgconfig"
-   INCL=$INCL" -Ivcpkg_installed/$vcpkg_triplet/include"
+   INCL=$INCL"-Ivcpkg_installed/$vcpkg_triplet/include "
    LIBS=$LIBS"-Lvcpkg_installed/$vcpkg_triplet/lib "
 
    VCPKG_LIBS_TO_USE_PKG_CONFIG=""
@@ -469,7 +469,7 @@ if test "x$enable_gc" != "xno" ; then
   if test "x$with_vcpkg" == "xno"; then
     AC_DEFINE(USEGC,1,[GC Enabled])
     GCLIB="\$(GC)/.libs/libgc.a"
-    INCL=$INCL" -I\$(GC)/include"
+    INCL=$INCL"-I\$(GC)/include "
     AC_MSG_NOTICE([$GCNAME is enabled])
   fi
 else
@@ -599,7 +599,7 @@ fi
 
 # ----------- tinyexr
 TINYEXR_ROOT=tinyexr
-INCL=$INCL" -I$TINYEXR_ROOT"
+INCL=$INCL"-I$TINYEXR_ROOT "
 AC_SUBST(TINYEXR_ROOT)
 
 # ----------- vulkan
@@ -629,7 +629,7 @@ case "$OSTYPE" in
               AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT,1,
                    DEFINE_LIB[GLUT])
                            LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa "
-                           INCL=$INCL" -Ibackports/glew/include"
+                           INCL=$INCL"-Ibackports/glew/include "
                            GLEW="glew.o "],
                                  AC_MSG_NOTICE([*** Could not find GLUT: will compile without OpenGLLUT support ***]))
         ;;
@@ -683,7 +683,7 @@ $vcpkg_exec install $VCPKG_INSTALL_ARGUMENTS
 
 LIBS=$LIBS"$(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --libs $VCPKG_LIBS_TO_USE_PKG_CONFIG) "
 CFLAGS=$CFLAGS" $(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --cflags-only-other $VCPKG_LIBS_TO_USE_PKG_CONFIG)"
-INCL=$INCL" $(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --cflags-only-I $VCPKG_LIBS_TO_USE_PKG_CONFIG)"
+INCL=$INCL"$(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --cflags-only-I $VCPKG_LIBS_TO_USE_PKG_CONFIG) "
 fi
 
 # ----------------- xdr ------------------------
