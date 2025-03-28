@@ -646,7 +646,7 @@ case "$OSTYPE" in
           [
           AC_DEFINE(HAVE_LIBVULKAN,1,
           DEFINE_LIB([vulkan]))
-          LIBS=$LIBS"-lglslang "
+          LIBS=$LIBS"-lglslang -lSPIRV-Tools-opt -lSPIRV-Tools "
           OPTIONS=$OPTIONS"-DYYDEBUG=0 "
           ],
 
@@ -726,7 +726,6 @@ AC_SUBST(DEFS)
 AC_SUBST(OPTIONS)
 AC_SUBST(GLEW)
 AC_SUBST(VMA_IMPL_FILES)
-
 # we are on C++ >= 11, so unordered map is a guarantee
 AC_DEFINE(HAVE_UNORDERED_MAP,1,[Unordered map is present])
 
