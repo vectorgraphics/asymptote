@@ -77,11 +77,7 @@ typedef int64_t Int;
 typedef uint64_t unsignedInt;
 
 #ifndef COMPACT
-#if Int_MAX2 >= 0x7fffffffffffffffLL
 #define COMPACT 1
-#else
-#define COMPACT 0
-#endif
 #endif
 
 #if COMPACT
@@ -94,10 +90,6 @@ typedef uint64_t unsignedInt;
 #endif
 
 #define int_MIN LONG_MIN
-
-#ifndef RANDOM_MAX
-#define RANDOM_MAX 0x7FFFFFFF
-#endif
 
 using std::cout;
 using std::cin;

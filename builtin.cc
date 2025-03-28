@@ -882,7 +882,7 @@ void base_venv(venv &ve)
   addConstant<double>(ve, DBL_MIN, primReal(), SYM(realMin));
   addConstant<double>(ve, DBL_EPSILON, primReal(), SYM(realEpsilon));
   addConstant<Int>(ve, DBL_DIG, primInt(), SYM(realDigits));
-  addConstant<Int>(ve, RANDOM_MAX, primInt(), SYM(randMax));
+  addConstant<Int>(ve, Int_MAX, primInt(), SYM(randMax));
   addConstant<double>(ve, PI, primReal(), SYM(pi));
   addConstant<string>(ve, string(REVISION),primString(),SYM(VERSION));
 

@@ -222,7 +222,7 @@ Int rand()
 {
   if(initializeRandom)
     Srand(1);
-  std::uniform_int_distribution dist(0, RANDOM_MAX);
+  std::uniform_int_distribution dist(0ULL, (unsigned long long) Int_MAX);
   return dist(randEngine);
 }
 
