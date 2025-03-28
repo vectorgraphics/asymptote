@@ -186,6 +186,11 @@ std::mt19937_64 randEngine;
 
 void Srand(Int seed)
 {
+  if(seed < 0) {
+    std::random_device rd;
+    std::uniform_int_distribution<int64_t> dist;
+    seed=dist(rd);
+  }
   initializeRandom=false;
   randEngine=std::mt19937_64(seed);
 }
@@ -221,7 +226,7 @@ Int sgn(real x)
 Int rand(Int a=0, Int b=Int_MAX)
 {
   if(initializeRandom)
-    Srand(1);
+    Srand(-1);
   std::uniform_int_distribution dist((unsigned long long) a, (unsigned long long) b);
   return dist(randEngine);
 }
@@ -234,6 +239,8 @@ void srand(Int seed)
 // a random number uniformly distributed in the interval [0,1)
 real unitrand()
 {
+  if(initializeRandom)
+    Srand(-1);
   std::uniform_real_distribution<double> dist(0.0, 1.0);
   return dist(randEngine);
 }

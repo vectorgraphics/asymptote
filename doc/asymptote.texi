@@ -5291,15 +5291,16 @@ function (equivalent to @code{fabs(real)}), an @code{abs(pair)} function
 @cindex @code{histogram}
 @cindex @code{factorial}
 @cindex @code{choose}
-Random numbers can be seeded with @code{srand(int)}
-(for example, with @code{srand(round((cputime().parent.clock%1)*1e9))})
-and generated with
-the @code{int rand(int a=0, int b=@code{randMax})} function, which returns a random integer in
+Asymptote's random number generators can be seeded with @code{srand(int)}. If a negative
+argument is given to @code{srand}, an internal entropy source is used as a seed.
+Random numbers are initially seeded with @code{srand(-1)}.
+The function @code{int rand(int a=0, int b=@code{randMax})} returns a random integer in
 [a,b]. The @code{unitrand()} function returns
 a random number uniformly distributed in the interval [0,1).
 A Gaussian random number generator
 @code{Gaussrand} and a collection of statistics routines, including
 @code{histogram}, are provided in the module @code{stats}.
+
 The functions @code{factorial(int n)}, which returns @math{n!}, and
 @code{choose(int n, int k)}, which returns @math{n!/(k!(n-k)!)}, are
 also defined.
