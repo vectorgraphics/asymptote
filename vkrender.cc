@@ -4783,7 +4783,7 @@ void AsyVkRender::Export(int imageIndex) {
       for (auto k = 0u; k < 3; k++)
         // need to flip vertically and swap byte order due to little endian in image data
         // 4 for sizeof unsigned (RGBA)
-        fmt[(backbufferExtent.height-1-i)*backbufferExtent.width*3+j*3+(2-k)]=mappedMemory.getCopyPtr<unsigned char>()[i*backbufferExtent.width*4+j*4+k];
+        fmt[(backbufferExtent.height-1-i)*backbufferExtent.width*3+j*3+(2-k)]=data[i*backbufferExtent.width*4+j*4+k];
 
   picture pic;
   double w=oWidth;
