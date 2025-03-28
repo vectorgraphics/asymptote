@@ -1032,12 +1032,12 @@ void AsyVkRender::createSurface()
 void AsyVkRender::createAllocator()
 {
   VmaVulkanFunctions vkFuncs = {};
-  vkFuncs.vkGetInstanceProcAddr = vk::defaultDispatchLoaderDynamic.vkGetInstanceProcAddr;
-  vkFuncs.vkGetDeviceProcAddr = vk::defaultDispatchLoaderDynamic.vkGetDeviceProcAddr;
-  vkFuncs.vkGetBufferMemoryRequirements2KHR = vk::defaultDispatchLoaderDynamic.vkGetBufferMemoryRequirements2 ? vk::defaultDispatchLoaderDynamic.vkGetBufferMemoryRequirements2 : vk::defaultDispatchLoaderDynamic.vkGetBufferMemoryRequirements2KHR;
-  vkFuncs.vkGetImageMemoryRequirements2KHR = vk::defaultDispatchLoaderDynamic.vkGetImageMemoryRequirements2 ? vk::defaultDispatchLoaderDynamic.vkGetImageMemoryRequirements2 : vk::defaultDispatchLoaderDynamic.vkGetImageMemoryRequirements2KHR;
-  vkFuncs.vkBindBufferMemory2KHR = vk::defaultDispatchLoaderDynamic.vkBindBufferMemory2 ? vk::defaultDispatchLoaderDynamic.vkBindBufferMemory2 : vk::defaultDispatchLoaderDynamic.vkBindBufferMemory2KHR;
-  vkFuncs.vkBindImageMemory2KHR = vk::defaultDispatchLoaderDynamic.vkBindImageMemory2 ? vk::defaultDispatchLoaderDynamic.vkBindImageMemory2 : vk::defaultDispatchLoaderDynamic.vkBindImageMemory2KHR;
+  vkFuncs.vkGetInstanceProcAddr = VULKAN_HPP_DEFAULT_DISPATCHER.vkGetInstanceProcAddr;
+  vkFuncs.vkGetDeviceProcAddr = VULKAN_HPP_DEFAULT_DISPATCHER.vkGetDeviceProcAddr;
+  vkFuncs.vkGetBufferMemoryRequirements2KHR = VULKAN_HPP_DEFAULT_DISPATCHER.vkGetBufferMemoryRequirements2 ? VULKAN_HPP_DEFAULT_DISPATCHER.vkGetBufferMemoryRequirements2 : VULKAN_HPP_DEFAULT_DISPATCHER.vkGetBufferMemoryRequirements2KHR;
+  vkFuncs.vkGetImageMemoryRequirements2KHR = VULKAN_HPP_DEFAULT_DISPATCHER.vkGetImageMemoryRequirements2 ? VULKAN_HPP_DEFAULT_DISPATCHER.vkGetImageMemoryRequirements2 : VULKAN_HPP_DEFAULT_DISPATCHER.vkGetImageMemoryRequirements2KHR;
+  vkFuncs.vkBindBufferMemory2KHR = VULKAN_HPP_DEFAULT_DISPATCHER.vkBindBufferMemory2 ? VULKAN_HPP_DEFAULT_DISPATCHER.vkBindBufferMemory2 : VULKAN_HPP_DEFAULT_DISPATCHER.vkBindBufferMemory2KHR;
+  vkFuncs.vkBindImageMemory2KHR = VULKAN_HPP_DEFAULT_DISPATCHER.vkBindImageMemory2 ? VULKAN_HPP_DEFAULT_DISPATCHER.vkBindImageMemory2 : VULKAN_HPP_DEFAULT_DISPATCHER.vkBindImageMemory2KHR;
 
   VmaAllocatorCreateInfo createInfo = {};
   createInfo.vulkanApiVersion = VK_API_VERSION_1_2;
