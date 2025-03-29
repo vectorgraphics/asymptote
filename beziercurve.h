@@ -12,14 +12,14 @@
 
 namespace camp {
 
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
 
 extern const double Fuzz;
 extern const double Fuzz2;
 
 struct BezierCurve
 {
-  vertexBuffer data;
+  VertexBuffer data;
   double res,res2;
   bool Onscreen;
 
@@ -37,14 +37,14 @@ struct BezierCurve
   }
 
   void render(const triple *p, bool straight);
-  void render(const triple *p, GLuint I0, GLuint I1);
+  void render(const triple *p, std::uint32_t I0, std::uint32_t I1);
 
   void append() {
-    material1Data.append(data);
+    vk->lineData.extendMaterial(data);
   }
 
   void notRendered() {
-    material1Data.rendered=false;
+    vk->lineData.renderCount=0;
   }
 
   void queue(const triple *g, bool straight, double ratio) {
@@ -54,21 +54,25 @@ struct BezierCurve
     init(pixelResolution*ratio);
     render(g,straight);
   }
-
 };
 
 struct Pixel
 {
-  vertexBuffer data;
+  VertexBuffer data;
 
   void append() {
-    material0Data.append0(data);
+    vk->pointData.extendPoint(data);
+  }
+
+  void notRendered() {
+    vk->pointData.renderCount=0;
   }
 
   void queue(const triple& p, double width) {
     data.clear();
-    MaterialIndex=materialIndex;
-    data.indices.push_back(data.vertex0(p,width));
+    notRendered();
+    MaterialIndex=vk->materialIndex;
+    data.indices.push_back(data.addVertex(PointVertex{p,(float)width,MaterialIndex}));
     append();
   }
 

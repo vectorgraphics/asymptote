@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+	branch = master
+	commit = f3f5a98ae8570d8e8415992f22595047a095fb20
+	parent = 152ca3ba173546e6a6efe344e5e0746ceb19d334
+	method = merge
+	cmdver = 0.4.9
