@@ -5294,7 +5294,7 @@ function (equivalent to @code{fabs(real)}), an @code{abs(pair)} function
 Asymptote's random number generators can be seeded with @code{srand(int)}. If a negative
 argument is given to @code{srand}, an internal entropy source is used as a seed.
 Random numbers are initially seeded with @code{srand(-1)}.
-The function @code{int rand(int a=0, int b=@code{randMax})} returns a random integer in
+The function @code{int rand(int a=0, int b=randMax)} returns a random integer in
 [a,b]. The @code{unitrand()} function returns
 a random number uniformly distributed in the interval [0,1).
 A Gaussian random number generator
