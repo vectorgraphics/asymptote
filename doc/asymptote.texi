@@ -7066,6 +7066,7 @@ This function is an alias for the constructor @code{Iterable_T(Iter_T iter())}.
 creates an @code{Iterable_T} that iterates over the elements of
 @code{items}.  Separate calls to @code{operator iter} return
 independent iterators.
+@cindex @code{Iter_T}
 @item Iter_T Iter_T(T[] items)
 creates an @code{Iter_T} that iterates over the elements of
 @code{items}.
@@ -7074,10 +7075,12 @@ creates an @code{Iter_T} that iterates over the elements of
 
 @node Combining (zipping) iterators
 @subsubsection Combining (zipping) iterators
+@cindex @code{zip}
 
 The @code{collections.zip(T)} and @code{collections.zip2(K,V)} templated modules
 provide ways to iterate over two or more containers in a single @code{for} loop.
 
+@cindex @code{collections.zip2}
 The @code{collections.zip2(K,V)} module allows iterating over two containers of
 potentially different types. Here's an example:
 @verbatim
@@ -7114,6 +7117,7 @@ their autounravels:
 @item @code{Iter_Pair_K_V}
 @end itemize
 
+@cindex @code{collections.zip}
 The @code{collections.zip(T)} module is similar, but condenses the iterables
 into an iterable of arrays rather than of pairs. This requires that all the
 iterables be over the same type (e.g., all string iterators or all integer
@@ -7138,13 +7142,16 @@ for (int[] abc : zip(default=-1, x, y, z)) {
 
 The @code{collections.zip(T)} module introduces the types
 @itemize
+@cindex @code{Iterable_array_T}
 @item @code{Iterable_array_T} from @code{collections.iter(T=T[])}
+@cindex @code{Iter_array_T}
 @item @code{Iter_array_T} from @code{collections.iter(T=T[])}
 @item @code{Iterable_T}
 @item @code{Iter_T}
 @end itemize
 and the following functions (all called @code{zip}):
 
+@cindex @code{zip}
 @table @code
 @item Iterable_array_T zip(...Iterable_T[] iterables)
 Zips together one or more iterables of @code{T}s. If @code{a} is an item from
@@ -7167,6 +7174,8 @@ value.
 
 @node Adding integer indices to iterators
 @subsubsection Adding integer indices to iterators
+@cindex @code{enumerate}
+@cindex @code{collections.enumerate}
 
 The @code{collections.enumerate(T)} module provides a way to keep count of the
 index in an iterator. There are two methods, both called @code{enumerate}:
@@ -7200,6 +7209,9 @@ builtin integer index, so @code{enumerate} is more useful for their iterators.
 
 @node Maps
 @subsection Maps
+@cindex @code{Map}
+@cindex dictionary @seeentry{@code{Map}}
+@cindex associative array @seeentry{@code{Map}}
 
 Many modern programming languages have a builtin datastructure that is variously
 called a map, dictionary, or associative array.
@@ -7248,6 +7260,7 @@ for (string key : h) {
 @c // * Do not mutate the key while it is a key in the hashmap.
 @c // * Iterating over keys vs pairs.
 
+@node Initializing a @code{Map}
 @subsubsection Initializing a @code{Map}
 The @code{Map_K_V} structure itself is defined in the templated module
 @code{collections.map(K,V)}. However, to initialize a @code{Map_K_V}, you need
@@ -7266,18 +7279,112 @@ templated module. They create a BTreeMap, which stores its keys in sorted order.
 The key type must have a @code{<} operator.
 @end table
 
+Both the types @code{HashMap_K_V} and @code{BTreeMap_K_V} can be implicitly cast
+to @code{Map_K_V}. Additionally, even without being cast, the two types have
+the same methods as @code{Map_K_V}, @pxref{The @code{Map} API}.
+Similarly, the @code{nullValue} and @code{isNullValue} optional
+parameters behave the same way for both types, @pxref{The @code{Map} API}.
 
+As a very approximate rule of thumb, @code{HashMap_K_V} is currently faster than
+@code{BTreeMap_K_V} by a factor of 2, assuming no more than a few hundred
+million entries. This is currently a very rough estimate that depends on the
+key type @code{K} having cheap hash, equality, and comparison functions.
+Furthermore, the performance of these map implementations could change
+drastically in the future as the code is optimized.
+
+@node The @code{Map} API
 @subsubsection The @code{Map} API
 
+The @code{Map_K_V} structure has the following methods. Note that its
+``subclasses'' @code{HashMap_K_V} and @code{BTreeMap_K_V} each have all
+the same fields.
 
+Depending on which constructor is used, a @code{Map} may or may not have
+valid instances of @code{nullValue} and @code{isNullValue(V)}. If one of
+these is valid, the other will be too. In some methods below, an error
+will be thrown unless @code{nullValue} can be returned to indicate an
+element is not present. When @code{nullValue} exists, the map enforces the
+invariant that for a map @code{m}, the expression @code{m.isNullValue(m[k])}
+is equivalent to @code{m.contains(k)}.
 
+@table @code
+@item int size()
+The @code{size} method
+returns the number of distinct keys in the map.
+@item bool empty()
+The @code{empty} method returns true iff @code{size() == 0}.
+@item bool contains(K key)
+The @code{contains} method returns true if @code{key} is present as a key in
+the map.
+@item V operator [] (K key)
+The bracket operator (@pxref{Bracket operators}) returns the value
+associated with the element @code{key}. If @code{key} is not present,
+this method either returns @code{nullValue} or, if @code{nullValue} does not
+exist, throws an error.
+@item void operator [=] (K key, V value)
+The bracket assign operator (@pxref{Bracket operators}) adds the pair
+@code{(key, value)} to the map. If @code{key} was already present, its
+associated value is replaced (as is the key itself, but that should rarely
+matter since the old and new keys are equal). However, if
+@code{isNullValue(value)} is true, then the assignment instead removes
+@code{key} from the map if it was already there.
+@item void delete(K key)
+The @code{delete} method removes @code{key} from the map. If @code{key} was
+not already in the map, an error is thrown. (An alternative that will not
+throw an error is to set the value of @code{key} to @code{nullValue}.)
+@item Iter_K operator iter()
+The @code{iter} operator returns an iterator over the keys of the map.
+It allows the map to be used in range-based @code{for} loops, as in
+@verbatim
+for (K key : m) {<statements>}
+@end verbatim
+If a key is deleted or a new key is
+inserted, then any iterators created before that change are undermined and
+may behave nonsensically. The current implementations attempt to throw errors
+if an iterator is used after being undermined,
+but this behavior is not guaranteed and might be removed in
+future versions to make operations faster.
+@item Iterable_K_V pairs()
+The @code{pairs} method returns an iterable over the key-value pairs. Example
+usage:
+@verbatim
+for (Pair_K_V p : m.pairs()) {
+  K key = p.k;
+  V value = p.v;
+  <statements>
+}
+@end verbatim
+@item K[] keys()
+The @code{keys} method returns an array of all the keys. The array is a shallow
+copy; changes to it will not affect changes to the map (and vice versa), but
+the map will behave unpredictably if the keys themselves are mutated.
+@item void addAdd(Iterable_K_V other)
+The @code{addAll} method adds all the key-value pairs from @code{other}.
+Running @code{m.addAll(o);} should be equivalent to running
+@verbatim
+for (var pr : o) { m[pr.k] = pr.v; }
+@end verbatim
+@end table
 
-@subsubsection Sorted maps
-
-TODO
+In addition to the methods, there is also an autounraveled implicit cast from
+@code{Map_K_V} to @code{Iterable_K}. This cast allows a @code{Map_K_V} to be
+passed as a parameter to utilities like @code{zip} or @code{enumerate}.
 
 @node Sets
 @subsection Sets
+
+@node Using Maps as Sets
+@subsection Using Maps as Sets
+
+TODO
+
+@node Sets and SortedSets
+@subsection Sets and SortedSets
+
+TODO
+
+@node Using Sets as Maps
+@subsection Using Sets as Maps
 
 TODO
 
