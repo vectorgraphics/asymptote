@@ -5291,15 +5291,16 @@ function (equivalent to @code{fabs(real)}), an @code{abs(pair)} function
 @cindex @code{histogram}
 @cindex @code{factorial}
 @cindex @code{choose}
-Random numbers can be seeded with @code{srand(int)}
-(for example, with @code{srand(round((cputime().parent.clock%1)*1e9))})
-and generated with
-the @code{int rand()} function, which returns a random integer between 0
-and the integer @code{randMax}. The @code{unitrand()} function returns
+Asymptote's random number generators can be seeded with @code{srand(int)}. If a negative
+argument is given to @code{srand}, an internal entropy source is used as a seed.
+Random numbers are initially seeded with @code{srand(-1)}.
+The function @code{int rand(int a=0, int b=randMax)} returns a random integer in
+[a,b]. The @code{unitrand()} function returns
 a random number uniformly distributed in the interval [0,1).
 A Gaussian random number generator
 @code{Gaussrand} and a collection of statistics routines, including
 @code{histogram}, are provided in the module @code{stats}.
+
 The functions @code{factorial(int n)}, which returns @math{n!}, and
 @code{choose(int n, int k)}, which returns @math{n!/(k!(n-k)!)}, are
 also defined.
@@ -8081,7 +8082,8 @@ struct bounds {
 This information can be used for generating an optional palette bar.
 The palette color space corresponds to a range of values specified by
 the argument @code{range}, which can be @code{Full}, @code{Automatic},
-or an explicit range @code{Range(real min, real max)}.
+or an explicit range @code{Range(real min, real max)}. (The type @code{range} is
+defined in @code{palette.asy}.)
 Here @code{Full} specifies a range varying from the
 minimum to maximum values of the function over the sampling interval,
 while @code{Automatic} selects "nice" limits.
