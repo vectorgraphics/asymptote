@@ -27,9 +27,8 @@ struct Map_K_V {
   // Adds the key-value pair, replacing both the key and value if the key was
   // already present.
   void operator [=] (K key, V value);
-  // Removes the entry with the given key, if it exists.
-  // QUESTION: Should we throw an error if the key was not present? (Current
-  // implementation: yes, unless there is a nullValue to return.)
+  // Removes the entry with the given key, if it exists. Throws error if the
+  // key was not present.
   void delete(K key);
 
   Iter_K operator iter();
@@ -85,11 +84,6 @@ struct Map_K_V {
   void addAll(Iterable_K_V other) {
     for (Pair_K_V kv : other) {
       this[kv.k] = kv.v;
-    }
-  }
-  void removeAll(Iterable_K other) {
-    for (K key : other) {
-      delete(key);
     }
   }
 }
