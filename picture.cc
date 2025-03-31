@@ -1609,7 +1609,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   args.lights = lights;
   args.diffuse = diffuse;
   args.specular = specular;
-  args.view = view;
+  args.view = View;
   args.oldpid = oldpid;
 
   vk->vkrender(args);
