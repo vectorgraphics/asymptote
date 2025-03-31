@@ -1603,6 +1603,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   args.shift = shift;
   args.margin = margin;
   args.t = t;
+  args.tup= tup;
   args.background = background;
   args.nlightsin = nlights;
   args.lights = lights;
