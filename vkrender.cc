@@ -3456,7 +3456,7 @@ void AsyVkRender::createGraphicsPipelines()
 
 void AsyVkRender::setupPostProcessingComputeParameters()
 {
-#pragma message("TODO: We should share this constant with the shader code & C++ side")
+// TODO: We should share this constant with the shader code & C++ side")
   uint32_t constexpr localGroupSize=20;
 
   postProcessThreadGroupCount.width=integerDivRoundUp(backbufferExtent.width, localGroupSize);
@@ -4251,8 +4251,7 @@ void AsyVkRender::drawFrame()
   resetFrameCopyData();
   preDrawBuffers(frameObject, imageIndex);
 
-  // FIXME: can we do scene graph instead of manual barriers?
-#pragma message("FIXME: can we do scene graph instead of manual barriers?")
+  // TODO: can we do scene graph instead of manual barriers?
   beginFrameCommands(getFrameCommandBuffer());
   drawBuffers(frameObject, imageIndex);
   // current immediate target layout: general/presentSrc depending on fxaa
@@ -4462,7 +4461,7 @@ void AsyVkRender::display()
 #endif
   if(!vkthread) {
 #if defined(_WIN32)
-#pragma message("TODO: Check if we need a threadless-based vk renderer")
+// TODO: Check if we need a threadless-based vk renderer
 #else
     if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
       kill(Oldpid,SIGHUP);
