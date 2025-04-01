@@ -1,6 +1,6 @@
 typedef import(T);
 
-from collections.repset(T=T) access Iter_T, Iterable_T, RepSet_T;
+from collections.set(T=T) access Iter_T, Iterable_T, Set_T;
 
 private struct HashEntry {
   T item;
@@ -9,8 +9,8 @@ private struct HashEntry {
   HashEntry older = null;
 }
 
-struct HashRepSet_T {
-  struct _ { autounravel restricted RepSet_T super; }
+struct HashSet_T {
+  struct _ { autounravel restricted Set_T super; }
   from super unravel nullT, equiv, isNullT;
 
   // These fields are mutable.
@@ -33,8 +33,8 @@ struct HashRepSet_T {
     ((F)super.operator init)(nullT, equiv, isNullT);
   }
 
-  RepSet_T newEmpty() {
-    return HashRepSet_T(nullT, equiv, isNullT).super;
+  Set_T newEmpty() {
+    return HashSet_T(nullT, equiv, isNullT).super;
   }
 
   super.size = new int() {
@@ -282,11 +282,11 @@ struct HashRepSet_T {
   };
 
 
-  autounravel RepSet_T operator cast(HashRepSet_T set) {
+  autounravel Set_T operator cast(HashSet_T set) {
     return set.super;
   }
 
-  autounravel Iterable_T operator cast(HashRepSet_T set) {
+  autounravel Iterable_T operator cast(HashSet_T set) {
     return Iterable_T(set.super.operator iter);
   }
   unravel super;

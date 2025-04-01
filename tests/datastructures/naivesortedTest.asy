@@ -1,11 +1,11 @@
-// Check that NaiveSortedRepSet behaves identically to HashRepSet except for
-// iteration order. This should increase confidence when using NaiveSortedRepSet
-// to test other implementations of SortedRepSet_T.
+// Check that NaiveSortedSet behaves identically to HashSet except for
+// iteration order. This should increase confidence when using NaiveSortedSet
+// to test other implementations of SortedSet_T.
 import TestLib;
 
 srand(4282308941601638229);
 
-StartTest("NaiveSortedRepSet");
+StartTest("NaiveSortedSet");
 
 // from wrapper(T=int) access
 //     Wrapper_T as wrapped_int,
@@ -31,18 +31,18 @@ struct wrapped_int {
 
 wrapped_int wrap(int t) = wrapped_int;  // `wrap` is alias for constructor
 
-from collections.repset(T=wrapped_int) access
-    RepSet_T as Set_wrapped_int;
+from collections.set(T=wrapped_int) access
+    Set_T as Set_wrapped_int;
 
-from collections.hashrepset(T=wrapped_int) access
-    HashRepSet_T as HashSet_wrapped_int;
+from collections.hashset(T=wrapped_int) access
+    HashSet_T as HashSet_wrapped_int;
 
-// TODO: Change to sortedrepset
+// TODO: Change to sortedset
 from collections.sortedset(T=wrapped_int) access
     Naive_T as NaiveSortedSet_wrapped_int;
 
 from collections.btree(T=wrapped_int) access
-    BTreeRepSet_T as BTreeSet_wrapped_int;
+    BTreeSet_T as BTreeSet_wrapped_int;
 
 struct ActionEnum {
   static restricted int num = 0;

@@ -1,11 +1,11 @@
 typedef import(T);
 from collections.iter(T=T) access Iter_T, Iterable_T;
 
-// RepSet: set of representatives of equivalence classes. Contains at most one
+// Set: set of representatives of equivalence classes. Contains at most one
 // element from each equivalence class.
 
 
-struct RepSet_T {
+struct Set_T {
   restricted T nullT;
   restricted bool equiv(T, T) = operator ==;
   restricted bool isNullT(T) = null;
@@ -18,9 +18,9 @@ struct RepSet_T {
     this.isNullT = isNullT;
   }
 
-  // Creates a new, empty RepSet with the same implemention, nullT,
+  // Creates a new, empty Set with the same implemention, nullT,
   // isNullT, and equiv as this one.
-  RepSet_T newEmpty();
+  Set_T newEmpty();
 
   int size();
   bool empty() {
@@ -60,7 +60,7 @@ struct RepSet_T {
     return nullT;
   }
 
-  autounravel Iterable_T operator cast(RepSet_T set) {
+  autounravel Iterable_T operator cast(Set_T set) {
     return Iterable_T(set.operator iter);
   }
 
@@ -75,7 +75,7 @@ struct RepSet_T {
     }
   }
 
-  autounravel bool operator <=(RepSet_T a, RepSet_T b) {
+  autounravel bool operator <=(Set_T a, Set_T b) {
     for (var item : a) {
       if (!b.contains(item)) {
         return false;
@@ -84,19 +84,19 @@ struct RepSet_T {
     return true;
   }
 
-  autounravel bool operator >=(RepSet_T a, RepSet_T b) {
+  autounravel bool operator >=(Set_T a, Set_T b) {
     return b <= a;
   }
 
-  autounravel bool operator ==(RepSet_T a, RepSet_T b) {
+  autounravel bool operator ==(Set_T a, Set_T b) {
     return a <= b && a >= b;
   } 
 
-  autounravel bool operator !=(RepSet_T a, RepSet_T b) {
+  autounravel bool operator !=(Set_T a, Set_T b) {
     return !(a == b);
   }
 
-  autounravel bool sameElementsInOrder(RepSet_T a, RepSet_T b) {
+  autounravel bool sameElementsInOrder(Set_T a, Set_T b) {
     bool equiv(T ai, T bi) {
       return a.equiv(ai, bi) && b.equiv(ai, bi);
     }
@@ -112,8 +112,8 @@ struct RepSet_T {
     return iterA.valid() == iterB.valid();
   }
 
-  autounravel RepSet_T operator +(RepSet_T a, Iterable_T b) {
-    RepSet_T result = a.newEmpty();
+  autounravel Set_T operator +(Set_T a, Iterable_T b) {
+    Set_T result = a.newEmpty();
     for (T item : a) {
       result.add(item);
     }
@@ -123,8 +123,8 @@ struct RepSet_T {
     return result;
   }
 
-  autounravel RepSet_T operator -(RepSet_T a, RepSet_T b) {
-    RepSet_T result = a.newEmpty();
+  autounravel Set_T operator -(Set_T a, Set_T b) {
+    Set_T result = a.newEmpty();
     for (T item : a) {
       if (!b.contains(item)) {
         result.add(item);
@@ -137,8 +137,8 @@ struct RepSet_T {
 
 
 // A reference implementation, inefficient but suitable for testing.
-struct NaiveRepSet_T {
-  RepSet_T super;
+struct NaiveSet_T {
+  Set_T super;
   unravel super;
   private T[] items;
   restricted void operator init() {
@@ -228,19 +228,19 @@ struct NaiveRepSet_T {
     return items[index];
   };
 
-  autounravel Iterable_T operator cast(NaiveRepSet_T set) {
+  autounravel Iterable_T operator cast(NaiveSet_T set) {
     return Iterable_T(set.operator iter);
   }
 
-  autounravel RepSet_T operator cast(NaiveRepSet_T set) {
+  autounravel Set_T operator cast(NaiveSet_T set) {
     return set.super;
   }
 
-  super.newEmpty = new RepSet_T() {
-    return NaiveRepSet_T(nullT, equiv, isNullT);
+  super.newEmpty = new Set_T() {
+    return NaiveSet_T(nullT, equiv, isNullT);
   };
 
-  autounravel T[] operator ecast(NaiveRepSet_T set) {
+  autounravel T[] operator ecast(NaiveSet_T set) {
     T[] result;
     for (T item : set.items) {
       result.push(item);

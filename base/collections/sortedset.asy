@@ -1,10 +1,10 @@
 typedef import(T);
 
 from collections.iter(T=T) access Iter_T, Iterable_T, Iterable;
-from collections.repset(T=T) access RepSet_T;
+from collections.set(T=T) access Set_T;
 
-struct SortedRepSet_T {
-  RepSet_T repset;
+struct SortedSet_T {
+  Set_T set;
   // Returns the least element > item, or nullT if there is no such
   // element.
   T after(T item);
@@ -12,31 +12,31 @@ struct SortedRepSet_T {
   // element.
   T before(T item);
   T firstGEQ(T item) {
-    return repset.contains(item) ? repset.get(item) : after(item);
+    return set.contains(item) ? set.get(item) : after(item);
   }
   T firstLEQ(T item) {
-    return repset.contains(item) ? repset.get(item) : before(item);
+    return set.contains(item) ? set.get(item) : before(item);
   }
   T min();               // Returns nullT if collection is empty.
   T popMin();            // Returns nullT if collection is empty.
   T max();               // Returns nullT if collection is empty.
   T popMax();            // Returns nullT if collection is empty.
 
-  autounravel Iterable_T operator cast(SortedRepSet_T set) {
-    return Iterable(set.repset.operator iter);
+  autounravel Iterable_T operator cast(SortedSet_T set) {
+    return Iterable(set.set.operator iter);
   }
   
-  autounravel RepSet_T operator cast(SortedRepSet_T sorted_set) {
-    return sorted_set.repset;
+  autounravel Set_T operator cast(SortedSet_T sorted_set) {
+    return sorted_set.set;
   }
-  from repset unravel *;
+  from set unravel *;
 }
 
-// For testing purposes, we provide a naive implementation of SortedRepSet_T.
+// For testing purposes, we provide a naive implementation of SortedSet_T.
 // This implementation is highly inefficient, but it is correct, and can be
-// used to test other implementations of SortedRepSet_T.
+// used to test other implementations of SortedSet_T.
 struct Naive_T {
-  restricted SortedRepSet_T super;
+  restricted SortedSet_T super;
   from super unravel nullT, isNullT;
   private bool lt(T a, T b) = null;
   private T[] buffer = new T[0];
@@ -172,13 +172,13 @@ struct Naive_T {
     return buffer[(++seed).hash() % buffer.length];
   };
 
-  autounravel SortedRepSet_T operator cast(Naive_T naive) {
+  autounravel SortedSet_T operator cast(Naive_T naive) {
     return naive.super;
   }
 
   // Compose cast operators, since implicit casting is not transitive.
-  autounravel RepSet_T operator cast(Naive_T naive) {
-    return (SortedRepSet_T)naive;
+  autounravel Set_T operator cast(Naive_T naive) {
+    return (SortedSet_T)naive;
   }
   autounravel Iterable_T operator cast(Naive_T naive) {
     return Iterable(naive.super.operator iter);

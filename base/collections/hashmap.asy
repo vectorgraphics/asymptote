@@ -3,8 +3,8 @@ typedef import(K, V);
 from collections.map(K=K, V=V) access Map_K_V, Iter_K, Iter_K_V, Iterable_K,
                                       Iterable_K_V;
 from collections.genericpair(K=K, V=V) access Pair_K_V, makePair;
-from collections.hashrepset(T=Pair_K_V) access
-    HashRepSet_T as HashRepSet_K_V;
+from collections.hashset(T=Pair_K_V) access
+    HashSet_T as HashSet_K_V;
 
 private Pair_K_V operator tuple(K k, V v) {
   Pair_K_V pair = makePair(k, v); 
@@ -15,7 +15,7 @@ private Pair_K_V operator tuple(K k, V v) {
 struct HashMap_K_V {
   struct _ { autounravel restricted Map_K_V map; }
 
-  private HashRepSet_K_V pairs = HashRepSet_K_V(
+  private HashSet_K_V pairs = HashSet_K_V(
     nullT=null,
     equiv = new bool(Pair_K_V a, Pair_K_V b) {
       // NOTE: This should never be called on a null pair.

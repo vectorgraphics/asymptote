@@ -1,10 +1,10 @@
 typedef import(T);
 
 from collections.iter(T=T) access Iter_T, Iterable_T, Iterable;
-from collections.sortedset(T=T) access RepSet_T, SortedRepSet_T;
+from collections.sortedset(T=T) access Set_T, SortedSet_T;
 
-struct BTreeRepSet_T {
-  struct _ { autounravel restricted SortedRepSet_T super; }
+struct BTreeSet_T {
+  struct _ { autounravel restricted SortedSet_T super; }
   from super unravel nullT, isNullT;
   private bool lt(T, T) = null;
   private int size = 0;
@@ -466,13 +466,13 @@ struct BTreeRepSet_T {
   };
 
   // cast operators
-  autounravel SortedRepSet_T operator cast(BTreeRepSet_T set) {
+  autounravel SortedSet_T operator cast(BTreeSet_T set) {
     return set.super;
   }
-  autounravel RepSet_T operator cast(BTreeRepSet_T set) {
-    return (SortedRepSet_T)set;  // Compose with the above cast.
+  autounravel Set_T operator cast(BTreeSet_T set) {
+    return (SortedSet_T)set;  // Compose with the above cast.
   }
-  autounravel Iterable_T operator cast(BTreeRepSet_T set) {
+  autounravel Iterable_T operator cast(BTreeSet_T set) {
     return Iterable_T(set.super.operator iter);
   }
 

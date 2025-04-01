@@ -27,15 +27,15 @@ wrapped_int wrap(int t) = wrapped_int;  // `wrap` is alias for constructor
 
 from collections.iter(T=wrapped_int) access
     Iterable_T as Iterable_wrapped_int;
-from collections.repset(T=wrapped_int) access
-    RepSet_T as Set_wrapped_int;
-from collections.hashrepset(T=wrapped_int) access
-    HashRepSet_T as HashSet_wrapped_int;
+from collections.set(T=wrapped_int) access
+    Set_T as Set_wrapped_int;
+from collections.hashset(T=wrapped_int) access
+    HashSet_T as HashSet_wrapped_int;
 from collections.sortedset(T=wrapped_int) access
-    SortedRepSet_T as SortedSet_wrapped_int,
+    SortedSet_T as SortedSet_wrapped_int,
     Naive_T as NaiveSortedSet_wrapped_int;
 from collections.btree(T=wrapped_int) access
-    BTreeRepSet_T as BTreeSet_wrapped_int;
+    BTreeSet_T as BTreeSet_wrapped_int;
 
 struct ActionEnum {
   static restricted int n = 0;

@@ -2,7 +2,7 @@ import TestLib;
 
 srand(4282308941601638229);
 
-StartTest("HashRepSet");
+StartTest("HashSet");
 
 // from wrapper(T=int) access
 //     Wrapper_T as wrapped_int,
@@ -28,12 +28,12 @@ struct wrapped_int {
 
 wrapped_int wrap(int t) = wrapped_int;  // `wrap` is alias for constructor
 
-from collections.repset(T=wrapped_int) access
-    RepSet_T as Set_wrapped_int,
-    NaiveRepSet_T as NaiveSet_wrapped_int;
+from collections.set(T=wrapped_int) access
+    Set_T as Set_wrapped_int,
+    NaiveSet_T as NaiveSet_wrapped_int;
 
-from collections.hashrepset(T=wrapped_int) access
-    HashRepSet_T as HashSet_wrapped_int;
+from collections.hashset(T=wrapped_int) access
+    HashSet_T as HashSet_wrapped_int;
 
 from collections.enumerate(T=wrapped_int) access enumerate;
 
