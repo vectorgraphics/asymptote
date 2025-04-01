@@ -7456,12 +7456,20 @@ assert(mset.size() == count);
 
 There is also a dedicated @code{Set_T} datastructure which is a bit more efficient
 (not storing an unneeded @code{bool}) and allows more precise methods (especially
-when it comes to sorted sets).
+when it comes to sorted sets). The @code{Set_T} API attempts to respect the principle
+of reversibility, which states that a method that mutates the data structure should
+ideally return precisely the amount of information needed to reverse the modification.
+For instance, a method that removes an element should return that element. (By contrast,
+the @code{Map_K_V} API follows the principle that a method should either return
+something or mutate the datastructure, but not both.)
 
-TODO
+@node Initializing a @code{Set}
+@subsubsection Initializing a @code{Set}
 
-@node Sets and SortedSets
-@subsection Sets and SortedSets
+The @code{Set_T} datastructure itself is defined in the templated module
+@code{collections.set(T)}. However, the @code{Set_T} structure is abstract, with many
+of its methods defaulting to @code{null}. To get a working implementation, you
+need either a @code{HashSet_T} or a @code{BTreeSet_T}.
 
 TODO
 
