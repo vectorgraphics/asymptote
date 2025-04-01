@@ -1733,7 +1733,7 @@ allows Labels and frames to be treated in a uniform manner.
 A group of objects may be packed together into single frame with the routine
 @cindex @code{pack}
 @verbatim
-frame pack(pair align=2S ... object inset[]);
+frame pack(pair align=2S ...object inset[]);
 @end verbatim
 @noindent
 @anchor{envelope}
@@ -2424,7 +2424,7 @@ time(seconds()-24*60*60);
 if the setting @code{safe} is false, call the arbitrary system command @code{s};
 
 @cindex @code{asy}
-@item void asy(string format, bool overwrite=false ... string[] s)
+@item void asy(string format, bool overwrite=false ...string[] s)
 conditionally process each file name in array @code{s} in a new environment,
 using format @code{format}, overwriting the output file only if
 @code{overwrite} is true;
@@ -2793,7 +2793,7 @@ Note that @code{lastcut.before} plays the role of the
 @code{MetaPost cutafter} command.
 
 @cindex @code{buildcycle}
-@item path buildcycle(... path[] p);
+@item path buildcycle(...path[] p);
 This returns the path surrounding a region bounded by a list of two or more
 consecutively intersecting paths, following the behavior of the
 @code{MetaPost buildcycle} command.
@@ -4158,9 +4158,9 @@ Data of a built-in type @code{T} can be written to an output file by
 calling one of the functions
 @cindex @code{write}
 @verbatim
-write(string s="", T x, suffix suffix=endl ... T[]);
-write(file file, string s="", T x, suffix suffix=none ... T[]);
-write(file file=stdout, string s="", explicit T[] x ... T[][]);
+write(string s="", T x, suffix suffix=endl ...T[]);
+write(file file, string s="", T x, suffix suffix=none ...T[]);
+write(file file=stdout, string s="", explicit T[] x ...T[][]);
 write(file file=stdout, T[][]);
 write(file file=stdout, T[][][]);
 write(suffix suffix=endl);
@@ -4835,9 +4835,9 @@ boolean operators @code{<}, @code{>}, @code{<=}, and @code{>=}.
 Guide operators like @code{..} may be overloaded, say, to write
 a user function that produces a new guide from a given guide:
 @verbatim
-guide dots(... guide[] g)=operator ..;
+guide dots(...guide[] g)=operator ..;
 
-guide operator ..(... guide[] g) {
+guide operator ..(...guide[] g) {
   guide G;
   if(g.length > 0) {
     write(g[0]);
@@ -5202,7 +5202,7 @@ Rest arguments allow one to write functions that take a variable
 number of arguments:
 @verbatim
 // This function sums its arguments.
-int sum(... int[] nums) {
+int sum(...int[] nums) {
   int total=0;
   for(int i=0; i < nums.length; ++i)
     total += nums[i];
@@ -5213,7 +5213,7 @@ sum(1,2,3,4);                       // returns 10
 sum();                              // returns 0
 
 // This function subtracts subsequent arguments from the first.
-int subtract(int start ... int[] subs) {
+int subtract(int start ...int[] subs) {
   for(int i=0; i < subs.length; ++i)
     start -= subs[i];
   return start;
@@ -5229,21 +5229,21 @@ Putting an argument into a rest array is called @emph{packing}.
 One can give an explicit list of arguments for the rest
 argument, so @code{subtract} could alternatively be implemented as
 @verbatim
-int subtract(int start ... int[] subs) {
-  return start - sum(... subs);
+int subtract(int start ...int[] subs) {
+  return start - sum(...subs);
 }
 @end verbatim
 
 One can even combine normal arguments with rest arguments:
 @verbatim
-sum(1,2,3 ... new int[] {4,5,6});   // returns 21
+sum(1,2,3 ...new int[] {4,5,6});   // returns 21
 @end verbatim
 @noindent
 @cindex unpacking
 This builds a new six-element array that is passed to @code{sum} as
 @code{nums}. The opposite operation, @emph{unpacking}, is not allowed:
 @verbatim
-subtract(... new int[] {10, 1, 2});
+subtract(...new int[] {10, 1, 2});
 @end verbatim
 @noindent
 is illegal, as the start formal is not matched.
@@ -5258,7 +5258,7 @@ for the rest parameter to be assigned to other parameters.  For example, here
 the use of @code{keyword} is to avoid @code{pnorm(1.0,2.0,0.3)} matching
 @code{1.0} to @code{p}.
 @verbatim
-real pnorm(real keyword p=2.0 ... real[] v)
+real pnorm(real keyword p=2.0 ...real[] v)
 {
   return sum(v^p)^(1/p);
 }
@@ -5284,14 +5284,14 @@ int g(real x, int x);
 g(3,4); // ambiguous; the first candidate is better for the first argument,
         // but the second candidate is better for the second argument
 
-int h(... int[] rest);
-int h(real x ... int[] rest);
+int h(...int[] rest);
+int h(real x ...int[] rest);
 
 h(1,2); // the second definition matches, even though there is a cast,
         // because casting is preferred over packing
 
-int i(int x ... int[] rest);
-int i(real x, real y ... int[] rest);
+int i(int x ...int[] rest);
+int i(real x, real y ...int[] rest);
 
 i(3,4); // ambiguous; the first candidate is better for the first argument,
         // but the second candidate is better for the second one
@@ -5601,7 +5601,7 @@ Every array @code{A} of type @code{T[]} has the virtual members
 @item   @code{T push(T x)},
 @item   @code{void append(T[] a)},
 @item   @code{T pop()},
-@item   @code{void insert(int i ... T[] x)},
+@item   @code{void insert(int i ...T[] x)},
 @item   @code{void delete(int i, int j=i)},
 @item   @code{void delete()}, and
 @item   @code{bool initialized(int n)}.
@@ -5619,7 +5619,7 @@ to @code{@{0,1,...,n-1@}}.  A new keys array is produced each time
 @code{A.keys} is evaluated.
 
 The functions @code{A.push} and @code{A.append} append their
-arguments onto the end of the array, while @code{A.insert(int i ... T[] x)}
+arguments onto the end of the array, while @code{A.insert(int i ...T[] x)}
 inserts @code{x} into the array at index @code{i}.
 For convenience @code{A.push} returns the pushed item.
 The function @code{A.pop()} pops and returns the last element,
@@ -5643,7 +5643,7 @@ write(g());        // Outputs 3.
 A.delete(0);       // A now contains {2,1,2}.
 A.delete(0,1);       // A now contains {2}.
 A.insert(1,3);     // A now contains {2,3}.
-A.insert(1 ... A); // A now contains {2,2,3,3}
+A.insert(1 ...A); // A now contains {2,2,3,3}
 A.insert(2,4,5);   // A now contains {2,2,4,5,3,3}.
 @end verbatim
 
@@ -5761,7 +5761,7 @@ such that element @code{i} precedes element @code{j} if
 returns a deep copy of the array @code{a};
 
 @cindex @code{concat}
-@item T[] concat(... T[][] a)
+@item T[] concat(...T[][] a)
 returns a new array formed by concatenating the given one-dimensional
 arrays given as arguments;
 
@@ -5947,7 +5947,7 @@ matrix and @code{warn} is @code{false}, return an empty matrix;
 returns the @math{n \times n} identity matrix;
 
 @cindex @code{diagonal}
-@item real[][] diagonal(... real[] a)
+@item real[][] diagonal(...real[] a)
 returns the diagonal matrix with diagonal entries given by a;
 
 @cindex @code{inverse}
@@ -6409,7 +6409,7 @@ eval('import '+s,true);
 @cindex @code{asy}
 To conditionally execute an array of asy files, use
 @verbatim
-void asy(string format, bool overwrite ... string[] s);
+void asy(string format, bool overwrite ...string[] s);
 @end verbatim
 The file will only be processed, using output format @code{format}, if
 overwrite is @code{true} or the output file is missing.
@@ -7077,12 +7077,10 @@ creates an @code{Iter_T} that iterates over the elements of
 @subsubsection Combining (zipping) iterators
 @cindex @code{zip}
 
-The @code{collections.zip(T)} and @code{collections.zip2(K,V)} templated modules
-provide ways to iterate over two or more containers in a single @code{for} loop.
-
 @cindex @code{collections.zip2}
-The @code{collections.zip2(K,V)} module allows iterating over two containers of
-potentially different types. Here's an example:
+The @code{collections.zip2(K,V)} templated module provides a way of
+iterating over two containers of potentially different types in a single @code{for} loop, 
+for example,
 @verbatim
 from collections.zip2(K=int, V=string) access zip, operator cast;
 int[] x = {0, 1, 2, 3};
@@ -7091,39 +7089,48 @@ for (var ab : zip(x, y)) {
   assert(string(ab.k) == ab.v);
 }
 @end verbatim
-The casts from @code{int[]} to @code{Iterable_int} and from @code{string[]} to
-@code{Iterable_string} are actually autounraveled from those two types, but in
-this case it was easier to access them both at once from the @code{zip2} module.
-
-Here's the @code{zip} function provided by
-@code{collections.zip2(K,V)}:
-@table @code
-@item Iterable_Pair_K_V zip(Iterable_K a, Iterable_V b, Pair_K_V keyword default=null)
-Returns an iterable that produces pairs of elements from @code{a} and @code{b}.
+@noindent
+where
+@verbatim
+Iterable_Pair_K_V zip(Iterable_K a, Iterable_V b,
+                      Pair_K_V keyword default=null)
+@end verbatim
+@noindent
+returns an iterable that produces pairs of elements from @code{a} and @code{b}.
 If @code{default} is not provided, the iterable stops when either @code{a} or
 @code{b} runs out of elements. If @code{default} is provided, the returned
-iterable will be the length of the longest of @code{a} and @code{b}, and the
+iterable will be the length of the longer of @code{a} and @code{b}, and the
 default value will be used for any missing elements.
-@end table
-Additionally, the module can be used to access the following types and all
-their autounravels:
-@itemize
+
+Additionally, the module exposes the following types and all their
+autounravels:
+
+@multitable @columnfractions .25 .75
+@headitem type @tab from
 @item @code{Pair_K_V}
+@tab @code{collections.genericpair(K,V)}
 @item @code{Iterable_K}
+@tab @code{collections.iter(T=K)}
 @item @code{Iterable_V}
+@tab @code{collections.iter(T=V)}
 @item @code{Iterable_Pair_K_V}
+@tab @code{collections.iter(T=Pair_K_V)}
 @item @code{Iter_K}
+@tab @code{collections.iter(T=K)}
 @item @code{Iter_V}
+@tab @code{collections.iter(T=V)}
 @item @code{Iter_Pair_K_V}
-@end itemize
+@tab @code{collections.iter(T=Pair_K_V)}
+@end multitable
 
 @cindex @code{collections.zip}
-The @code{collections.zip(T)} module is similar, but condenses the iterables
-into an iterable of arrays rather than of pairs. This requires that all the
+The @code{collections.zip(T)} templated module
+provides a way to iterate over multiple containers in
+a single @code{for} loop.
+It is similar to @code{collections.zip2(K,V)}, but condenses the iterables
+into an iterable over arrays rather than over pairs. This requires that all the
 iterables be over the same type (e.g., all string iterators or all integer
-iterators, but not one of each as above). In exchange, the @code{zip} function
-can take any number of arguments and can also supply a default value to use when
-the iterables are not all the same length. Here's an example:
+iterators):
 @verbatim
 from collections.zip(T=int) access zip;
 int[] x = {0, 1, 2, 3};
@@ -7140,34 +7147,40 @@ for (int[] abc : zip(default=-1, x, y, z)) {
 // -1      -1      4
 @end verbatim
 
-The @code{collections.zip(T)} module introduces the types
-@itemize
+The @code{collections.zip(T)} module exposes the types
+@multitable @columnfractions .25 .75
+@headitem type @tab from
 @cindex @code{Iterable_array_T}
-@item @code{Iterable_array_T} from @code{collections.iter(T=T[])}
+@item @code{Iterable_array_T}
+@tab @code{collections.iter(T=T[])}
 @cindex @code{Iter_array_T}
-@item @code{Iter_array_T} from @code{collections.iter(T=T[])}
+@item @code{Iter_array_T}
+@tab @code{collections.iter(T=T[])}
 @item @code{Iterable_T}
+@tab @code{collections.iter(T)}
 @item @code{Iter_T}
-@end itemize
-and the following functions (all called @code{zip}):
-
+@tab @code{collections.iter(T)}
+@end multitable
+@noindent
+and defines the following functions (all called @code{zip}):
 @cindex @code{zip}
 @table @code
 @item Iterable_array_T zip(...Iterable_T[] iterables)
-Zips together one or more iterables of @code{T}s. If @code{a} is an item from
+zips together one or more iterables of @code{T}s. If @code{a} is an item from
 the result, then @code{a[0]} is from the first iterable, @code{a[1]} is from the
 second iterable, and so on. If the iterables are not all the same length, the
 result will be the length of the shortest iterable.
 @item Iterable_array_T zip(T keyword default ...Iterable_T[] iterables)
-Similar to the above, except that the result will be the length of the longest
-iterable, and the default value will be used for any missing elements.
+zips together one or more iterables of @code{T}s. The
+result will be the length of the longest iterable, with the default
+value filling in any missing elements.
 @item T[][] zip(...T[][] arrays)
-Zips together one or more arrays. If the arrays are not all the same length, the
+zips together one or more arrays. If the arrays are not all the same length, the
 result will be the length of the shortest array.
 @item T[][] zip(T keyword default ...T[][] arrays)
-Zips together one or more arrays. If the arrays are not all the same length, the
-result will be the length of the longest array, and the default value will be
-used for any missing elements. This is basically equivalent to applying
+zips together one or more arrays. The
+result will be the length of the longest array, with the default value
+filling in any missing elements. This is basically equivalent to applying
 @code{transpose} and then replacing any uninitialized elements with the default
 value.
 @end table
@@ -8132,7 +8145,7 @@ guide[] graph(picture pic=currentpicture, real f(real), real a, real b,
              interpolate join=operator --);
 @end verbatim
 
-Returns a graph using the scaling information for picture @code{pic}
+return a graph using the scaling information for picture @code{pic}
 (@pxref{automatic scaling}) of the function @code{f} on the interval
 [@code{T}(@code{a}),@code{T}(@code{b})], sampling at @code{n} points
 evenly spaced in [@code{a},@code{b}], optionally restricted by the
@@ -8183,7 +8196,7 @@ guide[] graph(picture pic=currentpicture, real x(real), real y(real),
               bool3 cond(real), interpolate join=operator --);
 @end verbatim
 
-Returns a graph using the scaling information for picture @code{pic}
+returns a graph using the scaling information for picture @code{pic}
 of the parametrized function
 (@code{x}(@math{t}),@code{y}(@math{t})) for @math{t} in the interval
 [@code{T}(@code{a}),@code{T}(@code{b})], sampling at @code{n} points
@@ -8201,7 +8214,7 @@ guide[] graph(picture pic=currentpicture, pair z(real), real a, real b,
               interpolate join=operator --);
 @end verbatim
 
-Returns a graph using the scaling information for picture @code{pic}
+returns a graph using the scaling information for picture @code{pic}
 of the parametrized function
 @code{z}(@math{t}) for @math{t} in the interval
 [@code{T}(@code{a}),@code{T}(@code{b})], sampling at @code{n} points
@@ -8217,7 +8230,7 @@ guide[] graph(picture pic=currentpicture, pair[] z, bool3[] cond,
               interpolate join=operator --);
 @end verbatim
 
-Returns a graph using the scaling information for picture @code{pic}
+returns a graph using the scaling information for picture @code{pic}
 of the elements of the array @code{z}, optionally restricted to
 those indices for which the elements of the boolean array @code{cond} are
 @code{true}, using the given interpolation type.
@@ -8230,7 +8243,7 @@ guide[] graph(picture pic=currentpicture, real[] x, real[] y,
               bool3[] cond, interpolate join=operator --);
 @end verbatim
 
-Returns a graph using the scaling information for picture @code{pic}
+returns a graph using the scaling information for picture @code{pic}
 of the elements of the arrays (@code{x},@code{y}), optionally
 restricted to those indices for which the elements of the boolean
 array @code{cond} are @code{true}, using the given interpolation type.
@@ -8242,7 +8255,7 @@ guide polargraph(picture pic=currentpicture, real f(real), real a,
                  real b, int n=ngraph, interpolate join=operator --);
 @end verbatim
 
-Returns a polar-coordinate graph using the scaling information for
+returns a polar-coordinate graph using the scaling information for
 picture @code{pic} of the function @code{f} on the interval
 [@code{a},@code{b}], sampling at @code{n} evenly spaced points, with
 the given interpolation type.
@@ -8252,7 +8265,7 @@ the given interpolation type.
 guide polargraph(picture pic=currentpicture, real[] r, real[] theta,
                  interpolate join=operator--);
 @end verbatim
-Returns a polar-coordinate graph using the scaling information for
+returns a polar-coordinate graph using the scaling information for
 picture @code{pic} of the elements of the arrays (@code{r},@code{theta}),
 using the given interpolation type.
 
@@ -8409,11 +8422,11 @@ an optional pen used to draw the minor ticks.
 @cindex @code{OmitTick}
 @cindex @code{OmitTickInterval}
 @cindex @code{OmitTickIntervals}
-For convenience, the predefined tickmodifiers @code{OmitTick(... real[] x)},
+For convenience, the predefined tickmodifiers @code{OmitTick(...real[] x)},
 @code{OmitTickInterval(real a, real b)}, and
 @code{OmitTickIntervals(real[] a, real[] b)}
 can be used to remove specific auto-generated ticks and
-their labels. The @code{OmitFormat(string s=defaultformat ... real[] x)}
+their labels. The @code{OmitFormat(string s=defaultformat ...real[] x)}
 ticklabel can be used to remove specific tick labels but not the
 corresponding ticks. The tickmodifier @code{NoZero} is an abbreviation for
 @code{OmitTick(0)} and the ticklabel @code{NoZeroFormat} is an
@@ -8965,7 +8978,7 @@ a linearly scaled intensity.
 a full color wheel palette;
 
 @cindex @code{Gradient}
-@item pen[] Gradient(int NColors=256 ... pen[] p)
+@item pen[] Gradient(int NColors=256 ...pen[] p)
 a palette varying linearly over the specified array of pens, using
 NColors in each interpolation interval;
 
@@ -10529,7 +10542,7 @@ use the routine:
 @cindex @code{Horizontal}
 @cindex @code{Vertical}
 @verbatim
-path path(pair point[] ... flowdir dir[]);
+path path(pair point[] ...flowdir dir[]);
 @end verbatim
 @noindent
 The entries in @code{dir} identify whether successive
