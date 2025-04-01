@@ -6,6 +6,8 @@
 # the test list.
 
 
+
+
 add_asy_tests(
     TEST_DIR arith
     TESTS integer pair random real roots transform triple
@@ -21,6 +23,7 @@ add_asy_tests(
 
 
 )
+
 
 
 
@@ -104,6 +107,15 @@ add_asy_tests(
 add_asy_tests(
     TEST_DIR string
     TESTS erase find insert length rfind substr
+
+
+)
+
+
+
+add_asy_tests(
+    TEST_DIR syntax
+    TESTS trailingComma
 
 
 )
