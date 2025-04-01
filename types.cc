@@ -377,7 +377,7 @@ string toString(const signature& s)
 
   if (s.rest.t) {
     if (!s.formals.empty())
-      out << " ";
+      out << ", ";
     out << "... " << s.rest;
   }
 
