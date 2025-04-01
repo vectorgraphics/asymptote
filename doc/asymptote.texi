@@ -7370,11 +7370,80 @@ In addition to the methods, there is also an autounraveled implicit cast from
 @code{Map_K_V} to @code{Iterable_K}. This cast allows a @code{Map_K_V} to be
 passed as a parameter to utilities like @code{zip} or @code{enumerate}.
 
+@node Using Maps as Sets
+@subsection Using Maps as Sets
+
+Sometimes, you want a collection that lets you quickly add items, delete items,
+and determine whether an item is present. In Asymptote, the most straightforward
+option for such a collection is a @code{Map} with @code{bool} values with
+@code{nullValue} set to @code{false}. The code in the following examples assumes
+you want a set of a hashable or comparable type @code{K}.
+
+The import should be for some version of @code{Map_K_bool}. If @code{K} is
+hashable, something like this:
+@verbatim
+from collections.hashmap(K=K,V=bool) access
+    Map_K_V as Map_K_bool,
+    HashMap_K_V as HashMap_K_bool;
+Map_K_bool mset = HashMap_K_bool(nullValue=false);
+@end verbatim
+If @code{K} is not hashable but does have @code{operator <}, something like this
+may be used instead:
+@verbatim
+from collections.hashmap(K=K,V=bool) access
+    Map_K_V as Map_K_bool,
+    BTreeMap_K_V as BTreeMap_K_bool;
+Map_K_bool mset = BTreeMap_K_bool(nullValue=false);
+@end verbatim
+
+To add an item to the set, set its value to true:
+@verbatim
+mset[k] = true;
+@end verbatim
+If the item was already in the set, this statement will have no effect.
+
+To test whether an item is in the set, you can use the @code{contains} method or,
+if you want to feel clever, use brackets to access the value associated to
+@code{k}:
+@verbatim
+if (mset.contains(k)) {
+  write('membership verified');
+}
+// The following code is equivalent to the preceeding code:
+if (mset[k]) {
+  write('membership verified');
+}
+@end verbatim
+
+To remove an item from the set, you can either use the @code{delete} method
+(which throws an error if the item was not already present) or set its value to
+@code{false} (which does nothing if the item was not already present):
+@verbatim
+mset.delete(k);   // guaranteed to reduce size by 1 or else throw an error
+mset[k] = false;  // would delete k if we had not already deleted it
+@end verbatim
+To be clear, once a key has its value set to @code{false}, it will not show up in
+iterators over the set, nor will it contribute to the @code{size()} of the set:
+@verbatim
+mset[k] = true;
+int size1 = mset.size();
+mset[k] = false;
+assert(mset.size() == size1 - 1);
+@end verbatim
+
+Checking the size of the set or iterating over it work in the same way as usual:
+@verbatim
+int count = 0;
+for (K k : mset) { ++count; }
+assert(mset.size() == count);
+@end verbatim
+
 @node Sets
 @subsection Sets
 
-@node Using Maps as Sets
-@subsection Using Maps as Sets
+There is also a dedicated @code{Set_T} datastructure which is a bit more efficient
+(not storing an unneeded @code{bool}) and allows more precise methods (especially
+when it comes to sorted sets).
 
 TODO
 
