@@ -171,7 +171,7 @@ Iterators and utilities
 
 * @code{collections.iter(T)}::  Iterable structures
 * Combining (zipping) iterators::
-* Adding integer indices to iterators::
+* Attaching a counter to an iterator::
 
 Base modules
 
@@ -7005,7 +7005,7 @@ p.hash = new int() {
 @menu
 * @code{collections.iter(T)}::  Iterable structures
 * Combining (zipping) iterators::
-* Adding integer indices to iterators::
+* Attaching a counter to an iterator::
 @end menu
 
 @node @code{collections.iter(T)}
@@ -7185,13 +7185,14 @@ filling in any missing elements. This is basically equivalent to applying
 value.
 @end table
 
-@node Adding integer indices to iterators
-@subsubsection Adding integer indices to iterators
+@node Attaching a counter to an iterator
+@subsubsection Attaching a counter to an iterator
 @cindex @code{enumerate}
 @cindex @code{collections.enumerate}
 
-The @code{collections.enumerate(T)} module provides a way to keep count of the
-index in an iterator. There are two methods, both called @code{enumerate}:
+The @code{collections.enumerate(T)} module provides a way to
+attach a counter to an iterator.
+There are two methods, both called @code{enumerate}:
 @itemize
 @item @code{Iterable_Pair_int_T enumerate(Iterable_T iterable)}
 @item @code{Iterable_Pair_int_T enumerate(T[] array)}
