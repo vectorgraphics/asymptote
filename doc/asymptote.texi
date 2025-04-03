@@ -7471,6 +7471,14 @@ The @code{Set_T} datastructure itself is defined in the templated module
 of its methods defaulting to @code{null}. To get a working implementation, you
 need either a @code{HashSet_T} or a @code{BTreeSet_T}.
 
+@table @code
+@item HashSet_T()
+@itemx HashSet_T(T nullT, bool equiv(T a, T b) = operator ==, bool isNullT(T) = new bool(T t) @{ return equiv(t, nullT); @})
+These two functions must be accessed from the @code{collections.hashset(T)}
+templated module. They
+@end table
+
+
 TODO
 
 @node Using Sets as Maps
