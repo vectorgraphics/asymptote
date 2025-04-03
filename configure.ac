@@ -642,7 +642,6 @@ case "$OSTYPE" in
           AC_DEFINE(HAVE_LIBVULKAN,1,
           DEFINE_LIB([vulkan]))
           LIBS=$LIBS"-lglslang -lSPIRV-Tools-opt -lSPIRV-Tools "
-          OPTIONS=$OPTIONS"-DYYDEBUG=0 "
           ],
 
           [
@@ -652,7 +651,6 @@ case "$OSTYPE" in
           AC_DEFINE(HAVE_LIBVULKAN,1,
           DEFINE_LIB([vulkan]))
           LIBS=$LIBS"-lglslang "
-          OPTIONS=$OPTIONS"-DYYDEBUG=0 "
           ],
           [
           AC_MSG_NOTICE([*** Could not find libglslang: will compile without Vulkan support ***])
