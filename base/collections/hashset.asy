@@ -10,7 +10,7 @@ private struct HashEntry {
 }
 
 struct HashSet_T {
-  struct _ { autounravel restricted Set_T super; }
+  restricted Set_T super;
   from super unravel nullT, equiv, isNullT;
 
   // These fields are mutable.
@@ -29,7 +29,7 @@ struct HashSet_T {
   void operator init(T nullT,
       bool equiv(T a, T b) = operator ==,
       bool isNullT(T) = new bool(T t) { return equiv(t, nullT); }) {
-    typedef void F(T, bool equiv(T, T), bool isNullT(T));
+    using F = void(T, bool equiv(T, T), bool isNullT(T));
     ((F)super.operator init)(nullT, equiv, isNullT);
   }
 
