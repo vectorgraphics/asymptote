@@ -593,7 +593,7 @@ else
          HAVE_LIBGLM,1,
          DEFINE([the <glm/glm.hpp> header]))
       ],
-      AC_MSG_NOTICE([*** Could not find glm header files: will compile without WebGL or OpenGL support ***])
+      AC_MSG_NOTICE([*** Could not find glm header files: will compile without WebGL or Vulkan support ***])
    )
 fi
 
@@ -621,18 +621,6 @@ else  # managed by the system
    AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
 
 case "$OSTYPE" in
- darwin*)
-              AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
-              AC_CHECK_HEADER(OpenGL/gl.h,
-                             [AC_DEFINE(HAVE_LIBGL,1,
-                             DEFINE([<gl.h> header]))])
-              AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT,1,
-                   DEFINE_LIB[GLUT])
-                           LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa "
-                           INCL=$INCL"-Ibackports/glew/include "
-                           GLEW="glew.o "],
-                                 AC_MSG_NOTICE([*** Could not find GLUT: will compile without OpenGLLUT support ***]))
-        ;;
      *)
          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
           AC_CHECK_LIB([glfw], [glfwShowWindow],
@@ -640,7 +628,14 @@ case "$OSTYPE" in
           AC_CHECK_LIB([vulkan], [vkCreateInstance],
           [
           LIBS_SAVE=$LIBS
-          VULKAN_LIBS="-lMachineIndependent -lOSDependent -lGenericCodeGen "
+          case "$OSTYPE" in
+               darwin*)
+                 VULKAN_LIBS=""
+               ;;
+               *)
+                 VULKAN_LIBS="-lMachineIndependent -lOSDependent -lGenericCodeGen "
+               ;;
+          esac
           LIBS=$LIBS"-lglfw -lvulkan "$VULKAN_LIBS"-lSPIRV "
           AC_CHECK_LIB([glslang],[glslang_initialize_process],
           [
