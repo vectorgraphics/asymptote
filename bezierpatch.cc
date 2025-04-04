@@ -839,7 +839,7 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
       data.colorVertices[PI2]=ColorVertex{P2,N[NI[2]],MaterialIndex};
     }
     triple Q[]={P0,P1,P2};
-    std::vector<GLuint> &q=data.indices;
+    std::vector<uint32_t> &q=data.indices;
     if(!offscreen(3,Q)) {
       q.push_back(PI0);
       q.push_back(PI1);
