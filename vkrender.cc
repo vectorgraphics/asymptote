@@ -23,7 +23,8 @@
 #include <GLFW/glfw3native.h>
 #endif
 
-//using namespace settings;
+using settings::getSetting;
+using settings::Setting;
 
 bool havewindow;
 
@@ -457,7 +458,7 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
   switch (key)
   {
     case 'H':
-      app->travelHome();
+      app->home();
       break;
     case 'F':
       app->toggleFitScreen();
@@ -616,10 +617,17 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
       if(antialias) expand *= 2.0;
     }
 
+    oWidth=args.width;
+    oHeight=args.height;
+    Aspect=args.width/args.height;
+
     fullWidth=(int) ceil(expand*args.width);
     fullHeight=(int) ceil(expand*args.height);
 
-    if(!format3d) {
+    if(format3d) {
+      width=fullWidth;
+      height=fullHeight;
+    } else {
       if(offscreen) {
         screenWidth=fullWidth;
         screenHeight=fullHeight;
@@ -627,16 +635,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
         int mx, my;
         glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
       }
-    }
 
-    oWidth=args.width;
-    oHeight=args.height;
-    Aspect=args.width / args.height;
-
-    if(format3d) {
-      width=fullWidth;
-      height=fullHeight;
-    } else {
       width=min(fullWidth,screenWidth);
       height=min(fullHeight,screenHeight);
 
@@ -646,7 +645,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
         height=min((int) (ceil(width/Aspect)),screenHeight);
     }
 
-    travelHome(format3d);
+    home(format3d);
     setProjection();
     if(format3d) {
       remesh=true;
@@ -657,9 +656,9 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
     rotateMat = glm::mat4(1.0);
     viewMat = glm::mat4(1.0);
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(width,height);
+    Aspect=((double) width)/height;
 
 #ifdef HAVE_VULKAN
-    Aspect=((double) width)/height;
     setosize();
 #endif
   }
@@ -698,10 +697,8 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   fxaa=settings::getSetting<bool>("fxaa");
   srgb=settings::getSetting<bool>("srgb");
 
-#ifdef HAVE_VULKAN
-    Aspect=((double) width)/height;
-    setosize();
-#endif
+  Aspect=((double) width)/height;
+  setosize();
 
   Animate=settings::getSetting<bool>("autoplay") && vkthread;
   ibl=settings::getSetting<bool>("ibl");
@@ -710,16 +707,15 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
     std::cout << "Using offscreen mode." << std::endl;
   }
 
-    travelHome(format3d);
-    setProjection();
+  home(format3d);
+  setProjection();
   initWindow();
 
   if(View) {
-    auto const fitscreenSetting= settings::getSetting<bool>("fitscreen");
-    if (!fitscreenSetting)
+    if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
     firstFit=true;
-    fitscreen(fitscreenSetting);
+    fitscreen();
     setosize();
   }
 
@@ -727,11 +723,10 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   }
 
   if(View) {
-  auto const fitscreenSetting= settings::getSetting<bool>("fitscreen");
-  if (!fitscreenSetting)
+    if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
     firstFit=true;
-    fitscreen(fitscreenSetting);
+    fitscreen();
     setosize();
     initializedView=true;
   }
@@ -4828,7 +4823,7 @@ void AsyVkRender::quit()
     bool animating=settings::getSetting<bool>("animating");
     if(animating)
       settings::Setting("interrupt")=true;
-    travelHome();
+    home();
     Animate=settings::getSetting<bool>("autoplay");
 #ifdef HAVE_PTHREAD
     if(!interact::interactive || animating) {
@@ -5011,18 +5006,12 @@ void AsyVkRender::zoom(double dx, double dy)
   }
 }
 
-bool AsyVkRender::capsize(int& w, int& h) {
+void AsyVkRender::capsize(int& width, int& height) {
 
-  bool resize=false;
-  if(width > screenWidth) {
+  if(width > screenWidth)
     width=screenWidth;
-    resize=true;
-  }
-  if(height > screenHeight) {
+  if(height > screenHeight)
     height=screenHeight;
-    resize=true;
-  }
-  return resize;
 }
 
 void AsyVkRender::windowposition(int& x, int& y, int Width, int Height)
@@ -5101,17 +5090,14 @@ void AsyVkRender::reshape0(int Width, int Height) {
 
   static int lastWidth=1;
   static int lastHeight=1;
-  if(View && width*height > 1 && (width != lastWidth || height != lastHeight)
-     && settings::verbose > 1) {
-    cout << "Rendering " << stripDir(Prefix) << " as "
-         << width << "x" << height << " image" << endl;
-    lastWidth=width;
-    lastHeight=height;
+  if(View && width*height > 1 && (width != lastWidth || height != lastHeight)) {
+      if(settings::verbose > 1)
+        cout << "Rendering " << stripDir(Prefix) << " as "
+             << width << "x" << height << " image" << endl;
+      lastWidth=width;
+      lastHeight=height;
+      setProjection();
   }
-
-  glfwHideWindow(window);
-  hidden=true;
-  setProjection();
 }
 
 void AsyVkRender::setosize() {
@@ -5158,7 +5144,7 @@ void AsyVkRender::toggleFitScreen() {
   fitscreen();
 }
 
-void AsyVkRender::travelHome(bool webgl) {
+void AsyVkRender::home(bool webgl) {
   X = Y = cx = cy = 0;
   rotateMat = viewMat = glm::mat4(1.0);
   Zoom0 = 1.0;
