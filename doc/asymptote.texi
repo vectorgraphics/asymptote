@@ -257,7 +257,7 @@ that can generate objects directly. However, the script portion of the language
 is now ready for general use by users who are willing to learn a few
 simple @code{Asymptote} graphics commands (@pxref{Drawing commands}).
 
-@code{Asymptote} is mathematically oriented (e.g.@ one can
+@code{Asymptote} is mathematically oriented (one can
 use complex multiplication to rotate a vector) and uses
 @code{LaTeX} to do the
 typesetting of labels. This is an important feature for scientific
@@ -393,9 +393,9 @@ dnf --enablerepo=rawhide install asymptote
 @cindex Debian
 @noindent
 To install the latest version of @code{Asymptote} on a Debian-based distribution
-(e.g.@ Ubuntu, Mepis, Linspire) follow the instructions for compiling
+(such as Ubuntu) follow the instructions for compiling
 from @code{UNIX} source (@pxref{Compiling from UNIX source}).
-Alternatively, Debian users can install one of Hubert Chan's
+Alternatively, Debian users can install one of Hubert Chathi's
 prebuilt @code{Asymptote} binaries from
 @quotation
 @url{http://ftp.debian.org/debian/pool/main/a/asymptote}
@@ -714,7 +714,7 @@ look for header files and libraries in nonstandard locations:
 @end verbatim
 
 If you are compiling @code{Asymptote} with @code{gcc}, you will need a
-relatively recent version (e.g.@ 3.4.4 or later).  For full interactive
+version that supports C++17.  For full interactive
 functionality, you will need version 4.3 or later of the @acronym{GNU}
 @code{readline} library.
 The file @code{gcc3.3.2curses.patch} in the @code{patches} directory can
@@ -2241,7 +2241,7 @@ returns @code{(max(u.x,v.x),max(u.y,v.y),max(u.z,v.z)}).
 a character string, implemented using the STL @code{string} class.
 
 Strings delimited by double quotes (@code{"}) are subject to the
-following mappings to allow the use of double quotes in @TeX{} (e.g.@ for
+following mappings to allow the use of double quotes in @TeX{} (for
 using the @code{babel} package, @pxref{babel}):
 
 @itemize @bullet
@@ -3067,7 +3067,7 @@ the command
 import texcolors;
 @end verbatim
 Note that there is some overlap between these two standards
-and the definitions of some colors (e.g.@ @code{Green}) actually disagree.
+and the definitions of some colors (such as @code{Green}) actually disagree.
 
 @code{Asymptote} also comes with a @code{asycolors.sty} @code{LaTeX} package
 that defines to @code{LaTeX} @acronym{CMYK} versions of
@@ -3707,7 +3707,7 @@ The transformation that would currently be used to fit a picture
 @code{pic} to a frame is returned by the member function
 @code{pic.calculateTransform()}.
 
-In certain cases (e.g.@ 2D graphs) where only an approximate size
+In certain cases (such as 2D graphs) where only an approximate size
 estimate for @code{pic} is available, the picture fitting routine
 @cindex @code{picture.scale}
 @verbatim
@@ -4264,7 +4264,7 @@ One may then press @code{Enter} to continue to the next @code{n} output lines,
 @code{s} followed by @code{Enter} to scroll without further interruption,
 or @code{q} followed by @code{Enter} to quit the current output
 operation. If @code{n} is negative, the output scrolls a page at a time
-(i.e. by one less than the current number of display lines). The default
+(by one less than the current number of display lines). The default
 value, @code{settings.scroll=0}, specifies continuous scrolling.
 
 The routines
@@ -5088,8 +5088,8 @@ based on their signatures.
 @cindex stack overflow
 Functions are allowed to call themselves recursively. As in C++, infinite
 nested recursion will generate a stack overflow (reported as a
-segmentation fault, unless a fully working version of the @acronym{GNU}
-library @code{libsigsegv} (e.g.@ 2.4 or later) is installed at
+segmentation fault or illegal instruction, unless a fully working
+version of the @acronym{GNU} library @code{libsigsegv} is installed at
 configuration time).
 
 @node Default arguments
@@ -6823,8 +6823,8 @@ that renames a @code{struct}.
 
 The @code{autounravel} modifier implies @code{static} and can be used
 in many of the same places as @code{static}. However, specifying
-@code{autounravel} at the top level of a module (i.e.,
-outside of any structure or function) is an error, whereas @code{static}
+@code{autounravel} at the top level of a module
+(outside of any structure or function) is an error, whereas @code{static}
 gives only a warning. @footnote{If top-level @code{autounravel} were allowed,
 a user might incorrectly assume that the field would be unraveled
 whenever the module is @code{access}ed. The @code{static} modifier
@@ -7129,8 +7129,8 @@ provides a way to iterate over multiple containers in
 a single @code{for} loop.
 It is similar to @code{collections.zip2(K,V)}, but condenses the iterables
 into an iterable over arrays rather than over pairs. This requires that all the
-iterables be over the same type (e.g., all string iterators or all integer
-iterators):
+iterables be over the same type (for example, all string iterators or
+all integer iterators):
 @verbatim
 from collections.zip(T=int) access zip;
 int[] x = {0, 1, 2, 3};
@@ -7204,9 +7204,8 @@ Here's a simple example:
 @verbatim
 from collections.enumerate(T=int) access enumerate;
 int[] x = {1, 4, 9, 16};
-for (var ab : enumerate(x)) {
+for (var ab : enumerate(x))
   write('Element ' + string(ab.k) + ' is ' + string(ab.v));
-}
 @end verbatim
 @noindent
 which outputs
@@ -7216,16 +7215,15 @@ Element 1 is 4
 Element 2 is 9
 Element 3 is 16
 @end verbatim
-Note that this is not necessarily worthwhile for arrays, since the ``standard''
-@code{for} loop is more efficient:
+Note that @code{enumerate} is not necessarily worthwhile for arrays
+since they are already indexed by integers:
 @verbatim
 int[] x = {1, 4, 9, 16};
-for (int i=0; i < x.length; ++i) {
+for (int i=0; i < x.length; ++i)
   write('Element ' + string(i) + ' is ' + string(x[i]));
-}
 @end verbatim
-@noindent However, the Map and Set datastructures discussed below do not have a
-builtin integer index, so @code{enumerate} is more useful for their iterators.
+@noindent The @code{enumerate} utility is more useful for structures
+that do not have a builtin integer index (such as @code{Map} and @code{Set}).
 
 @node Maps
 @subsection Maps
@@ -7236,13 +7234,12 @@ builtin integer index, so @code{enumerate} is more useful for their iterators.
 Many modern programming languages have a builtin datastructure that is variously
 called a map, dictionary, or associative array.
 
-In programming languages such as Asymptote, @code{Map}s and @code{function}s
-are different tools based on the mathematical concept of a function. 
-A @code{function} computes each output value from the input. A @code{Map}
+In programming languages such as Asymptote, @code{Map}s and functions
+are different tools both based on the mathematical concept of a function.
+A @code{function} computes an output value for each valid input. A @code{Map}
 stores a set of input-output pairs; it has a finite domain consisting of those
 inputs whose outputs were explicitly added. Typically, the inputs to a
-@code{Map} are called keys, and the outputs are called values. Here is an
-example of using a @code{Map}:
+@code{Map} are called keys, and the outputs are called values:
 
 @verbatim
 from collections.hashmap(K=string, V=int) access
@@ -7255,17 +7252,19 @@ HashMap_string_int h;
 h['hello'] = 5;
 h['world'] = 3;
 
-// Iterate over the keys (i.e., the domain) of h.
+// Iterate over the keys (the domain) of h.
 for (string key : h) {
 
   // Compute the output for the given input.
   int value = h[key];
   write(key + ' ' + string(value));
 }
-
-// Result of running the above code:
-// hello 5
-// world 3
+@end verbatim
+@noindent
+which outputs
+@verbatim
+hello 5
+world 3
 @end verbatim
 
 @c // Additional points (not necessarily in this order):
@@ -7283,15 +7282,16 @@ for (string key : h) {
 @node Initializing a @code{Map}
 @subsubsection Initializing a @code{Map}
 The @code{Map_K_V} structure itself is defined in the templated module
-@code{collections.map(K,V)}. However, to initialize a @code{Map_K_V}, you need
-to choose a function from a different module.
+@code{collections.map(K,V)}. To initialize a @code{Map_K_V}, you need
+to use a function from @code{collections.hashmap} or
+@code{collections.btreemap}:
 
 @table @code
 @item HashMap_K_V()
 @itemx HashMap_K_V(V nullValue, bool isNullValue(V v) =@*@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ new bool(V v) @{return v == nullValue; @})
-These two functions must be accessed from the @code{collections.hashmap(K,V)}
-templated module. They create a HashMap, which should be your default choice
-for a map. The key type must have a @code{hash} method, @pxref{Hash functions}.
+These two functions, which create a HashMap, must be accessed from the
+@code{collections.hashmap(K,V)} templated module. The key type must
+have a @code{hash} method, @pxref{Hash functions}.
 @item BTreeMap_K_V()
 @itemx BTreeMap_K_V(V nullValue, bool isNullValue(V v) =@*@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ new bool(V v) @{return v == nullValue; @})
 These two functions must be accessed from the @code{collections.btreemap(K,V)}
@@ -7299,61 +7299,70 @@ templated module. They create a BTreeMap, which stores its keys in sorted order.
 The key type must have a @code{<} operator.
 @end table
 
-Both the types @code{HashMap_K_V} and @code{BTreeMap_K_V} can be implicitly cast
-to @code{Map_K_V}. Additionally, even without being cast, the two types have
-the same methods as @code{Map_K_V}, @pxref{The @code{Map} API}.
-Similarly, the @code{nullValue} and @code{isNullValue} optional
-parameters behave the same way for both types, @pxref{The @code{Map} API}.
+@code{HashMap_K_V} is an appropriate choice for most purposes.
 
-As a very approximate rule of thumb, @code{HashMap_K_V} is currently faster than
-@code{BTreeMap_K_V} by a factor of 2, assuming no more than a few hundred
-million entries. This is currently a very rough estimate that depends on the
-key type @code{K} having cheap hash, equality, and comparison functions.
-Furthermore, the performance of these map implementations could change
-drastically in the future as the code is optimized.
+Both @code{HashMap_K_V} and @code{BTreeMap_K_V} can be implicitly cast
+to @code{Map_K_V}. Even without being cast, the two types have
+the same methods as @code{Map_K_V}.
+Similarly, the @code{nullValue} and @code{isNullValue} optional
+parameters behave the same way for both types. @xref{The @code{Map} API}.
+
+Typically, @code{HashMap_K_V} is faster than
+@code{BTreeMap_K_V} by about a factor of 2, assuming no more than a
+few hundred million entries. This is a very rough estimate
+that depends on the key type @code{K} having cheap hash, equality, and
+comparison functions. The relative performance of these map implementations
+could change in the future as the code is optimized.
 
 @node The @code{Map} API
 @subsubsection The @code{Map} API
 
 The @code{Map_K_V} structure has the following methods. Note that its
-``subclasses'' @code{HashMap_K_V} and @code{BTreeMap_K_V} each have all
+``subclasses'' @code{HashMap_K_V} and @code{BTreeMap_K_V} each have
 the same fields.
 
 Depending on which constructor is used, a @code{Map} may or may not have
 valid instances of @code{nullValue} and @code{isNullValue(V)}. If one of
 these is valid, the other will be too. In some methods below, an error
 will be thrown unless @code{nullValue} can be returned to indicate an
-element is not present. When @code{nullValue} exists, the map enforces the
-invariant that for a map @code{m}, the expression @code{m.isNullValue(m[k])}
-is equivalent to @code{m.contains(k)}.
+element is not present. When @code{nullValue} exists for a map
+@code{m}, the expression @code{m.isNullValue(m[k])} is equivalent to
+@code{m.contains(k)}.
 
 @table @code
+
 @item int size()
-The @code{size} method
 returns the number of distinct keys in the map.
+
 @item bool empty()
-The @code{empty} method returns true iff @code{size() == 0}.
+returns true iff @code{size() == 0}.
+
 @item bool contains(K key)
-The @code{contains} method returns true if @code{key} is present as a key in
+returns true if @code{key} is present as a key in
 the map.
+
 @item V operator [] (K key)
-The bracket operator (@pxref{Bracket operators}) returns the value
+returns the value
 associated with the element @code{key}. If @code{key} is not present,
 this method either returns @code{nullValue} or, if @code{nullValue} does not
-exist, throws an error.
+exist, throws an error. @xref{Bracket operators}.
+
 @item void operator [=] (K key, V value)
-The bracket assign operator (@pxref{Bracket operators}) adds the pair
-@code{(key, value)} to the map. If @code{key} was already present, its
-associated value is replaced (as is the key itself, but that should rarely
-matter since the old and new keys are equal). However, if
+adds the pair
+@code{(key, value)} to the map. If a key equivalent to @code{key} is
+already present, its associated value is replaced (as is the key
+itself, but that should rarely matter since the old and new keys are
+equivalent). However, if
 @code{isNullValue(value)} is true, then the assignment instead removes
-@code{key} from the map if it was already there.
+@code{key} from the map if it was already there. @xref{Bracket operators}.
+
 @item void delete(K key)
-The @code{delete} method removes @code{key} from the map. If @code{key} was
+removes @code{key} from the map. If @code{key} was
 not already in the map, an error is thrown. (An alternative that will not
 throw an error is to set the value of @code{key} to @code{nullValue}.)
+
 @item Iter_K operator iter()
-The @code{iter} operator returns an iterator over the keys of the map.
+returns an iterator over the keys of the map.
 It allows the map to be used in range-based @code{for} loops, as in
 @verbatim
 for (K key : m) {<statements>}
@@ -7364,9 +7373,9 @@ may behave nonsensically. The current implementations attempt to throw errors
 if an iterator is used after being undermined,
 but this behavior is not guaranteed and might be removed in
 future versions to make operations faster.
+
 @item Iterable_K_V pairs()
-The @code{pairs} method returns an iterable over the key-value pairs. Example
-usage:
+returns an iterable over the key-value pairs. For example,
 @verbatim
 for (Pair_K_V p : m.pairs()) {
   K key = p.k;
@@ -7374,19 +7383,22 @@ for (Pair_K_V p : m.pairs()) {
   <statements>
 }
 @end verbatim
+
 @item K[] keys()
-The @code{keys} method returns an array of all the keys. The array is a shallow
-copy; changes to it will not affect changes to the map (and vice versa), but
-the map will behave unpredictably if the keys themselves are mutated.
-@item void addAdd(Iterable_K_V other)
-The @code{addAll} method adds all the key-value pairs from @code{other}.
-Running @code{m.addAll(o);} should be equivalent to running
+returns an array of all the keys. The array is a shallow
+copy; changes to it will not affect the map (and vice versa), but
+changes to the entries of the keys will undermine the integrity of the
+map.
+
+@item void add(Iterable_K_V other)
+adds the key-value pairs from @code{other}.
+Running @code{m.add(o);} should be equivalent to running
 @verbatim
 for (var pr : o) { m[pr.k] = pr.v; }
 @end verbatim
 @end table
 
-In addition to the methods, there is also an autounraveled implicit cast from
+In addition to these methods, there is also an autounraveled implicit cast from
 @code{Map_K_V} to @code{Iterable_K}. This cast allows a @code{Map_K_V} to be
 passed as a parameter to utilities like @code{zip} or @code{enumerate}.
 
@@ -8853,7 +8865,7 @@ The predefined scaling routines can be given two optional boolean arguments:
 @code{false} but can be respectively set to @code{true} to enable
 automatic selection of "nice" axis minimum and maximum values. The
 @code{Linear} scaling can also take as optional final arguments a
-multiplicative scaling factor and intercept (e.g.@ for a depth axis,
+multiplicative scaling factor and intercept (for a depth axis,
 @code{Linear(-1)} requests axis reversal).
 
 @cindex logarithmic graph
