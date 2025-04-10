@@ -7232,16 +7232,15 @@ that do not have a builtin integer index (such as @code{Map} and @code{Set}).
 @cindex dictionary @seeentry{@code{Map_K_V}}
 @cindex associative array @seeentry{@code{Map_K_V}}
 
-Many modern programming languages have a builtin datastructure that is variously
-called a map, dictionary, or associative array.
-
-In programming languages such as Asymptote, @code{Map}s and programming functions
-are different tools both based on the mathematical concept of a function.
+Many modern programming languages have a builtin datastructure that is
+variously called a map, dictionary, or associative array.
+This structure is based on the mathematical concept of a function,
+but differs from the programming functions discussed previously (@pxref{Functions}):
 
 @itemize
 @item
-A syntactic function computes an output value for each valid input. Unlike a
-mathematical function, it can have side effects. @xref{Functions}.
+A programming function computes an output value for each valid input. Unlike a
+mathematical function, it can have side effects.
 @item A @code{Map}
 stores a set of input-output pairs. It has a finite domain consisting of those
 inputs whose outputs were explicitly added. Typically, the inputs to a
@@ -7249,7 +7248,7 @@ inputs whose outputs were explicitly added. Typically, the inputs to a
 @end itemize
 
 @noindent
-The second tool, @code{Map}, is the subject of this section:
+This example of a @code{Map} assigns integer values to string keys:
 @verbatim
 from collections.hashmap(K=string, V=int) access
     HashMap_K_V as HashMap_string_int;
@@ -7270,7 +7269,7 @@ for (string key : h) {
 }
 @end verbatim
 @noindent
-produces the output
+producing the output
 @verbatim
 hello 5
 world 3
@@ -7325,7 +7324,7 @@ parameters behave the same way for both types. @xref{The @code{Map} API}.
 In theory, adding, removing, or looking up an element should require,
 on average, @math{O(1)} time for @code{HashMap_K_V} and
 @math{O(\log n)} time for @code{BTreeMap_K_V} (where @math{n} represents
-the number of elements in the container). In practice,
+the number of elements in the container).
 In practice, @code{HashMap_K_V} is faster than
 @code{BTreeMap_K_V} by about a factor of 2, assuming no more than a
 few million entries. (This is a very rough estimate
@@ -7450,56 +7449,58 @@ passed as a parameter to utilities like @code{zip} or @code{enumerate}.
 @node Using Maps as Sets
 @subsection Using Maps as Sets
 
-Sometimes, you want a collection that lets you quickly add items, delete items,
-and determine whether an item is present. In Asymptote, the most straightforward
-option for such a collection is a @code{Map} with @code{bool} values with
-@code{nullValue} set to @code{false}. The code in the following examples assumes
-you want a set of a hashable or comparable type @code{K}.
+Sometimes, you want a collection of objects of type @code{K} that lets
+you quickly add items, delete items, and determine whether an item is present. In Asymptote, the most straightforward
+option for such a collection is a @code{Map} from keys of type
+@code{K} to @code{bool} values, with @code{nullValue} set to @code{false}.
 
-The import should be for some version of @code{Map_K_bool}. If @code{K} is
-hashable, something like this:
+One needs to access some version of @code{Map_K_bool}.
+If @code{K} is hashable, one could write
 @verbatim
 from collections.hashmap(K=K,V=bool) access
     Map_K_V as Map_K_bool,
     HashMap_K_V as HashMap_K_bool;
 Map_K_bool mset = HashMap_K_bool(nullValue=false);
 @end verbatim
+@noindent
 If @code{K} is not hashable but does have @code{operator <}, something like this
 may be used instead:
 @verbatim
-from collections.hashmap(K=K,V=bool) access
+from collections.btreemap(K=K,V=bool) access
     Map_K_V as Map_K_bool,
     BTreeMap_K_V as BTreeMap_K_bool;
 Map_K_bool mset = BTreeMap_K_bool(nullValue=false);
 @end verbatim
 
-To add an item to the set, set its value to true:
+To add an item @code{k} to @code{mset}, assign it the value @code{true}:
 @verbatim
 mset[k] = true;
 @end verbatim
+@noindent
 If the item was already in the set, this statement will have no effect.
 
-To test whether an item is in the set, you can use the @code{contains} method or,
-if you want to feel clever, use brackets to access the value associated to
-@code{k}:
+To test whether an item is in the set, you can either use the @code{contains}
+method or use brackets to access the value associated with @code{k}:
 @verbatim
-if (mset.contains(k)) {
+if (mset.contains(k))
   write('membership verified');
-}
-// The following code is equivalent to the preceeding code:
-if (mset[k]) {
+@end verbatim
+@noindent
+or, equivalently,
+@verbatim
+if (mset[k])
   write('membership verified');
-}
 @end verbatim
 
 To remove an item from the set, you can either use the @code{delete} method
 (which throws an error if the item was not already present) or set its value to
 @code{false} (which does nothing if the item was not already present):
 @verbatim
-mset.delete(k);   // guaranteed to reduce size by 1 or else throw an error
-mset[k] = false;  // would delete k if we had not already deleted it
+mset.delete(k);  // guaranteed to reduce mset.size() by 1 or throw an error
+mset[k] = false; // would delete k if we had not already deleted it
 @end verbatim
-To be clear, once a key has its value set to @code{false}, it will not show up in
+
+Once a key has its value set to @code{false}, it will not show up in
 iterators over the set, nor will it contribute to the @code{size()} of the set:
 @verbatim
 mset[k] = true;
@@ -7508,7 +7509,7 @@ mset[k] = false;
 assert(mset.size() == size1 - 1);
 @end verbatim
 
-Checking the size of the set or iterating over it work in the same way as usual:
+One can iterate over the set or check its size:
 @verbatim
 int count = 0;
 for (K k : mset) { ++count; }
@@ -7569,7 +7570,7 @@ allows the array to be used as a key in a hashmap.
 The main type in @code{collections.wraparray(T)} is @code{Array_T},
 which should normally be renamed to replace @code{T} with the type of the
 elements of the array. @code{Array_T} is not a drop-in replacement for
-@code{T[]}, but it is as close as any structure can be. For convenience, the
+@code{T[]}, but is as close as any structure can be. For convenience, the
 function @code{Array_T wrap(T[] data)} can be used to convert an array to
 an @code{Array_T}.
 
@@ -7577,13 +7578,13 @@ The methods and fields of @code{Array_T} should be identical to those of
 @code{T[]}, with the following exceptions:
 @table @code
 @item int length()
-Method rather than a field. (Requires parentheses afterwards.)
+is a method (requires parentheses afterwards) that returns the length of the array.
 @item void cyclic(bool b)
-Sets the @code{cyclic} field of the wrapped array.
+sets the @code{cyclic} field of the wrapped array.
 @item bool cyclic()
-Returns the @code{cyclic} field of the wrapped array.
+returns the @code{cyclic} field of the wrapped array.
 @item int[] keys()
-Method rather than a field.
+is a method (requires parentheses afterwards) that returns the @code{keys} field of the wrapped array.
 @end table
 
 Additionally, the iteration syntax @code{for (T x : a)} is supported
