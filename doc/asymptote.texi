@@ -7228,19 +7228,28 @@ that do not have a builtin integer index (such as @code{Map} and @code{Set}).
 @node Maps
 @subsection Maps
 @cindex @code{Map}
-@cindex dictionary @seeentry{@code{Map}}
-@cindex associative array @seeentry{@code{Map}}
+@cindex @code{Map_K_V}
+@cindex dictionary @seeentry{@code{Map_K_V}}
+@cindex associative array @seeentry{@code{Map_K_V}}
 
 Many modern programming languages have a builtin datastructure that is variously
 called a map, dictionary, or associative array.
 
-In programming languages such as Asymptote, @code{Map}s and functions
+In programming languages such as Asymptote, @code{Map}s and programming functions
 are different tools both based on the mathematical concept of a function.
-A @code{function} computes an output value for each valid input. A @code{Map}
-stores a set of input-output pairs; it has a finite domain consisting of those
-inputs whose outputs were explicitly added. Typically, the inputs to a
-@code{Map} are called keys, and the outputs are called values:
 
+@itemize
+@item
+A syntactic function computes an output value for each valid input. Unlike a
+mathematical function, it can have side effects. @xref{Functions}.
+@item A @code{Map}
+stores a set of input-output pairs. It has a finite domain consisting of those
+inputs whose outputs were explicitly added. Typically, the inputs to a
+@code{Map} are called keys, and the outputs are called values.
+@end itemize
+
+@noindent
+The second tool, @code{Map}, is the subject of this section:
 @verbatim
 from collections.hashmap(K=string, V=int) access
     HashMap_K_V as HashMap_string_int;
@@ -7261,7 +7270,7 @@ for (string key : h) {
 }
 @end verbatim
 @noindent
-which outputs
+produces the output
 @verbatim
 hello 5
 world 3
@@ -7279,6 +7288,10 @@ world 3
 @c // * Do not mutate the key while it is a key in the hashmap.
 @c // * Iterating over keys vs pairs.
 
+@cindex @code{Map_K_V}
+@cindex @code{collections.map}
+@cindex @code{collections.hashmap}
+@cindex @code{collections.btreemap}
 @node Initializing a @code{Map}
 @subsubsection Initializing a @code{Map}
 The @code{Map_K_V} structure itself is defined in the templated module
@@ -7287,11 +7300,13 @@ to use a function from @code{collections.hashmap} or
 @code{collections.btreemap}:
 
 @table @code
+@cindex @code{HashMap_K_V}
 @item HashMap_K_V()
 @itemx HashMap_K_V(V nullValue, bool isNullValue(V v) =@*@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ new bool(V v) @{return v == nullValue; @})
 These two functions, which create a HashMap, must be accessed from the
 @code{collections.hashmap(K,V)} templated module. The key type must
 have a @code{hash} method, @pxref{Hash functions}.
+@cindex @code{BTreeMap_K_V}
 @item BTreeMap_K_V()
 @itemx BTreeMap_K_V(V nullValue, bool isNullValue(V v) =@*@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ new bool(V v) @{return v == nullValue; @})
 These two functions must be accessed from the @code{collections.btreemap(K,V)}
@@ -7307,11 +7322,15 @@ the same methods as @code{Map_K_V}.
 Similarly, the @code{nullValue} and @code{isNullValue} optional
 parameters behave the same way for both types. @xref{The @code{Map} API}.
 
-Typically, @code{HashMap_K_V} is faster than
+In theory, adding, removing, or looking up an element should require,
+on average, @math{O(1)} time for @code{HashMap_K_V} and
+@math{O(\log n)} time for @code{BTreeMap_K_V} (where @math{n} represents
+the number of elements in the container). In practice,
+In practice, @code{HashMap_K_V} is faster than
 @code{BTreeMap_K_V} by about a factor of 2, assuming no more than a
-few hundred million entries. This is a very rough estimate
+few million entries. (This is a very rough estimate
 that depends on the key type @code{K} having cheap hash, equality, and
-comparison functions. The relative performance of these map implementations
+comparison functions.) The relative performance of these map implementations
 could change in the future as the code is optimized.
 
 @node The @code{Map} API
@@ -7321,6 +7340,8 @@ The @code{Map_K_V} structure has the following methods. Note that its
 ``subclasses'' @code{HashMap_K_V} and @code{BTreeMap_K_V} each have
 the same fields.
 
+@cindex @code{nullValue}
+@cindex @code{isNullValue}
 Depending on which constructor is used, a @code{Map} may or may not have
 valid instances of @code{nullValue} and @code{isNullValue(V)}. If one of
 these is valid, the other will be too. In some methods below, an error
@@ -7330,23 +7351,34 @@ element is not present. When @code{nullValue} exists for a map
 @code{m.contains(k)}.
 
 @table @code
-
+@cindex @code{Map_K_V} @subentry @code{.size}
+@cindex @code{size} @subentry @code{Map.size}
 @item int size()
 returns the number of distinct keys in the map.
 
+@cindex @code{Map_K_V} @subentry @code{.empty}
+@cindex @code{empty} @subentry @code{Map.empty}
 @item bool empty()
 returns true iff @code{size() == 0}.
 
+@cindex @code{Map_K_V} @subentry @code{.contains}
+@cindex @code{contains} @subentry @code{Map.contains}
 @item bool contains(K key)
 returns true if @code{key} is present as a key in
 the map.
 
+@cindex @code{Map_K_V} @subentry @code{.operator []}
+@cindex @code{operator []} @subentry @code{Map.operator []}
+@cindex @code{[]} @subentry @code{Map.operator []}
 @item V operator [] (K key)
 returns the value
 associated with the element @code{key}. If @code{key} is not present,
 this method either returns @code{nullValue} or, if @code{nullValue} does not
 exist, throws an error. @xref{Bracket operators}.
 
+@cindex @code{Map_K_V} @subentry @code{.operator [=]}
+@cindex @code{operator [=]} @subentry @code{Map.operator [=]}
+@cindex @code{[]} @subentry @code{Map.operator [=]}
 @item void operator [=] (K key, V value)
 adds the pair
 @code{(key, value)} to the map. If a key equivalent to @code{key} is
@@ -7356,11 +7388,16 @@ equivalent). However, if
 @code{isNullValue(value)} is true, then the assignment instead removes
 @code{key} from the map if it was already there. @xref{Bracket operators}.
 
+@cindex @code{Map_K_V} @subentry @code{.delete}
+@cindex @code{delete} @subentry @code{Map.delete}
 @item void delete(K key)
 removes @code{key} from the map. If @code{key} was
 not already in the map, an error is thrown. (An alternative that will not
 throw an error is to set the value of @code{key} to @code{nullValue}.)
 
+@cindex @code{Map_K_V} @subentry @code{.operator iter}
+@cindex @code{operator iter} @subentry @code{Map.operator iter}
+@cindex @code{Map_K_V} @subentry iterating over
 @item Iter_K operator iter()
 returns an iterator over the keys of the map.
 It allows the map to be used in range-based @code{for} loops, as in
@@ -7374,6 +7411,9 @@ if an iterator is used after being undermined,
 but this behavior is not guaranteed and might be removed in
 future versions to make operations faster.
 
+@cindex @code{Map_K_V} @subentry @code{.pairs}
+@cindex @code{pairs} @subentry @code{Map.pairs}
+@cindex @code{Map_K_V} @subentry iterating over
 @item Iterable_K_V pairs()
 returns an iterable over the key-value pairs. For example,
 @verbatim
@@ -7384,12 +7424,16 @@ for (Pair_K_V p : m.pairs()) {
 }
 @end verbatim
 
+@cindex @code{Map_K_V} @subentry @code{.keys}
+@cindex @code{keys} @subentry @code{Map.keys}
 @item K[] keys()
 returns an array of all the keys. The array is a shallow
 copy; changes to it will not affect the map (and vice versa), but
 changes to the entries of the keys will undermine the integrity of the
 map.
 
+@cindex @code{Map_K_V} @subentry @code{.add}
+@cindex @code{add} @subentry @code{Map.add}
 @item void add(Iterable_K_V other)
 adds the key-value pairs from @code{other}.
 Running @code{m.add(o);} should be equivalent to running
@@ -7398,6 +7442,7 @@ for (var pr : o) { m[pr.k] = pr.v; }
 @end verbatim
 @end table
 
+@cindex @code{Map_K_V} @subentry cast to Iterable
 In addition to these methods, there is also an autounraveled implicit cast from
 @code{Map_K_V} to @code{Iterable_K}. This cast allows a @code{Map_K_V} to be
 passed as a parameter to utilities like @code{zip} or @code{enumerate}.
