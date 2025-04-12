@@ -46,24 +46,6 @@ uint64_t hashSpan(span<const uint64_t> s) {
   return hashSpan(sChar);
 }
 
-std::array<uint64_t, 4> fingerprint(span<const char> s) {
-  // The following key was generated using the Python `secrets` module.
-  // However, since the key is public, the resulting hash is not secure.
-  // (While HighwayHash makes cryptographic claims, those claims rely on
-  // the secrecy of the key.)
-  HH_ALIGNAS(32) static constexpr HHKey key= {
-      UINT64_C(0x6e1b31ab5e83c15a),
-      UINT64_C(0x6648d2208b67c4af),
-      UINT64_C(0xcddc6e8f557f7103),
-      UINT64_C(0x0729a6dd6e86d99a)
-  };
-  HHResult256 result;
-  InstructionSets::Run<HighwayHash>(key, s.data(), s.size(), &result);
-  std::array<uint64_t, 4> fingerprint;
-  std::copy_n(result, 4, fingerprint.begin());
-  return fingerprint;
-}
-
 uint64_t hashInt(uint64_t i) {
   span<const uint64_t> s = {&i, 1};
   return hashSpan(s);

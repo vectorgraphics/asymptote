@@ -431,18 +431,6 @@ Int hash(string s)
   return hashing::hashSpan(s);
 }
 
-Intarray* fingerprint2024(string s)
-{
-  span<const char> sSpan = {s.data(), s.length()};
-  std::array<uint64_t, 4> result = hashing::fingerprint(s);
-  array *retv = new array(8);
-  for (int i = 0; i < 4; ++i) {
-    (*retv)[i] = static_cast<Int>(result[i] & ((UINT64_C(1) << 32) - 1));
-    (*retv)[i + 4] = static_cast<Int>(result[i] >> 32);
-  }
-  return retv;
-}
-
 string string(Int x)
 {
   ostringstream buf;
