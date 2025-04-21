@@ -291,6 +291,7 @@ void AsyVkRender::initWindow()
   glfwSetScrollCallback(window, scrollCallback);
   glfwSetCursorPosCallback(window, cursorPosCallback);
   glfwSetKeyCallback(window, keyCallback);
+  glfwSetWindowSizeLimits(window, 10, 10, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
   // call this to set thread signal behavior
   framebufferResizeCallback(window, width, height);
