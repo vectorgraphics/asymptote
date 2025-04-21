@@ -370,7 +370,11 @@ void AsyVkRender::mouseButtonCallback(GLFWwindow * window, int button, int actio
 
 void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int height)
 {
-  auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
+  auto* app = static_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
+  if (width == 0 || height == 0) {
+    // we can't draw (or compute triangles) if there's no pixels to draw to
+    return;
+  }
   app->Y = (app->X / app->width) * width;
   app->Y = (app->Y / app->height) * height;
   app->width = width;
