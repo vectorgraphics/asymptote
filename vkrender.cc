@@ -1044,7 +1044,7 @@ void AsyVkRender::createAllocator()
   vkFuncs.vkBindImageMemory2KHR = VULKAN_HPP_DEFAULT_DISPATCHER.vkBindImageMemory2 ? VULKAN_HPP_DEFAULT_DISPATCHER.vkBindImageMemory2 : VULKAN_HPP_DEFAULT_DISPATCHER.vkBindImageMemory2KHR;
 
   VmaAllocatorCreateInfo createInfo = {};
-  createInfo.vulkanApiVersion = VK_API_VERSION_1_2;
+  createInfo.vulkanApiVersion = VK_API_VERSION_1_3;
   createInfo.physicalDevice = physicalDevice;
   createInfo.device = *device;
   createInfo.instance = *instance;
