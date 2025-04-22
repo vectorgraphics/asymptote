@@ -891,7 +891,7 @@ void AsyVkRender::createInstance()
     VK_MAKE_VERSION(1, 0, 0),
     "No Engine",
     VK_MAKE_VERSION(1, 0, 0),
-    VK_API_VERSION_1_2
+    VK_API_VERSION_1_4
   );
   auto supportedExtensions = getInstanceExtensions();
   auto supportedLayers = vk::enumerateInstanceLayerProperties();
@@ -942,7 +942,11 @@ void AsyVkRender::createInstance()
   }
 
   auto const instanceCI = vk::InstanceCreateInfo(
+#if defined(__APPLE__)
+    vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR,
+#else
     {},
+#endif
     &appInfo,
     VEC_VIEW(validationLayers),
     VEC_VIEW(all_extensions)
