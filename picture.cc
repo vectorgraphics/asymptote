@@ -853,10 +853,26 @@ bool picture::postprocess(const string& prename, const string& outname,
   mem::vector<string> cmd;
   if(pdftex || !epsformat) {
     if(pdfformat) {
+      string potentialErrMsg= "Cannot rename " + prename + " to " + outname;
       if(pdftex) {
+        // gcc handles renaming differently than MSVC
+        // In gcc, if outname already exists, rename overwrites the file,
+        // but in msvc, this throws an error.
+        // We use MoveFileExA which has an option to allow overwriting of files in windows.
+#ifdef _WIN32
+        w32::checkResult(
+                MoveFileExA(
+                        prename.c_str(), outname.c_str(),
+                        MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED
+                ),
+                potentialErrMsg.c_str()
+        );
+#else
+
         status=rename(prename.c_str(),outname.c_str());
         if(status != 0)
-          reportError("Cannot rename "+prename+" to "+outname);
+          reportError(potentialErrMsg);
+#endif
       } else status=epstopdf(prename,outname);
     } else if(epsformat) {
       if(svg) {
