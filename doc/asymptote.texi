@@ -7674,7 +7674,7 @@ returns a new set containing the elements of @code{a} that are not in @code{b}.
 The result is a new set with the same underlying implementation as @code{a}.
 @end table
 
-@strong{Caution:} 
+@noindent @strong{Caution:} 
 Do not use @code{+=} to build up a set by adding elements one by one. While
 this can be done (with some effort), it is inefficient since the entire set is
 copied with each invocation of @code{+=}. If you want to build up a set
@@ -7682,10 +7682,92 @@ by adding elements one by one, use the @code{add} method instead (or @code{swap}
 equivalent elements are not really equal and you want later elements to override earlier
 equivalent elements).
 
+@cindex @code{SortedSet_T}
+@cindex @code{SortedSet}
 @node The @code{SortedSet} API
 @subsubsection The @code{SortedSet} API
 
-TODO
+@cindex @code{BTreeSet_T}
+The @code{BTreeSet_T} implementation of @code{Set_T} (@pxref {Initializing a @code{Set}})
+maintains its elements in sorted order. For the @code{Set_T} API, this has no effect other
+than the iteration order. However, the @code{SortedSet_T} API provides additional methods
+to take advantage of this ordering. The @code{SortedSet_T} structure is defined in the
+@code{collections.sortedset(T)} module and can also be accessed from the
+@code{collections.btree(T)} module. Here is a list of the relations among the various APIs
+implemented by @code{BTreeSet_T}:
+@itemize
+@item
+@code{BTreeSet_T} has all the methods of @code{Set_T} and can be implicitly
+cast to @code{Set_T}.
+
+@item
+@code{BTreeSet_T} has all the methods of @code{SortedSet_T} and can be implicitly
+cast to @code{SortedSet_T}.
+
+@item
+@code{SortedSet_T} has all the methods of @code{Set_T} and can be implicitly
+cast to @code{Set_T}.
+
+@item
+All of these types can be implicitly cast to @code{Iterable_T}.
+@end itemize
+
+In addition to the methods of @code{Set_T}, @code{SortedSet_T} has the following methods:
+
+@table @code
+@cindex @code{SortedSet} @subentry @code{.min}
+@cindex @code{min} @subentry @code{SortedSet.min}
+@item T min()
+returns the least element in the set, or @code{nullT} if the set is empty.
+If the set is empty and @code{nullT} does not exist, an error is thrown.
+
+@cindex @code{SortedSet} @subentry @code{.max}
+@cindex @code{max} @subentry @code{SortedSet.max}
+@item T max()
+returns the greatest element in the set, or @code{nullT} if the set is empty.
+If the set is empty and @code{nullT} does not exist, an error is thrown.
+
+@cindex @code{SortedSet} @subentry @code{.popMin}
+@cindex @code{popMin} @subentry @code{SortedSet.popMin}
+@item T popMin()
+removes and returns the least element in the set. If the set is empty,
+@code{nullT} is returned; if @code{nullT} also does not exist, an error is thrown.
+
+@cindex @code{SortedSet} @subentry @code{.popMax}
+@cindex @code{popMax} @subentry @code{SortedSet.popMax}
+@item T popMax()
+removes and returns the greatest element in the set. If the set is empty,
+@code{nullT} is returned; if @code{nullT} also does not exist, an error is thrown.
+
+@cindex @code{SortedSet} @subentry @code{.after}
+@cindex @code{after} @subentry @code{SortedSet.after}
+@item T after(T item)
+returns the least element in the set that is strictly greater than
+@code{item}. If no such element exists, @code{nullT} is returned; if
+@code{nullT} also does not exist, an error is thrown.
+
+@cindex @code{SortedSet} @subentry @code{.firstGEQ}
+@cindex @code{firstGEQ} @subentry @code{SortedSet.firstGEQ}
+@item T firstGEQ(T item)
+returns the least element in the set that is greater than or equal to
+@code{item}. If no such element exists, @code{nullT} is returned; if
+@code{nullT} also does not exist, an error is thrown.
+
+@cindex @code{SortedSet} @subentry @code{.before}
+@cindex @code{before} @subentry @code{SortedSet.before}
+@item T before(T item)
+returns the greatest element in the set that is strictly less than
+@code{item}. If no such element exists, @code{nullT} is returned; if
+@code{nullT} also does not exist, an error is thrown.
+
+@cindex @code{SortedSet} @subentry @code{.firstLEQ}
+@cindex @code{firstLEQ} @subentry @code{SortedSet.firstLEQ}
+@item T firstLEQ(T item)
+returns the greatest element in the set that is less than or equal to
+@code{item}. If no such element exists, @code{nullT} is returned; if
+@code{nullT} also does not exist, an error is thrown.
+
+@end table
 
 @node Using Sets as Maps
 @subsection Using Sets as Maps
