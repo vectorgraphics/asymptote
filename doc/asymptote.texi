@@ -7539,10 +7539,151 @@ need either a @code{HashSet_T} or a @code{BTreeSet_T}.
 @table @code
 @item HashSet_T()
 @itemx HashSet_T(T nullT, bool equiv(T a, T b) = operator ==, bool isNullT(T) = new bool(T t) @{ return equiv(t, nullT); @})
-These two functions must be accessed from the @code{collections.hashset(T)}
-templated module. They
+These two functions, which create a HashSet, must be accessed from the @code{collections.hashset(T)}
+templated module. The type @code{T} must have a @code{hash} method, @pxref{Hash functions}.
+@item BTreeSet_T()
+@itemx BTreeSet_T(bool lessThan(T,T), T nullT, bool isNullT(T) = new bool(T t) @{ return t == nullT; @});
+These two functions must be accessed from the @code{collections.btree(T)} module. They create a
+BTreeSet, which stores its elements in sorted order. The type @code{T} must have a
+@code{<} operator, which will never be called on @code{nullT} unless you provide your own
+@code{isNullT} function that uses it.
 @end table
 
+Both @code{HashSet_T} and @code{BTreeSet_T} can be implicitly cast to
+@code{Set_T} and have all of the methods of @code{Set_T}. Similarly, the @code{nullT}
+and @code{isNullT} optional parameters behave the same way for both types. @xref{The @code{Set} API}.
+
+Additionally, @code{BTreeSet_T} can be implicitly cast to @code{SortedSet_T} and has all its methods,
+which provide additional functionality specific to sorted sets (such as retrieving the least element
+or the next element greater than a given element). @xref{The @code{SortedSet} API}.
+
+@node The @code{Set} API
+@subsubsection The @code{Set} API
+
+Depending on which constructor is used, a @code{Set} may or may not have
+valid instances of @code{nullT} and @code{isNullT}. If one of these is valid, the other will be too.
+In some methods below, an error will be thrown unless @code{nullT} can be returned to indicate an
+element is not present.
+
+The @code{Set_T} structure has the following methods.
+
+@table @code
+@cindex @code{Set} @subentry @code{.size}
+@cindex @code{size} @subentry @code{Set.size}
+@item int size()
+returns the number of distinct elements in the set.
+@cindex @code{Set} @subentry @code{.empty}
+@cindex @code{empty} @subentry @code{Set.empty}
+@item bool empty()
+returns true iff @code{size() == 0}.
+@cindex @code{Set} @subentry @code{.contains}
+@cindex @code{contains} @subentry @code{Set.contains}
+@item bool contains(T item)
+returns true if @code{item} (or an equivalent item) is present in the set.
+@cindex @code{Set} @subentry @code{.add}
+@cindex @code{add} @subentry @code{Set.add}
+@item bool add(T item)
+adds @code{item} to the set if it is not already present.
+This method does nothing if @code{isNullT(item)} is defined and true,
+or if @code{item} or an equivalent item is already present.
+The return value is true if @code{item} was added, false otherwise.
+@cindex @code{Set} @subentry @code{.delete}
+@cindex @code{delete} @subentry @code{Set.delete}
+@item T delete(T item)
+removes @code{item} from the set if it is present, otherwise does nothing.
+The return value is true if and only if the set was modified.
+@cindex @code{Set} @subentry @code{.operator iter}
+@cindex @code{operator iter} @subentry @code{Set.operator iter}
+@cindex @code{Set} @subentry iterating over
+@item Iter_T operator iter()
+returns an iterator over the elements of the set. It allows the set to be used in
+range-based @code{for} loops, as in
+@verbatim
+for (T item : s) {<statements>}
+@end verbatim
+If an item is deleted or a new item is inserted, then any iterators created before that change are
+undermined and may behave nonsensically. The current implementations attempt to throw errors
+if an iterator is used after being undermined,
+but this behavior is not guaranteed and might be removed in
+future versions to make operations faster.
+@cindex @code{Set} @subentry @code{.add}
+@cindex @code{add} @subentry @code{Set.add}
+@item void add(Iterable_T other)
+adds the elements from @code{other} to the set.
+@cindex @code{Set} @subentry @code{.delete}
+@cindex @code{delete} @subentry @code{Set.delete}
+@item void delete(Iterable_T other)
+removes the elements from @code{other} from the set.
+Elements of @code{other} that are not in the set are ignored.
+
+@end table
+
+The following methods are of interest only if the notion of equivalence is being
+used to mean something very different from equality. For example, if the set was configured such that two ordered pairs are considered
+equivalent if they have the same first element, then the @code{get} method below could be used
+to look up a pair based on its first element.
+@table @code
+@cindex @code{Set} @subentry @code{.get}
+@cindex @code{get} @subentry @code{Set.get}
+@item T get(T item)
+returns the item in the set equivalent to @code{item}. If no such item exists,
+@code{nullT} is returned; if @code{nullT} also does not exist,
+the method is allowed to either throw an error or return an arbitrary (implementation-dependent)
+item of type @code{T}. If an error is not thrown, the set should not be mutated.
+@cindex @code{Set} @subentry @code{.swap}
+@cindex @code{swap} @subentry @code{Set.swap}
+@item T swap(T item)
+inserts @code{item} into the set even if it is equivalent to an existing item,
+returning the replaced item. If no such item exists, @code{nullT} is returned; if
+@code{nullT} also does not exist, throws an error. If @code{isNullT(item)} is defined and true,
+the set is not modified and @code{nullT} is returned.
+
+The @code{swap} method
+can be used to add a new item to the set, but only if @code{nullT} is defined.
+@cindex @code{Set} @subentry @code{.extract}
+@cindex @code{extract} @subentry @code{Set.extract}
+@item T extract(T item)
+removes and returns an item in the set equivalent to @code{item}.
+If no such item exists, @code{nullT} is returned; if
+@code{nullT} also does not exist, throws an error. If @code{isNullT(item)} is defined and true,
+the set is not modified and @code{nullT} is returned.
+@end table
+
+In addition to the methods above, there are a number of autounraveled functions
+that deal with sets.
+
+@table @code
+@item Iterable_T operator cast(Set_T set)
+implicitly casts a set to an iterable so that it can be passed as a parameter
+to utilities like @code{zip} or @code{enumerate}.
+@item bool operator <= (Set_T a, Set_T b)
+returns true if @code{a} is a subset of @code{b}.
+@item bool operator >= (Set_T a, Set_T b)
+returns true if @code{b} is a subset of @code{a}.
+@item bool operator == (Set_T a, Set_T b)
+returns true if @code{a} and @code{b} are subsets of each other.
+@item bool operator != (Set_T a, Set_T b)
+returns true if either @code{a} or @code{b} contains an element not in the other.
+@item bool sameElementsInOrder(Set_T a, Set_T b)
+returns true if iterating over @code{a} and @code{b} produces the same elements in the same order.
+@item Set_T operator + (Set_T a, Iterable_T b)
+returns the union of @code{a} and @code{b}. The result is a new set with the same
+underlying implementation as @code{a}.
+@item Set_T operator - (Set_T a, Set_T b)
+returns a new set containing the elements of @code{a} that are not in @code{b}.
+The result is a new set with the same underlying implementation as @code{a}.
+@end table
+
+@strong{Caution:} 
+Do not use @code{+=} to build up a set by adding elements one by one. While
+this can be done (with some effort), it is inefficient since the entire set is
+copied with each invocation of @code{+=}. If you want to build up a set
+by adding elements one by one, use the @code{add} method instead (or @code{swap}, if
+equivalent elements are not really equal and you want later elements to override earlier
+equivalent elements).
+
+@node The @code{SortedSet} API
+@subsubsection The @code{SortedSet} API
 
 TODO
 
