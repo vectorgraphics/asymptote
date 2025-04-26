@@ -257,7 +257,6 @@ void progress(bool3 init=default)
 
 restricted int ocgindex=0;
 
-from collections.hashmap(K=string,V=string) access HashMap_K_V as dict;
 from collections.map(K=string, V=string) access Map_K_V as Map_string_string;
 void write(file file=stdout, Map_string_string d)
 {

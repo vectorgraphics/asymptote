@@ -148,7 +148,7 @@ struct Naive_T {
     return nullT;
   };
 
-  super.delete = new T(T item) {
+  super.extract = new T(T item) {
     for (int i = 0; i < buffer.length; ++i) {
       T candidate = buffer[i];
       if (equiv(candidate, item)) {

@@ -220,22 +220,10 @@ struct HashSet_T {
     return nullT;
   };
 
-  super.delete = new T(T item) {
-    int bucket = item.hash();
-    int index = find(item, bucket);
-    HashEntry entry = buckets[index];
-    if (index == -1) {
-      assert(false, 'Overcrowded hash table; zombies: ' + string(zombies) +
-             '; size: ' + string(size) +
-             '; buckets.length: ' + string(buckets.length));
-      return nullT;
-    }
-    if (entry == null) {
-      assert(isNullT != null, 'Item is not present.');
-      return nullT;
-    }
+  // Marks the entry as a zombie and removes it from the linked list.
+  // Also adjusts the numChanges, size, and zombies counters.
+  private void makeZombie(HashEntry entry) {
     ++numChanges;
-    T result = entry.item;
     entry.hash = -1;
     ++zombies;
     if (entry.older != null) {
@@ -249,10 +237,42 @@ struct HashSet_T {
       newest = entry.older;
     }
     --size;
-    if (2 * (size + zombies) > buckets.length) {
-      changeCapacity();
+    // Since zombies + size has not changed, we don't need to
+    // change the capacity.
+  }
+
+  super.extract = new T(T item) {
+    int index = find(item, item.hash());
+    if (index == -1) {
+      assert(false, 'Overcrowded hash table; zombies: ' + string(zombies) +
+             '; size: ' + string(size) +
+             '; buckets.length: ' + string(buckets.length));
+      return nullT;
     }
+    HashEntry entry = buckets[index];
+    if (entry == null) {
+      assert(isNullT != null, 'Item is not present.');
+      return nullT;
+    }
+    T result = entry.item;
+    makeZombie(entry);
     return result;
+  };
+
+  super.delete = new bool(T item) {
+    int index = find(item, item.hash());
+    if (index == -1) {
+      assert(false, 'Overcrowded hash table; zombies: ' + string(zombies) +
+             '; size: ' + string(size) +
+             '; buckets.length: ' + string(buckets.length));
+      return false;
+    }
+    HashEntry entry = buckets[index];
+    if (alias(entry, null)) {
+      return false;
+    }
+    makeZombie(entry);
+    return true;
   };
 
   super.getRandom = new T() {

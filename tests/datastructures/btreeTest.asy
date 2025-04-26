@@ -360,7 +360,7 @@ actions[ActionEnum.DELETE] =
       // write('Deleting ' + string(toDelete.t) + '\n');
       wrapped_int[] results = new wrapped_int[];
       for (SortedSet_wrapped_int s : sets) {
-        results.push(s.delete(toDelete));
+        results.push(s.extract(toDelete));
       }
       if (results.length > 1) {
         wrapped_int expected = results[0];
@@ -388,7 +388,7 @@ actions[ActionEnum.DELETE_CONTAINS] =
       int initialsize = sets[0].size();
       wrapped_int toDelete = wrap(sets[0].getRandom().t);
       for (SortedSet_wrapped_int s : sets) {
-        assert(s.delete(toDelete) == toDelete, 'Delete failed');
+        assert(s.extract(toDelete) == toDelete, 'Delete failed');
         assert(!s.contains(toDelete), 'Contains failed');
         assert(s.size() == initialsize - 1, 'Size failed');
       }

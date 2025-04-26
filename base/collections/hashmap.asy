@@ -62,8 +62,8 @@ struct HashMap_K_V {
   };
 
   map.delete = new void(K key) {
-    Pair_K_V removed = pairs.delete((key, map.nullValue));
-    assert(!alias(removed, null), 'Nonexistent key cannot be deleted');
+    assert(pairs.delete((key, map.nullValue)),
+           'Nonexistent key cannot be deleted');
   };
 
   map.operator iter = new Iter_K() {

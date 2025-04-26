@@ -425,7 +425,7 @@ struct BTreeSet_T {
     }
   }
 
-  super.delete = new T(T item) {
+  super.extract = new T(T item) {
     Node[] stack;
     int[] indices;
     if (!root.locate(item, stack, indices)) {
@@ -437,6 +437,16 @@ struct BTreeSet_T {
     T result = node.pivots[i];
     delete(stack, indices);
     return result;
+  };
+
+  super.delete = new bool(T item) {
+    Node[] stack;
+    int[] indices;
+    if (!root.locate(item, stack, indices)) {
+      return false;
+    }
+    delete(stack, indices);
+    return true;
   };
 
   super.popMin = new T() {

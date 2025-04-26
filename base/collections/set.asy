@@ -42,7 +42,19 @@ struct Set_T {
   // Removes the equivalent item from the set, and returns it. Returns
   // nullT if there is no equivalent item. Throws error if
   // there is no equivalent item and nullT was never set.
-  T delete(T item);
+  T extract(T item);
+  // If the item was present, removes it and returns true. Otherwise,
+  // returns false. Noop if isNullT is defined and isNullT(item).
+  bool delete(T item) {
+    if (isNullT == null) {
+      if (!contains(item)) {
+        return false;
+      }
+      extract(item);
+      return true;
+    }
+    return !isNullT(extract(item));
+  }
   // Returns a random, uniformly distributed element. The default
   // implementation is O(n) in the number of elements. Intended primarily for
   // testing purposes.
@@ -64,12 +76,12 @@ struct Set_T {
     return Iterable_T(set.operator iter);
   }
 
-  void addAll(Iterable_T other) {
+  void add(Iterable_T other) {
     for (T item : other) {
       add(item);
     }
   }
-  void removeAll(Iterable_T other) {
+  void delete(Iterable_T other) {
     for (T item : other) {
       delete(item);
     }
@@ -205,7 +217,7 @@ struct NaiveSet_T {
     return nullT;
   };
 
-  super.delete = new T(T item) {
+  super.extract = new T(T item) {
     for (int i = 0; i < items.length; ++i) {
       if (equiv(items[i], item)) {
         T result = items[i];

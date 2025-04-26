@@ -184,7 +184,7 @@ actions[DELETE] = new void(int maxItem ...Set_wrapped_int[] sets) {
   // write('Deleting ' + string(toDelete.t) + '\n');
   wrapped_int[] results = new wrapped_int[];
   for (Set_wrapped_int s : sets) {
-    results.push(s.delete(toDelete));
+    results.push(s.extract(toDelete));
   }
   if (results.length > 0) {
     wrapped_int expected = results[0];
@@ -248,7 +248,7 @@ actions[DELETE_CONTAINS] = new void(int ...Set_wrapped_int[] sets) {
   int i = 0;
   for (Set_wrapped_int s : sets) {
     assert(s.contains(toDelete), 'Contains failed ' + string(i));
-    wrapped_int deleted = s.delete(toDelete);
+    wrapped_int deleted = s.extract(toDelete);
     assert(!alias(deleted, null), 'Delete returned null');
     typedef bool F(wrapped_int, wrapped_int);
     assert(((F)operator ==) != ((F)alias));
