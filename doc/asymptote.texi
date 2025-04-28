@@ -7777,7 +7777,30 @@ TODO
 @node Queues
 @subsection Queues
 
-TODO
+Two standard datastructures are stacks and queues. A stack is a last-in-first-out
+(LIFO) structure; in Asymptote, arrays can be used as stacks via the @code{push} and
+@code{pop} methods. A queue is a first-in-first-out (FIFO) structure; the
+@code{collections.queue(T)} module provides a queue implementation.
+
+@cindex @code{makeQueue}
+@table @code
+@item Queue_T makeQueue(T[] initialData)
+returns a queue initialized with a copy of the array @code{initialData}.
+The parameter is required in order to specify the type @code{T} in case there
+are multiple @code{Queue_T} types in the current scope. If no initial data is
+needed, use @code{makeQueue(new T[])} to create an empty array as a parameter.
+@end table
+
+Note that the @code{makeQueue} function is @emph{not} autounraveled, so it
+must be named explicitly in @code{access} statements.
+
+The @code{Queue_T} structure has the following methods:
+@table @code
+@cindex @code{Queue_T} @subentry @code{.push}
+@cindex @code{push} @subentry @code{Queue_T.push}
+@item void push(T item)
+
+@end table
 
 @node Wrapping arrays
 @subsection Wrapping arrays

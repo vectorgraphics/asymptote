@@ -204,4 +204,4 @@ Queue_T makeLinkedQueue(T[] initialData) {
 }
 
 // Specify a "default" queue implementation.
-Queue_T makeQueue(T[]) = makeArrayQueue;
+Queue_T makeQueue(T[] initialData) = makeArrayQueue;
