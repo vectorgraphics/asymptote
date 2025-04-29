@@ -11,13 +11,6 @@
 #include <sys/types.h>
 #include <iostream>
 #include <cstdlib>
-
-#ifdef __CYGWIN__
-extern "C" int sigaddset(sigset_t *set, int signum);
-extern "C" int sigemptyset(sigset_t *set);
-extern "C" int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
-#endif
-
 #include <csignal>
 
 #include "common.h"
@@ -120,12 +113,6 @@ void execError(const char *command, const char *hint, const char *application);
 // This invokes a viewer to display the manual.  Subsequent calls will only
 // pop-up a new viewer if the old one has been closed.
 void popupHelp();
-
-#ifdef __CYGWIN__
-inline long long llabs(long long x) {return x >= 0 ? x : -x;}
-extern "C" char *initstate (unsigned seed, char *state, size_t size);
-extern "C" long random (void);
-#endif
 
 inline Int Abs(Int x) {
 #ifdef HAVE_LONG_LONG
