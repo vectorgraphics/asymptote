@@ -134,15 +134,8 @@ Int Intcast(unsignedInt n);
 bool fileExists(string const& path);
 
 #if defined(_WIN32)
-#include <cassert>
-int setenv(const char *name, const char *value, bool overwrite) {
-  assert(overwrite);
-  return SetEnvironmentVariableA(name,value);
-}
-
-int unsetenv(const char *name) {
-  setenv(name,NULL,true);
-}
+int setenv(const char *name, const char *value, bool overwrite);
+int unsetenv(const char *name);
 #endif
 
 #endif
