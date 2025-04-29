@@ -750,6 +750,10 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 #ifdef HAVE_VULKAN
 void AsyVkRender::initVulkan()
 {
+#ifdef __APPLE__
+  setenv("MVK_CONFIG_LOG_LEVEL","0",false);
+#endif
+
   VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
   if (!glslang::InitializeProcess()) {
