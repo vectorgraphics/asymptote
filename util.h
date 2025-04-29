@@ -141,7 +141,7 @@ int setenv(const char *name, const char *value, bool overwrite) {
 }
 
 int unsetenv(const char *name) {
-  setenv(name,NULL);
+  setenv(name,NULL,true);
 }
 #endif
 
