@@ -526,15 +526,7 @@ bool picture::texprocess(const string& texname, const string& outname,
           string dvipsrc=getSetting<string>("dir");
           if(dvipsrc.empty()) dvipsrc=systemDir;
           dvipsrc += dirsep+"nopapersize.ps";
-#if !defined(_WIN32)
-          setenv("DVIPSRC",dvipsrc.c_str(),1);
-#else
-          auto setEnvResult = SetEnvironmentVariableA("DVIPSRC",dvipsrc.c_str());
-          if (!setEnvResult)
-          {
-              camp::reportError("Cannot set DVIPSRC environment variable");
-          }
-#endif
+          setenv("DVIPSRC",dvipsrc.c_str(),true);
           string papertype=getSetting<string>("papertype") == "letter" ?
             "letterSize" : "a4size";
           cmd.push_back(getSetting<string>("dvips"));
