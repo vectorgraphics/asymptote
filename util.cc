@@ -78,6 +78,16 @@ string demangle(const char* s)
 
 // windows specific unnamed spaces
 #if defined(_WIN32)
+
+int setenv(const char *name, const char *value, bool overwrite) {
+  assert(overwrite);
+  return SetEnvironmentVariableA(name,value);
+}
+
+int unsetenv(const char *name) {
+  return setenv(name,NULL,true);
+}
+
 namespace w32 = camp::w32;
 
 namespace
