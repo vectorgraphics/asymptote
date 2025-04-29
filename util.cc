@@ -5,10 +5,6 @@
  * A place for useful utility functions.
  *****/
 
-#ifdef __CYGWIN__
-#define _POSIX_C_SOURCE 200809L
-#endif
-
 #include <cassert>
 #include <iostream>
 #include <cstdio>
