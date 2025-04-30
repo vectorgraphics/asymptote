@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
-	branch = master
-	commit = f3f5a98ae8570d8e8415992f22595047a095fb20
-	parent = 152ca3ba173546e6a6efe344e5e0746ceb19d334
+	branch = v3.2.1
+	commit = c788c52156f3ef7bc7ab769cb03c110a53ac8fcb
+	parent = a6534e9e4f1826544bdccf277ef26c9942eaa1b9
 	method = merge
 	cmdver = 0.4.9

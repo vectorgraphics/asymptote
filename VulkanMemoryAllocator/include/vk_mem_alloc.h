@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017-2024 Advanced Micro Devices, Inc. All rights reserved.
+// Copyright (c) 2017-2025 Advanced Micro Devices, Inc. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +25,9 @@
 
 /** \mainpage Vulkan Memory Allocator
 
-<b>Version 3.1.0</b>
+<b>Version 3.2.1</b>
 
-Copyright (c) 2017-2024 Advanced Micro Devices, Inc. All rights reserved. \n
+Copyright (c) 2017-2025 Advanced Micro Devices, Inc. All rights reserved. \n
 License: MIT \n
 See also: [product page on GPUOpen](https://gpuopen.com/gaming-product/vulkan-memory-allocator/),
 [repository on GitHub](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
@@ -1469,17 +1469,17 @@ typedef struct VmaAllocationInfo
 typedef struct VmaAllocationInfo2
 {
     /** \brief Basic parameters of the allocation.
-
+    
     If you need only these, you can use function vmaGetAllocationInfo() and structure #VmaAllocationInfo instead.
     */
     VmaAllocationInfo allocationInfo;
     /** \brief Size of the `VkDeviceMemory` block that the allocation belongs to.
-
+    
     In case of an allocation with dedicated memory, it will be equal to `allocationInfo.size`.
     */
     VkDeviceSize blockSize;
     /** \brief `VK_TRUE` if the allocation has dedicated memory, `VK_FALSE` if it was placed as part of a larger memory block.
-
+    
     When `VK_TRUE`, it also means `VkMemoryDedicatedAllocateInfo` was used when creating the allocation
     (if VK_KHR_dedicated_allocation extension or Vulkan version >= 1.1 is enabled).
     */
@@ -2572,7 +2572,7 @@ VMA_CALL_PRE VkResult VMA_CALL_POST vmaCreateAliasingBuffer(
 \param allocator
 \param allocation Allocation that provides memory to be used for binding new buffer to it.
 \param allocationLocalOffset Additional offset to be added while binding, relative to the beginning of the allocation. Normally it should be 0.
-\param pBufferCreateInfo
+\param pBufferCreateInfo 
 \param[out] pBuffer Buffer that was created.
 
 This function automatically:
@@ -6200,7 +6200,7 @@ private:
     HANDLE m_hHandle;
     VMA_RW_MUTEX m_Mutex; // Protects access m_Handle
 };
-#else
+#else 
 class VmaWin32Handle
 {
     // ABI compatibility
@@ -6772,7 +6772,6 @@ void VmaBlockMetadata::DebugLogAllocation(VkDeviceSize offset, VkDeviceSize size
 
         userData = allocation->GetUserData();
         const char* name = allocation->GetName();
-        (void) name;
 
 #if VMA_STATS_STRING_ENABLED
         VMA_LEAK_LOG_FORMAT("UNFREED ALLOCATION; Offset: %" PRIu64 "; Size: %" PRIu64 "; UserData: %p; Name: %s; Type: %s; Usage: %" PRIu64,
@@ -9317,10 +9316,10 @@ void VmaBlockMetadata_TLSF::Alloc(
         RemoveFreeBlock(currentBlock);
 
     VkDeviceSize debugMargin = GetDebugMargin();
-    VkDeviceSize misssingAlignment = offset - currentBlock->offset;
+    VkDeviceSize missingAlignment = offset - currentBlock->offset;
 
     // Append missing alignment to prev block or create new one
-    if (misssingAlignment)
+    if (missingAlignment)
     {
         Block* prevBlock = currentBlock->prevPhysical;
         VMA_ASSERT(prevBlock != VMA_NULL && "There should be no missing alignment at offset 0!");
@@ -9328,17 +9327,17 @@ void VmaBlockMetadata_TLSF::Alloc(
         if (prevBlock->IsFree() && prevBlock->size != debugMargin)
         {
             uint32_t oldList = GetListIndex(prevBlock->size);
-            prevBlock->size += misssingAlignment;
+            prevBlock->size += missingAlignment;
             // Check if new size crosses list bucket
             if (oldList != GetListIndex(prevBlock->size))
             {
-                prevBlock->size -= misssingAlignment;
+                prevBlock->size -= missingAlignment;
                 RemoveFreeBlock(prevBlock);
-                prevBlock->size += misssingAlignment;
+                prevBlock->size += missingAlignment;
                 InsertFreeBlock(prevBlock);
             }
             else
-                m_BlocksFreeSize += misssingAlignment;
+                m_BlocksFreeSize += missingAlignment;
         }
         else
         {
@@ -9347,15 +9346,15 @@ void VmaBlockMetadata_TLSF::Alloc(
             prevBlock->nextPhysical = newBlock;
             newBlock->prevPhysical = prevBlock;
             newBlock->nextPhysical = currentBlock;
-            newBlock->size = misssingAlignment;
+            newBlock->size = missingAlignment;
             newBlock->offset = currentBlock->offset;
             newBlock->MarkTaken();
 
             InsertFreeBlock(newBlock);
         }
 
-        currentBlock->size -= misssingAlignment;
-        currentBlock->offset += misssingAlignment;
+        currentBlock->size -= missingAlignment;
+        currentBlock->offset += missingAlignment;
     }
 
     VkDeviceSize size = request.size + debugMargin;
@@ -13303,10 +13302,14 @@ void VmaAllocator_T::ImportVulkanFunctions_Dynamic()
     if(m_VulkanApiVersion >= VK_MAKE_VERSION(1, 1, 0))
     {
         VMA_FETCH_INSTANCE_FUNC(vkGetPhysicalDeviceMemoryProperties2KHR, PFN_vkGetPhysicalDeviceMemoryProperties2KHR, "vkGetPhysicalDeviceMemoryProperties2");
+        // Try to fetch the pointer from the other name, based on suspected driver bug - see issue #410.
+        VMA_FETCH_INSTANCE_FUNC(vkGetPhysicalDeviceMemoryProperties2KHR, PFN_vkGetPhysicalDeviceMemoryProperties2KHR, "vkGetPhysicalDeviceMemoryProperties2KHR");
     }
     else if(m_UseExtMemoryBudget)
     {
         VMA_FETCH_INSTANCE_FUNC(vkGetPhysicalDeviceMemoryProperties2KHR, PFN_vkGetPhysicalDeviceMemoryProperties2KHR, "vkGetPhysicalDeviceMemoryProperties2KHR");
+        // Try to fetch the pointer from the other name, based on suspected driver bug - see issue #410.
+        VMA_FETCH_INSTANCE_FUNC(vkGetPhysicalDeviceMemoryProperties2KHR, PFN_vkGetPhysicalDeviceMemoryProperties2KHR, "vkGetPhysicalDeviceMemoryProperties2");
     }
 #endif
 
@@ -14412,7 +14415,6 @@ VkResult VmaAllocator_T::AllocateVulkanMemory(const VkMemoryAllocateInfo* pAlloc
 {
     AtomicTransactionalIncrement<VMA_ATOMIC_UINT32> deviceMemoryCountIncrement;
     const uint64_t prevDeviceMemoryCount = deviceMemoryCountIncrement.Increment(&m_DeviceMemoryCount);
-    (void) prevDeviceMemoryCount;
 #if VMA_DEBUG_DONT_EXCEED_MAX_MEMORY_ALLOCATION_COUNT
     if(prevDeviceMemoryCount >= m_PhysicalDeviceProperties.limits.maxMemoryAllocationCount)
     {
@@ -15068,7 +15070,7 @@ VMA_CALL_PRE VkResult VMA_CALL_POST vmaCreateAllocator(
 {
     VMA_ASSERT(pCreateInfo && pAllocator);
     VMA_ASSERT(pCreateInfo->vulkanApiVersion == 0 ||
-        (VK_VERSION_MAJOR(pCreateInfo->vulkanApiVersion) == 1 && VK_VERSION_MINOR(pCreateInfo->vulkanApiVersion) <= 3));
+        (VK_VERSION_MAJOR(pCreateInfo->vulkanApiVersion) == 1 && VK_VERSION_MINOR(pCreateInfo->vulkanApiVersion) <= 4));
     VMA_DEBUG_LOG("vmaCreateAllocator");
     *pAllocator = vma_new(pCreateInfo->pAllocationCallbacks, VmaAllocator_T)(pCreateInfo);
     VkResult result = (*pAllocator)->Init(pCreateInfo);
@@ -16675,7 +16677,7 @@ VMA_CALL_PRE VkResult VMA_CALL_POST vmaGetMemoryWin32Handle(VmaAllocator VMA_NOT
     VMA_DEBUG_GLOBAL_MUTEX_LOCK;
     return allocation->GetWin32Handle(allocator, hTargetProcess, pHandle);
 }
-#endif // VMA_EXTERNAL_MEMORY_WIN32
+#endif // VMA_EXTERNAL_MEMORY_WIN32 
 #endif // VMA_STATS_STRING_ENABLED
 #endif // _VMA_PUBLIC_INTERFACE
 #endif // VMA_IMPLEMENTATION
@@ -18929,7 +18931,7 @@ res = vmaCreateBuffer(g_Allocator, &bufCreateInfo, &allocCreateInfo, &buf, &allo
 vmaDestroyBuffer(g_Allocator, buf, alloc);
 \endcode
 
-If you need each allocation to have its own device memory block and start at offset 0, you can still do
+If you need each allocation to have its own device memory block and start at offset 0, you can still do 
 by using #VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT flag. It works also with custom pools.
 
 \section vk_khr_external_memory_win32_exporting_win32_handle Exporting Win32 handle
