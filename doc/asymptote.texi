@@ -7793,7 +7793,7 @@ linear function:
 from collections.genericpair(K=real, V=real) access
     Pair_K_V as Pair_real_real, makePair;
 from collections.btree(T=Pair_real_real) access
-    Set_T as Set_Pair_real_real,
+    SortedSet_T as SortedSet_Pair_real_real,
     BTreeSet_T as BTreeSet_Pair_real_real;
 
 bool keysLT(Pair_real_real a, Pair_real_real b) {
@@ -7801,7 +7801,7 @@ bool keysLT(Pair_real_real a, Pair_real_real b) {
 }
 
 struct PLFunction {
-  BTreeSet_Pair_real_real pairs = BTreeSet_Pair_real_real(
+  SortedSet_Pair_real_real pairs = BTreeSet_Pair_real_real(
     lessThan=keysLT,
     nullT=null,
     isNullT = new bool(Pair_real_real kv) { return alias(kv, null); }
