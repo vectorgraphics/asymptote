@@ -7777,7 +7777,68 @@ returns the greatest element in the set that is less than or equal to
 @node Using Sets as Maps
 @subsection Using Sets as Maps
 
-TODO
+In mathematics, a map is sometimes defined as a set of ordered pairs. In
+the Asymptote programming language, this definition can be taken literally:
+a @code{Set_T} of @code{Pair_K_V} objects can be used as a map from @code{K}
+to @code{V}, provided that the equivalence, hash, and comparison functions
+are configured to look only at the first element of the pair. This can be
+useful in particular for sorted sets, which have functionality such as
+@code{firstGEQ} and @code{after} that is not currently available in the
+@code{Map} API.
+
+We illustrate this approach by implementing a piecewise
+linear function:
+
+@verbatim
+from collections.genericpair(K=real, V=real) access
+    Pair_K_V as Pair_real_real, makePair;
+from collections.btree(T=Pair_real_real) access
+    Set_T as Set_Pair_real_real,
+    BTreeSet_T as BTreeSet_Pair_real_real;
+
+bool keysLT(Pair_real_real a, Pair_real_real b) {
+  return a.k < b.k;
+}
+
+struct PLFunction {
+  BTreeSet_Pair_real_real pairs = BTreeSet_Pair_real_real(
+    lessThan=keysLT,
+    nullT=null,
+    isNullT = new bool(Pair_real_real kv) { return alias(kv, null); }
+  );
+  void operator [=] (real x, real y) {
+    Pair_real_real p = makePair(x, y);
+    pairs.swap(p);
+  }
+  real operator [] (real x) {
+    Pair_real_real p = makePair(x, 0);
+    Pair_real_real left = pairs.firstLEQ(p);
+    Pair_real_real right = pairs.firstGEQ(p);
+    if (alias(left, null) || alias(right, null)) {
+      return nan;
+    }
+    if (left.k == right.k) {
+      return interp(left.v, right.v, 1/2);
+    }
+    real t = (x - left.k) / (right.k - left.k);
+    return interp(left.v, right.v, t);
+  }
+}
+
+PLFunction f;
+f[0] = 17;
+f[1] = 18;
+f[2000] = 19;
+write(f[-1]);
+write(f[0]);
+write(f[0.5]);
+write(f[1]);
+write(f[1.5]);
+write(f[2]);
+write(f[2000]);
+write(f[2001]);
+@end verbatim
+    
 
 @node Queues
 @subsection Queues
