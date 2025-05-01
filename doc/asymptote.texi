@@ -7275,18 +7275,6 @@ hello 5
 world 3
 @end verbatim
 
-@c // Additional points (not necessarily in this order):
-@c //
-@c // * See next section for the full API.
-@c // * Initializing with nullValue.
-@c // * remarks on performance
-@c // * To use a type as a key, it must have a hash() method, see appropriate
-@c //   section.
-@c // * Behavior if nullValue is not specified.
-@c // * Behavior if nullValue is specified, and how to specify it.
-@c // * Do not mutate the key while it is a key in the hashmap.
-@c // * Iterating over keys vs pairs.
-
 @cindex @code{Map_K_V}
 @cindex @code{collections.map}
 @cindex @code{collections.hashmap}
@@ -7345,7 +7333,7 @@ Depending on which constructor is used, a @code{Map} may or may not have
 valid instances of @code{nullValue} and @code{isNullValue(V)}. If one of
 these is valid, the other will be too. In some methods below, an error
 will be thrown unless @code{nullValue} can be returned to indicate an
-element is not present. When @code{nullValue} exists for a map
+element is not present. When @code{nullValue} is defined for a map
 @code{m}, the expression @code{m.isNullValue(m[k])} is equivalent to
 @code{m.contains(k)}.
 
@@ -7534,7 +7522,7 @@ something or mutate the datastructure, but not both.)
 The @code{Set_T} datastructure itself is defined in the templated module
 @code{collections.set(T)}. However, the @code{Set_T} structure is abstract, with many
 of its methods defaulting to @code{null}. To get a working implementation, you
-need either a @code{HashSet_T} or a @code{BTreeSet_T}.
+need either a @code{HashSet_T} or a @code{BTreeSet_T}:
 
 @table @code
 @item HashSet_T()
@@ -7565,7 +7553,7 @@ valid instances of @code{nullT} and @code{isNullT}. If one of these is valid, th
 In some methods below, an error will be thrown unless @code{nullT} can be returned to indicate an
 element is not present.
 
-The @code{Set_T} structure has the following methods.
+The @code{Set_T} structure has the following methods:
 
 @table @code
 @cindex @code{Set} @subentry @code{.size}
@@ -7586,18 +7574,18 @@ returns true if @code{item} (or an equivalent item) is present in the set.
 adds @code{item} to the set if it is not already present.
 This method does nothing if @code{isNullT(item)} is defined and true,
 or if @code{item} or an equivalent item is already present.
-The return value is true if @code{item} was added, false otherwise.
+The return value is true iff @code{item} was added.
 @cindex @code{Set} @subentry @code{.delete}
 @cindex @code{delete} @subentry @code{Set.delete}
 @item T delete(T item)
 removes @code{item} from the set if it is present, otherwise does nothing.
-The return value is true if and only if the set was modified.
+The return value is true iff the set was modified.
 @cindex @code{Set} @subentry @code{.operator iter}
 @cindex @code{operator iter} @subentry @code{Set.operator iter}
 @cindex @code{Set} @subentry iterating over
 @item Iter_T operator iter()
-returns an iterator over the elements of the set. It allows the set to be used in
-range-based @code{for} loops, as in
+returns an iterator over the elements of the set. It allows a set
+@code{s} to be used in a range-based @code{for} loop:
 @verbatim
 for (T item : s) {<statements>}
 @end verbatim
@@ -7622,24 +7610,25 @@ The preceeding methods are sufficient assuming that equivalent elements are
 interchangeable. However, on rare occasions, one may care which of two equivalent
 elements is in the set. For example, if the set was configured such that two ordered pairs are considered
 equivalent if they have the same first element, then the methods above would provide no way
-to look up a pair based on its first element. For this sort of situation, the
-@code{Set_T} API provides the following methods.
+to look up a pair based on its first element. For this situation, the
+@code{Set_T} API provides the following methods:
 
 @table @code
 @cindex @code{Set} @subentry @code{.get}
 @cindex @code{get} @subentry @code{Set.get}
 @item T get(T item)
 returns the item in the set equivalent to @code{item}. If no such item exists,
-@code{nullT} is returned; if @code{nullT} also does not exist,
-the method is allowed to either throw an error or return an arbitrary (implementation-dependent)
-item of type @code{T}. If an error is not thrown, the set should not be mutated.
+@code{nullT} is returned; if @code{nullT} is not defined,
+an error is thrown.
 
 @cindex @code{Set} @subentry @code{.swap}
 @cindex @code{swap} @subentry @code{Set.swap}
 @item T swap(T item)
-inserts @code{item} into the set even if it is equivalent to an existing item,
-returning the replaced item. If no such item exists, @code{nullT} is returned; if
-@code{nullT} also does not exist, throws an error. If @code{isNullT(item)} is defined and true,
+inserts @code{item} into the set even if it is equivalent to an
+existing item. If @code{item} is equivalent to an existing item, the
+replaced item is returned; otherwise @code{nullT} is returned (unless
+@code{nullT} is not defined, in which case an error is thrown). If
+@code{isNullT(item)} is true,
 the set is not modified and @code{nullT} is returned.
 
 The @code{swap} method
@@ -7650,7 +7639,8 @@ can be used to add a new item to the set, but only if @code{nullT} is defined.
 @item T extract(T item)
 removes and returns an item in the set equivalent to @code{item}.
 If no such item exists, @code{nullT} is returned; if
-@code{nullT} also does not exist, throws an error. If @code{isNullT(item)} is defined and true,
+@code{nullT} is not defined, an error is thrown. If
+@code{isNullT(item)} is true,
 the set is not modified and @code{nullT} is returned.
 @end table
 
@@ -7724,53 +7714,53 @@ In addition to the methods of @code{Set_T}, @code{SortedSet_T} has the following
 @cindex @code{min} @subentry @code{SortedSet.min}
 @item T min()
 returns the least element in the set, or @code{nullT} if the set is empty.
-If the set is empty and @code{nullT} does not exist, an error is thrown.
+If the set is empty and @code{nullT} is not defined, an error is thrown.
 
 @cindex @code{SortedSet} @subentry @code{.max}
 @cindex @code{max} @subentry @code{SortedSet.max}
 @item T max()
 returns the greatest element in the set, or @code{nullT} if the set is empty.
-If the set is empty and @code{nullT} does not exist, an error is thrown.
+If the set is empty and @code{nullT} is not defined, an error is thrown.
 
 @cindex @code{SortedSet} @subentry @code{.popMin}
 @cindex @code{popMin} @subentry @code{SortedSet.popMin}
 @item T popMin()
 removes and returns the least element in the set. If the set is empty,
-@code{nullT} is returned; if @code{nullT} also does not exist, an error is thrown.
+@code{nullT} is returned; if @code{nullT} is not defined, an error is thrown.
 
 @cindex @code{SortedSet} @subentry @code{.popMax}
 @cindex @code{popMax} @subentry @code{SortedSet.popMax}
 @item T popMax()
 removes and returns the greatest element in the set. If the set is empty,
-@code{nullT} is returned; if @code{nullT} also does not exist, an error is thrown.
+@code{nullT} is returned; if @code{nullT} is not defined, an error is thrown.
 
 @cindex @code{SortedSet} @subentry @code{.after}
 @cindex @code{after} @subentry @code{SortedSet.after}
 @item T after(T item)
 returns the least element in the set that is strictly greater than
 @code{item}. If no such element exists, @code{nullT} is returned; if
-@code{nullT} also does not exist, an error is thrown.
+@code{nullT} is not defined, an error is thrown.
 
 @cindex @code{SortedSet} @subentry @code{.firstGEQ}
 @cindex @code{firstGEQ} @subentry @code{SortedSet.firstGEQ}
 @item T firstGEQ(T item)
 returns the least element in the set that is greater than or equal to
 @code{item}. If no such element exists, @code{nullT} is returned; if
-@code{nullT} also does not exist, an error is thrown.
+@code{nullT} is not defined, an error is thrown.
 
 @cindex @code{SortedSet} @subentry @code{.before}
 @cindex @code{before} @subentry @code{SortedSet.before}
 @item T before(T item)
 returns the greatest element in the set that is strictly less than
 @code{item}. If no such element exists, @code{nullT} is returned; if
-@code{nullT} also does not exist, an error is thrown.
+@code{nullT} is not defined, an error is thrown.
 
 @cindex @code{SortedSet} @subentry @code{.firstLEQ}
 @cindex @code{firstLEQ} @subentry @code{SortedSet.firstLEQ}
 @item T firstLEQ(T item)
 returns the greatest element in the set that is less than or equal to
 @code{item}. If no such element exists, @code{nullT} is returned; if
-@code{nullT} also does not exist, an error is thrown.
+@code{nullT} is not defined, an error is thrown.
 
 @end table
 
