@@ -1,6 +1,6 @@
 import TestLib;
 
-StartTest("Queue");
+StartTest('Queue');
 
 from collections.queue(T=int) access
     Queue_T as Queue_int,

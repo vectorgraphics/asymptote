@@ -17,13 +17,16 @@ Queue_T makeNaiveQueue(T[] initialData) {
   Queue_T queue = new Queue_T;
   T[] data = new T[0];
   data.append(initialData);
+  int version = 0;
   queue.push = new void(T value) {
+    ++version;
     data.push(value);
   };
   queue.peek = new T() {
     return data[0];
   };
   queue.pop = new T() {
+    ++version;
     T retv = data[0];
     data.delete(0);
     return retv;
@@ -32,7 +35,22 @@ Queue_T makeNaiveQueue(T[] initialData) {
     return data.length;
   };
   queue.operator iter = new Iter_T() {
-    return Iter_T(data);
+    int expectedVersion = version;
+    int i = 0;
+    Iter_T result;
+    result.advance = new void() {
+      assert(expectedVersion == version, 'Iterator undermined.');
+      ++i;
+    };
+    result.get = new T() {
+      assert(expectedVersion == version, 'Iterator undermined.');
+      return data[i];
+    };
+    result.valid = new bool() {
+      assert(expectedVersion == version, 'Iterator undermined.');
+      return i < data.length;
+    };
+    return result;
   };
   return queue;
 }
@@ -42,6 +60,9 @@ struct ArrayQueue_T {
   data.cyclic = true;
   int start = 0;
   int size = 0;
+  // The version is used to detect if the queue has been modified
+  // while iterating over it.
+  int version = 0;
 
   private void resize() {
     T[] newData = new T[data.length * 2];
@@ -54,24 +75,29 @@ struct ArrayQueue_T {
   Iter_T operator iter() {
     int i = 0;
     Iter_T result;
+    int currentVersion = version;
     result.advance = new void() {
+      assert(currentVersion == version, 'Iterator undermined.');
       ++i;
     };
     result.get = new T() {
+      assert(currentVersion == version, 'Iterator undermined.');
       return data[start+i];
     };
     result.valid = new bool() {
+      assert(currentVersion == version, 'Iterator undermined.');
       return i < size;
     };
     return result;
   }
 
   void operator init(T[] initialData) {
-    if (initialData.length == 0 || alias(initialData, null)) {
+    if (alias(initialData, null) || initialData.length == 0) {
       return;
     }
     int desiredLength = data.length;
-    // TODO: Do this computation using CLZ.
+    // Possible optimization: next power of 2 is 2^(CLZ(0) - CLZ(initialData.length - 1))
+    // The following code is more readable with fewer edge cases.
     while (desiredLength < initialData.length) {
       desiredLength *= 2;
     }
@@ -89,16 +115,20 @@ struct ArrayQueue_T {
     }
     data[start+size] = value;
     ++size;
+    ++version;
   }
 
   T peek() {
+    assert(size > 0);
     return data[start];
   }
 
   T pop() {
+    assert(size > 0);
     T retv = data[start];
     ++start;
     --size;
+    ++version;
     return retv;
   }
 
@@ -135,23 +165,29 @@ struct LinkedQueue_T {
   Node head = null;
   Node tail = null;
   int size = 0;
+  int version = 0;
 
   Iter_T operator iter() {
     Node node = head;
     Iter_T result;
+    int expectedVersion = version;
     result.advance = new void() {
+      assert(expectedVersion == version, 'Iterator undermined.');
       node = node.next;
     };
     result.get = new T() {
+      assert(expectedVersion == version, 'Iterator undermined.');
       return node.value;
     };
     result.valid = new bool() {
+      assert(expectedVersion == version, 'Iterator undermined.');
       return node != null;
     };
     return result;
   }
 
   void push(T value) {
+    ++version;
     Node node = new Node;
     node.value = value;
     if (size == 0) {
@@ -169,6 +205,7 @@ struct LinkedQueue_T {
   }
 
   T pop() {
+    ++version;
     T retv = head.value;
     head = head.next;
     --size;

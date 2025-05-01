@@ -7618,10 +7618,13 @@ Elements of @code{other} that are not in the set are ignored.
 
 @end table
 
-The following methods are of interest only if the notion of equivalence is being
-used to mean something very different from equality. For example, if the set was configured such that two ordered pairs are considered
-equivalent if they have the same first element, then the @code{get} method below could be used
-to look up a pair based on its first element.
+The preceeding methods are sufficient assuming that equivalent elements are
+interchangeable. However, on rare occasions, one may care which of two equivalent
+elements is in the set. For example, if the set was configured such that two ordered pairs are considered
+equivalent if they have the same first element, then the methods above would provide no way
+to look up a pair based on its first element. For this sort of situation, the
+@code{Set_T} API provides the following methods.
+
 @table @code
 @cindex @code{Set} @subentry @code{.get}
 @cindex @code{get} @subentry @code{Set.get}
@@ -7630,6 +7633,7 @@ returns the item in the set equivalent to @code{item}. If no such item exists,
 @code{nullT} is returned; if @code{nullT} also does not exist,
 the method is allowed to either throw an error or return an arbitrary (implementation-dependent)
 item of type @code{T}. If an error is not thrown, the set should not be mutated.
+
 @cindex @code{Set} @subentry @code{.swap}
 @cindex @code{swap} @subentry @code{Set.swap}
 @item T swap(T item)
@@ -7640,6 +7644,7 @@ the set is not modified and @code{nullT} is returned.
 
 The @code{swap} method
 can be used to add a new item to the set, but only if @code{nullT} is defined.
+
 @cindex @code{Set} @subentry @code{.extract}
 @cindex @code{extract} @subentry @code{Set.extract}
 @item T extract(T item)
@@ -7788,7 +7793,8 @@ Two standard datastructures are stacks and queues. A stack is a last-in-first-ou
 returns a queue initialized with a copy of the array @code{initialData}.
 The parameter is required in order to specify the type @code{T} in case there
 are multiple @code{Queue_T} types in the current scope. If no initial data is
-needed, use @code{makeQueue(new T[])} to create an empty array as a parameter.
+needed, use @code{makeQueue(new T[])} or @code{makeQueue((T[])null)}
+to create an empty array as a parameter.
 @end table
 
 Note that the @code{makeQueue} function is @emph{not} autounraveled, so it
@@ -7799,8 +7805,44 @@ The @code{Queue_T} structure has the following methods:
 @cindex @code{Queue_T} @subentry @code{.push}
 @cindex @code{push} @subentry @code{Queue_T.push}
 @item void push(T item)
+adds @code{item} to the end of the queue.
+
+@cindex @code{Queue_T} @subentry @code{.pop}
+@cindex @code{pop} @subentry @code{Queue_T.pop}
+@item T pop()
+removes and returns the first item in the queue. If the queue is empty,
+an error is thrown.
+
+@cindex @code{Queue_T} @subentry @code{.peek}
+@cindex @code{peek} @subentry @code{Queue_T.peek}
+@item T peek()
+returns the first item in the queue without removing it. If the queue is empty,
+an error is thrown.
+
+@cindex @code{Queue_T} @subentry @code{.size}
+@cindex @code{size} @subentry @code{Queue_T.size}
+@item int size()
+returns the number of items in the queue.
+
+@cindex @code{Queue_T} @subentry @code{.operator iter}
+@cindex @code{operator iter} @subentry @code{Queue_T.operator iter}
+@cindex @code{Queue_T} @subentry iterating over
+@item Iter_T operator iter()
+returns an iterator over the items in the queue, in the order they will be
+returned by @code{pop()}.
+
+If an item is pushed or popped, then any iterators created before that change are
+undermined and may behave nonsensically. The current implementation attempts to throw errors
+if an iterator is used after being undermined,
+but this behavior is not guaranteed and might be removed in
+future versions to make operations faster.
 
 @end table
+
+@cindex @code{Queue_T} @subentry cast to Iterable
+In addition to these methods, there is also an autounraveled implicit cast from
+@code{Queue_T} to @code{Iterable_T}. This cast allows a @code{Queue_T} to be
+passed as a parameter to utilities like @code{zip} or @code{enumerate}.
 
 @node Wrapping arrays
 @subsection Wrapping arrays
