@@ -7647,35 +7647,52 @@ the set is not modified and @code{nullT} is returned.
 In addition to the methods above, there are a number of autounraveled functions
 that deal with sets.
 
+TODO: How do we index the operators?
+
 @table @code
 @item Iterable_T operator cast(Set_T set)
 implicitly casts a set to an iterable so that it can be passed as a parameter
 to utilities like @code{zip} or @code{enumerate}.
+
 @item bool operator <= (Set_T a, Set_T b)
 returns true if @code{a} is a subset of @code{b}.
+
 @item bool operator >= (Set_T a, Set_T b)
 returns true if @code{b} is a subset of @code{a}.
+
 @item bool operator == (Set_T a, Set_T b)
 returns true if @code{a} and @code{b} are subsets of each other.
+
 @item bool operator != (Set_T a, Set_T b)
 returns true if either @code{a} or @code{b} contains an element not in the other.
+
 @item bool sameElementsInOrder(Set_T a, Set_T b)
 returns true if iterating over @code{a} and @code{b} produces the same elements in the same order.
+
 @item Set_T operator + (Set_T a, Iterable_T b)
 returns the union of @code{a} and @code{b}. The result is a new set with the same
 underlying implementation as @code{a}.
+
 @item Set_T operator - (Set_T a, Set_T b)
 returns a new set containing the elements of @code{a} that are not in @code{b}.
 The result is a new set with the same underlying implementation as @code{a}.
+
+@item Set_T operator & (Set_T a, Set_T b)
+returns the intersection of @code{a} and @code{b}. The result is a new set with the same
+underlying implementation as @code{a}.
+
+@item Set_T operator ^ (Set_T a, Set_T b)
+returns the symmetric difference of @code{a} and @code{b}, in other words, the
+set of all items in exactly one of @code{a}, @code{b}. The result is a new set with the same
+underlying implementation as @code{a}. 
 @end table
 
-@noindent @strong{Caution:} 
-Do not use @code{+=} to build up a set by adding elements one by one. While
-this can be done (with some effort), it is inefficient since the entire set is
-copied with each invocation of @code{+=}. If you want to build up a set
-by adding elements one by one, use the @code{add} method instead (or @code{swap}, if
-equivalent elements are not really equal and you want later elements to override earlier
-equivalent elements).
+@noindent @strong{Note:} 
+While it is possible to use the @code{+=} and @code{-=} operators, they may not
+function as expected. In particular, these two operators will replace the entire
+set with the result of the operation, rather than modifying the set in place.
+For most purposes, the @code{add(Iterable_T)} and @code{delete(Iterable_T)} methods are
+preferred.
 
 @cindex @code{SortedSet_T}
 @cindex @code{SortedSet}

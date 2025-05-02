@@ -145,6 +145,34 @@ struct Set_T {
     return result;
   }
 
+  autounravel Set_T operator &(Set_T a, Set_T b) {
+    Set_T result = a.newEmpty();
+    for (T item : a) {
+      if (b.contains(item)) {
+        result.add(item);
+      }
+    }
+    return result;
+  }
+
+  // Symmetric difference. The set of elements that are in either a or b, but
+  // not in both.
+  // This is equivalent to (a - b) + (b - a).
+  autounravel Set_T operator ^(Set_T a, Set_T b) {
+    Set_T result = a.newEmpty();
+    for (T item : a) {
+      if (!b.contains(item)) {
+        result.add(item);
+      }
+    }
+    for (T item : b) {
+      if (!a.contains(item)) {
+        result.add(item);
+      }
+    }
+    return result;
+  }
+
 }
 
 
