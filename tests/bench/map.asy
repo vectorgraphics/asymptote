@@ -1,6 +1,6 @@
 //from collections.repset(T=int) access RepSet_T as RepSet_int;
 //from collections.hashrepset(T=int) access HashRepSet_T as HashRepSet_int;
-//from collections.btree(T=int) access BTreeRepSet_T as BTreeRepSet_int;
+//from collections.btreegeneral(T=int) access BTreeRepSet_T as BTreeRepSet_int;
 from collections.map(K=int, V=int) access Map_K_V as Map_int_int;
 from collections.hashmap(K=int, V=int) access HashMap_K_V as HashMap_int_int;
 from collections.btreemap(K=int, V=int) access BTreeMap_K_V as BTreeMap_int_int;
@@ -52,7 +52,7 @@ names.push('BTreeMap');
 //names.push('BTreeMap (8 pivots max)');
 
 // Run a benchmark
-for (int operations = 1000; operations <= 1e6; operations *= 10) {
+for (int operations = 5000; operations <= 1e7; operations *= 10) {
   for (var labeledMap : zip(sets, names)) {
     cputime time = benchmark(labeledMap.k, operations);
     write(labeledMap.v + ': user time for ' + (string)operations + ' operations: ', suffix=flush);

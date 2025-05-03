@@ -34,7 +34,7 @@ from collections.hashset(T=wrapped_int) access
 from collections.sortedset(T=wrapped_int) access
     SortedSet_T as SortedSet_wrapped_int,
     Naive_T as NaiveSortedSet_wrapped_int;
-from collections.btree(T=wrapped_int) access
+from collections.btreegeneral(T=wrapped_int) access
     BTreeSet_T as BTreeSet_wrapped_int;
 
 struct ActionEnum {

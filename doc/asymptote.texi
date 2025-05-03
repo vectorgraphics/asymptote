@@ -7797,45 +7797,48 @@ We illustrate this approach by implementing a piecewise
 linear function:
 
 @verbatim
-from collections.genericpair(K=real, V=real) access
-    Pair_K_V as Pair_real_real, makePair;
-from collections.btree(T=Pair_real_real) access
-    SortedSet_T as SortedSet_Pair_real_real,
-    BTreeSet_T as BTreeSet_Pair_real_real;
+from collections.btreegeneral(T=pair) access
+    SortedSet_T as SortedSet_pair,
+    BTreeSet_T as BTreeSet_pair;
 
-bool keysLT(Pair_real_real a, Pair_real_real b) {
-  return a.k < b.k;
+bool keysLT(pair a, pair b) {
+  return a.x < b.x;
 }
+bool isnan(pair a) {
+  return isnan(a.y);
+}
+pair nanPair = (nan, nan);
 
 struct PLFunction {
-  SortedSet_Pair_real_real pairs = BTreeSet_Pair_real_real(
+  SortedSet_pair pairs = BTreeSet_pair(
     lessThan=keysLT,
-    nullT=null,
-    isNullT = new bool(Pair_real_real kv) { return alias(kv, null); }
+    nullT=nanPair,
+    isNullT = isnan
   );
   void operator [=] (real x, real y) {
-    Pair_real_real p = makePair(x, y);
-    pairs.swap(p);
+    pairs.swap((x,y));
   }
   real operator [] (real x) {
-    Pair_real_real p = makePair(x, 0);
-    Pair_real_real left = pairs.firstLEQ(p);
-    Pair_real_real right = pairs.firstGEQ(p);
-    if (alias(left, null) || alias(right, null)) {
+    pair p = (x, 0);
+    pair left = pairs.firstLEQ(p);
+    pair right = pairs.firstGEQ(p);
+    if (isnan(left.y) || isnan(right.y)) {
       return nan;
     }
-    if (left.k == right.k) {
-      return interp(left.v, right.v, 1/2);
+    if (left.x == right.x) {
+      return left.y;
     }
-    real t = (x - left.k) / (right.k - left.k);
-    return interp(left.v, right.v, t);
+    real t = (x - left.x) / (right.x - left.x);
+    return interp(left.y, right.y, t);
   }
 }
 
 PLFunction f;
 f[0] = 17;
 f[1] = 18;
-f[2000] = 19;
+f[2001] = 19;
+write(f[-inf]);
+write(f[-infinity]);
 write(f[-1]);
 write(f[0]);
 write(f[0.5]);
@@ -7844,6 +7847,27 @@ write(f[1.5]);
 write(f[2]);
 write(f[2000]);
 write(f[2001]);
+write(f[2002]);
+write(f[infinity]);
+write(f[inf]);
+@end verbatim
+
+@noindent
+outputs
+@verbatim
+nan
+nan
+nan
+17
+17.5
+18
+18.00025
+18.0005
+18.9995
+19
+nan
+nan
+nan
 @end verbatim
     
 

@@ -4,7 +4,7 @@ from collections.map(K=K, V=V) access Map_K_V, Iter_K, Iter_K_V, Iterable_K,
                                       Iterable_K_V;
 from collections.genericpair(K=K, V=V) access Pair_K_V, makePair;
 
-from collections.btree(T=Pair_K_V) access BTreeSet_T as BTreeSet_K_V;
+from collections.btreegeneral(T=Pair_K_V) access BTreeSet_T as BTreeSet_K_V;
 
 bool keysLT(Pair_K_V a, Pair_K_V b) { return a.k < b.k; }
 

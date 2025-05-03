@@ -1,10 +1,10 @@
-from collections.repset(T=int) access RepSet_T as RepSet_int;
-from collections.hashrepset(T=int) access HashRepSet_T as HashRepSet_int;
-from collections.btree(T=int) access BTreeRepSet_T as BTreeRepSet_int;
-from collections.zip2(K=RepSet_int, V=string) access zip, operator cast;
+from collections.set(T=int) access Set_T as Set_int;
+from collections.hashset(T=int) access HashSet_T as HashSet_int;
+from collections.btree(T=int) access BTreeSet_T as BTreeSet_int;
+from collections.zip2(K=Set_int, V=string) access zip, operator cast;
 
 // Run a sequence of operations on a Map_K_V and measure elapsed time.
-cputime benchmark(RepSet_int set, int operations, int size=operations#2) {
+cputime benchmark(Set_int set, int operations, int size=operations#2) {
   assert(size % 43 != 0, 'size must not be divisible by 43');
   assert(size % 31667 != 0, 'size must not be divisible by 31667');
   cputime();
@@ -38,13 +38,13 @@ cputime benchmark(RepSet_int set, int operations, int size=operations#2) {
 }
 
 string[] names;
-RepSet_int[] sets;
-sets.push(HashRepSet_int(nullT=-1));
-names.push('HashRepSet');
-sets.push(BTreeRepSet_int(operator <, nullT=-1));
-names.push('BTreeRepSet');
-sets.push(BTreeRepSet_int(operator <, nullT=-1, maxPivots=8));
-names.push('BTreeRepSet (8 pivots max)');
+Set_int[] sets;
+sets.push(HashSet_int(nullT=-1));
+names.push('HashSet');
+sets.push(BTreeSet_int(nullT=-1));
+names.push('BTreeSet');
+sets.push(BTreeSet_int(nullT=-1, maxPivots=8));
+names.push('BTreeSet (8 pivots max)');
 
 // Run a benchmark
 int operations = 5000000;
