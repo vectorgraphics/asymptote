@@ -23,6 +23,8 @@
 #include <GLFW/glfw3native.h>
 #endif
 
+uint32_t apiVersion=VK_API_VERSION_1_4;
+
 using settings::getSetting;
 using settings::Setting;
 
@@ -895,7 +897,7 @@ void AsyVkRender::createInstance()
     VK_MAKE_VERSION(1, 0, 0),
     "No Engine",
     VK_MAKE_VERSION(1, 0, 0),
-    VK_API_VERSION_1_4
+    apiVersion
   );
   auto supportedExtensions = getInstanceExtensions();
   auto supportedLayers = vk::enumerateInstanceLayerProperties();
@@ -1048,7 +1050,7 @@ void AsyVkRender::createAllocator()
   vkFuncs.vkBindImageMemory2KHR = VULKAN_HPP_DEFAULT_DISPATCHER.vkBindImageMemory2 ? VULKAN_HPP_DEFAULT_DISPATCHER.vkBindImageMemory2 : VULKAN_HPP_DEFAULT_DISPATCHER.vkBindImageMemory2KHR;
 
   VmaAllocatorCreateInfo createInfo = {};
-  createInfo.vulkanApiVersion = VK_API_VERSION_1_3;
+  createInfo.vulkanApiVersion=apiVersion;
   createInfo.physicalDevice = physicalDevice;
   createInfo.device = *device;
   createInfo.instance = *instance;
