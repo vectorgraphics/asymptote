@@ -1526,12 +1526,14 @@ vk::UniqueShaderModule AsyVkRender::createShaderModule(EShLanguage lang, std::st
   shader.setStrings(shaderSources.data(), shaderSources.size());
 
   if (!shader.parse(&res, 100, false, compileMessages)) {
-    std::cout << fileContents.size() << std::endl;
-    std::cout << fileContents.data() << std::endl;
-    std::cerr << "Error: " << shader.getInfoLog();
-    throw std::runtime_error("Failed to parse shader "
+    std::stringstream s(fileContents.data());
+    std::string line;
+    unsigned int k=0;
+    while(getline(s,line))
+      std::cerr << ++k << ": " << line << std::endl;
+    throw std::runtime_error("\n Failed to parse "
                              + filename
-                             + ": " + shader.getInfoLog()
+                             + ":\n" + shader.getInfoLog()
                              + " " + shader.getInfoDebugLog());
   }
 
