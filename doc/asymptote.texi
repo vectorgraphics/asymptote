@@ -7578,14 +7578,17 @@ The @code{Set_T} structure has the following methods:
 @cindex @code{size} @subentry @code{Set.size}
 @item int size()
 returns the number of distinct elements in the set.
+
 @cindex @code{Set} @subentry @code{.empty}
 @cindex @code{empty} @subentry @code{Set.empty}
 @item bool empty()
 returns true iff @code{size() == 0}.
+
 @cindex @code{Set} @subentry @code{.contains}
 @cindex @code{contains} @subentry @code{Set.contains}
 @item bool contains(T item)
 returns true if @code{item} (or an equivalent item) is present in the set.
+
 @cindex @code{Set} @subentry @code{.add}
 @cindex @code{add} @subentry @code{Set.add}
 @item bool add(T item)
@@ -7593,11 +7596,13 @@ adds @code{item} to the set if it is not already present.
 This method does nothing if @code{isNullT(item)} is defined and true,
 or if @code{item} or an equivalent item is already present.
 The return value is true iff @code{item} was added.
+
 @cindex @code{Set} @subentry @code{.delete}
 @cindex @code{delete} @subentry @code{Set.delete}
 @item T delete(T item)
 removes @code{item} from the set if it is present, otherwise does nothing.
 The return value is true iff the set was modified.
+
 @cindex @code{Set} @subentry @code{.operator iter}
 @cindex @code{operator iter} @subentry @code{Set.operator iter}
 @cindex @code{Set} @subentry iterating over
@@ -7612,16 +7617,26 @@ undermined and may behave nonsensically. The current implementations attempt to 
 if an iterator is used after being undermined,
 but this behavior is not guaranteed and might be removed in
 future versions to make operations faster.
+
 @cindex @code{Set} @subentry @code{.add}
 @cindex @code{add} @subentry @code{Set.add}
 @item void add(Iterable_T other)
 adds the elements from @code{other} to the set.
+
 @cindex @code{Set} @subentry @code{.delete}
 @cindex @code{delete} @subentry @code{Set.delete}
 @item void delete(Iterable_T other)
 removes the elements from @code{other} from the set.
 Elements of @code{other} that are not in the set are ignored.
 
+@cindex @code{Set} @subentry @code{.newEmpty}
+@cindex @code{newEmpty} @subentry @code{Set.newEmpty}
+@item Set_T newEmpty()
+returns a new empty set with the same @code{nullT}, @code{isNullT},
+equivalence relation, and (if applicable) ordering as the current set.
+Implementors of new set types should implement this method, otherwise
+the binary operators that are supposed to return a set will instead
+throw errors.
 @end table
 
 The preceeding methods are sufficient assuming that equivalent elements are
@@ -7686,23 +7701,26 @@ returns true if either @code{a} or @code{b} contains an element not in the other
 
 @item bool sameElementsInOrder(Set_T a, Set_T b)
 returns true if iterating over @code{a} and @code{b} produces the same elements in the same order.
+@end table
 
+The following operators leave the two parameters unchanged; the
+result is initialized by calling the @code{newEmpty()} method of the first
+parameter. The result is a new set with the same underlying implementation as
+the first parameter.
+
+@table @code
 @item Set_T operator + (Set_T a, Iterable_T b)
-returns the union of @code{a} and @code{b}. The result is a new set with the same
-underlying implementation as @code{a}.
+returns the union of @code{a} and @code{b}.
 
 @item Set_T operator - (Set_T a, Set_T b)
 returns a new set containing the elements of @code{a} that are not in @code{b}.
-The result is a new set with the same underlying implementation as @code{a}.
 
 @item Set_T operator & (Set_T a, Set_T b)
-returns the intersection of @code{a} and @code{b}. The result is a new set with the same
-underlying implementation as @code{a}.
+returns the intersection of @code{a} and @code{b}.
 
 @item Set_T operator ^ (Set_T a, Set_T b)
 returns the symmetric difference of @code{a} and @code{b}, in other words, the
-set of all items in exactly one of @code{a}, @code{b}. The result is a new set with the same
-underlying implementation as @code{a}. 
+set of all items in exactly one of @code{a}, @code{b}.
 @end table
 
 @noindent @strong{Note:} 
