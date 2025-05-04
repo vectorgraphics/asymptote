@@ -454,7 +454,6 @@ subdirectory of the installation directory (by default,
 @node Configuring
 @section Configuring
 @cindex configuring
-@cindex @code{-V}
 In interactive mode, or when given the @code{-V} option (the default
 when running @code{Asymptote} on a single file under @code{MSDOS}),
 @code{Asymptote} will automatically invoke your @code{PostScript}
@@ -904,7 +903,6 @@ Desktop @code{asy} icon (or make @code{Asymptote} the default
 application for the extension @code{asy}).
 
 @noindent
-@cindex @code{-V}
 This method, known as @emph{batch mode}, outputs a @code{PostScript}
 file @code{test.eps}. If you prefer @acronym{PDF} output, use
 the command line
@@ -7537,13 +7535,12 @@ These two functions must be accessed from the @code{collections.btree(T)}
 module. They create a BTreeSet, which stores its elements in order based on the
 @code{<} operator. The @code{<} operator must define a strict weak ordering
 on all items of type @code{T}, except those satisfying @code{isNullT}.
-For the purposes of the set constructed by this function, two items will be
-considered equivalent if neither is less than the other.
+Two items are considered equivalent if neither is less than the other.
 
-If the
-@code{<} operator is not defined, the @code{collections.btree(T)} module will
-not compile, but the @code{collections.btreegeneral(T)} module may still work;
-see the next entry in this table.
+Accessing the @code{collections.btree(T)} module requires that
+@code{operator <} is defined for the type @code{T}; if not one can use
+the constructors defined in @code{collections.btreegeneral(T)} module, as
+discussed next.
 
 @item BTreeSet_T(bool lessThan(T,T))
 @itemx BTreeSet_T(bool lessThan(T,T),@*@ @ @ @ @ @ @ @ @ @ @ T nullT,@*@ @ @ @ @ @ @ @ @ @ @ bool isNullT(T) = new bool(T t) @{ return t == nullT; @})
@@ -7551,8 +7548,8 @@ These two functions must be accessed from the @code{collections.btreegeneral(T)}
 module. They create a BTreeSet that stores its elements in sorted order based
 on the @code{lessThan} function. The @code{lessThan} function must define a
 strict weak ordering on all items of type @code{T}, except those satisfying
-@code{isNullT}. For the purposes of the set constructed by this function,
-two items will be considered equivalent if neither is less than the other.
+@code{isNullT}. Two items are considered equivalent if neither is
+less than the other.
 @end table
 
 Both @code{HashSet_T} and @code{BTreeSet_T} can be implicitly cast to
@@ -7566,8 +7563,9 @@ or the next element greater than a given element). @xref{The @code{SortedSet} AP
 @node The @code{Set} API
 @subsubsection The @code{Set} API
 
-Depending on which constructor is used, a @code{Set} may or may not have
-valid instances of @code{nullT} and @code{isNullT}. If one of these is valid, the other will be too.
+Depending on which constructor is used,
+@code{nullT} and @code{isNullT} may or may not be defined for a @code{Set}.
+If one of these is defined the other will be too.
 In some methods below, an error will be thrown unless @code{nullT} can be returned to indicate an
 element is not present.
 
@@ -7616,7 +7614,7 @@ If an item is deleted or a new item is inserted, then any iterators created befo
 undermined and may behave nonsensically. The current implementations attempt to throw errors
 if an iterator is used after being undermined,
 but this behavior is not guaranteed and might be removed in
-future versions to make operations faster.
+future versions for performance reasons.
 
 @cindex @code{Set} @subentry @code{.add}
 @cindex @code{add} @subentry @code{Set.add}
@@ -7703,10 +7701,10 @@ returns true if either @code{a} or @code{b} contains an element not in the other
 returns true if iterating over @code{a} and @code{b} produces the same elements in the same order.
 @end table
 
-The following operators leave the two parameters unchanged; the
+The following operators leave their two arguments unchanged; the
 result is initialized by calling the @code{newEmpty()} method of the first
-parameter. The result is a new set with the same underlying implementation as
-the first parameter.
+argument to produce a new set with the same underlying implementation as
+the first argument.
 
 @table @code
 @item Set_T operator + (Set_T a, Iterable_T b)
@@ -7720,13 +7718,13 @@ returns the intersection of @code{a} and @code{b}.
 
 @item Set_T operator ^ (Set_T a, Set_T b)
 returns the symmetric difference of @code{a} and @code{b}, in other words, the
-set of all items in exactly one of @code{a}, @code{b}.
+set of all items in exactly one of @code{a,b}.
 @end table
 
 @noindent @strong{Note:} 
 While it is possible to use the @code{+=} and @code{-=} operators, they may not
-function as expected. In particular, these two operators will replace the entire
-set with the result of the operation, rather than modifying the set in place.
+function as expected. In particular, these two operators will
+construct a new set, rather than modifying the set in place.
 For most purposes, the @code{add(Iterable_T)} and @code{delete(Iterable_T)} methods are
 preferred.
 
@@ -11392,7 +11390,6 @@ an optional direction on the boundary of the page (mapped to the
 rectangle [-1,1]@math{\times}[-1,1]) to which the picture should be aligned; the
 default value @code{(0,0)} species center alignment.
 
-@cindex @code{-c}
 The @code{-c} (@code{command}) option may be used to execute arbitrary
 @code{Asymptote} code on the command line as a string. It is not
 necessary to terminate the string with a semicolon. Multiple @code{-c}
@@ -11409,7 +11406,6 @@ produces the output
 @noindent
 and draws a unitsquare of size @code{100}.
 
-@cindex @code{-u}
 The @code{-u} (@code{user}) option may be used to specify arbitrary
 @code{Asymptote} settings on the command line as a string. It is not
 necessary to terminate the string with a semicolon. Multiple @code{-u}
@@ -11421,7 +11417,6 @@ usersetting();
 write(x);
 @end verbatim
 
-@cindex @code{-l}
 When the @code{-l} (@code{listvariables}) option is used with file
 arguments, only global functions and variables defined in the specified
 file(s) are listed.
