@@ -33,9 +33,9 @@ struct HashSet_T {
     ((F)super.operator init)(nullT, equiv, isNullT);
   }
 
-  Set_T newEmpty() {
+  super.newEmpty = new Set_T() {
     return HashSet_T(nullT, equiv, isNullT).super;
-  }
+  };
 
   super.size = new int() {
     return size;

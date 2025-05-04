@@ -242,6 +242,10 @@ struct BTreeSet_T {
     this.operator init(lessThan, nullT, isNullT);
   }
 
+  super.newEmpty = new Set_T() {
+    return BTreeSet_T(lt, nullT, isNullT, maxPivots=maxPivots).super;
+  };
+
   void operator init(bool lessThan(T, T)) {
     this.lt = lessThan;
     using Initializer = void();

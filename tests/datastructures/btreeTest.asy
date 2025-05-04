@@ -34,7 +34,7 @@ from collections.hashset(T=wrapped_int) access
 from collections.sortedset(T=wrapped_int) access
     SortedSet_T as SortedSet_wrapped_int,
     Naive_T as NaiveSortedSet_wrapped_int;
-from collections.btreegeneral(T=wrapped_int) access
+from collections.btree(T=wrapped_int) access
     BTreeSet_T as BTreeSet_wrapped_int;
 
 struct ActionEnum {
@@ -428,8 +428,8 @@ decreasingProbs[ActionEnum.DELETE_CONTAINS] = 1 / 8;
 assert(sum(decreasingProbs) == 1, 'Probabilities do not sum to 1');
 
 SortedSet_wrapped_int naive = NaiveSortedSet_wrapped_int(operator <, null);
-SortedSet_wrapped_int btree1 = BTreeSet_wrapped_int(operator <, null, maxPivots=4);
-SortedSet_wrapped_int btree2 = BTreeSet_wrapped_int(operator <, null, maxPivots=128);
+SortedSet_wrapped_int btree1 = BTreeSet_wrapped_int(null, maxPivots=4);
+SortedSet_wrapped_int btree2 = BTreeSet_wrapped_int(null, maxPivots=128);
 
 bool isStrictlySorted(SortedSet_wrapped_int s) {
   wrapped_int last = null;
@@ -485,4 +485,43 @@ if (false) {
   }
 }
 
+EndTest();
+
+StartTest('BTree_binary_ops');
+
+Set_wrapped_int a = BTreeSet_wrapped_int();
+a.add(wrap(1));
+a.add(wrap(2));
+a.add(wrap(3));
+Set_wrapped_int b = HashSet_wrapped_int();
+b.add(wrap(2));
+b.add(wrap(3));
+b.add(wrap(4));
+
+{
+  Set_wrapped_int c = a + b;
+  assert(c.size() == 4, 'Union failed: wrong size ' + string(c.size()));
+  assert(c.contains(wrap(1)), 'Union failed: missing 1');
+  assert(c.contains(wrap(2)), 'Union failed: missing 2');
+  assert(c.contains(wrap(3)), 'Union failed: missing 3');
+  assert(c.contains(wrap(4)), 'Union failed: missing 4');
+}
+{
+  Set_wrapped_int c = a - b;
+  assert(c.size() == 1, 'Difference failed: wrong size ' + string(c.size()));
+  assert(c.contains(wrap(1)), 'Difference failed: missing 1');
+}
+{
+  Set_wrapped_int c = a & b;
+  assert(c.size() == 2, 'Intersection failed: wrong size ' + string(c.size()));
+  assert(c.contains(wrap(2)), 'Intersection failed: missing 2');
+  assert(c.contains(wrap(3)), 'Intersection failed: missing 3');
+}
+{
+  Set_wrapped_int c = a ^ b;
+  assert(c.size() == 2, 'Symmetric difference failed: wrong size ' +
+         string(c.size()));
+  assert(c.contains(wrap(1)), 'Symmetric difference failed: missing 1');
+  assert(c.contains(wrap(4)), 'Symmetric difference failed: missing 4');
+}
 EndTest();

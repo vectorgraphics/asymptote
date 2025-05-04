@@ -314,3 +314,43 @@ for (int i = 0; i < 2000; ++i) {
 }
 
 EndTest();
+
+StartTest('HashSet_binary_ops');
+
+Set_wrapped_int a = HashSet_wrapped_int(null);
+a.add(wrap(1));
+a.add(wrap(2));
+a.add(wrap(3));
+Set_wrapped_int b = HashSet_wrapped_int(null);
+b.add(wrap(2));
+b.add(wrap(3));
+b.add(wrap(4));
+
+{
+  Set_wrapped_int c = a + b;
+  assert(c.size() == 4, 'Union failed: wrong size ' + string(c.size()));
+  assert(c.contains(wrap(1)), 'Union failed: missing 1');
+  assert(c.contains(wrap(2)), 'Union failed: missing 2');
+  assert(c.contains(wrap(3)), 'Union failed: missing 3');
+  assert(c.contains(wrap(4)), 'Union failed: missing 4');
+}
+{
+  Set_wrapped_int c = a - b;
+  assert(c.size() == 1, 'Difference failed: wrong size ' + string(c.size()));
+  assert(c.contains(wrap(1)), 'Difference failed: missing 1');
+}
+{
+  Set_wrapped_int c = a & b;
+  assert(c.size() == 2, 'Intersection failed: wrong size ' + string(c.size()));
+  assert(c.contains(wrap(2)), 'Intersection failed: missing 2');
+  assert(c.contains(wrap(3)), 'Intersection failed: missing 3');
+}
+{
+  Set_wrapped_int c = a ^ b;
+  assert(c.size() == 2, 'Symmetric difference failed: wrong size ' +
+         string(c.size()));
+  assert(c.contains(wrap(1)), 'Symmetric difference failed: missing 1');
+  assert(c.contains(wrap(4)), 'Symmetric difference failed: missing 4');
+}
+
+EndTest();
