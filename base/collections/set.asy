@@ -211,6 +211,9 @@ struct NaiveSet_T {
         return i;
       }
     }
+    if (isNullT == null) {
+      assert(false, 'item not found');
+    }
     return nullT;
   };
 
@@ -257,8 +260,8 @@ struct NaiveSet_T {
     return nullT;
   };
 
-  // This implementation is O(1).
-  super.getRandom = new T() {
+    // This implementation is O(1).
+    super.getRandom = new T() {
     if (items.length == 0) {
       assert(isNullT != null, 'Cannot get a random item from an empty set');
       return nullT;

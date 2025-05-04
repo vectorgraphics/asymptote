@@ -145,6 +145,7 @@ struct Naive_T {
     for (T possibility : buffer) {
       if (equiv(possibility, item)) return possibility;
     }
+    assert(isNullT != null, 'item not found');
     return nullT;
   };
 
