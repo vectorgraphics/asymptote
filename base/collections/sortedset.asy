@@ -125,7 +125,7 @@ struct Naive_T {
     return true;
   };
 
-  super.swap = new T(T item) {
+  super.push = new T(T item) {
     for (int i = 0; i < buffer.length; ++i) {
       if (equiv(buffer[i], item)) {
         T toreturn = buffer[i];

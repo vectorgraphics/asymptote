@@ -52,7 +52,7 @@ struct ActionEnum {
   static restricted int MAX = next();
   static restricted int POP_MAX = next();
   static restricted int ADD = next();
-  static restricted int SWAP = next();
+  static restricted int PUSH = next();
   static restricted int GET = next();
   static restricted int DELETE = next();
   static restricted int DELETE_CONTAINS = next();
@@ -318,13 +318,13 @@ actions[ActionEnum.ADD] =
         }
       }
     };
-actions[ActionEnum.SWAP] =
+actions[ActionEnum.PUSH] =
     new void(int maxItem ...SortedSet_wrapped_int[] sets) {
       wrapped_int toReplace = wrap(rand() % maxItem);
       // write('Replacing ' + string(toReplace.t) + '\n');
       wrapped_int[] results = new wrapped_int[];
       for (SortedSet_wrapped_int s : sets) {
-        results.push(s.swap(toReplace));
+        results.push(s.push(toReplace));
       }
       if (results.length > 0) {
         wrapped_int expected = results[0];
@@ -407,7 +407,7 @@ increasingProbs[ActionEnum.GET] = 1 / 2^5;
 assert(sum(increasingProbs) == 8 / 2^5);
 // Actions that might add an element:
 increasingProbs[ActionEnum.ADD] = 1 / 4;
-increasingProbs[ActionEnum.SWAP] = 1 / 4;
+increasingProbs[ActionEnum.PUSH] = 1 / 4;
 assert(sum(increasingProbs) == 3/4);
 // Actions that might remove an element:
 increasingProbs[ActionEnum.POP_MIN] = 1 / 16;
@@ -419,7 +419,7 @@ assert(sum(increasingProbs) == 1, 'Probabilities do not sum to 1');
 real[] decreasingProbs = copy(increasingProbs);
 // Actions that might add an element:
 decreasingProbs[ActionEnum.ADD] = 1 / 8;
-decreasingProbs[ActionEnum.SWAP] = 1 / 8;
+decreasingProbs[ActionEnum.PUSH] = 1 / 8;
 // Actions that might remove an element:
 decreasingProbs[ActionEnum.POP_MIN] = 1 / 8;
 decreasingProbs[ActionEnum.POP_MAX] = 1 / 8;
@@ -457,7 +457,7 @@ int chooseAction(real[] probs) {
 int[] counts = array(n=ActionEnum.n, value=0);
 string[] names = {
   'CONTAINS', 'AFTER', 'BEFORE', 'FIRST_GEQ', 'FIRST_LEQ', 'MIN', 'POP_MIN',
-  'MAX', 'POP_MAX', 'ADD', 'SWAP', 'GET', 'DELETE', 'DELETE_CONTAINS'
+  'MAX', 'POP_MAX', 'ADD', 'PUSH', 'GET', 'DELETE', 'DELETE_CONTAINS'
 };
 
 int maxSize = 0;

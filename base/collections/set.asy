@@ -38,7 +38,7 @@ struct Set_T {
   // Inserts item, and returns the item that was replaced, or nullT if
   // no item was replaced. Throws error if there is no equivalent item and nullT
   // was never set. Noop if isNullT is defined and isNullT(item).
-  T swap(T item);
+  T push(T item);
   // Removes the equivalent item from the set, and returns it. Returns
   // nullT if there is no equivalent item. Throws error if
   // there is no equivalent item and nullT was never set.
@@ -232,7 +232,7 @@ struct NaiveSet_T {
     return true;
   };
 
-  super.swap = new T(T item) {
+  super.push = new T(T item) {
     if (isNullT != null && isNullT(item)) {
       return nullT;
     }

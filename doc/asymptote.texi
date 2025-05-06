@@ -7652,9 +7652,9 @@ returns the item in the set equivalent to @code{item}. If no such item exists,
 @code{nullT} is returned; if @code{nullT} is not defined,
 an error is thrown.
 
-@cindex @code{Set} @subentry @code{.swap}
-@cindex @code{swap} @subentry @code{Set.swap}
-@item T swap(T item)
+@cindex @code{Set} @subentry @code{.push}
+@cindex @code{push} @subentry @code{Set.push}
+@item T push(T item)
 inserts @code{item} into the set even if it is equivalent to an
 existing item. If @code{item} is equivalent to an existing item, the
 replaced item is returned; otherwise @code{nullT} is returned (unless
@@ -7662,7 +7662,7 @@ replaced item is returned; otherwise @code{nullT} is returned (unless
 @code{isNullT(item)} is true,
 the set is not modified and @code{nullT} is returned.
 
-The @code{swap} method
+The @code{push} method
 can be used to add a new item to the set, but only if @code{nullT} is defined.
 
 @cindex @code{Set} @subentry @code{.extract}
@@ -7874,7 +7874,7 @@ struct PLFunction {
     isNullT = isnan
   );
   void operator [=] (real x, real y) {
-    pairs.swap((x,y));
+    pairs.push((x,y));
   }
   real operator [] (real x) {
     pair p = (x, 0);

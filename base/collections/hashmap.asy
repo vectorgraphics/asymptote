@@ -57,7 +57,7 @@ struct HashMap_K_V {
     if (map.isNullValue != null && map.isNullValue(value)) {
       pairs.delete((key, value));
     } else {
-      pairs.swap((key, value));
+      pairs.push((key, value));
     }
   };
 

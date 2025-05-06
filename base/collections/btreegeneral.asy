@@ -340,7 +340,7 @@ struct BTreeSet_T {
     return true;
   };
 
-  super.swap = new T(T item) {
+  super.push = new T(T item) {
     if (isNullT != null && isNullT(item)) {
       return nullT;
     }
@@ -353,7 +353,7 @@ struct BTreeSet_T {
       node.pivots[i] = item;
       return result;
     }
-    assert(isNullT != null, 'Adding item via swap() without defining nullT.');
+    assert(isNullT != null, 'Adding item via push() without defining nullT.');
     forceAdd(item, stack, indices);
     return nullT;
   };

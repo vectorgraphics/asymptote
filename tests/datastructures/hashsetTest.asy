@@ -45,7 +45,7 @@ struct ActionEnum {
   autounravel restricted int CONTAINS = make();
   autounravel restricted int GET = make();
   autounravel restricted int ADD = make();
-  autounravel restricted int SWAP = make();
+  autounravel restricted int PUSH = make();
   autounravel restricted int DELETE = make();
   autounravel restricted int DELETE_CONTAINS = make();
 }
@@ -162,12 +162,12 @@ actions[ADD] = new void(int maxItem ...Set_wrapped_int[] sets) {
     }
   }
 };
-actions[SWAP] = new void(int maxItem ...Set_wrapped_int[] sets) {
+actions[PUSH] = new void(int maxItem ...Set_wrapped_int[] sets) {
   wrapped_int toReplace = wrap(rand() % maxItem);
   // write('Replacing ' + string(toReplace.t) + '\n');
   wrapped_int[] results = new wrapped_int[];
   for (Set_wrapped_int s : sets) {
-    results.push(s.swap(toReplace));
+    results.push(s.push(toReplace));
   }
   if (results.length > 0) {
     wrapped_int expected = results[0];
@@ -261,7 +261,7 @@ actions[DELETE_CONTAINS] = new void(int ...Set_wrapped_int[] sets) {
 };
 real[] increasingProbs = new real[ActionEnum.num];
 increasingProbs[ADD] = 0.7;
-increasingProbs[SWAP] = 0.1;
+increasingProbs[PUSH] = 0.1;
 increasingProbs[DELETE] = 0.05;
 increasingProbs[CONTAINS] = 0.05;
 increasingProbs[GET] = 0.05;
@@ -270,7 +270,7 @@ assert(sum(increasingProbs) == 1, 'Probabilities do not sum to 1');
 
 real[] decreasingProbs = new real[ActionEnum.num];
 decreasingProbs[ADD] = 0.1;
-decreasingProbs[SWAP] = 0.1;
+decreasingProbs[PUSH] = 0.1;
 decreasingProbs[DELETE] = 0.4;
 decreasingProbs[CONTAINS] = 0.05;
 decreasingProbs[GET] = 0.05;

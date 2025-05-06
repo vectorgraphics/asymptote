@@ -179,7 +179,7 @@ struct HashSet_T {
     return true;
   };
 
-  super.swap = new T(T item) {
+  super.push = new T(T item) {
     if (isNullT != null && isNullT(item)) {
       return nullT;
     }
@@ -197,7 +197,7 @@ struct HashSet_T {
       return result;
     }
     assert(isNullT != null,
-           'Adding item via swap() without defining nullT.');
+           'Adding item via push() without defining nullT.');
     ++numChanges;
     if (2 * (size + zombies) >= buckets.length) {
       changeCapacity();

@@ -50,7 +50,7 @@ struct BTreeMap_K_V {
     if (map.isNullValue != null && map.isNullValue(value)) {
       pairs.delete(makePair(key, value));
     } else {
-      pairs.swap(makePair(key, value));
+      pairs.push(makePair(key, value));
     }
   };
 
