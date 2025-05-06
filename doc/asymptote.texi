@@ -7815,6 +7815,30 @@ returns the greatest element in the set that is less than or equal to
 
 @end table
 
+@cindex @code{SortedSet} @subentry iterating over
+As an example, the following code iterates over the elements of a sorted set
+@code{sset} between @code{a} (inclusive) and @code{b} (exclusive):
+@verbatim
+for (var x = sset.firstGEQ(a);
+     !sset.isNullT(x) && x < b;
+     x = sset.after(x)) {
+  <statements using x>
+}
+@end verbatim
+@noindent
+Of course, this code assumes that @code{nullT} is defined for @code{sset}.
+
+Note that if you want to iterate over most or all of the elements in a sorted set,
+it is usually more efficient to use a range-based @code{for} loop and skip any
+elements that are not in the desired range:
+@verbatim
+for (var x : sset) {
+  if (x < a) continue;
+  if (x >= b) break;
+  <statements using x>
+}
+@end verbatim
+
 @node Using Sets as Maps
 @subsection Using Sets as Maps
 
