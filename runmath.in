@@ -20,11 +20,6 @@ pairarray* => pairArray()
 #include "path.h"
 #include "random.h"
 
-#ifdef __CYGWIN__
-  extern "C" double yn(int, double);
-extern "C" double jn(int, double);
-#endif
-
 using namespace camp;
 
 typedef array realarray;
@@ -208,17 +203,9 @@ Int sgn(real x)
   return sgn(x);
 }
 
-Int rand()
+Int rand(Int a=0, Int b=Int_MAX)
 {
-//  if(initializeRandom)
-//    Srand(1);
-//  std::uniform_int_distribution dist(0, RANDOM_MAX);
-//  return dist(randEngine);
-  Int retv;
-  uint64_t result = camp_random::randInt(0, RANDOM_MAX);
-  static_assert(sizeof(Int) == sizeof(uint64_t));
-  std::memcpy(&retv, &result, sizeof(Int));
-  return retv;
+  return camp_random::randInt(a, b);
 }
 
 void srand(Int seed)
