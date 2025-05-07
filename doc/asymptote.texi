@@ -1044,7 +1044,7 @@ In general, a path is specified as a list of points (or other paths)
 interconnected with
 @cindex @code{cycle}
 @cindex @code{--}
-@cindex @code{..}
+@cindex @code{..} (two dots)
 @code{--}, which denotes a straight line segment, or @code{..}, which
 denotes a cubic spline (@pxref{Bezier curves}).
 @cindex @code{unitcircle}
