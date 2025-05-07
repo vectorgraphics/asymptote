@@ -1,17 +1,29 @@
 #include "random.h"
 
 namespace {
-std::minstd_rand randEngine(1);
+uint64_t makeRandomSeed() {
+  std::random_device rd;
+  std::uniform_int_distribution<uint64_t> dist;
+  return dist(rd);
+}
+
+std::mt19937_64 randEngine(makeRandomSeed());
 }
 
 namespace camp_random {
 
-void seed(uint64_t seed) {
-  randEngine=std::minstd_rand(seed);
+void seed(int64_t seed) {
+  uint64_t unsignedSeed;
+  if (seed < 0) {
+    unsignedSeed = makeRandomSeed();
+  } else {
+    unsignedSeed = static_cast<uint64_t>(seed);
+  }
+  randEngine=std::mt19937_64(unsignedSeed);
 }
 
-uint64_t randInt(uint64_t min, uint64_t max) {
-  std::uniform_int_distribution<uint64_t> dist(min, max);
+int64_t randInt(int64_t min, int64_t max) {
+  std::uniform_int_distribution<int64_t> dist(min, max);
   return dist(randEngine);
 }
 double unitrand() {
