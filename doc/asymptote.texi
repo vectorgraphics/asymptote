@@ -7686,18 +7686,24 @@ TODO: How do we index the operators?
 implicitly casts a set to an iterable so that it can be passed as a parameter
 to utilities like @code{zip} or @code{enumerate}.
 
+@cindex @code{Set} @subentry @code{<=}
 @item bool operator <= (Set_T a, Set_T b)
 returns true if @code{a} is a subset of @code{b}.
 
+@cindex @code{Set} @subentry @code{>=}
 @item bool operator >= (Set_T a, Set_T b)
 returns true if @code{b} is a subset of @code{a}.
 
+@cindex @code{Set} @subentry @code{==}
 @item bool operator == (Set_T a, Set_T b)
 returns true if @code{a} and @code{b} are subsets of each other.
 
+@cindex @code{Set} @subentry @code{!=}
 @item bool operator != (Set_T a, Set_T b)
 returns true if either @code{a} or @code{b} contains an element not in the other.
 
+@cindex @code{sameElementsInOrder}
+@cindex @code{Set} @subentry @code{sameElementsInOrder}
 @item bool sameElementsInOrder(Set_T a, Set_T b)
 returns true if iterating over @code{a} and @code{b} produces the same elements in the same order.
 @end table
@@ -7708,15 +7714,26 @@ argument to produce a new set with the same underlying implementation as
 the first argument.
 
 @table @code
+@cindex @code{Set} @subentry @code{+}
+@cindex union
+@cindex @code{Set} @subentry union
 @item Set_T operator + (Set_T a, Iterable_T b)
 returns the union of @code{a} and @code{b}.
 
+@cindex @code{Set} @subentry @code{-}
+@cindex @code{Set} @subentry difference
 @item Set_T operator - (Set_T a, Set_T b)
 returns a new set containing the elements of @code{a} that are not in @code{b}.
 
+@cindex @code{Set} @subentry @code{&}
+@cindex @code{Set} @subentry intersection
+@cindex intersection @subentry @code{Set}
 @item Set_T operator & (Set_T a, Set_T b)
 returns the intersection of @code{a} and @code{b}.
 
+@cindex @code{Set} @subentry @code{^}
+@cindex @code{Set} @subentry symmetric difference
+@cindex symmetric difference
 @item Set_T operator ^ (Set_T a, Set_T b)
 returns the symmetric difference of @code{a} and @code{b}, in other words, the
 set of all items in exactly one of @code{a,b}.
