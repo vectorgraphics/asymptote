@@ -1831,8 +1831,8 @@ it approximates a straight line.
 @cindex @code{and}
 @cindex @code{atleast}
 One can change the spline tension from its default value of 1 to any
-real value greater than or equal to 0.75 (see John D. Hobby, Discrete and
-Computational Geometry 1, 1986):
+real value greater than or equal to 0.75 [see John D. Hobby, Discrete and
+Computational Geometry 1, 123--140 (1986)]:
 @verbatim
 draw((100,0)..tension 2 ..(100,100)..(0,100));
 draw((100,0)..tension 3 and 2 ..(100,100)..(0,100));
@@ -7289,15 +7289,15 @@ to use a function from @code{collections.hashmap} or
 @cindex @code{HashMap_K_V}
 @item HashMap_K_V()
 @itemx HashMap_K_V(V nullValue, bool isNullValue(V v) =@*@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ new bool(V v) @{return v == nullValue; @})
-These two functions, which create a HashMap, must be accessed from the
+These two functions, which create a hash map, must be accessed from the
 @code{collections.hashmap(K,V)} templated module. The key type must
 have a @code{hash} method, @pxref{Hash functions}.
 @cindex @code{BTreeMap_K_V}
 @item BTreeMap_K_V()
 @itemx BTreeMap_K_V(V nullValue, bool isNullValue(V v) =@*@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ new bool(V v) @{return v == nullValue; @})
 These two functions must be accessed from the @code{collections.btreemap(K,V)}
-templated module. They create a BTreeMap, which stores its keys in sorted order.
-The key type must have a @code{<} operator.
+templated module. They create a b-tree map, which stores its keys in
+sorted order. The key type must have a @code{<} operator.
 @end table
 
 @code{HashMap_K_V} is an appropriate choice for most purposes.
@@ -7526,14 +7526,15 @@ need either a @code{HashSet_T} or a @code{BTreeSet_T}:
 @table @code
 @item HashSet_T()
 @itemx HashSet_T(T nullT,@*@ @ @ @ @ @ @ @ @ @ bool equiv(T a, T b) = operator ==, @*@ @ @ @ @ @ @ @ @ @ bool isNullT(T) = new bool(T t) @{ return equiv(t, nullT); @}@*@ @ @ @ @ @ @ @ @ )
-These two functions, which create a HashSet, must be accessed from the
+These two functions, which create a hash set, must be accessed from the
 @code{collections.hashset(T)} templated module. The type @code{T} must have a
 @code{hash} method, @pxref{Hash functions}.
 
 @item BTreeSet_T()
 @itemx BTreeSet_T(T nullT, bool isNullT(T) = new bool(T t) @{ return t == nullT; @})
 These two functions must be accessed from the @code{collections.btree(T)}
-module. They create a BTreeSet, which stores its elements in order based on the
+module. They create a b-tree set, which stores its elements in order
+based on the
 @code{<} operator. The @code{<} operator must define a strict weak ordering
 on all items of type @code{T}, except those satisfying @code{isNullT}.
 Two items are considered equivalent if neither is less than the other.
@@ -7679,8 +7680,6 @@ the set is not modified and @code{nullT} is returned.
 In addition to the methods above, there are a number of autounraveled functions
 that deal with sets.
 
-TODO: How do we index the operators?
-
 @table @code
 @item Iterable_T operator cast(Set_T set)
 implicitly casts a set to an iterable so that it can be passed as a parameter
@@ -7756,9 +7755,8 @@ The @code{BTreeSet_T} implementation of @code{Set_T} (@pxref {Initializing a @co
 maintains its elements in sorted order. For the @code{Set_T} API, this has no effect other
 than the iteration order. However, the @code{SortedSet_T} API provides additional methods
 to take advantage of this ordering. The @code{SortedSet_T} structure is defined in the
-@code{collections.sortedset(T)} module and can also be accessed from the
-@code{collections.btree(T)} module. Here is a list of the relations among the various APIs
-implemented by @code{BTreeSet_T}:
+@code{collections.sortedset(T)} module. Here is a list of the
+relations among the various APIs implemented by @code{BTreeSet_T}:
 @itemize
 @item
 @code{BTreeSet_T} has all the methods of @code{Set_T} and can be implicitly
@@ -7794,14 +7792,19 @@ If the set is empty and @code{nullT} is not defined, an error is thrown.
 @cindex @code{SortedSet} @subentry @code{.popMin}
 @cindex @code{popMin} @subentry @code{SortedSet.popMin}
 @item T popMin()
-removes and returns the least element in the set. If the set is empty,
-@code{nullT} is returned; if @code{nullT} is not defined, an error is thrown.
+removes and returns the least element in the set, or
+returns @code{nullT} if the set is empty.
+If the set is empty and @code{nullT} is not defined, an error is
+thrown.
 
 @cindex @code{SortedSet} @subentry @code{.popMax}
 @cindex @code{popMax} @subentry @code{SortedSet.popMax}
 @item T popMax()
-removes and returns the greatest element in the set. If the set is empty,
-@code{nullT} is returned; if @code{nullT} is not defined, an error is thrown.
+removes and returns the greatest element in the set, or
+returns @code{nullT} if the set is empty.
+If the set is empty and @code{nullT} is not defined, an error is
+thrown.
+
 
 @cindex @code{SortedSet} @subentry @code{.after}
 @cindex @code{after} @subentry @code{SortedSet.after}
@@ -7913,36 +7916,24 @@ PLFunction f;
 f[0] = 17;
 f[1] = 18;
 f[2001] = 19;
-write(f[-inf]);
-write(f[-infinity]);
 write(f[-1]);
 write(f[0]);
 write(f[0.5]);
 write(f[1]);
-write(f[1.5]);
 write(f[2]);
-write(f[2000]);
 write(f[2001]);
 write(f[2002]);
-write(f[infinity]);
-write(f[inf]);
 @end verbatim
 
 @noindent
 outputs
 @verbatim
 nan
-nan
-nan
 17
 17.5
 18
-18.00025
 18.0005
-18.9995
 19
-nan
-nan
 nan
 @end verbatim
     
