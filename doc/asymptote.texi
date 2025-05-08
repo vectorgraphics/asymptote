@@ -7873,25 +7873,21 @@ useful in particular for sorted sets, which have functionality such as
 @code{Map} API.
 
 We illustrate this approach by implementing a piecewise
-linear function:
+linear function. (Since we have a pair of @code{real}s, we can use the
+builtin @code{pair} type rather than a @code{Pair_K_V}.)
 
 @verbatim
 from collections.btreegeneral(T=pair) access
     SortedSet_T as SortedSet_pair,
     BTreeSet_T as BTreeSet_pair;
 
-bool keysLT(pair a, pair b) {
-  return a.x < b.x;
-}
-bool isnan(pair a) {
-  return isnan(a.y);
-}
-pair nanPair = (nan, nan);
+bool keysLT(pair a, pair b) { return a.x < b.x; }
+bool isnan(pair a) { return isnan(a.y); }
 
 struct PLFunction {
   SortedSet_pair pairs = BTreeSet_pair(
     lessThan=keysLT,
-    nullT=nanPair,
+    nullT=(nan,nan),
     isNullT = isnan
   );
   void operator [=] (real x, real y) {
@@ -7916,25 +7912,22 @@ PLFunction f;
 f[0] = 17;
 f[1] = 18;
 f[2001] = 19;
-write(f[-1]);
-write(f[0]);
-write(f[0.5]);
-write(f[1]);
-write(f[2]);
-write(f[2001]);
-write(f[2002]);
+
+for (real x : new real[] {-1, 0, 0.5, 1, 2, 2001, 2002}) {
+  write('f[' + (string)x + '] = ' + (string)f[x]);
+}
 @end verbatim
 
 @noindent
 outputs
 @verbatim
-nan
-17
-17.5
-18
-18.0005
-19
-nan
+f[-1] = nan
+f[0] = 17
+f[0.5] = 17.5
+f[1] = 18
+f[2] = 18.0005
+f[2001] = 19
+f[2002] = nan
 @end verbatim
     
 
