@@ -10,7 +10,7 @@ uint64_t makeRandomSeed() {
 std::mt19937_64 randEngine(makeRandomSeed());
 }
 
-namespace camp_random {
+namespace camp {
 
 void seed(int64_t seed) {
   uint64_t unsignedSeed;
@@ -26,9 +26,10 @@ int64_t randInt(int64_t min, int64_t max) {
   std::uniform_int_distribution<int64_t> dist(min, max);
   return dist(randEngine);
 }
+
 double unitrand() {
   std::uniform_real_distribution<double> dist(0.0, 1.0);
   return dist(randEngine);
 }
 
-}  // namespace camp_random
+}  // namespace camp

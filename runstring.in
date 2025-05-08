@@ -503,7 +503,7 @@ string randString(Int len, string *chars) {
   }
   Int maxIndex = chars->size() - 1;
   for (Int i = 0; i < len; ++i) {
-    char toAdd = (*chars)[camp_random::randInt(0, maxIndex)];
+    char toAdd = (*chars)[camp::randInt(0, maxIndex)];
     result[i] = toAdd;
   }
   return result;

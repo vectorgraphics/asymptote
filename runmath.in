@@ -205,18 +205,18 @@ Int sgn(real x)
 
 Int rand(Int a=0, Int b=Int_MAX)
 {
-  return camp_random::randInt(a, b);
+  return camp::randInt(a, b);
 }
 
 void srand(Int seed)
 {
-  camp_random::seed(seed);
+  camp::seed(seed);
 }
 
 // a random number uniformly distributed in the interval [0,1)
 real unitrand()
 {
-  return camp_random::unitrand();
+  return camp::unitrand();
 }
 
 Int ceil(real x)
