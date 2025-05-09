@@ -89,6 +89,4 @@ private:
 
 } // namespace camp::w32
 
-using camp::w32::rename;
-
 #endif
