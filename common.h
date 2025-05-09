@@ -11,7 +11,6 @@
 
 #if defined(_WIN32)
 #include <Winsock2.h>
-#include "win32helpers.h"
 #endif
 
 #include <iostream>
@@ -117,5 +116,9 @@ inline std::istream &operator >> (std::istream & s, const ws_t &ws) {
     s >> std::ws;
   return s;
 }
+
+#if defined(_WIN32)
+#include "win32helpers.h"
+#endif
 
 #endif

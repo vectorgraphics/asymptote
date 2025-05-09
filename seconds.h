@@ -80,8 +80,10 @@ public:
   double nanoseconds(bool reset=false) {
     auto Stop=std::chrono::steady_clock::now();
     double stop=cpuTime();
-    double ns=std::min((double) std::chrono::duration_cast<std::chrono::nanoseconds>
-                       (Stop-Start).count(),stop-start);
+    double ns=std::chrono::duration_cast<std::chrono::nanoseconds>(Stop-Start).count();
+    double cputime=stop-start;
+    if((cputime > 0 && cputime < ns) || ns == 0) ns=cputime;
+
     if(reset) {
       Start=Stop;
       start=stop;
@@ -94,6 +96,16 @@ public:
   }
 };
 
+}
+
+// POSIX--style rename that allows overwriting
+inline int renameOverwrite(const char *oldpath, const char *newpath) {
+#if defined(_WIN32)
+  return MoveFileExA(oldpath,newpath,
+                     MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED);
+#else
+  return rename(oldpath,newpath);
+#endif
 }
 
 #endif

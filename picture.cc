@@ -16,6 +16,7 @@
 #include "drawlayer.h"
 #include "drawsurface.h"
 #include "drawpath3.h"
+#include "seconds.h"
 
 #if defined(_WIN32)
 #include <Windows.h>
@@ -845,7 +846,7 @@ bool picture::postprocess(const string& prename, const string& outname,
   if(pdftex || !epsformat) {
     if(pdfformat) {
       if(pdftex) {
-        status=rename(prename.c_str(),outname.c_str());
+        status=renameOverwrite(prename.c_str(),outname.c_str());
         if(status != 0)
           reportError("Cannot rename "+prename+" to "+outname);
       } else status=epstopdf(prename,outname);
