@@ -11,10 +11,10 @@ struct SortedSet_T {
   // Returns the greatest element < item, or nullT if there is no such
   // element.
   T before(T item);
-  T firstGEQ(T item) {
+  T atOrAfter(T item) {
     return set.contains(item) ? set.get(item) : after(item);
   }
-  T firstLEQ(T item) {
+  T atOrBefore(T item) {
     return set.contains(item) ? set.get(item) : before(item);
   }
   T min();               // Returns nullT if collection is empty.

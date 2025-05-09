@@ -7813,9 +7813,9 @@ returns the least element in the set that is strictly greater than
 @code{item}. If no such element exists, @code{nullT} is returned; if
 @code{nullT} is not defined, an error is thrown.
 
-@cindex @code{SortedSet} @subentry @code{.firstGEQ}
-@cindex @code{firstGEQ} @subentry @code{SortedSet.firstGEQ}
-@item T firstGEQ(T item)
+@cindex @code{SortedSet} @subentry @code{.atOrAfter}
+@cindex @code{atOrAfter} @subentry @code{SortedSet.atOrAfter}
+@item T atOrAfter(T item)
 returns the least element in the set that is greater than or equal to
 @code{item}. If no such element exists, @code{nullT} is returned; if
 @code{nullT} is not defined, an error is thrown.
@@ -7827,9 +7827,9 @@ returns the greatest element in the set that is strictly less than
 @code{item}. If no such element exists, @code{nullT} is returned; if
 @code{nullT} is not defined, an error is thrown.
 
-@cindex @code{SortedSet} @subentry @code{.firstLEQ}
-@cindex @code{firstLEQ} @subentry @code{SortedSet.firstLEQ}
-@item T firstLEQ(T item)
+@cindex @code{SortedSet} @subentry @code{.atOrBefore}
+@cindex @code{atOrBefore} @subentry @code{SortedSet.atOrBefore}
+@item T atOrBefore(T item)
 returns the greatest element in the set that is less than or equal to
 @code{item}. If no such element exists, @code{nullT} is returned; if
 @code{nullT} is not defined, an error is thrown.
@@ -7840,7 +7840,7 @@ returns the greatest element in the set that is less than or equal to
 As an example, the following code iterates over the elements of a sorted set
 @code{sset} between @code{a} (inclusive) and @code{b} (exclusive):
 @verbatim
-for (var x = sset.firstGEQ(a);
+for (var x = sset.atOrAfter(a);
      !sset.isNullT(x) && x < b;
      x = sset.after(x)) {
   <statements using x>
@@ -7869,7 +7869,7 @@ a @code{Set_T} of @code{Pair_K_V} objects can be used as a map from @code{K}
 to @code{V}, provided that the equivalence, hash, and comparison functions
 are configured to look only at the first element of the pair. This can be
 useful in particular for sorted sets, which have functionality such as
-@code{firstGEQ} and @code{after} that is not currently available in the
+@code{atOrAfter} and @code{after} that is not currently available in the
 @code{Map} API.
 
 We illustrate this approach by implementing a piecewise
@@ -7895,8 +7895,8 @@ struct PLFunction {
   }
   real operator [] (real x) {
     pair p = (x, 0);
-    pair left = pairs.firstLEQ(p);
-    pair right = pairs.firstGEQ(p);
+    pair left = pairs.atOrBefore(p);
+    pair right = pairs.atOrAfter(p);
     if (isnan(left.y) || isnan(right.y)) {
       return nan;
     }

@@ -240,7 +240,7 @@ struct SplayTree_T {
     return emptyresponse;
   }
 
-  T firstGEQ(T item) {
+  T atOrAfter(T item) {
     treenode[] parentStack = new treenode[0];
     parentStack.cyclic = true;
     parentStack.push(root);
@@ -266,7 +266,7 @@ struct SplayTree_T {
     return emptyresponse;
   }
 
-  T firstLEQ(T item) {
+  T atOrBefore(T item) {
     treenode[] parentStack = new treenode[0];
     parentStack.cyclic = true;
     parentStack.push(root);
@@ -523,8 +523,8 @@ struct SplayTree_T {
     result.contains = splaytree.contains;
     result.after = splaytree.after;
     result.before = splaytree.before;
-    result.firstGEQ = splaytree.firstGEQ;
-    result.firstLEQ = splaytree.firstLEQ;
+    result.atOrAfter = splaytree.atOrAfter;
+    result.atOrBefore = splaytree.atOrBefore;
     result.min = splaytree.min;
     result.popMin = splaytree.popMin;
     result.max = splaytree.max;

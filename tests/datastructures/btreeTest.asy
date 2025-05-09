@@ -45,8 +45,8 @@ struct ActionEnum {
   static restricted int CONTAINS = next();
   static restricted int AFTER = next();
   static restricted int BEFORE = next();
-  static restricted int FIRST_GEQ = next();
-  static restricted int FIRST_LEQ = next();
+  static restricted int AT_OR_AFTER = next();
+  static restricted int AT_OR_BEFORE = next();
   static restricted int MIN = next();
   static restricted int POP_MIN = next();
   static restricted int MAX = next();
@@ -197,12 +197,12 @@ actions[ActionEnum.BEFORE] =
         }
       }
     };
-actions[ActionEnum.FIRST_GEQ] =
+actions[ActionEnum.AT_OR_AFTER] =
     new void(int maxItem ...SortedSet_wrapped_int[] sets) {
       int toCheck = rand() % maxItem;
       wrapped_int[] results;
       for (SortedSet_wrapped_int s : sets) {
-        wrapped_int w = s.firstGEQ(wrap(toCheck));
+        wrapped_int w = s.atOrAfter(wrap(toCheck));
         results.push(w);
         if (!alias(w, null)) {
           assert(w.t >= toCheck);
@@ -218,12 +218,12 @@ actions[ActionEnum.FIRST_GEQ] =
         }
       }
     };
-actions[ActionEnum.FIRST_LEQ] =
+actions[ActionEnum.AT_OR_BEFORE] =
     new void(int maxItem ...SortedSet_wrapped_int[] sets) {
       int toCheck = rand() % maxItem;
       wrapped_int[] results;
       for (SortedSet_wrapped_int s : sets) {
-        wrapped_int w = s.firstLEQ(wrap(toCheck));
+        wrapped_int w = s.atOrBefore(wrap(toCheck));
         results.push(w);
         if (!alias(w, null)) {
           assert(w.t <= toCheck);
@@ -398,8 +398,8 @@ real[] increasingProbs = array(n=ActionEnum.n, value=0.0);
 increasingProbs[ActionEnum.CONTAINS] = 1 / 2^5;
 increasingProbs[ActionEnum.AFTER] = 1 / 2^5;
 increasingProbs[ActionEnum.BEFORE] = 1 / 2^5;
-increasingProbs[ActionEnum.FIRST_GEQ] = 1 / 2^5;
-increasingProbs[ActionEnum.FIRST_LEQ] = 1 / 2^5;
+increasingProbs[ActionEnum.AT_OR_AFTER] = 1 / 2^5;
+increasingProbs[ActionEnum.AT_OR_BEFORE] = 1 / 2^5;
 increasingProbs[ActionEnum.MIN] = 1 / 2^5;
 increasingProbs[ActionEnum.MAX] = 1 / 2^5;
 increasingProbs[ActionEnum.GET] = 1 / 2^5;
@@ -456,8 +456,8 @@ int chooseAction(real[] probs) {
 
 int[] counts = array(n=ActionEnum.n, value=0);
 string[] names = {
-  'CONTAINS', 'AFTER', 'BEFORE', 'FIRST_GEQ', 'FIRST_LEQ', 'MIN', 'POP_MIN',
-  'MAX', 'POP_MAX', 'ADD', 'PUSH', 'GET', 'DELETE', 'DELETE_CONTAINS'
+  'CONTAINS', 'AFTER', 'BEFORE', 'AT_OR_AFTER', 'AT_OR_BEFORE', 'MIN',
+  'POP_MIN', 'MAX', 'POP_MAX', 'ADD', 'PUSH', 'GET', 'DELETE', 'DELETE_CONTAINS'
 };
 
 int maxSize = 0;

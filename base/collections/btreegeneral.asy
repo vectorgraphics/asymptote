@@ -54,7 +54,7 @@ struct BTreeSet_T {
       if (alias(children, null)) return pivots[plen - 1];
       return children[plen].max();
     }
-    T firstGEQ(T x) {
+    T atOrAfter(T x) {
       // Want: min { y | y >= x }
       int i = search(pivots, x, lt);
       // Known: pivots[i + 1] > x or i == pivots.length - 1
@@ -71,16 +71,16 @@ struct BTreeSet_T {
       Node child = children[i];
       // Now we need to search child to see if it has any nodes >= x.
       if (isNullT != null) {
-        T candidate = child.firstGEQ(x);
+        T candidate = child.atOrAfter(x);
         if (i < pivots.length && isNullT(candidate)) return pivots[i];
         return candidate;
       }
-      // If child.firstGEQ() cannot return nullT to indicate an empty result, we
+      // If child.atOrAfter() cannot return nullT to indicate an empty result, we
       // need an extra check to see if child has anything to return.
       if (i < pivots.length && lt(child.max(), x)) {
         return pivots[i];
       }
-      return child.firstGEQ(x);
+      return child.atOrAfter(x);
     }
     T after(T x) {
       // Want: min { y | y > x }
@@ -107,7 +107,7 @@ struct BTreeSet_T {
       }
       return child.after(x);
     }
-    T firstLEQ(T x) {
+    T atOrBefore(T x) {
       // Want: max { y | y <= x }
       int i = search(pivots, x, lt);
       // Known: pivots[i] <= x or i == -1
@@ -120,16 +120,16 @@ struct BTreeSet_T {
       Node child = children[i + 1];
       // Now we need to search child to see if it has any nodes <= x.
       if (isNullT != null) {
-        T candidate = child.firstLEQ(x);
+        T candidate = child.atOrBefore(x);
         if (i >= 0 && isNullT(candidate)) return pivots[i];
         return candidate;
       }
-      // If child.firstLEQ() cannot return nullT to indicate an empty result, we
+      // If child.atOrBefore() cannot return nullT to indicate an empty result, we
       // need an extra check to see if child has anything to return.
       if (i >= 0 && lt(x, child.min())) {
         return pivots[i];
       }
-      return child.firstLEQ(x);
+      return child.atOrBefore(x);
     }
     T before(T x) {
       // Want: max { y | y < x }
@@ -257,8 +257,8 @@ struct BTreeSet_T {
   super.get = new T(T x) { return root.get(x); };
   super.after = new T(T x) { return root.after(x); };
   super.before = new T(T x) { return root.before(x); };
-  super.firstGEQ = new T(T x) { return root.firstGEQ(x); };
-  super.firstLEQ = new T(T x) { return root.firstLEQ(x); };
+  super.atOrAfter = new T(T x) { return root.atOrAfter(x); };
+  super.atOrBefore = new T(T x) { return root.atOrBefore(x); };
   super.min = new T() {
     if (size == 0) {
       assert(isNullT != null, 'No minimum element to return');
