@@ -7,11 +7,14 @@
 #include <sys/resource.h>
 #endif
 
-namespace utils {
 
 #ifdef _WIN32
 #include <Windows.h>
 #define getpid GetCurrentProcessId
+#endif
+
+namespace utils {
+#ifdef _WIN32
 inline double cpuTime() {
   FILETIME a,b,c,d;
   return GetProcessTimes(GetCurrentProcess(),&a,&b,&c,&d) != 0 ?
