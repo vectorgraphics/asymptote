@@ -36,6 +36,8 @@ from collections.sortedset(T=wrapped_int) access
     Naive_T as NaiveSortedSet_wrapped_int;
 from collections.btree(T=wrapped_int) access
     BTreeSet_T as BTreeSet_wrapped_int;
+from collections.splaytree(T=wrapped_int) access
+    SplayTree_T as SplayTree_wrapped_int;
 
 struct ActionEnum {
   static restricted int n = 0;
@@ -430,6 +432,7 @@ assert(sum(decreasingProbs) == 1, 'Probabilities do not sum to 1');
 SortedSet_wrapped_int naive = NaiveSortedSet_wrapped_int(operator <, null);
 SortedSet_wrapped_int btree1 = BTreeSet_wrapped_int(null, maxPivots=4);
 SortedSet_wrapped_int btree2 = BTreeSet_wrapped_int(null, maxPivots=128);
+SortedSet_wrapped_int splayTree = SplayTree_wrapped_int(operator <, null);
 
 bool isStrictlySorted(SortedSet_wrapped_int s) {
   wrapped_int last = null;
@@ -466,8 +469,8 @@ for (int i : range(numActions)) {
   real[] probs = i < numActions * 2 # 5 ? increasingProbs : decreasingProbs;
   int choice = chooseAction(probs);
   ++counts[choice];
-  actions[choice](100, naive, btree1, btree2);
-  for (var btree : new SortedSet_wrapped_int[] {btree1, btree2}) {
+  actions[choice](100, naive, btree1, btree2, splayTree);
+  for (var btree : new SortedSet_wrapped_int[] {btree1, btree2, splayTree}) {
     if (different(naive, btree)) {
       write('Different sets after action ' + names[choice]);
       assert(false, 'Naive vs btree: \n' + differences(naive, btree));
