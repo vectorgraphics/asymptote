@@ -11,6 +11,7 @@
 
 #if defined(_WIN32)
 #include <Winsock2.h>
+#include "win32helpers.h"
 #endif
 
 #include <iostream>

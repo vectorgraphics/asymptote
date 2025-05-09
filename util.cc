@@ -29,7 +29,6 @@
 #include <Shlwapi.h>
 #include <Shellapi.h>
 #include <direct.h>
-#include "win32helpers.h"
 
 #define getcwd _getcwd
 #define chdir _chdir

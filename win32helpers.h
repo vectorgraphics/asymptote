@@ -87,6 +87,14 @@ private:
 
 };
 
+// UNIX-style rename that allows overwriting
+inline int rename(const char *oldpath, const char *newpath) {
+  return MoveFileExA(oldpath,newpath,
+                     MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED);
+}
+
 } // namespace camp::w32
+
+using camp::w32::rename;
 
 #endif

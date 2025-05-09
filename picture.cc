@@ -16,7 +16,6 @@
 #include "drawlayer.h"
 #include "drawsurface.h"
 #include "drawpath3.h"
-#include "win32helpers.h"
 
 #if defined(_WIN32)
 #include <Windows.h>
