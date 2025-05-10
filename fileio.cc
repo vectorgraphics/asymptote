@@ -393,9 +393,19 @@ size_t ofile::tell()
 
 bool ofile::enabled()
 {
-  return !standard || settings::verbose > 1 ||
-        interact::interactive || !settings::getSetting<bool>("quiet");
+  return !standard || settings::verbose > 1 || interact::interactive ||
+         !settings::getSetting<bool>("quiet");
 }
+void ofile::write(bool val) { *stream << (val ? "true " : "false "); }
+void ofile::write(Int val) { *stream << val; }
+void ofile::write(double val) { *stream << val; }
+void ofile::write(const pair& val) { *stream << val; }
+void ofile::write(const triple& val) { *stream << val; }
+void ofile::write(const string& val) { *stream << val; }
+void ofile::write(const pen& val) { *stream << val; }
+void ofile::write(guide* val) { *stream << *val; }
+void ofile::write(const transform& val) { *stream << val; }
+
 
 void opipe::write(const string& val) {
   if (fprintf(pipeout,"%s",val.c_str()) < 0)
@@ -420,6 +430,8 @@ void iofile::writeline()
   *fstream << newline;
   if(errorstream::interrupt) throw interrupted();
 }
+
+
 
 #ifdef HAVE_LIBTIRPC
 
