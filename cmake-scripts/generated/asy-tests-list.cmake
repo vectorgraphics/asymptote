@@ -6,8 +6,6 @@
 # the test list.
 
 
-
-
 add_asy_tests(
     TEST_DIR arith
     TESTS integer pair random real roots transform triple
@@ -23,7 +21,6 @@ add_asy_tests(
 
 
 )
-
 
 
 
