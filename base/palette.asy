@@ -2,7 +2,7 @@ private import graph;
 
 private transform swap=(0,0,0,1,1,0);
 
-typedef bounds range(picture pic, real min, real max);
+using range=bounds(picture pic, real min, real max);
 
 range Range(bool automin=false, real min=-infinity,
             bool automax=false, real max=infinity)

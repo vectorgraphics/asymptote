@@ -19,10 +19,6 @@
  *
  *************/
 
-#ifdef __CYGWIN__
-#define _POSIX_C_SOURCE 200809L
-#endif
-
 #include <iostream>
 #include <cstdlib>
 #include <cerrno>
@@ -241,13 +237,8 @@ void *asymain(void *A)
 int main(int argc, char *argv[])
 {
 #ifdef HAVE_LIBGSL
-#if defined(_WIN32)
-  _putenv("GSL_RNG_SEED=");
-  _putenv("GSL_RNG_TYPE=");
-#else
   unsetenv("GSL_RNG_SEED");
   unsetenv("GSL_RNG_TYPE");
-#endif
 #endif
   setsignal(signalHandler);
 

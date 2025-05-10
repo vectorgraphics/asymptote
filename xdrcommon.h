@@ -42,7 +42,7 @@ typedef Win32XDR XDR;
 #define quad_t long long
 #define u_quad_t unsigned long long
 
-#if defined(__CYGWIN__) || defined(__FreeBSD__)
+#if defined(__FreeBSD__)
 #include <sys/select.h>
 #define u_char unsigned char
 #define u_int unsigned int
