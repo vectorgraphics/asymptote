@@ -1699,7 +1699,7 @@ allows Labels and frames to be treated in a uniform manner.
 A group of objects may be packed together into single frame with the routine
 @cindex @code{pack}
 @verbatim
-frame pack(pair align=2S ... object inset[]);
+frame pack(pair align=2S, ... object inset[]);
 @end verbatim
 @noindent
 @anchor{envelope}
@@ -2386,7 +2386,7 @@ time(seconds()-24*60*60);
 if the setting @code{safe} is false, call the arbitrary system command @code{s};
 
 @cindex @code{asy}
-@item void asy(string format, bool overwrite=false ... string[] s)
+@item void asy(string format, bool overwrite=false, ... string[] s)
 conditionally process each file name in array @code{s} in a new environment,
 using format @code{format}, overwriting the output file only if
 @code{overwrite} is true;
@@ -4120,9 +4120,9 @@ Data of a built-in type @code{T} can be written to an output file by
 calling one of the functions
 @cindex @code{write}
 @verbatim
-write(string s="", T x, suffix suffix=endl ... T[]);
-write(file file, string s="", T x, suffix suffix=none ... T[]);
-write(file file=stdout, string s="", explicit T[] x ... T[][]);
+write(string s="", T x, suffix suffix=endl, ... T[]);
+write(file file, string s="", T x, suffix suffix=none, ... T[]);
+write(file file=stdout, string s="", explicit T[] x, ... T[][]);
 write(file file=stdout, T[][]);
 write(file file=stdout, T[][][]);
 write(suffix suffix=endl);
@@ -5110,7 +5110,7 @@ sum(1,2,3,4);                       // returns 10
 sum();                              // returns 0
 
 // This function subtracts subsequent arguments from the first.
-int subtract(int start ... int[] subs) {
+int subtract(int start,...int[] subs) {
   for(int i=0; i < subs.length; ++i)
     start -= subs[i];
   return start;
@@ -5121,19 +5121,28 @@ subtract(10);                       // returns 10
 subtract();                         // illegal
 @end verbatim
 
+The comma before an ellipsis is optional, so that the following two
+declarations are equivalent:
+@verbatim
+int subtract(int start, ... int[] subs);
+int subtract(int start ... int[] subs);
+@end verbatim
+Note, however, that a comma cannot directly follow an open parenthesis:
+@code{int sum(, ... int[] nums)} is a syntax error.
+
 @cindex packing
 Putting an argument into a rest array is called @emph{packing}.
 One can give an explicit list of arguments for the rest
 argument, so @code{subtract} could alternatively be implemented as
 @verbatim
-int subtract(int start ... int[] subs) {
+int subtract(int start, ... int[] subs) {
   return start - sum(... subs);
 }
 @end verbatim
 
 One can even combine normal arguments with rest arguments:
 @verbatim
-sum(1,2,3 ... new int[] {4,5,6});   // returns 21
+sum(1,2,3, ... new int[] {4,5,6});   // returns 21
 @end verbatim
 @noindent
 @cindex unpacking
