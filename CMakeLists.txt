@@ -59,7 +59,7 @@ target_compile_options(asycore PUBLIC ${ASY_COMPILE_OPTS})
 # asy executable
 
 add_executable(
-        asy ${ASY_SRC_DIR}/main.cc ${ASY_WIN_RC_FILE}
+        asy ${ASY_SRC_DIR}/main.cc ${ASY_WIN_ADDITIONAL_FILES}
 )
 
 target_link_libraries(asy PUBLIC asycore)

@@ -92,7 +92,7 @@ list(APPEND ASY_STATIC_LIBARIES Shlwapi Shell32 Ws2_32)
 
 # RC file
 set(ASY_WIN_RESOURCE_DIR ${ASY_RESOURCE_DIR}/windows)
-list(APPEND ASY_WIN_RC_FILE ${ASY_WIN_RESOURCE_DIR}/asy.rc)
+list(APPEND ASY_WIN_ADDITIONAL_FILES ${ASY_WIN_RESOURCE_DIR}/asy.rc ${ASY_WIN_RESOURCE_DIR}/asy.manifest)
 
 # Minimum Windows version - for now, pinning on windows 10,
 # since that is currently the minimum supported version by Microsoft
