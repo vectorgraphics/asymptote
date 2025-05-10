@@ -406,36 +406,36 @@ public:
         std::ios::openmode mode=std::ios::trunc) :
     file(name,true,type), stream(&cout), fstream(NULL), mode(mode) {}
 
-  ~ofile() {close();}
+  ~ofile() override {close();}
 
-  void open();
+  void open() override;
 
-  bool text() {return true;}
-  bool eof() {return stream->eof();}
-  bool error() {return stream->fail();}
+  bool text() override {return true;}
+  bool eof() override  {return stream->eof();}
+  bool error() override {return stream->fail();}
 
-  void close();
-  void clear() {stream->clear();}
-  Int precision(Int p);
-  void flush() {stream->flush();}
+  void close() override;
+  void clear() override {stream->clear();}
+  Int precision(Int p) override;
+  void flush() override {stream->flush();}
 
-  void seek(Int pos, bool begin=true);
+  void seek(Int pos, bool begin=true) override;
 
-  size_t tell();
+  size_t tell() override;
 
   bool enabled();
 
-  void write(bool val) {*stream << (val ? "true " : "false ");}
-  void write(Int val) {*stream << val;}
-  void write(double val) {*stream << val;}
-  void write(const pair& val) {*stream << val;}
-  void write(const triple& val) {*stream << val;}
-  void write(const string& val) {*stream << val;}
-  void write(const pen& val) {*stream << val;}
-  void write(guide *val) {*stream << *val;}
-  void write(const transform& val) {*stream << val;}
+  void write(bool val) override;
+  void write(Int val) override;
+  void write(double val) override;
+  void write(const pair& val) override;
+  void write(const triple& val) override;
+  void write(const string& val) override;
+  void write(const pen& val) override;
+  void write(guide* val) override;
+  void write(const transform& val) override;
 
-  void writeline();
+  void writeline() override;
 };
 
 class ibfile : public ifile {
