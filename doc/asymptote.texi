@@ -7511,9 +7511,12 @@ There is also a dedicated @code{Set_T} datastructure which is a bit more efficie
 when it comes to sorted sets). The @code{Set_T} API attempts to respect the principle
 of reversibility, which states that a method that mutates the data structure should
 ideally return precisely the amount of information needed to reverse the modification.
-For instance, a method that removes an element should return that element. (By contrast,
-the @code{Map_K_V} API follows the principle that a method should either return
-something or mutate the datastructure, but not both.)
+For instance, a method that removes an element should return that element --- unless
+the element is already known to the caller (e.g., passed as an argument), in which
+case it suffices to return a boolean to indicate whether the removal was
+successful. (By contrast, the @code{Map_K_V} API follows the principle that a
+method should either return something or mutate the datastructure, but not
+both.)
 
 @node Initializing a @code{Set}
 @subsubsection Initializing a @code{Set}
@@ -7622,12 +7625,14 @@ future versions for performance reasons.
 @cindex @code{add} @subentry @code{Set.add}
 @item void add(Iterable_T other)
 adds the elements from @code{other} to the set.
+This method violates the principle of reversibility.
 
 @cindex @code{Set} @subentry @code{.delete}
 @cindex @code{delete} @subentry @code{Set.delete}
 @item void delete(Iterable_T other)
 removes the elements from @code{other} from the set.
 Elements of @code{other} that are not in the set are ignored.
+This method violates the principle of reversibility.
 
 @cindex @code{Set} @subentry @code{.newEmpty}
 @cindex @code{newEmpty} @subentry @code{Set.newEmpty}
@@ -7640,11 +7645,12 @@ throw errors.
 @end table
 
 The preceeding methods are sufficient assuming that equivalent elements are
-interchangeable. However, on rare occasions, one may care which of two equivalent
-elements is in the set. For example, if the set was configured such that two ordered pairs are considered
-equivalent if they have the same first element, then the methods above would provide no way
-to look up a pair based on its first element. For this situation, the
-@code{Set_T} API provides the following methods:
+interchangeable. However, on rare occasions, one may care which of two
+equivalent elements is in the set. For example, if the set was configured such
+that two ordered pairs are considered equivalent if they have the same first
+element, then the methods above would provide no way to look up a pair based on
+its first element. For this situation, the @code{Set_T} API provides the
+following methods:
 
 @table @code
 @cindex @code{Set} @subentry @code{.get}
