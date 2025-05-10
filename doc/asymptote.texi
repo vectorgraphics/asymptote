@@ -4884,8 +4884,8 @@ the argument to @code{operator[]} and @code{V} must be the return type of
 @code{operator[]}.
 @end itemize
 
-Here is a simple example. (Note that the code below is limited and inefficient;
-for a better way to do the same thing, TODO: ADD REFERENCE TO HASHMAPS.)
+Here is a simple example. (@xref{Maps} for data structures similar to
+@code{slowMap} but more flexible, more powerful, and faster.)
 
 @verbatim
 struct slowMap {
