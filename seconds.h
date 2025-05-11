@@ -104,14 +104,9 @@ public:
 // POSIX--style rename that allows overwriting
 inline int renameOverwrite(const char *oldpath, const char *newpath) {
 #if defined(_WIN32)
-  BOOL const result= MoveFileExA(
-          oldpath, newpath, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED
-  );
-  return result ? 0 : 1;
-  // in POSIX, rename returns 0 if it succeeds and nonzero if it fails. In win32, this
-  // is the opposite.
-  // see https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexa
-  #else
+  return !MoveFileExA(
+    oldpath, newpath, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED);
+#else
   return rename(oldpath,newpath);
 #endif
 }
