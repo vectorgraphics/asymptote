@@ -11,6 +11,7 @@ file*    => primFile()
 #include "callable.h"
 #include "triple.h"
 #include "array.h"
+#include "seconds.h"
 
 #if defined(_WIN32)
 #include <io.h>
@@ -344,7 +345,7 @@ Int rename(string from, string to)
 {
   from=outpath(from);
   to=outpath(to);
-  Int rc=rename(from.c_str(),to.c_str());
+  Int rc=renameOverwrite(from.c_str(),to.c_str());
   if(rc == 0 && verbose > 0)
     cout << "Renamed " << from << " to " << to << endl;
   return rc;
