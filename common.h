@@ -115,4 +115,8 @@ inline std::istream &operator >> (std::istream & s, const ws_t &ws) {
   return s;
 }
 
+#if defined(_WIN32)
+#include "win32helpers.h"
+#endif
+
 #endif

@@ -18,8 +18,6 @@
 #include <Windows.h>
 #include <io.h>
 #define isatty _isatty
-
-#include "win32helpers.h"
 #else
 #include <unistd.h>
 #endif
