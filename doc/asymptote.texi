@@ -7392,10 +7392,10 @@ for (K key : m) {<statements>}
 @end verbatim
 If a key is deleted or a new key is
 inserted, then any iterators created before that change are undermined and
-may behave nonsensically. The current implementations attempt to throw errors
+may behave unpredictably. The current implementations attempt to throw errors
 if an iterator is used after being undermined,
 but this behavior is not guaranteed and might be removed in
-future versions to make operations faster.
+future versions for performance reasons.
 
 @cindex @code{Map_K_V} @subentry @code{.pairs}
 @cindex @code{pairs} @subentry @code{Map.pairs}
@@ -7616,7 +7616,7 @@ returns an iterator over the elements of the set. It allows a set
 for (T item : s) {<statements>}
 @end verbatim
 If an item is deleted or a new item is inserted, then any iterators created before that change are
-undermined and may behave nonsensically. The current implementations attempt to throw errors
+undermined and may behave unpredictably. The current implementations attempt to throw errors
 if an iterator is used after being undermined,
 but this behavior is not guaranteed and might be removed in
 future versions for performance reasons.
@@ -7879,8 +7879,8 @@ useful in particular for sorted sets, which have functionality such as
 @code{Map} API.
 
 We illustrate this approach by implementing a piecewise
-linear function. (Since we have a pair of @code{real}s, we can use the
-builtin @code{pair} type rather than a @code{Pair_K_V}.)
+linear function (in this case we can use the
+builtin @code{pair} type rather than a @code{Pair_K_V}).
 
 @verbatim
 from collections.btreegeneral(T=pair) access
@@ -7949,10 +7949,9 @@ Two standard datastructures are stacks and queues. A stack is a last-in-first-ou
 @table @code
 @item Queue_T makeQueue(T[] initialData)
 returns a queue initialized with a copy of the array @code{initialData}.
-The parameter is required in order to specify the type @code{T} in case there
+The parameter @code{initialData} is required in order to specify the type @code{T} in case there
 are multiple @code{Queue_T} types in the current scope. If no initial data is
-needed, use @code{makeQueue(new T[])} or @code{makeQueue((T[])null)}
-to create an empty array as a parameter.
+needed, use @code{makeQueue(new T[])} to create an empty array as a parameter.
 @end table
 
 Note that the @code{makeQueue} function is @emph{not} autounraveled, so it
@@ -7990,10 +7989,10 @@ returns an iterator over the items in the queue, in the order they will be
 returned by @code{pop()}.
 
 If an item is pushed or popped, then any iterators created before that change are
-undermined and may behave nonsensically. The current implementation attempts to throw errors
+undermined and may behave unpredictably. The current implementation attempts to throw errors
 if an iterator is used after being undermined,
 but this behavior is not guaranteed and might be removed in
-future versions to make operations faster.
+future versions for performance reasons.
 
 @end table
 
@@ -8013,14 +8012,13 @@ wrapper for arrays that has a more conventional @code{==} operator that returns
 a single bool. It also provides a @code{hash()} method that, if initialized,
 allows the array to be used as a key in a hashmap.
 
-The main type in @code{collections.wraparray(T)} is @code{Array_T},
-which should normally be renamed to replace @code{T} with the type of the
-elements of the array. @code{Array_T} is not a drop-in replacement for
-@code{T[]}, but is as close as any structure can be. For convenience, the
+The main type in @code{collections.wraparray(T)} is
+@code{Array_T}. While @code{Array_T} is not a drop-in replacement for
+@code{T[]}, it is as close as any structure can be. For convenience, the
 function @code{Array_T wrap(T[] data)} can be used to convert an array to
 an @code{Array_T}.
 
-The methods and fields of @code{Array_T} should be identical to those of
+The methods and fields of @code{Array_T} are identical to those of
 @code{T[]}, with the following exceptions:
 @table @code
 @item int length()
@@ -8037,7 +8035,7 @@ Additionally, the iteration syntax @code{for (T x : a)} is supported
 if @code{a} is an @code{Array_T}, as is element access @code{a[i]}. However,
 slices are not supported.
 
-To make an @code{Array_T} hashable, pass a second parameter to the
+To make an @code{Array_T} hashable, pass a second argument to the
 @code{wrap} function that computes an integer hash of a single element.
 For instance, the following constructs hashable arrays of strings and integers:
 @verbatim
