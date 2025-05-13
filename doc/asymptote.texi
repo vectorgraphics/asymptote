@@ -8013,7 +8013,11 @@ The main type in @code{collections.wraparray(T)} is
 @code{Array_T}. While @code{Array_T} is not a drop-in replacement for
 @code{T[]}, it is as close as any structure can be. For convenience, the
 function @code{Array_T wrap(T[] data)} can be used to convert an array to
-an @code{Array_T}.
+an @code{Array_T}. Additionally, @code{Array_T} has autounraveled implicit
+casts to and from @code{T[]}, so that it can be used in most places where
+@code{T[]} is expected (and vice versa). Note that these casts do @emph{not}
+make copies, so if you modify the original array, the changes will be reflected
+in the @code{Array_T} and vice versa.
 
 The methods and fields of @code{Array_T} are identical to those of
 @code{T[]}, with the following exceptions:
@@ -8025,7 +8029,10 @@ sets the @code{cyclic} field of the wrapped array.
 @item bool cyclic()
 returns the @code{cyclic} field of the wrapped array.
 @item int[] keys()
-is a method (requires parentheses afterwards) that returns the @code{keys} field of the wrapped array.
+is a method (requires parentheses afterwards) that returns the @code{keys} field
+of the wrapped array.
+@item T[] data
+is a field that holds the wrapped array.
 @end table
 
 Additionally, the iteration syntax @code{for (T x : a)} is supported
