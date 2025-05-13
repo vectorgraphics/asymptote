@@ -7954,9 +7954,6 @@ are multiple @code{Queue_T} types in the current scope. If no initial data is
 needed, use @code{makeQueue(new T[])} to create an empty array as a parameter.
 @end table
 
-Note that the @code{makeQueue} function is @emph{not} autounraveled, so it
-must be named explicitly in @code{access} statements.
-
 The @code{Queue_T} structure has the following methods:
 @table @code
 @cindex @code{Queue_T} @subentry @code{.push}

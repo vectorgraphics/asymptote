@@ -6,8 +6,7 @@ from collections.queue(T=int) access
     Queue_T as Queue_int,
     makeNaiveQueue,
     makeArrayQueue,
-    makeLinkedQueue,
-    makeQueue;
+    makeLinkedQueue;
 
 
 struct ActionEnum {
@@ -91,6 +90,7 @@ decreasingProbs[ActionEnum.POP] = 0.7;
 Queue_int naive = makeNaiveQueue(new int[]);
 Queue_int array = makeArrayQueue(new int[]);
 Queue_int linked = makeLinkedQueue(new int[]);
+Queue_int defaultQueue = makeQueue(new int[]);
 
 for (int i = 0; i < 2000; ++i) {
   // if (i % 100 == 0) {
@@ -98,16 +98,19 @@ for (int i = 0; i < 2000; ++i) {
   //   write('Naive: ' + string(naive.toArray()));
   //   write('Array: ' + string(array.toArray()));
   //   write('Linked: ' + string(linked.toArray()));
+  //   write('Default: ' + string(defaultQueue.toArray()));
   // }
   real[] probs = i < 800 ? increasingProbs : decreasingProbs;
   int choice = (unitrand() < probs[ActionEnum.PUSH]
                 ? ActionEnum.PUSH
                 : ActionEnum.POP);
-  actions[choice](naive, array, linked);
+  actions[choice](naive, array, linked, defaultQueue);
   string diffs = differences(naive, array);
   assert(diffs == '', 'Naive vs array: \n' + diffs);
   diffs = differences(naive, linked);
   assert(diffs == '', 'Naive vs linked: \n' + diffs);
+  diffs = differences(naive, defaultQueue);
+  assert(diffs == '', 'Naive vs default: \n' + diffs);
 }
 
 EndTest();

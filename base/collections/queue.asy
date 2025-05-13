@@ -11,6 +11,7 @@ struct Queue_T {
   autounravel Iterable_T operator cast(Queue_T queue) {
     return Iterable_T(queue.operator iter);
   }
+  autounravel Queue_T makeQueue(T[] initialData);
 }
 
 Queue_T makeNaiveQueue(T[] initialData) {
@@ -241,4 +242,4 @@ Queue_T makeLinkedQueue(T[] initialData) {
 }
 
 // Specify a "default" queue implementation.
-Queue_T makeQueue(T[] initialData) = makeArrayQueue;
+Queue_T.makeQueue = makeArrayQueue;
