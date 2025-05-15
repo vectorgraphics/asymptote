@@ -111,6 +111,15 @@ add_asy_tests(
 
 
 add_asy_tests(
+    TEST_DIR syntax
+    TESTS trailingComma
+
+
+)
+
+
+
+add_asy_tests(
     TEST_DIR template
     TESTS functionTest initTest mapArrayTest multiImport nestedImport singletype sortedsetTest splaytreeTest structTest
 
