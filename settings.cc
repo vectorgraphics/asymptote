@@ -102,7 +102,7 @@ mode_t mask;
 string systemDir=ASYMPTOTE_SYSDIR;
 string defaultPSdriver="ps2write";
 string defaultEPSdriver="eps2write";
-string defaultPNGdriver="png16m"; // pngalpha has issues at high resolutions
+string defaultPNGdriver="png16malpha"; // pngalpha has issues at high resolutions
 string defaultAsyGL="https://vectorgraphics.github.io/asymptote/base/webgl/asygl-"+
   string(AsyGLVersion)+".js";
 
