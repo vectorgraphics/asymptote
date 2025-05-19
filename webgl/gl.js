@@ -227,7 +227,6 @@ function saveAttributes()
   a.materialShader=materialShader;
   a.colorShader=colorShader;
   a.transparentShader=transparentShader;
-  a.ready=true;
 }
 
 function restoreAttributes()
@@ -299,7 +298,7 @@ function initGL(outer=true)
 
     asygl=W.webgl2 ? p.asygl2 : p.asygl;
 
-    if(!asygl[alpha] || !asygl[alpha].ready) {
+    if(!asygl[alpha] || !asygl[alpha].gl) {
       rc=webGL(offscreen,alpha);
       if(rc) gl=rc;
       else return;
