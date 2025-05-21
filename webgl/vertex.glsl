@@ -40,14 +40,13 @@ uniform Material Materials[Nmaterials];
 IN vec4 color;
 #endif
 
+uniform bool orthographic;
 uniform mat3 normMat;
 uniform mat4 viewMat;
 uniform mat4 projViewMat;
 
 #ifdef NORMAL
-#ifndef ORTHOGRAPHIC
 OUT vec3 ViewPosition;
-#endif
 OUT vec3 Normal;
 #endif
 
@@ -57,9 +56,7 @@ void main(void)
   gl_Position=projViewMat*v;
 
 #ifdef NORMAL
-#ifndef ORTHOGRAPHIC
-  ViewPosition=(viewMat*v).xyz;
-#endif
+  ViewPosition=orthographic ? vec3(0.0,0.0,-1.0) : (viewMat*v).xyz;
   Normal=normalize(normal*normMat);
 #endif
 
