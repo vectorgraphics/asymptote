@@ -22,7 +22,6 @@
 #include <Windows.h>
 #include <shellapi.h>
 #include <cstdio>
-#define unlink _unlink
 #endif
 
 #include <thread>
@@ -1384,9 +1383,9 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       if(Labels) {
         tex->epilogue();
         if(context) prefix=stripDir(prefix);
+        delete tex;
         status=texprocess(texname,dvi ? outname : prename,prefix,
                           bboxshift,dvi);
-        delete tex;
         if(!keep) {
           for(mem::list<string>::iterator p=files.begin(); p != files.end();
               ++p)
