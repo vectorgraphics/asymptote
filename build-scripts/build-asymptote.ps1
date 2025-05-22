@@ -259,7 +259,7 @@ function buildAsy($preset, $cfgDir) {
 
 buildAsy msvc/release/with-external-doc-files cmake-build-msvc/release
 cmake --install $asymptoteRoot/cmake-build-msvc/release --component asy-pre-nsis
-
+copy $asymptoteRoot/cmake-build-msvc/release/base/version.asy base
 # ------------------------------------------------------
 # Generate NSIS installer file
 & $asymptoteRoot/cmake-install-w32-nsis-release/build-asy-installer.ps1 "$makeNsisLoc"
