@@ -219,7 +219,7 @@ if (0 -eq $Version.Length) {
 # build GUI
 & $pyXasyActivateScript
 Push-Location $asymptoteRoot/GUI
-& python -m pip install -r requirements.txt -r requirements.dev.txt
+& python -m pip install -r requirements.txt
 & python buildtool.py build --version-override=$Version
 Pop-Location
 
