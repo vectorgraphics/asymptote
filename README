@@ -44,7 +44,33 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Note that the MSWindows executable version of Asymptote can only be
 released under the GNU General Public License (GPL) as it is linked against
 the GNU Scientific Library, GNU Readline library, and other GPL
-libraries.
+libraries. Source code for the various dll libraries that ship with this
+version of Asymptote ships is available as follows.
+
+fftw3:
+https://www.fftw.org/fftw-3.3.10.tar.gz
+
+getopt:
+https://github.com/xiaozhuai/getopt-win32
+
+freeglut:
+https://github.com/freeglut/freeglut
+
+gsl:
+gslcblas:
+https://ftp.gnu.org/gnu/gsl/gsl-2.8.tar.gz
+
+libcurl:
+https://github.com/curl/curl
+
+pthreadsVC3:
+https://sourceforge.net/projects/pthreads4w/files/pthreads4w-code-v3.0.0.zip
+
+readline:
+https://github.com/xiaozhuai/readline-win32
+
+zlib1:
+https://github.com/madler/zlib/releases/tag/v1.3.1
 
 ========================================================================
 
