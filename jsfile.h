@@ -20,6 +20,11 @@ public:
 
   void close() override;
 
+  void addKey() {
+    if(settings::keys)
+      out << "KEY=\"" << this->KEY << "\";" << newl;
+  }
+
   void addCurve(const triple& z0, const triple& c0,
                 const triple& c1, const triple& z1) override;
 

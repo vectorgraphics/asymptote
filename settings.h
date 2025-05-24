@@ -61,6 +61,7 @@ inline T getSetting(string name)
 extern Int verbose;
 extern bool debug;
 extern bool xasy;
+extern bool keys;
 extern bool compact;
 extern bool gray;
 extern bool bw;

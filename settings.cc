@@ -295,6 +295,7 @@ char *argv0;
 Int verbose;
 bool debug;
 bool xasy;
+bool keys;
 
 bool quiet=false;
 
@@ -1481,6 +1482,8 @@ void initSettings() {
                             "Input code over multiple lines at the prompt"));
   addOption(new boolrefSetting("xasy", 0,
                             "Interactive mode for xasy",&xasy));
+  addOption(new boolrefSetting("keys", 0,
+                            "Generate WebGL keys",&keys));
 
   addOption(new boolSetting("lsp", 0, "Interactive mode for the Language Server Protocol"));
   addOption(new envSetting("lspport", ""));
