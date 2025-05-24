@@ -63,7 +63,7 @@ https://ftp.gnu.org/gnu/gsl/gsl-2.8.tar.gz
 libcurl:
 https://github.com/curl/curl
 
-pthreadsVC3:
+pthreadVC3:
 https://sourceforge.net/projects/pthreads4w/files/pthreads4w-code-v3.0.0.zip
 
 readline:
