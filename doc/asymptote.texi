@@ -8541,12 +8541,12 @@ rendered at its designed size (accounting for multiple device pixels
 per @code{css} pixel).
 
 For specialized applications, the setting @code{keys=true} can be used
-to assign an identifying key to the Javascript variable KEY
-immediately before the @code{WebGL} code for each generated object. The
-default key, the @code{"line:column"} of the associated function call
-of the top-level source code, can be overwritten by adding
-@code{KEY="x"} as the first argument of the function call, where
-@code{x} represents and arbitrary user string.
+to generate an identifying key immediately before the @code{WebGL}
+code for each generated object. The default key, the
+@code{"line:column"} of the associated function call of the top-level
+source code, can be overwritten by adding @code{KEY="x"} as the first
+argument of the function call, where @code{x} represents user-supplied
+text.
 
 The interactive @code{WebGL} files produced by @code{Asymptote} use the
 default mouse and (many of the same) key bindings as the @code{OpenGL}

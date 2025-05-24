@@ -22,7 +22,7 @@ public:
 
   void addKey() {
     if(settings::keys)
-      out << "KEY=\"" << this->KEY << "\";" << newl;
+      out << "// " << this->KEY << newl;
   }
 
   void addCurve(const triple& z0, const triple& c0,

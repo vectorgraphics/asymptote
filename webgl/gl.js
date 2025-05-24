@@ -60,8 +60,6 @@ let Nmaterials=2; // Maximum number of materials compiled in shader
 let materials=[]; // Subset of Materials passed as uniforms
 let maxMaterials; // Limit on number of materials allowed in shader
 
-let KEY; // Optional keys associating source code to objects
-
 // Initial values:
 let canvasWidth0;
 let canvasHeight0;
