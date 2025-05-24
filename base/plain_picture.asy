@@ -713,7 +713,7 @@ struct picture { // <<<1
              triple m, triple M) {
     frame f;
     for(node3 n : nodes3) {
-      xasyKEY(nodes3[0].key);
+      xasyKEY(settings.xasy ? nodes3[0].key : n.key);
       n.d(f,t,T0,pic,P,m,M);
     }
     return f;
