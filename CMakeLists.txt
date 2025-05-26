@@ -47,6 +47,8 @@ list(APPEND ASY_STATIC_LIBARIES PRC)
 get_target_property(prc_incl_dir PRC INCLUDE_DIRECTORIES)
 list(APPEND ASYMPTOTE_INCLUDES $<TARGET_PROPERTY:PRC,INCLUDE_DIRECTORIES>)
 
+list(APPEND ASYMPTOTE_INCLUDES "LspCpp/include")
+
 include(cmake-scripts/gnu-install-macros.cmake)
 include(cmake-scripts/asy-macro.cmake)
 

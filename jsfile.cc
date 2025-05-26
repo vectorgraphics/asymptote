@@ -237,6 +237,7 @@ void jsfile::addRawPatch(triple const* controls, size_t n,
                          const prc::RGBAColour *c, size_t nc)
 {
   if(n) {
+    addKey();
     out << "patch([" << newl;
     size_t last=n-1;
     for(size_t i=0; i < last; ++i)
@@ -258,6 +259,7 @@ void jsfile::addRawPatch(triple const* controls, size_t n,
 void jsfile::addCurve(const triple& z0, const triple& c0,
                       const triple& c1, const triple& z1)
 {
+  addKey();
   out << "curve([" << newl;
   out << z0 << "," << newl
       << c0 << "," << newl
@@ -269,6 +271,7 @@ void jsfile::addCurve(const triple& z0, const triple& c0,
 
 void jsfile::addCurve(const triple& z0, const triple& z1)
 {
+  addKey();
   out << "curve([" << newl;
   out << z0 << "," << newl
       << z1 << newl << "],"
@@ -278,6 +281,7 @@ void jsfile::addCurve(const triple& z0, const triple& z1)
 
 void jsfile::addPixel(const triple& z0, double width)
 {
+  addKey();
   out << "pixel(" << newl;
   out << z0 << "," << width << "," << newl << materialIndex
       << ");" << newl << newl;
@@ -297,6 +301,7 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
                           size_t nI, const uint32_t (*PI)[3],
                           const uint32_t (*NI)[3], const uint32_t (*CI)[3])
 {
+  addKey();
   if(nP) {
     out << "Positions=[";
     size_t last=nP-1;
@@ -358,6 +363,7 @@ void jsfile::addTriangles(size_t nP, const triple* P, size_t nN,
 
 void jsfile::addSphere(const triple& center, double radius)
 {
+  addKey();
   out << "sphere(" << center << "," << radius << ","
       << drawElement::centerIndex << "," << materialIndex
       << ");" << newl << newl;
@@ -366,6 +372,7 @@ void jsfile::addSphere(const triple& center, double radius)
 void jsfile::addHemisphere(const triple& center, double radius,
                            const double& polar, const double& azimuth)
 {
+  addKey();
   out << "sphere(" << center << "," << radius << ","
       << drawElement::centerIndex << "," << materialIndex
       << "," << newl << "[" << polar << "," << azimuth << "]";
@@ -378,6 +385,7 @@ void jsfile::addCylinder(const triple& center, double radius, double height,
                          const double& polar, const double& azimuth,
                          bool core)
 {
+  addKey();
   out << "cylinder(" << center << "," << radius << "," << height << ","
       << drawElement::centerIndex << "," << materialIndex
       << "," << newl << "[" << polar << "," << azimuth << "]," << core
@@ -387,6 +395,7 @@ void jsfile::addCylinder(const triple& center, double radius, double height,
 void jsfile::addDisk(const triple& center, double radius,
                      const double& polar, const double& azimuth)
 {
+  addKey();
   out << "disk(" << center << "," << radius << ","
       << drawElement::centerIndex << "," << materialIndex
       << "," << newl << "[" << polar << "," << azimuth << "]"
@@ -395,6 +404,7 @@ void jsfile::addDisk(const triple& center, double radius,
 
 void jsfile::addTube(const triple *g, double width, bool core)
 {
+  addKey();
   out << "tube(["
       << g[0] << "," << newl
       << g[1] << "," << newl

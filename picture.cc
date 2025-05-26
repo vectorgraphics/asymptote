@@ -22,7 +22,6 @@
 #include <Windows.h>
 #include <shellapi.h>
 #include <cstdio>
-#define unlink _unlink
 #endif
 
 #include <thread>
@@ -877,6 +876,8 @@ bool picture::postprocess(const string& prename, const string& outname,
         cmd.push_back("-r"+String(res)+"x"+String(res));
         push_split(cmd,getSetting<string>("gsOptions"));
         cmd.push_back("-sOutputFile="+outname);
+        cmd.push_back("-dTextAlphaBits=4");
+        cmd.push_back("-dGraphicsAlphaBits=4");
         cmd.push_back(prename);
         status=System(cmd,0,true,"gs","Ghostscript");
       } else if(!svg && !xasy) {
@@ -1381,9 +1382,9 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       if(Labels) {
         tex->epilogue();
         if(context) prefix=stripDir(prefix);
+        delete tex;
         status=texprocess(texname,dvi ? outname : prename,prefix,
                           bboxshift,dvi);
-        delete tex;
         if(!keep) {
           for(mem::list<string>::iterator p=files.begin(); p != files.end();
               ++p)
