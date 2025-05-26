@@ -6563,7 +6563,9 @@ iterator. The three methods of this structure can be set as fields.
 As an example, here is an iterator for the even-numbered elements of an
 array of strings:
 @verbatim
-from collections.iter(T=string) access Iter_T as Iter_string;
+from collections.iter(T=string) access
+    Iter_T as Iter_string,
+    Iterable_T as Iterable_string;
 struct EvenStrings {
   string[] a;
   void operator init(string[] a) {
@@ -6577,6 +6579,11 @@ struct EvenStrings {
     result.valid = new bool() { return i < a.length; };
     return result;
   }
+  autounravel Iterable_string operator cast(EvenStrings es) {
+    Iterable_string result;
+    result.operator iter = es.operator iter;
+    return result;
+  }
 }
 string[] a = {'a', 'b', 'c', 'd', 'e', 'f'};
 for (string s : EvenStrings(a)) {
@@ -6588,6 +6595,24 @@ Running this code prints out the following:
 a
 c
 e
+@end verbatim
+
+@noindent The autounraveled (@pxref{Autounravel}) implicit cast
+to @code{Iterable_string} is not strictly necessary, but it allows
+the use of iterable utilities, @xref{Iterators and utilities}.
+This enables code like the following, which uses the @code{enumerate}
+utility to attach counters to the iterated strings:
+@verbatim
+from collections.enumerate(T=string) access enumerate;
+for (var kv : enumerate(EvenStrings(a))) {
+  write(string(kv.k) + ": " + kv.v);
+}
+@end verbatim
+Running this code prints out the following:
+@verbatim
+0: a
+1: c
+2: e
 @end verbatim
 
 @menu
