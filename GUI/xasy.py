@@ -6,8 +6,8 @@ import pathlib
 sys.path.append(str(pathlib.Path(__file__).resolve().parent))
 
 import signal, os
-import PyQt5.QtWidgets as QtWidgets
-import PyQt5.QtCore as QtCore
+import PySide6.QtWidgets as QtWidgets
+import PySide6.QtCore as QtCore
 from Window1 import MainWindow1
 
 def main(args):

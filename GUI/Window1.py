@@ -2,9 +2,9 @@
 
 from xasyqtui.window1 import Ui_MainWindow
 
-import PyQt5.QtWidgets as Qw
-import PyQt5.QtGui as Qg
-import PyQt5.QtCore as Qc
+import PySide6.QtWidgets as Qw
+import PySide6.QtGui as Qg
+import PySide6.QtCore as Qc
 from xasyversion.version import VERSION as xasyVersion
 
 import numpy as np

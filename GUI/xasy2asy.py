@@ -9,10 +9,10 @@
 #
 ###########################################################################
 
-import PyQt5.QtWidgets as QtWidgets
-import PyQt5.QtGui as QtGui
-import PyQt5.QtCore as QtCore
-import PyQt5.QtSvg as QtSvg
+import PySide6.QtWidgets as QtWidgets
+import PySide6.QtGui as QtGui
+import PySide6.QtCore as QtCore
+import PySide6.QtSvg as QtSvg
 
 import numpy as numpy
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import PyQt5.QtGui as QtGui
-import PyQt5.QtCore as QtCore
+import PySide6.QtGui as QtGui
+import PySide6.QtCore as QtCore
 import numpy as numpy
 
 class Guide:

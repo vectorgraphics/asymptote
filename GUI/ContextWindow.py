@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-import PyQt5.QtWidgets as Qw
-import PyQt5.QtGui as Qg
-import PyQt5.QtCore as Qc
+import PySide6.QtWidgets as Qw
+import PySide6.QtGui as Qg
+import PySide6.QtCore as Qc
 
 import xasy2asy as x2a
 
