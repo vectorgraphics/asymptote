@@ -12,7 +12,7 @@ class CustomAnchorDialog(QtWidgets.QDialog):
         super().__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
-        self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Reset).clicked.connect(self.resetDialog)
+        self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Reset).clicked.connect(self.resetDialog)
 
         validator = QtGui.QDoubleValidator()
 
@@ -24,9 +24,9 @@ class CustomAnchorDialog(QtWidgets.QDialog):
 
     def checkTextChanged(self, text):
         if str(text) not in {'.', '-', '.-', '-.'} and str(text):
-            self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(True)
+            self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok).setEnabled(True)
         else:
-            self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(False)
+            self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok).setEnabled(False)
 
     def getPoint(self):
         xPoint = float(self.ui.lineEditX.text())

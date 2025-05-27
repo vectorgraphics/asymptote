@@ -60,8 +60,7 @@ class Widg_addLabel(QtWidgets.QWidget):
     def btnAdvancedEditClicked(self):
         advancedEditDialog = labelEditor.labelEditor(self.ui.txtLabelText.text())
         advancedEditDialog.show()
-        result = advancedEditDialog.exec_()
-        if result == QtWidgets.QDialog.Accepted:
+        if advancedEditDialog.exec():
             self.ui.txtLabelText.setText(advancedEditDialog.getText())
 
     @property

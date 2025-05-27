@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-
-
-import PySide6.QtWidgets as QtWidgets
 import PySide6.QtCore as QtCore
 import PySide6.QtGui as QtGui
 import xasy2asy as xasy2asy
@@ -20,9 +17,9 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
     editAccepted = QtCore.Signal()
     editRejected = QtCore.Signal()
 
-    def __init__(self, parent: QtCore.QObject, obj: xasy2asy.xasyDrawnItem, info: dict={}):
+    def __init__(self, parent: QtCore.QObject, obj: xasy2asy.xasyDrawnItem, info: dict=None):
         super().__init__(parent)
-        self.info = info
+        self.info = info or {}
         self.asyPathBackup = xasy2asy.asyPath.fromPath(obj.path)
         self.asyPath = obj.path
         self.curveMode = self.asyPath.containsCurve
@@ -109,7 +106,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
     def postDrawPreview(self, canvas: QtGui.QPainter):
         assert canvas.isActive()
 
-        dashedPen = QtGui.QPen(QtCore.Qt.DashLine)
+        dashedPen = QtGui.QPen(QtCore.Qt.PenStyle.DashLine)
         dashedPen.setCosmetic(True)
         # draw the base points
         canvas.save()

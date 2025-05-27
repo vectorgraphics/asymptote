@@ -9,7 +9,6 @@
 #
 ###########################################################################
 
-import PySide6.QtWidgets as QtWidgets
 import PySide6.QtGui as QtGui
 import PySide6.QtCore as QtCore
 import PySide6.QtSvg as QtSvg
@@ -18,8 +17,6 @@ import numpy as numpy
 
 import sys
 import os
-import signal
-import threading
 import string
 import subprocess
 import tempfile
@@ -106,10 +103,7 @@ class AsymptoteEngine:
         if xa.getArgs().render:
             renderDensity=xa.getArgs().render
         else:
-            try:
-                renderDensity = xo.BasicConfigs.defaultOpt['renderDensity']
-            except:
-                renderDensity = 2
+            renderDensity = xo.BasicConfigs.defaultOpt.get('renderDensity', 2)
         renderDensity=max(renderDensity,1)
 
         self.args=addrArgs + [
@@ -885,9 +879,9 @@ class asyImage:
 
     """
 
-    def __init__(self, image, format, bbox, transfKey=None, keyIndex=0):
+    def __init__(self, image, file_format, bbox, transfKey=None, keyIndex=0):
         self.image = image
-        self.format = format
+        self.file_format = file_format
         self.bbox = bbox
         self.IDTag = None
         self.key = transfKey
@@ -996,6 +990,7 @@ class xasyItem(QtCore.QObject):
             currImage.originalImage.theta = 0.0
             currImage.originalImage.bbox = list(bbox)
             currImage.performCanvasTransform = False
+            validKey = False
 
             # handle this case if transform is not in the map yet.
             # if deleted - set transform to (0,0,0,0,0,0)
@@ -1004,8 +999,6 @@ class xasyItem(QtCore.QObject):
                 transfExists = localCount <= len(self.transfKeymap[key]) - 1
                 if transfExists:
                     validKey = not self.transfKeymap[key][localCount].deleted #Does this ever exist?
-            else:
-                validKey = False
 
             if (not transfExists) or validKey:
                 currImage.IDTag = str(file)
@@ -1041,7 +1034,7 @@ class xasyItem(QtCore.QObject):
         worker = threading.Thread(target = self.asyfyThread, args = [])
         worker.start()
         item = self.imageHandleQueue.get()
-        cwd=os.getcwd();
+        cwd=os.getcwd()
         os.chdir(self.asyengine.tempDirName)
         while item != (None,) and item[0] != "ERROR":
             if item[0] == "OUTPUT":
@@ -1058,7 +1051,7 @@ class xasyItem(QtCore.QObject):
                         pass
             item = self.imageHandleQueue.get()
         # self.imageHandleQueue.task_done()
-        os.chdir(cwd);
+        os.chdir(cwd)
 
         worker.join()
 
@@ -1074,7 +1067,7 @@ class xasyItem(QtCore.QObject):
         self.maxKey=0
 
         fout.write("reset\n")
-        fout.flush();
+        fout.flush()
         for line in self.getCode().splitlines():
             if DebugFlags.printAsyTranscript:
                 print(line)
@@ -1542,7 +1535,7 @@ class xasyScript(xasyItem):
         newScript = self.getReplacedKeysCode(self.findNonIdKeys())
         with io.StringIO() as rawAsyCode:
             for line in newScript.splitlines():
-                if(rSize.match(line)):
+                if rSize.match(line):
                     self.asySize=line.rstrip()+'\n'
                 else:
                     raw_line = line.rstrip().replace('\t', ' ' * 4)
@@ -1608,7 +1601,7 @@ class xasyScript(xasyItem):
                                         break
                                     if not c.isspace():
                                         break
-                                    ++k
+                                    k += 1
                                 raw_line.write('KEY="{0:s}"'.format(linenum2key[(i + 1, j + 1)])+sep)
                                 self.userKeys.add(linenum2key[(i + 1, j + 1)])
                         curr_str = raw_line.getvalue()
@@ -1889,10 +1882,7 @@ class asyArrow(xasyItem):
         #self.path = path
         #self.path.asyengine = asyengine
         self.transfKey = transfKey
-        if transfKeymap == None: #Better way?
-            self.transfKeymap = {self.transfKey: [transform]}
-        else:
-            self.transfKeymap = transfKeymap
+        self.transfKeymap = transfKeymap or {self.transfKey: [transform]}
         self.location = (0,0)
         self.asyfied = False
         self.onCanvas = canvas

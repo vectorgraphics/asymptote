@@ -15,7 +15,7 @@ def main(args):
     signal.signal(signal.SIGINT,signal.SIG_DFL)
     mainWin1 = MainWindow1()
     mainWin1.show()
-    return qtApp.exec_()
+    return qtApp.exec()
 
 
 if __name__ == '__main__':

@@ -38,11 +38,12 @@ class endActionGroup:
 class actionStack:
     def __init__(self):
         self.clear()
-
-    def add(self, action):
-        self.undoStack.append(action)
-        # print ("Added",action)
         self.redoStack = []
+
+    def add(self, action_to_add):
+        self.undoStack.append(action_to_add)
+        # print ("Added",action)
+        self.redoStack.clear()
 
     def undo(self):
         if len(self.undoStack) > 0:

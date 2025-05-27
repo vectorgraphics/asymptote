@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import xasy2asy as xasy2asy
-import PySide6.QtGui as QtGui
 import PySide6.QtCore as QtCore
-import numpy as numpy
 import math
 
 

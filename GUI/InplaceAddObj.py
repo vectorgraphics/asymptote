@@ -186,7 +186,8 @@ class AddBezierShape(InplaceObjProcess):
             self.pointsList.append((x, y, None))
         else:
             # see http://doc.qt.io/archives/qt-4.8/qt.html#MouseButton-enum
-            if (int(mouseEvent.buttons()) if mouseEvent is not None else 0) & 0x2 and self.useLegacy:
+            mouseClicked = mouseEvent is not None and mouseEvent.buttons() & QtCore.Qt.MouseButton.RightButton
+            if mouseClicked and self.useLegacy:
                 self.forceFinalize()
 
     def _getLinkType(self):
@@ -200,7 +201,7 @@ class AddBezierShape(InplaceObjProcess):
         if self._active:
             x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
 
-            if self.useLegacy or int(event.buttons()) != 0:
+            if self.useLegacy or (event.buttons() & QtCore.Qt.MouseButton.AllButtons):
                 self.currentPoint.setX(x)
                 self.currentPoint.setY(y)
             else:
@@ -395,7 +396,8 @@ class AddFreehand(InplaceObjProcess):
             self.pointsList.append((x, y, None))
         else:
             # see http://doc.qt.io/archives/qt-4.8/qt.html#MouseButton-enum
-            if (int(mouseEvent.buttons()) if mouseEvent is not None else 0) & 0x2 and self.useLegacy:
+            isRightClicked = mouseEvent is not None and mouseEvent.buttons() & QtGui.Qt.MouseButton.RightButton
+            if isRightClicked and self.useLegacy:
                 self.forceFinalize()
 
     def _getLinkType(self):
@@ -409,7 +411,7 @@ class AddFreehand(InplaceObjProcess):
         if self._active:
             x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
 
-            if self.useLegacy or int(event.buttons()) != 0:
+            if self.useLegacy or event.buttons() & QtCore.Qt.MouseButton.AllButtons:
                 self.currentPoint.setX(x)
                 self.currentPoint.setY(y)
                 self.pointsList.append((x, y, self._getLinkType()))
@@ -460,11 +462,10 @@ class AddFreehand(InplaceObjProcess):
         return self.basePath
 
     def getPreview(self):
-        if self._active:
-            if self.pointsList:
-                self.updateBasePathPreview()
-                newPath = self.basePathPreview.toQPainterPath()
-                return newPath
+        if self._active and self.pointsList:
+            self.updateBasePathPreview()
+            return self.basePathPreview.toQPainterPath()
+        return None
 
     def getXasyObject(self):
         self.fill = False
