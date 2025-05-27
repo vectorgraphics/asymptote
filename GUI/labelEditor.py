@@ -82,8 +82,8 @@ class labelEditor(QtWidgets.QDialog):
 
         self.svgPreview = QtSvg.QSvgRenderer()
         with tempfile.TemporaryDirectory(prefix='xasylbl_') as tmpdir:
-            id = str(uuid.uuid4())
-            tmpFile = os.path.join(tmpdir, 'lbl-{0}.svg'.format(id))
+            random_id = str(uuid.uuid4())
+            tmpFile = os.path.join(tmpdir, 'lbl-{0}.svg'.format(random_id))
 
             with subprocess.Popen(args=[path, '-fsvg', '-o', tmpFile, '-'], encoding='utf-8', stdin=subprocess.PIPE,
                                    stdout=subprocess.PIPE) as asy:

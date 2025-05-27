@@ -23,9 +23,9 @@ def funcOnList(list1: typing.Union[typing.List, typing.Tuple], list2: typing.Uni
     return tuple([func(list1[i], list2[i]) for i in range(len(list1))])
 
 
-def listize(str, typ, delim='()') -> list:
-    str = str.strip(delim)
-    raw_elem = str.split(',')
+def listize(str_input, typ, delim='()') -> list:
+    str_input = str_input.strip(delim)
+    raw_elem = str_input.split(',')
     final_list = []
     if isinstance(typ, (list, tuple)):
         for i in range(len(raw_elem)):
