@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
+import contextlib
 
 import PySide6.QtWidgets as Qw
 import PySide6.QtGui as Qg
 import PySide6.QtCore as Qc
 
+import Window1
 import xasy2asy as x2a
 
 from xasyTransform import xasyTransform as xT
 
 
 class AnotherWindow(Qw.QWidget):
-    def __init__(self, shape, parent):
+    def __init__(self, shape, parent: "Window1.MainWindow1"):
         super().__init__()
         self.shape = shape
         self.parent = parent
@@ -212,20 +214,18 @@ class AnotherWindow(Qw.QWidget):
 
     def opacityChange(self):
         newOpacity = self.opacityBox.text()
-        try:
+        with contextlib.suppress(Exception):
             newOpacity = int(newOpacity)
-            if newOpacity >= 0 and newOpacity <= 255:
+            if 0 <= newOpacity <= 255:
                 self.shape.pen.setOpacity(newOpacity)
                 self.newShape.pen.setOpacity(newOpacity)
-        except:
-            pass
 
     def renderChanges(self): #Pull from text boxes here.
         self.opacityChange()
         if isinstance(self.shape, x2a.asyArrow) and self.shape.arrowSettings["active"]:
             self.sizeChange()
             self.angleChange()
-        elif (not isinstance(self.shape, x2a.asyArrow)):
+        elif not isinstance(self.shape, x2a.asyArrow):
             self.renderLineStyle()
         if self.newShape:
             self.parent.replaceObject(self.parent.contextWindowObject,self.newShape)
@@ -288,16 +288,14 @@ class AnotherWindow(Qw.QWidget):
     def pickColor(self):
         self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self.shape.pen.color), self)
         self.colorDialog.show()
-        result = self.colorDialog.exec()
-        if result == Qw.QDialog.Accepted:
+        if self.colorDialog.exec():
             self.shape.pen.setColorFromQColor(self.colorDialog.selectedColor())
             self.parent.updateFrameDispColor()
 
     def pickFillColor(self): #This is a copy of the above, how do you set the var as it is set?
         self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self.shape.fillPen.color), self)
         self.colorDialog.show()
-        result = self.colorDialog.exec()
-        if result == Qw.QDialog.Accepted:
+        if self.colorDialog.exec():
             self.shape.fillPen.setColorFromQColor(self.colorDialog.selectedColor())
             self.parent.updateFrameDispColor()
 

@@ -23,8 +23,8 @@ class LineGuide(Guide):
 
     def drawShape(self, pen):
         super().drawShape(pen)
-        p1 = self.origin + (9999 * QtCore.QPointF(numpy.cos(self.direction), numpy.sin(self.direction)))
-        p2 = self.origin - (9999 * QtCore.QPointF(numpy.cos(self.direction), numpy.sin(self.direction)))
+        p1 = self.origin + (QtCore.QPointF(numpy.cos(self.direction), numpy.sin(self.direction)) * 9999)
+        p2 = self.origin - (QtCore.QPointF(numpy.cos(self.direction), numpy.sin(self.direction)) * 9999)
         pen.drawLine(QtCore.QLineF(p1, p2))
         pen.restore()
 

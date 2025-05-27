@@ -961,7 +961,7 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnExportAsymptoteOnClick(self):
         diag = Qw.QFileDialog(self)
-        diag.setAcceptMode(Qw.QFileDialog.AcceptSave)
+        diag.setAcceptMode(Qw.QFileDialog.AcceptMode.AcceptSave)
 
         formatId = {
             'asy': {
@@ -1002,9 +1002,8 @@ class MainWindow1(Qw.QMainWindow):
 
         diag.setNameFilter(formatText)
         diag.show()
-        result = diag.exec_()
 
-        if result != diag.Accepted:
+        if not diag.exec():
             return
 
         finalFiles = diag.selectedFiles()
@@ -1122,7 +1121,7 @@ class MainWindow1(Qw.QMainWindow):
         """Inverts the mapping of the key
            Input map is in format 'Action' : 'Key Sequence' """
         for action, key in self.keyMaps.options.items():
-            shortcut = Qw.QShortcut(self)
+            shortcut = Qg.QShortcut(self)
             shortcut.setKey(Qg.QKeySequence(key))
 
             # hate doing this, but python doesn't have explicit way to pass a
@@ -1202,7 +1201,7 @@ class MainWindow1(Qw.QMainWindow):
         for count, path in enumerate(self.openRecent.pathList):
             if count > 8:
                 break
-            action = Qw.QAction(path, self, triggered = lambda state, path = path: self.actionOpen(fileName = path))
+            action = Qg.QAction(path, self, triggered = lambda state, path = path: self.actionOpen(fileName = path))
             self.ui.menuOpenRecent.addAction(action)
         self.ui.menuOpenRecent.addSeparator()
         self.ui.menuOpenRecent.addAction("Clear", self.actionClearRecent)
@@ -1410,7 +1409,10 @@ class MainWindow1(Qw.QMainWindow):
             return
 
         # pan mode
-        if self.currentModeStack[-1] == SelectionMode.pan and int(mouseEvent.buttons()) and self.savedWindowMousePos is not None:
+        isModeStackPan = self.currentModeStack[-1] == SelectionMode.pan
+        isClicked = mouseEvent.buttons() & Qc.Qt.MouseButton.AllButtons
+
+        if isModeStackPan and isClicked and self.savedWindowMousePos:
             mousePos = self.getWindowCoordinates()
             newPos = mousePos - self.savedWindowMousePos
 
@@ -1459,7 +1461,7 @@ class MainWindow1(Qw.QMainWindow):
                 if self.gridSnap:
                     canvasPos = self.roundPositionSnap(canvasPos)
                     x, y = int(round(canvasPos.x())), int(round(canvasPos.y()))  # otherwise it crashes...
-                    canvasPos = Qc.QPoint(x, y)
+                    canvasPos = Qc.QPointF(x, y)
 
                 originalDeltaPts = self.savedMousePosition - self.currentAnchor
                 scaleFactor = Qc.QPointF.dotProduct(canvasPos - self.currentAnchor, originalDeltaPts) /\
@@ -1531,14 +1533,13 @@ class MainWindow1(Qw.QMainWindow):
                 if self.pendingSelectedObjIndex + offset >= -len(self.pendingSelectedObjList):
                     self.pendingSelectedObjIndex = self.pendingSelectedObjIndex + offset
 
-    def mouseWheel(self, rawAngleX: float, rawAngle: float, defaultModifiers: int=0):
-        keyModifiers = int(Qw.QApplication.keyboardModifiers())
-        keyModifiers = keyModifiers | defaultModifiers
-        if keyModifiers & int(Qc.Qt.ControlModifier):
+    def mouseWheel(self, rawAngleX: float, rawAngle: float):
+        keyModifiers = Qw.QApplication.keyboardModifiers()
+        if keyModifiers & Qc.Qt.KeyboardModifier.ControlModifier:
             oldMag = self.magnification
             factor = 0.5/devicePixelRatio
             cx, cy = self.canvSize.width()*factor, self.canvSize.height()*factor
-            centerPoint = Qc.QPointF(cx, cy) * self.getScrsTransform().inverted()[0]
+            centerPoint = self.getScrsTransform().inverted()[0].map(Qc.QPointF(cx, cy))
 
             self.magnification += (rawAngle/100)
 
@@ -1565,7 +1566,7 @@ class MainWindow1(Qw.QMainWindow):
             if self.addMode is xbi.InteractiveBezierEditor:
                 self.addMode.setSelectionBoundaries()
 
-        elif keyModifiers & (int(Qc.Qt.ShiftModifier) | int(Qc.Qt.AltModifier)):
+        elif keyModifiers & (Qc.Qt.KeyboardModifier.ShiftModifier | Qc.Qt.KeyboardModifier.AltModifier):
             self.panOffset[1] += rawAngle/1
             self.panOffset[0] -= rawAngleX/1
         # handle scrolling
@@ -1763,9 +1764,10 @@ class MainWindow1(Qw.QMainWindow):
         self.postCanvasPixmap.setDevicePixelRatio(devicePixelRatio)
 
         self.mainCanvas = Qg.QPainter(self.canvasPixmap)
-        self.mainCanvas.setRenderHint(Qg.QPainter.Antialiasing)
-        self.mainCanvas.setRenderHint(Qg.QPainter.SmoothPixmapTransform)
-        self.mainCanvas.setRenderHint(Qg.QPainter.HighQualityAntialiasing)
+        self.mainCanvas.setRenderHint(
+            Qg.QPainter.RenderHint.Antialiasing | Qg.QPainter.RenderHint.SmoothPixmapTransform,
+            True
+        )
         self.xasyDrawObj['canvas'] = self.mainCanvas
 
         self.mainTransformation = Qg.QTransform()
@@ -1832,10 +1834,11 @@ class MainWindow1(Qw.QMainWindow):
     def getCanvasCoordinates(self):
         # assert self.ui.imgLabel.underMouse()
         uiPos = self.mapFromGlobal(Qg.QCursor.pos())
-        canvasPos = self.ui.imgLabel.mapFrom(self, uiPos)
+        canvasPos = Qc.QPointF(self.ui.imgLabel.mapFrom(self, uiPos))
 
         # Issue: For magnification, should xasy treats this at xasy level, or asy level?
-        return canvasPos * self.getScrsTransform().inverted()[0]
+        invertedScrTransform = self.getScrsTransform().inverted()[0]
+        return invertedScrTransform.map(canvasPos)
 
     def getWindowCoordinates(self):
         # assert self.ui.imgLabel.underMouse()

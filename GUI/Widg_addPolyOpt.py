@@ -4,8 +4,6 @@ from xasyqtui.widg_addPolyOpt import Ui_Form
 import PySide6.QtWidgets as QtWidgets
 import PySide6.QtGui as QtGui
 
-import sys
-
 
 class Widg_addPolyOpt(QtWidgets.QWidget):
     def __init__(self, info):

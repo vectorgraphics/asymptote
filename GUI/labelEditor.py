@@ -6,14 +6,12 @@ import PySide6.QtSvg as QtSvg
 import PySide6.QtGui as QtGui
 import PySide6.QtCore as QtCore
 import xasyArgs as xasyArgs
-import xasy2asy as xasy2asy
 import xasyOptions as xasyOptions
 import xasyUtils as xasyUtils
 import subprocess
 import tempfile
 import uuid
 import os
-import io
 
 
 class labelEditor(QtWidgets.QDialog):
@@ -69,7 +67,7 @@ class labelEditor(QtWidgets.QDialog):
     def btnPreviewOnClick(self):
         path = xasyArgs.getArgs().asypath
         if path is None:
-            opt = xo.BasicConfigs.defaultOpt
+            opt = xasyOptions.BasicConfigs.defaultOpt
             path = opt['asyPath']
 
         asyInput = """

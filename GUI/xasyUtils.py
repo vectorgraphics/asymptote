@@ -3,7 +3,6 @@
 import re
 import typing as typing
 import math
-import itertools
 
 def tuple2StrWOspaces(val: tuple) -> str:
     newStr = ','.join(['{:.6g}'.format(value) for value in val])
