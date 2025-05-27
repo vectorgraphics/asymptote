@@ -12,8 +12,8 @@ import Widg_addLabel
 
 
 class InplaceObjProcess(QtCore.QObject):
-    objectCreated = QtCore.pyqtSignal(QtCore.QObject)
-    objectUpdated = QtCore.pyqtSignal()
+    objectCreated = QtCore.Signal(QtCore.QObject)
+    objectUpdated = QtCore.Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)

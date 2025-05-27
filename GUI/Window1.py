@@ -1328,7 +1328,7 @@ class MainWindow1(Qw.QMainWindow):
     def btnSaveonClick(self):
         self.actionSave()
 
-    @Qc.pyqtSlot(int)
+    @Qc.Slot(int)
     def handleAnchorComboIndex(self, index: int):
         self.anchorMode = index
         if self.anchorMode == AnchorMode.customAnchor:

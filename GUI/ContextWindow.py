@@ -301,7 +301,7 @@ class AnotherWindow(Qw.QWidget):
             self.shape.fillPen.setColorFromQColor(self.colorDialog.selectedColor())
             self.parent.updateFrameDispColor()
 
-    @Qc.pyqtSlot()
+    @Qc.Slot()
     def on_click(self):
         print("\n")
         for currentQTableWidgetItem in self.tableWidget.selectedItems():

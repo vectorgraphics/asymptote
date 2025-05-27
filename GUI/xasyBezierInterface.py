@@ -17,8 +17,8 @@ class CurrentlySelctedType:
     ctrlPoint = 1
 
 class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
-    editAccepted = QtCore.pyqtSignal()
-    editRejected = QtCore.pyqtSignal()
+    editAccepted = QtCore.Signal()
+    editRejected = QtCore.Signal()
 
     def __init__(self, parent: QtCore.QObject, obj: xasy2asy.xasyDrawnItem, info: dict={}):
         super().__init__(parent)
