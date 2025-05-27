@@ -57,7 +57,7 @@ def build_icons():
     make_init_py_at_dir(PY_ICONS_FILE_DIR)
     subprocess.run(
         [
-            "pyrcc5",
+            "pyside6-rcc",
             str(BUILD_ROOT_DIRECTORY / "res" / "icons.qrc"),
             "-o",
             str(PY_ICONS_FILE_DIR / "icons_rc.py"),
