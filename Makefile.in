@@ -21,8 +21,6 @@ CMAKE ?= cmake
 PERL ?= perl
 PYTHON ?= python3
 BISON ?= bison
-PYRCC ?= pyrcc5
-PYUIC ?= pyuic5
 
 # Libraries needed to make asymptote.so.
 # We have to remove OpenGL, threading, GC, etc from this.
@@ -31,7 +29,6 @@ SHAREDLIBS = $(filter-out -lglut -GL -pthread $(GCLIBS), $(LIBS))
 vpath %.cc prc
 vpath %.cc thirdparty_impl/tinyexr_impl/src
 vpath %.ui GUI/windows
-vpath %.py GUI/pyUIClass
 vpath %.py GUI
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
@@ -235,9 +232,6 @@ allsymbols.h: $(SYMBOL_FILES:=.raw.i) findsym.py
 
 symbol.o: $(SYMBOLSH)
 
-icons_rc.py: GUI/res/icons.qrc
-	-$(PYRCC) GUI/res/icons.qrc -o GUI/icons_rc.py
-
 GUI/xasyicons: GUI/res/icons.qrc GUI/buildtool.py
 	-cd GUI && $(PYTHON) buildtool.py buildicons
 
@@ -345,7 +339,6 @@ uninstall-asy:
 	-rmdir $(GUIdir)/configs
 	-cd $(GUIdir)/res/icons && rm -f *.svg
 	-rmdir $(GUIdir)/res/icons
-	-cd $(GUIdir) && rm -f icons_rc.py
 	-rmdir $(GUIdir)/res
 	-rmdir $(GUIdir)
 	-cd $(shaderdir) && rm -f *.glsl
@@ -378,7 +371,6 @@ gc-clean: FORCE clean
 cleaner: FORCE clean
 	-rm -rf __pycache__
 	-rm -rf GUI/__pycache__
-	-rm -rf GUI/pyUIClass/__pycache__
 	-rm -rf GUI/configs/__pycache__
 	-$(MAKE) -C $(GC) distclean
 	-$(MAKE) -C libatomic_ops distclean
@@ -433,9 +425,6 @@ glew.o: glew.c config.h
 	${CC} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
-%.py: %.ui
-	mkdir -p GUI/pyUIClass
-	-$(PYUIC) -o GUI/pyUIClass/$(notdir $@) $<
 # Compile for the shared library.  OpenGL must be disabled as it causes
 # crashes inside a shared library.
 %.pic.o: %.cc
