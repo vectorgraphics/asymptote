@@ -571,7 +571,6 @@ private:
   std::int32_t gs2;
   std::int32_t gs;
   std::uint32_t g;
-  std::uint32_t processors;
   std::uint32_t localSize;
   std::uint32_t blockSize;
   std::uint32_t groupSize;
@@ -963,6 +962,11 @@ private:
           const void* data,
           vk::DeviceSize size
   );
+
+  static void zeroBuffer(vk::CommandBuffer const& cmdBuffer,
+                         vk::Buffer const& buffer);
+
+  void zeroTransparencyBuffers();
   vma::cxx::UniqueImage createImage(
     std::uint32_t w, std::uint32_t h, vk::SampleCountFlagBits samples, vk::Format fmt,
     vk::ImageUsageFlags usage, VkMemoryPropertyFlags props,

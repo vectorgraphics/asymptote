@@ -51,7 +51,6 @@ std::vector<const char*> instanceExtensions
 
 namespace camp
 {
-
 static bool vkinitialize=true;
 
 const Int timePartialSumVerbosity=4;
@@ -814,7 +813,6 @@ void AsyVkRender::initVulkan()
   createGraphicsPipelineLayout();
   createGraphicsPipelines();
 
-  // gpu indexing + post processing
   createComputePipelines();// gpu indexing + post processing
   fpu_trap(settings::trap()); // Work around FE_INVALID.
 
@@ -842,7 +840,8 @@ void AsyVkRender::recreateSwapChain()
   {
     setupPostProcessingComputeParameters();
   }
-  createDependentBuffers();
+  if(!Opaque)
+    createDependentBuffers();
   createImmediateRenderTargets();
   writeDescriptorSets();
   createImageViews();
@@ -855,6 +854,18 @@ void AsyVkRender::recreateSwapChain()
   createExportResources();
 
   redraw=true;
+}
+
+void AsyVkRender::zeroTransparencyBuffers()
+{
+  auto const clearCmdBuffer=beginSingleCommands();
+  zeroBuffer(clearCmdBuffer,globalSumBf.getBuffer());
+  zeroBuffer(clearCmdBuffer,opaqueDepthBf.getBuffer());
+  if(GPUcompress)
+    zeroBuffer(clearCmdBuffer,indexBf.getBuffer());
+  else
+    zeroBuffer(clearCmdBuffer,countBf.getBuffer());
+  endSingleCommands(clearCmdBuffer);
 }
 
 std::set<std::string> AsyVkRender::getInstanceExtensions()
@@ -1811,6 +1822,12 @@ void AsyVkRender::copyToBuffer(
   copyToBuffer(buffer, data, size, copyToStageBf);
 }
 
+void AsyVkRender::zeroBuffer(vk::CommandBuffer const& cmdBuffer,
+                             vk::Buffer const& buffer)
+{
+  cmdBuffer.fillBuffer(buffer, 0, vk::WholeSize, 0);
+}
+
 vma::cxx::UniqueImage AsyVkRender::createImage(
         std::uint32_t w, std::uint32_t h, vk::SampleCountFlagBits samples, vk::Format fmt, vk::ImageUsageFlags usage,
         VkMemoryPropertyFlags props, vk::ImageType type, std::uint32_t depth
@@ -2684,7 +2701,9 @@ void AsyVkRender::createBuffers()
   }
 
   createMaterialAndLightBuffers();
-  createDependentBuffers();
+
+  if(!Opaque)
+    createDependentBuffers();
 }
 
 
@@ -2864,6 +2883,8 @@ void AsyVkRender::createDependentBuffers()
       VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
       VARIABLE_NAME(indexBf));
   }
+
+  zeroTransparencyBuffers();
 }
 
 void AsyVkRender::initIBL() {
@@ -3953,7 +3974,6 @@ void AsyVkRender::compressCount(FrameObject & object)
 }
 
 void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
-
   std::vector<vk::CommandBuffer> commandsToSubmit {};
 
   beginFrameCommands(*object.countCommandBuffer);
@@ -5102,7 +5122,6 @@ void AsyVkRender::fullscreen(bool reposition) {
 }
 
 void AsyVkRender::reshape0(int Width, int Height) {
-
   X=(X/Width)*Width;
   Y=(Y/Height)*Height;
 
