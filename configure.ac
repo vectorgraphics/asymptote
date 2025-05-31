@@ -288,7 +288,7 @@ AC_DEFINE(HAVE_ZLIB,1,[ZLib library present])
 # -------------- threads -------------------
 
 
-GCOPTIONS="--disable-shared --disable-dependency-tracking"
+GCOPTIONS="--disable-shared --disable-dependency-tracking --enable-large-config"
 AC_ARG_ENABLE(
    threads,
    [AS_HELP_STRING(--enable-threads[[[=yes]]],enable POSIX threads)]
