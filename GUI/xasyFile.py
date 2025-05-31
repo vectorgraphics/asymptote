@@ -9,7 +9,6 @@
 #
 ############################################################################
 
-from string import *
 import xasy2asy as xasy2asy
 import io
 import re
@@ -51,7 +50,6 @@ def extractTransform(line):
 
 def extractTransformsFromFile(fileStr):
     transfDict = {}
-    maxItemCount = 0
     with io.StringIO() as rawCode:
         for line in fileStr.splitlines():
             test_transf = extractTransform(line.rstrip())
