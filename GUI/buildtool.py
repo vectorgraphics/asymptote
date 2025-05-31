@@ -23,6 +23,7 @@ ICONS_RC_REGEX = re.compile(r"^import\s+icons_rc$")
 
 
 def make_init_py_at_dir(dir_name: pathlib.Path):
+    dir_name.mkdir(exist_ok=True)
     (dir_name / "__init__.py").touch(exist_ok=True)
 
 
