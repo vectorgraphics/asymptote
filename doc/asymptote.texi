@@ -7625,11 +7625,24 @@ This method does nothing if @code{isNullT(item)} is defined and true,
 or if @code{item} or an equivalent item is already present.
 The return value is true iff @code{item} was added.
 
+@cindex @code{Set} @subentry @code{.add}
+@cindex @code{add} @subentry @code{Set.add}
+@item void add(Iterable_T other)
+adds the elements from @code{other} to the set.
+This method violates the principle of reversibility.
+
 @cindex @code{Set} @subentry @code{.delete}
 @cindex @code{delete} @subentry @code{Set.delete}
 @item T delete(T item)
 removes @code{item} from the set if it is present, otherwise does nothing.
 The return value is true iff the set was modified.
+
+@cindex @code{Set} @subentry @code{.delete}
+@cindex @code{delete} @subentry @code{Set.delete}
+@item void delete(Iterable_T other)
+removes the elements from @code{other} from the set.
+Elements of @code{other} that are not in the set are ignored.
+This method violates the principle of reversibility.
 
 @cindex @code{Set} @subentry @code{.operator iter}
 @cindex @code{operator iter} @subentry @code{Set.operator iter}
@@ -7645,19 +7658,6 @@ undermined and may behave unpredictably. The current implementations attempt to 
 if an iterator is used after being undermined,
 but this behavior is not guaranteed and might be removed in
 future versions for performance reasons.
-
-@cindex @code{Set} @subentry @code{.add}
-@cindex @code{add} @subentry @code{Set.add}
-@item void add(Iterable_T other)
-adds the elements from @code{other} to the set.
-This method violates the principle of reversibility.
-
-@cindex @code{Set} @subentry @code{.delete}
-@cindex @code{delete} @subentry @code{Set.delete}
-@item void delete(Iterable_T other)
-removes the elements from @code{other} from the set.
-Elements of @code{other} that are not in the set are ignored.
-This method violates the principle of reversibility.
 
 @cindex @code{Set} @subentry @code{.newEmpty}
 @cindex @code{newEmpty} @subentry @code{Set.newEmpty}
