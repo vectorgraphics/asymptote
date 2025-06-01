@@ -36,4 +36,4 @@ class SvgObject:
             sys.exit(-1)
 
         # noinspection PyTypeChecker
-        return QtGui.QImage.fromData(rawDataProc.stdout, "png")
+        return QtGui.QImage.fromData(rawDataProc.stdout, "PNG")
