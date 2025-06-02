@@ -561,6 +561,7 @@ class MainWindow1(Qw.QMainWindow):
         else:
             self.btnTranslateonClick()
 
+    @Qc.Slot()
     def btnTerminalCommandOnClick(self):
         if self.terminalPythonMode:
             exec(self.ui.txtTerminalPrompt.text())
@@ -571,6 +572,7 @@ class MainWindow1(Qw.QMainWindow):
             # Like AutoCAD?
         self.ui.txtTerminalPrompt.clear()
 
+    @Qc.Slot(bool)
     def btnFillOnClick(self, checked):
         self.currAddOptions['fill'] = checked
         self.ui.btnOpenCurve.setEnabled(not checked)
@@ -739,6 +741,7 @@ class MainWindow1(Qw.QMainWindow):
                             transform, isLocal)))
         self.checkUndoRedoButtons()
 
+    @Qc.Slot()
     def btnSendForwardsOnClick(self):
         if self.currentlySelectedObj['selectedIndex'] is not None:
             maj, minor = self.currentlySelectedObj['selectedIndex']
@@ -752,6 +755,7 @@ class MainWindow1(Qw.QMainWindow):
                 self.fileItems[index], self.fileItems[index + 1] = self.fileItems[index + 1], self.fileItems[index]
                 self.asyfyCanvas()
 
+    @Qc.Slot()
     def btnSelectiveDeleteOnClick(self):
         if self.currentlySelectedObj['selectedIndex'] is not None:
             maj, minor = self.currentlySelectedObj['selectedIndex']
@@ -784,6 +788,7 @@ class MainWindow1(Qw.QMainWindow):
             if result:
                 self.btnSelectiveDeleteOnClick()
 
+    @Qc.Slot()
     def btnSetVisibilityOnClick(self):
         if self.currentlySelectedObj['selectedIndex'] is not None:
             maj, minor = self.currentlySelectedObj['selectedIndex']
@@ -793,6 +798,7 @@ class MainWindow1(Qw.QMainWindow):
             self.clearSelection()
             self.quickUpdate()
 
+    @Qc.Slot()
     def btnSendBackwardsOnClick(self):
         if self.currentlySelectedObj['selectedIndex'] is not None:
             maj, minor = self.currentlySelectedObj['selectedIndex']
@@ -806,7 +812,7 @@ class MainWindow1(Qw.QMainWindow):
                 self.fileItems[index], self.fileItems[index - 1] = self.fileItems[index - 1], self.fileItems[index]
                 self.asyfyCanvas()
 
-
+    @Qc.Slot()
     def btnUndoOnClick(self):
         if self.currentlySelectedObj['selectedIndex'] is not None:
             # avoid deleting currently selected object
@@ -819,6 +825,7 @@ class MainWindow1(Qw.QMainWindow):
             self.undoRedoStack.undo()
             self.checkUndoRedoButtons()
 
+    @Qc.Slot()
     def btnRedoOnClick(self):
         self.undoRedoStack.redo()
         self.checkUndoRedoButtons()
@@ -936,6 +943,7 @@ class MainWindow1(Qw.QMainWindow):
         asyFile.close()
         self.ui.statusbar.showMessage(f"Exported to '{pathToFile}' as an Asymptote file.")
 
+    @Qc.Slot()
     def btnExportToAsyOnClick(self):
         if self.fileName:
             pathToFile = os.path.splitext(self.fileName)[0]+'.asy'
@@ -950,6 +958,7 @@ class MainWindow1(Qw.QMainWindow):
                 return
             self.actionExport(pathToFile)
 
+    @Qc.Slot()
     def btnExportAsymptoteOnClick(self):
         diag = Qw.QFileDialog(self)
         diag.setAcceptMode(Qw.QFileDialog.AcceptMode.AcceptSave)
@@ -1141,6 +1150,7 @@ class MainWindow1(Qw.QMainWindow):
         if self.actionClose() == Qw.QMessageBox.Cancel:
             event.ignore()
 
+    @Qc.Slot()
     def actionNewFile(self):
         if self.fileChanged:
             reply = self.saveDialog()
@@ -1304,18 +1314,21 @@ class MainWindow1(Qw.QMainWindow):
             self.updateTitle()
             self.populateOpenRecent(saveLocation)
 
-
+    @Qc.Slot()
     def btnQuickScreenshotOnClick(self):
         saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save Screenshot','')
         if saveLocation[0]:
             self.ui.imgLabel.pixmap().save(saveLocation[0])
 
+    @Qc.Slot()
     def btnLoadFileonClick(self):
         self.actionOpen()
 
+    @Qc.Slot()
     def btnCloseFileonClick(self):
         self.actionClose()
 
+    @Qc.Slot()
     def btnSaveonClick(self):
         self.actionSave()
 
@@ -2150,6 +2163,7 @@ class MainWindow1(Qw.QMainWindow):
         self.updateModeBtnsOnly()
         self.quickUpdate()
 
+    @Qc.Slot(bool)
     def btnAlignXOnClick(self, checked):
         if self.currentModeStack[0] in [SelectionMode.selectEdit,SelectionMode.delete]:
             self.ui.btnAlignX.setChecked(False)
@@ -2159,6 +2173,7 @@ class MainWindow1(Qw.QMainWindow):
                 self.lockX = False
                 self.ui.btnAlignY.setChecked(False)
 
+    @Qc.Slot(bool)
     def btnAlignYOnClick(self, checked):
         if self.currentModeStack[0] in [SelectionMode.selectEdit,SelectionMode.delete]:
             self.ui.btnAlignY.setChecked(False)
@@ -2168,6 +2183,7 @@ class MainWindow1(Qw.QMainWindow):
                 self.lockY = False
                 self.ui.btnAlignX.setChecked(False)
 
+    @Qc.Slot()
     def btnAnchorModeOnClick(self):
         if self.currentModeStack[-1] != SelectionMode.setAnchor:
             self.currentModeStack.append(SelectionMode.setAnchor)
@@ -2178,12 +2194,14 @@ class MainWindow1(Qw.QMainWindow):
             self.currentModeStack.append(SelectionMode.setAnchor)
             self.updateChecks()
 
+    @Qc.Slot()
     def btnTranslateonClick(self):
         self.currentModeStack = [SelectionMode.translate]
         self.ui.statusbar.showMessage('Translate mode')
         self.clearSelection()
         self.updateChecks()
 
+    @Qc.Slot()
     def btnRotateOnClick(self):
         if self.currentModeStack[-1] != SelectionMode.rotate:
             self.currentModeStack = [SelectionMode.rotate]
@@ -2193,6 +2211,7 @@ class MainWindow1(Qw.QMainWindow):
         else:
             self.btnTranslateonClick()
 
+    @Qc.Slot()
     def btnScaleOnClick(self):
         if self.currentModeStack[-1] != SelectionMode.scale:
             self.currentModeStack = [SelectionMode.scale]
@@ -2202,6 +2221,7 @@ class MainWindow1(Qw.QMainWindow):
         else:
             self.btnTranslateonClick()
 
+    @Qc.Slot()
     def btnPanOnClick(self):
         if self.currentModeStack[-1] != SelectionMode.pan:
             self.currentModeStack = [SelectionMode.pan]
@@ -2211,6 +2231,7 @@ class MainWindow1(Qw.QMainWindow):
         else:
             self.btnTranslateonClick()
 
+    @Qc.Slot()
     def btnWorldCoordsOnClick(self, checked):
         self.useGlobalCoords = checked
         if not self.useGlobalCoords:
@@ -2221,14 +2242,17 @@ class MainWindow1(Qw.QMainWindow):
         for widget in widgetSet:
             widget.setEnabled(enabled)
 
+    @Qc.Slot()
     def btnDrawAxesOnClick(self, checked):
         self.drawAxes = checked
         self.quickUpdate()
 
+    @Qc.Slot()
     def btnDrawGridOnClick(self, checked):
         self.drawGrid = checked
         self.quickUpdate()
 
+    @Qc.Slot()
     def btnCustTransformOnClick(self):
         matrixDialog = CustMatTransform.CustMatTransform()
         matrixDialog.show()
@@ -2244,6 +2268,7 @@ class MainWindow1(Qw.QMainWindow):
         self.clearSelection()
         self.quickUpdate()
 
+    @Qc.Slot()
     def btnLoadEditorOnClick(self):
         pathToFile = os.path.splitext(self.fileName)[0]+'.asy'
         if self.fileChanged:
@@ -2261,6 +2286,7 @@ class MainWindow1(Qw.QMainWindow):
         subprocess.run(args=self.getExternalEditor(asypath=pathToFile));
         self.loadFile(pathToFile)
 
+    @Qc.Slot()
     def btnAddCodeOnClick(self):
         header = """
 // xasy object created at $time
