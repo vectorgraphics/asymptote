@@ -1147,29 +1147,28 @@ class MainWindow1(Qw.QMainWindow):
 
     #We include this function to keep the general program flow consistent
     def closeEvent(self, event):
-        if self.actionClose() == Qw.QMessageBox.Cancel:
+        if self.actionClose() == Qw.QMessageBox.StandardButton.Cancel:
             event.ignore()
 
     @Qc.Slot()
     def actionNewFile(self):
         if self.fileChanged:
             reply = self.saveDialog()
-            if reply == Qw.QMessageBox.Yes:
+            if reply == Qw.QMessageBox.StandardButton.Yes:
                 self.actionSave()
-            elif reply == Qw.QMessageBox.Cancel:
+            elif reply == Qw.QMessageBox.StandardButton.Cancel:
                 return
         self.erase()
         self.asyfyCanvas(force=True)
         self.fileName = None
         self.updateTitle()
 
-
     def actionOpen(self, fileName = None):
         if self.fileChanged:
             reply = self.saveDialog()
-            if reply == Qw.QMessageBox.Yes:
+            if reply == Qw.QMessageBox.StandardButton.Yes:
                 self.actionSave()
-            elif reply == Qw.QMessageBox.Cancel:
+            elif reply == Qw.QMessageBox.StandardButton.Cancel:
                 return
 
         if fileName:
@@ -1200,36 +1199,36 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.menuOpenRecent.clear()
         if recentOpenedFile:
             self.openRecent.insert(recentOpenedFile)
-        for count, path in enumerate(self.openRecent.pathList):
+        for count, curr_path in enumerate(self.openRecent.pathList):
             if count > 8:
                 break
-            action = Qg.QAction(path, self, triggered = lambda state, path = path: self.actionOpen(fileName = path))
+            action = Qg.QAction(curr_path, self, triggered = lambda _, path = curr_path: self.actionOpen(fileName = path))
             self.ui.menuOpenRecent.addAction(action)
         self.ui.menuOpenRecent.addSeparator()
         self.ui.menuOpenRecent.addAction("Clear", self.actionClearRecent)
 
-    def saveDialog(self) -> bool:
+    def saveDialog(self) -> Qw.QMessageBox.StandardButton:
         save = "Save current file?"
-        replyBox = Qw.QMessageBox()
-        replyBox.setText("Save current file?")
-        replyBox.setWindowTitle("Message")
-        replyBox.setStandardButtons(Qw.QMessageBox.Yes | Qw.QMessageBox.No | Qw.QMessageBox.Cancel)
-        reply = replyBox.exec()
-
-        return reply
+        return Qw.QMessageBox.question(
+            self,
+            "Message",
+            "Save current file?",
+            Qw.QMessageBox.StandardButton.Yes | Qw.QMessageBox.StandardButton.No | Qw.QMessageBox.StandardButton.Cancel
+        )
 
     def actionClose(self):
-        if self.fileChanged:
-            reply = self.saveDialog()
-            if reply == Qw.QMessageBox.Yes:
-                self.actionSave()
-                Qc.QCoreApplication.quit()
-            elif reply == Qw.QMessageBox.No:
-                Qc.QCoreApplication.quit()
-            else:
-                return reply
+        if not self.fileChanged:
+            Qc.QCoreApplication.exit()
+
+        reply = self.saveDialog()
+        if reply == Qw.QMessageBox.StandardButton.Yes:
+            self.actionSave()
+            Qc.QCoreApplication.exit()
+        elif reply == Qw.QMessageBox.StandardButton.No:
+            Qc.QCoreApplication.exit()
         else:
-            Qc.QCoreApplication.quit()
+            return reply
+
 
     def actionSave(self):
         if self.fileName is None:
@@ -1245,7 +1244,7 @@ class MainWindow1(Qw.QMainWindow):
                     replyBox.setText(warning)
                     replyBox.addButton("Save as .xasy", Qw.QMessageBox.ButtonRole.NoRole)
                     replyBox.addButton("Save as .asy", Qw.QMessageBox.ButtonRole.YesRole)
-                    replyBox.addButton(Qw.QMessageBox.StandardButton.Cancel)
+                    replyBox.addButton(Qw.QMessageBox.StandardButton.Cancel, Qw.QMessageBox.ButtonRole.RejectRole)
                     reply = replyBox.exec()
                     if reply == 1:
                         saveFile = io.open(self.fileName, 'w')
@@ -1266,9 +1265,6 @@ class MainWindow1(Qw.QMainWindow):
                         self.fileName = xasyFilePath
                         self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
                         self.fileChanged = False
-                    else:
-                        return
-
                 else:
                     saveFile = io.open(self.fileName, 'w')
                     xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
