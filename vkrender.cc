@@ -823,16 +823,9 @@ void AsyVkRender::initVulkan()
 
 void AsyVkRender::recreateSwapChain()
 {
-  int width = 0, height = 0;
-  glfwGetFramebufferSize(window, &width, &height);
-
-  while (width == 0 || height == 0)
-  {
-    glfwGetFramebufferSize(window, &width, &height);
-    glfwWaitEvents();
-  }
-
   device->waitIdle();
+
+  resetDepth=true;
 
   createSwapChain();
 
@@ -840,8 +833,7 @@ void AsyVkRender::recreateSwapChain()
   {
     setupPostProcessingComputeParameters();
   }
-  if(!Opaque)
-    createDependentBuffers();
+  createDependentBuffers();
   createImmediateRenderTargets();
   writeDescriptorSets();
   createImageViews();
@@ -2702,8 +2694,8 @@ void AsyVkRender::createBuffers()
 
   createMaterialAndLightBuffers();
 
-  if(!Opaque)
-    createDependentBuffers();
+  Opaque=transparentData.indices.empty();
+  createDependentBuffers();
 }
 
 
@@ -3949,8 +3941,13 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
 
   static const auto feedbackMappedPtr=make_unique<vma::cxx::MemoryMapperLock>(feedbackBf);
 
-  const auto maxDepth=feedbackMappedPtr->getCopyPtr()[0];
+  std::uint32_t maxDepth=feedbackMappedPtr->getCopyPtr()[0];
   fragments=feedbackMappedPtr->getCopyPtr()[1];
+
+  if(resetDepth) {
+    maxSize=maxDepth=1;
+    resetDepth=false;
+  }
 
   if (maxDepth>maxSize) {
     resizeBlendShader(maxDepth);
@@ -4163,7 +4160,7 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
 {
   copied=false;
   Opaque=transparentData.indices.empty();
-  auto transparent=!Opaque;
+  bool transparent=!Opaque;
 
   if (transparent) {
 
@@ -4186,7 +4183,7 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
 
 void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 {
-  auto transparent=!Opaque;
+  bool transparent=!Opaque;
 
   beginGraphicsFrameRender(imageIndex);
   currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *graphicsPipelineLayout, 0, 1, &*object.descriptorSet, 0, nullptr);
@@ -4255,7 +4252,6 @@ void AsyVkRender::drawFrame()
   // check to see if any pipeline state changed.
   if (recreatePipeline)
   {
-//    device->waitIdle();
     createGraphicsPipelines();
     recreatePipeline = false;
   }

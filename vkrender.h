@@ -578,6 +578,7 @@ private:
   std::uint32_t fragments;
   std::uint32_t maxFragments;
   std::uint32_t maxSize=1;
+  bool resetDepth=false;
 
   size_t nmaterials=1; // Number of materials currently allocated in memory
 
