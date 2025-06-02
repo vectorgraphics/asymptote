@@ -30,7 +30,7 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
-        run: choco install ghostscript --execution-timeout 7200
+      - run: choco install ghostscript --execution-timeout 7200
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
