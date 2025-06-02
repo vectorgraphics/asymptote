@@ -14,11 +14,17 @@ import Widg_addLabel
 class InplaceObjProcess(QtCore.QObject):
     objectCreated = QtCore.Signal(QtCore.QObject)
     objectUpdated = QtCore.Signal()
+    object_created_connection = None
+
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._active = False
-        pass
+
+    def connect_created_signal(self, handler):
+        if self.object_created_connection is not None:
+            self.objectCreated.disconnect(self.object_created_connection)
+        self.object_created_connection = self.objectCreated.connect(handler)
 
     @property
     def active(self):

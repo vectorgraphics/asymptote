@@ -603,16 +603,8 @@ class MainWindow1(Qw.QMainWindow):
             self.currAddOptionsWgt = None
 
     def updateOptionWidget(self):
-        try:
-            self.addMode.objectCreated.disconnect()
-        except Exception:
-            pass
-
-        #self.currentModeStack[-1] = None
-        self.addMode.objectCreated.connect(self.addInPlace)
+        self.addMode.connect_created_signal(self.addInPlace)
         self.updateModeBtnsOnly()
-
-
         self.deleteAddOptions()
 
         self.currAddOptionsWgt = self.addMode.createOptWidget(self.currAddOptions)
