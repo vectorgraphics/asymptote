@@ -459,6 +459,7 @@ class MainWindow1(Qw.QMainWindow):
             self.addMode.recalculateCtrls()
             self.quickUpdate()
 
+    @Qc.Slot()
     def objectUpdated(self):
         self.removeAddMode()
         self.clearSelection()
@@ -1163,6 +1164,7 @@ class MainWindow1(Qw.QMainWindow):
         self.fileName = None
         self.updateTitle()
 
+    @Qc.Slot(str)
     def actionOpen(self, fileName = None):
         if self.fileChanged:
             reply = self.saveDialog()
@@ -1228,7 +1230,6 @@ class MainWindow1(Qw.QMainWindow):
             Qc.QCoreApplication.exit()
         else:
             return reply
-
 
     def actionSave(self):
         if self.fileName is None:
@@ -1679,6 +1680,7 @@ class MainWindow1(Qw.QMainWindow):
         self.fileChanged = True
         self.quickUpdate()
 
+    @Qc.Slot()
     def editRejected(self):
         self.addMode.resetObj()
         self.addMode.forceFinalize()
