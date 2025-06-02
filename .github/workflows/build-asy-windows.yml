@@ -70,7 +70,7 @@ jobs:
               media9
       - name: Install ghostscript
         shell: pwsh
-        run: choco install ghostscript
+        run: choco install ghostscript --execution-timeout 7200
       - name: Download configuration artifacts
         uses: actions/download-artifact@v4
         with:

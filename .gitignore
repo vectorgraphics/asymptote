@@ -114,7 +114,7 @@ core.*
 \#*
 .\#*
 
-/.idea/*
+.idea
 
 examples/_ig_*.asy
 
