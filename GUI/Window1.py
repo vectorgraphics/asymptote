@@ -204,7 +204,7 @@ class MainWindow1(Qw.QMainWindow):
         self.panOffset = [0, 0]
 
         # Keyboard can focus outside of textboxes
-        self.setFocusPolicy(Qc.Qt.StrongFocus)
+        self.setFocusPolicy(Qc.Qt.FocusPolicy.StrongFocus)
 
         super().setMouseTracking(True)
         # setMouseTracking(True)
@@ -354,7 +354,7 @@ class MainWindow1(Qw.QMainWindow):
         self.quickUpdate()
 
     def cleanup(self):
-        self.asyengine.cleanup()
+        self.asyEngine.cleanup()
 
     def getScrsTransform(self):
         # pipeline:
@@ -588,7 +588,6 @@ class MainWindow1(Qw.QMainWindow):
     @property
     def currentPen(self):
         return x2a.asyPen.fromAsyPen(self._currentPen)
-        pass
     def debug(self):
         print('Put a breakpoint here.')
 
@@ -954,8 +953,8 @@ class MainWindow1(Qw.QMainWindow):
         if os.path.isfile(pathToFile):
             reply = Qw.QMessageBox.question(self, 'Message',
                 f'"{os.path.split(pathToFile)[1]}" already exists.  Do you want to overwrite it?',
-                Qw.QMessageBox.Yes, Qw.QMessageBox.No)
-            if reply == Qw.QMessageBox.No:
+                Qw.QMessageBox.StandardButton.Yes, Qw.QMessageBox.StandardButton.No)
+            if reply == Qw.QMessageBox.StandardButton.No:
                 return
             self.actionExport(pathToFile)
 
@@ -1064,6 +1063,7 @@ class MainWindow1(Qw.QMainWindow):
         rawText = None
         existsAsy = False
 
+        obj = None
         if os.path.isfile(asyFilePath):
             asyFile = io.open(asyFilePath, 'r')
             rawText = asyFile.read()
@@ -1241,9 +1241,9 @@ class MainWindow1(Qw.QMainWindow):
                     replyBox = Qw.QMessageBox()
                     replyBox.setWindowTitle('Warning')
                     replyBox.setText(warning)
-                    replyBox.addButton("Save as .xasy", replyBox.NoRole)
-                    replyBox.addButton("Save as .asy", replyBox.YesRole)
-                    replyBox.addButton(Qw.QMessageBox.Cancel)
+                    replyBox.addButton("Save as .xasy", Qw.QMessageBox.ButtonRole.NoRole)
+                    replyBox.addButton("Save as .asy", Qw.QMessageBox.ButtonRole.YesRole)
+                    replyBox.addButton(Qw.QMessageBox.StandardButton.Cancel)
                     reply = replyBox.exec()
                     if reply == 1:
                         saveFile = io.open(self.fileName, 'w')
@@ -1256,8 +1256,8 @@ class MainWindow1(Qw.QMainWindow):
                         xasyFilePath = prefix + '.xasy'
                         if os.path.isfile(xasyFilePath):
                             warning = f'"{os.path.basename(xasyFilePath)}" already exists.  Do you want to overwrite it?'
-                            reply = Qw.QMessageBox.question(self, "Same File", warning, Qw.QMessageBox.No, Qw.QMessageBox.Yes)
-                            if reply == Qw.QMessageBox.No:
+                            reply = Qw.QMessageBox.question(self, "Same File", warning, Qw.QMessageBox.StandardButton.No, Qw.QMessageBox.StandardButton.No)
+                            if reply == Qw.QMessageBox.StandardButton.No:
                                 return
 
                         self.actionExportXasy(xasyFilePath)
@@ -2240,12 +2240,13 @@ class MainWindow1(Qw.QMainWindow):
     def btnCustTransformOnClick(self):
         matrixDialog = CustMatTransform.CustMatTransform()
         matrixDialog.show()
-        result = matrixDialog.exec_()
-        if result == Qw.QDialog.Accepted:
-            objKey = self.currentlySelectedObj['selectedIndex']
-            self.transformObject(objKey,
-                matrixDialog.getTransformationMatrix(), not
-                self.useGlobalCoords)
+        result = matrixDialog.exec()
+        if not result:
+            return
+        objKey = self.currentlySelectedObj['selectedIndex']
+        self.transformObject(objKey,
+            matrixDialog.getTransformationMatrix(), not
+            self.useGlobalCoords)
 
         # for now, unless we update the bouding box transformation.
         self.clearSelection()
@@ -2255,9 +2256,14 @@ class MainWindow1(Qw.QMainWindow):
         pathToFile = os.path.splitext(self.fileName)[0]+'.asy'
         if self.fileChanged:
             save = "Save current file?"
-            reply = Qw.QMessageBox.question(self, 'Message', save, Qw.QMessageBox.Yes,
-                                            Qw.QMessageBox.No)
-            if reply == Qw.QMessageBox.Yes:
+            reply = Qw.QMessageBox.question(
+                self,
+                'Message',
+                save,
+                Qw.QMessageBox.StandardButton.Yes,
+                Qw.QMessageBox.StandardButton.No
+            )
+            if reply == Qw.QMessageBox.StandardButton.Yes:
                 self.actionExport(pathToFile)
 
         subprocess.run(args=self.getExternalEditor(asypath=pathToFile));
