@@ -110,24 +110,3 @@ class actionStack:
         self.redoStack = []
         self.undoStack = []
         self.commitLevel = 0
-
-
-if __name__ == '__main__':
-    import sys
-
-
-    def opq():
-        print("action1")
-
-
-    def unopq():
-        print("inverse1")
-
-
-    q = action(opq, unopq)
-    w = action(lambda: sys.stdout.write("action2\n"), lambda: sys.stdout.write("inverse2\n"))
-    e = action(lambda: sys.stdout.write("action3\n"), lambda: sys.stdout.write("inverse3\n"))
-    s = actionStack()
-    s.add(q)
-    s.add(w)
-    s.add(e)
