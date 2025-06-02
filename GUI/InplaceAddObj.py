@@ -265,11 +265,11 @@ class AddBezierShape(InplaceObjProcess):
         return self.basePath
 
     def getPreview(self):
-        if self._active:
-            if self.pointsList:
-                self.updateBasePathPreview()
-                newPath = self.basePathPreview.toQPainterPath()
-                return newPath
+        if self._active and self.pointsList:
+            self.updateBasePathPreview()
+            newPath = self.basePathPreview.toQPainterPath()
+            return newPath
+        return None
 
     def getXasyObject(self):
         if self.fill:

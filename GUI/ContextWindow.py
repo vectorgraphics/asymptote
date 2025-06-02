@@ -199,14 +199,14 @@ class AnotherWindow(Qw.QWidget):
         try:
             newSize = self.arrowSizeBox.text()
             self.newShape.arrowSettings["size"] = float(newSize)
-        except:
+        except Exception:
             return #TODO: Show error message.
 
     def angleChange(self): #Refactor this with the above.
         try:
             newAngle = self.arrowAngleBox.text()
             self.newShape.arrowSettings["angle"] = float(newAngle)
-        except:
+        except Exception:
             return #TODO: Show error message.
 
     def arrowFillChange(self, i): #Can I lambda this?
@@ -282,7 +282,7 @@ class AnotherWindow(Qw.QWidget):
 
         try:
             self.newShape.pen.setDashPattern(pattern) #pen is going to be a asyPen, add as an attribute
-        except:
+        except Exception:
             print("Pen format error")
 
     def pickColor(self):

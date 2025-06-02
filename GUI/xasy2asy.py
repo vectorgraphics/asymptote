@@ -1020,7 +1020,7 @@ class xasyItem(QtCore.QObject):
         if self.asyengine is None:
             return 1
         if self.asyfied and not force:
-            return
+            return None
 
         self.drawObjects = []
         self.drawObjectsMap.clear()
@@ -1054,6 +1054,7 @@ class xasyItem(QtCore.QObject):
         os.chdir(cwd)
 
         worker.join()
+        return None
 
     def asyfyThread(self):
         """
@@ -1317,7 +1318,15 @@ class xasyShape(xasyDrawnItem):
         return type(self)(self.path,self._asyengine,self.pen)
 
     def arrowify(self,arrowhead=0):
-        newObj = asyArrow(self.path.asyengine, pen=self.pen, transfKey = self.transfKey, transfKeymap = self.transfKeymap, canvas = self.onCanvas, arrowActive = arrowhead, code = self.path.getCode(yflip())) #transform
+        newObj = asyArrow(
+            self.path.asyengine,
+            pen=self.pen,
+            transfKey=self.transfKey,
+            transfKeymap=self.transfKeymap,
+            canvas=self.onCanvas,
+            arrowActive=bool(arrowhead),
+            code=self.path.getCode(yflip())
+        ) #transform
         newObj.arrowSettings["fill"] = self.path.fill
         return newObj
 
