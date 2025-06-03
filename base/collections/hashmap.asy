@@ -29,10 +29,12 @@ struct HashMap_K_V {
     ((F)map.operator init)();
   }
 
-  void operator init(V nullValue, bool isNullValue(V) = null) {
-    using F = void(V, bool isNullValue(V)=null);  // The default value here is ignored.
+  void operator init(V keyword nullValue, bool keyword isNullValue(V) = null) {
+    using F = void(
+        V, bool isNullValue(V)=null);  // The default value here is ignored.
     if (isNullValue == null) {
-      ((F)map.operator init)(nullValue);  // Let operator init supply its own default.
+      // Let operator init supply its own default.
+      ((F)map.operator init)(nullValue);
     } else {
       ((F)map.operator init)(nullValue, isNullValue);
     }

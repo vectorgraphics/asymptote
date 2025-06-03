@@ -102,7 +102,7 @@ struct NaiveMap_K_V {
     using F = void();
     ((F)map.operator init)();
   }
-  void operator init(V nullValue, bool isNullValue(V) = null) {
+  void operator init(V keyword nullValue, bool keyword isNullValue(V) = null) {
     keys = new K[0];
     values = new V[0];
     size = 0;

@@ -7313,13 +7313,13 @@ to use a function from @code{collections.hashmap} or
 @table @code
 @cindex @code{HashMap_K_V}
 @item HashMap_K_V()
-@itemx HashMap_K_V(V nullValue, bool isNullValue(V v) =@*@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ new bool(V v) @{return v == nullValue; @})
+@itemx HashMap_K_V(V keyword nullValue, bool keyword isNullValue(V v) =@*@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ new bool(V v) @{return v == nullValue; @})
 These two functions, which create a hash map, must be accessed from the
 @code{collections.hashmap(K,V)} templated module. The key type must
 have a @code{hash} method, @pxref{Hash functions}.
 @cindex @code{BTreeMap_K_V}
 @item BTreeMap_K_V()
-@itemx BTreeMap_K_V(V nullValue, bool isNullValue(V v) =@*@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ new bool(V v) @{return v == nullValue; @})
+@itemx BTreeMap_K_V(V keyword nullValue, bool keyword isNullValue(V v) =@*@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ new bool(V v) @{return v == nullValue; @})
 These two functions must be accessed from the @code{collections.btreemap(K,V)}
 templated module. They create a b-tree map, which stores its keys in
 sorted order. The key type must have a @code{<} operator.

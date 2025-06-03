@@ -165,8 +165,8 @@ int chooseAction(real[] probs) {
 } 
 
 bool intsEqual(int, int) = operator ==;
-Map_int_real naiveMap = HashMap_int_real(nan, isnan);
-Map_int_real btreeMap = BTreeMap_int_real(nan, isnan);
+Map_int_real naiveMap = HashMap_int_real(nullValue=nan, isNullValue=isnan);
+Map_int_real btreeMap = BTreeMap_int_real(nullValue=nan, isNullValue=isnan);
 // Map_int_real smallintMap = makeMapSmallint(nan, isnan);
 
 from collections.zip(T=int) access zip;
