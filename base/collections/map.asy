@@ -107,7 +107,8 @@ struct NaiveMap_K_V {
     values = new V[0];
     size = 0;
     if (isNullValue == null) {
-      map.operator init(nullValue);  // Let operator init supply its own default.
+      // Let operator init supply its own default.
+      map.operator init(nullValue);
     } else {
       map.operator init(nullValue, isNullValue);
     }
