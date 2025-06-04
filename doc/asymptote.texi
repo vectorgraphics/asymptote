@@ -7325,7 +7325,17 @@ templated module. They create a b-tree map, which stores its keys in
 sorted order. The key type must have a @code{<} operator.
 @end table
 
-@code{HashMap_K_V} is an appropriate choice for most purposes.
+@noindent
+@strong{Note:} @code{HashMap_K_V} is an appropriate choice for most purposes.
+
+@cindex @code{nullValue}
+@cindex @code{isNullValue}
+The @code{nullValue} parameter gives the map something to return when
+a nonexistent key is looked up. If it is not provided, the map
+will throw an error when a nonexistent key is looked up.
+The @code{isNullValue} parameter has a good default but may need to be set explicitly
+in certain circumstances, for instance,
+if @code{v == nullValue} would result in dereferencing a null pointer.
 
 Both @code{HashMap_K_V} and @code{BTreeMap_K_V} can be implicitly cast
 to @code{Map_K_V}. Even without being cast, the two types have
