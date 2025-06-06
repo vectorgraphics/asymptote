@@ -1234,51 +1234,57 @@ class MainWindow1(Qw.QMainWindow):
     def actionSave(self):
         if self.fileName is None:
             self.actionSaveAs()
+            return
 
-        else:
-            _, file_extension = os.path.splitext(self.fileName)
-            if file_extension == ".asy":
-                if self.existsXasy():
-                    warning = "Choose save format. Note that objects saved in asy format cannot be edited graphically."
-                    replyBox = Qw.QMessageBox()
-                    replyBox.setWindowTitle('Warning')
-                    replyBox.setText(warning)
-                    replyBox.addButton("Save as .xasy", Qw.QMessageBox.ButtonRole.NoRole)
-                    replyBox.addButton("Save as .asy", Qw.QMessageBox.ButtonRole.YesRole)
-                    replyBox.addButton(Qw.QMessageBox.StandardButton.Cancel, Qw.QMessageBox.ButtonRole.RejectRole)
-                    reply = replyBox.exec()
-                    if reply == 1:
-                        saveFile = io.open(self.fileName, 'w')
-                        xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
-                        saveFile.close()
-                        self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
-                        self.fileChanged = False
-                    elif reply == 0:
-                        prefix = os.path.splitext(self.fileName)[0]
-                        xasyFilePath = prefix + '.xasy'
-                        if os.path.isfile(xasyFilePath):
-                            warning = f'"{os.path.basename(xasyFilePath)}" already exists.  Do you want to overwrite it?'
-                            reply = Qw.QMessageBox.question(self, "Same File", warning, Qw.QMessageBox.StandardButton.No, Qw.QMessageBox.StandardButton.No)
-                            if reply == Qw.QMessageBox.StandardButton.No:
-                                return
+        _, file_extension = os.path.splitext(self.fileName)
+        if file_extension == ".asy":
+            if self.existsXasy():
+                warning = "Choose save format. Note that objects saved in asy format cannot be edited graphically."
+                replyBox = Qw.QMessageBox()
+                replyBox.setWindowTitle('Warning')
+                replyBox.setText(warning)
 
-                        self.actionExportXasy(xasyFilePath)
-                        self.fileName = xasyFilePath
-                        self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
-                        self.fileChanged = False
-                else:
+                xasy_btn = replyBox.addButton("Save as .xasy", Qw.QMessageBox.ButtonRole.NoRole)
+                asy_btn = replyBox.addButton("Save as .asy", Qw.QMessageBox.ButtonRole.YesRole)
+                replyBox.addButton("Cancel", Qw.QMessageBox.ButtonRole.RejectRole)
+                replyBox.exec()
+                if replyBox.clickedButton() == asy_btn:
                     saveFile = io.open(self.fileName, 'w')
                     xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
                     saveFile.close()
+                    self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
                     self.fileChanged = False
-            elif file_extension == ".xasy":
-                self.actionExportXasy(self.fileName)
-                self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
-                self.fileChanged = False
+                elif replyBox.clickedButton() == xasy_btn:
+                    prefix = os.path.splitext(self.fileName)[0]
+                    xasyFilePath = prefix + '.xasy'
+                    if os.path.isfile(xasyFilePath):
+                        warning = f'"{os.path.basename(xasyFilePath)}" already exists.  Do you want to overwrite it?'
+                        reply = Qw.QMessageBox.question(
+                            self,
+                            "Same File",
+                            warning,
+                            Qw.QMessageBox.StandardButton.Yes,
+                            Qw.QMessageBox.StandardButton.No
+                        )
+                        if reply == Qw.QMessageBox.StandardButton.No:
+                            return
+
+                    self.actionExportXasy(xasyFilePath)
+                    self.fileName = xasyFilePath
+                    self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
+                    self.fileChanged = False
             else:
-                print("ERROR: file extension not supported")
-            self.updateScript()
-            self.updateTitle()
+                with open(self.fileName, 'w') as f:
+                    xf.saveFile(f, self.fileItems, self.asy2psmap)
+                self.fileChanged = False
+        elif file_extension == ".xasy":
+            self.actionExportXasy(self.fileName)
+            self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
+            self.fileChanged = False
+        else:
+            print("ERROR: file extension not supported")
+        self.updateScript()
+        self.updateTitle()
 
     def updateScript(self):
         for item in self.fileItems:
@@ -1288,10 +1294,7 @@ class MainWindow1(Qw.QMainWindow):
                     item.updatedCode = None
 
     def existsXasy(self):
-        for item in self.fileItems:
-            if not isinstance(item, x2a.xasyScript):
-                return True
-        return False
+        return not all(isinstance(item, x2a.xasyScript) for item in self.fileItems)
 
     def actionSaveAs(self):
         initSave = os.path.splitext(str(self.fileName))[0]+'.xasy'
