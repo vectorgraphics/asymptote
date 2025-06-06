@@ -2024,7 +2024,7 @@ class MainWindow1(Qw.QMainWindow):
         preCanvas.setTransform(self.getScrsTransform())
 
         if self.drawAxes:
-            preCanvas.setPen(Qc.Qt.gray)
+            preCanvas.setPen(Qc.Qt.GlobalColor.gray)
             self.makePenCosmetic(preCanvas)
             preCanvas.drawLine(Qc.QLine(-9999, 0, 9999, 0))
             preCanvas.drawLine(Qc.QLine(0, -9999, 0, 9999))
@@ -2061,10 +2061,10 @@ class MainWindow1(Qw.QMainWindow):
                 painter.setTransform(
                     selObj.transform.toQTransform(), True)
                 # painter.setTransform(selObj.baseTransform.toQTransform(), True)
-                painter.setPen(Qc.Qt.gray)
+                painter.setPen(Qc.Qt.GlobalColor.gray)
                 painter.drawLine(Qc.QLine(-9999, 0, 9999, 0))
                 painter.drawLine(Qc.QLine(0, -9999, 0, 9999))
-                painter.setPen(Qc.Qt.black)
+                painter.setPen(Qc.Qt.GlobalColor.black)
                 painter.restore()
 
                 painter.setTransform(selObj.getInteriorScrTransform(
