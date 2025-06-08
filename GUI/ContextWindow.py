@@ -6,6 +6,7 @@ import PySide6.QtGui as Qg
 import PySide6.QtCore as Qc
 
 import Window1
+import ui_utils
 import xasy2asy as x2a
 
 from xasyTransform import xasyTransform as xT
@@ -283,7 +284,7 @@ class AnotherWindow(Qw.QWidget):
         try:
             self.newShape.pen.setDashPattern(pattern) #pen is going to be a asyPen, add as an attribute
         except Exception:
-            print("Pen format error")
+            ui_utils.error_msgbox(self, "Pen format error")
 
     def pickColor(self):
         self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self.shape.pen.color), self)

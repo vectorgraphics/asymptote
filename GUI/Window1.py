@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import ui_utils
 from xasyqtui.window1 import Ui_MainWindow
 
 import PySide6.QtWidgets as Qw
@@ -1085,28 +1085,23 @@ class MainWindow1(Qw.QMainWindow):
                     continue
                 obj.maxKey=max(obj.maxKey,int(key))
             if item['type'] == 'xasyScript':
-                print("Uh oh, there should not be any asy objects loaded")
-
+                ui_utils.error_msgbox(self, "asy objects should not be loaded yet")
             elif item['type'] == 'xasyText':
                 self.addXasyTextFromData( text = item['text'],
                         location = item['location'], pen = None,
                         transform = x2a.asyTransform(item['transform']), key = item['transfKey'],
                         align = item['align'], fontSize = item['fontSize']
                         )
-
             elif item['type'] == 'xasyShape':
                 nodeSet = item['nodes']
                 linkSet = item['links']
                 path = x2a.asyPath(self.asyEngine)
                 path.initFromNodeList(nodeSet, linkSet)
                 self.addXasyShapeFromPath(path, pen = item['pen'], transform = x2a.asyTransform(item['transform']), key = item['transfKey'], fill = item['fill'])
-
             elif item['type'] == 'asyArrow':
                 self.addXasyArrowFromPath(item['pen'], x2a.asyTransform(item['transform']), item['transfKey'], item['settings'], item['code'])
-                #self.addXasyArrowFromPath(item['oldpath'], item['pen'], x2a.asyTransform(item['transform']), item['transfKey'], item['settings'])
-
             else:
-                print("ERROR")
+                ui_utils.error_msgbox(self, "xasy object is of unknown type")
 
         self.asy2psmap = x2a.asyTransform(xasyObjects['asy2psmap'])
         if existsAsy:
@@ -1282,7 +1277,7 @@ class MainWindow1(Qw.QMainWindow):
             self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
             self.fileChanged = False
         else:
-            print("ERROR: file extension not supported")
+            ui_utils.error_msgbox(self, "file extension is not supported")
         self.updateScript()
         self.updateTitle()
 
@@ -1307,7 +1302,7 @@ class MainWindow1(Qw.QMainWindow):
             elif file_extension == ".xasy":
                 self.actionExportXasy(saveLocation)
             else:
-                print("ERROR: file extension not supported")
+                ui_utils.error_msgbox(self, "file extension not supported")
             self.fileName = saveLocation
             self.updateScript()
             self.fileChanged = False
