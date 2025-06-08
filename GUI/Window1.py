@@ -1230,6 +1230,7 @@ class MainWindow1(Qw.QMainWindow):
             return
 
         _, file_extension = os.path.splitext(self.fileName)
+        file_saved = True
         if file_extension == ".asy":
             if self.existsXasy():
                 warning = "Choose save format. Note that objects saved in asy format cannot be edited graphically."
@@ -1272,12 +1273,15 @@ class MainWindow1(Qw.QMainWindow):
                 self.fileChanged = False
         elif file_extension == ".xasy":
             self.actionExportXasy(self.fileName)
-            self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
             self.fileChanged = False
         else:
             ui_utils.error_msgbox(self, "file extension is not supported")
-        self.updateScript()
-        self.updateTitle()
+            file_saved = False
+
+        if file_saved:
+            self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
+            self.updateScript()
+            self.updateTitle()
 
     def updateScript(self):
         for item in self.fileItems:
@@ -1292,20 +1296,27 @@ class MainWindow1(Qw.QMainWindow):
     def actionSaveAs(self):
         initSave = os.path.splitext(str(self.fileName))[0]+'.xasy'
         saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File', initSave, "Xasy File (*.xasy)")[0]
-        if saveLocation:
-            _, file_extension = os.path.splitext(saveLocation)
-            if not file_extension:
-                saveLocation += '.xasy'
-                self.actionExportXasy(saveLocation)
-            elif file_extension == ".xasy":
-                self.actionExportXasy(saveLocation)
-            else:
-                ui_utils.error_msgbox(self, "file extension not supported")
-            self.fileName = saveLocation
-            self.updateScript()
-            self.fileChanged = False
-            self.updateTitle()
-            self.populateOpenRecent(saveLocation)
+        if not saveLocation:
+            return
+        _, file_extension = os.path.splitext(saveLocation)
+        file_saved = True
+        if not file_extension:
+            saveLocation += '.xasy'
+            self.actionExportXasy(saveLocation)
+        elif file_extension == ".xasy":
+            self.actionExportXasy(saveLocation)
+        else:
+            file_saved = False
+            ui_utils.error_msgbox(self, "file extension not supported")
+
+        if not file_saved:
+            return
+        self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
+        self.fileName = saveLocation
+        self.updateScript()
+        self.fileChanged = False
+        self.updateTitle()
+        self.populateOpenRecent(saveLocation)
 
     @Qc.Slot()
     def btnQuickScreenshotOnClick(self):
