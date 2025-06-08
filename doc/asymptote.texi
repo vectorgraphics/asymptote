@@ -10150,11 +10150,11 @@ The modified figure can then be saved as a normal @code{Asymptote} file.
 
 As @code{xasy} is written in the interactive scripting language
 @code{Python/Qt}, it requires @code{Python} (@url{https://www.python.org}),
-along with the @code{Python} packages @code{pyqt5}, @code{cson}, and
+along with the @code{Python} packages @code{PySide6}, @code{cson}, and
 @code{numpy}:
 
 @verbatim
-pip3 install cson numpy pyqt5 PyQt5.sip
+pip3 install cson numpy PySide6
 @end verbatim
 
 Pictures are deconstructed into the @acronym{SVG} image format.
@@ -10721,7 +10721,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  findall ax 5a centers 5E 5cm 2N 2E 2n HTML5 html 3x
 @c  LocalWords:  logo3 remeshed css 42kB 100d 5z 5y 5unit colored Qt5
 @c  LocalWords:  behavior beveled usetriangles htmlviewerOptions cson
-@c  LocalWords:  144x144 pyqt5 numpy pip3 PyQt5 rsvg librsvg2 1filll
+@c  LocalWords:  144x144 PySide6 numpy pip3 rsvg librsvg2 1filll
 @c  LocalWords:  librsvg Supakorn Jamie'' Rassameemasmuang 2D Docdir
 @c  LocalWords:  microsoft 'load 'asy 'lasy 'auto dep 4g isometry 5x
 @c  LocalWords:  5bp 1cm BezierPatch 2S 100pt 3t abs2 12pt cp1251 5mm

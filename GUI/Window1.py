@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-
+import ui_utils
 from xasyqtui.window1 import Ui_MainWindow
 
-import PyQt5.QtWidgets as Qw
-import PyQt5.QtGui as Qg
-import PyQt5.QtCore as Qc
+import PySide6.QtWidgets as Qw
+import PySide6.QtGui as Qg
+import PySide6.QtCore as Qc
 from xasyversion.version import VERSION as xasyVersion
 
 import numpy as np
@@ -204,7 +204,7 @@ class MainWindow1(Qw.QMainWindow):
         self.panOffset = [0, 0]
 
         # Keyboard can focus outside of textboxes
-        self.setFocusPolicy(Qc.Qt.StrongFocus)
+        self.setFocusPolicy(Qc.Qt.FocusPolicy.StrongFocus)
 
         super().setMouseTracking(True)
         # setMouseTracking(True)
@@ -354,7 +354,7 @@ class MainWindow1(Qw.QMainWindow):
         self.quickUpdate()
 
     def cleanup(self):
-        self.asyengine.cleanup()
+        self.asyEngine.cleanup()
 
     def getScrsTransform(self):
         # pipeline:
@@ -459,6 +459,7 @@ class MainWindow1(Qw.QMainWindow):
             self.addMode.recalculateCtrls()
             self.quickUpdate()
 
+    @Qc.Slot()
     def objectUpdated(self):
         self.removeAddMode()
         self.clearSelection()
@@ -561,6 +562,7 @@ class MainWindow1(Qw.QMainWindow):
         else:
             self.btnTranslateonClick()
 
+    @Qc.Slot()
     def btnTerminalCommandOnClick(self):
         if self.terminalPythonMode:
             exec(self.ui.txtTerminalPrompt.text())
@@ -571,6 +573,7 @@ class MainWindow1(Qw.QMainWindow):
             # Like AutoCAD?
         self.ui.txtTerminalPrompt.clear()
 
+    @Qc.Slot(bool)
     def btnFillOnClick(self, checked):
         self.currAddOptions['fill'] = checked
         self.ui.btnOpenCurve.setEnabled(not checked)
@@ -588,9 +591,6 @@ class MainWindow1(Qw.QMainWindow):
     @property
     def currentPen(self):
         return x2a.asyPen.fromAsyPen(self._currentPen)
-        pass
-    def debug(self):
-        print('Put a breakpoint here.')
 
     def execPythonCmd(self):
         commandText, result = Qw.QInputDialog.getText(self, '', 'enter python cmd')
@@ -604,16 +604,8 @@ class MainWindow1(Qw.QMainWindow):
             self.currAddOptionsWgt = None
 
     def updateOptionWidget(self):
-        try:
-            self.addMode.objectCreated.disconnect()
-        except Exception:
-            pass
-
-        #self.currentModeStack[-1] = None
-        self.addMode.objectCreated.connect(self.addInPlace)
+        self.addMode.connect_created_signal(self.addInPlace)
         self.updateModeBtnsOnly()
-
-
         self.deleteAddOptions()
 
         self.currAddOptionsWgt = self.addMode.createOptWidget(self.currAddOptions)
@@ -748,6 +740,7 @@ class MainWindow1(Qw.QMainWindow):
                             transform, isLocal)))
         self.checkUndoRedoButtons()
 
+    @Qc.Slot()
     def btnSendForwardsOnClick(self):
         if self.currentlySelectedObj['selectedIndex'] is not None:
             maj, minor = self.currentlySelectedObj['selectedIndex']
@@ -761,6 +754,7 @@ class MainWindow1(Qw.QMainWindow):
                 self.fileItems[index], self.fileItems[index + 1] = self.fileItems[index + 1], self.fileItems[index]
                 self.asyfyCanvas()
 
+    @Qc.Slot()
     def btnSelectiveDeleteOnClick(self):
         if self.currentlySelectedObj['selectedIndex'] is not None:
             maj, minor = self.currentlySelectedObj['selectedIndex']
@@ -793,6 +787,7 @@ class MainWindow1(Qw.QMainWindow):
             if result:
                 self.btnSelectiveDeleteOnClick()
 
+    @Qc.Slot()
     def btnSetVisibilityOnClick(self):
         if self.currentlySelectedObj['selectedIndex'] is not None:
             maj, minor = self.currentlySelectedObj['selectedIndex']
@@ -802,6 +797,7 @@ class MainWindow1(Qw.QMainWindow):
             self.clearSelection()
             self.quickUpdate()
 
+    @Qc.Slot()
     def btnSendBackwardsOnClick(self):
         if self.currentlySelectedObj['selectedIndex'] is not None:
             maj, minor = self.currentlySelectedObj['selectedIndex']
@@ -815,7 +811,7 @@ class MainWindow1(Qw.QMainWindow):
                 self.fileItems[index], self.fileItems[index - 1] = self.fileItems[index - 1], self.fileItems[index]
                 self.asyfyCanvas()
 
-
+    @Qc.Slot()
     def btnUndoOnClick(self):
         if self.currentlySelectedObj['selectedIndex'] is not None:
             # avoid deleting currently selected object
@@ -828,6 +824,7 @@ class MainWindow1(Qw.QMainWindow):
             self.undoRedoStack.undo()
             self.checkUndoRedoButtons()
 
+    @Qc.Slot()
     def btnRedoOnClick(self):
         self.undoRedoStack.redo()
         self.checkUndoRedoButtons()
@@ -945,6 +942,7 @@ class MainWindow1(Qw.QMainWindow):
         asyFile.close()
         self.ui.statusbar.showMessage(f"Exported to '{pathToFile}' as an Asymptote file.")
 
+    @Qc.Slot()
     def btnExportToAsyOnClick(self):
         if self.fileName:
             pathToFile = os.path.splitext(self.fileName)[0]+'.asy'
@@ -954,14 +952,15 @@ class MainWindow1(Qw.QMainWindow):
         if os.path.isfile(pathToFile):
             reply = Qw.QMessageBox.question(self, 'Message',
                 f'"{os.path.split(pathToFile)[1]}" already exists.  Do you want to overwrite it?',
-                Qw.QMessageBox.Yes, Qw.QMessageBox.No)
-            if reply == Qw.QMessageBox.No:
+                Qw.QMessageBox.StandardButton.Yes, Qw.QMessageBox.StandardButton.No)
+            if reply == Qw.QMessageBox.StandardButton.No:
                 return
             self.actionExport(pathToFile)
 
+    @Qc.Slot()
     def btnExportAsymptoteOnClick(self):
         diag = Qw.QFileDialog(self)
-        diag.setAcceptMode(Qw.QFileDialog.AcceptSave)
+        diag.setAcceptMode(Qw.QFileDialog.AcceptMode.AcceptSave)
 
         formatId = {
             'asy': {
@@ -1002,9 +1001,8 @@ class MainWindow1(Qw.QMainWindow):
 
         diag.setNameFilter(formatText)
         diag.show()
-        result = diag.exec_()
 
-        if result != diag.Accepted:
+        if not diag.exec():
             return
 
         finalFiles = diag.selectedFiles()
@@ -1065,6 +1063,7 @@ class MainWindow1(Qw.QMainWindow):
         rawText = None
         existsAsy = False
 
+        obj = None
         if os.path.isfile(asyFilePath):
             asyFile = io.open(asyFilePath, 'r')
             rawText = asyFile.read()
@@ -1084,28 +1083,23 @@ class MainWindow1(Qw.QMainWindow):
                     continue
                 obj.maxKey=max(obj.maxKey,int(key))
             if item['type'] == 'xasyScript':
-                print("Uh oh, there should not be any asy objects loaded")
-
+                ui_utils.error_msgbox(self, "asy objects should not be loaded yet")
             elif item['type'] == 'xasyText':
                 self.addXasyTextFromData( text = item['text'],
                         location = item['location'], pen = None,
                         transform = x2a.asyTransform(item['transform']), key = item['transfKey'],
                         align = item['align'], fontSize = item['fontSize']
                         )
-
             elif item['type'] == 'xasyShape':
                 nodeSet = item['nodes']
                 linkSet = item['links']
                 path = x2a.asyPath(self.asyEngine)
                 path.initFromNodeList(nodeSet, linkSet)
                 self.addXasyShapeFromPath(path, pen = item['pen'], transform = x2a.asyTransform(item['transform']), key = item['transfKey'], fill = item['fill'])
-
             elif item['type'] == 'asyArrow':
                 self.addXasyArrowFromPath(item['pen'], x2a.asyTransform(item['transform']), item['transfKey'], item['settings'], item['code'])
-                #self.addXasyArrowFromPath(item['oldpath'], item['pen'], x2a.asyTransform(item['transform']), item['transfKey'], item['settings'])
-
             else:
-                print("ERROR")
+                ui_utils.error_msgbox(self, "xasy object is of unknown type")
 
         self.asy2psmap = x2a.asyTransform(xasyObjects['asy2psmap'])
         if existsAsy:
@@ -1122,7 +1116,7 @@ class MainWindow1(Qw.QMainWindow):
         """Inverts the mapping of the key
            Input map is in format 'Action' : 'Key Sequence' """
         for action, key in self.keyMaps.options.items():
-            shortcut = Qw.QShortcut(self)
+            shortcut = Qg.QShortcut(self)
             shortcut.setKey(Qg.QKeySequence(key))
 
             # hate doing this, but python doesn't have explicit way to pass a
@@ -1147,28 +1141,29 @@ class MainWindow1(Qw.QMainWindow):
 
     #We include this function to keep the general program flow consistent
     def closeEvent(self, event):
-        if self.actionClose() == Qw.QMessageBox.Cancel:
+        if self.actionClose() == Qw.QMessageBox.StandardButton.Cancel:
             event.ignore()
 
+    @Qc.Slot()
     def actionNewFile(self):
         if self.fileChanged:
             reply = self.saveDialog()
-            if reply == Qw.QMessageBox.Yes:
+            if reply == Qw.QMessageBox.StandardButton.Yes:
                 self.actionSave()
-            elif reply == Qw.QMessageBox.Cancel:
+            elif reply == Qw.QMessageBox.StandardButton.Cancel:
                 return
         self.erase()
         self.asyfyCanvas(force=True)
         self.fileName = None
         self.updateTitle()
 
-
+    @Qc.Slot(str)
     def actionOpen(self, fileName = None):
         if self.fileChanged:
             reply = self.saveDialog()
-            if reply == Qw.QMessageBox.Yes:
+            if reply == Qw.QMessageBox.StandardButton.Yes:
                 self.actionSave()
-            elif reply == Qw.QMessageBox.Cancel:
+            elif reply == Qw.QMessageBox.StandardButton.Cancel:
                 return
 
         if fileName:
@@ -1199,86 +1194,92 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.menuOpenRecent.clear()
         if recentOpenedFile:
             self.openRecent.insert(recentOpenedFile)
-        for count, path in enumerate(self.openRecent.pathList):
+        for count, curr_path in enumerate(self.openRecent.pathList):
             if count > 8:
                 break
-            action = Qw.QAction(path, self, triggered = lambda state, path = path: self.actionOpen(fileName = path))
+            action = Qg.QAction(curr_path, self, triggered = lambda _, path = curr_path: self.actionOpen(fileName = path))
             self.ui.menuOpenRecent.addAction(action)
         self.ui.menuOpenRecent.addSeparator()
         self.ui.menuOpenRecent.addAction("Clear", self.actionClearRecent)
 
-    def saveDialog(self) -> bool:
+    def saveDialog(self) -> Qw.QMessageBox.StandardButton:
         save = "Save current file?"
-        replyBox = Qw.QMessageBox()
-        replyBox.setText("Save current file?")
-        replyBox.setWindowTitle("Message")
-        replyBox.setStandardButtons(Qw.QMessageBox.Yes | Qw.QMessageBox.No | Qw.QMessageBox.Cancel)
-        reply = replyBox.exec()
-
-        return reply
+        return Qw.QMessageBox.question(
+            self,
+            "Message",
+            "Save current file?",
+            Qw.QMessageBox.StandardButton.Yes | Qw.QMessageBox.StandardButton.No | Qw.QMessageBox.StandardButton.Cancel
+        )
 
     def actionClose(self):
-        if self.fileChanged:
-            reply = self.saveDialog()
-            if reply == Qw.QMessageBox.Yes:
-                self.actionSave()
-                Qc.QCoreApplication.quit()
-            elif reply == Qw.QMessageBox.No:
-                Qc.QCoreApplication.quit()
-            else:
-                return reply
+        if not self.fileChanged:
+            Qc.QCoreApplication.exit()
+
+        reply = self.saveDialog()
+        if reply == Qw.QMessageBox.StandardButton.Yes:
+            self.actionSave()
+            Qc.QCoreApplication.exit()
+        elif reply == Qw.QMessageBox.StandardButton.No:
+            Qc.QCoreApplication.exit()
         else:
-            Qc.QCoreApplication.quit()
+            return reply
 
     def actionSave(self):
         if self.fileName is None:
             self.actionSaveAs()
+            return
 
-        else:
-            _, file_extension = os.path.splitext(self.fileName)
-            if file_extension == ".asy":
-                if self.existsXasy():
-                    warning = "Choose save format. Note that objects saved in asy format cannot be edited graphically."
-                    replyBox = Qw.QMessageBox()
-                    replyBox.setWindowTitle('Warning')
-                    replyBox.setText(warning)
-                    replyBox.addButton("Save as .xasy", replyBox.NoRole)
-                    replyBox.addButton("Save as .asy", replyBox.YesRole)
-                    replyBox.addButton(Qw.QMessageBox.Cancel)
-                    reply = replyBox.exec()
-                    if reply == 1:
-                        saveFile = io.open(self.fileName, 'w')
-                        xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
-                        saveFile.close()
-                        self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
-                        self.fileChanged = False
-                    elif reply == 0:
-                        prefix = os.path.splitext(self.fileName)[0]
-                        xasyFilePath = prefix + '.xasy'
-                        if os.path.isfile(xasyFilePath):
-                            warning = f'"{os.path.basename(xasyFilePath)}" already exists.  Do you want to overwrite it?'
-                            reply = Qw.QMessageBox.question(self, "Same File", warning, Qw.QMessageBox.No, Qw.QMessageBox.Yes)
-                            if reply == Qw.QMessageBox.No:
-                                return
+        _, file_extension = os.path.splitext(self.fileName)
+        file_saved = True
+        if file_extension == ".asy":
+            if self.existsXasy():
+                warning = "Choose save format. Note that objects saved in asy format cannot be edited graphically."
+                replyBox = Qw.QMessageBox()
+                replyBox.setWindowTitle('Warning')
+                replyBox.setText(warning)
 
-                        self.actionExportXasy(xasyFilePath)
-                        self.fileName = xasyFilePath
-                        self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
-                        self.fileChanged = False
-                    else:
-                        return
-
-                else:
+                xasy_btn = replyBox.addButton("Save as .xasy", Qw.QMessageBox.ButtonRole.NoRole)
+                asy_btn = replyBox.addButton("Save as .asy", Qw.QMessageBox.ButtonRole.YesRole)
+                replyBox.addButton("Cancel", Qw.QMessageBox.ButtonRole.RejectRole)
+                replyBox.exec()
+                if replyBox.clickedButton() == asy_btn:
                     saveFile = io.open(self.fileName, 'w')
                     xf.saveFile(saveFile, self.fileItems, self.asy2psmap)
                     saveFile.close()
+                    self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
                     self.fileChanged = False
-            elif file_extension == ".xasy":
-                self.actionExportXasy(self.fileName)
-                self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
-                self.fileChanged = False
+                elif replyBox.clickedButton() == xasy_btn:
+                    prefix = os.path.splitext(self.fileName)[0]
+                    xasyFilePath = prefix + '.xasy'
+                    if os.path.isfile(xasyFilePath):
+                        warning = f'"{os.path.basename(xasyFilePath)}" already exists.  Do you want to overwrite it?'
+                        reply = Qw.QMessageBox.question(
+                            self,
+                            "Same File",
+                            warning,
+                            Qw.QMessageBox.StandardButton.Yes,
+                            Qw.QMessageBox.StandardButton.No
+                        )
+                        if reply == Qw.QMessageBox.StandardButton.No:
+                            return
+
+                    self.actionExportXasy(xasyFilePath)
+                    self.fileName = xasyFilePath
+                    self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
+                    self.fileChanged = False
             else:
-                print("ERROR: file extension not supported")
+                with open(self.fileName, 'w') as f:
+                    xf.saveFile(f, self.fileItems, self.asy2psmap)
+                self.fileChanged = False
+        elif file_extension == ".xasy":
+            self.actionExportXasy(self.fileName)
+            self.fileChanged = False
+        else:
+            ui_utils.error_msgbox(self, "file extension is not supported")
+            file_saved = False
+
+        if file_saved:
+            self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
             self.updateScript()
             self.updateTitle()
 
@@ -1290,45 +1291,52 @@ class MainWindow1(Qw.QMainWindow):
                     item.updatedCode = None
 
     def existsXasy(self):
-        for item in self.fileItems:
-            if not isinstance(item, x2a.xasyScript):
-                return True
-        return False
+        return not all(isinstance(item, x2a.xasyScript) for item in self.fileItems)
 
     def actionSaveAs(self):
         initSave = os.path.splitext(str(self.fileName))[0]+'.xasy'
         saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File', initSave, "Xasy File (*.xasy)")[0]
-        if saveLocation:
-            _, file_extension = os.path.splitext(saveLocation)
-            if not file_extension:
-                saveLocation += '.xasy'
-                self.actionExportXasy(saveLocation)
-            elif file_extension == ".xasy":
-                self.actionExportXasy(saveLocation)
-            else:
-                print("ERROR: file extension not supported")
-            self.fileName = saveLocation
-            self.updateScript()
-            self.fileChanged = False
-            self.updateTitle()
-            self.populateOpenRecent(saveLocation)
+        if not saveLocation:
+            return
+        _, file_extension = os.path.splitext(saveLocation)
+        file_saved = True
+        if not file_extension:
+            saveLocation += '.xasy'
+            self.actionExportXasy(saveLocation)
+        elif file_extension == ".xasy":
+            self.actionExportXasy(saveLocation)
+        else:
+            file_saved = False
+            ui_utils.error_msgbox(self, "file extension not supported")
 
+        if not file_saved:
+            return
+        self.ui.statusbar.showMessage('File saved as {}'.format(self.fileName))
+        self.fileName = saveLocation
+        self.updateScript()
+        self.fileChanged = False
+        self.updateTitle()
+        self.populateOpenRecent(saveLocation)
 
+    @Qc.Slot()
     def btnQuickScreenshotOnClick(self):
         saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save Screenshot','')
         if saveLocation[0]:
             self.ui.imgLabel.pixmap().save(saveLocation[0])
 
+    @Qc.Slot()
     def btnLoadFileonClick(self):
         self.actionOpen()
 
+    @Qc.Slot()
     def btnCloseFileonClick(self):
         self.actionClose()
 
+    @Qc.Slot()
     def btnSaveonClick(self):
         self.actionSave()
 
-    @Qc.pyqtSlot(int)
+    @Qc.Slot(int)
     def handleAnchorComboIndex(self, index: int):
         self.anchorMode = index
         if self.anchorMode == AnchorMode.customAnchor:
@@ -1410,7 +1418,10 @@ class MainWindow1(Qw.QMainWindow):
             return
 
         # pan mode
-        if self.currentModeStack[-1] == SelectionMode.pan and int(mouseEvent.buttons()) and self.savedWindowMousePos is not None:
+        isModeStackPan = self.currentModeStack[-1] == SelectionMode.pan
+        isClicked = mouseEvent.buttons() & Qc.Qt.MouseButton.AllButtons
+
+        if isModeStackPan and isClicked and self.savedWindowMousePos:
             mousePos = self.getWindowCoordinates()
             newPos = mousePos - self.savedWindowMousePos
 
@@ -1459,7 +1470,7 @@ class MainWindow1(Qw.QMainWindow):
                 if self.gridSnap:
                     canvasPos = self.roundPositionSnap(canvasPos)
                     x, y = int(round(canvasPos.x())), int(round(canvasPos.y()))  # otherwise it crashes...
-                    canvasPos = Qc.QPoint(x, y)
+                    canvasPos = Qc.QPointF(x, y)
 
                 originalDeltaPts = self.savedMousePosition - self.currentAnchor
                 scaleFactor = Qc.QPointF.dotProduct(canvasPos - self.currentAnchor, originalDeltaPts) /\
@@ -1531,14 +1542,13 @@ class MainWindow1(Qw.QMainWindow):
                 if self.pendingSelectedObjIndex + offset >= -len(self.pendingSelectedObjList):
                     self.pendingSelectedObjIndex = self.pendingSelectedObjIndex + offset
 
-    def mouseWheel(self, rawAngleX: float, rawAngle: float, defaultModifiers: int=0):
-        keyModifiers = int(Qw.QApplication.keyboardModifiers())
-        keyModifiers = keyModifiers | defaultModifiers
-        if keyModifiers & int(Qc.Qt.ControlModifier):
+    def mouseWheel(self, rawAngleX: float, rawAngle: float):
+        keyModifiers = Qw.QApplication.keyboardModifiers()
+        if keyModifiers & Qc.Qt.KeyboardModifier.ControlModifier:
             oldMag = self.magnification
             factor = 0.5/devicePixelRatio
             cx, cy = self.canvSize.width()*factor, self.canvSize.height()*factor
-            centerPoint = Qc.QPointF(cx, cy) * self.getScrsTransform().inverted()[0]
+            centerPoint = self.getScrsTransform().inverted()[0].map(Qc.QPointF(cx, cy))
 
             self.magnification += (rawAngle/100)
 
@@ -1565,7 +1575,7 @@ class MainWindow1(Qw.QMainWindow):
             if self.addMode is xbi.InteractiveBezierEditor:
                 self.addMode.setSelectionBoundaries()
 
-        elif keyModifiers & (int(Qc.Qt.ShiftModifier) | int(Qc.Qt.AltModifier)):
+        elif keyModifiers & (Qc.Qt.KeyboardModifier.ShiftModifier | Qc.Qt.KeyboardModifier.AltModifier):
             self.panOffset[1] += rawAngle/1
             self.panOffset[0] -= rawAngleX/1
         # handle scrolling
@@ -1677,6 +1687,7 @@ class MainWindow1(Qw.QMainWindow):
         self.fileChanged = True
         self.quickUpdate()
 
+    @Qc.Slot()
     def editRejected(self):
         self.addMode.resetObj()
         self.addMode.forceFinalize()
@@ -1763,9 +1774,10 @@ class MainWindow1(Qw.QMainWindow):
         self.postCanvasPixmap.setDevicePixelRatio(devicePixelRatio)
 
         self.mainCanvas = Qg.QPainter(self.canvasPixmap)
-        self.mainCanvas.setRenderHint(Qg.QPainter.Antialiasing)
-        self.mainCanvas.setRenderHint(Qg.QPainter.SmoothPixmapTransform)
-        self.mainCanvas.setRenderHint(Qg.QPainter.HighQualityAntialiasing)
+        self.mainCanvas.setRenderHint(
+            Qg.QPainter.RenderHint.Antialiasing | Qg.QPainter.RenderHint.SmoothPixmapTransform,
+            True
+        )
         self.xasyDrawObj['canvas'] = self.mainCanvas
 
         self.mainTransformation = Qg.QTransform()
@@ -1832,10 +1844,11 @@ class MainWindow1(Qw.QMainWindow):
     def getCanvasCoordinates(self):
         # assert self.ui.imgLabel.underMouse()
         uiPos = self.mapFromGlobal(Qg.QCursor.pos())
-        canvasPos = self.ui.imgLabel.mapFrom(self, uiPos)
+        canvasPos = Qc.QPointF(self.ui.imgLabel.mapFrom(self, uiPos))
 
         # Issue: For magnification, should xasy treats this at xasy level, or asy level?
-        return canvasPos * self.getScrsTransform().inverted()[0]
+        invertedScrTransform = self.getScrsTransform().inverted()[0]
+        return invertedScrTransform.map(canvasPos)
 
     def getWindowCoordinates(self):
         # assert self.ui.imgLabel.underMouse()
@@ -2018,7 +2031,7 @@ class MainWindow1(Qw.QMainWindow):
         preCanvas.setTransform(self.getScrsTransform())
 
         if self.drawAxes:
-            preCanvas.setPen(Qc.Qt.gray)
+            preCanvas.setPen(Qc.Qt.GlobalColor.gray)
             self.makePenCosmetic(preCanvas)
             preCanvas.drawLine(Qc.QLine(-9999, 0, 9999, 0))
             preCanvas.drawLine(Qc.QLine(0, -9999, 0, 9999))
@@ -2055,10 +2068,10 @@ class MainWindow1(Qw.QMainWindow):
                 painter.setTransform(
                     selObj.transform.toQTransform(), True)
                 # painter.setTransform(selObj.baseTransform.toQTransform(), True)
-                painter.setPen(Qc.Qt.gray)
+                painter.setPen(Qc.Qt.GlobalColor.gray)
                 painter.drawLine(Qc.QLine(-9999, 0, 9999, 0))
                 painter.drawLine(Qc.QLine(0, -9999, 0, 9999))
-                painter.setPen(Qc.Qt.black)
+                painter.setPen(Qc.Qt.GlobalColor.black)
                 painter.restore()
 
                 painter.setTransform(selObj.getInteriorScrTransform(
@@ -2155,6 +2168,7 @@ class MainWindow1(Qw.QMainWindow):
         self.updateModeBtnsOnly()
         self.quickUpdate()
 
+    @Qc.Slot(bool)
     def btnAlignXOnClick(self, checked):
         if self.currentModeStack[0] in [SelectionMode.selectEdit,SelectionMode.delete]:
             self.ui.btnAlignX.setChecked(False)
@@ -2164,6 +2178,7 @@ class MainWindow1(Qw.QMainWindow):
                 self.lockX = False
                 self.ui.btnAlignY.setChecked(False)
 
+    @Qc.Slot(bool)
     def btnAlignYOnClick(self, checked):
         if self.currentModeStack[0] in [SelectionMode.selectEdit,SelectionMode.delete]:
             self.ui.btnAlignY.setChecked(False)
@@ -2173,6 +2188,7 @@ class MainWindow1(Qw.QMainWindow):
                 self.lockY = False
                 self.ui.btnAlignX.setChecked(False)
 
+    @Qc.Slot()
     def btnAnchorModeOnClick(self):
         if self.currentModeStack[-1] != SelectionMode.setAnchor:
             self.currentModeStack.append(SelectionMode.setAnchor)
@@ -2183,12 +2199,14 @@ class MainWindow1(Qw.QMainWindow):
             self.currentModeStack.append(SelectionMode.setAnchor)
             self.updateChecks()
 
+    @Qc.Slot()
     def btnTranslateonClick(self):
         self.currentModeStack = [SelectionMode.translate]
         self.ui.statusbar.showMessage('Translate mode')
         self.clearSelection()
         self.updateChecks()
 
+    @Qc.Slot()
     def btnRotateOnClick(self):
         if self.currentModeStack[-1] != SelectionMode.rotate:
             self.currentModeStack = [SelectionMode.rotate]
@@ -2198,6 +2216,7 @@ class MainWindow1(Qw.QMainWindow):
         else:
             self.btnTranslateonClick()
 
+    @Qc.Slot()
     def btnScaleOnClick(self):
         if self.currentModeStack[-1] != SelectionMode.scale:
             self.currentModeStack = [SelectionMode.scale]
@@ -2207,6 +2226,7 @@ class MainWindow1(Qw.QMainWindow):
         else:
             self.btnTranslateonClick()
 
+    @Qc.Slot()
     def btnPanOnClick(self):
         if self.currentModeStack[-1] != SelectionMode.pan:
             self.currentModeStack = [SelectionMode.pan]
@@ -2216,6 +2236,7 @@ class MainWindow1(Qw.QMainWindow):
         else:
             self.btnTranslateonClick()
 
+    @Qc.Slot()
     def btnWorldCoordsOnClick(self, checked):
         self.useGlobalCoords = checked
         if not self.useGlobalCoords:
@@ -2226,40 +2247,51 @@ class MainWindow1(Qw.QMainWindow):
         for widget in widgetSet:
             widget.setEnabled(enabled)
 
+    @Qc.Slot()
     def btnDrawAxesOnClick(self, checked):
         self.drawAxes = checked
         self.quickUpdate()
 
+    @Qc.Slot()
     def btnDrawGridOnClick(self, checked):
         self.drawGrid = checked
         self.quickUpdate()
 
+    @Qc.Slot()
     def btnCustTransformOnClick(self):
         matrixDialog = CustMatTransform.CustMatTransform()
         matrixDialog.show()
-        result = matrixDialog.exec_()
-        if result == Qw.QDialog.Accepted:
-            objKey = self.currentlySelectedObj['selectedIndex']
-            self.transformObject(objKey,
-                matrixDialog.getTransformationMatrix(), not
-                self.useGlobalCoords)
+        result = matrixDialog.exec()
+        if not result:
+            return
+        objKey = self.currentlySelectedObj['selectedIndex']
+        self.transformObject(objKey,
+            matrixDialog.getTransformationMatrix(), not
+            self.useGlobalCoords)
 
         # for now, unless we update the bouding box transformation.
         self.clearSelection()
         self.quickUpdate()
 
+    @Qc.Slot()
     def btnLoadEditorOnClick(self):
         pathToFile = os.path.splitext(self.fileName)[0]+'.asy'
         if self.fileChanged:
             save = "Save current file?"
-            reply = Qw.QMessageBox.question(self, 'Message', save, Qw.QMessageBox.Yes,
-                                            Qw.QMessageBox.No)
-            if reply == Qw.QMessageBox.Yes:
+            reply = Qw.QMessageBox.question(
+                self,
+                'Message',
+                save,
+                Qw.QMessageBox.StandardButton.Yes,
+                Qw.QMessageBox.StandardButton.No
+            )
+            if reply == Qw.QMessageBox.StandardButton.Yes:
                 self.actionExport(pathToFile)
 
         subprocess.run(args=self.getExternalEditor(asypath=pathToFile));
         self.loadFile(pathToFile)
 
+    @Qc.Slot()
     def btnAddCodeOnClick(self):
         header = """
 // xasy object created at $time
