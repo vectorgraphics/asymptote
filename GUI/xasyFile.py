@@ -126,8 +126,4 @@ def xasyToDict(file, xasyItems, asy2psmap):
                     'code': item.code
                     })
 
-        else:
-            # DEBUGGING PURPOSES ONLY
-            print(type(item))
-
     return {'objects': fileItems, 'asy2psmap': asy2psmap.t}, asyItems

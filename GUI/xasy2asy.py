@@ -1104,9 +1104,7 @@ class xasyItem(QtCore.QObject):
         fileformat = 'svg' # Output format
 
         while raw_text != 'Done\n' and raw_text != 'Error\n':
-#            print(raw_text)
             text = fin.readline()       # the actual bounding box.
-            # print('TESTING:', text)
             keydata = raw_text.strip().replace('KEY=', '', 1)  # key
 
             clipflag = keydata[-1] == '1'
@@ -1120,8 +1118,6 @@ class xasyItem(QtCore.QObject):
                 if keydata.isdigit():
                     self.maxKey=max(self.maxKey,int(keydata))
                 self.userKeys.add(keydata)
-
-#                print(line, col)
 
             if deleted:
                 raw_text = fin.readline()
@@ -1803,7 +1799,6 @@ class DrawObject(QtCore.QObject):
 
     def getScreenTransform(self):
         scrTransf = self.baseTransform.toQTransform().inverted()[0] * self.pTransform.toQTransform()
-        # print(asyTransform.fromQTransform(scrTransf).t)
         return asyTransform.fromQTransform(scrTransf)
 
     def draw(self, additionalTransformation = None, applyReverse = False, canvas: QtGui.QPainter = None, dpi = 300):
@@ -1925,7 +1920,6 @@ class asyArrow(xasyItem):
         settings += self.arrowFillList[self.arrowSettings["fill"]]
 
         settings += ")"
-        #print(settings)
         return settings
 
     def setKey(self, newKey = None):
@@ -1935,7 +1929,6 @@ class asyArrow(xasyItem):
         self.transfKeymap = {self.transfKey: [transform]}
 
     def updateCode(self, asy2psmap = identity()):
-        newLoc = asy2psmap.inverted() * self.location
         self.asyCode = ''
         if self.arrowSettings["active"]:
             if self.arrowSettings["fill"]:

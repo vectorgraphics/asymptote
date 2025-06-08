@@ -591,8 +591,6 @@ class MainWindow1(Qw.QMainWindow):
     @property
     def currentPen(self):
         return x2a.asyPen.fromAsyPen(self._currentPen)
-    def debug(self):
-        print('Put a breakpoint here.')
 
     def execPythonCmd(self):
         commandText, result = Qw.QInputDialog.getText(self, '', 'enter python cmd')

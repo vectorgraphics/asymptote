@@ -256,8 +256,6 @@ class AnotherWindow(Qw.QWidget):
         fout = self.asyEngine.ostream
         fin = self.asyEngine.istream
 
-        #fout.write("pen p=adjust({pattern},arclength({path}),cyclic({path}));\n")
-        #print(f"write(_outpipe,adjust({pattern},arclength({path}),cyclic({path})),endl);\n")
         fout.write(f"write(_outpipe,adjust({pattern},arclength({path}),cyclic({path})),endl);\n")
         fout.write(self.asyEngine.xasy)
         fout.flush()
@@ -299,9 +297,3 @@ class AnotherWindow(Qw.QWidget):
         if self.colorDialog.exec():
             self.shape.fillPen.setColorFromQColor(self.colorDialog.selectedColor())
             self.parent.updateFrameDispColor()
-
-    @Qc.Slot()
-    def on_click(self):
-        print("\n")
-        for currentQTableWidgetItem in self.tableWidget.selectedItems():
-            print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
