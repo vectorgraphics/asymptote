@@ -969,17 +969,17 @@ void AsyVkRender::createDebugMessenger()
 {
   vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
   vk::DebugUtilsMessageTypeFlagsEXT typeFlags(vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation);
-  if (settings::verbose >= 4)
+  if (settings::verbose > 2)
   {
     severityFlags |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning;
     typeFlags |= vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral;
   }
-  if (settings::verbose >= 4)
+  if (settings::verbose > 2)
   {
     severityFlags |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo;
     typeFlags |= typeFlags |= vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
   }
-  if (settings::verbose >= 4)
+  if (settings::verbose > 2)
   {
     severityFlags |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose;
   }
@@ -1472,11 +1472,18 @@ void AsyVkRender::createSwapChain()
 
 void AsyVkRender::createOffscreenBuffers() {
   backbufferExtent=vk::Extent2D(width, height);
+
+  auto usageBits=vk::ImageUsageFlagBits::eColorAttachment |
+    vk::ImageUsageFlagBits::eTransferSrc;
+
+  if(fxaa)
+    usageBits=usageBits | vk::ImageUsageFlagBits::eTransferDst;
+
   defaultBackbufferImg = createImage(
           backbufferExtent.width,
           backbufferExtent.height,
               vk::SampleCountFlagBits::e1, backbufferImageFormat,
-              vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,
+          usageBits,
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   backbufferImages.emplace_back(defaultBackbufferImg.getImage());
 
@@ -1734,7 +1741,7 @@ vma::cxx::UniqueBuffer AsyVkRender::createBufferUnique(
   createInfo.requiredFlags = properties;
   createInfo.flags=vmaFlags;
 
-  if (bufferName != nullptr && settings::verbose >= 4) {
+  if (bufferName != nullptr && settings::verbose > 2) {
     std::cout << "Attempting to create buffer " << bufferName << " of size: " << size << std::endl;
   }
 
@@ -2834,8 +2841,11 @@ void AsyVkRender::createDependentBuffers()
           VARIABLE_NAME(countBf)
           );
 
+  auto usageflags=vk::BufferUsageFlagBits::eStorageBuffer |
+    vk::BufferUsageFlagBits::eTransferDst;
+
   globalSumBf = createBufferUnique(
-          vk::BufferUsageFlagBits::eStorageBuffer,
+    usageflags,
           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
           globalSize,
           vmaFlags,
@@ -2843,7 +2853,7 @@ void AsyVkRender::createDependentBuffers()
           VARIABLE_NAME(globalSumBf));
 
   offsetBf = createBufferUnique(
-          vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
+    usageflags,
           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
           offsetBufferSize,
           vmaFlags,
@@ -2859,7 +2869,7 @@ void AsyVkRender::createDependentBuffers()
                      VARIABLE_NAME(opaqueBf));
 
   opaqueDepthBf = createBufferUnique(
-                     vk::BufferUsageFlagBits::eStorageBuffer,
+    usageflags,
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                      opaqueBufferSize,
                      vmaFlags,
@@ -2868,7 +2878,7 @@ void AsyVkRender::createDependentBuffers()
 
   if(GPUcompress) {
     indexBf = createBufferUnique(
-      vk::BufferUsageFlagBits::eStorageBuffer,
+      usageflags,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
       indexBufferSize,
       VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
@@ -3082,9 +3092,11 @@ void AsyVkRender::createGraphicsRenderPass()
 
   // Again, we should really be using scene graphs here. The
   // code will only get more complicated from now on...
-  vk::ImageLayout colorAttachmentFinalLayout = fxaa
-  ? vk::ImageLayout::eGeneral
-  : vk::ImageLayout::ePresentSrcKHR;
+  vk::ImageLayout colorAttachmentFinalLayout = fxaa ?
+    vk::ImageLayout::eGeneral :
+    (View ? vk::ImageLayout::ePresentSrcKHR :
+     vk::ImageLayout::eColorAttachmentOptimal);
+
 
   auto colorResolveAttachment = vk::AttachmentDescription2(
     vk::AttachmentDescriptionFlags(),
@@ -4079,7 +4091,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     // Start recording commands into partialSumsCommandBuffer
     object.partialSumsCommandBuffer->begin(vk::CommandBufferBeginInfo());
 
-    // Wait to execute the compute shaders util we trigger them from CPU
+    // Wait to execute the compute shaders until we trigger them from CPU
     object.partialSumsCommandBuffer->waitEvents(
       1,
       &*object.startTimedSumsEvent,
@@ -4124,15 +4136,14 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     partialSumsInfo.commandBufferCount = 1;
     partialSumsInfo.pCommandBuffers = &*object.partialSumsCommandBuffer;
 
-    // Send all the partial sum commands to the GPU, where they will wait
-    // until we signal them through the startTimedSums event
+    // Signal GPU to start partial sums
+    device->setEvent(*object.startTimedSumsEvent);
+
+    // Send all the partial sum commands to the GPU.
     vkutils::checkVkResult(renderQueue.submit(1, &partialSumsInfo, nullptr));
 
     // Start recording the time
     utils::stopWatch Timer;
-
-    // Signal GPU to start partial sums
-    device->setEvent(*object.startTimedSumsEvent);
 
     // Wait until the GPU tells us the sums are finished
     waitForEvent(*object.timedSumsFinishedEvent);
@@ -4333,7 +4344,8 @@ void AsyVkRender::drawFrame()
             {vk::AccessFlagBits::eTransferWrite,
              {},
              vk::ImageLayout::eTransferDstOptimal,
-             vk::ImageLayout::ePresentSrcKHR,
+             View ? vk::ImageLayout::ePresentSrcKHR :
+             vk::ImageLayout::eColorAttachmentOptimal,
              VK_QUEUE_FAMILY_IGNORED,
              VK_QUEUE_FAMILY_IGNORED,
              backbufferImages[imageIndex],
