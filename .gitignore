@@ -114,7 +114,7 @@ core.*
 \#*
 .\#*
 
-/.idea/*
+.idea
 
 examples/_ig_*.asy
 
@@ -239,3 +239,6 @@ asydoc
 
 tests/out
 tests/out.*
+
+# editor config
+.editorconfig
