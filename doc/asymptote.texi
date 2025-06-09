@@ -7330,12 +7330,19 @@ sorted order. The key type must have a @code{<} operator.
 
 @cindex @code{nullValue}
 @cindex @code{isNullValue}
+If @code{nullValue} is not provided, looking up a missing key will throw an error.
 The @code{nullValue} parameter gives the map something to return when
-a nonexistent key is looked up. If it is not provided, the map
-will throw an error when a nonexistent key is looked up.
-The @code{isNullValue} parameter has a good default but may need to be set explicitly
-in certain circumstances, for instance,
-if @code{v == nullValue} would result in dereferencing a null pointer.
+a nonexistent key is looked up. This is useful in scenarios where missing keys
+are expected and should be handled gracefully.
+The @code{isNullValue} parameter defaults to a function that checks whether
+the value is equal to @code{nullValue} via @code{operator ==}.
+This is usually the desired behavior, but it is occasionally necessary to
+override it;
+ for instance,
+if you have overridden @code{operator==} assuming its parameters are not null,
+then something like @code{isNullValue=new bool(V v)@{return alias(v,null);@}}
+might
+be appropriate.
 
 Both @code{HashMap_K_V} and @code{BTreeMap_K_V} can be implicitly cast
 to @code{Map_K_V}. Even without being cast, the two types have
