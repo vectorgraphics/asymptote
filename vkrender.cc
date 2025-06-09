@@ -12,7 +12,6 @@
 
 #define SHADER_DIRECTORY "shaders/"
 #define VALIDATION_LAYER "VK_LAYER_KHRONOS_validation"
-#define MESA_OVERLAY_LAYER "VK_LAYER_MESA_overlay"
 
 #define VARIABLE_NAME(var) (#var)
 
@@ -929,17 +928,6 @@ void AsyVkRender::createInstance()
     validationLayers.emplace_back(VALIDATION_LAYER);
   } else if (settings::verbose > 1) {
     std::cout << "Validation layers are not supported by the current Vulkan instance." << std::endl;
-  }
-#endif
-
-#if !defined(_WIN32)
-  // mesa is only supported by linux, ignore on windows
-  if (settings::verbose > 2) {
-    if (isLayerSupported(MESA_OVERLAY_LAYER)) {
-      validationLayers.emplace_back(MESA_OVERLAY_LAYER);
-    } else if (settings::verbose > 1) {
-      std::cout << "Mesa overlay layer is not supported by the current Vulkan instance." << std::endl;
-    }
   }
 #endif
 
