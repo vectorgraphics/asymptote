@@ -762,6 +762,8 @@ private:
 
   std::vector<vk::UniqueDescriptorSet> postProcessDescSet;
 
+  std::vector<vk::UniqueSemaphore> renderFinishedSemaphore;
+
 #pragma endregion
   struct FrameObject {
     enum CommandBuffers {
@@ -774,7 +776,6 @@ private:
     };
 
     vk::UniqueSemaphore imageAvailableSemaphore;
-    vk::UniqueSemaphore renderFinishedSemaphore;
     vk::UniqueSemaphore inCountBufferCopy;
     vk::UniqueFence inFlightFence;
     vk::UniqueFence inComputeFence;

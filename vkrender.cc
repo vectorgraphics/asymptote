@@ -1684,7 +1684,6 @@ void AsyVkRender::createSyncObjects()
 {
   for (auto i = 0; i < maxFramesInFlight; i++) {
     frameObjects[i].imageAvailableSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
-    frameObjects[i].renderFinishedSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].inCountBufferCopy = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].inFlightFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
     frameObjects[i].inComputeFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
@@ -3638,7 +3637,6 @@ void AsyVkRender::updateBuffers()
       nmaterials=materials.size();
     }
 
-//    device->waitIdle();
     createMaterialAndLightBuffers();
     writeMaterialAndLightDescriptors();
 
@@ -4356,7 +4354,12 @@ void AsyVkRender::drawFrame()
   // Also signal to the swapchain that the render has finished if rendering onscreen
   if (View) {
     waitSemaphores.emplace_back(*frameObject.imageAvailableSemaphore);
-    signalSemaphores.emplace_back(*frameObject.renderFinishedSemaphore);
+
+    if(imageIndex >= renderFinishedSemaphore.size())
+      renderFinishedSemaphore.push_back(
+        device->createSemaphoreUnique(vk::SemaphoreCreateInfo()));
+
+    signalSemaphores.push_back(*renderFinishedSemaphore[imageIndex]);
   }
 
   std::vector<vk::PipelineStageFlags> const waitStages {vk::PipelineStageFlagBits::eColorAttachmentOutput};
