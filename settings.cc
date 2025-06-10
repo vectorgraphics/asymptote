@@ -1355,7 +1355,7 @@ void initSettings() {
   addOption(new IntSetting("GPUblockSize", 0, "n",
                            "Compute shader block size", 8));
   addOption(new IntSetting("maxFramesInFlight", 0, "n",
-                           "Maximum frames queued to the GPU", 3));
+                           "Maximum frames queued to the GPU", 6));
 
   addOption(new pairSetting("position", 0, "pair",
                             "Initial 3D rendering screen position"));
