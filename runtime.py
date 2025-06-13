@@ -368,11 +368,6 @@ def read_sections(filename: str) -> List[str]:
 def main(d: RunData) -> None:
     outHeaderFile = os.path.join(d.headerOutDir, f"{d.prefix}.h")
     outSrcFile = os.path.join(d.srcOutDir, f"{d.prefix}.cc")
-    # Log outHeaderFile and outSrcFile to runtime.log
-    with open("runtime.log", "a", encoding="utf-8") as log_file:
-        log_file.write(f"{outHeaderFile}\n")
-        log_file.write(f"{outSrcFile}\n")
-
     sections_in, sections_base = read_input_sections(d)
     header_lines = process_sections(d, sections_in, sections_base, outSrcFile)
     finalize_output(outHeaderFile, outSrcFile, header_lines)
