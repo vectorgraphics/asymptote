@@ -18,8 +18,6 @@
 #include <Windows.h>
 #include <io.h>
 #define isatty _isatty
-
-#include "win32helpers.h"
 #else
 #include <unistd.h>
 #endif
@@ -104,7 +102,7 @@ mode_t mask;
 string systemDir=ASYMPTOTE_SYSDIR;
 string defaultPSdriver="ps2write";
 string defaultEPSdriver="eps2write";
-string defaultPNGdriver="png16m"; // pngalpha has issues at high resolutions
+string defaultPNGdriver="png16malpha"; // pngalpha has issues at high resolutions
 string defaultAsyGL="https://vectorgraphics.github.io/asymptote/base/webgl/asygl-"+
   string(AsyGLVersion)+".js";
 
@@ -297,6 +295,7 @@ char *argv0;
 Int verbose;
 bool debug;
 bool xasy;
+bool keys;
 
 bool quiet=false;
 
@@ -1487,6 +1486,8 @@ void initSettings() {
                             "Input code over multiple lines at the prompt"));
   addOption(new boolrefSetting("xasy", 0,
                             "Interactive mode for xasy",&xasy));
+  addOption(new boolrefSetting("keys", 0,
+                            "Generate WebGL keys",&keys));
 
   addOption(new boolSetting("lsp", 0, "Interactive mode for the Language Server Protocol"));
   addOption(new envSetting("lspport", ""));

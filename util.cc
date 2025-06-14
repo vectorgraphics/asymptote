@@ -29,7 +29,6 @@
 #include <Shlwapi.h>
 #include <Shellapi.h>
 #include <direct.h>
-#include "win32helpers.h"
 
 #define getcwd _getcwd
 #define chdir _chdir
@@ -76,6 +75,17 @@ string demangle(const char* s)
 }
 #endif
 
+void showCommand(const mem::vector<string>& s)
+{
+  if(settings::verbose > 1) {
+    cerr << s[0];
+    size_t count=s.size();
+    for(size_t i=1; i < count; ++i)
+      cerr << " " << s[i];
+    cerr << endl;
+  }
+}
+
 // windows specific unnamed spaces
 #if defined(_WIN32)
 
@@ -109,6 +119,9 @@ int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
     camp::reportError("Command cannot be empty");
     return -1;
   }
+  if(!quiet)
+    showCommand(command);
+
   string cmdlineStr=camp::w32::buildWindowsCmd(command);
 
   STARTUPINFOA startInfo={};
@@ -398,16 +411,13 @@ char **args(const mem::vector<string>& s, bool quiet)
 {
   size_t count=s.size();
 
+  if(!quiet)
+    showCommand(s);
+
   char **argv=NULL;
   argv=new char*[count+1];
   for(size_t i=0; i < count; ++i)
     argv[i]=StrdupNoGC(s[i]);
-
-  if(!quiet && settings::verbose > 1) {
-    cerr << argv[0];
-    for(size_t i=1; i < count; ++i) cerr << " " << argv[i];
-    cerr << endl;
-  }
 
   argv[count]=NULL;
   return argv;

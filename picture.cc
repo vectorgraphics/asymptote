@@ -16,13 +16,12 @@
 #include "drawlayer.h"
 #include "drawsurface.h"
 #include "drawpath3.h"
-#include "win32helpers.h"
+#include "seconds.h"
 
 #if defined(_WIN32)
 #include <Windows.h>
 #include <shellapi.h>
 #include <cstdio>
-#define unlink _unlink
 #endif
 
 #include <thread>
@@ -845,26 +844,10 @@ bool picture::postprocess(const string& prename, const string& outname,
   mem::vector<string> cmd;
   if(pdftex || !epsformat) {
     if(pdfformat) {
-      string potentialErrMsg= "Cannot rename " + prename + " to " + outname;
       if(pdftex) {
-        // gcc handles renaming differently than MSVC
-        // In gcc, if outname already exists, rename overwrites the file,
-        // but in msvc, this throws an error.
-        // We use MoveFileExA which has an option to allow overwriting of files in windows.
-#ifdef _WIN32
-        w32::checkResult(
-                MoveFileExA(
-                        prename.c_str(), outname.c_str(),
-                        MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED
-                ),
-                potentialErrMsg.c_str()
-        );
-#else
-
-        status=rename(prename.c_str(),outname.c_str());
+        status=renameOverwrite(prename.c_str(),outname.c_str());
         if(status != 0)
-          reportError(potentialErrMsg);
-#endif
+          reportError("Cannot rename "+prename+" to "+outname);
       } else status=epstopdf(prename,outname);
     } else if(epsformat) {
       if(svg) {
@@ -893,6 +876,8 @@ bool picture::postprocess(const string& prename, const string& outname,
         cmd.push_back("-r"+String(res)+"x"+String(res));
         push_split(cmd,getSetting<string>("gsOptions"));
         cmd.push_back("-sOutputFile="+outname);
+        cmd.push_back("-dTextAlphaBits=4");
+        cmd.push_back("-dGraphicsAlphaBits=4");
         cmd.push_back(prename);
         status=System(cmd,0,true,"gs","Ghostscript");
       } else if(!svg && !xasy) {
@@ -1397,9 +1382,9 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       if(Labels) {
         tex->epilogue();
         if(context) prefix=stripDir(prefix);
+        delete tex;
         status=texprocess(texname,dvi ? outname : prename,prefix,
                           bboxshift,dvi);
-        delete tex;
         if(!keep) {
           for(mem::list<string>::iterator p=files.begin(); p != files.end();
               ++p)

@@ -35,9 +35,7 @@ IN vec4 emissive;
 
 #ifdef NORMAL
 
-#ifndef ORTHOGRAPHIC
 IN vec3 ViewPosition;
-#endif
 IN vec3 Normal;
 
 vec3 normal;
@@ -191,11 +189,7 @@ void main(void)
 #if defined(NORMAL) && nlights > 0
   normal=normalize(Normal);
   normal=gl_FrontFacing ? normal : -normal;
-#ifdef ORTHOGRAPHIC
-  vec3 viewDir=vec3(0.0,0.0,1.0);
-#else
   vec3 viewDir=-normalize(ViewPosition);
-#endif
 
 vec3 color;
 #ifdef USE_IBL
