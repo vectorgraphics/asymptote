@@ -59,7 +59,7 @@ texstream::~texstream() {
 
 namespace camp {
 
-AsyVkRender *vk=new AsyVkRender();
+AsyVkRender *vk = new AsyVkRender();
 
 extern void draw();
 
@@ -1462,9 +1462,6 @@ bool picture::shipout3(const string& prefix, const string& format,
 
   if(width <= 0 || height <= 0) return false;
 
-  if(!interact::interactive)
-    vk=new AsyVkRender();
-
   bool webgl=format == "html";
   bool v3d=format == "v3d";
 
@@ -1563,7 +1560,7 @@ bool picture::shipout3(const string& prefix, const string& format,
           pthread_cond_wait(&vk->readySignal,&vk->readyLock);
           pthread_mutex_unlock(&vk->readyLock);
         }
-        return true;
+         return true;
        }
        if(Wait)
          pthread_mutex_lock(&vk->readyLock);
