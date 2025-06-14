@@ -680,6 +680,11 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   if(vkthread && initializedView) {
     if(View) {
       // called from asymain thread, main thread handles vulkan rendering
+      if(!getSetting<bool>("fitscreen"))
+        Fitscreen=0;
+      firstFit=true;
+      fitscreen();
+      setosize();
       messageQueue.enqueue(updateRenderer);
     } else readyAfterExport=queueExport=true;
     return;
