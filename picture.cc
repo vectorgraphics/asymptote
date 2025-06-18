@@ -1656,6 +1656,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 bool picture::shipout3(const string& prefix, const string format)
 {
+  camp::vk->redraw=false;
   bounds3();
   bool status;
 

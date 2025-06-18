@@ -565,7 +565,6 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   this->pic = args.pic;
   this->Prefix=args.prefix;
   this->Format = args.format;
-  this->redraw = true;
   this->remesh = true;
   this->nlights = args.nlightsin;
   this->Lights = args.lights;
@@ -4847,10 +4846,7 @@ void AsyVkRender::Export(int imageIndex) {
   queueExport=false;
   remesh=true;
   setProjection();
-
-#ifdef HAVE_VULKAN
   redraw=true;
-#endif
 
 #ifdef HAVE_PTHREAD
   if(vkthread && readyAfterExport) {

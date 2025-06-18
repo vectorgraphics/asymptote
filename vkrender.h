@@ -500,6 +500,7 @@ public:
   void clearCenters();
   void clearMaterials();
 
+  bool redraw=true;
 private:
 #ifdef HAVE_VULKAN
   struct DeviceBuffer {
@@ -558,7 +559,6 @@ private:
   bool exporting=false;
 
   bool remesh=true;
-  bool redraw=true;
   bool interlock=false;
   bool GPUcompress=false;
   bool fxaa=false;
