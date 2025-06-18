@@ -4872,8 +4872,10 @@ void AsyVkRender::quit()
       pthread_mutex_unlock(&vk->readyLock);
       endwait(readySignal,readyLock);
     }
+
 #endif
-    glfwHideWindow(window);
+    if(interact::interactive)
+      glfwHideWindow(window);
   } else {
     glfwDestroyWindow(window);
     window = nullptr;

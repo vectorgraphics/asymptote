@@ -219,7 +219,7 @@ void *asymain(void *A)
 #ifdef HAVE_VULKAN
 #ifdef HAVE_PTHREAD
   if(camp::vk->vkthread) {
-#ifdef __MSDOS__ // Signals are unreliable in MSWindows
+#if 1 //def __MSDOS__ // Signals are unreliable in MSWindows
     camp::vk->vkexit=true;
 #else
     pthread_kill(camp::vk->mainthread,SIGURG);
@@ -289,11 +289,11 @@ int main(int argc, char *argv[])
         pthread_sigmask(SIG_BLOCK, &set, NULL);
 #endif // !defined(_WIN32)
         for (;;) {
-#if !defined(_WIN32)
+#if 0 //!defined(_WIN32)
           Signal(SIGURG,exitHandler);
 #endif // !defined(_WIN32)
           camp::glrenderWrapper();
-          camp::vk->initialize=true;
+//          camp::vk->initialize=true;
         }
       } else camp::vk->vkthread=false;
     } catch(std::bad_alloc&) {
