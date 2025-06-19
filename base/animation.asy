@@ -80,7 +80,7 @@ struct animation {
     args += " -alpha Off -dispose Background "+options;
     int rc=convert(args,prefix+"."+format,format=format);
     this.purge(keep);
-    if(rc == 0) animate(file=prefix+"."+format,format=format);
+    if(rc == 0) animate(file=prefix+"."+format);
     else abort("merge failed");
     return rc;
   }
