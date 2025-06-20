@@ -679,11 +679,6 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   if(vkthread && initializedView) {
     if(View) {
       // called from asymain thread, main thread handles vulkan rendering
-      if(!getSetting<bool>("fitscreen"))
-        Fitscreen=0;
-      firstFit=true;
-      fitscreen();
-      setosize();
       messageQueue.enqueue(updateRenderer);
     } else readyAfterExport=queueExport=true;
     return;
@@ -4545,6 +4540,13 @@ void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
     case updateRenderer: {
       if (readyForUpdate)
       {
+        if(!getSetting<bool>("fitscreen"))
+          Fitscreen=0;
+        firstFit=true;
+        fitscreen();
+        View=true;
+        setosize();
+
         updateHandler(0);
       }
     }
@@ -4864,12 +4866,13 @@ void AsyVkRender::quit()
     bool animating=settings::getSetting<bool>("animating");
     if(animating)
       settings::Setting("interrupt")=true;
-    home();
+    redraw=false;
+//    home();
     Animate=settings::getSetting<bool>("autoplay");
 #ifdef HAVE_PTHREAD
     if(!interact::interactive || animating) {
       idle();
-      pthread_mutex_unlock(&vk->readyLock);
+//      pthread_mutex_unlock(&vk->readyLock);
       endwait(readySignal,readyLock);
     }
 
