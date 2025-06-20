@@ -2,9 +2,12 @@ layout(local_size_x=LOCALSIZE) in;
 
 const uint groupSize=LOCALSIZE*BLOCKSIZE;
 
-uniform uint blockSize;
+layout(push_constant) uniform PushConstants
+{
+	uint blockSize;
+} push;
 
-layout(binding=3, std430) buffer globalSumBuffer
+layout(binding=1, std430) buffer globalSumBuffer
 {
   uint globalSum[];
 };
@@ -16,9 +19,9 @@ void main()
   uint localSum[groupSize];
   uint id=gl_LocalInvocationID.x;
 
-  uint dataOffset=blockSize*id;
+  uint dataOffset=push.blockSize*id;
   uint sum=0u;
-  for(uint i=0; i < blockSize; ++i) {
+  for(uint i=0; i < push.blockSize; ++i) {
     localSum[i]=sum;
     sum += globalSum[dataOffset+i];
   }
@@ -38,6 +41,6 @@ void main()
 
   // shift local sums and store
   uint shift=id > 0u ? groupSum[id-1u] : 0u;
-  for(uint i=0u; i < blockSize; ++i)
+  for(uint i=0u; i < push.blockSize; ++i)
     globalSum[dataOffset+i]=localSum[i]+shift;
 }
