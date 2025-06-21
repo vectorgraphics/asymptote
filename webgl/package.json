@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "description": "WebGL renderer for asymptote",
   "dependencies": {
-    "@types/webgl2": "^0.0.10"
+    "@types/webgl2": "^0.0.10",
+    "gl-matrix": "3.4.3"
   },
 
   "scripts": {
