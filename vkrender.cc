@@ -4513,11 +4513,6 @@ optional<VulkanRendererMessage> AsyVkRender::poll()
     }
   }
 
-  if (vkexit) {
-    exitHandler(0);
-    vkexit=false;
-  }
-
   if (View) {
     glfwPollEvents();
   }
