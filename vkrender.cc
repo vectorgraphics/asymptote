@@ -4535,13 +4535,14 @@ void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
     case updateRenderer: {
       if (readyForUpdate)
       {
-        if(!getSetting<bool>("fitscreen"))
-          Fitscreen=0;
-        firstFit=true;
-        fitscreen();
-        View=true;
-        setosize();
-
+        if(!interact::interactive) {
+          if(!getSetting<bool>("fitscreen"))
+            Fitscreen=0;
+          firstFit=true;
+          fitscreen();
+          View=true;
+          setosize();
+        }
         updateHandler(0);
       }
     }
@@ -4862,7 +4863,7 @@ void AsyVkRender::quit()
     if(animating)
       settings::Setting("interrupt")=true;
     redraw=false;
-//    home();
+    home();
     Animate=settings::getSetting<bool>("autoplay");
 #ifdef HAVE_PTHREAD
     if(!interact::interactive || animating) {
