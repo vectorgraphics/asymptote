@@ -841,6 +841,7 @@ private:
   void setDimensions(int Width, int Height, double X, double Y);
   void updateViewmodelData();
   void setProjection();
+  void preUpdate();
   void update();
 
   static void updateHandler(int);

@@ -211,7 +211,7 @@ void AsyVkRender::updateViewmodelData()
     BBT[i]=T[i];
 }
 
-void AsyVkRender::update()
+void AsyVkRender::preUpdate()
 {
   capzoom();
 
@@ -224,6 +224,11 @@ void AsyVkRender::update()
   static auto const verticalFlipMat = glm::scale(glm::dmat4(1.0f), glm::dvec3(1.0f, -1.0f, 1.0f));
 
   projViewMat = verticalFlipMat * projMat * viewMat;
+}
+
+void AsyVkRender::update()
+{
+  preUpdate();
   redraw=true;
 }
 
@@ -300,8 +305,9 @@ void AsyVkRender::initWindow()
 void AsyVkRender::updateHandler(int) {
   vk->remesh=true;
   vk->redraw=true;
+  vk->recreateSwapChain();
 
-  vk->update();
+//  vk->update();
   if(interact::interactive || !vk->Animate) {
     glfwShowWindow(vk->window);
   }
@@ -382,7 +388,7 @@ void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int h
   app->fullWidth = width;
   app->fullHeight = height;
   app->framebufferResized = true;
-  app->update();
+  app->preUpdate();
 
   if(app->vkthread) {
     static bool initialize=true;
@@ -735,7 +741,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
     initializedView=true;
   }
 
-  update();
+//  update();
   if(window)
     glfwShowWindow(window);
 
@@ -842,8 +848,6 @@ void AsyVkRender::recreateSwapChain()
   createAttachments();
   createFramebuffers();
   createExportResources();
-
-  redraw=true;
 }
 
 void AsyVkRender::zeroTransparencyBuffers()
@@ -4264,8 +4268,10 @@ void AsyVkRender::drawFrame()
                                                         *frameObject.imageAvailableSemaphore, nullptr,
                                                         &imageIndex);
     if (result == vk::Result::eErrorOutOfDateKHR
-        || result == vk::Result::eSuboptimalKHR)
-      return recreateSwapChain();
+        || result == vk::Result::eSuboptimalKHR) {
+      recreateSwapChain();
+      return;
+    }
     else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
       throw std::runtime_error("Failed to acquire next swapchain image.");
   }
@@ -4379,19 +4385,23 @@ void AsyVkRender::drawFrame()
     {
       auto presentInfo = vk::PresentInfoKHR(VEC_VIEW(signalSemaphores), 1, &*swapChain, &imageIndex);
       auto const result = presentQueue.presentKHR(presentInfo);
+
       if (result == vk::Result::eErrorOutOfDateKHR
           || result == vk::Result::eSuboptimalKHR
-          || framebufferResized)
-        framebufferResized = false, recreateSwapChain();
+          || framebufferResized) {
+        framebufferResized = false;
+        recreateSwapChain();
+       }
       else if (result != vk::Result::eSuccess)
         throw std::runtime_error( "Failed to present swapchain image." );
     }
     catch(std::exception const & e)
     {
-      if (std::string(e.what()).find("ErrorOutOfDateKHR") != std::string::npos)
-        framebufferResized = false, recreateSwapChain();
-      else
-      {
+      if (std::string(e.what()).find("ErrorOutOfDateKHR")
+          != std::string::npos) {
+        framebufferResized = false;
+        recreateSwapChain();
+      } else {
         std::cout << "Other error: " << e.what() << std::endl;
         throw;
       }
@@ -4540,7 +4550,6 @@ void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
             Fitscreen=0;
           firstFit=true;
           fitscreen();
-          View=true;
           setosize();
         }
         updateHandler(0);
@@ -4564,7 +4573,7 @@ void AsyVkRender::mainLoop()
     }
 
     if (redraw || queueExport) {
-      redraw = false;
+      redraw=false;
       display();
     }
 
@@ -4862,8 +4871,9 @@ void AsyVkRender::quit()
     bool animating=settings::getSetting<bool>("animating");
     if(animating)
       settings::Setting("interrupt")=true;
+    if(interact::interactive)
+      home();
     redraw=false;
-    home();
     Animate=settings::getSetting<bool>("autoplay");
 #ifdef HAVE_PTHREAD
     if(!interact::interactive || animating) {
@@ -5096,7 +5106,7 @@ void AsyVkRender::setsize(int w, int h, bool reposition) {
   }
 
   reshape0(w,h);
-  update();
+  preUpdate();
 }
 
 void AsyVkRender::fullscreen(bool reposition) {
@@ -5195,8 +5205,8 @@ void AsyVkRender::home(bool webgl) {
 void AsyVkRender::cycleMode() {
   mode = DrawMode((mode + 1) % DRAWMODE_MAX);
   recreatePipeline = true;
-  remesh = true;
-  redraw = true;
+  remesh=true;
+  redraw=true;
 
   if (mode == DRAWMODE_NORMAL) {
     ibl=settings::getSetting<bool>("ibl");
