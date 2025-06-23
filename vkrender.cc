@@ -303,14 +303,12 @@ void AsyVkRender::initWindow()
 }
 
 void AsyVkRender::updateHandler(int) {
+  glfwShowWindow(vk->window);
+  vk->hidden=false;
+
+  vk->recreateSwapChain();
   vk->remesh=true;
   vk->redraw=true;
-  vk->recreateSwapChain();
-
-//  vk->update();
-  if(interact::interactive || !vk->Animate) {
-    glfwShowWindow(vk->window);
-  }
 }
 
 std::string AsyVkRender::getAction(int button, int mods)
@@ -470,6 +468,7 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
   {
     case 'H':
       app->home();
+      app->redraw=true;
       break;
     case 'F':
       app->toggleFitScreen();
@@ -4479,8 +4478,7 @@ void AsyVkRender::display()
   if (mode != DRAWMODE_OUTLINE)
     remesh = false;
 
-  static auto const fps = settings::verbose > 2;
-  static auto framecount = 0;
+  bool fps=settings::verbose > 2;
   if(fps) {
     if(framecount < 20) // Measure steady-state framerate
       fpsTimer.reset();
@@ -4871,9 +4869,9 @@ void AsyVkRender::quit()
     bool animating=settings::getSetting<bool>("animating");
     if(animating)
       settings::Setting("interrupt")=true;
+    redraw=false;
     if(interact::interactive)
       home();
-    redraw=false;
     Animate=settings::getSetting<bool>("autoplay");
 #ifdef HAVE_PTHREAD
     if(!interact::interactive || animating) {
@@ -4883,8 +4881,8 @@ void AsyVkRender::quit()
     }
 
 #endif
-    if(interact::interactive)
-      glfwHideWindow(window);
+    glfwHideWindow(window);
+    hidden=true;
   } else {
     glfwDestroyWindow(window);
     window = nullptr;
@@ -5196,10 +5194,13 @@ void AsyVkRender::toggleFitScreen() {
 }
 
 void AsyVkRender::home(bool webgl) {
+  if(!webgl)
+    idle();
   X = Y = cx = cy = 0;
   rotateMat = viewMat = glm::mat4(1.0);
   Zoom0 = 1.0;
-  update();
+  framecount=0;
+  preUpdate();
 }
 
 void AsyVkRender::cycleMode() {

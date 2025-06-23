@@ -407,6 +407,8 @@ public:
   bool copied=false;
 
   int maxFramesInFlight;
+  size_t framecount;
+
   DrawMode mode = DRAWMODE_NORMAL;
   std::string title = "";
 
