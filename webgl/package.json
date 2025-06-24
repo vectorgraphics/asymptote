@@ -11,8 +11,10 @@
   "scripts": {
     "prettier": "npx prettier src --check",
     "eslint": "npx eslint \"src/**\"",
+    "dependencies": "node tools/download-libs.mjs",
     "build": "npx webpack --config webpack.prod.js",
-    "build-dev": "npx webpack --config webpack.dev.js"
+    "build-dev": "npx webpack --config webpack.dev.js",
+    "clean": "node tools/clean.mjs"
   },
 
   "devDependencies": {
