@@ -8,7 +8,10 @@
 #ifndef BEZIERPATCH_H
 #define BEZIERPATCH_H
 
-#include "drawelement.h"
+//#include "drawelement.h"
+
+#include "bbox2.h"
+#include "rgba.h"
 
 namespace camp {
 

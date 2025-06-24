@@ -35,6 +35,8 @@
 namespace camp
 {
 
+static const double pixelResolution=1.0; // Adaptive rendering constant.
+
 class picture;
 
 // Comment out when not debugging:
