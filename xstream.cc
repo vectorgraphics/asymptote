@@ -60,7 +60,7 @@ ixstream::ixstream(bool singleprecision)
 void ixstream::open(const char* filename, open_mode)
 {
   clear();
-  buf=fopen(filename,"r");
+  buf=fopen(filename,"rb");
   if(buf) xdrstdio_create(&xdri,buf,XDR_DECODE);
   else set(badbit);
 }
@@ -130,7 +130,7 @@ oxstream::oxstream(bool singleprecision): singleprecision(singleprecision)
 void oxstream::open(const char* filename, open_mode mode)
 {
   clear();
-  buf=fopen(filename,(mode & app) ? "a" : "w");
+  buf=fopen(filename,(mode & app) ? "ab" : "wb");
   if(buf) xdrstdio_create(&xdro,buf,XDR_ENCODE);
   else set(badbit);
 }
@@ -285,15 +285,15 @@ void ioxstream::open(const char* filename, open_mode mode)
 {
   clear();
   if(mode & app)
-    buf=fopen(filename,"a+");
+    buf=fopen(filename,"ab+");
   else if(mode & trunc)
-    buf=fopen(filename,"w+");
+    buf=fopen(filename,"wb+");
   else if(mode & out) {
-    buf=fopen(filename,"r+");
+    buf=fopen(filename,"rb+");
     if(!buf)
-      buf=fopen(filename,"w+");
+      buf=fopen(filename,"wb+");
   } else
-    buf=fopen(filename,"r");
+    buf=fopen(filename,"rb");
   if(buf) {
     xdrstdio_create(&xdri,buf,XDR_DECODE);
     xdrstdio_create(&xdro,buf,XDR_ENCODE);
