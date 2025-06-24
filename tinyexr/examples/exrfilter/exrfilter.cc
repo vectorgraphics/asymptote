@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
+#include <iostream>
 
 #include "tinyexr.h"
 
