@@ -25,5 +25,11 @@
     "webpack": "^5.99.9",
     "webpack-cli": "^6.0.1",
     "ts-loader": "^9.5.2"
+  },
+
+  "browser": {
+    "fs": false,
+    "os": false,
+    "path": false
   }
 }
