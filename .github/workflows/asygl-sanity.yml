@@ -1,0 +1,70 @@
+---
+name: asygl-sanity
+on:
+  workflow_call:
+    inputs:
+      target-branch:
+        type: string
+        required: True
+
+jobs:
+  determine-if-webgl-files-changed:
+    runs-on: "ubuntu-22.04"
+    outputs:
+      files-changed: ${{ steps.determine_webgl_files_changed.outputs.files_changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: check if webgl files changed
+        id: determine_webgl_files_changed
+        run: |
+          git diff origin/${{ inputs.target-branch }} --quiet --exit-code webgl \
+            || echo "files_changed=true" >> "$GITHUB_OUTPUT"
+  build-asygl:
+    runs-on: "ubuntu-22.04"
+    needs: determine-if-webgl-files-changed
+    if: ${{ needs.determine-if-webgl-files-changed.outputs.files-changed == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: webgl/package-lock.json
+      - name: initialize npm dependencies
+        run: npm ci --prefix webgl
+      - name: download asygl dependencies
+        run: npm run dependencies --prefix webgl
+      - name: build asygl
+        run: npm run build --prefix webgl
+      - name: Upload asygl dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: asygl-build
+          path: webgl/dist
+  lint-asygl:
+    runs-on: "ubuntu-22.04"
+    needs: determine-if-webgl-files-changed
+    if: ${{ needs.determine-if-webgl-files-changed.outputs.files-changed == 'true' }}
+    continue-on-error: true  # FIXME: Once eslint issues are fixed, this can be enforced
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: webgl/package-lock.json
+      - name: initialize npm dependencies
+        run: npm ci --prefix webgl
+      - name: download asygl dependencies
+        run: npm run eslint --prefix webgl
+      - name: print eslint warning
+        if: ${{ failure() }}
+        run: |
+          echo "ESlint has failed. While the CI can still pass"
+          echo "It is recommended to fix any ESLint problems as soon as possible."
