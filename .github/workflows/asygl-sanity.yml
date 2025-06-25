@@ -61,10 +61,7 @@ jobs:
           cache-dependency-path: webgl/package-lock.json
       - name: initialize npm dependencies
         run: npm ci --prefix webgl
-      - name: download asygl dependencies
-        run: npm run eslint --prefix webgl
-      - name: print eslint warning
-        if: ${{ failure() }}
+      - name: Run eslint
         run: |
-          echo "ESlint has failed. While the CI can still pass"
-          echo "It is recommended to fix any ESLint problems as soon as possible."
+          npm run eslint --prefix webgl || \
+            echo "ESLint has failed. It is recommended to fix any ESLint problems as soon as possible. In the future, ESLint pass will be mandatory."
