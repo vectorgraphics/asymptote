@@ -7,6 +7,7 @@ export default tseslint.config(
     tseslint.configs.recommended,
     globalIgnores([
         "node_modules/*",
-        "webpack.*.js"
+        "webpack.*.js",
+        "src/ext/*",
     ])
 );
