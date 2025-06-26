@@ -213,8 +213,6 @@ oxstream& flush(oxstream& s);
 
 }
 
-#undef quad_t
-
 #endif
 
 #endif
