@@ -84,8 +84,11 @@ public:
   OffsetType tell();
 };
 
-#define IXSTREAM_DECL(T) ixstream& operator >> (T& x)
-#define OXSTREAM_DECL(T) oxstream& operator << (T x)
+#define IXSTREAM(T,N) ixstream& operator >> (T& x)      \
+  {if(!xdr_##N(&xdri, &x)) set(eofbit); return *this;}
+
+#define OXSTREAM(T,N) oxstream& operator << (T x)       \
+  {if(!xdr_##N(&xdro, &x)) set(badbit); return *this;}
 
 class ixstream : virtual public xstream {
 private:
@@ -106,17 +109,17 @@ public:
   typedef ixstream& (*imanip)(ixstream&);
   ixstream& operator >> (imanip func);
 
-  IXSTREAM_DECL(int32_t);
-  IXSTREAM_DECL(uint32_t);
-  IXSTREAM_DECL(int64_t);
-  IXSTREAM_DECL(uint64_t);
-  IXSTREAM_DECL(short);
-  IXSTREAM_DECL(unsigned short);
-  IXSTREAM_DECL(char);
+  IXSTREAM(int32_t,int);
+  IXSTREAM(uint32_t,u_int);
+  IXSTREAM(int64_t,longlong_t);
+  IXSTREAM(uint64_t,u_longlong_t);
+  IXSTREAM(short,short);
+  IXSTREAM(unsigned short,u_short);
+  IXSTREAM(char,char);
 #ifndef _CRAY
-  IXSTREAM_DECL(unsigned char);
+  IXSTREAM(unsigned char,u_char);
 #endif
-  IXSTREAM_DECL(float);
+  IXSTREAM(float,float);
 
   ixstream& operator >> (double& x);
   ixstream& operator >> (xbyte& x);
@@ -146,20 +149,20 @@ public:
   typedef oxstream& (*omanip)(oxstream&);
   oxstream& operator << (omanip func);
 
-  OXSTREAM_DECL(int32_t);
-  OXSTREAM_DECL(uint32_t);
-  OXSTREAM_DECL(int64_t);
-  OXSTREAM_DECL(uint64_t);
-  OXSTREAM_DECL(short);
-  OXSTREAM_DECL(unsigned short);
-  OXSTREAM_DECL(char);
+  OXSTREAM(int32_t,int);
+  OXSTREAM(uint32_t,u_int);
+  OXSTREAM(int64_t,longlong_t);
+  OXSTREAM(uint64_t,u_longlong_t);
+  OXSTREAM(short,short);
+  OXSTREAM(unsigned short,u_short);
+  OXSTREAM(char,char);
+
 #ifndef _CRAY
-  OXSTREAM_DECL(unsigned char);
+  OXSTREAM(unsigned char,u_char);
 #endif
-  OXSTREAM_DECL(float);
+  OXSTREAM(float,float);
 
   oxstream& operator << (double x);
-
   oxstream& operator << (xbyte x);
 };
 
