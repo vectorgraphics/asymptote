@@ -1,6 +1,6 @@
 /* C++ interface to the XDR External Data Representation I/O routines
-   Version 1.46
-   Copyright (C) 1999-2007 John C. Bowman
+   Version 1.47
+   Copyright (C) 1999-2025 John C. Bowman and Supakorn "Jamie" Rassameemasmuang
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -16,27 +16,50 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
-#ifndef __xstream_h__
-#define __xstream_h__ 1
-
-#if defined(HAVE_LIBTIRPC)
+#pragma once
 
 #include <cstdio>
 #include <iostream>
 #include <vector>
 #include <cstdlib>
+
 #if defined(_WIN32)
 #include <fmem.h>
-#endif
-
-#include "xdrcommon.h"
-
-#if defined(_WIN32)
+#include "win32xdr.h"
 typedef __int64 OffsetType;
 #define fseeko _fseeki64
 #define ftello _ftelli64
+
 #else
-#define OffsetType off_t
+
+#ifndef _ALL_SOURCE
+#define _ALL_SOURCE 1
+#endif
+
+#include <cstdio>
+#include <vector>
+#include <algorithm>
+
+#include <sys/types.h>
+#include <rpc/types.h>
+
+typedef off_t OffsetType;
+
+#if defined(__FreeBSD__)
+#include <sys/select.h>
+extern "C" int fseeko(FILE*, OffsetType, int);
+extern "C" OffsetType ftello(FILE*);
+extern "C" FILE * open_memstream(char**, size_t*);
+#endif
+
+#ifdef _POSIX_SOURCE
+#undef _POSIX_SOURCE
+#include <rpc/rpc.h>
+#define _POSIX_SOURCE
+#else
+#include <rpc/rpc.h>
+#endif
+
 #endif
 
 namespace xdr {
@@ -109,12 +132,12 @@ public:
   typedef ixstream& (*imanip)(ixstream&);
   ixstream& operator >> (imanip func);
 
-  IXSTREAM(int32_t,int);
-  IXSTREAM(uint32_t,u_int);
-  IXSTREAM(int64_t,longlong_t);
-  IXSTREAM(uint64_t,u_longlong_t);
-  IXSTREAM(short,short);
-  IXSTREAM(unsigned short,u_short);
+  IXSTREAM(int16_t,int16_t);
+  IXSTREAM(uint16_t,u_int16_t);
+  IXSTREAM(int32_t,int32_t);
+  IXSTREAM(uint32_t,u_int32_t);
+  IXSTREAM(int64_t,int64_t);
+  IXSTREAM(uint64_t,u_int64_t);
   IXSTREAM(char,char);
 #ifndef _CRAY
   IXSTREAM(unsigned char,u_char);
@@ -149,12 +172,12 @@ public:
   typedef oxstream& (*omanip)(oxstream&);
   oxstream& operator << (omanip func);
 
-  OXSTREAM(int32_t,int);
-  OXSTREAM(uint32_t,u_int);
-  OXSTREAM(int64_t,longlong_t);
-  OXSTREAM(uint64_t,u_longlong_t);
-  OXSTREAM(short,short);
-  OXSTREAM(unsigned short,u_short);
+  OXSTREAM(int16_t,int16_t);
+  OXSTREAM(uint16_t,u_int16_t);
+  OXSTREAM(int32_t,int32_t);
+  OXSTREAM(uint32_t,u_int32_t);
+  OXSTREAM(int64_t,int64_t);
+  OXSTREAM(uint64_t,u_int64_t);
   OXSTREAM(char,char);
 
 #ifndef _CRAY
@@ -211,11 +234,4 @@ public:
 oxstream& endl(oxstream& s);
 oxstream& flush(oxstream& s);
 
-#undef IXSTREAM_DECL
-#undef OXSTREAM_DECL
-
 }
-
-#endif
-
-#endif

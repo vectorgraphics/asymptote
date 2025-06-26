@@ -1,9 +1,12 @@
+#include "xstream.h"
+
 #if defined(HAVE_CONFIG_H)
 #include "config.h"
+#else
+#define HAVE_LIBTIRPC 1
 #endif
 
 #if defined(HAVE_LIBTIRPC)
-#include "xstream.h"
 
 namespace xdr
 {
@@ -219,17 +222,19 @@ std::vector<uint8_t> memoxstream::createCopyOfCurrentData() {
   size_t retSize=0;
   void* streamPtr=nullptr;
 
-  // DANGER: There's a /severe/ issue with certain systems (though such cases should be rare)
-  // about a potential memory leak.
+  // DANGER: There's a severe but rare issue with certain systems
+  // involving a potential memory leak.
 
   // See https://github.com/Kreijstal/fmem/issues/6
 
-  // Right now, we have no reasonable way to determine if tmpfile implementation is being used
-  // or not, so we cannot have a way to conditionally free the memory.
+  // Right now, we have no reasonable way to determine if a tmpfile
+  // implementation is being used, so we cannot have a way to
+  // conditionally free the memory.
 
-  // In most systems, we have open_memstream and Windows tmpfile API
-  // which the allocation/mapping is handled by the system and hence
-  // no need to free the pointer ourselves, but tmpfile implementation uses malloc that doesn't
+  // On most systems, we have the open_memstream and Windows tmpfile API,
+  // where the allocation/mapping is handled by the system; hence
+  // there is no need to free the pointer ourselves.
+  // But the tmpfile implementation uses malloc that doesn't
   // get freed, so it is our job to manually free it.
   fmem_mem(&fmInstance, &streamPtr, &retSize);
 
@@ -242,7 +247,7 @@ std::vector<uint8_t> memoxstream::createCopyOfCurrentData() {
   std::vector ret(bytePtr, bytePtr + retSize);
   return ret;
 #else
-    // for sanity check, always want to make sure we have a vector of bytes
+    // for sanity check, always ensure that we have a vector of bytes
     static_assert(sizeof(char) == sizeof(uint8_t));
 
     if (buffer == nullptr)
