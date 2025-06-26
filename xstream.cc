@@ -60,7 +60,7 @@ ixstream::ixstream(bool singleprecision)
 void ixstream::open(const char* filename, open_mode)
 {
   clear();
-  buf=fopen(filename,"r");
+  buf=fopen(filename,"rb");
   if(buf) xdrstdio_create(&xdri,buf,XDR_DECODE);
   else set(badbit);
 }
@@ -130,7 +130,7 @@ oxstream::oxstream(bool singleprecision): singleprecision(singleprecision)
 void oxstream::open(const char* filename, open_mode mode)
 {
   clear();
-  buf=fopen(filename,(mode & app) ? "a" : "w");
+  buf=fopen(filename,(mode & app) ? "ab" : "wb");
   if(buf) xdrstdio_create(&xdro,buf,XDR_ENCODE);
   else set(badbit);
 }
@@ -285,15 +285,15 @@ void ioxstream::open(const char* filename, open_mode mode)
 {
   clear();
   if(mode & app)
-    buf=fopen(filename,"a+");
+    buf=fopen(filename,"ab+");
   else if(mode & trunc)
-    buf=fopen(filename,"w+");
+    buf=fopen(filename,"wb+");
   else if(mode & out) {
-    buf=fopen(filename,"r+");
+    buf=fopen(filename,"rb+");
     if(!buf)
-      buf=fopen(filename,"w+");
+      buf=fopen(filename,"wb+");
   } else
-    buf=fopen(filename,"r");
+    buf=fopen(filename,"rb");
   if(buf) {
     xdrstdio_create(&xdri,buf,XDR_DECODE);
     xdrstdio_create(&xdro,buf,XDR_ENCODE);
@@ -325,44 +325,6 @@ ioxstream::~ioxstream()
 {
   ioxstream::close();
 }
-
-
-// ixstream + oxstream operator implementation
-
-#define IXSTREAM_CC_DECL(T) ixstream& ixstream::operator >> (T& x)
-#define IXSTREAM_IMPL(T,N) IXSTREAM_CC_DECL(T) {if(!xdr_##N(&xdri, &x)) set(eofbit); return *this;}
-
-IXSTREAM_IMPL(int, int);
-IXSTREAM_IMPL(unsigned int, u_int);
-IXSTREAM_IMPL(long, long);
-IXSTREAM_IMPL(unsigned long, u_long);
-IXSTREAM_IMPL(long long, longlong_t);
-IXSTREAM_IMPL(unsigned long long, u_longlong_t);
-IXSTREAM_IMPL(short, short);
-IXSTREAM_IMPL(unsigned short, u_short);
-IXSTREAM_IMPL(char, char);
-#ifndef _CRAY
-IXSTREAM_IMPL(unsigned char, u_char);
-#endif
-IXSTREAM_IMPL(float, float);
-
-#define OXSTREAM_CC_DECL(T) oxstream& oxstream::operator << (T x)
-#define OXSTREAM_IMPL(T,N) OXSTREAM_CC_DECL(T) {if(!xdr_##N(&xdro, &x)) set(badbit); return *this;}
-
-OXSTREAM_IMPL(int, int);
-OXSTREAM_IMPL(unsigned int, u_int);
-OXSTREAM_IMPL(long, long);
-OXSTREAM_IMPL(unsigned long, u_long);
-OXSTREAM_IMPL(long long, longlong_t);
-OXSTREAM_IMPL(unsigned long long, u_longlong_t);
-OXSTREAM_IMPL(short, short);
-OXSTREAM_IMPL(unsigned short, u_short);
-OXSTREAM_IMPL(char, char);
-
-#ifndef _CRAY
-OXSTREAM_IMPL(unsigned char, u_char);
-#endif
-OXSTREAM_IMPL(float, float);
 
 oxstream& endl(oxstream& s) { s.flush(); return s; }
 oxstream& flush(oxstream& s) {s.flush(); return s;}
