@@ -106,12 +106,10 @@ public:
   typedef ixstream& (*imanip)(ixstream&);
   ixstream& operator >> (imanip func);
 
-  IXSTREAM_DECL(int);
-  IXSTREAM_DECL(unsigned int);
-  IXSTREAM_DECL(long);
-  IXSTREAM_DECL(unsigned long);
-  IXSTREAM_DECL(long long);
-  IXSTREAM_DECL(unsigned long long);
+  IXSTREAM_DECL(int32_t);
+  IXSTREAM_DECL(uint32_t);
+  IXSTREAM_DECL(int64_t);
+  IXSTREAM_DECL(uint64_t);
   IXSTREAM_DECL(short);
   IXSTREAM_DECL(unsigned short);
   IXSTREAM_DECL(char);
@@ -148,12 +146,10 @@ public:
   typedef oxstream& (*omanip)(oxstream&);
   oxstream& operator << (omanip func);
 
-  OXSTREAM_DECL(int);
-  OXSTREAM_DECL(unsigned int);
-  OXSTREAM_DECL(long);
-  OXSTREAM_DECL(unsigned long);
-  OXSTREAM_DECL(long long);
-  OXSTREAM_DECL(unsigned long long);
+  OXSTREAM_DECL(int32_t);
+  OXSTREAM_DECL(uint32_t);
+  OXSTREAM_DECL(int64_t);
+  OXSTREAM_DECL(uint64_t);
   OXSTREAM_DECL(short);
   OXSTREAM_DECL(unsigned short);
   OXSTREAM_DECL(char);

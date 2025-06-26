@@ -332,12 +332,10 @@ ioxstream::~ioxstream()
 #define IXSTREAM_CC_DECL(T) ixstream& ixstream::operator >> (T& x)
 #define IXSTREAM_IMPL(T,N) IXSTREAM_CC_DECL(T) {if(!xdr_##N(&xdri, &x)) set(eofbit); return *this;}
 
-IXSTREAM_IMPL(int, int);
-IXSTREAM_IMPL(unsigned int, u_int);
-IXSTREAM_IMPL(long, long);
-IXSTREAM_IMPL(unsigned long, u_long);
-IXSTREAM_IMPL(long long, longlong_t);
-IXSTREAM_IMPL(unsigned long long, u_longlong_t);
+IXSTREAM_IMPL(int32_t, int);
+IXSTREAM_IMPL(uint32_t, u_int);
+IXSTREAM_IMPL(int64_t, longlong_t);
+IXSTREAM_IMPL(uint64_t, u_longlong_t);
 IXSTREAM_IMPL(short, short);
 IXSTREAM_IMPL(unsigned short, u_short);
 IXSTREAM_IMPL(char, char);
@@ -349,12 +347,10 @@ IXSTREAM_IMPL(float, float);
 #define OXSTREAM_CC_DECL(T) oxstream& oxstream::operator << (T x)
 #define OXSTREAM_IMPL(T,N) OXSTREAM_CC_DECL(T) {if(!xdr_##N(&xdro, &x)) set(badbit); return *this;}
 
-OXSTREAM_IMPL(int, int);
-OXSTREAM_IMPL(unsigned int, u_int);
-OXSTREAM_IMPL(long, long);
-OXSTREAM_IMPL(unsigned long, u_long);
-OXSTREAM_IMPL(long long, longlong_t);
-OXSTREAM_IMPL(unsigned long long, u_longlong_t);
+OXSTREAM_IMPL(int32_t, int);
+OXSTREAM_IMPL(uint32_t, u_int);
+OXSTREAM_IMPL(int64_t, longlong_t);
+OXSTREAM_IMPL(uint64_t, u_longlong_t);
 OXSTREAM_IMPL(short, short);
 OXSTREAM_IMPL(unsigned short, u_short);
 OXSTREAM_IMPL(char, char);
