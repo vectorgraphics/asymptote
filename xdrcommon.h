@@ -39,9 +39,6 @@ typedef Win32XDR XDR;
 #include <sys/types.h>
 #include <rpc/types.h>
 
-#define quad_t long long
-#define u_quad_t unsigned long long
-
 #if defined(__FreeBSD__)
 #include <sys/select.h>
 #define u_char unsigned char
