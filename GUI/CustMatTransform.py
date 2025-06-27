@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-import PyQt5.QtWidgets as QtWidgets
-import PyQt5.QtGui as QtGui
-import PyQt5.QtCore as QtCore
+import PySide6.QtWidgets as QtWidgets
+import PySide6.QtGui as QtGui
+import PySide6.QtCore as QtCore
 import numpy as numpy
 import xasy2asy as xasy2asy
 from xasyqtui.custMatTransform import Ui_Dialog
@@ -58,19 +58,19 @@ class CustMatTransform(QtWidgets.QDialog):
         canvas.setTransform(self.mainTransformation)
 
         canvas.save()
-        canvas.setPen(QtCore.Qt.lightGray)
+        canvas.setPen(QtCore.Qt.GlobalColor.lightGray)
         self.drawBasicGrid(canvas)
         transform = xasy2asy.asyTransform.fromNumpyMatrix(self.getTransformationMatrix())
         canvTransform = transform.toQTransform()
         canvas.setTransform(canvTransform, True)
 
-        canvas.setPen(QtCore.Qt.black)
+        canvas.setPen(QtCore.Qt.GlobalColor.black)
 
         if canvTransform.isInvertible():
             self.drawBasicGrid(canvas, False)
 
             if canvTransform.determinant() <= 0:
-                canvas.setPen(QtCore.Qt.red)
+                canvas.setPen(QtCore.Qt.GlobalColor.red)
 
             canvas.drawRect(QtCore.QRect(QtCore.QPoint(0, 0), QtCore.QSize(20, 20)))
 

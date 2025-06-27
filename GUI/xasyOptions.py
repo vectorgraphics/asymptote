@@ -187,7 +187,7 @@ class xasyOpenRecent:
         if all(trueFiles):
             return paths
         else:
-            if self.findingPaths == False:
+            if not self.findingPaths:
                 raise RecursionError
             self.findingPaths = False
             self.removeNotFound(list(trueFiles), paths)
@@ -196,7 +196,7 @@ class xasyOpenRecent:
     def removeNotFound(self, trueFiles, paths):
         f = io.open(self.fileName, 'w')
         for index, path in enumerate(paths):
-            if trueFiles[index] == True:
+            if trueFiles[index]:
                 f.write(path + '\n')
         f.close()
 
