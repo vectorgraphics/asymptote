@@ -21,15 +21,5 @@ module.exports = {
     output: {
         filename: 'gl.js',
         path: path.resolve(__dirname, 'dist'),
-    },
-    plugins: [
-        new CopyPlugin({
-            patterns: [
-                {
-                    from: "tinyexr.wasm",
-                    context: "src/ext/tinyexr"
-                }
-            ]
-        })
-    ],
+    }
 };
