@@ -51,9 +51,7 @@ const asyRenderingCanvas = {
   embedded: false, // Is image embedded within another window?
   canvas: null // Rendering canvas
 };
-
-Object.assign(document, {asy: asyRenderingCanvas});
-
+globalThis.document.asy = asyRenderingCanvas;
 const W = asyRenderingCanvas;
 
 let gl; // WebGL rendering context
@@ -3905,23 +3903,20 @@ function webGLStart()
 
   home();
 }
-  const renderingFunctions = {
-    webGLStart: webGLStart,
-    light: light,
-    material: material,
-    patch: patch,
-    curve: curve,
-    pixel: pixel,
-    triangles: triangles,
-    sphere: sphere,
-    disk: disk,
-    cylinder: cylinder,
-    tube: tube,
-    Positions: Positions,
-    Normals: Normals,
-    Colors: Colors,
-    Indices: Indices
-  }
-  Object.assign(window, renderingFunctions);
+  globalThis.window.webGLStart=webGLStart;
+  globalThis.window.light=light
+  globalThis.window.material= material
+  globalThis.window.patch=patch
+  globalThis.window.curve=curve
+  globalThis.window.pixel=pixel
+  globalThis.window.triangles=triangles
+  globalThis.window.sphere=sphere
+  globalThis.window.disk=disk
+  globalThis.window.cylinder=cylinder
+  globalThis.window.tube=tube
+  globalThis.window.Positions=Positions
+  globalThis.window.Normals=Normals
+  globalThis.window.Colors=Colors
+  globalThis.window.Indices=Indices
 
 })();
