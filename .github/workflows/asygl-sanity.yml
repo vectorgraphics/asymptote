@@ -36,8 +36,6 @@ jobs:
           cache-dependency-path: webgl/package-lock.json
       - name: initialize npm dependencies
         run: npm ci --prefix webgl
-      - name: download asygl dependencies
-        run: npm run dependencies --prefix webgl
       - name: build asygl
         run: npm run build --prefix webgl
       - name: Upload asygl dist
