@@ -128,9 +128,9 @@ void jsfile::open(string name)
 
   bool ibl=getSetting<bool>("ibl");
   bool webgl2=ibl || getSetting<bool>("webgl2");
-  if(ibl)
-    out << "<script src=\"https://vectorgraphics.gitlab.io/asymptote/ibl/tinyexr.js\">"
-        << newl << "</script>" << newl;
+
+  if (ibl)
+    out << "<script type=\"text/javascript\"> var Module={}; </script>" << newl;
 
   if(getSetting<bool>("offline")) {
     out << "<script>" << newl;
@@ -139,6 +139,10 @@ void jsfile::open(string name)
   } else
     out << "<script" << newl << "src=\""
         << getSetting<string>("asygl") << "\">" << newl << "</script>" << newl;
+
+  if(ibl)
+    out << "<script src=\"https://vectorgraphics.gitlab.io/asymptote/ibl/tinyexr.js\">"
+        << newl << "</script>" << newl;
 
   out << newl << "<script>" << newl;
   out << newl
