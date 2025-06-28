@@ -4,6 +4,8 @@ import { mat3, mat4, ReadonlyVec3 } from "gl-matrix";
 import fragment from './shaders/fragment.glsl';
 import vertex from './shaders/vertex.glsl';
 
+declare var Module: any;
+
 (function() {
 const asyRenderingCanvas = {
   canvasWidth:0,
@@ -3814,22 +3816,16 @@ function createTexture(image, textureNumber, fmt=gl.RGB16F)
   return tex;
 }
 
-let exrLoader = null;
-
-async function initIBL()
+async function initIBLOnceEXRLoaderReady()
 {
   const imagePath=W.imageURL+W.image+'/';
-
-  const { Module } = await import('./ext/tinyexr/tinyexr.js');
-  exrLoader = Module;
-
   const promises=[
     getReq(W.imageURL+'refl.exr').then(obj => {
-      let img=new exrLoader.EXRLoader(obj);
+      let img=new Module.EXRLoader(obj);
       IBLbdrfMap=createTexture(img,0);
     }),
     getReq(imagePath+'diffuse.exr').then(obj => {
-      let img=new exrLoader.EXRLoader(obj);
+      let img=new Module.EXRLoader(obj);
       IBLDiffuseMap=createTexture(img,1);
     })
   ]
@@ -3851,7 +3847,7 @@ async function initIBL()
     gl.texParameterf(gl.TEXTURE_2D,gl.TEXTURE_MIN_LOD,0.0);
     gl.texParameterf(gl.TEXTURE_2D,gl.TEXTURE_MAX_LOD,roughnessStepCount);
     for(let j=0; j < reflMaps.length; ++j) {
-      let img=new exrLoader.EXRLoader(reflMaps[j]);
+      let img=new Module.EXRLoader(reflMaps[j]);
       gl.texImage2D(gl.TEXTURE_2D,j,gl.RGB16F,img.width(),img.height(),
                     0,gl.RGB,gl.FLOAT,rgb(img));
     }
@@ -3899,7 +3895,11 @@ function webGLStart()
   window.addEventListener("resize",resize,false);
 
   if(W.ibl)
-    initIBL().then(SetIBL).then(redrawScene);
+    Module.onRuntimeInitialized = async () => {
+      await initIBLOnceEXRLoaderReady();
+      SetIBL();
+      redrawScene();
+    }
 
   home();
 }
