@@ -6,7 +6,6 @@ import vertex from './shaders/vertex.glsl';
 
 declare var Module: any;
 
-(function() {
 const asyRenderingCanvas = {
   canvasWidth:0,
   canvasHeight:0,
@@ -3903,20 +3902,18 @@ function webGLStart()
 
   home();
 }
-  globalThis.window.webGLStart=webGLStart;
-  globalThis.window.light=light
-  globalThis.window.material= material
-  globalThis.window.patch=patch
-  globalThis.window.curve=curve
-  globalThis.window.pixel=pixel
-  globalThis.window.triangles=triangles
-  globalThis.window.sphere=sphere
-  globalThis.window.disk=disk
-  globalThis.window.cylinder=cylinder
-  globalThis.window.tube=tube
-  globalThis.window.Positions=Positions
-  globalThis.window.Normals=Normals
-  globalThis.window.Colors=Colors
-  globalThis.window.Indices=Indices
-
-})();
+globalThis.window.webGLStart=webGLStart;
+globalThis.window.light=light
+globalThis.window.material= material
+globalThis.window.patch=patch
+globalThis.window.curve=curve
+globalThis.window.pixel=pixel
+globalThis.window.triangles=triangles
+globalThis.window.sphere=sphere
+globalThis.window.disk=disk
+globalThis.window.cylinder=cylinder
+globalThis.window.tube=tube
+globalThis.window.Positions=Positions
+globalThis.window.Normals=Normals
+globalThis.window.Colors=Colors
+globalThis.window.Indices=Indices
