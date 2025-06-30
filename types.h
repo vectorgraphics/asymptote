@@ -536,15 +536,19 @@ public:
     return 0;
   }
 
+
+#pragma GCC push_options
+#pragma GCC optimize("O2")
   void add(ty *t) {
     if (t->kind == ty_overloaded) {
       overloaded *ot = (overloaded *)t;
       copy(ot->sub.begin(), ot->sub.end(),
            inserter(this->sub, this->sub.end()));
-    }
+  }
     else
       sub.push_back(t);
   }
+#pragma GCC pop_options
 
   // Only add a type distinct from the ones currently in the overloaded type.
   // If special is false, just the distinct signatures are added.
