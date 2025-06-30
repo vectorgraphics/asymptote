@@ -4165,23 +4165,22 @@ write(fout,"List: ",1,2,3);     // Writes "List: 1     2     3"
 @cindex @code{mode}
 @cindex @code{binary}
 @cindex @code{xdr}
-A file may be opened with @code{mode="xdr"}, to read or write
+A file may be opened with @code{mode="xdr"} to read or write
 double precision (64-bit) reals and single precision (32-bit)
 integers in Sun Microsystem's @acronym{XDR} (External
-Data Representation) portable binary format (available on all
-@code{UNIX} platforms).
+Data Representation) portable binary format.
 A file may instead be opened with @code{mode="binary"}
 to read or write double precision reals and single
 precision integers in the native (nonportable) machine binary format.
 The virtual member functions
 @code{file singlereal(bool b=true)} and @code{file singleint(bool b=true)}
-be used to change the precision of real and integer I/O
+may be used to change the precision of real and integer I/O
 operations, respectively, for an @acronym{XDR} or binary file.
 Similarly, the function @code{file signedint(bool b=true)}
 can be used to modify the signedness of integer reads and writes for
 an @acronym{XDR} or binary file.
 Since there are no end-of-line terminators in these formats,
-reading a string from an @acronym{XDR} or binary file by default will
+reading a string from an @acronym{XDR} or binary file will by default
 read in the remainder of the file as a string.
 The virtual member function @code{file word(bool b=true)}
 may be used to change this behaviour: a double precision integer
@@ -4193,9 +4192,9 @@ by that many characters.
 @cindex @code{singlereal}
 @cindex @code{singleint}
 @cindex @code{signedint}
-The virtual members @code{name}, @code{mode}, @code{singlereal},
-@code{singleint}, and @code{signedint} may be used to query the
-respective parameters for a given file.
+The virtual fields @code{name}, @code{mode}, @code{singlereal},
+@code{singleint}, and @code{signedint} may be used
+to query these respective states of a file.
 
 @cindex @code{eof}
 @cindex @code{eol}
@@ -5888,11 +5887,19 @@ real[] A=fin;
 reads real values into @code{A} until the end-of-file is reached (or an
 I/O error occurs).
 
-The virtual members @code{dimension}, @code{line}, @code{csv},
-@code{word}, and @code{read} of a file are useful for reading arrays.
 @cindex @code{line}
-For example, if line mode is set with @code{file line(bool b=true)}, then
-reading will stop once the end of the line is reached instead:
+@cindex @code{word}
+@cindex @code{csv}
+@cindex @code{dimension}
+@cindex @code{read}
+The virtual member functions @code{line()}, @code{word()}, @code{csv()},
+@code{dimension()}, and @code{read()} of a file are useful for qualifying
+array reads, while the virtual fields @code{line}, @code{word}, @code{csv},
+and @code{dimension} may be used to query these respective states.
+
+@cindex @code{line}
+If line mode is set with @code{file line(bool b=true)}, then
+reading will stop once the end of the line is reached:
 @verbatim
 file fin=input("test.txt");
 real[] A=fin.line();
@@ -5922,7 +5929,7 @@ real[] A=fin;
 
 @cindex @code{dimension}
 To restrict the number of values read, use the @code{file dimension(int)}
-function:
+virtual member function:
 @verbatim
 file fin=input("test.txt");
 real[] A=fin.dimension(10);
