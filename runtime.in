@@ -199,7 +199,7 @@ void writestring(stack *s)
   bool defaultfile=isdefault(it);
   camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
   if(!f->isOpen() || !f->enabled()) return;
-  if(S != "") f->write(S);
+  if(S != "" || f->isBinary() || f->isXDR()) f->write(S);
   if(f->text()) {
     if(suffix) {
       s->push(f);
