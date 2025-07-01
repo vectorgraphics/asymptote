@@ -17,6 +17,7 @@ env:
       & "$($VsInfo.InstallLocation)\\Common7\\Tools\\Launch-VsDevShell.ps1" `
         -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
       $env:VCPKG_ROOT = "$env:VCPKG_INSTALLATION_ROOT"
+      $env:PATH="C:/texlive/bin/windows/;$env:PATH"
       $env:ASY_VERSION_OVERRIDE = "${{ inputs.version_override }}"
   cmake_msvc_profile: msvc/release/ci/with-external-asymptote-pdf
 jobs:
