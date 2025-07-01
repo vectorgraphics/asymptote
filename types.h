@@ -537,6 +537,7 @@ public:
   }
 
 
+#ifdef __GNUC__
 #pragma GCC push_options
 #pragma GCC optimize("O2")
   void add(ty *t) {
@@ -549,6 +550,7 @@ public:
       sub.push_back(t);
   }
 #pragma GCC pop_options
+#endif
 
   // Only add a type distinct from the ones currently in the overloaded type.
   // If special is false, just the distinct signatures are added.
