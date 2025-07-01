@@ -103,6 +103,7 @@ SwapChainDetails::choosePresentMode() const
 {
   for (const auto& mode : presentModes) {
     if (mode == vk::PresentModeKHR::eImmediate) {
+//    if (mode == vk::PresentModeKHR::eFifo) {
       return mode;
     }
   }
@@ -4400,6 +4401,7 @@ void AsyVkRender::drawFrame()
           != std::string::npos) {
         framebufferResized = false;
         recreateSwapChain();
+        redraw=true;
       } else {
         std::cout << "Other error: " << e.what() << std::endl;
         throw;
@@ -4563,25 +4565,28 @@ void AsyVkRender::mainLoop()
 {
   int nFrames = 0;
 
-  while (true) {
-    auto const message = poll();
+  while(!View || !glfwWindowShouldClose(window)) {
+    auto const message=messageQueue.dequeue();
     if (message.has_value())
-    {
       processMessages(*message);
-    }
 
     if (redraw || queueExport) {
       redraw=false;
       display();
     }
 
-    if (currentIdleFunc != nullptr)
-      currentIdleFunc();
-
     if (!View && nFrames > maxFramesInFlight)
       break;
 
     nFrames++;
+
+    if (View) {
+      if(currentIdleFunc != nullptr) {
+        currentIdleFunc();
+        glfwPollEvents();
+      } else
+        glfwPollEvents();
+    }
   }
 
   if(!View) {
