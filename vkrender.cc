@@ -22,20 +22,14 @@
 #include <GLFW/glfw3native.h>
 #endif
 
-uint32_t apiVersion=VK_API_VERSION_1_4;
-
 using settings::getSetting;
 using settings::Setting;
-
-bool havewindow;
-
-static bool initialized=false;
-
-static bool waitEvent=true;
 
 void exitHandler(int);
 
 #ifdef HAVE_VULKAN
+uint32_t apiVersion=VK_API_VERSION_1_4;
+
 std::vector<const char*> instanceExtensions
 {
   VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
@@ -74,6 +68,8 @@ std::vector<char> readFile(const std::string& filename)
 }
 
 #ifdef HAVE_VULKAN
+void closeWindowHandler(GLFWwindow *);
+
 SwapChainDetails::SwapChainDetails(
   vk::PhysicalDevice gpu,
   vk::SurfaceKHR surface) :
@@ -553,8 +549,6 @@ void checkpow2(unsigned int n, string s) {
   }
 }
 
-void closeWindowHandler(GLFWwindow *);
-
 void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 {
   bool v3d=args.format == "v3d";
@@ -563,12 +557,14 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 
   offscreen=settings::getSetting<bool>("offscreen");
 
+#ifdef HAVE_VULKAN
   GLFWmonitor* monitor=NULL;
   if(!(offscreen || format3d)) {
     glfwInit();
     monitor=glfwGetPrimaryMonitor();
     if(!monitor) offscreen=true;
   }
+#endif
 
   this->pic = args.pic;
   this->Prefix=args.prefix;
@@ -644,8 +640,10 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
         screenWidth=fullWidth;
         screenHeight=fullHeight;
       } else {
+#ifdef HAVE_VULKAN
         int mx, my;
         glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
+#endif
       }
 
       width=min(fullWidth,screenWidth);
@@ -657,8 +655,10 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
         height=min((int) (ceil(width/Aspect)),screenHeight);
     }
 
+#ifdef HAVE_VULKAN
     home(format3d);
     setProjection();
+#endif
     if(format3d) {
       remesh=true;
       return;

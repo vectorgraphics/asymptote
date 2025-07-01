@@ -1068,6 +1068,9 @@ private:
   void Export(int imageIndex);
   bool readyForExport=false;
   bool readyForUpdate=false;
+  bool waitEvent=true;
+  bool initialized=false;
+  bool havewindow=false;
   void quit();
 
   double spinStep();

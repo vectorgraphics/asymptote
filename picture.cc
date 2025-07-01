@@ -1475,7 +1475,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifndef HAVE_VULKAN
   if(!webgl)
-    camp::reportError("to support onscreen Vulkan rendering; please install the glfw, vulkan, and glslang libraries, then ./configure; make");
+    camp::reportError("to support onscreen Vulkan rendering; please install the glfw, vulkan, and glslang development libraries, then ./configure; make");
 #endif
 
   picture *pic = new picture;
