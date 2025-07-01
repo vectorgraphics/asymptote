@@ -206,7 +206,7 @@ along with any format that the @code{ImageMagick} package can
 produce. You can even try it out in your Web browser without
 installing it, using the @code{Asymptote Web Application}
 
-@url{http://asymptote.ualberta.ca}
+@url{https://asymptote.ualberta.ca}
 
 It is also possible to send remote commands to this server via the
 curl utility (@pxref{Command-Line Interface}).
@@ -364,7 +364,7 @@ from @code{UNIX} source (@pxref{Compiling from UNIX source}).
 Alternatively, Debian users can install one of Hubert Chan's
 prebuilt @code{Asymptote} binaries from
 @quotation
-@url{http://ftp.debian.org/debian/pool/main/a/asymptote}
+@url{https://ftp.debian.org/debian/pool/main/a/asymptote}
 @end quotation
 
 @node MacOS X binary distributions
@@ -395,7 +395,7 @@ where @code{x.xx} denotes the latest version.
 
 A working @TeX{} implementation (we recommend
 @url{https://www.tug.org/texlive} or
-@url{http://www.miktex.org}) will be required to typeset labels.
+@url{https://miktex.org}) will be required to typeset labels.
 You will also need to install @code{GPL Ghostscript} version 9.56 or
 later from @url{https://www.ghostscript.com/}.
 
@@ -1065,7 +1065,7 @@ See section @ref{graph} (or the online
 external links posted at @url{https://asymptote.sourceforge.io}) for
 further examples, including two-dimensional and interactive
 three-dimensional scientific graphs. Additional examples have been
-posted by Philippe Ivaldi at @url{https://web.archive.org/web/20201130113133/http://www.piprime.fr/asymptote}.
+posted by Philippe Ivaldi at @url{https://blog.piprime.fr/asymptote/}.
 
 @node Drawing commands
 @chapter Drawing commands
@@ -10219,7 +10219,7 @@ elements will be individually deconstructed (@pxref{add}).
 @cindex command-line interface
 
 @code{Asymptote} code may be sent to the
-@url{http://asymptote.ualberta.ca} server directly from the command
+@url{https://asymptote.ualberta.ca} server directly from the command
 line
 
 @itemize @bullet
@@ -10510,7 +10510,7 @@ Jeff Samuelson, Chris Savage, Jacques Pienaar, Mark Henning, Steve Melenchuk,
 Martin Wiebusch, Stefan Knorr, Supakorn ``Jamie'' Rassameemasmuang,
 Jacob Skitsko, Joseph Chaumont, and Oliver Cheng. Pedram Emami
 developed the @code{Asymptote Web Application} hosted at
-@url{http://asymptote.ualberta.ca}:
+@url{https://asymptote.ualberta.ca}:
 
 @url{https://github.com/vectorgraphics/asymptoteWebApplication}
 
