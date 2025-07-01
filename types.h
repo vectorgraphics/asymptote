@@ -537,7 +537,8 @@ public:
   }
 
 
-#ifdef __GNUC__
+#ifdef __clang__
+#elif __GNUC__
 #pragma GCC push_options
 #pragma GCC optimize("O2")
   void add(ty *t) {
