@@ -59,15 +59,7 @@ jobs:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
       - name: Setup TeXLive Action
-        uses: teatimeguest/setup-texlive-action@v3.3.0
-        with:
-            packages: |
-              scheme-basic
-              hypdoc
-              parskip
-              etoolbox
-              ocgx2
-              media9
+        run: choco install texlive --params="'/collections:latex /scheme:basic /extraPackages:hypdoc,parskip,etoolbox,ocgx2,media9'" --timeout 7200
       - name: Install ghostscript
         uses: nick-fields/retry@v3
         with:
