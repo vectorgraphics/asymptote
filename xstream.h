@@ -45,6 +45,22 @@ typedef __int64 OffsetType;
 
 typedef off_t OffsetType;
 
+#ifdef __APPLE__
+#include <rpc/xdr.h>
+
+inline bool_t xdr_long(XDR* __xdrs, long* __lp) {
+  return xdr_longlong_t(__xdrs, (long long*)__lp);
+}
+
+inline bool_t xdr_u_long(XDR* __xdrs, unsigned long* __lp) {
+  return xdr_u_longlong_t(__xdrs, (unsigned long long*) __lp);
+}
+
+#endif
+
+
+
+
 #if defined(__FreeBSD__)
 #include <sys/select.h>
 extern "C" int fseeko(FILE*, OffsetType, int);
@@ -138,6 +154,10 @@ public:
   IXSTREAM(uint32_t,u_int32_t);
   IXSTREAM(int64_t,int64_t);
   IXSTREAM(uint64_t,u_int64_t);
+#ifdef __APPLE__
+  IXSTREAM(long,long);
+  IXSTREAM(unsigned long,u_long);
+#endif
   IXSTREAM(char,char);
 #ifndef _CRAY
   IXSTREAM(unsigned char,u_char);
@@ -178,6 +198,10 @@ public:
   OXSTREAM(uint32_t,u_int32_t);
   OXSTREAM(int64_t,int64_t);
   OXSTREAM(uint64_t,u_int64_t);
+#ifdef __APPLE__
+  OXSTREAM(long,long);
+  OXSTREAM(unsigned long,u_long);
+#endif
   OXSTREAM(char,char);
 
 #ifndef _CRAY
