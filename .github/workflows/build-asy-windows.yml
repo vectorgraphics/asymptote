@@ -59,7 +59,10 @@ jobs:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
       - name: Setup TeXLive Action
-        run: choco install texlive --params="'/collections:latex /scheme:basic /extraPackages:hypdoc,parskip,etoolbox,ocgx2,media9'" --timeout 7200
+        run: |
+          choco install texlive `
+            --params="'/collections:latex /scheme:basic /extraPackages:hypdoc,parskip,etoolbox,ocgx2,media9 /InstallationPath:C:/texlive/'" `
+            --timeout 7200
       - name: Install ghostscript
         uses: nick-fields/retry@v3
         with:
@@ -85,7 +88,7 @@ jobs:
       - name: Reconfigure CMake (now that we have TeX Live)
         run: |
           ${{ env.pwsh_initialize_devenv }}
-          cmake --preset ${{ env.cmake_msvc_profile }}
+          cmake --preset ${{ env.cmake_msvc_profile }} -DPDFTEX_EXEC=C:/texlive/bin/windows/pdftex.exe
       - name: Upload cmake install file
         uses: actions/upload-artifact@v4
         with:
