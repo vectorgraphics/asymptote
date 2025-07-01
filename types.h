@@ -541,6 +541,7 @@ public:
 #elif __GNUC__
 #pragma GCC push_options
 #pragma GCC optimize("O2")
+#endif
   void add(ty *t) {
     if (t->kind == ty_overloaded) {
       overloaded *ot = (overloaded *)t;
@@ -550,6 +551,8 @@ public:
     else
       sub.push_back(t);
   }
+#ifdef __clang__
+#elif __GNUC__
 #pragma GCC pop_options
 #endif
 
