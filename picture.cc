@@ -1564,6 +1564,9 @@ bool picture::shipout3(const string& prefix, const string& format,
        }
        if(Wait)
          pthread_mutex_lock(&vk->readyLock);
+#ifdef HAVE_VULKAN
+       glfwPostEmptyEvent();
+#endif
 #endif
      } else {
  #if !defined(_WIN32)
