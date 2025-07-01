@@ -31,6 +31,8 @@ bool havewindow;
 
 static bool initialized=false;
 
+static bool waitEvent=true;
+
 void exitHandler(int);
 
 #ifdef HAVE_VULKAN
@@ -4572,7 +4574,20 @@ void AsyVkRender::mainLoop()
 
     if (redraw || queueExport) {
       redraw=false;
+      waitEvent=true;
       display();
+    }
+
+    if (View) {
+      if(currentIdleFunc != nullptr) {
+        currentIdleFunc();
+        glfwPollEvents();
+      } else {
+        if(waitEvent)
+          glfwWaitEvents();
+        else
+          glfwPollEvents();
+      }
     }
 
     if (!View && nFrames > maxFramesInFlight)
@@ -4580,13 +4595,6 @@ void AsyVkRender::mainLoop()
 
     nFrames++;
 
-    if (View) {
-      if(currentIdleFunc != nullptr) {
-        currentIdleFunc();
-        glfwPollEvents();
-      } else
-        glfwPollEvents();
-    }
   }
 
   if(!View) {
@@ -4875,6 +4883,7 @@ void AsyVkRender::quit()
     if(animating)
       settings::Setting("interrupt")=true;
     redraw=false;
+    waitEvent=false;
     if(interact::interactive)
       home();
     Animate=settings::getSetting<bool>("autoplay");
