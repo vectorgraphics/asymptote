@@ -1519,7 +1519,6 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 
   bool format3d=webgl || v3d;
-
   if(!format3d) {
 #ifdef HAVE_VULKAN
     if(vk->vkthread) {
@@ -1556,11 +1555,12 @@ bool picture::shipout3(const string& prefix, const string& format,
           vk->endwait(vk->initSignal,vk->initLock);
           initialize=false;
         }
+        glfwPostEmptyEvent();
         if(Wait) {
           pthread_cond_wait(&vk->readySignal,&vk->readyLock);
           pthread_mutex_unlock(&vk->readyLock);
         }
-         return true;
+        return true;
        }
        if(Wait)
          pthread_mutex_lock(&vk->readyLock);

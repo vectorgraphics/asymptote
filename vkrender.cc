@@ -223,6 +223,7 @@ void AsyVkRender::preUpdate()
   static auto const verticalFlipMat = glm::scale(glm::dmat4(1.0f), glm::dvec3(1.0f, -1.0f, 1.0f));
 
   projViewMat = verticalFlipMat * projMat * viewMat;
+  redraw=true;
 }
 
 void AsyVkRender::update()
@@ -850,6 +851,7 @@ void AsyVkRender::recreateSwapChain()
   createAttachments();
   createFramebuffers();
   createExportResources();
+  redraw=true;
 }
 
 void AsyVkRender::zeroTransparencyBuffers()
