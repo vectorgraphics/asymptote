@@ -69,8 +69,12 @@ jobs:
               ocgx2
               media9
       - name: Install ghostscript
-        shell: pwsh
-        run: choco install ghostscript --execution-timeout 7200
+        uses: nick-fields/retry@v3
+        with:
+            timeout_minutes: 120
+            max_attempts: 5
+            shell: pwsh
+            command: choco install ghostscript --execution-timeout 7200
       - name: Download configuration artifacts
         uses: actions/download-artifact@v4
         with:
