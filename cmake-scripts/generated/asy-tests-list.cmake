@@ -76,7 +76,7 @@ add_asy_tests(
 
 add_asy_tests(
     TEST_DIR io
-    TESTS csv read
+    TESTS csv read xdr
 
 
 )
