@@ -59,15 +59,10 @@ jobs:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
       - name: Setup TeXLive Action
-        uses: teatimeguest/setup-texlive-action@v3.3.0
+        uses: xu-cheng/texlive-action@v2
         with:
-            packages: |
-              scheme-basic
-              hypdoc
-              parskip
-              etoolbox
-              ocgx2
-              media9
+          scheme: small
+          run: tlmgr install scheme-basic hypdoc parskip etoolbox ocgx2 media9
       - name: Install ghostscript
         uses: nick-fields/retry@v3
         with:
