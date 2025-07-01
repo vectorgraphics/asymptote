@@ -600,7 +600,7 @@ public:
          xdr::xios::open_mode mode=xdr::xios::in) :
     file(name,check,type,true), fstream(NULL), mode(mode) {}
 
-  bool isXDR() {return true;}
+  bool isXDR() override {return true;}
 
   void open() override {
     name=locatefile(inpath(name));
@@ -775,15 +775,15 @@ class oxfile : public file {
 public:
   oxfile(const string& name) : file(name,true,XOUTPUT), fstream(NULL) {}
 
-  bool isXDR() {return true;}
+  bool isXDR() override {return true;}
 
-  void open() {
+  void open() override {
     fstream=new xdr::oxstream(outpath(name).c_str(),xdr::xios::trunc);
     index=processData().oxfile.add(fstream);
     Check();
   }
 
-  void close() {
+  void close() override {
     if(fstream) {
       fstream->close();
       closed=true;
@@ -795,26 +795,26 @@ public:
 
   ~oxfile() {close();}
 
-  bool eof() {return fstream ? fstream->eof() : true;}
-  bool error() {return fstream ? fstream->fail() : true;}
-  void clear() {if(fstream) fstream->clear();}
-  void flush() {if(fstream) fstream->flush();}
+  bool eof() override {return fstream ? fstream->eof() : true;}
+  bool error() override {return fstream ? fstream->fail() : true;}
+  void clear() override {if(fstream) fstream->clear();}
+  void flush() override {if(fstream) fstream->flush();}
 
-  void seek(Int pos, bool begin=true) {
+  void seek(Int pos, bool begin=true) override {
     if(!standard && fstream) {
       clear();
       fstream->seek(pos,begin ? xdr::xios::beg : xdr::xios::end);
     }
   }
 
-  size_t tell() {
+  size_t tell() override {
     if(fstream)
       return fstream->tell();
     else
       return 0;
   }
 
-  void write(const string& val) {
+  void write(const string& val) override {
     size_t n=val.size();
     if(wordmode)
       *fstream << n;
@@ -822,7 +822,7 @@ public:
       *fstream << (xdr::xbyte) val[i];
   }
 
-  void write(Int val) {
+  void write(Int val) override {
     if(signedint) {
       if(singleint) *fstream << intcast(val);
       else *fstream << val;
@@ -831,15 +831,15 @@ public:
       else *fstream << unsignedIntcast(val);
     }
   }
-  void write(double val) {
+  void write(double val) override {
     if(singlereal) *fstream << (float) val;
     else *fstream << val;
   }
-  void write(const pair& val) {
+  void write(const pair& val) override {
     write(val.getx());
     write(val.gety());
   }
-  void write(const triple& val) {
+  void write(const triple& val) override {
     write(val.getx());
     write(val.gety());
     write(val.getz());
