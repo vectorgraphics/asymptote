@@ -65,7 +65,7 @@ bool w32_internal_xdr_read_raw_bytes(Win32XDR* xdr, T& result)
   {
     result = *reinterpret_cast<T*>(xdr->nonFileMem.dataCursor);
     xdr->nonFileMem.dataCursor += sizeof(T);
-    return true;
+    return xdr->nonFileMem.dataCursor <= xdr->nonFileMem.data + xdr->nonFileMem.memSize;
   }
 }
 
