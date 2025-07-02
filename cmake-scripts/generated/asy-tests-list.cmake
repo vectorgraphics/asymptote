@@ -33,17 +33,6 @@ add_asy_tests(
 )
 
 
-if (ENABLE_GC)
-
-add_asy_tests(
-    TEST_DIR gc
-    TESTS array file funcall guide label path pen shipout string struct transform
-    TEST_ARTIFACTS .eps
-    TEST_NOT_PART_OF_CHECK_TEST true
-)
-
-endif()
-
 
 add_asy_tests(
     TEST_DIR gs
@@ -52,17 +41,6 @@ add_asy_tests(
     TEST_NOT_PART_OF_CHECK_TEST true
 )
 
-
-if (ENABLE_GSL)
-
-add_asy_tests(
-    TEST_DIR gsl
-    TESTS random
-
-
-)
-
-endif()
 
 
 add_asy_tests(
@@ -78,15 +56,6 @@ add_asy_tests(
     TEST_DIR io
     TESTS csv read xdr
 
-
-)
-
-
-
-add_asy_tests(
-    TEST_DIR output
-    TESTS circle line
-    TEST_ARTIFACTS circle.eps line.eps
 
 )
 
