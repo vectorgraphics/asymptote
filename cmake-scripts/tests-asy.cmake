@@ -43,9 +43,9 @@ macro(add_asy_tests)
     foreach(testfile ${ASY_TESTING_TESTS})
 
         if (ASY_TESTING_TEST_NOT_PART_OF_CHECK_TEST)
-            set(TEST_LABEL asy-extended-tests)
+            set(TEST_LABEL asy-generated-extended-tests)
         else()
-            set(TEST_LABEL asy-check-tests)
+            set(TEST_LABEL asy-generated-check-tests)
         endif()
 
 
