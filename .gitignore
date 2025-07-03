@@ -244,3 +244,4 @@ tests/out.*
 .editorconfig
 
 cmake-scripts/generated
+tests/xdata
