@@ -68,4 +68,14 @@ endmacro()
 
 # ------ tests ----------
 
-include(${CMAKE_CURRENT_LIST_DIR}/generated/asy-tests-list.cmake)
+
+include(${CMAKE_CURRENT_LIST_DIR}/generated/asy-tests-list.cmake OPTIONAL RESULT_VARIABLE ASY_TESTS_IMPORTED)
+
+if (RESULT_VARIABLE STREQUAL NOTFOUND)
+    message(WARNING "\
+Asymptote test list not found. Asymptote tests will not be available. Please run the python script
+<asymptote-root>/scan-asy-tests-cmake.py
+to generate the test list file and then reload the cmake project.
+"
+    )
+endif()
