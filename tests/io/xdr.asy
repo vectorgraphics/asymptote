@@ -45,3 +45,18 @@ StartTest("xdr: double real, double int");
   test(false,false);
 }
 EndTest();
+
+StartTest("xdr: character");
+{
+  file fout=output("xdata",mode="xdr");
+  write(fout,"a");
+  write(fout,"b");
+  close(fout);
+
+  file fin=input("xdata",mode="xdr");
+  string a=getc(fin);
+  assert(a == "a");
+  string b=getc(fin);
+  assert(b == "b");
+}
+EndTest();
