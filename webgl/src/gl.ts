@@ -1,8 +1,12 @@
 // AsyGL library core
 
-(function() {
+import { mat3, mat4, ReadonlyVec3 } from "gl-matrix";
+import fragment from './shaders/fragment.glsl';
+import vertex from './shaders/vertex.glsl';
 
-document.asy={
+declare var Module: any;
+
+const asyRenderingCanvas = {
   canvasWidth:0,
   canvasHeight:0,
   absolute:false, // true: absolute size; false: scale to canvas
@@ -38,15 +42,22 @@ document.asy={
   // coordinates, with T[i][j] stored as element 4*i+j.
   Transform:[],
 
-  Centers:[] // Array of billboard centers
-}
+  Centers:[], // Array of billboard centers
 
-let W=document.asy;
+  // Initial values:
+  canvasWidth0: 0,
+  canvasHeight0: 0,
+  zoom0: 0,
+
+  embedded: false, // Is image embedded within another window?
+  canvas: null // Rendering canvas
+};
+globalThis.document.asy = asyRenderingCanvas;
+const W = asyRenderingCanvas;
 
 let gl; // WebGL rendering context
 let alpha; // Is background opaque?
-let embedded; // Is image embedded within another window?
-let canvas; // Rendering canvas
+
 let offscreen; // Offscreen rendering canvas for embedded images
 let context; // 2D context for copying embedded offscreen images
 
@@ -60,10 +71,7 @@ let Nmaterials=2; // Maximum number of materials compiled in shader
 let materials=[]; // Subset of Materials passed as uniforms
 let maxMaterials; // Limit on number of materials allowed in shader
 
-// Initial values:
-let canvasWidth0;
-let canvasHeight0;
-let zoom0;
+
 
 let halfCanvasWidth,halfCanvasHeight;
 
@@ -142,13 +150,8 @@ function SetIBL()
 let roughnessStepCount=8;
 
 class Material {
-  constructor(diffuse,emissive,specular,shininess,metallic,fresnel0) {
-    this.diffuse=diffuse;
-    this.emissive=emissive;
-    this.specular=specular;
-    this.shininess=shininess;
-    this.metallic=metallic;
-    this.fresnel0=fresnel0;
+
+  constructor(public diffuse,public emissive, public specular, public shininess,public metallic,public fresnel0) {
   }
 
   setUniform(program,index) {
@@ -168,13 +171,10 @@ let enumPointLight=1;
 let enumDirectionalLight=2;
 
 class Light {
-  constructor(direction,color) {
-    this.direction=direction;
-    this.color=color;
-  }
+  constructor(private direction,private color) { }
 
   setUniform(program,index) {
-    let getLoc=
+    const getLoc=
         param => gl.getUniformLocation(program,"Lights["+index+"]."+param);
 
     gl.uniform3fv(getLoc("direction"),new Float32Array(this.direction));
@@ -184,14 +184,14 @@ class Light {
 
 function initShaders(ibl=false)
 {
-  let maxUniforms=gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
+  const maxUniforms=gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
   maxMaterials=Math.floor((maxUniforms-14)/4);
   Nmaterials=Math.min(Math.max(Nmaterials,Materials.length),maxMaterials);
 
-  pixelOpt=["WIDTH"];
-  materialOpt=["NORMAL"];
-  colorOpt=["NORMAL","COLOR"];
-  transparentOpt=["NORMAL","COLOR","TRANSPARENT"];
+  const pixelOpt=["WIDTH"];
+  const materialOpt=["NORMAL"];
+  const colorOpt=["NORMAL","COLOR"];
+  const transparentOpt=["NORMAL","COLOR","TRANSPARENT"];
 
   if(ibl) {
     materialOpt.push('USE_IBL');
@@ -214,26 +214,26 @@ function deleteShaders()
 
 function saveAttributes()
 {
-  let a=W.webgl2 ?
-      window.top.document.asygl2[alpha] :
-      window.top.document.asygl[alpha];
+  const doc = window.top.document as any;
+  const a=W.webgl2 ? doc.asygl2[alpha] : doc.asygl[alpha];
 
-  a.gl=gl;
-  a.nlights=Lights.length;
-  a.Nmaterials=Nmaterials;
-  a.maxMaterials=maxMaterials;
-
-  a.pixelShader=pixelShader;
-  a.materialShader=materialShader;
-  a.colorShader=colorShader;
-  a.transparentShader=transparentShader;
+  const attributes = {
+    gl: gl,
+    nlights: Lights.length,
+    Nmaterials: Nmaterials,
+    maxMaterials: maxMaterials,
+    pixelShader: pixelShader,
+    materialShader: materialShader,
+    colorShader: colorShader,
+    transparentShader: transparentShader
+  }
+  Object.assign(a, attributes);
 }
 
 function restoreAttributes()
 {
-  let a=W.webgl2 ?
-      window.top.document.asygl2[alpha] :
-      window.top.document.asygl[alpha];
+  const doc = window.top.document as any;
+  let a=W.webgl2 ? doc.asygl2[alpha] : doc.asygl[alpha];
 
   gl=a.gl;
   nlights=a.nlights;
@@ -271,10 +271,10 @@ function webGL(canvas,alpha) {
 
 function findGL()
 {
-  let p=window.top.document;
-  asygl=W.webgl2 ? p.asygl2 : p.asygl;
+  let p=window.top.document as any;
+  const asygl=W.webgl2 ? p.asygl2 : p.asygl;
   if(!asygl[alpha] || !asygl[alpha].gl) {
-    rc=webGL(offscreen,alpha);
+    const rc=webGL(offscreen,alpha);
     if(rc) gl=rc;
     else return;
     initShaders();
@@ -300,7 +300,7 @@ function initGL(outer=true)
   alpha=W.background[3] < 1;
 
   if(W.embedded) {
-    let p=window.top.document;
+    const p=window.top.document as any;
 
     if(outer) context=W.canvas.getContext("2d");
     offscreen=W.webgl2 ? p.offscreen2 : p.offscreen;
@@ -366,12 +366,12 @@ precision mediump float;
   if(W.ibl)
     macros.push(['ROUGHNESS_STEP_COUNT',roughnessStepCount.toFixed(2)]);
 
-  macros_str=macros.map(macro => `#define ${macro[0]} ${macro[1]}`).join('\n')
-  define_str=defines.map(define => `#define ${define}`).join('\n');
-  const_str=consts.map(const_val => `const ${const_val[0]} ${const_val[1]}=${const_val[2]};`).join('\n')
-  ext_str=extensions.map(ext => `#extension ${ext}: enable`).join('\n')
+  const macros_str=macros.map(macro => `#define ${macro[0]} ${macro[1]}`).join('\n')
+  const define_str=defines.map(define => `#define ${define}`).join('\n');
+  const const_str=consts.map(const_val => `const ${const_val[0]} ${const_val[1]}=${const_val[2]};`).join('\n')
+  const ext_str=extensions.map(ext => `#extension ${ext}: enable`).join('\n')
 
-  shaderSrc=`#version ${version}
+  const shaderSrc=`#version ${version}
 ${ext_str}
 ${define_str}
 ${const_str}
@@ -461,22 +461,31 @@ function drawBuffer(data,shader,indices=data.indices)
 let TRIANGLES;
 
 class vertexBuffer {
-  constructor(type) {
-    this.type=type ? type : TRIANGLES;
+  private verticesBuffer: number = 0;
+  private materialsBuffer: number = 0;
+  private colorsBuffer: number = 0;
+  private indicesBuffer: number = 0;
 
-    this.verticesBuffer=0;
-    this.materialsBuffer=0;
-    this.colorsBuffer=0;
-    this.indicesBuffer=0;
+  /** Are all patches in this buffer fully rendered? */
+  private rendered: boolean = false;
 
-    this.rendered=false;     // Are all patches in this buffer fully rendered?
-    this.partial=false;      // Does buffer contain incomplete data?
+  /** Does buffer contain incomplete data? */
+  private partial: boolean = false;
 
+  public readonly vertices: any[] = [];
+  protected materialIndices: any[] = [];
+  private colors: any[] = [];
+  public indices: any[] = [];
+  private materials: any[] = [];
+  private materialTable: any[] = [];
+  public nvertices: number = 0;
+
+  constructor(public type = TRIANGLES) {
     this.clear();
   }
 
   clear() {
-    this.vertices=[];
+    this.vertices.length = 0;
     this.materialIndices=[];
     this.colors=[];
     this.indices=[];
@@ -580,12 +589,18 @@ function appendOffset(a,b,o)
     a[n+i]=b[i]+o;
 }
 
-class Geometry {
-  constructor() {
-    this.data=new vertexBuffer();
-    this.Onscreen=false;
-    this.m=[];
-  }
+abstract class Geometry {
+  protected data: vertexBuffer = new vertexBuffer();
+  Onscreen: boolean = false;
+  m: any[] = [];
+  x: number;
+  y: number;
+  X: number;
+  Y: number;
+
+  c: number[];
+
+  protected constructor() { }
 
   // Is 2D bounding box formed by projecting 3d points in vector v offscreen?
   offscreen(v) {
@@ -633,6 +648,20 @@ class Geometry {
             this.T([m[0],M[1],M[2]]),this.T([M[0],m[1],m[2]]),
             this.T([M[0],m[1],M[2]]),this.T([M[0],M[1],m[2]]),this.T(M)];
   }
+
+  abstract setMaterialIndex();
+  abstract notRendered();
+  abstract append();
+  abstract process(P: any[]);
+
+
+  protected MaterialIndex: number;
+  protected CenterIndex: number;
+  protected Min: any[];
+  protected Max: any[];
+  protected Epsilon: number;
+  protected res2: number;
+  protected controlpoints: any[];
 
   setMaterial(data,draw) {
     if(data.materialTable[this.MaterialIndex] == null) {
@@ -704,6 +733,11 @@ function boundPoints(p,m)
 }
 
 class BezierPatch extends Geometry {
+
+  private readonly transparent: boolean;
+  private readonly epsilon: number;
+  private readonly vertex: (v: any, n: any) => number;
+
   /**
    * Constructor for Bezier Patch
    * @param {*} controlpoints array of 16 control points
@@ -711,13 +745,9 @@ class BezierPatch extends Geometry {
    * @param {*} MaterialIndex material index (>= 0)
    * @param {*} colors array of 4 RGBA color arrays
    */
-  constructor(controlpoints,CenterIndex,MaterialIndex,color,Min,Max) {
+  constructor(protected controlpoints,protected CenterIndex,protected MaterialIndex,private color = null,protected Min = null,protected Max = null) {
     super();
-    this.controlpoints=controlpoints;
-    this.CenterIndex=CenterIndex;
-    this.MaterialIndex=MaterialIndex;
-    this.color=color;
-    let n=controlpoints.length;
+    const n=controlpoints.length;
     if(color) {
       let sum=color[0][3]+color[1][3]+color[2][3];
       this.transparent=(n == 16 || n == 4) ?
@@ -732,8 +762,8 @@ class BezierPatch extends Geometry {
     let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
     this.epsilon=norm2*Number.EPSILON;
 
-    this.Min=Min ? Min : this.Bounds(this.controlpoints,Math.min,fuzz);
-    this.Max=Max ? Max : this.Bounds(this.controlpoints,Math.max,fuzz);
+    this.Min=this.Min ?? this.Bounds(this.controlpoints,Math.min,fuzz);
+    this.Max=this.Max ?? this.Bounds(this.controlpoints,Math.max,fuzz);
   }
 
   setMaterialIndex() {
@@ -775,30 +805,30 @@ class BezierPatch extends Geometry {
     --depth;
     fuzz *= 2;
 
-    let c0=new Split(p[0],p[1],p[2],p[3]);
-    let c1=new Split(p[4],p[5],p[6],p[7]);
-    let c2=new Split(p[8],p[9],p[10],p[11]);
-    let c3=new Split(p[12],p[13],p[14],p[15]);
+    const c0=new Split(p[0],p[1],p[2],p[3]);
+    const c1=new Split(p[4],p[5],p[6],p[7]);
+    const c2=new Split(p[8],p[9],p[10],p[11]);
+    const c3=new Split(p[12],p[13],p[14],p[15]);
 
-    let c4=new Split(p[0],p[4],p[8],p[12]);
-    let c5=new Split(c0.m0,c1.m0,c2.m0,c3.m0);
-    let c6=new Split(c0.m3,c1.m3,c2.m3,c3.m3);
-    let c7=new Split(c0.m5,c1.m5,c2.m5,c3.m5);
-    let c8=new Split(c0.m4,c1.m4,c2.m4,c3.m4);
-    let c9=new Split(c0.m2,c1.m2,c2.m2,c3.m2);
-    let c10=new Split(p[3],p[7],p[11],p[15]);
+    const c4=new Split(p[0],p[4],p[8],p[12]);
+    const c5=new Split(c0.m0,c1.m0,c2.m0,c3.m0);
+    const c6=new Split(c0.m3,c1.m3,c2.m3,c3.m3);
+    const c7=new Split(c0.m5,c1.m5,c2.m5,c3.m5);
+    const c8=new Split(c0.m4,c1.m4,c2.m4,c3.m4);
+    const c9=new Split(c0.m2,c1.m2,c2.m2,c3.m2);
+    const c10=new Split(p[3],p[7],p[11],p[15]);
 
     // Check all 4 Bezier subpatches.
-    let s0=[p[0],c0.m0,c0.m3,c0.m5,c4.m0,c5.m0,c6.m0,c7.m0,
+    const s0=[p[0],c0.m0,c0.m3,c0.m5,c4.m0,c5.m0,c6.m0,c7.m0,
             c4.m3,c5.m3,c6.m3,c7.m3,c4.m5,c5.m5,c6.m5,c7.m5];
     b=this.bound(s0,m,b,fuzz,depth);
-    let s1=[c4.m5,c5.m5,c6.m5,c7.m5,c4.m4,c5.m4,c6.m4,c7.m4,
+    const s1=[c4.m5,c5.m5,c6.m5,c7.m5,c4.m4,c5.m4,c6.m4,c7.m4,
             c4.m2,c5.m2,c6.m2,c7.m2,p[12],c3.m0,c3.m3,c3.m5];
     b=this.bound(s1,m,b,fuzz,depth);
-    let s2=[c7.m5,c8.m5,c9.m5,c10.m5,c7.m4,c8.m4,c9.m4,c10.m4,
+    const s2=[c7.m5,c8.m5,c9.m5,c10.m5,c7.m4,c8.m4,c9.m4,c10.m4,
             c7.m2,c8.m2,c9.m2,c10.m2,c3.m5,c3.m4,c3.m2,p[15]];
     b=this.bound(s2,m,b,fuzz,depth);
-    let s3=[c0.m5,c0.m4,c0.m2,p[3],c7.m0,c8.m0,c9.m0,c10.m0,
+    const s3=[c0.m5,c0.m4,c0.m2,p[3],c7.m0,c8.m0,c9.m0,c10.m0,
             c7.m3,c8.m3,c9.m3,c10.m3,c7.m5,c8.m5,c9.m5,c10.m5];
     return this.bound(s3,m,b,fuzz,depth);
   }
@@ -1050,7 +1080,7 @@ class BezierPatch extends Geometry {
       materialData.rendered=false;
   }
 
-  Render(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,C0,C1,C2,C3) {
+  Render(p,I0,I1,I2,I3,P0,P1,P2,P3,flat0,flat1,flat2,flat3,C0 = null,C1 = null,C2 = null,C3 = null) {
     let d=this.Distance(p);
     if(d[0] < this.res2 && d[1] < this.res2) { // Bezier patch is flat
       if(!this.offscreen([P0,P1,P2])) {
@@ -1526,7 +1556,7 @@ class BezierPatch extends Geometry {
     if(this.data.indices.length > 0) this.append();
   }
 
-  Render3(p,I0,I1,I2,P0,P1,P2,flat0,flat1,flat2,C0,C1,C2) {
+  Render3(p,I0,I1,I2,P0,P1,P2,flat0,flat1,flat2,C0 = null,C1 = null,C2 = null) {
     if(this.Distance3(p) < this.res2) { // Bezier triangle is flat
       if(!this.offscreen([P0,P1,P2])) {
         if(wireframe == 0) {
@@ -1850,7 +1880,7 @@ class BezierPatch extends Geometry {
 
   // Return the differential of the Bezier curve p0,p1,p2,p3 at 0.
   differential(p0,p1,p2,p3) {
-    let p=[3*(p1[0]-p0[0]),3*(p1[1]-p0[1]),3*(p1[2]-p0[2])];
+    let p: ReadonlyVec3=[3*(p1[0]-p0[0]),3*(p1[1]-p0[1]),3*(p1[2]-p0[2])];
     if(abs2(p) > this.epsilon)
       return p;
 
@@ -1861,7 +1891,7 @@ class BezierPatch extends Geometry {
     return bezierPPP(p0,p1,p2,p3);
   }
 
-  sumdifferential(p0,p1,p2,p3,p4,p5,p6) {
+  sumdifferential(p0,p1,p2,p3,p4,p5,p6): ReadonlyVec3 {
     let d0=this.differential(p0,p1,p2,p3);
     let d1=this.differential(p0,p4,p5,p6);
     return [d0[0]+d1[0],d0[1]+d1[1],d0[2]+d1[2]];
@@ -1875,14 +1905,14 @@ class BezierPatch extends Geometry {
     let vy=3*(left1[1]-middle[1]);
     let vz=3*(left1[2]-middle[2]);
 
-    let n=[uy*vz-uz*vy,
+    let n: ReadonlyVec3=[uy*vz-uz*vy,
            uz*vx-ux*vz,
            ux*vy-uy*vx];
     if(abs2(n) > this.epsilon)
       return n;
 
-    let lp=[vx,vy,vz];
-    let rp=[ux,uy,uz];
+    let lp: ReadonlyVec3=[vx,vy,vz];
+    let rp: ReadonlyVec3=[ux,uy,uz];
 
     let lpp=bezierPP(middle,left1,left2);
     let rpp=bezierPP(middle,right1,right2);
@@ -1943,6 +1973,10 @@ function sqrt1pxm1(x)
 
 // Solve for the real roots of the quadratic equation ax^2+bx+c=0.
 class quadraticroots {
+  public readonly roots: number;
+  public readonly t1: number;
+  public readonly t2: number;
+
   constructor(a,b,c) {
     const Fuzz2=1000*Number.EPSILON;
     const Fuzz4=Fuzz2*Fuzz2;
@@ -1993,7 +2027,7 @@ class quadraticroots {
 }
 
 class BezierCurve extends Geometry {
-  constructor(controlpoints,CenterIndex,MaterialIndex,Min,Max) {
+  constructor(controlpoints,CenterIndex,MaterialIndex,Min = null,Max = null) {
     super();
     this.controlpoints=controlpoints;
     this.CenterIndex=CenterIndex;
@@ -2128,12 +2162,9 @@ class BezierCurve extends Geometry {
 }
 
 class Pixel extends Geometry {
-  constructor(controlpoint,width,MaterialIndex) {
+  constructor(private controlpoint,private width,protected MaterialIndex) {
     super();
-    this.controlpoint=controlpoint;
-    this.width=width;
     this.CenterIndex=0;
-    this.MaterialIndex=MaterialIndex;
     this.Min=controlpoint;
     this.Max=controlpoint;
   }
@@ -2157,15 +2188,18 @@ class Pixel extends Geometry {
 }
 
 class Triangles extends Geometry {
-  constructor(CenterIndex,MaterialIndex) {
-    super();
-    this.CenterIndex=CenterIndex;
-    this.MaterialIndex=MaterialIndex;
+  private readonly Normals: any;
+  private readonly Colors: any;
+  private readonly Indices: any;
+  private transparent: boolean = false;
 
-    this.controlpoints=window.Positions;
-    this.Normals=window.Normals;
-    this.Colors=window.Colors;
-    this.Indices=window.Indices;
+  constructor(protected CenterIndex,protected MaterialIndex) {
+    super();
+    const wany = window as any;
+    this.controlpoints=wany.Positions;
+    this.Normals=wany.Normals;
+    this.Colors=wany.Colors;
+    this.Indices=wany.Indices;
     this.transparent=Materials[this.MaterialIndex].diffuse[3] < 1;
 
     this.Min=this.Bounds(this.controlpoints,Math.min);
@@ -2193,7 +2227,7 @@ class Triangles extends Geometry {
 
   process(p) {
 
-    this.data.vertices=new Array(6*p.length);
+    this.data.vertices.length=6*p.length;
     // Override materialIndex to encode color vs material
       materialIndex=this.Colors.length > 0 ?
       -1-materialIndex : 1+materialIndex;
@@ -2213,7 +2247,7 @@ class Triangles extends Geometry {
         let C0=this.Colors[CI[0]];
         let C1=this.Colors[CI[1]];
         let C2=this.Colors[CI[2]];
-        this.transparent |= C0[3]+C1[3]+C2[3] < 3;
+        this.transparent = this.transparent || C0[3]+C1[3]+C2[3] < 3;
         if(wireframe == 0) {
           this.data.iVertex(PI[0],P0,this.Normals[NI[0]],onscreen,C0);
           this.data.iVertex(PI[1],P1,this.Normals[NI[1]],onscreen,C1);
@@ -2268,14 +2302,33 @@ function redrawScene()
   drawScene();
 }
 
+function getAsyWebApplication() : any | null {
+  const wtop = window.top as any;
+  return wtop.asyWebApplication;
+}
+
+function setAsyWebApplication(asyWebApp) {
+  const wtop = window.top as any;
+  wtop.asyWebApplication = asyWebApp;
+}
+
+function getAsyProjection(): boolean | null {
+  const wparent = window.parent as any;
+  return wparent.asyProjection;
+}
+
+function setAsyProjection(value: boolean) {
+    const wparent = window.parent as any;
+    wparent.asyProjection = value;
+}
+
 function home()
 {
   mat4.identity(rotMat);
   redrawScene();
 
-  if(window.top.asyWebApplication)
-    window.top.asyWebApplication.setProjection("");
-  window.parent.asyProjection=false;
+  getAsyWebApplication()?.setProjection("");
+  setAsyProjection(false);
 }
 
 let positionAttribute=0;
@@ -2305,9 +2358,15 @@ function initShader(options=[])
 }
 
 class Split {
+  public readonly m0: number;
+  public readonly m2: number;
+  public readonly m3: number;
+  public readonly m4: number;
+  public readonly m5: number;
+
   constructor(z0,c0,c1,z1) {
     this.m0=0.5*(z0+c0);
-    let m1=0.5*(c0+c1);
+    const m1=0.5*(c0+c1);
     this.m2=0.5*(c1+z1);
     this.m3=0.5*(this.m0+m1);
     this.m4=0.5*(m1+this.m2);
@@ -2316,11 +2375,17 @@ class Split {
 }
 
 class Split3 {
+  public readonly m0: number[];
+  public readonly m2: number[];
+  public readonly m3: number[];
+  public readonly m4: number[];
+  public readonly m5: number[];
+
   constructor(z0,c0,c1,z1) {
     this.m0=[0.5*(z0[0]+c0[0]),0.5*(z0[1]+c0[1]),0.5*(z0[2]+c0[2])];
-    let m1_0=0.5*(c0[0]+c1[0]);
-    let m1_1=0.5*(c0[1]+c1[1]);
-    let m1_2=0.5*(c0[2]+c1[2]);
+    const m1_0=0.5*(c0[0]+c1[0]);
+    const m1_1=0.5*(c0[1]+c1[1]);
+    const m1_2=0.5*(c0[2]+c1[2]);
     this.m2=[0.5*(c1[0]+z1[0]),0.5*(c1[1]+z1[1]),0.5*(c1[2]+z1[2])];
     this.m3=[0.5*(this.m0[0]+m1_0),0.5*(this.m0[1]+m1_1),
              0.5*(this.m0[2]+m1_2)];
@@ -2332,42 +2397,71 @@ class Split3 {
 }
 
 class Splittri {
+  public readonly l003: number;
+  public readonly r300: number;
+  public readonly u030: number;
+  public readonly u021: number;
+  public readonly u120: number;
+  public readonly l012: number;
+  public readonly r210: number;
+  public readonly l102: number;
+  public readonly r201: number;
+  public readonly u012: number;
+  public readonly u210: number;
+  public readonly l021: number;
+  public readonly r120: number;
+  public readonly l201: number;
+  public readonly r102: number;
+  public readonly l210: number;
+  public readonly r012: number;
+  public readonly l300: number;
+  public readonly r021: number;
+  public readonly u201: number;
+  public readonly r030: number;
+  public readonly u102: number;
+  public readonly l120: number;
+  public readonly l030: number;
+  public readonly l111: number;
+  public readonly r111: number;
+  public readonly u111: number;
+  public readonly c111: number;
+
   constructor(p) {
     this.l003=p[0];
-    let p102=p[1];
-    let p012=p[2];
-    let p201=p[3];
-    let p111=p[4];
-    let p021=p[5];
+    const p102=p[1];
+    const p012=p[2];
+    const p201=p[3];
+    const p111=p[4];
+    const p021=p[5];
     this.r300=p[6];
-    let p210=p[7];
-    let p120=p[8];
+    const p210=p[7];
+    const p120=p[8];
     this.u030=p[9];
 
     this.u021=0.5*(this.u030+p021);
     this.u120=0.5*(this.u030+p120);
 
-    let p033=0.5*(p021+p012);
-    let p231=0.5*(p120+p111);
-    let p330=0.5*(p120+p210);
+    const p033=0.5*(p021+p012);
+    const p231=0.5*(p120+p111);
+    const p330=0.5*(p120+p210);
 
-    let p123=0.5*(p012+p111);
+    const p123=0.5*(p012+p111);
 
     this.l012=0.5*(p012+this.l003);
-    let p312=0.5*(p111+p201);
+    const p312=0.5*(p111+p201);
     this.r210=0.5*(p210+this.r300);
 
     this.l102=0.5*(this.l003+p102);
-    let p303=0.5*(p102+p201);
+    const p303=0.5*(p102+p201);
     this.r201=0.5*(p201+this.r300);
 
     this.u012=0.5*(this.u021+p033);
     this.u210=0.5*(this.u120+p330);
     this.l021=0.5*(p033+this.l012);
-    let p4xx=0.5*p231+0.25*(p111+p102);
+    const p4xx=0.5*p231+0.25*(p111+p102);
     this.r120=0.5*(p330+this.r210);
-    let px4x=0.5*p123+0.25*(p111+p210);
-    let pxx4=0.25*(p021+p111)+0.5*p312;
+    const px4x=0.5*p123+0.25*(p111+p210);
+    const pxx4=0.25*(p021+p111)+0.5*p312;
     this.l201=0.5*(this.l102+p303);
     this.r102=0.5*(p303+this.r201);
 
@@ -2390,9 +2484,9 @@ class Splittri {
   }
 }
 
-function unit(v)
+function unit(v: ReadonlyVec3): ReadonlyVec3
 {
-  let norm=1/(Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]) || 1);
+  const norm=1/(Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]) || 1);
   return [v[0]*norm,v[1]*norm,v[2]*norm];
 }
 
@@ -2406,7 +2500,7 @@ function dot(u,v)
   return u[0]*v[0]+u[1]*v[1]+u[2]*v[2];
 }
 
-function cross(u,v)
+function cross(u: ReadonlyVec3, v: ReadonlyVec3): ReadonlyVec3
 {
   return [u[1]*v[2]-u[2]*v[1],
           u[2]*v[0]-u[0]*v[2],
@@ -2414,7 +2508,7 @@ function cross(u,v)
 }
 
 // Evaluate the Bezier curve defined by a,b,c,d at t.
-function bezier(a,b,c,d,t)
+function bezier(a,b,c,d,t): number
 {
   let onemt=1-t;
   let onemt2=onemt*onemt;
@@ -2423,7 +2517,7 @@ function bezier(a,b,c,d,t)
 
 // Return one-third of the first derivative of the Bezier curve defined
 // by a,b,c,d at t=0.
-function bezierP(a,b)
+function bezierP(a,b): ReadonlyVec3
 {
   return [b[0]-a[0],
           b[1]-a[1],
@@ -2432,7 +2526,7 @@ function bezierP(a,b)
 
 // Return one-half of the second derivative of the Bezier curve defined
 // by a,b,c,d at t=0.
-function bezierPP(a,b,c)
+function bezierPP(a,b,c): ReadonlyVec3
 {
   return [3*(a[0]+c[0])-6*b[0],
           3*(a[1]+c[1])-6*b[1],
@@ -2441,7 +2535,7 @@ function bezierPP(a,b,c)
 
 // Return one-sixth of the third derivative of the Bezier curve defined by
 // a,b,c,d at t=0.
-function bezierPPP(a,b,c,d)
+function bezierPPP(a,b,c,d): ReadonlyVec3
 {
   return [d[0]-a[0]+3*(b[0]-c[0]),
           d[1]-a[1]+3*(b[1]-c[1]),
@@ -2450,7 +2544,7 @@ function bezierPPP(a,b,c,d)
 
 // Return four-thirds of the first derivative of the Bezier curve defined by
 // a,b,c,d at t=1/2.
-function bezierPh(a,b,c,d)
+function bezierPh(a,b,c,d): ReadonlyVec3
 {
   return [c[0]+d[0]-a[0]-b[0],
           c[1]+d[1]-a[1]-b[1],
@@ -2480,8 +2574,8 @@ function Straightness(z0,c0,c1,z1)
 // Return one ninth of the relative flatness squared of a--b and c--d.
 function Flatness(a,b,c,d)
 {
-  let u=[b[0]-a[0],b[1]-a[1],b[2]-a[2]];
-  let v=[d[0]-c[0],d[1]-c[1],d[2]-c[2]];
+  const u: ReadonlyVec3=[b[0]-a[0],b[1]-a[1],b[2]-a[2]];
+  const v: ReadonlyVec3=[d[0]-c[0],d[1]-c[1],d[2]-c[2]];
   return Math.max(abs2(cross(u,unit(v))),abs2(cross(v,unit(u))))/9;
 }
 
@@ -2584,6 +2678,7 @@ function pinchDistance(touches)
 
 
 let touchStartTime;
+let touchId = null;
 
 function handleTouchStart(event)
 {
@@ -2616,9 +2711,13 @@ function handleMouseUpOrTouchEnd(event)
 function rotateScene(lastX,lastY,rawX,rawY,factor)
 {
   if(lastX == rawX && lastY == rawY) return;
-  let [angle,axis]=arcball([lastX,-lastY],[rawX,-rawY]);
+  const {angle, axis}=arcball([lastX,-lastY],[rawX,-rawY]);
 
-  mat4.fromRotation(Temp,2*factor*ArcballFactor*angle/Zoom,axis);
+  mat4.fromRotation(
+      Temp,
+      2*factor*ArcballFactor*angle/Zoom,
+      axis
+  );
   mat4.multiply(rotMat,Temp,rotMat);
 }
 
@@ -2672,26 +2771,30 @@ function zoomImage(diff)
   }
 }
 
-function normMouse(v)
+function normMouse(v): ReadonlyVec3
 {
   let v0=v[0];
   let v1=v[1];
   let norm=Math.hypot(v0,v1);
   if(norm > 1) {
-    denom=1/norm;
+    const denom=1/norm;
     v0 *= denom;
     v1 *= denom;
   }
   return [v0,v1,Math.sqrt(Math.max(1-v1*v1-v0*v0,0))];
 }
 
-function arcball(oldmouse,newmouse)
-{
-  let oldMouse=normMouse(oldmouse);
-  let newMouse=normMouse(newmouse);
-  let Dot=dot(oldMouse,newMouse);
-  let angle=Dot > 1 ? 0 : Dot < -1 ? pi : Math.acos(Dot);
-  return [angle,unit(cross(oldMouse,newMouse))]
+interface arcball {
+  angle: number,
+  axis: ReadonlyVec3,
+}
+
+function arcball(oldmouse,newmouse): arcball {
+  const oldMouse=normMouse(oldmouse);
+  const newMouse=normMouse(newmouse);
+  const Dot=dot(oldMouse,newMouse);
+  const angle=Dot > 1 ? 0 : Dot < -1 ? pi : Math.acos(Dot);
+  return {angle: angle, axis: unit(cross(oldMouse,newMouse))}
 }
 
 /**
@@ -2820,7 +2923,7 @@ function projection()
 
   currentprojection += ");"+"\n";
 
-  window.parent.asyProjection=true;
+  setAsyProjection(true);
   return currentprojection;
 }
 
@@ -2837,7 +2940,7 @@ function handleKey(event)
   }
 
   let keycode=event.key;
-  let axis=[];
+  let axis: ReadonlyVec3 | null = null;
 
   switch(keycode) {
   case 'x':
@@ -2880,7 +2983,7 @@ function handleKey(event)
     break;
   }
 
-  if(axis.length > 0) {
+  if(axis !== null) {
     mat4.rotate(rotMat,rotMat,0.1,axis);
     updateViewMatrix();
     drawScene();
@@ -3036,29 +3139,29 @@ function drawTransparent()
   if(indices.length > 0) {
     transformVertices(transparentData.vertices);
 
-    let n=indices.length/3;
-    let triangles=Array(n).fill().map((_,i)=>i);
+    const n=indices.length/3;
+    const triangles=[...Array(n).keys()]
 
     triangles.sort(function(a,b) {
       let a3=3*a;
-      Ia=indices[a3];
-      Ib=indices[a3+1];
-      Ic=indices[a3+2];
+      const Ia=indices[a3];
+      const Ib=indices[a3+1];
+      const Ic=indices[a3+2];
 
       let b3=3*b;
-      IA=indices[b3];
-      IB=indices[b3+1];
-      IC=indices[b3+2];
+      const IA=indices[b3];
+      const IB=indices[b3+1];
+      const IC=indices[b3+2];
 
       return zbuffer[Ia]+zbuffer[Ib]+zbuffer[Ic] <
         zbuffer[IA]+zbuffer[IB]+zbuffer[IC] ? -1 : 1;
     });
 
-    let Indices=Array(indices.length);
+    const Indices=Array(indices.length);
 
     for(let i=0; i < n; ++i) {
-      let i3=3*i;
-      let t=3*triangles[i];
+      const i3=3*i;
+      const t=3*triangles[i];
       Indices[3*i]=indices[t];
       Indices[3*i+1]=indices[t+1];
       Indices[3*i+2]=indices[t+2];
@@ -3155,13 +3258,12 @@ function setProjection()
     -viewParam.zmax,-viewParam.zmin);
   updateViewMatrix();
 
-  if(window.top.asyWebApplication)
-    window.top.asyWebApplication.setProjection(projection());
+  getAsyWebApplication()?.setProjection(projection());
 }
 
 function showCamera()
 {
-  if(!window.top.asyWebApplication)
+  if(!getAsyWebApplication())
     prompt("Ctrl+c Enter to copy currentprojection to clipboard; then append to asy file:",
            projection());
 }
@@ -3225,9 +3327,9 @@ function resize()
 {
   W.zoom0=W.initialZoom;
 
-  if(window.top.asyWebApplication &&
-     window.top.asyWebApplication.getProjection() == "")
-    window.parent.asyProjection=false;
+  if (getAsyWebApplication()?.getProjection() === "") {
+    setAsyProjection(false);
+  }
 
   if(W.absolute && !W.embedded) {
     W.canvasWidth=W.canvasWidth0*window.devicePixelRatio;
@@ -3237,7 +3339,7 @@ function resize()
     W.canvasWidth=Math.max(window.innerWidth-windowTrim,windowTrim);
     W.canvasHeight=Math.max(window.innerHeight-windowTrim,windowTrim);
 
-    if(!W.orthographic && !window.parent.asyProjection &&
+    if(!W.orthographic && !getAsyProjection() &&
        W.canvasWidth < W.canvasHeight*Aspect)
       W.zoom0 *= W.canvasWidth/(W.canvasHeight*Aspect);
   }
@@ -3271,11 +3373,15 @@ function shrink()
 let pixelShader,materialShader,colorShader,transparentShader;
 
 class Align {
-  constructor(center,dir) {
-    this.center=center;
+  private ct?: number;
+  private st?: number;
+  private cp?: number;
+  private sp?: number;
+
+  constructor(private center: number[],dir: number[] | null = null) {
     if(dir) {
-      let theta=dir[0];
-      let phi=dir[1];
+      const theta=dir[0];
+      const phi=dir[1];
 
       this.ct=Math.cos(theta);
       this.st=Math.sin(theta);
@@ -3336,10 +3442,10 @@ function pixel(controlpoint,width,MaterialIndex)
 function triangles(CenterIndex,MaterialIndex)
 {
   P.push(new Triangles(CenterIndex,MaterialIndex));
-  window.Positions=Positions=[];
-  window.Normals=Normals=[];
-  window.Colors=Colors=[];
-  window.Indices=Indices=[];
+  Positions.length = 0;
+  Normals.length = 0;
+  Colors.length = 0;
+  Indices.length = 0;
 }
 
 // draw a sphere of radius r about center
@@ -3532,16 +3638,14 @@ function cylinder(center,r,h,CenterIndex,MaterialIndex,dir,core)
 function rmf(z0,c0,c1,z1,t)
 {
   class Rmf {
-    constructor(p,r,t) {
-      this.p=p;
-      this.r=r;
-      this.t=t;
-      this.s=cross(t,r);
+    public readonly s: ReadonlyVec3;
+    constructor(private p: number[],private r: ReadonlyVec3,private t: ReadonlyVec3) {
+      this.s=cross(this.t,this.r);
     }
   }
 
   // Return a unit vector perpendicular to a given unit vector v.
-  function perp(v)
+  function perp(v): ReadonlyVec3
   {
     let u=cross(v,[0,1,0]);
     let norm=Number.EPSILON*abs2(v);
@@ -3556,7 +3660,7 @@ function rmf(z0,c0,c1,z1,t)
 // Special case of dir for t in (0,1].
   function dir(t) {
     if(t == 1) {
-      let dir=[z1[0]-c1[0],
+      let dir: ReadonlyVec3=[z1[0]-c1[0],
                z1[1]-c1[1],
                z1[2]-c1[2]];
       if(abs2(dir) > norm) return unit(dir);
@@ -3568,7 +3672,7 @@ function rmf(z0,c0,c1,z1,t)
               z1[1]-z0[1]+3*(c0[1]-c1[1]),
               z1[2]-z0[2]+3*(c0[2]-c1[2])];
     }
-    let a=[z1[0]-z0[0]+3*(c0[0]-c1[0]),
+    let a: ReadonlyVec3=[z1[0]-z0[0]+3*(c0[0]-c1[0]),
            z1[1]-z0[1]+3*(c0[1]-c1[1]),
            z1[2]-z0[2]+3*(c0[2]-c1[2])];
     let b=[2*(z0[0]+c1[0])-4*c0[0],
@@ -3576,7 +3680,7 @@ function rmf(z0,c0,c1,z1,t)
            2*(z0[2]+c1[2])-4*c0[2]];
     let c=[c0[0]-z0[0],c0[1]-z0[1],c0[2]-z0[2]];
     let t2=t*t;
-    let dir=[a[0]*t2+b[0]*t+c[0],
+    let dir: ReadonlyVec3=[a[0]*t2+b[0]*t+c[0],
              a[1]*t2+b[1]*t+c[1],
              a[2]*t2+b[2]*t+c[2]];
     if(abs2(dir) > norm) return unit(dir);
@@ -3589,7 +3693,7 @@ function rmf(z0,c0,c1,z1,t)
   }
 
   let R=Array(t.length);
-  let T=[c0[0]-z0[0],
+  let T: ReadonlyVec3=[c0[0]-z0[0],
          c0[1]-z0[1],
          c0[2]-z0[2]];
   if(abs2(T) < norm) {
@@ -3618,7 +3722,7 @@ function rmf(z0,c0,c1,z1,t)
       onemt3*z0[0]+onemt2*c0[0]+onemt*c1[0]+t3*z1[0],
       onemt3*z0[1]+onemt2*c0[1]+onemt*c1[1]+t3*z1[1],
       onemt3*z0[2]+onemt2*c0[2]+onemt*c1[2]+t3*z1[2]];
-    let v1=[p[0]-Ri.p[0],p[1]-Ri.p[1],p[2]-Ri.p[2]];
+    let v1: ReadonlyVec3=[p[0]-Ri.p[0],p[1]-Ri.p[1],p[2]-Ri.p[2]];
     if(v1[0] != 0 || v1[1] != 0 || v1[2] != 0) {
       let r=Ri.r;
       let u1=unit(v1);
@@ -3629,7 +3733,7 @@ function rmf(z0,c0,c1,z1,t)
               ti[2]-2*dotu1ti*u1[2]];
       ti=dir(s);
       let dotu1r2=2*dot(u1,r);
-      let rp=[r[0]-dotu1r2*u1[0],r[1]-dotu1r2*u1[1],r[2]-dotu1r2*u1[2]];
+      let rp: ReadonlyVec3=[r[0]-dotu1r2*u1[0],r[1]-dotu1r2*u1[1],r[2]-dotu1r2*u1[2]];
       let u2=unit([ti[0]-tp[0],ti[1]-tp[1],ti[2]-tp[2]]);
       let dotu2rp2=2*dot(u2,rp);
       rp=[rp[0]-dotu2rp2*u2[0],rp[1]-dotu2rp2*u2[1],rp[2]-dotu2rp2*u2[2]];
@@ -3666,7 +3770,7 @@ function tube(v,w,CenterIndex,MaterialIndex,core)
       let T9=R0*c+R1*d;
 
       let w=v[i];
-      let w0=w[0]; w1=w[1]; w2=w[2];
+      let w0=w[0]; const w1=w[1]; const w2=w[2];
       for(let j=0; j < 4; ++j) {
         let u=arc[j];
         let x=u[0], y=u[1];
@@ -3711,21 +3815,10 @@ function createTexture(image, textureNumber, fmt=gl.RGB16F)
   return tex;
 }
 
-async function initIBL()
+async function initIBLOnceEXRLoaderReady()
 {
-  let imagePath=W.imageURL+W.image+'/';
-
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  while(true) { // Wait for EXRLoader to become available.
-    if(Module.EXRLoader)
-      break;
-    await sleep(0);
-  }
-
-  promises=[
+  const imagePath=W.imageURL+W.image+'/';
+  const promises=[
     getReq(W.imageURL+'refl.exr').then(obj => {
       let img=new Module.EXRLoader(obj);
       IBLbdrfMap=createTexture(img,0);
@@ -3736,17 +3829,13 @@ async function initIBL()
     })
   ]
 
-  refl_promise=[]
-
-  refl_promise.push(
-    getReq(imagePath+'refl0.exr')
-  );
+  const refl_promise=[getReq(imagePath+'refl0.exr')]
   for(let i=1; i <= roughnessStepCount; ++i) {
     refl_promise.push(
       getReq(imagePath+'refl'+i+'w.exr'))
   }
 
-  finished_promise=Promise.all(refl_promise).then(reflMaps => {
+  const finished_promise=Promise.all(refl_promise).then(reflMaps => {
     let tex=gl.createTexture();
     gl.activeTexture(gl.TEXTURE0+2);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);
@@ -3805,25 +3894,26 @@ function webGLStart()
   window.addEventListener("resize",resize,false);
 
   if(W.ibl)
-    initIBL().then(SetIBL).then(redrawScene);
+    Module.onRuntimeInitialized = async () => {
+      await initIBLOnceEXRLoaderReady();
+      SetIBL();
+      redrawScene();
+    }
 
   home();
 }
-
-  window.webGLStart=webGLStart;
-  window.light=light;
-  window.material=material;
-  window.patch=patch;
-  window.curve=curve;
-  window.pixel=pixel;
-  window.triangles=triangles;
-  window.sphere=sphere;
-  window.disk=disk;
-  window.cylinder=cylinder;
-  window.tube=tube;
-  window.Positions=Positions;
-  window.Normals=Normals;
-  window.Colors=Colors;
-  window.Indices=Indices;
-
-})();
+globalThis.window.webGLStart=webGLStart;
+globalThis.window.light=light
+globalThis.window.material= material
+globalThis.window.patch=patch
+globalThis.window.curve=curve
+globalThis.window.pixel=pixel
+globalThis.window.triangles=triangles
+globalThis.window.sphere=sphere
+globalThis.window.disk=disk
+globalThis.window.cylinder=cylinder
+globalThis.window.tube=tube
+globalThis.window.Positions=Positions
+globalThis.window.Normals=Normals
+globalThis.window.Colors=Colors
+globalThis.window.Indices=Indices
