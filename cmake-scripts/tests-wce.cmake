@@ -1,5 +1,5 @@
 add_test(
-        NAME "wce"
+        NAME bundled.asy.wce
         COMMAND ${CMAKE_COMMAND}
             -DASY_EXEC=$<TARGET_FILE:asy>
             -DASY_BASE_DIR=${ASY_BUILD_BASE_DIR}
@@ -9,6 +9,6 @@ add_test(
 )
 
 set_property(
-        TEST wce
+        TEST bundled.asy.wce
         PROPERTY LABELS asy-check-tests
 )

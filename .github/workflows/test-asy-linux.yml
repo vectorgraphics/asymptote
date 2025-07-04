@@ -30,8 +30,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - run: sudo apt-get update && sudo apt-get install ghostscript
       - uses: ./.github/actions/initialize-linux-env
+      - uses: ./.github/actions/initialize-linux-latex-and-gs
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:

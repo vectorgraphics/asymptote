@@ -43,9 +43,9 @@ macro(add_asy_tests)
     foreach(testfile ${ASY_TESTING_TESTS})
 
         if (ASY_TESTING_TEST_NOT_PART_OF_CHECK_TEST)
-            set(TEST_LABEL asy-extended-tests)
+            set(TEST_LABEL asy-generated-extended-tests)
         else()
-            set(TEST_LABEL asy-check-tests)
+            set(TEST_LABEL asy-generated-check-tests)
         endif()
 
 
@@ -68,4 +68,34 @@ endmacro()
 
 # ------ tests ----------
 
-include(${CMAKE_CURRENT_LIST_DIR}/generated/asy-tests-list.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/generated/asy-tests-list.cmake OPTIONAL RESULT_VARIABLE ASY_TESTS_IMPORTED)
+
+if (ASY_TESTS_IMPORTED STREQUAL NOTFOUND)
+    message(WARNING "\
+Asymptote test list not found. Custom Asymptote tests will not be available,\
+however a command to run check tests is still available. Please run the python script
+scan-asy-tests-cmake.py
+and reload the cmake project.
+"
+)
+endif()
+
+# ---- for standard check tests -----
+
+add_test(
+        NAME bundled.asy.checktests
+        COMMAND ${PY3_INTERPRETER} ${ASY_ASYLANG_TEST_ROOT}/run_asy_tests.py
+            --asy $<TARGET_FILE:asy>
+            --asy-base-dir=${ASY_BUILD_BASE_DIR}
+        WORKING_DIRECTORY ${ASY_ASYLANG_TEST_ROOT}
+)
+set_property(
+        TEST bundled.asy.checktests
+        PROPERTY LABELS asy-check-tests
+)
+
+set_property(
+        TARGET asy
+        APPEND
+        PROPERTY ADDITIONAL_CLEAN_FILES ${ASY_ASYLANG_TEST_SCRATCH_DIR}
+)
