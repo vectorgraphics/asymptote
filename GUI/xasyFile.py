@@ -9,7 +9,6 @@
 #
 ############################################################################
 
-from string import *
 import xasy2asy as xasy2asy
 import io
 import re
@@ -51,7 +50,6 @@ def extractTransform(line):
 
 def extractTransformsFromFile(fileStr):
     transfDict = {}
-    maxItemCount = 0
     with io.StringIO() as rawCode:
         for line in fileStr.splitlines():
             test_transf = extractTransform(line.rstrip())
@@ -127,9 +125,5 @@ def xasyToDict(file, xasyItems, asy2psmap):
                     'settings': item.arrowSettings,
                     'code': item.code
                     })
-
-        else:
-            # DEBUGGING PURPOSES ONLY
-            print(type(item))
 
     return {'objects': fileItems, 'asy2psmap': asy2psmap.t}, asyItems
