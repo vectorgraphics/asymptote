@@ -1676,7 +1676,7 @@ allows Labels and frames to be treated in a uniform manner.
 A group of objects may be packed together into single frame with the routine
 @cindex @code{pack}
 @verbatim
-frame pack(pair align=2S ... object inset[]);
+frame pack(pair align=2S, ... object inset[]);
 @end verbatim
 @noindent
 @anchor{envelope}
@@ -2363,7 +2363,7 @@ time(seconds()-24*60*60);
 if the setting @code{safe} is false, call the arbitrary system command @code{s};
 
 @cindex @code{asy}
-@item void asy(string format, bool overwrite=false ... string[] s)
+@item void asy(string format, bool overwrite=false, ... string[] s)
 conditionally process each file name in array @code{s} in a new environment,
 using format @code{format}, overwriting the output file only if
 @code{overwrite} is true;
@@ -4097,9 +4097,9 @@ Data of a built-in type @code{T} can be written to an output file by
 calling one of the functions
 @cindex @code{write}
 @verbatim
-write(string s="", T x, suffix suffix=endl ... T[]);
-write(file file, string s="", T x, suffix suffix=none ... T[]);
-write(file file=stdout, string s="", explicit T[] x ... T[][]);
+write(string s="", T x, suffix suffix=endl, ... T[]);
+write(file file, string s="", T x, suffix suffix=none, ... T[]);
+write(file file=stdout, string s="", explicit T[] x, ... T[][]);
 write(file file=stdout, T[][]);
 write(file file=stdout, T[][][]);
 write(suffix suffix=endl);
@@ -5092,7 +5092,7 @@ sum(1,2,3,4);                       // returns 10
 sum();                              // returns 0
 
 // This function subtracts subsequent arguments from the first.
-int subtract(int start ... int[] subs) {
+int subtract(int start, ... int[] subs) {
   for(int i=0; i < subs.length; ++i)
     start -= subs[i];
   return start;
@@ -5103,19 +5103,28 @@ subtract(10);                       // returns 10
 subtract();                         // illegal
 @end verbatim
 
+The comma before an ellipsis is optional, so that the following two
+declarations are equivalent:
+@verbatim
+int subtract(int start, ... int[] subs);
+int subtract(int start ... int[] subs);
+@end verbatim
+Note, however, that a comma cannot directly follow an open parenthesis:
+@code{int sum(, ... int[] nums)} is a syntax error.
+
 @cindex packing
 Putting an argument into a rest array is called @emph{packing}.
 One can give an explicit list of arguments for the rest
 argument, so @code{subtract} could alternatively be implemented as
 @verbatim
-int subtract(int start ... int[] subs) {
+int subtract(int start, ... int[] subs) {
   return start - sum(... subs);
 }
 @end verbatim
 
 One can even combine normal arguments with rest arguments:
 @verbatim
-sum(1,2,3 ... new int[] {4,5,6});   // returns 21
+sum(1,2,3, ... new int[] {4,5,6});   // returns 21
 @end verbatim
 @noindent
 @cindex unpacking
@@ -5137,7 +5146,7 @@ for the rest parameter to be assigned to other parameters.  For example, here
 the use of @code{keyword} is to avoid @code{pnorm(1.0,2.0,0.3)} matching
 @code{1.0} to @code{p}.
 @verbatim
-real pnorm(real keyword p=2.0 ... real[] v)
+real pnorm(real keyword p=2.0, ... real[] v)
 {
   return sum(v^p)^(1/p);
 }
@@ -5164,13 +5173,13 @@ g(3,4); // ambiguous; the first candidate is better for the first argument,
         // but the second candidate is better for the second argument
 
 int h(... int[] rest);
-int h(real x ... int[] rest);
+int h(real x, ... int[] rest);
 
 h(1,2); // the second definition matches, even though there is a cast,
         // because casting is preferred over packing
 
-int i(int x ... int[] rest);
-int i(real x, real y ... int[] rest);
+int i(int x, ... int[] rest);
+int i(real x, real y, ... int[] rest);
 
 i(3,4); // ambiguous; the first candidate is better for the first argument,
         // but the second candidate is better for the second one
@@ -5457,7 +5466,7 @@ Every array @code{A} of type @code{T[]} has the virtual members
 @item   @code{T push(T x)},
 @item   @code{void append(T[] a)},
 @item   @code{T pop()},
-@item   @code{void insert(int i ... T[] x)},
+@item   @code{void insert(int i, ... T[] x)},
 @item   @code{void delete(int i, int j=i)},
 @item   @code{void delete()}, and
 @item   @code{bool initialized(int n)}.
@@ -5475,7 +5484,7 @@ to @code{@{0,1,...,n-1@}}.  A new keys array is produced each time
 @code{A.keys} is evaluated.
 
 The functions @code{A.push} and @code{A.append} append their
-arguments onto the end of the array, while @code{A.insert(int i ... T[] x)}
+arguments onto the end of the array, while @code{A.insert(int i, ... T[] x)}
 inserts @code{x} into the array at index @code{i}.
 For convenience @code{A.push} returns the pushed item.
 The function @code{A.pop()} pops and returns the last element,
@@ -5499,7 +5508,7 @@ write(g());        // Outputs 3.
 A.delete(0);       // A now contains {2,1,2}.
 A.delete(0,1);       // A now contains {2}.
 A.insert(1,3);     // A now contains {2,3}.
-A.insert(1 ... A); // A now contains {2,2,3,3}
+A.insert(1, ... A); // A now contains {2,2,3,3}
 A.insert(2,4,5);   // A now contains {2,2,4,5,3,3}.
 @end verbatim
 
@@ -6262,7 +6271,7 @@ eval("import "+s,true);
 @cindex @code{asy}
 To conditionally execute an array of asy files, use
 @verbatim
-void asy(string format, bool overwrite ... string[] s);
+void asy(string format, bool overwrite, ... string[] s);
 @end verbatim
 The file will only be processed, using output format @code{format}, if
 overwrite is @code{true} or the output file is missing.
@@ -7482,7 +7491,7 @@ For convenience, the predefined tickmodifiers @code{OmitTick(... real[] x)},
 @code{OmitTickInterval(real a, real b)}, and
 @code{OmitTickIntervals(real[] a, real[] b)}
 can be used to remove specific auto-generated ticks and
-their labels. The @code{OmitFormat(string s=defaultformat ... real[] x)}
+their labels. The @code{OmitFormat(string s=defaultformat, ... real[] x)}
 ticklabel can be used to remove specific tick labels but not the
 corresponding ticks. The tickmodifier @code{NoZero} is an abbreviation for
 @code{OmitTick(0)} and the ticklabel @code{NoZeroFormat} is an
@@ -8034,7 +8043,7 @@ a linearly scaled intensity.
 a full color wheel palette;
 
 @cindex @code{Gradient}
-@item pen[] Gradient(int NColors=256 ... pen[] p)
+@item pen[] Gradient(int NColors=256, ... pen[] p)
 a palette varying linearly over the specified array of pens, using
 NColors in each interpolation interval;
 
@@ -9607,7 +9616,7 @@ use the routine:
 @cindex @code{Horizontal}
 @cindex @code{Vertical}
 @verbatim
-path path(pair point[] ... flowdir dir[]);
+path path(pair point[], ... flowdir dir[]);
 @end verbatim
 @noindent
 The entries in @code{dir} identify whether successive

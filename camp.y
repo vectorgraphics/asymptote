@@ -174,7 +174,7 @@ using mem::string;
 %type  <s>   stm stmexp blockstm
 %type  <run> forinit
 %type  <sel> forupdate stmexplist
-%type  <boo> explicitornot
+%type  <boo> explicitornot optionalcomma
 %type <tp> typeparam
 %type <tps> typeparamlist
 
@@ -275,6 +275,11 @@ dec:
                      ); }
 | FROM strid '(' decdeclist ')' ACCESS idpairlist ';'
                    { $$ = new fromaccessdec($1, $2.sym, $7, $4); }
+;
+
+optionalcomma:
+  ','              { $$ = true; }
+|                  { $$ = false; }
 ;
 
 // List mapping dec to dec as in "Key=string, Value=int"
@@ -421,8 +426,8 @@ formals:
 | ELLIPSIS formal  { $$ = new formals($1); $$->addRest($2); }
 | formals ',' formal
                    { $$ = $1; $$->add($3); }
-| formals ELLIPSIS formal
-                   { $$ = $1; $$->addRest($3); }
+| formals optionalcomma ELLIPSIS formal
+                   { $$ = $1; $$->addRest($4); }
 ;
 
 explicitornot:
@@ -515,8 +520,8 @@ arglist:
                    { $$ = new arglist(); $$->addRest($2); }
 | arglist ',' argument
                    { $$ = $1; $$->add($3); }
-| arglist ELLIPSIS argument
-                   { $$ = $1; $$->addRest($3); }
+| arglist optionalcomma ELLIPSIS argument
+                   { $$ = $1; $$->addRest($4); }
 ;
 
 /* A list of two or more expressions, separated by commas. */

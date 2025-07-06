@@ -59,18 +59,7 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
-      - name: Setup TeXLive Action
-        run: |
-          choco install texlive `
-            --params="'/collections:latex /scheme:basic /extraPackages:hypdoc,parskip,etoolbox,ocgx2,media9 /InstallationPath:C:/texlive/'" `
-            --timeout 7200
-      - name: Install ghostscript
-        uses: nick-fields/retry@v3
-        with:
-            timeout_minutes: 120
-            max_attempts: 5
-            shell: pwsh
-            command: choco install ghostscript --execution-timeout 7200
+      - uses: ./.github/actions/initialize-windows-latex-and-gs
       - name: Download configuration artifacts
         uses: actions/download-artifact@v4
         with:

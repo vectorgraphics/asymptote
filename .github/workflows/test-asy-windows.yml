@@ -30,13 +30,7 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
-      - name: Install ghostscript
-        uses: nick-fields/retry@v3
-        with:
-            timeout_minutes: 120
-            max_attempts: 5
-            shell: pwsh
-            command: choco install ghostscript --execution-timeout 7200
+      - uses: ./.github/actions/initialize-windows-latex-and-gs
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -48,4 +42,6 @@ jobs:
           name: asy-win-x64-testfiles
           path: cmake-build-msvc/release/
       - name: asy test
-        run: ctest --output-on-failure --test-dir cmake-build-msvc/release -L "asy-check-tests"
+        run: |
+          $env:PATH="C:/texlive/bin/windows/;$env:PATH"
+          ctest --output-on-failure --test-dir cmake-build-msvc/release -L "asy-check-tests"
