@@ -293,3 +293,14 @@ option(
         CMake will produce a warning instead of a fatal error."
         false
 )
+
+
+# asygl
+
+option(
+        USE_PREBUILT_WEBGL_LIB
+        "Use prebuilt asygl library corresponding to asygl-version (asygl-<version>.js in base/webgl directory).
+        If this option is turned off, one will need to manually build gl.js in webgl directory to complete the build
+        process."
+        true
+)
