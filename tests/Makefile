@@ -1,20 +1,16 @@
 .NOTPARALLEL:
 
-TESTDIRS = string arith frames types imp array pic gs io syntax template
-
-EXTRADIRS = gsl output
+TESTDIRS = $(wildcard */)
 
 test: $(TESTDIRS)
 
-all: $(TESTDIRS) $(EXTRADIRS)
-
 $(TESTDIRS)::
 	@echo
-	../asy -dir ../base $@/*.asy
+	../asy -dir ../base $@*.asy
 
 $(EXTRADIRS)::
 	@echo
-	../asy -dir ../base $@/*.asy
+	../asy -dir ../base $@*.asy
 
 clean:  FORCE
 	rm -f *.eps

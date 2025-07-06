@@ -1,6 +1,6 @@
 /* C++ interface to the XDR External Data Representation I/O routines
-   Version 1.46
-   Copyright (C) 1999-2007 John C. Bowman
+   Version 1.47
+   Copyright (C) 1999-2025 John C. Bowman and Supakorn "Jamie" Rassameemasmuang
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -16,27 +16,66 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
-#ifndef __xstream_h__
-#define __xstream_h__ 1
-
-#if defined(HAVE_LIBTIRPC)
+#pragma once
 
 #include <cstdio>
 #include <iostream>
 #include <vector>
 #include <cstdlib>
+
 #if defined(_WIN32)
 #include <fmem.h>
-#endif
-
-#include "xdrcommon.h"
-
-#if defined(_WIN32)
+#include "win32xdr.h"
 typedef __int64 OffsetType;
 #define fseeko _fseeki64
 #define ftello _ftelli64
+
 #else
-#define OffsetType off_t
+
+#ifndef _ALL_SOURCE
+#define _ALL_SOURCE 1
+#endif
+
+#include <cstdio>
+#include <vector>
+#include <algorithm>
+
+#include <sys/types.h>
+#include <rpc/types.h>
+
+typedef off_t OffsetType;
+
+#ifdef __APPLE__
+#include <rpc/xdr.h>
+
+inline bool_t xdr_long(XDR* __xdrs, long* __lp) {
+  return xdr_longlong_t(__xdrs, (long long*)__lp);
+}
+
+inline bool_t xdr_u_long(XDR* __xdrs, unsigned long* __lp) {
+  return xdr_u_longlong_t(__xdrs, (unsigned long long*) __lp);
+}
+
+#endif
+
+
+
+
+#if defined(__FreeBSD__)
+#include <sys/select.h>
+extern "C" int fseeko(FILE*, OffsetType, int);
+extern "C" OffsetType ftello(FILE*);
+extern "C" FILE * open_memstream(char**, size_t*);
+#endif
+
+#ifdef _POSIX_SOURCE
+#undef _POSIX_SOURCE
+#include <rpc/rpc.h>
+#define _POSIX_SOURCE
+#else
+#include <rpc/rpc.h>
+#endif
+
 #endif
 
 namespace xdr {
@@ -84,8 +123,11 @@ public:
   OffsetType tell();
 };
 
-#define IXSTREAM_DECL(T) ixstream& operator >> (T& x)
-#define OXSTREAM_DECL(T) oxstream& operator << (T x)
+#define IXSTREAM(T,N) ixstream& operator >> (T& x)      \
+  {if(!xdr_##N(&xdri, &x)) set(eofbit); return *this;}
+
+#define OXSTREAM(T,N) oxstream& operator << (T x)       \
+  {if(!xdr_##N(&xdro, &x)) set(badbit); return *this;}
 
 class ixstream : virtual public xstream {
 private:
@@ -106,19 +148,21 @@ public:
   typedef ixstream& (*imanip)(ixstream&);
   ixstream& operator >> (imanip func);
 
-  IXSTREAM_DECL(int);
-  IXSTREAM_DECL(unsigned int);
-  IXSTREAM_DECL(long);
-  IXSTREAM_DECL(unsigned long);
-  IXSTREAM_DECL(long long);
-  IXSTREAM_DECL(unsigned long long);
-  IXSTREAM_DECL(short);
-  IXSTREAM_DECL(unsigned short);
-  IXSTREAM_DECL(char);
-#ifndef _CRAY
-  IXSTREAM_DECL(unsigned char);
+  IXSTREAM(int16_t,int16_t);
+  IXSTREAM(uint16_t,u_int16_t);
+  IXSTREAM(int32_t,int32_t);
+  IXSTREAM(uint32_t,u_int32_t);
+  IXSTREAM(int64_t,int64_t);
+  IXSTREAM(uint64_t,u_int64_t);
+#ifdef __APPLE__
+  IXSTREAM(long,long);
+  IXSTREAM(unsigned long,u_long);
 #endif
-  IXSTREAM_DECL(float);
+  IXSTREAM(char,char);
+#ifndef _CRAY
+  IXSTREAM(unsigned char,u_char);
+#endif
+  IXSTREAM(float,float);
 
   ixstream& operator >> (double& x);
   ixstream& operator >> (xbyte& x);
@@ -148,22 +192,24 @@ public:
   typedef oxstream& (*omanip)(oxstream&);
   oxstream& operator << (omanip func);
 
-  OXSTREAM_DECL(int);
-  OXSTREAM_DECL(unsigned int);
-  OXSTREAM_DECL(long);
-  OXSTREAM_DECL(unsigned long);
-  OXSTREAM_DECL(long long);
-  OXSTREAM_DECL(unsigned long long);
-  OXSTREAM_DECL(short);
-  OXSTREAM_DECL(unsigned short);
-  OXSTREAM_DECL(char);
-#ifndef _CRAY
-  OXSTREAM_DECL(unsigned char);
+  OXSTREAM(int16_t,int16_t);
+  OXSTREAM(uint16_t,u_int16_t);
+  OXSTREAM(int32_t,int32_t);
+  OXSTREAM(uint32_t,u_int32_t);
+  OXSTREAM(int64_t,int64_t);
+  OXSTREAM(uint64_t,u_int64_t);
+#ifdef __APPLE__
+  OXSTREAM(long,long);
+  OXSTREAM(unsigned long,u_long);
 #endif
-  OXSTREAM_DECL(float);
+  OXSTREAM(char,char);
+
+#ifndef _CRAY
+  OXSTREAM(unsigned char,u_char);
+#endif
+  OXSTREAM(float,float);
 
   oxstream& operator << (double x);
-
   oxstream& operator << (xbyte x);
 };
 
@@ -212,13 +258,4 @@ public:
 oxstream& endl(oxstream& s);
 oxstream& flush(oxstream& s);
 
-#undef IXSTREAM_DECL
-#undef OXSTREAM_DECL
-
 }
-
-#undef quad_t
-
-#endif
-
-#endif

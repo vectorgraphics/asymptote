@@ -206,7 +206,7 @@ along with any format that the @code{ImageMagick} package can
 produce. You can even try it out in your Web browser without
 installing it, using the @code{Asymptote Web Application}
 
-@url{http://asymptote.ualberta.ca}
+@url{https://asymptote.ualberta.ca}
 
 It is also possible to send remote commands to this server via the
 curl utility (@pxref{Command-Line Interface}).
@@ -364,7 +364,7 @@ from @code{UNIX} source (@pxref{Compiling from UNIX source}).
 Alternatively, Debian users can install one of Hubert Chan's
 prebuilt @code{Asymptote} binaries from
 @quotation
-@url{http://ftp.debian.org/debian/pool/main/a/asymptote}
+@url{https://ftp.debian.org/debian/pool/main/a/asymptote}
 @end quotation
 
 @node MacOS X binary distributions
@@ -395,7 +395,7 @@ where @code{x.xx} denotes the latest version.
 
 A working @TeX{} implementation (we recommend
 @url{https://www.tug.org/texlive} or
-@url{http://www.miktex.org}) will be required to typeset labels.
+@url{https://miktex.org}) will be required to typeset labels.
 You will also need to install @code{GPL Ghostscript} version 9.56 or
 later from @url{https://www.ghostscript.com/}.
 
@@ -619,29 +619,6 @@ gunzip asymptote-x.xx.src.tgz
 tar -xf asymptote-x.xx.src.tar
 cd asymptote-x.xx
 @end verbatim
-By default the system version of the Boehm garbage collector will be
-used; if it is old we recommend first putting
-@url{https://github.com/ivmai/bdwgc/releases/download/v8.0.4/gc-8.0.4.tar.gz}
-@url{https://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-7.6.10.tar.gz}
-in the @code{Asymptote} source directory.
-
-On @code{UNIX} platforms (other than @code{MacOS X}), we recommend
-using version @code{3.2.1} of the @code{freeglut} library. To compile
-@code{freeglut}, download
-@quotation
-@url{https://prdownloads.sourceforge.net/freeglut/freeglut-3.2.1.tar.gz}
-@end quotation
-@noindent
-and type (as the root user):
-@verbatim
-gunzip freeglut-3.2.1.tar.gz
-tar -xf freeglut-3.2.1.tar
-cd freeglut-3.2.1
-cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_C_FLAGS=-fcommon .
-make
-make install
-@end verbatim
-@noindent
 
 Then compile @code{Asymptote} with the commands
 @verbatim
@@ -727,10 +704,10 @@ shows the available function prototypes for the command at the cursor.
 For full functionality you should also install the Apache Software Foundation
 package @code{two-mode-mode}:
 @quotation
-@url{https://www.dedasys.com/freesoftware/files/two-mode-mode.el}
+@url{https://github.com/erlyaws/yaws/blob/master/two-mode-mode.el}
 @end quotation
 @noindent
-Once installed, you can use the hybrid mode @code{lasy-mode} to edit a
+The hybrid mode @code{lasy-mode} can be used to edit a
 LaTeX file containing embedded @code{Asymptote} code (@pxref{LaTeX usage}).
 This mode can be enabled within @code{latex-mode}
 with the key sequence @code{M-x lasy-mode <RET>}.
@@ -1065,7 +1042,7 @@ See section @ref{graph} (or the online
 external links posted at @url{https://asymptote.sourceforge.io}) for
 further examples, including two-dimensional and interactive
 three-dimensional scientific graphs. Additional examples have been
-posted by Philippe Ivaldi at @url{https://web.archive.org/web/20201130113133/http://www.piprime.fr/asymptote}.
+posted by Philippe Ivaldi at @url{https://blog.piprime.fr/asymptote/}.
 
 @node Drawing commands
 @chapter Drawing commands
@@ -4165,31 +4142,36 @@ write(fout,"List: ",1,2,3);     // Writes "List: 1     2     3"
 @cindex @code{mode}
 @cindex @code{binary}
 @cindex @code{xdr}
-A file may be opened with @code{mode="xdr"}, to read or write
+A file may be opened with @code{mode="xdr"} to read or write
 double precision (64-bit) reals and single precision (32-bit)
 integers in Sun Microsystem's @acronym{XDR} (External
-Data Representation) portable binary format (available on all
-@code{UNIX} platforms).
-Alternatively, a file may also be opened with @code{mode="binary"}
+Data Representation) portable binary format.
+A file may instead be opened with @code{mode="binary"}
 to read or write double precision reals and single
-precision integers in the native (nonportable) machine binary format,
-or to read the entire file into a string.
+precision integers in the native (nonportable) machine binary format.
 The virtual member functions
 @code{file singlereal(bool b=true)} and @code{file singleint(bool b=true)}
-be used to change the precision of real and integer I/O
-operations, respectively, for an @acronym{XDR} or binary file @code{f}.
+may be used to change the precision of real and integer I/O
+operations, respectively, for an @acronym{XDR} or binary file.
 Similarly, the function @code{file signedint(bool b=true)}
 can be used to modify the signedness of integer reads and writes for
-an @acronym{XDR} or binary file @code{f}.
+an @acronym{XDR} or binary file.
+Since there are no end-of-line terminators in these formats,
+reading a string from an @acronym{XDR} or binary file will by default
+read in the remainder of the file as a string.
+The virtual member function @code{file word(bool b=true)}
+may be used to change this behaviour: a double precision integer
+specifying the length of the string is first read or written, followed
+by that many characters.
 
 @cindex @code{name}
 @cindex @code{mode}
 @cindex @code{singlereal}
 @cindex @code{singleint}
 @cindex @code{signedint}
-The virtual members @code{name}, @code{mode}, @code{singlereal},
-@code{singleint}, and @code{signedint} may be used to query the
-respective parameters for a given file.
+The virtual fields @code{name}, @code{mode}, @code{singlereal},
+@code{singleint}, and @code{signedint} may be used
+to query these respective states of a file.
 
 @cindex @code{eof}
 @cindex @code{eol}
@@ -5891,11 +5873,19 @@ real[] A=fin;
 reads real values into @code{A} until the end-of-file is reached (or an
 I/O error occurs).
 
-The virtual members @code{dimension}, @code{line}, @code{csv},
-@code{word}, and @code{read} of a file are useful for reading arrays.
 @cindex @code{line}
-For example, if line mode is set with @code{file line(bool b=true)}, then
-reading will stop once the end of the line is reached instead:
+@cindex @code{word}
+@cindex @code{csv}
+@cindex @code{dimension}
+@cindex @code{read}
+The virtual member functions @code{line()}, @code{word()}, @code{csv()},
+@code{dimension()}, and @code{read()} of a file are useful for qualifying
+array reads, while the virtual fields @code{line}, @code{word}, @code{csv},
+and @code{dimension} may be used to query these respective states.
+
+@cindex @code{line}
+If line mode is set with @code{file line(bool b=true)}, then
+reading will stop once the end of the line is reached:
 @verbatim
 file fin=input("test.txt");
 real[] A=fin.line();
@@ -5925,7 +5915,7 @@ real[] A=fin;
 
 @cindex @code{dimension}
 To restrict the number of values read, use the @code{file dimension(int)}
-function:
+virtual member function:
 @verbatim
 file fin=input("test.txt");
 real[] A=fin.dimension(10);
@@ -10215,7 +10205,7 @@ elements will be individually deconstructed (@pxref{add}).
 @cindex command-line interface
 
 @code{Asymptote} code may be sent to the
-@url{http://asymptote.ualberta.ca} server directly from the command
+@url{https://asymptote.ualberta.ca} server directly from the command
 line
 
 @itemize @bullet
@@ -10506,7 +10496,7 @@ Jeff Samuelson, Chris Savage, Jacques Pienaar, Mark Henning, Steve Melenchuk,
 Martin Wiebusch, Stefan Knorr, Supakorn ``Jamie'' Rassameemasmuang,
 Jacob Skitsko, Joseph Chaumont, and Oliver Cheng. Pedram Emami
 developed the @code{Asymptote Web Application} hosted at
-@url{http://asymptote.ualberta.ca}:
+@url{https://asymptote.ualberta.ca}:
 
 @url{https://github.com/vectorgraphics/asymptoteWebApplication}
 

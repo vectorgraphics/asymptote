@@ -60,10 +60,3 @@ jobs:
         run: python3 -m isort --sp=.isort.cfg --check $(cat idir/lintable-files.txt)
       - name: pylint check
         run: python3 -m pylint --rcfile=.pylintrc $(cat idir/lintable-files.txt)
-  check-no-missing-asy-tests:
-    runs-on: "ubuntu-22.04"
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - run: python3 scan-asy-tests-cmake.py --verify-no-missing-tests
