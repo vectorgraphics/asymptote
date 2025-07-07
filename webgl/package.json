@@ -12,7 +12,8 @@
     "prettier": "npx prettier src --check",
     "eslint": "npx eslint \"src/**\"",
     "build": "npx webpack --config webpack.prod.js",
-    "build-dev": "npx webpack --config webpack.dev.js"
+    "build-dev": "npx webpack --config webpack.dev.js",
+    "build-debug-nosourcemap": "npx webpack --config webpack.debug-no-sourcemap.js"
   },
 
   "devDependencies": {
