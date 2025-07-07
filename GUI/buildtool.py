@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import argparse
 import pathlib
+import re
 import sys
 import subprocess
 import shutil
 from typing import Optional
 
-from PyQt5.uic import compileUiDir
 import os
 
 BUILD_ROOT_DIRECTORY = pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
@@ -19,24 +19,38 @@ XASY_ICONS_MODULE_NAME = "xasyicons"
 PY_UI_FILE_DIR = BUILD_ROOT_DIRECTORY / "xasyqtui"
 PY_ICONS_FILE_DIR = BUILD_ROOT_DIRECTORY / XASY_ICONS_MODULE_NAME
 PY_VERSION_MODULE_DIR = BUILD_ROOT_DIRECTORY / "xasyversion"
-
-
-def _map_ui_file(_: str, fileName: str):
-    return str(PY_UI_FILE_DIR), fileName
+ICONS_RC_REGEX = re.compile(r"^import\s+icons_rc$")
 
 
 def make_init_py_at_dir(dir_name: pathlib.Path):
+    dir_name.mkdir(exist_ok=True)
     (dir_name / "__init__.py").touch(exist_ok=True)
 
 
-def build_ui():
-    compileUiDir(
-        "windows",
-        map=_map_ui_file,
-        from_imports=True,
-        import_from=XASY_ICONS_MODULE_NAME,
+def compile_ui_file(ui_file: pathlib.Path):
+    process_result = subprocess.run(
+        ["pyside6-uic", str(ui_file)],
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
     )
+    with open(
+        PY_UI_FILE_DIR / ui_file.with_suffix(".py").name, "w", encoding="utf-8"
+    ) as f:
+        for line in process_result.stdout.splitlines():
+            if ICONS_RC_REGEX.match(line.strip()) is not None:
+                f.write("from xasyicons import icons_rc")
+            else:
+                f.write(line)
+            f.write("\n")
+
+
+def build_ui():
     make_init_py_at_dir(PY_UI_FILE_DIR)
+    windows_dir = BUILD_ROOT_DIRECTORY / "windows"
+    for ui_file in windows_dir.glob("*.ui"):
+        compile_ui_file(ui_file)
 
 
 def build_icons():
@@ -44,7 +58,7 @@ def build_icons():
     make_init_py_at_dir(PY_ICONS_FILE_DIR)
     subprocess.run(
         [
-            "pyrcc5",
+            "pyside6-rcc",
             str(BUILD_ROOT_DIRECTORY / "res" / "icons.qrc"),
             "-o",
             str(PY_ICONS_FILE_DIR / "icons_rc.py"),
