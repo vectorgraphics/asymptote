@@ -372,6 +372,7 @@ cleaner: FORCE clean
 	-rm -rf __pycache__
 	-rm -rf GUI/__pycache__
 	-rm -rf GUI/configs/__pycache__
+	-rm -rf GUI/xasyicons GUI/xasyqtui GUI/xasyversion
 	-$(MAKE) -C $(GC) distclean
 	-$(MAKE) -C libatomic_ops distclean
 	-cd $(GC) && rm -rf libatomic_ops .deps cord/.deps \
