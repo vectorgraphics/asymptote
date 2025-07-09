@@ -851,18 +851,18 @@ public:
 class ogzxfile : public oxfile {
   string name;
   bool destroyed;
-  xdr::memoxstream memxdrfile;
 public:
-  ogzxfile(const string& name) : oxfile(name),
+  xdr::memoxstream memxdrfile;
+
+  ogzxfile(const string& name, bool singleprecision=false) : oxfile(name),
                                  name(name),
                                  destroyed(false),
-                                 memxdrfile() {}
+                                 memxdrfile(singleprecision) {}
 
   void open() override {
     fstream=&memxdrfile;
   }
 
- protected:
   void close() override;
 
   ~ogzxfile() override {close();}

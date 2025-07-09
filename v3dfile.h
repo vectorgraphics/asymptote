@@ -24,6 +24,7 @@
 #include "v3dtypes.h"
 #undef transform
 #include "v3dheadertypes.h"
+#include "fileio.h"
 
 namespace camp
 {
@@ -160,9 +161,8 @@ protected:
   xdr::oxstream& getXDRFile() override;
 
 private:
-  xdr::memoxstream memxdrfile;
+  camp::ogzxfile memfile;
   string name;
-  bool destroyed;
   void close() override;
 };
 
