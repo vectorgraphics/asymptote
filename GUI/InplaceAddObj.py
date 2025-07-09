@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-import PyQt5.QtCore as QtCore
-import PyQt5.QtGui as QtGui
+import PySide6.QtCore as QtCore
+import PySide6.QtGui as QtGui
 import xasy2asy as xasy2asy
 
 import PrimitiveShape
@@ -12,13 +12,19 @@ import Widg_addLabel
 
 
 class InplaceObjProcess(QtCore.QObject):
-    objectCreated = QtCore.pyqtSignal(QtCore.QObject)
-    objectUpdated = QtCore.pyqtSignal()
+    objectCreated = QtCore.Signal(QtCore.QObject)
+    objectUpdated = QtCore.Signal()
+    object_created_connection = None
+
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._active = False
-        pass
+
+    def connect_created_signal(self, handler):
+        if self.object_created_connection is not None:
+            self.objectCreated.disconnect(self.object_created_connection)
+        self.object_created_connection = self.objectCreated.connect(handler)
 
     @property
     def active(self):
@@ -186,7 +192,8 @@ class AddBezierShape(InplaceObjProcess):
             self.pointsList.append((x, y, None))
         else:
             # see http://doc.qt.io/archives/qt-4.8/qt.html#MouseButton-enum
-            if (int(mouseEvent.buttons()) if mouseEvent is not None else 0) & 0x2 and self.useLegacy:
+            mouseClicked = mouseEvent is not None and mouseEvent.buttons() & QtCore.Qt.MouseButton.RightButton
+            if mouseClicked and self.useLegacy:
                 self.forceFinalize()
 
     def _getLinkType(self):
@@ -200,7 +207,7 @@ class AddBezierShape(InplaceObjProcess):
         if self._active:
             x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
 
-            if self.useLegacy or int(event.buttons()) != 0:
+            if self.useLegacy or (event.buttons() & QtCore.Qt.MouseButton.AllButtons):
                 self.currentPoint.setX(x)
                 self.currentPoint.setY(y)
             else:
@@ -264,11 +271,11 @@ class AddBezierShape(InplaceObjProcess):
         return self.basePath
 
     def getPreview(self):
-        if self._active:
-            if self.pointsList:
-                self.updateBasePathPreview()
-                newPath = self.basePathPreview.toQPainterPath()
-                return newPath
+        if self._active and self.pointsList:
+            self.updateBasePathPreview()
+            newPath = self.basePathPreview.toQPainterPath()
+            return newPath
+        return None
 
     def getXasyObject(self):
         if self.fill:
@@ -395,7 +402,8 @@ class AddFreehand(InplaceObjProcess):
             self.pointsList.append((x, y, None))
         else:
             # see http://doc.qt.io/archives/qt-4.8/qt.html#MouseButton-enum
-            if (int(mouseEvent.buttons()) if mouseEvent is not None else 0) & 0x2 and self.useLegacy:
+            isRightClicked = mouseEvent is not None and mouseEvent.buttons() & QtGui.Qt.MouseButton.RightButton
+            if isRightClicked and self.useLegacy:
                 self.forceFinalize()
 
     def _getLinkType(self):
@@ -409,7 +417,7 @@ class AddFreehand(InplaceObjProcess):
         if self._active:
             x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
 
-            if self.useLegacy or int(event.buttons()) != 0:
+            if self.useLegacy or event.buttons() & QtCore.Qt.MouseButton.AllButtons:
                 self.currentPoint.setX(x)
                 self.currentPoint.setY(y)
                 self.pointsList.append((x, y, self._getLinkType()))
@@ -460,11 +468,10 @@ class AddFreehand(InplaceObjProcess):
         return self.basePath
 
     def getPreview(self):
-        if self._active:
-            if self.pointsList:
-                self.updateBasePathPreview()
-                newPath = self.basePathPreview.toQPainterPath()
-                return newPath
+        if self._active and self.pointsList:
+            self.updateBasePathPreview()
+            return self.basePathPreview.toQPainterPath()
+        return None
 
     def getXasyObject(self):
         self.fill = False
