@@ -240,7 +240,7 @@ along with any format that the @code{ImageMagick} package can
 produce. You can even try it out in your Web browser without
 installing it, using the @code{Asymptote Web Application}
 
-@url{http://asymptote.ualberta.ca}
+@url{https://asymptote.ualberta.ca}
 
 It is also possible to send remote commands to this server via the
 curl utility (@pxref{Command-Line Interface}).
@@ -398,7 +398,7 @@ from @code{UNIX} source (@pxref{Compiling from UNIX source}).
 Alternatively, Debian users can install one of Hubert Chathi's
 prebuilt @code{Asymptote} binaries from
 @quotation
-@url{http://ftp.debian.org/debian/pool/main/a/asymptote}
+@url{https://ftp.debian.org/debian/pool/main/a/asymptote}
 @end quotation
 
 @node MacOS X binary distributions
@@ -429,7 +429,7 @@ where @code{x.xx} denotes the latest version.
 
 A working @TeX{} implementation (we recommend
 @url{https://www.tug.org/texlive} or
-@url{http://www.miktex.org}) will be required to typeset labels.
+@url{https://miktex.org}) will be required to typeset labels.
 You will also need to install @code{GPL Ghostscript} version 9.56 or
 later from @url{https://www.ghostscript.com/}.
 
@@ -652,29 +652,6 @@ gunzip asymptote-x.xx.src.tgz
 tar -xf asymptote-x.xx.src.tar
 cd asymptote-x.xx
 @end verbatim
-By default the system version of the Boehm garbage collector will be
-used; if it is old we recommend first putting
-@url{https://github.com/ivmai/bdwgc/releases/download/v8.0.4/gc-8.0.4.tar.gz}
-@url{https://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-7.6.10.tar.gz}
-in the @code{Asymptote} source directory.
-
-On @code{UNIX} platforms (other than @code{MacOS X}), we recommend
-using version @code{3.2.1} of the @code{freeglut} library. To compile
-@code{freeglut}, download
-@quotation
-@url{https://prdownloads.sourceforge.net/freeglut/freeglut-3.2.1.tar.gz}
-@end quotation
-@noindent
-and type (as the root user):
-@verbatim
-gunzip freeglut-3.2.1.tar.gz
-tar -xf freeglut-3.2.1.tar
-cd freeglut-3.2.1
-cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_C_FLAGS=-fcommon .
-make
-make install
-@end verbatim
-@noindent
 
 Then compile @code{Asymptote} with the commands
 @verbatim
@@ -760,10 +737,10 @@ shows the available function prototypes for the command at the cursor.
 For full functionality you should also install the Apache Software Foundation
 package @code{two-mode-mode}:
 @quotation
-@url{https://www.dedasys.com/freesoftware/files/two-mode-mode.el}
+@url{https://github.com/erlyaws/yaws/blob/master/two-mode-mode.el}
 @end quotation
 @noindent
-Once installed, you can use the hybrid mode @code{lasy-mode} to edit a
+The hybrid mode @code{lasy-mode} can be used to edit a
 LaTeX file containing embedded @code{Asymptote} code (@pxref{LaTeX usage}).
 This mode can be enabled within @code{latex-mode}
 with the key sequence @code{M-x lasy-mode <RET>}.
@@ -1097,7 +1074,7 @@ See section @ref{graph} (or the online
 external links posted at @url{https://asymptote.sourceforge.io}) for
 further examples, including two-dimensional and interactive
 three-dimensional scientific graphs. Additional examples have been
-posted by Philippe Ivaldi at @url{https://web.archive.org/web/20201130113133/http://www.piprime.fr/asymptote}.
+posted by Philippe Ivaldi at @url{https://blog.piprime.fr/asymptote/}.
 
 @node Drawing commands
 @chapter Drawing commands
@@ -1731,7 +1708,7 @@ allows Labels and frames to be treated in a uniform manner.
 A group of objects may be packed together into single frame with the routine
 @cindex @code{pack}
 @verbatim
-frame pack(pair align=2S ...object inset[]);
+frame pack(pair align=2S, ... object inset[]);
 @end verbatim
 @noindent
 @anchor{envelope}
@@ -2422,7 +2399,7 @@ time(seconds()-24*60*60);
 if the setting @code{safe} is false, call the arbitrary system command @code{s};
 
 @cindex @code{asy}
-@item void asy(string format, bool overwrite=false ...string[] s)
+@item void asy(string format, bool overwrite=false, ... string[] s)
 conditionally process each file name in array @code{s} in a new environment,
 using format @code{format}, overwriting the output file only if
 @code{overwrite} is true;
@@ -4156,9 +4133,9 @@ Data of a built-in type @code{T} can be written to an output file by
 calling one of the functions
 @cindex @code{write}
 @verbatim
-write(string s="", T x, suffix suffix=endl ...T[]);
-write(file file, string s="", T x, suffix suffix=none ...T[]);
-write(file file=stdout, string s="", explicit T[] x ...T[][]);
+write(string s="", T x, suffix suffix=endl, ... T[]);
+write(file file, string s="", T x, suffix suffix=none, ... T[]);
+write(file file=stdout, string s="", explicit T[] x, ... T[][]);
 write(file file=stdout, T[][]);
 write(file file=stdout, T[][][]);
 write(suffix suffix=endl);
@@ -4201,31 +4178,36 @@ write(fout,"List: ",1,2,3);     // Writes "List: 1     2     3"
 @cindex @code{mode}
 @cindex @code{binary}
 @cindex @code{xdr}
-A file may be opened with @code{mode="xdr"}, to read or write
+A file may be opened with @code{mode="xdr"} to read or write
 double precision (64-bit) reals and single precision (32-bit)
 integers in Sun Microsystem's @acronym{XDR} (External
-Data Representation) portable binary format (available on all
-@code{UNIX} platforms).
-Alternatively, a file may also be opened with @code{mode="binary"}
+Data Representation) portable binary format.
+A file may instead be opened with @code{mode="binary"}
 to read or write double precision reals and single
-precision integers in the native (nonportable) machine binary format,
-or to read the entire file into a string.
+precision integers in the native (nonportable) machine binary format.
 The virtual member functions
 @code{file singlereal(bool b=true)} and @code{file singleint(bool b=true)}
-be used to change the precision of real and integer I/O
-operations, respectively, for an @acronym{XDR} or binary file @code{f}.
+may be used to change the precision of real and integer I/O
+operations, respectively, for an @acronym{XDR} or binary file.
 Similarly, the function @code{file signedint(bool b=true)}
 can be used to modify the signedness of integer reads and writes for
-an @acronym{XDR} or binary file @code{f}.
+an @acronym{XDR} or binary file.
+Since there are no end-of-line terminators in these formats,
+reading a string from an @acronym{XDR} or binary file will by default
+read in the remainder of the file as a string.
+The virtual member function @code{file word(bool b=true)}
+may be used to change this behaviour: a double precision integer
+specifying the length of the string is first read or written, followed
+by that many characters.
 
 @cindex @code{name}
 @cindex @code{mode}
 @cindex @code{singlereal}
 @cindex @code{singleint}
 @cindex @code{signedint}
-The virtual members @code{name}, @code{mode}, @code{singlereal},
-@code{singleint}, and @code{signedint} may be used to query the
-respective parameters for a given file.
+The virtual fields @code{name}, @code{mode}, @code{singlereal},
+@code{singleint}, and @code{signedint} may be used
+to query these respective states of a file.
 
 @cindex @code{eof}
 @cindex @code{eol}
@@ -5211,7 +5193,7 @@ sum(1,2,3,4);                       // returns 10
 sum();                              // returns 0
 
 // This function subtracts subsequent arguments from the first.
-int subtract(int start ...int[] subs) {
+int subtract(int start, ... int[] subs) {
   for(int i=0; i < subs.length; ++i)
     start -= subs[i];
   return start;
@@ -5222,19 +5204,28 @@ subtract(10);                       // returns 10
 subtract();                         // illegal
 @end verbatim
 
+The comma before an ellipsis is optional, so that the following two
+declarations are equivalent:
+@verbatim
+int subtract(int start, ... int[] subs);
+int subtract(int start ... int[] subs);
+@end verbatim
+Note, however, that a comma cannot directly follow an open parenthesis:
+@code{int sum(, ... int[] nums)} is a syntax error.
+
 @cindex packing
 Putting an argument into a rest array is called @emph{packing}.
 One can give an explicit list of arguments for the rest
 argument, so @code{subtract} could alternatively be implemented as
 @verbatim
-int subtract(int start ...int[] subs) {
-  return start - sum(...subs);
+int subtract(int start, ... int[] subs) {
+  return start - sum(... subs);
 }
 @end verbatim
 
 One can even combine normal arguments with rest arguments:
 @verbatim
-sum(1,2,3 ...new int[] {4,5,6});   // returns 21
+sum(1,2,3, ... new int[] {4,5,6});   // returns 21
 @end verbatim
 @noindent
 @cindex unpacking
@@ -5256,7 +5247,7 @@ for the rest parameter to be assigned to other parameters.  For example, here
 the use of @code{keyword} is to avoid @code{pnorm(1.0,2.0,0.3)} matching
 @code{1.0} to @code{p}.
 @verbatim
-real pnorm(real keyword p=2.0 ...real[] v)
+real pnorm(real keyword p=2.0, ... real[] v)
 {
   return sum(v^p)^(1/p);
 }
@@ -5282,14 +5273,14 @@ int g(real x, int x);
 g(3,4); // ambiguous; the first candidate is better for the first argument,
         // but the second candidate is better for the second argument
 
-int h(...int[] rest);
-int h(real x ...int[] rest);
+int h(... int[] rest);
+int h(real x, ... int[] rest);
 
 h(1,2); // the second definition matches, even though there is a cast,
         // because casting is preferred over packing
 
-int i(int x ...int[] rest);
-int i(real x, real y ...int[] rest);
+int i(int x, ... int[] rest);
+int i(real x, real y, ... int[] rest);
 
 i(3,4); // ambiguous; the first candidate is better for the first argument,
         // but the second candidate is better for the second one
@@ -5600,7 +5591,7 @@ Every array @code{A} of type @code{T[]} has the virtual members
 @item   @code{T push(T x)},
 @item   @code{void append(T[] a)},
 @item   @code{T pop()},
-@item   @code{void insert(int i ...T[] x)},
+@item   @code{void insert(int i, ... T[] x)},
 @item   @code{void delete(int i, int j=i)},
 @item   @code{void delete()}, and
 @item   @code{bool initialized(int n)}.
@@ -5618,7 +5609,7 @@ to @code{@{0,1,...,n-1@}}.  A new keys array is produced each time
 @code{A.keys} is evaluated.
 
 The functions @code{A.push} and @code{A.append} append their
-arguments onto the end of the array, while @code{A.insert(int i ...T[] x)}
+arguments onto the end of the array, while @code{A.insert(int i, ... T[] x)}
 inserts @code{x} into the array at index @code{i}.
 For convenience @code{A.push} returns the pushed item.
 The function @code{A.pop()} pops and returns the last element,
@@ -5642,7 +5633,7 @@ write(g());        // Outputs 3.
 A.delete(0);       // A now contains {2,1,2}.
 A.delete(0,1);       // A now contains {2}.
 A.insert(1,3);     // A now contains {2,3}.
-A.insert(1 ...A); // A now contains {2,2,3,3}
+A.insert(1, ... A); // A now contains {2,2,3,3}
 A.insert(2,4,5);   // A now contains {2,2,4,5,3,3}.
 @end verbatim
 
@@ -6007,11 +5998,19 @@ real[] A=fin;
 reads real values into @code{A} until the end-of-file is reached (or an
 I/O error occurs).
 
-The virtual members @code{dimension}, @code{line}, @code{csv},
-@code{word}, and @code{read} of a file are useful for reading arrays.
 @cindex @code{line}
-For example, if line mode is set with @code{file line(bool b=true)}, then
-reading will stop once the end of the line is reached instead:
+@cindex @code{word}
+@cindex @code{csv}
+@cindex @code{dimension}
+@cindex @code{read}
+The virtual member functions @code{line()}, @code{word()}, @code{csv()},
+@code{dimension()}, and @code{read()} of a file are useful for qualifying
+array reads, while the virtual fields @code{line}, @code{word}, @code{csv},
+and @code{dimension} may be used to query these respective states.
+
+@cindex @code{line}
+If line mode is set with @code{file line(bool b=true)}, then
+reading will stop once the end of the line is reached:
 @verbatim
 file fin=input("test.txt");
 real[] A=fin.line();
@@ -6041,7 +6040,7 @@ real[] A=fin;
 
 @cindex @code{dimension}
 To restrict the number of values read, use the @code{file dimension(int)}
-function:
+virtual member function:
 @verbatim
 file fin=input("test.txt");
 real[] A=fin.dimension(10);
@@ -6408,7 +6407,7 @@ eval('import '+s,true);
 @cindex @code{asy}
 To conditionally execute an array of asy files, use
 @verbatim
-void asy(string format, bool overwrite ...string[] s);
+void asy(string format, bool overwrite, ... string[] s);
 @end verbatim
 The file will only be processed, using output format @code{format}, if
 overwrite is @code{true} or the output file is missing.
@@ -8997,7 +8996,7 @@ For convenience, the predefined tickmodifiers @code{OmitTick(...real[] x)},
 @code{OmitTickInterval(real a, real b)}, and
 @code{OmitTickIntervals(real[] a, real[] b)}
 can be used to remove specific auto-generated ticks and
-their labels. The @code{OmitFormat(string s=defaultformat ...real[] x)}
+their labels. The @code{OmitFormat(string s=defaultformat, ... real[] x)}
 ticklabel can be used to remove specific tick labels but not the
 corresponding ticks. The tickmodifier @code{NoZero} is an abbreviation for
 @code{OmitTick(0)} and the ticklabel @code{NoZeroFormat} is an
@@ -9549,7 +9548,7 @@ a linearly scaled intensity.
 a full color wheel palette;
 
 @cindex @code{Gradient}
-@item pen[] Gradient(int NColors=256 ...pen[] p)
+@item pen[] Gradient(int NColors=256, ... pen[] p)
 a palette varying linearly over the specified array of pens, using
 NColors in each interpolation interval;
 
@@ -11122,7 +11121,7 @@ use the routine:
 @cindex @code{Horizontal}
 @cindex @code{Vertical}
 @verbatim
-path path(pair point[] ...flowdir dir[]);
+path path(pair point[], ... flowdir dir[]);
 @end verbatim
 @noindent
 The entries in @code{dir} identify whether successive
@@ -11652,11 +11651,11 @@ The modified figure can then be saved as a normal @code{Asymptote} file.
 
 As @code{xasy} is written in the interactive scripting language
 @code{Python/Qt}, it requires @code{Python} (@url{https://www.python.org}),
-along with the @code{Python} packages @code{pyqt5}, @code{cson}, and
+along with the @code{Python} packages @code{PySide6}, @code{cson}, and
 @code{numpy}:
 
 @verbatim
-pip3 install cson numpy pyqt5 PyQt5.sip
+pip3 install cson numpy PySide6
 @end verbatim
 
 Pictures are deconstructed into the @acronym{SVG} image format.
@@ -11708,7 +11707,7 @@ elements will be individually deconstructed (@pxref{add}).
 @cindex command-line interface
 
 @code{Asymptote} code may be sent to the
-@url{http://asymptote.ualberta.ca} server directly from the command
+@url{https://asymptote.ualberta.ca} server directly from the command
 line
 
 @itemize @bullet
@@ -11999,7 +11998,7 @@ Jeff Samuelson, Chris Savage, Jacques Pienaar, Mark Henning, Steve Melenchuk,
 Martin Wiebusch, Stefan Knorr, Supakorn ``Jamie'' Rassameemasmuang,
 Jacob Skitsko, Joseph Chaumont, and Oliver Cheng. Pedram Emami
 developed the @code{Asymptote Web Application} hosted at
-@url{http://asymptote.ualberta.ca}:
+@url{https://asymptote.ualberta.ca}:
 
 @url{https://github.com/vectorgraphics/asymptoteWebApplication}
 
@@ -12223,7 +12222,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  findall ax 5a centers 5E 5cm 2N 2E 2n HTML5 html 3x
 @c  LocalWords:  logo3 remeshed css 42kB 100d 5z 5y 5unit colored Qt5
 @c  LocalWords:  behavior beveled usetriangles htmlviewerOptions cson
-@c  LocalWords:  144x144 pyqt5 numpy pip3 PyQt5 rsvg librsvg2 1filll
+@c  LocalWords:  144x144 PySide6 numpy pip3 rsvg librsvg2 1filll
 @c  LocalWords:  librsvg Supakorn Jamie'' Rassameemasmuang 2D Docdir
 @c  LocalWords:  microsoft 'load 'asy 'lasy 'auto dep 4g isometry 5x
 @c  LocalWords:  5bp 1cm BezierPatch 2S 100pt 3t abs2 12pt cp1251 5mm

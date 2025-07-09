@@ -190,8 +190,23 @@ trans::varEntry *primitiveTy::virtualField(symbol id, signature *sig)
   return 0;
 }
 
-ty *ty::keyType() {
+ty *ty::keyType()
+{
   return primError();
+}
+
+ty *overloadedDimensionType() {
+  overloaded *o=new overloaded;
+  o->add(dimensionType());
+  o->add(IntArray());
+  return o;
+}
+
+ty *overloadedModeType() {
+  overloaded *o=new overloaded;
+  o->add(modeType());
+  o->add(primBoolean());
+  return o;
 }
 
 ty *ty::virtualFieldGetType(symbol id)
@@ -210,12 +225,12 @@ ty *primitiveTy::virtualFieldGetType(symbol id)
 
   if(kind == ty_file) {
     if (id == SYM(dimension))
-      return dimensionType();
+      return overloadedDimensionType();
 
     if (id == SYM(line) || id == SYM(csv) ||
         id == SYM(word) || id == SYM(singlereal) ||
         id == SYM(singleint) || id == SYM(signedint))
-      return modeType();
+      return overloadedModeType();
 
     if (id == SYM(read))
       return readType();
@@ -407,7 +422,7 @@ string toString(const signature& s)
 
   if (s.rest.t) {
     if (!s.formals.empty())
-      out << " ";
+      out << ", ";
     out << "... " << s.rest;
   }
 
@@ -440,7 +455,7 @@ bool equivalent(const signature *s1, const signature *s2)
   // Handle null signature
   if (s1 == 0 || s2 == 0)
     return false;
-  
+
   // Two open signatures are always equivalent, as the formals are ignored.
   if (s1->isOpen)
     return s2->isOpen;
