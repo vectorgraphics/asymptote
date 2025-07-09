@@ -25,6 +25,18 @@ void w32_xdrmem_create(
   xdrs->fileMode = op;
 }
 
+size_t w32_xdr_getpos(Win32XDR* xdrs) {
+  return xdrs->nonFileMem.dataCursor-xdrs->nonFileMem.data;
+}
+
+bool w32_xdr_setpos(Win32XDR* xdrs, size_t pos) {
+  if(pos <= xdrs->nonFileMem.memSize) {
+    xdrs->nonFileMem.dataCursor=xdrs->nonFileMem.data+pos;
+    return true;
+  }
+  return false;
+}
+
 bool w32_xdr_int16_t(Win32XDR* xdrs, int16_t* ip)
 {
   return w32_xdr_u_int16_t(xdrs, reinterpret_cast<uint16_t*>(ip));

@@ -1,5 +1,5 @@
 /* C++ interface to the XDR External Data Representation I/O routines
-   Version 1.47
+   Version 1.48
    Copyright (C) 1999-2025 John C. Bowman and Supakorn "Jamie" Rassameemasmuang
 
    This program is free software; you can redistribute it and/or modify
@@ -118,9 +118,9 @@ public:
 
   void precision(int);
 
-  xstream& seek(OffsetType pos, seekdir dir=beg);
+  virtual xstream& seek(OffsetType pos, seekdir dir=beg);
 
-  OffsetType tell();
+  virtual OffsetType tell();
 };
 
 #define IXSTREAM(T,N) ixstream& operator >> (T& x)      \
@@ -165,7 +165,7 @@ public:
   IXSTREAM(float,float);
 
   ixstream& operator >> (double& x);
-  ixstream& operator >> (xbyte& x);
+  virtual ixstream& operator >> (xbyte& x);
 };
 
 class oxstream : virtual public xstream {
@@ -231,7 +231,10 @@ public:
 
 class memixstream: public ixstream
 {
+  char *data;
+  size_t length;
 public:
+
   memixstream(char* data, size_t length, bool singleprecision=false);
 
   explicit memixstream(std::vector<char>& data, bool singleprecision=false);
@@ -241,6 +244,12 @@ public:
   void close() override;
 
   void open(const char *filename, open_mode = in) override;
+
+  xstream& seek(OffsetType pos, seekdir dir=beg) override;
+
+  OffsetType tell() override;
+
+  ixstream& operator>>(xbyte& x) override;
 };
 
 class ioxstream : public ixstream, public oxstream {
