@@ -41,8 +41,8 @@ namespace camp {
 extern string tab;
 extern string newline;
 
-enum Mode {NOMODE,INPUT,OUTPUT,UPDATE,BINPUT,BOUTPUT,BUPDATE,XINPUT,XINPUTGZ,
-           XOUTPUT,XUPDATE,OPIPE};
+enum Mode {NOMODE,INPUT,OUTPUT,UPDATE,BINPUT,BOUTPUT,BUPDATE,
+  XINPUT,XOUTPUT,XUPDATE,OPIPE};
 
 static const string FileModes[]=
 {"none","input","output","output(update)",
@@ -474,6 +474,7 @@ public:
       iread(n);
     else
       n=SIZE_MAX;
+    val="";
     string s;
     for(size_t i=0; i < n; ++i) {
       char c;
@@ -771,6 +772,7 @@ private:
 };
 
 class oxfile : public file {
+protected:
   xdr::oxstream *fstream;
 public:
   oxfile(const string& name) : file(name,true,XOUTPUT), fstream(NULL) {}
@@ -844,6 +846,26 @@ public:
     write(val.gety());
     write(val.getz());
   }
+};
+
+class ogzxfile : public oxfile {
+  string name;
+  bool destroyed;
+public:
+  xdr::memoxstream memxdrfile;
+
+  ogzxfile(const string& name, bool singleprecision=false) : oxfile(name),
+                                 name(name),
+                                 destroyed(false),
+                                 memxdrfile(singleprecision) {}
+
+  void open() override {
+    fstream=&memxdrfile;
+  }
+
+  void close() override;
+
+  ~ogzxfile() override {close();}
 };
 
 #endif

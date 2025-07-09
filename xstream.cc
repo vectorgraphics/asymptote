@@ -117,6 +117,7 @@ ixstream& ixstream::operator>>(double& x)
     if(!xdr_double(&xdri, &x)) set(eofbit);
   return *this;
 }
+
 ixstream& ixstream::operator>>(xbyte& x)
 {
   int c=fgetc(buf);
@@ -262,7 +263,7 @@ std::vector<uint8_t> memoxstream::createCopyOfCurrentData() {
 
 // memixstream
 memixstream::memixstream(char* data, size_t length, bool singleprecision)
-  : ixstream(singleprecision)
+  : ixstream(singleprecision), data(data), length(length)
 {
   xdrmem_create(&xdri,data,length,XDR_DECODE);
 }
@@ -282,6 +283,27 @@ void memixstream::close()
 
 void memixstream::open(const char* filename, open_mode openMode)
 {
+}
+
+xstream& memixstream::seek(OffsetType pos, seekdir dir) {
+  clear();
+  if(!xdr_setpos(&xdri,pos))
+    set(eofbit);
+  return *this;
+}
+
+OffsetType memixstream::tell() {
+  return xdr_getpos(&xdri);
+}
+
+ixstream& memixstream::operator>>(xbyte& x)
+{
+  size_t position=tell();
+  if(position < length) {
+    x=data[position++];
+    seek(position);
+  } else set(eofbit);
+  return *this;
 }
 
 // ioxstream
