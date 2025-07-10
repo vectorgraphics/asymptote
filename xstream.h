@@ -231,32 +231,36 @@ public:
 
 class memixstream: public ixstream
 {
-  char *data;
-  size_t length;
 public:
 
-  memixstream(char* data, size_t length, bool singleprecision=false);
+  memixstream(uint8_t* data, size_t length, bool singleprecision=false);
 
-  explicit memixstream(std::vector<char>& data, bool singleprecision=false);
+  explicit memixstream(std::vector<uint8_t>& data, bool singleprecision=false);
+
+  void open(const char *filename, open_mode = in) override {};
+
+  void close() override {};
 
   ~memixstream() override;
 
-  void close() override;
-
-  void open(const char *filename, open_mode = in) override;
-
+#if defined(_WIN32)
+private:
+  uint8_t* data;
+  size_t length;
+public:
   xstream& seek(OffsetType pos, seekdir dir=beg) override;
 
   OffsetType tell() override;
 
   ixstream& operator>>(xbyte& x) override;
+#endif
 };
 
 class ioxstream : public ixstream, public oxstream {
 public:
   void open(const char *filename, open_mode mode=out) override;
 
-  void close() override;
+  virtual void close() override;
 
   ioxstream();
   ioxstream(const char *filename);
