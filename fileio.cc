@@ -430,7 +430,7 @@ void igzxfile::open()
   Check();
 
   while(!gzeof(gzfile)) {
-    std::vector<char> tmpBuf(readSize);
+    std::vector<uint8_t> tmpBuf(readSize);
     auto filSz = gzread(gzfile,tmpBuf.data(),readSize);
     std::copy(tmpBuf.begin(),tmpBuf.begin()+filSz,std::back_inserter(readData));
   }
