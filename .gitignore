@@ -2,6 +2,7 @@
 *.o
 *.d
 *.d.*
+!*.d.ts
 
 ### python files
 __pycache__
@@ -242,3 +243,6 @@ tests/out.*
 
 # editor config
 .editorconfig
+
+cmake-scripts/generated
+tests/xdata

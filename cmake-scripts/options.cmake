@@ -189,6 +189,7 @@ function(determine_asymptote_pdf_gen_possible_win32)
             return()
         endif()
     endif()
+    message(STATUS "Building of asymptote.pdf is possible; enabling")
     set(ENABLE_ASYMPTOTE_PDF_DOCGEN_POSSIBLE true PARENT_SCOPE)
 endfunction()
 
@@ -215,13 +216,14 @@ endif()
 
 if (LATEX_PDFLATEX_FOUND AND PDFTEX_EXEC)
     set(ENABLE_BASE_DOCGEN_POSSIBLE true)
-
+    message(STATUS "LaTeX and pdftex found; building basic documentation is possible")
     if (WIN32)
         determine_asymptote_pdf_gen_possible_win32()
     elseif(UNIX)
         find_program(TEXI2DVI texi2dvi)
         if (TEXI2DVI)
             set(ENABLE_ASYMPTOTE_PDF_DOCGEN_POSSIBLE true)
+            message("Building of asymptote.pdf is possible and enabled")
         endif()
     endif()
 endif()
@@ -290,4 +292,15 @@ option(
         "Allow installation to go through, even if not every component is buildable.
         CMake will produce a warning instead of a fatal error."
         false
+)
+
+
+# asygl
+
+option(
+        USE_PREBUILT_WEBGL_LIB
+        "Use prebuilt asygl library corresponding to asygl-version (asygl-<version>.js in base/webgl directory).
+        If this option is turned off, one will need to manually build gl.js in webgl directory to complete the build
+        process."
+        true
 )
