@@ -1,6 +1,6 @@
 // AsyGL library core
 
-import { mat3, mat4, ReadonlyVec3 } from "gl-matrix";
+import { vec3, vec4, mat3, mat4, ReadonlyVec3, ReadonlyVec4 } from "gl-matrix";
 import fragment from './shaders/fragment.glsl';
 import vertex from './shaders/vertex.glsl';
 
@@ -662,6 +662,7 @@ abstract class Geometry {
   protected Epsilon: number;
   protected res2: number;
   protected controlpoints: any[];
+  protected transform: any;
 
   setMaterial(data,draw) {
     if(data.materialTable[this.MaterialIndex] == null) {
@@ -693,7 +694,11 @@ abstract class Geometry {
       return;
     }
 
-    let p=this.controlpoints;
+    let p;
+    if(this.transform != null)
+      p=this.transform(this.controlpoints);
+    else
+      p=this.controlpoints;
     let P;
 
     if(this.CenterIndex == 0) {
@@ -745,7 +750,11 @@ class BezierPatch extends Geometry {
    * @param {*} MaterialIndex material index (>= 0)
    * @param {*} colors array of 4 RGBA color arrays
    */
-  constructor(protected controlpoints,protected CenterIndex,protected MaterialIndex,private color = null,protected Min = null,protected Max = null) {
+  constructor(protected controlpoints,
+              protected CenterIndex, protected MaterialIndex,
+              private color = null,
+              protected Min = null, protected Max = null,
+              protected transform = null) {
     super();
     const n=controlpoints.length;
     if(color) {
@@ -2027,7 +2036,8 @@ class quadraticroots {
 }
 
 class BezierCurve extends Geometry {
-  constructor(controlpoints,CenterIndex,MaterialIndex,Min = null,Max = null) {
+  constructor(controlpoints,CenterIndex,MaterialIndex,Min = null,Max = null,
+              transform = null) {
     super();
     this.controlpoints=controlpoints;
     this.CenterIndex=CenterIndex;
@@ -2162,7 +2172,8 @@ class BezierCurve extends Geometry {
 }
 
 class Pixel extends Geometry {
-  constructor(private controlpoint,private width,protected MaterialIndex) {
+  constructor(private controlpoint,private width,protected MaterialIndex,
+              transform = null) {
     super();
     this.CenterIndex=0;
     this.Min=controlpoint;
@@ -2193,7 +2204,8 @@ class Triangles extends Geometry {
   private readonly Indices: any;
   private transparent: boolean = false;
 
-  constructor(protected CenterIndex,protected MaterialIndex) {
+  constructor(protected CenterIndex,protected MaterialIndex,
+              transform = null) {
     super();
     const wany = window as any;
     this.controlpoints=wany.Positions;
@@ -3405,12 +3417,32 @@ class Align {
   };
 }
 
+let translation=mat4.fromValues(1,0,0,0,
+                          0,1,0,0,
+                          0,0,1,0,
+                          0,50,0,1);
+
 function Tcorners(T,m,M)
 {
   let v=[T(m),T([m[0],m[1],M[2]]),T([m[0],M[1],m[2]]),
          T([m[0],M[1],M[2]]),T([M[0],m[1],m[2]]),
          T([M[0],m[1],M[2]]),T([M[0],M[1],m[2]]),T(M)];
   return [minbound(v),maxbound(v)];
+}
+
+function transformCP(controlpoints, M) {
+  return controlpoints.map(function(pt) {
+    let v: vec4=[pt[0],pt[1],pt[2],1];
+    let out: vec4=[0,0,0,0];
+    vec4.transformMat4(out,v,M);
+    let d=1.0/out[3];
+    return [out[0]*d,out[1]*d,out[2]*d];
+  });
+}
+
+
+function Transform(controlpoints) {
+  return transformCP(controlpoints,translation);
 }
 
 function light(direction,color)
@@ -3424,9 +3456,12 @@ function material(diffuse,emissive,specular,shininess,metallic,fresnel0)
                               fresnel0));
 }
 
+let count=0;
 function patch(controlpoints,CenterIndex,MaterialIndex,color)
 {
-  P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color));
+  P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color,
+                         null,null,count == 0 ? Transform : null));
+  ++count;
 }
 
 function curve(controlpoints,CenterIndex,MaterialIndex)
