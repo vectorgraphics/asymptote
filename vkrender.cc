@@ -210,6 +210,12 @@ void AsyVkRender::updateViewmodelData()
     BBT[i]=T[i];
 }
 
+void *postEmptyEvent(void *)
+{
+  glfwPostEmptyEvent();
+  return NULL;
+}
+
 void AsyVkRender::preUpdate()
 {
   capzoom();
@@ -229,7 +235,10 @@ void AsyVkRender::preUpdate()
 void AsyVkRender::update()
 {
   preUpdate();
-  redraw=true;
+//  redraw=true;
+  pthread_t postThread;
+  if(pthread_create(&postThread,NULL,postEmptyEvent,NULL) == 0)
+    pthread_join(postThread,NULL);
 }
 
 triple AsyVkRender::billboardTransform(const triple& center, const triple& v) const
@@ -5120,7 +5129,7 @@ void AsyVkRender::setsize(int w, int h, bool reposition) {
   }
 
   reshape0(w,h);
-  preUpdate();
+  update();
 }
 
 void AsyVkRender::fullscreen(bool reposition) {
