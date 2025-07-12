@@ -229,16 +229,16 @@ void AsyVkRender::preUpdate()
   static auto const verticalFlipMat = glm::scale(glm::dmat4(1.0f), glm::dvec3(1.0f, -1.0f, 1.0f));
 
   projViewMat = verticalFlipMat * projMat * viewMat;
+
+  pthread_t postThread;
+  if(pthread_create(&postThread,NULL,postEmptyEvent,NULL) == 0)
+    pthread_join(postThread,NULL);
   redraw=true;
 }
 
 void AsyVkRender::update()
 {
   preUpdate();
-//  redraw=true;
-  pthread_t postThread;
-  if(pthread_create(&postThread,NULL,postEmptyEvent,NULL) == 0)
-    pthread_join(postThread,NULL);
 }
 
 triple AsyVkRender::billboardTransform(const triple& center, const triple& v) const
