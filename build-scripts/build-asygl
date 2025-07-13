@@ -15,7 +15,7 @@ if [ $# -gt 1 ]; then
 fi
 
 if [ $# = 1 ]; then
-  if [ $1 != "debug" ] && [ $1 != "debug-source-map" ]; then
+  if [ "$1" != "debug" ] && [ "$1" != "debug-source-map" ]; then
     showUsage
   fi
 fi
