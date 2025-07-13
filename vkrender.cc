@@ -1,4 +1,4 @@
-o#include "vkrender.h"
+#include "vkrender.h"
 #include "shaderResources.h"
 #include "picture.h"
 #include "drawimage.h"
