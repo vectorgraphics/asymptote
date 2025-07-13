@@ -20,9 +20,6 @@ if [ $# = 1 ]; then
   fi
 fi
 
-clang-format --version >/dev/null || \
-  die "clang-format not found; please install clang-format to use this script"
-
 npm ci --prefix webgl
 
 if [ "$1" = "debug" ]; then
