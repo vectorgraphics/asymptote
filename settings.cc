@@ -1338,6 +1338,8 @@ void initSettings() {
                            "Multisampling width for screen images", 4));
   addOption(new boolSetting("fxaa", 0,
                            "Enable FXAA. Multisampling is turned off if FXAA is enabled", false));
+  addOption(new boolSetting("vsync", 0,
+                           "Vertically synchronize with monitor", false));
   addOption(new boolSetting("srgb", 0,
                             "Output 3d renderer in sRGB space", false));
   addOption(new boolSetting("offscreen", 0,

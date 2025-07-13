@@ -1,4 +1,4 @@
-#include "vkrender.h"
+o#include "vkrender.h"
 #include "shaderResources.h"
 #include "picture.h"
 #include "drawimage.h"
@@ -99,9 +99,10 @@ SwapChainDetails::chooseSurfaceFormat() const
 vk::PresentModeKHR
 SwapChainDetails::choosePresentMode() const
 {
+  bool vsync=settings::getSetting<bool>("vsync");
   for (const auto& mode : presentModes) {
-    if (mode == vk::PresentModeKHR::eImmediate) {
-//    if (mode == vk::PresentModeKHR::eFifo) {
+    if ((!vsync && mode == vk::PresentModeKHR::eImmediate) ||
+        (vsync && mode == vk::PresentModeKHR::eFifo)) {
       return mode;
     }
   }
