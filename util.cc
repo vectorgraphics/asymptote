@@ -113,6 +113,8 @@ namespace
 int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
                 const char* hint, const char* application, int* ppid)
 {
+  if(*application == 0) application=hint;
+
   cout.flush();
   if (command.empty())
   {
@@ -150,7 +152,7 @@ int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
     startInfo.hStdError= quiet >= 2 ? nulFileHandle.getHandle() : GetStdHandle(STD_ERROR_HANDLE);
 
     ostringstream errorMessage;
-    errorMessage << "Cannot open " << application << "\n";
+    errorMessage << "Cannot open " << application;
     string const errorMessageOut=errorMessage.str();
     w32::checkResult(CreateProcessA(
                        nullptr,
