@@ -1555,7 +1555,9 @@ bool picture::shipout3(const string& prefix, const string& format,
           vk->endwait(vk->initSignal,vk->initLock);
           initialize=false;
         }
-        glfwPostEmptyEvent();
+//#ifdef HAVE_VULKAN
+//        glfwPostEmptyEvent();
+//#endif
         if(Wait) {
           pthread_cond_wait(&vk->readySignal,&vk->readyLock);
           pthread_mutex_unlock(&vk->readyLock);

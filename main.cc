@@ -216,18 +216,6 @@ void *asymain(void *A)
     while(wait(&status) > 0);
 #endif
   }
-#ifdef HAVE_VULKAN
-#ifdef HAVE_PTHREAD
-  if(camp::vk->vkthread) {
-#if 1 //def __MSDOS__ // Signals are unreliable in MSWindows
-    camp::vk->vkexit=true;
-#else
-    pthread_kill(camp::vk->mainthread,SIGURG);
-    pthread_join(camp::vk->mainthread,NULL);
-#endif
-  }
-#endif
-#endif
   exit(returnCode());
 }
 
@@ -263,8 +251,7 @@ int main(int argc, char *argv[])
     pthread_t thread;
     try {
 #if defined(_WIN32)
-      auto asymainPtr = [](void* args) -> void*
-      {
+      auto asymainPtr = [](void* args) -> void* {
 #if defined(USEGC)
         GC_stack_base gsb {};
         GC_get_stack_base(&gsb);
@@ -288,13 +275,8 @@ int main(int argc, char *argv[])
         sigaddset(&set, SIGCHLD);
         pthread_sigmask(SIG_BLOCK, &set, NULL);
 #endif // !defined(_WIN32)
-        for (;;) {
-#if 0 //!defined(_WIN32)
-          Signal(SIGURG,exitHandler);
-#endif // !defined(_WIN32)
+        for (;;)
           camp::glrenderWrapper();
-//          camp::vk->initialize=true;
-        }
       } else camp::vk->vkthread=false;
     } catch(std::bad_alloc&) {
       outOfMemory();

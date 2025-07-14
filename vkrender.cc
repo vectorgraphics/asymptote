@@ -206,9 +206,6 @@ void AsyVkRender::setProjection()
 void AsyVkRender::updateViewmodelData()
 {
   normMat = glm::inverse(viewMat);
-  double *T=glm::value_ptr(normMat);
-  for(size_t i=0; i < 9; ++i)
-    BBT[i]=T[i];
 }
 
 void *postEmptyEvent(void *)
@@ -217,7 +214,7 @@ void *postEmptyEvent(void *)
   return NULL;
 }
 
-void AsyVkRender::preUpdate()
+void AsyVkRender::update()
 {
   capzoom();
 
@@ -231,15 +228,12 @@ void AsyVkRender::preUpdate()
 
   projViewMat = verticalFlipMat * projMat * viewMat;
 
+#ifdef HAVE_PTHREAD
   pthread_t postThread;
   if(pthread_create(&postThread,NULL,postEmptyEvent,NULL) == 0)
     pthread_join(postThread,NULL);
+#endif
   redraw=true;
-}
-
-void AsyVkRender::update()
-{
-  preUpdate();
 }
 
 triple AsyVkRender::billboardTransform(const triple& center, const triple& v) const
@@ -254,9 +248,9 @@ triple AsyVkRender::billboardTransform(const triple& center, const triple& v) co
 
   const double* BBT = glm::value_ptr(normMat);
 
-  return triple(x * BBT[0] + y * BBT[3] + z * BBT[6] + cx,
-                x * BBT[1] + y * BBT[4] + z * BBT[7] + cy,
-                x * BBT[2] + y * BBT[5] + z * BBT[8] + cz);
+  return triple(x * BBT[0] + y * BBT[4] + z * BBT[8] + cx,
+                x * BBT[1] + y * BBT[5] + z * BBT[9] + cy,
+                x * BBT[2] + y * BBT[6] + z * BBT[10] + cz);
 }
 
 #endif
@@ -396,7 +390,7 @@ void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int h
   app->fullWidth = width;
   app->fullHeight = height;
   app->framebufferResized = true;
-  app->preUpdate();
+  app->update();
 
   if(app->vkthread) {
     static bool initialize=true;
@@ -730,8 +724,8 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
     std::cout << "Using offscreen mode." << std::endl;
   }
 
-  home(format3d);
-  setProjection();
+//  home(format3d);
+//  setProjection();
   initWindow();
 
   if(View) {
@@ -3624,7 +3618,7 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
 
   ubo.projViewMat = projViewMat;
   ubo.viewMat = viewMat;
-  ubo.normMat = glm::inverse(viewMat);
+  ubo.normMat = normMat;
 
   memcpy(frameObjects[currentFrame].uboMappedMemory->getCopyPtr(), &ubo, sizeof(ubo));
 
@@ -4415,7 +4409,6 @@ void AsyVkRender::drawFrame()
           != std::string::npos) {
         framebufferResized = false;
         recreateSwapChain();
-        redraw=true;
       } else {
         std::cout << "Other error: " << e.what() << std::endl;
         throw;
@@ -4527,21 +4520,6 @@ void AsyVkRender::display()
     }
 #endif
   }
-}
-
-optional<VulkanRendererMessage> AsyVkRender::poll()
-{
-  if (View) {
-    if (glfwWindowShouldClose(window)) {
-      vkexit = true;
-    }
-  }
-
-  if (View) {
-    glfwPollEvents();
-  }
-
-  return messageQueue.dequeue();
 }
 
 void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
@@ -5226,7 +5204,7 @@ void AsyVkRender::home(bool webgl) {
   rotateMat = viewMat = glm::mat4(1.0);
   Zoom0 = 1.0;
   framecount=0;
-  preUpdate();
+  update();
 }
 
 void AsyVkRender::cycleMode() {

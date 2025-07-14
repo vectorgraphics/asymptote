@@ -70,7 +70,7 @@ layout(binding=9, std430) buffer indexBuffer
 #endif
 
 layout(location = 0) in vec3 position;
-layout(location = 1) in vec3 viewPos;
+layout(location = 1) in vec3 viewPosition;
 layout(location = 2) in vec3 norm;
 layout(location = 3) in vec4 inColor;
 layout(location = 4) flat in int materialIndex;
@@ -260,7 +260,7 @@ void main() {
 #ifdef ORTHOGRAPHIC
   vec3 viewDirection=vec3(0.0,0.0,1.0);
 #else
-  vec3 viewDirection=-normalize(viewPos);
+  vec3 viewDirection=-normalize(viewPosition);
 #endif
   normal = normalize(norm);
 
