@@ -22,18 +22,14 @@
 #include <GLFW/glfw3native.h>
 #endif
 
-uint32_t apiVersion=VK_API_VERSION_1_4;
-
 using settings::getSetting;
 using settings::Setting;
-
-bool havewindow;
-
-static bool initialized=false;
 
 void exitHandler(int);
 
 #ifdef HAVE_VULKAN
+uint32_t apiVersion=VK_API_VERSION_1_4;
+
 std::vector<const char*> instanceExtensions
 {
   VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
@@ -72,6 +68,8 @@ std::vector<char> readFile(const std::string& filename)
 }
 
 #ifdef HAVE_VULKAN
+void closeWindowHandler(GLFWwindow *);
+
 SwapChainDetails::SwapChainDetails(
   vk::PhysicalDevice gpu,
   vk::SurfaceKHR surface) :
@@ -101,8 +99,10 @@ SwapChainDetails::chooseSurfaceFormat() const
 vk::PresentModeKHR
 SwapChainDetails::choosePresentMode() const
 {
+  bool vsync=settings::getSetting<bool>("vsync");
   for (const auto& mode : presentModes) {
-    if (mode == vk::PresentModeKHR::eImmediate) {
+    if ((!vsync && mode == vk::PresentModeKHR::eImmediate) ||
+        (vsync && mode == vk::PresentModeKHR::eFifo)) {
       return mode;
     }
   }
@@ -206,12 +206,15 @@ void AsyVkRender::setProjection()
 void AsyVkRender::updateViewmodelData()
 {
   normMat = glm::inverse(viewMat);
-  double *T=glm::value_ptr(normMat);
-  for(size_t i=0; i < 9; ++i)
-    BBT[i]=T[i];
 }
 
-void AsyVkRender::preUpdate()
+void *postEmptyEvent(void *)
+{
+  glfwPostEmptyEvent();
+  return NULL;
+}
+
+void AsyVkRender::update()
 {
   capzoom();
 
@@ -224,11 +227,12 @@ void AsyVkRender::preUpdate()
   static auto const verticalFlipMat = glm::scale(glm::dmat4(1.0f), glm::dvec3(1.0f, -1.0f, 1.0f));
 
   projViewMat = verticalFlipMat * projMat * viewMat;
-}
 
-void AsyVkRender::update()
-{
-  preUpdate();
+#ifdef HAVE_PTHREAD
+  pthread_t postThread;
+  if(pthread_create(&postThread,NULL,postEmptyEvent,NULL) == 0)
+    pthread_join(postThread,NULL);
+#endif
   redraw=true;
 }
 
@@ -244,9 +248,9 @@ triple AsyVkRender::billboardTransform(const triple& center, const triple& v) co
 
   const double* BBT = glm::value_ptr(normMat);
 
-  return triple(x * BBT[0] + y * BBT[3] + z * BBT[6] + cx,
-                x * BBT[1] + y * BBT[4] + z * BBT[7] + cy,
-                x * BBT[2] + y * BBT[5] + z * BBT[8] + cz);
+  return triple(x * BBT[0] + y * BBT[4] + z * BBT[8] + cx,
+                x * BBT[1] + y * BBT[5] + z * BBT[9] + cy,
+                x * BBT[2] + y * BBT[6] + z * BBT[10] + cz);
 }
 
 #endif
@@ -386,7 +390,7 @@ void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int h
   app->fullWidth = width;
   app->fullHeight = height;
   app->framebufferResized = true;
-  app->preUpdate();
+  app->update();
 
   if(app->vkthread) {
     static bool initialize=true;
@@ -550,8 +554,6 @@ void checkpow2(unsigned int n, string s) {
   }
 }
 
-void closeWindowHandler(GLFWwindow *);
-
 void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 {
   bool v3d=args.format == "v3d";
@@ -560,12 +562,14 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 
   offscreen=settings::getSetting<bool>("offscreen");
 
+#ifdef HAVE_VULKAN
   GLFWmonitor* monitor=NULL;
   if(!(offscreen || format3d)) {
     glfwInit();
     monitor=glfwGetPrimaryMonitor();
     if(!monitor) offscreen=true;
   }
+#endif
 
   this->pic = args.pic;
   this->Prefix=args.prefix;
@@ -641,8 +645,10 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
         screenWidth=fullWidth;
         screenHeight=fullHeight;
       } else {
+#ifdef HAVE_VULKAN
         int mx, my;
         glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
+#endif
       }
 
       width=min(fullWidth,screenWidth);
@@ -654,8 +660,10 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
         height=min((int) (ceil(width/Aspect)),screenHeight);
     }
 
+#ifdef HAVE_VULKAN
     home(format3d);
     setProjection();
+#endif
     if(format3d) {
       remesh=true;
       return;
@@ -716,8 +724,8 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
     std::cout << "Using offscreen mode." << std::endl;
   }
 
-  home(format3d);
-  setProjection();
+//  home(format3d);
+//  setProjection();
   initWindow();
 
   if(View) {
@@ -847,6 +855,7 @@ void AsyVkRender::recreateSwapChain()
   createAttachments();
   createFramebuffers();
   createExportResources();
+  redraw=true;
 }
 
 void AsyVkRender::zeroTransparencyBuffers()
@@ -3609,7 +3618,7 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
 
   ubo.projViewMat = projViewMat;
   ubo.viewMat = viewMat;
-  ubo.normMat = glm::inverse(viewMat);
+  ubo.normMat = normMat;
 
   memcpy(frameObjects[currentFrame].uboMappedMemory->getCopyPtr(), &ubo, sizeof(ubo));
 
@@ -4513,21 +4522,6 @@ void AsyVkRender::display()
   }
 }
 
-optional<VulkanRendererMessage> AsyVkRender::poll()
-{
-  if (View) {
-    if (glfwWindowShouldClose(window)) {
-      vkexit = true;
-    }
-  }
-
-  if (View) {
-    glfwPollEvents();
-  }
-
-  return messageQueue.dequeue();
-}
-
 void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
 {
   switch (msg)
@@ -4563,25 +4557,34 @@ void AsyVkRender::mainLoop()
 {
   int nFrames = 0;
 
-  while (true) {
-    auto const message = poll();
+  while(!View || !glfwWindowShouldClose(window)) {
+    auto const message=messageQueue.dequeue();
     if (message.has_value())
-    {
       processMessages(*message);
-    }
 
     if (redraw || queueExport) {
       redraw=false;
+      waitEvent=true;
       display();
     }
 
-    if (currentIdleFunc != nullptr)
-      currentIdleFunc();
+    if (View) {
+      if(currentIdleFunc != nullptr) {
+        currentIdleFunc();
+        glfwPollEvents();
+      } else {
+        if(waitEvent)
+          glfwWaitEvents();
+        else
+          glfwPollEvents();
+      }
+    }
 
     if (!View && nFrames > maxFramesInFlight)
       break;
 
     nFrames++;
+
   }
 
   if(!View) {
@@ -4870,6 +4873,7 @@ void AsyVkRender::quit()
     if(animating)
       settings::Setting("interrupt")=true;
     redraw=false;
+    waitEvent=false;
     if(interact::interactive)
       home();
     Animate=settings::getSetting<bool>("autoplay");
@@ -5104,7 +5108,7 @@ void AsyVkRender::setsize(int w, int h, bool reposition) {
   }
 
   reshape0(w,h);
-  preUpdate();
+  update();
 }
 
 void AsyVkRender::fullscreen(bool reposition) {
@@ -5200,7 +5204,7 @@ void AsyVkRender::home(bool webgl) {
   rotateMat = viewMat = glm::mat4(1.0);
   Zoom0 = 1.0;
   framecount=0;
-  preUpdate();
+  update();
 }
 
 void AsyVkRender::cycleMode() {

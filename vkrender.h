@@ -466,7 +466,7 @@ public:
   glm::dmat4 projMat;
   glm::dmat4 viewMat;
   glm::dmat4 projViewMat;
-  glm::dmat3 normMat;
+  glm::dmat4 normMat;
 
   double xmin, xmax;
   double ymin, ymax;
@@ -491,7 +491,6 @@ public:
   const double* dprojView;
   const double* dView;
 
-  double BBT[9];
   double T[16];
   double Tup[16];
 
@@ -845,7 +844,6 @@ private:
   void setDimensions(int Width, int Height, double X, double Y);
   void updateViewmodelData();
   void setProjection();
-  void preUpdate();
   void update();
 
   static void updateHandler(int);
@@ -1057,7 +1055,6 @@ private:
 
   void nextFrame();
   void display();
-  optional<VulkanRendererMessage> poll();
   void mainLoop();
   void cleanup();
   void processMessages(VulkanRendererMessage const& msg);
@@ -1070,6 +1067,9 @@ private:
   void Export(int imageIndex);
   bool readyForExport=false;
   bool readyForUpdate=false;
+  bool waitEvent=true;
+  bool initialized=false;
+  bool havewindow=false;
   void quit();
 
   double spinStep();

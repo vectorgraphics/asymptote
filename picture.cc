@@ -1475,7 +1475,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifndef HAVE_VULKAN
   if(!webgl)
-    camp::reportError("to support onscreen Vulkan rendering; please install the glfw, vulkan, and glslang libraries, then ./configure; make");
+    camp::reportError("to support onscreen Vulkan rendering; please install the glfw, vulkan, and glslang development libraries, then ./configure; make");
 #endif
 
   picture *pic = new picture;
@@ -1519,7 +1519,6 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 
   bool format3d=webgl || v3d;
-
   if(!format3d) {
 #ifdef HAVE_VULKAN
     if(vk->vkthread) {
@@ -1556,14 +1555,20 @@ bool picture::shipout3(const string& prefix, const string& format,
           vk->endwait(vk->initSignal,vk->initLock);
           initialize=false;
         }
+//#ifdef HAVE_VULKAN
+//        glfwPostEmptyEvent();
+//#endif
         if(Wait) {
           pthread_cond_wait(&vk->readySignal,&vk->readyLock);
           pthread_mutex_unlock(&vk->readyLock);
         }
-         return true;
+        return true;
        }
        if(Wait)
          pthread_mutex_lock(&vk->readyLock);
+#ifdef HAVE_VULKAN
+       glfwPostEmptyEvent();
+#endif
 #endif
      } else {
  #if !defined(_WIN32)

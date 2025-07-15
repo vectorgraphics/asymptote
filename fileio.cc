@@ -450,6 +450,21 @@ void igzxfile::closeFile()
   }
 }
 
+void ogzxfile::close()
+{
+  if(!destroyed) {
+    std::vector<uint8_t> const resultingData=
+      memxdrfile.createCopyOfCurrentData();
+
+    memxdrfile.close();
+    gzFile file=gzopen(name.c_str(),"wb9");
+    gzwrite(file,resultingData.data(),resultingData.size());
+    gzclose(file);
+    if(settings::verbose > 0)
+      cout << "Wrote " << name << endl;
+    destroyed=true;
+  }
+}
 #endif
 
 } // namespace camp
