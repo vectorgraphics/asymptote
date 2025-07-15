@@ -5,23 +5,43 @@ die() {
   exit 1
 }
 
-if [ $# -gt 1 ] || [ $# = 1 -a "$1" != "debug" ]; then \
-    echo Usage: "$0 [debug]"; exit 1; \
+showUsage() {
+  echo Usage: "$0 [debug|debug-source-map]"
+  exit 1
+}
+
+if [ $# -gt 1 ]; then
+    showUsage
 fi
 
-clang-format --version >/dev/null || \
-  die "clang-format not found; please install clang-format to use this script"
+if [ $# = 1 ]; then
+  if [ "$1" != "debug" ] && [ "$1" != "debug-source-map" ]; then
+    showUsage
+  fi
+fi
 
 npm ci --prefix webgl
 
-if [ $# -eq 1 ]; then
+if [ "$1" = "debug" ]; then
   NPM_SCRIPT_TARGET=build-debug-nosourcemap
-  JS_FORMATTER=clang-format
-  JS_FORMATTER_OPTS=--style=file:"webgl/.clang-format"
+  TRY_USE_CLANG_FORMAT=1
+elif [ "$1" = "debug-source-map" ]; then
+  NPM_SCRIPT_TARGET=build-dev
+  TRY_USE_CLANG_FORMAT=1
 else
   NPM_SCRIPT_TARGET=build
-  JS_FORMATTER=cat
-  JS_FORMATTER_OPTS=
+  TRY_USE_CLANG_FORMAT=0
+fi
+
+JS_FORMATTER=cat
+JS_FORMATTER_OPTS=
+if [ $TRY_USE_CLANG_FORMAT -ne 0 ]; then
+  if [ -x "$(command -v clang-format)" ]; then
+    JS_FORMATTER=clang-format
+    JS_FORMATTER_OPTS=--style=file:"webgl/.clang-format"
+  else
+    echo "clang-format not found; will not apply formatting to generated javascript file"
+  fi
 fi
 
 ASYGL_OUTPUT_FROM_WEBPACK=webgl/dist/gl.js
