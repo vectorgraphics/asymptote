@@ -42,12 +42,13 @@ extern string tab;
 extern string newline;
 
 enum Mode {NOMODE,INPUT,OUTPUT,UPDATE,BINPUT,BOUTPUT,BUPDATE,
-  XINPUT,XOUTPUT,XUPDATE,OPIPE};
+  XINPUT,XOUTPUT,XUPDATE,XINPUTGZ,XOUTPUTGZ,OPIPE};
 
 static const string FileModes[]=
 {"none","input","output","output(update)",
  "input(binary)","output(binary)","output(binary,update)",
- "input(xdr)","input(xdrgz)","output(xdr)","output(xdr,update)","output(pipe)"};
+ "input(xdr)","output(xdr)","output(xdr,update)",
+ "input(xdrgz)","output(xdrgz)","output(pipe)"};
 
 extern FILE *pipeout;
 
@@ -698,13 +699,13 @@ public:
 
 class igzxfile : public ixfile {
 protected:
-  std::vector<char> readData;
+  std::vector<uint8_t> readData;
   size_t const readSize;
   gzFile gzfile;
 public:
-  igzxfile(const string& name, bool check=true, Mode type=XINPUT,
-         xdr::xios::open_mode mode=xdr::xios::in, size_t readSize=32768) :
-         ixfile(name,check,type,mode), readSize(readSize){}
+  igzxfile(const string& name, bool check=true,
+           xdr::xios::open_mode mode=xdr::xios::in, size_t readSize=32768) :
+    ixfile(name,check,XINPUTGZ,mode), readSize(readSize) {}
 
   bool error() override {return !gzfile;}
 
@@ -775,7 +776,8 @@ class oxfile : public file {
 protected:
   xdr::oxstream *fstream;
 public:
-  oxfile(const string& name) : file(name,true,XOUTPUT), fstream(NULL) {}
+  oxfile(const string& name, Mode type=XOUTPUT) : file(name,true,type),
+                                                  fstream(NULL) {}
 
   bool isXDR() override {return true;}
 
@@ -854,10 +856,9 @@ class ogzxfile : public oxfile {
 public:
   xdr::memoxstream memxdrfile;
 
-  ogzxfile(const string& name, bool singleprecision=false) : oxfile(name),
-                                 name(name),
-                                 destroyed(false),
-                                 memxdrfile(singleprecision) {}
+  ogzxfile(const string& name, bool singleprecision=false) :
+    oxfile(name,XOUTPUTGZ), name(name), destroyed(false),
+    memxdrfile(singleprecision) {}
 
   void open() override {
     fstream=&memxdrfile;

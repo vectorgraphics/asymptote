@@ -895,7 +895,8 @@ bool picture::postprocess(const string& prename, const string& outname,
         push_split(cmd,getSetting<string>("convertOptions"));
         cmd.push_back("-resize");
         cmd.push_back(String(100.0/expand)+"%x");
-        if(outputformat == "jpg") cmd.push_back("-flatten");
+        if(outputformat == "jpg" || outputformat == "jpeg")
+          cmd.push_back("-flatten");
         cmd.push_back(outputformat+":"+outname);
         status=System(cmd,0,true,"convert");
       }
