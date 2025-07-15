@@ -13,7 +13,7 @@ void w32_xdr_destroy(Win32XDR* xdrs)
 }
 
 void w32_xdrmem_create(
-  Win32XDR* xdrs, char* addr, unsigned int size,
+  Win32XDR* xdrs, uint8_t* addr, size_t size,
   uint32_t op
 )
 {
