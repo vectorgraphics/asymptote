@@ -653,12 +653,14 @@ abstract class Geometry {
   abstract notRendered();
   abstract append();
   abstract process(P: any[]);
-
+  abstract Bounds(p : any[], number);
 
   protected MaterialIndex: number;
   protected CenterIndex: number;
   protected Min: any[];
   protected Max: any[];
+  protected exactBounds: boolean;
+  protected epsilon: number;
   protected Epsilon: number;
   protected res2: number;
   protected controlpoints: any[];
@@ -679,6 +681,20 @@ abstract class Geometry {
   render() {
     this.setMaterialIndex();
 
+    let p;
+    if(this.transform != null) {
+      p=this.transform(this.controlpoints);
+      let norm2=L2norm2(p);
+      this.epsilon=norm2*Number.EPSILON;
+      if(this.exactBounds)
+        [this.Min,this.Max]=this.transform([this.Min,this.Max]);
+      else {
+        let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
+        [this.Min,this.Max]=this.Bounds(p,fuzz);
+      }
+    } else
+      p=this.controlpoints;
+
     // First check if re-rendering is required
     let v;
     if(this.CenterIndex == 0)
@@ -694,11 +710,6 @@ abstract class Geometry {
       return;
     }
 
-    let p;
-    if(this.transform != null)
-      p=this.transform(this.controlpoints);
-    else
-      p=this.controlpoints;
     let P;
 
     if(this.CenterIndex == 0) {
@@ -737,10 +748,18 @@ function boundPoints(p,m)
   return b;
 }
 
+function L2norm2(p) {
+  let p0=p[0];
+  let norm2=0;
+  let n=p.length;
+  for(let i=1; i < n; ++i)
+    norm2=Math.max(norm2,abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
+  return norm2;
+}
+
 class BezierPatch extends Geometry {
 
   private readonly transparent: boolean;
-  private readonly epsilon: number;
   private readonly vertex: (v: any, n: any) => number;
 
   /**
@@ -767,12 +786,17 @@ class BezierPatch extends Geometry {
     this.vertex=this.transparent ? this.data.Vertex.bind(this.data) :
       this.data.vertex.bind(this.data);
 
-    let norm2=this.L2norm2(this.controlpoints);
-    let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
-    this.epsilon=norm2*Number.EPSILON;
+    this.exactBounds=Min && Max;
+    this.Min=Min;
+    this.Max=Max;
 
-    this.Min=this.Min ?? this.Bounds(this.controlpoints,Math.min,fuzz);
-    this.Max=this.Max ?? this.Bounds(this.controlpoints,Math.max,fuzz);
+    this.transform=transform;
+    if(!this.exactBounds && transform == null) {
+      let norm2=L2norm2(controlpoints);
+      let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
+      this.epsilon=norm2*Number.EPSILON;
+      [this.Min,this.Max]=this.Bounds(controlpoints,fuzz);
+    }
   }
 
   setMaterialIndex() {
@@ -883,7 +907,7 @@ class BezierPatch extends Geometry {
     return this.boundtri(c,m,b,fuzz,depth);
   }
 
-  Bounds(p,m,fuzz) {
+  Bound(p,m,fuzz) {
     let b=Array(3);
     let n=p.length;
     let x=Array(n);
@@ -900,16 +924,11 @@ class BezierPatch extends Geometry {
     return [b[0],b[1],b[2]];
   }
 
-// Render a Bezier patch via subdivision.
-  L2norm2(p) {
-    let p0=p[0];
-    let norm2=0;
-    let n=p.length;
-    for(let i=1; i < n; ++i)
-      norm2=Math.max(norm2,abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
-    return norm2;
+  Bounds(p,fuzz) {
+    return [this.Bound(p,Math.min,fuzz),this.Bound(p,Math.max,fuzz)];
   }
 
+// Render a Bezier patch via subdivision.
   processTriangle(p) {
     let p0=p[0];
     let p1=p[1];
@@ -2043,17 +2062,16 @@ class BezierCurve extends Geometry {
     this.CenterIndex=CenterIndex;
     this.MaterialIndex=MaterialIndex;
 
-    if(Min && Max) {
-      this.Min=Min;
-      this.Max=Max;
-    } else {
-      let b=this.Bounds(this.controlpoints);
-      this.Min=b[0];
-      this.Max=b[1];
-    }
+    this.exactBounds=Min && Max;
+    this.Min=Min;
+    this.Max=Max;
+
+    this.transform=transform;
+    if(!this.exactBounds && transform == null)
+      [this.Min,this.Max]=this.Bounds(controlpoints,0);
   }
 
-  Bounds(p) {
+  Bounds(p,fuzz) {
     let b=Array(3);
     let B=Array(3);
     let n=p.length;
@@ -2176,16 +2194,23 @@ class Pixel extends Geometry {
               transform = null) {
     super();
     this.CenterIndex=0;
+    this.exactBounds=true;
     this.Min=controlpoint;
     this.Max=controlpoint;
+    this.transform=transform;
+    this.controlpoints=[controlpoint];
   }
 
   setMaterialIndex() {
     this.setMaterial(material0Data,drawMaterial0);
   }
 
+  Bounds(p,fuzz) {
+    return [this.Min,this.Max];
+  }
+
   process(p) {
-    this.data.indices.push(this.data.vertex0(this.controlpoint,this.width));
+    this.data.indices.push(this.data.vertex0(p[0],this.width));
     this.append();
   }
 
@@ -2213,12 +2238,9 @@ class Triangles extends Geometry {
     this.Colors=wany.Colors;
     this.Indices=wany.Indices;
     this.transparent=Materials[this.MaterialIndex].diffuse[3] < 1;
-
-    this.Min=this.Bounds(this.controlpoints,Math.min);
-    this.Max=this.Bounds(this.controlpoints,Math.max);
   }
 
-  Bounds(p,m) {
+  Bound(p,m) {
     let b=Array(3);
     let n=p.length;
     let x=Array(n);
@@ -2230,6 +2252,10 @@ class Triangles extends Geometry {
     return [b[0],b[1],b[2]];
   }
 
+  Bounds(p,fuzz) {
+    return [this.Bounds(p,Math.min),this.Bounds(p,Math.max)];
+  }
+
   setMaterialIndex() {
     if(this.transparent)
       this.setMaterial(transparentData,drawTransparent);
@@ -2238,7 +2264,6 @@ class Triangles extends Geometry {
   }
 
   process(p) {
-
     this.data.vertices.length=6*p.length;
     // Override materialIndex to encode color vs material
       materialIndex=this.Colors.length > 0 ?
