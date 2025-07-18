@@ -52,15 +52,6 @@ void exp::transToType(coenv &e, types::ty *target)
 {
   types::ty *ct=cgetType(e);
 
-  // stringstream ss;
-  // target->print(ss);
-  // ss << " <- ";
-  // this->cgetType(e)->print(ss);
-  // string targetStr = ss.str();
-  // if (targetStr == "int <- B") {
-  //   cout << "transToType: " << targetStr << endl;
-  // }
-
   if (equivalent(target, ct)) {
     transAsType(e, target);
     return;
@@ -343,7 +334,6 @@ callExp *buildSubscriptWriteCall(exp *object, exp *index, exp *value) {
 
 types::ty *subscriptExp::trans(coenv &e)
 {
-  // EXPERIMENTAL
   if (!isAnArray(e, object)) {
     callExp *call = buildSubscriptReadCall(object, index);
     return call->trans(e);
@@ -369,7 +359,6 @@ types::ty *subscriptExp::trans(coenv &e)
 
 types::ty *subscriptExp::getType(coenv &e)
 {
-  // EXPERIMENTAL
   if (!isAnArray(e, object)) {
     ty *t = object->cgetType(e);
     if (t->kind == ty_overloaded) {
@@ -392,7 +381,6 @@ types::ty *subscriptExp::getType(coenv &e)
 
 void subscriptExp::transWrite(coenv &e, types::ty *t, exp *value)
 {
-  // EXPERIMENTAL
   if (!isAnArray(e, object)) {
     // Find the types of object and index.
     types::ty *objectType = getObjectType(e);
