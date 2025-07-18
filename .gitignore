@@ -2,6 +2,7 @@
 *.o
 *.d
 *.d.*
+!*.d.ts
 
 ### python files
 __pycache__

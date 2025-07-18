@@ -63,4 +63,19 @@ endforeach ()
 
 # asygl
 file(MAKE_DIRECTORY ${ASY_BUILD_BASE_DIR}/webgl)
-copy_base_file_with_custom_output_name(webgl/asygl-${ASY_GL_VERSION}.js webgl/asygl.js)
+
+set(ASYGL_OUTPUT_LOCATION_BASE webgl/asygl.js)
+if(USE_PREBUILT_WEBGL_LIB)
+    copy_base_file_with_custom_output_name(webgl/asygl-${ASY_GL_VERSION}.js ${ASYGL_OUTPUT_LOCATION_BASE})
+else()
+    set(ASYGL_OUTPUT ${ASY_BUILD_BASE_DIR}/${ASYGL_OUTPUT_LOCATION_BASE})
+    add_custom_command(
+            COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_CURRENT_SOURCE_DIR}/webgl/dist/gl.js
+            ${ASYGL_OUTPUT}
+            OUTPUT ${ASYGL_OUTPUT}
+            MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/webgl/dist/gl.js
+    )
+
+    list(APPEND ASY_OUTPUT_BASE_FILES ${ASYGL_OUTPUT})
+endif()
