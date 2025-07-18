@@ -370,8 +370,6 @@ types::ty *subscriptExp::getType(coenv &e)
       return primError();
     }
     return static_cast<record*>(t)->valType();
-    // callExp *call = buildSubscriptReadCall(set, index);
-    // return call->getType(e);
   }
 
   array *a = getArrayType(e);
