@@ -1,9 +1,10 @@
 typedef import(K, V);
 
-from collections.map(K=K, V=V) access Map_K_V, Iter_K, Iter_K_V, Iterable_K;
+from collections.map(K=K, V=V) access Map_K_V, Iter_K, Iter_K_V, Iterable_K,
+                                      Iterable_K_V;
 from collections.genericpair(K=K, V=V) access Pair_K_V, makePair;
-from collections.hashrepset(T=Pair_K_V) access
-    HashRepSet_T as HashRepSet_K_V;
+from collections.hashset(T=Pair_K_V) access
+    HashSet_T as HashSet_K_V;
 
 private Pair_K_V operator tuple(K k, V v) {
   Pair_K_V pair = makePair(k, v); 
@@ -14,7 +15,7 @@ private Pair_K_V operator tuple(K k, V v) {
 struct HashMap_K_V {
   struct _ { autounravel restricted Map_K_V map; }
 
-  private HashRepSet_K_V pairs = HashRepSet_K_V(
+  private HashSet_K_V pairs = HashSet_K_V(
     nullT=null,
     equiv = new bool(Pair_K_V a, Pair_K_V b) {
       // NOTE: This should never be called on a null pair.
@@ -28,12 +29,12 @@ struct HashMap_K_V {
     ((F)map.operator init)();
   }
 
-  // TODO: Change "isNullValue" to "isNullValue", and similar.
-
-  void operator init(V nullValue, bool isNullValue(V) = null) {
-    using F = void(V, bool isNullValue(V)=null);  // The default value here is ignored.
+  void operator init(V keyword nullValue, bool keyword isNullValue(V) = null) {
+    using F = void(
+        V, bool isNullValue(V)=null);  // The default value here is ignored.
     if (isNullValue == null) {
-      ((F)map.operator init)(nullValue);  // Let operator init supply its own default.
+      // Let operator init supply its own default.
+      ((F)map.operator init)(nullValue);
     } else {
       ((F)map.operator init)(nullValue, isNullValue);
     }
@@ -58,13 +59,13 @@ struct HashMap_K_V {
     if (map.isNullValue != null && map.isNullValue(value)) {
       pairs.delete((key, value));
     } else {
-      pairs.update((key, value));
+      pairs.push((key, value));
     }
   };
 
   map.delete = new void(K key) {
-    Pair_K_V removed = pairs.delete((key, map.nullValue));
-    assert(!alias(removed, null), 'Nonexistent key cannot be deleted');
+    assert(pairs.delete((key, map.nullValue)),
+           'Nonexistent key cannot be deleted');
   };
 
   map.operator iter = new Iter_K() {
@@ -75,6 +76,8 @@ struct HashMap_K_V {
     result.get = new K() { return it.get().k; };
     return result;
   };
+
+  map.pairs = new Iterable_K_V() { return pairs; };
 
   autounravel Iterable_K operator cast(HashMap_K_V map) {
     return Iterable_K(map.map.operator iter);

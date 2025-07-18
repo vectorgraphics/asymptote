@@ -8,10 +8,6 @@ struct Iter_T {
   // Returns true if the iterator is valid. If the iterator is used without
   // modifying the datastructure, it will be valid as long as there is a next
   // item.
-  //
-  // QUESTION: Do we want best-effort fail-fast iterators that set valid to false
-  // if the datastructure is modified, or do we want to leave it the behavior
-  // undefined in this case?
   bool valid();
 }
 
@@ -43,7 +39,10 @@ struct Iterable_T {
     }
     return result;
   }
+  autounravel Iterable_T operator cast(T[] items) = Iterable_T;
+  // The following is essentially a constructor, and is made autounravel for
+  // that reason.
+  autounravel Iterable_T Iterable(Iter_T iter()) = Iterable_T;
 }
 
-Iterable_T Iterable(Iter_T iter()) = Iterable_T;
-Iterable_T Iterable(T[] items) = Iterable_T;
+Iterable_T range(T[] items) = Iterable_T;

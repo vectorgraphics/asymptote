@@ -41,13 +41,14 @@ namespace camp {
 extern string tab;
 extern string newline;
 
-enum Mode {NOMODE,INPUT,OUTPUT,UPDATE,BINPUT,BOUTPUT,BUPDATE,XINPUT,XINPUTGZ,
-           XOUTPUT,XUPDATE,OPIPE};
+enum Mode {NOMODE,INPUT,OUTPUT,UPDATE,BINPUT,BOUTPUT,BUPDATE,
+  XINPUT,XOUTPUT,XUPDATE,XINPUTGZ,XOUTPUTGZ,OPIPE};
 
 static const string FileModes[]=
 {"none","input","output","output(update)",
  "input(binary)","output(binary)","output(binary,update)",
- "input(xdr)","input(xdrgz)","output(xdr)","output(xdr,update)","output(pipe)"};
+ "input(xdr)","output(xdr)","output(xdr,update)",
+ "input(xdrgz)","output(xdrgz)","output(pipe)"};
 
 extern FILE *pipeout;
 
@@ -107,6 +108,10 @@ public:
   file(const string& name, bool check=true, Mode type=NOMODE,
        bool binary=false, bool closed=false);
 
+  virtual bool isBinary() {return false;}
+
+  virtual bool isXDR() {return false;}
+
   virtual void open() {}
 
   void Check();
@@ -146,6 +151,7 @@ public:
   virtual void readwhite(string&) {noread("string");}
 
   virtual void write(bool) {nowrite("bool");}
+  virtual void write(char) {nowrite("char");}
   virtual void write(Int) {nowrite("int");}
   virtual void write(double) {nowrite("real");}
   virtual void write(const pair&) {nowrite("pair");}
@@ -443,6 +449,9 @@ public:
   ibfile(const string& name, bool check=true, Mode type=BINPUT,
          std::ios::openmode mode=std::ios::in) :
     ifile(name,check,type,mode | std::ios::binary) {}
+
+  bool isBinary() {return true;}
+
   template<class T>
   void iread(T& val) {
     val=T();
@@ -461,9 +470,21 @@ public:
   }
   void Read(char& val) {iread(val);}
   void Read(string& val) {
-    ostringstream buf;
-    buf << fstream->rdbuf();
-    val=buf.str();
+    size_t n=0;
+    if(wordmode)
+      iread(n);
+    else
+      n=SIZE_MAX;
+    val="";
+    string s;
+    for(size_t i=0; i < n; ++i) {
+      char c;
+      Read(c);
+      if(eof() || error())
+        return;
+      s += c;
+    }
+    val=s;
   }
 
   void Read(double& val) {
@@ -476,6 +497,8 @@ class iobfile : public ibfile {
 public:
   iobfile(const string& name) :
     ibfile(name,true,BUPDATE,std::ios::in | std::ios::out) {}
+
+  bool isBinary() {return true;}
 
   void flush() {if(fstream) fstream->flush();}
 
@@ -494,7 +517,13 @@ public:
       else iwrite(unsignedIntcast(val));
     }
   }
-  void write(const string& val) {iwrite(val);}
+  void write(const string& val) {
+    size_t n=val.size();
+    if(wordmode)
+      iwrite(n);
+    for(size_t i=0; i < n; ++i)
+      fstream->write((char *) &val[i],1);
+  }
   void write(const pen& val) {iwrite(val);}
   void write(guide *val) {iwrite(val);}
   void write(const transform& val) {iwrite(val);}
@@ -518,6 +547,8 @@ class obfile : public ofile {
 public:
   obfile(const string& name) : ofile(name,BOUTPUT,std::ios::binary) {}
 
+  bool isBinary() {return true;}
+
   template<class T>
   void iwrite(T val) {
     if(fstream) fstream->write((char *) &val,sizeof(T));
@@ -533,7 +564,13 @@ public:
       else iwrite(unsignedIntcast(val));
     }
   }
-  void write(const string& val) {iwrite(val);}
+  void write(const string& val) {
+    size_t n=val.size();
+    if(wordmode)
+      iwrite(n);
+    for(size_t i=0; i < n; ++i)
+      fstream->write((char *) &val[i],1);
+  }
   void write(const pen& val) {iwrite(val);}
   void write(guide *val) {iwrite(val);}
   void write(const transform& val) {iwrite(val);}
@@ -564,6 +601,8 @@ public:
   ixfile(const string& name, bool check=true, Mode type=XINPUT,
          xdr::xios::open_mode mode=xdr::xios::in) :
     file(name,check,type,true), fstream(NULL), mode(mode) {}
+
+  bool isXDR() override {return true;}
 
   void open() override {
     name=locatefile(inpath(name));
@@ -603,6 +642,30 @@ public:
       return 0;
   }
 
+  void Read(char& val) override {
+    xdr::xbyte b;
+    *fstream >> b;
+    val=b;
+  }
+
+  void Read(string& val) override {
+    size_t n=0;
+    if(wordmode)
+      *fstream >> n;
+    else
+      n=SIZE_MAX;
+    val="";
+    string s;
+    for(size_t i=0; i < n; ++i) {
+      char c;
+      Read(c);
+      if(eof() || error())
+        return;
+      s += c;
+    }
+    val=s;
+  }
+
   void Read(Int& val) override {
     if(signedint) {
       if(singleint) {int ival=0; *fstream >> ival; val=ival;}
@@ -636,13 +699,13 @@ public:
 
 class igzxfile : public ixfile {
 protected:
-  std::vector<char> readData;
+  std::vector<uint8_t> readData;
   size_t const readSize;
   gzFile gzfile;
 public:
-  igzxfile(const string& name, bool check=true, Mode type=XINPUT,
-         xdr::xios::open_mode mode=xdr::xios::in, size_t readSize=32768) :
-         ixfile(name,check,type,mode), readSize(readSize){}
+  igzxfile(const string& name, bool check=true,
+           xdr::xios::open_mode mode=xdr::xios::in, size_t readSize=32768) :
+    ixfile(name,check,XINPUTGZ,mode), readSize(readSize) {}
 
   bool error() override {return !gzfile;}
 
@@ -674,7 +737,15 @@ public:
 
   void flush() override {if(fstream) ioxfstreamRef->flush();}
 
-  void write(Int val) override{
+  void write(const string& val) override {
+    size_t n=val.size();
+    if(wordmode)
+      *ioxfstreamRef << n;
+    for(size_t i=0; i < n; ++i)
+      *ioxfstreamRef << (xdr::xbyte) val[i];
+  }
+
+  void write(Int val) override {
     if(signedint) {
       if(singleint) *ioxfstreamRef << intcast(val);
       else *ioxfstreamRef << val;
@@ -702,17 +773,21 @@ private:
 };
 
 class oxfile : public file {
+protected:
   xdr::oxstream *fstream;
 public:
-  oxfile(const string& name) : file(name,true,XOUTPUT), fstream(NULL) {}
+  oxfile(const string& name, Mode type=XOUTPUT) : file(name,true,type),
+                                                  fstream(NULL) {}
 
-  void open() {
+  bool isXDR() override {return true;}
+
+  void open() override {
     fstream=new xdr::oxstream(outpath(name).c_str(),xdr::xios::trunc);
     index=processData().oxfile.add(fstream);
     Check();
   }
 
-  void close() {
+  void close() override {
     if(fstream) {
       fstream->close();
       closed=true;
@@ -724,26 +799,34 @@ public:
 
   ~oxfile() {close();}
 
-  bool eof() {return fstream ? fstream->eof() : true;}
-  bool error() {return fstream ? fstream->fail() : true;}
-  void clear() {if(fstream) fstream->clear();}
-  void flush() {if(fstream) fstream->flush();}
+  bool eof() override {return fstream ? fstream->eof() : true;}
+  bool error() override {return fstream ? fstream->fail() : true;}
+  void clear() override {if(fstream) fstream->clear();}
+  void flush() override {if(fstream) fstream->flush();}
 
-  void seek(Int pos, bool begin=true) {
+  void seek(Int pos, bool begin=true) override {
     if(!standard && fstream) {
       clear();
       fstream->seek(pos,begin ? xdr::xios::beg : xdr::xios::end);
     }
   }
 
-  size_t tell() {
+  size_t tell() override {
     if(fstream)
       return fstream->tell();
     else
       return 0;
   }
 
-  void write(Int val) {
+  void write(const string& val) override {
+    size_t n=val.size();
+    if(wordmode)
+      *fstream << n;
+    for(size_t i=0; i < n; ++i)
+      *fstream << (xdr::xbyte) val[i];
+  }
+
+  void write(Int val) override {
     if(signedint) {
       if(singleint) *fstream << intcast(val);
       else *fstream << val;
@@ -752,19 +835,38 @@ public:
       else *fstream << unsignedIntcast(val);
     }
   }
-  void write(double val) {
+  void write(double val) override {
     if(singlereal) *fstream << (float) val;
     else *fstream << val;
   }
-  void write(const pair& val) {
+  void write(const pair& val) override {
     write(val.getx());
     write(val.gety());
   }
-  void write(const triple& val) {
+  void write(const triple& val) override {
     write(val.getx());
     write(val.gety());
     write(val.getz());
   }
+};
+
+class ogzxfile : public oxfile {
+  string name;
+  bool destroyed;
+public:
+  xdr::memoxstream memxdrfile;
+
+  ogzxfile(const string& name, bool singleprecision=false) :
+    oxfile(name,XOUTPUTGZ), name(name), destroyed(false),
+    memxdrfile(singleprecision) {}
+
+  void open() override {
+    fstream=&memxdrfile;
+  }
+
+  void close() override;
+
+  ~ogzxfile() override {close();}
 };
 
 #endif

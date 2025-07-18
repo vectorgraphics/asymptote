@@ -269,6 +269,30 @@ function webGL(canvas,alpha) {
   return gl;
 }
 
+function findGL()
+{
+  let p=window.top.document;
+  asygl=W.webgl2 ? p.asygl2 : p.asygl;
+  if(!asygl[alpha] || !asygl[alpha].gl) {
+    rc=webGL(offscreen,alpha);
+    if(rc) gl=rc;
+    else return;
+    initShaders();
+    if(W.webgl2)
+      p.asygl2[alpha]={};
+    else
+      p.asygl[alpha]={};
+    saveAttributes();
+  } else {
+    restoreAttributes();
+    if((Lights.length != nlights) ||
+       Math.min(Materials.length,maxMaterials) > Nmaterials) {
+      initShaders();
+      saveAttributes();
+    }
+  }
+}
+
 function initGL(outer=true)
 {
   if(W.ibl) W.webgl2=true;
@@ -296,26 +320,7 @@ function initGL(outer=true)
         p.asygl=Array(2);
     }
 
-    asygl=W.webgl2 ? p.asygl2 : p.asygl;
-
-    if(!asygl[alpha] || !asygl[alpha].gl) {
-      rc=webGL(offscreen,alpha);
-      if(rc) gl=rc;
-      else return;
-      initShaders();
-      if(W.webgl2)
-        p.asygl2[alpha]={};
-      else
-        p.asygl[alpha]={};
-      saveAttributes();
-    } else {
-      restoreAttributes();
-      if((Lights.length != nlights) ||
-         Math.min(Materials.length,maxMaterials) > Nmaterials) {
-        initShaders();
-        saveAttributes();
-      }
-    }
+    findGL();
   } else {
     gl=webGL(W.canvas,alpha);
     initShaders();
@@ -360,9 +365,6 @@ precision mediump float;
 
   if(W.ibl)
     macros.push(['ROUGHNESS_STEP_COUNT',roughnessStepCount.toFixed(2)]);
-
-  if(W.orthographic)
-    defines.push('ORTHOGRAPHIC');
 
   macros_str=macros.map(macro => `#define ${macro[0]} ${macro[1]}`).join('\n')
   define_str=defines.map(define => `#define ${define}`).join('\n');
@@ -2542,6 +2544,7 @@ function setUniforms(data,shader)
   shader.projViewMatUniform=gl.getUniformLocation(shader,"projViewMat");
   shader.viewMatUniform=gl.getUniformLocation(shader,"viewMat");
   shader.normMatUniform=gl.getUniformLocation(shader,"normMat");
+  shader.orthographicUniform=gl.getUniformLocation(shader,"orthographic");
 
   if(shader == colorShader || shader == transparentShader)
     gl.enableVertexAttribArray(colorAttribute);
@@ -2557,6 +2560,7 @@ function setUniforms(data,shader)
   gl.uniformMatrix4fv(shader.projViewMatUniform,false,projViewMat);
   gl.uniformMatrix4fv(shader.viewMatUniform,false,viewMat);
   gl.uniformMatrix3fv(shader.normMatUniform,false,normMat);
+  gl.uniform1i(shader.orthographicUniform,1,W.orthographic);
 }
 
 function handleMouseDown(event)

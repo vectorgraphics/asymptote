@@ -27,30 +27,63 @@ struct Map_K_V {
   // Adds the key-value pair, replacing both the key and value if the key was
   // already present.
   void operator [=] (K key, V value);
-  // Removes the entry with the given key, if it exists.
-  // QUESTION: Should we throw an error if the key was not present? (Current
-  // implementation: yes, unless there is a nullValue to return.)
+  // Removes the entry with the given key, if it exists. Throws error if the
+  // key was not present.
   void delete(K key);
 
   Iter_K operator iter();
+
+  Iterable_K_V pairs() {
+    Iter_K_V iter() {
+      Iter_K iterK = this.operator iter();
+      Iter_K_V result;
+      result.valid = iterK.valid;
+      result.get = new Pair_K_V() {
+        K k = iterK.get();
+        return Pair_K_V(k, this[k]);
+      };
+      result.advance = iterK.advance;
+      return result;
+    }
+    return Iterable(iter);
+  }
+
+  // Returns a random, uniformly distributed key from the map. The default
+  // implementation is O(n) in the number of keys. Intended primarily for
+  // testing purposes.
+  K randomKey() {
+    int size = this.size();
+    if (size == 0) {
+      assert(false, 'Cannot get a random key from an empty map');
+    }
+    static int seed = 3567654160488757718;
+    int index = (++seed).hash() % size;
+    for (K key : this) {
+      if (index == 0) {
+        return key;
+      }
+      --index;
+    }
+    assert(false, 'Unreachable code');
+    K unused;
+    return unused;
+  }
 
   autounravel Iterable_K operator cast(Map_K_V map) {
     return Iterable_K(map.operator iter);
   }
 
-  // Makes the notation `for (K key: (K[])map)` work for now, albeit inefficiently.
-  autounravel K[] operator ecast(Map_K_V map) {
-    return (K[])(Iterable_K)map;
+  K[] keys() {
+    K[] result;
+    for (K key : this) {
+      result.push(key);
+    }
+    return result;
   }
 
   void addAll(Iterable_K_V other) {
     for (Pair_K_V kv : other) {
       this[kv.k] = kv.v;
-    }
-  }
-  void removeAll(Iterable_K other) {
-    for (K key : other) {
-      delete(key);
     }
   }
 }
@@ -69,12 +102,13 @@ struct NaiveMap_K_V {
     using F = void();
     ((F)map.operator init)();
   }
-  void operator init(V nullValue, bool isNullValue(V) = null) {
+  void operator init(V keyword nullValue, bool keyword isNullValue(V) = null) {
     keys = new K[0];
     values = new V[0];
     size = 0;
     if (isNullValue == null) {
-      map.operator init(nullValue);  // Let operator init supply its own default.
+      // Let operator init supply its own default.
+      map.operator init(nullValue);
     } else {
       map.operator init(nullValue, isNullValue);
     }
@@ -158,9 +192,6 @@ struct NaiveMap_K_V {
   };
   autounravel Iterable_K operator cast(NaiveMap_K_V map) {
     return Iterable_K(map.map.operator iter);
-  }
-  autounravel K[] operator ecast(NaiveMap_K_V map) {
-    return copy(map.keys);
   }
   autounravel Map_K_V operator cast(NaiveMap_K_V map) {
     return map.map;

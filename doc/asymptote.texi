@@ -66,7 +66,7 @@ file LICENSE in the top-level source directory).
 * Help::                        Where to get help and submit bug reports
 * Debugger::                    Squish those bugs!
 * Credits::                     Contributions and acknowledgments
-* Index::                       General index
+* General Index::               General index
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -87,7 +87,7 @@ Installation
 Tutorial
 
 * Drawing in batch mode::       Run @code{Asymptote} on a text file
-* Drawing in interactive mode::  Running @code{Asymptote} interactively
+* Drawing in interactive mode:: Running @code{Asymptote} interactively
 * Figure size::                 Specifying the figure size
 * Labels::                      Adding @code{LaTeX} labels
 * Paths::                       Drawing lines and curves
@@ -116,13 +116,19 @@ Programming
 * Arrays::                      Dynamic vectors
 * Casts::                       Implicit and explicit casts
 * Import::                      Importing external @code{Asymptote} modules
+* Iterators::                   Iterating over structures
 * Static::                      Where to allocate your variable?
+* Autounravel::                 Adding associated libraries to structures
+* Hash functions::              Hashing your data
+* Collections (containers)::    Maps, sets, queues, and iterator tools
 
 Operators
 
 * Arithmetic & logical::        Basic mathematical operators
 * Self & prefix operators::     Increment and decrement
 * User-defined operators::      Overloading operators
+* Bracket operators::           Bracket operators
+* Cast operators::              Type conversion
 
 Functions
 
@@ -137,7 +143,35 @@ Arrays
 
 Import
 
-* Templated imports::
+* Templated imports::           Imports parametrized by generic types
+
+Iterators
+
+* range::                       Iterating over integers
+
+Autounravel
+
+* When fields are autounraveled::
+* Where autounravel is legal::
+
+Hash functions
+
+* Hashing user-defined structures::
+
+Collections (containers)
+
+* Pairs::
+* Iterators and utilities::
+* Maps::
+* Sets::
+* Queues::
+* Wrapping arrays::             Arrays that can be used as keys or values
+
+Iterators and utilities
+
+* @code{collections.iter(T)}::  Iterable structures
+* Combining (zipping) iterators::
+* Attaching a counter to an iterator::
 
 Base modules
 
@@ -206,7 +240,7 @@ along with any format that the @code{ImageMagick} package can
 produce. You can even try it out in your Web browser without
 installing it, using the @code{Asymptote Web Application}
 
-@url{http://asymptote.ualberta.ca}
+@url{https://asymptote.ualberta.ca}
 
 It is also possible to send remote commands to this server via the
 curl utility (@pxref{Command-Line Interface}).
@@ -223,7 +257,7 @@ that can generate objects directly. However, the script portion of the language
 is now ready for general use by users who are willing to learn a few
 simple @code{Asymptote} graphics commands (@pxref{Drawing commands}).
 
-@code{Asymptote} is mathematically oriented (e.g.@ one can
+@code{Asymptote} is mathematically oriented (one can
 use complex multiplication to rotate a vector) and uses
 @code{LaTeX} to do the
 typesetting of labels. This is an important feature for scientific
@@ -359,12 +393,12 @@ dnf --enablerepo=rawhide install asymptote
 @cindex Debian
 @noindent
 To install the latest version of @code{Asymptote} on a Debian-based distribution
-(e.g.@ Ubuntu, Mepis, Linspire) follow the instructions for compiling
+(such as Ubuntu) follow the instructions for compiling
 from @code{UNIX} source (@pxref{Compiling from UNIX source}).
-Alternatively, Debian users can install one of Hubert Chan's
+Alternatively, Debian users can install one of Hubert Chathi's
 prebuilt @code{Asymptote} binaries from
 @quotation
-@url{http://ftp.debian.org/debian/pool/main/a/asymptote}
+@url{https://ftp.debian.org/debian/pool/main/a/asymptote}
 @end quotation
 
 @node MacOS X binary distributions
@@ -395,7 +429,7 @@ where @code{x.xx} denotes the latest version.
 
 A working @TeX{} implementation (we recommend
 @url{https://www.tug.org/texlive} or
-@url{http://www.miktex.org}) will be required to typeset labels.
+@url{https://miktex.org}) will be required to typeset labels.
 You will also need to install @code{GPL Ghostscript} version 9.56 or
 later from @url{https://www.ghostscript.com/}.
 
@@ -420,7 +454,6 @@ subdirectory of the installation directory (by default,
 @node Configuring
 @section Configuring
 @cindex configuring
-@cindex @code{-V}
 In interactive mode, or when given the @code{-V} option (the default
 when running @code{Asymptote} on a single file under @code{MSDOS}),
 @code{Asymptote} will automatically invoke your @code{PostScript}
@@ -619,29 +652,6 @@ gunzip asymptote-x.xx.src.tgz
 tar -xf asymptote-x.xx.src.tar
 cd asymptote-x.xx
 @end verbatim
-By default the system version of the Boehm garbage collector will be
-used; if it is old we recommend first putting
-@url{https://github.com/ivmai/bdwgc/releases/download/v8.0.4/gc-8.0.4.tar.gz}
-@url{https://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-7.6.10.tar.gz}
-in the @code{Asymptote} source directory.
-
-On @code{UNIX} platforms (other than @code{MacOS X}), we recommend
-using version @code{3.2.1} of the @code{freeglut} library. To compile
-@code{freeglut}, download
-@quotation
-@url{https://prdownloads.sourceforge.net/freeglut/freeglut-3.2.1.tar.gz}
-@end quotation
-@noindent
-and type (as the root user):
-@verbatim
-gunzip freeglut-3.2.1.tar.gz
-tar -xf freeglut-3.2.1.tar
-cd freeglut-3.2.1
-cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_C_FLAGS=-fcommon .
-make
-make install
-@end verbatim
-@noindent
 
 Then compile @code{Asymptote} with the commands
 @verbatim
@@ -680,7 +690,7 @@ look for header files and libraries in nonstandard locations:
 @end verbatim
 
 If you are compiling @code{Asymptote} with @code{gcc}, you will need a
-relatively recent version (e.g.@ 3.4.4 or later).  For full interactive
+version that supports C++17.  For full interactive
 functionality, you will need version 4.3 or later of the @acronym{GNU}
 @code{readline} library.
 The file @code{gcc3.3.2curses.patch} in the @code{patches} directory can
@@ -727,10 +737,10 @@ shows the available function prototypes for the command at the cursor.
 For full functionality you should also install the Apache Software Foundation
 package @code{two-mode-mode}:
 @quotation
-@url{https://www.dedasys.com/freesoftware/files/two-mode-mode.el}
+@url{https://github.com/erlyaws/yaws/blob/master/two-mode-mode.el}
 @end quotation
 @noindent
-Once installed, you can use the hybrid mode @code{lasy-mode} to edit a
+The hybrid mode @code{lasy-mode} can be used to edit a
 LaTeX file containing embedded @code{Asymptote} code (@pxref{LaTeX usage}).
 This mode can be enabled within @code{latex-mode}
 with the key sequence @code{M-x lasy-mode <RET>}.
@@ -870,7 +880,6 @@ Desktop @code{asy} icon (or make @code{Asymptote} the default
 application for the extension @code{asy}).
 
 @noindent
-@cindex @code{-V}
 This method, known as @emph{batch mode}, outputs a @code{PostScript}
 file @code{test.eps}. If you prefer @acronym{PDF} output, use
 the command line
@@ -1012,7 +1021,7 @@ In general, a path is specified as a list of points (or other paths)
 interconnected with
 @cindex @code{cycle}
 @cindex @code{--}
-@cindex @code{..}
+@cindex @code{..} (two dots)
 @code{--}, which denotes a straight line segment, or @code{..}, which
 denotes a cubic spline (@pxref{Bezier curves}).
 @cindex @code{unitcircle}
@@ -1065,7 +1074,7 @@ See section @ref{graph} (or the online
 external links posted at @url{https://asymptote.sourceforge.io}) for
 further examples, including two-dimensional and interactive
 three-dimensional scientific graphs. Additional examples have been
-posted by Philippe Ivaldi at @url{https://web.archive.org/web/20201130113133/http://www.piprime.fr/asymptote}.
+posted by Philippe Ivaldi at @url{https://blog.piprime.fr/asymptote/}.
 
 @node Drawing commands
 @chapter Drawing commands
@@ -1699,7 +1708,7 @@ allows Labels and frames to be treated in a uniform manner.
 A group of objects may be packed together into single frame with the routine
 @cindex @code{pack}
 @verbatim
-frame pack(pair align=2S ... object inset[]);
+frame pack(pair align=2S, ... object inset[]);
 @end verbatim
 @noindent
 @anchor{envelope}
@@ -1799,8 +1808,8 @@ it approximates a straight line.
 @cindex @code{and}
 @cindex @code{atleast}
 One can change the spline tension from its default value of 1 to any
-real value greater than or equal to 0.75 (see John D. Hobby, Discrete and
-Computational Geometry 1, 1986):
+real value greater than or equal to 0.75 [see John D. Hobby, Discrete and
+Computational Geometry 1, 123--140 (1986)]:
 @verbatim
 draw((100,0)..tension 2 ..(100,100)..(0,100));
 draw((100,0)..tension 3 and 2 ..(100,100)..(0,100));
@@ -1862,8 +1871,11 @@ should coincide with the first node of the second path).
 * Arrays::                      Dynamic vectors
 * Casts::                       Implicit and explicit casts
 * Import::                      Importing external @code{Asymptote} modules
+* Iterators::                   Iterating over structures
 * Static::                      Where to allocate your variable?
 * Autounravel::                 Adding associated libraries to structures
+* Hash functions::              Hashing your data
+* Collections (containers)::    Maps, sets, queues, and iterator tools
 @end menu
 
 Here is a short introductory example to the @code{Asymptote} programming
@@ -1904,8 +1916,9 @@ for(int i=0; i < 10; ++i) {
 @cindex @code{break}
 @cindex @code{continue}
 @code{Asymptote} supports @code{while}, @code{do}, @code{break}, and
-@code{continue} statements just as in C/C++. It also supports the Java-style
-shorthand for iterating over all elements of an array:
+@code{continue} statements just as in C/C++. It also supports
+range-based @code{for} loops, which are convenient
+for iterating over all elements of an array:
 
 @cindex array iteration
 @anchor{array iteration}
@@ -2203,7 +2216,7 @@ returns @code{(max(u.x,v.x),max(u.y,v.y),max(u.z,v.z)}).
 a character string, implemented using the STL @code{string} class.
 
 Strings delimited by double quotes (@code{"}) are subject to the
-following mappings to allow the use of double quotes in @TeX{} (e.g.@ for
+following mappings to allow the use of double quotes in @TeX{} (for
 using the @code{babel} package, @pxref{babel}):
 
 @itemize @bullet
@@ -2386,7 +2399,7 @@ time(seconds()-24*60*60);
 if the setting @code{safe} is false, call the arbitrary system command @code{s};
 
 @cindex @code{asy}
-@item void asy(string format, bool overwrite=false ... string[] s)
+@item void asy(string format, bool overwrite=false, ... string[] s)
 conditionally process each file name in array @code{s} in a new environment,
 using format @code{format}, overwriting the output file only if
 @code{overwrite} is true;
@@ -2664,7 +2677,7 @@ time @code{b}, in the sense of @code{point(path, real)}. If @code{a} >
 
 @cindex @code{intersect}
 @item real[] intersect(path p, path q, real fuzz=-1);
-If @code{p} and @code{q} have at least one intersection point, return a
+if @code{p} and @code{q} have at least one intersection point, return a
 real array of length 2 containing the times representing the respective
 path times along @code{p} and @code{q}, in the sense of
 @code{point(path, real)}, for one such intersection point (as chosen by
@@ -2675,14 +2688,14 @@ intersect, return a real array of length 0.
 
 @cindex @code{intersections}
 @item real[][] intersections(path p, path q, real fuzz=-1);
-Return all (unless there are infinitely many) intersection times of
+returns all (unless there are infinitely many) intersection times of
 paths @code{p} and @code{q} as a sorted array of real arrays of length 2
 (@pxref{sort}). The computations are performed to the absolute error
 specified by @code{fuzz}, or if @code{fuzz < 0}, to machine precision.
 
 @cindex @code{intersections}
 @item real[] intersections(path p, explicit pair a, explicit pair b, real fuzz=-1);
-Return all (unless there are infinitely many) intersection times of path
+returns all (unless there are infinitely many) intersection times of path
 @code{p} with the (infinite) line through points @code{a} and @code{b}
 as a sorted array. The intersections returned are guaranteed to be
 correct to within the absolute error specified by @code{fuzz}, or if
@@ -2755,7 +2768,7 @@ Note that @code{lastcut.before} plays the role of the
 @code{MetaPost cutafter} command.
 
 @cindex @code{buildcycle}
-@item path buildcycle(... path[] p);
+@item path buildcycle(...path[] p);
 This returns the path surrounding a region bounded by a list of two or more
 consecutively intersecting paths, following the behavior of the
 @code{MetaPost buildcycle} command.
@@ -3029,7 +3042,7 @@ the command
 import texcolors;
 @end verbatim
 Note that there is some overlap between these two standards
-and the definitions of some colors (e.g.@ @code{Green}) actually disagree.
+and the definitions of some colors (such as @code{Green}) actually disagree.
 
 @code{Asymptote} also comes with a @code{asycolors.sty} @code{LaTeX} package
 that defines to @code{LaTeX} @acronym{CMYK} versions of
@@ -3558,7 +3571,7 @@ The @code{size} routine specifies the dimensions of the desired picture:
 @cindex @code{size}
 @verbatim
 void size(picture pic=currentpicture, real x, real y=x,
-          bool keepAspect=Aspect);
+          bool keepAspect=pic.keepAspect);
 @end verbatim
 
 If the @code{x} and @code{y} sizes are both 0, user coordinates will be
@@ -3571,7 +3584,7 @@ direction.
 
 @cindex @code{keepAspect}
 @cindex @code{Aspect}
-If @code{keepAspect} is set to @code{Aspect} or @code{true},
+If @code{keepAspect} is set to @code{Aspect} or @code{true} (the default),
 the picture will be scaled with its aspect ratio preserved such that
 the final width is no more than @code{x} and the final height is
 no more than @code{y}.
@@ -3669,7 +3682,7 @@ The transformation that would currently be used to fit a picture
 @code{pic} to a frame is returned by the member function
 @code{pic.calculateTransform()}.
 
-In certain cases (e.g.@ 2D graphs) where only an approximate size
+In certain cases (such as 2D graphs) where only an approximate size
 estimate for @code{pic} is available, the picture fitting routine
 @cindex @code{picture.scale}
 @verbatim
@@ -4120,9 +4133,9 @@ Data of a built-in type @code{T} can be written to an output file by
 calling one of the functions
 @cindex @code{write}
 @verbatim
-write(string s="", T x, suffix suffix=endl ... T[]);
-write(file file, string s="", T x, suffix suffix=none ... T[]);
-write(file file=stdout, string s="", explicit T[] x ... T[][]);
+write(string s="", T x, suffix suffix=endl, ... T[]);
+write(file file, string s="", T x, suffix suffix=none, ... T[]);
+write(file file=stdout, string s="", explicit T[] x, ... T[][]);
 write(file file=stdout, T[][]);
 write(file file=stdout, T[][][]);
 write(suffix suffix=endl);
@@ -4165,31 +4178,36 @@ write(fout,"List: ",1,2,3);     // Writes "List: 1     2     3"
 @cindex @code{mode}
 @cindex @code{binary}
 @cindex @code{xdr}
-A file may be opened with @code{mode="xdr"}, to read or write
+A file may be opened with @code{mode="xdr"} to read or write
 double precision (64-bit) reals and single precision (32-bit)
 integers in Sun Microsystem's @acronym{XDR} (External
-Data Representation) portable binary format (available on all
-@code{UNIX} platforms).
-Alternatively, a file may also be opened with @code{mode="binary"}
+Data Representation) portable binary format.
+A file may instead be opened with @code{mode="binary"}
 to read or write double precision reals and single
-precision integers in the native (nonportable) machine binary format,
-or to read the entire file into a string.
+precision integers in the native (nonportable) machine binary format.
 The virtual member functions
 @code{file singlereal(bool b=true)} and @code{file singleint(bool b=true)}
-be used to change the precision of real and integer I/O
-operations, respectively, for an @acronym{XDR} or binary file @code{f}.
+may be used to change the precision of real and integer I/O
+operations, respectively, for an @acronym{XDR} or binary file.
 Similarly, the function @code{file signedint(bool b=true)}
 can be used to modify the signedness of integer reads and writes for
-an @acronym{XDR} or binary file @code{f}.
+an @acronym{XDR} or binary file.
+Since there are no end-of-line terminators in these formats,
+reading a string from an @acronym{XDR} or binary file will by default
+read in the remainder of the file as a string.
+The virtual member function @code{file word(bool b=true)}
+may be used to change this behaviour: a double precision integer
+specifying the length of the string is first read or written, followed
+by that many characters.
 
 @cindex @code{name}
 @cindex @code{mode}
 @cindex @code{singlereal}
 @cindex @code{singleint}
 @cindex @code{signedint}
-The virtual members @code{name}, @code{mode}, @code{singlereal},
-@code{singleint}, and @code{signedint} may be used to query the
-respective parameters for a given file.
+The virtual fields @code{name}, @code{mode}, @code{singlereal},
+@code{singleint}, and @code{signedint} may be used
+to query these respective states of a file.
 
 @cindex @code{eof}
 @cindex @code{eol}
@@ -4226,7 +4244,7 @@ One may then press @code{Enter} to continue to the next @code{n} output lines,
 @code{s} followed by @code{Enter} to scroll without further interruption,
 or @code{q} followed by @code{Enter} to quit the current output
 operation. If @code{n} is negative, the output scrolls a page at a time
-(i.e. by one less than the current number of display lines). The default
+(by one less than the current number of display lines). The default
 value, @code{settings.scroll=0}, specifies continuous scrolling.
 
 The routines
@@ -4443,7 +4461,7 @@ T foo=new T;
 T foo;
 @end verbatim
 @noindent
-Here, @code{new T} produces a new instance of the class, which
+Here, @code{new T} produces a new instance of the struct, which
 causes @code{Tcount} to be incremented, tracking the
 number of instances produced. The declarations @code{T foo=new T} and
 @code{T foo} are equivalent: the second form implicitly creates a new
@@ -4540,6 +4558,38 @@ confused with its use to define default values for variables
 first case, the return type of the @code{operator init} must be @code{void}
 while in the second, it must be the (non-@code{void}) type of the variable.
 
+Internally, @code{operator init} implicitly defines a constructor function
+@code{Person(string,string)} as follows, where @var{args} is
+@code{string firstname, string lastname} in this case:
+@example
+struct Person @{
+  string firstname;
+  string lastname;
+
+  static Person Person(@var{args}) @{
+    Person p=new Person;
+    p.operator init(@var{args});
+    return p;
+  @}
+@}
+@end example
+@noindent
+which then can be used as:
+@verbatim
+Person joe=Person.Person("Joe", "Jones");
+@end verbatim
+
+The following is also implicitly generated in the enclosing scope,
+after the end of the structure definition.
+@verbatim
+from Person unravel Person;
+@end verbatim
+@noindent
+It allows us to use the constructor without qualification,
+otherwise we would have to refer to the constructor by the qualified name
+@code{Person.Person}.
+
+
 @cindex inheritance
 @cindex virtual functions
 Much like in C++, casting (@pxref{Casts}) provides for an elegant
@@ -4588,6 +4638,8 @@ the @code{Asymptote} base module @code{plain}.
 * Arithmetic & logical::        Basic mathematical operators
 * Self & prefix operators::     Increment and decrement
 * User-defined operators::      Overloading operators
+* Bracket operators::           Bracket operators
+* Cast operators::              Type conversion
 @end menu
 
 @node Arithmetic & logical
@@ -4763,9 +4815,9 @@ boolean operators @code{<}, @code{>}, @code{<=}, and @code{>=}.
 Guide operators like @code{..} may be overloaded, say, to write
 a user function that produces a new guide from a given guide:
 @verbatim
-guide dots(... guide[] g)=operator ..;
+guide dots(...guide[] g)=operator ..;
 
-guide operator ..(... guide[] g) {
+guide operator ..(...guide[] g) {
   guide G;
   if(g.length > 0) {
     write(g[0]);
@@ -4784,6 +4836,69 @@ write("g=",g);
 @end verbatim
 
 @xref{Autounravel}, for an example overloading the @code{+} operator.
+
+@node Bracket operators
+@subsection Bracket operators
+@cindex @code{[]}
+@cindex @code{[=]}
+@cindex @code{operator []}
+@cindex @code{operator [=]}
+@cindex bracket operators
+
+If @code{a} is not an array, the notation @code{a[i]} is equivalent to
+@code{a.operator[](i)}. Thus, the@tie{}@code{[]} operator can be defined to
+provide this notation for a user-defined structure. Similarly, the notation
+@code{a[i]=b} is equivalent to @code{a.operator[=](i,b)} (except that the former
+always returns @code{b}). Note that there are some restrictions on how these
+operators can be defined:
+
+@itemize
+@item Neither operator can be overloaded within a single structure (although
+different structures can have different definitions for these operators).
+@item @code{operator []} must take a single argument and have a non-void return
+type.
+@item @code{operator [=]} can only be defined if @code{operator[]} is also
+defined.
+@item @code{operator[=]} must take two arguments and have a void return type.
+Furthermore, if @code{K} and @code{V} are the types of the first and second
+arguments to @code{operator[=]}, respectively, then @code{K} must be the type of
+the argument to @code{operator[]} and @code{V} must be the return type of
+@code{operator[]}.
+@end itemize
+
+Here is a simple example. (@xref{Maps} for data structures similar to
+@code{slowMap} but more flexible, more powerful, and faster.)
+
+@verbatim
+struct slowMap {
+  string[] keys;
+  real[] values;
+  real operator [](string key) {
+    for(int i=0; i < keys.length; ++i) {
+      if(keys[i] == key) return values[i];
+    }
+    return -inf;
+  }
+  void operator [=](string key, real value) {
+    assert(all(keys != key), 'duplicate key');
+    keys.push(key);
+    values.push(value);
+  }
+}
+
+slowMap m;
+m['pi']=3.14159;
+m['e']=2.71828;
+assert(m['pi']==3.14159);
+assert(m['e']==2.71828);
+assert(m['sqrt(2)'] == -inf);
+write("m['pi']=", m['pi']);
+@end verbatim
+
+@node Cast operators
+@subsection Cast operators
+
+@xref{Casts} for information on @code{operator cast} and @code{operator ecast}.
 
 @node Implicit scaling, Functions, Operators, Programming
 @section Implicit scaling
@@ -4953,8 +5068,8 @@ based on their signatures.
 @cindex stack overflow
 Functions are allowed to call themselves recursively. As in C++, infinite
 nested recursion will generate a stack overflow (reported as a
-segmentation fault, unless a fully working version of the @acronym{GNU}
-library @code{libsigsegv} (e.g.@ 2.4 or later) is installed at
+segmentation fault or illegal instruction, unless a fully working
+version of the @acronym{GNU} library @code{libsigsegv} is installed at
 configuration time).
 
 @node Default arguments
@@ -5067,7 +5182,7 @@ Rest arguments allow one to write functions that take a variable
 number of arguments:
 @verbatim
 // This function sums its arguments.
-int sum(... int[] nums) {
+int sum(...int[] nums) {
   int total=0;
   for(int i=0; i < nums.length; ++i)
     total += nums[i];
@@ -5078,7 +5193,7 @@ sum(1,2,3,4);                       // returns 10
 sum();                              // returns 0
 
 // This function subtracts subsequent arguments from the first.
-int subtract(int start ... int[] subs) {
+int subtract(int start, ... int[] subs) {
   for(int i=0; i < subs.length; ++i)
     start -= subs[i];
   return start;
@@ -5089,26 +5204,35 @@ subtract(10);                       // returns 10
 subtract();                         // illegal
 @end verbatim
 
+The comma before an ellipsis is optional, so that the following two
+declarations are equivalent:
+@verbatim
+int subtract(int start, ... int[] subs);
+int subtract(int start ... int[] subs);
+@end verbatim
+Note, however, that a comma cannot directly follow an open parenthesis:
+@code{int sum(, ... int[] nums)} is a syntax error.
+
 @cindex packing
 Putting an argument into a rest array is called @emph{packing}.
 One can give an explicit list of arguments for the rest
 argument, so @code{subtract} could alternatively be implemented as
 @verbatim
-int subtract(int start ... int[] subs) {
+int subtract(int start, ... int[] subs) {
   return start - sum(... subs);
 }
 @end verbatim
 
 One can even combine normal arguments with rest arguments:
 @verbatim
-sum(1,2,3 ... new int[] {4,5,6});   // returns 21
+sum(1,2,3, ... new int[] {4,5,6});   // returns 21
 @end verbatim
 @noindent
 @cindex unpacking
 This builds a new six-element array that is passed to @code{sum} as
 @code{nums}. The opposite operation, @emph{unpacking}, is not allowed:
 @verbatim
-subtract(... new int[] {10, 1, 2});
+subtract(...new int[] {10, 1, 2});
 @end verbatim
 @noindent
 is illegal, as the start formal is not matched.
@@ -5123,7 +5247,7 @@ for the rest parameter to be assigned to other parameters.  For example, here
 the use of @code{keyword} is to avoid @code{pnorm(1.0,2.0,0.3)} matching
 @code{1.0} to @code{p}.
 @verbatim
-real pnorm(real keyword p=2.0 ... real[] v)
+real pnorm(real keyword p=2.0, ... real[] v)
 {
   return sum(v^p)^(1/p);
 }
@@ -5150,13 +5274,13 @@ g(3,4); // ambiguous; the first candidate is better for the first argument,
         // but the second candidate is better for the second argument
 
 int h(... int[] rest);
-int h(real x ... int[] rest);
+int h(real x, ... int[] rest);
 
 h(1,2); // the second definition matches, even though there is a cast,
         // because casting is preferred over packing
 
-int i(int x ... int[] rest);
-int i(real x, real y ... int[] rest);
+int i(int x, ... int[] rest);
+int i(real x, real y, ... int[] rest);
 
 i(3,4); // ambiguous; the first candidate is better for the first argument,
         // but the second candidate is better for the second one
@@ -5255,19 +5379,28 @@ function (equivalent to @code{fabs(real)}), an @code{abs(pair)} function
 @cindex @code{rand}
 @cindex @code{randMax}
 @cindex @code{unitrand}
+@cindex @code{randString}
 @cindex @code{Gaussrand}
 @cindex @code{histogram}
 @cindex @code{factorial}
 @cindex @code{choose}
-Random numbers can be seeded with @code{srand(int)}
-(for example, with @code{srand(round((cputime().parent.clock%1)*1e9))})
-and generated with
-the @code{int rand()} function, which returns a random integer between 0
-and the integer @code{randMax}. The @code{unitrand()} function returns
-a random number uniformly distributed in the interval [0,1].
+Asymptote's random number generators can be seeded with @code{srand(int)}. If a negative
+argument is given to @code{srand}, an internal entropy source is used as a seed.
+Random numbers are initially seeded with @code{srand(-1)}.
+The function @code{int rand(int a=0, int b=randMax)} returns a random integer in
+[a,b]. The @code{unitrand()} function returns
+a random number uniformly distributed in the interval [0,1).
+The @code{randString(int len, string chars)} function returns a random
+string of length @code{len} composed of characters from the string @code{chars}.
+If @code{chars} is the empty string, the string
+@code{'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'} is used.
+In each position of the output, the probability of a character appearing is
+proportional to the number of times it appears in @code{chars}.
+
 A Gaussian random number generator
 @code{Gaussrand} and a collection of statistics routines, including
 @code{histogram}, are provided in the module @code{stats}.
+
 The functions @code{factorial(int n)}, which returns @math{n!}, and
 @code{choose(int n, int k)}, which returns @math{n!/(k!(n-k)!)}, are
 also defined.
@@ -5356,37 +5489,6 @@ If the iteration fails after the maximum allowed number of loops
 @item @code{real simpson(real f(real), real a, real b, real acc=realEpsilon, real dxmax=b-a)}
 returns the integral of @code{f} from @code{a} to @code{b} using adaptive Simpson integration.
 
-Internally, @code{operator init} implicitly defines a constructor function
-@code{Person(string,string)} as follows, where @var{args} is
-@code{string firstname, string lastname} in this case:
-@example
-struct Person @{
-  string firstname;
-  string lastname;
-
-  static Person Person(@var{args}) @{
-    Person p=new Person;
-    p.operator init(@var{args});
-    return p;
-  @}
-@}
-@end example
-@noindent
-which then can be used as:
-@verbatim
-Person joe=Person.Person("Joe", "Jones");
-@end verbatim
-
-The following is also implicitly generated in the enclosing scope,
-after the end of the structure definition.
-@verbatim
-from Person unravel Person;
-@end verbatim
-@noindent
-It allows us to use the constructor without qualification,
-otherwise we would have to refer to the constructor by the qualified name
-@code{Person.Person}.
-
 @cindex @code{cputime}
 @noindent
 @item @code{cputime cputime()}
@@ -5428,7 +5530,7 @@ array to be resized to accommodate the new element.
 One can also index an array @code{A} with an integer array @code{B}:
 the array @code{A[B]} is formed by indexing array @code{A} with
 successive elements of array @code{B}.
-A convenient Java-style shorthand exists for iterating over all elements of an
+A convenient shorthand exists for iterating over all elements of an
 array; see @ref{array iteration}.
 
 The declaration
@@ -5451,9 +5553,25 @@ Arrays can be explicitly initialized like this:
 @verbatim
 real[] A={0,1,2};
 @end verbatim
+@noindent An explicit array initialization can also end with a copy of another
+array:
+@verbatim
+real[] A={0,1};
+real[] B={...A};  // Now B contains {0,1}.
+real[] C={4 ...A};  // Now C contains {4,0,1}.
+@end verbatim
+@noindent (Side note: without the space, @code{4...A} would be parsed as
+@code{4.0 .. A} and thus give a syntax error.)
 
 Array assignment in @code{Asymptote} does a shallow copy: only
 the pointer is copied (if one copy if modified, the other will be too).
+@verbatim
+real[] A = {0,1,2};
+real[] B = A;
+B[0] = 3;
+write(A[0]); // Outputs 3.
+@end verbatim
+@noindent
 The @code{copy} function listed below provides a deep copy of an array.
 
 @cindex @code{length}
@@ -5473,7 +5591,7 @@ Every array @code{A} of type @code{T[]} has the virtual members
 @item   @code{T push(T x)},
 @item   @code{void append(T[] a)},
 @item   @code{T pop()},
-@item   @code{void insert(int i ... T[] x)},
+@item   @code{void insert(int i, ... T[] x)},
 @item   @code{void delete(int i, int j=i)},
 @item   @code{void delete()}, and
 @item   @code{bool initialized(int n)}.
@@ -5491,7 +5609,7 @@ to @code{@{0,1,...,n-1@}}.  A new keys array is produced each time
 @code{A.keys} is evaluated.
 
 The functions @code{A.push} and @code{A.append} append their
-arguments onto the end of the array, while @code{A.insert(int i ... T[] x)}
+arguments onto the end of the array, while @code{A.insert(int i, ... T[] x)}
 inserts @code{x} into the array at index @code{i}.
 For convenience @code{A.push} returns the pushed item.
 The function @code{A.pop()} pops and returns the last element,
@@ -5515,7 +5633,7 @@ write(g());        // Outputs 3.
 A.delete(0);       // A now contains {2,1,2}.
 A.delete(0,1);       // A now contains {2}.
 A.insert(1,3);     // A now contains {2,3}.
-A.insert(1 ... A); // A now contains {2,2,3,3}
+A.insert(1, ... A); // A now contains {2,2,3,3}
 A.insert(2,4,5);   // A now contains {2,2,4,5,3,3}.
 @end verbatim
 
@@ -5565,11 +5683,11 @@ a null array);
 
 @item int[] sequence(int n, int m)
 if @code{m >= n} returns an array @code{@{n,n+1,...,m@}} (otherwise
-returns a null array);
+returns a null array); see also @ref{range};
 
 @item int[] sequence(int n, int m, int skip)
-if @code{m >= n} returns an array @code{@{n,n+1,...,m@}} skipping by
-@code{skip} (otherwise returns a null array);
+if @code{(m-n)/skip >= 0} returns an array @code{@{n,n+skip,...,m@}} skipping by
+@code{skip} (otherwise returns a null array); see also @ref{range};
 
 @item T[] sequence(T f(int), int n)
 if @code{n >= 1} returns the sequence @code{@{f_i :i=0,1,...n-1@}} given a
@@ -5633,7 +5751,7 @@ such that element @code{i} precedes element @code{j} if
 returns a deep copy of the array @code{a};
 
 @cindex @code{concat}
-@item T[] concat(... T[][] a)
+@item T[] concat(...T[][] a)
 returns a new array formed by concatenating the given one-dimensional
 arrays given as arguments;
 
@@ -5749,13 +5867,13 @@ returns the unnormalized three-dimensional Fourier transform of
 @cindex @code{realschur}
 @cindex @code{schur}
 @item realschur schur(real[][] a)
-returns a struct @code{realschur} containing a unitary matrix @code{U} and
+returns a structure @code{realschur} containing a unitary matrix @code{U} and
 a quasitriangular matrix @code{T} such that
 @code{a=U*T*transpose(U)};
 
 @cindex @code{schur}
 @item schur schur(pair[][] a)
-returns a struct @code{schur} containing a unitary matrix @code{U} and
+returns a structure @code{schur} containing a unitary matrix @code{U} and
 a triangular matrix @code{T} such that
 @code{a=U*T*conj(transpose(U))};
 
@@ -5819,7 +5937,7 @@ matrix and @code{warn} is @code{false}, return an empty matrix;
 returns the @math{n \times n} identity matrix;
 
 @cindex @code{diagonal}
-@item real[][] diagonal(... real[] a)
+@item real[][] diagonal(...real[] a)
 returns the diagonal matrix with diagonal entries given by a;
 
 @cindex @code{inverse}
@@ -5880,11 +5998,19 @@ real[] A=fin;
 reads real values into @code{A} until the end-of-file is reached (or an
 I/O error occurs).
 
-The virtual members @code{dimension}, @code{line}, @code{csv},
-@code{word}, and @code{read} of a file are useful for reading arrays.
 @cindex @code{line}
-For example, if line mode is set with @code{file line(bool b=true)}, then
-reading will stop once the end of the line is reached instead:
+@cindex @code{word}
+@cindex @code{csv}
+@cindex @code{dimension}
+@cindex @code{read}
+The virtual member functions @code{line()}, @code{word()}, @code{csv()},
+@code{dimension()}, and @code{read()} of a file are useful for qualifying
+array reads, while the virtual fields @code{line}, @code{word}, @code{csv},
+and @code{dimension} may be used to query these respective states.
+
+@cindex @code{line}
+If line mode is set with @code{file line(bool b=true)}, then
+reading will stop once the end of the line is reached:
 @verbatim
 file fin=input("test.txt");
 real[] A=fin.line();
@@ -5914,7 +6040,7 @@ real[] A=fin;
 
 @cindex @code{dimension}
 To restrict the number of values read, use the @code{file dimension(int)}
-function:
+virtual member function:
 @verbatim
 file fin=input("test.txt");
 real[] A=fin.dimension(10);
@@ -6238,23 +6364,34 @@ search paths (@pxref{Search paths}) for the matching file.  The file
 corresponding to that name is read and the code within it is interpreted
 as the body of a structure defining the module.
 
-If the file name contains
-nonalphanumeric characters, enclose it with quotation marks:
+
+If the file is contained in a subdirectory, the directory structure can be
+specified with a dot-separated name.  For instance, the command
+@verbatim
+import directoryName.moduleName;
+access directoryName.moduleName;
+@end verbatim
+@noindent will load the file @code{directoryName/moduleName.asy} as module
+@code{moduleName}. Likewise,
+@verbatim
+from directoryName.moduleName access functionName;
+@end verbatim
+will access @code{functionName} from @code{directoryName/moduleName.asy}.
+The directory @code{directoryName} is relative to the current directory,
+the @code{base} directory, or any directory in the search path
+(@pxref{Search paths}). Nested directory specifications are allowed, as long as the directory
+and module names are also valid as variable names.
+Otherwise (for example if the directory is an absolute path),
+the filename must be enclosed with quotation marks:
 
 @noindent
-@code{access "@value{Datadir}/asymptote/graph.asy" as graph;}
-
-@noindent
-@code{from "@value{Datadir}/asymptote/graph.asy" access axes;}
-
-@noindent
-@code{import "@value{Datadir}/asymptote/graph.asy" as graph;}
+@code{import '/usr/local/share/asymptote/graph.asy' as graph;}
 
 @cindex @acronym{URL}
 @cindex @acronym{libcurl}
 If @code{Asymptote} is compiled with support for @code{libcurl},
 the file name can even be a @acronym{URL}:
-@code{import "https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/axis3.asy" as axis3;}
+@code{import 'https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/doc/axis3.asy' as axis3;}
 
 It is an error if modules import themselves (or each other in a cycle).
 The module name to be imported must be known at compile time.
@@ -6264,13 +6401,13 @@ The module name to be imported must be known at compile time.
 However, you can import an @code{Asymptote} module determined by the
 string @code{s} at runtime like this:
 @verbatim
-eval("import "+s,true);
+eval('import '+s,true);
 @end verbatim
 
 @cindex @code{asy}
 To conditionally execute an array of asy files, use
 @verbatim
-void asy(string format, bool overwrite ... string[] s);
+void asy(string format, bool overwrite, ... string[] s);
 @end verbatim
 The file will only be processed, using output format @code{format}, if
 overwrite is @code{true} or the output file is missing.
@@ -6312,7 +6449,7 @@ include graph;
 @end verbatim
 
 @noindent
-@code{include "@value{Datadir}/asymptote/graph.asy";}
+@code{include '@value{Datadir}/asymptote/graph.asy';}
 
 To list all global functions and variables defined in a module named
 by the contents of the string @code{s}, use the function
@@ -6324,14 +6461,12 @@ Imported global functions and variables are also listed if
 @code{imports} is @code{true}.
 
 @menu
-* Templated imports::
+* Templated imports::           Imports parametrized by generic types
 @end menu
 
 @node Templated imports
 @subsection Templated imports
 @cindex template
-
-@strong{Warning:} This feature is experimental: it has known issues and its behavior may change in the future.
 
 In Asymptote
 types are specified when they are imported. The first executable line of any such
@@ -6376,6 +6511,133 @@ of the @code{Asymptote} source directory.
 Issues: Certain expected operators (such as
 @code{operator ==}) may only be available for type arguments that are
 builtin or defined in module @code{plain}.
+
+@node Iterators
+@section Iterators
+@cindex iterators
+@cindex @code{operator iter}
+@cindex @code{for} @subentry range-based
+
+If a structure @code{a} has a member function @code{operator iter()}, the code
+@verbatim
+for(var i : a) {
+  <statements>
+}
+@end verbatim
+@noindent
+is syntactic sugar for
+@verbatim
+for(var it=a.operator iter(); it.valid(); it.advance()) {
+  var i=it.get();
+  <statements>
+}
+@end verbatim
+Thus, we can make a structure iterable by defining an @code{operator iter}
+method that returns an object with the following methods:
+@table @code
+@cindex @code{get}
+@item T get()
+returns the value at the iterator's current position (without changing the
+position). Note that @code{T} can be any type, builtin or user-defined;
+
+@cindex @code{advance}
+@item void advance()
+advances the iterator to the next position;
+
+@cindex @code{valid}
+@item bool valid()
+returns @code{true} if the iterator is at a valid position or @code{false}
+if the iterator has advanced past the last item.
+@end table
+
+Although the return type of @code{operator iter} can theoretically be any type
+that has these three methods, it is strongly recommended to use the
+@cindex @code{Iter_T}
+@code{Iter_T} structure defined in the templated module
+@cindex @code{collections.iter}
+@code{collections.iter(T)} so that other utilities
+(@pxref{Iterators and utilities}) can be used with the
+iterator. The three methods of this structure can be set as fields.
+
+As an example, here is an iterator for the even-numbered elements of an
+array of strings:
+@verbatim
+from collections.iter(T=string) access
+    Iter_T as Iter_string,
+    Iterable_T as Iterable_string;
+struct EvenStrings {
+  string[] a;
+  void operator init(string[] a) {
+    this.a=a;
+  }
+  Iter_string operator iter() {
+    int i = 0;
+    Iter_string result;
+    result.get = new string() { return a[i]; };
+    result.advance = new void() { i += 2; };
+    result.valid = new bool() { return i < a.length; };
+    return result;
+  }
+  autounravel Iterable_string operator cast(EvenStrings es) {
+    Iterable_string result;
+    result.operator iter = es.operator iter;
+    return result;
+  }
+}
+string[] a = {'a', 'b', 'c', 'd', 'e', 'f'};
+for (string s : EvenStrings(a)) {
+  write(s);
+}
+@end verbatim
+Running this code prints out the following:
+@verbatim
+a
+c
+e
+@end verbatim
+
+@noindent The autounraveled (@pxref{Autounravel}) implicit cast
+to @code{Iterable_string} is not strictly necessary, but it allows
+the use of iterable utilities, @xref{Iterators and utilities}.
+This enables code like the following, which uses the @code{enumerate}
+utility to attach counters to the iterated strings:
+@verbatim
+from collections.enumerate(T=string) access enumerate;
+for (var kv : enumerate(EvenStrings(a))) {
+  write(string(kv.k) + ": " + kv.v);
+}
+@end verbatim
+Running this code prints out the following:
+@verbatim
+0: a
+1: c
+2: e
+@end verbatim
+
+@menu
+* range::                       Iterating over integers
+@end menu
+
+@node range
+@subsection range
+@cindex @code{range}
+
+The following functions produce iterators over integers:
+@table @code
+@item Iterable_int range(int n)
+returns an iterable that produces the integers @code{0,...,n-1};
+@item Iterable_int range(int n, int m, int skip=1)
+returns an iterable that produces the integers
+@code{n, n+skip, ..., m} if @code{(m-n)/skip >= 0}, and otherwise produces
+no integers.
+@end table
+
+Generally speaking, @code{for (int i : range(n))} is equivalent to
+@code{for (int i : sequence(n))}. The latter uses @math{O(}@code{n}@math{)}
+memory but is
+usually faster. The former uses @math{O(1)} memory but is slower.
+If an iterator is specifically required, however, @code{range(n)} is faster
+than @code{range(sequence(n))} (as well as being more memory-efficient).
 
 @node Static
 @section Static
@@ -6551,6 +6813,11 @@ will be accessible wherever the @code{rational} structure is.
 Users who encounter a case where this might be useful can submit a
 feature request at @uref{https://github.com/vectorgraphics/asymptote/issues}.
 
+@menu
+* When fields are autounraveled::
+* Where autounravel is legal::
+@end menu
+
 @node When fields are autounraveled
 @subsection When fields are autounraveled
 
@@ -6579,8 +6846,8 @@ that renames a @code{struct}.
 
 The @code{autounravel} modifier implies @code{static} and can be used
 in many of the same places as @code{static}. However, specifying
-@code{autounravel} at the top level of a module (i.e.,
-outside of any structure or function) is an error, whereas @code{static}
+@code{autounravel} at the top level of a module
+(outside of any structure or function) is an error, whereas @code{static}
 gives only a warning. @footnote{If top-level @code{autounravel} were allowed,
 a user might incorrectly assume that the field would be unraveled
 whenever the module is @code{access}ed. The @code{static} modifier
@@ -6591,6 +6858,1245 @@ In front of a @code{struct} definition or @code{typedef} statement,
 While @code{static static} results in an error,
 @code{static autounravel} and @code{autounravel static} are both legal
 and have exactly the same effect as @code{autounravel} alone.
+
+@node Hash functions
+@section Hash functions
+@cindex hash function
+@cindex @code{hash}
+
+For an object to be used as a key in a hashmap
+(@pxref{Maps}) or a member of a hashset (@pxref{Sets}), it
+must have a method @code{int hash()} that returns a nonnegative integer. For
+correctness, this method must return the same value for two objects of the same
+type that are equal according to the @code{==} operator. For efficiency, it
+should behave like a pseudorandom function, so that the hash values of distinct
+objects are unrelated. Also note that it is not necessary for hash functions to
+be consistent across different runs of the program; @code{a.hash() == a.hash()}
+should always be true, but @code{write(a.hash())} may produce a different
+output each time the program is run.
+
+In @code{Asymptote}, the @code{hash} method is defined for three of the builtin
+types: @code{int}, @code{real}, and @code{string}. Note that things like
+@code{3.hash()} and @code{'hello'.hash()} are @emph{not} valid syntax; the
+correct version of these would be @code{(3).hash()} and @code{('hello').hash()},
+with parentheses around the literal. If you want to hash a @code{real}, there
+are two important things to note: first, even if two @code{real}s are extremely
+close, their hash values will almost certainly not be; second, the same number
+will almost certainly have
+different hash values when hashed as an @code{int} versus a @code{real}.
+
+@menu
+* Hashing user-defined structures::
+@end menu
+
+@node Hashing user-defined structures
+@subsection Hashing user-defined structures
+
+Additionally, there is a
+function @code{hash(int[])} that can be helpful when constructing hash methods
+for user-defined structures: convert all the fields to integers (possibly by
+hashing them), put these integers into an array, and hash the array.
+
+Returning to the example of the @code{Person} structure from @ref{Structures},
+there are two reasonable ways we might define a hash function for it. The first
+is to create a hash function based on all the fields of the structure:
+@verbatim
+struct Person {
+  string firstname;
+  string lastname;
+  int age;
+  int hash() {
+    return hash(new int[] {firstname.hash(), lastname.hash(), age});
+  }
+  autounravel bool operator ==(Person a, Person b) {
+    if (alias(a, null)) return alias(b, null);
+    if (alias(b, null)) return false;
+    return a.firstname == b.firstname &&
+           a.lastname == b.lastname &&
+           a.age == b.age;
+  }
+  autounravel bool operator !=(Person a, Person b) {
+    return !(a == b);
+  }
+}
+@end verbatim
+@cindex @code{operator ==}
+This approach is necessary if we are redefining the @code{==}
+operator. Two @code{Person}s are equal if they have the same first name,
+last name, and age.
+
+The default @code{==} operator for user-defined structs considers two objects
+equal if they are the same object, meaning that changes to one will be reflected
+in the other. A hash method that plays well with the default @code{==}
+operator must remain the
+same even if the fields change. In this case, we can add a never-changing
+@code{id} field
+that uniquely identifies a @code{Person} object, and use that for hashing: 
+
+@verbatim
+struct Person {
+  string firstname;
+  string lastname;
+  int age;
+  private static int lastID=-1;
+  restricted int id = ++lastID;
+  int hash() {
+    return id.hash();
+  }
+}
+@end verbatim
+
+The builtin hash functions are designed to remove undesirable
+regularity (with respect to modular arithmetic) when applied exactly once.
+This explains why the second example returns @code{id.hash()} instead
+of @code{id}, while @code{age} is not independently hashed in the
+first example.
+
+@node Collections (containers)
+@section Collections (containers)
+@cindex collections
+@cindex containers
+
+The @code{collections} subdirectory provides a number of useful
+containers and utilities via templated modules.
+
+@xref{Maps} for information on hashmaps (sometimes called dictionaries
+or associative arrays), which are arguably the single most useful
+container in the @code{collections} module.
+
+@menu
+* Pairs::
+* Iterators and utilities::
+* Maps::
+* Sets::
+* Queues::
+* Wrapping arrays::             Arrays that can be used as keys or values
+@end menu
+
+@node Pairs
+@subsection Pairs
+@cindex @code{collections.genericpair}
+@cindex @code{Pair_K_V}
+@cindex @code{makePair}
+
+@code{Asymptote} has a builtin type for pairs of @code{real}s. To obtain a pair
+type for @emph{any} two types, one can use the
+@code{collections.genericpair(K,V)} templated module. The fields are called
+@code{k} and @code{v} rather than @code{x} and
+@code{y}. The pair type is called @code{Pair_K_V}, which users are encouraged to
+rename based on the types being used. There is also a function @code{makePair}
+that creates a pair from two values; because of function overloading, the name
+of the function does not need to specify the two types.
+
+Here's an example:
+@verbatim
+from collections.genericpair(K=int, V=string) access
+    Pair_K_V as Pair_int_string,
+    makePair;
+var p=makePair(3, 'hello');
+write(p.k);  // Outputs 3
+write(p.v);  // Outputs hello
+var q = makePair(4, 'hello');
+var s = makePair(3, 'world');
+Pair_int_string t = makePair(3, 'hello');
+assert(p != q);
+assert(p != s);
+assert(p == t);
+@end verbatim
+Note that the @code{==} and @code{!=} operators are overloaded for pairs, and
+the overloads are based on the @code{==} operators of the two types in the pair.
+An unfortunate consequence of this is that this module cannot be used for pairs
+of arrays, because the @code{==} operator for arrays returns a @code{bool[]}
+rather than a @code{bool}. @xref{Wrapping arrays} for a workaround.
+
+The @code{Pair_K_V} type also has an @code{int hash()} method initialized to
+@code{null}. If you want to use pairs as keys in a hashmap, you should define
+this method, something like this:
+@verbatim
+from collections.genericpair(K=int, V=string) access
+    Pair_K_V as Pair_int_string;
+Pair_int_string p = makePair(3, 'hello');
+p.hash = new int() {
+  return hash(new int[] {p.k, p.v.hash()});
+};
+@end verbatim
+@xref{Hash functions} for more information.
+
+@node Iterators and utilities
+@subsection Iterators and utilities
+
+@menu
+* @code{collections.iter(T)}::  Iterable structures
+* Combining (zipping) iterators::
+* Attaching a counter to an iterator::
+@end menu
+
+@node @code{collections.iter(T)}
+@subsubsection @code{collections.iter(T)}
+@cindex @code{collections.iter}
+@cindex @code{Iter_T}
+@cindex @code{Iterable_T}
+
+The @code{collections.iter(T)} templated module provides structs @code{Iter_T}
+and @code{Iterable_T} that can be convenient for defining iterators.
+Additionally, there are several utilities for manipulating iterators of these
+types. Technically, the syntax @code{for(T x : a)} does not require anything
+from this module, but several utilities only work for iterables of type
+@code{Iterable_T}.
+
+The @code{Iter_T} structure has the following fields, all of which are null by
+default:
+
+@itemize
+@cindex @code{get}
+@item @code{T get()}
+@cindex @code{advance}
+@item @code{void advance()}
+@cindex @code{valid}
+@item @code{bool valid()}
+@end itemize
+
+@cindex @code{operator iter}
+@code{Iter_T} is intended as the return type of an @code{operator iter} method;
+@xref{Iterators} for more information on how to use these fields.
+
+@code{Iterable_T} is a generic structure for something that has an
+@code{operator iter} method returning an @code{Iter_T}. This structure, not
+@code{Iter_T}, is the type that can appear inside a range-based @code{for} loop.
+Consequently, most of the utilities below manipulate instances of
+@w{@code{Iterable_T}} rather than @code{Iter_T}.
+
+It is good practice for a structure that defines an @code{operator iter} method to
+also define an implicit cast to @code{Iterable_T} for better compatibility with
+the utilities in this module. Additionally, an instance @code{a} of
+@code{Iterable_T} can be cast to a @code{T[]} with the syntax @code{(T[]) a}.
+(This is an explicit cast, so it requires parentheses.) Going the other way, a
+@code{T[]} can be implicitly cast to an @code{Iterable_T} (no parentheses
+required) as long as the appropriate @code{Iterable_T} type has been
+@code{access}ed (@pxref{Autounravel}). This can be done explicitly using the
+@code{range} function listed below.
+
+The @code{collections.iter} module provides the following functions:
+
+@table @code
+@cindex @code{Iterable}
+@item Iterable_T Iterable(Iter_T iter())
+creates an @code{Iterable_T} with its @code{operator iter} method set
+to @code{iter} (autounraveled whenever @code{Iterable_T} is accessed).
+This function is an alias for the constructor @code{Iterable_T(Iter_T iter())}.
+@cindex @code{range}
+@item Iterable_T range(T[] items)
+creates an @code{Iterable_T} that iterates over the elements of
+@code{items}.  Separate calls to @code{operator iter} return
+independent iterators.
+@cindex @code{Iter_T}
+@item Iter_T Iter_T(T[] items)
+creates an @code{Iter_T} that iterates over the elements of
+@code{items}.
+@end table
+
+
+@node Combining (zipping) iterators
+@subsubsection Combining (zipping) iterators
+@cindex @code{zip}
+
+@cindex @code{collections.zip2}
+The @code{collections.zip2(K,V)} templated module provides a way of
+iterating over two containers of potentially different types in a single @code{for} loop, 
+for example,
+@verbatim
+from collections.zip2(K=int, V=string) access zip, operator cast;
+int[] x = {0, 1, 2, 3};
+string[] y = {'0', '1', '2', '3'};
+for (var ab : zip(x, y)) {
+  assert(string(ab.k) == ab.v);
+}
+@end verbatim
+@noindent
+where
+@verbatim
+Iterable_Pair_K_V zip(Iterable_K a, Iterable_V b,
+                      Pair_K_V keyword default=null)
+@end verbatim
+@noindent
+returns an iterable that produces pairs of elements from @code{a} and @code{b}.
+If @code{default} is not provided, the iterable stops when either @code{a} or
+@code{b} runs out of elements. If @code{default} is provided, the returned
+iterable will be the length of the longer of @code{a} and @code{b}, and the
+default value will be used for any missing elements.
+
+Additionally, the module exposes the following types and all their
+autounravels:
+
+@multitable @columnfractions .25 .75
+@headitem type @tab from
+@item @code{Pair_K_V}
+@tab @code{collections.genericpair(K,V)}
+@item @code{Iterable_K}
+@tab @code{collections.iter(T=K)}
+@item @code{Iterable_V}
+@tab @code{collections.iter(T=V)}
+@item @code{Iterable_Pair_K_V}
+@tab @code{collections.iter(T=Pair_K_V)}
+@item @code{Iter_K}
+@tab @code{collections.iter(T=K)}
+@item @code{Iter_V}
+@tab @code{collections.iter(T=V)}
+@item @code{Iter_Pair_K_V}
+@tab @code{collections.iter(T=Pair_K_V)}
+@end multitable
+
+@cindex @code{collections.zip}
+The @code{collections.zip(T)} templated module
+provides a way to iterate over multiple containers in
+a single @code{for} loop.
+It is similar to @code{collections.zip2(K,V)}, but condenses the iterables
+into an iterable over arrays rather than over pairs. This requires that all the
+iterables be over the same type (for example, all string iterators or
+all integer iterators):
+@verbatim
+from collections.zip(T=int) access zip;
+int[] x = {0, 1, 2, 3};
+int[] y = {0, 1, 2};
+int[] z = {0, 1, 2, 3, 4};
+for (int[] abc : zip(default=-1, x, y, z)) {
+  write(string(abc[0]) + '\t' + string(abc[1]) + '\t' + string(abc[2]));
+}
+@end verbatim
+@noindent
+which outputs
+@verbatim
+0       0       0
+1       1       1
+2       2       2
+3       -1      3
+-1      -1      4
+@end verbatim
+
+The @code{collections.zip(T)} module exposes the types
+@multitable @columnfractions .25 .75
+@headitem type @tab from
+@cindex @code{Iterable_array_T}
+@item @code{Iterable_array_T}
+@tab @code{collections.iter(T=T[])}
+@cindex @code{Iter_array_T}
+@item @code{Iter_array_T}
+@tab @code{collections.iter(T=T[])}
+@item @code{Iterable_T}
+@tab @code{collections.iter(T)}
+@item @code{Iter_T}
+@tab @code{collections.iter(T)}
+@end multitable
+@noindent
+and defines the following functions (all called @code{zip}):
+@cindex @code{zip}
+@table @code
+@item Iterable_array_T zip(...Iterable_T[] iterables)
+zips together one or more iterables of @code{T}s. If @code{a} is an item from
+the result, then @code{a[0]} is from the first iterable, @code{a[1]} is from the
+second iterable, and so on. If the iterables are not all the same length, the
+result will be the length of the shortest iterable.
+@item Iterable_array_T zip(T keyword default ...Iterable_T[] iterables)
+zips together one or more iterables of @code{T}s. The
+result will be the length of the longest iterable, with the default
+value filling in any missing elements.
+@item T[][] zip(...T[][] arrays)
+zips together one or more arrays. If the arrays are not all the same length, the
+result will be the length of the shortest array.
+@item T[][] zip(T keyword default ...T[][] arrays)
+zips together one or more arrays. The
+result will be the length of the longest array, with the default value
+filling in any missing elements. This is basically equivalent to applying
+@code{transpose} and then replacing any uninitialized elements with the default
+value.
+@end table
+
+@node Attaching a counter to an iterator
+@subsubsection Attaching a counter to an iterator
+@cindex @code{enumerate}
+@cindex @code{collections.enumerate}
+
+The @code{collections.enumerate(T)} module provides a way to
+attach a counter to an iterator.
+There are two functions, both called @code{enumerate}:
+@itemize
+@item @code{Iterable_Pair_int_T enumerate(Iterable_T iterable)}
+@item @code{Iterable_Pair_int_T enumerate(T[] array)}
+@end itemize
+Here's a simple example:
+@verbatim
+from collections.enumerate(T=int) access enumerate;
+int[] x = {1, 4, 9, 16};
+for (var ab : enumerate(x))
+  write('Element ' + string(ab.k) + ' is ' + string(ab.v));
+@end verbatim
+@noindent
+which outputs
+@verbatim
+Element 0 is 1
+Element 1 is 4
+Element 2 is 9
+Element 3 is 16
+@end verbatim
+Note that @code{enumerate} is not necessarily worthwhile for arrays
+since they are already indexed by integers:
+@verbatim
+int[] x = {1, 4, 9, 16};
+for (int i=0; i < x.length; ++i)
+  write('Element ' + string(i) + ' is ' + string(x[i]));
+@end verbatim
+@noindent The @code{enumerate} utility is more useful for structures
+that do not have a builtin integer index (such as @code{Map} and @code{Set}).
+
+@node Maps
+@subsection Maps
+@cindex @code{Map}
+@cindex @code{Map_K_V}
+@cindex dictionary @seeentry{@code{Map_K_V}}
+@cindex associative array @seeentry{@code{Map_K_V}}
+
+Many modern programming languages have a builtin datastructure that is
+variously called a map, dictionary, or associative array.
+This structure is based on the mathematical concept of a function,
+but differs from the programming functions discussed previously (@pxref{Functions}):
+
+@itemize
+@item
+A programming function computes an output value for each valid input. Unlike a
+mathematical function, it can have side effects.
+@item A @code{Map}
+stores a set of input-output pairs. It has a finite domain consisting of those
+inputs whose outputs were explicitly added. Typically, the inputs to a
+@code{Map} are called keys, and the outputs are called values.
+@end itemize
+
+@noindent
+This example of a @code{Map} assigns integer values to string keys:
+@verbatim
+from collections.hashmap(K=string, V=int) access
+    HashMap_K_V as HashMap_string_int;
+
+// Create a Map called h.
+HashMap_string_int h;
+
+// Add some key-value pairs to h.
+h['hello'] = 5;
+h['world'] = 3;
+
+// Iterate over the keys (the domain) of h.
+for (string key : h) {
+
+  // Compute the output for the given input.
+  int value = h[key];
+  write(key + ' ' + string(value));
+}
+@end verbatim
+@noindent
+producing the output
+@verbatim
+hello 5
+world 3
+@end verbatim
+
+@cindex @code{Map_K_V}
+@cindex @code{collections.map}
+@cindex @code{collections.hashmap}
+@cindex @code{collections.btreemap}
+@node Initializing a @code{Map}
+@subsubsection Initializing a @code{Map}
+The @code{Map_K_V} structure itself is defined in the templated module
+@code{collections.map(K,V)}. To initialize a @code{Map_K_V}, you need
+to use a function from @code{collections.hashmap} or
+@code{collections.btreemap}:
+
+@table @code
+@cindex @code{HashMap_K_V}
+@item HashMap_K_V()
+@itemx HashMap_K_V(V keyword nullValue, bool keyword isNullValue(V v) =@*@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ new bool(V v) @{return v == nullValue; @})
+These two functions, which create a hash map, must be accessed from the
+@code{collections.hashmap(K,V)} templated module. The key type must
+have a @code{hash} method, @pxref{Hash functions}.
+@cindex @code{BTreeMap_K_V}
+@item BTreeMap_K_V()
+@itemx BTreeMap_K_V(V keyword nullValue, bool keyword isNullValue(V v) =@*@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ new bool(V v) @{return v == nullValue; @})
+These two functions must be accessed from the @code{collections.btreemap(K,V)}
+templated module. They create a b-tree map, which stores its keys in
+sorted order. The key type must have a @code{<} operator.
+@end table
+
+@noindent
+@strong{Note:} @code{HashMap_K_V} is an appropriate choice for most purposes.
+
+@cindex @code{nullValue}
+@cindex @code{isNullValue}
+If @code{nullValue} is not provided, looking up a missing key will throw an error.
+The @code{nullValue} parameter gives the map something to return when
+a nonexistent key is looked up. This is useful in scenarios where missing keys
+are expected and should be handled gracefully.
+The @code{isNullValue} parameter defaults to a function that checks whether
+the value is equal to @code{nullValue} via @code{operator ==}.
+This is usually the desired behavior, but it is occasionally necessary to
+override it;
+ for instance,
+if you have overridden @code{operator==} assuming its parameters are not null,
+then something like @code{isNullValue=new bool(V v)@{return alias(v,null);@}}
+might
+be appropriate.
+
+Both @code{HashMap_K_V} and @code{BTreeMap_K_V} can be implicitly cast
+to @code{Map_K_V}. Even without being cast, the two types have
+the same methods as @code{Map_K_V}.
+Similarly, the @code{nullValue} and @code{isNullValue} optional
+parameters behave the same way for both types. @xref{The @code{Map} API}.
+
+In theory, adding, removing, or looking up an element should require,
+on average, @math{O(1)} time for @code{HashMap_K_V} and
+@math{O(\log n)} time for @code{BTreeMap_K_V} (where @math{n} represents
+the number of elements in the container).
+In practice, @code{HashMap_K_V} is faster than
+@code{BTreeMap_K_V} by about a factor of 2, assuming no more than a
+few million entries. (This is a very rough estimate
+that depends on the key type @code{K} having cheap hash, equality, and
+comparison functions.) The relative performance of these map implementations
+could change in the future as the code is optimized.
+
+@node The @code{Map} API
+@subsubsection The @code{Map} API
+
+The @code{Map_K_V} structure has the following methods. Note that its
+``subclasses'' @code{HashMap_K_V} and @code{BTreeMap_K_V} each have
+the same fields.
+
+@cindex @code{nullValue}
+@cindex @code{isNullValue}
+Depending on which constructor is used, a @code{Map} may or may not have
+valid instances of @code{nullValue} and @code{isNullValue(V)}. If one of
+these is valid, the other will be too. In some methods below, an error
+will be thrown unless @code{nullValue} can be returned to indicate an
+element is not present. When @code{nullValue} is defined for a map
+@code{m}, the expression @code{m.isNullValue(m[k])} is equivalent to
+@code{m.contains(k)}.
+
+@table @code
+@cindex @code{Map_K_V} @subentry @code{.size}
+@cindex @code{size} @subentry @code{Map.size}
+@item int size()
+returns the number of distinct keys in the map.
+
+@cindex @code{Map_K_V} @subentry @code{.empty}
+@cindex @code{empty} @subentry @code{Map.empty}
+@item bool empty()
+returns true iff @code{size() == 0}.
+
+@cindex @code{Map_K_V} @subentry @code{.contains}
+@cindex @code{contains} @subentry @code{Map.contains}
+@item bool contains(K key)
+returns true if @code{key} is present as a key in
+the map.
+
+@cindex @code{Map_K_V} @subentry @code{.operator []}
+@cindex @code{operator []} @subentry @code{Map.operator []}
+@cindex @code{[]} @subentry @code{Map.operator []}
+@item V operator [] (K key)
+returns the value
+associated with the element @code{key}. If @code{key} is not present,
+this method either returns @code{nullValue} or, if @code{nullValue} does not
+exist, throws an error. @xref{Bracket operators}.
+
+@cindex @code{Map_K_V} @subentry @code{.operator [=]}
+@cindex @code{operator [=]} @subentry @code{Map.operator [=]}
+@cindex @code{[]} @subentry @code{Map.operator [=]}
+@item void operator [=] (K key, V value)
+adds the pair
+@code{(key, value)} to the map. If a key equivalent to @code{key} is
+already present, its associated value is replaced (as is the key
+itself, but that should rarely matter since the old and new keys are
+equivalent). However, if
+@code{isNullValue(value)} is true, then the assignment instead removes
+@code{key} from the map if it was already there. @xref{Bracket operators}.
+
+@cindex @code{Map_K_V} @subentry @code{.delete}
+@cindex @code{delete} @subentry @code{Map.delete}
+@item void delete(K key)
+removes @code{key} from the map. If @code{key} was
+not already in the map, an error is thrown. (An alternative that will not
+throw an error is to set the value of @code{key} to @code{nullValue}.)
+
+@cindex @code{Map_K_V} @subentry @code{.operator iter}
+@cindex @code{operator iter} @subentry @code{Map.operator iter}
+@cindex @code{Map_K_V} @subentry iterating over
+@item Iter_K operator iter()
+returns an iterator over the keys of the map.
+It allows the map to be used in range-based @code{for} loops, as in
+@verbatim
+for (K key : m) {<statements>}
+@end verbatim
+If a key is deleted or a new key is
+inserted, then any iterators created before that change are undermined and
+may behave unpredictably. The current implementations attempt to throw errors
+if an iterator is used after being undermined,
+but this behavior is not guaranteed and might be removed in
+future versions for performance reasons.
+
+@cindex @code{Map_K_V} @subentry @code{.pairs}
+@cindex @code{pairs} @subentry @code{Map.pairs}
+@cindex @code{Map_K_V} @subentry iterating over
+@item Iterable_K_V pairs()
+returns an iterable over the key-value pairs. For example,
+@verbatim
+for (Pair_K_V p : m.pairs()) {
+  K key = p.k;
+  V value = p.v;
+  <statements>
+}
+@end verbatim
+
+@cindex @code{Map_K_V} @subentry @code{.keys}
+@cindex @code{keys} @subentry @code{Map.keys}
+@item K[] keys()
+returns an array of all the keys. The array is a shallow
+copy; changes to it will not affect the map (and vice versa), but
+changes to the entries of the keys will undermine the integrity of the
+map.
+
+@cindex @code{Map_K_V} @subentry @code{.add}
+@cindex @code{add} @subentry @code{Map.add}
+@item void add(Iterable_K_V other)
+adds the key-value pairs from @code{other}.
+Running @code{m.add(o);} should be equivalent to running
+@verbatim
+for (var pr : o) { m[pr.k] = pr.v; }
+@end verbatim
+@end table
+
+@cindex @code{Map_K_V} @subentry cast to Iterable
+In addition to these methods, there is also an autounraveled implicit cast from
+@code{Map_K_V} to @code{Iterable_K}. This cast allows a @code{Map_K_V} to be
+passed as a parameter to utilities like @code{zip} or @code{enumerate}.
+
+@node Using Maps as Sets
+@subsection Using Maps as Sets
+
+Sometimes, you want a collection of objects of type @code{K} that lets
+you quickly add items, delete items, and determine whether an item is present. In Asymptote, the most straightforward
+option for such a collection is a @code{Map} from keys of type
+@code{K} to @code{bool} values, with @code{nullValue} set to @code{false}.
+
+One needs to access some version of @code{Map_K_bool}.
+If @code{K} is hashable, one could write
+@verbatim
+from collections.hashmap(K=K,V=bool) access
+    Map_K_V as Map_K_bool,
+    HashMap_K_V as HashMap_K_bool;
+Map_K_bool mset = HashMap_K_bool(nullValue=false);
+@end verbatim
+@noindent
+If @code{K} is not hashable but does have @code{operator <}, something like this
+may be used instead:
+@verbatim
+from collections.btreemap(K=K,V=bool) access
+    Map_K_V as Map_K_bool,
+    BTreeMap_K_V as BTreeMap_K_bool;
+Map_K_bool mset = BTreeMap_K_bool(nullValue=false);
+@end verbatim
+
+To add an item @code{k} to @code{mset}, assign it the value @code{true}:
+@verbatim
+mset[k] = true;
+@end verbatim
+@noindent
+If the item was already in the set, this statement will have no effect.
+
+To test whether an item is in the set, you can either use the @code{contains}
+method or use brackets to access the value associated with @code{k}:
+@verbatim
+if (mset.contains(k))
+  write('membership verified');
+@end verbatim
+@noindent
+or, equivalently,
+@verbatim
+if (mset[k])
+  write('membership verified');
+@end verbatim
+
+To remove an item from the set, you can either use the @code{delete} method
+(which throws an error if the item was not already present) or set its value to
+@code{false} (which does nothing if the item was not already present):
+@verbatim
+mset.delete(k);  // guaranteed to reduce mset.size() by 1 or throw an error
+mset[k] = false; // would delete k if we had not already deleted it
+@end verbatim
+
+Once a key has its value set to @code{false}, it will not show up in
+iterators over the set, nor will it contribute to the @code{size()} of the set:
+@verbatim
+mset[k] = true;
+int size1 = mset.size();
+mset[k] = false;
+assert(mset.size() == size1 - 1);
+@end verbatim
+
+One can iterate over the set or check its size:
+@verbatim
+int count = 0;
+for (K k : mset) { ++count; }
+assert(mset.size() == count);
+@end verbatim
+
+@node Sets
+@subsection Sets
+
+There is also a dedicated @code{Set_T} datastructure which is a bit more efficient
+(not storing an unneeded @code{bool}) and allows more precise methods (especially
+when it comes to sorted sets). The @code{Set_T} API attempts to respect the principle
+of reversibility, which states that a method that mutates the data structure should
+ideally return precisely the amount of information needed to reverse the modification.
+For instance, a method that removes an element should return that element --- unless
+the element is already known to the caller (e.g., passed as an argument), in which
+case it suffices to return a boolean to indicate whether the removal was
+successful. (By contrast, the @code{Map_K_V} API follows the principle that a
+method should either return something or mutate the datastructure, but not
+both.)
+
+@node Initializing a @code{Set}
+@subsubsection Initializing a @code{Set}
+
+The @code{Set_T} datastructure itself is defined in the templated module
+@code{collections.set(T)}. However, the @code{Set_T} structure is abstract, with many
+of its methods defaulting to @code{null}. To get a working implementation, you
+need either a @code{HashSet_T} or a @code{BTreeSet_T}:
+
+@table @code
+@item HashSet_T()
+@itemx HashSet_T(T nullT,@*@ @ @ @ @ @ @ @ @ @ bool equiv(T a, T b) = operator ==, @*@ @ @ @ @ @ @ @ @ @ bool isNullT(T) = new bool(T t) @{ return equiv(t, nullT); @}@*@ @ @ @ @ @ @ @ @ )
+These two functions, which create a hash set, must be accessed from the
+@code{collections.hashset(T)} templated module. The type @code{T} must have a
+@code{hash} method, @pxref{Hash functions}.
+
+@item BTreeSet_T()
+@itemx BTreeSet_T(T nullT, bool isNullT(T) = new bool(T t) @{ return t == nullT; @})
+These two functions must be accessed from the @code{collections.btree(T)}
+module. They create a b-tree set, which stores its elements in order
+based on the
+@code{<} operator. The @code{<} operator must define a strict weak ordering
+on all items of type @code{T}, except those satisfying @code{isNullT}.
+Two items are considered equivalent if neither is less than the other.
+
+Accessing the @code{collections.btree(T)} module requires that
+@code{operator <} is defined for the type @code{T}; if not one can use
+the constructors defined in @code{collections.btreegeneral(T)} module, as
+discussed next.
+
+@item BTreeSet_T(bool lessThan(T,T))
+@itemx BTreeSet_T(bool lessThan(T,T),@*@ @ @ @ @ @ @ @ @ @ @ T nullT,@*@ @ @ @ @ @ @ @ @ @ @ bool isNullT(T) = new bool(T t) @{ return t == nullT; @})
+These two functions must be accessed from the @code{collections.btreegeneral(T)}
+module. They create a BTreeSet that stores its elements in sorted order based
+on the @code{lessThan} function. The @code{lessThan} function must define a
+strict weak ordering on all items of type @code{T}, except those satisfying
+@code{isNullT}. Two items are considered equivalent if neither is
+less than the other.
+@end table
+
+Both @code{HashSet_T} and @code{BTreeSet_T} can be implicitly cast to
+@code{Set_T} and have all of the methods of @code{Set_T}. Similarly, the @code{nullT}
+and @code{isNullT} optional parameters behave the same way for both types. @xref{The @code{Set} API}.
+
+Additionally, @code{BTreeSet_T} can be implicitly cast to @code{SortedSet_T} and has all its methods,
+which provide additional functionality specific to sorted sets (such as retrieving the least element
+or the next element greater than a given element). @xref{The @code{SortedSet} API}.
+
+@node The @code{Set} API
+@subsubsection The @code{Set} API
+
+Depending on which constructor is used,
+@code{nullT} and @code{isNullT} may or may not be defined for a @code{Set}.
+If one of these is defined the other will be too.
+In some methods below, an error will be thrown unless @code{nullT} can be returned to indicate an
+element is not present.
+
+The @code{Set_T} structure has the following methods:
+
+@table @code
+@cindex @code{Set} @subentry @code{.size}
+@cindex @code{size} @subentry @code{Set.size}
+@item int size()
+returns the number of distinct elements in the set.
+
+@cindex @code{Set} @subentry @code{.empty}
+@cindex @code{empty} @subentry @code{Set.empty}
+@item bool empty()
+returns true iff @code{size() == 0}.
+
+@cindex @code{Set} @subentry @code{.contains}
+@cindex @code{contains} @subentry @code{Set.contains}
+@item bool contains(T item)
+returns true if @code{item} (or an equivalent item) is present in the set.
+
+@cindex @code{Set} @subentry @code{.add}
+@cindex @code{add} @subentry @code{Set.add}
+@item bool add(T item)
+adds @code{item} to the set if it is not already present.
+This method does nothing if @code{isNullT(item)} is defined and true,
+or if @code{item} or an equivalent item is already present.
+The return value is true iff @code{item} was added.
+
+@cindex @code{Set} @subentry @code{.add}
+@cindex @code{add} @subentry @code{Set.add}
+@item void add(Iterable_T other)
+adds the elements from @code{other} to the set.
+This method violates the principle of reversibility.
+
+@cindex @code{Set} @subentry @code{.delete}
+@cindex @code{delete} @subentry @code{Set.delete}
+@item T delete(T item)
+removes @code{item} from the set if it is present, otherwise does nothing.
+The return value is true iff the set was modified.
+
+@cindex @code{Set} @subentry @code{.delete}
+@cindex @code{delete} @subentry @code{Set.delete}
+@item void delete(Iterable_T other)
+removes the elements from @code{other} from the set.
+Elements of @code{other} that are not in the set are ignored.
+This method violates the principle of reversibility.
+
+@cindex @code{Set} @subentry @code{.operator iter}
+@cindex @code{operator iter} @subentry @code{Set.operator iter}
+@cindex @code{Set} @subentry iterating over
+@item Iter_T operator iter()
+returns an iterator over the elements of the set. It allows a set
+@code{s} to be used in a range-based @code{for} loop:
+@verbatim
+for (T item : s) {<statements>}
+@end verbatim
+If an item is deleted or a new item is inserted, then any iterators created before that change are
+undermined and may behave unpredictably. The current implementations attempt to throw errors
+if an iterator is used after being undermined,
+but this behavior is not guaranteed and might be removed in
+future versions for performance reasons.
+
+@cindex @code{Set} @subentry @code{.newEmpty}
+@cindex @code{newEmpty} @subentry @code{Set.newEmpty}
+@item Set_T newEmpty()
+returns a new empty set with the same @code{nullT}, @code{isNullT},
+equivalence relation, and (if applicable) ordering as the current set.
+Implementors of new set types should implement this method, otherwise
+the binary operators that are supposed to return a set will instead
+throw errors.
+@end table
+
+The preceeding methods are sufficient assuming that equivalent elements are
+interchangeable. However, on rare occasions, one may care which of two
+equivalent elements is in the set. For example, if the set was configured such
+that two ordered pairs are considered equivalent if they have the same first
+element, then the methods above would provide no way to look up a pair based on
+its first element. For this situation, the @code{Set_T} API provides the
+following methods:
+
+@table @code
+@cindex @code{Set} @subentry @code{.get}
+@cindex @code{get} @subentry @code{Set.get}
+@item T get(T item)
+returns the item in the set equivalent to @code{item}. If no such item exists,
+@code{nullT} is returned; if @code{nullT} is not defined,
+an error is thrown.
+
+@cindex @code{Set} @subentry @code{.push}
+@cindex @code{push} @subentry @code{Set.push}
+@item T push(T item)
+inserts @code{item} into the set even if it is equivalent to an
+existing item. If @code{item} is equivalent to an existing item, the
+replaced item is returned; otherwise @code{nullT} is returned (unless
+@code{nullT} is not defined, in which case an error is thrown). If
+@code{isNullT(item)} is true,
+the set is not modified and @code{nullT} is returned.
+
+The @code{push} method
+can be used to add a new item to the set, but only if @code{nullT} is defined.
+
+@cindex @code{Set} @subentry @code{.extract}
+@cindex @code{extract} @subentry @code{Set.extract}
+@item T extract(T item)
+removes and returns an item in the set equivalent to @code{item}.
+If no such item exists, @code{nullT} is returned; if
+@code{nullT} is not defined, an error is thrown. If
+@code{isNullT(item)} is true,
+the set is not modified and @code{nullT} is returned.
+@end table
+
+In addition to the methods above, there are a number of autounraveled functions
+that deal with sets.
+
+@table @code
+@item Iterable_T operator cast(Set_T set)
+implicitly casts a set to an iterable so that it can be passed as a parameter
+to utilities like @code{zip} or @code{enumerate}.
+
+@cindex @code{Set} @subentry @code{<=}
+@item bool operator <= (Set_T a, Set_T b)
+returns true if @code{a} is a subset of @code{b}.
+
+@cindex @code{Set} @subentry @code{>=}
+@item bool operator >= (Set_T a, Set_T b)
+returns true if @code{b} is a subset of @code{a}.
+
+@cindex @code{Set} @subentry @code{==}
+@item bool operator == (Set_T a, Set_T b)
+returns true if @code{a} and @code{b} are subsets of each other.
+
+@cindex @code{Set} @subentry @code{!=}
+@item bool operator != (Set_T a, Set_T b)
+returns true if either @code{a} or @code{b} contains an element not in the other.
+
+@cindex @code{sameElementsInOrder}
+@cindex @code{Set} @subentry @code{sameElementsInOrder}
+@item bool sameElementsInOrder(Set_T a, Set_T b)
+returns true if iterating over @code{a} and @code{b} produces the same elements in the same order.
+@end table
+
+The following operators leave their two arguments unchanged; the
+result is initialized by calling the @code{newEmpty()} method of the first
+argument to produce a new set with the same underlying implementation as
+the first argument.
+
+@table @code
+@cindex @code{Set} @subentry @code{+}
+@cindex union
+@cindex @code{Set} @subentry union
+@item Set_T operator + (Set_T a, Iterable_T b)
+returns the union of @code{a} and @code{b}.
+
+@cindex @code{Set} @subentry @code{-}
+@cindex @code{Set} @subentry difference
+@item Set_T operator - (Set_T a, Set_T b)
+returns a new set containing the elements of @code{a} that are not in @code{b}.
+
+@cindex @code{Set} @subentry @code{&}
+@cindex @code{Set} @subentry intersection
+@cindex intersection @subentry @code{Set}
+@item Set_T operator & (Set_T a, Set_T b)
+returns the intersection of @code{a} and @code{b}.
+
+@cindex @code{Set} @subentry @code{^}
+@cindex @code{Set} @subentry symmetric difference
+@cindex symmetric difference
+@item Set_T operator ^ (Set_T a, Set_T b)
+returns the symmetric difference of @code{a} and @code{b}, in other words, the
+set of all items in exactly one of @code{a,b}.
+@end table
+
+@noindent @strong{Note:} 
+While it is possible to use the @code{+=} and @code{-=} operators, they may not
+function as expected. In particular, these two operators will
+construct a new set, rather than modifying the set in place.
+For most purposes, the @code{add(Iterable_T)} and @code{delete(Iterable_T)} methods are
+preferred.
+
+@cindex @code{SortedSet_T}
+@cindex @code{SortedSet}
+@node The @code{SortedSet} API
+@subsubsection The @code{SortedSet} API
+
+@cindex @code{BTreeSet_T}
+The @code{BTreeSet_T} implementation of @code{Set_T} (@pxref {Initializing a @code{Set}})
+maintains its elements in sorted order. For the @code{Set_T} API, this has no effect other
+than the iteration order. However, the @code{SortedSet_T} API provides additional methods
+to take advantage of this ordering. The @code{SortedSet_T} structure is defined in the
+@code{collections.sortedset(T)} module. Here is a list of the
+relations among the various APIs implemented by @code{BTreeSet_T}:
+@itemize
+@item
+@code{BTreeSet_T} has all the methods of @code{Set_T} and can be implicitly
+cast to @code{Set_T}.
+
+@item
+@code{BTreeSet_T} has all the methods of @code{SortedSet_T} and can be implicitly
+cast to @code{SortedSet_T}.
+
+@item
+@code{SortedSet_T} has all the methods of @code{Set_T} and can be implicitly
+cast to @code{Set_T}.
+
+@item
+All of these types can be implicitly cast to @code{Iterable_T}.
+@end itemize
+
+In addition to the methods of @code{Set_T}, @code{SortedSet_T} has the following methods:
+
+@table @code
+@cindex @code{SortedSet} @subentry @code{.min}
+@cindex @code{min} @subentry @code{SortedSet.min}
+@item T min()
+returns the least element in the set, or @code{nullT} if the set is empty.
+If the set is empty and @code{nullT} is not defined, an error is thrown.
+
+@cindex @code{SortedSet} @subentry @code{.max}
+@cindex @code{max} @subentry @code{SortedSet.max}
+@item T max()
+returns the greatest element in the set, or @code{nullT} if the set is empty.
+If the set is empty and @code{nullT} is not defined, an error is thrown.
+
+@cindex @code{SortedSet} @subentry @code{.popMin}
+@cindex @code{popMin} @subentry @code{SortedSet.popMin}
+@item T popMin()
+removes and returns the least element in the set, or
+returns @code{nullT} if the set is empty.
+If the set is empty and @code{nullT} is not defined, an error is
+thrown.
+
+@cindex @code{SortedSet} @subentry @code{.popMax}
+@cindex @code{popMax} @subentry @code{SortedSet.popMax}
+@item T popMax()
+removes and returns the greatest element in the set, or
+returns @code{nullT} if the set is empty.
+If the set is empty and @code{nullT} is not defined, an error is
+thrown.
+
+
+@cindex @code{SortedSet} @subentry @code{.after}
+@cindex @code{after} @subentry @code{SortedSet.after}
+@item T after(T item)
+returns the least element in the set that is strictly greater than
+@code{item}. If no such element exists, @code{nullT} is returned; if
+@code{nullT} is not defined, an error is thrown.
+
+@cindex @code{SortedSet} @subentry @code{.atOrAfter}
+@cindex @code{atOrAfter} @subentry @code{SortedSet.atOrAfter}
+@item T atOrAfter(T item)
+returns the least element in the set that is greater than or equal to
+@code{item}. If no such element exists, @code{nullT} is returned; if
+@code{nullT} is not defined, an error is thrown.
+
+@cindex @code{SortedSet} @subentry @code{.before}
+@cindex @code{before} @subentry @code{SortedSet.before}
+@item T before(T item)
+returns the greatest element in the set that is strictly less than
+@code{item}. If no such element exists, @code{nullT} is returned; if
+@code{nullT} is not defined, an error is thrown.
+
+@cindex @code{SortedSet} @subentry @code{.atOrBefore}
+@cindex @code{atOrBefore} @subentry @code{SortedSet.atOrBefore}
+@item T atOrBefore(T item)
+returns the greatest element in the set that is less than or equal to
+@code{item}. If no such element exists, @code{nullT} is returned; if
+@code{nullT} is not defined, an error is thrown.
+
+@end table
+
+@cindex @code{SortedSet} @subentry iterating over
+As an example, the following code iterates over the elements of a sorted set
+@code{sset} between @code{a} (inclusive) and @code{b} (exclusive):
+@verbatim
+for (var x = sset.atOrAfter(a);
+     !sset.isNullT(x) && x < b;
+     x = sset.after(x)) {
+  <statements using x>
+}
+@end verbatim
+@noindent
+Of course, this code assumes that @code{nullT} is defined for @code{sset}.
+
+Note that if you want to iterate over most or all of the elements in a sorted set,
+it is usually more efficient to use a range-based @code{for} loop and skip any
+elements that are not in the desired range:
+@verbatim
+for (var x : sset) {
+  if (x < a) continue;
+  if (x >= b) break;
+  <statements using x>
+}
+@end verbatim
+
+@node Using Sets as Maps
+@subsection Using Sets as Maps
+
+In mathematics, a map is sometimes defined as a set of ordered pairs. In
+the Asymptote programming language, this definition can be taken literally:
+a @code{Set_T} of @code{Pair_K_V} objects can be used as a map from @code{K}
+to @code{V}, provided that the equivalence, hash, and comparison functions
+are configured to look only at the first element of the pair. This can be
+useful in particular for sorted sets, which have functionality such as
+@code{atOrAfter} and @code{after} that is not currently available in the
+@code{Map} API.
+
+We illustrate this approach by implementing a piecewise
+linear function (in this case we can use the
+builtin @code{pair} type rather than a @code{Pair_K_V}).
+
+@verbatim
+from collections.btreegeneral(T=pair) access
+    SortedSet_T as SortedSet_pair,
+    BTreeSet_T as BTreeSet_pair;
+
+bool keysLT(pair a, pair b) { return a.x < b.x; }
+bool isnan(pair a) { return isnan(a.y); }
+
+struct PLFunction {
+  SortedSet_pair pairs = BTreeSet_pair(
+    lessThan=keysLT,
+    nullT=(nan,nan),
+    isNullT = isnan
+  );
+  void operator [=] (real x, real y) {
+    pairs.push((x,y));
+  }
+  real operator [] (real x) {
+    pair p = (x, 0);
+    pair left = pairs.atOrBefore(p);
+    pair right = pairs.atOrAfter(p);
+    if (isnan(left.y) || isnan(right.y)) {
+      return nan;
+    }
+    if (left.x == right.x) {
+      return left.y;
+    }
+    real t = (x - left.x) / (right.x - left.x);
+    return interp(left.y, right.y, t);
+  }
+}
+
+PLFunction f;
+f[0] = 17;
+f[1] = 18;
+f[2001] = 19;
+
+for (real x : new real[] {-1, 0, 0.5, 1, 2, 2001, 2002}) {
+  write('f[' + (string)x + '] = ' + (string)f[x]);
+}
+@end verbatim
+
+@noindent
+outputs
+@verbatim
+f[-1] = nan
+f[0] = 17
+f[0.5] = 17.5
+f[1] = 18
+f[2] = 18.0005
+f[2001] = 19
+f[2002] = nan
+@end verbatim
+    
+
+@node Queues
+@subsection Queues
+
+Two standard datastructures are stacks and queues. A stack is a last-in-first-out
+(LIFO) structure; in Asymptote, arrays can be used as stacks via the @code{push} and
+@code{pop} methods. A queue is a first-in-first-out (FIFO) structure; the
+@code{collections.queue(T)} module provides a queue implementation.
+
+@cindex @code{makeQueue}
+@table @code
+@item Queue_T makeQueue(T[] initialData)
+returns a queue initialized with a copy of the array @code{initialData}.
+The parameter @code{initialData} is required in order to specify the type @code{T} in case there
+are multiple @code{Queue_T} types in the current scope. If no initial data is
+needed, use @code{makeQueue(new T[])} to create an empty array as a parameter.
+@end table
+
+The @code{Queue_T} structure has the following methods:
+@table @code
+@cindex @code{Queue_T} @subentry @code{.push}
+@cindex @code{push} @subentry @code{Queue_T.push}
+@item void push(T item)
+adds @code{item} to the end of the queue.
+
+@cindex @code{Queue_T} @subentry @code{.pop}
+@cindex @code{pop} @subentry @code{Queue_T.pop}
+@item T pop()
+removes and returns the first item in the queue. If the queue is empty,
+an error is thrown.
+
+@cindex @code{Queue_T} @subentry @code{.peek}
+@cindex @code{peek} @subentry @code{Queue_T.peek}
+@item T peek()
+returns the first item in the queue without removing it. If the queue is empty,
+an error is thrown.
+
+@cindex @code{Queue_T} @subentry @code{.size}
+@cindex @code{size} @subentry @code{Queue_T.size}
+@item int size()
+returns the number of items in the queue.
+
+@cindex @code{Queue_T} @subentry @code{.operator iter}
+@cindex @code{operator iter} @subentry @code{Queue_T.operator iter}
+@cindex @code{Queue_T} @subentry iterating over
+@item Iter_T operator iter()
+returns an iterator over the items in the queue, in the order they will be
+returned by @code{pop()}.
+
+If an item is pushed or popped, then any iterators created before that change are
+undermined and may behave unpredictably. The current implementation attempts to throw errors
+if an iterator is used after being undermined,
+but this behavior is not guaranteed and might be removed in
+future versions for performance reasons.
+
+@end table
+
+@cindex @code{Queue_T} @subentry cast to Iterable
+In addition to these methods, there is also an autounraveled implicit cast from
+@code{Queue_T} to @code{Iterable_T}. This cast allows a @code{Queue_T} to be
+passed as a parameter to utilities like @code{zip} or @code{enumerate}.
+
+@node Wrapping arrays
+@subsection Wrapping arrays
+
+@code{Asymptote} arrays have a builtin @code{==} operator that returns an
+array of bools rather than a single bool. This is useful in a number of
+contexts, but it also prevents them from being used in pairs or as values in
+hashmaps. The @code{collections.wraparray(T)} templated module provides a
+wrapper for arrays that has a more conventional @code{==} operator that returns
+a single bool. It also provides a @code{hash()} method that, if initialized,
+allows the array to be used as a key in a hashmap.
+
+The main type in @code{collections.wraparray(T)} is
+@code{Array_T}. While @code{Array_T} is not a drop-in replacement for
+@code{T[]}, it is as close as any structure can be. For convenience, the
+function @code{Array_T wrap(T[] data)} can be used to convert an array to
+an @code{Array_T}. Additionally, @code{Array_T} has autounraveled implicit
+casts to and from @code{T[]}, so that it can be used in most places where
+@code{T[]} is expected (and vice versa). Note that these casts do @emph{not}
+make copies, so if you modify the original array, the changes will be reflected
+in the @code{Array_T} and vice versa.
+
+The methods and fields of @code{Array_T} are identical to those of
+@code{T[]}, with the following exceptions:
+@table @code
+@item int length()
+is a method (requires parentheses afterwards) that returns the length of the array.
+@item void cyclic(bool b)
+sets the @code{cyclic} field of the wrapped array.
+@item bool cyclic()
+returns the @code{cyclic} field of the wrapped array.
+@item int[] keys()
+is a method (requires parentheses afterwards) that returns the @code{keys} field
+of the wrapped array.
+@item T[] data
+is a field that holds the wrapped array.
+@end table
+
+Additionally, the iteration syntax @code{for (T x : a)} is supported
+if @code{a} is an @code{Array_T}, as is element access @code{a[i]}. However,
+slices are not supported.
+
+To make an @code{Array_T} hashable, pass a second argument to the
+@code{wrap} function that computes an integer hash of a single element.
+For instance, the following constructs hashable arrays of strings and integers:
+@verbatim
+from collections.wraparray(T=string) access Array_T as Array_string;
+from collections.wraparray(T=int) access Array_T as Array_int;
+string[] s = {'hello', 'world'};
+Array_string ss = wrap(s, new int(string s) { return s.hash(); });
+int[] a = {1, 2, 3};
+Array_int aa = wrap(a, new int(int i) { return i; });
+@end verbatim
+The resulting hash function works by converting all the elements of the array
+to integers using the provided function, and then hashing the resulting
+@code{int[]}, @pxref{Hash functions}.
+
+Important note: If you use an @code{Array_T} as a key in a hashmap, you must
+ensure that the array is not modified while it is a key in the hashmap.
 
 @node LaTeX usage
 @chapter @code{LaTeX} usage
@@ -6975,7 +8481,7 @@ as illustrated in the example @code{@uref{https://asymptote.sourceforge.io/galle
 @node map
 @section @code{map}
 @cindex @code{map}
-This module creates a struct parameterized by the types specified in
+This module creates a structure parameterized by the types specified in
 strings @code{key} and @code{value}, mapping keys to values with a
 specified default:
 @verbatim
@@ -7209,7 +8715,7 @@ guide[] graph(picture pic=currentpicture, real f(real), real a, real b,
              interpolate join=operator --);
 @end verbatim
 
-Returns a graph using the scaling information for picture @code{pic}
+return a graph using the scaling information for picture @code{pic}
 (@pxref{automatic scaling}) of the function @code{f} on the interval
 [@code{T}(@code{a}),@code{T}(@code{b})], sampling at @code{n} points
 evenly spaced in [@code{a},@code{b}], optionally restricted by the
@@ -7260,7 +8766,7 @@ guide[] graph(picture pic=currentpicture, real x(real), real y(real),
               bool3 cond(real), interpolate join=operator --);
 @end verbatim
 
-Returns a graph using the scaling information for picture @code{pic}
+returns a graph using the scaling information for picture @code{pic}
 of the parametrized function
 (@code{x}(@math{t}),@code{y}(@math{t})) for @math{t} in the interval
 [@code{T}(@code{a}),@code{T}(@code{b})], sampling at @code{n} points
@@ -7278,7 +8784,7 @@ guide[] graph(picture pic=currentpicture, pair z(real), real a, real b,
               interpolate join=operator --);
 @end verbatim
 
-Returns a graph using the scaling information for picture @code{pic}
+returns a graph using the scaling information for picture @code{pic}
 of the parametrized function
 @code{z}(@math{t}) for @math{t} in the interval
 [@code{T}(@code{a}),@code{T}(@code{b})], sampling at @code{n} points
@@ -7294,7 +8800,7 @@ guide[] graph(picture pic=currentpicture, pair[] z, bool3[] cond,
               interpolate join=operator --);
 @end verbatim
 
-Returns a graph using the scaling information for picture @code{pic}
+returns a graph using the scaling information for picture @code{pic}
 of the elements of the array @code{z}, optionally restricted to
 those indices for which the elements of the boolean array @code{cond} are
 @code{true}, using the given interpolation type.
@@ -7307,7 +8813,7 @@ guide[] graph(picture pic=currentpicture, real[] x, real[] y,
               bool3[] cond, interpolate join=operator --);
 @end verbatim
 
-Returns a graph using the scaling information for picture @code{pic}
+returns a graph using the scaling information for picture @code{pic}
 of the elements of the arrays (@code{x},@code{y}), optionally
 restricted to those indices for which the elements of the boolean
 array @code{cond} are @code{true}, using the given interpolation type.
@@ -7319,7 +8825,7 @@ guide polargraph(picture pic=currentpicture, real f(real), real a,
                  real b, int n=ngraph, interpolate join=operator --);
 @end verbatim
 
-Returns a polar-coordinate graph using the scaling information for
+returns a polar-coordinate graph using the scaling information for
 picture @code{pic} of the function @code{f} on the interval
 [@code{a},@code{b}], sampling at @code{n} evenly spaced points, with
 the given interpolation type.
@@ -7329,7 +8835,7 @@ the given interpolation type.
 guide polargraph(picture pic=currentpicture, real[] r, real[] theta,
                  interpolate join=operator--);
 @end verbatim
-Returns a polar-coordinate graph using the scaling information for
+returns a polar-coordinate graph using the scaling information for
 picture @code{pic} of the elements of the arrays (@code{r},@code{theta}),
 using the given interpolation type.
 
@@ -7486,11 +8992,11 @@ an optional pen used to draw the minor ticks.
 @cindex @code{OmitTick}
 @cindex @code{OmitTickInterval}
 @cindex @code{OmitTickIntervals}
-For convenience, the predefined tickmodifiers @code{OmitTick(... real[] x)},
+For convenience, the predefined tickmodifiers @code{OmitTick(...real[] x)},
 @code{OmitTickInterval(real a, real b)}, and
 @code{OmitTickIntervals(real[] a, real[] b)}
 can be used to remove specific auto-generated ticks and
-their labels. The @code{OmitFormat(string s=defaultformat ... real[] x)}
+their labels. The @code{OmitFormat(string s=defaultformat, ... real[] x)}
 ticklabel can be used to remove specific tick labels but not the
 corresponding ticks. The tickmodifier @code{NoZero} is an abbreviation for
 @code{OmitTick(0)} and the ticklabel @code{NoZeroFormat} is an
@@ -7894,7 +9400,7 @@ The predefined scaling routines can be given two optional boolean arguments:
 @code{false} but can be respectively set to @code{true} to enable
 automatic selection of "nice" axis minimum and maximum values. The
 @code{Linear} scaling can also take as optional final arguments a
-multiplicative scaling factor and intercept (e.g.@ for a depth axis,
+multiplicative scaling factor and intercept (for a depth axis,
 @code{Linear(-1)} requests axis reversal).
 
 @cindex logarithmic graph
@@ -8042,7 +9548,7 @@ a linearly scaled intensity.
 a full color wheel palette;
 
 @cindex @code{Gradient}
-@item pen[] Gradient(int NColors=256 ... pen[] p)
+@item pen[] Gradient(int NColors=256, ... pen[] p)
 a palette varying linearly over the specified array of pens, using
 NColors in each interpolation interval;
 
@@ -8080,7 +9586,8 @@ struct bounds {
 This information can be used for generating an optional palette bar.
 The palette color space corresponds to a range of values specified by
 the argument @code{range}, which can be @code{Full}, @code{Automatic},
-or an explicit range @code{Range(real min, real max)}.
+or an explicit range @code{Range(real min, real max)}. (The type @code{range} is
+defined in @code{palette.asy}.)
 Here @code{Full} specifies a range varying from the
 minimum to maximum values of the function over the sampling interval,
 while @code{Automatic} selects "nice" limits.
@@ -8536,6 +10043,14 @@ dynamically remeshed to fit the browser window dimensions.
 However, the setting @code{absolute=true} can be used to force the image to be
 rendered at its designed size (accounting for multiple device pixels
 per @code{css} pixel).
+
+For specialized applications, the setting @code{keys=true} can be used
+to generate an identifying key immediately before the @code{WebGL}
+code for each generated object. The default key, the
+@code{"line:column"} of the associated function call of the top-level
+source code, can be overwritten by adding @code{KEY="x"} as the first
+argument of the function call, where @code{x} represents user-supplied
+text.
 
 The interactive @code{WebGL} files produced by @code{Asymptote} use the
 default mouse and (many of the same) key bindings as the @code{OpenGL}
@@ -9606,7 +11121,7 @@ use the routine:
 @cindex @code{Horizontal}
 @cindex @code{Vertical}
 @verbatim
-path path(pair point[] ... flowdir dir[]);
+path path(pair point[], ... flowdir dir[]);
 @end verbatim
 @noindent
 The entries in @code{dir} identify whether successive
@@ -9959,7 +11474,6 @@ an optional direction on the boundary of the page (mapped to the
 rectangle [-1,1]@math{\times}[-1,1]) to which the picture should be aligned; the
 default value @code{(0,0)} species center alignment.
 
-@cindex @code{-c}
 The @code{-c} (@code{command}) option may be used to execute arbitrary
 @code{Asymptote} code on the command line as a string. It is not
 necessary to terminate the string with a semicolon. Multiple @code{-c}
@@ -9976,7 +11490,6 @@ produces the output
 @noindent
 and draws a unitsquare of size @code{100}.
 
-@cindex @code{-u}
 The @code{-u} (@code{user}) option may be used to specify arbitrary
 @code{Asymptote} settings on the command line as a string. It is not
 necessary to terminate the string with a semicolon. Multiple @code{-u}
@@ -9988,7 +11501,6 @@ usersetting();
 write(x);
 @end verbatim
 
-@cindex @code{-l}
 When the @code{-l} (@code{listvariables}) option is used with file
 arguments, only global functions and variables defined in the specified
 file(s) are listed.
@@ -10139,11 +11651,11 @@ The modified figure can then be saved as a normal @code{Asymptote} file.
 
 As @code{xasy} is written in the interactive scripting language
 @code{Python/Qt}, it requires @code{Python} (@url{https://www.python.org}),
-along with the @code{Python} packages @code{pyqt5}, @code{cson}, and
+along with the @code{Python} packages @code{PySide6}, @code{cson}, and
 @code{numpy}:
 
 @verbatim
-pip3 install cson numpy pyqt5 PyQt5.sip
+pip3 install cson numpy PySide6
 @end verbatim
 
 Pictures are deconstructed into the @acronym{SVG} image format.
@@ -10195,7 +11707,7 @@ elements will be individually deconstructed (@pxref{add}).
 @cindex command-line interface
 
 @code{Asymptote} code may be sent to the
-@url{http://asymptote.ualberta.ca} server directly from the command
+@url{https://asymptote.ualberta.ca} server directly from the command
 line
 
 @itemize @bullet
@@ -10486,12 +11998,12 @@ Jeff Samuelson, Chris Savage, Jacques Pienaar, Mark Henning, Steve Melenchuk,
 Martin Wiebusch, Stefan Knorr, Supakorn ``Jamie'' Rassameemasmuang,
 Jacob Skitsko, Joseph Chaumont, and Oliver Cheng. Pedram Emami
 developed the @code{Asymptote Web Application} hosted at
-@url{http://asymptote.ualberta.ca}:
+@url{https://asymptote.ualberta.ca}:
 
 @url{https://github.com/vectorgraphics/asymptoteWebApplication}
 
-@node Index
-@unnumbered Index
+@node General Index
+@unnumbered General Index
 
 @printindex cp
 
@@ -10710,7 +12222,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  findall ax 5a centers 5E 5cm 2N 2E 2n HTML5 html 3x
 @c  LocalWords:  logo3 remeshed css 42kB 100d 5z 5y 5unit colored Qt5
 @c  LocalWords:  behavior beveled usetriangles htmlviewerOptions cson
-@c  LocalWords:  144x144 pyqt5 numpy pip3 PyQt5 rsvg librsvg2 1filll
+@c  LocalWords:  144x144 PySide6 numpy pip3 rsvg librsvg2 1filll
 @c  LocalWords:  librsvg Supakorn Jamie'' Rassameemasmuang 2D Docdir
 @c  LocalWords:  microsoft 'load 'asy 'lasy 'auto dep 4g isometry 5x
 @c  LocalWords:  5bp 1cm BezierPatch 2S 100pt 3t abs2 12pt cp1251 5mm

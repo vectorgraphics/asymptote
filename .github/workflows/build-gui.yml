@@ -20,7 +20,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: install dependencies
-        run: python3 -m pip install -r GUI/requirements.dev.txt -r GUI/requirements.txt
+        run: python3 -m pip install -r GUI/requirements.txt
       - name: build GUI files
         run: |
           test -n "${{ inputs.version_override }}" \
@@ -41,7 +41,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: install dependencies
-        run: python.exe -m pip install -r GUI/requirements.dev.txt -r GUI/requirements.txt
+        run: python.exe -m pip install -r GUI/requirements.txt
       - name: build GUI files
         shell: pwsh
         run: |

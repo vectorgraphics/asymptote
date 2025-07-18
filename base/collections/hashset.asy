@@ -1,6 +1,6 @@
 typedef import(T);
 
-from collections.repset(T=T) access Iter_T, Iterable_T, RepSet_T;
+from collections.set(T=T) access Iter_T, Iterable_T, Set_T;
 
 private struct HashEntry {
   T item;
@@ -9,8 +9,8 @@ private struct HashEntry {
   HashEntry older = null;
 }
 
-struct HashRepSet_T {
-  struct _ { autounravel restricted RepSet_T super; }
+struct HashSet_T {
+  restricted Set_T super;
   from super unravel nullT, equiv, isNullT;
 
   // These fields are mutable.
@@ -29,13 +29,13 @@ struct HashRepSet_T {
   void operator init(T nullT,
       bool equiv(T a, T b) = operator ==,
       bool isNullT(T) = new bool(T t) { return equiv(t, nullT); }) {
-    typedef void F(T, bool equiv(T, T), bool isNullT(T));
+    using F = void(T, bool equiv(T, T), bool isNullT(T));
     ((F)super.operator init)(nullT, equiv, isNullT);
   }
 
-  RepSet_T newEmpty() {
-    return HashRepSet_T(nullT, equiv, isNullT).super;
-  }
+  super.newEmpty = new Set_T() {
+    return HashSet_T(nullT, equiv, isNullT).super;
+  };
 
   super.size = new int() {
     return size;
@@ -57,13 +57,18 @@ struct HashRepSet_T {
 
   super.get = new T(T item) {
     int bucket = item.hash();
-    for (int i = 0; i < buckets.length; ++i) {
-      HashEntry entry = buckets[bucket + i];
+    int end = bucket;
+    int start = end - buckets.length;
+    for (int i = start; i < end; ++i) {
+      HashEntry entry = buckets[i];
       if (entry == null) {
         return super.nullT;
       }
-      if (entry.hash == bucket && equiv(entry.item, item)) {
-        return entry.item;
+      if (entry.hash == bucket) {
+        var entryItem = entry.item;
+        if (equiv(entryItem, item)) {
+          return entryItem;
+        }
       }
     }
     assert(isNullT != null, 'Item is not present.');
@@ -116,8 +121,7 @@ struct HashRepSet_T {
   //     bucket in which the item should be placed if added.
   //   * Otherwise, returns -1.
   private int find(T item, int hash) {
-    for (int i = 0; i < buckets.length; ++i) {
-      int index = hash + i;
+    for (int index = hash - buckets.length; index < hash; ++index) {
       HashEntry entry = buckets[index];
       if (entry == null) {
         return index;
@@ -130,17 +134,20 @@ struct HashRepSet_T {
   }
 
   super.add = new bool(T item) {
-    ++numChanges;
     if (isNullT != null && isNullT(item)) {
       return false;
     }
-    if (2 * (size + zombies) >= buckets.length) {
+    int capacity = buckets.length;
+    if (2 * (size + zombies) >= capacity) {
       changeCapacity();
+      capacity = buckets.length;
     }
     int bucket = item.hash();
     int index = find(item, bucket);
     if (index == -1) {
+      ++numChanges;
       changeCapacity();
+      capacity = buckets.length;
       index = find(item, bucket);
       assert(index != -1, 'No space in hash table');
     }
@@ -150,8 +157,9 @@ struct HashRepSet_T {
     }
 
     ++numChanges;
-    if (2 * (size + zombies) >= buckets.length) {
+    if (2 * (size + zombies) >= capacity) {
       changeCapacity();
+      capacity = buckets.length;
       index = find(item, bucket);
       assert(index != -1);
       assert(buckets[index] == null);
@@ -171,7 +179,7 @@ struct HashRepSet_T {
     return true;
   };
 
-  super.update = new T(T item) {
+  super.push = new T(T item) {
     if (isNullT != null && isNullT(item)) {
       return nullT;
     }
@@ -188,6 +196,8 @@ struct HashRepSet_T {
       entry.item = item;
       return result;
     }
+    assert(isNullT != null,
+           'Adding item via push() without defining nullT.');
     ++numChanges;
     if (2 * (size + zombies) >= buckets.length) {
       changeCapacity();
@@ -196,8 +206,6 @@ struct HashRepSet_T {
       assert(buckets[index] == null);
     }
     entry = buckets[index] = new HashEntry;
-    assert(isNullT != null,
-           'Adding item via update() without defining nullT.');
     entry.item = item;
     entry.hash = bucket;
     entry.older = newest;
@@ -212,22 +220,10 @@ struct HashRepSet_T {
     return nullT;
   };
 
-  super.delete = new T(T item) {
-    int bucket = item.hash();
-    int index = find(item, bucket);
-    HashEntry entry = buckets[index];
-    if (index == -1) {
-      assert(false, 'Overcrowded hash table; zombies: ' + string(zombies) +
-             '; size: ' + string(size) +
-             '; buckets.length: ' + string(buckets.length));
-      return nullT;
-    }
-    if (entry == null) {
-      assert(isNullT != null, 'Item is not present.');
-      return nullT;
-    }
+  // Marks the entry as a zombie and removes it from the linked list.
+  // Also adjusts the numChanges, size, and zombies counters.
+  private void makeZombie(HashEntry entry) {
     ++numChanges;
-    T result = entry.item;
     entry.hash = -1;
     ++zombies;
     if (entry.older != null) {
@@ -241,17 +237,76 @@ struct HashRepSet_T {
       newest = entry.older;
     }
     --size;
-    if (2 * (size + zombies) > buckets.length) {
-      changeCapacity();
+    // Since zombies + size has not changed, we don't need to
+    // change the capacity.
+  }
+
+  super.extract = new T(T item) {
+    int index = find(item, item.hash());
+    if (index == -1) {
+      assert(false, 'Overcrowded hash table; zombies: ' + string(zombies) +
+             '; size: ' + string(size) +
+             '; buckets.length: ' + string(buckets.length));
+      return nullT;
     }
+    HashEntry entry = buckets[index];
+    if (entry == null) {
+      assert(isNullT != null, 'Item is not present.');
+      return nullT;
+    }
+    T result = entry.item;
+    makeZombie(entry);
     return result;
   };
 
-  autounravel RepSet_T operator cast(HashRepSet_T set) {
+  super.delete = new bool(T item) {
+    int index = find(item, item.hash());
+    if (index == -1) {
+      assert(false, 'Overcrowded hash table; zombies: ' + string(zombies) +
+             '; size: ' + string(size) +
+             '; buckets.length: ' + string(buckets.length));
+      return false;
+    }
+    HashEntry entry = buckets[index];
+    if (alias(entry, null)) {
+      return false;
+    }
+    makeZombie(entry);
+    return true;
+  };
+
+  super.getRandom = new T() {
+    if (size == 0) {
+      assert(isNullT != null, 'Cannot get a random item from an empty set');
+      return nullT;
+    }
+    static int seed = 3567654160488757718;
+    if (size # 2 > buckets.length # size) {
+      // Most buckets are empty, so it's faster to iterate over the linked list
+      // of full buckets.
+      int index = (++seed).hash() % size;
+      for (T item : super) {
+        if (index == 0) {
+          return item;
+        }
+        --index;
+      }
+      assert(false, 'Unreachable code');
+    }
+    HashEntry entry = null;
+    do {
+      int index = (++seed).hash() % buckets.length;
+      entry = buckets[index];
+    } while (entry == null || entry.hash == -1);
+    return entry.item;
+  };
+
+
+  autounravel Set_T operator cast(HashSet_T set) {
     return set.super;
   }
 
-  autounravel Iterable_T operator cast(HashRepSet_T set) {
+  autounravel Iterable_T operator cast(HashSet_T set) {
     return Iterable_T(set.super.operator iter);
   }
   unravel super;

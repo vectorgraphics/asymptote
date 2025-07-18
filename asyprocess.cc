@@ -596,7 +596,7 @@ class iprompt : public icore {
   // line is treated as a normal line of code.
   // commands is a map of command names to methods which implement the commands.
   typedef bool (iprompt::*command)(coenv &, istack &, commandLine);
-  typedef mem::map<CONST string, command> commandMap;
+  typedef mem::map<const string, command> commandMap;
   commandMap commands;
 
   bool exit(coenv &, istack &, commandLine cl) {

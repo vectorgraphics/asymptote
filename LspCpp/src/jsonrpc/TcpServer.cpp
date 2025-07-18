@@ -213,7 +213,9 @@ TcpServer::TcpServer(
 
 {
 
-    d_ptr->work = std::make_shared<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>>(d_ptr->io_context_.get_executor());
+    d_ptr->work = std::make_shared<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>>(
+        d_ptr->io_context_.get_executor()
+    );
 
     // Open the acceptor with the option to reuse the address (i.e. SO_REUSEADDR).
     boost::asio::ip::tcp::resolver resolver(d_ptr->io_context_);

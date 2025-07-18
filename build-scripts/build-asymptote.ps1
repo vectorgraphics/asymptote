@@ -219,7 +219,7 @@ if (0 -eq $Version.Length) {
 # build GUI
 & $pyXasyActivateScript
 Push-Location $asymptoteRoot/GUI
-& python -m pip install -r requirements.txt -r requirements.dev.txt
+& python -m pip install -r requirements.txt
 & python buildtool.py build --version-override=$Version
 Pop-Location
 
@@ -259,7 +259,7 @@ function buildAsy($preset, $cfgDir) {
 
 buildAsy msvc/release/with-external-doc-files cmake-build-msvc/release
 cmake --install $asymptoteRoot/cmake-build-msvc/release --component asy-pre-nsis
-
+copy $asymptoteRoot/cmake-build-msvc/release/base/version.asy base
 # ------------------------------------------------------
 # Generate NSIS installer file
 & $asymptoteRoot/cmake-install-w32-nsis-release/build-asy-installer.ps1 "$makeNsisLoc"

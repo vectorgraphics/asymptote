@@ -2,7 +2,7 @@ import TestLib;
 
 srand(4282308941601638229);
 
-StartTest("HashRepSet");
+StartTest("HashSet");
 
 // from wrapper(T=int) access
 //     Wrapper_T as wrapped_int,
@@ -28,12 +28,12 @@ struct wrapped_int {
 
 wrapped_int wrap(int t) = wrapped_int;  // `wrap` is alias for constructor
 
-from collections.repset(T=wrapped_int) access
-    RepSet_T as Set_wrapped_int,
-    NaiveRepSet_T as NaiveSet_wrapped_int;
+from collections.set(T=wrapped_int) access
+    Set_T as Set_wrapped_int,
+    NaiveSet_T as NaiveSet_wrapped_int;
 
-from collections.hashrepset(T=wrapped_int) access
-    HashRepSet_T as HashSet_wrapped_int;
+from collections.hashset(T=wrapped_int) access
+    HashSet_T as HashSet_wrapped_int;
 
 from collections.enumerate(T=wrapped_int) access enumerate;
 
@@ -45,7 +45,7 @@ struct ActionEnum {
   autounravel restricted int CONTAINS = make();
   autounravel restricted int GET = make();
   autounravel restricted int ADD = make();
-  autounravel restricted int UPDATE = make();
+  autounravel restricted int PUSH = make();
   autounravel restricted int DELETE = make();
   autounravel restricted int DELETE_CONTAINS = make();
 }
@@ -162,12 +162,12 @@ actions[ADD] = new void(int maxItem ...Set_wrapped_int[] sets) {
     }
   }
 };
-actions[UPDATE] = new void(int maxItem ...Set_wrapped_int[] sets) {
+actions[PUSH] = new void(int maxItem ...Set_wrapped_int[] sets) {
   wrapped_int toReplace = wrap(rand() % maxItem);
   // write('Replacing ' + string(toReplace.t) + '\n');
   wrapped_int[] results = new wrapped_int[];
   for (Set_wrapped_int s : sets) {
-    results.push(s.update(toReplace));
+    results.push(s.push(toReplace));
   }
   if (results.length > 0) {
     wrapped_int expected = results[0];
@@ -184,7 +184,7 @@ actions[DELETE] = new void(int maxItem ...Set_wrapped_int[] sets) {
   // write('Deleting ' + string(toDelete.t) + '\n');
   wrapped_int[] results = new wrapped_int[];
   for (Set_wrapped_int s : sets) {
-    results.push(s.delete(toDelete));
+    results.push(s.extract(toDelete));
   }
   if (results.length > 0) {
     wrapped_int expected = results[0];
@@ -248,7 +248,7 @@ actions[DELETE_CONTAINS] = new void(int ...Set_wrapped_int[] sets) {
   int i = 0;
   for (Set_wrapped_int s : sets) {
     assert(s.contains(toDelete), 'Contains failed ' + string(i));
-    wrapped_int deleted = s.delete(toDelete);
+    wrapped_int deleted = s.extract(toDelete);
     assert(!alias(deleted, null), 'Delete returned null');
     typedef bool F(wrapped_int, wrapped_int);
     assert(((F)operator ==) != ((F)alias));
@@ -261,7 +261,7 @@ actions[DELETE_CONTAINS] = new void(int ...Set_wrapped_int[] sets) {
 };
 real[] increasingProbs = new real[ActionEnum.num];
 increasingProbs[ADD] = 0.7;
-increasingProbs[UPDATE] = 0.1;
+increasingProbs[PUSH] = 0.1;
 increasingProbs[DELETE] = 0.05;
 increasingProbs[CONTAINS] = 0.05;
 increasingProbs[GET] = 0.05;
@@ -270,7 +270,7 @@ assert(sum(increasingProbs) == 1, 'Probabilities do not sum to 1');
 
 real[] decreasingProbs = new real[ActionEnum.num];
 decreasingProbs[ADD] = 0.1;
-decreasingProbs[UPDATE] = 0.1;
+decreasingProbs[PUSH] = 0.1;
 decreasingProbs[DELETE] = 0.4;
 decreasingProbs[CONTAINS] = 0.05;
 decreasingProbs[GET] = 0.05;
@@ -311,6 +311,46 @@ for (int i = 0; i < 2000; ++i) {
   }
 
   maxSize = max(maxSize, naiveSet.size());
+}
+
+EndTest();
+
+StartTest('HashSet_binary_ops');
+
+Set_wrapped_int a = HashSet_wrapped_int(null);
+a.add(wrap(1));
+a.add(wrap(2));
+a.add(wrap(3));
+Set_wrapped_int b = HashSet_wrapped_int(null);
+b.add(wrap(2));
+b.add(wrap(3));
+b.add(wrap(4));
+
+{
+  Set_wrapped_int c = a + b;
+  assert(c.size() == 4, 'Union failed: wrong size ' + string(c.size()));
+  assert(c.contains(wrap(1)), 'Union failed: missing 1');
+  assert(c.contains(wrap(2)), 'Union failed: missing 2');
+  assert(c.contains(wrap(3)), 'Union failed: missing 3');
+  assert(c.contains(wrap(4)), 'Union failed: missing 4');
+}
+{
+  Set_wrapped_int c = a - b;
+  assert(c.size() == 1, 'Difference failed: wrong size ' + string(c.size()));
+  assert(c.contains(wrap(1)), 'Difference failed: missing 1');
+}
+{
+  Set_wrapped_int c = a & b;
+  assert(c.size() == 2, 'Intersection failed: wrong size ' + string(c.size()));
+  assert(c.contains(wrap(2)), 'Intersection failed: missing 2');
+  assert(c.contains(wrap(3)), 'Intersection failed: missing 3');
+}
+{
+  Set_wrapped_int c = a ^ b;
+  assert(c.size() == 2, 'Symmetric difference failed: wrong size ' +
+         string(c.size()));
+  assert(c.contains(wrap(1)), 'Symmetric difference failed: missing 1');
+  assert(c.contains(wrap(4)), 'Symmetric difference failed: missing 4');
 }
 
 EndTest();

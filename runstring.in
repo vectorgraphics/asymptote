@@ -15,10 +15,10 @@ Intarray*  => IntArray()
 #include <ctime>
 #include <chrono>
 #include <algorithm>
-#include <random>
 
 #include "array.h"
 #include "hashing.h"
+#include "random.h"
 
 using namespace camp;
 using namespace vm;
@@ -445,18 +445,6 @@ Int hash(string s)
   return hashing::hashSpan(s);
 }
 
-Intarray* fingerprint2024(string s)
-{
-  span<const char> sSpan = {s.data(), s.length()};
-  std::array<uint64_t, 4> result = hashing::fingerprint(s);
-  array *retv = new array(8);
-  for (int i = 0; i < 4; ++i) {
-    (*retv)[i] = static_cast<Int>(result[i] & ((UINT64_C(1) << 32) - 1));
-    (*retv)[i + 4] = static_cast<Int>(result[i] >> 32);
-  }
-  return retv;
-}
-
 string string(Int x)
 {
   ostringstream buf;
@@ -519,4 +507,18 @@ Int seconds(string t=emptystring, string format=emptystring)
   }
 
   return static_cast<Int>(std::mktime(&tmObj));
+}
+
+string randString(Int len, string *chars) {
+  string result(len, ' ');
+  if (chars == nullptr || chars->size() == 0) {
+    chars = new string(
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+  }
+  Int maxIndex = chars->size() - 1;
+  for (Int i = 0; i < len; ++i) {
+    char toAdd = (*chars)[camp::randInt(0, maxIndex)];
+    result[i] = toAdd;
+  }
+  return result;
 }

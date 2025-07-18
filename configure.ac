@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ([2.71])
-AC_INIT([Asymptote],[3.02git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_INIT([Asymptote],[3.06git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -36,12 +36,6 @@ AC_C_BIGENDIAN(
 )
 
 echo Compiling with $CXXFLAGS $CFLAGS
-
-# --------------- external refs ---------------------------
-
-# we need LSP regardless
-EXTERNAL_CODE_ROOT=.
-EXTERNAL_BUILD_ROOT=.
 
 # --------------- begin vcpkg option/check ---------------------
 # result:
@@ -336,16 +330,14 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
   AC_CHECK_LIB([boost_filesystem],[opendir],
   [AC_CHECK_LIB([boost_thread],[pthread_attr_getdetachstate],
   [
-   LSP_BUILD_ROOT=$EXTERNAL_BUILD_ROOT/$LSP_ROOT
-   ROOT_DIR_RELATIVE_TO_SRC=$(realpath -s --relative-to $LSP_ROOT .)
-   LSPLIB=$LSP_BUILD_ROOT/liblspcpp.a
-   LSPLIBS=$LSPLIBS" -L$LSP_BUILD_ROOT -L$LSP_BUILD_ROOT/third_party/uri/src -llspcpp -lnetwork-uri -lboost_filesystem -lboost_thread"
+   LSPLIB=$LSP_ROOT/liblspcpp.a
+   LSPLIBS=$LSPLIBS" -L$LSP_ROOT -L$LSP_ROOT/third_party/uri/src -llspcpp -lnetwork-uri -lboost_filesystem -lboost_thread"
    LSP_CMAKE_OPTIONS="-DLSPCPP_USE_CPP17=ON "
 
    if test "x$enable_gc" != "xno"; then
       LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DLSPCPP_SUPPORT_BOEHM_GC=ON "
       if test "x$with_vcpkg" = "xno"; then
-          LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DLSPCPP_GC_DOWNLOADED_ROOT=$ROOT_DIR_RELATIVE_TO_SRC/\$(GC) "
+          LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DLSPCPP_GC_DOWNLOADED_ROOT=../\$(GC) "
       fi
    else
       LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DLSPCPP_SUPPORT_BOEHM_GC=OFF "
@@ -354,12 +346,11 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
    AC_DEFUN([ENABLE_LSP_MACRO],
       AC_SUBST(LSP_CXX_BUILD_FLAGS)
       AC_SUBST(LSP_CMAKE_OPTIONS)
-      AC_SUBST(LSP_BUILD_ROOT)
       AC_DEFINE(HAVE_LSP,1,DEFINE([Language server protocol]))
    )
    if test "x$with_vcpkg" != "xno"; then
       ADD_VCPKG_FEATURE(lsp)
-      RELATIVE_LSP_VCPKG_ROOT=$(realpath -s --relative-to=$LSP_BUILD_ROOT vcpkg_installed/$vcpkg_triplet)
+      RELATIVE_LSP_VCPKG_ROOT=../vcpkg_installed/$vcpkg_triplet
       LSP_CXX_BUILD_FLAGS=$LSP_BUILD_FLAGS"-I$RELATIVE_LSP_VCPKG_ROOT/include -L$RELATIVE_LSP_VCPKG_ROOT/lib "
       LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DUSE_SYSTEM_RAPIDJSON=True -DCMAKE_PREFIX_PATH=\"$RELATIVE_LSP_VCPKG_ROOT\" "
    fi
