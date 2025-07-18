@@ -151,9 +151,8 @@ errortest.asy: 438.17: cannot cast 'int' to 'var'
 errortest.asy: 442.7: could not infer type of initializer
 errortest.asy: 446.7: could not infer type of initializer
 errortest.asy: 448.7: could not infer type of initializer
-errortest.asy: 452.16: expression is not an array of inferable type
-errortest.asy: 457.16: expression is not an array of inferable type
-errortest.asy: 463.16: expression is not an array of inferable type
+errortest.asy: 452.16: cannot iterate over expression of type 'int'
+errortest.asy: 457.16: cannot resolve type for iteration
 errortest.asy: 470.7: array expression cannot be used as an address
 errortest.asy: 519.29: expected 'as'
 errortest.asy: 521.30: expected 'as'
@@ -204,3 +203,12 @@ errortest.asy: 626.9: accessing private field outside of structure
 errortest.asy: 627.4: accessing private field outside of structure
 errortest.asy: 628.4: accessing private field outside of structure
 errortest.asy: 639.4: accessing private field outside of structure
+errortest.asy: 643.3: multiple operator[] definitions in one struct
+errortest.asy: 650.3: operator[=] defined without operator[]
+errortest.asy: 656.3: operator[=] must return void
+errortest.asy: 667.3: no matching variable '<exp>.valid'
+errortest.asy: 667.3: no matching variable '<exp>.get'
+errortest.asy: 667.3: no matching variable '<exp>.advance'
+errortest.asy: 677.16: cannot iterate over expression of type 'int(int i)'
+errortest.asy: 684.17: cannot call 'int f(int i)' with parameter 'string'
+errortest.asy: 687.17: cannot call 'int f(int i)' with parameter 'string'

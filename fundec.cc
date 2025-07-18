@@ -31,17 +31,17 @@ void formal::prettyprint(ostream &out, Int indent)
   if (defval) defval->prettyprint(out, indent+1);
 }
 
-types::formal formal::trans(coenv &e, bool encodeDefVal, bool tacit) {
+types::formal formal::trans(coenv &e, bool encodeDefVal, ErrorMode tacit) {
   return types::formal(getType(e,tacit),
                        getName(),
                        encodeDefVal ? (bool) getDefaultValue() : 0,
                        getExplicit());
 }
 
-types::ty *formal::getType(coenv &e, bool tacit) {
+types::ty *formal::getType(coenv &e, ErrorMode tacit) {
   types::ty *bt = base->trans(e, tacit);
   types::ty *t = start ? start->getType(bt, e, tacit) : bt;
-  if (t->kind == ty_void && !tacit) {
+  if (t->kind == ty_void && tacit != ErrorMode::SUPPRESS) {
     em.error(getPos());
     em << "cannot declare parameters of type void";
     return primError();
@@ -53,7 +53,7 @@ types::ty *formal::getType(coenv &e, bool tacit) {
 void formal::addOps(coenv &e, record *r) {
   base->addOps(e, r);
   if (start)
-    start->addOps(base->trans(e, true), e, r);
+    start->addOps(base->trans(e, ErrorMode::SUPPRESS), e, r);
 }
 
 void formals::prettyprint(ostream &out, Int indent)
@@ -65,7 +65,7 @@ void formals::prettyprint(ostream &out, Int indent)
 }
 
 void formals::addToSignature(signature& sig,
-                             coenv &e, bool encodeDefVal, bool tacit)
+                             coenv &e, bool encodeDefVal, ErrorMode tacit)
 {
   for (list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p) {
     formal& f=**p;
@@ -78,7 +78,7 @@ void formals::addToSignature(signature& sig,
   }
 
   if (rest) {
-    if (!tacit && rest->getDefaultValue()) {
+    if (tacit!=ErrorMode::SUPPRESS && rest->getDefaultValue()) {
       em.error(rest->getPos());
       em << "rest parameters cannot have default values";
     }
@@ -89,7 +89,7 @@ void formals::addToSignature(signature& sig,
 // Returns the types of each parameter as a signature.
 // encodeDefVal means that it will also encode information regarding
 // the default values into the signature
-signature *formals::getSignature(coenv &e, bool encodeDefVal, bool tacit)
+signature *formals::getSignature(coenv &e, bool encodeDefVal, ErrorMode tacit)
 {
   signature *sig = new signature;
   addToSignature(*sig,e,encodeDefVal,tacit);
@@ -101,7 +101,7 @@ signature *formals::getSignature(coenv &e, bool encodeDefVal, bool tacit)
 // value of types::ty *result.
 function *formals::getType(types::ty *result, coenv &e,
                            bool encodeDefVal,
-                           bool tacit)
+                           ErrorMode tacit)
 {
   function *ft = new function(result);
   addToSignature(ft->sig,e,encodeDefVal,tacit);
@@ -177,7 +177,7 @@ void formal::transAsVar(coenv &e, Int index) {
 
     // Suppress error messages because they will already be reported
     // when the formals are translated to yield the type earlier.
-    types::ty *t = getType(e, true);
+    types::ty *t = getType(e, ErrorMode::SUPPRESS);
     varEntry *v = new varEntry(t, a, 0, getPos());
 
     // Translate the default argument before adding the formal to the
@@ -212,12 +212,12 @@ void fundef::prettyprint(ostream &out, Int indent)
   body->prettyprint(out, indent+1);
 }
 
-function *fundef::transType(coenv &e, bool tacit) {
+function *fundef::transType(coenv &e, ErrorMode tacit) {
   bool encodeDefVal=true;
   return params->getType(result->trans(e, tacit), e, encodeDefVal, tacit);
 }
 
-function *fundef::transTypeAndAddOps(coenv &e, record *r, bool tacit) {
+function *fundef::transTypeAndAddOps(coenv &e, record *r, ErrorMode tacit) {
   result->addOps(e,r);
   params->addOps(e,r);
 
@@ -284,7 +284,7 @@ types::ty *fundef::trans(coenv &e) {
   //   new guide[] (guide f(int)) {
   //     return sequence(f, 10);
   //   };
-  function *ft=transTypeAndAddOps(e, (record *)0, false);
+  function *ft=transTypeAndAddOps(e, (record *)0, ErrorMode::NORMAL);
   assert(ft);
 
   baseTrans(e, ft);
@@ -307,7 +307,7 @@ void fundec::trans(coenv &e)
 
 void fundec::transAsField(coenv &e, record *r)
 {
-  function *ft = fun.transTypeAndAddOps(e, r, false);
+  function *ft = fun.transTypeAndAddOps(e, r, ErrorMode::NORMAL);
   assert(ft);
 
   createVar(getPos(), e, r, id, ft, fun.makeVarInit(ft));
