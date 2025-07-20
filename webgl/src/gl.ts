@@ -600,7 +600,10 @@ abstract class Geometry {
 
   c: number[];
 
-  protected constructor() { }
+  protected constructor() {
+
+    
+   }
 
   // Is 2D bounding box formed by projecting 3d points in vector v offscreen?
   offscreen(v) {
@@ -3248,6 +3251,9 @@ function drawScene()
   if(wireframe == 0) remesh=false;
 }
 
+
+
+
 function setDimensions(width,height,X,Y)
 {
   let Aspect=width/height;
@@ -3442,10 +3448,7 @@ class Align {
   };
 }
 
-let translation=mat4.fromValues(1,0,0,0,
-                          0,1,0,0,
-                          0,0,1,0,
-                          0,50,0,1);
+
 
 function Tcorners(T,m,M)
 {
@@ -3455,7 +3458,10 @@ function Tcorners(T,m,M)
   return [minbound(v),maxbound(v)];
 }
 
-function transformCP(controlpoints, M) {
+
+
+
+function transformCP(controlpoints:vec3[], M:mat4) : vec3[] {
   return controlpoints.map(function(pt) {
     let v: vec4=[pt[0],pt[1],pt[2],1];
     let out: vec4=[0,0,0,0];
@@ -3465,10 +3471,56 @@ function transformCP(controlpoints, M) {
   });
 }
 
-
-function Transform(controlpoints) {
-  return transformCP(controlpoints,translation);
+function up(delta:number):mat4{ 
+  return mat4.fromValues(1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,delta,0,1);
 }
+
+
+
+function side(delta:number):mat4{ 
+  return mat4.fromValues(1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    delta,0,0,1);
+}
+
+const listFunction:((delta:number) => mat4)[] = [up];
+
+// We need a generic function: 
+// transform : (controlpoints, mapping, startTime, duration) -> (controlpoints)
+// mapping : (vec3) -> (vec3)
+
+const startTime=performance.now(); 
+let duration=5.0; 
+let maxDelta=80; 
+
+// Example function, param will be a list of transform function(controlpoint)
+function animatedTransform(listT:((delta:number) => mat4)[]){
+  return function(controlpoints:vec3[]) : vec3[] {
+    let now=performance.now(); 
+    const t=Math.min((now-startTime)/1000/duration, 1.0);
+    let delta=t*maxDelta; 
+    // let T=up(delta);
+    let curCP=controlpoints;
+    for (const fn of listT) {
+      curCP=transformCP(curCP, fn(delta)); 
+    }
+    return curCP
+
+  }
+}
+
+function animate(timestamp:number) {
+  remesh=true;
+  drawScene(); 
+  if ((timestamp-startTime)/1000 < duration) {
+    requestAnimationFrame(animate);
+  }
+}
+
 
 function light(direction,color)
 {
@@ -3482,10 +3534,11 @@ function material(diffuse,emissive,specular,shininess,metallic,fresnel0)
 }
 
 let count=0;
+let lid = [19,23,24,25,26,27,28,33]
 function patch(controlpoints,CenterIndex,MaterialIndex,color)
 {
   P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color,
-                         null,null,count == 0 ? Transform : null));
+                         null,null,lid.includes(count) ? animatedTransform(listFunction) : null));
   ++count;
 }
 
@@ -3961,6 +4014,8 @@ function webGLStart()
     }
 
   home();
+  requestAnimationFrame(animate);
+
 }
 globalThis.window.webGLStart=webGLStart;
 globalThis.window.light=light
