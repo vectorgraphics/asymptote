@@ -3461,24 +3461,12 @@ function Tcorners(T,m,M)
 
 
 
-function transformCP(controlpoints:vec3[], M:mat4) : vec3[] {
-  return controlpoints.map(function(pt) {
-    let v: vec4=[pt[0],pt[1],pt[2],1];
-    let out: vec4=[0,0,0,0];
-    vec4.transformMat4(out,v,M);
-    let d=1.0/out[3];
-    return [out[0]*d,out[1]*d,out[2]*d];
-  });
-}
-
 function up(delta:number):mat4 {
   return mat4.fromValues(1,0,0,0,
     0,1,0,0,
     0,0,1,0,
     0,delta,0,1);
 }
-
-
 
 function side(delta:number):mat4 {
   return mat4.fromValues(1,0,0,0,
@@ -3487,7 +3475,23 @@ function side(delta:number):mat4 {
     delta,0,0,1);
 }
 
-const listFunction:((delta:number) => mat4)[] = [up];
+function linearf(v:vec3,delta:number) {
+  let V: vec4=[v[0],v[1],v[2],1];
+  let out: vec4=[0,0,0,0];
+  vec4.transformMat4(out,V,up(delta));
+  return out;
+}
+
+function transformCP(controlpoints:vec3[], delta:number,
+                     f : ((v:vec3,delta : number) => vec4)) : vec3[] {
+  return controlpoints.map(function(v) {
+    let out=f(v,delta);
+    let d=1.0/out[3];
+    return [out[0]*d,out[1]*d,out[2]*d];
+  });
+}
+
+const listFunction:((v:vec3,delta:number) => vec4)[] = [linearf];
 
 // We need a generic function:
 // transform : (controlpoints, mapping, startTime, duration) -> (controlpoints)
@@ -3498,16 +3502,15 @@ let duration=5.0;
 let maxDelta=80;
 
 // Example function, param will be a list of transform function(controlpoint)
-function animatedTransform(listT:((delta:number) => mat4)[]){
+function animatedTransform(listT:((v:vec3,delta:number) => vec4)[]){
   return function(controlpoints:vec3[]) : vec3[] {
     let now=performance.now();
-    const t=Math.min((now-startTime)/1000/duration, 1.0);
+    const t=Math.min((now-startTime)/(1000*duration), 1.0);
     let delta=t*maxDelta;
     // let T=up(delta);
     let curCP=controlpoints;
-    for (const fn of listT) {
-      curCP=transformCP(curCP, fn(delta));
-    }
+    for (const fn of listT)
+      curCP=transformCP(curCP,delta,fn);
     return curCP
 
   }
@@ -3516,7 +3519,7 @@ function animatedTransform(listT:((delta:number) => mat4)[]){
 function animate(timestamp:number) {
   remesh=true;
   drawScene();
-  if ((timestamp-startTime)/1000 < duration) {
+  if (0.001*(timestamp-startTime) < duration) {
     requestAnimationFrame(animate);
   }
 }
