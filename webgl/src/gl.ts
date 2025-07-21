@@ -3458,9 +3458,6 @@ function Tcorners(T,m,M)
   return [minbound(v),maxbound(v)];
 }
 
-
-
-
 function up(delta:number):mat4 {
   return mat4.fromValues(1,0,0,0,
     0,1,0,0,
@@ -3468,19 +3465,13 @@ function up(delta:number):mat4 {
     0,delta,0,1);
 }
 
-function side(delta:number):mat4 {
-  return mat4.fromValues(1,0,0,0,
-    0,1,0,0,
-    0,0,1,0,
-    delta,0,0,1);
-}
-
-function linearf(v:vec3,delta:number) {
+let Function=function(v,delta)
+{
   let V: vec4=[v[0],v[1],v[2],1];
   let out: vec4=[0,0,0,0];
   vec4.transformMat4(out,V,up(delta));
   return out;
-}
+};
 
 function transformCP(controlpoints:vec3[], delta:number,
                      f : ((v:vec3,delta : number) => vec4)) : vec3[] {
@@ -3491,7 +3482,7 @@ function transformCP(controlpoints:vec3[], delta:number,
   });
 }
 
-const listFunction:((v:vec3,delta:number) => vec4)[] = [linearf];
+//let listFunction:((v:vec3,delta:number) => vec4)[] = [Function];
 
 // We need a generic function:
 // transform : (controlpoints, mapping, startTime, duration) -> (controlpoints)
@@ -3502,17 +3493,15 @@ let duration=5.0;
 let maxDelta=80;
 
 // Example function, param will be a list of transform function(controlpoint)
-function animatedTransform(listT:((v:vec3,delta:number) => vec4)[]){
+function animatedTransform(fn:((v:vec3,delta:number) => vec4)){
   return function(controlpoints:vec3[]) : vec3[] {
     let now=performance.now();
     const t=Math.min((now-startTime)/(1000*duration), 1.0);
     let delta=t*maxDelta;
     // let T=up(delta);
     let curCP=controlpoints;
-    for (const fn of listT)
-      curCP=transformCP(curCP,delta,fn);
-    return curCP
-
+    curCP=transformCP(curCP,delta,fn);
+    return curCP;
   }
 }
 
@@ -3530,6 +3519,10 @@ function light(direction,color)
   Lights.push(new Light(direction,color));
 }
 
+function linearg()
+{
+}
+
 function material(diffuse,emissive,specular,shininess,metallic,fresnel0)
 {
   Materials.push(new Material(diffuse,emissive,specular,shininess,metallic,
@@ -3541,7 +3534,7 @@ let lid = [19,23,24,25,26,27,28,33]
 function patch(controlpoints,CenterIndex,MaterialIndex,color)
 {
   P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color,
-                         null,null,lid.includes(count) ? animatedTransform(listFunction) : null));
+                         null,null,lid.includes(count) ? animatedTransform(Function) : null));
   ++count;
 }
 
@@ -3973,6 +3966,10 @@ async function initIBLOnceEXRLoaderReady()
   await Promise.all(promises);
 }
 
+function setf(f) {
+  Function=f;
+}
+
 function webGLStart()
 {
   W.canvas=document.getElementById("Asymptote");
@@ -4021,17 +4018,18 @@ function webGLStart()
 
 }
 globalThis.window.webGLStart=webGLStart;
-globalThis.window.light=light
-globalThis.window.material= material
-globalThis.window.patch=patch
-globalThis.window.curve=curve
-globalThis.window.pixel=pixel
-globalThis.window.triangles=triangles
-globalThis.window.sphere=sphere
-globalThis.window.disk=disk
-globalThis.window.cylinder=cylinder
-globalThis.window.tube=tube
-globalThis.window.Positions=Positions
-globalThis.window.Normals=Normals
-globalThis.window.Colors=Colors
-globalThis.window.Indices=Indices
+globalThis.window.light=light;
+globalThis.window.material= material;
+globalThis.window.patch=patch;
+globalThis.window.curve=curve;
+globalThis.window.pixel=pixel;
+globalThis.window.triangles=triangles;
+globalThis.window.sphere=sphere;
+globalThis.window.disk=disk;
+globalThis.window.cylinder=cylinder;
+globalThis.window.tube=tube;
+globalThis.window.Positions=Positions;
+globalThis.window.Normals=Normals;
+globalThis.window.Colors=Colors;
+globalThis.window.Indices=Indices;
+globalThis.window.setf=setf;

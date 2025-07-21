@@ -18,7 +18,8 @@ declare global {
         Positions: any[],
         Normals: any[],
         Colors: any[],
-        Indices: any[]
+        Indices: any[],
+        setf: Function
     }
 }
 
