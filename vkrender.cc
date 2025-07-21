@@ -4555,20 +4555,18 @@ void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
 
 void AsyVkRender::mainLoop()
 {
-  int nFrames = 0;
+  if(View) {
+    while(!glfwWindowShouldClose(window)) {
+      auto const message=messageQueue.dequeue();
+      if(message.has_value())
+        processMessages(*message);
 
-  while(!View || !glfwWindowShouldClose(window)) {
-    auto const message=messageQueue.dequeue();
-    if (message.has_value())
-      processMessages(*message);
+      if(redraw || queueExport) {
+        redraw=false;
+        waitEvent=true;
+        display();
+      }
 
-    if (redraw || queueExport) {
-      redraw=false;
-      waitEvent=true;
-      display();
-    }
-
-    if (View) {
       if(currentIdleFunc != nullptr) {
         currentIdleFunc();
         glfwPollEvents();
@@ -4579,29 +4577,16 @@ void AsyVkRender::mainLoop()
           glfwPollEvents();
       }
     }
-
-    if (!View && nFrames > maxFramesInFlight)
-      break;
-
-    nFrames++;
-
-  }
-
-  if(!View) {
+  } else {
+    display();
     if(vkthread) {
       if(havewindow) {
-        // from where can this thread be called?
-        // signals to the main thread to start exporting
         readyAfterExport=true;
 #ifdef HAVE_PTHREAD
-        if (pthread_equal(pthread_self(), this->mainthread))
-        {
+        if(pthread_equal(pthread_self(),this->mainthread))
           exportHandler();
-        }
         else
-        {
           messageQueue.enqueue(exportRender);
-        }
 #endif
       } else {
         // from main thread
