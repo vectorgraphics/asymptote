@@ -602,7 +602,7 @@ abstract class Geometry {
 
   protected constructor() {
 
-    
+
    }
 
   // Is 2D bounding box formed by projecting 3d points in vector v offscreen?
@@ -3471,7 +3471,7 @@ function transformCP(controlpoints:vec3[], M:mat4) : vec3[] {
   });
 }
 
-function up(delta:number):mat4{ 
+function up(delta:number):mat4 {
   return mat4.fromValues(1,0,0,0,
     0,1,0,0,
     0,0,1,0,
@@ -3480,7 +3480,7 @@ function up(delta:number):mat4{
 
 
 
-function side(delta:number):mat4{ 
+function side(delta:number):mat4 {
   return mat4.fromValues(1,0,0,0,
     0,1,0,0,
     0,0,1,0,
@@ -3489,24 +3489,24 @@ function side(delta:number):mat4{
 
 const listFunction:((delta:number) => mat4)[] = [up];
 
-// We need a generic function: 
+// We need a generic function:
 // transform : (controlpoints, mapping, startTime, duration) -> (controlpoints)
 // mapping : (vec3) -> (vec3)
 
-const startTime=performance.now(); 
-let duration=5.0; 
-let maxDelta=80; 
+const startTime=performance.now();
+let duration=5.0;
+let maxDelta=80;
 
 // Example function, param will be a list of transform function(controlpoint)
 function animatedTransform(listT:((delta:number) => mat4)[]){
   return function(controlpoints:vec3[]) : vec3[] {
-    let now=performance.now(); 
+    let now=performance.now();
     const t=Math.min((now-startTime)/1000/duration, 1.0);
-    let delta=t*maxDelta; 
+    let delta=t*maxDelta;
     // let T=up(delta);
     let curCP=controlpoints;
     for (const fn of listT) {
-      curCP=transformCP(curCP, fn(delta)); 
+      curCP=transformCP(curCP, fn(delta));
     }
     return curCP
 
@@ -3515,7 +3515,7 @@ function animatedTransform(listT:((delta:number) => mat4)[]){
 
 function animate(timestamp:number) {
   remesh=true;
-  drawScene(); 
+  drawScene();
   if ((timestamp-startTime)/1000 < duration) {
     requestAnimationFrame(animate);
   }
