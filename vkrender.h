@@ -36,6 +36,7 @@ namespace camp
 {
 
 static const double pixelResolution=1.0; // Adaptive rendering constant.
+extern size_t materialIndex;
 
 class picture;
 
@@ -245,6 +246,14 @@ struct VertexBuffer {
   }
 };
 
+extern VertexBuffer materialData;    // material Bezier patches & triangles
+extern VertexBuffer colorData;       // colored Bezier patches & triangles
+extern VertexBuffer triangleData;    // opaque indexed triangles
+extern VertexBuffer transparentData; // transparent patches & triangles
+
+extern VertexBuffer pointData;       // pixels
+extern VertexBuffer lineData;        // material Bezier curves
+
 struct Light
 {
   glm::vec4 direction;
@@ -352,6 +361,26 @@ constexpr auto VB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::Buff
 constexpr auto IB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer;
 #endif
 
+extern glm::dmat4 projViewMat;
+extern glm::dmat4 normMat;
+
+inline triple billboardTransform(const triple& center, const triple& v)
+{
+  double cx = center.getx();
+  double cy = center.gety();
+  double cz = center.getz();
+
+  double x = v.getx() - cx;
+  double y = v.gety() - cy;
+  double z = v.getz() - cz;
+
+  const double* BBT = glm::value_ptr(normMat);
+
+  return triple(x * BBT[0] + y * BBT[4] + z * BBT[8] + cx,
+                x * BBT[1] + y * BBT[5] + z * BBT[9] + cy,
+                x * BBT[2] + y * BBT[6] + z * BBT[10] + cz);
+}
+
 class AsyVkRender
 {
 public:
@@ -390,7 +419,6 @@ public:
 
   void vkrender(VkrenderFunctionArgs const& args);
 
-  triple billboardTransform(const triple& center, const triple& v) const;
   double getRenderResolution(triple Min) const;
 
   bool framebufferResized=false;
@@ -447,16 +475,8 @@ public:
   vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
 #endif
 
-  VertexBuffer materialData;
-  VertexBuffer colorData;
-  VertexBuffer triangleData;
-  VertexBuffer transparentData;
-  VertexBuffer lineData;
-  VertexBuffer pointData;
-
   std::vector<Material> materials;
   MaterialMap materialMap;
-  size_t materialIndex;
 
   unsigned int Opaque=0;
   std::uint32_t pixels;
@@ -465,8 +485,6 @@ public:
   glm::dmat4 rotateMat;
   glm::dmat4 projMat;
   glm::dmat4 viewMat;
-  glm::dmat4 projViewMat;
-  glm::dmat4 normMat;
 
   double xmin, xmax;
   double ymin, ymax;

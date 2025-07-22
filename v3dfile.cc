@@ -156,7 +156,7 @@ void v3dfile::addMaterial(Material const& mat)
 
 void v3dfile::addCenterIndexMat()
 {
-  getXDRFile() << (uint32_t) drawElement::centerIndex << (uint32_t) vk->materialIndex;
+  getXDRFile() << (uint32_t) drawElement::centerIndex << (uint32_t) materialIndex;
 }
 
 void v3dfile::addvec4(glm::vec4 const& vec)
@@ -283,7 +283,7 @@ void v3dfile::addCurve(triple const& z0, triple const& z1)
 void v3dfile::addPixel(triple const& z0, double width)
 {
   getXDRFile() << v3dtypes::pixel << z0 << width;
-  getXDRFile() << (uint32_t) vk->materialIndex;
+  getXDRFile() << (uint32_t) materialIndex;
 }
 
 void v3dfile::finalize()

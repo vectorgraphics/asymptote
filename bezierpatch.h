@@ -8,10 +8,7 @@
 #ifndef BEZIERPATCH_H
 #define BEZIERPATCH_H
 
-//#include "drawelement.h"
-
 #include "bbox2.h"
-#include "rgba.h"
 
 namespace camp {
 
@@ -143,23 +140,23 @@ struct BezierPatch
 
   void append() {
     if(transparent)
-      vk->transparentData.extendColor(data);
+      transparentData.extendColor(data);
     else {
       if(color)
-        vk->colorData.extendColor(data);
+        colorData.extendColor(data);
       else
-        vk->materialData.extendMaterial(data);
+        materialData.extendMaterial(data);
     }
   }
 
   virtual void notRendered() {
     if(transparent)
-      vk->transparentData.renderCount=0;
+      transparentData.renderCount=0;
     else {
       if(color)
-        vk->colorData.renderCount=0;
+        colorData.renderCount=0;
       else
-        vk->materialData.renderCount=0;
+        materialData.renderCount=0;
     }
   }
 
@@ -214,16 +211,16 @@ public:
 
   void append() {
     if(transparent)
-      vk->transparentData.extendColor(data);
+      transparentData.extendColor(data);
     else
-      vk->triangleData.extendColor(data);
+      triangleData.extendColor(data);
   }
 
   void notRendered() {
     if(transparent)
-      vk->transparentData.renderCount=0;
+      transparentData.renderCount=0;
     else
-      vk->triangleData.renderCount=0;
+      triangleData.renderCount=0;
   }
 };
 

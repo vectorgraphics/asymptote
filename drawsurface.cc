@@ -62,11 +62,11 @@ void setcolors(const RGBAColour& diffuse, const RGBAColour& emissive,
                       shininess,metallic,fresnel0);
 
   auto p=vk->materialMap.find(m);
-  if(p != vk->materialMap.end()) vk->materialIndex=p->second;
+  if(p != vk->materialMap.end()) materialIndex=p->second;
   else {
-    vk->materialIndex=vk->materials.size();
+    materialIndex=vk->materials.size();
     vk->materials.push_back(m);
-    vk->materialMap[m]=vk->materialIndex;
+    vk->materialMap[m]=materialIndex;
     if(out)
       out->addMaterial(m);
   }
@@ -290,7 +290,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   if(billboard) {
     Controls=Controls0;
     for(size_t i=0; i < 16; i++) {
-      Controls[i]=vk->billboardTransform(center,controls[i]);
+      Controls[i]=billboardTransform(center,controls[i]);
     }
   } else {
     Controls=controls;
@@ -540,7 +540,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
   if(billboard) {
     Controls=Controls0;
     for(size_t i=0; i < 10; i++)
-      Controls[i]=vk->billboardTransform(center,controls[i]);
+      Controls[i]=billboardTransform(center,controls[i]);
   } else {
     if(!remesh && S.Onscreen) { // Fully onscreen; no need to re-render
       S.append();
@@ -1015,7 +1015,7 @@ void drawTriangles::render(double size2, const triple& b,
   if(billboard) {
     P0=new triple [nP];
     for(size_t i=0; i < nP; i++)
-      P0[i]=vk->billboardTransform(center,P[i]);
+      P0[i]=billboardTransform(center,P[i]);
   } else {
     if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render
       R.append();

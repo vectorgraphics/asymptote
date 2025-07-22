@@ -8,14 +8,14 @@
 #ifndef BEZIERCURVE_H
 #define BEZIERCURVE_H
 
-#include "drawelement.h"
-
 namespace camp {
 
 #ifdef HAVE_VULKAN
 
 extern const double Fuzz;
 extern const double Fuzz2;
+
+extern int MaterialIndex;
 
 struct BezierCurve
 {
@@ -40,11 +40,11 @@ struct BezierCurve
   void render(const triple *p, std::uint32_t I0, std::uint32_t I1);
 
   void append() {
-    vk->lineData.extendMaterial(data);
+    lineData.extendMaterial(data);
   }
 
   void notRendered() {
-    vk->lineData.renderCount=0;
+    lineData.renderCount=0;
   }
 
   void queue(const triple *g, bool straight, double ratio) {
@@ -61,17 +61,17 @@ struct Pixel
   VertexBuffer data;
 
   void append() {
-    vk->pointData.extendPoint(data);
+    pointData.extendPoint(data);
   }
 
   void notRendered() {
-    vk->pointData.renderCount=0;
+    pointData.renderCount=0;
   }
 
   void queue(const triple& p, double width) {
     data.clear();
     notRendered();
-    MaterialIndex=vk->materialIndex;
+    MaterialIndex=materialIndex;
     data.indices.push_back(data.addVertex(PointVertex{p,(float)width,MaterialIndex}));
     append();
   }
