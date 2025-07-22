@@ -501,7 +501,7 @@ public:
   void clearCenters();
   void clearMaterials();
 
-  bool redraw=true;
+  bool redraw=false;
 private:
 #ifdef HAVE_VULKAN
   struct DeviceBuffer {

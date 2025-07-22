@@ -301,9 +301,6 @@ void AsyVkRender::initWindow()
   glfwSetCursorPosCallback(window, cursorPosCallback);
   glfwSetKeyCallback(window, keyCallback);
   glfwSetWindowSizeLimits(window, 1, 1, GLFW_DONT_CARE, GLFW_DONT_CARE);
-
-  // call this to set thread signal behavior
-  framebufferResizeCallback(window, width, height);
 }
 
 void AsyVkRender::updateHandler(int) {
@@ -472,7 +469,7 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
   {
     case 'H':
       app->home();
-      app->redraw=true;
+      app->update();
       break;
     case 'F':
       app->toggleFitScreen();
@@ -855,7 +852,6 @@ void AsyVkRender::recreateSwapChain()
   createAttachments();
   createFramebuffers();
   createExportResources();
-  redraw=true;
 }
 
 void AsyVkRender::zeroTransparencyBuffers()
@@ -4475,14 +4471,16 @@ void AsyVkRender::display()
   double perspective = orthographic ? 0.0 : 1.0 / Zmax;
   double diagonalSize = hypot(width, height);
 
+  cout << "begin render" << endl;
   pic->render(diagonalSize, triple(xmin, ymin, Zmin), triple(xmax, ymax, Zmax), perspective, remesh);
-
-  drawFrame();
+  cout << "end render" << endl;
 
   if(hidden) {
     glfwShowWindow(window);
     hidden=false;
   }
+
+  drawFrame();
 
   if (mode != DRAWMODE_OUTLINE)
     remesh = false;
@@ -4557,15 +4555,16 @@ void AsyVkRender::mainLoop()
 {
   if(View) {
     while(!glfwWindowShouldClose(window)) {
-      auto const message=messageQueue.dequeue();
-      if(message.has_value())
-        processMessages(*message);
-
-      if(redraw || queueExport) {
+      if(redraw || queueExport)
+        {
         redraw=false;
         waitEvent=true;
         display();
       }
+
+      auto const message=messageQueue.dequeue();
+      if(message.has_value())
+        processMessages(*message);
 
       if(currentIdleFunc != nullptr) {
         currentIdleFunc();
@@ -5093,7 +5092,6 @@ void AsyVkRender::setsize(int w, int h, bool reposition) {
   }
 
   reshape0(w,h);
-  update();
 }
 
 void AsyVkRender::fullscreen(bool reposition) {
@@ -5180,6 +5178,9 @@ void AsyVkRender::toggleFitScreen() {
   hidden=true;
   Fitscreen = (Fitscreen + 1) % 3;
   fitscreen();
+  recreatePipeline=true;
+  remesh=true;
+  redraw=true;
 }
 
 void AsyVkRender::home(bool webgl) {
@@ -5189,7 +5190,6 @@ void AsyVkRender::home(bool webgl) {
   rotateMat = viewMat = glm::mat4(1.0);
   Zoom0 = 1.0;
   framecount=0;
-  update();
 }
 
 void AsyVkRender::cycleMode() {
