@@ -87,7 +87,7 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
   if(billboard) {
     Controls=Controls0;
     for(size_t i=0; i < 4; i++)
-      Controls[i]=vk->billboardTransform(center,controls[i]);
+      Controls[i]=billboardTransform(center,controls[i]);
   } else {
     Controls=controls;
     if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render

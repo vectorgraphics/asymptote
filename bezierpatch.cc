@@ -5,6 +5,7 @@
  * Render Bezier patches and triangles.
  *****/
 
+#include "rgba.h"
 #include "bezierpatch.h"
 #include "predicates.h"
 
@@ -16,9 +17,16 @@ using ::orient3d;
 #ifdef HAVE_LIBGLM
 
 int MaterialIndex;
+size_t materialIndex;
 bool colors;
 
+VertexBuffer materialData;
+VertexBuffer colorData;
+VertexBuffer triangleData;
+VertexBuffer transparentData;
+
 const double FillFactor=0.1;
+const double third=1.0/3.0;
 
 void BezierPatch::init(double res)
 {
@@ -26,11 +34,11 @@ void BezierPatch::init(double res)
 
   if(transparent) {
     Epsilon=0.0;
-    MaterialIndex=color ? -1-vk->materialIndex : 1+vk->materialIndex;
+    MaterialIndex=color ? -1-materialIndex : 1+materialIndex;
     // pvertex=&vertexBuffer::tvertex;
   } else {
     Epsilon=FillFactor*res;
-    MaterialIndex=vk->materialIndex;
+    MaterialIndex=materialIndex;
     // pvertex=&vertexBuffer::vertex;
   }
 }
@@ -807,7 +815,7 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
 
   data.colorVertices.resize(nP);
 
-  MaterialIndex=nC ? -1-vk->materialIndex : 1+vk->materialIndex;
+  MaterialIndex=nC ? -1-materialIndex : 1+materialIndex;
 
   for(size_t i=0; i < nI; ++i) {
     const uint32_t *PI=PP[i];

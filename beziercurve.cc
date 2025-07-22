@@ -5,6 +5,7 @@
  * Render a Bezier curve.
  *****/
 
+#include "rgba.h"
 #include "bezierpatch.h"
 #include "beziercurve.h"
 
@@ -12,12 +13,15 @@ namespace camp {
 
 #ifdef HAVE_VULKAN
 
+VertexBuffer pointData;       // pixels
+VertexBuffer lineData;        // material Bezier curves
+
 void BezierCurve::init(double res)
 {
   this->res=res;
   res2=res*res;
 
-  MaterialIndex=vk->materialIndex;
+  MaterialIndex=materialIndex;
 }
 
 inline triple normal(triple bP, triple bPP)

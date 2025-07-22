@@ -46,6 +46,9 @@ std::vector<const char*> instanceExtensions
 
 namespace camp
 {
+glm::dmat4 projViewMat;
+glm::dmat4 normMat;
+
 static bool vkinitialize=true;
 
 const Int timePartialSumVerbosity=4;
@@ -234,23 +237,6 @@ void AsyVkRender::update()
     pthread_join(postThread,NULL);
 #endif
   redraw=true;
-}
-
-triple AsyVkRender::billboardTransform(const triple& center, const triple& v) const
-{
-  double cx = center.getx();
-  double cy = center.gety();
-  double cz = center.getz();
-
-  double x = v.getx() - cx;
-  double y = v.gety() - cy;
-  double z = v.getz() - cz;
-
-  const double* BBT = glm::value_ptr(normMat);
-
-  return triple(x * BBT[0] + y * BBT[4] + z * BBT[8] + cx,
-                x * BBT[1] + y * BBT[5] + z * BBT[9] + cy,
-                x * BBT[2] + y * BBT[6] + z * BBT[10] + cz);
 }
 
 #endif
