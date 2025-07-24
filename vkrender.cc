@@ -279,7 +279,7 @@ void AsyVkRender::initWindow()
     }
   }
 
-  glfwHideWindow(window);
+//  glfwHideWindow(window);
   glfwSetWindowUserPointer(window, this);
   glfwSetMouseButtonCallback(window, mouseButtonCallback);
   glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
@@ -838,6 +838,7 @@ void AsyVkRender::recreateSwapChain()
   createAttachments();
   createFramebuffers();
   createExportResources();
+  redraw=true;
 }
 
 void AsyVkRender::zeroTransparencyBuffers()
@@ -4855,7 +4856,7 @@ void AsyVkRender::quit()
     }
 
 #endif
-    glfwHideWindow(window);
+//    glfwHideWindow(window);
     hidden=true;
   } else {
     glfwDestroyWindow(window);
@@ -5078,6 +5079,7 @@ void AsyVkRender::setsize(int w, int h, bool reposition) {
   }
 
   reshape0(w,h);
+  update();
 }
 
 void AsyVkRender::fullscreen(bool reposition) {
@@ -5160,7 +5162,7 @@ void AsyVkRender::fitscreen(bool reposition) {
 
 void AsyVkRender::toggleFitScreen() {
 
-  glfwHideWindow(window);
+//  glfwHideWindow(window);
   hidden=true;
   Fitscreen = (Fitscreen + 1) % 3;
   fitscreen();
