@@ -21,6 +21,9 @@ declare global {
         Indices: any[],
         setf: Function
     }
+
+    /** This is for gl-matrix functions */
+    var glmat: any;
 }
 
 export {};
