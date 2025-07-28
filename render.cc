@@ -1,4 +1,4 @@
-// g++ -Ibackports/optional/include render.cc bezierpatch.cc -ILspCpp/include | & more
+// g++ -DOMIT_OPTIONAL render.cc bezierpatch.cc
 
 #include <iostream>
 #include "rgba.h"

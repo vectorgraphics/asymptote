@@ -92,18 +92,18 @@ struct BezierPatch
     // Check the horizontal flatness.
     double h=Flatness(p0,p12,p3,p15);
     // Check straightness of the horizontal edges and interior control curves.
-    h=max(h,Straightness(p0,p[4],p[8],p12));
-    h=max(h,Straightness(p[1],p[5],p[9],p[13]));
-    h=max(h,Straightness(p[2],p[6],p[10],p[14]));
-    h=max(h,Straightness(p3,p[7],p[11],p15));
+    h=std::max(h,Straightness(p0,p[4],p[8],p12));
+    h=std::max(h,Straightness(p[1],p[5],p[9],p[13]));
+    h=std::max(h,Straightness(p[2],p[6],p[10],p[14]));
+    h=std::max(h,Straightness(p3,p[7],p[11],p15));
 
     // Check the vertical flatness.
     double v=Flatness(p0,p3,p12,p15);
     // Check straightness of the vertical edges and interior control curves.
-    v=max(v,Straightness(p0,p[1],p[2],p3));
-    v=max(v,Straightness(p[4],p[5],p[6],p[7]));
-    v=max(v,Straightness(p[8],p[9],p[10],p[11]));
-    v=max(v,Straightness(p12,p[13],p[14],p15));
+    v=std::max(v,Straightness(p0,p[1],p[2],p3));
+    v=std::max(v,Straightness(p[4],p[5],p[6],p[7]));
+    v=std::max(v,Straightness(p[8],p[9],p[10],p[11]));
+    v=std::max(v,Straightness(p12,p[13],p[14],p15));
 
     return pair(h,v);
   }
@@ -186,9 +186,9 @@ public:
     double d=abs2((p0+p6+p9)*third-p[4]);
 
     // Determine how straight the edges are.
-    d=max(d,Straightness(p0,p[1],p[3],p6));
-    d=max(d,Straightness(p0,p[2],p[5],p9));
-    return max(d,Straightness(p6,p[7],p[8],p9));
+    d=std::max(d,Straightness(p0,p[1],p[3],p6));
+    d=std::max(d,Straightness(p0,p[2],p[5],p9));
+    return std::max(d,Straightness(p6,p[7],p[8],p9));
   }
 
   void render(const triple *p, bool straight, float *c0=NULL);

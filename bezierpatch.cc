@@ -48,7 +48,7 @@ void BezierPatch::render(const triple *p, bool straight, float *c0)
   triple p0=p[0];
   epsilon=0;
   for(unsigned i=1; i < 16; ++i)
-    epsilon=max(epsilon,abs2(p[i]-p0));
+    epsilon=std::max(epsilon,abs2(p[i]-p0));
   epsilon *= DBL_EPSILON;
 
   triple p3=p[3];
@@ -542,7 +542,7 @@ void BezierTriangle::render(const triple *p, bool straight, float *c0)
   triple p0=p[0];
   epsilon=0;
   for(int i=1; i < 10; ++i)
-    epsilon=max(epsilon,abs2(p[i]-p0));
+    epsilon=std::max(epsilon,abs2(p[i]-p0));
 
   epsilon *= DBL_EPSILON;
 

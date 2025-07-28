@@ -4,8 +4,13 @@
 
 #include "pair.h"
 #include "triple.h"
-#include "vkrender.h"
 #include "glmCommon.h"
+
+#ifdef HAVE_VULKAN
+#include "vkrender.h"
+#else
+#include "render.h"
+#endif
 
 namespace camp {
 
