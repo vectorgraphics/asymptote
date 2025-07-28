@@ -198,10 +198,14 @@ void jsfile::open(string name)
   camp::clearCenters();
   camp::clearMaterials();
 #endif
-  out << "globalThis.window.setf(function(v,delta) {" << newl
-      << "  let V=[v[0]+5*Math.sin(delta),v[1]+delta,v[2],1];" << newl
-      << "  return V;" << newl
-      << "})" << newl;
+
+  std::ifstream fin;
+  fin.open("demoTransform.js");
+  string s;
+  while(fin) {
+    getline(fin,s);
+    out << s << newl;
+  }
 }
 
 void jsfile::finish(string name)
