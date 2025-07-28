@@ -3481,8 +3481,8 @@ void AsyVkRender::setupPostProcessingComputeParameters()
 // TODO: We should share this constant with the shader code & C++ side")
   uint32_t constexpr localGroupSize=20;
 
-  postProcessThreadGroupCount.width=integerDivRoundUp(backbufferExtent.width, localGroupSize);
-  postProcessThreadGroupCount.height=integerDivRoundUp(backbufferExtent.height, localGroupSize);
+  postProcessThreadGroupCount.width=ceilquotient(backbufferExtent.width, localGroupSize);
+  postProcessThreadGroupCount.height=ceilquotient(backbufferExtent.height, localGroupSize);
 }
 
 void AsyVkRender::createBlendPipeline() {
