@@ -43,7 +43,6 @@ int main()
   bool remesh=true;
 
   S.queue(Controls,straight,size3.length()/size2,transparent,NULL);
-  S.render(Controls,straight);
   cout << materialData.materialVertices.size() << endl;
 
   return 0;
