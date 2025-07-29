@@ -40,7 +40,6 @@ int main()
   const camp::pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
   bool transparent=false;
   bool straight=false;
-  bool remesh=true;
 
   S.queue(Controls,straight,size3.length()/size2,transparent,NULL);
   cout << materialData.materialVertices.size() << endl;
