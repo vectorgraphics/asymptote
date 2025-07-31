@@ -70,6 +70,7 @@ public:
 
   virtual void precision(int digits)=0;
 
+  virtual void write(const string& s)=0;
 };
 
 }

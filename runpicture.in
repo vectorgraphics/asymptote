@@ -96,7 +96,7 @@ transform getTransform(xmap_t &xmap, picture::nodelist::iterator p)
 }
 
 
-function *transformFunction()
+function *jsTransform()
 {
   return new function(primTransform());
 }
@@ -293,11 +293,12 @@ void endgroup(picture *f)
   f->append(new drawEnd());
 }
 
-void _begingroup3(picture *f, string name, real compression,
+void _begingroup3(picture *f, string name, string jsTransform,
+                  real compression,
                   real granularity, bool closed, bool tessellate,
                   bool dobreak, bool nobreak, triple center, Int interaction)
 {
-  f->append(new drawBegin3(name,compression,granularity,
+  f->append(new drawBegin3(name,jsTransform,compression,granularity,
                            closed,tessellate,dobreak,nobreak,
                            center,(Interaction) intcast(interaction)));
 }

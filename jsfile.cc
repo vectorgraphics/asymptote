@@ -198,14 +198,6 @@ void jsfile::open(string name)
   camp::clearCenters();
   camp::clearMaterials();
 #endif
-
-  std::ifstream fin;
-  fin.open("demoTransform.js");
-  string s;
-  while(fin) {
-    getline(fin,s);
-    out << s << newl;
-  }
 }
 
 void jsfile::finish(string name)
@@ -444,6 +436,11 @@ void jsfile::addStraightBezierTriangle(triple const* controls,
                                        prc::RGBAColour const* c)
 {
   addRawPatch(controls,3,c,3);
+}
+
+void jsfile::write(const string& s)
+{
+  out << s;
 }
 
 }

@@ -18,7 +18,7 @@ public:
 
   virtual ~drawBegin() {}
 
-  bool begingroup() {return true;}
+  bool begingroup() override {return true;}
 };
 
 class drawEnd : public drawElement {
@@ -27,11 +27,12 @@ public:
 
   virtual ~drawEnd() {}
 
-  bool endgroup() {return true;}
+  bool endgroup() override {return true;}
 };
 
 class drawBegin3 : public drawElementLC {
   string name;
+  string jsTransform;
   double compression;
   double granularity;
   bool closed;   // render the surface as one-sided; may yield faster rendering
@@ -42,20 +43,22 @@ class drawBegin3 : public drawElementLC {
   triple center;
   int interaction;
 public:
-  drawBegin3(string name, double compression, double granularity,
+  drawBegin3(string name, string jsTransform, double compression,
+             double granularity,
              bool closed, bool tessellate, bool dobreak, bool nobreak,
              triple center, int interaction) :
-    name(name), compression(compression), granularity(granularity),
+    name(name), jsTransform(jsTransform), compression(compression),
+    granularity(granularity),
     closed(closed), tessellate(tessellate), dobreak(dobreak), nobreak(nobreak),
     center(center), interaction(interaction) {}
 
   virtual ~drawBegin3() {}
 
-  bool begingroup() {return true;}
-  bool begingroup3() {return true;}
+  bool begingroup() override {return true;}
+  bool begingroup3() override {return true;}
 
   bool write(prcfile *out, unsigned int *count, double compressionlimit,
-             groupsmap& groups) {
+             groupsmap& groups) override {
     groupmap& group=groups.back();
     if(name.empty()) name="group";
     groupmap::const_iterator p=group.find(name);
@@ -80,14 +83,23 @@ public:
     return true;
   }
 
+  bool write(abs3Doutfile *out) override {
+    if(!jsTransform.empty()) {
+      out->write(jsTransform);
+      out->write("\n");
+    }
+    return false;
+  }
+
   drawBegin3(const double* t, const drawBegin3 *s) :
-    drawElementLC(t, s), name(s->name), compression(s->compression),
+    drawElementLC(t, s), name(s->name), jsTransform(s->jsTransform),
+    compression(s->compression),
     granularity(s->granularity), closed(s->closed), tessellate(s->tessellate),
     dobreak(s->dobreak), nobreak(s->nobreak), interaction(s->interaction)  {
     center=t*s->center;
   }
 
-  drawElement *transformed(const double* t) {
+  drawElement *transformed(const double* t) override {
     return new drawBegin3(t,this);
   }
 };
@@ -98,14 +110,16 @@ public:
 
   virtual ~drawEnd3() {}
 
-  bool endgroup() {return true;}
-  bool endgroup3() {return true;}
+  bool endgroup() override {return true;}
+  bool endgroup3() override {return true;}
 
-  bool write(prcfile *out, unsigned int *, double, groupsmap& groups) {
+  bool write(prcfile *out, unsigned int *, double, groupsmap& groups)
+    override {
     groups.pop_back();
     out->endgroup();
     return true;
   }
+
 };
 
 }

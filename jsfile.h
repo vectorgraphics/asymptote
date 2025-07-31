@@ -86,6 +86,8 @@ protected:
   void addSphere(const triple& center, double radius, bool half=false,
                  const double& polar=0.0, const double& azimuth=0.0);
 
+  void write(const string& s);
+
 private:
   bool finished;
   string fileName;

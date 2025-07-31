@@ -240,6 +240,7 @@ public:
 
   // Output to a TeX file
   virtual bool write(texfile *, const bbox&) {
+    cout << "virtual write" << endl;
     return false;
   }
 

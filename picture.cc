@@ -1493,8 +1493,7 @@ bool picture::shipout3(const string& prefix, const string& format,
       ms.push((*p)->transf3());
     else if((*p)->endgroup3())
       ms.pop();
-    else
-      pic->append((*p)->transformed(ms.T()));
+    pic->append((*p)->transformed(ms.T()));
   }
 
   pic->b3=bbox3();

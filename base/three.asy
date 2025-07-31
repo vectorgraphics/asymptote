@@ -2126,19 +2126,21 @@ void draw(frame f, path3 g, material p=currentpen, light light=nolight,
           string name="", render render=defaultrender,
           projection P=currentprojection);
 
-void begingroup3(frame f, string name="", render render=defaultrender)
+void begingroup3(frame f, string name="", string jsTransform="",
+                 render render=defaultrender)
 {
-  _begingroup3(f,name,render.compression,render.granularity,render.closed,
+  _begingroup3(f,name,jsTransform,
+               render.compression,render.granularity,render.closed,
                render.tessellate,render.merge == false,
                render.merge == true,render.interaction.center,render.interaction.type);
 }
 
 void begingroup3(picture pic=currentpicture, string name="",
-                 render render=defaultrender)
+                 string jsTransform="", render render=defaultrender)
 {
   pic.add(new void(frame f, transform3, picture pic, projection) {
       if(is3D())
-        begingroup3(f,name,render);
+        begingroup3(f,name,jsTransform,render);
       if(pic != null)
         begingroup(pic);
     },true);

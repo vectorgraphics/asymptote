@@ -133,6 +133,8 @@ public:
 
   void addPixel(triple const& z0, double width) override;
 
+  void write(const string& s) override;
+
   void precision(int digits) override {}
 
 
