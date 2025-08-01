@@ -5013,8 +5013,10 @@ void AsyVkRender::capzoom()
   if(Zoom0 <= minzoom) Zoom0=minzoom;
   if(Zoom0 >= maxzoom) Zoom0=maxzoom;
 
-  if(Zoom0 != lastZoom) remesh=true;
-  lastZoom=Zoom0;
+  if(fabs(Zoom0-lastZoom) > settings::getSetting<double>("zoomThreshold")) {
+    remesh=true;
+    lastZoom=Zoom0;
+  }
 }
 
 void AsyVkRender::zoom(double dx, double dy)
