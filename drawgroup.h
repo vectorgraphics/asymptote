@@ -84,10 +84,9 @@ public:
   }
 
   bool write(abs3Doutfile *out) override {
-    if(!jsTransform.empty()) {
-      out->write(jsTransform);
-      out->write("\n");
-    }
+    out->write("begingroup(");
+    out->write(jsTransform.empty() ? "null" : jsTransform);
+    out->write(");\n");
     return false;
   }
 
@@ -120,6 +119,10 @@ public:
     return true;
   }
 
+  bool write(abs3Doutfile *out) override {
+    out->write("endgroup();\n");
+    return false;
+  }
 };
 
 }

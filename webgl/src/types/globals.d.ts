@@ -19,7 +19,8 @@ declare global {
         Normals: any[],
         Colors: any[],
         Indices: any[],
-        setf: Function
+        begingroup: Function,
+        endgroup: Function
     }
 
     /** This is for gl-matrix functions */

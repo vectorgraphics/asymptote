@@ -151,7 +151,7 @@ triple[][][] Q={
   }
 };
 
-triple[][][] Q0={
+triple[][][] knob={
   {
     {(0,0,89.29133),(22.67716,0,89.29133),(0,0,80.7874),(5.669294,0,76.53543)},
     {(0,0,89.29133),(22.67716,-12.7559,89.29133),(0,0,80.7874),(5.669294,-3.174809,76.53543)},
@@ -175,7 +175,10 @@ triple[][][] Q0={
     {(0,0,89.29133),(12.7559,22.67716,89.29133),(0,0,80.7874),(3.174809,5.669294,76.53543)},
     {(0,0,89.29133),(22.67716,12.7559,89.29133),(0,0,80.7874),(5.669294,3.174809,76.53543)},
     {(0,0,89.29133),(22.67716,0,89.29133),(0,0,80.7874),(5.669294,0,76.53543)}
-  },
+  }
+};
+
+triple[][][] base={
   {
     {(0,0,0),(40.3937,0,0),(42.51969,0,2.12598),(42.51969,0,4.251961)},
     {(0,0,0),(40.3937,22.62047,0),(42.51969,23.81102,2.12598),(42.51969,23.81102,4.251961)},
@@ -215,9 +218,15 @@ surface regularize(triple[][] P, real fraction=0.002)
 }
 
 surface S=surface(Q);
-for(triple[][] q : Q0)
+
+for(triple[][] q : base)
   S.append(regularize(q));
 // S.append(surface(patch(q)));
+
+surface Sknob;
+for(triple[][] q : knob)
+ Sknob.append(regularize(q));
+// Sknob.append(surface(patch(q)));
 
 pen color;
 real metallic;
@@ -230,7 +239,8 @@ if(settings.ibl) {
   metallic=0;
 }
 
-begingroup3("teapot","
+begingroup3(jsTransform="
+function(v,delta) {
 let vec4=glmat.vec4;
 let mat4=glmat.mat4;
 function up(delta) {
@@ -240,15 +250,36 @@ function up(delta) {
     0,delta,0,1);
 }
 
-setf(function(v,delta) {
   let out=[0,0,0,0];
-  let V=[v[0]+5*Math.sin(delta),v[1]+delta,v[2],1];
+  let V=[v[0]+delta,v[1],v[2],1];
   vec4.transformMat4(out,V,up(delta));
   return out;
-  });
+  }
 ");
 
 draw(S,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));
 
+begingroup3(jsTransform="
+function(v,delta) {
+let vec4=glmat.vec4;
+let mat4=glmat.mat4;
+function up(delta) {
+  return mat4.fromValues(1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,delta,0,1);
+}
+
+  let out=[0,0,0,0];
+  let V=[v[0]+5*Math.sin(delta),v[1]+delta,v[2],1];
+  vec4.transformMat4(out,V,up(delta));
+  return out;
+  }
+");
+
+draw(Sknob,material(color,shininess=0.85,metallic=metallic),
+     render(compression=Single));
+
+endgroup3();
 endgroup3();

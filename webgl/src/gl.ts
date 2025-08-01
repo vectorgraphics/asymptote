@@ -3465,24 +3465,16 @@ function up(delta:number):mat4 {
     0,delta,0,1);
 }
 
-let Function=function(v,delta)
-{
-  let V: vec4=[v[0],v[1],v[2],1];
-  let out: vec4=[0,0,0,0];
-  vec4.transformMat4(out,V,up(delta));
-  return out;
-};
-
 function transformCP(controlpoints:vec3[], delta:number,
                      f : ((v:vec3,delta : number) => vec4)) : vec3[] {
-  return controlpoints.map(function(v) {
+                       return f == null ? controlpoints : controlpoints.map(function(v) {
     let out=f(v,delta);
     let d=1.0/out[3];
     return [out[0]*d,out[1]*d,out[2]*d];
   });
 }
 
-//let listFunction:((v:vec3,delta:number) => vec4)[] = [Function];
+let functionStack:((v:vec3,delta:number) => vec4)[] = [];
 
 // We need a generic function:
 // transform : (controlpoints, mapping, startTime, duration) -> (controlpoints)
@@ -3493,14 +3485,18 @@ let duration=5.0;
 let maxDelta=80;
 
 // Example function, param will be a list of transform function(controlpoint)
-function animatedTransform(fn:((v:vec3,delta:number) => vec4)){
+function animatedTransform(){
+  let stack=[];
+  for(const f of functionStack)
+    stack.push(f);
   return function(controlpoints:vec3[]) : vec3[] {
     let now=performance.now();
     const t=Math.min((now-startTime)/(1000*duration), 1.0);
     let delta=t*maxDelta;
     // let T=up(delta);
     let curCP=controlpoints;
-    curCP=transformCP(curCP,delta,fn);
+    for(const f of stack)
+      curCP=transformCP(curCP,delta,f);
     return curCP;
   }
 }
@@ -3529,13 +3525,15 @@ function material(diffuse,emissive,specular,shininess,metallic,fresnel0)
                               fresnel0));
 }
 
-let count=0;
-let lid = [19,23,24,25,26,27,28,33]
+function top(v:any[])
+{
+  return v.length > 0 ? v[v.length-1] : null;
+}
+
 function patch(controlpoints,CenterIndex,MaterialIndex,color)
 {
   P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color,
-                         null,null,lid.includes(count) ? animatedTransform(Function) : null));
-  ++count;
+                         null,null,animatedTransform()));
 }
 
 function curve(controlpoints,CenterIndex,MaterialIndex)
@@ -3966,8 +3964,12 @@ async function initIBLOnceEXRLoaderReady()
   await Promise.all(promises);
 }
 
-function setf(f) {
-  Function=f;
+function begingroup(f) {
+  functionStack.push(f);
+}
+
+function endgroup() {
+  functionStack.pop();
 }
 
 function webGLStart()
@@ -4032,4 +4034,5 @@ globalThis.window.Positions=Positions;
 globalThis.window.Normals=Normals;
 globalThis.window.Colors=Colors;
 globalThis.window.Indices=Indices;
-globalThis.window.setf=setf;
+globalThis.window.begingroup=begingroup;
+globalThis.window.endgroup=endgroup;
