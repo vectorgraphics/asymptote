@@ -3467,7 +3467,7 @@ function up(delta:number):mat4 {
 
 function transformCP(controlpoints:vec3[], delta:number,
                      f : ((v:vec3,delta : number) => vec4)) : vec3[] {
-                       return f == null ? controlpoints : controlpoints.map(function(v) {
+                       return controlpoints.map(function(v) {
     let out=f(v,delta);
     let d=1.0/out[3];
     return [out[0]*d,out[1]*d,out[2]*d];
@@ -3488,7 +3488,8 @@ let maxDelta=80;
 function animatedTransform(){
   let stack=[];
   for(const f of functionStack)
-    stack.push(f);
+    if(f != null)
+      stack.push(f);
   return function(controlpoints:vec3[]) : vec3[] {
     let now=performance.now();
     const t=Math.min((now-startTime)/(1000*duration), 1.0);
