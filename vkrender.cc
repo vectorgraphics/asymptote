@@ -279,7 +279,7 @@ void AsyVkRender::initWindow()
     }
   }
 
-  glfwHideWindow(window);
+//  glfwHideWindow(window);
   glfwSetWindowUserPointer(window, this);
   glfwSetMouseButtonCallback(window, mouseButtonCallback);
   glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
@@ -287,9 +287,6 @@ void AsyVkRender::initWindow()
   glfwSetCursorPosCallback(window, cursorPosCallback);
   glfwSetKeyCallback(window, keyCallback);
   glfwSetWindowSizeLimits(window, 1, 1, GLFW_DONT_CARE, GLFW_DONT_CARE);
-
-  // call this to set thread signal behavior
-  framebufferResizeCallback(window, width, height);
 }
 
 void AsyVkRender::updateHandler(int) {
@@ -458,7 +455,7 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
   {
     case 'H':
       app->home();
-      app->redraw=true;
+      app->update();
       break;
     case 'F':
       app->toggleFitScreen();
@@ -4461,14 +4458,16 @@ void AsyVkRender::display()
   double perspective = orthographic ? 0.0 : 1.0 / Zmax;
   double diagonalSize = hypot(width, height);
 
+  cout << "begin render" << endl;
   pic->render(diagonalSize, triple(xmin, ymin, Zmin), triple(xmax, ymax, Zmax), perspective, remesh);
-
-  drawFrame();
+  cout << "end render" << endl;
 
   if(hidden) {
     glfwShowWindow(window);
     hidden=false;
   }
+
+  drawFrame();
 
   if (mode != DRAWMODE_OUTLINE)
     remesh = false;
@@ -4541,20 +4540,19 @@ void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
 
 void AsyVkRender::mainLoop()
 {
-  int nFrames = 0;
+  if(View) {
+    while(!glfwWindowShouldClose(window)) {
+      if(redraw || queueExport)
+        {
+        redraw=false;
+        waitEvent=true;
+        display();
+      }
 
-  while(!View || !glfwWindowShouldClose(window)) {
-    auto const message=messageQueue.dequeue();
-    if (message.has_value())
-      processMessages(*message);
+      auto const message=messageQueue.dequeue();
+      if(message.has_value())
+        processMessages(*message);
 
-    if (redraw || queueExport) {
-      redraw=false;
-      waitEvent=true;
-      display();
-    }
-
-    if (View) {
       if(currentIdleFunc != nullptr) {
         currentIdleFunc();
         glfwPollEvents();
@@ -4565,29 +4563,16 @@ void AsyVkRender::mainLoop()
           glfwPollEvents();
       }
     }
-
-    if (!View && nFrames > maxFramesInFlight)
-      break;
-
-    nFrames++;
-
-  }
-
-  if(!View) {
+  } else {
+    display();
     if(vkthread) {
       if(havewindow) {
-        // from where can this thread be called?
-        // signals to the main thread to start exporting
         readyAfterExport=true;
 #ifdef HAVE_PTHREAD
-        if (pthread_equal(pthread_self(), this->mainthread))
-        {
+        if(pthread_equal(pthread_self(),this->mainthread))
           exportHandler();
-        }
         else
-        {
           messageQueue.enqueue(exportRender);
-        }
 #endif
       } else {
         // from main thread
@@ -4871,7 +4856,7 @@ void AsyVkRender::quit()
     }
 
 #endif
-    glfwHideWindow(window);
+//    glfwHideWindow(window);
     hidden=true;
   } else {
     glfwDestroyWindow(window);
@@ -5028,8 +5013,10 @@ void AsyVkRender::capzoom()
   if(Zoom0 <= minzoom) Zoom0=minzoom;
   if(Zoom0 >= maxzoom) Zoom0=maxzoom;
 
-  if(Zoom0 != lastZoom) remesh=true;
-  lastZoom=Zoom0;
+  if(fabs(Zoom0-lastZoom) > settings::getSetting<double>("zoomThreshold")) {
+    remesh=true;
+    lastZoom=Zoom0;
+  }
 }
 
 void AsyVkRender::zoom(double dx, double dy)
@@ -5177,10 +5164,13 @@ void AsyVkRender::fitscreen(bool reposition) {
 
 void AsyVkRender::toggleFitScreen() {
 
-  glfwHideWindow(window);
+//  glfwHideWindow(window);
   hidden=true;
   Fitscreen = (Fitscreen + 1) % 3;
   fitscreen();
+  recreatePipeline=true;
+  remesh=true;
+  redraw=true;
 }
 
 void AsyVkRender::home(bool webgl) {
@@ -5190,7 +5180,6 @@ void AsyVkRender::home(bool webgl) {
   rotateMat = viewMat = glm::mat4(1.0);
   Zoom0 = 1.0;
   framecount=0;
-  update();
 }
 
 void AsyVkRender::cycleMode() {
