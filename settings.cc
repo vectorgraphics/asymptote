@@ -1532,7 +1532,7 @@ void initSettings() {
 
   addOption(new realSetting("zoomfactor", 0, "factor", "Zoom step factor",
                             1.05));
-  addOption(new realSetting("zoomThreshold", 0, "n",
+  addOption(new realSetting("zoomThreshold", 0, "threshold",
                             "Zoom remesh threshold", 0.02));
   addOption(new realSetting("zoomPinchFactor", 0, "n",
                             "WebGL zoom pinch sensitivity", 10));
