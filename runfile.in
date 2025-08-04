@@ -85,14 +85,13 @@ file* output(string name=emptystring, bool update=false,
     else f=new obfile(name);
   } else if(mode == "xdr" || mode == "xdrgz") {
 #ifdef HAVE_LIBTIRPC
-    if(update)
-      f=new ioxfile(name);
-    else {
-      if(mode == "xdr")
-        f=new oxfile(name);
+    if(mode == "xdr") {
+      if(update)
+        f=new ioxfile(name);
       else
-        f=new ogzxfile(name);
-    }
+        f=new oxfile(name);
+    } else
+      f=new ogzxfile(name);
 #else
     ostringstream buf;
     buf << name << ": XDR write support not enabled";
