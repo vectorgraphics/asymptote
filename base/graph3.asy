@@ -1213,12 +1213,13 @@ void axes3(picture pic=currentpicture,
            bool extend=false,
            triple min=(-infinity,-infinity,-infinity),
            triple max=(infinity,infinity,infinity),
-           pen p=currentpen, arrowbar3 arrow=None, margin3 margin=NoMargin3,
+           pen p=currentpen, pen py=p, pen pz=p,
+           arrowbar3 arrow=None, margin3 margin=NoMargin3,
            projection P=currentprojection)
 {
   xaxis3(pic,xlabel,YZZero(extend),min.x,max.x,p,arrow,margin,P);
-  yaxis3(pic,ylabel,XZZero(extend),min.y,max.y,p,arrow,margin,P);
-  zaxis3(pic,zlabel,XYZero(extend),min.z,max.z,p,arrow,margin,P);
+  yaxis3(pic,ylabel,XZZero(extend),min.y,max.y,py,arrow,margin,P);
+  zaxis3(pic,zlabel,XYZero(extend),min.z,max.z,pz,arrow,margin,P);
 }
 
 triple Scale(picture pic=currentpicture, triple v)
