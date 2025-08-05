@@ -4,6 +4,8 @@ import { vec3, vec4, mat3, mat4, ReadonlyVec3, ReadonlyVec4 } from "gl-matrix";
 import fragment from './shaders/fragment.glsl';
 import vertex from './shaders/vertex.glsl';
 
+//type vec3 = [number, number, number];
+
 declare var Module: any;
 
 const asyRenderingCanvas = {
@@ -103,6 +105,8 @@ let normMat=mat3.create();
 let viewMat3=mat3.create(); // 3x3 view matrix
 let cjMatInv=mat4.create();
 let Temp=mat4.create();
+let T;
+let Tinv;
 
 let zmin,zmax;
 let center={x:0,y:0,z:0};
@@ -3448,8 +3452,6 @@ class Align {
   };
 }
 
-
-
 function Tcorners(T,m,M)
 {
   let v=[T(m),T([m[0],m[1],M[2]]),T([m[0],M[1],m[2]]),
@@ -3458,33 +3460,39 @@ function Tcorners(T,m,M)
   return [minbound(v),maxbound(v)];
 }
 
-function up(delta:number):mat4 {
-  return mat4.fromValues(1,0,0,0,
-    0,1,0,0,
-    0,0,1,0,
-    0,delta,0,1);
-}
-
-function transformCP(controlpoints:vec3[], delta:number,
-                     f : ((v:vec3,delta : number) => vec4)) : vec3[] {
-                       return controlpoints.map(function(v) {
-    let out=f(v,delta);
-    let d=1.0/out[3];
-    return [out[0]*d,out[1]*d,out[2]*d];
+function toUser(controlpoints:vec3[]) {
+  return controlpoints.map(function(v:vec3) {
+    let V: vec4=[v[0],v[1],v[2],1];
+    let U: vec4=vec4.create();
+    vec4.transformMat4(U,V,T);
+    let u: vec3=[U[0],U[1],U[2]];
+    return u;
   });
 }
 
-let functionStack:((v:vec3,delta:number) => vec4)[] = [];
+function transformCP(controlpoints:vec3[], delta:number,
+                     f : ((v:vec3,delta : number) => vec3)) {
+  return controlpoints.map(function(v:vec3) {
+    return f(v,delta) as [number,number,number];
+  });
+}
 
-// We need a generic function:
-// transform : (controlpoints, mapping, startTime, duration) -> (controlpoints)
-// mapping : (vec3) -> (vec3)
+function fromUser(controlpoints:vec3[]) {
+  return controlpoints.map(function(v:vec3) {
+    let V: vec4=[v[0],v[1],v[2],1];
+    let U: vec4=vec4.create();
+    vec4.transformMat4(U,V,Tinv);
+    let d=1.0/U[3];
+    let u: vec3=[U[0]*d,U[1]*d,U[2]*d];
+    return u;
+  });
+}
+
+let functionStack:((v:vec3,delta:number) => vec3)[] = [];
 
 const startTime=performance.now();
-let duration=5.0;
-let maxDelta=80;
+let duration=10.0;
 
-// Example function, param will be a list of transform function(controlpoint)
 function animatedTransform(){
   let stack=[];
   for(const f of functionStack)
@@ -3492,14 +3500,12 @@ function animatedTransform(){
       stack.push(f);
   return function(controlpoints:vec3[]) : vec3[] {
     let now=performance.now();
-    const t=Math.min((now-startTime)/(1000*duration), 1.0);
-    let delta=t*maxDelta;
-    // let T=up(delta);
-    let curCP=controlpoints;
+    const t=Math.min((now-startTime)/(1000*duration),1.0);
+    let cp=toUser(controlpoints);
     for(const f of stack)
-      curCP=transformCP(curCP,delta,f);
-    return curCP;
-  }
+      cp=transformCP(cp,t,f);
+    return fromUser(cp);
+  };
 }
 
 function animate(timestamp:number) {
@@ -3509,7 +3515,6 @@ function animate(timestamp:number) {
     requestAnimationFrame(animate);
   }
 }
-
 
 function light(direction,color)
 {
@@ -3965,6 +3970,13 @@ async function initIBLOnceEXRLoaderReady()
   await Promise.all(promises);
 }
 
+function initTransform() {
+  T=mat4.create();
+  mat4.transpose(T,document.asy.Transform);
+  Tinv=mat4.create();
+  mat4.invert(Tinv,T);
+}
+
 function begingroup(f) {
   functionStack.push(f);
 }
@@ -4035,5 +4047,6 @@ globalThis.window.Positions=Positions;
 globalThis.window.Normals=Normals;
 globalThis.window.Colors=Colors;
 globalThis.window.Indices=Indices;
+globalThis.window.initTransform=initTransform;
 globalThis.window.begingroup=begingroup;
 globalThis.window.endgroup=endgroup;

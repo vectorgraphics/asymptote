@@ -19,6 +19,7 @@ declare global {
         Normals: any[],
         Colors: any[],
         Indices: any[],
+        initTransform: Function,
         begingroup: Function,
         endgroup: Function
     }

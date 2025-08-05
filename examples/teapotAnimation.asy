@@ -1,4 +1,5 @@
-import three;
+import graph3;
+
 size(20cm);
 
 currentprojection=perspective(250,-250,250);
@@ -239,47 +240,25 @@ if(settings.ibl) {
   metallic=0;
 }
 
-begingroup3(jsTransform="
-function(v,delta) {
-let vec4=glmat.vec4;
-let mat4=glmat.mat4;
-function up(delta) {
-  return mat4.fromValues(1,0,0,0,
-    0,1,0,0,
-    0,0,1,0,
-    0,delta,0,1);
-}
+javascript("let xmax="+string(max(S).x)+";"+'\n');
 
-  let out=[0,0,0,0];
-  let V=[v[0]+delta,v[1],v[2],1];
-  vec4.transformMat4(out,V,up(delta));
-  return out;
-  }
-");
+begingroup3(jsTransform="function(v,delta)
+{
+  return [v[0]+xmax*delta,v[1],v[2]];
+}");
 
 draw(S,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));
 
-begingroup3(jsTransform="
-function(v,delta) {
-let vec4=glmat.vec4;
-let mat4=glmat.mat4;
-function up(delta) {
-  return mat4.fromValues(1,0,0,0,
-    0,1,0,0,
-    0,0,1,0,
-    0,delta,0,1);
-}
-
-  let out=[0,0,0,0];
-  let V=[v[0]+5*Math.sin(delta),v[1]+delta,v[2],1];
-  vec4.transformMat4(out,V,up(delta));
-  return out;
-  }
-");
+begingroup3(jsTransform="function(v,delta)
+{
+  return [v[0],v[1],v[2]+5*Math.sin(8*Math.PI*delta)];
+}");
 
 draw(Sknob,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));
 
 endgroup3();
 endgroup3();
+
+axes3(red,green,blue);

@@ -12,6 +12,9 @@ namespace camp {
 
 class jsfile : public abs3Doutfile {
   jsofstream out;
+  bool finished;
+  string fileName;
+  bool transformInitialized;
 
 public:
   jsfile();
@@ -88,9 +91,7 @@ protected:
 
   void write(const string& s);
 
-private:
-  bool finished;
-  string fileName;
+  void initTransform() override;
 };
 
 } //namespace camp

@@ -12,7 +12,7 @@
 
 namespace camp {
 
-enum Language {PostScript,TeX};
+enum Language {PostScript,TeX,JavaScript};
 
 class drawVerbatim : public drawElement {
 private:
@@ -54,6 +54,11 @@ public:
 
   bool write(texfile *out, const bbox&) {
     if(language == TeX) out->verbatimline(stripblanklines(text));
+    return true;
+  }
+
+  bool write(abs3Doutfile *out) override {
+    if(language == JavaScript) out->write(text);
     return true;
   }
 };

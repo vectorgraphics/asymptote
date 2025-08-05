@@ -84,10 +84,11 @@ public:
   }
 
   bool write(abs3Doutfile *out) override {
-    out->write("begingroup(");
+    out->initTransform();
+    out->write("\nbegingroup(");
     out->write(jsTransform.empty() ? "null" : jsTransform);
     out->write(");\n");
-    return false;
+    return true;
   }
 
   drawBegin3(const double* t, const drawBegin3 *s) :
@@ -120,7 +121,7 @@ public:
   }
 
   bool write(abs3Doutfile *out) override {
-    out->write("endgroup();\n");
+    out->write("endgroup();\n\n");
     return false;
   }
 };

@@ -328,6 +328,11 @@ void tex(picture *f, string s)
   f->append(new drawVerbatim(TeX,s));
 }
 
+void javascript(picture *f, string s)
+{
+  f->append(new drawVerbatim(JavaScript,s));
+}
+
 void postscript(picture *f, string s, pair min, pair max)
 {
   f->append(new drawVerbatim(PostScript,s,min,max));
