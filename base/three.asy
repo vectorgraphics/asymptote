@@ -2126,21 +2126,20 @@ void draw(frame f, path3 g, material p=currentpen, light light=nolight,
           string name="", render render=defaultrender,
           projection P=currentprojection);
 
-void begingroup3(frame f, string name="", string jsTransform="",
-                 render render=defaultrender)
+void begingroup3(frame f, string name="", render render=defaultrender)
 {
-  _begingroup3(f,name,jsTransform,
+  _begingroup3(f,name,
                render.compression,render.granularity,render.closed,
                render.tessellate,render.merge == false,
                render.merge == true,render.interaction.center,render.interaction.type);
 }
 
 void begingroup3(picture pic=currentpicture, string name="",
-                 string jsTransform="", render render=defaultrender)
+                 render render=defaultrender)
 {
   pic.add(new void(frame f, transform3, picture pic, projection) {
       if(is3D())
-        begingroup3(f,name,jsTransform,render);
+        begingroup3(f,name,render);
       if(pic != null)
         begingroup(pic);
     },true);
@@ -2151,6 +2150,26 @@ void endgroup3(picture pic=currentpicture)
   pic.add(new void(frame f, transform3, picture pic, projection) {
       if(is3D())
         endgroup3(f);
+      if(pic != null)
+        endgroup(pic);
+    },true);
+}
+
+void beginTransform(picture pic=currentpicture, string jsTransform)
+{
+  pic.add(new void(frame f, transform3, picture pic, projection) {
+      if(is3D())
+        beginTransform(f,jsTransform);
+      if(pic != null)
+        begingroup(pic);
+    },true);
+}
+
+void endTransform(picture pic=currentpicture)
+{
+  pic.add(new void(frame f, transform3, picture pic, projection) {
+      if(is3D())
+        endTransform(f);
       if(pic != null)
         endgroup(pic);
     },true);

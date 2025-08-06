@@ -242,23 +242,23 @@ if(settings.ibl) {
 
 javascript("let xmax="+string(max(S).x)+";"+'\n');
 
-begingroup3(jsTransform="function(v,delta)
-{
-  return [v[0]+xmax*delta,v[1],v[2]];
+beginTransform("
+function(v,t) {
+  return [v[0]+xmax*t,v[1],v[2]];
 }");
 
 draw(S,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));
 
-begingroup3(jsTransform="function(v,delta)
-{
+beginTransform("
+function(v,delta) {
   return [v[0],v[1],v[2]+5*Math.sin(8*Math.PI*delta)];
 }");
 
 draw(Sknob,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));
 
-endgroup3();
-endgroup3();
+endTransform();
+endTransform();
 
 axes3(red,green,blue);

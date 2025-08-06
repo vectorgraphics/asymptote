@@ -3482,8 +3482,7 @@ function fromUser(controlpoints:vec3[]) {
     let V: vec4=[v[0],v[1],v[2],1];
     let U: vec4=vec4.create();
     vec4.transformMat4(U,V,Tinv);
-    let d=1.0/U[3];
-    let u: vec3=[U[0]*d,U[1]*d,U[2]*d];
+    let u: vec3=[U[0],U[1],U[2]];
     return u;
   });
 }
@@ -3496,7 +3495,6 @@ let duration=10.0;
 function animatedTransform(){
   let stack=[];
   for(const f of functionStack)
-    if(f != null)
       stack.push(f);
   return function(controlpoints:vec3[]) : vec3[] {
     let now=performance.now();
@@ -3977,11 +3975,11 @@ function initTransform() {
   mat4.invert(Tinv,T);
 }
 
-function begingroup(f) {
+function beginTransform(f) {
   functionStack.push(f);
 }
 
-function endgroup() {
+function endTransform() {
   functionStack.pop();
 }
 
@@ -4048,5 +4046,5 @@ globalThis.window.Normals=Normals;
 globalThis.window.Colors=Colors;
 globalThis.window.Indices=Indices;
 globalThis.window.initTransform=initTransform;
-globalThis.window.begingroup=begingroup;
-globalThis.window.endgroup=endgroup;
+globalThis.window.beginTransform=beginTransform;
+globalThis.window.endTransform=endTransform;

@@ -20,8 +20,8 @@ declare global {
         Colors: any[],
         Indices: any[],
         initTransform: Function,
-        begingroup: Function,
-        endgroup: Function
+        beginTransform: Function,
+        endTransform: Function
     }
 
     /** This is for gl-matrix functions */

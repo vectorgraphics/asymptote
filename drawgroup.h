@@ -32,7 +32,6 @@ public:
 
 class drawBegin3 : public drawElementLC {
   string name;
-  string jsTransform;
   double compression;
   double granularity;
   bool closed;   // render the surface as one-sided; may yield faster rendering
@@ -43,12 +42,10 @@ class drawBegin3 : public drawElementLC {
   triple center;
   int interaction;
 public:
-  drawBegin3(string name, string jsTransform, double compression,
-             double granularity,
+  drawBegin3(string name, double compression, double granularity,
              bool closed, bool tessellate, bool dobreak, bool nobreak,
              triple center, int interaction) :
-    name(name), jsTransform(jsTransform), compression(compression),
-    granularity(granularity),
+    name(name), compression(compression), granularity(granularity),
     closed(closed), tessellate(tessellate), dobreak(dobreak), nobreak(nobreak),
     center(center), interaction(interaction) {}
 
@@ -83,17 +80,8 @@ public:
     return true;
   }
 
-  bool write(abs3Doutfile *out) override {
-    out->initTransform();
-    out->write("\nbegingroup(");
-    out->write(jsTransform.empty() ? "null" : jsTransform);
-    out->write(");\n");
-    return true;
-  }
-
   drawBegin3(const double* t, const drawBegin3 *s) :
-    drawElementLC(t, s), name(s->name), jsTransform(s->jsTransform),
-    compression(s->compression),
+    drawElementLC(t, s), name(s->name), compression(s->compression),
     granularity(s->granularity), closed(s->closed), tessellate(s->tessellate),
     dobreak(s->dobreak), nobreak(s->nobreak), interaction(s->interaction)  {
     center=t*s->center;
@@ -119,9 +107,33 @@ public:
     out->endgroup();
     return true;
   }
+};
+
+class drawBeginTransform : public drawElement {
+  string jsTransform;
+public:
+  drawBeginTransform(string jsTransform) :
+    jsTransform(jsTransform) {}
+
+  virtual ~drawBeginTransform() {}
 
   bool write(abs3Doutfile *out) override {
-    out->write("endgroup();\n\n");
+    out->initTransform();
+    out->write("\nbeginTransform(");
+    out->write(jsTransform);
+    out->write(");\n");
+    return true;
+  }
+};
+
+class drawEndTransform : public drawElement {
+public:
+  drawEndTransform() {}
+
+  virtual ~drawEndTransform() {}
+
+  bool write(abs3Doutfile *out) override {
+    out->write("endTransform();\n\n");
     return false;
   }
 };
