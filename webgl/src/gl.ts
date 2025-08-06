@@ -770,11 +770,11 @@ class BezierPatch extends Geometry {
   private readonly vertex: (v: any, n: any) => number;
 
   /**
-   * Constructor for Bezier Patch
-   * @param {*} controlpoints array of 16 control points
+   * Constructor for a Bezier patch or a Bezier triangle
+   * @param {*} controlpoints array of control points
    * @param {*} CenterIndex center index of billboard labels (or 0)
    * @param {*} MaterialIndex material index (>= 0)
-   * @param {*} colors array of 4 RGBA color arrays
+   * @param {*} colors array of RGBA color arrays
    */
   constructor(protected controlpoints,
               protected CenterIndex, protected MaterialIndex,
