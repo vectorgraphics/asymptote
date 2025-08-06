@@ -111,9 +111,10 @@ public:
 
 class drawBeginTransform : public drawElement {
   string jsTransform;
+  double duration;
 public:
-  drawBeginTransform(string jsTransform) :
-    jsTransform(jsTransform) {}
+  drawBeginTransform(string jsTransform, double duration) :
+    jsTransform(jsTransform), duration(duration) {}
 
   virtual ~drawBeginTransform() {}
 
@@ -121,6 +122,8 @@ public:
     out->initTransform();
     out->write("\nbeginTransform(");
     out->write(jsTransform);
+    out->write(",");
+    out->write(duration);
     out->write(");\n");
     return true;
   }

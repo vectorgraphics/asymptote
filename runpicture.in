@@ -307,9 +307,9 @@ void endgroup3(picture *f)
   f->append(new drawEnd3());
 }
 
-void beginTransform(picture *f, string jsTransform)
+void beginTransform(picture *f, string jsTransform, real duration)
 {
-  f->append(new drawBeginTransform(jsTransform));
+  f->append(new drawBeginTransform(jsTransform,duration));
 }
 
 void endTransform(picture *f)

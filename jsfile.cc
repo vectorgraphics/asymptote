@@ -443,6 +443,11 @@ void jsfile::write(const string& s)
   out << s;
 }
 
+void jsfile::write(double x)
+{
+  out << x;
+}
+
 void jsfile::initTransform()
 {
   if(transformInitialized) return;
