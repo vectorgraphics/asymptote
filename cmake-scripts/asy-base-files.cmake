@@ -1,20 +1,9 @@
-set(ASY_STATIC_BASE_FILES
-        animate animation annotate babel bezulate binarytree bsp CAD colormap
-        contour3 contour drawtree embed external feynman flowchart fontsize
-        geometry graph3 graph graph_settings graph_splinetype grid3 interpolate
-        labelpath3 labelpath lmfit map mapArray markers math metapost obj ode palette patterns
-        plain_arcs plain_arrows plain plain_bounds plain_boxes plain_constants plain_debugger
-        plain_filldraw plain_Label plain_margins plain_markers plain_paths plain_pens
-        plain_picture plain_prethree plain_scaling plain_shipout plain_strings pstoedit rational rationalSimplex
-        roundedpath simplex size10 size11 slide slopefield smoothcontour3 solids stats syzygy simplex2
-        texcolors three_arrows three three_light three_margins three_surface three_tube tree
-        trembling tube v3d x11colors
-)
 
-set(ASY_STATIC_SHADER_FILES
-        blend compress count fragment screen sum1 sum2 sum2fast
-        sum3 vertex zero
-)
+set(ASY_SOURCE_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/base)
+set(ASY_SOURCE_BASE_SHADER_DIR ${ASY_SOURCE_BASE_DIR}/shaders)
+
+file(GLOB ASY_STATIC_BASE_FILES RELATIVE ${ASY_SOURCE_BASE_DIR} CONFIGURE_DEPENDS ${ASY_SOURCE_BASE_DIR}/*.asy)
+file(GLOB ASY_STATIC_SHADER_FILES RELATIVE ${ASY_SOURCE_BASE_DIR} CONFIGURE_DEPENDS ${ASY_SOURCE_BASE_SHADER_DIR}/*.glsl)
 
 set(ASY_STATIC_BASE_COLLECTIONS_FILES
     btree btreegeneral btreemap enumerate genericpair hashmap hashset iter map
@@ -24,7 +13,6 @@ set(ASY_STATIC_BASE_COLLECTIONS_FILES
 set(OTHER_STATIC_BASE_FILES nopapersize.ps)
 
 # base dir
-set(ASY_SOURCE_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/base)
 set(ASY_BUILD_BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/base)
 
 file(MAKE_DIRECTORY ${ASY_BUILD_BASE_DIR})
@@ -51,7 +39,7 @@ macro (copy_base_file base_file_name)
 endmacro()
 
 foreach(ASY_STATIC_BASE_FILE ${ASY_STATIC_BASE_FILES})
-    copy_base_file(${ASY_STATIC_BASE_FILE}.asy)
+    copy_base_file(${ASY_STATIC_BASE_FILE})
 endforeach ()
 
 file(MAKE_DIRECTORY ${ASY_BUILD_BASE_DIR}/collections)
@@ -65,7 +53,7 @@ endforeach ()
 
 file(MAKE_DIRECTORY ${ASY_BUILD_BASE_DIR}/shaders)
 foreach(ASY_STATIC_SHADER_FILE ${ASY_STATIC_SHADER_FILES})
-    copy_base_file(shaders/${ASY_STATIC_SHADER_FILE}.glsl)
+    copy_base_file(${ASY_STATIC_SHADER_FILE})
 endforeach ()
 
 # generated csv files
