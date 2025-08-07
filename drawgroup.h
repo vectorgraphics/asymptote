@@ -110,18 +110,23 @@ public:
 };
 
 class drawBeginTransform : public drawElement {
-  string jsTransform;
+  string geometry;
+  string color;
   double duration;
 public:
-  drawBeginTransform(string jsTransform, double duration) :
-    jsTransform(jsTransform), duration(duration) {}
+  drawBeginTransform(string geometry, string color,
+                     double duration) :
+    geometry(geometry), color(color),
+    duration(duration) {}
 
   virtual ~drawBeginTransform() {}
 
   bool write(abs3Doutfile *out) override {
     out->initTransform();
     out->write("\nbeginTransform(");
-    out->write(jsTransform);
+    out->write(geometry.empty() ? "null" : geometry);
+    out->write(",");
+    out->write(color.empty() ? "null" : color);
     out->write(",");
     out->write(duration);
     out->write(");\n");

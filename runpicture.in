@@ -307,9 +307,10 @@ void endgroup3(picture *f)
   f->append(new drawEnd3());
 }
 
-void beginTransform(picture *f, string jsTransform, real duration)
+void beginTransform(picture *f, string geometry=emptystring,
+                    string color=emptystring, real duration)
 {
-  f->append(new drawBeginTransform(jsTransform,duration));
+  f->append(new drawBeginTransform(geometry,color,duration));
 }
 
 void endTransform(picture *f)

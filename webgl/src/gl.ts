@@ -8,6 +8,8 @@ import vertex from './shaders/vertex.glsl';
 
 declare var Module: any;
 
+const startTime=performance.now();
+
 const asyRenderingCanvas = {
   canvasWidth:0,
   canvasHeight:0,
@@ -108,7 +110,6 @@ let Temp=mat4.create();
 let T;
 let Tinv;
 
-let zmin,zmax;
 let center={x:0,y:0,z:0};
 let size2;
 let ArcballFactor;
@@ -1031,6 +1032,18 @@ class BezierPatch extends Geometry {
     if(p.length == 10) return this.process3(p);
     if(p.length == 3) return this.processTriangle(p);
     if(p.length == 4) return this.processQuad(p);
+
+    if(this.color) {
+        let now=performance.now();
+        const t=Math.min((now-startTime)/(1000*duration),1.0);
+        let P=toUser([p[0],p[12],p[15],p[3]]);
+        for(const f of cstack)
+            this.color=transformColor(
+                [[P[0],this.color[0]],
+                 [P[1],this.color[1]],
+                 [P[2],this.color[2]],
+                 [P[3],this.color[3]]],t,f);
+    }
 
     if(wireframe == 1) {
       this.curve(p,0,4,8,12);
@@ -3471,7 +3484,7 @@ function toUser(controlpoints:vec3[]) {
 }
 
 function transformCP(controlpoints:vec3[], delta:number,
-                     f : ((v:vec3,delta : number) => vec3)) {
+                     f : ((v:vec3, delta:number) => vec3)) {
   return controlpoints.map(function(v:vec3) {
     return f(v,delta) as [number,number,number];
   });
@@ -3487,15 +3500,29 @@ function fromUser(controlpoints:vec3[]) {
   });
 }
 
-let functionStack:((v:vec3,delta:number) => vec3)[] = [];
+function transformColor(nodes:any[], delta:number,
+                        f : ((v:vec3, c:vec4, delta:number) => vec4)) {
+    return nodes.map(function(n:any) {
+        return f(n[0],n[1],delta) as vec4;
+  });
+}
 
-const startTime=performance.now();
+let cstack;
+
+let functionStack:((v:vec3, delta:number) => vec3)[] = [];
+let colorStack:((v:vec3, c:vec4, delta:number) => vec4)[] = [];
+
 let duration=10.0;
 
 function animatedTransform(){
   let stack=[];
   for(const f of functionStack)
-      stack.push(f);
+      if(f != null)
+          stack.push(f);
+  cstack=[];
+  for(const f of colorStack)
+      if(f != null)
+          cstack.push(f);
   return function(controlpoints:vec3[]) : vec3[] {
     let now=performance.now();
     const t=Math.min((now-startTime)/(1000*duration),1.0);
@@ -3519,19 +3546,10 @@ function light(direction,color)
   Lights.push(new Light(direction,color));
 }
 
-function linearg()
-{
-}
-
 function material(diffuse,emissive,specular,shininess,metallic,fresnel0)
 {
   Materials.push(new Material(diffuse,emissive,specular,shininess,metallic,
                               fresnel0));
-}
-
-function top(v:any[])
-{
-  return v.length > 0 ? v[v.length-1] : null;
 }
 
 function patch(controlpoints,CenterIndex,MaterialIndex,color)
@@ -3975,12 +3993,23 @@ function initTransform() {
   mat4.invert(Tinv,T);
 }
 
-function beginTransform(f) {
-  functionStack.push(f);
+function beginTransform(geometry,color,duration) {
+  functionStack.push(geometry);
+  colorStack.push(color);
 }
 
 function endTransform() {
   functionStack.pop();
+  colorStack.pop();
+}
+
+function interp(a,b,t) {
+return [
+a[0]*(1-t)+b[0]*t,
+a[1]*(1-t)+b[1]*t,
+a[2]*(1-t)+b[2]*t,
+a[3]*(1-t)+b[3]*t,
+];
 }
 
 function webGLStart()
@@ -4048,3 +4077,4 @@ globalThis.window.Indices=Indices;
 globalThis.window.initTransform=initTransform;
 globalThis.window.beginTransform=beginTransform;
 globalThis.window.endTransform=endTransform;
+globalThis.window.interp=interp;

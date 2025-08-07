@@ -207,18 +207,22 @@ triple[][][] base={
 };
 
 
+pen[][] C={{blue,blue,blue,blue}};
+pen[] C3={blue,blue,blue};
+C.cyclic=true;
+
 surface regularize(triple[][] P, real fraction=0.002)
 {
   triple[][][] B=hsplit(P,fraction);
   triple[][] T=B[0];
   surface s=surface(T[0][0]..controls T[3][1] and T[3][2]..
                     T[3][3]..controls T[2][3] and T[1][3]..
-                            T[0][3]..controls T[0][2] and T[0][1]..cycle);
-  s.append(surface(patch(B[1])));
+                    T[0][3]..controls T[0][2] and T[0][1]..cycle,C3);
+  s.append(surface(patch(B[1],C[0])));
   return s;
 }
 
-surface S=surface(Q);
+surface S=surface(Q,C);
 
 for(triple[][] q : base)
   S.append(regularize(q));
@@ -240,20 +244,25 @@ if(settings.ibl) {
   metallic=0;
 }
 
-javascript("let xmax="+string(max(S).x)+";"+'\n');
+triple m=min(S);
+triple M=max(S);
+write(m,M);
 
-beginTransform("
-function(v,t) {
-  return [v[0]+xmax*t,v[1],v[2]];
-}",10);
+javascript("let xmax="+string(M.x)+";"+'\n');
+javascript("let zmin="+string(m.z)+";"+'\n');
+javascript("let zmax="+string(M.z)+";"+'\n');
+javascript("let red=[1,0,0,1];"+'\n');
+javascript("let blue=[0,0,1,1];"+'\n');
+
+beginTransform(geometry="function(v,t) {return [v[0]+xmax*t,v[1],v[2]];}",
+               //               color="function(v,c,t) {return interp(blue,red,t);}",10);
+                             color="function(v,c,t) {
+               return interp(blue,interp(blue,red,(v[2]+250-zmin)/(zmax-zmin)),t);}",10);
 
 draw(S,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));
 
-beginTransform("
-function(v,delta) {
-  return [v[0],v[1],v[2]+5*Math.sin(8*Math.PI*delta)];
-}",5);
+beginTransform("function(v,delta) {return [v[0],v[1],v[2]+5*Math.sin(8*Math.PI*delta)];}",5);
 
 draw(Sknob,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));

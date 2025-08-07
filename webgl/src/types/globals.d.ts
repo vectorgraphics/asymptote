@@ -21,7 +21,8 @@ declare global {
         Indices: any[],
         initTransform: Function,
         beginTransform: Function,
-        endTransform: Function
+        endTransform: Function,
+        interp: Function
     }
 
     /** This is for gl-matrix functions */
