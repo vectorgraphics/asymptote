@@ -22,7 +22,8 @@ declare global {
         initTransform: Function,
         beginTransform: Function,
         endTransform: Function,
-        interp: Function
+        interp: Function,
+        javascript: (code: string) => void
     }
 
     /** This is for gl-matrix functions */
