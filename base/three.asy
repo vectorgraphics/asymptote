@@ -2156,11 +2156,11 @@ void endgroup3(picture pic=currentpicture)
 }
 
 void beginTransform(picture pic=currentpicture, string geometry="",
-                    string color="", real duration)
+                    string color="", real duration, bool active)
 {
   pic.add(new void(frame f, transform3, picture pic, projection) {
       if(is3D())
-        beginTransform(f,geometry,color,duration);
+        beginTransform(f,geometry,color,duration, active);
       if(pic != null)
         begingroup(pic);
     },true);

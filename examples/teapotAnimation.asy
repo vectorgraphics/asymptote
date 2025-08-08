@@ -257,12 +257,12 @@ javascript("let blue=[0,0,1,1];"+'\n');
 beginTransform(geometry="function(v,t) {return [v[0]+xmax*t,v[1],v[2]];}",
                //               color="function(v,c,t) {return interp(blue,red,t);}",10);
                              color="function(v,c,t) {
-               return interp(blue,interp(blue,red,(v[2]+250-zmin)/(zmax-zmin)),t);}",10);
+               return interp(blue,interp(blue,red,(v[2]+250-zmin)/(zmax-zmin)),t);}",10,true);
 
 draw(S,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));
 
-beginTransform("function(v,delta) {return [v[0],v[1],v[2]+5*Math.sin(8*Math.PI*delta)];}",5);
+beginTransform("function(v,delta) {return [v[0],v[1],v[2]+5*Math.sin(8*Math.PI*delta)];}",5,false);
 
 draw(Sknob,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));

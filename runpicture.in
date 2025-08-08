@@ -308,9 +308,9 @@ void endgroup3(picture *f)
 }
 
 void beginTransform(picture *f, string geometry=emptystring,
-                    string color=emptystring, real duration)
+                    string color=emptystring, real duration,bool active)
 {
-  f->append(new drawBeginTransform(geometry,color,duration));
+  f->append(new drawBeginTransform(geometry,color,duration,active));
 }
 
 void endTransform(picture *f)

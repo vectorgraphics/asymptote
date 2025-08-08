@@ -8,8 +8,6 @@ import vertex from './shaders/vertex.glsl';
 
 declare var Module: any;
 
-const startTime=performance.now();
-
 const asyRenderingCanvas = {
   canvasWidth:0,
   canvasHeight:0,
@@ -3040,13 +3038,27 @@ function handleKey(event)
   default:
     break;
   }
-
+  if (keycode=="ArrowRight"&&playbackDirection!=="forward") {
+    playbackDirection="forward";
+    startAnimating();
+  } else if (keycode=="ArrowLeft"&&playbackDirection!="backward") {
+    playbackDirection="backward";
+    startAnimating();
+  }
   if(axis !== null) {
     mat4.rotate(rotMat,rotMat,0.1,axis);
     updateViewMatrix();
     drawScene();
   }
 }
+function handleAnimation(event) {
+  let keycode=event.key;
+  if ((keycode=="ArrowRight"&&playbackDirection=="forward") ||
+    (keycode=="ArrowLeft"&&playbackDirection=="backward")) {
+      stopAnimating();
+}
+}
+
 
 function setZoom()
 {
@@ -3508,7 +3520,6 @@ function transformColor(nodes:any[], delta:number,
   });
 }
 
-let cstack: Transformation[];
 
 type Transformation = {
   f?: (v:vec3, delta:number) => vec3;
@@ -3516,21 +3527,27 @@ type Transformation = {
   invertedDuration: number;
   duration: number;
   startTime: number;
+  active?:boolean;
 }
 
-let functionStack: Transformation[] = []
-//let colorStack:((v:vec3, c:vec4, delta:number) => vec4)[] = [];
-
+let functionStack: Transformation[] = [];
+let cstack: Transformation[];
 
 
 function animatedTransform(){
   let stack=functionStack.filter(f => f.f!= null);
   cstack=functionStack.filter(f => f.colorF!= null);
+
   return function(controlpoints: vec3[]): vec3[] {
-    let now=performance.now();
     let cp=toUser(controlpoints);
-    for(const {f, invertedDuration, startTime} of stack) {
-      let t=Math.min(0.001*(now-startTime)*invertedDuration, 1.0);
+    const now=performance.now();
+    const activeTime=globalStartTime+playbackTime;
+
+    for(const {f,invertedDuration,duration,startTime,active} of stack) {
+      const time=active?activeTime:now;
+      const endTime = startTime+duration*1000;
+      if(time<startTime||time>endTime) continue;
+      const t=Math.min(0.001*(time-startTime)*invertedDuration, 1.0);
       cp=transformCP(cp,t,f);
     }
     return fromUser(cp)
@@ -3540,12 +3557,49 @@ function animatedTransform(){
 let globalStartTime:number=null;
 let maxEndTime:number=0;
 
+let playbackDirection: "forward"|"backward"|null=null;
+let playbackTime:number=0;
+let playbackSpeed:number=1;
+let lastTimestamp:number|null=null;
+let animationActive=false;
+
 function animate(timestamp:number) {
+  if(!lastTimestamp)
+    lastTimestamp=timestamp;
+  const delta=timestamp-lastTimestamp;
+  lastTimestamp=timestamp;
+
+  if(playbackDirection=="forward") {
+    playbackTime+=delta*playbackSpeed;
+  } else if(playbackDirection=="backward") {
+    playbackTime=Math.max(0, playbackTime-delta*playbackSpeed);
+  }
+
   remesh=true;
   drawScene();
-  if (timestamp<maxEndTime) {
+
+
+  if (timestamp<maxEndTime || playbackDirection!=null) {
+    requestAnimationFrame(animate);
+  } else {
+    animationActive=false;
+    lastTimestamp=null;
+  }
+}
+
+
+
+function startAnimating() {
+  if (!animationActive) {
+    animationActive=true;
+    lastTimestamp=null;
     requestAnimationFrame(animate);
   }
+}
+
+function stopAnimating() {
+  animationActive=false;
+  playbackDirection=null;
 }
 
 function light(direction,color)
@@ -4000,7 +4054,8 @@ function initTransform() {
   Tinv=mat4.create();
   mat4.invert(Tinv,T);
 }
-function beginTransform(geometry,color,duration) {
+
+function beginTransform(geometry,color,duration,active) {
   if (!globalStartTime) globalStartTime=performance.now();
   const startTime=performance.now()
   const endTime=startTime+duration*1000;
@@ -4013,6 +4068,7 @@ function beginTransform(geometry,color,duration) {
       invertedDuration: 1/duration,
       duration: duration,
       startTime: startTime,
+      active:active,
     }
   )
 
@@ -4056,6 +4112,7 @@ function webGLStart()
   W.canvas.addEventListener("touchleave",handleMouseUpOrTouchEnd,false);
   W.canvas.addEventListener("touchmove",handleTouchMove,false);
   document.addEventListener("keydown",handleKey,false);
+  document.addEventListener("keyup", handleAnimation, false);
 
   W.canvasWidth0=W.canvasWidth;
   W.canvasHeight0=W.canvasHeight;
