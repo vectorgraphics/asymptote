@@ -1034,27 +1034,17 @@ class BezierPatch extends Geometry {
     if(p.length == 4) return this.processQuad(p);
 
     if(this.color) {
-      const now=performance.now()*0.001;
-      const P=toUser([p[0], p[12], p[15], p[3]]);
-      let currentColors=this.color;
-
-      let colorNodes: [vec3, vec4][]=[
-        [P[0], currentColors[0]],
-        [P[1], currentColors[1]],
-        [P[2], currentColors[2]],
-        [P[3], currentColors[3]],
-      ];
-
-      for (const { colorF, invertedDuration, startTime } of functionStack) {
-        if (!colorF) continue;
-        const t=Math.min((now - startTime)*invertedDuration, 1.0);
-        const transformedColors=transformColor(colorNodes, t, colorF);
-        // reassign the updated colors back to the node list for next iteration
-        colorNodes=colorNodes.map((n, i) => [n[0], transformedColors[i]]);
-      }
-
-      this.color=colorNodes.map(([_, c]) => c);
-    }
+      let now=performance.now();
+      let P=toUser([p[0],p[12],p[15],p[3]]);
+      for(const {colorF, invertedDuration, startTime} of cstack){
+        const t=Math.min(0.001*(now-startTime)*invertedDuration,1.0);
+        this.color=transformColor(
+              [[P[0],this.color[0]],
+               [P[1],this.color[1]],
+               [P[2],this.color[2]],
+               [P[3],this.color[3]]],t,colorF);
+        }
+  }
 
     if(wireframe == 1) {
       this.curve(p,0,4,8,12);
@@ -3518,7 +3508,7 @@ function transformColor(nodes:any[], delta:number,
   });
 }
 
-let cstack;
+let cstack: Transformation[];
 
 type Transformation = {
   f?: (v:vec3, delta:number) => vec3;
@@ -3532,27 +3522,28 @@ let functionStack: Transformation[] = []
 //let colorStack:((v:vec3, c:vec4, delta:number) => vec4)[] = [];
 
 
+
 function animatedTransform(){
   let stack=functionStack.filter(f => f.f!= null);
+  cstack=functionStack.filter(f => f.colorF!= null);
   return function(controlpoints: vec3[]): vec3[] {
     let now=performance.now();
     let cp=toUser(controlpoints);
     for(const {f, invertedDuration, startTime} of stack) {
-      let t=Math.min((now-startTime)*invertedDuration, 1.0);
+      let t=Math.min(0.001*(now-startTime)*invertedDuration, 1.0);
       cp=transformCP(cp,t,f);
     }
     return fromUser(cp)
   }
 }
 
+let globalStartTime:number=null;
+let maxEndTime:number=0;
+
 function animate(timestamp:number) {
   remesh=true;
   drawScene();
-  functionStack = functionStack.filter(
-    ({ duration, startTime }) => 0.001*(timestamp - startTime) < duration
-  );
-
-  if (functionStack.length > 0) {
+  if (timestamp<maxEndTime) {
     requestAnimationFrame(animate);
   }
 }
@@ -4002,20 +3993,26 @@ async function initIBLOnceEXRLoaderReady()
   await Promise.all(promises);
 }
 
+
 function initTransform() {
   T=mat4.create();
   mat4.transpose(T,document.asy.Transform);
   Tinv=mat4.create();
   mat4.invert(Tinv,T);
 }
-
 function beginTransform(geometry,color,duration) {
+  if (!globalStartTime) globalStartTime=performance.now();
+  const startTime=performance.now()
+  const endTime=startTime+duration*1000;
+  if(endTime>maxEndTime) {
+    maxEndTime=endTime
+  }
   functionStack.push({
       f: geometry,
       colorF: color,
       invertedDuration: 1/duration,
       duration: duration,
-      startTime: performance.now()*0.001,
+      startTime: startTime,
     }
   )
 
