@@ -779,7 +779,7 @@ class BezierPatch extends Geometry {
               protected CenterIndex, protected MaterialIndex,
               private color = null,
               protected Min = null, protected Max = null,
-              protected transform = null) {
+              protected transform = null, protected colorTransform = null) {
     super();
     const n=controlpoints.length;
     if(color) {
@@ -1031,18 +1031,9 @@ class BezierPatch extends Geometry {
     if(p.length == 3) return this.processTriangle(p);
     if(p.length == 4) return this.processQuad(p);
 
-    if(this.color && cstack.length > 0) {
-      let now=performance.now();
-      let P=toUser([p[0],p[12],p[15],p[3]]);
-      for(const {colorF, invertedDuration, startTime} of cstack){
-        const t=Math.min(0.001*(now-startTime)*invertedDuration,1.0);
-        this.color=transformColor(
-              [[P[0],this.color[0]],
-               [P[1],this.color[1]],
-               [P[2],this.color[2]],
-               [P[3],this.color[3]]],t,colorF);
-        }
-  }
+    if(this.color) {
+      this.color=this.colorTransform(this.color,p);
+    }
 
     if(wireframe == 1) {
       this.curve(p,0,4,8,12);
@@ -3038,26 +3029,37 @@ function handleKey(event)
   default:
     break;
   }
-  if (keycode=="ArrowRight"&&playbackDirection!=="forward") {
+  if (keycode=="ArrowRight"&&playbackDirection!="forward") {
     playbackDirection="forward";
-    startAnimating();
+    if(!activeAnimation) {
+      activeAnimation=true;
+      requestAnimationFrame(animate)
+    }
+
   } else if (keycode=="ArrowLeft"&&playbackDirection!="backward") {
     playbackDirection="backward";
-    startAnimating();
+    if(!activeAnimation) {
+      activeAnimation=true;
+      requestAnimationFrame(animate)
+    }
   }
+
   if(axis !== null) {
     mat4.rotate(rotMat,rotMat,0.1,axis);
     updateViewMatrix();
     drawScene();
   }
 }
-function handleAnimation(event) {
+
+function stopAnimation(event) {
   let keycode=event.key;
   if ((keycode=="ArrowRight"&&playbackDirection=="forward") ||
     (keycode=="ArrowLeft"&&playbackDirection=="backward")) {
-      stopAnimating();
-}
-}
+      if (position>=maxEndTime) {
+        activeAnimation=false;
+      }
+      playbackDirection=null;
+    }}
 
 
 function setZoom()
@@ -3521,13 +3523,15 @@ function transformColor(nodes:any[], delta:number,
 }
 
 
+
+
 type Transformation = {
   f?: (v:vec3, delta:number) => vec3;
   colorF?: (v:vec3, c:vec4, delta:number) => vec4;
   invertedDuration: number;
   duration: number;
   startTime: number;
-  active?:boolean;
+  autoplay?:boolean;
 }
 
 let functionStack: Transformation[] = [];
@@ -3544,14 +3548,30 @@ function animatedTransform(){
     const now=performance.now();
     const activeTime=globalStartTime+playbackTime;
 
-    for(const {f,invertedDuration,duration,startTime,active} of stack) {
-      const time=active?activeTime:now;
-      const endTime = startTime+duration*1000;
-      if(time<startTime||time>endTime) continue;
+    for(const {f,invertedDuration,startTime,autoplay} of stack) {
+      const time=!autoplay?activeTime:now;
       const t=Math.min(0.001*(time-startTime)*invertedDuration, 1.0);
       cp=transformCP(cp,t,f);
     }
     return fromUser(cp)
+  }
+}
+
+function animatedColor() {
+  return function(color,p) {
+    let now=performance.now();
+    let P=toUser([p[0],p[12],p[15],p[3]]);
+    const activeTime=globalStartTime+playbackTime;
+    for(const {colorF, invertedDuration, startTime,autoplay} of cstack){
+      const time=!autoplay?activeTime:now;
+      const t=Math.min(0.001*(time-startTime)*invertedDuration,1.0);
+      color=transformColor(
+            [[P[0],color[0]],
+              [P[1],color[1]],
+              [P[2],color[2]],
+              [P[3],color[3]]],t,colorF);
+    }
+    return color;
   }
 }
 
@@ -3562,11 +3582,15 @@ let playbackDirection: "forward"|"backward"|null=null;
 let playbackTime:number=0;
 let playbackSpeed:number=1;
 let lastTimestamp:number|null=null;
-let animationActive=false;
+let autoplayAnimation=false;
+let activeAnimation=false;
+let position;
 
 function animate(timestamp:number) {
+  position=timestamp;
   if(!lastTimestamp)
     lastTimestamp=timestamp;
+
   const delta=timestamp-lastTimestamp;
   lastTimestamp=timestamp;
 
@@ -3579,29 +3603,16 @@ function animate(timestamp:number) {
   remesh=true;
   drawScene();
 
-
-  if (timestamp<maxEndTime || playbackDirection!=null) {
+  const continued=!autoplayAnimation?(timestamp<maxDepth):(activeAnimation);
+  if (continued) {
     requestAnimationFrame(animate);
   } else {
-    animationActive=false;
     lastTimestamp=null;
   }
 }
 
 
 
-function startAnimating() {
-  if (!animationActive) {
-    animationActive=true;
-    lastTimestamp=null;
-    requestAnimationFrame(animate);
-  }
-}
-
-function stopAnimating() {
-  animationActive=false;
-  playbackDirection=null;
-}
 
 function light(direction,color)
 {
@@ -3617,7 +3628,7 @@ function material(diffuse,emissive,specular,shininess,metallic,fresnel0)
 function patch(controlpoints,CenterIndex,MaterialIndex,color)
 {
   P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color,
-                         null,null,animatedTransform()));
+                         null,null,animatedTransform(),animatedColor()));
 }
 
 function curve(controlpoints,CenterIndex,MaterialIndex)
@@ -4056,20 +4067,24 @@ function initTransform() {
   mat4.invert(Tinv,T);
 }
 
-function beginTransform(geometry,color,duration,active) {
+function beginTransform(geometry,color,duration,autoplay) {
   if (!globalStartTime) globalStartTime=performance.now();
   const startTime=performance.now()
   const endTime=startTime+duration*1000;
-  if(endTime>maxEndTime) {
-    maxEndTime=endTime
+  if(endTime>maxEndTime&&autoplay) {
+    maxEndTime=endTime;
+  }
+  if(!autoplay){
+    activeAnimation=true;
+    autoplayAnimation=true;
   }
   functionStack.push({
       f: geometry,
       colorF: color,
-      invertedDuration: 1/duration,
+      invertedDuration: duration > 0 ? 1/duration : 0,
       duration: duration,
       startTime: startTime,
-      active:active,
+      autoplay:autoplay,
     }
   )
 
@@ -4113,7 +4128,7 @@ function webGLStart()
   W.canvas.addEventListener("touchleave",handleMouseUpOrTouchEnd,false);
   W.canvas.addEventListener("touchmove",handleTouchMove,false);
   document.addEventListener("keydown",handleKey,false);
-  document.addEventListener("keyup", handleAnimation, false);
+  document.addEventListener("keyup", stopAnimation, false);
 
   W.canvasWidth0=W.canvasWidth;
   W.canvasHeight0=W.canvasHeight;

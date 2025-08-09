@@ -113,12 +113,12 @@ class drawBeginTransform : public drawElement {
   string geometry;
   string color;
   double duration;
-  bool active;
+  bool autoplay;
 public:
   drawBeginTransform(string geometry, string color,
-                     double duration, bool active) :
+                     double duration, bool autoplay) :
     geometry(geometry), color(color),
-    duration(duration), active(active){}
+    duration(duration), autoplay(autoplay){}
 
   virtual ~drawBeginTransform() {}
 
@@ -131,7 +131,7 @@ public:
     out->write(",");
     out->write(duration);
     out->write(",");
-    out->write(active ? "true" : "false");
+    out->write(autoplay ? "true" : "false");
     out->write(");\n");
     return true;
   }
