@@ -1031,7 +1031,7 @@ class BezierPatch extends Geometry {
     if(p.length == 3) return this.processTriangle(p);
     if(p.length == 4) return this.processQuad(p);
 
-    if(this.color) {
+    if(this.color && cstack.length > 0) {
       let now=performance.now();
       let P=toUser([p[0],p[12],p[15],p[3]]);
       for(const {colorF, invertedDuration, startTime} of cstack){
@@ -3535,6 +3535,7 @@ let cstack: Transformation[];
 
 
 function animatedTransform(){
+  if(functionStack.length == 0) return;
   let stack=functionStack.filter(f => f.f!= null);
   cstack=functionStack.filter(f => f.colorF!= null);
 
