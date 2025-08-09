@@ -1031,7 +1031,7 @@ class BezierPatch extends Geometry {
     if(p.length == 3) return this.processTriangle(p);
     if(p.length == 4) return this.processQuad(p);
 
-    if(this.color) {
+    if(this.color && cstack.length>0) {
       this.color=this.colorTransform(this.color,p);
     }
 
