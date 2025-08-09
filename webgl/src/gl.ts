@@ -2939,9 +2939,9 @@ function Camera()
       let R2=rotMat[j4+2];
       let R3=rotMat[j4+3];
       let T4ij=W.Transform[i4+j];
-      sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
+      sumCamera += T4ij*(R3-cx*R0-cy*R1);
       sumUp += T4ij*R1;
-      sumTarget += T4ij*(R3-cx*R0-cy*R1);
+      sumTarget += T4ij*(R3-cx*R0-cy*R1+cz*R2);
     }
     vCamera[i]=sumCamera;
     vUp[i]=sumUp;
