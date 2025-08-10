@@ -3031,14 +3031,14 @@ function handleKey(event)
   }
   if (keycode=="ArrowRight"&&playbackDirection!="forward") {
     playbackDirection="forward";
-    if(!activeAnimation) {
+    if(position>maxEndTime&&!activeAnimation) {
       activeAnimation=true;
       requestAnimationFrame(animate)
     }
 
   } else if (keycode=="ArrowLeft"&&playbackDirection!="backward") {
     playbackDirection="backward";
-    if(!activeAnimation) {
+    if(position>maxEndTime&&!activeAnimation) {
       activeAnimation=true;
       requestAnimationFrame(animate)
     }
@@ -3261,6 +3261,7 @@ function drawBuffers()
 
 function drawScene()
 {
+  now=performance.now();
   if(W.embedded) {
     offscreen.width=W.canvasWidth;
     offscreen.height=W.canvasHeight;
@@ -3536,18 +3537,15 @@ type Transformation = {
 
 let functionStack: Transformation[] = [];
 let cstack: Transformation[];
-
+let now:number;
 
 function animatedTransform(){
   if(functionStack.length == 0) return;
   let stack=functionStack.filter(f => f.f!= null);
-  cstack=functionStack.filter(f => f.colorF!= null);
 
   return function(controlpoints: vec3[]): vec3[] {
     let cp=toUser(controlpoints);
-    const now=performance.now();
     const activeTime=globalStartTime+playbackTime;
-
     for(const {f,invertedDuration,startTime,autoplay} of stack) {
       const time=!autoplay?activeTime:now;
       const t=Math.min(0.001*(time-startTime)*invertedDuration, 1.0);
@@ -3558,8 +3556,10 @@ function animatedTransform(){
 }
 
 function animatedColor() {
+  if(functionStack.length == 0) return;
+  cstack=functionStack.filter(f => f.colorF!= null);
+
   return function(color,p) {
-    let now=performance.now();
     let P=toUser([p[0],p[12],p[15],p[3]]);
     const activeTime=globalStartTime+playbackTime;
     for(const {colorF, invertedDuration, startTime,autoplay} of cstack){
@@ -3601,9 +3601,10 @@ function animate(timestamp:number) {
   }
 
   remesh=true;
+
   drawScene();
 
-  const continued=!autoplayAnimation?(timestamp<maxDepth):(activeAnimation);
+  const continued=autoplayAnimation&&!activeAnimation?(timestamp<maxEndTime):(activeAnimation);
   if (continued) {
     requestAnimationFrame(animate);
   } else {
@@ -4069,15 +4070,20 @@ function initTransform() {
 
 function beginTransform(geometry,color,duration,autoplay) {
   if (!globalStartTime) globalStartTime=performance.now();
-  const startTime=performance.now()
+  const startTime=performance.now();
   const endTime=startTime+duration*1000;
   if(endTime>maxEndTime&&autoplay) {
     maxEndTime=endTime;
   }
-  if(!autoplay){
-    activeAnimation=true;
+
+  if(autoplay){
     autoplayAnimation=true;
   }
+
+  if(!autoplay){
+    activeAnimation=true;
+  }
+
   functionStack.push({
       f: geometry,
       colorF: color,
