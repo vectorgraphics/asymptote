@@ -29,7 +29,8 @@ ostream& operator<< (ostream& out, const position& pos)
 
   string filename=pos.file->name();
 
-  if(filename != "-" && !settings::getSetting<bool>("quiet")) {
+  if(filename != "-" && !(settings::getSetting<bool>("quiet") ||
+                          settings::getSetting<bool>("where"))) {
     std::ifstream fin(filename.c_str());
     string s;
     size_t count=pos.line;
