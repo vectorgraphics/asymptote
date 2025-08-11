@@ -807,12 +807,14 @@ void listValue(symbol name, varEntry *v, record *module)
 {
   if (!module || v->whereDefined() == module)
     {
-      if (settings::getSetting<bool>("where"))
-        cout << v->getPos();
+      bool where=settings::getSetting<bool>("where");
+      if (where)
+        cout << v->getPos() << endl;
 
       v->getType()->printVar(cout, name);
 
-      cout << ";\n";
+      cout << ";" << endl;
+      if(where) cout << endl;
     }
 }
 
