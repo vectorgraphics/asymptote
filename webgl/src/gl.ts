@@ -765,27 +765,31 @@ class BezierPatch extends Geometry {
 
   private readonly transparent: boolean;
   private readonly vertex: (v: any, n: any) => number;
+  protected color: any[];
 
   /**
    * Constructor for a Bezier patch or a Bezier triangle
    * @param {*} controlpoints array of control points
    * @param {*} CenterIndex center index of billboard labels (or 0)
    * @param {*} MaterialIndex material index (>= 0)
-   * @param {*} colors array of RGBA color arrays
+   * @param {*} Color array of RGBA color arrays
    */
   constructor(protected controlpoints,
               protected CenterIndex, protected MaterialIndex,
-              private color = null,
+              private Color = null,
               protected Min = null, protected Max = null,
               protected transform = null, protected colorTransform = null) {
     super();
     const n=controlpoints.length;
-    if(color) {
-      let sum=color[0][3]+color[1][3]+color[2][3];
+    if(Color) {
+      let sum=Color[0][3]+Color[1][3]+Color[2][3];
       this.transparent=(n == 16 || n == 4) ?
-                        sum+color[3][3] < 4 : sum < 3;
+                        sum+Color[3][3] < 4 : sum < 3;
     } else
       this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
+
+    if(this.Color)
+      this.color=Color.filter(c => true);
 
     this.vertex=this.transparent ? this.data.Vertex.bind(this.data) :
       this.data.vertex.bind(this.data);
@@ -1029,9 +1033,8 @@ class BezierPatch extends Geometry {
     if(p.length == 3) return this.processTriangle(p);
     if(p.length == 4) return this.processQuad(p);
 
-    if(this.color && cstack.length>0) {
-      this.color=this.colorTransform(this.color,p);
-    }
+    if(this.color && cstack.length > 0)
+      this.color=this.colorTransform(this.Color,p);
 
     if(wireframe == 1) {
       this.curve(p,0,4,8,12);
