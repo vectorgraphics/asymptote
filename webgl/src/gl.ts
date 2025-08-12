@@ -3521,15 +3521,13 @@ function transformColor(nodes:any[], delta:number,
   });
 }
 
-
-
+let startTime:number=null;
+let maxEndTime:number=0;
 
 type Transformation = {
   f?: (v:vec3, delta:number) => vec3;
   colorF?: (v:vec3, c:vec4, delta:number) => vec4;
-  invertedDuration: number;
-  duration: number;
-  startTime: number;
+  durationInv: number;
   autoplay?:boolean;
 }
 
@@ -3543,10 +3541,10 @@ function animatedTransform(){
 
   return function(controlpoints: vec3[]): vec3[] {
     let cp=toUser(controlpoints);
-    const activeTime=globalStartTime+playbackTime;
-    for(const {f,invertedDuration,startTime,autoplay} of stack) {
+    const activeTime=startTime+playbackTime;
+    for(const {f,durationInv,autoplay} of stack) {
       const time=!autoplay?activeTime:now;
-      const t=Math.min(0.001*(time-startTime)*invertedDuration, 1.0);
+      const t=Math.min(0.001*(time-startTime)*durationInv, 1.0);
       cp=transformCP(cp,t,f);
     }
     return fromUser(cp)
@@ -3559,10 +3557,10 @@ function animatedColor() {
 
   return function(color,p) {
     let P=toUser([p[0],p[12],p[15],p[3]]);
-    const activeTime=globalStartTime+playbackTime;
-    for(const {colorF, invertedDuration, startTime,autoplay} of cstack){
+    const activeTime=startTime+playbackTime;
+    for(const {colorF,durationInv,autoplay} of cstack){
       const time=!autoplay?activeTime:now;
-      const t=Math.min(0.001*(time-startTime)*invertedDuration,1.0);
+      const t=Math.min(0.001*(time-startTime)*durationInv,1.0);
       color=transformColor(
             [[P[0],color[0]],
               [P[1],color[1]],
@@ -3572,9 +3570,6 @@ function animatedColor() {
     return color;
   }
 }
-
-let globalStartTime:number=null;
-let maxEndTime:number=0;
 
 let playbackDirection: "forward"|"backward"|null=null;
 let playbackTime:number=0;
@@ -4068,8 +4063,8 @@ function initTransform()
 
 function beginTransform(geometry,color,duration,autoplay)
 {
-  if(!globalStartTime) globalStartTime=performance.now();
-  const startTime=performance.now();
+// Should be deferred to rendering time
+  if(!startTime) startTime=performance.now();
   const endTime=startTime+duration*1000;
   if(endTime > maxEndTime && autoplay)
     maxEndTime=endTime;
@@ -4083,9 +4078,7 @@ function beginTransform(geometry,color,duration,autoplay)
   functionStack.push({
       f: geometry,
       colorF: color,
-      invertedDuration: duration > 0 ? 1/duration : 0,
-      duration: duration,
-      startTime: startTime,
+      durationInv: duration > 0 ? 1/duration : 0,
       autoplay:autoplay,
     }
   )
@@ -4152,7 +4145,6 @@ function webGLStart()
 
   home();
   requestAnimationFrame(animate);
-
 }
 globalThis.window.webGLStart=webGLStart;
 globalThis.window.light=light;
