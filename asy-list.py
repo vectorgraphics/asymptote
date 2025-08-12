@@ -83,11 +83,12 @@ with open(args.output_file, "w", encoding="utf-8") as keywords:
             # The pattern looks for:
             #   - An optional word (\w*) representing the return type.
             #   - Any number of non-space characters ([^ ]*), which may include
-            #     modifiers.
+            #     permission modifiers other than private
             #   - A space character.
             #   - Capture the function name (\w*).
             #   - An opening parenthesis '(', indicating the start of the parameter
             #     list.
+            line=re.sub(r'(^|\w*)(restricted|public)(?=\w*|$)','',line).strip();
             matchFun = re.search(r"^(\w*)[^ ]* (\w*)\(", line)
             if matchFun:
                 types.append(matchFun.group(1))
