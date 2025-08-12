@@ -4,8 +4,6 @@ import { vec3, vec4, mat3, mat4, ReadonlyVec3, ReadonlyVec4 } from "gl-matrix";
 import fragment from './shaders/fragment.glsl';
 import vertex from './shaders/vertex.glsl';
 
-//type vec3 = [number, number, number];
-
 declare var Module: any;
 
 const asyRenderingCanvas = {
@@ -665,7 +663,7 @@ abstract class Geometry {
   protected CenterIndex: number;
   protected Min: any[];
   protected Max: any[];
-  protected exactBounds: boolean;
+  protected haveBounds: boolean;
   protected epsilon: number;
   protected Epsilon: number;
   protected res2: number;
@@ -692,7 +690,7 @@ abstract class Geometry {
       p=this.transform(this.controlpoints);
       let norm2=L2norm2(p);
       this.epsilon=norm2*Number.EPSILON;
-      if(this.exactBounds)
+      if(this.haveBounds)
         [this.Min,this.Max]=this.transform([this.Min,this.Max]);
       else {
         let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
@@ -792,12 +790,12 @@ class BezierPatch extends Geometry {
     this.vertex=this.transparent ? this.data.Vertex.bind(this.data) :
       this.data.vertex.bind(this.data);
 
-    this.exactBounds=Min && Max;
+    this.haveBounds=Min && Max;
     this.Min=Min;
     this.Max=Max;
 
     this.transform=transform;
-    if(!this.exactBounds && transform == null) {
+    if(!this.haveBounds && transform == null) {
       let norm2=L2norm2(controlpoints);
       let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
       this.epsilon=norm2*Number.EPSILON;
@@ -2072,12 +2070,12 @@ class BezierCurve extends Geometry {
     this.CenterIndex=CenterIndex;
     this.MaterialIndex=MaterialIndex;
 
-    this.exactBounds=Min && Max;
+    this.haveBounds=Min && Max;
     this.Min=Min;
     this.Max=Max;
 
     this.transform=transform;
-    if(!this.exactBounds && transform == null)
+    if(!this.haveBounds && transform == null)
       [this.Min,this.Max]=this.Bounds(controlpoints,0);
   }
 
@@ -2204,7 +2202,7 @@ class Pixel extends Geometry {
               transform = null) {
     super();
     this.CenterIndex=0;
-    this.exactBounds=true;
+    this.haveBounds=true;
     this.Min=controlpoint;
     this.Max=controlpoint;
     this.transform=transform;
@@ -4060,29 +4058,27 @@ async function initIBLOnceEXRLoaderReady()
   await Promise.all(promises);
 }
 
-
-function initTransform() {
+function initTransform()
+{
   T=mat4.create();
   mat4.transpose(T,document.asy.Transform);
   Tinv=mat4.create();
   mat4.invert(Tinv,T);
 }
 
-function beginTransform(geometry,color,duration,autoplay) {
-  if (!globalStartTime) globalStartTime=performance.now();
+function beginTransform(geometry,color,duration,autoplay)
+{
+  if(!globalStartTime) globalStartTime=performance.now();
   const startTime=performance.now();
   const endTime=startTime+duration*1000;
-  if(endTime>maxEndTime&&autoplay) {
+  if(endTime > maxEndTime && autoplay)
     maxEndTime=endTime;
-  }
 
-  if(autoplay){
+  if(autoplay)
     autoplayAnimation=true;
-  }
 
-  if(!autoplay){
+  if(!autoplay)
     activeAnimation=true;
-  }
 
   functionStack.push({
       f: geometry,
@@ -4093,20 +4089,21 @@ function beginTransform(geometry,color,duration,autoplay) {
       autoplay:autoplay,
     }
   )
-
 }
 
-function endTransform() {
+function endTransform()
+{
   functionStack.pop();
 }
 
-function interp(a,b,t) {
-return [
-a[0]*(1-t)+b[0]*t,
-a[1]*(1-t)+b[1]*t,
-a[2]*(1-t)+b[2]*t,
-a[3]*(1-t)+b[3]*t,
-];
+function interp(a,b,t)
+{
+  return [
+    a[0]*(1-t)+b[0]*t,
+    a[1]*(1-t)+b[1]*t,
+    a[2]*(1-t)+b[2]*t,
+    a[3]*(1-t)+b[3]*t,
+  ];
 }
 
 function webGLStart()
