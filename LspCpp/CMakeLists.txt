@@ -280,12 +280,16 @@ else()
 
     find_package(Boost CONFIG COMPONENTS date_time  chrono filesystem system thread program_options)
     if(NOT Boost_FOUND)
-        if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-            message(FATAL_ERROR "Can't find boost,lease build boost and install it or install boost with : brew install boost")
-        elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-            message(FATAL_ERROR "Can't find boost,please build boost and install it. or install boost with : sudo apt-get install libboost-dev")
-        else()
-            message(FATAL_ERROR "Boost not found. Please ensure boost is available for CMake.")
+        # Fall back to the built-in FindBoost.cmake
+        find_package(Boost REQUIRED COMPONENTS date_time chrono filesystem system thread program_options)
+        if(NOT Boost_FOUND)
+            if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+                message(FATAL_ERROR "Can't find boost,lease build boost and install it or install boost with : brew install boost")
+            elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+                message(FATAL_ERROR "Can't find boost,please build boost and install it. or install boost with : sudo apt-get install libboost-dev")
+            else()
+                message(FATAL_ERROR "Boost not found. Please ensure boost is available for CMake.")
+            endif()
         endif()
     endif()
 endif()
@@ -324,8 +328,11 @@ set (LSP_INCLUDE_LIST ${LSPCPP_INCLUDE_DIR}
         ${RapidJSON_INCLUDE_DIRS}
         ${Uri_SOURCE_DIR}/include)
 ### Includes
-target_include_directories(lspcpp PRIVATE ${LSP_INCLUDE_LIST})
-
+if(LSPCPP_INSTALL)
+    target_include_directories(lspcpp PRIVATE ${LSP_INCLUDE_LIST})
+else ()
+    target_include_directories(lspcpp PUBLIC ${LSP_INCLUDE_LIST})
+endif ()
 target_link_libraries(lspcpp PUBLIC network-uri  ${Boost_LIBRARIES})
 
 set(LSPCPP_THIRD_PARTY_DIR_LIST

@@ -3,7 +3,7 @@
 #include <boost/process.hpp>
 
 #ifdef _WIN32
-#include <boost/process/v1/windows.hpp>
+#include <boost/process/windows.hpp>
 #endif
 
 #include <boost/filesystem.hpp>
