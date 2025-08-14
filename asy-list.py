@@ -88,18 +88,18 @@ with open(args.output_file, "w", encoding="utf-8") as keywords:
             #   - Capture the function name (\w*).
             #   - An opening parenthesis '(', indicating the start of the parameter
             #     list.
-            line=re.sub(r'(^|\w*)(restricted|public)(?=\w*|$)','',line).strip();
+            line = re.sub(r"(^|\w*)(restricted|public)(?=\w*|$)", "", line).strip()
             matchFun = re.search(r"^(\w*)[^ ]* (\w*)\(", line)
             if matchFun:
                 types.append(matchFun.group(1))
                 functions.append(matchFun.group(2))
-                # Match lines that declare variables.
-                # The pattern looks for:
-                #   - Any non-space characters before a space ([^ ]*), representing the
-                #     type.
-                #   - A space character.
-                #   - Capture the variable name (\w*).
-                #   - A semicolon ';', indicating the end of the declaration.
+            # Match lines that declare variables.
+            # The pattern looks for:
+            #   - Any non-space characters before a space ([^ ]*), representing the
+            #     type.
+            #   - A space character.
+            #   - Capture the variable name (\w*).
+            #   - A semicolon ';', indicating the end of the declaration.
             matchVarDec = re.search(r"^([^ ]*) (\w*);", line)
             if matchVarDec:
                 variables.append(matchVarDec.group(2))
