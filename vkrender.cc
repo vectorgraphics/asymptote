@@ -455,7 +455,6 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
   {
     case 'H':
       app->home();
-      app->update();
       break;
     case 'F':
       app->toggleFitScreen();
@@ -1070,7 +1069,7 @@ void AsyVkRender::pickPhysicalDevice()
     if(remote && physicalDevice.getProperties().deviceType !=
        vk::PhysicalDeviceType::eCpu)
       throw std::runtime_error(
-        "Remote rendering requires using the llvmpipe device.");
+        "Remote onscreen rendering requires the llvmpipe device.");
   } else {
     auto const getDeviceScore =
       [this,remote](vk::PhysicalDevice& device) -> std::size_t
@@ -5201,6 +5200,7 @@ void AsyVkRender::home(bool webgl) {
   rotateMat = viewMat = glm::mat4(1.0);
   Zoom0 = 1.0;
   framecount=0;
+  update();
 }
 
 void AsyVkRender::cycleMode() {
