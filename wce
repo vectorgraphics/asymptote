@@ -10,7 +10,7 @@ echo "$result"
 exit 1
 fi
 printf "Testing deconstruct..."
-./asy -q -sysdir base -outpipe 2 -xasy -c "draw(unitsquare); deconstruct()" 2> deconstruct.temp
+./asy -dvisvgmOptions=-v0 -q -sysdir base -outpipe 2 -xasy -c "draw(unitsquare); deconstruct()" 2> deconstruct.temp
 result=`diff deconstruct.temp deconstruct`
 if test "$result" = ""; then
 echo PASSED.
