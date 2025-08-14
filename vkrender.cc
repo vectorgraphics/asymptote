@@ -119,14 +119,11 @@ SwapChainDetails::choosePresentMode() const
 }
 
 vk::Extent2D
-SwapChainDetails::chooseExtent() const
+SwapChainDetails::chooseExtent(size_t width, size_t height) const
 {
   if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
     return capabilities.currentExtent;
   }
-
-  int width, height;
-  glfwGetFramebufferSize(vk->window, &width, &height);
 
   auto extent = vk::Extent2D(
     static_cast<uint32_t>(width),
@@ -1415,7 +1412,7 @@ void AsyVkRender::createSwapChain()
 {
   auto const swapDetails = SwapChainDetails(physicalDevice, *surface);
   auto && format = swapDetails.chooseSurfaceFormat();
-  auto && extent = swapDetails.chooseExtent();
+  auto && extent = swapDetails.chooseExtent(width,height);
 
   vk::ImageUsageFlags swapchainImgUsageFlags =
           vk::ImageUsageFlagBits::eColorAttachment
@@ -5182,7 +5179,6 @@ void AsyVkRender::fitscreen(bool reposition) {
 }
 
 void AsyVkRender::toggleFitScreen() {
-
 //  glfwHideWindow(window);
   hidden=true;
   Fitscreen = (Fitscreen + 1) % 3;

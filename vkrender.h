@@ -107,7 +107,7 @@ struct SwapChainDetails {
 
   vk::SurfaceFormatKHR chooseSurfaceFormat() const;
   vk::PresentModeKHR choosePresentMode() const;
-  vk::Extent2D chooseExtent() const;
+  vk::Extent2D chooseExtent(size_t width, size_t height) const;
   std::uint32_t chooseImageCount() const;
 };
 #endif
