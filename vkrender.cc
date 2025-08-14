@@ -234,9 +234,11 @@ void AsyVkRender::update()
   projViewMat = verticalFlipMat * projMat * viewMat;
 
 #ifdef HAVE_PTHREAD
-  pthread_t postThread;
-  if(pthread_create(&postThread,NULL,postEmptyEvent,NULL) == 0)
-    pthread_join(postThread,NULL);
+  if(View) {
+    pthread_t postThread;
+    if(pthread_create(&postThread,NULL,postEmptyEvent,NULL) == 0)
+      pthread_join(postThread,NULL);
+  }
 #endif
   redraw=true;
 }
@@ -277,7 +279,7 @@ void AsyVkRender::initWindow()
         + std::to_string(height));
   }
 
-//  glfwHideWindow(window);
+  glfwHideWindow(window);
   glfwSetWindowUserPointer(window, this);
   glfwSetMouseButtonCallback(window, mouseButtonCallback);
   glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
@@ -829,6 +831,8 @@ void AsyVkRender::recreateSwapChain()
   createAttachments();
   createFramebuffers();
   createExportResources();
+
+  transparentData.clear();
   redraw=true;
 }
 
@@ -3975,16 +3979,12 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
   beginFrameCommands(*object.countCommandBuffer);
 
-  if (!GPUcompress) {
-
-    currentCommandBuffer.fillBuffer(countBf.getBuffer(), 0, countBufferSize, 0);
-  }
+  currentCommandBuffer.fillBuffer(countBf.getBuffer(), 0, countBufferSize, 0);
 
   beginCountFrameRender(imageIndex);
   currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *graphicsPipelineLayout, 0, 1, &*object.descriptorSet, 0, nullptr);
 
   if (!interlock) {
-
     drawBuffer(object.pointVertexBuffer,
                object.pointIndexBuffer,
                &pointData,
@@ -4024,7 +4024,6 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
 
   if (GPUcompress) {
-
     static auto elemBfMappedMem=make_unique<vma::cxx::MemoryMapperLock>(elementBf);
     static std::uint32_t* p = nullptr;
     if (p == nullptr) {
@@ -4267,7 +4266,8 @@ void AsyVkRender::drawFrame()
                                                         *frameObject.imageAvailableSemaphore, nullptr,
                                                         &imageIndex);
     if (result == vk::Result::eErrorOutOfDateKHR
-        || result == vk::Result::eSuboptimalKHR) {
+        || result == vk::Result::eSuboptimalKHR || framebufferResized) {
+      framebufferResized = false;
       recreateSwapChain();
       return;
     }
@@ -4466,9 +4466,8 @@ void AsyVkRender::display()
   double perspective = orthographic ? 0.0 : 1.0 / Zmax;
   double diagonalSize = hypot(width, height);
 
-  cout << "begin render" << endl;
-  pic->render(diagonalSize, triple(xmin, ymin, Zmin), triple(xmax, ymax, Zmax), perspective, remesh);
-  cout << "end render" << endl;
+  pic->render(diagonalSize, triple(xmin, ymin, Zmin), triple(xmax, ymax, Zmax),
+              perspective, remesh);
 
   if(hidden) {
     glfwShowWindow(window);
@@ -4832,8 +4831,8 @@ void AsyVkRender::Export(int imageIndex) {
   delete Image;
   delete[] fmt;
   queueExport=false;
-  remesh=true;
   setProjection();
+  remesh=true;
   redraw=true;
 
 #ifdef HAVE_PTHREAD
@@ -4865,7 +4864,7 @@ void AsyVkRender::quit()
     }
 
 #endif
-//    glfwHideWindow(window);
+    glfwHideWindow(window);
     hidden=true;
   } else {
     glfwDestroyWindow(window);
@@ -5093,27 +5092,15 @@ void AsyVkRender::setsize(int w, int h, bool reposition) {
   update();
 }
 
-void AsyVkRender::fullscreen(bool reposition) {
-
+void AsyVkRender::fullscreen(bool reposition)
+{
   width=screenWidth;
   height=screenHeight;
-
-  if (firstFit) {
-
-    if (width < height*Aspect) {
-      Zoom0 *= width/(height*Aspect);
-    }
-    capzoom();
-    setProjection();
-    firstFit=false;
-  }
   Xfactor=((double) screenHeight)/height;
   Yfactor=((double) screenWidth)/width;
-  reshape0(width, height);
-  glfwSetWindowSize(window, width, height);
-  if (reposition) {
+  if(reposition)
     glfwSetWindowPos(window, 0, 0);
-  }
+  setsize(width,height);
 }
 
 void AsyVkRender::reshape0(int Width, int Height) {
@@ -5172,13 +5159,10 @@ void AsyVkRender::fitscreen(bool reposition) {
 }
 
 void AsyVkRender::toggleFitScreen() {
-//  glfwHideWindow(window);
+  glfwHideWindow(window);
   hidden=true;
   Fitscreen = (Fitscreen + 1) % 3;
   fitscreen();
-  recreatePipeline=true;
-  remesh=true;
-  redraw=true;
 }
 
 void AsyVkRender::home(bool webgl) {
