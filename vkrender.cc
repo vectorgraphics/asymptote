@@ -264,9 +264,6 @@ double AsyVkRender::getRenderResolution(triple Min) const
 
 void AsyVkRender::initWindow()
 {
-  if (!View)
-    return;
-
   if (!window) {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_FOCUSED, GLFW_FALSE);
@@ -709,9 +706,9 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 
 //  home(format3d);
 //  setProjection();
-  initWindow();
 
   if(View) {
+    initWindow();
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
     firstFit=true;
@@ -729,14 +726,9 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
     fitscreen();
     setosize();
     initializedView=true;
-  }
-
-//  update();
-  if(window)
     glfwShowWindow(window);
-
-  if(View)
     glfwSetWindowCloseCallback(window,closeWindowHandler);
+  }
 
   mainLoop();
 #endif
@@ -4580,6 +4572,7 @@ void AsyVkRender::mainLoop()
       }
     }
   } else {
+    update();
     display();
     if(vkthread) {
       if(havewindow) {
@@ -5195,7 +5188,6 @@ void AsyVkRender::home(bool webgl) {
   rotateMat = viewMat = glm::mat4(1.0);
   Zoom0 = 1.0;
   framecount=0;
-  update();
 }
 
 void AsyVkRender::cycleMode() {
