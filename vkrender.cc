@@ -1053,83 +1053,104 @@ void AsyVkRender::pickPhysicalDevice()
     remote=display ? string(display).find(":") != 0 : false;
   }
 
-  auto const getDeviceScore =
-    [this,remote](vk::PhysicalDevice& device) -> std::size_t
-  {
-    std::size_t score = 0u;
+  Int device=getSetting<Int>("device");
 
-    if (!this->isDeviceSuitable(device))
-      return score;
-
-    auto const msaa = getMaxMSAASamples(device).second;
-
-    switch (msaa)
-    {
-      case vk::SampleCountFlagBits::e64:
-      case vk::SampleCountFlagBits::e32:
-      case vk::SampleCountFlagBits::e16:
-
-        score += 10;
-        break;
-
-      case vk::SampleCountFlagBits::e8:
-      case vk::SampleCountFlagBits::e4:
-      case vk::SampleCountFlagBits::e2:
-
-        score += 5;
-        break;
-
-      default:
-
-        break;
+  ssize_t count=0;
+  bool showDevices=settings::verbose > 1;
+  if(device >= 0 || showDevices) {
+    for(auto& dev: instance->enumeratePhysicalDevices()) {
+      dev.getProperties().deviceName;
+      if(showDevices)
+        std::cerr << "Device " << count << ": " << dev.getProperties().deviceName << std::endl;
+      count++;
     }
-
-    auto const props = device.getProperties();
-
-    bool software=offscreen || remote;
-
-    if(vk::PhysicalDeviceType::eDiscreteGpu == props.deviceType) {
-      if(software) return 0;
-      score += 10;
-    } else if(vk::PhysicalDeviceType::eIntegratedGpu == props.deviceType) {
-      if(software) return 0;
-      score += 5;
-    } else if(vk::PhysicalDeviceType::eCpu == props.deviceType &&
-            software) {
-      // Force using software renderer for remote or offscreen rendering
-      score += 100;
-    }
-
-    return score;
-  };
-
-  std::pair<std::size_t, vk::PhysicalDevice> highestDeviceScore;
-
-  for (auto & dev: instance->enumeratePhysicalDevices())
-  {
-    auto const score = getDeviceScore(dev);
-
-    if (nullptr == highestDeviceScore.second
-        || score > highestDeviceScore.first)
-      highestDeviceScore = std::make_pair(score, dev);
   }
 
-  if (0 == highestDeviceScore.first) {
-    throw std::runtime_error("No suitable GPUs.");
-  }
+  if(device >= 0 && device < count) {
+    physicalDevice=instance->enumeratePhysicalDevices()[device];
+    if(remote && physicalDevice.getProperties().deviceType !=
+       vk::PhysicalDeviceType::eCpu)
+      throw std::runtime_error(
+        "Remote rendering requires using the llvmpipe device.");
+  } else {
+    auto const getDeviceScore =
+      [this,remote](vk::PhysicalDevice& device) -> std::size_t
+      {
+        std::size_t score = 0u;
 
-  physicalDevice = highestDeviceScore.second;
-  if(settings::verbose > 1)
-    cout << "Using device " << physicalDevice.getProperties().deviceName
-         << endl;
+        if (!this->isDeviceSuitable(device))
+          return score;
+
+        auto const msaa = getMaxMSAASamples(device).second;
+
+        switch (msaa)
+          {
+            case vk::SampleCountFlagBits::e64:
+            case vk::SampleCountFlagBits::e32:
+            case vk::SampleCountFlagBits::e16:
+
+              score += 10;
+              break;
+
+            case vk::SampleCountFlagBits::e8:
+            case vk::SampleCountFlagBits::e4:
+            case vk::SampleCountFlagBits::e2:
+
+              score += 5;
+              break;
+
+            default:
+
+              break;
+          }
+
+        auto const props = device.getProperties();
+
+        bool software=offscreen || remote;
+
+        if(vk::PhysicalDeviceType::eDiscreteGpu == props.deviceType) {
+          if(software) return 0;
+          score += 10;
+        } else if(vk::PhysicalDeviceType::eIntegratedGpu == props.deviceType) {
+          if(software) return 0;
+          score += 5;
+        } else if(vk::PhysicalDeviceType::eCpu == props.deviceType &&
+                  software) {
+          // Force using software renderer for remote or offscreen rendering
+          score += 100;
+        }
+
+        return score;
+      };
+
+    std::pair<std::size_t, vk::PhysicalDevice> highestDeviceScore;
+
+    for (auto & dev: instance->enumeratePhysicalDevices())
+      {
+        auto const score = getDeviceScore(dev);
+
+        if (nullptr == highestDeviceScore.second
+            || score > highestDeviceScore.first)
+          highestDeviceScore = std::make_pair(score, dev);
+      }
+
+    if (0 == highestDeviceScore.first) {
+      throw std::runtime_error("No suitable GPUs.");
+    }
+
+    physicalDevice = highestDeviceScore.second;
+    if(settings::verbose > 1)
+      cout << "Using device " << physicalDevice.getProperties().deviceName
+           << endl;
+  }
 
   std::uint32_t nSamples;
 
   std::tie(nSamples, msaaSamples) = getMaxMSAASamples(physicalDevice);
 
   if(settings::verbose > 1 && msaaSamples != vk::SampleCountFlagBits::e1)
-      cout << "Multisampling enabled with sample width " << nSamples
-           << endl;
+    cout << "Multisampling enabled with sample width " << nSamples
+         << endl;
 }
 
 std::pair<std::uint32_t, vk::SampleCountFlagBits>
