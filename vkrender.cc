@@ -27,6 +27,12 @@ using settings::Setting;
 
 void exitHandler(int);
 
+void runtimeError(std::string s)
+{
+  cerr << "error: " << s << endl;
+  exit(-1);
+}
+
 #ifdef HAVE_VULKAN
 uint32_t apiVersion=VK_API_VERSION_1_4;
 
@@ -56,9 +62,8 @@ const Int timePartialSumVerbosity=4;
 std::vector<char> readFile(const std::string& filename)
 {
   std::ifstream file(filename, std::ios::ate | std::ios::binary);
-  if (!file.is_open()) {
-    throw std::runtime_error("failed to open file " + filename + "!");
-  }
+  if (!file.is_open())
+    runtimeError("failed to open file " + filename);
 
   std::size_t fileSize = (std::size_t) file.tellg();
   std::vector<char> buffer(fileSize);
@@ -271,12 +276,11 @@ void AsyVkRender::initWindow()
     glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE);
     window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
 
-    if (window == nullptr) {
-      throw std::runtime_error(
-        "Failed to create a window with width "
+    if (window == nullptr)
+      runtimeError(
+        "failed to create a window with width "
         + std::to_string(width) + " and height "
         + std::to_string(height));
-    }
   }
 
 //  glfwHideWindow(window);
@@ -531,7 +535,7 @@ AsyVkRender::~AsyVkRender()
 bool ispow2(unsigned int n) {return n > 0 && !(n & (n - 1));}
 void checkpow2(unsigned int n, string s) {
   if(!ispow2(n)) {
-    cerr << s << " must be a power of two." << endl;
+    cerr << s << " must be a power of two" << endl;
     exit(-1);
   }
 }
@@ -703,7 +707,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   ibl=settings::getSetting<bool>("ibl");
 
   if (offscreen && settings::verbose > 1) {
-    std::cout << "Using offscreen mode." << std::endl;
+    std::cout << "Using offscreen mode" << std::endl;
   }
 
 //  home(format3d);
@@ -750,16 +754,15 @@ void AsyVkRender::initVulkan()
 
   VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
-  if (!glslang::InitializeProcess()) {
-    throw std::runtime_error("Unable to initialize glslang.");
-  }
+  if (!glslang::InitializeProcess())
+    runtimeError("failed to initialize glslang");
 
   maxFramesInFlight=View ? settings::getSetting<Int>("maxFramesInFlight") : 1;
   frameObjects.resize(maxFramesInFlight);
 
   if (settings::verbose > 1) {
     std::cout << "Using " << maxFramesInFlight
-              << " maximum frame(s) in flight." << std::endl;
+              << " maximum frame(s) in flight" << std::endl;
   }
   createInstance();
 #if defined(VALIDATION)
@@ -920,7 +923,7 @@ void AsyVkRender::createInstance()
   if (isLayerSupported(VALIDATION_LAYER)) {
     validationLayers.emplace_back(VALIDATION_LAYER);
   } else if (settings::verbose > 1) {
-    std::cout << "Validation layers are not supported by the current Vulkan instance." << std::endl;
+    std::cout << "Validation layers are not supported by the current Vulkan instance" << std::endl;
   }
 #endif
 
@@ -1016,9 +1019,8 @@ void AsyVkRender::createSurface()
   surface=vk::UniqueSurfaceKHR(tmpSurface);
 #else
   VkSurfaceKHR surfaceTmp;
-  if (glfwCreateWindowSurface(*instance, window, nullptr, &surfaceTmp) != VK_SUCCESS) {
-    throw std::runtime_error("Failed to create window surface!");
-  }
+  if (glfwCreateWindowSurface(*instance, window, nullptr, &surfaceTmp) != VK_SUCCESS)
+    runtimeError("failed to create window surface");
   surface=vk::UniqueSurfaceKHR(surfaceTmp, *instance);
 #endif
 }
@@ -1068,8 +1070,7 @@ void AsyVkRender::pickPhysicalDevice()
     physicalDevice=instance->enumeratePhysicalDevices()[device];
     if(remote && physicalDevice.getProperties().deviceType !=
        vk::PhysicalDeviceType::eCpu)
-      throw std::runtime_error(
-        "Remote onscreen rendering requires the llvmpipe device.");
+      runtimeError("remote onscreen rendering requires the llvmpipe device");
   } else {
     auto const getDeviceScore =
       [this,remote](vk::PhysicalDevice& device) -> std::size_t
@@ -1132,9 +1133,8 @@ void AsyVkRender::pickPhysicalDevice()
           highestDeviceScore = std::make_pair(score, dev);
       }
 
-    if (0 == highestDeviceScore.first) {
-      throw std::runtime_error("No suitable GPUs.");
-    }
+    if (0 == highestDeviceScore.first)
+      runtimeError("no suitable GPUs");
 
     physicalDevice = highestDeviceScore.second;
   }
@@ -1276,7 +1276,7 @@ void AsyVkRender::createLogicalDevice()
   if (supportedDeviceExtensions.find(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
     extensions.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
     if (settings::verbose > 1)
-      std::cout << "Using logical device memory requirements extension."
+      std::cout << "Using logical device memory requirements extension"
                 << std::endl;
   }
 
@@ -1545,7 +1545,7 @@ vk::UniqueShaderModule AsyVkRender::createShaderModule(EShLanguage lang, std::st
     unsigned int k=0;
     while(getline(s,line))
       std::cerr << ++k << ": " << line << std::endl;
-    throw std::runtime_error("\n Failed to parse "
+    runtimeError("\n failed to parse "
                              + filename
                              + ":\n" + shader.getInfoLog()
                              + " " + shader.getInfoDebugLog());
@@ -1554,7 +1554,7 @@ vk::UniqueShaderModule AsyVkRender::createShaderModule(EShLanguage lang, std::st
   program.addShader(&shader);
 
   if (!program.link(compileMessages)) {
-    throw std::runtime_error("Failed to link shader "
+    runtimeError("failed to link shader "
                              + filename
                              + ": " + shader.getInfoLog());
   }
@@ -1676,7 +1676,7 @@ void AsyVkRender::endSingleCommands(vk::CommandBuffer cmd)
   vk::UniqueFence fence = device->createFenceUnique(vk::FenceCreateInfo());
 
   if (!fence.get()) {
-    std::cout << "Fence failed to allocate." << std::endl;
+    std::cout << "Fence failed to allocate" << std::endl;
   }
 
   cmd.end();
@@ -1724,7 +1724,8 @@ uint32_t AsyVkRender::selectMemory(const vk::MemoryRequirements memRequirements,
     if ((memRequirements.memoryTypeBits & (1u << i)) &&
         ((properties & memProperties.memoryTypes[i].propertyFlags) == properties))
       return i;
-  throw std::runtime_error("failed to find suitable memory type!");
+  runtimeError("failed to find suitable memory type");
+  exit(-1);
 }
 
 vma::cxx::UniqueBuffer AsyVkRender::createBufferUnique(
@@ -1763,7 +1764,8 @@ void AsyVkRender::copyBufferToBuffer(const vk::Buffer& srcBuffer, const vk::Buff
   auto fence = device->createFenceUnique(vk::FenceCreateInfo());
   auto submitInfo = vk::SubmitInfo(0, nullptr, nullptr, 1, &*commandBuffer);
   auto submitResult = transferQueue.submit(1, &submitInfo, *fence);
-  if (submitResult != vk::Result::eSuccess) throw std::runtime_error("failed to submit command buffer!");
+  if (submitResult != vk::Result::eSuccess)
+    runtimeError("failed to submit command buffer");
   vkutils::checkVkResult(device->waitForFences(
     1, &*fence, VK_TRUE, std::numeric_limits<uint64_t>::max()
   ));
@@ -3068,9 +3070,8 @@ void AsyVkRender::createCountRenderPass()
 
   countRenderPass = device->createRenderPass2Unique(renderPassCI);
 
-  if (!countRenderPass) {
-    throw std::runtime_error("Failed to create the count render pass.");
-  }
+  if (!countRenderPass)
+    runtimeError("failed to create the count render pass");
 }
 
 void AsyVkRender::createGraphicsRenderPass()
@@ -3182,9 +3183,8 @@ void AsyVkRender::createGraphicsRenderPass()
   opaqueGraphicsRenderPass= device->createRenderPass2Unique(opaqueRenderPassCI);
   setDebugObjectName(*opaqueGraphicsRenderPass, "opaqueGraphicsRenderPass");
 
-  if (!opaqueGraphicsRenderPass) {
-    throw std::runtime_error("Failed to create the opaque render pass.");
-  }
+  if (!opaqueGraphicsRenderPass)
+    runtimeError("failed to create the opaque render pass");
 
   auto renderPassCI = vk::RenderPassCreateInfo2(
     vk::RenderPassCreateFlags(),
@@ -3194,9 +3194,8 @@ void AsyVkRender::createGraphicsRenderPass()
   );
   graphicsRenderPass = device->createRenderPass2Unique(renderPassCI);
 
-  if (!graphicsRenderPass) {
-    throw std::runtime_error("Failed to create the graphics render pass.");
-  }
+  if (!graphicsRenderPass)
+    runtimeError("failed to create the graphics render pass");
   setDebugObjectName(*graphicsRenderPass, "graphicsRenderPass");
 }
 
@@ -3415,7 +3414,7 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
 
   auto result = device->createGraphicsPipelineUnique(nullptr, pipelineCI, nullptr);
   if (result.result != vk::Result::eSuccess)
-    throw std::runtime_error("failed to create pipeline!");
+    runtimeError("failed to create pipeline");
   else
     graphicsPipeline = std::move(result.value);
 }
@@ -3566,7 +3565,7 @@ void AsyVkRender::createComputePipeline(
 
 auto result = device->createComputePipelineUnique(VK_NULL_HANDLE, computePipelineCI);
   if (result.result != vk::Result::eSuccess)
-    throw std::runtime_error("failed to create compute pipeline!");
+    runtimeError("failed to create compute pipeline");
   else
     pipeline = std::move(result.value);
 }
@@ -4284,7 +4283,7 @@ void AsyVkRender::drawFrame()
       return;
     }
     else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
-      throw std::runtime_error("Failed to acquire next swapchain image.");
+      runtimeError("failed to acquire next swapchain image");
   }
   vkutils::checkVkResult(device->resetFences(
     1, &*frameObject.inFlightFence
@@ -4388,7 +4387,7 @@ void AsyVkRender::drawFrame()
   );
 
   if (renderQueue.submit(SINGLETON_VIEW(submitInfo), *frameObject.inFlightFence) != vk::Result::eSuccess)
-    throw std::runtime_error("failed to submit draw command buffer!");
+    runtimeError("failed to submit draw command buffer");
 
   // Present to the swapchain if we are rendering on-screen.
   if (View) {
@@ -4404,7 +4403,7 @@ void AsyVkRender::drawFrame()
         recreateSwapChain();
        }
       else if (result != vk::Result::eSuccess)
-        throw std::runtime_error( "Failed to present swapchain image." );
+        runtimeError( "failed to present swapchain image" );
     }
     catch(std::exception const & e)
     {
@@ -4804,7 +4803,7 @@ void AsyVkRender::Export(int imageIndex) {
   );
 
   if (renderQueue.submit(1, &submitInfo, *exportFence) != vk::Result::eSuccess)
-    throw std::runtime_error("failed to submit draw command buffer!");
+    runtimeError("failed to submit draw command buffer");
 
   vkutils::checkVkResult(device->waitForFences(
     1, &*exportFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
