@@ -1059,7 +1059,6 @@ void AsyVkRender::pickPhysicalDevice()
   bool showDevices=settings::verbose > 1;
   if(device >= 0 || showDevices) {
     for(auto& dev: instance->enumeratePhysicalDevices()) {
-      dev.getProperties().deviceName;
       if(showDevices)
         std::cerr << "Device " << count << ": " << dev.getProperties().deviceName << std::endl;
       count++;
@@ -1139,10 +1138,11 @@ void AsyVkRender::pickPhysicalDevice()
     }
 
     physicalDevice = highestDeviceScore.second;
-    if(settings::verbose > 1)
-      cout << "Using device " << physicalDevice.getProperties().deviceName
-           << endl;
   }
+
+  if(settings::verbose > 1)
+    cout << "Using device " << physicalDevice.getProperties().deviceName
+         << endl;
 
   std::uint32_t nSamples;
 
