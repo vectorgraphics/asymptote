@@ -5172,6 +5172,14 @@ void AsyVkRender::home(bool webgl) {
   rotateMat = viewMat = glm::mat4(1.0);
   Zoom0 = 1.0;
   framecount=0;
+
+  setProjection();
+  updateViewmodelData();
+
+  static auto const verticalFlipMat = glm::scale(glm::dmat4(1.0f), glm::dvec3(1.0f, -1.0f, 1.0f));
+
+  projViewMat = verticalFlipMat * projMat * viewMat;
+  redraw=true;
 }
 
 void AsyVkRender::cycleMode() {
