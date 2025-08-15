@@ -3032,14 +3032,14 @@ function handleKey(event)
   }
   if (keycode=="ArrowRight"&&playbackDirection!="forward") {
     playbackDirection="forward";
-    if(position>maxEndTime&&!activeAnimation) {
+    if(position >= startTime+maxDuration && !activeAnimation) {
       activeAnimation=true;
       requestAnimationFrame(animate)
     }
 
   } else if (keycode=="ArrowLeft"&&playbackDirection!="backward") {
     playbackDirection="backward";
-    if(position>maxEndTime&&!activeAnimation) {
+    if(position >= startTime+maxDuration && !activeAnimation) {
       activeAnimation=true;
       requestAnimationFrame(animate)
     }
@@ -3056,9 +3056,8 @@ function stopAnimation(event) {
   let keycode=event.key;
   if ((keycode=="ArrowRight"&&playbackDirection=="forward") ||
     (keycode=="ArrowLeft"&&playbackDirection=="backward")) {
-      if (position>=maxEndTime) {
+      if(position >= startTime+maxDuration)
         activeAnimation=false;
-      }
       playbackDirection=null;
     }}
 
@@ -3525,7 +3524,7 @@ function transformColor(nodes:any[], delta:number,
 }
 
 let startTime:number=null;
-let maxEndTime:number=0;
+let maxDuration:number=0;
 
 type Transformation = {
   f?: (v:vec3, delta:number) => vec3;
@@ -3600,7 +3599,8 @@ function animate(timestamp:number) {
 
   drawScene();
 
-  const continued=autoplayAnimation&&!activeAnimation?(timestamp<maxEndTime):(activeAnimation);
+  const continued=autoplayAnimation && !activeAnimation ?
+    timestamp < startTime+maxDuration : activeAnimation;
   if (continued) {
     requestAnimationFrame(animate);
   } else {
@@ -4066,11 +4066,9 @@ function initTransform()
 
 function beginTransform(geometry,color,duration,autoplay)
 {
-// Should be deferred to rendering time
-  if(!startTime) startTime=performance.now();
-  const endTime=startTime+duration*1000;
-  if(endTime > maxEndTime && autoplay)
-    maxEndTime=endTime;
+  const msDuration=duration*1000;
+  if(msDuration > maxDuration && autoplay)
+    maxDuration=msDuration;
 
   if(autoplay)
     autoplayAnimation=true;
@@ -4147,6 +4145,7 @@ function webGLStart()
     }
 
   home();
+  startTime=performance.now();
   requestAnimationFrame(animate);
 }
 globalThis.window.webGLStart=webGLStart;

@@ -246,7 +246,6 @@ if(settings.ibl) {
 
 triple m=min(S);
 triple M=max(S);
-write(m,M);
 
 javascript("let xmax="+string(M.x)+";"+'\n');
 javascript("let zmin="+string(m.z)+";"+'\n');
@@ -254,15 +253,20 @@ javascript("let zmax="+string(M.z)+";"+'\n');
 javascript("let red=[1,0,0,1];"+'\n');
 javascript("let blue=[0,0,1,1];"+'\n');
 
-beginTransform(geometry="function(v,t) {return [v[0]+xmax*t,v[1],v[2]];}",
-               color="function(v,c,t) {return interp(c,red,t);}",10,false);
-//                             color="function(v,c,t) {
-//               return interp(blue,interp(blue,red,(v[2]-zmin)/(zmax-zmin)),t);}",10,false);
+beginTransform(geometry="
+               function(x,t) {return [x[0]+xmax*t,x[1],x[2]];}",
+               color="
+function(x,c,t) {
+  return interp(c,interp(c,red,(x[2]-zmin)/(zmax-zmin)),t);}",
+               10,false);
 
 draw(S,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));
 
-beginTransform("function(v,delta) {return [v[0],v[1],v[2]+5*Math.sin(8*Math.PI*delta)];}",5,true);
+beginTransform("
+function(x,t) {
+return [x[0],x[1],x[2]+10*Math.sin(8*Math.PI*t)];}",
+               8,true);
 
 draw(Sknob,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));
