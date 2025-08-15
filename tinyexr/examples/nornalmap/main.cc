@@ -1,3 +1,5 @@
+#include <iostream>
+
 #define TINYEXR_IMPLEMENTATION
 #include "tinyexr.h"
 

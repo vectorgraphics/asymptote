@@ -1,0 +1,36 @@
+{
+  "name": "asy-gl",
+  "license": "SEE LICENSE IN license",
+  "version": "1.0.0",
+  "description": "WebGL renderer for asymptote",
+  "dependencies": {
+    "@types/webgl2": "^0.0.10",
+    "gl-matrix": "3.4.3"
+  },
+
+  "scripts": {
+    "prettier": "npx prettier src --check",
+    "eslint": "npx eslint \"src/**\"",
+    "build": "npx webpack --config webpack.prod.js",
+    "build-dev": "npx webpack --config webpack.dev.js",
+    "build-debug-nosourcemap": "npx webpack --config webpack.debug-no-sourcemap.js"
+  },
+
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.34.1",
+    "@typescript-eslint/parser": "^8.34.1",
+    "@eslint/js": "^9.0.0",
+    "typescript-eslint": "^8.34.1",
+    "eslint": "^9.0.0",
+    "typescript": "^5.8.3",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1",
+    "ts-loader": "^9.5.2"
+  },
+
+  "browser": {
+    "fs": false,
+    "os": false,
+    "path": false
+  }
+}
