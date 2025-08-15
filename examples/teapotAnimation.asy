@@ -224,8 +224,9 @@ surface regularize(triple[][] P, real fraction=0.002)
 
 surface S=surface(Q,C);
 
+surface Sbase;
 for(triple[][] q : base)
-  S.append(regularize(q));
+  Sbase.append(regularize(q));
 // S.append(surface(patch(q)));
 
 surface Sknob;
@@ -248,9 +249,11 @@ triple m=min(S);
 triple M=max(S);
 
 javascript("let xmax="+string(M.x)+";"+'\n');
+javascript("let ymax="+string(M.y)+";"+'\n');
 javascript("let zmin="+string(m.z)+";"+'\n');
 javascript("let zmax="+string(M.z)+";"+'\n');
 javascript("let red=[1,0,0,1];"+'\n');
+javascript("let green=[0,1,0,1];"+'\n');
 javascript("let blue=[0,0,1,1];"+'\n');
 
 beginTransform(geometry="
@@ -264,13 +267,22 @@ draw(S,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));
 
 beginTransform("
-function(x,t) {
-return [x[0],x[1],x[2]+10*Math.sin(8*Math.PI*t)];}",
+function(x,t) {return [x[0],x[1],x[2]+10*Math.sin(8*Math.PI*t)];}",
                8,true);
 
 draw(Sknob,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));
 
+beginTransform(geometry="
+function(x,t) {return [x[0]-xmax*t,x[1]-ymax*t,x[2]];}",
+               color="
+function(x,c,t) {return interp(c,green,t);}",
+               10,false);
+
+draw(Sbase,material(color,shininess=0.85,metallic=metallic),
+     render(compression=Single));
+
+endTransform();
 endTransform();
 endTransform();
 

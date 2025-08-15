@@ -668,7 +668,7 @@ abstract class Geometry {
   protected Epsilon: number;
   protected res2: number;
   protected controlpoints: any[];
-  protected transform: any;
+  protected transform: Function;
 
   setMaterial(data,draw) {
     if(data.materialTable[this.MaterialIndex] == null) {
@@ -686,7 +686,7 @@ abstract class Geometry {
     this.setMaterialIndex();
 
     let p;
-    if(this.transform != null) {
+    if(this.transform) {
       p=this.transform(this.controlpoints);
       let norm2=L2norm2(p);
       this.epsilon=norm2*Number.EPSILON;
@@ -778,7 +778,8 @@ class BezierPatch extends Geometry {
               protected CenterIndex, protected MaterialIndex,
               private Color = null,
               protected Min = null, protected Max = null,
-              protected transform = null, protected colorTransform = null) {
+              protected geometryTransform = null,
+              protected colorTransform = null) {
     super();
     const n=controlpoints.length;
     if(Color) {
@@ -788,8 +789,8 @@ class BezierPatch extends Geometry {
     } else
       this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
 
-    if(this.Color)
-      this.color=Color.filter(c => true);
+    if(Color)
+      this.color=[...Color];
 
     this.vertex=this.transparent ? this.data.Vertex.bind(this.data) :
       this.data.vertex.bind(this.data);
@@ -798,8 +799,8 @@ class BezierPatch extends Geometry {
     this.Min=Min;
     this.Max=Max;
 
-    this.transform=transform;
-    if(!this.haveBounds && transform == null) {
+    this.transform=geometryTransform;
+    if(!this.haveBounds && geometryTransform == null) {
       let norm2=L2norm2(controlpoints);
       let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
       this.epsilon=norm2*Number.EPSILON;
@@ -1033,7 +1034,7 @@ class BezierPatch extends Geometry {
     if(p.length == 3) return this.processTriangle(p);
     if(p.length == 4) return this.processQuad(p);
 
-    if(this.color && cstack.length > 0)
+    if(this.color && this.colorTransform)
       this.color=this.colorTransform(this.Color,p);
 
     if(wireframe == 1) {
@@ -3527,47 +3528,46 @@ let startTime:number=null;
 let maxDuration:number=0;
 
 type Transformation = {
-  f?: (v:vec3, delta:number) => vec3;
-  colorF?: (v:vec3, c:vec4, delta:number) => vec4;
+  geometryTransform?: (v:vec3, delta:number) => vec3;
+  colorTransform?: (v:vec3, c:vec4, delta:number) => vec4;
   durationInv: number;
   autoplay?:boolean;
 }
 
-let functionStack: Transformation[] = [];
-let cstack: Transformation[];
+let transformStack: Transformation[] = [];
 let now:number;
 
-function animatedTransform(){
-  if(functionStack.length == 0) return;
-  let stack=functionStack.filter(f => f.f!= null);
+function animatedGeometry(){
+  if(transformStack.length == 0) return;
+  let stack=transformStack.filter(f => f.geometryTransform != null);
 
   return function(controlpoints: vec3[]): vec3[] {
     let cp=toUser(controlpoints);
     const activeTime=startTime+playbackTime;
-    for(const {f,durationInv,autoplay} of stack) {
+    for(const {geometryTransform,durationInv,autoplay} of stack) {
       const time=!autoplay?activeTime:now;
-      const t=Math.min(0.001*(time-startTime)*durationInv, 1.0);
-      cp=transformCP(cp,t,f);
+      const t=Math.min((time-startTime)*durationInv,1.0);
+      cp=transformCP(cp,t,geometryTransform);
     }
     return fromUser(cp)
   }
 }
 
 function animatedColor() {
-  if(functionStack.length == 0) return;
-  cstack=functionStack.filter(f => f.colorF!= null);
+  if(transformStack.length == 0) return;
+  let stack=transformStack.filter(f => f.colorTransform != null);
 
   return function(color,p) {
     let P=toUser([p[0],p[12],p[15],p[3]]);
     const activeTime=startTime+playbackTime;
-    for(const {colorF,durationInv,autoplay} of cstack){
+    for(const {colorTransform,durationInv,autoplay} of stack) {
       const time=!autoplay?activeTime:now;
-      const t=Math.min(0.001*(time-startTime)*durationInv,1.0);
+      const t=Math.min((time-startTime)*durationInv,1.0);
       color=transformColor(
             [[P[0],color[0]],
               [P[1],color[1]],
               [P[2],color[2]],
-              [P[3],color[3]]],t,colorF);
+              [P[3],color[3]]],t,colorTransform);
     }
     return color;
   }
@@ -3625,7 +3625,7 @@ function material(diffuse,emissive,specular,shininess,metallic,fresnel0)
 function patch(controlpoints,CenterIndex,MaterialIndex,color)
 {
   P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color,
-                         null,null,animatedTransform(),animatedColor()));
+                         null,null,animatedGeometry(),animatedColor()));
 }
 
 function curve(controlpoints,CenterIndex,MaterialIndex)
@@ -4072,14 +4072,13 @@ function beginTransform(geometry,color,duration,autoplay)
 
   if(autoplay)
     autoplayAnimation=true;
-
-  if(!autoplay)
+  else
     activeAnimation=true;
 
-  functionStack.push({
-      f: geometry,
-      colorF: color,
-      durationInv: duration > 0 ? 1/duration : 0,
+  transformStack.push({
+      geometryTransform: geometry,
+      colorTransform: color,
+      durationInv: msDuration > 0 ? 1/msDuration : 0,
       autoplay:autoplay,
     }
   )
@@ -4087,7 +4086,7 @@ function beginTransform(geometry,color,duration,autoplay)
 
 function endTransform()
 {
-  functionStack.pop();
+  transformStack.pop();
 }
 
 function interp(a,b,t)
