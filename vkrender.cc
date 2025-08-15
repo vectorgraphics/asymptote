@@ -4390,20 +4390,20 @@ void AsyVkRender::drawFrame()
           || framebufferResized) {
         framebufferResized = false;
         recreateSwapChain();
+        return;
        }
       else if (result != vk::Result::eSuccess)
         runtimeError( "failed to present swapchain image" );
     }
     catch(std::exception const & e)
     {
-      if (std::string(e.what()).find("ErrorOutOfDateKHR")
-          != std::string::npos) {
+      auto what=std::string(e.what());
+      if (what.find("ErrorOutOfDateKHR") != std::string::npos) {
         framebufferResized = false;
         recreateSwapChain();
-      } else {
-        std::cout << "Other error: " << e.what() << std::endl;
-        throw;
-      }
+        return;
+      } else
+        runtimeError(what);
     }
   }
 
