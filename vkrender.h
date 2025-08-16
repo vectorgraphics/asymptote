@@ -38,7 +38,7 @@ namespace camp
 {
 class picture;
 
-// Comment out when not debugging:
+// For debugging:
 #if defined(ENABLE_VK_VALIDATION)
 #define VALIDATION
 #endif
@@ -249,6 +249,7 @@ public:
   bool offscreen=false;
   bool vkexit=false;
   bool hidden=false;
+  bool initDependentBuffers=true;
 
   bool vkthread=false;;
   bool initialize=true;
@@ -296,7 +297,7 @@ public:
   std::vector<Material> materials;
   MaterialMap materialMap;
 
-  unsigned int Opaque=0;
+  bool Opaque;
   std::uint32_t pixels;
   bool orthographic;
 
@@ -418,6 +419,7 @@ private:
   std::uint32_t maxFragments;
   std::uint32_t maxSize=1;
   bool resetDepth=false;
+  bool vkinitialize=true;
 
   size_t nmaterials=1; // Number of materials currently allocated in memory
 

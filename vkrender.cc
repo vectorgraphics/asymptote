@@ -55,8 +55,6 @@ namespace camp
 glm::dmat4 projViewMat;
 glm::dmat4 normMat;
 
-static bool vkinitialize=true;
-
 const Int timePartialSumVerbosity=4;
 
 std::vector<char> readFile(const std::string& filename)
@@ -538,6 +536,7 @@ void checkpow2(unsigned int n, string s) {
 
 void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 {
+  initDependentBuffers=true;
   bool v3d=args.format == "v3d";
   bool webgl=args.format == "html";
   bool format3d=webgl || v3d;
@@ -690,8 +689,6 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 
 #ifdef HAVE_VULKAN
   if(vkinitialize) {
-    vkinitialize=false;
-
   interlock=settings::getSetting<bool>("GPUinterlock");
   fxaa=settings::getSetting<bool>("fxaa");
   srgb=settings::getSetting<bool>("srgb");
@@ -781,8 +778,6 @@ void AsyVkRender::initVulkan()
   createDescriptorSetLayout();
   createComputeDescriptorSetLayout();
 
-  createBuffers();
-
   if (ibl) {
     initIBL();
   }
@@ -792,8 +787,6 @@ void AsyVkRender::initVulkan()
   createDescriptorSets();
 
   createImmediateRenderTargets();
-  writeDescriptorSets();
-  writeMaterialAndLightDescriptors();
 
   createCountRenderPass();
   createGraphicsRenderPass();
@@ -821,8 +814,9 @@ void AsyVkRender::recreateSwapChain()
     setupPostProcessingComputeParameters();
   }
   createDependentBuffers();
-  createImmediateRenderTargets();
   writeDescriptorSets();
+  writeMaterialAndLightDescriptors();
+  createImmediateRenderTargets();
   createImageViews();
   createSyncObjects();
   createCountRenderPass();
@@ -1737,7 +1731,7 @@ vma::cxx::UniqueBuffer AsyVkRender::createBufferUnique(
   createInfo.flags=vmaFlags;
 
   if (bufferName != nullptr && settings::verbose > 2) {
-    std::cout << "Attempting to create buffer " << bufferName << " of size: " << size << std::endl;
+    std::cout << "Creating buffer " << bufferName << " of size: " << size << std::endl;
   }
 
   return allocator.createBuffer(bufferCI, createInfo);
@@ -2696,9 +2690,6 @@ void AsyVkRender::createBuffers()
   }
 
   createMaterialAndLightBuffers();
-
-  Opaque=transparentData.indices.empty();
-  createDependentBuffers();
 }
 
 
@@ -2801,6 +2792,7 @@ void AsyVkRender::createImmediateRenderTargets()
 void AsyVkRender::createDependentBuffers()
 {
   pixels=(backbufferExtent.width+1)*(backbufferExtent.height+1);
+  if(Opaque) pixels=1;
   std::uint32_t Pixels;
 
   std::uint32_t G=ceilquotient(pixels,groupSize);
@@ -4161,7 +4153,6 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
   bool transparent=!Opaque;
 
   if (transparent) {
-
     vkutils::checkVkResult(device->waitForFences(
       1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
     ));
@@ -4257,6 +4248,19 @@ void AsyVkRender::drawFrame()
   vkutils::checkVkResult(device->waitForFences(
     1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
   ));
+
+  Opaque=transparentData.indices.empty();
+
+  if(vkinitialize) {
+    vkinitialize=false;
+    createBuffers();
+  }
+
+  if(initDependentBuffers) {
+    createDependentBuffers();
+    writeDescriptorSets();
+    initDependentBuffers=false;
+  }
 
   uint32_t imageIndex=0; // index of the current swap chain image to render to
 
