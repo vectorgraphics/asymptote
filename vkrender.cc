@@ -4985,7 +4985,7 @@ void AsyVkRender::shift(double dx, double dy)
   double Zoominv=1.0/Zoom0;
 
   X += dx*Zoominv;
-  Y += dy*Zoominv;
+  Y += -dy*Zoominv;
   update();
 }
 
