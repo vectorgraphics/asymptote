@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/google/highwayhash.git
+	branch = master
+	commit = 5ad3bf8444cfc663b11bf367baaa31f36e7ff7c8
+	parent = 4c385fa31d75be1faebf40a246d57a10b944c6fb
+	method = merge
+	cmdver = 0.4.6

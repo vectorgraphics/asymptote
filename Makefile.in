@@ -11,8 +11,8 @@ GCOPTIONS = @GCOPTIONS@
 GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
-LFLAGS = @LDFLAGS@
-LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@
+LFLAGS = @LDFLAGS@ -Lhighwayhash/lib
+LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@ -lhighwayhash
 CXX_STANDARD = @CXX_STANDARD@
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 LSP_ROOT=@LSP_ROOT@
@@ -55,7 +55,8 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	Delaunay predicates glrender tr shaders jsfile v3dfile \
 	EXRFiles GLTextures lspserv symbolmaps win32helpers win32pipestream \
 	win32xdr xstream \
-	lspdec lspexp lspfundec lspstm
+	lspdec lspexp lspfundec lspstm \
+	hashing random
 
 FILES = $(COREFILES) main
 
@@ -89,7 +90,7 @@ DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -I.
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
-	-Iprc/include -I$(LSP_ROOT)/include
+	-Iprc/include -I$(LSP_ROOT)/include -Ihighwayhash
 GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
 
 # Options for compiling the object files for the shared library.
@@ -132,7 +133,7 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o @LSPLIB@ @GLEW@
+asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o @LSPLIB@ @GLEW@ highwayhash/lib/libhighwayhash.a
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
 $(XNAME): $(PYFILES)
@@ -170,6 +171,28 @@ $(LSP_ROOT)/liblspcpp.a:
 	"-fPIE @OPTIONS@ @LSP_CXX_BUILD_FLAGS@" \
 	@LSP_CMAKE_OPTIONS@
 	$(MAKE) -C $(LSP_ROOT)
+
+UNAME_M := $(shell uname -m)
+ifneq (,$(findstring aarch64,$(UNAME_M)))
+HHFLAGS := HH_AARCH64=1
+else ifneq (,$(findstring arm64,$(UNAME_M)))
+HHFLAGS := HH_AARCH64=1
+else ifneq (,$(findstring arm,$(UNAME_M)))
+HHFLAGS := HH_ARM=1
+else ifneq (,$(findstring powerpc,$(UNAME_M)))
+HHFLAGS := HH_POWER=1
+else ifneq (,$(findstring ppc,$(UNAME_M)))
+HHFLAGS := HH_POWER=1
+else ifneq (,$(findstring amd64,$(UNAME_M)))
+HHFLAGS := HH_X64=1
+else ifneq (,$(findstring AMD64,$(UNAME_M)))
+HHFLAGS := HH_X64=1
+else ifneq (,$(findstring x86_64,$(UNAME_M)))
+HHFLAGS := HH_X64=1
+endif
+
+highwayhash/lib/libhighwayhash.a:
+	cd highwayhash && $(MAKE) $(HHFLAGS) lib/libhighwayhash.a
 
 all:	asy sty man faq asy-keywords.el
 
@@ -282,6 +305,7 @@ install-texhash: install-asy
 
 install-asy: asy sty $(PYFILES)
 	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
+	${INSTALL} -d $(asydir)/collections
 	${INSTALL} -d $(shaderdir) $(webgldir) \
 		$(GUIdir) $(GUIdir)/configs \
 		$(GUIdir)/res $(GUIdir)/res/icons \
@@ -291,6 +315,7 @@ install-asy: asy sty $(PYFILES)
 	${INSTALL} -p -m 755 $(NAME) $(bindir)
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) \
 		asy-keywords.el $(asydir)
+	${INSTALL} -p -m 644 base/collections/*.asy $(asydir)/collections
 	${INSTALL} -p -m 644 base/shaders/*.glsl $(shaderdir)
 	${INSTALL} -p -m 644 base/webgl/asygl.js \
 		$(webgldir)
@@ -364,6 +389,7 @@ clean:	FORCE
 	-cd LspCpp && $(MAKE) distclean
 	-cd LspCpp && rm -rf liblspcpp.a Makefile CMakeFiles third_party/uri/src/CMakeFiles
 	-cd tinyexr && $(MAKE) clean
+	-cd highwayhash && $(MAKE) clean
 
 gc-clean: FORCE clean
 	-$(MAKE) -C $(GC) clean
@@ -386,6 +412,8 @@ cleaner: FORCE clean
 
 distclean: FORCE cleaner
 	cd doc && $(MAKE) distclean
+	cd highwayhash && $(MAKE) distclean
+
 
 cleanest: FORCE maintainer-clean
 maintainer-clean: FORCE distclean
