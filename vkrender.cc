@@ -283,11 +283,16 @@ void AsyVkRender::initWindow()
 }
 
 void AsyVkRender::updateHandler(int) {
-  vk->recreateSwapChain();
+  if(!interact::interactive) {
+    glfwHideWindow(vk->window);
+    if(!getSetting<bool>("fitscreen"))
+      vk->Fitscreen=0;
+  }
+
+  vk->resize=true;
+  vk->redraw=true;
   vk->remesh=true;
-  vk->hideWindow=false;
   vk->waitEvent=false;
-  vk->home();
 }
 
 std::string AsyVkRender::getAction(int button, int mods)
@@ -353,27 +358,17 @@ void AsyVkRender::mouseButtonCallback(GLFWwindow * window, int button, int actio
 
 void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int height)
 {
-  auto* app = static_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
-  if (width == 0 || height == 0) {
-    // we can't draw (or compute triangles) if there's no pixels to draw to
+  if(width == 0 || height == 0)
     return;
-  }
-  app->Y = (app->X / app->width) * width;
-  app->Y = (app->Y / app->height) * height;
-  app->width = width;
-  app->height = height;
-  app->fullWidth = width;
-  app->fullHeight = height;
-  app->framebufferResized = true;
-  app->update();
 
-  if(app->vkthread) {
-    static bool initialize=true;
-    if(initialize) {
-      initialize=false;
-      app->readyForUpdate=true;
-    }
-  }
+  auto* app = static_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
+
+  if(width == app->width && height == app->height)
+    return;
+
+  app->reshape0(width,height);
+  app->update();
+  app->remesh=true;
 }
 
 void AsyVkRender::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
@@ -637,7 +632,6 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 
 #ifdef HAVE_VULKAN
     home(format3d);
-    setProjection();
 #endif
     if(format3d) {
       remesh=true;
@@ -667,6 +661,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   if(vkthread && initializedView) {
     if(View) {
       // called from asymain thread, main thread handles vulkan rendering
+      hideWindow=false;
       messageQueue.enqueue(updateRenderer);
     } else readyAfterExport=queueExport=true;
     return;
@@ -700,7 +695,6 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
       initWindow();
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
-    firstFit=true;
     fitscreen();
     Aspect=((double) width)/height;
     setosize();
@@ -710,6 +704,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   if(vkinitialize)
     initVulkan();
 
+  readyForUpdate=true;
   mainLoop();
 #endif
 }
@@ -807,8 +802,7 @@ void AsyVkRender::recreateSwapChain()
   createFramebuffers();
   createExportResources();
 
-  transparentData.clear();
-  redraw=true;
+  redisplay=true;
 }
 
 void AsyVkRender::zeroTransparencyBuffers()
@@ -956,7 +950,6 @@ void AsyVkRender::createDebugMessenger()
               case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
                 reportWarning(pCallbackData->pMessage);
                 break;
-              // report error throws an exception; we don't want that
               default:
                 break;
             }
@@ -3786,13 +3779,22 @@ void AsyVkRender::endFrame(int imageIndex)
   endFrameCommands();
 }
 
+void AsyVkRender::clearData()
+{
+  pointData.clear();
+  lineData.clear();
+  materialData.clear();
+  colorData.clear();
+  triangleData.clear();
+  transparentData.clear();
+}
+
 void AsyVkRender::drawPoints(FrameObject & object)
 {
   drawBuffer(object.pointVertexBuffer,
              object.pointIndexBuffer,
              &pointData,
              getPipelineType(pointPipelines));
-  pointData.clear();
 }
 
 void AsyVkRender::drawLines(FrameObject & object)
@@ -3801,7 +3803,6 @@ void AsyVkRender::drawLines(FrameObject & object)
              object.lineIndexBuffer,
              &lineData,
              getPipelineType(linePipelines));
-  lineData.clear();
 }
 
 void AsyVkRender::drawMaterials(FrameObject & object)
@@ -3810,7 +3811,6 @@ void AsyVkRender::drawMaterials(FrameObject & object)
              object.materialIndexBuffer,
              &materialData,
              getPipelineType(materialPipelines));
-  materialData.clear();
 }
 
 void AsyVkRender::drawColors(FrameObject & object)
@@ -3819,7 +3819,6 @@ void AsyVkRender::drawColors(FrameObject & object)
              object.colorIndexBuffer,
              &colorData,
              getPipelineType(colorPipelines));
-  colorData.clear();
 }
 
 void AsyVkRender::drawTriangles(FrameObject & object)
@@ -3828,7 +3827,6 @@ void AsyVkRender::drawTriangles(FrameObject & object)
              object.triangleIndexBuffer,
              &triangleData,
              getPipelineType(trianglePipelines));
-  triangleData.clear();
 }
 
 void AsyVkRender::drawTransparent(FrameObject & object)
@@ -3837,8 +3835,6 @@ void AsyVkRender::drawTransparent(FrameObject & object)
              object.transparentIndexBuffer,
              &transparentData,
              getPipelineType(transparentPipelines));
-
-  transparentData.clear();
 }
 
 void AsyVkRender::partialSums(FrameObject & object, bool timing/*=false*/, bool bindDescriptors/*=false*/)
@@ -4164,9 +4160,7 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
   drawColors(object);
   drawTriangles(object);
 
-
   if (transparent) {
-
     currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
     drawTransparent(object);
     currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
@@ -4272,6 +4266,7 @@ void AsyVkRender::drawFrame()
 
   // TODO: can we do scene graph instead of manual barriers?
   beginFrameCommands(getFrameCommandBuffer());
+
   drawBuffers(frameObject, imageIndex);
   // current immediate target layout: general/presentSrc depending on fxaa
 
@@ -4429,11 +4424,9 @@ void AsyVkRender::nextFrame()
 
 void AsyVkRender::display()
 {
-  setProjection();
+//  setProjection();
 
-  if(remesh) {
-    clearCenters();
-
+#if 0
     // Get the most recent frame that was started and wait for it to finish
     // before clearing buffers
     int previousFrameIndex = currentFrame - 1;
@@ -4447,22 +4440,34 @@ void AsyVkRender::display()
     for (int i = 0; i < maxFramesInFlight; i++) {
       frameObjects[i].reset();
     }
+#endif
+
+  if(redraw) {
+    clearData();
+
+    if(remesh) {
+      clearCenters();
+      setProjection();
+    }
+
+    triple m(xmin,ymin,Zmin);
+    triple M(xmax,ymax,Zmax);
+    double perspective = orthographic ? 0.0 : 1.0 / Zmax;
+
+    double size2=hypot(width,height);
+
+    pic->render(size2,m,M,perspective,remesh);
+    redraw=false;
+
+    if(mode != DRAWMODE_OUTLINE)
+      remesh=false;
   }
-
-  double perspective = orthographic ? 0.0 : 1.0 / Zmax;
-  double diagonalSize = hypot(width, height);
-
-  pic->render(diagonalSize, triple(xmin, ymin, Zmin), triple(xmax, ymax, Zmax),
-              perspective, remesh);
 
   if(View && !hideWindow &&
      !glfwGetWindowAttrib(window,GLFW_VISIBLE))
     glfwShowWindow(window);
 
   drawFrame();
-
-  if (mode != DRAWMODE_OUTLINE)
-    remesh = false;
 
   bool fps=settings::verbose > 2;
   if(fps) {
@@ -4510,21 +4515,11 @@ void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
         exportHandler(0);
       }
     }
-    break;
+      break;
     case updateRenderer: {
-      if (readyForUpdate)
-      {
-        if(!interact::interactive) {
-          if(!getSetting<bool>("fitscreen"))
-            Fitscreen=0;
-          firstFit=true;
-          fitscreen();
-          setosize();
-        }
-        updateHandler(0);
-      }
+      updateHandler(0);
     }
-    break;
+      break;
     default:
       break;
   }
@@ -4534,10 +4529,14 @@ void AsyVkRender::mainLoop()
 {
   if(View) {
     while(!glfwWindowShouldClose(window)) {
-      if(redraw || queueExport)
+      if(redraw || redisplay || queueExport)
         {
-        redraw=false;
+        redisplay=false;
         waitEvent=true;
+        if(resize) {
+          fitscreen(!interact::interactive);
+          resize=false;
+        }
         display();
       }
 
@@ -4832,6 +4831,7 @@ void AsyVkRender::Export(int imageIndex) {
 void AsyVkRender::quit()
 {
 #ifdef HAVE_VULKAN
+  resize=false;
   if(vkthread) {
     bool animating=settings::getSetting<bool>("animating");
     if(animating)
@@ -5068,9 +5068,6 @@ void AsyVkRender::setsize(int w, int h, bool reposition) {
     if (reposition) {
       windowposition(x, y, w, h);
       glfwSetWindowPos(window, x, y);
-    } else {
-      glfwGetWindowPos(window, &x, &y);
-      glfwSetWindowPos(window, max(x-2,0), max(y-2, 0));
     }
   }
 
@@ -5086,25 +5083,27 @@ void AsyVkRender::fullscreen(bool reposition)
   Yfactor=((double) screenWidth)/width;
   if(reposition)
     glfwSetWindowPos(window, 0, 0);
-  setsize(width,height);
+  setsize(width,height,reposition);
 }
 
 void AsyVkRender::reshape0(int Width, int Height) {
-  X=(X/Width)*Width;
-  Y=(Y/Height)*Height;
-
   width=Width;
   height=Height;
 
   static int lastWidth=1;
   static int lastHeight=1;
-  if(View && width*height > 1 && (width != lastWidth || height != lastHeight)) {
-      if(settings::verbose > 1)
-        cout << "Rendering " << stripDir(Prefix) << " as "
-             << width << "x" << height << " image" << endl;
-      lastWidth=width;
-      lastHeight=height;
-      setProjection();
+  if(View && width*height > 1 &&
+     (width != lastWidth || height != lastHeight)) {
+    X=(X/Width)*Width;
+    Y=(Y/Height)*Height;
+
+    if(settings::verbose > 1)
+      cout << "Rendering " << stripDir(Prefix) << " as "
+           << width << "x" << height << " image" << endl;
+    lastWidth=width;
+    lastHeight=height;
+    setProjection();
+    framebufferResized = true;
   }
 }
 

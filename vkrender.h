@@ -341,6 +341,8 @@ public:
   void clearMaterials();
 
   bool redraw=false;
+  bool redisplay=false;
+  bool resize=false;
 private:
 #ifdef HAVE_VULKAN
   struct DeviceBuffer {
@@ -373,7 +375,6 @@ private:
   int screenWidth, screenHeight;
   int width, height;
   int oldWidth,oldHeight;
-  bool firstFit=true;
   double Aspect;
   double oWidth, oHeight;
   double lastZoom;
@@ -662,7 +663,6 @@ private:
 #pragma endregion
 
     void reset() {
-
         materialVertexBuffer.reset();
         colorVertexBuffer.reset();
         triangleVertexBuffer.reset();
@@ -878,6 +878,7 @@ private:
   void drawColors(FrameObject & object);
   void drawTriangles(FrameObject & object);
   void drawTransparent(FrameObject & object);
+  void clearData();
   void partialSums(FrameObject & object, bool timing=false, bool bindDescriptors=false);
   void resizeBlendShader(std::uint32_t maxDepth);
   void resizeFragmentBuffer(FrameObject & object);
