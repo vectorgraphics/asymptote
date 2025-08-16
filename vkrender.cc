@@ -268,6 +268,7 @@ void AsyVkRender::initWindow()
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_FOCUSED, GLFW_FALSE);
     glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
 
     if (window == nullptr)
@@ -277,7 +278,6 @@ void AsyVkRender::initWindow()
         + std::to_string(height));
   }
 
-  glfwHideWindow(window);
   glfwSetWindowUserPointer(window, this);
   glfwSetMouseButtonCallback(window, mouseButtonCallback);
   glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
@@ -285,15 +285,15 @@ void AsyVkRender::initWindow()
   glfwSetCursorPosCallback(window, cursorPosCallback);
   glfwSetKeyCallback(window, keyCallback);
   glfwSetWindowSizeLimits(window, 1, 1, GLFW_DONT_CARE, GLFW_DONT_CARE);
+  glfwSetWindowCloseCallback(window,closeWindowHandler);
 }
 
 void AsyVkRender::updateHandler(int) {
-  glfwShowWindow(vk->window);
-  vk->hidden=false;
-
   vk->recreateSwapChain();
   vk->remesh=true;
-  vk->redraw=true;
+  vk->hideWindow=false;
+  vk->waitEvent=false;
+  vk->home();
 }
 
 std::string AsyVkRender::getAction(int button, int mods)
@@ -689,45 +689,32 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 
 #ifdef HAVE_VULKAN
   if(vkinitialize) {
-  interlock=settings::getSetting<bool>("GPUinterlock");
-  fxaa=settings::getSetting<bool>("fxaa");
-  srgb=settings::getSetting<bool>("srgb");
+    interlock=settings::getSetting<bool>("GPUinterlock");
+    fxaa=settings::getSetting<bool>("fxaa");
+    srgb=settings::getSetting<bool>("srgb");
 
-  Aspect=((double) width)/height;
-  setosize();
+    Animate=settings::getSetting<bool>("autoplay") && vkthread;
+    ibl=settings::getSetting<bool>("ibl");
 
-  Animate=settings::getSetting<bool>("autoplay") && vkthread;
-  ibl=settings::getSetting<bool>("ibl");
-
-  if (offscreen && settings::verbose > 1) {
-    std::cout << "Using offscreen mode" << std::endl;
+    if (offscreen && settings::verbose > 1) {
+      std::cout << "Using offscreen mode" << std::endl;
+    }
   }
 
-//  home(format3d);
-//  setProjection();
-
   if(View) {
-    initWindow();
+    if(vkinitialize)
+      initWindow();
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
     firstFit=true;
     fitscreen();
-    setosize();
-  }
-
-  initVulkan();
-  }
-
-  if(View) {
-    if(!getSetting<bool>("fitscreen"))
-      Fitscreen=0;
-    firstFit=true;
-    fitscreen();
+    Aspect=((double) width)/height;
     setosize();
     initializedView=true;
-    glfwShowWindow(window);
-    glfwSetWindowCloseCallback(window,closeWindowHandler);
   }
+
+  if(vkinitialize)
+    initVulkan();
 
   mainLoop();
 #endif
@@ -4473,10 +4460,9 @@ void AsyVkRender::display()
   pic->render(diagonalSize, triple(xmin, ymin, Zmin), triple(xmax, ymax, Zmax),
               perspective, remesh);
 
-  if(hidden) {
+  if(View && !hideWindow &&
+     !glfwGetWindowAttrib(window,GLFW_VISIBLE))
     glfwShowWindow(window);
-    hidden=false;
-  }
 
   drawFrame();
 
@@ -4863,13 +4849,14 @@ void AsyVkRender::quit()
 #ifdef HAVE_PTHREAD
     if(!interact::interactive || animating) {
       idle();
-//      pthread_mutex_unlock(&vk->readyLock);
       endwait(readySignal,readyLock);
     }
 
 #endif
-    glfwHideWindow(window);
-    hidden=true;
+    if(View) {
+      glfwHideWindow(window);
+      hideWindow=true;
+    }
   } else {
     glfwDestroyWindow(window);
     window = nullptr;
@@ -5164,7 +5151,6 @@ void AsyVkRender::fitscreen(bool reposition) {
 
 void AsyVkRender::toggleFitScreen() {
   glfwHideWindow(window);
-  hidden=true;
   Fitscreen = (Fitscreen + 1) % 3;
   fitscreen();
 }

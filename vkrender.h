@@ -248,7 +248,7 @@ public:
   bool ibl=false;
   bool offscreen=false;
   bool vkexit=false;
-  bool hidden=false;
+  bool hideWindow=false;
   bool initDependentBuffers=true;
 
   bool vkthread=false;;
