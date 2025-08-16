@@ -680,7 +680,7 @@ private:
 #endif
 
   void setDimensions(int Width, int Height, double X, double Y);
-  void updateViewmodelData();
+  void updateModelViewData();
   void setProjection();
   void update();
 

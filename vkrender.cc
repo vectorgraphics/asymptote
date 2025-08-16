@@ -24,6 +24,7 @@
 
 using settings::getSetting;
 using settings::Setting;
+using namespace glm;
 
 void exitHandler(int);
 
@@ -52,8 +53,8 @@ std::vector<const char*> instanceExtensions
 
 namespace camp
 {
-glm::dmat4 projViewMat;
-glm::dmat4 normMat;
+dmat4 projViewMat;
+dmat4 normMat;
 
 const Int timePartialSumVerbosity=4;
 
@@ -128,12 +129,12 @@ SwapChainDetails::chooseExtent(size_t width, size_t height) const
     static_cast<uint32_t>(height)
   );
 
-  extent.width = glm::clamp(
+  extent.width = clamp(
                   extent.width,
                   capabilities.minImageExtent.width,
                   capabilities.maxImageExtent.width
                  );
-  extent.height = glm::clamp(
+  extent.height = clamp(
                     extent.height,
                     capabilities.minImageExtent.height,
                     capabilities.maxImageExtent.height
@@ -197,18 +198,15 @@ void AsyVkRender::setProjection()
 {
   setDimensions(width, height, X, Y);
 
-  if (orthographic) {
-    projMat = glm::ortho(xmin, xmax, ymin, ymax, -Zmax, -Zmin);
-  } else {
-    projMat = glm::frustum(xmin, xmax, ymin, ymax, -Zmax, -Zmin);
-  }
+  if(orthographic) vk->ortho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+  else vk->frustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
 
   newUniformBuffer = true;
 }
 
-void AsyVkRender::updateViewmodelData()
+void AsyVkRender::updateModelViewData()
 {
-  normMat = glm::inverse(viewMat);
+  normMat = inverse(viewMat);
 }
 
 void *postEmptyEvent(void *)
@@ -222,14 +220,10 @@ void AsyVkRender::update()
   capzoom();
 
   double cz = 0.5 * (Zmin + Zmax);
-  viewMat = glm::translate(glm::translate(glm::dmat4(1.0), glm::dvec3(cx, cy, cz)) * rotateMat, glm::dvec3(0, 0, -cz));
+  viewMat = translate(translate(dmat4(1.0), dvec3(cx, cy, cz)) * rotateMat, dvec3(0, 0, -cz));
 
   setProjection();
-  updateViewmodelData();
-
-  static auto const verticalFlipMat = glm::scale(glm::dmat4(1.0f), glm::dvec3(1.0f, -1.0f, 1.0f));
-
-  projViewMat = verticalFlipMat * projMat * viewMat;
+  updateModelViewData();
 
 #ifdef HAVE_PTHREAD
   if(View) {
@@ -415,8 +409,8 @@ void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos
 
     Arcball arcball(xprev * 2 / app->width - 1, 1 - yprev * 2 / app->height, xpos * 2 / app->width - 1, 1 - ypos * 2 / app->height);
     triple axis = arcball.axis;
-    app->rotateMat = glm::rotate(2 * arcball.angle / app->Zoom0 * app->ArcballFactor,
-                                 glm::dvec3(axis.getx(), axis.gety(), axis.getz())) * app->rotateMat;
+    app->rotateMat = rotate(2 * arcball.angle / app->Zoom0 * app->ArcballFactor,
+                                 dvec3(axis.getx(), axis.gety(), axis.getz())) * app->rotateMat;
     app->update();
   }
   else if (app->lastAction == "shift") {
@@ -651,8 +645,8 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
     }
     maxFragments=0;
 
-    rotateMat = glm::mat4(1.0);
-    viewMat = glm::mat4(1.0);
+    rotateMat = mat4(1.0);
+    viewMat = mat4(1.0);
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(width,height);
     Aspect=((double) width)/height;
 
@@ -2573,7 +2567,7 @@ void AsyVkRender::writeMaterialAndLightDescriptors() {
 
 void AsyVkRender::updateSceneDependentBuffers() {
 
-  fragmentBufferSize = maxFragments*sizeof(glm::vec4);
+  fragmentBufferSize = maxFragments*sizeof(vec4);
   fragmentBf = createBufferUnique(
           vk::BufferUsageFlagBits::eStorageBuffer,
           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -2788,7 +2782,7 @@ void AsyVkRender::createDependentBuffers()
 
   countBufferSize=(Pixels+2)*sizeof(std::uint32_t);
   offsetBufferSize=(Pixels+2)*sizeof(std::uint32_t);
-  opaqueBufferSize=pixels*sizeof(glm::vec4);
+  opaqueBufferSize=pixels*sizeof(vec4);
   opaqueDepthBufferSize=sizeof(std::uint32_t)+pixels*sizeof(float);
   indexBufferSize=pixels*sizeof(std::uint32_t);
 
@@ -2901,7 +2895,7 @@ void AsyVkRender::initIBL() {
       }
 
       copyDataToImage(texture.getData(),
-                      sizeof(glm::vec4) * w * h,
+                      sizeof(vec4) * w * h,
                       uniqueImg.getImage(),
                       w, h,
                       {0, 0, offset++});
@@ -3281,11 +3275,12 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
     VK_FALSE
   );
 
+  // Set origin at lower-left corner with y coordinate increasing up
   auto viewport = vk::Viewport(
     0.0f,
-    0.0f,
-    static_cast<float>(backbufferExtent.width),
     static_cast<float>(backbufferExtent.height),
+    static_cast<float>(backbufferExtent.width),
+    -static_cast<float>(backbufferExtent.height),
     0.0f,
     1.0f
   );
@@ -4588,7 +4583,7 @@ void AsyVkRender::mainLoop()
 
 void AsyVkRender::updateProjection()
 {
-  projViewMat = glm::mat4(projMat * viewMat);
+  projViewMat=projMat*viewMat;
 }
 
 void AsyVkRender::frustum(double left, double right, double bottom,
@@ -4892,8 +4887,8 @@ double AsyVkRender::spinStep()
 
 void AsyVkRender::rotateX(double step)
 {
-  glm::dmat4 tmpRot(1.0);
-  tmpRot=glm::rotate(tmpRot,glm::radians(step),glm::dvec3(1,0,0));
+  dmat4 tmpRot(1.0);
+  tmpRot=rotate(tmpRot,glm::radians(step),dvec3(1,0,0));
   rotateMat=tmpRot*rotateMat;
 
   update();
@@ -4901,8 +4896,8 @@ void AsyVkRender::rotateX(double step)
 
 void AsyVkRender::rotateY(double step)
 {
-  glm::dmat4 tmpRot(1.0);
-  tmpRot=glm::rotate(tmpRot,glm::radians(step),glm::dvec3(0,1,0));
+  dmat4 tmpRot(1.0);
+  tmpRot=rotate(tmpRot,glm::radians(step),dvec3(0,1,0));
   rotateMat=tmpRot*rotateMat;
 
   update();
@@ -4910,8 +4905,8 @@ void AsyVkRender::rotateY(double step)
 
 void AsyVkRender::rotateZ(double step)
 {
-  glm::dmat4 tmpRot(1.0);
-  tmpRot=glm::rotate(tmpRot,glm::radians(step),glm::dvec3(0,0,1));
+  dmat4 tmpRot(1.0);
+  tmpRot=rotate(tmpRot,glm::radians(step),dvec3(0,0,1));
   rotateMat=tmpRot*rotateMat;
 
   update();
@@ -4990,7 +4985,7 @@ void AsyVkRender::shift(double dx, double dy)
   double Zoominv=1.0/Zoom0;
 
   X += dx*Zoominv;
-  Y += -dy*Zoominv;
+  Y += dy*Zoominv;
   update();
 }
 
@@ -5000,7 +4995,7 @@ void AsyVkRender::pan(double dx, double dy)
     shift(dx,dy);
   else {
     cx += dx * (xmax - xmin) / width;
-    cy += dy * (ymax - ymin) / height;
+    cy -= dy * (ymax - ymin) / height;
     update();
   }
 }
@@ -5159,16 +5154,12 @@ void AsyVkRender::home(bool webgl) {
   if(!webgl)
     idle();
   X = Y = cx = cy = 0;
-  rotateMat = viewMat = glm::mat4(1.0);
+  rotateMat = viewMat = dmat4(1.0);
   Zoom0 = 1.0;
   framecount=0;
 
   setProjection();
-  updateViewmodelData();
-
-  static auto const verticalFlipMat = glm::scale(glm::dmat4(1.0f), glm::dvec3(1.0f, -1.0f, 1.0f));
-
-  projViewMat = verticalFlipMat * projMat * viewMat;
+  updateModelViewData();
   redraw=true;
 }
 
