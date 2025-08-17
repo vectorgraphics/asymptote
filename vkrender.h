@@ -249,7 +249,6 @@ public:
   bool offscreen=false;
   bool vkexit=false;
   bool hideWindow=false;
-  bool initDependentBuffers=true;
 
   bool vkthread=false;;
   bool initialize=true;
