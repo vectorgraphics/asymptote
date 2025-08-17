@@ -910,6 +910,8 @@ private:
   bool waitEvent=true;
   bool initialized=false;
   bool havewindow=false;
+  bool format3dWait=false;
+
   void quit();
 
   double spinStep();
