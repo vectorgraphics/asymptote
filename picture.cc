@@ -1444,9 +1444,8 @@ void glrenderWrapper()
   vk->wait(vk->initSignal,vk->initLock);
   vk->endwait(vk->initSignal,vk->initLock);
 #endif
-  if(allowRender) {
+  if(allowRender)
     vk->vkrender(com);
-  }
 #endif
 }
 
@@ -1564,15 +1563,15 @@ bool picture::shipout3(const string& prefix, const string& format,
           pthread_mutex_unlock(&vk->readyLock);
         }
         return true;
-       }
-       if(Wait)
-         pthread_mutex_lock(&vk->readyLock);
+      }
+      if(Wait)
+        pthread_mutex_lock(&vk->readyLock);
 #ifdef HAVE_VULKAN
-       glfwPostEmptyEvent();
+      glfwPostEmptyEvent();
 #endif
 #endif
-     } else {
- #if !defined(_WIN32)
+    } else {
+#if !defined(_WIN32)
       int pid=fork();
       if(pid == -1)
         camp::reportError("Cannot fork process");
@@ -1584,37 +1583,37 @@ bool picture::shipout3(const string& prefix, const string& format,
 #else
 #pragma message("TODO: Check if (1) we need detach-based VK renderer")
 #endif
-     }
- #endif
-   }
+    }
+#endif
+  }
 
- #if HAVE_LIBGLM
+#if HAVE_LIBGLM
   AsyVkRender::VkrenderFunctionArgs args = {};
-  args.prefix = prefix;
-  args.pic = pic;
-  args.format = format;
-  args.width = width;
-  args.height = height;
-  args.angle = angle;
-  args.zoom = zoom;
-  args.m = m;
-  args.M = M;
-  args.shift = shift;
-  args.margin = margin;
-  args.t = t;
-  args.tup= tup;
-  args.background = background;
-  args.nlightsin = nlights;
-  args.lights = lights;
-  args.diffuse = diffuse;
-  args.specular = specular;
-  args.view = View;
-  args.oldpid = oldpid;
+  args.prefix=prefix;
+  args.pic=pic;
+  args.format=outputformat;
+  args.width=width;
+  args.height=height;
+  args.angle=angle;
+  args.zoom=zoom;
+  args.m=m;
+  args.M=M;
+  args.shift=shift;
+  args.margin=margin;
+  args.t=t;
+  args.tup=tup;
+  args.background=background;
+  args.nlightsin=nlights;
+  args.lights=lights;
+  args.diffuse=diffuse;
+  args.specular=specular;
+  args.view=View;
+  args.oldpid=oldpid;
 
   vk->vkrender(args);
-   if(format3d) {
-     string name=buildname(prefix,format);
-     abs3Doutfile *fileObj=nullptr;
+  if(format3d) {
+    string name=buildname(prefix,format);
+    abs3Doutfile *fileObj=nullptr;
 
     if(webgl)
       fileObj=new jsfile(name);
@@ -1630,22 +1629,31 @@ bool picture::shipout3(const string& prefix, const string& format,
     }
 #endif
 
-     if(fileObj) {
-       for (auto& p : pic->nodes) {
-         assert(p);
-         p->write(fileObj);
-       }
+    if(fileObj) {
+      for (auto& p : pic->nodes) {
+        assert(p);
+        p->write(fileObj);
+      }
 
-       fileObj->close();
-       delete fileObj;
-     }
+      fileObj->close();
+      delete fileObj;
+    }
 
-     if(webgl && View)
-       htmlView(name);
+    if(webgl && View)
+      htmlView(name);
 
-     return true;
-   }
- #endif
+#ifdef HAVE_GL
+    if(vk->format3dWait) {
+      vk->format3dWait=false;
+#ifdef HAVE_PTHREAD
+      endwait(vk->initSignal,vk->initLock);
+#endif
+    }
+#endif
+
+    return true;
+  }
+#endif
 
 #ifdef HAVE_VULKAN
 #ifdef HAVE_PTHREAD

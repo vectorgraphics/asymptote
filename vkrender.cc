@@ -652,6 +652,9 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 #ifdef HAVE_VULKAN
   havewindow=initialized && vkthread;
 
+  if(vkthread && format3d)
+    format3dWait=true;
+
   clearMaterials();
   this->shouldUpdateBuffers = true;
   initialized=true;
@@ -4204,15 +4207,6 @@ void AsyVkRender::copyToSwapchainImg(vk::CommandBuffer& cmdBuffer, uint32_t cons
 
 void AsyVkRender::drawFrame()
 {
-#ifdef HAVE_PTHREAD
-  static bool first=true;
-  if(vkthread && first) {
-    wait(initSignal,initLock);
-    endwait(initSignal,initLock);
-    first=false;
-  }
-#endif
-
   auto& frameObject = frameObjects[currentFrame];
 
   // check to see if any pipeline state changed.
@@ -4442,6 +4436,18 @@ void AsyVkRender::clearBuffers()
 
 void AsyVkRender::display()
 {
+#ifdef HAVE_PTHREAD
+  static bool first=true;
+  if(vkthread && first) {
+    wait(initSignal,initLock);
+    endwait(initSignal,initLock);
+    first=false;
+  }
+
+  if(format3dWait)
+    wait(initSignal,initLock);
+#endif
+
   if(redraw) {
     clearData();
 
