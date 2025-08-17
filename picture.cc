@@ -1524,7 +1524,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(vk->vkthread) {
 #ifdef HAVE_PTHREAD
       if(vk->initialize) {
-        vk->initialize=false;
+        vk->initialize=!View || getSetting<bool>("offscreen");
         com.prefix=prefix;
         com.pic=pic;
         com.format=outputformat;

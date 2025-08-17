@@ -4469,8 +4469,7 @@ void AsyVkRender::display()
       remesh=false;
   }
 
-  if(View && !hideWindow &&
-     !glfwGetWindowAttrib(window,GLFW_VISIBLE))
+  if(View && !hideWindow && !glfwGetWindowAttrib(window,GLFW_VISIBLE))
     glfwShowWindow(window);
 
   drawFrame();
@@ -4517,7 +4516,7 @@ void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
     case exportRender: {
       if (readyForExport)
       {
-        readyForExport= false;
+        readyForExport=false;
         exportHandler(0);
       }
     }
@@ -4565,7 +4564,6 @@ void AsyVkRender::mainLoop()
     display();
     if(vkthread) {
       if(havewindow) {
-        readyAfterExport=true;
 #ifdef HAVE_PTHREAD
         if(pthread_equal(pthread_self(),this->mainthread))
           exportHandler();
@@ -4573,10 +4571,8 @@ void AsyVkRender::mainLoop()
           messageQueue.enqueue(exportRender);
 #endif
       } else {
-        // from main thread
         initialized=true;
         readyForExport=true;
-        readyAfterExport=true;
         exportHandler();
       }
     } else {

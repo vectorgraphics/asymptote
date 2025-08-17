@@ -236,16 +236,7 @@ int main(int argc, char *argv[])
   fpu_trap(trap());
   Args args(argc,argv);
 #ifdef HAVE_VULKAN
-#if defined(__APPLE__) || defined(_WIN32)
-
-#if defined(_WIN32)
-#pragma message("TODO: Check if (1) we need detach-based gl renderer")
-#endif
-  bool usethreads=true;
-#else
-  bool usethreads=view();
-#endif // defined(__APPLE__) || defined(_WIN32)
-  camp::vk->vkthread=usethreads && getSetting<bool>("threads");
+  camp::vk->vkthread=getSetting<bool>("threads");
 #if HAVE_PTHREAD
   if(camp::vk->vkthread) {
     pthread_t thread;
