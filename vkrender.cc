@@ -293,6 +293,7 @@ void AsyVkRender::updateHandler(int) {
   vk->redraw=true;
   vk->remesh=true;
   vk->waitEvent=false;
+  vk->clearBuffers();
 }
 
 std::string AsyVkRender::getAction(int button, int mods)
@@ -4422,25 +4423,28 @@ void AsyVkRender::nextFrame()
   if(Step) Animate=false;
 }
 
+void AsyVkRender::clearBuffers()
+{
+  // Get the most recent frame that was started and wait for it to finish
+  // before clearing buffers
+  int previousFrameIndex = currentFrame - 1;
+
+  if (previousFrameIndex < 0) {
+    previousFrameIndex = maxFramesInFlight - 1;
+  }
+
+  (void) device->waitForFences(1, &*frameObjects[previousFrameIndex].inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+
+  for (int i = 0; i < maxFramesInFlight; i++) {
+    frameObjects[i].reset();
+  }
+}
+
 void AsyVkRender::display()
 {
 //  setProjection();
 
-#if 0
-    // Get the most recent frame that was started and wait for it to finish
-    // before clearing buffers
-    int previousFrameIndex = currentFrame - 1;
-
-    if (previousFrameIndex < 0) {
-      previousFrameIndex = maxFramesInFlight - 1;
-    }
-
-    (void) device->waitForFences(1, &*frameObjects[previousFrameIndex].inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
-
-    for (int i = 0; i < maxFramesInFlight; i++) {
-      frameObjects[i].reset();
-    }
-#endif
+  clearBuffers();
 
   if(redraw) {
     clearData();
@@ -5103,7 +5107,7 @@ void AsyVkRender::reshape0(int Width, int Height) {
     lastWidth=width;
     lastHeight=height;
     setProjection();
-    framebufferResized = true;
+    framebufferResized=true;
   }
 }
 
