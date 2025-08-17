@@ -283,7 +283,7 @@ void AsyVkRender::initWindow()
 }
 
 void AsyVkRender::updateHandler(int) {
-  if(!interact::interactive) {
+  if(vk->View && !interact::interactive) {
     glfwHideWindow(vk->window);
     if(!getSetting<bool>("fitscreen"))
       vk->Fitscreen=0;
@@ -293,7 +293,6 @@ void AsyVkRender::updateHandler(int) {
   vk->redraw=true;
   vk->remesh=true;
   vk->waitEvent=false;
-  vk->clearBuffers();
 }
 
 std::string AsyVkRender::getAction(int button, int mods)
@@ -664,6 +663,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
       // called from asymain thread, main thread handles vulkan rendering
       hideWindow=false;
       messageQueue.enqueue(updateRenderer);
+      clearBuffers();
     } else readyAfterExport=queueExport=true;
     return;
   }
@@ -4425,8 +4425,8 @@ void AsyVkRender::nextFrame()
 
 void AsyVkRender::clearBuffers()
 {
-  // Get the most recent frame that was started and wait for it to finish
-  // before clearing buffers
+  // Get the most recent frame that was started and wait for it
+  // to finish before clearing buffers
   int previousFrameIndex = currentFrame - 1;
 
   if (previousFrameIndex < 0) {
@@ -4442,10 +4442,6 @@ void AsyVkRender::clearBuffers()
 
 void AsyVkRender::display()
 {
-//  setProjection();
-
-  clearBuffers();
-
   if(redraw) {
     clearData();
 
