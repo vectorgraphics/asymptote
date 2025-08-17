@@ -525,7 +525,6 @@ void checkpow2(unsigned int n, string s) {
 
 void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 {
-  initDependentBuffers=true;
   bool v3d=args.format == "v3d";
   bool webgl=args.format == "html";
   bool format3d=webgl || v3d;
@@ -4225,12 +4224,9 @@ void AsyVkRender::drawFrame()
   if(vkinitialize) {
     vkinitialize=false;
     createBuffers();
-  }
-
-  if(initDependentBuffers) {
     createDependentBuffers();
     writeDescriptorSets();
-    initDependentBuffers=false;
+    writeMaterialAndLightDescriptors();
   }
 
   uint32_t imageIndex=0; // index of the current swap chain image to render to
