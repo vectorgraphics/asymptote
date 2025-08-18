@@ -1035,14 +1035,16 @@ void AsyVkRender::pickPhysicalDevice()
     }
   }
 
+  bool software=View && remote;
+
   if(device >= 0 && device < count) {
     physicalDevice=instance->enumeratePhysicalDevices()[device];
-    if(remote && physicalDevice.getProperties().deviceType !=
+    if(software && physicalDevice.getProperties().deviceType !=
        vk::PhysicalDeviceType::eCpu)
       runtimeError("remote onscreen rendering requires the llvmpipe device");
   } else {
     auto const getDeviceScore =
-      [this,remote](vk::PhysicalDevice& device) -> std::size_t
+      [this,software](vk::PhysicalDevice& device) -> std::size_t
       {
         std::size_t score = 0u;
 
@@ -1074,8 +1076,6 @@ void AsyVkRender::pickPhysicalDevice()
 
         auto const props = device.getProperties();
 
-        bool software=offscreen || remote;
-
         if(vk::PhysicalDeviceType::eDiscreteGpu == props.deviceType) {
           if(software) return 0;
           score += 10;
@@ -1084,7 +1084,7 @@ void AsyVkRender::pickPhysicalDevice()
           score += 5;
         } else if(vk::PhysicalDeviceType::eCpu == props.deviceType &&
                   software) {
-          // Force using software renderer for remote or offscreen rendering
+          // Force using software renderer for remote onscreen rendering
           score += 100;
         }
 
