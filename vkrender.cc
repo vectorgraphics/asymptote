@@ -291,7 +291,9 @@ void AsyVkRender::updateHandler(int) {
 
   vk->resize=true;
   vk->redisplay=true;
+  vk->redraw=true;
   vk->remesh=true;
+  vk->framebufferResized=true;
   vk->waitEvent=false;
 }
 
@@ -4425,6 +4427,7 @@ void AsyVkRender::clearBuffers()
 
 void AsyVkRender::render()
 {
+
 #ifdef HAVE_PTHREAD
   static bool first=true;
   if(vkthread && first) {
