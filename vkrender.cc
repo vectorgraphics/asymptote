@@ -200,13 +200,13 @@ void AsyVkRender::setProjection()
 
   if(orthographic) vk->ortho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
   else vk->frustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
-
   newUniformBuffer = true;
 }
 
 void AsyVkRender::updateModelViewData()
 {
   normMat = inverse(viewMat);
+  newUniformBuffer = true;
 }
 
 void *postEmptyEvent(void *)
@@ -498,7 +498,7 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
       app->animate();
       break;
     case 'Q':
-      if(!app->Format.empty()) app->Export(0);
+      if(!app->Format.empty()) app->exportHandler(0);
       app->quit();
       break;
   }
@@ -3583,7 +3583,7 @@ void AsyVkRender::createAttachments()
 
 void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
 {
-  if (!newUniformBuffer)
+  if (!newUniformBuffer && !queueExport)
     return;
 
   UniformBufferObject ubo{ };
@@ -4440,10 +4440,8 @@ void AsyVkRender::render()
   if(redraw) {
     clearData();
 
-    if(remesh) {
+    if(remesh)
       clearCenters();
-      setProjection();
-    }
 
     triple m(xmin,ymin,Zmin);
     triple M(xmax,ymax,Zmax);
@@ -4694,7 +4692,6 @@ void AsyVkRender::exportHandler(int) {
 }
 
 void AsyVkRender::Export(int imageIndex) {
-
   exportCommandBuffer->reset();
   vkutils::checkVkResult(device->resetFences(1, &*exportFence));
   exportCommandBuffer->begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
@@ -4822,7 +4819,6 @@ void AsyVkRender::Export(int imageIndex) {
     endwait(readySignal,readyLock);
   }
 #endif
-  exporting=false;
 }
 
 void AsyVkRender::quit()

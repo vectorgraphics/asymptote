@@ -396,7 +396,6 @@ private:
   bool ViewExport;
   bool antialias = false;
   bool readyAfterExport=false;
-  bool exporting=false;
 
   bool remesh=true;
   bool interlock=false;
