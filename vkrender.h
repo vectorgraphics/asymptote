@@ -893,6 +893,7 @@ private:
 
   void nextFrame();
   void clearBuffers();
+  void render();
   void display();
   void mainLoop();
   void cleanup();
