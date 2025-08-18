@@ -277,6 +277,7 @@ void AsyVkRender::initWindow()
   glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
   glfwSetScrollCallback(window, scrollCallback);
   glfwSetCursorPosCallback(window, cursorPosCallback);
+  glfwSetKeyCallback(window, NULL);
   glfwSetKeyCallback(window, keyCallback);
   glfwSetWindowSizeLimits(window, 1, 1, GLFW_DONT_CARE, GLFW_DONT_CARE);
   glfwSetWindowCloseCallback(window,closeWindowHandler);
@@ -4841,11 +4842,13 @@ void AsyVkRender::quit()
 
 #endif
     if(View) {
+      setenv("XMODIFIERS","",false);
       glfwHideWindow(window);
       hideWindow=true;
     }
   } else {
     glfwDestroyWindow(window);
+    glfwTerminate();
     window = nullptr;
     exit(0);
   }
