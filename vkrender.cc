@@ -4554,6 +4554,7 @@ void AsyVkRender::mainLoop()
       }
     }
   } else {
+    update();
     display();
     if(vkthread) {
       if(havewindow) {
