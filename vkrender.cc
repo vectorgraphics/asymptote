@@ -704,8 +704,10 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
     initializedView=true;
   }
 
-  if(vkinitialize)
+  if(vkinitialize) {
+    vkinitialize=false;
     initVulkan();
+  }
 
   readyForUpdate=true;
   mainLoop();
@@ -757,6 +759,8 @@ void AsyVkRender::initVulkan()
   createDescriptorSetLayout();
   createComputeDescriptorSetLayout();
 
+  createBuffers();
+
   if (ibl) {
     initIBL();
   }
@@ -766,6 +770,8 @@ void AsyVkRender::initVulkan()
   createDescriptorSets();
 
   createImmediateRenderTargets();
+  writeDescriptorSets();
+  writeMaterialAndLightDescriptors();
 
   createCountRenderPass();
   createGraphicsRenderPass();
@@ -793,9 +799,8 @@ void AsyVkRender::recreateSwapChain()
     setupPostProcessingComputeParameters();
   }
   createDependentBuffers();
-  writeDescriptorSets();
-  writeMaterialAndLightDescriptors();
   createImmediateRenderTargets();
+  writeDescriptorSets();
   createImageViews();
   createSyncObjects();
   createCountRenderPass();
@@ -2667,6 +2672,7 @@ void AsyVkRender::createBuffers()
   }
 
   createMaterialAndLightBuffers();
+  createDependentBuffers();
 }
 
 
@@ -4220,14 +4226,6 @@ void AsyVkRender::drawFrame()
   ));
 
   Opaque=transparentData.indices.empty();
-
-  if(vkinitialize) {
-    vkinitialize=false;
-    createBuffers();
-    createDependentBuffers();
-    writeDescriptorSets();
-    writeMaterialAndLightDescriptors();
-  }
 
   uint32_t imageIndex=0; // index of the current swap chain image to render to
 
