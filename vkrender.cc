@@ -5157,7 +5157,7 @@ void AsyVkRender::home(bool webgl) {
 
   setProjection();
   updateModelViewData();
-  redraw=true;
+//  redraw=true;
 }
 
 void AsyVkRender::cycleMode() {
