@@ -5157,10 +5157,11 @@ void AsyVkRender::home(bool webgl) {
 }
 
 void AsyVkRender::cycleMode() {
-  mode = DrawMode((mode + 1) % DRAWMODE_MAX);
-  recreatePipeline = true;
+  mode=DrawMode((mode + 1) % DRAWMODE_MAX);
   remesh=true;
   redraw=true;
+  framebufferResized=true;
+  newUniformBuffer=true;
 
   if (mode == DRAWMODE_NORMAL) {
     ibl=settings::getSetting<bool>("ibl");
