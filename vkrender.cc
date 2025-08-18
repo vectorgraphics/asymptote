@@ -4795,9 +4795,6 @@ void AsyVkRender::Export(int imageIndex) {
   picture pic;
   double w=oWidth;
   double h=oHeight;
-  double Aspect=((double) backbufferExtent.width)/backbufferExtent.height;
-  if(w > h*Aspect) w=(int) (h*Aspect+0.5);
-  else h=(int) (w/Aspect+0.5);
 
   if(settings::verbose > 1)
     cout << "Exporting " << Prefix << " as " << fullWidth << "x"
