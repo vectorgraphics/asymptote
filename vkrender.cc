@@ -442,6 +442,7 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
   {
     case 'H':
       app->home();
+      app->redraw=true;
       break;
     case 'F':
       app->toggleFitScreen();
@@ -638,8 +639,6 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
     }
     maxFragments=0;
 
-    rotateMat = mat4(1.0);
-    viewMat = mat4(1.0);
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(width,height);
     Aspect=((double) width)/height;
 
@@ -4836,8 +4835,6 @@ void AsyVkRender::quit()
       settings::Setting("interrupt")=true;
     redraw=false;
     waitEvent=false;
-    if(interact::interactive)
-      home();
     Animate=settings::getSetting<bool>("autoplay");
 #ifdef HAVE_PTHREAD
     if(!interact::interactive || animating) {
@@ -5157,7 +5154,6 @@ void AsyVkRender::home(bool webgl) {
 
   setProjection();
   updateModelViewData();
-//  redraw=true;
 }
 
 void AsyVkRender::cycleMode() {
