@@ -290,7 +290,7 @@ void AsyVkRender::updateHandler(int) {
   }
 
   vk->resize=true;
-  vk->redraw=true;
+  vk->redisplay=true;
   vk->remesh=true;
   vk->waitEvent=false;
 }
@@ -801,6 +801,7 @@ void AsyVkRender::recreateSwapChain()
   createDependentBuffers();
   createImmediateRenderTargets();
   writeDescriptorSets();
+  writeMaterialAndLightDescriptors();
   createImageViews();
   createSyncObjects();
   createCountRenderPass();
@@ -2774,12 +2775,13 @@ void AsyVkRender::createImmediateRenderTargets()
 
 void AsyVkRender::createDependentBuffers()
 {
-  pixels=(backbufferExtent.width+1)*(backbufferExtent.height+1);
-  if(Opaque) pixels=1;
-  std::uint32_t Pixels;
+  render(); // Determine whether the scene is opaque.
+  redisplay=true;
+
+  pixels=Opaque ? 1 : (backbufferExtent.width+1)*(backbufferExtent.height+1);
 
   std::uint32_t G=ceilquotient(pixels,groupSize);
-  Pixels=groupSize*G;
+  std::uint32_t Pixels=groupSize*G;
   globalSize=localSize*ceilquotient(G,localSize)*sizeof(std::uint32_t);
 
   countBufferSize=(Pixels+2)*sizeof(std::uint32_t);
@@ -4136,10 +4138,8 @@ void AsyVkRender::blendFrame(int imageIndex)
 void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
 {
   copied=false;
-  Opaque=transparentData.indices.empty();
-  bool transparent=!Opaque;
 
-  if (transparent) {
+  if(!Opaque) {
     vkutils::checkVkResult(device->waitForFences(
       1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
     ));
@@ -4159,8 +4159,6 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
 
 void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 {
-  bool transparent=!Opaque;
-
   beginGraphicsFrameRender(imageIndex);
   currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *graphicsPipelineLayout, 0, 1, &*object.descriptorSet, 0, nullptr);
   drawPoints(object);
@@ -4169,7 +4167,7 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
   drawColors(object);
   drawTriangles(object);
 
-  if (transparent) {
+  if(!Opaque) {
     currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
     drawTransparent(object);
     currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
@@ -4224,8 +4222,6 @@ void AsyVkRender::drawFrame()
   vkutils::checkVkResult(device->waitForFences(
     1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
   ));
-
-  Opaque=transparentData.indices.empty();
 
   uint32_t imageIndex=0; // index of the current swap chain image to render to
 
@@ -4428,7 +4424,7 @@ void AsyVkRender::clearBuffers()
   }
 }
 
-void AsyVkRender::display()
+void AsyVkRender::render()
 {
 #ifdef HAVE_PTHREAD
   static bool first=true;
@@ -4461,7 +4457,14 @@ void AsyVkRender::display()
 
     if(mode != DRAWMODE_OUTLINE)
       remesh=false;
+
+    Opaque=transparentData.indices.empty();
   }
+}
+
+void AsyVkRender::display()
+{
+  render();
 
   if(View && !hideWindow && !glfwGetWindowAttrib(window,GLFW_VISIBLE))
     glfwShowWindow(window);
@@ -4554,7 +4557,6 @@ void AsyVkRender::mainLoop()
       }
     }
   } else {
-    update();
     display();
     if(vkthread) {
       if(havewindow) {
