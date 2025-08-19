@@ -258,7 +258,7 @@ opsymbols.h: camp.l opsymbols.py
 
 envcompleter.d: keywords.h
 
-asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy
+asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy asy-list.py
 	@echo Creating $@;
 	$(ASY) -l > asy.list
 	for dir in $(KEYWORDS); do \
