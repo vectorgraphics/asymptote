@@ -5082,6 +5082,9 @@ void AsyVkRender::fullscreen(bool reposition)
 }
 
 void AsyVkRender::reshape0(int Width, int Height) {
+  X=(X/width)*Width;
+  Y=(Y/height)*Height;
+
   width=Width;
   height=Height;
 
@@ -5089,17 +5092,16 @@ void AsyVkRender::reshape0(int Width, int Height) {
   static int lastHeight=1;
   if(View && width*height > 1 &&
      (width != lastWidth || height != lastHeight)) {
-    X=(X/Width)*Width;
-    Y=(Y/Height)*Height;
 
     if(settings::verbose > 1)
       cout << "Rendering " << stripDir(Prefix) << " as "
            << width << "x" << height << " image" << endl;
     lastWidth=width;
     lastHeight=height;
-    setProjection();
-    framebufferResized=true;
   }
+
+  setProjection();
+  framebufferResized=true;
 }
 
 void AsyVkRender::setosize() {
