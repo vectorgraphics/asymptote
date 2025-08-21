@@ -3635,17 +3635,23 @@ function initSlider() {
         position: fixed;
         width: 50%;
         height: 30px;
-        left: 50%;               /* push to horizontal center */
-        transform: translateX(-50%);  /* adjust for element's width */
+        left: 50%;               
+        transform: translateX(-50%);  
         opacity: 0.7;
         transition: opacity .2s;
-        margin: auto; 
       }  
     `;
 
   slider.oninput=() => {
-    const value=parseFloat(slider.value)
+    const value=parseFloat(slider.value); 
     playbackTime=(startTime+maxSceneDuration)*value;
+    if(position >= startTime+maxAutoplayDuration && !activeAnimation) {
+      activeAnimation=true;
+      requestAnimationFrame(animate) 
+    }
+  }
+  slider.onchange=() => {
+    activeAnimation=false;
   }
   p.head.appendChild(style);
   p.body.prepend(slider);

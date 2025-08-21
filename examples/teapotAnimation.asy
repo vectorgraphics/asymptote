@@ -261,14 +261,14 @@ beginTransform(geometry="
                color="
 function(x,c,t) {
   return interp(c,interp(c,red,(x[2]-zmin)/(zmax-zmin)),t);}",
-               10,false);
+               7,false);
 
 draw(S,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));
 
 beginTransform("
 function(x,t) {return [x[0],x[1],x[2]+10*Math.sin(8*Math.PI*t)];}",
-               8,true);
+               5,true);
 
 draw(Sknob,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));
@@ -277,7 +277,7 @@ beginTransform(geometry="
 function(x,t) {return [x[0]-xmax*t,x[1]-ymax*t,x[2]];}",
                color="
 function(x,c,t) {return interp(c,green,t);}",
-               10,false);
+               7,true);
 
 draw(Sbase,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));
