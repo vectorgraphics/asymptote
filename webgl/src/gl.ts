@@ -3033,14 +3033,14 @@ function handleKey(event)
   }
   if (keycode=="ArrowRight"&&playbackDirection!="forward") {
     playbackDirection="forward";
-    if(position >= startTime+maxDuration && !activeAnimation) {
+    if(position >= startTime+maxAutoplayDuration && !activeAnimation) {
       activeAnimation=true;
-      requestAnimationFrame(animate)
+      requestAnimationFrame(animate) 
     }
 
   } else if (keycode=="ArrowLeft"&&playbackDirection!="backward") {
     playbackDirection="backward";
-    if(position >= startTime+maxDuration && !activeAnimation) {
+    if(position >= startTime+maxAutoplayDuration && !activeAnimation) {
       activeAnimation=true;
       requestAnimationFrame(animate)
     }
@@ -3057,7 +3057,7 @@ function stopAnimation(event) {
   let keycode=event.key;
   if ((keycode=="ArrowRight"&&playbackDirection=="forward") ||
     (keycode=="ArrowLeft"&&playbackDirection=="backward")) {
-      if(position >= startTime+maxDuration)
+      if(position >= startTime+maxAutoplayDuration)
         activeAnimation=false;
       playbackDirection=null;
     }}
@@ -3262,7 +3262,6 @@ function drawBuffers()
 
 function drawScene()
 {
-  now=performance.now();
   if(W.embedded) {
     offscreen.width=W.canvasWidth;
     offscreen.height=W.canvasHeight;
@@ -3271,6 +3270,8 @@ function drawScene()
 
   gl.clearColor(W.background[0],W.background[1],W.background[2],W.background[3]);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  
+  now=performance.now();
 
   for(const p of P)
     p.render();
@@ -3525,7 +3526,8 @@ function transformColor(nodes:any[], delta:number,
 }
 
 let startTime:number=null;
-let maxDuration:number=0;
+let maxAutoplayDuration:number=0;
+let maxSceneDuration:number=0; 
 
 type Transformation = {
   geometryTransform?: (v:vec3, delta:number) => vec3;
@@ -3580,6 +3582,7 @@ let lastTimestamp:number|null=null;
 let autoplayAnimation=false;
 let activeAnimation=false;
 let position;
+let maxSceneDurationInv;
 
 function animate(timestamp:number) {
   position=timestamp;
@@ -3594,13 +3597,16 @@ function animate(timestamp:number) {
   } else if(playbackDirection=="backward") {
     playbackTime=Math.max(0, playbackTime-delta*playbackSpeed);
   }
+  if(slider)
+    slider.value=((playbackTime)*maxSceneDurationInv).toString();
+    
 
   remesh=true;
 
   drawScene();
 
   const continued=autoplayAnimation && !activeAnimation ?
-    timestamp < startTime+maxDuration : activeAnimation;
+    timestamp < startTime+maxAutoplayDuration : activeAnimation;
   if (continued) {
     requestAnimationFrame(animate);
   } else {
@@ -3608,8 +3614,44 @@ function animate(timestamp:number) {
   }
 }
 
+let slider:HTMLInputElement;
+
+function initSlider() {
+  const p=document;
+  slider=p.createElement("input"); 
+
+  slider.type="range"; 
+  slider.value="0";
+  slider.min="0"; 
+  slider.max="1";
+  slider.step="0.001";
+  slider.className="slider"; 
+  slider.onkeydown=() =>  { return false; }
 
 
+  const style = p.createElement("style");
+  style.textContent = `
+      .slider {
+        position: fixed;
+        width: 50%;
+        height: 30px;
+        left: 50%;               /* push to horizontal center */
+        transform: translateX(-50%);  /* adjust for element's width */
+        opacity: 0.7;
+        transition: opacity .2s;
+        margin: auto; 
+      }  
+    `;
+
+  slider.oninput=() => {
+    const value=parseFloat(slider.value)
+    playbackTime=(startTime+maxSceneDuration)*value;
+  }
+  p.head.appendChild(style);
+  p.body.prepend(slider);
+  maxSceneDurationInv=1/maxSceneDuration;
+
+}
 
 function light(direction,color)
 {
@@ -4067,8 +4109,10 @@ function initTransform()
 function beginTransform(geometry,color,duration,autoplay)
 {
   const msDuration=duration*1000;
-  if(msDuration > maxDuration && autoplay)
-    maxDuration=msDuration;
+  if(msDuration > maxAutoplayDuration && autoplay)
+    maxAutoplayDuration=msDuration;
+  if(duration > maxSceneDuration)
+    maxSceneDuration=msDuration; 
 
   if(autoplay)
     autoplayAnimation=true;
@@ -4101,9 +4145,10 @@ function interp(a,b,t)
 
 function webGLStart()
 {
+
   W.canvas=document.getElementById("Asymptote");
   W.embedded=window.top.document != document;
-
+  
   initGL();
 
   gl.enable(gl.BLEND);
@@ -4145,6 +4190,7 @@ function webGLStart()
 
   home();
   startTime=performance.now();
+  initSlider();
   requestAnimationFrame(animate);
 }
 globalThis.window.webGLStart=webGLStart;
