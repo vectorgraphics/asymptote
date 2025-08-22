@@ -4336,6 +4336,14 @@ void AsyVkRender::drawFrame()
   if (renderQueue.submit(SINGLETON_VIEW(submitInfo), *frameObject.inFlightFence) != vk::Result::eSuccess)
     runtimeError("failed to submit draw command buffer");
 
+  if(queueExport) {
+    vkutils::checkVkResult(device->waitForFences(
+      1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
+    ));
+    Export(imageIndex);
+    queueExport=false;
+  }
+
   // Present to the swapchain if we are rendering on-screen.
   if (View) {
     try
@@ -4371,14 +4379,6 @@ void AsyVkRender::drawFrame()
     ));
     createBlendPipeline();
     recreateBlendPipeline=false;
-  }
-
-  if(queueExport) {
-    vkutils::checkVkResult(device->waitForFences(
-      1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
-    ));
-    Export(imageIndex);
-    queueExport=false;
   }
 
   currentFrame = (currentFrame + 1) % maxFramesInFlight;
