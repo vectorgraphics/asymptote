@@ -533,17 +533,6 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   bool webgl=args.format == "html";
   bool format3d=webgl || v3d;
 
-  offscreen=settings::getSetting<bool>("offscreen");
-
-#ifdef HAVE_VULKAN
-  GLFWmonitor* monitor=NULL;
-  if(!(offscreen || format3d)) {
-    glfwInit();
-    monitor=glfwGetPrimaryMonitor();
-    if(!monitor) offscreen=true;
-  }
-#endif
-
   this->pic = args.pic;
   this->Prefix=args.prefix;
   this->Format = args.format;
@@ -563,7 +552,8 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
     this->Background[i] = static_cast<float>(args.background[i]);
 
   this->ViewExport=args.view;
-  this->View = args.view && !offscreen;
+
+  this->View = args.view && !settings::getSetting<bool>("offscreen");
 
   this->title = std::string(PACKAGE_NAME)+": "+ args.prefix.c_str();
 
@@ -614,15 +604,19 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
       width=fullWidth;
       height=fullHeight;
     } else {
-      if(offscreen) {
-        screenWidth=fullWidth;
-        screenHeight=fullHeight;
-      } else {
 #ifdef HAVE_VULKAN
+      GLFWmonitor* monitor=NULL;
+      glfwInit();
+      monitor=glfwGetPrimaryMonitor();
+      if(monitor) {
         int mx, my;
         glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
+      } else
 #endif
-      }
+        {
+          screenWidth=width;
+          screenHeight=height;
+        }
 
       width=min(fullWidth,screenWidth);
       height=min(fullHeight,screenHeight);
@@ -689,10 +683,6 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 
     Animate=settings::getSetting<bool>("autoplay") && vkthread;
     ibl=settings::getSetting<bool>("ibl");
-
-    if (offscreen && settings::verbose > 1) {
-      std::cout << "Using offscreen mode" << std::endl;
-    }
   }
 
   if(View) {

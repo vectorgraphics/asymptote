@@ -246,7 +246,6 @@ public:
   bool newUniformBuffer=true;
   bool queueExport=false;
   bool ibl=false;
-  bool offscreen=false;
   bool vkexit=false;
   bool hideWindow=false;
 
