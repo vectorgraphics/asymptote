@@ -3028,6 +3028,13 @@ function handleKey(event)
   case 'c':
     showCamera();
     break;
+  case 'b':
+    if (activeSlider) {
+      deleteSlider();
+    } else {
+      initSlider();
+    }
+    break
   default:
     break;
   }
@@ -3616,34 +3623,42 @@ function animate(timestamp:number) {
 
 let slider:HTMLInputElement;
 
+let activeSlider=false; 
+
 function initSlider() {
+  activeSlider=true; 
   const p=document;
   slider=p.createElement("input"); 
+  maxSceneDurationInv=1/maxSceneDuration;
 
   slider.type="range"; 
-  slider.value="0";
   slider.min="0"; 
   slider.max="1";
   slider.step="0.001";
-  slider.className="slider"; 
+  slider.value=(playbackTime*maxSceneDurationInv).toString();
+
+  slider.className="slider";
+  slider.style.position="fixed"
   slider.onkeydown=() =>  { return false; }
 
-
-  const style = p.createElement("style");
-  style.textContent = `
-      .slider {
-        position: fixed;
-        width: 50%;
-        height: 30px;
-        left: 50%;               
-        transform: translateX(-50%);  
-        opacity: 0.7;
-        transition: opacity .2s;
-      }  
-    `;
+  // We should let user be able to inject CSS code for everything,
+  // not just the slider.
+  // style = p.createElement("style");
+  // style.textContent = `
+  //     .slider {
+  //       width: 50%;
+  //       height: 30px;
+  //       left: 50%;               
+  //       transform: translateX(-50%);  
+  //       opacity: 0.7;
+  //       transition: opacity .2s;
+  //     }  
+  //   `;
+  // document.head.appendChild(style);
 
   slider.oninput=() => {
     const value=parseFloat(slider.value); 
+    console.log("change")
     playbackTime=(startTime+maxSceneDuration)*value;
     if(position >= startTime+maxAutoplayDuration && !activeAnimation) {
       activeAnimation=true;
@@ -3653,10 +3668,14 @@ function initSlider() {
   slider.onchange=() => {
     activeAnimation=false;
   }
-  p.head.appendChild(style);
-  p.body.prepend(slider);
-  maxSceneDurationInv=1/maxSceneDuration;
 
+  p.body.prepend(slider);
+
+}
+
+function deleteSlider() {
+  slider.remove();
+  activeSlider=false; 
 }
 
 function light(direction,color)
@@ -4196,7 +4215,6 @@ function webGLStart()
 
   home();
   startTime=performance.now();
-  initSlider();
   requestAnimationFrame(animate);
 }
 globalThis.window.webGLStart=webGLStart;
