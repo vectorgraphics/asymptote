@@ -441,7 +441,7 @@ struct option : public gc {
 
   // Outputs description of the command for the -help option.
   virtual void describe(char option) {
-    // Don't show the option if it has no desciption.
+    // Don't show the option if it has no description.
     if(!hide() && ((option == 'h') ^ env())) {
       const unsigned WIDTH=22;
       string start=describeStart();
