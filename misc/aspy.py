@@ -134,7 +134,7 @@ class AsyException(Exception):
         return self.msg
 
 def checkForErrors():
-    """Raises an exception if an error occured."""
+    """Raises an exception if an error occurred."""
     global policyError
     if policyError != []:
         s = policyError[0]
