@@ -47,6 +47,7 @@
 #include "locate.h"
 #include "interact.h"
 #include "fileio.h"
+#include "vkrender.h"
 #include "stack.h"
 
 #ifdef HAVE_LIBFFTW3
@@ -57,15 +58,9 @@
 #include <combaseapi.h>
 #endif
 
-#include "stack.h"
-
 using namespace settings;
 
 using interact::interactive;
-
-namespace gl {
-extern bool glexit;
-}
 
 namespace run {
 void purge();
@@ -89,8 +84,8 @@ int sigsegv_handler (void *, int emergency)
 {
   if(!emergency) return 0; // Really a stack overflow
   em.runtime(vm::getPos());
-#ifdef HAVE_GL
-  if(gl::glthread)
+#ifdef HAVE_VULKAN
+  if(camp::vk->vkthread)
     cerr << "Stack overflow or segmentation fault: rerun with -nothreads"
          << endl;
   else
@@ -125,14 +120,16 @@ void *asymain(void *A)
 {
   setsignal(signalHandler);
   Args *args=(Args *) A;
-  fpu_trap(trap());
 #ifdef HAVE_LIBFFTW3
   fftwpp::wisdomName=".wisdom";
 #endif
 
 #if defined(_WIN32)
   // see https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecuteexa
-  CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+  if (!SUCCEEDED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE)))
+  {
+    camp::reportError("CoInitializeEx Failed");
+  }
 #endif
 
   if(interactive) {
@@ -219,18 +216,6 @@ void *asymain(void *A)
     while(wait(&status) > 0);
 #endif
   }
-#ifdef HAVE_GL
-#ifdef HAVE_PTHREAD
-  if(gl::glthread) {
-#ifdef __MSDOS__ // Signals are unreliable in MSWindows
-    gl::glexit=true;
-#else
-    pthread_kill(gl::mainthread,SIGURG);
-    pthread_join(gl::mainthread,NULL);
-#endif
-  }
-#endif
-#endif
   exit(returnCode());
 }
 
@@ -248,65 +233,48 @@ int main(int argc, char *argv[])
     em.statusError();
   }
 
+  fpu_trap(trap());
   Args args(argc,argv);
-#ifdef HAVE_GL
-#if defined(__APPLE__) || defined(_WIN32)
-
-#if defined(_WIN32)
-#pragma message("TODO: Check if (1) we need detach-based gl renderer")
-#endif
-
-  bool usethreads=true;
-#else
-  bool usethreads=view();
-#endif
-  gl::glthread=usethreads ? getSetting<bool>("threads") : false;
+#ifdef HAVE_VULKAN
+  camp::vk->vkthread=getSetting<bool>("threads");
 #if HAVE_PTHREAD
-#ifndef HAVE_LIBOSMESA
-  if(gl::glthread) {
+  if(camp::vk->vkthread) {
     pthread_t thread;
     try {
 #if defined(_WIN32)
-      auto asymainPtr = [](void* args) -> void*
-      {
+      auto asymainPtr = [](void* args) -> void* {
 #if defined(USEGC)
         GC_stack_base gsb {};
         GC_get_stack_base(&gsb);
         GC_register_my_thread(&gsb);
-#endif
+#endif // defined(USEGC)
         auto* ret = asymain(args);
 
 #if defined(USEGC)
         GC_unregister_my_thread();
-#endif
+#endif // defined(USEGC)
         return reinterpret_cast<void*>(ret);
       };
-#else
+#else // defined(_WIN32)
       auto* asymainPtr = asymain;
-#endif
+#endif // defined(_WIN32)
       if(pthread_create(&thread,NULL,asymainPtr,&args) == 0) {
-        gl::mainthread=pthread_self();
+        camp::vk->mainthread=pthread_self();
 #if !defined(_WIN32)
         sigset_t set;
         sigemptyset(&set);
         sigaddset(&set, SIGCHLD);
         pthread_sigmask(SIG_BLOCK, &set, NULL);
-#endif
-        for(;;) {
-#if !defined(_WIN32)
-          Signal(SIGURG,exitHandler);
-#endif
+#endif // !defined(_WIN32)
+        for (;;)
           camp::glrenderWrapper();
-          gl::initialize=true;
-        }
-      } else gl::glthread=false;
+      } else camp::vk->vkthread=false;
     } catch(std::bad_alloc&) {
       outOfMemory();
     }
   }
-#endif
-#endif
-  gl::glthread=false;
-#endif
+#endif // HAVE_PTHREAD
+  camp::vk->vkthread=false;
+#endif // HAVE_VULKAN
   asymain(&args);
 }

@@ -115,4 +115,3 @@ These tests can be run by CTest. For example, after building on linux/release,
 ```bash
 ctest --test-dir cmake-build-linux/release/ -R "asy.types.*"
 ```
-
