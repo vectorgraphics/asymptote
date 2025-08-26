@@ -439,6 +439,7 @@ private:
   vk::UniqueCommandBuffer exportCommandBuffer;
   vk::UniqueFence exportFence;
   vk::Format backbufferImageFormat=vk::Format::eB8G8R8A8Unorm;
+  vk::Format postProcFormat;
   vk::Extent2D backbufferExtent;
   vma::cxx::UniqueImage defaultBackbufferImg;
   std::vector<vk::Image> backbufferImages;
