@@ -38,11 +38,6 @@ namespace camp
 {
 class picture;
 
-// For debugging:
-#if defined(ENABLE_VK_VALIDATION)
-#define VALIDATION
-#endif
-
 #define EMPTY_VIEW 0, nullptr
 #define SINGLETON_VIEW(x) 1, &(x)
 #define VEC_VIEW(x) static_cast<uint32_t>((x).size()), (x).data()
@@ -426,9 +421,6 @@ private:
   GLFWwindow* window=nullptr;
   vk::UniqueInstance instance;
 
-#if defined(VALIDATION)
-  vk::UniqueDebugUtilsMessengerEXT debugMessenger;
-#endif
   std::vector<const char*> validationLayers {};
   vk::UniqueSurfaceKHR surface;
 
@@ -695,9 +687,7 @@ private:
   void initWindow();
   void initVulkan();
 
-#if defined(VALIDATION)
   void createDebugMessenger();
-#endif
 
   std::set<std::string> getInstanceExtensions();
   std::set<std::string> getDeviceExtensions(vk::PhysicalDevice& device);
