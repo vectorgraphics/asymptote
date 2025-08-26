@@ -2694,6 +2694,8 @@ void AsyVkRender::createMaterialAndLightBuffers() {
 
 void AsyVkRender::createImmediateRenderTargets()
 {
+  // Choose post-process format: FXAA requires RGBA8 to match layout rgba8
+  postProcFormat = fxaa ? vk::Format::eR8G8B8A8Unorm : backbufferImageFormat;
   immRenderTargetViews.clear();
   immediateRenderTargetImgs.clear();
   prePresentationImages.clear();
@@ -2715,7 +2717,7 @@ void AsyVkRender::createImmediateRenderTargets()
             backbufferExtent.width,
             backbufferExtent.height,
             vk::SampleCountFlagBits::e1,
-            backbufferImageFormat,
+            postProcFormat,
             vk::ImageUsageFlagBits::eColorAttachment
                     | vk::ImageUsageFlagBits::eSampled
                     | vk::ImageUsageFlagBits::eStorage,
@@ -2726,7 +2728,7 @@ void AsyVkRender::createImmediateRenderTargets()
 
     auto& immRenderImgView= immRenderTargetViews.emplace_back();
     createImageView(
-            backbufferImageFormat,
+            postProcFormat,
             vk::ImageAspectFlagBits::eColor,
             immRenderTarget.getImage(),
             immRenderImgView
@@ -2750,14 +2752,14 @@ void AsyVkRender::createImmediateRenderTargets()
       backbufferExtent.width,
       backbufferExtent.height,
       vk::SampleCountFlagBits::e1,
-      backbufferImageFormat,
+      postProcFormat,
       vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eStorage,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     ));
 
     auto& prePresentationImageView= prePresentationImgViews.emplace_back();
     createImageView(
-            backbufferImageFormat,
+            postProcFormat,
             vk::ImageAspectFlagBits::eColor,
             prePresentationTarget.getImage(),
             prePresentationImageView
@@ -3043,7 +3045,7 @@ void AsyVkRender::createGraphicsRenderPass()
 {
   auto colorAttachment = vk::AttachmentDescription2(
     vk::AttachmentDescriptionFlags(),
-    backbufferImageFormat,
+    postProcFormat,
     msaaSamples,
     vk::AttachmentLoadOp::eClear,
     vk::AttachmentStoreOp::eStore,
@@ -4190,17 +4192,25 @@ void AsyVkRender::postProcessImage(vk::CommandBuffer& cmdBuffer, uint32_t const&
 void AsyVkRender::copyToSwapchainImg(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex)
 {
   vk::ImageSubresourceLayers const layers(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
-  std::vector const imgCopyData{
-          vk::ImageCopy(layers, vk::Offset3D(0, 0, 0), layers, vk::Offset3D(0, 0, 0), vk::Extent3D(backbufferExtent, 1))
-  };
 
-  cmdBuffer.copyImage(
-          prePresentationImages[frameIndex].getImage(),
-          vk::ImageLayout::eTransferSrcOptimal,
-          backbufferImages[frameIndex],
-          vk::ImageLayout::eTransferDstOptimal,
-          VEC_VIEW(imgCopyData)
-  );
+  // Formats differ (pre-presentation RGBA8 -> swapchain BGRA8), use blit
+  vk::ImageBlit blit{};
+  blit.srcSubresource = {vk::ImageAspectFlagBits::eColor, 0, 0, 1};
+  blit.srcOffsets[0] = vk::Offset3D(0, 0, 0);
+  blit.srcOffsets[1] =  vk::Offset3D(
+    static_cast<int32_t>(backbufferExtent.width), static_cast<int32_t>(backbufferExtent.height), 1);
+  blit.dstSubresource = {vk::ImageAspectFlagBits::eColor, 0, 0, 1};
+  blit.dstOffsets[0] = vk::Offset3D(0, 0, 0);
+  blit.dstOffsets[1] =  vk::Offset3D(
+    static_cast<int32_t>(backbufferExtent.width), static_cast<int32_t>(backbufferExtent.height), 1);
+
+  cmdBuffer.blitImage(
+    prePresentationImages[frameIndex].getImage(),
+    vk::ImageLayout::eTransferSrcOptimal,
+    backbufferImages[frameIndex],
+    vk::ImageLayout::eTransferDstOptimal,
+    1, &blit, vk::Filter::eNearest
+    );
 }
 
 void AsyVkRender::drawFrame()
