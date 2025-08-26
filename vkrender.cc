@@ -10,6 +10,11 @@
 #include "vkutils.h"
 #include "ThreadSafeQueue.h"
 
+// For debugging:
+#if defined(ENABLE_VK_VALIDATION)
+#define VALIDATION
+#endif
+
 #define SHADER_DIRECTORY "shaders/"
 #define VALIDATION_LAYER "VK_LAYER_KHRONOS_validation"
 
@@ -726,9 +731,7 @@ void AsyVkRender::initVulkan()
               << " maximum frame(s) in flight" << std::endl;
   }
   createInstance();
-#if defined(VALIDATION)
   createDebugMessenger();
-#endif
   if (View) createSurface();
   pickPhysicalDevice();
 
@@ -911,9 +914,9 @@ void AsyVkRender::createInstance()
   VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
 }
 
-#if defined(VALIDATION)
 void AsyVkRender::createDebugMessenger()
 {
+#if defined(VALIDATION)
   vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
   vk::DebugUtilsMessageTypeFlagsEXT typeFlags(vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation);
   if (settings::verbose > 2)
@@ -959,9 +962,9 @@ void AsyVkRender::createDebugMessenger()
           },
           this
   );
-  debugMessenger = instance->createDebugUtilsMessengerEXTUnique(debugCreateInfo);
-}
+  instance->createDebugUtilsMessengerEXTUnique(debugCreateInfo);
 #endif
+}
 
 void AsyVkRender::createSurface()
 {
