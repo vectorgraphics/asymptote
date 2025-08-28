@@ -3845,29 +3845,29 @@ void AsyVkRender::drawTransparent(FrameObject & object)
              getPipelineType(transparentPipelines));
 }
 
-void AsyVkRender::partialSums(FrameObject & object, bool timing/*=false*/, bool bindDescriptors/*=false*/)
+void AsyVkRender::partialSums(FrameObject & object, bool timing)
 {
-  auto const writeBarrier = vk::MemoryBarrier(
+  auto const writeBarrier=vk::MemoryBarrier(
     vk::AccessFlagBits::eShaderWrite,
     vk::AccessFlagBits::eShaderRead
   );
 
-  vk::CommandBuffer const cmd=timing ? *object.partialSumsCommandBuffer : currentCommandBuffer;
+  vk::CommandBuffer const cmd=timing ? *object.partialSumsCommandBuffer :
+    currentCommandBuffer;
 
-  // Do not bother binding descriptor sets again if we have already done so while timing
-  if (!timing || bindDescriptors) {
-    auto const blockSize=ceilquotient(g,localSize);
-    auto const final=elements-1;
-    glm::uvec2 computePushConstants{blockSize,final};
+  auto const blockSize=ceilquotient(g,localSize);
+  auto const final=elements-1;
+  glm::uvec2 computePushConstants{blockSize,final};
 
-    cmd.pushConstants(*sumPipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, sizeof(computePushConstants), &computePushConstants);
+  cmd.pushConstants(*sumPipelineLayout,vk::ShaderStageFlagBits::eCompute,0,
+                    sizeof(computePushConstants),&computePushConstants);
 
-    cmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *sumPipelineLayout, 0, 1, &*computeDescriptorSet, 0, nullptr);
-  }
+  cmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute,*sumPipelineLayout,
+                         0,1,&*computeDescriptorSet,0,nullptr);
 
   // run sum1
   // Only wait for fragment shaders if we are not timing
-  if (!timing) {
+  if(!timing)
     cmd.pipelineBarrier(vk::PipelineStageFlagBits::eFragmentShader,
                         vk::PipelineStageFlagBits::eComputeShader,
                         { },
@@ -3877,9 +3877,9 @@ void AsyVkRender::partialSums(FrameObject & object, bool timing/*=false*/, bool 
                         nullptr,
                         0,
                         nullptr);
-  }
-  cmd.bindPipeline(vk::PipelineBindPoint::eCompute, *sum1Pipeline);
-  cmd.dispatch(g, 1, 1);
+
+  cmd.bindPipeline(vk::PipelineBindPoint::eCompute,*sum1Pipeline);
+  cmd.dispatch(g,1,1);
 
   // run sum2
   cmd.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
@@ -3891,8 +3891,8 @@ void AsyVkRender::partialSums(FrameObject & object, bool timing/*=false*/, bool 
                       nullptr,
                       0,
                       nullptr);
-  cmd.bindPipeline(vk::PipelineBindPoint::eCompute, *sum2Pipeline);
-  cmd.dispatch(1, 1, 1);
+  cmd.bindPipeline(vk::PipelineBindPoint::eCompute,*sum2Pipeline);
+  cmd.dispatch(1,1,1);
 
   // run sum3
   cmd.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
@@ -3904,13 +3904,22 @@ void AsyVkRender::partialSums(FrameObject & object, bool timing/*=false*/, bool 
                       nullptr,
                       0,
                       nullptr);
-  cmd.bindPipeline(vk::PipelineBindPoint::eCompute, *sum3Pipeline);
-  cmd.dispatch(g, 1, 1);
+  cmd.bindPipeline(vk::PipelineBindPoint::eCompute,*sum3Pipeline);
+  cmd.dispatch(g,1,1);
 
-  // Only set this event if not timing, to not waste time while timing
-  if (!timing) {
-    cmd.setEvent(*object.sumFinishedEvent, vk::PipelineStageFlagBits::eComputeShader);
-  }
+  if(timing)
+    cmd.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
+                        vk::PipelineStageFlagBits::eComputeShader,
+                        { },
+                        1,
+                        &writeBarrier,
+                        0,
+                        nullptr,
+                        0,
+                        nullptr);
+  else
+    cmd.setEvent(*object.sumFinishedEvent,
+                 vk::PipelineStageFlagBits::eComputeShader);
 }
 
 void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
@@ -4053,6 +4062,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   const unsigned int NSUMS=10000;
 
   if(settings::verbose >= timePartialSumVerbosity) {
+    cerr << "Timing partial sums:" << endl;
     device->resetEvent(*object.startTimedSumsEvent);
     device->resetEvent(*object.timedSumsFinishedEvent);
     // Start recording commands into partialSumsCommandBuffer
@@ -4073,9 +4083,8 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
       );
 
     // Record all partial sums calcs into partialSumsCommandBuffer
-    for(unsigned int i=0; i < NSUMS; ++i) {
-      partialSums(object, true, i==0);
-    }
+    for(unsigned int i=0; i < NSUMS; ++i)
+      partialSums(object,true);
 
     // Signal to the CPU once the compute shaders have executed
     object.partialSumsCommandBuffer->setEvent(*object.timedSumsFinishedEvent, vk::PipelineStageFlagBits::eComputeShader);
@@ -4118,7 +4127,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     // End recording
     double T=Timer.seconds()/NSUMS;
     cout << "elements=" << elements << endl;
-    cout << "Tmin (ms)=" << T*1e3 << endl;
+    cout << "T (ms)=" << T*1e3 << endl;
     cout << "Megapixels/second=" << elements/T/1e6 << endl;
   }
 }

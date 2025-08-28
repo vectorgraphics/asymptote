@@ -865,7 +865,7 @@ private:
   void drawTriangles(FrameObject & object);
   void drawTransparent(FrameObject & object);
   void clearData();
-  void partialSums(FrameObject & object, bool timing=false, bool bindDescriptors=false);
+  void partialSums(FrameObject & object, bool timing=false);
   void resizeBlendShader(std::uint32_t maxDepth);
   void resizeFragmentBuffer(FrameObject & object);
   void compressCount(FrameObject & object);
