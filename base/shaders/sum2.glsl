@@ -4,7 +4,8 @@ const uint groupSize=LOCALSIZE*BLOCKSIZE;
 
 layout(push_constant) uniform PushConstants
 {
-	uint blockSize;
+  uint blockSize;
+  uint final;
 } push;
 
 layout(binding=1, std430) buffer globalSumBuffer

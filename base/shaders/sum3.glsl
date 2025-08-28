@@ -4,7 +4,8 @@ const uint groupSize=LOCALSIZE*BLOCKSIZE;
 
 layout(push_constant) uniform PushConstants
 {
-	uint final;
+  uint blockSize;
+  uint final;
 } push;
 
 layout(binding=0, std430) buffer countBuffer

@@ -3541,9 +3541,9 @@ auto result = device->createComputePipelineUnique(VK_NULL_HANDLE, computePipelin
 void AsyVkRender::createComputePipelines()
 {
   std::vector const computeDescSetLayoutVec { *computeDescriptorSetLayout };
-  createComputePipeline(sum1PipelineLayout, sum1Pipeline, "sum1", computeDescSetLayoutVec);
-  createComputePipeline(sum2PipelineLayout, sum2Pipeline, "sum2", computeDescSetLayoutVec);
-  createComputePipeline(sum3PipelineLayout, sum3Pipeline, "sum3", computeDescSetLayoutVec);
+  createComputePipeline(sumPipelineLayout, sum1Pipeline, "sum1", computeDescSetLayoutVec);
+  createComputePipeline(sumPipelineLayout, sum2Pipeline, "sum2", computeDescSetLayoutVec);
+  createComputePipeline(sumPipelineLayout, sum3Pipeline, "sum3", computeDescSetLayoutVec);
 
   if (fxaa)
   {
@@ -3856,7 +3856,13 @@ void AsyVkRender::partialSums(FrameObject & object, bool timing/*=false*/, bool 
 
   // Do not bother binding descriptor sets again if we have already done so while timing
   if (!timing || bindDescriptors) {
-    cmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *sum1PipelineLayout, 0, 1, &*computeDescriptorSet, 0, nullptr);
+    auto const blockSize=ceilquotient(g,localSize);
+    auto const final=elements-1;
+    glm::uvec2 computePushConstants{blockSize,final};
+
+    cmd.pushConstants(*sumPipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, sizeof(computePushConstants), &computePushConstants);
+
+    cmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *sumPipelineLayout, 0, 1, &*computeDescriptorSet, 0, nullptr);
   }
 
   // run sum1
@@ -3876,7 +3882,6 @@ void AsyVkRender::partialSums(FrameObject & object, bool timing/*=false*/, bool 
   cmd.dispatch(g, 1, 1);
 
   // run sum2
-  auto const BlockSize=ceilquotient(g,localSize);
   cmd.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
                       vk::PipelineStageFlagBits::eComputeShader,
                       { },
@@ -3887,11 +3892,9 @@ void AsyVkRender::partialSums(FrameObject & object, bool timing/*=false*/, bool 
                       0,
                       nullptr);
   cmd.bindPipeline(vk::PipelineBindPoint::eCompute, *sum2Pipeline);
-  cmd.pushConstants(*sum2PipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, sizeof(std::uint32_t), &BlockSize);
   cmd.dispatch(1, 1, 1);
 
   // run sum3
-  auto const Final=elements-1;
   cmd.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
                       vk::PipelineStageFlagBits::eComputeShader,
                       { },
@@ -3902,7 +3905,6 @@ void AsyVkRender::partialSums(FrameObject & object, bool timing/*=false*/, bool 
                       0,
                       nullptr);
   cmd.bindPipeline(vk::PipelineBindPoint::eCompute, *sum3Pipeline);
-  cmd.pushConstants(*sum3PipelineLayout, vk::ShaderStageFlagBits::eCompute, 0, sizeof(std::uint32_t), &Final);
   cmd.dispatch(g, 1, 1);
 
   // Only set this event if not timing, to not waste time while timing

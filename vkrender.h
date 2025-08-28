@@ -528,11 +528,9 @@ private:
   vk::UniqueDescriptorPool computeDescriptorPool;
   vk::UniqueDescriptorSetLayout computeDescriptorSetLayout;
   vk::UniqueDescriptorSet computeDescriptorSet;
-  vk::UniquePipelineLayout sum1PipelineLayout;
+  vk::UniquePipelineLayout sumPipelineLayout;
   vk::UniquePipeline sum1Pipeline;
-  vk::UniquePipelineLayout sum2PipelineLayout;
   vk::UniquePipeline sum2Pipeline;
-  vk::UniquePipelineLayout sum3PipelineLayout;
   vk::UniquePipeline sum3Pipeline;
 
   vma::cxx::UniqueBuffer materialBf;
