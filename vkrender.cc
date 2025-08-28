@@ -3654,17 +3654,9 @@ vk::CommandBuffer & AsyVkRender::getFrameComputeCommandBuffer()
   return *frameObjects[currentFrame].computeCommandBuffer;
 }
 
-vk::UniquePipeline & AsyVkRender::getPipelineType(std::array<vk::UniquePipeline, PIPELINE_MAX> & pipelines, bool count)
+vk::UniquePipeline & AsyVkRender::getPipelineType(std::array<vk::UniquePipeline, PIPELINE_MAX> & pipelines)
 {
-  if (count) {
-    return pipelines[PIPELINE_COUNT];
-  }
-
-  if (Opaque) {
-    return pipelines[PIPELINE_OPAQUE];
-  }
-
-  return pipelines[PIPELINE_TRANSPARENT];
+  return pipelines[Opaque ? PIPELINE_OPAQUE : PIPELINE_TRANSPARENT];
 }
 
 void AsyVkRender::beginFrameCommands(vk::CommandBuffer cmd)
@@ -3977,27 +3969,27 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     drawBuffer(object.pointVertexBuffer,
                object.pointIndexBuffer,
                &pointData,
-               getPipelineType(pointPipelines, true),
+               pointPipelines[PIPELINE_COUNT],
                false);
     drawBuffer(object.lineVertexBuffer,
                object.lineIndexBuffer,
                &lineData,
-               getPipelineType(linePipelines, true),
+               linePipelines[PIPELINE_COUNT],
                false);
     drawBuffer(object.materialVertexBuffer,
                object.materialIndexBuffer,
                &materialData,
-               getPipelineType(materialPipelines, true),
+               materialPipelines[PIPELINE_COUNT],
                false);
     drawBuffer(object.colorVertexBuffer,
                object.colorIndexBuffer,
                &colorData,
-               getPipelineType(colorPipelines, true),
+               colorPipelines[PIPELINE_COUNT],
                false);
     drawBuffer(object.triangleVertexBuffer,
                object.triangleIndexBuffer,
                &triangleData,
-               getPipelineType(trianglePipelines, true),
+               trianglePipelines[PIPELINE_COUNT],
                false);
   }
 
@@ -4007,7 +3999,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   drawBuffer(object.transparentVertexBuffer,
              object.transparentIndexBuffer,
              &transparentData,
-             getPipelineType(transparentPipelines, true),
+             transparentPipelines[PIPELINE_COUNT],
              false);
 
   currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);

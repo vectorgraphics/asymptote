@@ -723,7 +723,7 @@ private:
   PushConstants buildPushConstants();
   vk::CommandBuffer & getFrameCommandBuffer();
   vk::CommandBuffer & getFrameComputeCommandBuffer();
-  vk::UniquePipeline & getPipelineType(std::array<vk::UniquePipeline, PIPELINE_MAX> & pipelines, bool count=false);
+  vk::UniquePipeline & getPipelineType(std::array<vk::UniquePipeline, PIPELINE_MAX> & pipelines);
   void beginFrameCommands(vk::CommandBuffer cmd);
   void beginCountFrameRender(int imageIndex);
   void beginGraphicsFrameRender(int imageIndex);
