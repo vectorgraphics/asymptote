@@ -2775,13 +2775,13 @@ void AsyVkRender::createDependentBuffers()
   render(); // Determine whether the scene is opaque.
   redisplay=true;
 
-  pixels=Opaque ? 1 : (backbufferExtent.width+1)*(backbufferExtent.height+1);
+  pixels=Opaque ? 1 : backbufferExtent.width*backbufferExtent.height;
 
   std::uint32_t G=ceilquotient(pixels,groupSize);
   std::uint32_t Pixels=groupSize*G;
   globalSize=localSize*ceilquotient(G,localSize)*sizeof(std::uint32_t);
 
-  countBufferSize=(Pixels+2)*sizeof(std::uint32_t);
+  countBufferSize=(Pixels+1)*sizeof(std::uint32_t);
   offsetBufferSize=(Pixels+2)*sizeof(std::uint32_t);
   opaqueBufferSize=pixels*sizeof(vec4);
   opaqueDepthBufferSize=sizeof(std::uint32_t)+pixels*sizeof(float);
