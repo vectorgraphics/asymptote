@@ -45,10 +45,10 @@ layout(binding=9, std430) buffer indexBuffer
 
 layout(push_constant) uniform PushConstants
 {
-	uvec4 constants;
-  vec4 background;
+  uvec4 constants;
   // constants[0] = nlights
   // constants[1] = width
+  vec4 background;
 } push;
 
 layout(location = 0) out vec4 outColor;
