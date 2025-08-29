@@ -2776,7 +2776,7 @@ void AsyVkRender::createDependentBuffers()
   redisplay=true;
 
   cout << "createDependentBuffers: width=" << backbufferExtent.width << endl;
-  cout << "Opaque=" << Opaque << endl
+  cout << "Opaque=" << Opaque << endl;
   pixels=Opaque ? 1 : backbufferExtent.width*backbufferExtent.height;
 
   std::uint32_t G=ceilquotient(pixels,groupSize);
@@ -4199,8 +4199,6 @@ void AsyVkRender::postProcessImage(vk::CommandBuffer& cmdBuffer, uint32_t const&
 
 void AsyVkRender::copyToSwapchainImg(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex)
 {
-  vk::ImageSubresourceLayers const layers(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
-
   // Formats differ (pre-presentation RGBA8 -> swapchain BGRA8), use blit
   vk::ImageBlit blit{};
   blit.srcSubresource = {vk::ImageAspectFlagBits::eColor, 0, 0, 1};
