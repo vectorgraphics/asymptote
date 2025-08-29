@@ -2625,7 +2625,7 @@ void AsyVkRender::updateSceneDependentBuffers() {
   // if the fragment buffer size changes, all
   // transparent data needs to be re-rendered
   // for every frame
-  transparentData.renderCount = 0;
+//  transparentdata.Rendercount = 0;
 }
 
 void AsyVkRender::createBuffers()
@@ -2775,6 +2775,8 @@ void AsyVkRender::createDependentBuffers()
   render(); // Determine whether the scene is opaque.
   redisplay=true;
 
+  cout << "createDependentBuffers: width=" << backbufferExtent.width << endl;
+  cout << "Opaque=" << Opaque << endl
   pixels=Opaque ? 1 : backbufferExtent.width*backbufferExtent.height;
 
   std::uint32_t G=ceilquotient(pixels,groupSize);
@@ -3634,6 +3636,7 @@ PushConstants AsyVkRender::buildPushConstants()
 {
   auto pushConstants = PushConstants {};
 
+  cout << "Push width=" << backbufferExtent.width << endl;
   pushConstants.constants[0] = mode!= DRAWMODE_NORMAL ? 0 : nlights;
   pushConstants.constants[1] = backbufferExtent.width;
   pushConstants.constants[2] = backbufferExtent.height;
@@ -3720,7 +3723,6 @@ void AsyVkRender::drawBuffer(DeviceBuffer & vertexBuffer,
                              VertexBuffer * data,
                              vk::UniquePipeline & pipeline,
                              bool incrementRenderCount) {
-
   if (data->indices.empty())
     return;
 
@@ -3757,6 +3759,7 @@ void AsyVkRender::drawBuffer(DeviceBuffer & vertexBuffer,
   currentCommandBuffer.bindVertexBuffers(0, vertexBuffers, vertexOffsets);
   currentCommandBuffer.bindIndexBuffer(indexBuffer._buffer.getBuffer(), 0, vk::IndexType::eUint32);
   currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
+  cout << "drawIndexed" << endl;
   currentCommandBuffer.drawIndexed(indexBuffer.nobjects, 1, 0, 0, 0);
 
   if(incrementRenderCount)
@@ -3928,6 +3931,7 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
 
   std::uint32_t maxDepth=feedbackMappedPtr->getCopyPtr()[0];
   fragments=feedbackMappedPtr->getCopyPtr()[1];
+  cout << "fragments=" << fragments << endl;
 
   if(resetDepth) {
     maxSize=maxDepth=1;
@@ -3940,6 +3944,7 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
 
   if (fragments>maxFragments) {
     maxFragments=11*fragments/10;
+    cout << "maxFragments=" << maxFragments << endl;
     vkutils::checkVkResult(device->waitForFences(
       1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<std::uint64_t>::max()
     ));
