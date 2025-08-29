@@ -341,7 +341,7 @@ private:
   struct DeviceBuffer {
     vk::BufferUsageFlags usage;
     VkMemoryPropertyFlagBits properties;
-    std::size_t nobjects;
+    size_t nobjects;
     vk::DeviceSize stgBufferSize = 0;
     vma::cxx::UniqueBuffer _buffer;
     vma::cxx::UniqueBuffer _stgBuffer;
@@ -536,38 +536,40 @@ private:
   vma::cxx::UniqueBuffer materialBf;
   vma::cxx::UniqueBuffer lightBf;
 
-  std::size_t countBufferSize;
+  size_t countBufferSize;
   vma::cxx::UniqueBuffer countBf;
   std::unique_ptr<vma::cxx::MemoryMapperLock> countBfMappedMem = nullptr;
 
-  std::size_t globalSize;
+  size_t globalSize;
   vma::cxx::UniqueBuffer globalSumBf;
 
-  std::size_t offsetBufferSize;
+  size_t offsetBufferSize;
   vma::cxx::UniqueBuffer offsetBf;
   vma::cxx::UniqueBuffer offsetStageBf;
   std::unique_ptr<vma::cxx::MemoryMapperLock> offsetStageBfMappedMem = nullptr;
 
-  std::size_t feedbackBufferSize;
+  size_t feedbackBufferSize;
   vma::cxx::UniqueBuffer feedbackBf;
 
-  std::size_t fragmentBufferSize;
+  size_t fragmentBufferSize;
   vma::cxx::UniqueBuffer fragmentBf;
 
-  std::size_t depthBufferSize;
+  size_t depthBufferSize;
   vma::cxx::UniqueBuffer depthBf;
 
-  std::size_t opaqueBufferSize;
+  size_t opaqueBufferSize;
   vma::cxx::UniqueBuffer opaqueBf;
 
-  std::size_t opaqueDepthBufferSize;
+  size_t opaqueDepthBufferSize;
   vma::cxx::UniqueBuffer opaqueDepthBf;
 
-  std::size_t indexBufferSize;
+  size_t indexBufferSize;
   vma::cxx::UniqueBuffer indexBf;
 
-  std::size_t elementBufferSize;
+  size_t elementBufferSize;
   vma::cxx::UniqueBuffer elementBf;
+
+  size_t transparencyCapacityPixels=0;
 
   vma::cxx::UniqueImage irradianceImg;
   vk::UniqueImageView irradianceView;
@@ -809,14 +811,14 @@ private:
   void transitionImageLayout(vk::ImageLayout from, vk::ImageLayout to, vk::Image img);
   void copyDataToImage(const void *data, vk::DeviceSize size, vk::Image img,
                        std::uint32_t w, std::uint32_t h, vk::Offset3D const & offset={});
-  void setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size, std::size_t nobjects=0);
+  void setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size, size_t nobjects=0);
 
   void createDescriptorSetLayout();
   void createComputeDescriptorSetLayout();
   void createDescriptorPool();
   void createComputeDescriptorPool();
   void createDescriptorSets();
-  void writeDescriptorSets();
+  void writeDescriptorSets(bool transparent=false);
   void writePostProcessDescSets();
   void writeMaterialAndLightDescriptors();
   void updateSceneDependentBuffers();
@@ -826,7 +828,7 @@ private:
 
   void createBuffers();
   void createMaterialAndLightBuffers();
-  void createDependentBuffers();
+  void createTransparencyBuffers(std::uint32_t pixels);
 
   void initIBL();
 
