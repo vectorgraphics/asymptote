@@ -76,6 +76,7 @@ vec3 linearToPerceptual(vec3 inColor)
 void main()
 {
   uint pixel=uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x);
+  if(pixel >= push.constants[1]*push.constants[2]) discard;
   float OpaqueDepth=opaqueDepth[pixel];
   uint element=INDEX(pixel);
 

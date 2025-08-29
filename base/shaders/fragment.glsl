@@ -301,6 +301,7 @@ void main() {
 
 #ifndef WIDTH // TODO DO NOT DO THE DEPTH COMPARISON WHEN NO TRANSPARENT OBJECTS!
   uint pixel=uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x);
+  if(pixel >= push.constants[1]*push.constants[2]) discard;
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
   uint element=INDEX(pixel);
   uint listIndex=atomicAdd(offset[element],-1u)-1u;
