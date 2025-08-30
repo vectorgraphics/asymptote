@@ -3546,32 +3546,30 @@ type Transformation = {
 let transformStack: Transformation[] = [];
 let now:number;
 
-function animatedGeometry(){
+function animatedGeometry(autoplay:boolean){
   if(transformStack.length == 0) return;
   let stack=transformStack.filter(f => f.geometryTransform != null);
-
   return function(controlpoints: vec3[]): vec3[] {
     let cp=toUser(controlpoints);
-    const activeTime=startTime+playbackTime;
-    for(const {geometryTransform,durationInv,autoplay} of stack) {
-      const time=!autoplay?activeTime:now;
-      const t=Math.min((time-startTime)*durationInv,1.0);
+    const delta=autoplay ? now-startTime : playbackTime;
+    for(const {geometryTransform,durationInv} of stack) {
+      const t=Math.min(delta*durationInv,1.0);
       cp=transformCP(cp,t,geometryTransform);
     }
+  
     return fromUser(cp)
   }
 }
 
-function animatedColor() {
+function animatedColor(autoplay) {
   if(transformStack.length == 0) return;
   let stack=transformStack.filter(f => f.colorTransform != null);
 
   return function(color,p) {
     let P=toUser([p[0],p[12],p[15],p[3]]);
-    const activeTime=startTime+playbackTime;
-    for(const {colorTransform,durationInv,autoplay} of stack) {
-      const time=!autoplay?activeTime:now;
-      const t=Math.min((time-startTime)*durationInv,1.0);
+    const delta=autoplay ? now-startTime : playbackTime;
+    for(const {colorTransform,durationInv} of stack) {
+      const t=Math.min(delta*durationInv,1.0);
       color=transformColor(
             [[P[0],color[0]],
               [P[1],color[1]],
@@ -3599,9 +3597,9 @@ function animate(timestamp:number) {
   const delta=timestamp-lastTimestamp;
   lastTimestamp=timestamp;
 
-  if(playbackDirection=="forward") {
+  if(playbackDirection == "forward") {
     playbackTime+=delta*playbackSpeed;
-  } else if(playbackDirection=="backward") {
+  } else if(playbackDirection == "backward") {
     playbackTime=Math.max(0, playbackTime-delta*playbackSpeed);
   }
   if(slider)
@@ -3615,6 +3613,7 @@ function animate(timestamp:number) {
   const continued=autoplayAnimation && !activeAnimation ?
     timestamp < startTime+maxAutoplayDuration : activeAnimation;
   if (continued) {
+    console.log(playbackTime)
     requestAnimationFrame(animate);
   } else {
     lastTimestamp=null;
@@ -3626,6 +3625,7 @@ let slider:HTMLInputElement;
 let activeSlider=false; 
 
 function initSlider() {
+  console.log("b")
   activeSlider=true; 
   const p=document;
   slider=p.createElement("input"); 
@@ -3640,21 +3640,6 @@ function initSlider() {
   slider.className="slider";
   slider.style.position="fixed"
   slider.onkeydown=() =>  { return false; }
-
-  // We should let user be able to inject CSS code for everything,
-  // not just the slider.
-  // style = p.createElement("style");
-  // style.textContent = `
-  //     .slider {
-  //       width: 50%;
-  //       height: 30px;
-  //       left: 50%;               
-  //       transform: translateX(-50%);  
-  //       opacity: 0.7;
-  //       transition: opacity .2s;
-  //     }  
-  //   `;
-  // document.head.appendChild(style);
 
   slider.oninput=() => {
     const value=parseFloat(slider.value); 
@@ -3691,8 +3676,9 @@ function material(diffuse,emissive,specular,shininess,metallic,fresnel0)
 
 function patch(controlpoints,CenterIndex,MaterialIndex,color)
 {
+  const autoplay=transformStack[transformStack.length-1].autoplay; 
   P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color,
-                         null,null,animatedGeometry(),animatedColor()));
+                         null,null,animatedGeometry(autoplay),animatedColor(autoplay)));
 }
 
 function curve(controlpoints,CenterIndex,MaterialIndex)

@@ -260,8 +260,7 @@ javascript("let style = document.createElement(\"style\");
             .slider { width: 50%; 
                       height: 30px; 
                       left: 50%; 
-                      transform: 
-                      translateX(-50%); 
+                      transform: translateX(-50%); 
                       opacity: 0.7; 
                       transition: opacity .2s; }`; 
             document.head.appendChild(style);");
