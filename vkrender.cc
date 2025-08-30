@@ -3058,7 +3058,7 @@ void AsyVkRender::createGraphicsRenderPass()
 
   auto colorResolveAttachment = vk::AttachmentDescription2(
     vk::AttachmentDescriptionFlags(),
-    backbufferImageFormat,
+    postProcFormat,
     vk::SampleCountFlagBits::e1,
     vk::AttachmentLoadOp::eDontCare,
     vk::AttachmentStoreOp::eStore,
@@ -3544,10 +3544,10 @@ void AsyVkRender::createComputePipelines()
 
 void AsyVkRender::createAttachments()
 {
-  colorImg = createImage(backbufferExtent.width, backbufferExtent.height, msaaSamples, backbufferImageFormat,
+  colorImg = createImage(backbufferExtent.width, backbufferExtent.height, msaaSamples, postProcFormat,
               vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  createImageView(backbufferImageFormat, vk::ImageAspectFlagBits::eColor, colorImg.getImage(), colorImageView);
+  createImageView(postProcFormat, vk::ImageAspectFlagBits::eColor, colorImg.getImage(), colorImageView);
   setDebugObjectName(vk::Image(colorImg.getImage()), "colorImg");
   setDebugObjectName(*colorImageView, "colorImageView");
 
