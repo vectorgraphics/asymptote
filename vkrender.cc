@@ -2619,9 +2619,8 @@ void AsyVkRender::updateSceneDependentBuffers() {
     device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
   }
 
-  // if the fragment buffer size changes, all
-  // transparent data needs to be re-rendered
-  // for every frame
+  // if the fragment buffer size changes, all transparent data needs
+  // to be copied again to the GPU for every frame in flight.
   transparentData.renderCount = 0;
 }
 
