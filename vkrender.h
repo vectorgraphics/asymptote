@@ -132,6 +132,11 @@ struct PushConstants
     // constants[1] = width
 };
 
+struct ComputePushConstants {
+    uint32_t blockSize;
+    uint32_t final;
+};
+
 struct Arcball {
   double angle;
   triple axis;

@@ -3498,7 +3498,7 @@ void AsyVkRender::createComputePipeline(
   auto miscConstant = vk::PushConstantRange(
     vk::ShaderStageFlagBits::eCompute,
     0,
-    sizeof(std::uint32_t)
+    sizeof(ComputePushConstants)
   );
 
   auto pipelineLayoutCI = vk::PipelineLayoutCreateInfo(
@@ -3836,10 +3836,10 @@ void AsyVkRender::partialSums(FrameObject & object, bool timing)
 
   auto const blockSize=ceilquotient(g,localSize);
   auto const final=elements-1;
-  glm::uvec2 computePushConstants{blockSize,final};
+  ComputePushConstants pc{blockSize, final};
 
   cmd.pushConstants(*sumPipelineLayout,vk::ShaderStageFlagBits::eCompute,0,
-                    sizeof(computePushConstants),&computePushConstants);
+                    sizeof(ComputePushConstants),&pc);
 
   cmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute,*sumPipelineLayout,
                          0,1,&*computeDescriptorSet,0,nullptr);
