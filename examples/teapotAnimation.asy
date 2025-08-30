@@ -255,15 +255,14 @@ javascript("let zmax="+string(M.z)+";"+'\n');
 javascript("let red=[1,0,0,1];"+'\n');
 javascript("let green=[0,1,0,1];"+'\n');
 javascript("let blue=[0,0,1,1];"+'\n');
-javascript("let style = document.createElement(\"style\"); 
+javascript("let style = document.createElement(\"style\");
             style.textContent =`
-            .slider { width: 50%; 
-                      height: 30px; 
-                      left: 50%; 
-                      transform: 
-                      translateX(-50%); 
-                      opacity: 0.7; 
-                      transition: opacity .2s; }`; 
+            .slider { width: 50%;
+                      height: 30px;
+                      left: 50%;
+                      transform: translateX(-50%);
+                      opacity: 0.7;
+                      transition: opacity .2s; }`;
             document.head.appendChild(style);");
 
 beginTransform(geometry="

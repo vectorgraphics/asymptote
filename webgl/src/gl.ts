@@ -3042,7 +3042,7 @@ function handleKey(event)
     playbackDirection="forward";
     if(position >= startTime+maxAutoplayDuration && !activeAnimation) {
       activeAnimation=true;
-      requestAnimationFrame(animate) 
+      requestAnimationFrame(animate)
     }
 
   } else if (keycode=="ArrowLeft"&&playbackDirection!="backward") {
@@ -3277,7 +3277,7 @@ function drawScene()
 
   gl.clearColor(W.background[0],W.background[1],W.background[2],W.background[3]);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  
+
   now=performance.now();
 
   for(const p of P)
@@ -3534,7 +3534,7 @@ function transformColor(nodes:any[], delta:number,
 
 let startTime:number=null;
 let maxAutoplayDuration:number=0;
-let maxSceneDuration:number=0; 
+let maxSceneDuration:number=0;
 
 type Transformation = {
   geometryTransform?: (v:vec3, delta:number) => vec3;
@@ -3546,32 +3546,29 @@ type Transformation = {
 let transformStack: Transformation[] = [];
 let now:number;
 
-function animatedGeometry(){
+function animatedGeometry(autoplay:boolean){
   if(transformStack.length == 0) return;
   let stack=transformStack.filter(f => f.geometryTransform != null);
-
   return function(controlpoints: vec3[]): vec3[] {
     let cp=toUser(controlpoints);
-    const activeTime=startTime+playbackTime;
-    for(const {geometryTransform,durationInv,autoplay} of stack) {
-      const time=!autoplay?activeTime:now;
-      const t=Math.min((time-startTime)*durationInv,1.0);
+    const delta=autoplay ? now-startTime : playbackTime;
+    for(const {geometryTransform,durationInv} of stack) {
+      const t=Math.min(delta*durationInv,1.0);
       cp=transformCP(cp,t,geometryTransform);
     }
     return fromUser(cp)
   }
 }
 
-function animatedColor() {
+function animatedColor(autoplay) {
   if(transformStack.length == 0) return;
   let stack=transformStack.filter(f => f.colorTransform != null);
 
   return function(color,p) {
     let P=toUser([p[0],p[12],p[15],p[3]]);
-    const activeTime=startTime+playbackTime;
-    for(const {colorTransform,durationInv,autoplay} of stack) {
-      const time=!autoplay?activeTime:now;
-      const t=Math.min((time-startTime)*durationInv,1.0);
+    const delta=autoplay ? now-startTime : playbackTime;
+    for(const {colorTransform,durationInv} of stack) {
+      const t=Math.min(delta*durationInv,1.0);
       color=transformColor(
             [[P[0],color[0]],
               [P[1],color[1]],
@@ -3599,14 +3596,14 @@ function animate(timestamp:number) {
   const delta=timestamp-lastTimestamp;
   lastTimestamp=timestamp;
 
-  if(playbackDirection=="forward") {
+  if(playbackDirection == "forward") {
     playbackTime+=delta*playbackSpeed;
-  } else if(playbackDirection=="backward") {
+  } else if(playbackDirection == "backward") {
     playbackTime=Math.max(0, playbackTime-delta*playbackSpeed);
   }
   if(slider)
     slider.value=((playbackTime)*maxSceneDurationInv).toString();
-    
+
 
   remesh=true;
 
@@ -3615,6 +3612,7 @@ function animate(timestamp:number) {
   const continued=autoplayAnimation && !activeAnimation ?
     timestamp < startTime+maxAutoplayDuration : activeAnimation;
   if (continued) {
+    console.log(playbackTime)
     requestAnimationFrame(animate);
   } else {
     lastTimestamp=null;
@@ -3623,16 +3621,17 @@ function animate(timestamp:number) {
 
 let slider:HTMLInputElement;
 
-let activeSlider=false; 
+let activeSlider=false;
 
 function initSlider() {
-  activeSlider=true; 
+  console.log("b")
+  activeSlider=true;
   const p=document;
-  slider=p.createElement("input"); 
+  slider=p.createElement("input");
   maxSceneDurationInv=1/maxSceneDuration;
 
-  slider.type="range"; 
-  slider.min="0"; 
+  slider.type="range";
+  slider.min="0";
   slider.max="1";
   slider.step="0.001";
   slider.value=(playbackTime*maxSceneDurationInv).toString();
@@ -3641,28 +3640,13 @@ function initSlider() {
   slider.style.position="fixed"
   slider.onkeydown=() =>  { return false; }
 
-  // We should let user be able to inject CSS code for everything,
-  // not just the slider.
-  // style = p.createElement("style");
-  // style.textContent = `
-  //     .slider {
-  //       width: 50%;
-  //       height: 30px;
-  //       left: 50%;               
-  //       transform: translateX(-50%);  
-  //       opacity: 0.7;
-  //       transition: opacity .2s;
-  //     }  
-  //   `;
-  // document.head.appendChild(style);
-
   slider.oninput=() => {
-    const value=parseFloat(slider.value); 
+    const value=parseFloat(slider.value);
     console.log("change")
     playbackTime=(startTime+maxSceneDuration)*value;
     if(position >= startTime+maxAutoplayDuration && !activeAnimation) {
       activeAnimation=true;
-      requestAnimationFrame(animate) 
+      requestAnimationFrame(animate)
     }
   }
   slider.onchange=() => {
@@ -3675,7 +3659,7 @@ function initSlider() {
 
 function deleteSlider() {
   slider.remove();
-  activeSlider=false; 
+  activeSlider=false;
 }
 
 function light(direction,color)
@@ -3691,8 +3675,9 @@ function material(diffuse,emissive,specular,shininess,metallic,fresnel0)
 
 function patch(controlpoints,CenterIndex,MaterialIndex,color)
 {
+  const autoplay=transformStack[transformStack.length-1].autoplay;
   P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color,
-                         null,null,animatedGeometry(),animatedColor()));
+                         null,null,animatedGeometry(autoplay),animatedColor(autoplay)));
 }
 
 function curve(controlpoints,CenterIndex,MaterialIndex)
@@ -4137,7 +4122,7 @@ function beginTransform(geometry,color,duration,autoplay)
   if(msDuration > maxAutoplayDuration && autoplay)
     maxAutoplayDuration=msDuration;
   if(duration > maxSceneDuration)
-    maxSceneDuration=msDuration; 
+    maxSceneDuration=msDuration;
 
   if(autoplay)
     autoplayAnimation=true;
@@ -4173,7 +4158,7 @@ function webGLStart()
 
   W.canvas=document.getElementById("Asymptote");
   W.embedded=window.top.document != document;
-  
+
   initGL();
 
   gl.enable(gl.BLEND);
