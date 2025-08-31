@@ -132,6 +132,11 @@ struct PushConstants
     // constants[1] = width
 };
 
+struct ComputePushConstants {
+    uint32_t blockSize;
+    uint32_t final;
+};
+
 struct Arcball {
   double angle;
   triple axis;
@@ -308,6 +313,7 @@ public:
   int fullWidth, fullHeight;
   double X,Y;
   double Angle;
+  double Zoom;
   double Zoom0;
   pair Shift;
   pair Margin;
@@ -370,7 +376,7 @@ private:
   int oldWidth,oldHeight;
   double Aspect;
   double oWidth, oHeight;
-  double lastZoom;
+  double lastzoom;
   int Fitscreen=1;
   int Oldpid;
 
@@ -828,7 +834,7 @@ private:
 
   void createBuffers();
   void createMaterialAndLightBuffers();
-  void createTransparencySSBOs(std::uint32_t pixels);
+  void createTransparencyBuffers(std::uint32_t pixels);
 
   void initIBL();
 
