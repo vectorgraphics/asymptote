@@ -164,9 +164,9 @@ SwapChainDetails::chooseImageCount() const
 void AsyVkRender::setDimensions(int width, int height, double x, double y)
 {
   double aspect = ((double) width) / height;
-  double xshift = (x / (double) width + Shift.getx() * Xfactor) * Zoom0;
-  double yshift = (y / (double) height + Shift.gety() * Yfactor) * Zoom0;
-  double zoominv = 1.0 / Zoom0;
+  double xshift = (x / (double) width + Shift.getx() * Xfactor) * Zoom;
+  double yshift = (y / (double) height + Shift.gety() * Yfactor) * Zoom;
+  double zoominv = 1.0 / Zoom;
   if (orthographic) {
     double xsize = Xmax - Xmin;
     double ysize = Ymax - Ymin;
@@ -386,9 +386,9 @@ void AsyVkRender::scrollCallback(GLFWwindow* window, double xoffset, double yoff
 
   if(zoomFactor > 0.0) {
     if (yoffset > 0)
-      app->Zoom0 *= zoomFactor;
+      app->Zoom *= zoomFactor;
     else
-      app->Zoom0 /= zoomFactor;
+      app->Zoom /= zoomFactor;
   }
 
   app->update();
@@ -412,7 +412,7 @@ void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos
 
     Arcball arcball(xprev * 2 / app->width - 1, 1 - yprev * 2 / app->height, xpos * 2 / app->width - 1, 1 - ypos * 2 / app->height);
     triple axis = arcball.axis;
-    app->rotateMat = rotate(2 * arcball.angle / app->Zoom0 * app->ArcballFactor,
+    app->rotateMat = rotate(2 * arcball.angle / app->Zoom * app->ArcballFactor,
                                  dvec3(axis.getx(), axis.gety(), axis.getz())) * app->rotateMat;
     app->update();
   }
@@ -548,7 +548,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   this->Oldpid = args.oldpid;
 
   this->Angle = args.angle * radians;
-  this->lastZoom = 0;
+  this->lastzoom = 0;
   this->Zoom0 = args.zoom;
   this->Shift = args.shift / args.zoom;
   this->Margin = args.margin;
@@ -2827,7 +2827,6 @@ void AsyVkRender::createTransparencyBuffers(std::uint32_t pixels)
   opaqueDepthBf=createBufferUnique(
       vk::BufferUsageFlagBits::eStorageBuffer |
       vk::BufferUsageFlagBits::eTransferDst,
-
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
       opaqueDepthBufferSize,
       vmaFlags,
@@ -4029,7 +4028,6 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   } else {
     endFrameRender();
     endFrameCommands();
-
     elements=pixels;
     commandsToSubmit.emplace_back(currentCommandBuffer);
  }
@@ -4685,8 +4683,8 @@ projection AsyVkRender::camera(bool user)
     }
   }
 
-  return projection(orthographic,vCamera,vUp,vTarget,Zoom0,
-                    2.0*atan(tan(0.5*Angle)/Zoom0)/radians,
+  return projection(orthographic,vCamera,vUp,vTarget,Zoom,
+                    2.0*atan(tan(0.5*Angle)/Zoom)/radians,
                     pair(X/width+Shift.getx(),
                          Y/height+Shift.gety()));
 }
@@ -4970,7 +4968,7 @@ void AsyVkRender::showCamera()
   if(!orthographic)
     cout << "," << endl << indent << "angle=" << P.angle;
   if(P.viewportshift != pair(0.0,0.0))
-    cout << "," << endl << indent << "viewportshift=" << P.viewportshift*Zoom0;
+    cout << "," << endl << indent << "viewportshift=" << P.viewportshift*Zoom;
   if(!orthographic)
     cout << "," << endl << indent << "autoadjust=false";
   cout << ");" << endl;
@@ -4978,7 +4976,7 @@ void AsyVkRender::showCamera()
 
 void AsyVkRender::shift(double dx, double dy)
 {
-  double Zoominv=1.0/Zoom0;
+  double Zoominv=1.0/Zoom;
 
   X += dx*Zoominv;
   Y += -dy*Zoominv;
@@ -5000,12 +4998,12 @@ void AsyVkRender::capzoom()
 {
   static double maxzoom=sqrt(DBL_MAX);
   static double minzoom=1.0/maxzoom;
-  if(Zoom0 <= minzoom) Zoom0=minzoom;
-  if(Zoom0 >= maxzoom) Zoom0=maxzoom;
+  if(Zoom <= minzoom) Zoom=minzoom;
+  if(Zoom >= maxzoom) Zoom=maxzoom;
 
-  if(fabs(Zoom0-lastZoom) > settings::getSetting<double>("zoomThreshold")) {
+  if(fabs(Zoom-lastzoom) > settings::getSetting<double>("zoomThreshold")) {
     remesh=true;
-    lastZoom=Zoom0;
+    lastzoom=Zoom;
   }
 }
 
@@ -5017,7 +5015,7 @@ void AsyVkRender::zoom(double dx, double dy)
     const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
     double stepPower=zoomStep*dy;
     if(fabs(stepPower) < limit) {
-      Zoom0 *= std::pow(zoomFactor,-stepPower);
+      Zoom *= std::pow(zoomFactor,-stepPower);
       update();
     }
   }
@@ -5152,7 +5150,7 @@ void AsyVkRender::home(bool webgl) {
     idle();
   X = Y = cx = cy = 0;
   rotateMat = viewMat = dmat4(1.0);
-  Zoom0 = 1.0;
+  lastzoom=Zoom=Zoom0;
   framecount=0;
 
   setProjection();

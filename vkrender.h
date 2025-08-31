@@ -313,6 +313,7 @@ public:
   int fullWidth, fullHeight;
   double X,Y;
   double Angle;
+  double Zoom;
   double Zoom0;
   pair Shift;
   pair Margin;
@@ -375,7 +376,7 @@ private:
   int oldWidth,oldHeight;
   double Aspect;
   double oWidth, oHeight;
-  double lastZoom;
+  double lastzoom;
   int Fitscreen=1;
   int Oldpid;
 
