@@ -2774,7 +2774,7 @@ void AsyVkRender::createTransparencyBuffers(std::uint32_t pixels)
   countBufferSize=(Pixels+1)*sizeof(std::uint32_t);
   offsetBufferSize=(Pixels+2)*sizeof(std::uint32_t);
   opaqueBufferSize=pixels*sizeof(vec4);
-  opaqueDepthBufferSize=sizeof(std::uint32_t)+pixels*sizeof(float);
+  opaqueDepthBufferSize=pixels*sizeof(float);
   indexBufferSize=pixels*sizeof(std::uint32_t);
 
   VkMemoryPropertyFlags countBufferFlags=VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
