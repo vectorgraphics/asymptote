@@ -3931,7 +3931,7 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
 
   if (fragments>maxFragments) {
     maxFragments=11*fragments/10;
-    cout << "maxFragments=" << maxFragments << endl;
+    cout << endl << "maxFragments=" << maxFragments << endl << endl;
     vkutils::checkVkResult(device->waitForFences(
       1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<std::uint64_t>::max()
     ));
@@ -4141,6 +4141,7 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
 
     pixels=backbufferExtent.width*backbufferExtent.height;
     if(pixels > transparencyCapacityPixels) {
+      device->waitIdle();
       createTransparencyBuffers(pixels);
       writeDescriptorSets(true);
     }
