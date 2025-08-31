@@ -106,7 +106,7 @@ suffix is "+debug" for debug builds, or an empty string for all other builds, in
 
 ## Testing
 
-Asymptote unit testing is integerated into CMake's `CTest` framework.
+Asymptote unit testing is integrated into CMake's `CTest` framework.
 All Asymptote `.asy` based tests are named `asy.<test dirname>.<test file name>`
 excluding `*.asy` extension.
 

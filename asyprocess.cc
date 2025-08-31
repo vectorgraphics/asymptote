@@ -592,7 +592,7 @@ class iprompt : public icore {
 
 
   // The interactive prompt has special functions that cannot be implemented as
-  // normal functions.  These special funtions take a commandLine as an argument
+  // normal functions.  These special functions take a commandLine as an argument
   // and return true if they can handle the command.  If false is returned, the
   // line is treated as a normal line of code.
   // commands is a map of command names to methods which implement the commands.
