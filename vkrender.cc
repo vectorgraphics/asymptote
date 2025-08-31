@@ -4841,7 +4841,9 @@ void AsyVkRender::quit()
 
 #endif
     if(View) {
+#if !defined(_WIN32)
       setenv("XMODIFIERS","",false);
+#endif
       glfwHideWindow(window);
       hideWindow=true;
     }
