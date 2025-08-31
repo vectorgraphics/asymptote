@@ -4141,10 +4141,7 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
 
     pixels=backbufferExtent.width*backbufferExtent.height;
     if(pixels > transparencyCapacityPixels) {
-<<<<<<< HEAD
       device->waitIdle();
-=======
->>>>>>> vulkan
       createTransparencyBuffers(pixels);
       writeDescriptorSets(true);
     }
