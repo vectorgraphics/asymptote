@@ -451,7 +451,7 @@ void AsyVkRender::keyCallback(GLFWwindow* window, int key, int scancode, int act
   if (action != GLFW_PRESS)
     return;
 
-  auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
+  auto* app = static_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
 
   switch (key)
   {
@@ -964,27 +964,24 @@ void AsyVkRender::createDebugMessenger()
     severityFlags |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose;
   }
 
-  auto const debugCreateInfo = vk::DebugUtilsMessengerCreateInfoEXT(
-          {},
-          severityFlags,
-          typeFlags,
-          [](VkDebugUtilsMessageSeverityFlagBitsEXT msgSeverity,
-             VkDebugUtilsMessageTypeFlagsEXT msgType,
-             VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
-             void* pUserData) -> VkBool32 {
-            switch (static_cast<vk::DebugUtilsMessageSeverityFlagBitsEXT>(msgSeverity))
-            {
+  auto const debugCreateInfo= vk::DebugUtilsMessengerCreateInfoEXT(
+          {}, severityFlags, typeFlags,
+          [](vk::DebugUtilsMessageSeverityFlagBitsEXT msgSeverity,
+             vk::DebugUtilsMessageTypeFlagsEXT msgType,
+             vk::DebugUtilsMessengerCallbackDataEXT const* pCallbackData,
+             void* pUserData) -> vk::Bool32 {
+            switch (msgSeverity) {
               case vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo:
-                cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+                cerr << "validation layer: " << pCallbackData->pMessage
+                     << std::endl;
                 break;
               case vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose:
-                cerr << "[VERBOSE] validation layer: " << pCallbackData->pMessage << std::endl;
+                cerr << "[VERBOSE] validation layer: "
+                     << pCallbackData->pMessage << std::endl;
                 break;
               case vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning:
               case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
                 reportWarning(pCallbackData->pMessage);
-                break;
-              default:
                 break;
             }
 
@@ -992,7 +989,9 @@ void AsyVkRender::createDebugMessenger()
           },
           this
   );
-  instance->createDebugUtilsMessengerEXTUnique(debugCreateInfo);
+  this->debugUtilsMsg=
+          instance->createDebugUtilsMessengerEXTUnique(
+          debugCreateInfo);
 #endif
 }
 

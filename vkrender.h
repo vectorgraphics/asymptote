@@ -529,6 +529,7 @@ private:
     "TRANSPARENT"
   };
 
+  vk::UniqueDebugUtilsMessengerEXT debugUtilsMsg;
   std::array<vk::UniquePipeline, PIPELINE_MAX> materialPipelines;
   std::array<vk::UniquePipeline, PIPELINE_MAX> transparentPipelines;
   std::array<vk::UniquePipeline, PIPELINE_MAX> trianglePipelines;
