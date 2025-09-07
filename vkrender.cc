@@ -3334,38 +3334,31 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
 
   auto depthStencilCI = vk::PipelineDepthStencilStateCreateInfo();
 
-  depthStencilCI.depthTestEnable = VK_TRUE;
-  depthStencilCI.depthWriteEnable = (type != PIPELINE_COUNT && type != PIPELINE_COMPRESS) ? enableDepthWrite : VK_FALSE;
   depthStencilCI.depthCompareOp = vk::CompareOp::eLess;
   depthStencilCI.depthBoundsTestEnable = VK_FALSE;
   depthStencilCI.minDepthBounds = 0.f;
   depthStencilCI.maxDepthBounds = 1.f;
   depthStencilCI.stencilTestEnable = VK_FALSE;
 
-  auto renderPass = *graphicsRenderPass;
+  vk::RenderPass renderPass;
 
   switch(type) {
     case PIPELINE_OPAQUE:
-      renderPass = *opaqueGraphicsRenderPass;
+      renderPass=*opaqueGraphicsRenderPass;
+      depthStencilCI.depthTestEnable=VK_TRUE;
+      depthStencilCI.depthWriteEnable=enableDepthWrite;
       break;
     case PIPELINE_COUNT:
     case PIPELINE_COMPRESS:
-      renderPass = *countRenderPass;
-      depthStencilCI.depthTestEnable = VK_FALSE;
-      depthStencilCI.depthWriteEnable = VK_FALSE;
+      renderPass=*countRenderPass;
+      depthStencilCI.depthTestEnable=VK_FALSE;
+      depthStencilCI.depthWriteEnable=VK_FALSE;
       break;
     default:
-      renderPass = *graphicsRenderPass;
+      renderPass=*graphicsRenderPass;
+      depthStencilCI.depthTestEnable=VK_TRUE;
+      depthStencilCI.depthWriteEnable=enableDepthWrite;
       break;
-  }
-
-  if (type == PIPELINE_OPAQUE) {
-    renderPass = *opaqueGraphicsRenderPass;
-  } else if (type == PIPELINE_COUNT || type == PIPELINE_COMPRESS) {
-    renderPass = *countRenderPass;
-    // Disable depth testing for count pass since we removed the depth attachment
-  } else if (type == PIPELINE_COUNT || type == PIPELINE_COMPRESS) {
-    renderPass = *countRenderPass;
   }
 
   auto pipelineCI = vk::GraphicsPipelineCreateInfo(
@@ -4013,6 +4006,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   if (GPUcompress) {
     static auto elemBfMappedMem=make_unique<vma::cxx::MemoryMapperLock>(elementBf);
     static std::uint32_t* p = nullptr;
+
     if (p == nullptr) {
       p=elemBfMappedMem->getCopyPtr();
       *p=1;
@@ -4023,25 +4017,23 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     currentCommandBuffer.setEvent(*object.compressionFinishedEvent, vk::PipelineStageFlagBits::eFragmentShader);
     endFrameCommands();
 
-    auto info = vk::SubmitInfo();
+    // Create a fence for synchronization
+    auto compressFence = device->createFenceUnique(vk::FenceCreateInfo());
 
-    info.commandBufferCount = 1;
-    info.pCommandBuffers = &currentCommandBuffer;
+    // Submit the command buffer with the fence
+    auto submitInfo = vk::SubmitInfo();
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &currentCommandBuffer;
 
-    vkutils::checkVkResult(renderQueue.submit(
-      1,
-      &info,
-      nullptr
+    vkutils::checkVkResult(renderQueue.submit(1, &submitInfo, *compressFence));
+
+    // Wait for the fence with a reasonable timeout
+    vkutils::checkVkResult(device->waitForFences(
+      1, &*compressFence, VK_TRUE, timeout
     ));
 
-    vk::Result result;
-
-    do
-    {
-      result = device->getEventStatus(*object.compressionFinishedEvent);
-    } while(result != vk::Result::eEventSet);
-
     elements=p[0];
+    cout << "elements=" << elements << endl;
     p[0]=1;
   } else {
     endFrameRender();
@@ -4049,7 +4041,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     cout << "pixels=" << pixels << endl;
     elements=pixels;
     commandsToSubmit.emplace_back(currentCommandBuffer);
- }
+  }
 
   if (elements==0)
     return;
