@@ -728,6 +728,10 @@ void AsyVkRender::initVulkan()
 {
 #ifdef __APPLE__
   setenv("MVK_CONFIG_LOG_LEVEL","0",false);
+
+  // Prefer low power mode for better stability
+  setenv("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "1", true);
+  setenv("MVK_CONFIG_PERFORMANCE_TRACKING", "0", true);
 #endif
 
   VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
