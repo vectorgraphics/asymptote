@@ -27,6 +27,9 @@ namespace camp {
 
 typedef double Triple[3];
 
+/**
+ * represents a tripel (`x`, `y`, `z`) of cartesian coordinate.
+ */
 class triple;
 
 bool isIdTransform3(const double* t);
@@ -42,19 +45,73 @@ class triple : virtual public gc {
   double z;
 
 public:
+  /**
+   * initialize this triple with (x,y,z) = (0,0,0);
+   */
   triple() : x(0.0), y(0.0), z(0.0) {}
+  /**
+   * initial this triple with the given x, y and z are zero.
+   * In Asymptote one can write:
+   *
+   * ```
+   * triple p = (2, 3, -5);
+   * ```
+   *
+   * to create a tuple `(2, 3, -5)`, which can be use as a point in 3D-Coordinate system.
+   *
+   */
   triple(double x, double y=0.0, double z=0.0) : x(x), y(y), z(z) {}
+
+  /**
+   * In Asymptote one can write:
+   *
+   * ```
+   * triple a = (1, 3, -5);
+   * triple b = a;
+   * ```
+   *
+   * to make a copy of a.
+   */
   triple(const Triple& v) : x(v[0]), y(v[1]), z(v[2]) {}
 
   virtual ~triple() {}
 
+  /**
+   * set value of x, y and z
+   */
   void set(double X, double Y=0.0, double Z=0.0) { x=X; y=Y; z=Z; }
 
+  /**
+   * get the x-component of the triple:
+   *
+   * ```
+   * triple a = (-3, 4, 5);
+   * real x = a.x; // x takes the value -3.0
+   * ```
+   */
   double getx() const { return x; }
+
+  /**
+   * get the y-component of the triple:
+   *
+   * ```
+   * triple a = (-3, 4, 5);
+   * real y = a.y; // y takes the value 4.0
+   * ```
+   */
   double gety() const { return y; }
+
+  /**
+   * get the z-component of the triple:
+   *
+   * ```
+   * triple a = (-3, 4, 5);
+   * real z = a.z; // z takes the value 5.0
+   * ```
+   */
   double getz() const { return z; }
 
-  // transform by row-major matrix
+  // transform by row-major matrix  
   friend triple operator* (const double* t, const triple& v) {
     if(t == NULL)
       return v;
@@ -171,31 +228,90 @@ public:
     b=pair(x,y);
   }
 
+  /**
+   * performs vector addition.
+   *
+   * For example:
+   *
+   * ```
+   * triple z = (1, 2, 3);
+   * triple w = (4, 5, 6);
+   * triple a = z + w; // a is same as (5, 7, 9)
+   * ```
+   */
   friend triple operator+ (const triple& z, const triple& w)
   {
     return triple(z.x + w.x, z.y + w.y, z.z + w.z);
   }
 
+  /**
+   * performs vector substraction. Result is a new triple.
+   * Example:
+   *
+   * ```
+   * triple z = (3, 5, 7);
+   * triple w = (1, 3, 4);
+   * triple v = z - w; // v is as same as (2, 2, 3)
+   * ```
+   */
   friend triple operator- (const triple& z, const triple& w)
   {
     return triple(z.x - w.x, z.y - w.y, z.z - w.z);
   }
 
+  /**
+   * creates a new triple with negate `(x, y, z)` values of this triple.
+   */
   friend triple operator- (const triple& z)
   {
     return triple(-z.x, -z.y, -z.z);
   }
 
+  /**
+   * performs a scalar multiplication. Result is product of a scalar with a vector.
+   * The result is a new triple. Example
+   *
+   * ```
+   * triple a = (1, -2, 3);
+   * triple b = 3 * a; // b is same as (2, -4, 6)
+   * ```
+   *
+   * @return a new triple
+   *
+   */
   friend triple operator* (double s, const triple& z)
   {
     return triple(s*z.x, s*z.y, s*z.z);
   }
 
+  /**
+   * peforms a scalar multiplication. Result is product of a scale with a vector.
+   * The result is a new triple. Example
+   *
+   * ```
+   * triple z = (1, -2, 3);
+   * triple b = z * 3; // b is same as (3, -6, 9)
+   * ```
+   *
+   * @return a new triple
+   */
   friend triple operator* (const triple& z, double s)
   {
     return triple(z.x*s, z.y*s, z.z*s);
   }
 
+  /**
+   * performs a multiplication of reciprocal value of `s` with vector `z`.
+   * Result is a new triple.
+   * Example:
+   *
+   * ```
+   * triple z = (-3, 21, -18);
+   * triple b = z / 3; // b is same as (-1, 7, -6);
+   * ```
+   *
+   * @return a new triple
+   */
   friend triple operator/ (const triple& z, double s)
   {
     if (s == 0.0)
@@ -204,6 +320,12 @@ public:
     return triple(z.x*s, z.y*s, z.z*s);
   }
 
+  /**
+   * performs vector addtion of this vector with vector `w`.
+   * Components of this triple are changed.
+   *
+   * @return this triple.
+   */
   const triple& operator+= (const triple& w)
   {
     x += w.x;
@@ -212,6 +334,20 @@ public:
     return *this;
   }
 
+  /**
+   * performs vector subtraction `w` from this triple (as vector).
+   * Components of this triple is changed.
+   * Example:
+   *
+   * ```
+   * triple u = (5, 4, 7);
+   * triple w = (1, 1, 1);
+   * u -= w; // u is now (4, 3, 6)
+   * ```
+   *
+   * @return this triple
+   *
+   */
   const triple& operator-= (const triple& w)
   {
     x -= w.x;

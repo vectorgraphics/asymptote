@@ -18,23 +18,24 @@
 // along with this program ; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-// COMMENTARY:
-// An Asymptote geometry module.
+/**
+ * An Asymptote geometry module.
+ *
+ * THANKS:
+ *
+ * Special thanks to Olivier Guibe for his help in mathematical issues.
+ */
 
-// THANKS:
-// Special thanks to Olivier Guibe for his help in mathematical issues.
-
-// BUGS:
-
-// CODE:
 
 import math;
 import markers;
 
 real Infinity=1.0/(1000*realEpsilon);
 
-// A rotation in the direction dir limited to [-90,90]
-// This is useful for rotating text along a line in the direction dir.
+/**
+ * A rotation in the direction dir limited to [-90,90]
+ * This is useful for rotating text along a line in the direction dir.
+ */
 private transform rotate(explicit pair dir)
 {
   real angle=degrees(dir);
@@ -42,22 +43,30 @@ private transform rotate(explicit pair dir)
   return rotate(angle);
 }
 
-// *=======================================================*
-// *........................HEADER.........................*
-/*<asyxml><variable type="real" signature="epsgeo"><code></asyxml>*/
-real epsgeo = 10 * sqrt(realEpsilon);/*<asyxml></code><documentation>Variable used in the approximate calculations.</documentation></variable></asyxml>*/
 
-/*<asyxml><function type="void" signature="addMargins(picture,real,real,real,real)"><code></asyxml>*/
+/**
+ * Variable used in the approximate calculations.
+ */
+real epsgeo = 10 * sqrt(realEpsilon);
+
+/**
+ * Add margins to `pic` with respect to the current bounding box of `pic`.
+ * If `rigid` is false, margins are added iff an infinite curve will be prolonged on the margin.
+ * If `allObject` is false, fixed - size objects (such as labels and arrowheads) will be ignored.
+ *
+ * @param pic picture to be drawn in
+ * @param lmargin
+ * @param bmargin
+ * @param rmargin
+ * @param tmargin
+ * @param rigid
+ * @param allObject
+ */
 void addMargins(picture pic = currentpicture,
                 real lmargin = 0, real bmargin = 0,
                 real rmargin = lmargin, real tmargin = bmargin,
                 bool rigid = true, bool allObject = true)
-{/*<asyxml></code><documentation>Add margins to 'pic' with respect to
-   the current bounding box of 'pic'.
-   If 'rigid' is false, margins are added iff an infinite curve will
-   be prolonged on the margin.
-   If 'allObject' is false, fixed - size objects (such as labels and
-   arrowheads) will be ignored.</documentation></function></asyxml>*/
+{
   pair m = allObject ? truepoint(pic, SW) : point(pic, SW);
   pair M = allObject ? truepoint(pic, NE) : point(pic, NE);
   if(rigid) {
@@ -79,16 +88,20 @@ real[] approximate(real[] T)
   return map(approximate, T);
 }
 
-/*<asyxml><function type="real" signature="binomial(real,real)"><code></asyxml>*/
+/**
+Return \f$\frac{n!}{(n - k)!\cdot k!}\f$
+*/
 real binomial(real n, real k)
-{/*<asyxml></code><documentation>Return n!/((n - k)!*k!)</documentation></function></asyxml>*/
+{
   return gamma(n + 1)/(gamma(n - k + 1) * gamma(k + 1));
 }
 
-/*<asyxml><function type="real" signature="rf(real,real,real)"><code></asyxml>*/
+/**
+Computes Carlson's elliptic integral of the first kind.
+`x`, `y`, and `z` must be non negative, and at most one can be zero.
+*/
 real rf(real x, real y, real z)
-{/*<asyxml></code><documentation>Computes Carlson's elliptic integral of the first kind.
-   x, y, and z must be non negative, and at most one can be zero.</documentation></function></asyxml>*/
+{
   real ERRTOL = 0.0025,
     TINY = 1.5e-38,
     BIG = 3e37,
@@ -6359,7 +6372,7 @@ struct inversion
 {/*<asyxml></code><documentation>https://mathworld.wolfram.com/Inversion.html</documentation></asyxml>*/
   point C;
   real k;
-  
+
   /*<asyxml><function type="void" signature="init(point,real)"><code></asyxml>*/
   void operator init(point C, real k)
   {/*<asyxml></code><documentation>Return the inversion with respect to 'C' having circle power 'k'.</documentation></function></asyxml>*/
