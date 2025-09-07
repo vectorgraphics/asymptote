@@ -3344,13 +3344,26 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
 
   auto renderPass = *graphicsRenderPass;
 
+  switch(type) {
+    case PIPELINE_OPAQUE:
+      renderPass = *opaqueGraphicsRenderPass;
+      break;
+    case PIPELINE_COUNT:
+    case PIPELINE_COMPRESS:
+      renderPass = *countRenderPass;
+      depthStencilCI.depthTestEnable = VK_FALSE;
+      depthStencilCI.depthWriteEnable = VK_FALSE;
+      break;
+    default:
+      renderPass = *graphicsRenderPass;
+      break;
+  }
+
   if (type == PIPELINE_OPAQUE) {
     renderPass = *opaqueGraphicsRenderPass;
   } else if (type == PIPELINE_COUNT || type == PIPELINE_COMPRESS) {
     renderPass = *countRenderPass;
     // Disable depth testing for count pass since we removed the depth attachment
-    depthStencilCI.depthTestEnable = VK_FALSE;
-    depthStencilCI.depthWriteEnable = VK_FALSE;
   } else if (type == PIPELINE_COUNT || type == PIPELINE_COMPRESS) {
     renderPass = *countRenderPass;
   }
