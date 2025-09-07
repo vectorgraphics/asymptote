@@ -685,11 +685,12 @@ private:
   static std::string getAction(int button, int mod);
 
 #ifdef HAVE_VULKAN
-  static void mouseButtonCallback(GLFWwindow * window, int button, int action, int mods);
+  static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
   static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
   static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
   static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
-  static void keyCallback(GLFWwindow * window, int key, int scancode, int action, int mods);
+  static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+  static void windowFocusCallback(GLFWwindow* window, int focused);
 
   void initWindow();
   void initVulkan();

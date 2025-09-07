@@ -31,6 +31,8 @@ using settings::getSetting;
 using settings::Setting;
 using namespace glm;
 
+static size_t timeout=1000000000;
+
 void exitHandler(int);
 
 void runtimeError(std::string s)
@@ -286,6 +288,7 @@ void AsyVkRender::initWindow()
   glfwSetKeyCallback(window, keyCallback);
   glfwSetWindowSizeLimits(window, 1, 1, GLFW_DONT_CARE, GLFW_DONT_CARE);
   glfwSetWindowCloseCallback(window,closeWindowHandler);
+  glfwSetWindowFocusCallback(window,windowFocusCallback);
 }
 
 void AsyVkRender::updateHandler(int) {
@@ -352,7 +355,7 @@ std::string AsyVkRender::getAction(int button, int mods)
   return "";
 }
 
-void AsyVkRender::mouseButtonCallback(GLFWwindow * window, int button, int action, int mods)
+void AsyVkRender::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
   auto const currentAction = getAction(button, mods);
 
@@ -439,7 +442,7 @@ void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos
   yprev = ypos;
 }
 
-void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int action, int mods)
+void AsyVkRender::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
   if (action != GLFW_PRESS)
     return;
@@ -510,6 +513,15 @@ void AsyVkRender::keyCallback(GLFWwindow * window, int key, int scancode, int ac
       app->quit();
       break;
   }
+}
+
+void AsyVkRender::windowFocusCallback(GLFWwindow* window, int focused)
+{
+    if (focused) {
+        // Window gained focus: might need to recreate swapchain
+        auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
+        app->framebufferResized = true;
+    }
 }
 
 AsyVkRender::~AsyVkRender()
@@ -1731,7 +1743,7 @@ void AsyVkRender::copyBufferToBuffer(const vk::Buffer& srcBuffer, const vk::Buff
   if (submitResult != vk::Result::eSuccess)
     runtimeError("failed to submit command buffer");
   vkutils::checkVkResult(device->waitForFences(
-    1, &*fence, VK_TRUE, std::numeric_limits<uint64_t>::max()
+    1, &*fence, VK_TRUE, timeout
   ));
 }
 
@@ -4136,7 +4148,7 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
   cout << "Opaque=" << Opaque << endl;
   if(!Opaque) {
     vkutils::checkVkResult(device->waitForFences(
-      1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
+      1, &*object.inComputeFence, VK_TRUE, timeout
     ));
 
     pixels=backbufferExtent.width*backbufferExtent.height;
@@ -4229,16 +4241,16 @@ void AsyVkRender::drawFrame()
   }
 
   vkutils::checkVkResult(device->waitForFences(
-    1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
+    1, &*frameObject.inFlightFence, VK_TRUE, timeout
   ));
 
   uint32_t imageIndex=0; // index of the current swap chain image to render to
 
   // Get the image index from the swapchain if not viewing.
   if (View) {
-    auto const result = device->acquireNextImageKHR(*swapChain, std::numeric_limits<uint64_t>::max(),
-                                                        *frameObject.imageAvailableSemaphore, nullptr,
-                                                        &imageIndex);
+    auto const result = device->acquireNextImageKHR(*swapChain, timeout, // 1 second timeout
+                                                *frameObject.imageAvailableSemaphore, nullptr,
+                                                &imageIndex);
     if (result == vk::Result::eErrorOutOfDateKHR
         || result == vk::Result::eSuboptimalKHR || framebufferResized) {
       framebufferResized = false;
@@ -4355,7 +4367,7 @@ void AsyVkRender::drawFrame()
 
   if(queueExport) {
     vkutils::checkVkResult(device->waitForFences(
-      1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
+      1, &*frameObject.inFlightFence, VK_TRUE, timeout
     ));
     Export(imageIndex);
     queueExport=false;
@@ -4392,7 +4404,7 @@ void AsyVkRender::drawFrame()
 
   if (recreateBlendPipeline) {
     vkutils::checkVkResult(device->waitForFences(
-      1, &*frameObject.inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
+      1, &*frameObject.inFlightFence, VK_TRUE, timeout
     ));
     createBlendPipeline();
     recreateBlendPipeline=false;
@@ -4426,7 +4438,7 @@ void AsyVkRender::clearBuffers()
     previousFrameIndex = maxFramesInFlight - 1;
   }
 
-  (void) device->waitForFences(1, &*frameObjects[previousFrameIndex].inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+  (void) device->waitForFences(1, &*frameObjects[previousFrameIndex].inFlightFence, VK_TRUE, timeout);
 
   for (int i = 0; i < maxFramesInFlight; i++) {
     frameObjects[i].reset();
@@ -4785,7 +4797,7 @@ void AsyVkRender::Export(int imageIndex) {
     runtimeError("failed to submit draw command buffer");
 
   vkutils::checkVkResult(device->waitForFences(
-    1, &*exportFence, VK_TRUE, std::numeric_limits<uint64_t>::max()
+    1, &*exportFence, VK_TRUE, timeout
   ));
 
   vma::cxx::MemoryMapperLock mappedMemory(exportBuf);
