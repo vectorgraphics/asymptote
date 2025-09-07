@@ -27,9 +27,7 @@ namespace camp {
 
 typedef double Triple[3];
 
-/**
- * represents a tripel (`x`, `y`, `z`) of cartesian coordinate.
- */
+
 class triple;
 
 bool isIdTransform3(const double* t);
@@ -39,6 +37,10 @@ void multiplyTransform3(double*& t, const double* s, const double* r);
 void boundstriples(double& x, double& y, double& z, double& X, double& Y,
                    double& Z, size_t n, const triple* v);
 
+/**
+ * represents a tripel `(x, y, z)` of cartesian coordinate.
+ *
+ */
 class triple : virtual public gc {
   double x;
   double y;
@@ -47,6 +49,11 @@ class triple : virtual public gc {
 public:
   /**
    * initialize this triple with (x,y,z) = (0,0,0);
+   *
+   * ```
+   * triple z; // is the same as `triple z = (0.0.0);`
+   * ```
+   *
    */
   triple() : x(0.0), y(0.0), z(0.0) {}
   /**
@@ -356,16 +363,43 @@ public:
     return *this;
   }
 
+  /**
+   * checks equality of this triple and triple `w`.
+   *
+   * ```
+   * triple z = (1, 2, 3);
+   * triple w = (1.0, 2.0, 3.0);
+   * bool isEq = z == w;
+   * ```
+   *
+   * This operator uses `==` on each components of the triples,
+   * which have type of double. So be carefull with small difference.
+   */
   friend bool operator== (const triple& z, const triple& w)
   {
     return z.x == w.x && z.y == w.y && z.z == w.z;
   }
 
+  /**
+   * checks NOT equality of this triple and triple `w`;
+   *
+   * ```
+   * triple z = (1, 2, 0.333);
+   * triple w = (1, 4/2.0, 1/3.0);
+   * bool isEq = z != w;
+   * ```
+   *
+   */
   friend bool operator!= (const triple& z, const triple& w)
   {
     return z.x != w.x || z.y != w.y || z.z != w.z;
   }
 
+  /**
+   * calculates \f$ x^2 + y^2 +z^2 \f$ of this triple.
+   *
+   * @return \f$ x^2 + y^2 +z^2 \f$
+   */
   double abs2() const
   {
     return x*x+y*y+z*z;
@@ -403,6 +437,16 @@ public:
     return angle(x,y,warn);
   }
 
+  /**
+   * returns the unit vector in direction of `v`;
+   *
+   * ```
+   * triple v = (1, 1, 1);
+   * triple u = unit(v); // (0.577350269189626,0.577350269189626,0.577350269189626)
+   * ```
+   *
+   * @return a new triple
+   */
   friend triple unit(const triple& v)
   {
     double scale=v.length();
@@ -411,11 +455,39 @@ public:
     return triple(v.x*scale,v.y*scale,v.z*scale);
   }
 
+  /**
+   * performs the dot products of two vectors:
+   *
+   * ```
+   * triple u = (1, 2, 3);
+   * triple v = (2, -1, 0);
+   * real c = dot(u,v); // 0
+   * ```
+   *
+   * @return `u.x*v.x + u.y*v.y + u.z*v.z`
+   */
   friend double dot(const triple& u, const triple& v)
   {
     return u.x*v.x+u.y*v.y+u.z*v.z;
   }
 
+  /**
+   * performs the cross product of two vectors `u` and `v`. That is
+   *
+   * ```
+   * (u.y*v.z-u.z*v.y, u.z*v.x-u.x*v.z, u.x*v.y-v.x*u.y)
+   * ```
+   * Example:
+   *
+   * ```
+   * triple u = (1, 2, 3);
+   * triple v = (2, -1, 0);
+   * triple w = cross(u, v); // (3, 6, -5);
+   * ```
+   *
+   * @return a new triple
+   *
+   */
   friend triple cross(const triple& u, const triple& v)
   {
     return triple(u.y*v.z-u.z*v.y,
@@ -423,7 +495,13 @@ public:
                   u.x*v.y-u.y*v.x);
   }
 
-  // Returns a unit triple in the direction (theta,phi), in radians.
+  /**
+   * Returns a unit triple in the direction (theta,phi), in radians.
+   *
+   * @param theta in radian
+   * @param phi in radian
+   *
+   */
   friend triple expi(double theta, double phi)
   {
     double sintheta=sin(theta);
@@ -455,6 +533,17 @@ public:
     return s;
   }
 
+  /**
+   * once can use
+   *
+   * ```
+   * triple z = (1, 2, 3);
+   * write(z);
+   * ```
+   *
+   * to get 3 components of triple `z` in terminal.
+   *
+   */
   friend ostream& operator << (ostream& out, const triple& v)
   {
     out << "(" << v.x << "," << v.y << "," << v.z << ")";
