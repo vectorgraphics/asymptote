@@ -822,6 +822,7 @@ void AsyVkRender::recreateSwapChain()
   createExportResources();
 
   redisplay=true;
+  waitEvent=false;
 }
 
 void AsyVkRender::zeroTransparencyBuffers()
