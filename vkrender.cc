@@ -1571,14 +1571,11 @@ void AsyVkRender::createFramebuffers()
                  : *backbufferImageViews[i];
 
     std::array<vk::ImageView, 3> attachments= {*colorImageView, *depthImageView, finalRenderTarget};
-    std::array<vk::ImageView, 1> depthAttachments{*depthImageView};
 
     auto depthFramebufferCI = vk::FramebufferCreateInfo(
       {},
       *countRenderPass,
-      STD_ARR_VIEW(depthAttachments),
-      backbufferExtent.width,
-      backbufferExtent.height,
+      0, nullptr, backbufferExtent.width, backbufferExtent.height,
       1
     );
     auto opaqueGraphicsFramebufferCI = vk::FramebufferCreateInfo(
@@ -2944,18 +2941,6 @@ void AsyVkRender::initIBL() {
 
 void AsyVkRender::createCountRenderPass()
 {
-  auto depthAttachment = vk::AttachmentDescription2(
-    vk::AttachmentDescriptionFlags(),
-    vk::Format::eD32Sfloat,
-    msaaSamples,
-    vk::AttachmentLoadOp::eClear,
-    vk::AttachmentStoreOp::eDontCare,
-    vk::AttachmentLoadOp::eDontCare,
-    vk::AttachmentStoreOp::eDontCare,
-    vk::ImageLayout::eUndefined,
-    vk::ImageLayout::eDepthStencilAttachmentOptimal
-  );
-
   std::array<vk::SubpassDescription2, 3> subpasses;
 
   subpasses[0] = vk::SubpassDescription2(
@@ -3001,8 +2986,6 @@ void AsyVkRender::createCountRenderPass()
     nullptr
   );
 
-  std::array<vk::AttachmentDescription2, 1> attachments {depthAttachment};
-
   std::array<vk::SubpassDependency2, 3> dependencies;
 
   dependencies[0] = vk::SubpassDependency2(
@@ -3032,8 +3015,8 @@ void AsyVkRender::createCountRenderPass()
 
   auto renderPassCI = vk::RenderPassCreateInfo2(
     vk::RenderPassCreateFlags(),
-    attachments.size(),
-    attachments.data(),
+    0,
+    nullptr,
     subpasses.size(),
     subpasses.data(),
     dependencies.size(),
@@ -3351,7 +3334,7 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
   auto depthStencilCI = vk::PipelineDepthStencilStateCreateInfo();
 
   depthStencilCI.depthTestEnable = VK_TRUE;
-  depthStencilCI.depthWriteEnable = enableDepthWrite;
+  depthStencilCI.depthWriteEnable = (type != PIPELINE_COUNT && type != PIPELINE_COMPRESS) ? enableDepthWrite : VK_FALSE;
   depthStencilCI.depthCompareOp = vk::CompareOp::eLess;
   depthStencilCI.depthBoundsTestEnable = VK_FALSE;
   depthStencilCI.minDepthBounds = 0.f;
@@ -3362,6 +3345,11 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
 
   if (type == PIPELINE_OPAQUE) {
     renderPass = *opaqueGraphicsRenderPass;
+  } else if (type == PIPELINE_COUNT || type == PIPELINE_COMPRESS) {
+    renderPass = *countRenderPass;
+    // Disable depth testing for count pass since we removed the depth attachment
+    depthStencilCI.depthTestEnable = VK_FALSE;
+    depthStencilCI.depthWriteEnable = VK_FALSE;
   } else if (type == PIPELINE_COUNT || type == PIPELINE_COMPRESS) {
     renderPass = *countRenderPass;
   }
@@ -3673,12 +3661,8 @@ void AsyVkRender::beginFrameCommands(vk::CommandBuffer cmd)
 
 void AsyVkRender::beginCountFrameRender(int imageIndex)
 {
-  std::array<vk::ClearValue, 2> clearColors;
+  std::vector<vk::ClearValue> clearColors;
 
-  clearColors[0].depthStencil.depth = 1.f;
-  clearColors[0].depthStencil.stencil = 0;
-  clearColors[1].depthStencil.depth = 1.f;
-  clearColors[1].depthStencil.stencil = 0;
 
   auto renderPassInfo = vk::RenderPassBeginInfo(
     *countRenderPass,
