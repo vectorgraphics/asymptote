@@ -4856,9 +4856,15 @@ void AsyVkRender::quit()
       hideWindow=true;
     }
   } else {
-    glfwDestroyWindow(window);
-    glfwTerminate();
-    window = nullptr;
+    if(View) {
+       if(window) {
+        glfwDestroyWindow(window);
+        window=nullptr;
+      }
+      glfwTerminate();
+    }
+    glslang::FinalizeProcess();
+
     exit(0);
   }
 #endif
