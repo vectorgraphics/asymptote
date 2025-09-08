@@ -403,6 +403,13 @@ private:
   bool fxaa=false;
   bool srgb=false;
 
+  // Timeline semaphore support
+  bool timelineSemaphoreSupported = false;
+  vk::UniqueSemaphore renderTimelineSemaphore;
+  uint64_t currentTimelineValue = 0;
+  vk::UniqueSemaphore createTimelineSemaphore(uint64_t initialValue = 0);
+  std::vector<vk::Semaphore> signalSemaphores;
+
 #if defined(DEBUG)
   bool hasDebugMarker=false;
 #endif
@@ -613,6 +620,7 @@ private:
       CMD_MAX
     };
 
+    uint64_t timelineValue = 0;
     vk::UniqueSemaphore imageAvailableSemaphore;
     vk::UniqueSemaphore inCountBufferCopy;
     vk::UniqueFence inFlightFence;
@@ -731,6 +739,10 @@ private:
   void endSingleCommands(vk::CommandBuffer cmd);
   PushConstants buildPushConstants();
   vk::CommandBuffer & getFrameCommandBuffer();
+
+  // Timeline semaphore helper functions
+  void signalTimelineSemaphore(vk::Semaphore semaphore, uint64_t value);
+  void waitForTimelineSemaphore(vk::Semaphore semaphore, uint64_t value, uint64_t timeout = UINT64_MAX);
   vk::CommandBuffer & getFrameComputeCommandBuffer();
   vk::UniquePipeline & getPipelineType(std::array<vk::UniquePipeline, PIPELINE_MAX> & pipelines);
   void beginFrameCommands(vk::CommandBuffer cmd);
