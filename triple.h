@@ -39,7 +39,7 @@ void boundstriples(double& x, double& y, double& z, double& X, double& Y,
 
 /**
  * represents a triple `(x, y, z)` of cartesian coordinate.
- * Once a `triple u = (...)` is created, its components can be accesed via
+ * Once a `triple u = (...)` is created, its components can be read via
  * `u.x`, `u.y`, `u.z`.
  *
  */
@@ -58,8 +58,9 @@ public:
    *
    */
   triple() : x(0.0), y(0.0), z(0.0) {}
+
   /**
-   * initial this triple with the given x, y and z are zero.
+   * initial this triple with the given `x`. Components `y` and `z` are set to zero.
    * In Asymptote one can write:
    *
    * ```
@@ -86,7 +87,8 @@ public:
   virtual ~triple() {}
 
   /**
-   * set value of x, y and z
+   * C++ API to set value of `x`, `y` and `z` component of this triple.
+   *
    */
   void set(double X, double Y=0.0, double Z=0.0) { x=X; y=Y; z=Z; }
 
@@ -398,7 +400,7 @@ public:
   }
 
   /**
-   * calculates \f$ x^2 + y^2 +z^2 \f$ of this triple.
+   * C++ to calculate \f$ x^2 + y^2 +z^2 \f$ of this triple.
    *
    * @return \f$ x^2 + y^2 +z^2 \f$
    */
@@ -407,6 +409,15 @@ public:
     return x*x+y*y+z*z;
   }
 
+  /**
+   * Asymptote to calculate \f$ x^2 + y^2 +z^2 \f$ of a triple.
+   * Example:
+   *
+   * ```
+   * triple u = (2, 3, 5);
+   * real sqrLength = abs2(u); // 38
+   * ```
+   */
   friend double abs2(const triple &v)
   {
     return v.abs2();
@@ -499,6 +510,11 @@ public:
 
   /**
    * Returns a unit triple in the direction (theta,phi), in radians.
+   * For example:
+   *
+   * ```
+   * triple d = expi(pi/3, pi/6); // pi is defined in Asymptote
+   * ```
    *
    * @param theta in radian
    * @param phi in radian
@@ -536,14 +552,14 @@ public:
   }
 
   /**
-   * once can use
+   * In Asymptote once can use
    *
    * ```
-   * triple z = (1, 2, 3);
-   * write(z);
+   * triple v = (1, 2, 3);
+   * write(v);
    * ```
    *
-   * to get 3 components of triple `z` in terminal.
+   * to show 3 components of triple `v` in terminal.
    *
    */
   friend ostream& operator << (ostream& out, const triple& v)
@@ -571,7 +587,9 @@ public:
 
 triple expi(double theta, double phi);
 
-// Return the component of vector v perpendicular to a unit vector u.
+/**
+ * Returns the component of vector `v` perpendicular to a unit vector `u`.
+ */
 inline triple perp(triple v, triple u)
 {
   return v-dot(v,u)*u;
