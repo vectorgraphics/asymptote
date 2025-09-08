@@ -4032,9 +4032,7 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
     maxFragments=11*fragments/10;
     cout << endl << "maxFragments=" << maxFragments << endl << endl;
 
-    // By the time this function is called, preDrawBuffers has already waited on
-    // inComputeFence, guaranteeing that the compute work which determines the
-    // number of fragments is complete. No further waiting is needed here.
+    device->waitIdle();
     updateSceneDependentBuffers();
   }
 }
