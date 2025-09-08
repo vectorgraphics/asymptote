@@ -1253,13 +1253,6 @@ void AsyVkRender::createLogicalDevice()
     std::cout << "Timeline semaphores are supported" << std::endl;
   }
 
-  // If timeline semaphores are supported, enable the feature
-  void* pNext = nullptr;
-  if (timelineSemaphoreSupported) {
-    timelineSemaphoreFeatures.pNext = pNext;
-    pNext = &timelineSemaphoreFeatures;
-  }
-
   // Add VK_KHR_timeline_semaphore extension if supported
   if (timelineSemaphoreSupported) {
     if (supportedDeviceExtensions.find(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
@@ -1342,7 +1335,13 @@ void AsyVkRender::createLogicalDevice()
     queueCIs.push_back(queueCI);
   }
 
+  // Build the pNext chain for device features.
+  // Start with timeline features if they are supported.
   void * extensionChain = nullptr;
+  if (timelineSemaphoreSupported) {
+    timelineSemaphoreFeatures.pNext = extensionChain;
+    extensionChain = &timelineSemaphoreFeatures;
+  }
   auto portabilityFeatures = vk::PhysicalDevicePortabilitySubsetFeaturesKHR(
     false,
     true
@@ -1371,15 +1370,13 @@ void AsyVkRender::createLogicalDevice()
   physicalDevice.getProperties2(&props);
 
   if (usePortability) {
+    portabilityFeatures.pNext = extensionChain;
     extensionChain = &portabilityFeatures;
   }
 
   if (interlock) {
-    if (usePortability) {
-      portabilityFeatures.pNext = &interlockFeatures;
-    } else {
-      extensionChain = &interlockFeatures;
-    }
+    interlockFeatures.pNext = extensionChain;
+    extensionChain = &interlockFeatures;
   }
 
   auto deviceCI = vk::DeviceCreateInfo(
