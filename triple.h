@@ -38,7 +38,9 @@ void boundstriples(double& x, double& y, double& z, double& X, double& Y,
                    double& Z, size_t n, const triple* v);
 
 /**
- * represents a tripel `(x, y, z)` of cartesian coordinate.
+ * represents a triple `(x, y, z)` of cartesian coordinate.
+ * Once a `triple u = (...)` is created, its components can be accesed via
+ * `u.x`, `u.y`, `u.z`.
  *
  */
 class triple : virtual public gc {
@@ -64,7 +66,7 @@ public:
    * triple p = (2, 3, -5);
    * ```
    *
-   * to create a tuple `(2, 3, -5)`, which can be use as a point in 3D-Coordinate system.
+   * to create a triple `(2, 3, -5)`, which can be used as a point in 3D-Coordinate system.
    *
    */
   triple(double x, double y=0.0, double z=0.0) : x(x), y(y), z(z) {}
