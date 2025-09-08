@@ -1,3 +1,7 @@
+#include <limits>
+#include <chrono>
+#include <thread>
+
 #include "vkrender.h"
 #include "shaderResources.h"
 #include "picture.h"
@@ -5,8 +9,6 @@
 #include "EXRFiles.h"
 #include "fpu.h"
 
-#include <chrono>
-#include <thread>
 #include "vkutils.h"
 #include "ThreadSafeQueue.h"
 
@@ -537,9 +539,9 @@ AsyVkRender::~AsyVkRender()
 #endif
 
 bool ispow2(unsigned int n) {return n > 0 && !(n & (n - 1));}
-void checkpow2(unsigned int n, string s) {
+void checkpow2(unsigned int n, std::string s) {
   if(!ispow2(n)) {
-    cerr << s << " must be a power of two" << endl;
+    runtimeError(s+" must be a power of two");
     exit(-1);
   }
 }
@@ -729,7 +731,7 @@ void AsyVkRender::initVulkan()
 #ifdef __APPLE__
   setenv("MVK_CONFIG_LOG_LEVEL","0",false);
 
-  // Prefer low power mode for better stability
+  // Prefer low power mode for better stability: TODO Remove
   setenv("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "1", true);
   setenv("MVK_CONFIG_PERFORMANCE_TRACKING", "0", true);
 #endif
@@ -1238,6 +1240,48 @@ void AsyVkRender::createLogicalDevice()
   std::vector<const char*> extensions(deviceExtensions.begin(), deviceExtensions.end());
   bool usePortability = false;
 
+  // Check for timeline semaphore support
+  vk::PhysicalDeviceTimelineSemaphoreFeatures timelineSemaphoreFeatures;
+  vk::PhysicalDeviceFeatures2 deviceFeatures2;
+  deviceFeatures2.pNext = &timelineSemaphoreFeatures;
+
+  physicalDevice.getFeatures2(&deviceFeatures2);
+
+  timelineSemaphoreSupported = timelineSemaphoreFeatures.timelineSemaphore;
+
+  if (timelineSemaphoreSupported && settings::verbose > 1) {
+    std::cout << "Timeline semaphores are supported" << std::endl;
+  }
+
+  // If timeline semaphores are supported, enable the feature
+  void* pNext = nullptr;
+  if (timelineSemaphoreSupported) {
+    timelineSemaphoreFeatures.pNext = pNext;
+    pNext = &timelineSemaphoreFeatures;
+  }
+
+  // Add VK_KHR_timeline_semaphore extension if supported
+  if (timelineSemaphoreSupported) {
+    if (supportedDeviceExtensions.find(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
+      extensions.push_back(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME);
+      if (settings::verbose > 1) {
+        std::cout << "Using timeline semaphore extension" << std::endl;
+      }
+    } else {
+      // If the extension is not available, disable timeline semaphores
+      timelineSemaphoreSupported = false;
+      if (settings::verbose > 1) {
+        std::cout << "Timeline semaphore extension not available, falling back to binary semaphores" << std::endl;
+      }
+    }
+  }
+
+  if (supportedDeviceExtensions.find(VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
+    extensions.push_back(VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME);
+    if (settings::verbose > 1)
+      std::cout << "Using synchronization2 extension" << std::endl;
+  }
+
   if (supportedDeviceExtensions.find(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
     extensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
     usePortability = true;
@@ -1355,6 +1399,55 @@ void AsyVkRender::createLogicalDevice()
   if (queueFamilyIndices.presentQueueFamilyFound) {
     presentQueue = device->getQueue(queueFamilyIndices.presentQueueFamily, 0);
   }
+}
+
+vk::UniqueSemaphore AsyVkRender::createTimelineSemaphore(uint64_t initialValue) {
+  if (!timelineSemaphoreSupported) {
+    return device->createSemaphoreUnique({});
+  }
+
+  // Create the timeline semaphore type info
+  vk::SemaphoreTypeCreateInfo timelineCreateInfo(
+    vk::SemaphoreType::eTimeline,
+    initialValue
+  );
+
+  // Create the semaphore with the timeline type
+  vk::SemaphoreCreateInfo createInfo({}, &timelineCreateInfo);
+
+  return device->createSemaphoreUnique(createInfo);
+}
+
+void AsyVkRender::signalTimelineSemaphore(vk::Semaphore semaphore, uint64_t value) {
+  if (!timelineSemaphoreSupported) return;
+
+  vk::SemaphoreSignalInfo signalInfo(
+    semaphore,
+    value
+  );
+
+  device->signalSemaphore(signalInfo);
+}
+
+void AsyVkRender::waitForTimelineSemaphore(vk::Semaphore semaphore, uint64_t value, uint64_t timeout) {
+  if (!timelineSemaphoreSupported) return;
+
+  vk::SemaphoreWaitInfo waitInfo(
+    {},
+    1, &semaphore,
+    &value
+  );
+
+  // Wait for the semaphore with the specified timeout
+  vk::Result result = device->waitSemaphores(waitInfo, timeout);
+
+  // Check for timeout or other errors
+  if (result == vk::Result::eTimeout)
+    cerr << "warning: Timeline semaphore wait timed out after "
+         << 1.0e-9*timeout << " seconds";
+  else if (result != vk::Result::eSuccess)
+    runtimeError("Timeline semaphore wait failed with result "+
+                 std::to_string(static_cast<int>(result)));
 }
 
 void AsyVkRender::transitionImageLayout(vk::CommandBuffer cmd,
@@ -1525,7 +1618,7 @@ vk::UniqueShaderModule AsyVkRender::createShaderModule(EShLanguage lang, std::st
     std::string line;
     unsigned int k=0;
     while(getline(s,line))
-      std::cerr << ++k << ": " << line << std::endl;
+      cerr << ++k << ": " << line << std::endl;
     runtimeError("\n failed to parse "
                              + filename
                              + ":\n" + shader.getInfoLog()
@@ -1676,6 +1769,9 @@ void AsyVkRender::createSyncObjects()
 {
   for (auto i = 0; i < maxFramesInFlight; i++) {
     frameObjects[i].imageAvailableSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
+
+    // Create the timeline semaphore for rendering if supported
+    renderTimelineSemaphore = createTimelineSemaphore(0);
     frameObjects[i].inCountBufferCopy = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].inFlightFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
     frameObjects[i].inComputeFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
@@ -3918,7 +4014,6 @@ void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
 }
 
 void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
-
   waitForEvent(*object.sumFinishedEvent);
 
   static const auto feedbackMappedPtr=make_unique<vma::cxx::MemoryMapperLock>(feedbackBf);
@@ -3939,9 +4034,10 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
   if (fragments>maxFragments) {
     maxFragments=11*fragments/10;
     cout << endl << "maxFragments=" << maxFragments << endl << endl;
-    vkutils::checkVkResult(device->waitForFences(
-      1, &*object.inComputeFence, VK_TRUE, std::numeric_limits<std::uint64_t>::max()
-    ));
+
+    // By the time this function is called, preDrawBuffers has already waited on
+    // inComputeFence, guaranteeing that the compute work which determines the
+    // number of fragments is complete. No further waiting is needed here.
     updateSceneDependentBuffers();
   }
 }
@@ -4086,11 +4182,12 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   endFrameCommands();
   commandsToSubmit.emplace_back(currentCommandBuffer);
 
+  // This submission is for the transparency pre-computation (count + partial sums).
+  // It MUST be synchronized with a fence because the CPU needs to read back the results
+  // in resizeFragmentBuffer before the main graphics pass can be recorded.
   auto info = vk::SubmitInfo();
-
   info.commandBufferCount = commandsToSubmit.size();
   info.pCommandBuffers = commandsToSubmit.data();
-
   vkutils::checkVkResult(renderQueue.submit(1, &info, *object.inComputeFence));
 
   if(settings::verbose >= timePartialSumVerbosity) {
@@ -4227,26 +4324,27 @@ void AsyVkRender::drawFrame()
 {
   auto& frameObject = frameObjects[currentFrame];
 
-  // check to see if any pipeline state changed.
+  if (timelineSemaphoreSupported) {
+    // Wait only if we are about to reuse a frame that is still in use by the GPU.
+    // We check if the timeline value for this specific frame has been reached.
+    if (frameObject.timelineValue > 0) {
+      waitForTimelineSemaphore(*renderTimelineSemaphore, frameObject.timelineValue, timeout);
+    }
+  } else {
+    // Fallback to the original fence-based synchronization
+    vkutils::checkVkResult(device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, timeout));
+  }
+
   if (recreatePipeline)
   {
     createGraphicsPipelines();
     recreatePipeline = false;
   }
 
-  vkutils::checkVkResult(device->waitForFences(
-    1, &*frameObject.inFlightFence, VK_TRUE, timeout
-  ));
-
-  uint32_t imageIndex=0; // index of the current swap chain image to render to
-
-  // Get the image index from the swapchain if not viewing.
+  uint32_t imageIndex = 0;
   if (View) {
-    auto const result = device->acquireNextImageKHR(*swapChain, timeout, // 1 second timeout
-                                                *frameObject.imageAvailableSemaphore, nullptr,
-                                                &imageIndex);
-    if (result == vk::Result::eErrorOutOfDateKHR
-        || result == vk::Result::eSuboptimalKHR || framebufferResized) {
+    auto const result = device->acquireNextImageKHR(*swapChain, timeout, *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
+    if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
       framebufferResized = false;
       recreateSwapChain();
       return;
@@ -4254,9 +4352,11 @@ void AsyVkRender::drawFrame()
     else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
       runtimeError("failed to acquire next swapchain image");
   }
-  vkutils::checkVkResult(device->resetFences(
-    1, &*frameObject.inFlightFence
-  ));
+
+  if (!timelineSemaphoreSupported) {
+      vkutils::checkVkResult(device->resetFences(1, &*frameObject.inFlightFence));
+  }
+
   frameObject.commandBuffer->reset(vk::CommandBufferResetFlagBits());
 
   updateUniformBuffer(currentFrame);
@@ -4264,142 +4364,136 @@ void AsyVkRender::drawFrame()
   resetFrameCopyData();
   preDrawBuffers(frameObject, imageIndex);
 
-  // TODO: can we do scene graph instead of manual barriers?
   beginFrameCommands(getFrameCommandBuffer());
-
   drawBuffers(frameObject, imageIndex);
-  // current immediate target layout: general/presentSrc depending on fxaa
+  if (fxaa) {
+    auto& cmdBuffer = *frameObject.commandBuffer;
 
-  if (fxaa)
-  {
-    // begin postprocessing
-    vk::ImageSubresourceRange constexpr isr(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-    std::vector<vk::ImageMemoryBarrier> const beforePostProcessingBarrier {
-            {{}, vk::AccessFlagBits::eShaderWrite,
-             vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral,
-             VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
-             prePresentationImages[imageIndex].getImage(), isr}
-    };
-    frameObject.commandBuffer->pipelineBarrier(
-            vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eComputeShader,
-            {},
-            EMPTY_VIEW, EMPTY_VIEW, VEC_VIEW(beforePostProcessingBarrier)
+    // Transition immediate render target to general layout for compute shader access
+    transitionImageLayout(
+      cmdBuffer,
+      immediateRenderTargetImgs[imageIndex].getImage(),
+      vk::AccessFlagBits::eColorAttachmentWrite,
+      vk::AccessFlagBits::eShaderRead,
+      vk::ImageLayout::eColorAttachmentOptimal,
+      vk::ImageLayout::eGeneral,
+      vk::PipelineStageFlagBits::eColorAttachmentOutput,
+      vk::PipelineStageFlagBits::eComputeShader,
+      vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
     );
 
-    postProcessImage(*frameObject.commandBuffer, imageIndex);
-    // done postprocessing,
+    // Run FXAA compute shader
+    postProcessImage(cmdBuffer, imageIndex);
 
-    std::vector<vk::ImageMemoryBarrier> const preCopyBarriers {
-            {vk::AccessFlagBits::eShaderWrite, vk::AccessFlagBits::eTransferRead,
-             vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal,
-             VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
-             prePresentationImages[imageIndex].getImage(),
-             isr},
-            {{}, vk::AccessFlagBits::eTransferWrite,
-             vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
-             VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
-             backbufferImages[imageIndex], isr},
-
-    };
-
-    frameObject.commandBuffer->pipelineBarrier(
-            vk::PipelineStageFlagBits::eComputeShader, vk::PipelineStageFlagBits::eTransfer,
-            {},
-            EMPTY_VIEW, EMPTY_VIEW, VEC_VIEW(preCopyBarriers)
+    // Prepare for presentation
+    transitionImageLayout(
+      cmdBuffer,
+      prePresentationImages[imageIndex].getImage(),
+      vk::AccessFlagBits::eShaderWrite,
+      vk::AccessFlagBits::eTransferRead,
+      vk::ImageLayout::eGeneral,
+      vk::ImageLayout::eTransferSrcOptimal,
+      vk::PipelineStageFlagBits::eComputeShader,
+      vk::PipelineStageFlagBits::eTransfer,
+      vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
     );
-
-    copyToSwapchainImg(*frameObject.commandBuffer, imageIndex);
-    // done copying
-
-    std::vector<vk::ImageMemoryBarrier> const prePresentationBarrier {
-            {vk::AccessFlagBits::eTransferWrite,
-             {},
-             vk::ImageLayout::eTransferDstOptimal,
-             View ? vk::ImageLayout::ePresentSrcKHR :
-             vk::ImageLayout::eColorAttachmentOptimal,
-             VK_QUEUE_FAMILY_IGNORED,
-             VK_QUEUE_FAMILY_IGNORED,
-             backbufferImages[imageIndex],
-             isr}
-    };
-
-    frameObject.commandBuffer->pipelineBarrier(
-            vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eBottomOfPipe,
-            {},
-            EMPTY_VIEW, EMPTY_VIEW, VEC_VIEW(prePresentationBarrier)
-    );
+    copyToSwapchainImg(cmdBuffer, imageIndex);
   }
-
   endFrameCommands();
-  // recording done, not go to submit stage
 
-  std::vector<vk::Semaphore> waitSemaphores {}, signalSemaphores {};
-
-  // Wait for the swapchain to get an image if we are rendering onscreen
-  // Also signal to the swapchain that the render has finished if rendering onscreen
+  std::vector<vk::Semaphore> waitSems;
+  std::vector<vk::PipelineStageFlags> waitStages;
   if (View) {
-    waitSemaphores.emplace_back(*frameObject.imageAvailableSemaphore);
-
-    if(imageIndex >= renderFinishedSemaphore.size())
-      renderFinishedSemaphore.push_back(
-        device->createSemaphoreUnique(vk::SemaphoreCreateInfo()));
-
-    signalSemaphores.push_back(*renderFinishedSemaphore[imageIndex]);
+      waitSems.push_back(*frameObject.imageAvailableSemaphore);
+      waitStages.push_back(vk::PipelineStageFlagBits::eColorAttachmentOutput);
   }
 
-  std::vector<vk::PipelineStageFlags> const waitStages {vk::PipelineStageFlagBits::eColorAttachmentOutput};
-
-  auto const submitInfo = vk::SubmitInfo(
-    VEC_VIEW(waitSemaphores),
-    waitStages.data(),
-    SINGLETON_VIEW(*frameObject.commandBuffer),
-    VEC_VIEW(signalSemaphores)
-  );
-
-  if (renderQueue.submit(SINGLETON_VIEW(submitInfo), *frameObject.inFlightFence) != vk::Result::eSuccess)
-    runtimeError("failed to submit draw command buffer");
-
-  if(queueExport) {
-    vkutils::checkVkResult(device->waitForFences(
-      1, &*frameObject.inFlightFence, VK_TRUE, timeout
-    ));
-    Export(imageIndex);
-    queueExport=false;
+  std::vector<vk::Semaphore> signalSems;
+  if (View) {
+      if (imageIndex >= renderFinishedSemaphore.size())
+          renderFinishedSemaphore.push_back(device->createSemaphoreUnique({}));
+      signalSems.push_back(*renderFinishedSemaphore[imageIndex]);
   }
 
-  // Present to the swapchain if we are rendering on-screen.
+  vk::SubmitInfo submitInfo;
+  submitInfo.pWaitSemaphores = waitSems.data();
+  submitInfo.waitSemaphoreCount = waitSems.size();
+  submitInfo.pWaitDstStageMask = waitStages.data();
+  submitInfo.pCommandBuffers = &*frameObject.commandBuffer;
+  submitInfo.commandBufferCount = 1;
+
+  vk::TimelineSemaphoreSubmitInfo timelineInfo;
+  std::vector<uint64_t> signalValues;
+
+  if (timelineSemaphoreSupported) {
+      currentTimelineValue++;
+      frameObject.timelineValue = currentTimelineValue;
+
+      signalSems.push_back(*renderTimelineSemaphore);
+
+      // The value for the binary semaphore is ignored, but the count must match.
+      if (View) {
+          signalValues.push_back(0);
+      }
+      signalValues.push_back(frameObject.timelineValue);
+
+      timelineInfo.signalSemaphoreValueCount = signalValues.size();
+      timelineInfo.pSignalSemaphoreValues = signalValues.data();
+      submitInfo.pNext = &timelineInfo;
+
+      submitInfo.pSignalSemaphores = signalSems.data();
+      submitInfo.signalSemaphoreCount = signalSems.size();
+
+      vkutils::checkVkResult(renderQueue.submit(1, &submitInfo, nullptr));
+  } else {
+      submitInfo.pSignalSemaphores = signalSems.data();
+      submitInfo.signalSemaphoreCount = signalSems.size();
+      vkutils::checkVkResult(renderQueue.submit(1, &submitInfo, *frameObject.inFlightFence));
+  }
+
   if (View) {
-    try
-    {
-      auto presentInfo = vk::PresentInfoKHR(VEC_VIEW(signalSemaphores), 1, &*swapChain, &imageIndex);
+    // The presentation engine only needs to wait on the binary semaphore.
+    std::vector<vk::Semaphore> presentWaitSemaphores;
+    presentWaitSemaphores.push_back(*renderFinishedSemaphore[imageIndex]);
+
+    try {
+      auto presentInfo = vk::PresentInfoKHR(VEC_VIEW(presentWaitSemaphores), 1, &*swapChain, &imageIndex);
       auto const result = presentQueue.presentKHR(presentInfo);
 
-      if (result == vk::Result::eErrorOutOfDateKHR
-          || result == vk::Result::eSuboptimalKHR
-          || framebufferResized) {
+      if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
         framebufferResized = false;
         recreateSwapChain();
-        return;
-       }
-      else if (result != vk::Result::eSuccess)
-        runtimeError( "failed to present swapchain image" );
-    }
-    catch(std::exception const & e)
-    {
+      } else if (result != vk::Result::eSuccess) {
+        runtimeError("failed to present swapchain image");
+      }
+    } catch (std::exception const & e) {
       auto what=std::string(e.what());
       if (what.find("ErrorOutOfDateKHR") != std::string::npos) {
         framebufferResized = false;
         recreateSwapChain();
-        return;
-      } else
+      } else {
         runtimeError(what);
+      }
     }
   }
 
+  if(queueExport) {
+    // Wait for the just-submitted frame to finish before exporting
+    if (timelineSemaphoreSupported) {
+      waitForTimelineSemaphore(*renderTimelineSemaphore, frameObject.timelineValue);
+    } else {
+      vkutils::checkVkResult(device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, timeout));
+    }
+    Export(imageIndex);
+    queueExport=false;
+  }
+
   if (recreateBlendPipeline) {
-    vkutils::checkVkResult(device->waitForFences(
-      1, &*frameObject.inFlightFence, VK_TRUE, timeout
-    ));
+    if (timelineSemaphoreSupported) {
+      waitForTimelineSemaphore(*renderTimelineSemaphore, frameObject.timelineValue);
+    } else {
+      vkutils::checkVkResult(device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, timeout));
+    }
     createBlendPipeline();
     recreateBlendPipeline=false;
   }
@@ -4711,7 +4805,13 @@ void AsyVkRender::exportHandler(int) {
 
 void AsyVkRender::Export(int imageIndex) {
   exportCommandBuffer->reset();
-  vkutils::checkVkResult(device->resetFences(1, &*exportFence));
+
+  if (timelineSemaphoreSupported) {
+    // No need to reset fence when using timeline semaphores
+  } else {
+    vkutils::checkVkResult(device->resetFences(1, &*exportFence));
+  }
+
   exportCommandBuffer->begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 
   auto const size = device->getImageMemoryRequirements(backbufferImages[0]).size;
@@ -4777,22 +4877,44 @@ void AsyVkRender::Export(int imageIndex) {
 
   exportCommandBuffer->end();
 
-  auto const submitInfo = vk::SubmitInfo(
-    0,
-    nullptr,
-    nullptr,
-    1,
-    &*exportCommandBuffer,
-    0,
-    nullptr
-  );
+  // Submit with timeline semaphore if supported
+  if (timelineSemaphoreSupported) {
+    // Create a unique timeline value for this export operation
+    uint64_t exportTimelineValue = currentTimelineValue + 2000; // Use a different range for export operations
 
-  if (renderQueue.submit(1, &submitInfo, *exportFence) != vk::Result::eSuccess)
-    runtimeError("failed to submit draw command buffer");
+    vk::TimelineSemaphoreSubmitInfo timelineInfo(
+      0, nullptr,
+      1, &exportTimelineValue
+    );
 
-  vkutils::checkVkResult(device->waitForFences(
-    1, &*exportFence, VK_TRUE, timeout
-  ));
+    auto submitInfo = vk::SubmitInfo(
+      0, nullptr, nullptr,
+      1, &*exportCommandBuffer,
+      1, &*renderTimelineSemaphore
+    );
+
+    // Link the timeline info
+    submitInfo.pNext = &timelineInfo;
+
+    if (renderQueue.submit(1, &submitInfo, nullptr) != vk::Result::eSuccess)
+      runtimeError("failed to submit export command buffer");
+
+    // Wait for the export to complete
+    waitForTimelineSemaphore(*renderTimelineSemaphore, exportTimelineValue);
+  } else {
+    auto const submitInfo = vk::SubmitInfo(
+      0, nullptr, nullptr,
+      1, &*exportCommandBuffer,
+      0, nullptr
+    );
+
+    if (renderQueue.submit(1, &submitInfo, *exportFence) != vk::Result::eSuccess)
+      runtimeError("failed to submit draw command buffer");
+
+    vkutils::checkVkResult(device->waitForFences(
+      1, &*exportFence, VK_TRUE, timeout
+    ));
+  }
 
   vma::cxx::MemoryMapperLock mappedMemory(exportBuf);
 
