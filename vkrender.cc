@@ -300,12 +300,14 @@ void AsyVkRender::updateHandler(int) {
       vk->Fitscreen=0;
   }
 
+  if(vk->device)
+    vk->device->waitIdle();
   vk->resize=true;
   vk->redisplay=true;
   vk->redraw=true;
   vk->remesh=true;
-  vk->framebufferResized=true;
   vk->waitEvent=false;
+  vk->recreatePipeline=true;
 }
 
 std::string AsyVkRender::getAction(int button, int mods)
@@ -522,7 +524,7 @@ void AsyVkRender::windowFocusCallback(GLFWwindow* window, int focused)
     if (focused) {
         // Window gained focus: might need to recreate swapchain
         auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
-        app->framebufferResized = true;
+        app->recreatePipeline = true;
     }
 }
 
@@ -4338,8 +4340,9 @@ void AsyVkRender::drawFrame()
 
   if (recreatePipeline)
   {
-    createGraphicsPipelines();
+    device->waitIdle();
     recreatePipeline = false;
+    createGraphicsPipelines();
   }
 
   uint32_t imageIndex = 0;
@@ -5198,7 +5201,6 @@ void AsyVkRender::windowposition(int& x, int& y, int Width, int Height)
 
 void AsyVkRender::setsize(int w, int h, bool reposition) {
   int x,y;
-
   capsize(w,h);
 
   if (View) {
@@ -5303,10 +5305,11 @@ void AsyVkRender::home(bool webgl) {
 }
 
 void AsyVkRender::cycleMode() {
+  if(device)
+    device->waitIdle();
   mode=DrawMode((mode + 1) % DRAWMODE_MAX);
   remesh=true;
   redraw=true;
-  framebufferResized=true;
   newUniformBuffer=true;
 
   if (mode == DRAWMODE_NORMAL) {
@@ -5315,6 +5318,7 @@ void AsyVkRender::cycleMode() {
   if (mode == DRAWMODE_OUTLINE) {
     ibl=false;
   }
+  recreatePipeline=true;
 }
 
 #endif
