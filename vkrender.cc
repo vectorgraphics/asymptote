@@ -809,6 +809,12 @@ void AsyVkRender::recreateSwapChain()
 {
   device->waitIdle();
 
+  // Reset timeline semaphore values to avoid timeout issues
+  currentTimelineValue = 0;
+  for (auto& frameObj : frameObjects) {
+    frameObj.timelineValue = 0;
+  }
+
   resetDepth=true;
 
   createSwapChain();
@@ -1444,11 +1450,12 @@ void AsyVkRender::waitForTimelineSemaphore(vk::Semaphore semaphore, uint64_t val
   // Wait for the semaphore with the specified timeout
   vk::Result result = device->waitSemaphores(waitInfo, timeout);
 
-  // Check for timeout or other errors
-  if (result == vk::Result::eTimeout)
+  if (result == vk::Result::eTimeout) {
     cerr << "warning: Timeline semaphore wait timed out after "
          << 1.0e-9*timeout << " seconds" << endl;
-  else if (result != vk::Result::eSuccess)
+    device->waitIdle();
+    currentTimelineValue = 0;
+  } else if (result != vk::Result::eSuccess)
     runtimeError("Timeline semaphore wait failed with result "+
                  std::to_string(static_cast<int>(result)));
 }
@@ -4017,6 +4024,9 @@ void AsyVkRender::partialSums(FrameObject & object, bool timing)
 void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
 
   maxSize=maxDepth;
+
+  cout << "maxDepth=" << maxDepth << endl;
+
   recreateBlendPipeline=true;
 }
 
@@ -4026,6 +4036,7 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
   static const auto feedbackMappedPtr=make_unique<vma::cxx::MemoryMapperLock>(feedbackBf);
 
   std::uint32_t maxDepth=feedbackMappedPtr->getCopyPtr()[0];
+
   fragments=feedbackMappedPtr->getCopyPtr()[1];
   cout << "fragments=" << fragments << endl;
 
