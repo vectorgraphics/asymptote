@@ -4236,6 +4236,13 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
   cout << "preDrawBuffers" << endl;
   copied=false;
 
+#ifdef __APPLE__
+  // On macOS, ensure we're not waiting on a semaphore that might never signal
+  if (!Opaque) {
+    device->waitIdle();
+  }
+#endif
+
   cout << "Opaque=" << Opaque << endl;
   if(!Opaque) {
     pixels=backbufferExtent.width*backbufferExtent.height;
@@ -4330,7 +4337,17 @@ void AsyVkRender::drawFrame()
     // Wait only if we are about to reuse a frame that is still in use by the GPU.
     // We check if the timeline value for this specific frame has been reached.
     if (frameObject.timelineValue > 0) {
+#ifdef __APPLE__
+      // On macOS, use a shorter timeout for timeline semaphores to avoid hanging
+      uint64_t macOsTimeout = 500000000; // 500ms
+      try {
+        waitForTimelineSemaphore(*renderTimelineSemaphore, frameObject.timelineValue, macOsTimeout);
+      } catch (...) {
+        device->waitIdle(); // If timeout occurs, force synchronization
+      }
+#else
       waitForTimelineSemaphore(*renderTimelineSemaphore, frameObject.timelineValue, timeout);
+#endif
     }
   } else {
     // Fallback to the original fence-based synchronization
@@ -4446,6 +4463,13 @@ void AsyVkRender::drawFrame()
       submitInfo.pSignalSemaphores = signalSems.data();
       submitInfo.signalSemaphoreCount = signalSems.size();
 
+#ifdef __APPLE__
+      if (!Opaque) {
+        // On macOS, use more conservative synchronization for transparency
+        vkutils::checkVkResult(renderQueue.submit(1, &submitInfo, *frameObject.inFlightFence));
+        device->waitIdle();
+      } else
+#endif
       vkutils::checkVkResult(renderQueue.submit(1, &submitInfo, nullptr));
   } else {
       submitInfo.pSignalSemaphores = signalSems.data();
@@ -4454,6 +4478,11 @@ void AsyVkRender::drawFrame()
   }
 
   if (View) {
+#ifdef __APPLE__
+    // On macOS, ensure rendering is complete before presentation
+    device->waitIdle();
+#endif
+
     // The presentation engine only needs to wait on the binary semaphore.
     std::vector<vk::Semaphore> presentWaitSemaphores;
     presentWaitSemaphores.push_back(*renderFinishedSemaphore[imageIndex]);
