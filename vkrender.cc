@@ -4242,6 +4242,10 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
   copied=false;
 
   if(!Opaque) {
+    vkutils::checkVkResult(device->waitForFences(
+      1, &*object.inComputeFence, VK_TRUE, timeout
+    ));
+
     pixels=backbufferExtent.width*backbufferExtent.height;
     if(pixels > transparencyCapacityPixels) {
       device->waitIdle();
@@ -4259,12 +4263,6 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
     object.computeCommandBuffer->reset();
 
     refreshBuffers(object, imageIndex);
-
-    // This is the crucial synchronization point. We must wait for the GPU to finish
-    // the compute operations submitted in refreshBuffers() before the CPU can
-    // safely read back the results in resizeFragmentBuffer().
-    vkutils::checkVkResult(device->waitForFences(
-      1, &*object.inComputeFence, VK_TRUE, timeout));
     resizeFragmentBuffer(object);
   }
 }
