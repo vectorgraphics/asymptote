@@ -3526,7 +3526,11 @@ void AsyVkRender::createGraphicsPipelines()
   for (auto u = 0u; u < PIPELINE_MAX; u++)
     createGraphicsPipeline<PointVertex>
                           (PipelineType(u), pointPipelines[u], vk::PrimitiveTopology::ePointList,
+#ifdef __APPLE__
+                          vk::PolygonMode::eFill,
+#else
                           vk::PolygonMode::ePoint,
+#endif
                           pointShaderOptions,
                           "vertex",
                           "fragment",
