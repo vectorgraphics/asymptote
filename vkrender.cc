@@ -4022,8 +4022,6 @@ void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
 
   maxSize=maxDepth;
 
-  cout << "maxDepth=" << maxDepth << endl;
-
   recreateBlendPipeline=true;
 }
 
