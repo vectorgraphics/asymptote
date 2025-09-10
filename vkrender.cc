@@ -13,10 +13,9 @@
 #include "ThreadSafeQueue.h"
 
 // For debugging:
-//#if defined(ENABLE_VK_VALIDATION)
+#if defined(ENABLE_VK_VALIDATION)
 #define VALIDATION
-//#endif
-#define __APPLE__
+#endif
 
 #define SHADER_DIRECTORY "shaders/"
 #define VALIDATION_LAYER "VK_LAYER_KHRONOS_validation"
@@ -3526,7 +3525,11 @@ void AsyVkRender::createGraphicsPipelines()
   for (auto u = 0u; u < PIPELINE_MAX; u++)
     createGraphicsPipeline<PointVertex>
                           (PipelineType(u), pointPipelines[u], vk::PrimitiveTopology::ePointList,
+#ifdef __APPLE__
+                          vk::PolygonMode::eFill,
+#else
                           vk::PolygonMode::ePoint,
+#endif
                           pointShaderOptions,
                           "vertex",
                           "fragment",
