@@ -1447,7 +1447,7 @@ void AsyVkRender::waitForTimelineSemaphore(vk::Semaphore semaphore, uint64_t val
   // Check for timeout or other errors
   if (result == vk::Result::eTimeout)
     cerr << "warning: Timeline semaphore wait timed out after "
-         << 1.0e-9*timeout << " seconds";
+         << 1.0e-9*timeout << " seconds" << endl;
   else if (result != vk::Result::eSuccess)
     runtimeError("Timeline semaphore wait failed with result "+
                  std::to_string(static_cast<int>(result)));
@@ -4814,11 +4814,7 @@ void AsyVkRender::exportHandler(int) {
 void AsyVkRender::Export(int imageIndex) {
   exportCommandBuffer->reset();
 
-  if (timelineSemaphoreSupported) {
-    // No need to reset fence when using timeline semaphores
-  } else {
-    vkutils::checkVkResult(device->resetFences(1, &*exportFence));
-  }
+  vkutils::checkVkResult(device->resetFences(1, &*exportFence));
 
   exportCommandBuffer->begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 
@@ -4885,44 +4881,18 @@ void AsyVkRender::Export(int imageIndex) {
 
   exportCommandBuffer->end();
 
-  // Submit with timeline semaphore if supported
-  if (timelineSemaphoreSupported) {
-    // Create a unique timeline value for this export operation
-    uint64_t exportTimelineValue = currentTimelineValue + 2000; // Use a different range for export operations
+  auto const submitInfo = vk::SubmitInfo(
+    0, nullptr, nullptr,
+    1, &*exportCommandBuffer,
+    0, nullptr
+  );
 
-    vk::TimelineSemaphoreSubmitInfo timelineInfo(
-      0, nullptr,
-      1, &exportTimelineValue
-    );
+  if (renderQueue.submit(1, &submitInfo, *exportFence) != vk::Result::eSuccess)
+    runtimeError("failed to submit draw command buffer");
 
-    auto submitInfo = vk::SubmitInfo(
-      0, nullptr, nullptr,
-      1, &*exportCommandBuffer,
-      1, &*renderTimelineSemaphore
-    );
-
-    // Link the timeline info
-    submitInfo.pNext = &timelineInfo;
-
-    if (renderQueue.submit(1, &submitInfo, nullptr) != vk::Result::eSuccess)
-      runtimeError("failed to submit export command buffer");
-
-    // Wait for the export to complete
-    waitForTimelineSemaphore(*renderTimelineSemaphore, exportTimelineValue);
-  } else {
-    auto const submitInfo = vk::SubmitInfo(
-      0, nullptr, nullptr,
-      1, &*exportCommandBuffer,
-      0, nullptr
-    );
-
-    if (renderQueue.submit(1, &submitInfo, *exportFence) != vk::Result::eSuccess)
-      runtimeError("failed to submit draw command buffer");
-
-    vkutils::checkVkResult(device->waitForFences(
-      1, &*exportFence, VK_TRUE, timeout
-    ));
-  }
+  vkutils::checkVkResult(device->waitForFences(
+    1, &*exportFence, VK_TRUE, timeout
+  ));
 
   vma::cxx::MemoryMapperLock mappedMemory(exportBuf);
 
