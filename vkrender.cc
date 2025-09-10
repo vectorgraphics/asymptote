@@ -550,6 +550,10 @@ void checkpow2(unsigned int n, std::string s) {
 
 void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 {
+#if !defined(_WIN32)
+      setenv("XMODIFIERS","",true);
+#endif
+
   bool v3d=args.format == "v3d";
   bool webgl=args.format == "html";
   bool format3d=webgl || v3d;
@@ -4981,9 +4985,6 @@ void AsyVkRender::quit()
 
 #endif
     if(View) {
-#if !defined(_WIN32)
-      setenv("XMODIFIERS","",false);
-#endif
       glfwHideWindow(window);
       hideWindow=true;
     }
