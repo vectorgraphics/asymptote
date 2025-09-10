@@ -13,9 +13,9 @@
 #include "ThreadSafeQueue.h"
 
 // For debugging:
-//#if defined(ENABLE_VK_VALIDATION)
+#if defined(ENABLE_VK_VALIDATION)
 #define VALIDATION
-//#endif
+#endif
 #define __APPLE__
 
 #define SHADER_DIRECTORY "shaders/"
