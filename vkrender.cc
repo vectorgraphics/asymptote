@@ -300,12 +300,14 @@ void AsyVkRender::updateHandler(int) {
       vk->Fitscreen=0;
   }
 
+  if(vk->device)
+    vk->device->waitIdle();
   vk->resize=true;
   vk->redisplay=true;
   vk->redraw=true;
   vk->remesh=true;
-  vk->framebufferResized=true;
   vk->waitEvent=false;
+  vk->recreatePipeline=true;
 }
 
 std::string AsyVkRender::getAction(int button, int mods)
@@ -522,7 +524,7 @@ void AsyVkRender::windowFocusCallback(GLFWwindow* window, int focused)
     if (focused) {
         // Window gained focus: might need to recreate swapchain
         auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
-        app->framebufferResized = true;
+        app->recreatePipeline = true;
     }
 }
 
@@ -548,6 +550,10 @@ void checkpow2(unsigned int n, std::string s) {
 
 void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 {
+#if !defined(_WIN32)
+      setenv("XMODIFIERS","",true);
+#endif
+
   bool v3d=args.format == "v3d";
   bool webgl=args.format == "html";
   bool format3d=webgl || v3d;
@@ -802,6 +808,12 @@ void AsyVkRender::initVulkan()
 void AsyVkRender::recreateSwapChain()
 {
   device->waitIdle();
+
+  // Reset timeline semaphore values to avoid timeout issues
+  currentTimelineValue = 0;
+  for (auto& frameObj : frameObjects) {
+    frameObj.timelineValue = 0;
+  }
 
   resetDepth=true;
 
@@ -1438,11 +1450,12 @@ void AsyVkRender::waitForTimelineSemaphore(vk::Semaphore semaphore, uint64_t val
   // Wait for the semaphore with the specified timeout
   vk::Result result = device->waitSemaphores(waitInfo, timeout);
 
-  // Check for timeout or other errors
-  if (result == vk::Result::eTimeout)
+  if (result == vk::Result::eTimeout) {
     cerr << "warning: Timeline semaphore wait timed out after "
-         << 1.0e-9*timeout << " seconds";
-  else if (result != vk::Result::eSuccess)
+         << 1.0e-9*timeout << " seconds" << endl;
+    device->waitIdle();
+    currentTimelineValue = 0;
+  } else if (result != vk::Result::eSuccess)
     runtimeError("Timeline semaphore wait failed with result "+
                  std::to_string(static_cast<int>(result)));
 }
@@ -3524,7 +3537,11 @@ void AsyVkRender::createGraphicsPipelines()
   for (auto u = 0u; u < PIPELINE_MAX; u++)
     createGraphicsPipeline<PointVertex>
                           (PipelineType(u), pointPipelines[u], vk::PrimitiveTopology::ePointList,
+#ifdef __APPLE__
+                          vk::PolygonMode::eFill,
+#else
                           vk::PolygonMode::ePoint,
+#endif
                           pointShaderOptions,
                           "vertex",
                           "fragment",
@@ -4004,6 +4021,9 @@ void AsyVkRender::partialSums(FrameObject & object, bool timing)
 void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
 
   maxSize=maxDepth;
+
+  cout << "maxDepth=" << maxDepth << endl;
+
   recreateBlendPipeline=true;
 }
 
@@ -4013,6 +4033,7 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
   static const auto feedbackMappedPtr=make_unique<vma::cxx::MemoryMapperLock>(feedbackBf);
 
   std::uint32_t maxDepth=feedbackMappedPtr->getCopyPtr()[0];
+
   fragments=feedbackMappedPtr->getCopyPtr()[1];
 
   if(resetDepth) {
@@ -4223,10 +4244,6 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
   copied=false;
 
   if(!Opaque) {
-    vkutils::checkVkResult(device->waitForFences(
-      1, &*object.inComputeFence, VK_TRUE, timeout
-    ));
-
     pixels=backbufferExtent.width*backbufferExtent.height;
     if(pixels > transparencyCapacityPixels) {
       device->waitIdle();
@@ -4244,6 +4261,12 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
     object.computeCommandBuffer->reset();
 
     refreshBuffers(object, imageIndex);
+
+    // This is the crucial synchronization point. We must wait for the GPU to finish
+    // the compute operations submitted in refreshBuffers() before the CPU can
+    // safely read back the results in resizeFragmentBuffer().
+    vkutils::checkVkResult(device->waitForFences(
+      1, &*object.inComputeFence, VK_TRUE, timeout));
     resizeFragmentBuffer(object);
   }
 }
@@ -4322,8 +4345,9 @@ void AsyVkRender::drawFrame()
 
   if (recreatePipeline)
   {
-    createGraphicsPipelines();
+    device->waitIdle();
     recreatePipeline = false;
+    createGraphicsPipelines();
   }
 
   uint32_t imageIndex = 0;
@@ -4791,11 +4815,7 @@ void AsyVkRender::exportHandler(int) {
 void AsyVkRender::Export(int imageIndex) {
   exportCommandBuffer->reset();
 
-  if (timelineSemaphoreSupported) {
-    // No need to reset fence when using timeline semaphores
-  } else {
-    vkutils::checkVkResult(device->resetFences(1, &*exportFence));
-  }
+  vkutils::checkVkResult(device->resetFences(1, &*exportFence));
 
   exportCommandBuffer->begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 
@@ -4862,44 +4882,18 @@ void AsyVkRender::Export(int imageIndex) {
 
   exportCommandBuffer->end();
 
-  // Submit with timeline semaphore if supported
-  if (timelineSemaphoreSupported) {
-    // Create a unique timeline value for this export operation
-    uint64_t exportTimelineValue = currentTimelineValue + 2000; // Use a different range for export operations
+  auto const submitInfo = vk::SubmitInfo(
+    0, nullptr, nullptr,
+    1, &*exportCommandBuffer,
+    0, nullptr
+  );
 
-    vk::TimelineSemaphoreSubmitInfo timelineInfo(
-      0, nullptr,
-      1, &exportTimelineValue
-    );
+  if (renderQueue.submit(1, &submitInfo, *exportFence) != vk::Result::eSuccess)
+    runtimeError("failed to submit draw command buffer");
 
-    auto submitInfo = vk::SubmitInfo(
-      0, nullptr, nullptr,
-      1, &*exportCommandBuffer,
-      1, &*renderTimelineSemaphore
-    );
-
-    // Link the timeline info
-    submitInfo.pNext = &timelineInfo;
-
-    if (renderQueue.submit(1, &submitInfo, nullptr) != vk::Result::eSuccess)
-      runtimeError("failed to submit export command buffer");
-
-    // Wait for the export to complete
-    waitForTimelineSemaphore(*renderTimelineSemaphore, exportTimelineValue);
-  } else {
-    auto const submitInfo = vk::SubmitInfo(
-      0, nullptr, nullptr,
-      1, &*exportCommandBuffer,
-      0, nullptr
-    );
-
-    if (renderQueue.submit(1, &submitInfo, *exportFence) != vk::Result::eSuccess)
-      runtimeError("failed to submit draw command buffer");
-
-    vkutils::checkVkResult(device->waitForFences(
-      1, &*exportFence, VK_TRUE, timeout
-    ));
-  }
+  vkutils::checkVkResult(device->waitForFences(
+    1, &*exportFence, VK_TRUE, timeout
+  ));
 
   vma::cxx::MemoryMapperLock mappedMemory(exportBuf);
 
@@ -4962,9 +4956,6 @@ void AsyVkRender::quit()
 
 #endif
     if(View) {
-#if !defined(_WIN32)
-      setenv("XMODIFIERS","",false);
-#endif
       glfwHideWindow(window);
       hideWindow=true;
     }
@@ -5182,7 +5173,6 @@ void AsyVkRender::windowposition(int& x, int& y, int Width, int Height)
 
 void AsyVkRender::setsize(int w, int h, bool reposition) {
   int x,y;
-
   capsize(w,h);
 
   if (View) {
@@ -5287,10 +5277,11 @@ void AsyVkRender::home(bool webgl) {
 }
 
 void AsyVkRender::cycleMode() {
+  if(device)
+    device->waitIdle();
   mode=DrawMode((mode + 1) % DRAWMODE_MAX);
   remesh=true;
   redraw=true;
-  framebufferResized=true;
   newUniformBuffer=true;
 
   if (mode == DRAWMODE_NORMAL) {
@@ -5299,6 +5290,7 @@ void AsyVkRender::cycleMode() {
   if (mode == DRAWMODE_OUTLINE) {
     ibl=false;
   }
+  recreatePipeline=true;
 }
 
 #endif
