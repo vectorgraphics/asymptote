@@ -2945,8 +2945,7 @@ void AsyVkRender::createTransparencyBuffers(std::uint32_t pixels)
       VARIABLE_NAME(opaqueBf));
 
   opaqueDepthBf=createBufferUnique(
-      vk::BufferUsageFlagBits::eStorageBuffer |
-      vk::BufferUsageFlagBits::eTransferDst,
+      vk::BufferUsageFlagBits::eStorageBuffer,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
       opaqueDepthBufferSize,
       vmaFlags,
@@ -3200,7 +3199,7 @@ void AsyVkRender::createGraphicsRenderPass()
                   &colorResolveAttachmentRef,
                   &depthAttachmentRef
           ),
-          vk::SubpassDescription2({}, vk::PipelineBindPoint::eGraphics, 0, 0, nullptr, 1, &colorResolveAttachmentRef),
+          vk::SubpassDescription2({}, vk::PipelineBindPoint::eGraphics, 0, 0, nullptr, 0, nullptr, nullptr, nullptr),
           vk::SubpassDescription2({}, vk::PipelineBindPoint::eGraphics, 0, 0, nullptr, 1, &colorResolveAttachmentRef)
   };
   if (msaaSamples == vk::SampleCountFlagBits::e1)
