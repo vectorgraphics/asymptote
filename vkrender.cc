@@ -2952,7 +2952,8 @@ void AsyVkRender::createTransparencyBuffers(std::uint32_t pixels)
       VARIABLE_NAME(opaqueBf));
 
   opaqueDepthBf=createBufferUnique(
-      vk::BufferUsageFlagBits::eStorageBuffer,
+      vk::BufferUsageFlagBits::eStorageBuffer |
+      vk::BufferUsageFlagBits::eTransferDst,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
       opaqueDepthBufferSize,
       vmaFlags,

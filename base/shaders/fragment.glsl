@@ -83,7 +83,11 @@ layout(push_constant) uniform PushConstants
   vec4 background;
 } push;
 
+#ifdef TRANSPARENT
+vec4 outColor;
+#else
 layout(location = 0) out vec4 outColor;
+#endif
 
 vec3 Emissive;
 vec3 Diffuse;
