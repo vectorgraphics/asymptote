@@ -3207,6 +3207,7 @@ void AsyVkRender::createGraphicsRenderPass()
                   &depthAttachmentRef
           ),
           vk::SubpassDescription2({}, vk::PipelineBindPoint::eGraphics, 0, 0, nullptr, 0, nullptr, nullptr, nullptr),
+          // Subpass 2: Final blend. Writes color, no depth test.
           vk::SubpassDescription2({}, vk::PipelineBindPoint::eGraphics, 0, 0, nullptr, 1, &colorResolveAttachmentRef)
   };
   if (msaaSamples == vk::SampleCountFlagBits::e1)
@@ -3216,6 +3217,7 @@ void AsyVkRender::createGraphicsRenderPass()
 
     subpasses[0].pColorAttachments = &colorResolveAttachmentRef;
     subpasses[0].pResolveAttachments = nullptr;
+    subpasses[2].pResolveAttachments = nullptr;
   }
 
   std::vector const attachments
@@ -3235,12 +3237,21 @@ void AsyVkRender::createGraphicsRenderPass()
                   vk::AccessFlagBits::eNone
           ),
           vk::SubpassDependency2(
-                  0,
-                  2,
-                  vk::PipelineStageFlagBits::eColorAttachmentOutput,
-                  vk::PipelineStageFlagBits::eColorAttachmentOutput,
-                  vk::AccessFlagBits::eNone,
-                  vk::AccessFlagBits::eNone
+                   0, // from opaque
+                   1, // to transparent
+                   vk::PipelineStageFlagBits::eLateFragmentTests,
+                   vk::PipelineStageFlagBits::eEarlyFragmentTests,
+                   vk::AccessFlagBits::eDepthStencilAttachmentWrite,
+                   vk::AccessFlagBits::eDepthStencilAttachmentRead
+          ),
+          // Dependency from transparent pass to blend pass
+          vk::SubpassDependency2(
+                   1, // from transparent
+                   2, // to blend
+                   vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                   vk::PipelineStageFlagBits::eFragmentShader,
+                   vk::AccessFlagBits::eColorAttachmentWrite,
+                   vk::AccessFlagBits::eShaderRead
           )
   };
 
