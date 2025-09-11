@@ -1453,11 +1453,17 @@ void AsyVkRender::waitForTimelineSemaphore(vk::Semaphore semaphore, uint64_t val
   if (result == vk::Result::eTimeout) {
     cerr << "warning: Timeline semaphore wait timed out after "
          << 1.0e-9*timeout << " seconds" << endl;
-    device->waitIdle();
-    currentTimelineValue = 0;
-  } else if (result != vk::Result::eSuccess)
-    runtimeError("Timeline semaphore wait failed with result "+
-                 std::to_string(static_cast<int>(result)));
+    // Force a full device synchronization and reset timeline values
+    try {
+      device->waitIdle();
+      currentTimelineValue = 0;
+    } catch (const std::exception& e) {
+      cerr << "Error during device waitIdle after timeout: " << e.what() << endl;
+    }
+  } else if (result != vk::Result::eSuccess) {
+     runtimeError("Timeline semaphore wait failed with result "+
+                  std::to_string(static_cast<int>(result)));
+  }
 }
 
 void AsyVkRender::transitionImageLayout(vk::CommandBuffer cmd,
@@ -1789,6 +1795,7 @@ void AsyVkRender::createSyncObjects()
     frameObjects[i].sumFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
     frameObjects[i].startTimedSumsEvent = device->createEventUnique(vk::EventCreateInfo());
     frameObjects[i].timedSumsFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
+    frameObjects[i].renderFinishedSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
   }
 }
 
@@ -4406,6 +4413,7 @@ void AsyVkRender::drawFrame()
   endFrameCommands();
 
   std::vector<vk::Semaphore> waitSems;
+  std::vector<uint64_t> waitSemaphoreValues;
   std::vector<vk::PipelineStageFlags> waitStages;
   if (View) {
       waitSems.push_back(*frameObject.imageAvailableSemaphore);
@@ -4414,9 +4422,7 @@ void AsyVkRender::drawFrame()
 
   std::vector<vk::Semaphore> signalSems;
   if (View) {
-      if (imageIndex >= renderFinishedSemaphore.size())
-          renderFinishedSemaphore.push_back(device->createSemaphoreUnique({}));
-      signalSems.push_back(*renderFinishedSemaphore[imageIndex]);
+      signalSems.push_back(*frameObject.renderFinishedSemaphore);
   }
 
   vk::SubmitInfo submitInfo;
@@ -4428,6 +4434,13 @@ void AsyVkRender::drawFrame()
 
   vk::TimelineSemaphoreSubmitInfo timelineInfo;
   std::vector<uint64_t> signalValues;
+
+  if (timelineSemaphoreSupported && !waitSems.empty()) {
+    // Add wait values for binary semaphores (0)
+    waitSemaphoreValues.resize(waitSems.size(), 0);
+    timelineInfo.waitSemaphoreValueCount = waitSemaphoreValues.size();
+    timelineInfo.pWaitSemaphoreValues = waitSemaphoreValues.data();
+  }
 
   if (timelineSemaphoreSupported) {
       currentTimelineValue++;
@@ -4458,7 +4471,7 @@ void AsyVkRender::drawFrame()
   if (View) {
     // The presentation engine only needs to wait on the binary semaphore.
     std::vector<vk::Semaphore> presentWaitSemaphores;
-    presentWaitSemaphores.push_back(*renderFinishedSemaphore[imageIndex]);
+    presentWaitSemaphores.push_back(*frameObject.renderFinishedSemaphore);
 
     try {
       auto presentInfo = vk::PresentInfoKHR(VEC_VIEW(presentWaitSemaphores), 1, &*swapChain, &imageIndex);
