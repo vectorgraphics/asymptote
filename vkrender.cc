@@ -3560,8 +3560,8 @@ void AsyVkRender::createPipelineSet(
 void AsyVkRender::createGraphicsPipelines()
 {
   auto const drawMode =
-    (mode == DRAWMODE_WIREFRAME || mode == DRAWMODE_OUTLINE) 
-    ? vk::PolygonMode::eLine 
+    (mode == DRAWMODE_WIREFRAME || mode == DRAWMODE_OUTLINE)
+    ? vk::PolygonMode::eLine
     : vk::PolygonMode::eFill;
 
   std::vector<PipelineConfig> configs = {
@@ -3582,7 +3582,7 @@ void AsyVkRender::createGraphicsPipelines()
     },
     // Points
     {
-      vk::PrimitiveTopology::ePointList, 
+      vk::PrimitiveTopology::ePointList,
 #ifdef __APPLE__
       vk::PolygonMode::eFill,
 #else
@@ -4100,8 +4100,6 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   std::vector<vk::CommandBuffer> commandsToSubmit {};
 
   beginFrameCommands(*object.countCommandBuffer);
-
-  currentCommandBuffer.fillBuffer(countBf.getBuffer(), 0, countBufferSize, 0);
 
   beginCountFrameRender(imageIndex);
   currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *graphicsPipelineLayout, 0, 1, &*object.descriptorSet, 0, nullptr);
