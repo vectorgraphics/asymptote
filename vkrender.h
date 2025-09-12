@@ -530,7 +530,6 @@ private:
   };
 
   std::array<vk::UniquePipeline, PIPELINE_MAX> materialPipelines;
-  std::array<vk::UniquePipeline, PIPELINE_MAX> colorPipelines;
   std::array<vk::UniquePipeline, PIPELINE_MAX> transparentPipelines;
   std::array<vk::UniquePipeline, PIPELINE_MAX> trianglePipelines;
   std::array<vk::UniquePipeline, PIPELINE_MAX> linePipelines;
@@ -750,10 +749,10 @@ private:
   void beginCountFrameRender(int imageIndex);
   void beginGraphicsFrameRender(int imageIndex);
   void resetFrameCopyData();
-  void drawBuffer(DeviceBuffer & vertexBuffer,
+   void drawBuffer(DeviceBuffer & vertexBuffer,
                   DeviceBuffer & indexBuffer,
                   VertexBuffer * data,
-                  vk::UniquePipeline & pipeline,
+                  vk::Pipeline pipeline,
                   bool incrementRenderCount=true);
   void postProcessImage(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex);
   void copyToSwapchainImg(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex);
@@ -862,11 +861,11 @@ private:
   template<typename V>
   void createGraphicsPipeline(PipelineType type, vk::UniquePipeline & graphicsPipeline, vk::PrimitiveTopology topology,
                               vk::PolygonMode fillMode, std::vector<std::string> options,
+                              std::string const & name,
                               std::string const & vertexShader,
                               std::string const & fragmentShader,
                               int graphicsSubpass, bool enableDepthWrite=true,
                               bool transparent=false, bool disableMultisample=false);
-  void createGraphicsPipelines();
   void createBlendPipeline();
   void createComputePipeline(
     vk::UniquePipelineLayout & layout,
@@ -920,6 +919,31 @@ private:
   bool initialized=false;
   bool havewindow=false;
   bool format3dWait=false;
+
+  struct PipelineConfig {
+    vk::PrimitiveTopology topology;
+    vk::PolygonMode fillMode;
+    std::vector<std::string>& shaderOptions;
+    std::string namePrefix;
+    std::string vertexShader;
+    std::string fragmentShader;
+    int graphicsSubpass;
+    bool enableDepthWrite;
+    bool transparent;
+    bool disableMultisample;
+  };
+
+  template<typename V>
+  void createGraphicsPipeline(PipelineType type, vk::UniquePipeline& graphicsPipeline, const PipelineConfig& config);
+  void createGraphicsPipelines();
+
+  template<typename V>
+  void createPipelineSet(
+    std::array<vk::UniquePipeline, PIPELINE_MAX>& pipelines,
+    const PipelineConfig& config,
+    PipelineType start = PIPELINE_OPAQUE,
+    PipelineType end = PIPELINE_MAX
+  );
 
   void quit();
 

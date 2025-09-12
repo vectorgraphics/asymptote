@@ -3337,6 +3337,7 @@ void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, Pipelin
 template<typename V>
 void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline & graphicsPipeline, vk::PrimitiveTopology topology,
                                          vk::PolygonMode fillMode, std::vector<std::string> options,
+                                         std::string const & name,
                                          std::string const & vertexShader,
                                          std::string const & fragmentShader,
                                          int graphicsSubpass, bool enableDepthWrite,
@@ -3507,85 +3508,109 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
   if (result.result != vk::Result::eSuccess)
     runtimeError("failed to create pipeline");
   else
+  {
     graphicsPipeline = std::move(result.value);
+    setDebugObjectName(*graphicsPipeline, name);
+  }
+}
+
+template<typename V>
+void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline& graphicsPipeline, const AsyVkRender::PipelineConfig& config)
+{
+    createGraphicsPipeline<V>(
+        type,
+        graphicsPipeline,
+        config.topology,
+        config.fillMode,
+        config.shaderOptions,
+        config.namePrefix,
+        config.vertexShader,
+        config.fragmentShader,
+        config.graphicsSubpass,
+        config.enableDepthWrite,
+        config.transparent,
+        config.disableMultisample
+    );
+}
+
+template<typename V>
+void AsyVkRender::createPipelineSet(
+    std::array<vk::UniquePipeline, PIPELINE_MAX>& pipelines,
+    const AsyVkRender::PipelineConfig& config,
+    PipelineType start,
+    PipelineType end)
+{
+    for (auto u = static_cast<unsigned>(start); u < static_cast<unsigned>(end); u++) {
+        createGraphicsPipeline<V>(
+            static_cast<PipelineType>(u),
+            pipelines[u],
+            config.topology,
+            config.fillMode,
+            config.shaderOptions,
+            config.namePrefix + std::to_string(u),
+            config.vertexShader,
+            config.fragmentShader,
+            config.graphicsSubpass,
+            config.enableDepthWrite,
+            config.transparent,
+            config.disableMultisample
+        );
+    }
 }
 
 void AsyVkRender::createGraphicsPipelines()
 {
   auto const drawMode =
-    (mode == DRAWMODE_WIREFRAME || mode == DRAWMODE_OUTLINE) ?
-    vk::PolygonMode::eLine : vk::PolygonMode::eFill;
+    (mode == DRAWMODE_WIREFRAME || mode == DRAWMODE_OUTLINE) 
+    ? vk::PolygonMode::eLine 
+    : vk::PolygonMode::eFill;
 
-  for (auto u = 0u; u < PIPELINE_MAX; u++)
-    createGraphicsPipeline<MaterialVertex>
-                          (PipelineType(u), materialPipelines[u], vk::PrimitiveTopology::eTriangleList,
-                          drawMode,
-                          materialShaderOptions,
-                          "vertex",
-                          "fragment",
-                          0);
-
-  for (auto u = 0u; u < PIPELINE_MAX; u++)
-    createGraphicsPipeline<ColorVertex>
-                          (PipelineType(u), colorPipelines[u], vk::PrimitiveTopology::eTriangleList,
-                          drawMode,
-                          colorShaderOptions,
-                          "vertex",
-                          "fragment",
-                          0);
-
-  for (auto u = 0u; u < PIPELINE_MAX; u++)
-    createGraphicsPipeline<ColorVertex>
-                          (PipelineType(u), trianglePipelines[u], vk::PrimitiveTopology::eTriangleList,
-                          drawMode,
-                          triangleShaderOptions,
-                          "vertex",
-                          "fragment",
-                          0);
-
-  for (auto u = 0u; u < PIPELINE_MAX; u++)
-    createGraphicsPipeline<MaterialVertex>
-                          (PipelineType(u), linePipelines[u], vk::PrimitiveTopology::eLineList,
-                          vk::PolygonMode::eLine,
-                          materialShaderOptions,
-                          "vertex",
-                          "fragment",
-                          0);
-
-  for (auto u = 0u; u < PIPELINE_MAX; u++)
-    createGraphicsPipeline<PointVertex>
-                          (PipelineType(u), pointPipelines[u], vk::PrimitiveTopology::ePointList,
+  std::vector<PipelineConfig> configs = {
+    // Material triangles
+    {
+      vk::PrimitiveTopology::eTriangleList, drawMode, materialShaderOptions,
+      "materialPipeline", "vertex", "fragment", 0, true, false, false
+    },
+    // Color triangles
+    {
+      vk::PrimitiveTopology::eTriangleList, drawMode, triangleShaderOptions,
+      "trianglePipeline", "vertex", "fragment", 0, true, false, false
+    },
+    // Lines
+    {
+      vk::PrimitiveTopology::eLineList, vk::PolygonMode::eLine, materialShaderOptions,
+      "linePipeline", "vertex", "fragment", 0, true, false, false
+    },
+    // Points
+    {
+      vk::PrimitiveTopology::ePointList, 
 #ifdef __APPLE__
-                          vk::PolygonMode::eFill,
+      vk::PolygonMode::eFill,
 #else
-                          vk::PolygonMode::ePoint,
+      vk::PolygonMode::ePoint,
 #endif
-                          pointShaderOptions,
-                          "vertex",
-                          "fragment",
-                          0);
+      pointShaderOptions, "pointPipeline", "vertex", "fragment", 0, true, false, false
+    }
+  };
 
-  for (unsigned u = PIPELINE_TRANSPARENT; u < PIPELINE_MAX; u++)
-    createGraphicsPipeline<ColorVertex>
-                          (PipelineType(u), transparentPipelines[u], vk::PrimitiveTopology::eTriangleList,
-                          drawMode,
-                          transparentShaderOptions,
-                          "vertex",
-                          "fragment",
-                          1,
-                          false,
-                          true);
+  createPipelineSet<MaterialVertex>(materialPipelines, configs[0]);
+  createPipelineSet<ColorVertex>(trianglePipelines, configs[1]);
+  createPipelineSet<MaterialVertex>(linePipelines, configs[2]);
+  createPipelineSet<PointVertex>(pointPipelines, configs[3]);
 
-  createGraphicsPipeline<ColorVertex>
-                        (PIPELINE_COMPRESS, compressPipeline, vk::PrimitiveTopology::eTriangleList,
-                        vk::PolygonMode::eFill,
-                        {},
-                        "screen",
-                        "compress",
-                        2,
-                        false,
-                        false,
-                        true);
+  // Create pipelines for transparent triangles
+  PipelineConfig transparentConfig = {
+      vk::PrimitiveTopology::eTriangleList, drawMode, transparentShaderOptions,
+      "transparentPipeline", "vertex", "fragment", 1, false, true, false
+  };
+  createPipelineSet<ColorVertex>(transparentPipelines, transparentConfig, PIPELINE_TRANSPARENT, PIPELINE_MAX);
+
+  static std::vector<std::string> emptyOptions;
+  PipelineConfig compressConfig = {
+      vk::PrimitiveTopology::eTriangleList, vk::PolygonMode::eFill, emptyOptions,
+      "compressPipeline", "screen", "compress", 2, false, false, true
+  };
+  createGraphicsPipeline<ColorVertex>(PIPELINE_COMPRESS, compressPipeline, compressConfig);
 
   createBlendPipeline();
 }
@@ -3601,16 +3626,12 @@ void AsyVkRender::setupPostProcessingComputeParameters()
 
 void AsyVkRender::createBlendPipeline() {
 
-  createGraphicsPipeline<ColorVertex>
-                        (PIPELINE_DONTCARE, blendPipeline, vk::PrimitiveTopology::eTriangleList,
-                        vk::PolygonMode::eFill,
-                        {},
-                        "screen",
-                        "blend",
-                        2,
-                        false,
-                        false,
-                        true);
+  static std::vector<std::string> emptyOptions;
+  PipelineConfig blendConfig = {
+      vk::PrimitiveTopology::eTriangleList, vk::PolygonMode::eFill, emptyOptions,
+      "blendPipeline", "screen", "blend", 2, false, false, true
+  };
+  createGraphicsPipeline<ColorVertex>(PIPELINE_DONTCARE, blendPipeline, blendConfig);
 }
 
 void AsyVkRender::createComputePipeline(
@@ -3841,7 +3862,7 @@ void AsyVkRender::resetFrameCopyData()
 void AsyVkRender::drawBuffer(DeviceBuffer & vertexBuffer,
                              DeviceBuffer & indexBuffer,
                              VertexBuffer * data,
-                             vk::UniquePipeline & pipeline,
+                             vk::Pipeline pipeline,
                              bool incrementRenderCount) {
   if (data->indices.empty())
     return;
@@ -3875,7 +3896,7 @@ void AsyVkRender::drawBuffer(DeviceBuffer & vertexBuffer,
   std::vector<vk::DeviceSize> vertexOffsets = {0};
   auto const pushConstants = buildPushConstants();
 
-  currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline);
+  currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
   currentCommandBuffer.bindVertexBuffers(0, vertexBuffers, vertexOffsets);
   currentCommandBuffer.bindIndexBuffer(indexBuffer._buffer.getBuffer(), 0, vk::IndexType::eUint32);
   currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
@@ -3916,7 +3937,7 @@ void AsyVkRender::drawPoints(FrameObject & object)
   drawBuffer(object.pointVertexBuffer,
              object.pointIndexBuffer,
              &pointData,
-             getPipelineType(pointPipelines));
+             *getPipelineType(pointPipelines));
 }
 
 void AsyVkRender::drawLines(FrameObject & object)
@@ -3924,7 +3945,7 @@ void AsyVkRender::drawLines(FrameObject & object)
   drawBuffer(object.lineVertexBuffer,
              object.lineIndexBuffer,
              &lineData,
-             getPipelineType(linePipelines));
+             *getPipelineType(linePipelines));
 }
 
 void AsyVkRender::drawMaterials(FrameObject & object)
@@ -3932,7 +3953,7 @@ void AsyVkRender::drawMaterials(FrameObject & object)
   drawBuffer(object.materialVertexBuffer,
              object.materialIndexBuffer,
              &materialData,
-             getPipelineType(materialPipelines));
+             *getPipelineType(materialPipelines));
 }
 
 void AsyVkRender::drawColors(FrameObject & object)
@@ -3940,7 +3961,7 @@ void AsyVkRender::drawColors(FrameObject & object)
   drawBuffer(object.colorVertexBuffer,
              object.colorIndexBuffer,
              &colorData,
-             getPipelineType(colorPipelines));
+             *getPipelineType(trianglePipelines));
 }
 
 void AsyVkRender::drawTriangles(FrameObject & object)
@@ -3948,7 +3969,7 @@ void AsyVkRender::drawTriangles(FrameObject & object)
   drawBuffer(object.triangleVertexBuffer,
              object.triangleIndexBuffer,
              &triangleData,
-             getPipelineType(trianglePipelines));
+             *getPipelineType(trianglePipelines));
 }
 
 void AsyVkRender::drawTransparent(FrameObject & object)
@@ -3956,7 +3977,7 @@ void AsyVkRender::drawTransparent(FrameObject & object)
   drawBuffer(object.transparentVertexBuffer,
              object.transparentIndexBuffer,
              &transparentData,
-             getPipelineType(transparentPipelines));
+             *getPipelineType(transparentPipelines));
 }
 
 void AsyVkRender::partialSums(FrameObject & object, bool timing)
@@ -4090,27 +4111,27 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     drawBuffer(object.pointVertexBuffer,
                object.pointIndexBuffer,
                &pointData,
-               pointPipelines[PIPELINE_COUNT],
+               *pointPipelines[PIPELINE_COUNT],
                false);
     drawBuffer(object.lineVertexBuffer,
                object.lineIndexBuffer,
                &lineData,
-               linePipelines[PIPELINE_COUNT],
+               *linePipelines[PIPELINE_COUNT],
                false);
     drawBuffer(object.materialVertexBuffer,
                object.materialIndexBuffer,
                &materialData,
-               materialPipelines[PIPELINE_COUNT],
+               *materialPipelines[PIPELINE_COUNT],
                false);
     drawBuffer(object.colorVertexBuffer,
                object.colorIndexBuffer,
                &colorData,
-               colorPipelines[PIPELINE_COUNT],
+               *trianglePipelines[PIPELINE_COUNT],
                false);
     drawBuffer(object.triangleVertexBuffer,
                object.triangleIndexBuffer,
                &triangleData,
-               trianglePipelines[PIPELINE_COUNT],
+               *trianglePipelines[PIPELINE_COUNT],
                false);
   }
 
@@ -4120,7 +4141,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   drawBuffer(object.transparentVertexBuffer,
              object.transparentIndexBuffer,
              &transparentData,
-             transparentPipelines[PIPELINE_COUNT],
+             *transparentPipelines[PIPELINE_COUNT],
              false);
 
   currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
