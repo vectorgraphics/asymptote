@@ -3313,6 +3313,9 @@ void AsyVkRender::createGraphicsPipelineLayout()
 }
 
 void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, PipelineType type) {
+  if (type != PIPELINE_COUNT) {
+    options.emplace_back("MATERIAL");
+  }
 
   if (ibl) {
     options.emplace_back("USE_IBL");

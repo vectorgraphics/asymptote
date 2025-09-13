@@ -503,27 +503,22 @@ private:
     PIPELINE_DONTCARE
   };
   std::vector<std::string> materialShaderOptions {
-    "MATERIAL",
     "NORMAL"
   };
   std::vector<std::string> colorShaderOptions {
-    "MATERIAL",
     "COLOR",
     "NORMAL"
   };
   std::vector<std::string> triangleShaderOptions {
-    "MATERIAL",
     "COLOR",
     "NORMAL",
     "GENERAL"
   };
   std::vector<std::string> pointShaderOptions {
-    "MATERIAL",
     "NOLIGHTS",
     "WIDTH"
   };
   std::vector<std::string> transparentShaderOptions {
-    "MATERIAL",
     "COLOR",
     "NORMAL",
     "GENERAL",
