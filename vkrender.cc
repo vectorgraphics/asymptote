@@ -4242,10 +4242,23 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   // This submission is for the transparency pre-computation (count + partial sums).
   // It MUST be synchronized with a fence because the CPU needs to read back the results
   // in resizeFragmentBuffer before the main graphics pass can be recorded.
-  auto info = vk::SubmitInfo();
-  info.commandBufferCount = commandsToSubmit.size();
-  info.pCommandBuffers = commandsToSubmit.data();
-  vkutils::checkVkResult(renderQueue.submit(1, &info, *object.inComputeFence));
+  if (timelineSemaphoreSupported) {
+    // Use timeline semaphore for more efficient synchronization
+    currentTimelineValue++;
+    object.computeTimelineValue = currentTimelineValue;
+
+    vk::TimelineSemaphoreSubmitInfo timelineInfo;
+    std::vector<uint64_t> signalValues = {object.computeTimelineValue};
+    timelineInfo.signalSemaphoreValueCount = signalValues.size();
+    timelineInfo.pSignalSemaphoreValues = signalValues.data();
+
+    auto info = vk::SubmitInfo(0, nullptr, nullptr, commandsToSubmit.size(), commandsToSubmit.data(),
+                              1, &*renderTimelineSemaphore, &timelineInfo);
+    vkutils::checkVkResult(renderQueue.submit(1, &info, nullptr));
+  } else {
+    auto info = vk::SubmitInfo(0, nullptr, nullptr, commandsToSubmit.size(), commandsToSubmit.data(), 0, nullptr);
+    vkutils::checkVkResult(renderQueue.submit(1, &info, *object.inComputeFence));
+  }
 
   if(settings::verbose >= timePartialSumVerbosity) {
     // Wait until the render queue isn't being used, so we only time
