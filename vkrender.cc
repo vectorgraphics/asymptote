@@ -4293,13 +4293,22 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
   copied=false;
 
   if(!Opaque) {
-    vkutils::checkVkResult(device->waitForFences(
-      1, &*object.inComputeFence, VK_TRUE, timeout
-    ));
+    // Avoid blocking CPU wait when possible
+    if (timelineSemaphoreSupported && object.computeTimelineValue > 0) {
+      // Use timeline semaphore for more efficient synchronization
+      waitForTimelineSemaphore(*renderTimelineSemaphore, object.computeTimelineValue, timeout);
+    } else {
+      // Fall back to fence for older hardware
+      vkutils::checkVkResult(device->waitForFences(
+        1, &*object.inComputeFence, VK_TRUE, timeout
+      ));
+    }
 
     pixels=backbufferExtent.width*backbufferExtent.height;
     if(pixels > transparencyCapacityPixels) {
-      device->waitIdle();
+      // Only wait for the specific resources we need to modify
+      if (timelineSemaphoreSupported)
+        waitForTimelineSemaphore(*renderTimelineSemaphore, currentTimelineValue, timeout);
       createTransparencyBuffers(pixels);
       writeDescriptorSets(true);
     }

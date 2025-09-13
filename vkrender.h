@@ -621,6 +621,7 @@ private:
     };
 
     uint64_t timelineValue = 0;
+    uint64_t computeTimelineValue = 0;
     vk::UniqueSemaphore imageAvailableSemaphore;
     vk::UniqueSemaphore inCountBufferCopy;
     vk::UniqueFence inFlightFence;
