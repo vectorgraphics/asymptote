@@ -4051,12 +4051,17 @@ void AsyVkRender::partialSums(FrameObject & object, bool timing)
                         nullptr,
                         0,
                         nullptr);
-  else {
-    // Use a memory barrier to ensure all compute shader writes are visible
+  else
+  {
+    // Use a memory barrier to make compute shader writes visible to the host for reading.
+    auto const hostReadBarrier = vk::MemoryBarrier(
+      vk::AccessFlagBits::eShaderWrite, // Source: Compute shader writes
+      vk::AccessFlagBits::eHostRead     // Destination: Host reads
+    );
     cmd.pipelineBarrier(
       vk::PipelineStageFlagBits::eComputeShader,
       vk::PipelineStageFlagBits::eHost,
-      {}, 1, &writeBarrier, 0, nullptr, 0, nullptr);
+      {}, 1, &hostReadBarrier, 0, nullptr, 0, nullptr);
     // Signal the event after the barrier
     cmd.setEvent(*object.sumFinishedEvent,
                  vk::PipelineStageFlagBits::eComputeShader);
