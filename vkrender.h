@@ -405,6 +405,7 @@ private:
 
   // Timeline semaphore support
   bool timelineSemaphoreSupported = false;
+  bool synchronization2Supported = false;
   vk::UniqueSemaphore renderTimelineSemaphore;
   uint64_t currentTimelineValue = 0;
   vk::UniqueSemaphore createTimelineSemaphore(uint64_t initialValue = 0);

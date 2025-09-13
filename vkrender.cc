@@ -1284,6 +1284,7 @@ void AsyVkRender::createLogicalDevice()
 
   if (supportedDeviceExtensions.find(VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME) != supportedDeviceExtensions.end()) {
     extensions.push_back(VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME);
+    synchronization2Supported = true;
     if (settings::verbose > 1)
       std::cout << "Using synchronization2 extension" << std::endl;
   }
@@ -1381,6 +1382,15 @@ void AsyVkRender::createLogicalDevice()
 //  deviceFeatures.shaderStorageImageReadWithoutFormat=true;
 
   physicalDevice.getProperties2(&props);
+
+  // Add synchronization2 feature to the extension chain if supported
+  vk::PhysicalDeviceSynchronization2Features synchronization2Features;
+  if (synchronization2Supported) {
+    synchronization2Features.sType = vk::StructureType::ePhysicalDeviceSynchronization2Features;
+    synchronization2Features.synchronization2 = VK_TRUE;
+    synchronization2Features.pNext = extensionChain;
+    extensionChain = &synchronization2Features;
+  }
 
   if (usePortability) {
     portabilityFeatures.pNext = extensionChain;
@@ -4120,6 +4130,9 @@ void AsyVkRender::compressCount(FrameObject & object)
 void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   std::vector<vk::CommandBuffer> commandsToSubmit {};
 
+  // For Vulkan 1.3+ style submission
+  std::vector<vk::CommandBufferSubmitInfo> cmdBufferInfos;
+
   beginFrameCommands(*object.countCommandBuffer);
 
   beginCountFrameRender(imageIndex);
@@ -4199,6 +4212,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     endFrameRender();
     endFrameCommands();
     elements=pixels;
+    cmdBufferInfos.push_back({*object.countCommandBuffer});
     commandsToSubmit.emplace_back(currentCommandBuffer);
   }
 
@@ -4243,11 +4257,14 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
   partialSums(object);
   endFrameCommands();
+  cmdBufferInfos.push_back({*object.computeCommandBuffer});
   commandsToSubmit.emplace_back(currentCommandBuffer);
 
   // This submission is for the transparency pre-computation (count + partial sums).
   // It MUST be synchronized with a fence because the CPU needs to read back the results
   // in resizeFragmentBuffer before the main graphics pass can be recorded.
+
+
   if (timelineSemaphoreSupported) {
     // Use timeline semaphore for more efficient synchronization
     currentTimelineValue++;
@@ -4258,10 +4275,25 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     timelineInfo.signalSemaphoreValueCount = signalValues.size();
     timelineInfo.pSignalSemaphoreValues = signalValues.data();
 
-    auto info = vk::SubmitInfo(0, nullptr, nullptr, commandsToSubmit.size(), commandsToSubmit.data(),
-                              1, &*renderTimelineSemaphore, &timelineInfo);
-    vkutils::checkVkResult(renderQueue.submit(1, &info, nullptr));
+    // Reset the fence before submission
+    (void) device->resetFences(1, &*object.inComputeFence);
+
+    if (synchronization2Supported) {
+      // Case 1: Use Vulkan 1.3+ style submission with synchronization2
+      std::vector<vk::SemaphoreSubmitInfo> signalSemInfos = {
+        {*renderTimelineSemaphore, object.computeTimelineValue, vk::PipelineStageFlagBits2::eAllCommands}
+      };
+
+      vk::SubmitInfo2 submitInfo2({}, {}, cmdBufferInfos, signalSemInfos);
+      vkutils::checkVkResult(renderQueue.submit2(1, &submitInfo2, *object.inComputeFence));
+    } else {
+      // Case 2: Use timeline semaphore but with traditional submission
+      auto info = vk::SubmitInfo(0, nullptr, nullptr, commandsToSubmit.size(), commandsToSubmit.data(),
+                                 1, &*renderTimelineSemaphore, &timelineInfo);
+      vkutils::checkVkResult(renderQueue.submit(1, &info, nullptr));
+    }
   } else {
+    // Case 3: No timeline semaphore, use fence-based synchronization
     auto info = vk::SubmitInfo(0, nullptr, nullptr, commandsToSubmit.size(), commandsToSubmit.data(), 0, nullptr);
     vkutils::checkVkResult(renderQueue.submit(1, &info, *object.inComputeFence));
   }
@@ -4493,6 +4525,9 @@ void AsyVkRender::drawFrame()
 
   std::vector<vk::Semaphore> waitSems;
   std::vector<uint64_t> waitSemaphoreValues;
+  // For Vulkan 1.3+ style submission
+  std::vector<vk::SemaphoreSubmitInfo> waitSemInfos;
+  std::vector<vk::SemaphoreSubmitInfo> signalSemInfos;
   std::vector<vk::PipelineStageFlags> waitStages;
   if (View) {
       waitSems.push_back(*frameObject.imageAvailableSemaphore);
@@ -4501,6 +4536,7 @@ void AsyVkRender::drawFrame()
 
   std::vector<vk::Semaphore> signalSems;
   if (View) {
+      signalSemInfos.push_back({*frameObject.renderFinishedSemaphore, 0, vk::PipelineStageFlagBits2::eAllCommands});
       signalSems.push_back(*frameObject.renderFinishedSemaphore);
   }
 
@@ -4525,6 +4561,7 @@ void AsyVkRender::drawFrame()
       currentTimelineValue++;
       frameObject.timelineValue = currentTimelineValue;
 
+      signalSemInfos.push_back({*renderTimelineSemaphore, frameObject.timelineValue, vk::PipelineStageFlagBits2::eAllCommands});
       signalSems.push_back(*renderTimelineSemaphore);
 
       // The value for the binary semaphore is ignored, but the count must match.
@@ -4539,6 +4576,9 @@ void AsyVkRender::drawFrame()
 
       submitInfo.pSignalSemaphores = signalSems.data();
       submitInfo.signalSemaphoreCount = signalSems.size();
+
+      // Reset the fence before submission
+      (void) device->resetFences(1, &*frameObject.inFlightFence);
 
       vkutils::checkVkResult(renderQueue.submit(1, &submitInfo, nullptr));
   } else {
