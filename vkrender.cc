@@ -2707,22 +2707,20 @@ void AsyVkRender::updateSceneDependentBuffers() {
           VMA_MEMORY_USAGE_AUTO,
           VARIABLE_NAME(depthBf));
 
+  // Create a vector to batch all descriptor writes
+  std::vector<vk::WriteDescriptorSet> batchedWrites;
+  batchedWrites.reserve(maxFramesInFlight * 2); // Pre-allocate space
+
+  // Prepare buffer infos after creating the buffers
+  auto fragmentBufferInfo = vk::DescriptorBufferInfo(
+    fragmentBf.getBuffer(), 0, fragmentBufferSize);
+  auto depthBufferInfo = vk::DescriptorBufferInfo(
+    depthBf.getBuffer(), 0, depthBufferSize);
+
   for(auto i = 0; i < maxFramesInFlight; i++) {
 
-    auto fragmentBufferInfo = vk::DescriptorBufferInfo(
-      fragmentBf.getBuffer(),
-      0,
-      fragmentBufferSize
-    );
-    auto depthBufferInfo = vk::DescriptorBufferInfo(
-      depthBf.getBuffer(),
-      0,
-      depthBufferSize
-    );
-
-    std::array<vk::WriteDescriptorSet, 2> writes;
-
-    writes[0] = vk::WriteDescriptorSet(
+    // Create and add fragment buffer write
+    vk::WriteDescriptorSet fragmentWrite(
       *frameObjects[i].descriptorSet,
       5,
       0,
@@ -2732,7 +2730,10 @@ void AsyVkRender::updateSceneDependentBuffers() {
       &fragmentBufferInfo,
       nullptr
     );
-    writes[1] = vk::WriteDescriptorSet(
+    batchedWrites.push_back(fragmentWrite);
+
+    // Create and add depth buffer write - this is the one that was missing
+    vk::WriteDescriptorSet depthWrite(
       *frameObjects[i].descriptorSet,
       6,
       0,
@@ -2742,9 +2743,12 @@ void AsyVkRender::updateSceneDependentBuffers() {
       &depthBufferInfo,
       nullptr
     );
+    batchedWrites.push_back(depthWrite);
+  }
 
-    // todo remove frame-dependent descriptor sets
-    device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
+  // Update all descriptor sets in a single call
+  if (!batchedWrites.empty()) {
+    device->updateDescriptorSets(batchedWrites.size(), batchedWrites.data(), 0, nullptr);
   }
 
   // if the fragment buffer size changes, all transparent data needs
