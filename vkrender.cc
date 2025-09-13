@@ -824,7 +824,9 @@ void AsyVkRender::recreateSwapChain()
     setupPostProcessingComputeParameters();
   }
   createImmediateRenderTargets();
-  writeDescriptorSets();
+  // If transparency buffers have been created, they are now stale after a swapchain recreation.
+  if(transparencyCapacityPixels > 0)
+    writeDescriptorSets(true);
   writeMaterialAndLightDescriptors();
   createImageViews();
   createSyncObjects();
