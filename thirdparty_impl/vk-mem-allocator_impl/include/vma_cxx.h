@@ -59,6 +59,13 @@ public:
   {
     return reinterpret_cast<T*>(copyPtr);
   }
+
+  // Invalidate the mapped memory to ensure we get the latest data from GPU
+  void invalidate() const
+  {
+    vmaInvalidateAllocation(sourceBuffer->getAllocator(), sourceBuffer->getAllocation(), 0, VK_WHOLE_SIZE);
+  }
+
 private:
   UniqueBuffer const* sourceBuffer;
   void* copyPtr=nullptr;
@@ -77,7 +84,7 @@ public:
 
   UniqueImage(UniqueImage&& other) noexcept;
   UniqueImage& operator=(UniqueImage&& other) noexcept;
-  
+
   [[nodiscard]]
   VkImage getImage() const;
 

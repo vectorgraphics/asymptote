@@ -4051,9 +4051,16 @@ void AsyVkRender::partialSums(FrameObject & object, bool timing)
                         nullptr,
                         0,
                         nullptr);
-  else
+  else {
+    // Use a memory barrier to ensure all compute shader writes are visible
+    cmd.pipelineBarrier(
+      vk::PipelineStageFlagBits::eComputeShader,
+      vk::PipelineStageFlagBits::eHost,
+      {}, 1, &writeBarrier, 0, nullptr, 0, nullptr);
+    // Signal the event after the barrier
     cmd.setEvent(*object.sumFinishedEvent,
                  vk::PipelineStageFlagBits::eComputeShader);
+  }
 }
 
 void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
@@ -4066,11 +4073,14 @@ void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
 void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
   waitForEvent(*object.sumFinishedEvent);
 
-  static const auto feedbackMappedPtr=make_unique<vma::cxx::MemoryMapperLock>(feedbackBf);
+  static auto feedbackMappedPtr = make_unique<vma::cxx::MemoryMapperLock>(feedbackBf);
 
-  std::uint32_t maxDepth=feedbackMappedPtr->getCopyPtr()[0];
+  // Ensure we have the latest data from GPU memory
+  feedbackMappedPtr->invalidate();
 
-  fragments=feedbackMappedPtr->getCopyPtr()[1];
+  const uint32_t *feedbackData = feedbackMappedPtr->getCopyPtr();
+  std::uint32_t maxDepth = feedbackData[0];
+  fragments = feedbackData[1];
 
   if(resetDepth) {
     maxSize=maxDepth=1;
@@ -4373,6 +4383,12 @@ void AsyVkRender::drawFrame()
   } else {
     // Fallback to the original fence-based synchronization
     vkutils::checkVkResult(device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, timeout));
+
+    // Also wait for compute fence to ensure it's safe to reset
+    if (!Opaque) {
+      vkutils::checkVkResult(device->waitForFences(1, &*frameObject.inComputeFence, VK_TRUE, 0));
+    }
+    vkutils::checkVkResult(device->resetFences(1, &*frameObject.inComputeFence));
   }
 
   if (recreatePipeline)
