@@ -52,12 +52,19 @@ struct MaterialVertex
     return vk::VertexInputBindingDescription(0, sizeof(MaterialVertex), vk::VertexInputRate::eVertex);
   }
 
-  static std::array<vk::VertexInputAttributeDescription, 3> getAttributeDescriptions()
+  static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions(bool count = false)
   {
-    return std::array<vk::VertexInputAttributeDescription, 3>{
-            vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, position)),
-            vk::VertexInputAttributeDescription(NORMAL_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, normal)),
-            vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(MaterialVertex, material))};
+    std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
+    attributeDescriptions.push_back(
+            vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, position)));
+
+    if (!count) {
+      attributeDescriptions.push_back(
+            vk::VertexInputAttributeDescription(NORMAL_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, normal)));
+      attributeDescriptions.push_back(
+            vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(MaterialVertex, material)));
+    }
+    return attributeDescriptions;
   }
 #endif
 };
@@ -75,13 +82,21 @@ struct ColorVertex
     return vk::VertexInputBindingDescription(0, sizeof(ColorVertex), vk::VertexInputRate::eVertex);
   }
 
-  static std::array<vk::VertexInputAttributeDescription, 4> getAttributeDescriptions()
+  static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions(bool count = false)
   {
-    return std::array<vk::VertexInputAttributeDescription, 4>{
-            vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, position)),
-            vk::VertexInputAttributeDescription(NORMAL_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, normal)),
-            vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(ColorVertex, material)),
-            vk::VertexInputAttributeDescription(COLOR_LOCATION, 0, vk::Format::eR32G32B32A32Sfloat, offsetof(ColorVertex, color))};
+    std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
+    attributeDescriptions.push_back(
+            vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, position)));
+
+    if (!count) {
+      attributeDescriptions.push_back(
+            vk::VertexInputAttributeDescription(NORMAL_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, normal)));
+      attributeDescriptions.push_back(
+            vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(ColorVertex, material)));
+      attributeDescriptions.push_back(
+            vk::VertexInputAttributeDescription(COLOR_LOCATION, 0, vk::Format::eR32G32B32A32Sfloat, offsetof(ColorVertex, color)));
+    }
+    return attributeDescriptions;
   }
 #endif
 };
@@ -98,12 +113,21 @@ struct PointVertex
     return vk::VertexInputBindingDescription(0, sizeof(PointVertex), vk::VertexInputRate::eVertex);
   }
 
-  static std::array<vk::VertexInputAttributeDescription, 3> getAttributeDescriptions()
+  static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions(bool count = false)
   {
-    return std::array<vk::VertexInputAttributeDescription, 3>{
-            vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(PointVertex, position)),
-            vk::VertexInputAttributeDescription(WIDTH_LOCATION, 0, vk::Format::eR32Sfloat, offsetof(PointVertex, width)),
-            vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(PointVertex, material))};
+    std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
+    attributeDescriptions.push_back(
+            vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(PointVertex, position)));
+
+    // Always include width for points
+    attributeDescriptions.push_back(
+            vk::VertexInputAttributeDescription(WIDTH_LOCATION, 0, vk::Format::eR32Sfloat, offsetof(PointVertex, width)));
+
+    if (!count) {
+      attributeDescriptions.push_back(
+            vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(PointVertex, material)));
+    }
+    return attributeDescriptions;
   }
 #endif
 };

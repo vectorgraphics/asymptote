@@ -3478,47 +3478,16 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
   // Create vertex input state based on shader type
   vk::PipelineVertexInputStateCreateInfo vertexInputCI;
   vk::VertexInputBindingDescription bindingDescription;
-  auto attributeDescriptions=V::getAttributeDescriptions();
+  std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
 
   if (vertexShader == "screen") {
     // For screen shader, use empty vertex input state
     vertexInputCI = vk::PipelineVertexInputStateCreateInfo();
-  } else if (type == PIPELINE_COUNT) {
-    // For count pipeline, create a minimal vertex input state with position and width
-    bindingDescription.binding = 0;
-    bindingDescription.stride = sizeof(V);
-    bindingDescription.inputRate = vk::VertexInputRate::eVertex;
-
-    // Create attribute descriptions for position (Location 0) and width (Location 4)
-    // Position attribute
-    attributeDescriptions[0].binding = 0;
-    attributeDescriptions[0].location = 0;
-    attributeDescriptions[0].format = vk::Format::eR32G32B32Sfloat;  // vec3 position
-    attributeDescriptions[0].offset = 0;  // Position is at offset 0
-
-    if(width) {
-      // Width attribute
-      attributeDescriptions[1].binding = 0;
-      attributeDescriptions[1].location = 4;
-      attributeDescriptions[1].format = vk::Format::eR32Sfloat;  // float width
-    }
-
-    // For PointVertex, the width is after position (vec3), normal (vec3), and color (vec4)
-    // So the offset is 3*sizeof(float) + 3*sizeof(float) + 4*sizeof(float)
-    size_t widthOffset = sizeof(float) * (3 + 3 + 4);
-
-    attributeDescriptions[1].offset = widthOffset;
-
-    vertexInputCI = vk::PipelineVertexInputStateCreateInfo(
-      vk::PipelineVertexInputStateCreateFlags(),
-      1,
-      &bindingDescription,
-      width ? 2 : 1,
-      attributeDescriptions.data()
-    );
   } else {
+    // For all other shaders, get the binding description and attribute descriptions
     bindingDescription = V::getBindingDescription();
-    // For all other shaders, use the standard vertex input state from the template parameter
+    attributeDescriptions = V::getAttributeDescriptions(type == PIPELINE_COUNT);
+
     vertexInputCI = vk::PipelineVertexInputStateCreateInfo(
       vk::PipelineVertexInputStateCreateFlags(),
       1,
