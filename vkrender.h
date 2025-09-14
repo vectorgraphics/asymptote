@@ -502,6 +502,8 @@ private:
     PIPELINE_COMPRESS,
     PIPELINE_DONTCARE
   };
+  std::vector<std::string> countShaderOptions {
+  };
   std::vector<std::string> materialShaderOptions {
     "NORMAL"
   };

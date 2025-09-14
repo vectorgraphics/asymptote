@@ -3313,9 +3313,8 @@ void AsyVkRender::createGraphicsPipelineLayout()
 }
 
 void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, PipelineType type) {
-  if (type != PIPELINE_COUNT) {
+  if (type != PIPELINE_COUNT)
     options.emplace_back("MATERIAL");
-  }
 
   if (ibl) {
     options.emplace_back("USE_IBL");
@@ -3339,10 +3338,11 @@ void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, Pipelin
     return;
   }
 
-  // from now on, only things relevant to compute
   if (GPUcompress) {
     options.emplace_back("GPUCOMPRESS");
   }
+
+  // from now on, only things relevant to compute
   if (interlock) {
     options.emplace_back("HAVE_INTERLOCK");
   }
@@ -3364,11 +3364,17 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
   std::string vertShaderName = SHADER_DIRECTORY + vertexShader + ".glsl";
   std::string fragShaderName = SHADER_DIRECTORY + fragmentShader + ".glsl";
 
-  if (type == PIPELINE_COUNT) {
-    fragShaderName = SHADER_DIRECTORY "count.glsl";
-  }
+  bool width=topology == vk::PrimitiveTopology::ePointList;
 
-  modifyShaderOptions(options, type);
+  if (type == PIPELINE_COUNT) {
+    vertShaderName = SHADER_DIRECTORY "vertex.glsl";
+    fragShaderName = SHADER_DIRECTORY "count.glsl";
+    if(width)
+      options.emplace_back("WIDTH");
+    if(GPUcompress)
+      options.emplace_back("GPUCOMPRESS");
+  } else
+    modifyShaderOptions(options, type);
 
   auto vertShaderModule = createShaderModule(EShLangVertex, vertShaderName, options);
   auto fragShaderModule = createShaderModule(EShLangFragment, fragShaderName, options);
@@ -3392,14 +3398,61 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
 
   vk::PipelineShaderStageCreateInfo stages[] = {vertShaderStageCI, fragShaderStageCI};
 
-  auto bindingDescription = V::getBindingDescription();
-  auto attributeDescriptions = V::getAttributeDescriptions();
-  auto vertexInputCI = vk::PipelineVertexInputStateCreateInfo(
-    vk::PipelineVertexInputStateCreateFlags(),
-    1,
-    &bindingDescription,
-    VEC_VIEW(attributeDescriptions)
-  );
+  // Create vertex input state based on shader type
+  vk::PipelineVertexInputStateCreateInfo vertexInputCI;
+
+  if (vertexShader == "screen") {
+    // For screen shader, use empty vertex input state
+    vertexInputCI = vk::PipelineVertexInputStateCreateInfo();
+  } else if (type == PIPELINE_COUNT) {
+    // For count pipeline, create a minimal vertex input state with position and width
+    vk::VertexInputBindingDescription bindingDescription;
+    bindingDescription.binding = 0;
+    bindingDescription.stride = sizeof(V);
+    bindingDescription.inputRate = vk::VertexInputRate::eVertex;
+
+    // Create attribute descriptions for position (Location 0) and width (Location 4)
+    std::array<vk::VertexInputAttributeDescription, 2> attributeDescriptions;
+
+    // Position attribute
+    attributeDescriptions[0].binding = 0;
+    attributeDescriptions[0].location = 0;
+    attributeDescriptions[0].format = vk::Format::eR32G32B32Sfloat;  // vec3 position
+    attributeDescriptions[0].offset = 0;  // Position is at offset 0
+
+    if(width) {
+      // Width attribute
+      attributeDescriptions[1].binding = 0;
+      attributeDescriptions[1].location = 4;
+      attributeDescriptions[1].format = vk::Format::eR32Sfloat;  // float width
+    }
+
+    // For PointVertex, the width is after position (vec3), normal (vec3), and color (vec4)
+    // So the offset is 3*sizeof(float) + 3*sizeof(float) + 4*sizeof(float)
+    size_t widthOffset = sizeof(float) * (3 + 3 + 4);
+
+    attributeDescriptions[1].offset = widthOffset;
+
+    vertexInputCI = vk::PipelineVertexInputStateCreateInfo(
+      vk::PipelineVertexInputStateCreateFlags(),
+      1,
+      &bindingDescription,
+      width ? 2 : 1,
+      attributeDescriptions.data()
+    );
+  } else {
+    // For all other shaders, use the standard vertex input state from the template parameter
+    auto bindingDescription = V::getBindingDescription();
+    auto attributeDescriptions = V::getAttributeDescriptions();
+
+    vertexInputCI = vk::PipelineVertexInputStateCreateInfo(
+      vk::PipelineVertexInputStateCreateFlags(),
+      1,
+      &bindingDescription,
+      static_cast<uint32_t>(attributeDescriptions.size()),
+      attributeDescriptions.data()
+    );
+  }
 
   auto inputAssemblyCI = vk::PipelineInputAssemblyStateCreateInfo(
     vk::PipelineInputAssemblyStateCreateFlags(),
@@ -3540,7 +3593,7 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline& 
         graphicsPipeline,
         config.topology,
         config.fillMode,
-        config.shaderOptions,
+        type == PIPELINE_COUNT ? countShaderOptions : config.shaderOptions,
         config.namePrefix,
         config.vertexShader,
         config.fragmentShader,
@@ -3564,7 +3617,7 @@ void AsyVkRender::createPipelineSet(
             pipelines[u],
             config.topology,
             config.fillMode,
-            config.shaderOptions,
+            u == PIPELINE_COUNT ? countShaderOptions : config.shaderOptions,
             config.namePrefix + std::to_string(u),
             config.vertexShader,
             config.fragmentShader,
