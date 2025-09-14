@@ -789,6 +789,11 @@ void AsyVkRender::initVulkan()
   createDescriptorSets();
 
   createImmediateRenderTargets();
+
+  if (fxaa) {
+    preImageInGeneralLayout.resize(backbufferImages.size(), true);
+    transitionFXAAImages();
+  }
   writeDescriptorSets();
   writeMaterialAndLightDescriptors();
 
@@ -823,7 +828,29 @@ void AsyVkRender::recreateSwapChain()
   {
     setupPostProcessingComputeParameters();
   }
+
   createImmediateRenderTargets();
+
+  if (fxaa) {
+    preImageInGeneralLayout.resize(backbufferImages.size(), true);
+    transitionFXAAImages();
+
+    // Recreate the post-process descriptor sets from scratch
+    postProcessDescSet.clear();
+
+    // Reallocate descriptor sets with the new layout
+    std::vector<vk::DescriptorSetLayout> postProcessDescLayouts(backbufferImages.size(), *postProcessDescSetLayout);
+    try {
+      postProcessDescSet = device->allocateDescriptorSetsUnique({*postProcessDescPool, VEC_VIEW(postProcessDescLayouts)});
+
+      // Write the new descriptor sets with the new image views
+      writePostProcessDescSets();
+    } catch (const std::exception& e) {
+      runtimeError("Failed to allocate post-process descriptor sets: " +
+                   std::string(e.what()));
+    }
+  }
+
   // If transparency buffers have been created, they are now stale after a swapchain recreation.
   if(transparencyCapacityPixels > 0)
     writeDescriptorSets(true);
@@ -839,6 +866,41 @@ void AsyVkRender::recreateSwapChain()
 
   redisplay=true;
   waitEvent=false;
+}
+
+void AsyVkRender::transitionFXAAImages()
+{
+  auto cmdBuffer = beginSingleCommands();
+  // Transition immediate render target images
+  for (size_t i = 0; i < immediateRenderTargetImgs.size(); i++) {
+    transitionImageLayout(
+      cmdBuffer,
+      immediateRenderTargetImgs[i].getImage(),
+      vk::AccessFlagBits::eNone,
+      vk::AccessFlagBits::eShaderRead,
+      vk::ImageLayout::eUndefined,
+      vk::ImageLayout::eGeneral,
+      vk::PipelineStageFlagBits::eTopOfPipe,
+      vk::PipelineStageFlagBits::eComputeShader,
+      vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+      );
+  }
+
+  // Transition pre-presentation images
+  for (size_t i = 0; i < prePresentationImages.size(); i++) {
+    transitionImageLayout(
+      cmdBuffer,
+      prePresentationImages[i].getImage(),
+      vk::AccessFlagBits::eNone,
+      vk::AccessFlagBits::eShaderWrite,
+      vk::ImageLayout::eUndefined,
+      vk::ImageLayout::eGeneral,
+      vk::PipelineStageFlagBits::eTopOfPipe,
+      vk::PipelineStageFlagBits::eComputeShader,
+      vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+      );
+  }
+  endSingleCommands(cmdBuffer);
 }
 
 void AsyVkRender::zeroTransparencyBuffers()
@@ -2637,6 +2699,12 @@ void AsyVkRender::writeDescriptorSets(bool transparent)
 
 void AsyVkRender::writePostProcessDescSets()
 {
+  // Ensure we have valid image views before writing descriptor sets
+  if (immRenderTargetViews.empty() || prePresentationImgViews.empty() || immRenderTargetSampler.empty()) {
+    std::cerr << "Warning: Attempting to write post-process descriptor sets with empty image views" << std::endl;
+    return;
+  }
+
   // post process descriptors
   for (size_t i=0; i < backbufferImages.size(); ++i)
   {
@@ -2651,6 +2719,15 @@ void AsyVkRender::writePostProcessDescSets()
             vk::ImageLayout::eGeneral
     );
     vk::DescriptorImageInfo outputImgInfo({}, *prePresentationImgViews[i], vk::ImageLayout::eGeneral);
+
+
+    // Ensure we have valid descriptor sets before writing
+    if (i >= postProcessDescSet.size() || !postProcessDescSet[i]) {
+      std::cerr << "Warning: Invalid post-process descriptor set at index " << i << std::endl;
+      continue;
+    }
+
+
 
     std::vector<vk::WriteDescriptorSet> const postProcDescWrite{
             {*postProcessDescSet[i], 0, 0, 1, vk::DescriptorType::eCombinedImageSampler, &inputImgInfo},
@@ -4456,6 +4533,12 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 
 void AsyVkRender::postProcessImage(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex)
 {
+  // Safety check to ensure we have valid descriptor sets
+  if (frameIndex >= postProcessDescSet.size() || !postProcessDescSet[frameIndex]) {
+    std::cerr << "Warning: Invalid post-process descriptor set at index " << frameIndex << std::endl;
+    return;
+  }
+
   cmdBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *postProcessPipeline);
 
   std::vector const computeDescSet{*postProcessDescSet[frameIndex]};
@@ -4482,6 +4565,20 @@ void AsyVkRender::copyToSwapchainImg(vk::CommandBuffer& cmdBuffer, uint32_t cons
   blit.dstOffsets[1] =  vk::Offset3D(
     static_cast<int32_t>(backbufferExtent.width), static_cast<int32_t>(backbufferExtent.height), 1);
 
+  vk::ImageLayout oldLayout = View ? vk::ImageLayout::ePresentSrcKHR : vk::ImageLayout::eColorAttachmentOptimal;
+
+  transitionImageLayout(
+    cmdBuffer,
+    backbufferImages[frameIndex],
+    vk::AccessFlagBits::eNone,
+    vk::AccessFlagBits::eTransferWrite,
+    oldLayout,
+    vk::ImageLayout::eTransferDstOptimal,
+    vk::PipelineStageFlagBits::eTransfer,
+    vk::PipelineStageFlagBits::eTransfer,
+    vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+  );
+
   cmdBuffer.blitImage(
     prePresentationImages[frameIndex].getImage(),
     vk::ImageLayout::eTransferSrcOptimal,
@@ -4489,6 +4586,18 @@ void AsyVkRender::copyToSwapchainImg(vk::CommandBuffer& cmdBuffer, uint32_t cons
     vk::ImageLayout::eTransferDstOptimal,
     1, &blit, vk::Filter::eNearest
     );
+
+  transitionImageLayout(
+    cmdBuffer,
+    backbufferImages[frameIndex],
+    vk::AccessFlagBits::eTransferWrite,
+    vk::AccessFlagBits::eMemoryRead,
+    vk::ImageLayout::eTransferDstOptimal,
+    oldLayout,
+    vk::PipelineStageFlagBits::eTransfer,
+    vk::PipelineStageFlagBits::eTransfer,
+    vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+  );
 }
 
 void AsyVkRender::drawFrame()
@@ -4547,18 +4656,25 @@ void AsyVkRender::drawFrame()
   if (fxaa) {
     auto& cmdBuffer = *frameObject.commandBuffer;
 
-    // Transition immediate render target to general layout for compute shader access
-    transitionImageLayout(
-      cmdBuffer,
-      immediateRenderTargetImgs[imageIndex].getImage(),
-      vk::AccessFlagBits::eColorAttachmentWrite,
-      vk::AccessFlagBits::eShaderRead,
-      vk::ImageLayout::eColorAttachmentOptimal,
-      vk::ImageLayout::eGeneral,
-      vk::PipelineStageFlagBits::eColorAttachmentOutput,
-      vk::PipelineStageFlagBits::eComputeShader,
-      vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
-    );
+    // The render pass has already transitioned the immediate render target to GENERAL layout.
+
+    // If the image is not in GENERAL layout, transition it
+    if (!preImageInGeneralLayout[imageIndex]) {
+      transitionImageLayout(
+        cmdBuffer,
+        prePresentationImages[imageIndex].getImage(),
+        vk::AccessFlagBits::eTransferRead,
+        vk::AccessFlagBits::eShaderWrite,
+        vk::ImageLayout::eTransferSrcOptimal,
+        vk::ImageLayout::eGeneral,
+        vk::PipelineStageFlagBits::eTransfer,
+        vk::PipelineStageFlagBits::eComputeShader,
+        vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+      );
+    }
+
+    // Update our tracking - now the image is in GENERAL layout
+    preImageInGeneralLayout[imageIndex] = true;
 
     // Run FXAA compute shader
     postProcessImage(cmdBuffer, imageIndex);
@@ -4575,6 +4691,10 @@ void AsyVkRender::drawFrame()
       vk::PipelineStageFlagBits::eTransfer,
       vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
     );
+
+    // Update our tracking - now the image is in TRANSFER_SRC_OPTIMAL layout
+    preImageInGeneralLayout[imageIndex] = false;
+
     copyToSwapchainImg(cmdBuffer, imageIndex);
   }
   endFrameCommands();
