@@ -3477,20 +3477,19 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
 
   // Create vertex input state based on shader type
   vk::PipelineVertexInputStateCreateInfo vertexInputCI;
+  vk::VertexInputBindingDescription bindingDescription;
+  auto attributeDescriptions=V::getAttributeDescriptions();
 
   if (vertexShader == "screen") {
     // For screen shader, use empty vertex input state
     vertexInputCI = vk::PipelineVertexInputStateCreateInfo();
   } else if (type == PIPELINE_COUNT) {
     // For count pipeline, create a minimal vertex input state with position and width
-    vk::VertexInputBindingDescription bindingDescription;
     bindingDescription.binding = 0;
     bindingDescription.stride = sizeof(V);
     bindingDescription.inputRate = vk::VertexInputRate::eVertex;
 
     // Create attribute descriptions for position (Location 0) and width (Location 4)
-    std::array<vk::VertexInputAttributeDescription, 2> attributeDescriptions;
-
     // Position attribute
     attributeDescriptions[0].binding = 0;
     attributeDescriptions[0].location = 0;
@@ -3518,10 +3517,8 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
       attributeDescriptions.data()
     );
   } else {
+    bindingDescription = V::getBindingDescription();
     // For all other shaders, use the standard vertex input state from the template parameter
-    auto bindingDescription = V::getBindingDescription();
-    auto attributeDescriptions = V::getAttributeDescriptions();
-
     vertexInputCI = vk::PipelineVertexInputStateCreateInfo(
       vk::PipelineVertexInputStateCreateFlags(),
       1,
