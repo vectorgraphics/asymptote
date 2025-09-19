@@ -46,8 +46,8 @@ namespace camp {
  * \begin{pmatrix} \mathtt{x'}\\ \mathtt{y'} \end{pmatrix} = 
  * t\cdot p = 
  * \begin{pmatrix}
- * \mathtt{t.x} + \mathtt{t.xx} \cdot x + \mathtt{t.xy} \cdot \mathtt{y} \\
- * \mathtt{t.y} + \mathtt{t.yx} \cdot x + \mathtt{t.yy} \cdot \mathtt{y} \\
+ * \mathtt{t.x} + \mathtt{t.xx} \cdot \mathtt{x} + \mathtt{t.xy} \cdot \mathtt{y} \\
+ * \mathtt{t.y} + \mathtt{t.yx} \cdot \mathtt{x} + \mathtt{t.yy} \cdot \mathtt{y} \\
  * \end{pmatrix}
  * \f\]
  *
