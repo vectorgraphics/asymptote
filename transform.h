@@ -39,12 +39,16 @@ namespace camp {
  *     \end{pmatrix}
  * \f\]
  * A transformation is make by doing matrix multiplication:
- * Given a pair p = (x, y), the transfomed pair is the result of `t*p`. 
+ * Given a pair \f$ p = (\mathtt{x}, \mathtt{y}) \f$, the transfomed pair is the result of \f$ t\cdot p \f$. 
  * That is:
  * 
  * \f\[ 
  * \begin{pmatrix} \mathtt{x'}\\ \mathtt{y'} \end{pmatrix} = 
- * t\cdot p
+ * t\cdot p = 
+ * \begin{pmatrix}
+ * \mathtt{t.x} + \mathtt{t.xx} \cdot x + \mathtt{t.xy} \cdot \mathtt{y} \\
+ * \mathtt{t.y} + \mathtt{t.yx} \cdot x + \mathtt{t.yy} \cdot \mathtt{y} \\
+ * \end{pmatrix}
  * \f\]
  *
  *****/
