@@ -296,7 +296,7 @@ struct coordsys
     this.i = rtd((1, 0)) - O;
     this.j = rtd((0, 1)) - O;
   }
-}/*<asyxml></struct></asyxml>*/
+};/*<asyxml></struct></asyxml>*/
 
 /*<asyxml><operator type = "bool" signature="==(coordsys,coordsys)"><code></asyxml>*/
 bool operator ==(coordsys c1, coordsys c2)
@@ -439,7 +439,7 @@ struct point
     this.y = coordinates.y;
     this.m = mass;
   }
-}/*<asyxml></struct></asyxml>*/
+};/*<asyxml></struct></asyxml>*/
 
 /*<asyxml><function type="point" signature="point(coordsys,pair,real)"><code></asyxml>*/
 point point(coordsys R, pair p, real m = 1)
@@ -1497,7 +1497,7 @@ struct line
     this.extendA = extendA;
     this.extendB = extendB;
   }
-}/*<asyxml></struct></asyxml>*/
+};/*<asyxml></struct></asyxml>*/
 
 /*<asyxml><function type="line" signature="line(point,bool,point,bool)"><code></asyxml>*/
 line line(point A, bool extendA = true, point B, bool extendB = true)
@@ -1541,7 +1541,7 @@ struct segment
     this.slope = l.slope; this.origin = l.origin;
     this.u = l.u; this.v = l.v;
   }
-}/*<asyxml></struct></asyxml>*/
+};/*<asyxml></struct></asyxml>*/
 
 /*<asyxml><function type="segment" signature="segment(point,point)"><code></asyxml>*/
 segment segment(point A, point B)
@@ -2358,7 +2358,7 @@ struct bqe
   /*<asyxml><property type = "real[]" signature="a"><code></asyxml>*/
   real[] a;/*<asyxml></code><documentation>a[0] * x^2 + a[1] * x * y + a[2] * y^2 + a[3] * x + a[4] * y + a[5] = 0</documentation></property><property type = "coordsys" signature="coordsys"><code></asyxml>*/
   coordsys coordsys;/*<asyxml></code></property></asyxml>*/
-}/*<asyxml></struct></asyxml>*/
+};/*<asyxml></struct></asyxml>*/
 
 /*<asyxml><function type="bqe" signature="bqe(coordsys,real,real,real,real,real,real)"><code></asyxml>*/
 bqe bqe(coordsys R = currentcoordsys,
@@ -2510,7 +2510,7 @@ struct conic
   point F;/*<asyxml></code><documentation>Focus.</documentation></property><property type = "line" signature="D"><code></asyxml>*/
   line D;/*<asyxml></code><documentation>Directrix.</documentation></property><property type = "line" signature="l"><code></asyxml>*/
   line[] l;/*<asyxml></code><documentation>Case of degenerated conic (not yet implemented !).</documentation></property></asyxml>*/
-}/*<asyxml></struct></asyxml>*/
+};/*<asyxml></struct></asyxml>*/
 
 bool degenerate(conic c)
 {
@@ -2548,7 +2548,7 @@ struct circle
   point C;/*<asyxml></code><documentation>Center</documentation></property><property><code></asyxml>*/
   real r;/*<asyxml></code><documentation>Radius</documentation></property><property><code></asyxml>*/
   line l;/*<asyxml></code><documentation>If the radius is infinite, this line is used instead of circle.</documentation></property></asyxml>*/
-}/*<asyxml></struct></asyxml>*/
+};/*<asyxml></struct></asyxml>*/
 
 bool degenerate(circle c)
 {
@@ -2597,7 +2597,7 @@ struct ellipse
       }
     }
   }
-}/*<asyxml></struct></asyxml>*/
+};/*<asyxml></struct></asyxml>*/
 
 bool degenerate(ellipse el)
 {
@@ -2626,7 +2626,7 @@ struct parabola
     this.V = 0.5 * (F + projection(D) * P[0]);
     this.angle = degrees(F - V, warn=false);
   }
-}/*<asyxml></struct></asyxml>*/
+};/*<asyxml></struct></asyxml>*/
 
 /*<asyxml><struct signature="hyperbola"><code></asyxml>*/
 struct hyperbola
@@ -2661,7 +2661,7 @@ struct hyperbola
     this.A1 = line(C, V1 + b * unit(rotateO(-90) * (C - V1)));
     this.A2 = line(C, V1 + b * unit(rotateO(90) * (C - V1)));
   }
-}/*<asyxml></struct></asyxml>*/
+};/*<asyxml></struct></asyxml>*/
 
 /*<asyxml><variable type="int" signature="conicnodesfactor"><code></asyxml>*/
 int conicnodesfactor = 1;/*<asyxml></code><documentation>Factor for the node number of all conics.</documentation></variable></asyxml>*/
@@ -4160,7 +4160,7 @@ struct abscissa
     oa.polarconicroutine = this.polarconicroutine;
     return oa;
   }
-}/*<asyxml></struct></asyxml>*/
+};/*<asyxml></struct></asyxml>*/
 
 /*<asyxml><constant type = "int" signature="relativesystem,curvilinearsystem,angularsystem,nodesystem"><code></asyxml>*/
 restricted int relativesystem = 0, curvilinearsystem = 1, angularsystem = 2, nodesystem = 3;/*<asyxml></code><documentation>Constant used to set the abscissa system.</documentation></constant></asyxml>*/
@@ -4878,7 +4878,7 @@ struct arc {
     oa.angle0 = this.angle0;
     return oa;
   }
-}/*<asyxml></struct></asyxml>*/
+};/*<asyxml></struct></asyxml>*/
 
 /*<asyxml><function type="polarconicroutine" signature="polarconicroutine(ellipse)"><code></asyxml>*/
 polarconicroutine polarconicroutine(conic co)
@@ -5267,7 +5267,7 @@ void markarc(picture pic = currentpicture,
 struct mass {/*<asyxml></code><documentation></documentation><property type = "point" signature="M"><code></asyxml>*/
   point M;/*<asyxml></code><documentation></documentation></property><property type = "real" signature="m"><code></asyxml>*/
   real m;/*<asyxml></code><documentation></documentation></property></asyxml>*/
-}/*<asyxml></struct></asyxml>*/
+};/*<asyxml></struct></asyxml>*/
 
 /*<asyxml><function type="mass" signature="mass(point,real)"><code></asyxml>*/
 mass mass(point M, real m)
@@ -5622,7 +5622,7 @@ struct triangle {/*<asyxml></code><documentation></documentation></asyxml>*/
     return n > 0 ? line(C, A) : line(A, C);
   }
 
-}/*<asyxml></struct></asyxml>*/
+};/*<asyxml></struct></asyxml>*/
 
 path operator cast(triangle t) { return t.A -- t.B -- t.C -- cycle; }
 
@@ -5853,7 +5853,7 @@ struct trilinear
    <url href = "http://mathworld.wolfram.com/TrilinearCoordinates.html"/></documentation><property type = "real" signature="a,b,c"><code></asyxml>*/
   real a,b,c;/*<asyxml></code><documentation>The trilinear coordinates.</documentation></property><property type = "triangle" signature="t"><code></asyxml>*/
   triangle t;/*<asyxml></code><documentation>The reference triangle.</documentation></property></asyxml>*/
-}/*<asyxml></struct></asyxml>*/
+};/*<asyxml></struct></asyxml>*/
 
 /*<asyxml><function type="trilinear" signature="trilinear(triangle,real,real,real)"><code></asyxml>*/
 trilinear trilinear(triangle t, real a, real b, real c)
@@ -6385,7 +6385,7 @@ struct inversion
     this.C = C;
     this.k = k;
   }
-}/*<asyxml></struct></asyxml>*/
+};/*<asyxml></struct></asyxml>*/
 
 /*<asyxml><function type="point" signature="inverse(inversion,point)"><code></asyxml>*/
 point inverse(inversion i, point P)
