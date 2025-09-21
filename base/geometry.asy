@@ -889,10 +889,10 @@ struct vector
    * Coordinates as a point (embed coordinate system and pair).
    */
   point v;
-}
+};
 
 /**
- * Cast vector 'v' to point 'M' so that OM = v.
+ * Cast vector `v` to point `M` so that OM = v.
  * @param v vector to be casted
  */
 point operator cast(vector v)
@@ -900,13 +900,15 @@ point operator cast(vector v)
   return v.v;
 }
 
-/*<asyxml><operator type = "vector" signature="cast(pair)"><code></asyxml>*/
+/**
+ * Cast `pair` to vector relatively to the current coordinate system `currentcoordsys`.
+ * @param v vector to be casted
+ */
 vector operator cast(pair v)
-{/*<asyxml></code><documentation>Cast pair to vector relatively to the current coordinate
-   system 'currentcoordsys'.</documentation></operator></asyxml>*/
- vector ov;
- ov.v = point(currentcoordsys, v);
- return ov;
+{
+  vector ov;
+  ov.v = point(currentcoordsys, v);
+  return ov;
 }
 
 /*<asyxml><operator type = "vector" signature="cast(explicit point)"><code></asyxml>*/
