@@ -879,17 +879,25 @@ transform yscaleO(real x)
  return scale(x, (0, 0), (1, 0), (0, 0), (0, 1));
 }
 
-/*<asyxml><struct signature="vector"><code></asyxml>*/
+/**
+ * Like a point but casting to pair, adding etc does not take account
+ * of the origin of the coordinate system.
+ */
 struct vector
-{/*<asyxml></code><documentation>Like a point but casting to pair, adding etc does not take account
-   of the origin of the coordinate system.</documentation><property type = "point" signature="v"><code></asyxml>*/
-  point v;/*<asyxml></code><documentation>Coordinates as a point (embed coordinate system and pair).</documentation></property></asyxml>*/
-}/*<asyxml></struct></asyxml>*/
+{
+  /**
+   * Coordinates as a point (embed coordinate system and pair).
+   */
+  point v;
+}
 
-/*<asyxml><operator type = "point" signature="cast(vector)"><code></asyxml>*/
+/**
+ * Cast vector 'v' to point 'M' so that OM = v.
+ * @param v vector to be casted
+ */
 point operator cast(vector v)
-{/*<asyxml></code><documentation>Cast vector 'v' to point 'M' so that OM = v.</documentation></operator></asyxml>*/
- return v.v;
+{
+  return v.v;
 }
 
 /*<asyxml><operator type = "vector" signature="cast(pair)"><code></asyxml>*/
