@@ -33,11 +33,11 @@ using settings::getSetting;
 using settings::Setting;
 using namespace glm;
 
-static size_t timeout=1000000000;
+static size_t timeout=10000000000;
 
 void exitHandler(int);
 
-void runtimeError(std::string s)
+void runtimeError(const std::string& s)
 {
   cerr << "error: " << s << endl;
   exit(-1);
@@ -735,10 +735,14 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 void AsyVkRender::initVulkan()
 {
 #ifdef __APPLE__
-  setenv("MVK_CONFIG_LOG_LEVEL","0",false);
+  setenv("MVK_CONFIG_LOG_LEVEL","1",false);
 
-  // Prefer low power mode for better stability: TODO Remove
+  // Use smallest memory footprint during command buffer encoding
+  setenv("MVK_CONFIG_PREFILL_METAL_COMMAND_BUFFERS", "2", true);
+
+  // Reduce memory pressure by using Metal argument buffers more efficiently
   setenv("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "1", true);
+
   setenv("MVK_CONFIG_PERFORMANCE_TRACKING", "0", true);
 #endif
 
@@ -814,6 +818,7 @@ void AsyVkRender::recreateSwapChain()
 {
   device->waitIdle();
 
+  try {
   // Reset timeline semaphore values to avoid timeout issues
   currentTimelineValue = 0;
   for (auto& frameObj : frameObjects) {
@@ -863,6 +868,9 @@ void AsyVkRender::recreateSwapChain()
   createAttachments();
   createFramebuffers();
   createExportResources();
+  } catch (const vk::OutOfDeviceMemoryError& e) {
+    outOfMemory();
+  }
 
   redisplay=true;
   waitEvent=false;
@@ -2701,8 +2709,7 @@ void AsyVkRender::writePostProcessDescSets()
 {
   // Ensure we have valid image views before writing descriptor sets
   if (immRenderTargetViews.empty() || prePresentationImgViews.empty() || immRenderTargetSampler.empty()) {
-    std::cerr << "Warning: Attempting to write post-process descriptor sets with empty image views" << std::endl;
-    return;
+    runtimeError("Attempting to write post-process descriptor sets with empty image views");
   }
 
   // post process descriptors
@@ -2722,12 +2729,8 @@ void AsyVkRender::writePostProcessDescSets()
 
 
     // Ensure we have valid descriptor sets before writing
-    if (i >= postProcessDescSet.size() || !postProcessDescSet[i]) {
-      std::cerr << "Warning: Invalid post-process descriptor set at index " << i << std::endl;
-      continue;
-    }
-
-
+    if (i >= postProcessDescSet.size() || !postProcessDescSet[i])
+      runtimeError("Invalid post-process descriptor set");
 
     std::vector<vk::WriteDescriptorSet> const postProcDescWrite{
             {*postProcessDescSet[i], 0, 0, 1, vk::DescriptorType::eCombinedImageSampler, &inputImgInfo},
@@ -2785,6 +2788,19 @@ void AsyVkRender::updateSceneDependentBuffers() {
           VMA_MEMORY_USAGE_AUTO,
           VARIABLE_NAME(fragmentBf));
 
+  try {
+    fragmentBf = createBufferUnique(
+          vk::BufferUsageFlagBits::eStorageBuffer,
+          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+          fragmentBufferSize,
+          0,
+          VMA_MEMORY_USAGE_AUTO,
+          VARIABLE_NAME(fragmentBf));
+
+  } catch (const vk::OutOfDeviceMemoryError& e) {
+    outOfMemory();
+  }
+
   depthBufferSize = maxFragments*sizeof(float);
   depthBf = createBufferUnique(
           vk::BufferUsageFlagBits::eStorageBuffer,
@@ -2793,6 +2809,11 @@ void AsyVkRender::updateSceneDependentBuffers() {
           0,
           VMA_MEMORY_USAGE_AUTO,
           VARIABLE_NAME(depthBf));
+
+
+  if (fragmentBf.getBuffer() == VK_NULL_HANDLE ||
+      depthBf.getBuffer() == VK_NULL_HANDLE)
+    outOfMemory();
 
   // Create a vector to batch all descriptor writes
   std::vector<vk::WriteDescriptorSet> batchedWrites;
@@ -2848,6 +2869,7 @@ void AsyVkRender::createBuffers()
   feedbackBufferSize=2*sizeof(std::uint32_t);
   elementBufferSize=sizeof(std::uint32_t);
 
+  try {
   feedbackBf = createBufferUnique(
     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc,
     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
@@ -2856,6 +2878,9 @@ void AsyVkRender::createBuffers()
     VMA_MEMORY_USAGE_AUTO,
     VARIABLE_NAME(feedbackBf)
   );
+  } catch (const vk::OutOfDeviceMemoryError& e) {
+    outOfMemory();
+  }
 
   if(GPUcompress)
   {
@@ -2869,6 +2894,7 @@ void AsyVkRender::createBuffers()
     );
   }
 
+  try {
   for (auto& frameObj : frameObjects)
   {
     frameObj.uboBf = createBufferUnique(
@@ -2881,6 +2907,9 @@ void AsyVkRender::createBuffers()
     );
     frameObj.uboMappedMemory = make_unique<vma::cxx::MemoryMapperLock>(frameObj.uboBf);
   }
+  } catch (const vk::OutOfDeviceMemoryError& e) {
+    outOfMemory();
+  }
 
   createMaterialAndLightBuffers();
 }
@@ -2888,6 +2917,7 @@ void AsyVkRender::createBuffers()
 
 void AsyVkRender::createMaterialAndLightBuffers() {
   if(nmaterials > 0)
+    try {
     materialBf = createBufferUnique(
       vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -2895,6 +2925,9 @@ void AsyVkRender::createMaterialAndLightBuffers() {
       0,
       VMA_MEMORY_USAGE_AUTO,
       VARIABLE_NAME(materialBf));
+    } catch (const vk::OutOfDeviceMemoryError& e) {
+      outOfMemory();
+    }
 
   if(nlights > 0)
     lightBf = createBufferUnique(
@@ -3005,6 +3038,7 @@ void AsyVkRender::createTransparencyBuffers(std::uint32_t pixels)
     vmaFlags=VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
   }
 
+  try {
   countBf=createBufferUnique(
     vk::BufferUsageFlagBits::eStorageBuffer |
     vk::BufferUsageFlagBits::eTransferDst |
@@ -3060,6 +3094,9 @@ void AsyVkRender::createTransparencyBuffers(std::uint32_t pixels)
         VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
         VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
         VARIABLE_NAME(indexBf));
+  }
+  } catch (const vk::OutOfDeviceMemoryError& e) {
+    outOfMemory();
   }
 
   zeroTransparencyBuffers();
@@ -4499,11 +4536,9 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 
 void AsyVkRender::postProcessImage(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex)
 {
-  // Safety check to ensure we have valid descriptor sets
-  if (frameIndex >= postProcessDescSet.size() || !postProcessDescSet[frameIndex]) {
-    std::cerr << "Warning: Invalid post-process descriptor set at index " << frameIndex << std::endl;
-    return;
-  }
+  if (frameIndex >= postProcessDescSet.size() ||
+      !postProcessDescSet[frameIndex])
+    runtimeError("Invalid post-process descriptor set");
 
   cmdBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *postProcessPipeline);
 
@@ -4602,8 +4637,14 @@ void AsyVkRender::drawFrame()
       recreateSwapChain();
       return;
     }
-    else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
-      runtimeError("failed to acquire next swapchain image");
+    else if (result == vk::Result::eErrorOutOfDeviceMemory) {
+      outOfMemory();
+    }
+    else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
+      std::stringstream buf;
+      buf << "Error: Failed to acquire swapchain image: " << vk::to_string(result) << std::endl;
+      runtimeError(buf.str());
+    }
   }
 
   if (!timelineSemaphoreSupported) {
@@ -4615,7 +4656,12 @@ void AsyVkRender::drawFrame()
   updateUniformBuffer(currentFrame);
   updateBuffers();
   resetFrameCopyData();
-  preDrawBuffers(frameObject, imageIndex);
+
+  try {
+    preDrawBuffers(frameObject, imageIndex);
+  } catch (const vk::OutOfDeviceMemoryError& e) {
+    outOfMemory();
+  }
 
   beginFrameCommands(getFrameCommandBuffer());
   drawBuffers(frameObject, imageIndex);
@@ -4722,7 +4768,11 @@ void AsyVkRender::drawFrame()
       // Reset the fence before submission
       (void) device->resetFences(1, &*frameObject.inFlightFence);
 
-      vkutils::checkVkResult(renderQueue.submit(1, &submitInfo, nullptr));
+      try {
+        vkutils::checkVkResult(renderQueue.submit(1, &submitInfo, nullptr));
+      } catch (const vk::OutOfDeviceMemoryError& e) {
+        outOfMemory();
+      }
   } else {
       submitInfo.pSignalSemaphores = signalSems.data();
       submitInfo.signalSemaphoreCount = signalSems.size();
@@ -4742,7 +4792,11 @@ void AsyVkRender::drawFrame()
         framebufferResized = false;
         recreateSwapChain();
       } else if (result != vk::Result::eSuccess) {
-        runtimeError("failed to present swapchain image");
+        if (result == vk::Result::eErrorOutOfDeviceMemory) {
+          outOfMemory();
+        } else {
+          runtimeError("failed to present swapchain image: " + vk::to_string(result));
+        }
       }
     } catch (std::exception const & e) {
       auto what=std::string(e.what());
@@ -4750,7 +4804,11 @@ void AsyVkRender::drawFrame()
         framebufferResized = false;
         recreateSwapChain();
       } else {
-        runtimeError(what);
+        if (what.find("OutOfDeviceMemory") != std::string::npos) {
+          outOfMemory();
+        } else {
+          runtimeError(what);
+        }
       }
     }
   }
