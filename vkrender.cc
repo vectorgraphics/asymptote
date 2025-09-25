@@ -737,7 +737,13 @@ void AsyVkRender::initVulkan()
 #ifdef __APPLE__
   setenv("MVK_CONFIG_LOG_LEVEL","0",false);
 
+  // Adjust MoltenVK configuration for better stability
+  setenv("MVK_CONFIG_FAST_MATH_ENABLED", "0", true);
+
   // Prefer low power mode for better stability: TODO Remove
+  setenv("MVK_CONFIG_SYNCHRONOUS_QUEUE_SUBMITS", "1", true);
+  setenv("MVK_CONFIG_PREALLOCATE_DESCRIPTORS", "1", true);
+  setenv("MVK_CONFIG_FULL_IMAGE_VIEW_SWIZZLE", "0", true);
   setenv("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "1", true);
   setenv("MVK_CONFIG_PERFORMANCE_TRACKING", "0", true);
 #endif
@@ -3329,6 +3335,26 @@ void AsyVkRender::createGraphicsRenderPass()
                   vk::AccessFlagBits::eNone,
                   vk::AccessFlagBits::eNone
           ),
+          // Self-dependency for subpass 0 to allow pipeline barriers within it
+          vk::SubpassDependency2(
+                   0, // self-dependency for subpass 0
+                   0,
+                   vk::PipelineStageFlagBits::eAllGraphics,
+                   vk::PipelineStageFlagBits::eAllGraphics,
+                   vk::AccessFlagBits::eMemoryWrite,
+                   vk::AccessFlagBits::eMemoryRead,
+                   vk::DependencyFlagBits::eByRegion
+          ),
+          // Self-dependency for subpass 1 to allow pipeline barriers within it
+          vk::SubpassDependency2(
+                   1, // self-dependency for subpass 1
+                   1,
+                   vk::PipelineStageFlagBits::eAllGraphics,
+                   vk::PipelineStageFlagBits::eAllGraphics,
+                   vk::AccessFlagBits::eMemoryWrite,
+                   vk::AccessFlagBits::eMemoryRead,
+                   vk::DependencyFlagBits::eByRegion
+          ),
           vk::SubpassDependency2(
                    0, // from opaque
                    1, // to transparent
@@ -4443,6 +4469,11 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
   copied=false;
 
   if(!Opaque) {
+    // Reset the fence before waiting to avoid potential issues
+    if (!timelineSemaphoreSupported) {
+      (void) device->resetFences(1, &*object.inComputeFence);
+    }
+
     // Avoid blocking CPU wait when possible
     if (timelineSemaphoreSupported && object.computeTimelineValue > 0) {
       // Use timeline semaphore for more efficient synchronization
@@ -4463,9 +4494,6 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
       writeDescriptorSets(true);
     }
 
-    vkutils::checkVkResult(device->resetFences(
-      1, &*object.inComputeFence
-    ));
     device->resetEvent(*object.sumFinishedEvent);
     device->resetEvent(*object.compressionFinishedEvent);
 
@@ -4755,6 +4783,10 @@ void AsyVkRender::drawFrame()
     }
   }
 
+  // Increment frame counter before potential early returns
+  uint32_t nextFrame = (currentFrame + 1) % maxFramesInFlight;
+  currentFrame = nextFrame;
+
   if(queueExport) {
     // Wait for the just-submitted frame to finish before exporting
     if (timelineSemaphoreSupported) {
@@ -4775,8 +4807,6 @@ void AsyVkRender::drawFrame()
     createBlendPipeline();
     recreateBlendPipeline=false;
   }
-
-  currentFrame = (currentFrame + 1) % maxFramesInFlight;
 }
 
 void AsyVkRender::nextFrame()
