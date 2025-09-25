@@ -17,6 +17,9 @@
 #define VALIDATION
 #endif
 
+// Define this to enable extra verbose logging for debugging DeviceLost errors
+#define ASY_VK_EXTRA_DIAGNOSTICS
+
 #define SHADER_DIRECTORY "shaders/"
 #define VALIDATION_LAYER "VK_LAYER_KHRONOS_validation"
 
@@ -32,6 +35,13 @@
 using settings::getSetting;
 using settings::Setting;
 using namespace glm;
+
+#ifdef ASY_VK_EXTRA_DIAGNOSTICS
+#include <iostream>
+#define LOG_VK_DIAG(msg) do { std::cerr << "[DIAG " << __FILE__ << ":" << __LINE__ << "] " << msg << std::endl; } while(0)
+#else
+#define LOG_VK_DIAG(msg)
+#endif
 
 static size_t timeout=1000000000;
 
@@ -736,12 +746,17 @@ void AsyVkRender::initVulkan()
 {
 #ifdef __APPLE__
   setenv("MVK_CONFIG_LOG_LEVEL","0",false);
+#ifdef ASY_VK_EXTRA_DIAGNOSTICS
+  // Increase MoltenVK logging for debugging
+  setenv("MVK_CONFIG_LOG_LEVEL", "2", true); // 0=Off, 1=Error, 2=Warning, 3=Info, 4=Debug
+#endif
 
   // Adjust MoltenVK configuration for better stability
   setenv("MVK_CONFIG_FAST_MATH_ENABLED", "0", true);
 
   // Prefer low power mode for better stability: TODO Remove
   setenv("MVK_CONFIG_SYNCHRONOUS_QUEUE_SUBMITS", "1", true);
+  LOG_VK_DIAG("Setting MVK_CONFIG_SYNCHRONOUS_QUEUE_SUBMITS=1");
   setenv("MVK_CONFIG_PREALLOCATE_DESCRIPTORS", "1", true);
   setenv("MVK_CONFIG_FULL_IMAGE_VIEW_SWIZZLE", "0", true);
   setenv("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "1", true);
@@ -749,6 +764,8 @@ void AsyVkRender::initVulkan()
 #endif
 
   VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
+
+  LOG_VK_DIAG("Starting initVulkan");
 
   if (!glslang::InitializeProcess())
     runtimeError("failed to initialize glslang");
@@ -814,6 +831,7 @@ void AsyVkRender::initVulkan()
   createAttachments();
   createFramebuffers();
   createExportResources();
+  LOG_VK_DIAG("Finished initVulkan");
 }
 
 void AsyVkRender::recreateSwapChain()
@@ -825,6 +843,8 @@ void AsyVkRender::recreateSwapChain()
   for (auto& frameObj : frameObjects) {
     frameObj.timelineValue = 0;
   }
+
+  LOG_VK_DIAG("Recreating swapchain...");
 
   resetDepth=true;
 
@@ -870,6 +890,7 @@ void AsyVkRender::recreateSwapChain()
   createFramebuffers();
   createExportResources();
 
+  LOG_VK_DIAG("Swapchain recreation finished.");
   redisplay=true;
   waitEvent=false;
 }
@@ -1020,6 +1041,14 @@ void AsyVkRender::createDebugMessenger()
   vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
   vk::DebugUtilsMessageTypeFlagsEXT typeFlags(vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation);
   if (settings::verbose > 2)
+#ifdef ASY_VK_EXTRA_DIAGNOSTICS
+  {
+    severityFlags |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+                     vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo;
+    typeFlags |= vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+                 vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
+  }
+#else
   {
     severityFlags |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning;
     typeFlags |= vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral;
@@ -1033,6 +1062,7 @@ void AsyVkRender::createDebugMessenger()
   {
     severityFlags |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose;
   }
+#endif
 
   auto const debugCreateInfo= vk::DebugUtilsMessengerCreateInfoEXT(
           {}, severityFlags, typeFlags,
@@ -4598,6 +4628,8 @@ void AsyVkRender::drawFrame()
 {
   auto& frameObject = frameObjects[currentFrame];
 
+  LOG_VK_DIAG("drawFrame start for frame " << currentFrame);
+
   if (timelineSemaphoreSupported) {
     // Wait only if we are about to reuse a frame that is still in use by the GPU.
     // We check if the timeline value for this specific frame has been reached.
@@ -4617,6 +4649,7 @@ void AsyVkRender::drawFrame()
 
   if (recreatePipeline)
   {
+    LOG_VK_DIAG("recreatePipeline is true, waiting for idle and recreating graphics pipelines.");
     device->waitIdle();
     recreatePipeline = false;
     createGraphicsPipelines();
@@ -4624,19 +4657,28 @@ void AsyVkRender::drawFrame()
 
   uint32_t imageIndex = 0;
   if (View) {
+    LOG_VK_DIAG("Acquiring next swapchain image...");
     auto const result = device->acquireNextImageKHR(*swapChain, timeout, *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
+    LOG_VK_DIAG("acquireNextImageKHR returned: " << vk::to_string(result) << " with imageIndex " << imageIndex);
+
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
+      LOG_VK_DIAG("Swapchain is out of date or suboptimal. Recreating.");
       framebufferResized = false;
       recreateSwapChain();
       return;
     }
-    else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
+    else if (result == vk::Result::eErrorDeviceLost) {
+        runtimeError("DEVICE LOST during acquireNextImageKHR!");
+    }
+    else if (result != vk::Result::eSuccess)
       runtimeError("failed to acquire next swapchain image");
   }
 
   if (!timelineSemaphoreSupported) {
       vkutils::checkVkResult(device->resetFences(1, &*frameObject.inFlightFence));
   }
+
+  LOG_VK_DIAG("Resetting and recording command buffer for frame " << currentFrame);
 
   frameObject.commandBuffer->reset(vk::CommandBufferResetFlagBits());
 
@@ -4750,7 +4792,20 @@ void AsyVkRender::drawFrame()
       // Reset the fence before submission
       (void) device->resetFences(1, &*frameObject.inFlightFence);
 
-      vkutils::checkVkResult(renderQueue.submit(1, &submitInfo, nullptr));
+      LOG_VK_DIAG("Submitting render queue with timeline semaphore. Signal value: " << frameObject.timelineValue);
+      try {
+        vkutils::checkVkResult(renderQueue.submit(1, &submitInfo, nullptr));
+      } catch (const vk::DeviceLostError& e) {
+          LOG_VK_DIAG("DEVICE LOST during renderQueue.submit()! what(): " << e.what());
+          runtimeError("DEVICE LOST during renderQueue.submit()!");
+      } catch (const std::exception& e) {
+          LOG_VK_DIAG("Exception during renderQueue.submit()! what(): " << e.what());
+          // Attempt recovery
+          device->waitIdle();
+          recreateSwapChain();
+          return;
+      }
+
   } else {
       submitInfo.pSignalSemaphores = signalSems.data();
       submitInfo.signalSemaphoreCount = signalSems.size();
@@ -4763,15 +4818,23 @@ void AsyVkRender::drawFrame()
     presentWaitSemaphores.push_back(*frameObject.renderFinishedSemaphore);
 
     try {
+      LOG_VK_DIAG("Presenting image " << imageIndex);
       auto presentInfo = vk::PresentInfoKHR(VEC_VIEW(presentWaitSemaphores), 1, &*swapChain, &imageIndex);
       auto const result = presentQueue.presentKHR(presentInfo);
+      LOG_VK_DIAG("presentKHR returned: " << vk::to_string(result));
 
       if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
+        LOG_VK_DIAG("Swapchain is out of date or suboptimal after present. Recreating.");
         framebufferResized = false;
         recreateSwapChain();
+      } else if (result == vk::Result::eErrorDeviceLost) {
+        runtimeError("DEVICE LOST during presentKHR!");
       } else if (result != vk::Result::eSuccess) {
         runtimeError("failed to present swapchain image");
       }
+    } catch (const vk::DeviceLostError& e) {
+        LOG_VK_DIAG("DEVICE LOST during presentQueue.presentKHR()! what(): " << e.what());
+        runtimeError("DEVICE LOST during presentQueue.presentKHR()!");
     } catch (std::exception const & e) {
       auto what=std::string(e.what());
       if (what.find("ErrorOutOfDateKHR") != std::string::npos) {
@@ -4786,6 +4849,8 @@ void AsyVkRender::drawFrame()
   // Increment frame counter before potential early returns
   uint32_t nextFrame = (currentFrame + 1) % maxFramesInFlight;
   currentFrame = nextFrame;
+
+  LOG_VK_DIAG("drawFrame end. Next frame is " << currentFrame);
 
   if(queueExport) {
     // Wait for the just-submitted frame to finish before exporting
