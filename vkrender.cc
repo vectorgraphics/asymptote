@@ -1522,28 +1522,109 @@ void AsyVkRender::signalTimelineSemaphore(vk::Semaphore semaphore, uint64_t valu
 void AsyVkRender::waitForTimelineSemaphore(vk::Semaphore semaphore, uint64_t value, uint64_t timeout) {
   if (!timelineSemaphoreSupported) return;
 
+  // First check if the semaphore is already signaled with a very short timeout
   vk::SemaphoreWaitInfo waitInfo(
     {},
     1, &semaphore,
     &value
   );
 
-  // Wait for the semaphore with the specified timeout
-  vk::Result result = device->waitSemaphores(waitInfo, timeout);
-
-  if (result == vk::Result::eTimeout) {
-    cerr << "warning: Timeline semaphore wait timed out after "
-         << 1.0e-9*timeout << " seconds" << endl;
-    // Force a full device synchronization and reset timeline values
-    try {
-      device->waitIdle();
-      currentTimelineValue = 0;
-    } catch (const std::exception& e) {
-      cerr << "Error during device waitIdle after timeout: " << e.what() << endl;
+  try {
+    // Try with a very short timeout first (10ms)
+    vk::Result quickResult = device->waitSemaphores(waitInfo, 10000000);
+    if (quickResult == vk::Result::eSuccess) {
+      return; // Already signaled, no need to wait further
     }
-  } else if (result != vk::Result::eSuccess) {
-     runtimeError("Timeline semaphore wait failed with result "+
-                  std::to_string(static_cast<int>(result)));
+  } catch (...) {
+    // Ignore any errors from the quick check
+  }
+
+  // If we get here, we need to wait longer
+  // Use a progressive approach with multiple shorter waits instead of one long wait
+  const std::vector<uint64_t> timeoutSteps = {
+    100000000,  // 100ms
+    500000000,  // 500ms
+    1000000000, // 1s
+    5000000000, // 5s
+    timeout     // Full timeout (usually 10s)
+  };
+
+  for (size_t i = 0; i < timeoutSteps.size(); i++) {
+    uint64_t currentTimeout = timeoutSteps[i];
+    bool isLastAttempt = (i == timeoutSteps.size() - 1);
+
+    try {
+      vk::Result result = device->waitSemaphores(waitInfo, currentTimeout);
+
+      if (result == vk::Result::eSuccess) {
+        return; // Success!
+      } else if (result == vk::Result::eTimeout) {
+        if (!isLastAttempt) {
+          cerr << "Timeline semaphore wait timed out after "
+               << 1.0e-9*currentTimeout << " seconds, trying again with longer timeout" << endl;
+
+          // Add a small delay before trying again
+          std::this_thread::sleep_for(std::chrono::milliseconds(50));
+          continue; // Try next timeout
+        }
+      }
+    } catch (const vk::DeviceLostError& e) {
+      cerr << "Device lost during semaphore wait: " << e.what() << endl;
+      deviceLost = true;
+      return;
+    } catch (const std::exception& e) {
+      cerr << "Error during semaphore wait: " << e.what() << endl;
+      return;
+    }
+  }
+
+  // If we get here, we've tried all timeouts and still timed out
+  cerr << "warning: Timeline semaphore wait timed out after all attempts" << endl;
+
+  // Try to recover by resetting timeline values and waiting for idle
+  try {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    device->waitIdle();
+    currentTimelineValue = 0;
+  } catch (const vk::DeviceLostError& e) {
+    cerr << "Device lost during recovery after timeout: " << e.what() << endl;
+    deviceLost = true;
+  } catch (const std::exception& e) {
+    cerr << "Error during device waitIdle after timeout: " << e.what() << endl;
+  }
+}
+
+void AsyVkRender::handleDeviceLost() {
+  if (!deviceLost) return;
+
+  cerr << "Attempting to recover from device lost..." << endl;
+
+  try {
+    // Reset all timeline values
+    currentTimelineValue = 0;
+
+    // Reset all in-flight operations
+    for (auto& obj : frameObjects) {
+      obj.timelineValue = 0;
+      obj.computeTimelineValue = 0;
+    }
+
+    // Wait for a moment to let the GPU reset
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    // Try to recreate the swapchain
+    try {
+      recreateSwapChain();
+    } catch (const std::exception& e) {
+      cerr << "Failed to recreate swapchain: " << e.what() << endl;
+    }
+
+    // Clear the device lost flag
+    deviceLost = false;
+
+    cerr << "Device recovery attempt completed" << endl;
+  } catch (const std::exception& e) {
+    cerr << "Failed to recover from device lost: " << e.what() << endl;
   }
 }
 
@@ -4526,12 +4607,61 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
 
   if(!Opaque) {
     currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
-    drawTransparent(object);
+    renderTransparencyStaged(object, imageIndex);
     currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
     blendFrame(imageIndex);
   }
 
   endFrameRender();
+}
+
+void AsyVkRender::renderTransparencyStaged(FrameObject& object, int imageIndex) {
+  if (!Opaque && transparentData.indices.size() > 0) {
+    // Calculate the number of fragments
+    size_t fragmentCount = transparentData.indices.size();
+
+    // For M2 GPUs, use a conservative batch size
+    // The diagnostics showed ~715,000 fragments causing issues
+    size_t maxFragmentsPerBatch = 100000; // Start with 100k fragments per batch
+
+    // If we have a lot of fragments, render in batches
+    if (fragmentCount > maxFragmentsPerBatch) {
+      size_t batches = (fragmentCount + maxFragmentsPerBatch - 1) / maxFragmentsPerBatch;
+
+      cerr << "Rendering " << fragmentCount << " transparent fragments in "
+           << batches << " batches" << endl;
+
+      // Save the original data
+      auto originalIndices = transparentData.indices;
+
+      // Render in batches
+      for (size_t batch = 0; batch < batches; batch++) {
+        // Calculate the range for this batch
+        size_t start = batch * maxFragmentsPerBatch;
+        size_t end = std::min(start + maxFragmentsPerBatch, fragmentCount);
+
+        cerr << "  Rendering batch " << (batch + 1) << "/" << batches
+             << " (fragments " << start << " to " << end << ")" << endl;
+
+        // Create a subset of the data for this batch
+        transparentData.indices.clear();
+        transparentData.indices.insert(
+          transparentData.indices.end(),
+          originalIndices.begin() + start,
+          originalIndices.begin() + end
+        );
+
+        // Render this batch
+        drawTransparent(object);
+      }
+
+      // Restore the original data
+      transparentData.indices = originalIndices;
+    } else {
+      // Normal rendering for smaller fragment counts
+      drawTransparent(object);
+    }
+  }
 }
 
 void AsyVkRender::postProcessImage(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex)
@@ -4871,38 +5001,47 @@ void AsyVkRender::clearBuffers()
 
 void AsyVkRender::render()
 {
+  try {
+    // Check if we need to recover from a device lost error
+    if (deviceLost) handleDeviceLost();
 
 #ifdef HAVE_PTHREAD
-  static bool first=true;
-  if(vkthread && first) {
-    wait(initSignal,initLock);
-    endwait(initSignal,initLock);
-    first=false;
-  }
+    static bool first=true;
+    if(vkthread && first) {
+      wait(initSignal,initLock);
+      endwait(initSignal,initLock);
+      first=false;
+    }
 
-  if(format3dWait)
-    wait(initSignal,initLock);
+    if(format3dWait)
+      wait(initSignal,initLock);
 #endif
 
-  if(redraw) {
-    clearData();
+    if(redraw) {
+      clearData();
 
-    if(remesh)
-      clearCenters();
+      if(remesh)
+        clearCenters();
 
-    triple m(xmin,ymin,Zmin);
-    triple M(xmax,ymax,Zmax);
-    double perspective = orthographic ? 0.0 : 1.0 / Zmax;
+      triple m(xmin,ymin,Zmin);
+      triple M(xmax,ymax,Zmax);
+      double perspective = orthographic ? 0.0 : 1.0 / Zmax;
 
-    double size2=hypot(width,height);
+      double size2=hypot(width,height);
 
-    pic->render(size2,m,M,perspective,remesh);
-    redraw=false;
+      pic->render(size2,m,M,perspective,remesh);
+      redraw=false;
 
-    if(mode != DRAWMODE_OUTLINE)
-      remesh=false;
+      if(mode != DRAWMODE_OUTLINE)
+        remesh=false;
 
-    Opaque=transparentData.indices.empty();
+      Opaque=transparentData.indices.empty();
+    }
+  } catch (const vk::DeviceLostError& e) {
+    cerr << "Device lost during rendering: " << e.what() << endl;
+    deviceLost = true;
+  } catch (const std::exception& e) {
+    cerr << "Error during rendering: " << e.what() << endl;
   }
 }
 

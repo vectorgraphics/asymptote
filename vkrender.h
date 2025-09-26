@@ -408,6 +408,9 @@ private:
   bool synchronization2Supported = false;
   vk::UniqueSemaphore renderTimelineSemaphore;
   uint64_t currentTimelineValue = 0;
+
+  bool deviceLost = false;
+
   vk::UniqueSemaphore createTimelineSemaphore(uint64_t initialValue = 0);
   std::vector<vk::Semaphore> signalSemaphores;
 
@@ -746,6 +749,8 @@ private:
   // Timeline semaphore helper functions
   void signalTimelineSemaphore(vk::Semaphore semaphore, uint64_t value);
   void waitForTimelineSemaphore(vk::Semaphore semaphore, uint64_t value, uint64_t timeout = UINT64_MAX);
+  void handleDeviceLost();
+
   vk::CommandBuffer & getFrameComputeCommandBuffer();
   vk::UniquePipeline & getPipelineType(std::array<vk::UniquePipeline, PIPELINE_MAX> & pipelines);
   void beginFrameCommands(vk::CommandBuffer cmd);
@@ -888,6 +893,8 @@ private:
   void drawColors(FrameObject & object);
   void drawTriangles(FrameObject & object);
   void drawTransparent(FrameObject & object);
+  void renderTransparencyStaged(FrameObject& object, int imageIndex);
+
   void clearData();
   void partialSums(FrameObject & object, bool timing=false);
   void resizeBlendShader(std::uint32_t maxDepth);
