@@ -4156,6 +4156,13 @@ void AsyVkRender::endFrame(int imageIndex)
 
 void AsyVkRender::clearData()
 {
+  // Wait for all GPU operations to complete before clearing data
+  // This ensures transparentData is not still being used by the GPU
+  try {
+    device->waitIdle();
+  } catch (const std::exception& e) {
+    cerr << "Error during device waitIdle in clearData: " << e.what() << endl;
+  }
   pointData.clear();
   lineData.clear();
   materialData.clear();
