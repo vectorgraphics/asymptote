@@ -4627,49 +4627,46 @@ void AsyVkRender::renderTransparencyStaged(FrameObject& object, int imageIndex) 
     // Calculate the number of fragments
     size_t fragmentCount = transparentData.indices.size();
 
-    // Use a more conservative batch size to prevent GPU hangs
-    // Especially important when fxaa=false and GPUcompress=false
-    size_t maxFragmentsPerBatch = 100000; // Original value, don't be overly aggressive
+    // For the problematic configuration (View=true, Opaque=false, fxaa=false, GPUcompress=false)
+    // use a more conservative approach without breaking existing functionality
+    bool isProblematicConfig = !fxaa && !GPUcompress && View;
     
-    // Only reduce batch size for extremely large fragment counts
-    if (fragmentCount > 500000) {
-      maxFragmentsPerBatch = 50000; // Reduce only for very large scenes
-    }
+    if (isProblematicConfig && fragmentCount > 100000) {
+      // Use the existing batching approach but with more conservative settings
+      size_t maxFragmentsPerBatch = 75000; // Slightly reduced from original
+      
+      if (fragmentCount > maxFragmentsPerBatch) {
+        size_t batches = (fragmentCount + maxFragmentsPerBatch - 1) / maxFragmentsPerBatch;
 
-    // If we have a lot of fragments, render in batches
-    if (fragmentCount > maxFragmentsPerBatch) {
-      size_t batches = (fragmentCount + maxFragmentsPerBatch - 1) / maxFragmentsPerBatch;
+        if (settings::getSetting<bool>("verbose")) {
+          cerr << "Rendering " << fragmentCount << " transparent fragments in "
+               << batches << " batches" << endl;
+        }
 
-      if (settings::getSetting<bool>("verbose")) {
-        cerr << "Rendering " << fragmentCount << " transparent fragments in "
-             << batches << " batches" << endl;
-      }
+        // Save the original data
+        auto originalIndices = transparentData.indices;
 
-      // Save the original data
-      auto originalIndices = transparentData.indices;
+        // Render in batches using existing synchronization
+        for (size_t batch = 0; batch < batches; batch++) {
+          size_t start = batch * maxFragmentsPerBatch;
+          size_t end = std::min(start + maxFragmentsPerBatch, fragmentCount);
 
-      // Render in batches with minimal synchronization
-      for (size_t batch = 0; batch < batches; batch++) {
-        // Calculate the range for this batch
-        size_t start = batch * maxFragmentsPerBatch;
-        size_t end = std::min(start + maxFragmentsPerBatch, fragmentCount);
+          transparentData.indices.clear();
+          transparentData.indices.insert(
+            transparentData.indices.end(),
+            originalIndices.begin() + start,
+            originalIndices.begin() + end
+          );
 
-        // Create a subset of the data for this batch
-        transparentData.indices.clear();
-        transparentData.indices.insert(
-          transparentData.indices.end(),
-          originalIndices.begin() + start,
-          originalIndices.begin() + end
-        );
+          drawTransparent(object);
+        }
 
-        // Render this batch - rely on existing synchronization mechanisms
+        transparentData.indices = originalIndices;
+      } else {
         drawTransparent(object);
       }
-
-      // Restore the original data
-      transparentData.indices = originalIndices;
     } else {
-      // Normal rendering for smaller fragment counts
+      // Original behavior for all other cases
       drawTransparent(object);
     }
   }
