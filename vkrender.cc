@@ -4769,6 +4769,12 @@ void AsyVkRender::drawFrame()
 
   uint32_t imageIndex = 0;
   if (View) {
+    // Ensure semaphore is properly unsignaled by waiting on the fence
+    if (!timelineSemaphoreSupported) {
+      vkutils::checkVkResult(device->waitForFences(1, &*frameObject.inFlightFence, VK_TRUE, timeout));
+      vkutils::checkVkResult(device->resetFences(1, &*frameObject.inFlightFence));
+    }
+    
     auto result = device->acquireNextImageKHR(*swapChain, timeout, *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
       framebufferResized = false;
@@ -4778,27 +4784,15 @@ void AsyVkRender::drawFrame()
     else if (result == vk::Result::eErrorOutOfDeviceMemory) {
       outOfMemory();
     }
+    else if (result == vk::Result::eTimeout) {
+      // Retry on timeout, but wait a bit first
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
     else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
       std::stringstream buf;
       buf << "Error: Failed to acquire swapchain image: " << vk::to_string(result) << std::endl;
       runtimeError(buf.str());
     }
-      result = device->acquireNextImageKHR(*swapChain, timeout, *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
-
-      if (result == vk::Result::eErrorOutOfDateKHR || framebufferResized) {
-        framebufferResized = false;
-        recreateSwapChain();
-        return;
-      } else if (result == vk::Result::eErrorOutOfDeviceMemory) {
-        outOfMemory();
-      } else if (result == vk::Result::eTimeout) {
-        // Retry on timeout, but wait a bit first
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-      } else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
-        std::stringstream buf;
-        buf << "Error: Failed to acquire swapchain image: " << vk::to_string(result) << std::endl;
-        runtimeError(buf.str());
-      }
   }
 
   if (!timelineSemaphoreSupported) {
