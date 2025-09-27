@@ -4627,28 +4627,59 @@ void AsyVkRender::renderTransparencyStaged(FrameObject& object, int imageIndex) 
     // Calculate the number of fragments
     size_t fragmentCount = transparentData.indices.size();
 
-    // For M2 GPUs, use a conservative batch size
-    // The diagnostics showed ~715,000 fragments causing issues
-    size_t maxFragmentsPerBatch = 100000; // Start with 100k fragments per batch
+    // Use a more conservative batch size to prevent GPU hangs
+    // Especially important when fxaa=false and GPUcompress=false
+    size_t maxFragmentsPerBatch = 50000; // Reduced from 100k to 50k
+    
+    // Add additional safety checks for problematic configurations
+    bool isProblematicConfig = !fxaa && !GPUcompress && View;
+    if (isProblematicConfig) {
+      maxFragmentsPerBatch = 25000; // Even more conservative for this config
+    }
+
+    // Check GPU memory availability
+    vk::PhysicalDeviceMemoryProperties memProperties;
+    gpu.getMemoryProperties(&memProperties);
+    
+    // Estimate memory usage for transparency
+    size_t estimatedMemoryUsage = fragmentCount * sizeof(glm::vec4) * 4; // Conservative estimate
+    
+    // If memory seems tight, be even more conservative
+    for (uint32_t i = 0; i < memProperties.memoryHeapCount; i++) {
+      if (memProperties.memoryHeaps[i].flags & vk::MemoryHeapFlagBits::eDeviceLocal) {
+        if (estimatedMemoryUsage > memProperties.memoryHeaps[i].size / 10) { // Using more than 10% of GPU memory
+          maxFragmentsPerBatch = std::min(maxFragmentsPerBatch, size_t(10000));
+          if (settings::getSetting<bool>("verbose")) {
+            cerr << "Memory pressure detected, reducing batch size to " << maxFragmentsPerBatch << endl;
+          }
+        }
+        break;
+      }
+    }
 
     // If we have a lot of fragments, render in batches
     if (fragmentCount > maxFragmentsPerBatch) {
       size_t batches = (fragmentCount + maxFragmentsPerBatch - 1) / maxFragmentsPerBatch;
 
-      cerr << "Rendering " << fragmentCount << " transparent fragments in "
-           << batches << " batches" << endl;
+      if (settings::getSetting<bool>("verbose")) {
+        cerr << "Rendering " << fragmentCount << " transparent fragments in "
+             << batches << " batches (config: fxaa=" << fxaa 
+             << ", GPUcompress=" << GPUcompress << ", View=" << View << ")" << endl;
+      }
 
       // Save the original data
       auto originalIndices = transparentData.indices;
 
-      // Render in batches
+      // Render in batches with improved synchronization
       for (size_t batch = 0; batch < batches; batch++) {
         // Calculate the range for this batch
         size_t start = batch * maxFragmentsPerBatch;
         size_t end = std::min(start + maxFragmentsPerBatch, fragmentCount);
 
-        cerr << "  Rendering batch " << (batch + 1) << "/" << batches
-             << " (fragments " << start << " to " << end << ")" << endl;
+        if (settings::getSetting<bool>("verbose")) {
+          cerr << "  Rendering batch " << (batch + 1) << "/" << batches
+               << " (fragments " << start << " to " << end << ")" << endl;
+        }
 
         // Create a subset of the data for this batch
         transparentData.indices.clear();
@@ -4658,15 +4689,37 @@ void AsyVkRender::renderTransparencyStaged(FrameObject& object, int imageIndex) 
           originalIndices.begin() + end
         );
 
-        // Render this batch
-        drawTransparent(object);
+        // Ensure proper synchronization between batches
+        try {
+          device->waitIdle();
+          drawTransparent(object);
+          device->waitIdle();
+        } catch (const vk::DeviceLostError& e) {
+          cerr << "Device lost during transparency batch rendering: " << e.what() << endl;
+          // Try to recover by reducing batch size further
+          if (maxFragmentsPerBatch > 5000) {
+            maxFragmentsPerBatch /= 2;
+            cerr << "Reducing batch size to " << maxFragmentsPerBatch << " and retrying" << endl;
+            batch--; // Retry this batch with smaller size
+            continue;
+          } else {
+            throw;
+          }
+        }
       }
 
       // Restore the original data
       transparentData.indices = originalIndices;
     } else {
       // Normal rendering for smaller fragment counts
-      drawTransparent(object);
+      try {
+        device->waitIdle();
+        drawTransparent(object);
+        device->waitIdle();
+      } catch (const vk::DeviceLostError& e) {
+        cerr << "Device lost during transparency rendering: " << e.what() << endl;
+        throw;
+      }
     }
   }
 }
@@ -4768,19 +4821,32 @@ void AsyVkRender::drawFrame()
 
   uint32_t imageIndex = 0;
   if (View) {
-    auto const result = device->acquireNextImageKHR(*swapChain, timeout, *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
-    if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
-      framebufferResized = false;
-      recreateSwapChain();
-      return;
-    }
-    else if (result == vk::Result::eErrorOutOfDeviceMemory) {
-      outOfMemory();
-    }
-    else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
-      std::stringstream buf;
-      buf << "Error: Failed to acquire swapchain image: " << vk::to_string(result) << std::endl;
-      runtimeError(buf.str());
+    // Use a shorter timeout for swapchain image acquisition to prevent hangs
+    uint64_t acquireTimeout = std::min(timeout, uint64_t(1000000000)); // 1 second max
+    
+    vk::Result result;
+    int maxAttempts = 3;
+    
+    for (int attempt = 0; attempt < maxAttempts; attempt++) {
+      result = device->acquireNextImageKHR(*swapChain, acquireTimeout, *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
+      
+      if (result == vk::Result::eSuccess || result == vk::Result::eSuboptimalKHR) {
+        break; // Success
+      } else if (result == vk::Result::eErrorOutOfDateKHR || framebufferResized) {
+        framebufferResized = false;
+        recreateSwapChain();
+        return;
+      } else if (result == vk::Result::eErrorOutOfDeviceMemory) {
+        outOfMemory();
+      } else if (result == vk::Result::eTimeout && attempt < maxAttempts - 1) {
+        // Retry on timeout, but wait a bit first
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        continue;
+      } else {
+        std::stringstream buf;
+        buf << "Error: Failed to acquire swapchain image: " << vk::to_string(result) << std::endl;
+        runtimeError(buf.str());
+      }
     }
   }
 
