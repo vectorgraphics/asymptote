@@ -4637,23 +4637,14 @@ void AsyVkRender::renderTransparencyStaged(FrameObject& object, int imageIndex) 
       maxFragmentsPerBatch = 25000; // Even more conservative for this config
     }
 
-    // Check GPU memory availability
-    vk::PhysicalDeviceMemoryProperties memProperties;
-    gpu.getMemoryProperties(&memProperties);
+    // Check GPU memory availability - use a conservative approach since we don't have gpu in scope
+    // For problematic configurations, use more conservative batching
+    bool isHighMemoryUsage = (fragmentCount > 100000); // Simple heuristic based on fragment count
     
-    // Estimate memory usage for transparency
-    size_t estimatedMemoryUsage = fragmentCount * sizeof(glm::vec4) * 4; // Conservative estimate
-    
-    // If memory seems tight, be even more conservative
-    for (uint32_t i = 0; i < memProperties.memoryHeapCount; i++) {
-      if (memProperties.memoryHeaps[i].flags & vk::MemoryHeapFlagBits::eDeviceLocal) {
-        if (estimatedMemoryUsage > memProperties.memoryHeaps[i].size / 10) { // Using more than 10% of GPU memory
-          maxFragmentsPerBatch = std::min(maxFragmentsPerBatch, size_t(10000));
-          if (settings::getSetting<bool>("verbose")) {
-            cerr << "Memory pressure detected, reducing batch size to " << maxFragmentsPerBatch << endl;
-          }
-        }
-        break;
+    if (isHighMemoryUsage) {
+      maxFragmentsPerBatch = std::min(maxFragmentsPerBatch, size_t(10000));
+      if (settings::getSetting<bool>("verbose")) {
+        cerr << "High fragment count detected, reducing batch size to " << maxFragmentsPerBatch << endl;
       }
     }
 
@@ -4694,8 +4685,8 @@ void AsyVkRender::renderTransparencyStaged(FrameObject& object, int imageIndex) 
           device->waitIdle();
           drawTransparent(object);
           device->waitIdle();
-        } catch (const vk::DeviceLostError& e) {
-          cerr << "Device lost during transparency batch rendering: " << e.what() << endl;
+        } catch (const std::exception&amp; e) {
+          cerr << "Error during transparency batch rendering: " << e.what() << endl;
           // Try to recover by reducing batch size further
           if (maxFragmentsPerBatch > 5000) {
             maxFragmentsPerBatch /= 2;
@@ -4716,8 +4707,8 @@ void AsyVkRender::renderTransparencyStaged(FrameObject& object, int imageIndex) 
         device->waitIdle();
         drawTransparent(object);
         device->waitIdle();
-      } catch (const vk::DeviceLostError& e) {
-        cerr << "Device lost during transparency rendering: " << e.what() << endl;
+      } catch (const std::exception&amp; e) {
+        cerr << "Error during transparency rendering: " << e.what() << endl;
         throw;
       }
     }
