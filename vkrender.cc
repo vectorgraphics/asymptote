@@ -2859,7 +2859,6 @@ void AsyVkRender::writeMaterialAndLightDescriptors() {
 }
 
 void AsyVkRender::updateSceneDependentBuffers() {
-
   fragmentBufferSize = maxFragments*sizeof(vec4);
   fragmentBf = createBufferUnique(
           vk::BufferUsageFlagBits::eStorageBuffer,
@@ -4627,46 +4626,36 @@ void AsyVkRender::renderTransparencyStaged(FrameObject& object, int imageIndex) 
     // Calculate the number of fragments
     size_t fragmentCount = transparentData.indices.size();
 
-    // For the problematic configuration (View=true, Opaque=false, fxaa=false, GPUcompress=false)
-    // use a more conservative approach without breaking existing functionality
-    bool isProblematicConfig = !fxaa && !GPUcompress && View;
+    // For very large fragment counts, render in batches
+    size_t maxFragmentsPerBatch = 100000;
+    if (fragmentCount > maxFragmentsPerBatch) {
+      size_t batches = (fragmentCount + maxFragmentsPerBatch - 1) / maxFragmentsPerBatch;
 
-    if (isProblematicConfig && fragmentCount > 100000) {
-      // Use the existing batching approach but with more conservative settings
-      size_t maxFragmentsPerBatch = 75000; // Slightly reduced from original
+      if (settings::getSetting<bool>("verbose")) {
+        cerr << "Rendering " << fragmentCount << " transparent fragments in "
+             << batches << " batches" << endl;
+      }
 
-      if (fragmentCount > maxFragmentsPerBatch) {
-        size_t batches = (fragmentCount + maxFragmentsPerBatch - 1) / maxFragmentsPerBatch;
+      // Save the original data
+      auto originalIndices = transparentData.indices;
 
-        if (settings::getSetting<bool>("verbose")) {
-          cerr << "Rendering " << fragmentCount << " transparent fragments in "
-               << batches << " batches" << endl;
-        }
+      // Render in batches
+      for (size_t batch = 0; batch < batches; batch++) {
+        size_t start = batch * maxFragmentsPerBatch;
+        size_t end = std::min(start + maxFragmentsPerBatch, fragmentCount);
 
-        // Save the original data
-        auto originalIndices = transparentData.indices;
+        transparentData.indices.clear();
+        transparentData.indices.insert(
+          transparentData.indices.end(),
+          originalIndices.begin() + start,
+          originalIndices.begin() + end
+        );
 
-        // Render in batches using existing synchronization
-        for (size_t batch = 0; batch < batches; batch++) {
-          size_t start = batch * maxFragmentsPerBatch;
-          size_t end = std::min(start + maxFragmentsPerBatch, fragmentCount);
-
-          transparentData.indices.clear();
-          transparentData.indices.insert(
-            transparentData.indices.end(),
-            originalIndices.begin() + start,
-            originalIndices.begin() + end
-          );
-
-          drawTransparent(object);
-        }
-
-        transparentData.indices = originalIndices;
-      } else {
         drawTransparent(object);
       }
+
+      transparentData.indices = originalIndices;
     } else {
-      // Original behavior for all other cases
       drawTransparent(object);
     }
   }
