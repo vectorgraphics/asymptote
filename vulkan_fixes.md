@@ -35,8 +35,9 @@ The issue is caused by:
 - Enhanced error handling and recovery
 
 ### 4. Memory Usage Optimization
-- Added GPU memory pressure detection
+- Added GPU memory pressure detection using fragment count heuristic
 - Implemented conservative rendering when transparency is enabled without compression
+- Fixed compilation issues with memory detection logic
 
 ## Testing Recommendations
 
