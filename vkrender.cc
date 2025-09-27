@@ -4629,23 +4629,11 @@ void AsyVkRender::renderTransparencyStaged(FrameObject& object, int imageIndex) 
 
     // Use a more conservative batch size to prevent GPU hangs
     // Especially important when fxaa=false and GPUcompress=false
-    size_t maxFragmentsPerBatch = 50000; // Reduced from 100k to 50k
+    size_t maxFragmentsPerBatch = 100000; // Original value, don't be overly aggressive
     
-    // Add additional safety checks for problematic configurations
-    bool isProblematicConfig = !fxaa && !GPUcompress && View;
-    if (isProblematicConfig) {
-      maxFragmentsPerBatch = 25000; // Even more conservative for this config
-    }
-
-    // Check GPU memory availability - use a conservative approach since we don't have gpu in scope
-    // For problematic configurations, use more conservative batching
-    bool isHighMemoryUsage = (fragmentCount > 100000); // Simple heuristic based on fragment count
-    
-    if (isHighMemoryUsage) {
-      maxFragmentsPerBatch = std::min(maxFragmentsPerBatch, size_t(10000));
-      if (settings::getSetting<bool>("verbose")) {
-        cerr << "High fragment count detected, reducing batch size to " << maxFragmentsPerBatch << endl;
-      }
+    // Only reduce batch size for extremely large fragment counts
+    if (fragmentCount > 500000) {
+      maxFragmentsPerBatch = 50000; // Reduce only for very large scenes
     }
 
     // If we have a lot of fragments, render in batches
@@ -4654,23 +4642,17 @@ void AsyVkRender::renderTransparencyStaged(FrameObject& object, int imageIndex) 
 
       if (settings::getSetting<bool>("verbose")) {
         cerr << "Rendering " << fragmentCount << " transparent fragments in "
-             << batches << " batches (config: fxaa=" << fxaa 
-             << ", GPUcompress=" << GPUcompress << ", View=" << View << ")" << endl;
+             << batches << " batches" << endl;
       }
 
       // Save the original data
       auto originalIndices = transparentData.indices;
 
-      // Render in batches with improved synchronization
+      // Render in batches with minimal synchronization
       for (size_t batch = 0; batch < batches; batch++) {
         // Calculate the range for this batch
         size_t start = batch * maxFragmentsPerBatch;
         size_t end = std::min(start + maxFragmentsPerBatch, fragmentCount);
-
-        if (settings::getSetting<bool>("verbose")) {
-          cerr << "  Rendering batch " << (batch + 1) << "/" << batches
-               << " (fragments " << start << " to " << end << ")" << endl;
-        }
 
         // Create a subset of the data for this batch
         transparentData.indices.clear();
@@ -4680,37 +4662,15 @@ void AsyVkRender::renderTransparencyStaged(FrameObject& object, int imageIndex) 
           originalIndices.begin() + end
         );
 
-        // Ensure proper synchronization between batches
-        try {
-          device->waitIdle();
-          drawTransparent(object);
-          device->waitIdle();
-        } catch (const std::exception& e) {
-          cerr << "Error during transparency batch rendering: " << e.what() << endl;
-          // Try to recover by reducing batch size further
-          if (maxFragmentsPerBatch > 5000) {
-            maxFragmentsPerBatch /= 2;
-            cerr << "Reducing batch size to " << maxFragmentsPerBatch << " and retrying" << endl;
-            batch--; // Retry this batch with smaller size
-            continue;
-          } else {
-            throw;
-          }
-        }
+        // Render this batch - rely on existing synchronization mechanisms
+        drawTransparent(object);
       }
 
       // Restore the original data
       transparentData.indices = originalIndices;
     } else {
       // Normal rendering for smaller fragment counts
-      try {
-        device->waitIdle();
-        drawTransparent(object);
-        device->waitIdle();
-      } catch (const std::exception& e) {
-        cerr << "Error during transparency rendering: " << e.what() << endl;
-        throw;
-      }
+      drawTransparent(object);
     }
   }
 }
@@ -4812,13 +4772,21 @@ void AsyVkRender::drawFrame()
 
   uint32_t imageIndex = 0;
   if (View) {
-    // Use a shorter timeout for swapchain image acquisition to prevent hangs
-    uint64_t acquireTimeout = std::min(timeout, uint64_t(1000000000)); // 1 second max
-    
-    vk::Result result;
-    int maxAttempts = 3;
-    
-    for (int attempt = 0; attempt < maxAttempts; attempt++) {
+    auto const result = device->acquireNextImageKHR(*swapChain, timeout, *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
+    if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
+      framebufferResized = false;
+      recreateSwapChain();
+      return;
+    }
+    else if (result == vk::Result::eErrorOutOfDeviceMemory) {
+      outOfMemory();
+    }
+    else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
+      std::stringstream buf;
+      buf << "Error: Failed to acquire swapchain image: " << vk::to_string(result) << std::endl;
+      runtimeError(buf.str());
+    }
+  } < maxAttempts; attempt++) {
       result = device->acquireNextImageKHR(*swapChain, acquireTimeout, *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
       
       if (result == vk::Result::eSuccess || result == vk::Result::eSuboptimalKHR) {
