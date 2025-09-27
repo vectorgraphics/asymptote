@@ -4630,11 +4630,11 @@ void AsyVkRender::renderTransparencyStaged(FrameObject& object, int imageIndex) 
     // For the problematic configuration (View=true, Opaque=false, fxaa=false, GPUcompress=false)
     // use a more conservative approach without breaking existing functionality
     bool isProblematicConfig = !fxaa && !GPUcompress && View;
-    
+
     if (isProblematicConfig && fragmentCount > 100000) {
       // Use the existing batching approach but with more conservative settings
       size_t maxFragmentsPerBatch = 75000; // Slightly reduced from original
-      
+
       if (fragmentCount > maxFragmentsPerBatch) {
         size_t batches = (fragmentCount + maxFragmentsPerBatch - 1) / maxFragmentsPerBatch;
 
@@ -4769,7 +4769,7 @@ void AsyVkRender::drawFrame()
 
   uint32_t imageIndex = 0;
   if (View) {
-    auto const result = device->acquireNextImageKHR(*swapChain, timeout, *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
+    auto result = device->acquireNextImageKHR(*swapChain, timeout, *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
       framebufferResized = false;
       recreateSwapChain();
@@ -4783,27 +4783,22 @@ void AsyVkRender::drawFrame()
       buf << "Error: Failed to acquire swapchain image: " << vk::to_string(result) << std::endl;
       runtimeError(buf.str());
     }
-  } < maxAttempts; attempt++) {
-      result = device->acquireNextImageKHR(*swapChain, acquireTimeout, *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
-      
-      if (result == vk::Result::eSuccess || result == vk::Result::eSuboptimalKHR) {
-        break; // Success
-      } else if (result == vk::Result::eErrorOutOfDateKHR || framebufferResized) {
+      result = device->acquireNextImageKHR(*swapChain, timeout, *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
+
+      if (result == vk::Result::eErrorOutOfDateKHR || framebufferResized) {
         framebufferResized = false;
         recreateSwapChain();
         return;
       } else if (result == vk::Result::eErrorOutOfDeviceMemory) {
         outOfMemory();
-      } else if (result == vk::Result::eTimeout && attempt < maxAttempts - 1) {
+      } else if (result == vk::Result::eTimeout) {
         // Retry on timeout, but wait a bit first
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        continue;
-      } else {
+      } else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
         std::stringstream buf;
         buf << "Error: Failed to acquire swapchain image: " << vk::to_string(result) << std::endl;
         runtimeError(buf.str());
       }
-    }
   }
 
   if (!timelineSemaphoreSupported) {
