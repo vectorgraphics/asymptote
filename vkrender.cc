@@ -4685,7 +4685,7 @@ void AsyVkRender::renderTransparencyStaged(FrameObject& object, int imageIndex) 
           device->waitIdle();
           drawTransparent(object);
           device->waitIdle();
-        } catch (const std::exception&amp; e) {
+        } catch (const std::exception& e) {
           cerr << "Error during transparency batch rendering: " << e.what() << endl;
           // Try to recover by reducing batch size further
           if (maxFragmentsPerBatch > 5000) {
@@ -4707,7 +4707,7 @@ void AsyVkRender::renderTransparencyStaged(FrameObject& object, int imageIndex) 
         device->waitIdle();
         drawTransparent(object);
         device->waitIdle();
-      } catch (const std::exception&amp; e) {
+      } catch (const std::exception& e) {
         cerr << "Error during transparency rendering: " << e.what() << endl;
         throw;
       }
