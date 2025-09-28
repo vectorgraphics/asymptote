@@ -4578,7 +4578,7 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
       ));
     }
 
-    pixels=backbufferExtent.width*backbufferExtent.height;
+    pixels=(backbufferExtent.width+1)*(backbufferExtent.height+1);
     if(pixels > transparencyCapacityPixels) {
       // Only wait for the specific resources we need to modify
       if (timelineSemaphoreSupported)
