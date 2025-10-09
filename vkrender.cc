@@ -834,6 +834,7 @@ void AsyVkRender::recreateSwapChain()
     setupPostProcessingComputeParameters();
   }
 
+  createDependentBuffers();
   createImmediateRenderTargets();
 
   if (fxaa) {
@@ -856,9 +857,7 @@ void AsyVkRender::recreateSwapChain()
     }
   }
 
-  // If transparency buffers have been created, they are now stale after a swapchain recreation.
-  if(transparencyCapacityPixels > 0)
-    writeDescriptorSets(true);
+  writeDescriptorSets();
   writeMaterialAndLightDescriptors();
   createImageViews();
   createSyncObjects();
@@ -2494,7 +2493,7 @@ void AsyVkRender::createDescriptorSets()
   }
 }
 
-void AsyVkRender::writeDescriptorSets(bool transparent)
+void AsyVkRender::writeDescriptorSets()
 {
   for (auto i = 0; i < maxFramesInFlight; i++)
   {
@@ -2505,39 +2504,42 @@ void AsyVkRender::writeDescriptorSets(bool transparent)
     uboInfo.range = sizeof(UniformBufferObject);
 
     auto countBufferInfo = vk::DescriptorBufferInfo();
+
+    countBufferInfo.buffer = countBf.getBuffer();
+    countBufferInfo.offset = 0;
+    countBufferInfo.range = countBufferSize;
+
     auto offsetBufferInfo = vk::DescriptorBufferInfo();
+
+    offsetBufferInfo.buffer = offsetBf.getBuffer();
+    offsetBufferInfo.offset = 0;
+    offsetBufferInfo.range = offsetBufferSize;
+
     auto opaqueBufferInfo = vk::DescriptorBufferInfo();
+
+    opaqueBufferInfo.buffer = opaqueBf.getBuffer();
+    opaqueBufferInfo.offset = 0;
+    opaqueBufferInfo.range = opaqueBufferSize;
+
     auto opaqueDepthBufferInfo = vk::DescriptorBufferInfo();
+
+    opaqueDepthBufferInfo.buffer = opaqueDepthBf.getBuffer();
+    opaqueDepthBufferInfo.offset = 0;
+    opaqueDepthBufferInfo.range = opaqueDepthBufferSize;
+
     auto indexBufferInfo = vk::DescriptorBufferInfo();
+
+    indexBufferInfo.buffer = indexBf.getBuffer();
+    indexBufferInfo.offset = 0;
+    indexBufferInfo.range = indexBufferSize;
+
     auto elementBufferInfo = vk::DescriptorBufferInfo();
 
-    if(transparent) {
-      countBufferInfo.buffer = countBf.getBuffer();
-      countBufferInfo.offset = 0;
-      countBufferInfo.range = countBufferSize;
+    elementBufferInfo.buffer = elementBf.getBuffer();
+    elementBufferInfo.offset = 0;
+    elementBufferInfo.range = elementBufferSize;
 
-      offsetBufferInfo.buffer = offsetBf.getBuffer();
-      offsetBufferInfo.offset = 0;
-      offsetBufferInfo.range = offsetBufferSize;
-
-      opaqueBufferInfo.buffer = opaqueBf.getBuffer();
-      opaqueBufferInfo.offset = 0;
-      opaqueBufferInfo.range = opaqueBufferSize;
-
-      opaqueDepthBufferInfo.buffer = opaqueDepthBf.getBuffer();
-      opaqueDepthBufferInfo.offset = 0;
-      opaqueDepthBufferInfo.range = opaqueDepthBufferSize;
-
-      indexBufferInfo.buffer = indexBf.getBuffer();
-      indexBufferInfo.offset = 0;
-      indexBufferInfo.range = indexBufferSize;
-
-      elementBufferInfo.buffer = elementBf.getBuffer();
-      elementBufferInfo.offset = 0;
-      elementBufferInfo.range = elementBufferSize;
-    }
-
-    std::array<vk::WriteDescriptorSet,7> writes;
+    std::array<vk::WriteDescriptorSet, 7> writes;
 
     writes[0].dstSet = *frameObjects[i].descriptorSet;
     writes[0].dstBinding = 0;
@@ -2546,56 +2548,55 @@ void AsyVkRender::writeDescriptorSets(bool transparent)
     writes[0].descriptorCount = 1;
     writes[0].pBufferInfo = &uboInfo;
 
-    if(transparent) {
-      writes[1].dstSet = *frameObjects[i].descriptorSet;
-      writes[1].dstBinding = 3;
-      writes[1].dstArrayElement = 0;
-      writes[1].descriptorType = vk::DescriptorType::eStorageBuffer;
-      writes[1].descriptorCount = 1;
-      writes[1].pBufferInfo = &countBufferInfo;
+    writes[1].dstSet = *frameObjects[i].descriptorSet;
+    writes[1].dstBinding = 3;
+    writes[1].dstArrayElement = 0;
+    writes[1].descriptorType = vk::DescriptorType::eStorageBuffer;
+    writes[1].descriptorCount = 1;
+    writes[1].pBufferInfo = &countBufferInfo;
 
-      writes[2].dstSet = *frameObjects[i].descriptorSet;
-      writes[2].dstBinding = 4;
-      writes[2].dstArrayElement = 0;
-      writes[2].descriptorType = vk::DescriptorType::eStorageBuffer;
-      writes[2].descriptorCount = 1;
-      writes[2].pBufferInfo = &offsetBufferInfo;
+    writes[2].dstSet = *frameObjects[i].descriptorSet;
+    writes[2].dstBinding = 4;
+    writes[2].dstArrayElement = 0;
+    writes[2].descriptorType = vk::DescriptorType::eStorageBuffer;
+    writes[2].descriptorCount = 1;
+    writes[2].pBufferInfo = &offsetBufferInfo;
 
-      writes[3].dstSet = *frameObjects[i].descriptorSet;
-      writes[3].dstBinding = 7;
-      writes[3].dstArrayElement = 0;
-      writes[3].descriptorType = vk::DescriptorType::eStorageBuffer;
-      writes[3].descriptorCount = 1;
-      writes[3].pBufferInfo = &opaqueBufferInfo;
+    writes[3].dstSet = *frameObjects[i].descriptorSet;
+    writes[3].dstBinding = 7;
+    writes[3].dstArrayElement = 0;
+    writes[3].descriptorType = vk::DescriptorType::eStorageBuffer;
+    writes[3].descriptorCount = 1;
+    writes[3].pBufferInfo = &opaqueBufferInfo;
 
-      writes[4].dstSet = *frameObjects[i].descriptorSet;
-      writes[4].dstBinding = 8;
-      writes[4].dstArrayElement = 0;
-      writes[4].descriptorType = vk::DescriptorType::eStorageBuffer;
-      writes[4].descriptorCount = 1;
-      writes[4].pBufferInfo = &opaqueDepthBufferInfo;
+    writes[4].dstSet = *frameObjects[i].descriptorSet;
+    writes[4].dstBinding = 8;
+    writes[4].dstArrayElement = 0;
+    writes[4].descriptorType = vk::DescriptorType::eStorageBuffer;
+    writes[4].descriptorCount = 1;
+    writes[4].pBufferInfo = &opaqueDepthBufferInfo;
 
-      if(GPUcompress) {
-        writes[5].dstSet = *frameObjects[i].descriptorSet;
-        writes[5].dstBinding = 9;
-        writes[5].dstArrayElement = 0;
-        writes[5].descriptorType = vk::DescriptorType::eStorageBuffer;
-        writes[5].descriptorCount = 1;
-        writes[5].pBufferInfo = &indexBufferInfo;
+    if(GPUcompress) {
+      writes[5].dstSet = *frameObjects[i].descriptorSet;
+      writes[5].dstBinding = 9;
+      writes[5].dstArrayElement = 0;
+      writes[5].descriptorType = vk::DescriptorType::eStorageBuffer;
+      writes[5].descriptorCount = 1;
+      writes[5].pBufferInfo = &indexBufferInfo;
 
-        writes[6].dstSet = *frameObjects[i].descriptorSet;
-        writes[6].dstBinding = 10;
-        writes[6].dstArrayElement = 0;
-        writes[6].descriptorType = vk::DescriptorType::eStorageBuffer;
-        writes[6].descriptorCount = 1;
-        writes[6].pBufferInfo = &elementBufferInfo;
-      }
+      writes[6].dstSet = *frameObjects[i].descriptorSet;
+      writes[6].dstBinding = 10;
+      writes[6].dstArrayElement = 0;
+      writes[6].descriptorType = vk::DescriptorType::eStorageBuffer;
+      writes[6].descriptorCount = 1;
+      writes[6].pBufferInfo = &elementBufferInfo;
     }
 
-    device->updateDescriptorSets(transparent ? (GPUcompress ? 7 : 5) : 1,
-                                 writes.data(),0,nullptr);
+    device->updateDescriptorSets(GPUcompress ? 7 : 5,
+                                 writes.data(), 0, nullptr);
 
     if (ibl) {
+
       auto irradianceSampInfo = vk::DescriptorImageInfo();
 
       irradianceSampInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
@@ -2641,68 +2642,68 @@ void AsyVkRender::writeDescriptorSets(bool transparent)
     }
   }
 
-  if(transparent) {
-    // compute descriptors
+  // compute descriptors
 
-    auto countBufferInfo = vk::DescriptorBufferInfo();
+  auto countBufferInfo = vk::DescriptorBufferInfo();
 
-    countBufferInfo.buffer = countBf.getBuffer();
-    countBufferInfo.offset = 0;
-    countBufferInfo.range = countBufferSize;
+  countBufferInfo.buffer = countBf.getBuffer();
+  countBufferInfo.offset = 0;
+  countBufferInfo.range = countBufferSize;
 
-    auto globalSumBufferInfo = vk::DescriptorBufferInfo();
+  auto globalSumBufferInfo = vk::DescriptorBufferInfo();
 
-    globalSumBufferInfo.buffer = globalSumBf.getBuffer();
-    globalSumBufferInfo.offset = 0;
-    globalSumBufferInfo.range = globalSize;
+  globalSumBufferInfo.buffer = globalSumBf.getBuffer();
+  globalSumBufferInfo.offset = 0;
+  globalSumBufferInfo.range = globalSize;
 
-    auto offsetBufferInfo = vk::DescriptorBufferInfo();
+  auto offsetBufferInfo = vk::DescriptorBufferInfo();
 
-    offsetBufferInfo.buffer = offsetBf.getBuffer();
-    offsetBufferInfo.offset = 0;
-    offsetBufferInfo.range = offsetBufferSize;
+  offsetBufferInfo.buffer = offsetBf.getBuffer();
+  offsetBufferInfo.offset = 0;
+  offsetBufferInfo.range = offsetBufferSize;
 
-    auto feedbackBufferInfo = vk::DescriptorBufferInfo();
+  auto feedbackBufferInfo = vk::DescriptorBufferInfo();
 
-    feedbackBufferInfo.buffer = feedbackBf.getBuffer();
-    feedbackBufferInfo.offset = 0;
-    feedbackBufferInfo.range = feedbackBufferSize;
+  feedbackBufferInfo.buffer = feedbackBf.getBuffer();
+  feedbackBufferInfo.offset = 0;
+  feedbackBufferInfo.range = feedbackBufferSize;
 
-    std::array<vk::WriteDescriptorSet, 4> writes;
+  std::array<vk::WriteDescriptorSet, 4> writes;
 
-    writes[0].dstSet = *computeDescriptorSet;
-    writes[0].dstBinding = 0;
-    writes[0].dstArrayElement = 0;
-    writes[0].descriptorType = vk::DescriptorType::eStorageBuffer;
-    writes[0].descriptorCount = 1;
-    writes[0].pBufferInfo = &countBufferInfo;
+  writes[0].dstSet = *computeDescriptorSet;
+  writes[0].dstBinding = 0;
+  writes[0].dstArrayElement = 0;
+  writes[0].descriptorType = vk::DescriptorType::eStorageBuffer;
+  writes[0].descriptorCount = 1;
+  writes[0].pBufferInfo = &countBufferInfo;
 
-    writes[1].dstSet = *computeDescriptorSet;
-    writes[1].dstBinding = 1;
-    writes[1].dstArrayElement = 0;
-    writes[1].descriptorType = vk::DescriptorType::eStorageBuffer;
-    writes[1].descriptorCount = 1;
-    writes[1].pBufferInfo = &globalSumBufferInfo;
+  writes[1].dstSet = *computeDescriptorSet;
+  writes[1].dstBinding = 1;
+  writes[1].dstArrayElement = 0;
+  writes[1].descriptorType = vk::DescriptorType::eStorageBuffer;
+  writes[1].descriptorCount = 1;
+  writes[1].pBufferInfo = &globalSumBufferInfo;
 
-    writes[2].dstSet = *computeDescriptorSet;
-    writes[2].dstBinding = 2;
-    writes[2].dstArrayElement = 0;
-    writes[2].descriptorType = vk::DescriptorType::eStorageBuffer;
-    writes[2].descriptorCount = 1;
-    writes[2].pBufferInfo = &offsetBufferInfo;
+  writes[2].dstSet = *computeDescriptorSet;
+  writes[2].dstBinding = 2;
+  writes[2].dstArrayElement = 0;
+  writes[2].descriptorType = vk::DescriptorType::eStorageBuffer;
+  writes[2].descriptorCount = 1;
+  writes[2].pBufferInfo = &offsetBufferInfo;
 
-    writes[3].dstSet = *computeDescriptorSet;
-    writes[3].dstBinding = 3;
-    writes[3].dstArrayElement = 0;
-    writes[3].descriptorType = vk::DescriptorType::eStorageBuffer;
-    writes[3].descriptorCount = 1;
-    writes[3].pBufferInfo = &feedbackBufferInfo;
+  writes[3].dstSet = *computeDescriptorSet;
+  writes[3].dstBinding = 3;
+  writes[3].dstArrayElement = 0;
+  writes[3].descriptorType = vk::DescriptorType::eStorageBuffer;
+  writes[3].descriptorCount = 1;
+  writes[3].pBufferInfo = &feedbackBufferInfo;
 
-    device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
-  }
+  device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
 
-  if(fxaa)
+  if (fxaa)
+  {
     writePostProcessDescSets();
+  }
 }
 
 void AsyVkRender::writePostProcessDescSets()
@@ -2912,6 +2913,7 @@ void AsyVkRender::createBuffers()
   }
 
   createMaterialAndLightBuffers();
+  createDependentBuffers();
 }
 
 
@@ -3017,8 +3019,15 @@ void AsyVkRender::createImmediateRenderTargets()
   }
 }
 
-void AsyVkRender::createTransparencyBuffers(std::uint32_t pixels)
+void AsyVkRender::createDependentBuffers()
 {
+  render(); // Determine whether the scene is opaque.
+  redisplay=true;
+
+  cout << "createDependentBuffers: width=" << backbufferExtent.width << endl;
+  cout << "Opaque=" << Opaque << endl;
+  pixels=Opaque ? 1 : (backbufferExtent.width+1)*(backbufferExtent.height+1);
+
   std::uint32_t G=ceilquotient(pixels,groupSize);
   std::uint32_t Pixels=groupSize*G;
   globalSize=localSize*ceilquotient(G,localSize)*sizeof(std::uint32_t);
@@ -3026,81 +3035,79 @@ void AsyVkRender::createTransparencyBuffers(std::uint32_t pixels)
   countBufferSize=(Pixels+1)*sizeof(std::uint32_t);
   offsetBufferSize=(Pixels+2)*sizeof(std::uint32_t);
   opaqueBufferSize=pixels*sizeof(vec4);
-  opaqueDepthBufferSize=pixels*sizeof(float);
+  opaqueDepthBufferSize=sizeof(std::uint32_t)+pixels*sizeof(float);
   indexBufferSize=pixels*sizeof(std::uint32_t);
 
-  VkMemoryPropertyFlags countBufferFlags=VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-  VmaAllocationCreateFlags vmaFlags=0;
+  VkMemoryPropertyFlags countBufferFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+  VmaAllocationCreateFlags vmaFlags = 0;
 
-  if(fxaa) {
-    countBufferFlags=VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    vmaFlags=VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+  if (countBfMappedMem != nullptr)
+  {
+    countBfMappedMem = nullptr;
   }
 
-  try {
-  countBf=createBufferUnique(
-    vk::BufferUsageFlagBits::eStorageBuffer |
-    vk::BufferUsageFlagBits::eTransferDst |
-    vk::BufferUsageFlagBits::eTransferSrc,
-    countBufferFlags,
-    countBufferSize,
-    vmaFlags,
-    VMA_MEMORY_USAGE_AUTO,
-    VARIABLE_NAME(countBf)
-    );
+  if (offsetStageBfMappedMem != nullptr)
+  {
+    offsetStageBfMappedMem = nullptr;
+  }
+
+  countBf = createBufferUnique(
+          vk::BufferUsageFlagBits::eStorageBuffer
+                  | vk::BufferUsageFlagBits::eTransferDst
+                  | vk::BufferUsageFlagBits::eTransferSrc,
+          countBufferFlags,
+          countBufferSize,
+          vmaFlags,
+          VMA_MEMORY_USAGE_AUTO,
+          VARIABLE_NAME(countBf)
+          );
 
   auto usageflags=vk::BufferUsageFlagBits::eStorageBuffer |
     vk::BufferUsageFlagBits::eTransferDst;
 
-  globalSumBf=createBufferUnique(
+  globalSumBf = createBufferUnique(
+    usageflags,
+          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+          globalSize,
+          vmaFlags,
+          VMA_MEMORY_USAGE_AUTO,
+          VARIABLE_NAME(globalSumBf));
+
+  offsetBf = createBufferUnique(
+    usageflags,
+          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+          offsetBufferSize,
+          vmaFlags,
+          VMA_MEMORY_USAGE_AUTO,
+          VARIABLE_NAME(offsetBf));
+
+  opaqueBf = createBufferUnique(
+                     vk::BufferUsageFlagBits::eStorageBuffer,
+                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                     opaqueBufferSize,
+                     vmaFlags,
+                     VMA_MEMORY_USAGE_AUTO,
+                     VARIABLE_NAME(opaqueBf));
+
+  opaqueDepthBf = createBufferUnique(
+    usageflags,
+                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                     opaqueBufferSize,
+                     vmaFlags,
+                     VMA_MEMORY_USAGE_AUTO,
+                     VARIABLE_NAME(opaqueDepthBf));
+
+  if(GPUcompress) {
+    indexBf = createBufferUnique(
       usageflags,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-      globalSize,
-      vmaFlags,
-      VMA_MEMORY_USAGE_AUTO,
-      VARIABLE_NAME(globalSumBf));
-
-  offsetBf=createBufferUnique(
-      usageflags,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-      offsetBufferSize,
-      vmaFlags,
-      VMA_MEMORY_USAGE_AUTO,
-      VARIABLE_NAME(offsetBf));
-
-  opaqueBf=createBufferUnique(
-      vk::BufferUsageFlagBits::eStorageBuffer,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-      opaqueBufferSize,
-      vmaFlags,
-      VMA_MEMORY_USAGE_AUTO,
-      VARIABLE_NAME(opaqueBf));
-
-  opaqueDepthBf=createBufferUnique(
-      vk::BufferUsageFlagBits::eStorageBuffer |
-      vk::BufferUsageFlagBits::eTransferDst,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-      opaqueDepthBufferSize,
-      vmaFlags,
-      VMA_MEMORY_USAGE_AUTO,
-      VARIABLE_NAME(opaqueDepthBf));
-
-  if (GPUcompress) {
-    indexBf=createBufferUnique(
-        usageflags,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        indexBufferSize,
-        VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
-        VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
-        VARIABLE_NAME(indexBf));
-  }
-  } catch (const vk::OutOfDeviceMemoryError& e) {
-    outOfMemory();
+      indexBufferSize,
+      VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
+      VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+      VARIABLE_NAME(indexBf));
   }
 
   zeroTransparencyBuffers();
-  transparencyCapacityPixels=pixels;
 }
 
 void AsyVkRender::initIBL() {
@@ -4489,15 +4496,6 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
       vkutils::checkVkResult(device->waitForFences(
         1, &*object.inComputeFence, VK_TRUE, timeout
       ));
-    }
-
-    pixels=(backbufferExtent.width+1)*(backbufferExtent.height+1);
-    if(pixels > transparencyCapacityPixels) {
-      // Only wait for the specific resources we need to modify
-      if (timelineSemaphoreSupported)
-        waitForTimelineSemaphore(*renderTimelineSemaphore, currentTimelineValue, timeout);
-      createTransparencyBuffers(pixels);
-      writeDescriptorSets(true);
     }
 
     vkutils::checkVkResult(device->resetFences(

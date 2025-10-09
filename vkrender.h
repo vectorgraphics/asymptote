@@ -840,7 +840,7 @@ private:
   void createDescriptorPool();
   void createComputeDescriptorPool();
   void createDescriptorSets();
-  void writeDescriptorSets(bool transparent=false);
+  void writeDescriptorSets();
   void writePostProcessDescSets();
   void writeMaterialAndLightDescriptors();
   void updateSceneDependentBuffers();
@@ -850,7 +850,7 @@ private:
 
   void createBuffers();
   void createMaterialAndLightBuffers();
-  void createTransparencyBuffers(std::uint32_t pixels);
+  void createDependentBuffers();
 
   void initIBL();
 
