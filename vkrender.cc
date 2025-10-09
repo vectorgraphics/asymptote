@@ -2495,8 +2495,79 @@ void AsyVkRender::createDescriptorSets()
 
 void AsyVkRender::writeDescriptorSets()
 {
-  for (auto i = 0; i < maxFramesInFlight; i++)
-  {
+  if (fxaa)
+    writePostProcessDescSets();
+
+  if (ibl) {
+    for (auto i = 0; i < maxFramesInFlight; i++) {
+      auto irradianceSampInfo = vk::DescriptorImageInfo();
+
+      irradianceSampInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+      irradianceSampInfo.imageView = *irradianceView;
+      irradianceSampInfo.sampler = *irradianceSampler;
+
+      auto brdfSampInfo = vk::DescriptorImageInfo();
+
+      brdfSampInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+      brdfSampInfo.imageView = *brdfView;
+      brdfSampInfo.sampler = *brdfSampler;
+
+      auto reflSampInfo = vk::DescriptorImageInfo();
+
+      reflSampInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+      reflSampInfo.imageView = *reflectionView;
+      reflSampInfo.sampler = *reflectionSampler;
+
+      std::array<vk::WriteDescriptorSet, 3> samplerWrites;
+
+      samplerWrites[0].dstSet = *frameObjects[i].descriptorSet;
+      samplerWrites[0].dstBinding = 11;
+      samplerWrites[0].dstArrayElement = 0;
+      samplerWrites[0].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+      samplerWrites[0].descriptorCount = 1;
+      samplerWrites[0].pImageInfo = &irradianceSampInfo;
+
+      samplerWrites[1].dstSet = *frameObjects[i].descriptorSet;
+      samplerWrites[1].dstBinding = 12;
+      samplerWrites[1].dstArrayElement = 0;
+      samplerWrites[1].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+      samplerWrites[1].descriptorCount = 1;
+      samplerWrites[1].pImageInfo = &brdfSampInfo;
+
+      samplerWrites[2].dstSet = *frameObjects[i].descriptorSet;
+      samplerWrites[2].dstBinding = 13;
+      samplerWrites[2].dstArrayElement = 0;
+      samplerWrites[2].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+      samplerWrites[2].descriptorCount = 1;
+      samplerWrites[2].pImageInfo = &reflSampInfo;
+
+      device->updateDescriptorSets(samplerWrites.size(), samplerWrites.data(), 0, nullptr);
+    }
+  }
+
+  // When Opaque=1, only write UBO descriptors and return
+  if (Opaque) {
+    for (auto i = 0; i < maxFramesInFlight; i++) {
+      auto uboInfo = vk::DescriptorBufferInfo();
+      uboInfo.buffer = frameObjects[i].uboBf.getBuffer();
+      uboInfo.offset = 0;
+      uboInfo.range = sizeof(UniformBufferObject);
+
+      std::array<vk::WriteDescriptorSet, 1> writes;
+      writes[0].dstSet = *frameObjects[i].descriptorSet;
+      writes[0].dstBinding = 0;
+      writes[0].dstArrayElement = 0;
+      writes[0].descriptorType = vk::DescriptorType::eUniformBuffer;
+      writes[0].descriptorCount = 1;
+      writes[0].pBufferInfo = &uboInfo;
+
+      device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
+    }
+    return;
+  }
+
+  // For transparent scenes, write all descriptor sets
+  for (auto i = 0; i < maxFramesInFlight; i++) {
     auto uboInfo = vk::DescriptorBufferInfo();
 
     uboInfo.buffer = frameObjects[i].uboBf.getBuffer();
@@ -2594,52 +2665,6 @@ void AsyVkRender::writeDescriptorSets()
 
     device->updateDescriptorSets(GPUcompress ? 7 : 5,
                                  writes.data(), 0, nullptr);
-
-    if (ibl) {
-
-      auto irradianceSampInfo = vk::DescriptorImageInfo();
-
-      irradianceSampInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-      irradianceSampInfo.imageView = *irradianceView;
-      irradianceSampInfo.sampler = *irradianceSampler;
-
-      auto brdfSampInfo = vk::DescriptorImageInfo();
-
-      brdfSampInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-      brdfSampInfo.imageView = *brdfView;
-      brdfSampInfo.sampler = *brdfSampler;
-
-      auto reflSampInfo = vk::DescriptorImageInfo();
-
-      reflSampInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-      reflSampInfo.imageView = *reflectionView;
-      reflSampInfo.sampler = *reflectionSampler;
-
-      std::array<vk::WriteDescriptorSet, 3> samplerWrites;
-
-      samplerWrites[0].dstSet = *frameObjects[i].descriptorSet;
-      samplerWrites[0].dstBinding = 11;
-      samplerWrites[0].dstArrayElement = 0;
-      samplerWrites[0].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-      samplerWrites[0].descriptorCount = 1;
-      samplerWrites[0].pImageInfo = &irradianceSampInfo;
-
-      samplerWrites[1].dstSet = *frameObjects[i].descriptorSet;
-      samplerWrites[1].dstBinding = 12;
-      samplerWrites[1].dstArrayElement = 0;
-      samplerWrites[1].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-      samplerWrites[1].descriptorCount = 1;
-      samplerWrites[1].pImageInfo = &brdfSampInfo;
-
-      samplerWrites[2].dstSet = *frameObjects[i].descriptorSet;
-      samplerWrites[2].dstBinding = 13;
-      samplerWrites[2].dstArrayElement = 0;
-      samplerWrites[2].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-      samplerWrites[2].descriptorCount = 1;
-      samplerWrites[2].pImageInfo = &reflSampInfo;
-
-      device->updateDescriptorSets(samplerWrites.size(), samplerWrites.data(), 0, nullptr);
-    }
   }
 
   // compute descriptors
@@ -2699,11 +2724,6 @@ void AsyVkRender::writeDescriptorSets()
   writes[3].pBufferInfo = &feedbackBufferInfo;
 
   device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
-
-  if (fxaa)
-  {
-    writePostProcessDescSets();
-  }
 }
 
 void AsyVkRender::writePostProcessDescSets()
@@ -3024,9 +3044,10 @@ void AsyVkRender::createDependentBuffers()
   render(); // Determine whether the scene is opaque.
   redisplay=true;
 
-  cout << "createDependentBuffers: width=" << backbufferExtent.width << endl;
-  cout << "Opaque=" << Opaque << endl;
-  pixels=Opaque ? 1 : (backbufferExtent.width+1)*(backbufferExtent.height+1);
+  if(Opaque == 1)
+    return;
+
+  pixels=(backbufferExtent.width+1)*(backbufferExtent.height+1);
 
   std::uint32_t G=ceilquotient(pixels,groupSize);
   std::uint32_t Pixels=groupSize*G;
