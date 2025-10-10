@@ -806,7 +806,7 @@ void AsyVkRender::initVulkan()
   createGraphicsPipelineLayout();
   createGraphicsPipelines();
 
-  createComputePipelines();// gpu indexing + post processing
+  createComputePipelines(); // gpu indexing + post processing
   fpu_trap(settings::trap()); // Work around FE_INVALID.
 
   createAttachments();
@@ -2027,8 +2027,10 @@ vma::cxx::UniqueImage AsyVkRender::createImage(
   return allocator.createImage(info, allocCreateInfo);
 }
 
-void AsyVkRender::createImageView(vk::Format fmt, vk::ImageAspectFlagBits flags,
-                                  vk::Image const& img, vk::UniqueImageView& imgView,
+void AsyVkRender::createImageView(vk::Format fmt,
+                                  vk::ImageAspectFlagBits flags,
+                                  vk::Image const& img,
+                                  vk::UniqueImageView& imgView,
                                   vk::ImageViewType type)
 {
   auto info = vk::ImageViewCreateInfo();
@@ -2048,7 +2050,8 @@ void AsyVkRender::createImageView(vk::Format fmt, vk::ImageAspectFlagBits flags,
   imgView = device->createImageViewUnique(info);
 }
 
-void AsyVkRender::copyFromBuffer(const vk::Buffer& buffer, void* data, vk::DeviceSize size)
+void AsyVkRender::copyFromBuffer(const vk::Buffer& buffer, void* data,
+                                 vk::DeviceSize size)
 {
   vma::cxx::UniqueBuffer copyFromStageBf= createBufferUnique(
           vk::BufferUsageFlagBits::eTransferDst,
@@ -2072,8 +2075,8 @@ void AsyVkRender::copyFromBuffer(const vk::Buffer& buffer, void* data, vk::Devic
   memcpy(data, mappedMem.getCopyPtr(), size);
 }
 
-void AsyVkRender::createImageSampler(vk::UniqueSampler & sampler) {
-
+void AsyVkRender::createImageSampler(vk::UniqueSampler & sampler)
+{
   auto info = vk::SamplerCreateInfo(
     vk::SamplerCreateFlags(),
     vk::Filter::eLinear,
@@ -2094,8 +2097,9 @@ void AsyVkRender::createImageSampler(vk::UniqueSampler & sampler) {
   sampler = device->createSamplerUnique(info);
 }
 
-void AsyVkRender::transitionImageLayout(vk::ImageLayout from, vk::ImageLayout to, vk::Image img) {
-
+void AsyVkRender::transitionImageLayout(vk::ImageLayout from,
+                                        vk::ImageLayout to, vk::Image img)
+{
   auto const cmd = beginSingleCommands();
   auto barrier = vk::ImageMemoryBarrier(
     vk::AccessFlagBits::eMemoryWrite,
@@ -2124,9 +2128,11 @@ void AsyVkRender::transitionImageLayout(vk::ImageLayout from, vk::ImageLayout to
   endSingleCommands(cmd);
 }
 
-void AsyVkRender::copyDataToImage(const void *data, vk::DeviceSize size, vk::Image img,
-                                  std::uint32_t w, std::uint32_t h, vk::Offset3D const & offset) {
-
+void AsyVkRender::copyDataToImage(const void *data, vk::DeviceSize size,
+                                  vk::Image img, std::uint32_t w,
+                                  std::uint32_t h,
+                                  vk::Offset3D const & offset)
+{
   vma::cxx::UniqueBuffer copyToImageStageBf = createBufferUnique(
           vk::BufferUsageFlagBits::eTransferSrc,
           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -2164,7 +2170,8 @@ void AsyVkRender::copyDataToImage(const void *data, vk::DeviceSize size, vk::Ima
   endSingleCommands(cmd);
 }
 
-void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size, size_t nobjects)
+void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data,
+                                      vk::DeviceSize size, size_t nobjects)
 {
   // Vulkan doesn't allow a buffer to have a size of 0
   vk::BufferCreateInfo(vk::BufferCreateFlags(), std::max(vk::DeviceSize(16), size), buffer.usage);
@@ -2318,7 +2325,6 @@ void AsyVkRender::createDescriptorSetLayout()
 
 void AsyVkRender::createComputeDescriptorSetLayout()
 {
-  // gpu indexing
   std::vector<vk::DescriptorSetLayoutBinding> layoutBindings
   {
     vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eCompute),
@@ -2333,8 +2339,6 @@ void AsyVkRender::createComputeDescriptorSetLayout()
   );
 
   computeDescriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutCI);
-
-  // post processing
 
   if (fxaa)
   {
@@ -2418,8 +2422,6 @@ void AsyVkRender::createDescriptorPool()
 
 void AsyVkRender::createComputeDescriptorPool()
 {
-  // gpu indexing
-
   std::array<vk::DescriptorPoolSize, 4> poolSizes;
 
   // countBuffer
@@ -2445,8 +2447,6 @@ void AsyVkRender::createComputeDescriptorPool()
     &poolSizes[0]
   );
   computeDescriptorPool = device->createDescriptorPoolUnique(poolCI);
-
-  // post processing
 
   if (fxaa)
   {
@@ -2495,7 +2495,6 @@ void AsyVkRender::createDescriptorSets()
 
 void AsyVkRender::writeDescriptorSets()
 {
-  // For transparent scenes, write all descriptor sets
   for (auto i = 0; i < maxFramesInFlight; i++) {
     auto uboInfo = vk::DescriptorBufferInfo();
 
@@ -2747,7 +2746,6 @@ void AsyVkRender::writePostProcessDescSets()
 }
 
 void AsyVkRender::writeMaterialAndLightDescriptors() {
-
   for (auto i = 0; i < maxFramesInFlight; i++) {
     auto materialBufferInfo = vk::DescriptorBufferInfo();
 
@@ -2830,7 +2828,6 @@ void AsyVkRender::updateSceneDependentBuffers() {
     depthBf.getBuffer(), 0, depthBufferSize);
 
   for(auto i = 0; i < maxFramesInFlight; i++) {
-
     // Create and add fragment buffer write
     vk::WriteDescriptorSet fragmentWrite(
       *frameObjects[i].descriptorSet,
@@ -2862,10 +2859,6 @@ void AsyVkRender::updateSceneDependentBuffers() {
   if (!batchedWrites.empty()) {
     device->updateDescriptorSets(batchedWrites.size(), batchedWrites.data(), 0, nullptr);
   }
-
-  // if the fragment buffer size changes, all transparent data needs
-  // to be copied again to the GPU for every frame in flight.
-  transparentData.renderCount = 0;
 }
 
 void AsyVkRender::createBuffers()
@@ -4255,11 +4248,11 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
     resetDepth=false;
   }
 
-  if (maxDepth>maxSize) {
+  if (maxDepth > maxSize) {
     resizeBlendShader(maxDepth);
   }
 
-  if (fragments>maxFragments) {
+  if (fragments > maxFragments) {
     maxFragments=11*fragments/10;
     device->waitIdle();
     updateSceneDependentBuffers();
