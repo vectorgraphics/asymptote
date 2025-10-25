@@ -819,62 +819,59 @@ void AsyVkRender::recreateSwapChain()
   device->waitIdle();
 
   try {
-  // Reset timeline semaphore values to avoid timeout issues
-  currentTimelineValue = 0;
-  for (auto& frameObj : frameObjects) {
-    frameObj.timelineValue = 0;
-    frameObj.computeTimelineValue = 0;  // Also reset compute timeline value
-  }
-
-  // Recreate the timeline semaphore to ensure clean state after resize
-  // This prevents semaphore wait timeouts when View=true, Opaque=false
-  if (timelineSemaphoreSupported) {
-    renderTimelineSemaphore.reset();
-    renderTimelineSemaphore = createTimelineSemaphore(0);
-  }
-
-  resetDepth=true;
-
-  createSwapChain();
-
-  if (fxaa)
-  {
-    setupPostProcessingComputeParameters();
-  }
-
-  createDependentBuffers();
-  createImmediateRenderTargets();
-
-  if (fxaa) {
-    preImageInGeneralLayout.resize(backbufferImages.size(), true);
-    transitionFXAAImages();
-
-    // Recreate the post-process descriptor sets from scratch
-    postProcessDescSet.clear();
-
-    // Reallocate descriptor sets with the new layout
-    std::vector<vk::DescriptorSetLayout> postProcessDescLayouts(backbufferImages.size(), *postProcessDescSetLayout);
-    try {
-      postProcessDescSet = device->allocateDescriptorSetsUnique({*postProcessDescPool, VEC_VIEW(postProcessDescLayouts)});
-
-      // Write the new descriptor sets with the new image views
-      writePostProcessDescSets();
-    } catch (const std::exception& e) {
-      runtimeError("Failed to allocate post-process descriptor sets: " +
-                   std::string(e.what()));
+    // Reset timeline semaphore values to avoid timeout issues
+    currentTimelineValue = 0;
+    for (auto& frameObj : frameObjects) {
+      frameObj.timelineValue = 0;
+      frameObj.computeTimelineValue = 0;  // Also reset compute timeline value
     }
-  }
 
-  writeDescriptorSets();
-  writeMaterialAndLightDescriptors();
-  createImageViews();
-  createSyncObjects();
-  createCountRenderPass();
-  createGraphicsRenderPass();
-  createGraphicsPipelines();
-  createAttachments();
-  createFramebuffers();
-  createExportResources();
+    // Recreate the timeline semaphore to ensure clean state after resize
+    // This prevents semaphore wait timeouts when View=true, Opaque=false
+    if (timelineSemaphoreSupported) {
+      renderTimelineSemaphore.reset();
+      renderTimelineSemaphore = createTimelineSemaphore(0);
+    }
+
+    resetDepth=true;
+    createSwapChain();
+
+    if (fxaa)
+      setupPostProcessingComputeParameters();
+
+    createDependentBuffers();
+    createImmediateRenderTargets();
+
+    if (fxaa) {
+      preImageInGeneralLayout.resize(backbufferImages.size(), true);
+      transitionFXAAImages();
+
+      // Recreate the post-process descriptor sets from scratch
+      postProcessDescSet.clear();
+
+      // Reallocate descriptor sets with the new layout
+      std::vector<vk::DescriptorSetLayout> postProcessDescLayouts(backbufferImages.size(), *postProcessDescSetLayout);
+      try {
+        postProcessDescSet = device->allocateDescriptorSetsUnique({*postProcessDescPool, VEC_VIEW(postProcessDescLayouts)});
+
+        // Write the new descriptor sets with the new image views
+        writePostProcessDescSets();
+      } catch (const std::exception& e) {
+        runtimeError("Failed to allocate post-process descriptor sets: " +
+                     std::string(e.what()));
+      }
+    }
+
+    writeDescriptorSets();
+    writeMaterialAndLightDescriptors();
+    createImageViews();
+    createSyncObjects();
+    createCountRenderPass();
+    createGraphicsRenderPass();
+    createGraphicsPipelines();
+    createAttachments();
+    createFramebuffers();
+    createExportResources();
   } catch (const vk::OutOfDeviceMemoryError& e) {
     outOfMemory();
   }
@@ -2790,29 +2787,16 @@ void AsyVkRender::writeMaterialAndLightDescriptors() {
   }
 }
 
-void AsyVkRender::updateSceneDependentBuffers() {
-
+void AsyVkRender::updateSceneDependentBuffers()
+{
   fragmentBufferSize = maxFragments*sizeof(vec4);
   fragmentBf = createBufferUnique(
-          vk::BufferUsageFlagBits::eStorageBuffer,
-          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-          fragmentBufferSize,
-          0,
-          VMA_MEMORY_USAGE_AUTO,
-          VARIABLE_NAME(fragmentBf));
-
-  try {
-    fragmentBf = createBufferUnique(
-          vk::BufferUsageFlagBits::eStorageBuffer,
-          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-          fragmentBufferSize,
-          0,
-          VMA_MEMORY_USAGE_AUTO,
-          VARIABLE_NAME(fragmentBf));
-
-  } catch (const vk::OutOfDeviceMemoryError& e) {
-    outOfMemory();
-  }
+    vk::BufferUsageFlagBits::eStorageBuffer,
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+    fragmentBufferSize,
+    0,
+    VMA_MEMORY_USAGE_AUTO,
+    VARIABLE_NAME(fragmentBf));
 
   depthBufferSize = maxFragments*sizeof(float);
   depthBf = createBufferUnique(
@@ -2822,11 +2806,6 @@ void AsyVkRender::updateSceneDependentBuffers() {
           0,
           VMA_MEMORY_USAGE_AUTO,
           VARIABLE_NAME(depthBf));
-
-
-  if (fragmentBf.getBuffer() == VK_NULL_HANDLE ||
-      depthBf.getBuffer() == VK_NULL_HANDLE)
-    outOfMemory();
 
   // Create a vector to batch all descriptor writes
   std::vector<vk::WriteDescriptorSet> batchedWrites;
@@ -2877,7 +2856,6 @@ void AsyVkRender::createBuffers()
   feedbackBufferSize=2*sizeof(std::uint32_t);
   elementBufferSize=sizeof(std::uint32_t);
 
-  try {
   feedbackBf = createBufferUnique(
     vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc,
     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
@@ -2885,10 +2863,8 @@ void AsyVkRender::createBuffers()
     VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
     VMA_MEMORY_USAGE_AUTO,
     VARIABLE_NAME(feedbackBf)
-  );
-  } catch (const vk::OutOfDeviceMemoryError& e) {
-    outOfMemory();
-  }
+    );
+  feedbackMappedPtr=make_unique<vma::cxx::MemoryMapperLock>(feedbackBf);
 
   if(GPUcompress)
   {
@@ -2900,11 +2876,10 @@ void AsyVkRender::createBuffers()
     VMA_MEMORY_USAGE_AUTO,
       VARIABLE_NAME(elementBf)
     );
+    elemBfMappedMem=make_unique<vma::cxx::MemoryMapperLock>(elementBf);
   }
 
-  try {
-  for (auto& frameObj : frameObjects)
-  {
+  for (auto& frameObj : frameObjects) {
     frameObj.uboBf = createBufferUnique(
       vk::BufferUsageFlagBits::eUniformBuffer,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -2915,9 +2890,6 @@ void AsyVkRender::createBuffers()
     );
     frameObj.uboMappedMemory = make_unique<vma::cxx::MemoryMapperLock>(frameObj.uboBf);
   }
-  } catch (const vk::OutOfDeviceMemoryError& e) {
-    outOfMemory();
-  }
 
   createMaterialAndLightBuffers();
   createDependentBuffers();
@@ -2926,7 +2898,6 @@ void AsyVkRender::createBuffers()
 
 void AsyVkRender::createMaterialAndLightBuffers() {
   if(nmaterials > 0)
-    try {
     materialBf = createBufferUnique(
       vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -2934,9 +2905,6 @@ void AsyVkRender::createMaterialAndLightBuffers() {
       0,
       VMA_MEMORY_USAGE_AUTO,
       VARIABLE_NAME(materialBf));
-    } catch (const vk::OutOfDeviceMemoryError& e) {
-      outOfMemory();
-    }
 
   if(nlights > 0)
     lightBf = createBufferUnique(
@@ -3048,16 +3016,6 @@ void AsyVkRender::createDependentBuffers()
 
   VkMemoryPropertyFlags countBufferFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
   VmaAllocationCreateFlags vmaFlags = 0;
-
-  if (countBfMappedMem != nullptr)
-  {
-    countBfMappedMem = nullptr;
-  }
-
-  if (offsetStageBfMappedMem != nullptr)
-  {
-    offsetStageBfMappedMem = nullptr;
-  }
 
   countBf = createBufferUnique(
           vk::BufferUsageFlagBits::eStorageBuffer
@@ -4245,11 +4203,8 @@ void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
 void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
   waitForEvent(*object.sumFinishedEvent);
 
-  static auto feedbackMappedPtr = make_unique<vma::cxx::MemoryMapperLock>(feedbackBf);
-
-  // Ensure we have the latest data from GPU memory
+  // Ensure we have the latest data from GPU
   feedbackMappedPtr->invalidate();
-
   const uint32_t *feedbackData = feedbackMappedPtr->getCopyPtr();
   std::uint32_t maxDepth = feedbackData[0];
   fragments = feedbackData[1];
@@ -4329,13 +4284,8 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
 
   if (GPUcompress) {
-    static auto elemBfMappedMem=make_unique<vma::cxx::MemoryMapperLock>(elementBf);
-    static std::uint32_t* p = nullptr;
-
-    if (p == nullptr) {
-      p=elemBfMappedMem->getCopyPtr();
-      *p=1;
-    }
+    std::uint32_t* p = elemBfMappedMem->getCopyPtr();
+    p[0]=1;
 
     compressCount(object);
     endFrameRender();
@@ -4367,7 +4317,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     commandsToSubmit.emplace_back(currentCommandBuffer);
   }
 
-  if (elements==0)
+  if (elements == 0)
     return;
 
   beginFrameCommands(*object.computeCommandBuffer);

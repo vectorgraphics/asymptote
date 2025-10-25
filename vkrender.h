@@ -550,15 +550,12 @@ private:
 
   size_t countBufferSize;
   vma::cxx::UniqueBuffer countBf;
-  std::unique_ptr<vma::cxx::MemoryMapperLock> countBfMappedMem = nullptr;
 
   size_t globalSize;
   vma::cxx::UniqueBuffer globalSumBf;
 
   size_t offsetBufferSize;
   vma::cxx::UniqueBuffer offsetBf;
-  vma::cxx::UniqueBuffer offsetStageBf;
-  std::unique_ptr<vma::cxx::MemoryMapperLock> offsetStageBfMappedMem = nullptr;
 
   size_t feedbackBufferSize;
   vma::cxx::UniqueBuffer feedbackBf;
@@ -580,6 +577,8 @@ private:
 
   size_t elementBufferSize;
   vma::cxx::UniqueBuffer elementBf;
+  std::unique_ptr<vma::cxx::MemoryMapperLock> elemBfMappedMem = nullptr;
+  std::unique_ptr<vma::cxx::MemoryMapperLock> feedbackMappedPtr = nullptr;
 
   size_t transparencyCapacityPixels=0;
 

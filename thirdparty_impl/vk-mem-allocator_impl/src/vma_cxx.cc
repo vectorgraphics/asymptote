@@ -4,6 +4,7 @@
  * @brief Implementation for vma_cxx.h
  */
 
+#include "vk.h"
 #include "vma_cxx.h"
 
 #include <utility>
@@ -18,7 +19,7 @@ UniqueAllocator::UniqueAllocator(VmaAllocatorCreateInfo const& vmaAllocatorCreat
 {
   if (vmaCreateAllocator(&vmaAllocatorCreateInfo, &_allocator) != VK_SUCCESS)
   {
-    throw std::runtime_error("Cannot create Vulkan memory allocator");
+    throw vk::OutOfDeviceMemoryError("Cannot create Vulkan memory allocator");
   }
 }
 
@@ -56,7 +57,7 @@ UniqueAllocator::createBuffer(VkBufferCreateInfo const& bufferCreateInfo, VmaAll
   VmaAllocation alloc;
   if (vmaCreateBuffer(_allocator, &bufferCreateInfo, &allocInfo, &buf, &alloc, nullptr) != VK_SUCCESS)
   {
-    throw std::runtime_error("Cannot create Vulkan memory buffer");
+    throw vk::OutOfDeviceMemoryError("Cannot create Vulkan memory buffer");
   }
 
   return {_allocator, alloc, buf};
@@ -71,7 +72,7 @@ UniqueImage UniqueAllocator::createImage(
 
   if (vmaCreateImage(_allocator, &imgCreateInfo, &allocInfo, &resultImage, &resultAllocation, nullptr) != VK_SUCCESS)
   {
-    throw std::runtime_error("Cannot create Vulkan image");
+    throw vk::OutOfDeviceMemoryError("Cannot create Vulkan image");
   }
 
   return {_allocator, resultImage, resultAllocation};
@@ -131,7 +132,7 @@ MemoryMapperLock::MemoryMapperLock(UniqueBuffer const& buffer) : sourceBuffer(&b
 {
   if (vmaMapMemory(buffer.getAllocator(), buffer.getAllocation(), &copyPtr) != VK_SUCCESS)
   {
-    throw std::runtime_error("Cannot map memory");
+    throw vk::OutOfDeviceMemoryError("Cannot map memory");
   }
 }
 MemoryMapperLock::~MemoryMapperLock()
@@ -144,7 +145,7 @@ MemoryMapperLock::~MemoryMapperLock()
 UniqueImage::UniqueImage(VmaAllocator const& allocator, VkImage const& image, VmaAllocation const& allocation)
     : _allocator(allocator), _image(image), _allocation(allocation)
 {
-  
+
 }
 UniqueImage::~UniqueImage()
 {
@@ -157,7 +158,7 @@ UniqueImage::UniqueImage(UniqueImage&& other) noexcept
     : _allocator(std::exchange(other._allocator, VK_NULL_HANDLE)), _image(std::exchange(other._image, VK_NULL_HANDLE)),
       _allocation(std::exchange(other._allocation, VK_NULL_HANDLE))
 {
-  
+
 }
 UniqueImage& UniqueImage::operator=(UniqueImage&& other) noexcept
 {
