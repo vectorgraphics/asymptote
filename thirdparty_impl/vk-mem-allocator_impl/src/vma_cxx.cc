@@ -4,11 +4,9 @@
  * @brief Implementation for vma_cxx.h
  */
 
-#include "vk.h"
 #include "vma_cxx.h"
 
 #include <utility>
-#include <stdexcept>
 
 namespace vma
 {
