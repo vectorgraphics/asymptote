@@ -922,8 +922,7 @@ void AsyVkRender::zeroTransparencyBuffers()
   zeroBuffer(clearCmdBuffer,opaqueDepthBf.getBuffer());
   if(GPUcompress)
     zeroBuffer(clearCmdBuffer,indexBf.getBuffer());
-  else
-    zeroBuffer(clearCmdBuffer,countBf.getBuffer());
+  zeroBuffer(clearCmdBuffer,countBf.getBuffer());
   endSingleCommands(clearCmdBuffer);
 }
 
