@@ -37,6 +37,59 @@ AC_C_BIGENDIAN(
 
 echo Compiling with $CXXFLAGS $CFLAGS
 
+
+# --------------- additional optimizations ---------------------
+# Options for additional optimizations (link-time optimization, support for later x86-64 instruction sets (e.g. AVX2))
+
+AC_ARG_WITH(link-time-opt,[
+   AS_HELP_STRING(
+      --with-link-time-opt=[[[yes]]],
+      [Enables link-time optimization. Enabled by default]
+      )
+   ],
+   [],
+   [with_link_time_opt=yes]
+)
+
+AS_IF(
+   [test "x$with_link_time_opt" = "xyes"],
+   [CFLAGS="$CFLAGS -flto"]
+)
+AC_ARG_WITH(x86-64-v3-targeting,[
+   AS_HELP_STRING(
+      --enable-x86-64-v3-targeting=[[[check]]],
+      [Targets x86_64_v3 CPUs or higher (i.e. AVX/AVX2 support).
+      Only supported if target CPU is Haswell/Excavator or higher. By default, turn on if CPU is x86-64.]
+      )
+   ],
+   [],
+   [with_x86_64_v3_targeting=check]
+)
+
+AS_IF(
+   [test "x$with_x86_64_v3_targeting" = "xcheck"],
+   [
+      case $target_cpu in
+         x86_64)
+         with_x86_64_v3_targeting=yes
+         ;;
+         i*86)
+         with_x86_64_v3_targeting=yes
+         ;;
+         *)
+         with_x86_64_v3_targeting=no
+         AC_MSG_NOTICE([System not x86-64. Not enabling x86-64-v3 support.])
+         ;;
+      esac
+   ]
+)
+
+AS_IF(
+   [test "x$with_x86_64_v3_targeting" = "xyes"],
+   [CFLAGS="$CFLAGS -march=x86-64-v3"]
+)
+
+
 # --------------- begin vcpkg option/check ---------------------
 # result:
 # with_vcpkg is yes/no, depending if user wants to use vcpkg or not
