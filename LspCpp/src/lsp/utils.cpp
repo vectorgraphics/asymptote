@@ -17,6 +17,8 @@
 #include "utf8.h"
 #ifdef _WIN32
 #include <Windows.h>
+#else
+#include <unistd.h>
 #endif
 
 // DEFAULT_RESOURCE_DIRECTORY is passed with quotes for non-MSVC compilers, ie,
@@ -27,9 +29,9 @@
 #else
 #define ENSURE_STRING_MACRO_ARGUMENT(x) x
 #endif
-#include <boost/utility.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/algorithm/string.hpp>
+#include "LibLsp/JsonRpc/filesystemVersion.h"
+//#include <boost/utility.hpp>
+//#include <boost/filesystem.hpp>
 namespace lsp
 {
 
@@ -336,7 +338,8 @@ bool IsDirectory(std::string const& path)
 
 std::string ws2s(std::wstring const& wstr)
 {
-    BOOST_IF_CONSTEXPR(sizeof(wchar_t) == 2)
+    // BOOST_IF_CONSTEXPR (we'll just compile it, compiler probably will optimize it away)
+    if (sizeof(wchar_t) == 2)
     {
         std::string narrow;
         utf8::utf16to8(wstr.begin(), wstr.end(), std::back_inserter(narrow));
@@ -352,7 +355,8 @@ std::string ws2s(std::wstring const& wstr)
 std::wstring s2ws(std::string const& str)
 {
     std::wstring wide;
-    BOOST_IF_CONSTEXPR(sizeof(wchar_t) == 2)
+    // BOOST_IF_CONSTEXPR (we'll just compile it, compiler probably will optimize it away)
+    if (sizeof(wchar_t) == 2)
     {
         utf8::utf8to16(str.begin(), str.end(), std::back_inserter(wide));
         return wide;
@@ -364,9 +368,7 @@ std::wstring s2ws(std::string const& str)
     }
 }
 
-#ifdef _WIN32
-
-#else
+#ifndef _WIN32
 // Returns the canonicalized absolute pathname, without expanding symbolic
 // links. This is a variant of realpath(2), C++ rewrite of
 // https://github.com/freebsd/freebsd/blob/master/lib/libc/stdlib/realpath.c
@@ -593,7 +595,7 @@ lsPosition CharPos(std::string const& search, char character, int character_offs
 
 void scanDirsUseRecursive(std::wstring const& rootPath, std::vector<std::wstring>& ret)
 {
-    namespace fs = boost::filesystem;
+    namespace fs = filesystem;
     fs::path fullpath(rootPath);
     if (!fs::exists(fullpath))
     {
@@ -618,26 +620,35 @@ void scanDirsUseRecursive(std::wstring const& rootPath, std::vector<std::wstring
 
 void scanDirsNoRecursive(std::wstring const& rootPath, std::vector<std::wstring>& ret)
 {
-    namespace fs = boost::filesystem;
-    boost::filesystem::path myPath(rootPath);
+    namespace fs = filesystem;
+    fs::path myPath(rootPath);
     if (!fs::exists(rootPath))
     {
         return;
     }
-    boost::filesystem::directory_iterator endIter;
-    for (boost::filesystem::directory_iterator iter(myPath); iter != endIter; iter++)
+    fs::directory_iterator endIter;
+    for (fs::directory_iterator iter(myPath); iter != endIter; iter++)
     {
-        if (boost::filesystem::is_directory(*iter))
+        if (fs::is_directory(*iter))
         {
             ret.push_back(iter->path().wstring());
         }
     }
 }
 
+void to_lower(std::wstring& input, std::locale const& loc = std::locale())
+{
+    std::ctype<wchar_t> const& facet = std::use_facet<std::ctype<wchar_t>>(loc);
+    for (std::size_t i = 0; i < input.size(); ++i)
+    {
+        input[i] = facet.tolower(input[i]);
+    }
+}
+
 void scanFilesUseRecursive(std::wstring const& rootPath, std::vector<std::wstring>& ret, std::wstring suf)
 {
-    namespace fs = boost::filesystem;
-    boost::to_lower(suf);
+    namespace fs = filesystem;
+    to_lower(suf);
 
     fs::path fullpath(rootPath);
     if (!fs::exists(fullpath))
@@ -665,7 +676,7 @@ void scanFilesUseRecursive(std::wstring const& rootPath, std::vector<std::wstrin
                         continue;
                     }
                     auto suf_temp = temp_path.substr(temp_path.size() - size);
-                    boost::to_lower(suf_temp);
+                    to_lower(suf_temp);
                     if (suf_temp == suf)
                     {
                         ret.push_back(std::move(temp_path));

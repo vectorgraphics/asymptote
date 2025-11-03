@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = git@github.com:vectorgraphics/LspCpp
-	branch = master
-	commit = 8d172bd36d22a9faab0119c0faf82fae04c1ab47
-	parent = 3fcec975f109fe7958cf60e4572f717ae5bbb96d
+	branch = dev/jamievlin/dependencies-non-submodules
+	commit = 62d55e84a9e01badc4bfd02aa961619d8ae9335a
+	parent = 205a13c2bfdd5f6d0e61157e09d02f1506ed2cb4
 	method = merge
 	cmdver = 0.4.9
