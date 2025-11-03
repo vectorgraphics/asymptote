@@ -431,7 +431,7 @@ target_include_directories(lspcpp PRIVATE ${LSP_INCLUDE_LIST})
 
 target_link_libraries(
         lspcpp
-        PUBLIC ${LSPCPP_EXTERNAL_LIBS} network-uri asio_lib
+        PUBLIC ${LSPCPP_EXTERNAL_LIBS} network-uri
 )
 
 set(LSPCPP_THIRD_PARTY_DIR_LIST
