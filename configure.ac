@@ -328,7 +328,7 @@ LSPLIBS=
 LSPLIB=
 if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
    LSPLIB=$LSP_ROOT/liblspcpp.a
-   LSPLIBS=$LSPLIBS" -L$LSP_ROOT -L$LSP_ROOT/third_party/uri/src -llspcpp -lnetwork-uri -lixwebsocket"
+   LSPLIBS=$LSPLIBS" -L$LSP_ROOT -L$LSP_ROOT/third_party/uri/src -llspcpp -lnetwork-uri"
    LSP_CMAKE_OPTIONS="-DLSPCPP_USE_CPP17=ON -DLSPCPP_STANDALONE_ASIO=True "
 
    if test "x$enable_gc" != "xno"; then
