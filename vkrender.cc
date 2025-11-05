@@ -4616,20 +4616,28 @@ void AsyVkRender::drawFrame()
   submitInfo.pCommandBuffers = &*frameObject.commandBuffer;
   submitInfo.commandBufferCount = 1;
 
-    currentTimelineValue++;
+  vk::TimelineSemaphoreSubmitInfo timelineInfo;
+  std::vector<uint64_t> signalValues;
+
+  if (!waitSems.empty()) {
+    // Add wait values for binary semaphores (0)
+    waitSemaphoreValues.resize(waitSems.size(), 0);
+    timelineInfo.waitSemaphoreValueCount = waitSemaphoreValues.size();
+    timelineInfo.pWaitSemaphoreValues = waitSemaphoreValues.data();
+  }
+
+  currentTimelineValue++;
   frameObject.timelineValue = currentTimelineValue;
 
   signalSemInfos.push_back({*renderTimelineSemaphore, frameObject.timelineValue, vk::PipelineStageFlagBits2::eAllCommands});
   signalSems.push_back(*renderTimelineSemaphore);
 
   // The value for the binary semaphore is ignored, but the count must match.
-  std::vector<uint64_t> signalValues;
   if (View) {
       signalValues.push_back(0);
   }
   signalValues.push_back(frameObject.timelineValue);
 
-  vk::TimelineSemaphoreSubmitInfo timelineInfo;
   timelineInfo.signalSemaphoreValueCount = signalValues.size();
   timelineInfo.pSignalSemaphoreValues = signalValues.data();
   submitInfo.pNext = &timelineInfo;
