@@ -740,7 +740,6 @@ private:
   vk::CommandBuffer & getFrameCommandBuffer();
 
   // Timeline semaphore helper functions
-  void signalTimelineSemaphore(vk::Semaphore semaphore, uint64_t value);
   void waitForTimelineSemaphore(vk::Semaphore semaphore, uint64_t value, uint64_t timeout = UINT64_MAX);
   vk::CommandBuffer & getFrameComputeCommandBuffer();
   vk::UniquePipeline & getPipelineType(std::array<vk::UniquePipeline, PIPELINE_MAX> & pipelines);

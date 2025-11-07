@@ -826,8 +826,7 @@ void AsyVkRender::recreateSwapChain()
       frameObj.computeTimelineValue = 0;  // Also reset compute timeline value
     }
 
-    // Recreate the timeline semaphore to ensure clean state after resize
-    // This prevents semaphore wait timeouts when View=true, Opaque=false
+    // Reset the timeline semaphore and recreate it
     renderTimelineSemaphore.reset();
     renderTimelineSemaphore = createTimelineSemaphore(0);
 
@@ -1475,38 +1474,53 @@ vk::UniqueSemaphore AsyVkRender::createTimelineSemaphore(uint64_t initialValue) 
   return device->createSemaphoreUnique(createInfo);
 }
 
-void AsyVkRender::signalTimelineSemaphore(vk::Semaphore semaphore, uint64_t value) {
-  vk::SemaphoreSignalInfo signalInfo(
-    semaphore,
-    value
-  );
-
-  device->signalSemaphore(signalInfo);
-}
-
-void AsyVkRender::waitForTimelineSemaphore(vk::Semaphore semaphore, uint64_t value, uint64_t timeout) {
+void AsyVkRender::waitForTimelineSemaphore(vk::Semaphore semaphore, uint64_t value, uint64_t timeout)
+{
   vk::SemaphoreWaitInfo waitInfo(
     {},
     1, &semaphore,
     &value
   );
 
-  // Wait for the semaphore with the specified timeout
-  vk::Result result = device->waitSemaphores(waitInfo, timeout);
+  uint64_t retryTimeout = 0.1*timeout;
+  uint64_t maxRetries = 10;
+  uint64_t retryCount = 0;
 
-  if (result == vk::Result::eTimeout) {
-    cerr << "warning: Timeline semaphore wait timed out after "
-         << 1.0e-9*timeout << " seconds" << endl;
-    // Force a full device synchronization and reset timeline values
-    try {
-      device->waitIdle();
-      currentTimelineValue = 0;
-    } catch (const std::exception& e) {
-      cerr << "Error during device waitIdle after timeout: " << e.what() << endl;
+  while (retryCount < maxRetries) {
+    vk::Result result = device->waitSemaphores(waitInfo, retryTimeout);
+
+    if (result == vk::Result::eSuccess) {
+      return;
     }
-  } else if (result != vk::Result::eSuccess) {
-     runtimeError("Timeline semaphore wait failed with result "+
-                  std::to_string(static_cast<int>(result)));
+
+    if (result == vk::Result::eTimeout) {
+      retryCount++;
+      retryTimeout *= 2; // Exponential backoff
+      if (retryTimeout > timeout) retryTimeout = timeout;
+
+      // Small sleep to avoid busy waiting
+      std::this_thread::sleep_for(std::chrono::microseconds(100));
+    } else {
+      // Other error - this should be reported
+      runtimeError("Timeline semaphore wait failed with result " +
+                   std::to_string(static_cast<int>(result)));
+    }
+  }
+
+  // If we've exhausted all retries, then force a full device sync
+  cerr << "warning: Timeline semaphore wait timed out after " << 1.0e-9*timeout << " seconds" << endl;
+
+  // Force full synchronization
+  try {
+    device->waitIdle();
+    currentTimelineValue = 0;
+    // Reset all frame objects' timeline values
+    for (auto& frameObj : frameObjects) {
+      frameObj.timelineValue = 0;
+      frameObj.computeTimelineValue = 0;
+    }
+  } catch (const std::exception& e) {
+    cerr << "Error during device waitIdle after timeout: " << e.what() << endl;
   }
 }
 
@@ -1827,11 +1841,7 @@ void AsyVkRender::endSingleCommands(vk::CommandBuffer cmd)
 
 void AsyVkRender::createSyncObjects()
 {
-  // Create the timeline semaphore for rendering (only once, not per-frame)
-  // This fixes the semaphore timeout issue during resize when View=true, Opaque=false
-  if (!renderTimelineSemaphore) {
-    renderTimelineSemaphore = createTimelineSemaphore(0);
-  }
+  renderTimelineSemaphore = createTimelineSemaphore(0);
 
   for (auto i = 0; i < maxFramesInFlight; i++) {
     frameObjects[i].imageAvailableSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
