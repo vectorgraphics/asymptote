@@ -43,8 +43,7 @@ echo Compiling with $CXXFLAGS $CFLAGS
 # Options for additional optimizations (link-time optimization, support for later x86-64 instruction sets (e.g. AVX2))
 
 AC_ARG_WITH(link-time-opt,[
-   AS_HELP_STRING(
-      --with-link-time-opt=[[[yes]]],
+   AS_HELP_STRING(--with-link-time-opt=[[[yes]]],
       [Enables link-time optimization. Enabled by default]
       )
    ],
@@ -57,8 +56,7 @@ AS_IF(
    [CFLAGS="$CFLAGS -flto"]
 )
 AC_ARG_WITH(x86-64-v3-targeting,[
-   AS_HELP_STRING(
-      --enable-x86-64-v3-targeting=[[[check]]],
+   AS_HELP_STRING(--with-x86-64-v3-targeting=[[[check]]],
       [Targets x86_64_v3 CPUs or higher (i.e. AVX/AVX2 support).
       Only supported if target CPU is Haswell/Excavator or higher. By default, turn on if system supports AVX2]
       )
