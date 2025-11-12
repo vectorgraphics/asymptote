@@ -7,6 +7,7 @@ AC_INIT([Asymptote],[3.06git],[https://github.com/vectorgraphics/asymptote/issue
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
+m4_include([ax_gcc_x86_cpu_supports.m4])
 m4_include([pkg.m4])
 
 AH_TOP([#pragma once])
@@ -59,7 +60,7 @@ AC_ARG_WITH(x86-64-v3-targeting,[
    AS_HELP_STRING(
       --enable-x86-64-v3-targeting=[[[check]]],
       [Targets x86_64_v3 CPUs or higher (i.e. AVX/AVX2 support).
-      Only supported if target CPU is Haswell/Excavator or higher. By default, turn on if CPU is x86-64.]
+      Only supported if target CPU is Haswell/Excavator or higher. By default, turn on if system supports AVX2]
       )
    ],
    [],
@@ -69,18 +70,12 @@ AC_ARG_WITH(x86-64-v3-targeting,[
 AS_IF(
    [test "x$with_x86_64_v3_targeting" = "xcheck"],
    [
-      case $target_cpu in
-         x86_64)
+      AX_GCC_X86_CPU_SUPPORTS(avx2, [
          with_x86_64_v3_targeting=yes
-         ;;
-         i*86)
-         with_x86_64_v3_targeting=yes
-         ;;
-         *)
-         with_x86_64_v3_targeting=no
-         AC_MSG_NOTICE([System not x86-64. Not enabling x86-64-v3 support.])
-         ;;
-      esac
+         AC_MSG_NOTICE([System supports AVX2, targeting x86-64-v3])
+      ], [
+         AC_MSG_NOTICE([System does not support AVX2])
+      ])
    ]
 )
 
