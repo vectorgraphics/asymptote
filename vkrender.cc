@@ -863,9 +863,13 @@ void AsyVkRender::recreateSwapChain()
     writeMaterialAndLightDescriptors();
     createImageViews();
     createSyncObjects();
+
     createCountRenderPass();
     createGraphicsRenderPass();
     createGraphicsPipelines();
+
+    createComputePipelines();
+
     createAttachments();
     createFramebuffers();
     createExportResources();
