@@ -850,27 +850,23 @@ void AsyVkRender::recreateSwapChain()
       std::vector<vk::DescriptorSetLayout> postProcessDescLayouts(backbufferImages.size(), *postProcessDescSetLayout);
       try {
         postProcessDescSet = device->allocateDescriptorSetsUnique({*postProcessDescPool, VEC_VIEW(postProcessDescLayouts)});
-
-        // Write the new descriptor sets with the new image views
-        writePostProcessDescSets();
       } catch (const std::exception& e) {
         runtimeError("Failed to allocate post-process descriptor sets: " +
                      std::string(e.what()));
       }
     }
 
-    writeDescriptorSets();
-    writeMaterialAndLightDescriptors();
     createImageViews();
     createSyncObjects();
 
+    writeDescriptorSets();
+    writeMaterialAndLightDescriptors();
+
+    createAttachments();
     createCountRenderPass();
     createGraphicsRenderPass();
     createGraphicsPipelines();
-
     createComputePipelines();
-
-    createAttachments();
     createFramebuffers();
     createExportResources();
   } catch (const vk::OutOfDeviceMemoryError& e) {
