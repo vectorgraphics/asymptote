@@ -795,7 +795,6 @@ void AsyVkRender::initVulkan()
   createImmediateRenderTargets();
 
   if (fxaa) {
-    preImageInGeneralLayout.resize(backbufferImages.size(), true);
     transitionFXAAImages();
   }
   writeDescriptorSets();
@@ -840,7 +839,6 @@ void AsyVkRender::recreateSwapChain()
     createImmediateRenderTargets();
 
     if (fxaa) {
-      preImageInGeneralLayout.resize(backbufferImages.size(), true);
       transitionFXAAImages();
 
       // Recreate the post-process descriptor sets from scratch
@@ -4558,26 +4556,6 @@ void AsyVkRender::drawFrame()
   if (fxaa) {
     auto& cmdBuffer = *frameObject.commandBuffer;
 
-    // The render pass has already transitioned the immediate render target to GENERAL layout.
-
-    // If the image is not in GENERAL layout, transition it
-    if (!preImageInGeneralLayout[imageIndex]) {
-      transitionImageLayout(
-        cmdBuffer,
-        prePresentationImages[imageIndex].getImage(),
-        vk::AccessFlagBits::eTransferRead,
-        vk::AccessFlagBits::eShaderWrite,
-        vk::ImageLayout::eTransferSrcOptimal,
-        vk::ImageLayout::eGeneral,
-        vk::PipelineStageFlagBits::eTransfer,
-        vk::PipelineStageFlagBits::eComputeShader,
-        vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
-      );
-    }
-
-    // Update our tracking - now the image is in GENERAL layout
-    preImageInGeneralLayout[imageIndex] = true;
-
     // Run FXAA compute shader
     postProcessImage(cmdBuffer, imageIndex);
 
@@ -4594,10 +4572,19 @@ void AsyVkRender::drawFrame()
       vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
     );
 
-    // Update our tracking - now the image is in TRANSFER_SRC_OPTIMAL layout
-    preImageInGeneralLayout[imageIndex] = false;
-
     copyToSwapchainImg(cmdBuffer, imageIndex);
+
+    transitionImageLayout(
+        cmdBuffer,
+        prePresentationImages[imageIndex].getImage(),
+        vk::AccessFlagBits::eTransferRead,
+        vk::AccessFlagBits::eShaderWrite,
+        vk::ImageLayout::eTransferSrcOptimal,
+        vk::ImageLayout::eGeneral,
+        vk::PipelineStageFlagBits::eTransfer,
+        vk::PipelineStageFlagBits::eComputeShader,
+        vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+    );
   }
   endFrameCommands();
 

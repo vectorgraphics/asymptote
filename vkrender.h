@@ -455,7 +455,6 @@ private:
   vma::cxx::UniqueImage defaultBackbufferImg;
   std::vector<vk::Image> backbufferImages;
   std::vector<vk::UniqueImageView> backbufferImageViews;
-  std::vector<bool> preImageInGeneralLayout;
 
 #pragma region intermediate frame buffers
   std::vector<vma::cxx::UniqueImage> immediateRenderTargetImgs;
