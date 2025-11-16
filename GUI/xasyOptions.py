@@ -11,25 +11,45 @@
 ###########################################################################
 
 import sys
-import io
 import os
 import platform
 import shutil
 import configs
 import cson
 
+from pathlib import Path
+from typing import Any
+
+try:
+    from platformdirs import user_config_dir, user_state_dir
+except ModuleNotFoundError:
+    def user_config_dir(appname: str, *args, **kwargs):
+        path = os.environ.get("XDG_CONFIG_HOME", "")
+        if not path.strip():
+            path = os.path.expanduser("~/.local/share")
+        return os.path.join(path, appname)
+
+    def user_state_dir(appname: str, *args, **kwargs):
+        path = os.environ.get("XDG_STATE_HOME", "")
+        if not path.strip():
+            path = os.path.expanduser("~/.local/state")
+        return os.path.join(path, appname)
+
+
 class xasyOptions:
+    def __init__(self, configName: str, defaultConfigLocation: Path):
+        self.configName = configName
+        self._defaultOptLocation = defaultConfigLocation
+
+        self.options: "dict[str, Any]" = {}
+        self.load()
+
     def defaultOptions(self):
-        if self._defaultOptions is None:
-            f = io.open(self._defaultOptLocation)
-            try:
-                opt = cson.loads(f.read())
-            finally:
-                f.close()
-            self._defaultOptions = opt
-        return self._defaultOptions
+        opt: "dict[str, Any]" = cson.loads(self._defaultOptLocation.read_text())  # type: ignore
+        return opt
 
     def overrideSettings(self):
+        """Apply OS specific overrides"""
         settingsName = platform.system()
 
         if settingsName not in self.options:
@@ -38,35 +58,18 @@ class xasyOptions:
         for key in self.options[settingsName]:
             self.options[key] = self.options[settingsName][key]
 
-
     def settingsFileLocation(self):
-        folder = os.path.expanduser("~/.asy/")
+        folders = [Path(user_config_dir("asymptote")), Path.home() / ".asy"]
+        searchOrder = [".cson", ""]
 
-        searchOrder = ['.cson', '']
+        for folder in folders:
+            for ext in searchOrder:
+                path = folder / f"{self.configName}{ext}"
+                if path.is_file():
+                    return str(path)
 
-        searchIndex = 0
-        found = False
-        currentFile = ''
-        while searchIndex < len(searchOrder) and not found:
-            currentFile = os.path.join(folder, self.configName + searchOrder[searchIndex])
-            if os.path.isfile(currentFile):
-                found = True
-            searchIndex += 1
-
-        if found:
-            return os.path.normcase(currentFile)
-        else:
-            return os.path.normcase(os.path.join(folder, self.configName + '.cson'))
-
-    def __init__(self, configName, defaultConfigLocation):
-        self.configName = configName
-        self.defaultConfigName = defaultConfigLocation
-
-        self._defaultOptions = None
-        self._defaultOptLocation = os.path.join(defaultConfigLocation)
-
-        self.options = self.defaultOptions()
-        self.load()
+        folders[0].mkdir(exist_ok=True, parents=True)
+        return str(folders[0] / f"{self.configName}.cson")
 
     def __getitem__(self, key):
         return self.options[key]
@@ -83,41 +86,43 @@ class xasyOptions:
         self.options[key] = value
 
     def load(self):
-        fileName = self.settingsFileLocation()
-        if not os.path.exists(fileName):
-            # make folder
-            thedir = os.path.dirname(fileName)
-            if not os.path.exists(thedir):
-                os.makedirs(thedir)
-            if not os.path.isdir(thedir):
-                raise Exception("Configuration folder path does not point to a folder")
-            self.setDefaults()
-        f = io.open(fileName, 'r')
-        try:
-            ext = os.path.splitext(fileName)[1]
-            newOptions = cson.loads(f.read())
-        except (IOError, ModuleNotFoundError):
-            self.setDefaults()
-        else:
-            for key, val in self.options.items():
-                if key in newOptions:
-                    if val is not None:
-                        assert isinstance(newOptions[key], type(val))
-                else:
-                    newOptions[key] = self.options[key]
-            self.options = newOptions
-        finally:
-            f.close()
+        """
+        Loads settings/keymaps to the `self.options` attribute.
+
+        This method follows the order of precedence:
+
+        1. Loads the default options.
+        2. Applies the current options.
+        3. Applies options from the configuration file.
+        4. Applies OS-specific overrides to adjust options based on the current platform.
+        """
+        fileName = Path(self.settingsFileLocation())
+
+        defaults = self.defaultOptions()
+
+        newOptions = {}
+        if fileName.exists():
+            newOptions: "dict[str, Any]" = cson.loads(fileName.read_text())  # type: ignore
+
+        # assert types match
+        for source in [defaults, self.options]:
+            common_keys = set(source.keys()).intersection(newOptions.keys())
+            for key in common_keys:
+                old_value = source[key]
+                if old_value is not None:
+                    assert isinstance(newOptions[key], type(old_value))
+
+        self.options = {**defaults, **self.options, **newOptions}
         self.overrideSettings()
 
     def setDefaults(self):
+        """Reset options/keymaps."""
         self.options = self.defaultOptions()
-        if sys.platform[:3] == 'win':  # for windows, wince, win32, etc
+        if sys.platform[:3] == "win":  # for windows, wince, win32, etc
             # setAsyPathFromWindowsRegistry()
             pass
-        folder = os.path.expanduser("~/.asy/")
-        defaultPath = os.path.join(folder, self.configName + '.cson')
-        shutil.copy2(self._defaultOptLocation, defaultPath)
+
+        shutil.copy2(self._defaultOptLocation, self.settingsFileLocation())
 
 
 # TODO: Figure out how to merge this back.
@@ -138,77 +143,63 @@ def setAsyPathFromWindowsRegistry():
             registry.CloseKey(key)
 """
 
+
 class xasyOpenRecent:
-    def __init__(self, configName, defaultConfigLocation):
-        self.configName = configName
-        self.fileName = self.settingsFileLocation()
-        if not os.path.isfile(self.fileName):
-            f = io.open(self.fileName, 'w')
-            f.write('')
-            f.close()
+    def settingsFileLocation(self, ensure_exists: bool = True):
+        folders = [Path(user_state_dir("asymptote")), Path.home() / ".asy"]
+        file = "xasyrecents.txt"
 
-    def settingsFileLocation(self):
-        folder = os.path.expanduser("~/.asy/")
+        for folder in folders:
+            path = folder / file
+            if path.exists():
+                return path
 
-        currentFile = os.path.join(folder, self.configName + '.txt')
-        return os.path.normcase(currentFile)
+        path = folders[0] / file
+        if ensure_exists:
+            path.parent.mkdir(exist_ok=True, parents=True)
+            path.touch()
+        return path
 
-    def insert(self, path):
-        if not os.path.exists(self.fileName):
-            # make folder
-            thedir = os.path.dirname(self.fileName)
-            if not os.path.exists(thedir):
-                os.makedirs(thedir)
-            if not os.path.isdir(thedir):
-                raise Exception("Configuration folder path does not point to a folder")
+    def insert(self, path: str):
+        """
+        Adds a file path to the top of the recent files list,
+        or moves it to the top if it already exists in the list.
+        """
+        path = path.strip()
+        fileName = self.settingsFileLocation()
 
-        f = io.open(self.fileName, 'r')
-        lines = f.readlines()
-        f.close()
+        lines = [line.strip() for line in fileName.read_text().splitlines()]
 
-        f = io.open(self.fileName, 'w')
-        f.write(path.strip() + '\n')
-        for line in lines:
-            if line.strip() != path.strip():
-                f.write(line.strip() + '\n')
-        f.close()
+        paths = [p for p in lines if p != path]
+        paths.insert(0, path)
+
+        fileName.write_text("\n".join(paths) + "\n")
 
     @property
     def pathList(self):
-        self.findingPaths=True
-        return self.findPath()
+        """Retrieves the current list of recently opened file paths.
 
-    def findPath(self):
-        f = io.open(self.fileName, 'r')
-        paths = [path.strip() for path in f.readlines()]
-        f.close()
+        Loads the file paths from the storage file and ensures
+        that any paths that no longer exist (i.e., are missing or deleted)
+        are removed from the list.
+        """
 
-        trueFiles = list(map(lambda path: os.path.isfile(os.path.expanduser(path)), paths))
-        if all(trueFiles):
-            return paths
-        else:
-            if not self.findingPaths:
-                raise RecursionError
-            self.findingPaths = False
-            self.removeNotFound(list(trueFiles), paths)
-            return self.findPath()
+        fileName = self.settingsFileLocation()
+        lines = [line.strip() for line in fileName.read_text().splitlines()]
 
-    def removeNotFound(self, trueFiles, paths):
-        f = io.open(self.fileName, 'w')
-        for index, path in enumerate(paths):
-            if trueFiles[index]:
-                f.write(path + '\n')
-        f.close()
+        existing = [path for path in lines if Path(path).resolve().is_file()]
+        if existing != lines:
+            fileName.write_text("\n".join(existing) + "\n")
+
+        return existing
 
     def clear(self):
-        f = io.open(self.fileName, 'w')
-        f.write('')
-        f.close()
+        """Remove all items from the storage file."""
+        self.settingsFileLocation().write_text("")
+
 
 class BasicConfigs:
-    _configPath = list(configs.__path__)[0]
-    defaultOpt = xasyOptions(
-        'xasyconfig', os.path.join(_configPath, 'xasyconfig.cson'))
-    keymaps = xasyOptions('xasykeymap', os.path.join(
-        _configPath, 'xasykeymap.cson'))
-    openRecent = xasyOpenRecent('xasyrecents', os.path.join( _configPath, "xasyrecent.txt"))
+    _configPath = Path(list(configs.__path__)[0])
+    defaultOpt = xasyOptions("xasyconfig", _configPath / "xasyconfig.cson")
+    keymaps = xasyOptions("xasykeymap", _configPath / "xasykeymap.cson")
+    openRecent = xasyOpenRecent()
