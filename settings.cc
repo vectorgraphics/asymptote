@@ -41,6 +41,7 @@
 #include "refaccess.h"
 #include "pipestream.h"
 #include "array.h"
+#include "compilerinfo.h"
 
 #include "glrender.h"
 
@@ -975,6 +976,7 @@ void version()
 {
   cerr << PACKAGE_NAME << " version " << REVISION
        << " [(C) 2004 Andy Hammerlindl, John C. Bowman, Tom Prince]"
+       << " <" << ASY_COMPILER_INFO << ">"
        << endl;
 }
 
