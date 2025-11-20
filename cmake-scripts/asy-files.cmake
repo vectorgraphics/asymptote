@@ -29,6 +29,7 @@ set(CORE_BUILD_FILES
         EXRFiles GLTextures lspserv symbolmaps win32helpers win32pipestream
         win32xdr xstream
         lspdec lspexp lspfundec lspstm
+        dlmanager
 )
 
 set(ASY_CSV_ENUM_FILES v3dtypes v3dheadertypes)
