@@ -412,8 +412,6 @@ private:
   bool hasDebugMarker=false;
 #endif
 
-  std::int32_t gs2;
-  std::int32_t gs;
   std::uint32_t g;
   std::uint32_t localSize;
   std::uint32_t blockSize;
@@ -636,9 +634,6 @@ private:
 
     vma::cxx::UniqueBuffer uboBf;
     std::unique_ptr<vma::cxx::MemoryMapperLock> uboMappedMemory;
-
-    vk::UniqueBuffer ssbo;
-    vk::UniqueDeviceMemory ssboMemory;
 
     DeviceBuffer materialVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
     DeviceBuffer materialIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);

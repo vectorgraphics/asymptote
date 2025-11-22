@@ -1924,17 +1924,9 @@ void AsyVkRender::copyToBuffer(
         vma::cxx::UniqueBuffer const& stagingBuffer
         )
 {
-  if (false) {
-    auto externalMemoryBufferCI = vk::ExternalMemoryBufferCreateInfo(vk::ExternalMemoryHandleTypeFlagBits::eHostAllocationEXT);
-    auto bufferCI = vk::BufferCreateInfo(vk::BufferCreateFlags(), size, vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive, 0, nullptr, &externalMemoryBufferCI);
-    auto hostBuffer = device->createBufferUnique(bufferCI);
-
-    copyBufferToBuffer(*hostBuffer, buffer, size);
-  } else {
-    vma::cxx::MemoryMapperLock const stgBufMemPtr(stagingBuffer);
-    memcpy(stgBufMemPtr.getCopyPtr(), data, size);
-    copyBufferToBuffer(stagingBuffer.getBuffer(), buffer, size);
-  }
+  vma::cxx::MemoryMapperLock const stgBufMemPtr(stagingBuffer);
+  memcpy(stgBufMemPtr.getCopyPtr(), data, size);
+  copyBufferToBuffer(stagingBuffer.getBuffer(), buffer, size);
 }
 
 void AsyVkRender::setDebugObjectName(
@@ -2164,22 +2156,16 @@ void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data,
     buffer.stgBufferSize = newSize;
 
     // check whether we need a staging buffer
-    if (true) {
-      buffer._stgBuffer = createBufferUnique(
-              vk::BufferUsageFlagBits::eTransferSrc,
-              VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-              buffer.stgBufferSize,
-              VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
+    buffer._stgBuffer = createBufferUnique(
+      vk::BufferUsageFlagBits::eTransferSrc,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      buffer.stgBufferSize,
+      VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
       );
-    }
   }
 
   if (data) {
-    if (false) {
-      copyToBuffer(buffer._buffer.getBuffer(), data, size);
-    } else {
       copyToBuffer(buffer._buffer.getBuffer(), data, size, buffer._stgBuffer);
-    }
   }
 }
 
