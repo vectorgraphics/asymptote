@@ -7334,11 +7334,11 @@ The @code{nullValue} parameter gives the map something to return when
 a nonexistent key is looked up. This is useful in scenarios where missing keys
 are expected and should be handled gracefully.
 The @code{isNullValue} parameter defaults to a function that checks whether
-the value is equal to @code{nullValue} via @code{operator ==}.
+its argument is equal to @code{nullValue} via @code{operator ==}.
 This is usually the desired behavior, but it is occasionally necessary to
 override it;
  for instance,
-if you have overridden @code{operator==} assuming its parameters are not null,
+if you have overridden @code{operator ==} assuming its parameters are not null,
 then something like @code{isNullValue=new bool(V v)@{return alias(v,null);@}}
 might
 be appropriate.
