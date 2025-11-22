@@ -27,6 +27,8 @@ StartTest('overrideEquals: internal');
         return true;
       }
     }
+    private typedef bool F(Inner, Inner);
+    assert(((F)operator ==) != ((F)alias));
   }
   from Outer unravel Inner;
   Inner a = new Inner;
