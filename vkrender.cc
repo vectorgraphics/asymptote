@@ -2109,8 +2109,8 @@ void AsyVkRender::copyDataToImage(const void *data, vk::DeviceSize size,
           VARIABLE_NAME(copyToImageStageBf)
     );
 
-  if (vma::cxx::MemoryMapperLock mappedMem(copyToImageStageBf); true)
   {
+    vma::cxx::MemoryMapperLock mappedMem(copyToImageStageBf);
     memcpy(mappedMem.getCopyPtr<uint8_t>(), data, size);
   }
 
