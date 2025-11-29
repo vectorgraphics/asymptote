@@ -1,5 +1,6 @@
 #pragma once
 #include "common.h"
+#include <memory>
 
 #ifdef _WIN32
 #  include <Windows.h>
@@ -48,9 +49,9 @@ public:
   getRawSymAddress(char const* symbol, bool const& check= true) const;
 
   template<typename T>
-  T* getSymAddress(char const* symbol, bool const& check= true) const
+  T getSymAddress(char const* symbol, bool const& check= true) const
   {
-    return reinterpret_cast<T*>(getRawSymAddress(symbol, check));
+    return reinterpret_cast<T>(getRawSymAddress(symbol, check));
   }
 
 private:
@@ -62,5 +63,18 @@ private:
   bool threadedClose= false;
   TDynLib dlptr= nullptr;
 };
+
+class DynlibManager
+{
+public:
+  LoadedDynLib* getLib(string const& dlKey, string const& dlPath);
+  LoadedDynLib* getPreloadedLib(string const& dlKey) const;
+  void delLib(string const& dlPath);
+
+private:
+  mem::unordered_map<string, std::unique_ptr<LoadedDynLib>> loadedDls;
+};
+
+DynlibManager* getDynlibManager();
 
 }// namespace camp

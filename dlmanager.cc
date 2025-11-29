@@ -2,8 +2,11 @@
 #include "camperror.h"
 #include <utility>
 
+
 #ifdef _WIN32
 #  include "win32helpers.h"
+#else
+#  include <dlfcn.h>
 #endif
 
 namespace camp
@@ -104,5 +107,40 @@ void LoadedDynLib::checkLibraryNotNull() const
 #else
   reportError("!TODO: Implement this for linux");
 #endif
+}
+
+namespace
+{
+DynlibManager dynlibManager;
+}
+
+
+DynlibManager* getDynlibManager() { return &dynlibManager; }
+
+LoadedDynLib* DynlibManager::getLib(string const& dlKey, string const& dlPath)
+{
+#ifdef _WIN32
+  TDlLoadFlags loadFlags= 0;
+#else
+  TDlLoadFlags loadFlags= RTLD_LAZY;
+#endif
+
+  auto [dynlib, hasValue]= loadedDls.try_emplace(
+          dlKey, std::make_unique<LoadedDynLib>(dlPath, false, loadFlags)
+  );
+
+  return dynlib->second.get();
+}
+
+void DynlibManager::delLib(string const& dlKey) { loadedDls.erase(dlKey); }
+
+LoadedDynLib* DynlibManager::getPreloadedLib(string const& dlKey) const
+{
+  if (auto const dynLibIt = loadedDls.find(dlKey); dynLibIt != loadedDls.end()) {
+    return dynLibIt->second.get();
+  } else {
+    reportError("Dll key " + dlKey + " not loaded");
+    return nullptr;
+  }
 }
 }// namespace camp
