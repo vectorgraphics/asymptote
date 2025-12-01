@@ -8,7 +8,7 @@ set(CAMP_BUILD_FILES
 set(RUNTIME_BUILD_FILES
         runtime runbacktrace runpicture runlabel runhistory runarray
         runfile runsystem runpair runtriple runpath runpath3d runstring
-        runmath
+        runmath rundynlib
 )
 
 set(SYMBOL_STATIC_BUILD_FILES types builtin gsl)

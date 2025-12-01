@@ -78,6 +78,7 @@ void gen_runpath_venv(venv &ve);
 void gen_runpath3d_venv(venv &ve);
 void gen_runmath_venv(venv &ve);
 void gen_rungsl_venv(venv &ve);
+void gen_rundynlib_venv(venv &ve);
 
 void addType(tenv &te, symbol name, ty *t)
 {
@@ -912,6 +913,8 @@ void base_venv(venv &ve)
 #ifdef HAVE_LIBGSL
   gen_rungsl_venv(ve);
 #endif
+  
+  gen_rundynlib_venv(ve);
 }
 
 } //namespace trans

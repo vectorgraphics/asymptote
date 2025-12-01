@@ -1,0 +1,23 @@
+/**
+@file ryndynlib.in
+@author Jamie L.
+*/
+
+
+#include <iostream>
+#include "dynlib.h"
+
+void loadLib(string key)
+{
+	loadDynLib(key);
+}
+
+void runFunction(string key, string functionName)
+{
+	callFunction(key, functionName);
+}
+
+void unloadLib(string key)
+{
+	unloadLib(key);
+}
