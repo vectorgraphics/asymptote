@@ -46,8 +46,11 @@ endif()
 if (ENABLE_LSP)
     message(STATUS "LSP Enabled.")
     # disable New Boost version warning
-    set(Boost_NO_WARN_NEW_VERSIONS 1)
     set(USE_SYSTEM_RAPIDJSON ON CACHE INTERNAL "Use system rapidjson")
+    set(USE_EXTERNAL_IXWEBSOCKET ON CACHE INTERNAL "Use (vcpkg) ixwebsocket")
+    set(USE_EXTERNAL_ASIO ON CACHE INTERNAL "Use (vcpkg) asio")
+    set(LSPCPP_STANDALONE_ASIO ON CACHE INTERNAL "Use asio instead of boost::beast")
+
     set(LSPCPP_USE_CPP17 ON CACHE INTERNAL "C++17 mode")
     # For transitive URI dependency
     set(Uri_BUILD_DOCS OFF CACHE INTERNAL "build docs for uri")
