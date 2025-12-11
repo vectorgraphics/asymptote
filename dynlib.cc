@@ -10,7 +10,7 @@ void loadDynLib(string const& key)
 #else
   string dllName= "lib" + key + ".so";
 #endif
-  string fileName= settings::locateFile(dllName);
+  string fileName= settings::locateFile(dllName, true);
 
   camp::getDynlibManager()->getLib(key, fileName);
 }
