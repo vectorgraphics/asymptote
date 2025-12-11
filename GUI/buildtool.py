@@ -28,13 +28,23 @@ def make_init_py_at_dir(dir_name: pathlib.Path):
 
 
 def compile_ui_file(ui_file: pathlib.Path):
-    process_result = subprocess.run(
-        ["pyside6-uic", str(ui_file)],
-        check=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        universal_newlines=True,
-    )
+
+    try:
+        process_result = subprocess.run(
+            ["pyside6-uic", str(ui_file)],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+        )
+    except (subprocess.CalledProcessError, PermissionError):
+        process_result = subprocess.run(
+            ["uic", "-g", "python", str(ui_file)],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+        )
     with open(
         PY_UI_FILE_DIR / ui_file.with_suffix(".py").name, "w", encoding="utf-8"
     ) as f:
@@ -56,14 +66,28 @@ def build_ui():
 def build_icons():
     PY_ICONS_FILE_DIR.mkdir(exist_ok=True)
     make_init_py_at_dir(PY_ICONS_FILE_DIR)
-    subprocess.run(
-        [
-            "pyside6-rcc",
-            str(BUILD_ROOT_DIRECTORY / "res" / "icons.qrc"),
-            "-o",
-            str(PY_ICONS_FILE_DIR / "icons_rc.py"),
-        ]
-    )
+    try:
+        subprocess.run(
+            [
+                "pyside6-rcc",
+                str(BUILD_ROOT_DIRECTORY / "res" / "icons.qrc"),
+                "-o",
+                str(PY_ICONS_FILE_DIR / "icons_rc.py"),
+            ],
+            check=True
+        )
+    except (subprocess.CalledProcessError, PermissionError):
+        subprocess.run(
+            [
+                "rcc",
+                "-g",
+                "python",
+                str(BUILD_ROOT_DIRECTORY / "res" / "icons.qrc"),
+                "-o",
+                str(PY_ICONS_FILE_DIR / "icons_rc.py"),
+            ],
+            check=True,
+        )
 
 
 def determine_asy_version() -> str:
