@@ -102,6 +102,8 @@ void LoadedDynLib::closeLibrary()
     return;
   }
 
+  // One invariant we enforce is that dlptr should only point to a valid
+  // library handle, hence we transfer the handle to copyDlPtr before freeing it
   auto const copyDlPtr= std::exchange(dlptr, nullptr);
 #ifdef _WIN32
   if (threadedClose) {
