@@ -4,6 +4,8 @@
 
 #ifdef _WIN32
 #  include <Windows.h>
+#else
+#  include "optional"
 #endif
 
 namespace camp
@@ -16,7 +18,7 @@ typedef FARPROC TProcAddress;
 #else
 typedef void* TDynLib;
 typedef int TDlLoadFlags;
-typedef void* TProcAddress;
+typedef void const* TProcAddress;
 #endif
 
 /** RAII wrapper for loaded library handles */
@@ -76,5 +78,28 @@ private:
 };
 
 DynlibManager* getDynlibManager();
+
+#ifndef _WIN32
+
+/** Simple wrapper around dlerror(). It calls dlerror() initially to clear any
+ * errors, then if any dl operations fail, a call to dlError can be made from
+ * getDlErrorMsg */
+class DlErrorContext
+{
+public:
+  DlErrorContext();
+  ~DlErrorContext()= default;
+
+  DlErrorContext(DlErrorContext const&)= delete;
+  DlErrorContext& operator=(DlErrorContext const&)= delete;
+  DlErrorContext(DlErrorContext&&) noexcept= delete;
+  DlErrorContext& operator=(DlErrorContext&&) noexcept= delete;
+
+
+  [[nodiscard]]
+  optional<string> getDlErrorMsg() const;
+};
+#endif
+
 
 }// namespace camp

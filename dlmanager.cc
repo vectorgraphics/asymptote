@@ -21,12 +21,9 @@ LoadedDynLib::LoadedDynLib(
       threadedClose(closingInThread),
       dlptr(LoadLibraryExA(dlPath.c_str(), nullptr, dlLoadFlags))
 #else
-      threadedClose(false), dlptr(nullptr)
+      threadedClose(false), dlptr(dlopen(dlPath.c_str(), dlLoadFlags))
 #endif
 {
-#ifndef _WIN32
-  reportError("!TODO: Implement this for linux");
-#endif
   checkLibraryNotNull();
 }
 LoadedDynLib::~LoadedDynLib() { closeLibrary(); }
@@ -45,7 +42,8 @@ LoadedDynLib& LoadedDynLib::operator=(LoadedDynLib const& other)
   this->threadedClose= other.threadedClose;
   this->dlptr= LoadLibraryExA(storedDlPath.c_str(), nullptr, dlLoadFlags);
 #else
-  reportError("!TODO: Implement this for linux");
+  this->threadedClose= false;
+  this->dlptr= dlopen(storedDlPath.c_str(), dlLoadFlags);
 #endif
   checkLibraryNotNull();
 
@@ -79,12 +77,25 @@ LoadedDynLib::getRawSymAddress(char const* symbol, bool const& check) const
     w32::checkResult(ret != nullptr, outMsg);
   }
 #else
-  TProcAddress const ret= nullptr;
-  reportError("!TODO: Implement this for linux");
+  DlErrorContext errorCtx;
+  TProcAddress const ret= dlsym(dlptr, symbol);
+
+  if (check && ret == nullptr) {
+    ostringstream retMsg;
+    retMsg << "Failed to get program address from " << string(symbol);
+
+    auto const errMsg= errorCtx.getDlErrorMsg();
+    if (errMsg.has_value()) {
+      retMsg << "; Error message: " << errMsg.value();
+    }
+
+    reportError(retMsg);
+  }
 #endif
 
   return ret;
 }
+
 void LoadedDynLib::closeLibrary()
 {
   if (dlptr == nullptr) {
@@ -99,7 +110,19 @@ void LoadedDynLib::closeLibrary()
     FreeLibrary(copyDlPtr);
   }
 #else
-  reportError("!TODO: Implement this for linux");
+  DlErrorContext errorCtx;
+  if (dlclose(copyDlPtr) != 0) {
+    ostringstream oss;
+    oss << "Cannot free library at " << storedDlPath;
+
+    auto const errMsg= errorCtx.getDlErrorMsg();
+    if (errMsg.has_value()) {
+      oss << "; Error message is " << errMsg.value();
+    }
+
+    reportError(oss);
+  }
+
 #endif
 }
 void LoadedDynLib::checkLibraryNotNull() const
@@ -108,7 +131,16 @@ void LoadedDynLib::checkLibraryNotNull() const
   string const outMsg= "Cannot load dll from " + storedDlPath;
   w32::checkResult(dlptr != nullptr, outMsg);
 #else
-  reportError("!TODO: Implement this for linux");
+  if (dlptr == nullptr) {
+    ostringstream outMsg;
+    outMsg << "Cannot load library from " << storedDlPath;
+    char const* dlErrMsg= dlerror();
+
+    if (dlErrMsg != nullptr) {
+      outMsg << "; Error message: " << string(dlErrMsg);
+    }
+    reportError(outMsg);
+  }
 #endif
 }
 
@@ -146,4 +178,15 @@ LoadedDynLib* DynlibManager::getPreloadedLib(string const& dlKey) const
     return nullptr;
   }
 }
+
+#ifndef _WIN32
+
+DlErrorContext::DlErrorContext() { dlerror(); }
+
+optional<string> DlErrorContext::getDlErrorMsg() const
+{
+  char const* msg= dlerror();
+  return msg != nullptr ? make_optional(string(msg)) : nullopt;
+}
+#endif
 }// namespace camp
