@@ -21,10 +21,12 @@ LoadedDynLib::LoadedDynLib(
       threadedClose(closingInThread),
       dlptr(LoadLibraryExA(dlPath.c_str(), nullptr, dlLoadFlags))
 #else
-      reportError("!TODO: Implement this for linux");
+      threadedClose(false), dlptr(nullptr)
 #endif
-
 {
+#ifndef _WIN32
+  reportError("!TODO: Implement this for linux");
+#endif
   checkLibraryNotNull();
 }
 LoadedDynLib::~LoadedDynLib() { closeLibrary(); }
@@ -77,6 +79,7 @@ LoadedDynLib::getRawSymAddress(char const* symbol, bool const& check) const
     w32::checkResult(ret != nullptr, outMsg);
   }
 #else
+  TProcAddress const ret= nullptr;
   reportError("!TODO: Implement this for linux");
 #endif
 
@@ -136,7 +139,7 @@ void DynlibManager::delLib(string const& dlKey) { loadedDls.erase(dlKey); }
 
 LoadedDynLib* DynlibManager::getPreloadedLib(string const& dlKey) const
 {
-  if (auto const dynLibIt = loadedDls.find(dlKey); dynLibIt != loadedDls.end()) {
+  if (auto const dynLibIt= loadedDls.find(dlKey); dynLibIt != loadedDls.end()) {
     return dynLibIt->second.get();
   } else {
     reportError("Dll key " + dlKey + " not loaded");
