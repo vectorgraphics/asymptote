@@ -19,9 +19,9 @@ typedef void (*TVoidVoidFunction)();
 
 void callFunction(string const& key, string const& fnName)
 {
-  auto const* lib = camp::getDynlibManager()->getPreloadedLib(key);
-  auto const* fn = lib->getSymAddress<TVoidVoidFunction>(fnName.c_str(), true);
-  
+  auto const* lib= camp::getDynlibManager()->getPreloadedLib(key);
+  auto const fn= lib->getSymAddress<TVoidVoidFunction>(fnName.c_str(), true);
+
   fn();
 }
 
