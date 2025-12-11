@@ -33,7 +33,7 @@ std::string const ASY_COMPILER_INFO=
         "clang " + __clang_version__ + " (" + ARCH_STRING + ")";
 #  else                 // for gcc
 std::string const ASY_COMPILER_INFO= "GCC " + std::to_string(__GNUC__) + "." +
-                                     std::to_string(____GNUC_MINOR__) + "." +
+                                     std::to_string(__GNUC_MINOR__) + "." +
                                      std::to_string(__GNUC_PATCHLEVEL__) +
                                      " (" + ARCH_STRING + ")";
 #  endif
