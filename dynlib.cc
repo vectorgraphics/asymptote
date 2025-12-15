@@ -1,5 +1,6 @@
 #include "dynlib.h"
 
+#include "asyffiimpl.h"
 #include "dlmanager.h"
 #include "locate.h"
 
@@ -15,14 +16,16 @@ void loadDynLib(string const& key)
   camp::getDynlibManager()->getLib(key, fileName);
 }
 
-typedef void (*TVoidVoidFunction)();
+typedef void (*TVoidArgsFunction)(IAsyArgs*);
 
-void callFunction(string const& key, string const& fnName)
+void callFunction(
+        string const& key, string const& fnName, camp::AsyArgsImpl* args
+)
 {
   auto const* lib= camp::getDynlibManager()->getPreloadedLib(key);
-  auto const fn= lib->getSymAddress<TVoidVoidFunction>(fnName.c_str(), true);
+  auto const fn= lib->getSymAddress<TVoidArgsFunction>(fnName.c_str(), true);
 
-  fn();
+  fn(args);
 }
 
 void unloadLib(string const& key) { camp::getDynlibManager()->delLib(key); }

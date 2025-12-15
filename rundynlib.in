@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include "dynlib.h"
+#include "asyffiimpl.h"
 
 void loadLib(string key)
 {
@@ -14,7 +15,15 @@ void loadLib(string key)
 
 void runFunction(string key, string functionName)
 {
-	callFunction(key, functionName);
+	camp::AsyArgsImpl args;
+	callFunction(key, functionName, &args);
+}
+
+void runFunction(string key, string functionName, Int arg1)
+{
+	camp::AsyArgsImpl args;
+	args.addArgs(&arg1);
+	callFunction(key, functionName, &args);
 }
 
 void unloadLib(string key)
