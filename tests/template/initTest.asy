@@ -1,6 +1,6 @@
-access "template/imports/A"(T=int) as a;
+access template.imports.A(T=int) as a;
 unravel a;
-access "template/imports/B"(T=A) as b;
+access template.imports.B(T=A) as b;
 unravel b;
 
 import TestLib;
@@ -16,6 +16,6 @@ struct X {
   }
 }
 
-access "template/imports/C"(T=X.A) as p;
+access template.imports.C(T=X.A) as p;
 
 EndTest();

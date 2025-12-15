@@ -170,6 +170,11 @@ class extendedForStm : public stm {
 
   stm *body;
 
+  enum class LoopType { ARRAY, ITERABLE, TY_ERROR };
+
+  // Declares an array a, initialized to `set`. May involve an implicit cast.
+  LoopType transObjectDec(symbol a, coenv& e);
+
 public:
   extendedForStm(position pos, astType *start, symbol var, exp *set, stm *body)
     : stm(pos), start(start), var(var), set(set), body(body) {}

@@ -53,6 +53,15 @@ using nonstd::optional;
 using nonstd::nullopt;
 using nonstd::make_optional;
 
+
+#if __cplusplus < 202002L
+#  include "span.hpp"
+using nonstd::span;
+#else
+#  include <span>
+using std::span;
+#endif
+
 using std::make_pair;
 
 #if !defined(FOR_SHARED) &&                                             \

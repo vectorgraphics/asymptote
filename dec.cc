@@ -71,9 +71,11 @@ bool usableInTemplate(ty *t) {
 }
 
 
-trans::tyEntry *astType::transAsTyEntry(coenv &e, record *where)
+trans::tyEntry* astType::transAsTyEntry(coenv& e, record* where)
 {
-  return new trans::tyEntry(trans(e, false), nullptr, where, getPos());
+  return new trans::tyEntry(
+          trans(e, ErrorMode::NORMAL), nullptr, where, getPos()
+  );
 }
 
 
@@ -113,17 +115,16 @@ void addNameOps(coenv &e, record *r, record *qt, varEntry *qv, position pos) {
 
 void nameTy::addOps(coenv &e, record *r, AutounravelOption opt)
 {
-  if (opt == AutounravelOption::Apply)
-  {
-    if (record* qt= dynamic_cast<record*>(id->getType(e, true)); qt)
-    {
+  if (opt == AutounravelOption::Apply) {
+    if (record* qt= dynamic_cast<record*>(id->getType(e, ErrorMode::SUPPRESS));
+        qt) {
       varEntry* qv= id->getVarEntry(e);
       addNameOps(e, r, qt, qv, getPos());
     }
   }
 }
 
-types::ty *nameTy::trans(coenv &e, bool tacit)
+types::ty *nameTy::trans(coenv &e, ErrorMode tacit)
 {
   return id->typeTrans(e, tacit);
 }
@@ -144,9 +145,9 @@ void dimensions::prettyprint(ostream &out, Int indent)
   out << "dimensions (" << depth << ")\n";
 }
 
-types::array *dimensions::truetype(types::ty *base, bool tacit)
+types::array *dimensions::truetype(types::ty *base, ErrorMode tacit)
 {
-  if (!tacit && base->kind == ty_void) {
+  if (tacit==ErrorMode::NORMAL && base->kind == ty_void) {
     em.error(getPos());
     em << "cannot declare array of type void";
   }
@@ -172,7 +173,7 @@ void arrayTy::prettyprint(ostream &out, Int indent)
 // NOTE: Can this be merged with trans somehow?
 void arrayTy::addOps(coenv &e, record *r, AutounravelOption)
 {
-  types::ty *t=trans(e, true);
+  types::ty *t=trans(e, ErrorMode::SUPPRESS);
 
   // Only add ops if it is an array (and not, say, an error)
   if (t->kind == types::ty_array) {
@@ -184,7 +185,7 @@ void arrayTy::addOps(coenv &e, record *r, AutounravelOption)
   }
 }
 
-types::ty *arrayTy::trans(coenv &e, bool tacit)
+types::ty *arrayTy::trans(coenv &e, ErrorMode tacit)
 {
   types::ty *ct = cell->trans(e, tacit);
   assert(ct);
@@ -220,7 +221,7 @@ void tyEntryTy::prettyprint(ostream &out, Int indent)
   out << "tyEntryTy: " << *(ent->t) << "\n";
 }
 
-types::ty *tyEntryTy::trans(coenv &, bool) {
+types::ty *tyEntryTy::trans(coenv &, ErrorMode) {
   return ent->t;
 }
 
@@ -566,7 +567,7 @@ void decidstart::prettyprint(ostream &out, Int indent)
     dims->prettyprint(out, indent+1);
 }
 
-types::ty *decidstart::getType(types::ty *base, coenv &, bool)
+types::ty *decidstart::getType(types::ty *base, coenv &, ErrorMode)
 {
   return dims ? dims->truetype(base) : base;
 }
@@ -575,7 +576,8 @@ trans::tyEntry *decidstart::getTyEntry(trans::tyEntry *base, coenv &e,
                                        record *where)
 {
   return dims ? new trans::tyEntry(
-                        getType(base->t, e, false), nullptr, where, getPos()
+                        getType(base->t, e, ErrorMode::NORMAL), nullptr, where,
+                        getPos()
                 )
               : base;
 }
@@ -604,7 +606,7 @@ void decidstart::addOps(types::ty *base, coenv &e, record *r)
     params->prettyprint(out, indent+1);
 }
 
-types::ty *fundecidstart::getType(types::ty *base, coenv &e, bool tacit)
+types::ty *fundecidstart::getType(types::ty *base, coenv &e, ErrorMode tacit)
 {
   types::ty *result = decidstart::getType(base, e, tacit);
 
@@ -617,21 +619,23 @@ types::ty *fundecidstart::getType(types::ty *base, coenv &e, bool tacit)
   }
 }
 
-trans::tyEntry *fundecidstart::getTyEntry(trans::tyEntry *base, coenv &e,
-                                          record *where)
+trans::tyEntry*
+fundecidstart::getTyEntry(trans::tyEntry* base, coenv& e, record* where)
 {
-  return new trans::tyEntry(getType(base->t,e,false), nullptr, where, getPos());
+  return new trans::tyEntry(
+          getType(base->t, e, ErrorMode::NORMAL), nullptr, where, getPos()
+  );
 }
 
-void fundecidstart::addOps(types::ty *base, coenv &e, record *r)
+void fundecidstart::addOps(types::ty* base, coenv& e, record* r)
 {
   decidstart::addOps(base, e, r);
 
   params->addOps(e, r);
 
-  types::function *ft=dynamic_cast<types::function *>(getType(base, e, true));
+  types::function* ft=
+          dynamic_cast<types::function*>(getType(base, e, ErrorMode::SUPPRESS));
   assert(ft);
-
 }
 
 
@@ -1113,7 +1117,7 @@ void recordInitializer(coenv &e, symbol id, record *r, position here)
   assert(r);
   {
     e.c.pushModifier(AUTOUNRAVEL);
-    function *ft = fun.transType(e, false);
+    function *ft = fun.transType(e, ErrorMode::NORMAL);
     assert(ft);
 
     symbol initSym=symbol::opTrans("init");
@@ -1200,7 +1204,9 @@ class PermissionSetter {
   coder &c;
   permission oldPerm;
 public:
-  PermissionSetter(coder &c, permission newPerm) : c(c), oldPerm(c.getPermission()) {
+  PermissionSetter(coder& c, permission newPerm)
+      : c(c), oldPerm(c.getPermission())
+  {
     c.setPermission(newPerm);
   }
   ~PermissionSetter() {
@@ -1295,7 +1301,7 @@ void unraveldec::prettyprint(ostream &out, Int indent)
 fromdec::qualifier unraveldec::getQualifier(coenv &e, record *)
 {
   // getType is where errors in the qualifier are reported.
-  record *qt=dynamic_cast<record *>(id->getType(e, false));
+  record *qt=dynamic_cast<record *>(id->getType(e, ErrorMode::NORMAL));
   if (!qt) {
     em.error(getPos());
     em << "qualifier is not a record";
@@ -1442,6 +1448,7 @@ void recorddec::transAsField(coenv &e, record *parent)
   // the default initializer first.
   re.c.closeRecord();
 
+  r->computeKVTypes(getPos());
 
   // Add types and variables defined during the record that should be added to
   // the enclosing environment.  These are the implicit constructors defined by

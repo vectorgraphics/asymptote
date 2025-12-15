@@ -322,13 +322,17 @@ idpairlist:
 ;
 
 strid:
-  ID               { $$ = $1; }
+  name             { $$.pos = $1->getPos();
+                     $$.sym = $1->asPath(); }
 | STRING           { $$.pos = $1->getPos();
                      $$.sym = symbol::literalTrans($1->getString()); }
 ;
 
 stridpair:
-  ID               { $$ = new idpair($1.pos, $1.sym); }
+  name             { $$ = new idpair($1->getPos(),
+                                     $1->asPath(),
+                                     symbol::trans("as"),
+                                     $1->getName()); }
 /* strid 'as' ID */
 | strid ID ID      { $$ = new idpair($1.pos, $1.sym, $2.sym , $3.sym); }
 ;

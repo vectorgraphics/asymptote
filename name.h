@@ -51,7 +51,7 @@ public:
   // Because this is used only on qualifiers (ie. names to the left of a
   // dot), it does not look at function variables.
   // Tacit means that no error messages will be reported to the user.
-  virtual types::ty *getType(coenv &e, bool tacit = false);
+  virtual types::ty *getType(coenv &e, ErrorMode tacit = ErrorMode::NORMAL);
 
   // Pushes the highest level frame possible onto the stack.  Returning
   // the frame pushed.  If no frame can be pushed, returns 0.
@@ -76,7 +76,7 @@ public:
 
   // As a type:
   // Determines the type, as used in a variable declaration.
-  virtual types::ty *typeTrans(coenv &e, bool tacit = false) = 0;
+  virtual types::ty *typeTrans(coenv &e, ErrorMode tacit=ErrorMode::NORMAL) = 0;
   // Constructs the tyEntry of the name, needed so that we know the
   // parent frame for allocating new objects of that type.  Reports
   // errors as typeTrans() does with tacit=false.
@@ -85,6 +85,12 @@ public:
   virtual void prettyprint(ostream &out, Int indent) = 0;
   virtual void print(ostream& out) const {
     out << "<base name>";
+  }
+  virtual void printPath(ostream& out) const { print(out); }
+  virtual symbol asPath() const {
+    ostringstream out;
+    printPath(out);
+    return symbol::literalTrans(out.str());  
   }
 
   [[nodiscard]]
@@ -114,7 +120,7 @@ public:
   trans::varEntry *getCallee(coenv &e, types::signature *sig) override;
 
   // As a type:
-  types::ty *typeTrans(coenv &e, bool tacit = false) override;
+  types::ty *typeTrans(coenv &e, ErrorMode tacit = ErrorMode::NORMAL) override;
   virtual trans::tyEntry *tyEntryTrans(coenv &e) override;
   trans::frame *tyFrameTrans(coenv &e) override;
 
@@ -122,7 +128,9 @@ public:
   void print(ostream& out) const override {
     out << id;
   }
-
+  void printPath(ostream& out) const override {
+    out << id;
+  }
   [[nodiscard]]
   symbol getName() const override {
     return id;
@@ -139,7 +147,7 @@ class qualifiedName : public name {
 
   // Gets the record type associated with the qualifier. Reports an
   // error and returns null if the type is not a record.
-  record *castToRecord(types::ty *t, bool tacit = false);
+  record *castToRecord(types::ty *t, ErrorMode tacit = ErrorMode::NORMAL);
 
   // Translates as a virtual field, if possible.  qt is the type of the
   // qualifier.  Return true if there was a matching virtual field.
@@ -161,13 +169,17 @@ public:
   trans::varEntry *getCallee(coenv &e, types::signature *sig) override;
 
   // As a type:
-  types::ty *typeTrans(coenv &e, bool tacit = false) override;
+  types::ty *typeTrans(coenv &e, ErrorMode tacit = ErrorMode::NORMAL) override;
   trans::tyEntry *tyEntryTrans(coenv &e) override;
   trans::frame *tyFrameTrans(coenv &e) override;
 
   void prettyprint(ostream &out, Int indent) override;
   void print(ostream& out) const override {
     out << *qualifier << "." << id;
+  }
+  void printPath(ostream& out) const override {
+    qualifier->printPath(out);
+    out << "/" << id;
   }
 
   [[nodiscard]]

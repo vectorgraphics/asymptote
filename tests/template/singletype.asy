@@ -5,15 +5,15 @@ StartTest("singletype");
 struct A {}
 
 // TODO: Should we import operator== and alias for free?
-from "template/imports/wrapperWithEquals"(T=int) access
+from "template/imports/wrapper"(T=int) access
     Wrapper_T as Wrapper_int,
-    wrap, operator ==, alias;
+    wrap;
 // TODO: Create a way to pass operator==(A, A) to the template, either
 // implicitly or explicitly.
 // from "template/imports/wrapperWithEquals"(T=A) access
 //   Wrapper_T as Wrapper_A, wrap, operator ==, alias;  // error
 from "template/imports/wrapper"(T=A)
-    access Wrapper_T as Wrapper_A, wrap, alias;
+    access Wrapper_T as Wrapper_A, wrap;
 
 // Basic functionality for ints:
 Wrapper_int w1 = wrap(5);

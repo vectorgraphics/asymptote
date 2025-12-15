@@ -162,6 +162,13 @@ inline bool operator == (const position& a, const position& b)
 
 string warning(string s);
 
+enum class ErrorMode
+{
+  SUPPRESS,// Suppress warnings and errors.
+  NORMAL,
+  FORCE,// Like normal mode, but ignores attempts to change the mode.
+};
+
 class errorstream {
   ostream& out;
   bool anyErrors;
@@ -171,6 +178,13 @@ class errorstream {
   // Is there an error that warrants the asy process to return 1 instead of 0?
   bool anyStatusErrors;
 
+  ErrorMode mode;
+  void setMode(ErrorMode newMode)
+  {
+    if (mode != ErrorMode::FORCE)
+      mode= newMode;
+  }
+
 public:
   static bool interrupt; // Is there a pending interrupt?
 
@@ -179,7 +193,7 @@ public:
 
   errorstream(ostream& out = cerr)
     : out(out), anyErrors(false), anyWarnings(false), floating(false),
-      anyStatusErrors(false) {}
+      anyStatusErrors(false), mode(ErrorMode::NORMAL) {}
 
 
   void clear();
@@ -218,8 +232,10 @@ public:
   // NOTE: May later make it do automatic line breaking for long messages.
   template<class T>
   errorstream& operator << (const T& x) {
-    flush(out);
-    out << x;
+    if (mode != ErrorMode::SUPPRESS) {
+      flush(out);
+      out << x;
+    }
     return *this;
   }
 
@@ -246,6 +262,21 @@ public:
   bool processStatus() const {
     return !anyStatusErrors;
   }
+
+  class ModeGuard
+  {
+    errorstream& es;
+    ErrorMode oldMode;
+
+  public:
+    ModeGuard(errorstream& es, ErrorMode newMode) : es(es), oldMode(es.mode)
+    {
+      es.setMode(newMode);
+    }
+    ~ModeGuard() { es.setMode(oldMode); }
+  };
+
+  ModeGuard modeGuard(ErrorMode newMode) { return ModeGuard(*this, newMode); }
 };
 
 extern errorstream em;
