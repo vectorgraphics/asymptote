@@ -10,6 +10,7 @@
 #ifdef _WIN32
 #  define ASY_FFI_EXPORT __declspec(dllexport)
 #else
+#include <cstddef>
 #  define ASY_FFI_EXPORT [[gnu::visibility("default")]]
 #endif
 
