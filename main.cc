@@ -19,9 +19,9 @@
  *
  *************/
 
-#include <iostream>
-#include <cstdlib>
 #include <cerrno>
+#include <cstdlib>
+#include <iostream>
 #include <sys/types.h>
 
 #if !defined(_WIN32)
@@ -48,6 +48,7 @@
 #include "interact.h"
 #include "fileio.h"
 #include "stack.h"
+#include "dlmanager.h"
 
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
@@ -231,6 +232,7 @@ void *asymain(void *A)
   }
 #endif
 #endif
+  camp::getDynlibManager()->closeDynLibManager();
   exit(returnCode());
 }
 

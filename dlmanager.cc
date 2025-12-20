@@ -170,6 +170,10 @@ LoadedDynLib* DynlibManager::getLib(string const& dlKey, string const& dlPath)
 }
 
 void DynlibManager::delLib(string const& dlKey) { loadedDls.erase(dlKey); }
+void DynlibManager::closeDynLibManager()
+{
+  loadedDls.clear();
+}
 
 LoadedDynLib* DynlibManager::getPreloadedLib(string const& dlKey) const
 {

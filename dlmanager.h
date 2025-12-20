@@ -72,7 +72,8 @@ public:
   LoadedDynLib* getLib(string const& dlKey, string const& dlPath);
   LoadedDynLib* getPreloadedLib(string const& dlKey) const;
   void delLib(string const& dlPath);
-
+  
+  void closeDynLibManager();
 private:
   mem::unordered_map<string, std::unique_ptr<LoadedDynLib>> loadedDls;
 };
