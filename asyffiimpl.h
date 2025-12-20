@@ -10,18 +10,15 @@ class AsyArgsImpl : public IAsyArgs
 public:
   [[nodiscard]]
   size_t getArgumentCount() const override;
-  [[nodiscard]]
-  double getNumberedArgAsReal(const size_t& argNum) const override;
-  [[nodiscard]]
-  int64_t getNumberedArgAsInt(const size_t& argNum) const override;
   
-  void addArgs(void* arg)
-  {
-    argsStorage.push_back(arg);
-  }
+  [[nodiscard]]
+  IAsyItem* getNumberedArg(const size_t& argNum) const override;
+
   
+  void addArgs(IAsyItem* arg);
+
 private:
-  mem::vector<void*> argsStorage;
+  mem::vector<IAsyItem*> argsStorage;
 };
 
 class AsyContextImpl: public IAsyContext

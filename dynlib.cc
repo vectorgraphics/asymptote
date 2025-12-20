@@ -32,12 +32,19 @@ void loadDynLib(string const& key)
 
 typedef void (*TVoidArgsFunction)(IAsyContext*, IAsyArgs*);
 
-void callFunction(
-        string const& key, string const& fnName, camp::AsyArgsImpl* args
-)
+// arguments are <string key>, <string fnName>, <args1>, ..., <args4>
+void callFunction1(vm::stack* stack)
 {
-  auto const* lib= camp::getDynlibManager()->getPreloadedLib(key);
+  vm::item i1 = stack->pop();
+  auto const fnName = stack->pop<string>();
+  auto const dlKey = stack->pop<string>();
+  
+  auto const* lib= camp::getDynlibManager()->getPreloadedLib(dlKey);
   auto const fn= lib->getSymAddress<TVoidArgsFunction>(fnName.c_str(), true);
+  
+  camp::AsyArgsImpl args;
+  args.addArgs(&i1);
+  
   auto* asyContext= camp::getAsyContext();
 
   fn(asyContext, &args);

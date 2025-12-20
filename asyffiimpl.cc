@@ -8,9 +8,10 @@ namespace camp
 
 size_t AsyArgsImpl::getArgumentCount() const { return argsStorage.size(); }
 
-double AsyArgsImpl::getNumberedArgAsReal(const size_t& argNum) const
+
+IAsyItem* AsyArgsImpl::getNumberedArg(const size_t& argNum) const
 {
-  return *static_cast<double*>(argsStorage.at(argNum));
+  return argsStorage.at(argNum);
 }
 
 
