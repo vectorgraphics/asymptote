@@ -14,6 +14,21 @@
 #  define ASY_FFI_EXPORT [[gnu::visibility("default")]]
 #endif
 
+class IAsyItem
+{
+public:
+  virtual ~IAsyItem()= default;
+
+  [[nodiscard]]
+  virtual int64_t asInt64() const= 0;
+
+  [[nodiscard]]
+  virtual double asDouble() const= 0;
+
+  [[nodiscard]]
+  virtual void* asRawPointer() const= 0;
+};
+
 /** Interface for asymptote arguments */
 class IAsyArgs
 {

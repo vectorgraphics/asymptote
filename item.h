@@ -9,6 +9,7 @@
 #define ITEM_H
 
 #include "common.h"
+#include "asyffi.h"
 #include <cfloat>
 #include <cmath>
 
@@ -44,7 +45,7 @@ inline Int valueFromBool(bool b) {
 
 extern const item Default;
 
-class item : public gc {
+class item : public IAsyItem, public gc {
 private:
 
 #if !COMPACT
@@ -59,6 +60,25 @@ private:
 #endif
     void *p;
   };
+  
+  // IAsyItem functions
+  [[nodiscard]]
+  int64_t asInt64() const override
+  {
+    return i;
+  }
+  
+  [[nodiscard]]
+  double asDouble() const override
+  {
+    return x;
+  }
+  
+  [[nodiscard]]
+  void* asRawPointer() const override
+  {
+    return p;
+  }
 
 public:
 #if COMPACT
