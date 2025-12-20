@@ -1,5 +1,6 @@
 #include "asyffiimpl.h"
 
+#include "common.h"
 #include "util.h"
 
 namespace camp
@@ -12,8 +13,11 @@ double AsyArgsImpl::getNumberedArgAsReal(const size_t& argNum) const
   return *static_cast<double*>(argsStorage.at(argNum));
 }
 
-int64_t AsyArgsImpl::getNumberedArgAsInt(const size_t& argNum) const
+
+void AsyArgsImpl::addArgs(IAsyItem* arg) { argsStorage.push_back(arg); }
+void* AsyContextImpl::malloc(size_t const& size) { return asy_malloc(size); }
+void* AsyContextImpl::mallocAtomic(size_t const& size)
 {
-  return *static_cast<int64_t*>(argsStorage.at(argNum));
+  return asy_malloc_atomic(size);
 }
 }// namespace camp
