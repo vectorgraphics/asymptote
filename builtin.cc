@@ -758,7 +758,7 @@ void addOperators(venv &ve)
 
 dummyRecord *createDummyRecord(venv &ve, symbol name)
 {
-  dummyRecord *r=new dummyRecord(name);
+  auto* r=new dummyRecord(name);
   vm::vmFrame *f = make_dummyframe(name);
   addConstant(ve, f, r, name);
   addRecordOps(r);
@@ -913,7 +913,7 @@ void base_venv(venv &ve)
 #ifdef HAVE_LIBGSL
   gen_rungsl_venv(ve);
 #endif
-  
+
   gen_rundynlib_venv(ve);
 }
 
