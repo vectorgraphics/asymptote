@@ -899,22 +899,24 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
       em << "could not load module '" << filename << "'";
       em.sync(true);
     }
-    return 0;
+    return nullptr;
   }
-  else {
-    // Create a varinit that evaluates to the module.
-    // This is effectively the expression 'loadModule(filename, 0)'.
-    callExp init(
-            pos, new loadModuleExp(pos, imp), new stringExp(pos, filename),
-            new intExp(pos, 0)
-    );
 
-    // The varEntry should have whereDefined()==0 as it is not defined inside
-    // the record r.
-    varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
-    initializeVar(pos, e, v, &init);
-    return v;
-  }
+
+
+  // Create a varinit that evaluates to the module.
+  // This is effectively the expression 'loadModule(filename, 0)'.
+  callExp init(
+          pos, new loadModuleExp(pos, imp), new stringExp(pos, filename),
+          new intExp(pos, 0)
+  );
+
+  // The varEntry should have whereDefined()==0 as it is not defined inside
+  // the record r.
+  varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
+  initializeVar(pos, e, v, &init);
+  return v;
+
 }
 
 
