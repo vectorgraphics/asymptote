@@ -9,11 +9,6 @@
 #include "item.h"
 #include "asyffiimpl.h"
 
-void loadLib(string key)
-{
-	loadDynLib(key);
-}
-
 void unloadLib(string key)
 {
 	unloadLib(key);
