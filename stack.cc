@@ -473,6 +473,13 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
             break;
           }
 
+          case inst::foreigncall: {
+            auto func = get<TAsyForeignFunction>(i);
+            cout << "!TODO: Call the foreign function here at 0x"
+                 << std::hex << reinterpret_cast<int64_t>(func) << endl;
+            break;
+          }
+
           case inst::jmp:
             ip = get<program::label>(i);
             continue;
