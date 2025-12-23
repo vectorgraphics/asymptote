@@ -160,4 +160,26 @@ void qualifiedAccess::encode(action act, position pos, coder &e, frame *top)
 }
 
 
+void foreignAccess::encode(action act, position pos, coder& e)
+{
+  auto* fnAsVoidPtr = reinterpret_cast<void*>(function);
+  switch (act) {
+    case READ:
+      e.encode(inst::constpush, item(fnAsVoidPtr));
+      break;
+    case CALL:
+      e.encode(inst::foreigncall, item(fnAsVoidPtr));
+      break;
+    case WRITE:
+    default:
+      frameError(pos);
+  }
+}
+void foreignAccess::encode(action act, position pos, coder& e, frame* top)
+{
+  e.encode(inst::pop);
+  encode(act, pos, e);
+}
+
+
 } // namespace trans

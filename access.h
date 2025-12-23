@@ -46,13 +46,13 @@ public:
   virtual ~access() = 0;
 
   // Encode a read/write/call of the access when nothing is on the stack.
-  virtual void encode(action, position pos, coder &)
+  virtual void encode(action act, position pos, coder& e)
   {
     error(pos);
   }
   // Encode a read/write/call of the access when the frame "top" is on top
   // of the stack.
-  virtual void encode(action, position pos, coder &, frame *)
+  virtual void encode(action act, position pos, coder& e, frame* top)
   {
     error(pos);
   }
@@ -129,7 +129,18 @@ public:
   void encode(action act, position pos, coder &e, frame *top);
 };
 
+//
+class foreignAccess : public access
+{
+public:
+  TAsyForeignFunction function;
+
+  foreignAccess(TAsyForeignFunction const fn) : function(fn) {}
+
+  void encode(action act, position pos, coder& e) override;
+  void encode(action act, position pos, coder& e, frame* top) override;
+};
+
 } // namespace trans
 
 #endif // ACCESS_H
-
