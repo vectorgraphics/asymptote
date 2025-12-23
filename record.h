@@ -125,6 +125,9 @@ public:
            trans::permission perm=trans::PUBLIC);
   void add(string name, function *t, vm::bltin f,
            trans::permission perm=trans::PUBLIC);
+  void add(
+    string name, function* t, TAsyForeignFunction f,
+    trans::permission perm=trans::PUBLIC);
 };
 
 } //namespace types

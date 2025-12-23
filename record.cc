@@ -77,4 +77,11 @@ void dummyRecord::add(string name, function *t, vm::bltin f,
   add(name, t, new trans::bltinAccess(f), perm);
 }
 
+void dummyRecord::add(
+        string name, function* t, TAsyForeignFunction f, trans::permission perm
+)
+{
+  add(name, t, new trans::foreignAccess(f), perm);
+}
+
 } // namespace types
