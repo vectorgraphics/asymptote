@@ -65,6 +65,11 @@ void error(const string& filename)
 }
 }
 
+void parserError(const string& filename)
+{
+  error(filename);
+}
+
 absyntax::file *doParse(size_t (*input) (char* bif, size_t max_size),
                         const string& filename, bool extendable=false)
 {

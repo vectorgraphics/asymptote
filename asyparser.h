@@ -38,4 +38,6 @@ absyntax::file *parseString(const string& code,
 bool isURL(const string& filename);
 bool readURL(stringstream& buf, const string& filename);
 
+void parserError(const string& filename);
+
 } // namespace parser
