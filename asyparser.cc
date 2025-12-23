@@ -109,8 +109,8 @@ bool isURL(const string& filename)
 #endif
 }
 
-absyntax::file *parseFile(const string& filename,
-                          const char *nameOfAction)
+inline absyntax::file*
+parseFileOrNull(const string& filename, const char* nameOfAction)
 {
 #ifdef HAVE_LIBCURL
   if(isURL(filename))
@@ -123,7 +123,7 @@ absyntax::file *parseFile(const string& filename,
   string file = settings::locateFile(filename);
 
   if(file.empty())
-    error(filename);
+    return nullptr;
 
   if(nameOfAction && settings::verbose > 1)
     cerr << nameOfAction << " " <<  filename << " from " << file << endl;
@@ -132,14 +132,14 @@ absyntax::file *parseFile(const string& filename,
 
   std::filebuf filebuf;
   if(!filebuf.open(file.c_str(),std::ios::in))
-    error(filename);
+    return nullptr;
 
 #ifdef HAVE_SYS_STAT_H
   // Check that the file is not a directory.
   static struct stat buf;
   if(stat(file.c_str(),&buf) == 0) {
     if(S_ISDIR(buf.st_mode))
-      error(filename);
+      return nullptr;
   }
 #endif
 
@@ -147,11 +147,21 @@ absyntax::file *parseFile(const string& filename,
   try {
     filebuf.sgetc();
   } catch (...) {
-    error(filename);
+    return nullptr;
   }
 
   yy::sbuf = &filebuf;
   return doParse(yy::stream_input,file);
+}
+
+absyntax::file *parseFile(const string& filename,
+                          const char *nameOfAction)
+{
+  auto* ret = parseFileOrNull(filename, nameOfAction);
+  if (!ret) {
+    error(filename);
+  }
+  return ret;
 }
 
 absyntax::file *parseString(const string& code,
