@@ -69,13 +69,31 @@ private:
 class DynlibManager
 {
 public:
+  /**
+   * @return the pointer to the loaded library or
+   * loads one if it has not been loaded
+   */
   LoadedDynLib* getLib(string const& dlKey, string const& dlPath);
+
+  /** Raises an error if dlKey has already been loaded */
+  LoadedDynLib* loadLib(string const& dlKey, string const& dlPath);
+
+  [[nodiscard]]
   LoadedDynLib* getPreloadedLib(string const& dlKey) const;
   void delLib(string const& dlPath);
-  
+
   void closeDynLibManager();
+
 private:
   mem::unordered_map<string, std::unique_ptr<LoadedDynLib>> loadedDls;
+
+  /**
+   * @return A pair of dynlib pointer and boolean indicating if the insertion
+   * took place. In other words, the boolean value is true iff dlKey
+   * has not already been loaded
+   */
+  std::pair<LoadedDynLib*, bool>
+  tryLoadLib(string const& dlKey, string const& dlPath);
 };
 
 DynlibManager* getDynlibManager();

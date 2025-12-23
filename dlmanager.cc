@@ -152,9 +152,8 @@ DynlibManager dynlibManager;
 }
 
 
-DynlibManager* getDynlibManager() { return &dynlibManager; }
-
-LoadedDynLib* DynlibManager::getLib(string const& dlKey, string const& dlPath)
+std::pair<LoadedDynLib*, bool>
+DynlibManager::tryLoadLib(string const& dlKey, string const& dlPath)
 {
 #ifdef _WIN32
   TDlLoadFlags loadFlags= 0;
@@ -162,18 +161,37 @@ LoadedDynLib* DynlibManager::getLib(string const& dlKey, string const& dlPath)
   TDlLoadFlags loadFlags= RTLD_LAZY;
 #endif
 
-  auto [dynlib, hasValue]= loadedDls.try_emplace(
+  auto [dynlib, inserted]= loadedDls.try_emplace(
           dlKey, std::make_unique<LoadedDynLib>(dlPath, false, loadFlags)
   );
 
-  return dynlib->second.get();
+  return std::make_pair(dynlib->second.get(), inserted);
+}
+DynlibManager* getDynlibManager() { return &dynlibManager; }
+
+LoadedDynLib* DynlibManager::getLib(string const& dlKey, string const& dlPath)
+{
+  auto [dynlib, _]= tryLoadLib(dlKey, dlPath);
+
+  return dynlib;
+}
+
+
+LoadedDynLib* DynlibManager::loadLib(string const& dlKey, string const& dlPath)
+{
+  auto [dynlib, inserted]= tryLoadLib(dlKey, dlPath);
+
+  if (!inserted) {
+    reportError(
+            dlKey + " on " + dlPath + " not loaded because it has been loaded."
+    );
+  }
+
+  return dynlib;
 }
 
 void DynlibManager::delLib(string const& dlKey) { loadedDls.erase(dlKey); }
-void DynlibManager::closeDynLibManager()
-{
-  loadedDls.clear();
-}
+void DynlibManager::closeDynLibManager() { loadedDls.clear(); }
 
 LoadedDynLib* DynlibManager::getPreloadedLib(string const& dlKey) const
 {
