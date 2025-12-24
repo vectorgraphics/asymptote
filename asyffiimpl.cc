@@ -7,16 +7,25 @@
 namespace camp
 {
 
+AsyArgsImpl::AsyArgsImpl(size_t const& argSize)
+  : argsStorage(argSize)
+{
+
+}
+void AsyArgsImpl::setArgNum(size_t const& argNum, vm::item const& arg)
+{
+  argsStorage[argNum] = arg;
+}
+
 size_t AsyArgsImpl::getArgumentCount() const { return argsStorage.size(); }
 
 
-IAsyItem* AsyArgsImpl::getNumberedArg(const size_t& argNum) const
+IAsyItem* AsyArgsImpl::getNumberedArg(const size_t& argNum)
 {
-  return argsStorage.at(argNum);
+  return argsStorage.data() + argNum;
 }
 
 
-void AsyArgsImpl::addArgs(IAsyItem* arg) { argsStorage.push_back(arg); }
 void* AsyContextImpl::malloc(size_t const& size) { return asy_malloc(size); }
 void* AsyContextImpl::mallocAtomic(size_t const& size)
 {
@@ -33,10 +42,9 @@ void AsyFfiRegistererImpl::registerFunction(
         size_t numArgs, AsyFnArgMetadata* argInfoPtr
 )
 {
-  auto* functionSig= new types::function(types::primVoid());
-  for (int i= 0; i < numArgs; ++i) {
-    auto* argInfo= argInfoPtr + i;
-    functionSig->add(asyArgInfoToFormal(*argInfo));
+  auto* functionSig= new types::function(asyTypesEnumToTy(returnType));
+  for (size_t i= 0; i < numArgs; ++i) {
+    functionSig->add(asyArgInfoToFormal(argInfoPtr[i]));
   }
 
   recordVar->add(name, functionSig, fn);

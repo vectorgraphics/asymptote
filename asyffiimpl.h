@@ -9,17 +9,19 @@ namespace camp
 class AsyArgsImpl : public IAsyArgs
 {
 public:
+  AsyArgsImpl(size_t const& argSize);
+
   [[nodiscard]]
   size_t getArgumentCount() const override;
 
   [[nodiscard]]
-  IAsyItem* getNumberedArg(const size_t& argNum) const override;
+  IAsyItem* getNumberedArg(size_t const& argNum) override;
 
 
-  void addArgs(IAsyItem* arg);
+  void setArgNum(size_t const& argNum, vm::item const& arg);
 
 private:
-  mem::vector<IAsyItem*> argsStorage;
+  mem::vector<vm::item> argsStorage;
 };
 
 class AsyContextImpl : public IAsyContext
