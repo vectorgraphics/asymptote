@@ -81,7 +81,12 @@ void dummyRecord::add(
         string name, function* t, TAsyForeignFunction f, trans::permission perm
 )
 {
-  add(name, t, new trans::foreignAccess(f), perm);
+  add(name, t,
+      new trans::foreignAccess(
+              f, t->getResult()->kind != ty_void,
+              static_cast<Int>(t->getSignature()->formals.size())
+      ),
+      perm);
 }
 
 } // namespace types

@@ -135,7 +135,18 @@ class foreignAccess : public access
 public:
   TAsyForeignFunction function;
 
-  foreignAccess(TAsyForeignFunction const fn) : function(fn) {}
+  // TODO: Talk with John to see if this is the best place for these info,
+  //       or should it go elsewhere?
+  bool hasReturn;
+  Int numArgs;
+
+  foreignAccess(
+    TAsyForeignFunction const fn,
+    bool const& hasRetVal,
+    Int const& argsCount
+    )
+      : function(fn), hasReturn(hasRetVal), numArgs(argsCount)
+  {}
 
   void encode(action act, position pos, coder& e) override;
   void encode(action act, position pos, coder& e, frame* top) override;
