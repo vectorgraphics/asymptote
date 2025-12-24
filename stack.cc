@@ -8,13 +8,14 @@
 #include <fstream>
 #include <sstream>
 
-#include "stack.h"
-#include "program.h"
-#include "callable.h"
-#include "errormsg.h"
-#include "util.h"
-#include "runtime.h"
 #include "asyprocess.h"
+#include "callable.h"
+#include "dynlib.h"
+#include "errormsg.h"
+#include "program.h"
+#include "runtime.h"
+#include "stack.h"
+#include "util.h"
 
 #include "profiler.h"
 
@@ -475,8 +476,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 
           case inst::foreigncall: {
             auto func = get<TAsyForeignFunction>(i);
-            cout << "!TODO: Call the foreign function here at 0x"
-                 << std::hex << reinterpret_cast<int64_t>(func) << endl;
+            callForeignFunction(this, func);
             break;
           }
 
