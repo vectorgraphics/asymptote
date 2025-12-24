@@ -31,8 +31,8 @@
 
 #elif defined(__APPLE__)
 
-// As Jamie does not have a Mac machine, if FFI is to be supported on macs,
-// someone else has to implement it ( unfortunately :( )
+// As Jamie does not have a Mac machine, if FFI is to be supported on Macs,
+// someone else has to implement it (unfortunately :( )
 #  error FFI is not yet ready for mac-based systems. \
   Additionally, work has to be done for ARM vs x86 systems
 #else
@@ -72,7 +72,7 @@ public:
   virtual size_t getArgumentCount() const= 0;
 
   [[nodiscard]]
-  virtual IAsyItem* getNumberedArg(const size_t& argNum) const= 0;
+  virtual IAsyItem* getNumberedArg(size_t const& argNum)= 0;
 };
 
 class IAsyContext
@@ -90,7 +90,7 @@ enum AsyTypes : uint8_t
   Void= 0,
   Real= 1,
   Integer= 2,
-  // and more types ...
+  // TODO: Add more types to this
 };
 
 struct AsyFnArgMetadata {
