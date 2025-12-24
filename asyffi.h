@@ -121,3 +121,18 @@ public:
 };
 
 typedef void (*LNK_CALL TAsyRegisterDynlibFn)(IAsyContext*, IAsyFfiRegisterer*);
+
+#define REGISTER_FN_NAME(libname) registerPlugin_##libname
+
+#define REGISTER_FN_SIG(libname) \
+  void LNK_CALL REGISTER_FN_NAME(libname) (\
+    IAsyContext* context, IAsyFfiRegisterer* registerer\
+    )
+
+#define DECLARE_REGISTER_FN(libname) \
+  extern "C" ASY_FFI_EXPORT REGISTER_FN_SIG(libname)
+
+#define ASY_FOREIGN_FUNC_SIG(functionName) \
+  void LNK_CALL functionName (\
+    IAsyContext* context, IAsyArgs* args, IAsyItem* returnValue\
+    )
