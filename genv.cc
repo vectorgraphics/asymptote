@@ -78,6 +78,7 @@
 #include "locate.h"
 #include "interact.h"
 #include "builtin.h"
+#include "dynlib.h"
 
 #if !defined(_WIN32)
 #include <unistd.h>
@@ -117,17 +118,31 @@ bool endswith(string suffix, string str)
 
 record *genv::loadModule(symbol id, string filename) {
   // Get the abstract syntax tree.
-  absyntax::file *ast = parser::parseFile(filename,"Loading");
+  absyntax::file* ast = parser::parseFileOrNull(filename,"Loading");
 
-  inTranslation.push_front(filename);
+  if (ast) {
+    // in case it's an abstract syntax tree
+    inTranslation.push_front(filename);
+    em.sync();
+    record *r=ast->transAsFile(*this, id);
+    inTranslation.remove(filename);
 
-  em.sync();
+    return r;
+  }
 
-  record *r=ast->transAsFile(*this, id);
+  // otherwise, try loading as a dynamic library
+  string dllPath = tryGetDllPath(filename);
+  if (!dllPath.empty()) {
+    inTranslation.push_front(filename);
+    em.sync();
+    record* r = loadDynLib(filename, dllPath);
+    inTranslation.remove(filename);
+    return r;
+  }
 
-  inTranslation.remove(filename);
-
-  return r;
+  // otherwise, throw a parser error
+  parser::parserError(filename);
+  return nullptr;
 }
 
 record *genv::loadTemplatedModule(
@@ -168,16 +183,15 @@ record *genv::getModule(symbol id, string filename) {
   record *r=imap[index];
   if (r)
     return r;
-  else {
-    r=loadModule(id, filename);
-    // Don't add an erroneous module to the dictionary in interactive mode, as
-    // the user may try to load it again.
-    if (!interact::interactive || !em.errors()) {
-      imap[index]=r;
-    }
 
-    return r;
+  r=loadModule(id, filename);
+  // Don't add an erroneous module to the dictionary in interactive mode, as
+  // the user may try to load it again.
+  if (!interact::interactive || !em.errors()) {
+    imap[index]=r;
   }
+
+  return r;
 }
 
 record *genv::getTemplatedModule(
