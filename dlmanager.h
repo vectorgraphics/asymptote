@@ -18,7 +18,7 @@ typedef FARPROC TProcAddress;
 #else
 typedef void* TDynLib;
 typedef int TDlLoadFlags;
-typedef void const* TProcAddress;
+typedef void* TProcAddress;
 #endif
 
 /** RAII wrapper for loaded library handles */
