@@ -60,27 +60,47 @@ private:
 #endif
     void *p;
   };
-  
+public:
   // IAsyItem functions
   [[nodiscard]]
   int64_t asInt64() const override
   {
     return i;
   }
-  
+
   [[nodiscard]]
   double asDouble() const override
   {
     return x;
   }
-  
+
   [[nodiscard]]
   void* asRawPointer() const override
   {
     return p;
   }
 
-public:
+  [[nodiscard]]
+  bool isDefault() const override
+  {
+    return isdefault(*this);
+  }
+
+  void setInt64Value(const int64_t& value) override
+  {
+    i=value;
+  }
+
+  void setDoubleValue(const double& value) override
+  {
+    x=value;
+  }
+
+  void setRawPointer(void* pointer) override
+  {
+    p=pointer;
+  }
+
 #if COMPACT
   bool empty() const
   {return i >= Undefined;}

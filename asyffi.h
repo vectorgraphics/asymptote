@@ -52,6 +52,14 @@ public:
 
   [[nodiscard]]
   virtual void* asRawPointer() const= 0;
+
+  [[nodiscard]]
+  virtual bool isDefault() const= 0;
+
+  virtual void setInt64Value(int64_t const& value)= 0;
+  virtual void setDoubleValue(double const& value)= 0;
+  virtual void setRawPointer(void* pointer)= 0;
+
 };
 
 /** Interface for asymptote arguments */
