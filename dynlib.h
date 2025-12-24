@@ -9,9 +9,10 @@ namespace camp
 IAsyContext* getAsyContext();
 }
 
+record* loadDynLib(string const& key, string const& fileName);
 
-void loadDynLib(string const& key);
+string tryGetDllPath(string const& libName);
 
 void unloadLib(string const& key);
 
-void callFunction1(vm::stack* stack);
+void callForeignFunction(vm::stack* stack, TAsyForeignFunction fn);

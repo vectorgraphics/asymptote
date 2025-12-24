@@ -12,42 +12,56 @@ namespace
 AsyContextImpl asyContext;
 }
 
-IAsyContext* getAsyContext()
+IAsyContext* getAsyContext() { return &asyContext; }
+}// namespace camp
+
+record* loadDynLib(string const& key, string const& fileName)
 {
-  return &asyContext;
-}
+  camp::LoadedDynLib const* lib=
+          camp::getDynlibManager()->loadLib(key, fileName);
+  string const registerName= string("registerPlugin_") + key;
+
+  camp::AsyFfiRegistererImpl registerer(key);
+  auto const registerFunction=
+          lib->getSymAddress<TAsyRegisterDynlibFn>(registerName.c_str());
+  registerFunction(camp::getAsyContext(), &registerer);
+
+  return registerer.getRecord();
 }
 
-void loadDynLib(string const& key)
+string tryGetDllPath(string const& libName)
 {
 #ifdef _WIN32
-  string dllName= key + ".dll";
+  string const dllName= libName + ".dll";
 #else
-  string dllName= "lib" + key + ".so";
+  string const dllName= "lib" + libName + ".so";
 #endif
-  string fileName= settings::locateFile(dllName, true);
-
-  camp::getDynlibManager()->getLib(key, fileName);
+  return settings::locateFile(dllName, true);
 }
 
-typedef void (*TVoidArgsFunction)(IAsyContext*, IAsyArgs*);
-
-// arguments are <string key>, <string fnName>, <args1>, ..., <args4>
-void callFunction1(vm::stack* stack)
+void callForeignFunction(vm::stack* stack, TAsyForeignFunction const fn)
 {
-  vm::item i1 = stack->pop();
-  auto const fnName = stack->pop<string>();
-  auto const dlKey = stack->pop<string>();
-  
-  auto const* lib= camp::getDynlibManager()->getPreloadedLib(dlKey);
-  auto const fn= lib->getSymAddress<TVoidArgsFunction>(fnName.c_str(), true);
-  
-  camp::AsyArgsImpl args;
-  args.addArgs(&i1);
-  
+  bool const hasReturn= stack->pop<Int>() != 0;
+  auto const numArgs= stack->pop<Int>();
+
+  camp::AsyArgsImpl args(numArgs);
+  vm::item returnItem;// not always used;
+
+  for (Int i= numArgs - 1; i >= 0; --i) {
+    // stack pop is in reverse order, hence we need to
+    // set the args in reverse order
+
+    // TODO: Can we optimize this somehow?
+    args.setArgNum(i, stack->pop());
+  }
+
   auto* asyContext= camp::getAsyContext();
 
-  fn(asyContext, &args);
+  fn(asyContext, &args, hasReturn ? &returnItem : nullptr);
+
+  if (hasReturn) {
+    stack->push(returnItem);
+  }
 }
 
 void unloadLib(string const& key) { camp::getDynlibManager()->delLib(key); }

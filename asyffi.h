@@ -103,11 +103,12 @@ struct AsyFnArgMetadata {
   void* extraData;
 };
 
-struct AsyReturnValue {
-  void* data;
-};
-
-typedef AsyReturnValue (*LNK_CALL TAsyForeignFunction)(IAsyContext*, IAsyArgs*);
+/**
+ * Function type for foreign function.
+ * Function will pass (context, args, returnItem). If the function is
+ * registered as void, returnItem will be set as nullptr
+ */
+typedef void (*LNK_CALL TAsyForeignFunction)(IAsyContext*, IAsyArgs*, IAsyItem*);
 
 class IAsyFfiRegisterer
 {
