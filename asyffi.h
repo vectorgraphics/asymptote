@@ -180,3 +180,8 @@ typedef void (*LNK_CALL TAsyRegisterDynlibFn)(IAsyContext*, IAsyFfiRegisterer*);
   void LNK_CALL functionName(                                                  \
           IAsyContext* context, IAsyArgs* args, IAsyItem* returnValue          \
   )
+
+/**
+ * Shorthand for "functionName", &functionName for registering functions
+ */
+#define ASYFFI_FN_NAME_AND_ADDR(functionName) #functionName, &(functionName)
