@@ -60,6 +60,10 @@ ty* asyTypesEnumToTy(AsyTypes const& asyType)
       return types::primInt();
     case Real:
       return types::primReal();
+    case Pair:
+      return types::primPair();
+    case Triple:
+      return types::primTriple();
     default:
       reportError("Invalid argument type");
       return nullptr;

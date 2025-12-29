@@ -97,6 +97,11 @@ enum AsyTypes : uint8_t
 
   /** Corresponds to Int, or 64-bit integer*/
   Integer= 2,
+
+  /** Corresponds to Pair (x, y), where x and y are real values */
+  Pair= 3,
+  /** Corresponds to Triple (x, y, z) where x, y, and z are real values */
+  Triple= 4,
   // TODO: Add more types to this
 };
 
