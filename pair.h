@@ -26,6 +26,8 @@
 #include "xstream.h"
 #endif
 
+#include "asyffi.h"
+
 namespace camp {
 
 class jsofstream : public std::ofstream {
@@ -41,7 +43,7 @@ public:
   }
 };
 
-class pair : public gc {
+class pair : public gc, public IAsyDoubleTuple {
   double x;
   double y;
 
@@ -53,6 +55,40 @@ public:
   double gety() const { return y; }
 
   bool isreal() {return y == 0;}
+
+  [[nodiscard]]
+double getIndexedValue(size_t const& index) const override
+  {
+    switch (index) {
+      case 0:
+        return x;
+      case 1:
+        return y;
+      default:
+        reportError("Invalid index");
+        return 0;
+    }
+  }
+
+  void setIndexedValue(size_t const& index, double const& value) override
+  {
+    switch (index) {
+      case 0:
+        x = value;
+        break;
+      case 1:
+        y = value;
+        break;
+      default:
+        reportError("Invalid index");
+        break;
+    }
+  }
+
+  size_t getTupleSize() const override
+  {
+    return 2;
+  }
 
   friend pair operator+ (const pair& z, const pair& w)
   {

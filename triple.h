@@ -18,6 +18,7 @@
 #include "common.h"
 #include "angle.h"
 #include "pair.h"
+#include "asyffi.h"
 
 #ifdef HAVE_LIBTIRPC
 #include "xstream.h"
@@ -36,7 +37,7 @@ void multiplyTransform3(double*& t, const double* s, const double* r);
 void boundstriples(double& x, double& y, double& z, double& X, double& Y,
                    double& Z, size_t n, const triple* v);
 
-class triple : virtual public gc {
+class triple : virtual public gc, public IAsyDoubleTuple {
   double x;
   double y;
   double z;
@@ -53,6 +54,45 @@ public:
   double getx() const { return x; }
   double gety() const { return y; }
   double getz() const { return z; }
+
+  [[nodiscard]]
+  double getIndexedValue(size_t const& index) const override
+  {
+    switch (index) {
+      case 0:
+        return x;
+      case 1:
+        return y;
+      case 2:
+        return z;
+      default:
+        reportError("Invalid index");
+        return 0;
+    }
+  }
+
+  void setIndexedValue(size_t const& index, double const& value) override
+  {
+    switch (index) {
+      case 0:
+        x = value;
+        break;
+      case 1:
+        y = value;
+        break;
+      case 2:
+        z = value;
+        break;
+      default:
+        reportError("Invalid index");
+        break;
+    }
+  }
+
+  size_t getTupleSize() const override
+  {
+    return 3;
+  }
 
   // transform by row-major matrix
   friend triple operator* (const double* t, const triple& v) {

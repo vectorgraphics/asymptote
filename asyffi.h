@@ -115,6 +115,35 @@ struct AsyFnArgMetadata {
   void* extraData;
 };
 
+/** Setter/Getter interface for Pair and Triple types */
+class IAsyDoubleTuple
+{
+public:
+  virtual ~IAsyDoubleTuple()= default;
+
+  /**
+   * Gets the value.
+   * @param index 0 index corresponds to the "x" value,
+   * 1 to "y" and for triple, and 2 to "z".
+   * Any other value will cause an error
+   *
+   * @return Value of that element
+   */
+  [[nodiscard]]
+  virtual double getIndexedValue(size_t const& index) const= 0;
+
+  /**
+   * Set value.
+   * @param index 0 index corresponds to the "x" value, 1 to "y" and for triple,
+   *  and 2 to "z". Any other value will cause an error
+   * @param val Value to set the element to
+   */
+  virtual void setIndexedValue(size_t const& index, double const& val)= 0;
+
+  /** @return 2 if object is a pair, 3 if triple */
+  virtual size_t getTupleSize() const= 0;
+};
+
 /**
  * Function type for foreign function.
  * Function will pass (context, args, returnItem). If the function is
