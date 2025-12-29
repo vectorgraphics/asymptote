@@ -88,6 +88,7 @@ stringarray2* => stringArray2()
 #include "asyprocess.h"
 #include "arrayop.h"
 #include "seconds.h"
+#include "asyffi.h"
 
 #if defined(USEGC) && defined(GC_DEBUG) && defined(GC_BACKTRACE)
   extern "C" {
@@ -171,11 +172,11 @@ const size_t camp::ColorComponents[]={0,0,1,3,4,0};
 
 namespace vm {
 #if COMPACT
-const Int DefaultValue=0x7fffffffffffffffLL;
-const Int Undefined=0x7ffffffffffffffeLL;
+const Int DefaultValue=ASY_COMPACT_DEFAULT_VALUE;
+const Int Undefined=ASY_COMPACT_UNDEFINED_VALUE;
 
-const Int BoolTruthValue=0xABABABABABABABACLL;
-const Int BoolFalseValue=0xABABABABABABABABLL;
+const Int BoolTruthValue=ASY_COMPACT_BOOL_TRUTH_VALUE;
+const Int BoolFalseValue=ASY_COMPACT_BOOL_FALSE_VALUE;
 
 const item Default=DefaultValue;
 #else

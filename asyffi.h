@@ -39,6 +39,16 @@
 #  error Right now, FFI is only supported for windows and linux systems
 #endif
 
+/**
+ * These values are used for compact builds of asymptote
+ * (most builds by default)
+ */
+constexpr int64_t ASY_COMPACT_DEFAULT_VALUE = 0x7fffffffffffffffLL;
+constexpr int64_t ASY_COMPACT_UNDEFINED_VALUE = 0x7ffffffffffffffeLL;
+constexpr int64_t ASY_COMPACT_BOOL_TRUTH_VALUE = 0xABABABABABABABACLL;
+constexpr int64_t ASY_COMPACT_BOOL_FALSE_VALUE = 0xABABABABABABABABLL;
+
+
 class IAsyItem
 {
 public:
