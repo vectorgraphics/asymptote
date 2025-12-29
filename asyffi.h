@@ -64,11 +64,15 @@ public:
   virtual void* asRawPointer() const= 0;
 
   [[nodiscard]]
+  virtual bool asBoolean() const= 0;
+
+  [[nodiscard]]
   virtual bool isDefault() const= 0;
 
   virtual void setInt64Value(int64_t const& value)= 0;
   virtual void setDoubleValue(double const& value)= 0;
   virtual void setRawPointer(void* pointer)= 0;
+  virtual void setBooleanValue(bool const& value)= 0;
 };
 
 /** Interface for asymptote arguments */
@@ -121,6 +125,9 @@ enum AsyTypes : uint8_t
   Pair= 3,
   /** Corresponds to Triple (x, y, z) where x, y, and z are real values */
   Triple= 4,
+
+  /** Corresponds to asy bool type*/
+  Boolean=5,
   // TODO: Add more types to this
 };
 

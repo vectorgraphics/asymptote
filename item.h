@@ -27,6 +27,9 @@ class bad_item_value {};
 template<typename T>
 T get(const item&);
 
+template<>
+bool get<bool>(const item&);
+
 #if COMPACT
 // Identify a default argument.
 extern const Int DefaultValue;
@@ -99,6 +102,16 @@ public:
   void setRawPointer(void* pointer) override
   {
     p=pointer;
+  }
+
+  [[nodiscard]]
+  bool asBoolean() const override
+  {
+    return get<bool>(*this);
+  }
+  void setBooleanValue(const bool& value) override
+  {
+    *this=value;
   }
 
 #if COMPACT
@@ -198,7 +211,7 @@ public:
 #endif
 
   template<typename T>
-  friend inline T get(const item&);
+  friend T get(const item&);
 
   friend inline bool isdefault(const item&);
 
@@ -286,7 +299,7 @@ public:
 
 
 template<typename T>
-inline T get(const item& it)
+T get(const item& it)
 {
   return item::help<T>::unwrap(it);
 }
