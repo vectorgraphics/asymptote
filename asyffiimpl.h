@@ -29,6 +29,10 @@ class AsyContextImpl : public IAsyContext
 public:
   void* malloc(size_t const& size) override;
   void* mallocAtomic(size_t const& size) override;
+
+  bool isCompactBuild() const override;
+  const char* getVersion() const override;
+  const char* getAsyGlVersion() const override;
 };
 
 class AsyFfiRegistererImpl : public IAsyFfiRegisterer

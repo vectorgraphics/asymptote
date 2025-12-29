@@ -2,6 +2,7 @@
 
 #include "absyn.h"
 #include "common.h"
+#include "settings.h"
 #include "util.h"
 
 namespace camp
@@ -31,6 +32,17 @@ void* AsyContextImpl::mallocAtomic(size_t const& size)
 {
   return asy_malloc_atomic(size);
 }
+bool AsyContextImpl::isCompactBuild() const
+{
+#if COMPACT
+  return true;
+#else
+  return false;
+#endif
+}
+const char* AsyContextImpl::getVersion() const { return REVISION; }
+const char* AsyContextImpl::getAsyGlVersion() const { return AsyGLVersion; }
+
 
 AsyFfiRegistererImpl::AsyFfiRegistererImpl(string const& dynlibName)
     : libName(dynlibName), sym(symbol::literalTrans(dynlibName)),

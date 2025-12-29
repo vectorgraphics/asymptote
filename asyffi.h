@@ -81,6 +81,15 @@ public:
 
   virtual void* malloc(size_t const& size)= 0;
   virtual void* mallocAtomic(size_t const& size)= 0;
+
+  /**
+   * In a compact build, the couple highest values in Int (INT_MAX) are
+   * reserved for default/undefined values. In addition, there are speical
+   * numbers to store "truthy" and "falsy" values for boolean
+   */
+  virtual bool isCompactBuild() const=0;
+  virtual char const* getVersion() const=0;
+  virtual char const* getAsyGlVersion() const=0;
 };
 
 // question: will we ever exceed 256 primitive types?
