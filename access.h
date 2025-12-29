@@ -129,14 +129,10 @@ public:
   void encode(action act, position pos, coder &e, frame *top);
 };
 
-//
 class foreignAccess : public access
 {
 public:
   TAsyForeignFunction function;
-
-  // TODO: Talk with John to see if this is the best place for these info,
-  //       or should it go elsewhere?
   bool hasReturn;
   Int numArgs;
 

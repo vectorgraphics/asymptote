@@ -159,10 +159,6 @@ void qualifiedAccess::encode(action act, position pos, coder &e, frame *top)
   field->encode(act, pos, e, qualifierLevel);
 }
 
-#pragma message( \
-  "TODO: See access.h's hasReturn and numArgs. Should they be there?" \
-  )
-
 void foreignAccess::encode(action act, position pos, coder& e)
 {
   auto* fnAsVoidPtr = reinterpret_cast<void*>(function);
@@ -171,7 +167,6 @@ void foreignAccess::encode(action act, position pos, coder& e)
       e.encode(inst::constpush, item(fnAsVoidPtr));
       break;
     case CALL:
-      // needed for
       e.encode(inst::intpush, numArgs);
       e.encode(inst::intpush, hasReturn ? 1 : 0);
       e.encode(inst::foreigncall, item(fnAsVoidPtr));
