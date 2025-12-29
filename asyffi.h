@@ -32,12 +32,10 @@
 
 #elif defined(__APPLE__)
 
-// As Jamie does not have a Mac machine, if FFI is to be supported on Macs,
-// someone else has to implement it (unfortunately :( )
-#  error FFI is not yet ready for mac-based systems. \
-  Additionally, work has to be done for ARM vs x86 systems
+#  error FFI is not yet implementy for MacOS. \
+  Additionally, work has to be done for ARM vs x86 systems.
 #else
-#  error Right now, FFI is only supported for windows and linux systems
+#  error Right now, FFI is only supported for MSWindows and Linux systems
 #endif
 
 /**
@@ -48,7 +46,6 @@ constexpr int64_t ASY_COMPACT_DEFAULT_VALUE = 0x7fffffffffffffffLL;
 constexpr int64_t ASY_COMPACT_UNDEFINED_VALUE = 0x7ffffffffffffffeLL;
 constexpr int64_t ASY_COMPACT_BOOL_TRUTH_VALUE = 0xABABABABABABABACLL;
 constexpr int64_t ASY_COMPACT_BOOL_FALSE_VALUE = 0xABABABABABABABABLL;
-
 
 class IAsyItem
 {
@@ -125,23 +122,23 @@ public:
 /** Types of Asymptote */
 enum AsyTypes : uint8_t
 {
-  /** Corresponds to the void type.
+  /** Corresponds to void.
    * If used as function return type, will not return any value */
-  Void= 0,
+  Void=0,
 
-  /** Corresponds to asy real type, or double-precision floating point*/
-  Real= 1,
+  /** Corresponds to real (double-precision floating point) */
+  Real,
 
-  /** Corresponds to Int, or 64-bit integer*/
-  Integer= 2,
+  /** Corresponds to int (64-bit integer) */
+  Integer,
 
-  /** Corresponds to Pair (x, y), where x and y are real values */
-  Pair= 3,
-  /** Corresponds to Triple (x, y, z) where x, y, and z are real values */
-  Triple= 4,
+  /** Corresponds to pair (x,y), where x and y are real values */
+  Pair,
+  /** Corresponds to triple (x,y,z), where x, y, and z are real values */
+  Triple,
 
-  /** Corresponds to asy bool type*/
-  Boolean=5,
+  /** Corresponds to bool */
+  Boolean,
   // TODO: Add more types to this
 };
 
