@@ -91,16 +91,24 @@ public:
 
   void setInt64Value(const int64_t& value) override
   {
-    i=value;
+    *this=(Int)value;
   }
 
   void setDoubleValue(const double& value) override
   {
-    x=value;
+    *this=value;
   }
 
   void setRawPointer(void* pointer) override
   {
+    p=pointer;
+  }
+
+  void setValueWithTypeId(void* pointer, std::type_info* tyinfo) override
+  {
+#if !COMPACT
+    kind=tyinfo;
+#endif
     p=pointer;
   }
 

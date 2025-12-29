@@ -6,6 +6,7 @@
  */
 
 #include <cstdint>
+#include <typeinfo>
 
 #if defined(_WIN32)
 #  define ASY_FFI_EXPORT __declspec(dllexport)
@@ -73,6 +74,19 @@ public:
   virtual void setDoubleValue(double const& value)= 0;
   virtual void setRawPointer(void* pointer)= 0;
   virtual void setBooleanValue(bool const& value)= 0;
+
+  /**
+   * Sets value with type info. This method is only relevant if
+   * the asymptote host is of a non-compact build.
+   *
+   * On compact asymptote builds, this function behave the same as
+   * {@link setRawPointer(void*)}.
+   *
+   * @remark Most builds (in particular, builds suppliied from asymptote
+   * website) are compact and hence if one is not targeting non-compact
+   * function, there is no need to use this function.
+   */
+  virtual void setValueWithTypeId(void* pointer, std::type_info* tyinfo)= 0;
 };
 
 /** Interface for asymptote arguments */
