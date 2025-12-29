@@ -59,7 +59,6 @@ public:
   virtual void setInt64Value(int64_t const& value)= 0;
   virtual void setDoubleValue(double const& value)= 0;
   virtual void setRawPointer(void* pointer)= 0;
-
 };
 
 /** Interface for asymptote arguments */
@@ -85,10 +84,18 @@ public:
 };
 
 // question: will we ever exceed 256 primitive types?
+
+/** Types of Asymptote */
 enum AsyTypes : uint8_t
 {
+  /** Corresponds to the void type.
+   * If used as function return type, will not return any value */
   Void= 0,
+
+  /** Corresponds to asy real type, or double-precision floating point*/
   Real= 1,
+
+  /** Corresponds to Int, or 64-bit integer*/
   Integer= 2,
   // TODO: Add more types to this
 };
@@ -108,7 +115,9 @@ struct AsyFnArgMetadata {
  * Function will pass (context, args, returnItem). If the function is
  * registered as void, returnItem will be set as nullptr
  */
-typedef void (*LNK_CALL TAsyForeignFunction)(IAsyContext*, IAsyArgs*, IAsyItem*);
+typedef void (*LNK_CALL TAsyForeignFunction)(
+        IAsyContext*, IAsyArgs*, IAsyItem*
+);
 
 class IAsyFfiRegisterer
 {
@@ -125,15 +134,15 @@ typedef void (*LNK_CALL TAsyRegisterDynlibFn)(IAsyContext*, IAsyFfiRegisterer*);
 
 #define REGISTER_FN_NAME(libname) registerPlugin_##libname
 
-#define REGISTER_FN_SIG(libname) \
-  void LNK_CALL REGISTER_FN_NAME(libname) (\
-    IAsyContext* context, IAsyFfiRegisterer* registerer\
-    )
+#define REGISTER_FN_SIG(libname)                                               \
+  void LNK_CALL REGISTER_FN_NAME(libname)(                                     \
+          IAsyContext * context, IAsyFfiRegisterer * registerer                \
+  )
 
-#define DECLARE_REGISTER_FN(libname) \
+#define DECLARE_REGISTER_FN(libname)                                           \
   extern "C" ASY_FFI_EXPORT REGISTER_FN_SIG(libname)
 
-#define ASY_FOREIGN_FUNC_SIG(functionName) \
-  void LNK_CALL functionName (\
-    IAsyContext* context, IAsyArgs* args, IAsyItem* returnValue\
-    )
+#define ASY_FOREIGN_FUNC_SIG(functionName)                                     \
+  void LNK_CALL functionName(                                                  \
+          IAsyContext* context, IAsyArgs* args, IAsyItem* returnValue          \
+  )
