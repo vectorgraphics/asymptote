@@ -112,8 +112,13 @@ public:
    * reserved for default/undefined values. In addition, there are speical
    * numbers to store "truthy" and "falsy" values for boolean
    */
+  [[nodiscard]]
   virtual bool isCompactBuild() const=0;
+
+  [[nodiscard]]
   virtual char const* getVersion() const=0;
+
+  [[nodiscard]]
   virtual char const* getAsyGlVersion() const=0;
 };
 

@@ -30,8 +30,13 @@ public:
   void* malloc(size_t const& size) override;
   void* mallocAtomic(size_t const& size) override;
 
+  [[nodiscard]]
   bool isCompactBuild() const override;
+
+  [[nodiscard]]
   const char* getVersion() const override;
+
+  [[nodiscard]]
   const char* getAsyGlVersion() const override;
 };
 
