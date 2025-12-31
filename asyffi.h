@@ -144,7 +144,60 @@ enum AsyTypes : uint8_t
 
   /** Corresponds to bool */
   Boolean,
-  // TODO: Add more types to this
+
+  /** Corresponds to string */
+  Str,
+
+  /** Corresponds to inferred type */
+  Inferred,
+
+  /** Corresponds to 2D affine transform type */
+  Transform,
+
+  /** Corresponds to guide */
+  Guide,
+
+  /** Corresponds to path in 2D space */
+  Path,
+
+  /** Corresponds to path in 3D space */
+  Path3,
+
+  /** Corresponds to cycle token */
+  CycleToken,
+
+  /** Corresponds to tension specifier for paths */
+  TensionSpecifier,
+
+  /** Corresponds to curl specifier for paths */
+  CurlSpecifier,
+
+  /** Corresponds to Pen */
+  Pen,
+
+  /** Corresponds to picture */
+  Picture,
+
+  /** Corresponds to file */
+  File,
+
+  /** Corresponds to code */
+  Code,
+
+  /** Corresponds to array */
+  ArrayType,
+
+  /** Corresponds to Asymptote structs */
+  Record,
+};
+
+struct ArrayTypeMetadata
+{
+  AsyTypes arrayType;
+  size_t dimension;
+
+  // to be used in the future?
+  void* extraData;
 };
 
 struct AsyFnArgMetadata {
