@@ -122,10 +122,10 @@ public:
   virtual void pushItem(IAsyItem* itemToAdd)= 0;
 
   /** Removes the last item in the array. */
-  virtual void popItem()=0;
+  virtual void popItem()= 0;
 
   [[nodiscard]]
-  virtual bool isCyclic() const=0;
+  virtual bool isCyclic() const= 0;
   virtual void setCyclic(bool const& isCyclic)= 0;
 };
 
@@ -319,6 +319,8 @@ public:
 
 typedef void (*LNK_CALL TAsyRegisterDynlibFn)(IAsyContext*, IAsyFfiRegisterer*);
 
+// convenience macros for asy function registration
+
 #define REGISTER_FN_NAME(libname) registerPlugin_##libname
 
 #define REGISTER_FN_SIG(libname)                                               \
@@ -338,3 +340,9 @@ typedef void (*LNK_CALL TAsyRegisterDynlibFn)(IAsyContext*, IAsyFfiRegisterer*);
  * Shorthand for "functionName", &functionName for registering functions
  */
 #define ASYFFI_FN_NAME_AND_ADDR(functionName) #functionName, &(functionName)
+
+/**
+ * Shorthand for container.size(), container.data()
+ */
+#define STD_CONTAINER_SIZE_AND_DATA(container)                                 \
+  container.size(), container.data()
