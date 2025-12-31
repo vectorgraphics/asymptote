@@ -8,14 +8,10 @@
 namespace camp
 {
 
-AsyArgsImpl::AsyArgsImpl(size_t const& argSize)
-  : argsStorage(argSize)
-{
-
-}
+AsyArgsImpl::AsyArgsImpl(size_t const& argSize) : argsStorage(argSize) {}
 void AsyArgsImpl::setArgNum(size_t const& argNum, vm::item const& arg)
 {
-  argsStorage[argNum] = arg;
+  argsStorage[argNum]= arg;
 }
 
 size_t AsyArgsImpl::getArgumentCount() const { return argsStorage.size(); }
@@ -50,7 +46,7 @@ AsyFfiRegistererImpl::AsyFfiRegistererImpl(string const& dynlibName)
 {}
 
 void AsyFfiRegistererImpl::registerFunction(
-        char const* name, TAsyForeignFunction fn, AsyTypes const& returnType,
+        char const* name, TAsyForeignFunction fn, AsyTypeInfo const& returnType,
         size_t numArgs, AsyFnArgMetadata* argInfoPtr
 )
 {
@@ -63,25 +59,75 @@ void AsyFfiRegistererImpl::registerFunction(
 }
 record* AsyFfiRegistererImpl::getRecord() const { return recordVar; }
 
-ty* asyTypesEnumToTy(AsyTypes const& asyType)
+ty* asyTypesEnumToTy(AsyTypeInfo const& asyType)
 {
-  switch (asyType) {
-    case Void:
-      return types::primVoid();
-    case Integer:
+  switch (asyType.baseType) {
+#define PRIMITIVE(name, Name, asyName)                                         \
+  case AsyBaseTypes::Name:                                                     \
+    return types::prim##Name();
+#define EXCLUDE_POTENTIALLY_CONFLICTING_NAME_TYPE
+#define PRIMITIVES_MACRO_ONLY
+#include "primitives.h"
+
+
+    DEFINE_PRIMTIVES
+#undef EXCLUDE_POTENTIALLY_CONFLICTING_NAME_TYPE
+#undef PRIMITIVES_MACRO_ONLY
+#undef PRIMITIVE
+    case Integer:// handle integer case separately
       return types::primInt();
-    case Real:
-      return types::primReal();
-    case Pair:
-      return types::primPair();
-    case Triple:
-      return types::primTriple();
-    case Boolean:
-      return types::primBoolean();
+    case Str:
+      return types::primString();
+    case ArrayType:
+      return processArrayTypesInfoToTy(asyType);
     default:
       reportError("Invalid argument type");
       return nullptr;
   }
+}
+
+ty* processArrayTypesInfoToTy(AsyTypeInfo const& asyType)
+{
+  auto const* typeInfo= static_cast<ArrayTypeMetadata*>(asyType.extraData);
+  ty* ret= nullptr;
+  switch (typeInfo->typeOfItem) {
+#define CASE_ARRAY_MULTIDIM(name, dimension)                                   \
+  case dimension:                                                              \
+    ret= types::name##Array##dimension();                                      \
+    break;
+
+// For each type, enter another switch statement to return the correct
+// type function based on the dimensions.
+#define PRIMITIVE(name, Name, asyName)                                         \
+  case AsyBaseTypes::Name:                                                     \
+    switch (typeInfo->dimension) {                                             \
+      case 1:                                                                  \
+        ret= types::name##Array();                                             \
+        break;                                                                 \
+        CASE_ARRAY_MULTIDIM(name, 2)                                           \
+        CASE_ARRAY_MULTIDIM(name, 3)                                           \
+      default:                                                                 \
+        break;                                                                 \
+    }                                                                          \
+    break;
+#define EXCLUDE_POTENTIALLY_CONFLICTING_NAME_TYPE
+#define PRIMITIVES_MACRO_ONLY
+#include "primitives.h"
+
+    DEFINE_PRIMTIVES
+    PRIMITIVE(Int, Integer, _)
+    PRIMITIVE(string, Str, _)
+    default:
+      break;
+#undef EXCLUDE_POTENTIALLY_CONFLICTING_NAME_TYPE
+#undef PRIMITIVES_MACRO_ONLY
+#undef PRIMITIVE
+  }
+
+  if (ret == nullptr) {
+    reportError("Invalid dimensons or type information");
+  }
+  return ret;
 }
 
 types::formal asyArgInfoToFormal(AsyFnArgMetadata const& argInfo)

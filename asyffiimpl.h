@@ -45,7 +45,7 @@ class AsyFfiRegistererImpl : public IAsyFfiRegisterer
 public:
   AsyFfiRegistererImpl(string const& dynlibName);
   void registerFunction(
-          char const* name, TAsyForeignFunction fn, AsyTypes const& returnType,
+          char const* name, TAsyForeignFunction fn, AsyTypeInfo const& returnType,
           size_t numArgs, AsyFnArgMetadata* argInfoPtr
   ) override;
 
@@ -67,7 +67,8 @@ private:
   types::dummyRecord* recordVar= nullptr;
 };
 
-ty* asyTypesEnumToTy(AsyTypes const& asyType);
+ty* asyTypesEnumToTy(AsyTypeInfo const& asyType);
+ty* processArrayTypesInfoToTy(AsyTypeInfo const& baseType);
 
 types::formal asyArgInfoToFormal(AsyFnArgMetadata const& argInfo);
 }// namespace camp

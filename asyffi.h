@@ -125,7 +125,7 @@ public:
 // question: will we ever exceed 256 primitive types?
 
 /** Types of Asymptote */
-enum AsyTypes : uint8_t
+enum AsyBaseTypes : uint8_t
 {
   /** Corresponds to void.
    * If used as function return type, will not return any value */
@@ -191,17 +191,32 @@ enum AsyTypes : uint8_t
   Record,
 };
 
+struct AsyTypeInfo
+{
+  AsyBaseTypes baseType;
+
+  /**
+   * Pointer to additional data. For most types, this value is not used.
+   * For {@link AsyBaseTypes::ArrayType}, extraData must point to a struct of
+   * {@link ArrayTypeMetadata}.
+   */
+  void* extraData;
+};
+
 struct ArrayTypeMetadata
 {
-  AsyTypes arrayType;
+  /** The type of the item that the array is storing. Cannot be array*/
+  AsyBaseTypes typeOfItem;
+
+  /** Dimensions, Can be 1, 2, or 3. */
   size_t dimension;
 
-  // to be used in the future?
+  /** Currently unused. May be used in the future */
   void* extraData;
 };
 
 struct AsyFnArgMetadata {
-  AsyTypes type;
+  AsyTypeInfo type;
   char const* name;
   bool optional;
   bool explicitArgs;
@@ -254,7 +269,7 @@ public:
   virtual ~IAsyFfiRegisterer()= default;
 
   virtual void registerFunction(
-          char const* name, TAsyForeignFunction fn, AsyTypes const& returnType,
+          char const* name, TAsyForeignFunction fn, AsyTypeInfo const& returnType,
           size_t numArgs, AsyFnArgMetadata* argInfoPtr
   )= 0;
 };
