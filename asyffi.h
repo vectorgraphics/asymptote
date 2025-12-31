@@ -42,10 +42,10 @@
  * These values are used for compact builds of asymptote
  * (most builds by default)
  */
-constexpr int64_t ASY_COMPACT_DEFAULT_VALUE = 0x7fffffffffffffffLL;
-constexpr int64_t ASY_COMPACT_UNDEFINED_VALUE = 0x7ffffffffffffffeLL;
-constexpr int64_t ASY_COMPACT_BOOL_TRUTH_VALUE = 0xABABABABABABABACLL;
-constexpr int64_t ASY_COMPACT_BOOL_FALSE_VALUE = 0xABABABABABABABABLL;
+constexpr int64_t ASY_COMPACT_DEFAULT_VALUE= 0x7fffffffffffffffLL;
+constexpr int64_t ASY_COMPACT_UNDEFINED_VALUE= 0x7ffffffffffffffeLL;
+constexpr int64_t ASY_COMPACT_BOOL_TRUTH_VALUE= 0xABABABABABABABACLL;
+constexpr int64_t ASY_COMPACT_BOOL_FALSE_VALUE= 0xABABABABABABABABLL;
 
 class IAsyItem
 {
@@ -156,13 +156,13 @@ public:
    * numbers to store "truthy" and "falsy" values for boolean
    */
   [[nodiscard]]
-  virtual bool isCompactBuild() const=0;
+  virtual bool isCompactBuild() const= 0;
 
   [[nodiscard]]
-  virtual char const* getVersion() const=0;
+  virtual char const* getVersion() const= 0;
 
   [[nodiscard]]
-  virtual char const* getAsyGlVersion() const=0;
+  virtual char const* getAsyGlVersion() const= 0;
 };
 
 // question: will we ever exceed 256 primitive types?
@@ -172,7 +172,7 @@ enum AsyBaseTypes : uint8_t
 {
   /** Corresponds to void.
    * If used as function return type, will not return any value */
-  Void=0,
+  Void= 0,
 
   /** Corresponds to real (double-precision floating point) */
   Real,
