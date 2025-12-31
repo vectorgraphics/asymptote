@@ -86,6 +86,49 @@ public:
   virtual void setValueWithTypeId(void* pointer, std::type_info* tyinfo)= 0;
 };
 
+/** Interface for Asymptote array. */
+class IAsyArray
+{
+public:
+  virtual ~IAsyArray()= default;
+
+  /**
+   * Gets an item at the specified position.
+   * Attempting to get an item at a position beyond the array's size
+   * has undefined behavior.
+   */
+  [[nodiscard]]
+  virtual IAsyItem* getItem(size_t const& position)= 0;
+
+  /**
+   * Sets an item at the specified position.
+   * Attempting to set an item at a position beyond the array's size
+   * has undefined behavior. Note that the item is copied, hence there is no
+   * need to preserve the itemToSet pointer.
+   */
+  virtual void setItem(size_t const& position, IAsyItem* itemToSet)= 0;
+
+  /** Gets the size of an array */
+  [[nodiscard]]
+  virtual size_t getSize() const= 0;
+
+  /** Resizes the array. New values may not be initialized */
+  virtual void setSize(size_t const& newSize)= 0;
+
+  /**
+   * Pushes itemToAdd to the end of an array. Note that the item is copied
+   * so there is no need to preserve the itemToAdd's object.
+   */
+  virtual void pushItem(IAsyItem* itemToAdd)= 0;
+
+  /** Removes the last item in the array. */
+  virtual void popItem()=0;
+
+  [[nodiscard]]
+  virtual bool isCyclic() const=0;
+  virtual void setCyclic(bool const& isCyclic)= 0;
+};
+
 /** Interface for asymptote arguments */
 class IAsyArgs
 {
