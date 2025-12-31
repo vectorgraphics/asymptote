@@ -17,7 +17,7 @@ namespace vm {
 extern const char *dereferenceNullArray;
 
 // Arrays are vectors with push and pop functions.
-class array : public mem::vector<item> {
+class array : public mem::vector<item>, public IAsyArray {
   bool cycle;
 
   void setNonBridgingSlice(size_t l, size_t r, mem::vector<item> *a);
@@ -59,6 +59,18 @@ public:
   bool cyclic() const {
     return cycle;
   }
+
+  // IAsyArray functions
+  [[nodiscard]]
+  IAsyItem* getItem(const size_t& position) override;
+  void setItem(const size_t& position, IAsyItem* itemToSet) override;
+  [[nodiscard]]
+  size_t getSize() const override;
+  void setSize(const size_t& newSize) override;
+  void pushItem(IAsyItem* itemToAdd) override;
+  void popItem() override;
+  bool isCyclic() const override;
+  void setCyclic(const bool& isCycle) override;
 
   array *copyToDepth(size_t depth);
 };

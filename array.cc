@@ -78,7 +78,7 @@ void array::setNonBridgingSlice(size_t l, size_t r, mem::vector<item> *a)
 {
   assert(0 <= l);
   assert(l <= r);
-  
+
   size_t const sliceLength=r-l;
 
   size_t asize=a->size();
@@ -156,6 +156,55 @@ void array::setSlice(Int left, Int right, array *a)
 
     setNonBridgingSlice(l, r, v);
   }
+}
+IAsyItem* array::getItem(const size_t& position)
+{
+  auto* ptr = data() + position;
+  return ptr;
+}
+void array::setItem(const size_t& position, IAsyItem* itemToSet)
+{
+  auto const* itemCasted=dynamic_cast<item*>(itemToSet);
+  if (itemCasted == nullptr) {
+    // this should /never/ happen as item is the only class to inherit
+    // IAsyItem, but in case it does, we can show an error
+    vm::error("IAsyItem is not of item");
+    return;
+  }
+  (*this)[position]=*itemCasted;
+}
+size_t array::getSize() const
+{
+  return size();
+}
+
+void array::setSize(const size_t& newSize)
+{
+  resize(newSize);
+
+}
+void array::pushItem(IAsyItem* itemToAdd)
+{
+  auto const* itemCasted=dynamic_cast<item*>(itemToAdd);
+  if (itemCasted == nullptr) {
+    // this should /never/ happen as item is the only class to inherit
+    // IAsyItem, but in case it does, we can show an error
+    vm::error("IAsyItem is not of item");
+    return;
+  }
+  push_back(*itemCasted);
+}
+void array::popItem()
+{
+  pop_back();
+}
+bool array::isCyclic() const
+{
+  return cyclic();
+}
+void array::setCyclic(const bool& isCycle)
+{
+  cyclic(isCycle);
 }
 
 item copyItemToDepth(item i, size_t depth)
