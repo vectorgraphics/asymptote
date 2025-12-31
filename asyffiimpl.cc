@@ -88,7 +88,7 @@ ty* asyTypesEnumToTy(AsyTypeInfo const& asyType)
 
 ty* processArrayTypesInfoToTy(AsyTypeInfo const& asyType)
 {
-  auto const* typeInfo= static_cast<ArrayTypeMetadata*>(asyType.extraData);
+  auto const* typeInfo= static_cast<AsyArrayTypeMetadata*>(asyType.extraData);
   ty* ret= nullptr;
   switch (typeInfo->typeOfItem) {
 #define CASE_ARRAY_MULTIDIM(name, dimension)                                   \

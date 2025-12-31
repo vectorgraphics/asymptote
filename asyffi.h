@@ -234,20 +234,18 @@ enum AsyBaseTypes : uint8_t
   Record,
 };
 
-struct AsyTypeInfo
-{
+struct AsyTypeInfo {
   AsyBaseTypes baseType;
 
   /**
    * Pointer to additional data. For most types, this value is not used.
    * For {@link AsyBaseTypes::ArrayType}, extraData must point to a struct of
-   * {@link ArrayTypeMetadata}.
+   * {@link AsyArrayTypeMetadata}.
    */
   void* extraData;
 };
 
-struct ArrayTypeMetadata
-{
+struct AsyArrayTypeMetadata {
   /** The type of the item that the array is storing. Cannot be array*/
   AsyBaseTypes typeOfItem;
 
@@ -312,8 +310,9 @@ public:
   virtual ~IAsyFfiRegisterer()= default;
 
   virtual void registerFunction(
-          char const* name, TAsyForeignFunction fn, AsyTypeInfo const& returnType,
-          size_t numArgs, AsyFnArgMetadata* argInfoPtr
+          char const* name, TAsyForeignFunction fn,
+          AsyTypeInfo const& returnType, size_t numArgs,
+          AsyFnArgMetadata* argInfoPtr
   )= 0;
 };
 
