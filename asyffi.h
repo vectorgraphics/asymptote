@@ -292,6 +292,7 @@ public:
   virtual void setIndexedValue(size_t const& index, double const& val)= 0;
 
   /** @return 2 if object is a pair, 3 if triple */
+  [[nodiscard]]
   virtual size_t getTupleSize() const= 0;
 };
 

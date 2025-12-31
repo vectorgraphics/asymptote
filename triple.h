@@ -89,6 +89,7 @@ public:
     }
   }
 
+  [[nodiscard]]
   size_t getTupleSize() const override
   {
     return 3;

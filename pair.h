@@ -85,6 +85,7 @@ double getIndexedValue(size_t const& index) const override
     }
   }
 
+  [[nodiscard]]
   size_t getTupleSize() const override
   {
     return 2;
