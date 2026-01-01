@@ -207,6 +207,12 @@ void array::setCyclic(const bool& isCycle)
   cyclic(isCycle);
 }
 
+IAsyItem* array::pushAndReturnBlankItem()
+{
+  auto& newItem= emplace_back();
+  return &newItem;
+}
+
 item copyItemToDepth(item i, size_t depth)
 {
   if(depth == 0)

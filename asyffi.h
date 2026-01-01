@@ -121,6 +121,15 @@ public:
    */
   virtual void pushItem(IAsyItem* itemToAdd)= 0;
 
+  /**
+   * Pushes a new uninitialized item and return a pointer to that item.
+   * This pointer can be used to set the value of the new item.
+   *
+   * @remark Note that this pointer may not point to a valid item after
+   * an insertion, removal, or any changes to the array.
+   */
+  virtual IAsyItem* pushAndReturnBlankItem()= 0;
+
   /** Removes the last item in the array. */
   virtual void popItem()= 0;
 

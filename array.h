@@ -73,6 +73,7 @@ public:
   [[nodiscard]]
   bool isCyclic() const override;
   void setCyclic(const bool& isCycle) override;
+  IAsyItem* pushAndReturnBlankItem() override;
 
   array *copyToDepth(size_t depth);
 };
