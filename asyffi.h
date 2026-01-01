@@ -172,6 +172,22 @@ public:
 
   [[nodiscard]]
   virtual char const* getAsyGlVersion() const= 0;
+
+  virtual IAsyItem* createBlankItem()= 0;
+
+  /**
+   * Creates a new Asymptote string.
+   * @param str Contents of the string. Must be a null-terminated pointer
+   * @return An opaque pointer to asymptote string. This pointer can then
+   * be assigned to an item
+   */
+  virtual void* createNewAsyString(char const* str)= 0;
+  virtual void* createNewAsyStringSized(char const* str, size_t const& size)= 0;
+  virtual void updateAsyString(void* asyStringPtr, char const* str)= 0;
+  virtual void
+  updateAsyStringSized(void* asyString, char const* str, size_t const& size)= 0;
+
+  virtual IAsyArray* createNewArray(size_t const& initialSize)= 0;
 };
 
 // question: will we ever exceed 256 primitive types?

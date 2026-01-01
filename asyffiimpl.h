@@ -38,6 +38,19 @@ public:
 
   [[nodiscard]]
   const char* getAsyGlVersion() const override;
+
+  IAsyItem* createBlankItem() override;
+
+  void* createNewAsyString(char const* str) override;
+
+  void* createNewAsyStringSized(char const* str, size_t const& size) override;
+
+  void updateAsyString(void* asyStringPtr, const char* str) override;
+  void updateAsyStringSized(
+          void* asyStringPtr, const char* str, const size_t& size
+  ) override;
+  IAsyArray* createNewArray(const size_t& initialSize) override;
+  
 };
 
 class AsyFfiRegistererImpl : public IAsyFfiRegisterer

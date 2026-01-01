@@ -5,6 +5,8 @@
 #include "settings.h"
 #include "util.h"
 
+#include <array.h>
+
 namespace camp
 {
 
@@ -38,6 +40,37 @@ bool AsyContextImpl::isCompactBuild() const
 }
 const char* AsyContextImpl::getVersion() const { return REVISION; }
 const char* AsyContextImpl::getAsyGlVersion() const { return AsyGLVersion; }
+
+IAsyItem* AsyContextImpl::createBlankItem() { return new vm::item(); }
+
+void* AsyContextImpl::createNewAsyString(char const* str)
+{
+  return new (UseGC) mem::string(str);
+}
+
+void* AsyContextImpl::createNewAsyStringSized(
+        char const* str, size_t const& size
+)
+{
+  return new (UseGC) mem::string(str, size);
+}
+void AsyContextImpl::updateAsyString(void* asyStringPtr, const char* str)
+{
+  auto* castedStr=static_cast<mem::string*>(asyStringPtr);
+  castedStr->assign(str);
+}
+void AsyContextImpl::updateAsyStringSized(
+        void* asyStringPtr, const char* str, const size_t& size
+)
+{
+  auto* castedStr=static_cast<mem::string*>(asyStringPtr);
+  castedStr->assign(str, size);
+
+}
+IAsyArray* AsyContextImpl::createNewArray(const size_t& initialSize)
+{
+  return new vm::array(initialSize);
+}
 
 
 AsyFfiRegistererImpl::AsyFfiRegistererImpl(string const& dynlibName)
