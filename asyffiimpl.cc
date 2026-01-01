@@ -88,9 +88,9 @@ ty* asyTypesEnumToTy(AsyTypeInfo const& asyType)
 
 ty* processArrayTypesInfoToTy(AsyTypeInfo const& asyType)
 {
-  auto const* typeInfo= static_cast<AsyArrayTypeMetadata*>(asyType.extraData);
+  auto const& typeInfo= asyType.extraData.arrayTypeInfo;
   ty* ret= nullptr;
-  switch (typeInfo->typeOfItem) {
+  switch (typeInfo.typeOfItem) {
 #define CASE_ARRAY_MULTIDIM(name, dimension)                                   \
   case dimension:                                                              \
     ret= types::name##Array##dimension();                                      \
@@ -100,7 +100,7 @@ ty* processArrayTypesInfoToTy(AsyTypeInfo const& asyType)
 // type function based on the dimensions.
 #define PRIMITIVE(name, Name, asyName)                                         \
   case AsyBaseTypes::Name:                                                     \
-    switch (typeInfo->dimension) {                                             \
+    switch (typeInfo.dimension) {                                              \
       case 1:                                                                  \
         ret= types::name##Array();                                             \
         break;                                                                 \
@@ -113,6 +113,7 @@ ty* processArrayTypesInfoToTy(AsyTypeInfo const& asyType)
 #define EXCLUDE_POTENTIALLY_CONFLICTING_NAME_TYPE
 #define PRIMITIVES_MACRO_ONLY
 #include "primitives.h"
+
 
     DEFINE_PRIMTIVES
     PRIMITIVE(Int, Integer, _)

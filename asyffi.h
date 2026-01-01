@@ -243,26 +243,33 @@ enum AsyBaseTypes : uint8_t
   Record,
 };
 
+struct AsyArrayTypeMetadata {
+  /** The type of the item that the array is storing. Cannot be ArrayType */
+  AsyBaseTypes typeOfItem;
+
+  /** Dimensions of the array. Can be 1, 2, or 3. */
+  size_t dimension;
+
+  /** Currently unused. May be used in the future */
+  void* extraData;
+};
+
 struct AsyTypeInfo {
   AsyBaseTypes baseType;
 
   /**
    * Pointer to additional data. For most types, this value is not used.
    * For {@link AsyBaseTypes::ArrayType}, extraData must point to a struct of
-   * {@link AsyArrayTypeMetadata}.
+   * {@link AsyArrayTypeMetadata} in arrayTypeInfo.
    */
-  void* extraData;
-};
+  union
+  {
+    /** This is required for arrays. */
+    AsyArrayTypeMetadata arrayTypeInfo;
 
-struct AsyArrayTypeMetadata {
-  /** The type of the item that the array is storing. Cannot be array*/
-  AsyBaseTypes typeOfItem;
-
-  /** Dimensions, Can be 1, 2, or 3. */
-  size_t dimension;
-
-  /** Currently unused. May be used in the future */
-  void* extraData;
+    /** Some types may require extraData to be a pointer to another struct */
+    void* otherPtr;
+  } extraData;
 };
 
 struct AsyFnArgMetadata {
