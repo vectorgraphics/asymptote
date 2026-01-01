@@ -69,6 +69,8 @@ public:
   void setSize(const size_t& newSize) override;
   void pushItem(IAsyItem* itemToAdd) override;
   void popItem() override;
+
+  [[nodiscard]]
   bool isCyclic() const override;
   void setCyclic(const bool& isCycle) override;
 
