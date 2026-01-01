@@ -76,7 +76,7 @@ public:
    * Sets value with type info. This method is only relevant if
    * the asymptote host is of a non-compact build.
    *
-   * On compact asymptote builds, this function behave the same as
+   * On compact asymptote builds, this function behaves the same as
    * {@link setRawPointer(void*)}.
    *
    * @remark Most builds (in particular, builds suppliied from asymptote
