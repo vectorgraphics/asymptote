@@ -6,7 +6,6 @@
  */
 
 #include <cstdint>
-#include <typeinfo>
 
 #if defined(_WIN32)
 #  define ASY_FFI_EXPORT __declspec(dllexport)
@@ -83,7 +82,7 @@ public:
    * website) are compact and hence if one is not targeting non-compact
    * function, there is no need to use this function.
    */
-  virtual void setValueWithTypeId(void* pointer, std::type_info* tyinfo)= 0;
+  virtual void setValueWithTypeId(void* pointer, void* tyinfo)= 0;
 };
 
 /** Interface for Asymptote array. */

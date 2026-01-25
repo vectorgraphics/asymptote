@@ -104,10 +104,10 @@ public:
     p=pointer;
   }
 
-  void setValueWithTypeId(void* pointer, std::type_info* tyinfo) override
+  void setValueWithTypeId(void* pointer, void* tyinfo) override
   {
 #if !COMPACT
-    kind=tyinfo;
+    kind=static_cast<std::type_info*>(tyinfo);
 #endif
     p=pointer;
   }
