@@ -18,7 +18,7 @@
 
 namespace camp {
 
-class transform : public gc {
+class transform : public gc, public IAsyTransform {
   double x;
   double y;
   double xx;
@@ -30,19 +30,85 @@ public:
   transform()
     : x(0.0), y(0.0), xx(1.0), xy(0.0), yx(0.0), yy(1.0) {}
 
-  virtual ~transform() {}
+  ~transform() override {}
 
   transform(double x, double y,
             double xx, double xy,
             double yx, double yy)
     : x(x), y(y), xx(xx), xy(xy), yx(yx), yy(yy) {}
 
-  double getx() const { return x; }
-  double gety() const { return y; }
-  double getxx() const { return xx; }
-  double getxy() const { return xy; }
-  double getyx() const { return yx; }
-  double getyy() const { return yy; }
+  double getx() const override { return x; }
+  double gety() const override { return y; }
+  double getxx() const override { return xx; }
+  double getxy() const override { return xy; }
+  double getyx() const override { return yx; }
+  double getyy() const override { return yy; }
+
+  void apply(IAsyTuple* in, IAsyTuple* out) override
+  {
+    auto const* pairIn = dynamic_cast<pair const*>(in);
+    auto* pairOut = dynamic_cast<pair*>(out);
+    if (!pairIn || !pairOut) {
+      reportError("in or out is not a pair object");
+      return;
+    }
+
+    *pairOut = (*this) * (*pairIn);
+  }
+
+  [[nodiscard]]
+  double getIndexedValue(const size_t& index) const override
+  {
+    switch (index) {
+      case 0:
+        return x;
+      case 1:
+        return y;
+      case 2:
+        return xx;
+      case 3:
+        return xy;
+      case 4:
+        return yx;
+      case 5:
+        return yy;
+      default:
+        reportError("Invalid index");
+        return 0;
+    }
+  }
+
+  void setIndexedValue(const size_t& index, const double& val) override
+  {
+    switch (index) {
+      case 0:
+        x=val;
+      case 1:
+        y=val;
+      case 2:
+        xx=val;
+      case 3:
+        xy=val;
+      case 4:
+        yx=val;
+      case 5:
+        yy=val;
+      default:
+        reportError("Invalid index");
+    }
+  }
+
+
+  [[nodiscard]]
+  size_t getTupleSize() const override
+  {
+    return 6;
+  }
+
+  void setFromAnotherTransform(IAsyTransform const* other) override
+  {
+    *this = *static_cast<transform const*>(other);
+  }
 
   friend transform operator+ (const transform& t, const transform& s)
   {

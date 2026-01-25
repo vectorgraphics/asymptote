@@ -346,6 +346,41 @@ typedef void (*LNK_CALL TAsyForeignFunction)(
         IAsyContext*, IAsyArgs*, IAsyItem*
 );
 
+/**
+ * An interface representing a 2D affine transform. It is a tuple
+ * (x, y, xx, xy, yx, yy) where the R^2 transform function T is defined as
+ * (u, v) -> (x + xx*u + xy*v, y + yx*u + yy*v)
+ */
+class IAsyTransform : public IAsyTuple
+{
+public:
+  ~IAsyTransform() override= default;
+
+  [[nodiscard]]
+  virtual double getx() const= 0;
+
+  [[nodiscard]]
+  virtual double gety() const= 0;
+
+  [[nodiscard]]
+  virtual double getxx() const= 0;
+
+  [[nodiscard]]
+  virtual double getxy() const= 0;
+
+  [[nodiscard]]
+  virtual double getyy() const= 0;
+
+  [[nodiscard]]
+  virtual double getyx() const= 0;
+
+  virtual void setFromAnotherTransform(IAsyTransform const* other)= 0;
+
+  /** Applies transformation from in and returns out. Both in and out
+   * must be pairs */
+  virtual void apply(IAsyTuple* in, IAsyTuple* out)= 0;
+};
+
 class IAsyFfiRegisterer
 {
 public:
