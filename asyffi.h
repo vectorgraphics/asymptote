@@ -188,6 +188,7 @@ public:
   updateAsyStringSized(void* asyString, char const* str, size_t const& size)= 0;
 
   virtual IAsyArray* createNewArray(size_t const& initialSize)= 0;
+
 };
 
 // question: will we ever exceed 256 primitive types?
@@ -298,17 +299,21 @@ struct AsyFnArgMetadata {
   void* extraData;
 };
 
-/** Setter/Getter interface for Pair and Triple types */
-class IAsyDoubleTuple
+/**
+ * Setter/Getter interface for Pair and Triple types and other types
+ * implementing a tuple interface
+ */
+class IAsyTuple
 {
 public:
-  virtual ~IAsyDoubleTuple()= default;
+  virtual ~IAsyTuple()= default;
 
   /**
    * Gets the value.
-   * @param index 0 index corresponds to the "x" value,
-   * 1 to "y" and for triple, and 2 to "z".
-   * Any other value will cause an error
+   * @param index In the case of a pair or triple,
+   * 0 index corresponds to the "x" value, 1 to "y" and for triple,
+   * and 2 to "z". In other cases, return the element at that index as
+   * specified by the type implementing IAsyTuple.
    *
    * @return Value of that element
    */
@@ -317,13 +322,17 @@ public:
 
   /**
    * Set value.
-   * @param index 0 index corresponds to the "x" value, 1 to "y" and for triple,
-   *  and 2 to "z". Any other value will cause an error
+   * @param index In the case of a pair or triple,
+   *  0 corresponds to the "x" value, 1 to "y" and for triple,
+   *  and 2 to "z". In other cases, sets the element at that index as specified
+   *  by the type implementing IAsyTuple.
    * @param val Value to set the element to
    */
   virtual void setIndexedValue(size_t const& index, double const& val)= 0;
 
-  /** @return 2 if object is a pair, 3 if triple */
+  /** @return 2 if object is a pair, 3 if triple. In other cases, the number
+   * of elements specified by the type implementing IAsyTuple.
+   */
   [[nodiscard]]
   virtual size_t getTupleSize() const= 0;
 };

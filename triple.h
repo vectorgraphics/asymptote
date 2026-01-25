@@ -37,7 +37,7 @@ void multiplyTransform3(double*& t, const double* s, const double* r);
 void boundstriples(double& x, double& y, double& z, double& X, double& Y,
                    double& Z, size_t n, const triple* v);
 
-class triple : virtual public gc, public IAsyDoubleTuple {
+class triple : virtual public gc, public IAsyTuple {
   double x;
   double y;
   double z;

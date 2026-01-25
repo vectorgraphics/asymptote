@@ -43,7 +43,7 @@ public:
   }
 };
 
-class pair : public gc, public IAsyDoubleTuple {
+class pair : public gc, public IAsyTuple {
   double x;
   double y;
 
