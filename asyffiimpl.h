@@ -4,6 +4,8 @@
 #include "common.h"
 #include "record.h"
 
+#include <type_traits>
+
 namespace camp
 {
 class AsyArgsImpl : public IAsyArgs
@@ -51,6 +53,16 @@ public:
   ) override;
   IAsyArray* createNewArray(const size_t& initialSize) override;
   
+protected:
+  template<typename TImpl, typename TInterface, typename... TCreationArgs>
+  static TInterface* createNewItemGeneric(TCreationArgs&&... args)
+  {
+    static_assert(std::is_base_of_v<TInterface, TImpl>);
+    static_assert(std::is_base_of_v<gc, TImpl>);
+    return static_cast<TInterface*>(
+            new TImpl(std::forward<TCreationArgs>(args)...)
+    );
+  }
 };
 
 class AsyFfiRegistererImpl : public IAsyFfiRegisterer
