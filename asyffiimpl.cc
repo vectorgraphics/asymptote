@@ -3,9 +3,11 @@
 #include "absyn.h"
 #include "common.h"
 #include "settings.h"
+#include "transform.h"
 #include "util.h"
 
 #include <array.h>
+#include "triple.h"
 
 namespace camp
 {
@@ -56,20 +58,37 @@ void* AsyContextImpl::createNewAsyStringSized(
 }
 void AsyContextImpl::updateAsyString(void* asyStringPtr, const char* str)
 {
-  auto* castedStr=static_cast<mem::string*>(asyStringPtr);
+  auto* castedStr= static_cast<mem::string*>(asyStringPtr);
   castedStr->assign(str);
 }
 void AsyContextImpl::updateAsyStringSized(
         void* asyStringPtr, const char* str, const size_t& size
 )
 {
-  auto* castedStr=static_cast<mem::string*>(asyStringPtr);
+  auto* castedStr= static_cast<mem::string*>(asyStringPtr);
   castedStr->assign(str, size);
-
 }
 IAsyArray* AsyContextImpl::createNewArray(const size_t& initialSize)
 {
   return new vm::array(initialSize);
+}
+IAsyTransform* AsyContextImpl::createNewTransform(
+        double x, double y, double xx, double xy, double yx, double yy
+)
+{
+  return createNewItemGeneric<transform, IAsyTransform>(x, y, xx, xy, yx, yy);
+}
+IAsyTransform* AsyContextImpl::createNewIdentityTransform()
+{
+  return createNewTransform(0, 0, 1, 0, 0, 1);
+}
+IAsyTuple* AsyContextImpl::createPair(double x, double y)
+{
+  return createNewItemGeneric<pair, IAsyTuple>(x, y);
+}
+IAsyTuple* AsyContextImpl::createTriple(double x, double y, double z)
+{
+  return createNewItemGeneric<triple, IAsyTuple>(x, y, z);
 }
 
 

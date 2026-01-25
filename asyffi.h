@@ -151,6 +151,9 @@ public:
   virtual IAsyItem* getNumberedArg(size_t const& argNum)= 0;
 };
 
+class IAsyTuple;
+class IAsyTransform;
+
 class IAsyContext
 {
 public:
@@ -188,6 +191,19 @@ public:
   updateAsyStringSized(void* asyString, char const* str, size_t const& size)= 0;
 
   virtual IAsyArray* createNewArray(size_t const& initialSize)= 0;
+
+  virtual IAsyTransform* createNewTransform(
+    double x, double y, double xx, double xy, double yx, double yy
+    )= 0;
+
+  /** Creates a transform that is the identity function, or in tuple form,
+   * (0, 0, 1, 0, 0, 1). Note that this transform can have its value changed by
+   * the {@link IAsyTuple::setIndexedValue } function.
+   */
+  virtual IAsyTransform* createNewIdentityTransform()= 0;
+
+  virtual IAsyTuple* createPair(double x, double y)= 0;
+  virtual IAsyTuple* createTriple(double x, double y, double z)= 0;
 
 };
 

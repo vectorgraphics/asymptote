@@ -52,7 +52,16 @@ public:
           void* asyStringPtr, const char* str, const size_t& size
   ) override;
   IAsyArray* createNewArray(const size_t& initialSize) override;
-  
+
+  IAsyTransform* createNewTransform(
+          double x, double y, double xx, double xy, double yx, double yy
+  ) override;
+
+  IAsyTransform* createNewIdentityTransform() override;
+
+  IAsyTuple* createPair(double x, double y) override;
+  IAsyTuple* createTriple(double x, double y, double z) override;
+
 protected:
   template<typename TImpl, typename TInterface, typename... TCreationArgs>
   static TInterface* createNewItemGeneric(TCreationArgs&&... args)
@@ -70,8 +79,9 @@ class AsyFfiRegistererImpl : public IAsyFfiRegisterer
 public:
   AsyFfiRegistererImpl(string const& dynlibName);
   void registerFunction(
-          char const* name, TAsyForeignFunction fn, AsyTypeInfo const& returnType,
-          size_t numArgs, AsyFnArgMetadata* argInfoPtr
+          char const* name, TAsyForeignFunction fn,
+          AsyTypeInfo const& returnType, size_t numArgs,
+          AsyFnArgMetadata* argInfoPtr
   ) override;
 
   /**
