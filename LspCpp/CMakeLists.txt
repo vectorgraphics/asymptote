@@ -77,10 +77,11 @@ option_if_not_defined(LSPCPP_ASAN "Build lsp with address sanitizer" OFF)
 option_if_not_defined(LSPCPP_MSAN "Build lsp with memory sanitizer" OFF)
 option_if_not_defined(LSPCPP_TSAN "Build lsp with thread sanitizer" OFF)
 option_if_not_defined(LSPCPP_INSTALL "Create lsp install target" OFF)
+option_if_not_defined(LSPCPP_STANDALONE_ASIO "Use standalone asio" OFF)
 option_if_not_defined(LSPCPP_SUPPORT_BOEHM_GC "\
 Enable support for Boehm GC. GC must be specified LSPCPP_GC_DOWNLOADED_ROOT, if downloaded or by
 find_package(BDWgc CONFIG REQUIRED) or pkg_config." OFF)
-option_if_not_defined(LSPCPP_USE_CPP17 "Use C++17 for compilation. Setting this to off requires boost-optional." OFF)
+option_if_not_defined(LSPCPP_USE_CPP17 "Use C++17 for compilation. Setting this to off requires boost-optional." ON)
 
 set(LSPCPP_GC_DOWNLOADED_ROOT "" CACHE STRING "\
 If using downloaded gc root from https://www.hboehm.info/gc/, extract its contents and set this setting to
@@ -92,6 +93,19 @@ option_if_not_defined(LSPCPP_GC_STATIC "Compiling with static gc library. Only u
 set(LSPCPP_WIN32_WINNT_VALUE "0x0A00" CACHE STRING
         "Value to specify for _WIN32_WINNT macro when compiling on windows. See
 https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt?view=msvc-170"
+)
+
+set(LSPCPP_EXTERNAL_LIBS)
+
+option_if_not_defined(
+        USE_EXTERNAL_IXWEBSOCKET
+        "Instead of using git submodules for ixwebsocket, use system or vcpkg dependency."
+        OFF
+)
+option_if_not_defined(
+        USE_EXTERNAL_ASIO
+        "Instead of using git submodules for asio, use system or vcpkg dependency."
+        OFF
 )
 
 ###########################################################
@@ -222,6 +236,10 @@ function(lspcpp_set_target_options target)
     #     target_compile_options(${target} PRIVATE "-Wl,--no-undefined")
     # endif()
 
+    if(LSPCPP_STANDALONE_ASIO)
+        target_compile_definitions(${target} PUBLIC LSPCPP_USE_STANDALONE_ASIO)
+    endif()
+
     if (LSPCPP_SUPPORT_BOEHM_GC)
         if (LSPCPP_GC_DOWNLOADED_ROOT)
             message(STATUS "Using manually downloaded GC")
@@ -265,33 +283,112 @@ endif()
 set(Uri_BUILD_TESTS OFF)
 add_subdirectory(third_party/uri)
 
+function(check_submodule dir)
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${dir}/CMakeLists.txt")
+        message(WARNING "Missing submodule: ${dir}. Run `git submodule update --init --recursive`.")
+    endif()
+endfunction()
+
+
+################################################
+# ——— Optional Library ———
+################################################
+# bring in the tl::optional interface library
+
+if (NOT LSPCPP_USE_CPP17)
+    check_submodule(third_party/optional)
+    add_subdirectory(third_party/optional)
+    list(APPEND LSPCPP_EXTERNAL_LIBS tl::optional)
+endif ()
+
+################################################
+# ——— Add filesystem as INTERFACE target ———
+################################################
+if (NOT LSPCPP_USE_CPP17)
+    add_library(ghc_filesystem INTERFACE)
+    # point at the ghc filesystem headers
+    set(GHC_FS_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/filesystem/include)
+    # attach that include‑dir to our INTERFACE target
+    target_include_directories(ghc_filesystem
+            INTERFACE
+            $<BUILD_INTERFACE:${GHC_FS_INCLUDE_DIRS}>
+            $<INSTALL_INTERFACE:include>
+    )
+    list(APPEND LSPCPP_EXTERNAL_LIBS ghc_filesystem)
+endif ()
+
+################################################
+# ——— Add Asio as INTERFACE target ———
+################################################
+
+if (LSPCPP_STANDALONE_ASIO)
+    if (USE_EXTERNAL_ASIO)
+        find_package(asio CONFIG)
+        if (NOT asio_FOUND)
+            # fallback to pkg-config
+            message(STATUS "CMake config for asio not found; falling back to pkg-config")
+            find_package(PkgConfig REQUIRED)
+            pkg_check_modules(asio REQUIRED IMPORTED_TARGET asio)
+            list(APPEND LSPCPP_EXTERNAL_LIBS PkgConfig::asio)
+        else ()
+            list(APPEND LSPCPP_EXTERNAL_LIBS asio::asio)
+        endif ()
+    else ()
+        # threading (Asio needs this)
+        find_package(Threads REQUIRED)
+        add_library(asio_lib INTERFACE)
+        # point at the standalone Asio headers
+        set(ASIO_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/asio/asio/include)
+        # attach that include‑dir to our INTERFACE target
+        target_include_directories(asio_lib
+                INTERFACE
+                $<BUILD_INTERFACE:${ASIO_INCLUDE_DIRS}>
+                $<INSTALL_INTERFACE:include>         # if you ever install
+        )
+        # define ASIO_STANDALONE for any consumer
+        target_compile_definitions(asio_lib INTERFACE ASIO_STANDALONE)
+        # link OS threads
+        target_link_libraries(asio_lib INTERFACE Threads::Threads)
+        list(APPEND LSPCPP_EXTERNAL_LIBS asio_lib)
+    endif ()
+endif ()
+
+#################################################
+# ——— Add ixwebsocket ———
+#################################################
+
+if (USE_EXTERNAL_IXWEBSOCKET)
+    find_package(ixwebsocket CONFIG REQUIRED)
+    list(APPEND LSPCPP_EXTERNAL_LIBS ixwebsocket::ixwebsocket)
+else ()
+    add_subdirectory(third_party/ixwebsocket)
+    list(APPEND LSPCPP_EXTERNAL_LIBS ixwebsocket)
+endif ()
+
 ###########################################################
 # boost library
 ###########################################################
-if (CMAKE_GENERATOR MATCHES "Visual Studio.*")
-    INSTALL_NUGET(boost 1.76.0.0)
-    INSTALL_NUGET(boost_chrono-vc141 1.76.0.0)
-    INSTALL_NUGET(boost_date_time-vc141 1.76.0.0)
-    INSTALL_NUGET(boost_filesystem-vc141 1.76.0.0)
-    INSTALL_NUGET(boost_program_options-vc141 1.76.0.0)
-    INSTALL_NUGET(boost_system-vc141 1.76.0.0)
-    INSTALL_NUGET(boost_thread-vc141 1.76.0.0)
-else()
-
-    find_package(Boost CONFIG COMPONENTS date_time  chrono filesystem system thread program_options)
-    if(NOT Boost_FOUND)
-        # Fall back to the built-in FindBoost.cmake
-        find_package(Boost REQUIRED COMPONENTS date_time chrono filesystem system thread program_options)
-        if(NOT Boost_FOUND)
+if (NOT LSPCPP_STANDALONE_ASIO)
+    if (CMAKE_GENERATOR MATCHES "Visual Studio.*")
+        INSTALL_NUGET(boost 1.76.0.0)
+        INSTALL_NUGET(boost_chrono-vc141 1.76.0.0)
+        INSTALL_NUGET(boost_date_time-vc141 1.76.0.0)
+        INSTALL_NUGET(boost_filesystem-vc141 1.76.0.0)
+        INSTALL_NUGET(boost_program_options-vc141 1.76.0.0)
+        INSTALL_NUGET(boost_system-vc141 1.76.0.0)
+        INSTALL_NUGET(boost_thread-vc141 1.76.0.0)
+    else ()
+        find_package(Boost REQUIRED)
+        if (NOT Boost_FOUND)
             if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
                 message(FATAL_ERROR "Can't find boost,lease build boost and install it or install boost with : brew install boost")
-            elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+            elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
                 message(FATAL_ERROR "Can't find boost,please build boost and install it. or install boost with : sudo apt-get install libboost-dev")
-            else()
+            else ()
                 message(FATAL_ERROR "Boost not found. Please ensure boost is available for CMake.")
-            endif()
-        endif()
-    endif()
+            endif ()
+        endif ()
+    endif ()
 endif()
 
 
@@ -324,16 +421,18 @@ endif()
 # lsp
 add_library(lspcpp STATIC)
 set (LSP_INCLUDE_LIST ${LSPCPP_INCLUDE_DIR}
-        ${Boost_INCLUDE_DIRS}
         ${RapidJSON_INCLUDE_DIRS}
+        ${Boost_INCLUDE_DIRS}
+        ${ASIO_INCLUDE_DIRS}
+        ${GHC_FS_INCLUDE_DIRS}
         ${Uri_SOURCE_DIR}/include)
 ### Includes
-if(LSPCPP_INSTALL)
-    target_include_directories(lspcpp PRIVATE ${LSP_INCLUDE_LIST})
-else ()
-    target_include_directories(lspcpp PUBLIC ${LSP_INCLUDE_LIST})
-endif ()
-target_link_libraries(lspcpp PUBLIC network-uri  ${Boost_LIBRARIES})
+target_include_directories(lspcpp PRIVATE ${LSP_INCLUDE_LIST})
+
+target_link_libraries(
+        lspcpp
+        PUBLIC ${LSPCPP_EXTERNAL_LIBS} network-uri
+)
 
 set(LSPCPP_THIRD_PARTY_DIR_LIST
         ${LSPCPP_THIRD_PARTY_DIR}/utfcpp/source
