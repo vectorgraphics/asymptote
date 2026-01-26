@@ -1,8 +1,0 @@
-[submodule "third_party/optional"]
-	path = third_party/optional
-	url = git@github.com:TartanLlama/optional.git
-	shallow=true
-[submodule "third_party/filesystem"]
-	path = third_party/filesystem
-	url = git@github.com:gulrak/filesystem.git
-	shallow=true
