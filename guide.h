@@ -11,6 +11,7 @@
 #include "knot.h"
 #include "flatguide.h"
 #include "settings.h"
+#include "asyffi.h"
 
 namespace camp {
 
@@ -114,7 +115,7 @@ public:
 
 // Tension expressions are evaluated to this class before being cast to a guide,
 // so that they can be cast to other types (such as guide3) instead.
-class tensionSpecifier : public gc {
+class tensionSpecifier : public gc, public IAsyTensionSpecifier {
   double out,in;
   bool atleast;
 
@@ -124,9 +125,9 @@ public:
   tensionSpecifier(double out, double in, bool atleast=false)
     : out(out), in(in), atleast(atleast) {}
 
-  double getOut() const { return out; }
-  double getIn() const { return in; }
-  bool getAtleast() const { return atleast; }
+  [[nodiscard]] double getOut() const override { return out; }
+  [[nodiscard]] double getIn() const override { return in; }
+  [[nodiscard]] bool getAtleast() const override { return atleast; }
 };
 
 
