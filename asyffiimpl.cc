@@ -103,6 +103,11 @@ AsyContextImpl::createTensionSpecifier(double out, double in, bool atleast)
 {
   return new tensionSpecifier(out, in, atleast);
 }
+IAsyCurlSpecifier*
+AsyContextImpl::createCurlSpecifier(double value, uint8_t s)
+{
+  return new curlSpecifier(value, static_cast<side>(s));
+}
 
 
 AsyFfiRegistererImpl::AsyFfiRegistererImpl(string const& dynlibName)

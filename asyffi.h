@@ -217,6 +217,9 @@ public:
    * values.*/
   virtual IAsyTensionSpecifier*
   createTensionSpecifier(double out, double in, bool atleast)= 0;
+
+  /** Creates a new curl specifier */
+  virtual IAsyCurlSpecifier* createCurlSpecifier(double value, uint8_t s)= 0;
 };
 
 // question: will we ever exceed 256 primitive types?

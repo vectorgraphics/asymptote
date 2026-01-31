@@ -67,6 +67,8 @@ public:
   IAsyTensionSpecifier*
   createTensionSpecifier(double out, double in, bool atleast) override;
 
+  IAsyCurlSpecifier* createCurlSpecifier(double value, uint8_t s) override;
+
 protected:
   template<typename TImpl, typename TInterface, typename... TCreationArgs>
   static TInterface* createNewItemGeneric(TCreationArgs&&... args)
