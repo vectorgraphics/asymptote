@@ -275,6 +275,20 @@ enum AsyBaseTypes : uint8_t
   Record,
 };
 
+class IAsyTensionSpecifier
+{
+public:
+  virtual ~IAsyTensionSpecifier()= default;
+
+  [[nodiscard]]
+  virtual double getOut() const= 0;
+
+  [[nodiscard]]
+  virtual double getIn() const= 0;
+
+  [[nodiscard]] virtual bool getAtleast() const= 0;
+};
+
 struct AsyArrayTypeMetadata {
   /** The type of the item that the array is storing. Cannot be ArrayType */
   AsyBaseTypes typeOfItem;
