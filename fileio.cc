@@ -391,7 +391,7 @@ size_t ofile::tell()
     return 0;
 }
 
-bool ofile::enabled()
+bool ofile::enabled() const
 {
   return !standard || settings::verbose > 1 ||
         interact::interactive || !settings::getSetting<bool>("quiet");

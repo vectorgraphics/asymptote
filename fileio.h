@@ -80,7 +80,9 @@ protected:
 public:
 
   bool Standard();
-  bool enabled() {return !standard || settings::verbose > 1 ||
+
+  [[nodiscard]]
+  virtual bool enabled() const {return !standard || settings::verbose > 1 ||
       interact::interactive || !settings::getSetting<bool>("quiet");}
 
   void standardEOF();
@@ -429,7 +431,8 @@ public:
 
   size_t tell();
 
-  bool enabled();
+  [[nodiscard]]
+  bool enabled() const override;
 
   void write(bool val) {*stream << (val ? "true " : "false ");}
   void write(Int val) {*stream << val;}
