@@ -232,7 +232,7 @@ enum AsyBaseTypes : uint8_t
   /** Corresponds to string */
   Str,
 
-  /** Corresponds to inferred type */
+  /** Corresponds to inferred type. Do not use this when specifying arguments */
   Inferred,
 
   /** Corresponds to 2D affine transform type */
