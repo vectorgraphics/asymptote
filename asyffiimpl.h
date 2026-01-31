@@ -69,6 +69,8 @@ public:
 
   IAsyCurlSpecifier* createCurlSpecifier(double value, uint8_t s) override;
 
+  TAsyFfiCycleToken createCycleToken() override;
+
 protected:
   template<typename TImpl, typename TInterface, typename... TCreationArgs>
   static TInterface* createNewItemGeneric(TCreationArgs&&... args)

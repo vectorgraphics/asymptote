@@ -108,6 +108,10 @@ AsyContextImpl::createCurlSpecifier(double value, uint8_t s)
 {
   return new curlSpecifier(value, static_cast<side>(s));
 }
+TAsyFfiCycleToken AsyContextImpl::createCycleToken()
+{
+  return new cycleToken;
+}
 
 
 AsyFfiRegistererImpl::AsyFfiRegistererImpl(string const& dynlibName)

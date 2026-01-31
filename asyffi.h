@@ -85,6 +85,8 @@ public:
   virtual void setValueWithTypeId(void* pointer, void* tyinfo)= 0;
 };
 
+typedef void* TAsyFfiCycleToken;
+
 /** Interface for Asymptote array. */
 class IAsyArray
 {
@@ -220,6 +222,9 @@ public:
 
   /** Creates a new curl specifier */
   virtual IAsyCurlSpecifier* createCurlSpecifier(double value, uint8_t s)= 0;
+
+  /** Creates a new cycle token */
+  virtual TAsyFfiCycleToken createCycleToken()= 0;
 };
 
 // question: will we ever exceed 256 primitive types?
