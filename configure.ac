@@ -327,11 +327,8 @@ AC_SUBST(LSP_ROOT)
 LSPLIBS=
 LSPLIB=
 if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
-  AC_CHECK_LIB([boost_filesystem],[opendir],
-  [AC_CHECK_LIB([boost_thread],[pthread_attr_getdetachstate],
-  [
    LSPLIB=$LSP_ROOT/liblspcpp.a
-   LSPLIBS=$LSPLIBS" -L$LSP_ROOT -L$LSP_ROOT/third_party/uri/src -llspcpp -lnetwork-uri -lboost_filesystem -lboost_thread"
+   LSPLIBS=$LSPLIBS" -L$LSP_ROOT -L$LSP_ROOT/third_party/uri/src -llspcpp -lnetwork-uri"
    LSP_CMAKE_OPTIONS="-DLSPCPP_USE_CPP17=ON "
 
    if test "x$enable_gc" != "xno"; then
@@ -354,9 +351,7 @@ if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
       LSP_CXX_BUILD_FLAGS=$LSP_BUILD_FLAGS"-I$RELATIVE_LSP_VCPKG_ROOT/include -L$RELATIVE_LSP_VCPKG_ROOT/lib "
       LSP_CMAKE_OPTIONS=$LSP_CMAKE_OPTIONS"-DUSE_SYSTEM_RAPIDJSON=True -DCMAKE_PREFIX_PATH=\"$RELATIVE_LSP_VCPKG_ROOT\" "
    fi
-   ENABLE_LSP_MACRO],
-   AC_MSG_NOTICE([*** Could not find libboost_thread: will compile without optional Language Server Protocol. ***]))],
-   AC_MSG_NOTICE([*** Could not find libboost_filesystem: will compile without optional Language Server Protocol. ***]))
+   ENABLE_LSP_MACRO
 fi
 
 AC_ARG_ENABLE(readline,
