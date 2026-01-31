@@ -227,6 +227,17 @@ public:
   virtual TAsyFfiCycleToken createCycleToken()= 0;
 };
 
+
+/**
+ * Context interface for any asy operations involving stack
+ * (e.g., executing code in the current environment, changing variables, etc.)
+ */
+class IAsyStackContext
+{
+public:
+  ~IAsyStackContext()= default;
+};
+
 // question: will we ever exceed 256 primitive types?
 
 /** Types of Asymptote */
@@ -410,7 +421,7 @@ public:
  * registered as void, returnItem will be set as nullptr
  */
 typedef void (*LNK_CALL TAsyForeignFunction)(
-        IAsyContext*, IAsyArgs*, IAsyItem*
+        IAsyContext*, IAsyStackContext*, IAsyArgs*, IAsyItem*
 );
 
 /**

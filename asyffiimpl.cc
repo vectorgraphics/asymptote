@@ -103,15 +103,13 @@ AsyContextImpl::createTensionSpecifier(double out, double in, bool atleast)
 {
   return new tensionSpecifier(out, in, atleast);
 }
-IAsyCurlSpecifier*
-AsyContextImpl::createCurlSpecifier(double value, uint8_t s)
+IAsyCurlSpecifier* AsyContextImpl::createCurlSpecifier(double value, uint8_t s)
 {
   return new curlSpecifier(value, static_cast<side>(s));
 }
-TAsyFfiCycleToken AsyContextImpl::createCycleToken()
-{
-  return new cycleToken;
-}
+TAsyFfiCycleToken AsyContextImpl::createCycleToken() { return new cycleToken; }
+
+AsyStackContextImpl::AsyStackContextImpl(vm::stack* inStack) : stack(inStack) {}
 
 
 AsyFfiRegistererImpl::AsyFfiRegistererImpl(string const& dynlibName)

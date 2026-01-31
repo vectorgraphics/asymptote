@@ -83,6 +83,15 @@ protected:
   }
 };
 
+class AsyStackContextImpl : public IAsyStackContext
+{
+public:
+  AsyStackContextImpl(vm::stack* inStack);
+
+private:
+  vm::stack* stack;
+};
+
 class AsyFfiRegistererImpl : public IAsyFfiRegisterer
 {
 public:

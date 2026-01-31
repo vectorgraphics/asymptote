@@ -56,8 +56,9 @@ void callForeignFunction(vm::stack* stack, TAsyForeignFunction const fn)
   }
 
   auto* asyContext= camp::getAsyContext();
+  camp::AsyStackContextImpl stackCtx(stack);
 
-  fn(asyContext, &args, hasReturn ? &returnItem : nullptr);
+  fn(asyContext, &stackCtx, &args, hasReturn ? &returnItem : nullptr);
 
   if (hasReturn) {
     stack->push(returnItem);
