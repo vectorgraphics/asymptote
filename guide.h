@@ -157,7 +157,7 @@ public:
 
 // Similar to tensionSpecifier, curl expression are evaluated to this type
 // before being cast to guides.
-class curlSpecifier : public gc {
+class curlSpecifier : public gc, public IAsyCurlSpecifier {
   double value;
   side s;
 
@@ -165,8 +165,17 @@ public:
   curlSpecifier(double value, side s)
     : value(value), s(s) {}
 
-  double getValue() const { return value; }
+  [[nodiscard]]
+  double getValue() const override { return value; }
+
+  [[nodiscard]]
   side getSide() const { return s; }
+
+  [[nodiscard]]
+  uint8_t getSideAsInt() const override
+  {
+    return getSide();
+  }
 };
 
 // A guide giving a specifier.
