@@ -152,6 +152,7 @@ public:
 
 class IAsyTuple;
 class IAsyTransform;
+class IAsyTensionSpecifier;
 
 class IAsyContext
 {
@@ -192,8 +193,8 @@ public:
   virtual IAsyArray* createNewArray(size_t const& initialSize)= 0;
 
   virtual IAsyTransform* createNewTransform(
-    double x, double y, double xx, double xy, double yx, double yy
-    )= 0;
+          double x, double y, double xx, double xy, double yx, double yy
+  )= 0;
 
   /** Creates a transform that is the identity function, or in tuple form,
    * (0, 0, 1, 0, 0, 1). Note that this transform can have its value changed by
@@ -204,6 +205,17 @@ public:
   virtual IAsyTuple* createPair(double x, double y)= 0;
   virtual IAsyTuple* createTriple(double x, double y, double z)= 0;
 
+  // tension specifier functions
+  // TODO: Ask John about what exactly a tension specifier is
+
+  /** Creates a new tension specifier with in=out=val and atleast value. */
+  virtual IAsyTensionSpecifier*
+  createTensionSpecifierWithSameVal(double val, bool atleast)= 0;
+
+  /** Creates a new tension specifier with specified out, in, and atleast
+   * values.*/
+  virtual IAsyTensionSpecifier*
+  createTensionSpecifier(double out, double in, bool atleast)= 0;
 };
 
 // question: will we ever exceed 256 primitive types?
@@ -286,7 +298,8 @@ public:
   [[nodiscard]]
   virtual double getIn() const= 0;
 
-  [[nodiscard]] virtual bool getAtleast() const= 0;
+  [[nodiscard]]
+  virtual bool getAtleast() const= 0;
 };
 
 struct AsyArrayTypeMetadata {

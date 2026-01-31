@@ -6,8 +6,10 @@
 #include "transform.h"
 #include "util.h"
 
-#include <array.h>
 #include "triple.h"
+#include <array.h>
+
+#include <guide.h>
 
 namespace camp
 {
@@ -89,6 +91,17 @@ IAsyTuple* AsyContextImpl::createPair(double x, double y)
 IAsyTuple* AsyContextImpl::createTriple(double x, double y, double z)
 {
   return createNewItemGeneric<triple, IAsyTuple>(x, y, z);
+}
+
+IAsyTensionSpecifier*
+AsyContextImpl::createTensionSpecifierWithSameVal(double val, bool atleast)
+{
+  return new tensionSpecifier(val, atleast);
+}
+IAsyTensionSpecifier*
+AsyContextImpl::createTensionSpecifier(double out, double in, bool atleast)
+{
+  return new tensionSpecifier(out, in, atleast);
 }
 
 

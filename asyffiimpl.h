@@ -62,6 +62,11 @@ public:
   IAsyTuple* createPair(double x, double y) override;
   IAsyTuple* createTriple(double x, double y, double z) override;
 
+  IAsyTensionSpecifier*
+  createTensionSpecifierWithSameVal(double val, bool atleast) override;
+  IAsyTensionSpecifier*
+  createTensionSpecifier(double out, double in, bool atleast) override;
+
 protected:
   template<typename TImpl, typename TInterface, typename... TCreationArgs>
   static TInterface* createNewItemGeneric(TCreationArgs&&... args)
