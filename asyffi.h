@@ -153,6 +153,7 @@ public:
 class IAsyTuple;
 class IAsyTransform;
 class IAsyTensionSpecifier;
+class IAsyCurlSpecifier;
 
 class IAsyContext
 {
@@ -300,6 +301,22 @@ public:
 
   [[nodiscard]]
   virtual bool getAtleast() const= 0;
+};
+
+constexpr uint8_t ASY_SIDE_OUT= 0;
+constexpr uint8_t ASY_SIDE_IN= 1;
+constexpr uint8_t ASY_SIDE_END= 2;
+constexpr uint8_t ASY_SIDE_JOIN= 3;
+
+class IAsyCurlSpecifier
+{
+public:
+  virtual ~IAsyCurlSpecifier()= default;
+
+  [[nodiscard]]
+  virtual double getValue() const= 0;
+  [[nodiscard]]
+  virtual uint8_t getSideAsInt() const= 0;
 };
 
 struct AsyArrayTypeMetadata {
