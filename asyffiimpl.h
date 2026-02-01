@@ -88,6 +88,19 @@ class AsyStackContextImpl : public IAsyStackContext
 public:
   AsyStackContextImpl(vm::stack* inStack);
 
+  void callVoid(
+          IAsyCallable* callable, size_t numArgs, IAsyItem const** ptrArgs
+  ) override;
+
+  IAsyItem* callReturning(
+          IAsyCallable* callable, size_t numArgs, IAsyItem const** ptrArgs
+  ) override;
+
+  void callReturningToExistingItem(
+          IAsyCallable* callable, size_t numArgs, const IAsyItem** ptrArgs,
+          IAsyItem* returnItem
+  ) override;
+
 private:
   vm::stack* stack;
 };
@@ -123,7 +136,8 @@ ty* asyTypesEnumToTy(AsyTypeInfo const& asyType);
 ty* processArrayTypesInfoToTy(AsyTypeInfo const& baseType);
 
 
-types::function* createFunctionTypeFromMetadata(AsyFunctionTypePtrRetMetadata const& fnTypeInfo);
+types::function*
+createFunctionTypeFromMetadata(AsyFunctionTypePtrRetMetadata const& fnTypeInfo);
 types::formal asyArgInfoToFormal(AsyFnArgMetadata const& argInfo);
 
 }// namespace camp

@@ -241,7 +241,51 @@ public:
 class IAsyStackContext
 {
 public:
-  ~IAsyStackContext()= default;
+  virtual ~IAsyStackContext()= default;
+
+  /**
+   * Calls an asymptote function. This does not pop any value out of stack
+   * after call
+   *
+   * @param callable Function to call
+   * @param numArgs number of arguments
+   * @param ptrArgs pointer to an array of IAsyItem pointers
+   */
+  virtual void
+  callVoid(IAsyCallable* callable, size_t numArgs, IAsyItem const** ptrArgs)= 0;
+
+  /**
+   * Calls an asymptote function and pops & returns the top-most item in the
+   * stack
+   *
+   * @param callable Function to call
+   * @param numArgs number of arguments
+   * @param ptrArgs pointer to an array of IAsyItem pointers
+   *
+   * @return Pointer to the popped item of the stack that is returned from the
+   * function.
+   *
+   * @remark Running this function on a void callable has undefined behaviour.
+   */
+  virtual IAsyItem* callReturning(
+          IAsyCallable* callable, size_t numArgs, IAsyItem const** ptrArgs
+  )= 0;
+
+  /**
+   * Calls an asymptote function and pops & returns the top-most item in the
+   * stack in an existing item
+   *
+   * @param callable Function to call
+   * @param numArgs number of arguments
+   * @param ptrArgs pointer to an array of IAsyItem pointers
+   * @param returnItem pointer to an item to store the returned object
+   *
+   * @remark Running this function on a void callable has undefined behaviour.
+   */
+  virtual void callReturningToExistingItem(
+          IAsyCallable* callable, size_t numArgs, IAsyItem const** ptrArgs,
+          IAsyItem* returnItem
+  )= 0;
 };
 
 // question: will we ever exceed 256 primitive types?

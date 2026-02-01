@@ -8,8 +8,10 @@
 
 #include "triple.h"
 #include <array.h>
+#include <callable.h>
 
 #include <guide.h>
+#include <stack.h>
 
 namespace camp
 {
@@ -110,6 +112,49 @@ IAsyCurlSpecifier* AsyContextImpl::createCurlSpecifier(double value, uint8_t s)
 TAsyFfiCycleToken AsyContextImpl::createCycleToken() { return new cycleToken; }
 
 AsyStackContextImpl::AsyStackContextImpl(vm::stack* inStack) : stack(inStack) {}
+void AsyStackContextImpl::callVoid(
+        IAsyCallable* callable, size_t const numArgs, IAsyItem const** ptrArgs
+)
+{
+  for (size_t i= 0; i < numArgs; ++i) {
+    auto* ptrArg= dynamic_cast<vm::item const*>(ptrArgs[i]);
+    if (!ptrArg) {
+      reportError("Invalid item supplied as an argument");
+      return;
+    }
+    stack->push(*ptrArg);
+  }
+
+  auto* fn= dynamic_cast<vm::callable*>(callable);
+  if (!fn) {
+    reportError("Invalid function supplied");
+    return;
+  }
+
+  fn->call(stack);
+}
+
+IAsyItem* AsyStackContextImpl::callReturning(
+        IAsyCallable* callable, size_t const numArgs, IAsyItem const** ptrArgs
+)
+{
+  callVoid(callable, numArgs, ptrArgs);
+  return new vm::item(stack->pop());
+}
+void AsyStackContextImpl::callReturningToExistingItem(
+        IAsyCallable* callable, size_t numArgs, const IAsyItem** ptrArgs,
+        IAsyItem* returnItem
+)
+{
+  callVoid(callable, numArgs, ptrArgs);
+
+  auto* retItemCasted= dynamic_cast<vm::item*>(returnItem);
+  if (!retItemCasted) {
+    reportError("Invalid return object specified");
+    return;
+  }
+  *retItemCasted= stack->pop();
+}
 
 
 AsyFfiRegistererImpl::AsyFfiRegistererImpl(string const& dynlibName)
