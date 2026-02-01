@@ -87,6 +87,12 @@ public:
 
 typedef void* TAsyFfiCycleToken;
 
+class IAsyCallable
+{
+public:
+  virtual ~IAsyCallable()= default;
+};
+
 /** Interface for Asymptote array. */
 class IAsyArray
 {

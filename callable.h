@@ -17,10 +17,10 @@ namespace vm {
 class stack;
 typedef void (*bltin)(stack *s);
 
-struct callable : public gc
+struct callable : public gc, public IAsyCallable
 {
   virtual void call(stack *) = 0;
-  virtual ~callable();
+  ~callable() override;
   virtual bool compare(callable*) { return false; }
 
   // For debugging:
