@@ -32,7 +32,7 @@ public:
 
   virtual ~drawVerbatim() {}
 
-  void bounds(bbox& b, iopipestream& tex, boxvector&, bboxlist&) {
+  void bounds(bbox& b, iopipestream& tex, boxvector&, bboxlist&) override {
     if(havebounds) return;
     havebounds=true;
     if(language == TeX)
@@ -43,16 +43,16 @@ public:
     }
   }
 
-  bool islabel() {
+  bool islabel() override {
     return language == TeX;
   }
 
-  bool draw(psfile *out) {
+  bool draw(psfile *out) override {
     if(language == PostScript) out->verbatimline(text);
     return true;
   }
 
-  bool write(texfile *out, const bbox&) {
+  bool write(texfile *out, const bbox&) override {
     if(language == TeX) out->verbatimline(stripblanklines(text));
     return true;
   }
