@@ -159,10 +159,12 @@ Include `tinyexr.h` with `TINYEXR_IMPLEMENTATION` flag (do this only for **one**
 * `TINYEXR_USE_MINIZ` Use miniz (default = 1). Please include `zlib.h` header before `tinyexr.h` if you disable miniz support(e.g. use system's zlib).
 * `TINYEXR_USE_STB_ZLIB` Use zlib from `stb_image[_write].h` instead of miniz or the system's zlib (default = 0).
 * `TINYEXR_USE_PIZ` Enable PIZ compression support (default = 1)
-* `TINYEXR_USE_ZFP` Enable ZFP compression supoort (TinyEXR extension, default = 0)
-* `TINYEXR_USE_THREAD` Enable threaded loading using C++11 thread (Requires C++11 compiler, default = 0)
+* `TINYEXR_USE_ZFP` Enable ZFP compression support (TinyEXR extension, default = 0)
+* `TINYEXR_USE_THREAD` Enable threaded loading/storing using C++11 thread (Requires C++11 compiler, default = 0)
+  * Use `TINYEXR_MAX_THREADS` over 0 to use MIN(TINYEXR_MAX_THREADS,hardware_concurrency()) in stead off hardware_concurrency(). (default = 0)
 * `TINYEXR_USE_OPENMP` Enable OpenMP threading support (default = 1 if `_OPENMP` is defined)
   * Use `TINYEXR_USE_OPENMP=0` to force disable OpenMP code path even if OpenMP is available/enabled in the compiler.
+* `TINYEXR_USE_COMPILER_FP16` Enable use of compiler provided FP16<>FP32 conversions when available (default = 0)
 
 ### Quickly reading RGB(A) EXR file.
 
@@ -416,7 +418,7 @@ Reading deep image EXR file.
 See `example/deepview` for actual usage.
 
 ```cpp
-  const char* input = "deepimage.exr";
+  const char* input = "deepscanline.exr";
   const char* err = NULL; // or nullptr
   DeepImage deepImage;
 
@@ -443,7 +445,7 @@ See `example/deepview` for actual usage.
 
 ### deepview
 
-`examples/deepview` is simple deep image viewer in OpenGL.
+`examples/deepview` is simple deep image viewer in OpenGL. It can be tested with `deepscanline.exr`.
 
 ![DeepViewExample](https://github.com/syoyo/tinyexr/blob/release/examples/deepview/deepview_screencast.gif?raw=true)
 
