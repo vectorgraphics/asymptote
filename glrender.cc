@@ -1803,9 +1803,9 @@ projection camera(bool user)
         double R2=Rotate[j4+2];
         double R3=Rotate[j4+3];
         double T4ij=T[i4+j];
-        sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
+        sumCamera += T4ij*(R3-cx*R0-cy*R1);
         sumUp += Tup[i4+j]*R1;
-        sumTarget += T4ij*(R3-cx*R0-cy*R1);
+        sumTarget += T4ij*(R3-cx*R0-cy*R1+cz*R2);
       }
       vCamera[i]=sumCamera;
       vUp[i]=sumUp;

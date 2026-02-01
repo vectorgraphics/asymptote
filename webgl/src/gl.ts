@@ -1,6 +1,6 @@
 // AsyGL library core
 
-import { mat3, mat4, ReadonlyVec3 } from "gl-matrix";
+import { vec3, vec4, mat3, mat4, ReadonlyVec3, ReadonlyVec4 } from "gl-matrix";
 import fragment from './shaders/fragment.glsl';
 import vertex from './shaders/vertex.glsl';
 
@@ -103,8 +103,9 @@ let normMat=mat3.create();
 let viewMat3=mat3.create(); // 3x3 view matrix
 let cjMatInv=mat4.create();
 let Temp=mat4.create();
+let T;
+let Tinv;
 
-let zmin,zmax;
 let center={x:0,y:0,z:0};
 let size2;
 let ArcballFactor;
@@ -600,7 +601,10 @@ abstract class Geometry {
 
   c: number[];
 
-  protected constructor() { }
+  protected constructor() {
+
+
+   }
 
   // Is 2D bounding box formed by projecting 3d points in vector v offscreen?
   offscreen(v) {
@@ -653,15 +657,18 @@ abstract class Geometry {
   abstract notRendered();
   abstract append();
   abstract process(P: any[]);
-
+  abstract Bounds(p : any[], number);
 
   protected MaterialIndex: number;
   protected CenterIndex: number;
   protected Min: any[];
   protected Max: any[];
+  protected haveBounds: boolean;
+  protected epsilon: number;
   protected Epsilon: number;
   protected res2: number;
   protected controlpoints: any[];
+  protected transform: Function;
 
   setMaterial(data,draw) {
     if(data.materialTable[this.MaterialIndex] == null) {
@@ -678,6 +685,20 @@ abstract class Geometry {
   render() {
     this.setMaterialIndex();
 
+    let p;
+    if(this.transform) {
+      p=this.transform(this.controlpoints);
+      let norm2=L2norm2(p);
+      this.epsilon=norm2*Number.EPSILON;
+      if(this.haveBounds)
+        [this.Min,this.Max]=this.transform([this.Min,this.Max]);
+      else {
+        let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
+        [this.Min,this.Max]=this.Bounds(p,fuzz);
+      }
+    } else
+      p=this.controlpoints;
+
     // First check if re-rendering is required
     let v;
     if(this.CenterIndex == 0)
@@ -693,7 +714,6 @@ abstract class Geometry {
       return;
     }
 
-    let p=this.controlpoints;
     let P;
 
     if(this.CenterIndex == 0) {
@@ -732,38 +752,60 @@ function boundPoints(p,m)
   return b;
 }
 
+function L2norm2(p) {
+  let p0=p[0];
+  let norm2=0;
+  let n=p.length;
+  for(let i=1; i < n; ++i)
+    norm2=Math.max(norm2,abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
+  return norm2;
+}
+
 class BezierPatch extends Geometry {
 
   private readonly transparent: boolean;
-  private readonly epsilon: number;
   private readonly vertex: (v: any, n: any) => number;
+  protected color: any[];
 
   /**
    * Constructor for a Bezier patch or a Bezier triangle
    * @param {*} controlpoints array of control points
    * @param {*} CenterIndex center index of billboard labels (or 0)
    * @param {*} MaterialIndex material index (>= 0)
-   * @param {*} colors array of RGBA color arrays
+   * @param {*} Color array of RGBA color arrays
    */
-  constructor(protected controlpoints,protected CenterIndex,protected MaterialIndex,private color = null,protected Min = null,protected Max = null) {
+  constructor(protected controlpoints,
+              protected CenterIndex, protected MaterialIndex,
+              private Color = null,
+              protected Min = null, protected Max = null,
+              protected geometryTransform = null,
+              protected colorTransform = null) {
     super();
     const n=controlpoints.length;
-    if(color) {
-      let sum=color[0][3]+color[1][3]+color[2][3];
+    if(Color) {
+      let sum=Color[0][3]+Color[1][3]+Color[2][3];
       this.transparent=(n == 16 || n == 4) ?
-                        sum+color[3][3] < 4 : sum < 3;
+                        sum+Color[3][3] < 4 : sum < 3;
     } else
       this.transparent=Materials[MaterialIndex].diffuse[3] < 1;
+
+    if(Color)
+      this.color=[...Color];
 
     this.vertex=this.transparent ? this.data.Vertex.bind(this.data) :
       this.data.vertex.bind(this.data);
 
-    let norm2=this.L2norm2(this.controlpoints);
-    let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
-    this.epsilon=norm2*Number.EPSILON;
+    this.haveBounds=Min && Max;
+    this.Min=Min;
+    this.Max=Max;
 
-    this.Min=this.Min ?? this.Bounds(this.controlpoints,Math.min,fuzz);
-    this.Max=this.Max ?? this.Bounds(this.controlpoints,Math.max,fuzz);
+    this.transform=geometryTransform;
+    if(!this.haveBounds && geometryTransform == null) {
+      let norm2=L2norm2(controlpoints);
+      let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
+      this.epsilon=norm2*Number.EPSILON;
+      [this.Min,this.Max]=this.Bounds(controlpoints,fuzz);
+    }
   }
 
   setMaterialIndex() {
@@ -874,7 +916,7 @@ class BezierPatch extends Geometry {
     return this.boundtri(c,m,b,fuzz,depth);
   }
 
-  Bounds(p,m,fuzz) {
+  Bound(p,m,fuzz) {
     let b=Array(3);
     let n=p.length;
     let x=Array(n);
@@ -891,16 +933,11 @@ class BezierPatch extends Geometry {
     return [b[0],b[1],b[2]];
   }
 
-// Render a Bezier patch via subdivision.
-  L2norm2(p) {
-    let p0=p[0];
-    let norm2=0;
-    let n=p.length;
-    for(let i=1; i < n; ++i)
-      norm2=Math.max(norm2,abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
-    return norm2;
+  Bounds(p,fuzz) {
+    return [this.Bound(p,Math.min,fuzz),this.Bound(p,Math.max,fuzz)];
   }
 
+// Render a Bezier patch via subdivision.
   processTriangle(p) {
     let p0=p[0];
     let p1=p[1];
@@ -996,6 +1033,9 @@ class BezierPatch extends Geometry {
     if(p.length == 10) return this.process3(p);
     if(p.length == 3) return this.processTriangle(p);
     if(p.length == 4) return this.processQuad(p);
+
+    if(this.color && this.colorTransform)
+      this.color=this.colorTransform(this.Color,p);
 
     if(wireframe == 1) {
       this.curve(p,0,4,8,12);
@@ -2027,23 +2067,23 @@ class quadraticroots {
 }
 
 class BezierCurve extends Geometry {
-  constructor(controlpoints,CenterIndex,MaterialIndex,Min = null,Max = null) {
+  constructor(controlpoints,CenterIndex,MaterialIndex,Min = null,Max = null,
+              transform = null) {
     super();
     this.controlpoints=controlpoints;
     this.CenterIndex=CenterIndex;
     this.MaterialIndex=MaterialIndex;
 
-    if(Min && Max) {
-      this.Min=Min;
-      this.Max=Max;
-    } else {
-      let b=this.Bounds(this.controlpoints);
-      this.Min=b[0];
-      this.Max=b[1];
-    }
+    this.haveBounds=Min && Max;
+    this.Min=Min;
+    this.Max=Max;
+
+    this.transform=transform;
+    if(!this.haveBounds && transform == null)
+      [this.Min,this.Max]=this.Bounds(controlpoints,0);
   }
 
-  Bounds(p) {
+  Bounds(p,fuzz) {
     let b=Array(3);
     let B=Array(3);
     let n=p.length;
@@ -2162,19 +2202,27 @@ class BezierCurve extends Geometry {
 }
 
 class Pixel extends Geometry {
-  constructor(private controlpoint,private width,protected MaterialIndex) {
+  constructor(private controlpoint,private width,protected MaterialIndex,
+              transform = null) {
     super();
     this.CenterIndex=0;
+    this.haveBounds=true;
     this.Min=controlpoint;
     this.Max=controlpoint;
+    this.transform=transform;
+    this.controlpoints=[controlpoint];
   }
 
   setMaterialIndex() {
     this.setMaterial(material0Data,drawMaterial0);
   }
 
+  Bounds(p,fuzz) {
+    return [this.Min,this.Max];
+  }
+
   process(p) {
-    this.data.indices.push(this.data.vertex0(this.controlpoint,this.width));
+    this.data.indices.push(this.data.vertex0(p[0],this.width));
     this.append();
   }
 
@@ -2193,7 +2241,8 @@ class Triangles extends Geometry {
   private readonly Indices: any;
   private transparent: boolean = false;
 
-  constructor(protected CenterIndex,protected MaterialIndex) {
+  constructor(protected CenterIndex,protected MaterialIndex,
+              transform = null) {
     super();
     const wany = window as any;
     this.controlpoints=wany.Positions;
@@ -2201,12 +2250,9 @@ class Triangles extends Geometry {
     this.Colors=wany.Colors;
     this.Indices=wany.Indices;
     this.transparent=Materials[this.MaterialIndex].diffuse[3] < 1;
-
-    this.Min=this.Bounds(this.controlpoints,Math.min);
-    this.Max=this.Bounds(this.controlpoints,Math.max);
   }
 
-  Bounds(p,m) {
+  Bound(p,m) {
     let b=Array(3);
     let n=p.length;
     let x=Array(n);
@@ -2218,6 +2264,10 @@ class Triangles extends Geometry {
     return [b[0],b[1],b[2]];
   }
 
+  Bounds(p,fuzz) {
+    return [this.Bounds(p,Math.min),this.Bounds(p,Math.max)];
+  }
+
   setMaterialIndex() {
     if(this.transparent)
       this.setMaterial(transparentData,drawTransparent);
@@ -2226,7 +2276,6 @@ class Triangles extends Geometry {
   }
 
   process(p) {
-
     this.data.vertices.length=6*p.length;
     // Override materialIndex to encode color vs material
       materialIndex=this.Colors.length > 0 ?
@@ -2883,9 +2932,9 @@ function Camera()
       let R2=rotMat[j4+2];
       let R3=rotMat[j4+3];
       let T4ij=W.Transform[i4+j];
-      sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
+      sumCamera += T4ij*(R3-cx*R0-cy*R1);
       sumUp += T4ij*R1;
-      sumTarget += T4ij*(R3-cx*R0-cy*R1);
+      sumTarget += T4ij*(R3-cx*R0-cy*R1+cz*R2);
     }
     vCamera[i]=sumCamera;
     vUp[i]=sumUp;
@@ -2979,8 +3028,29 @@ function handleKey(event)
   case 'c':
     showCamera();
     break;
+  case 'b':
+    if (activeSlider) {
+      deleteSlider();
+    } else {
+      initSlider();
+    }
+    break
   default:
     break;
+  }
+  if (keycode=="ArrowRight"&&playbackDirection!="forward") {
+    playbackDirection="forward";
+    if(position >= startTime+maxAutoplayDuration && !activeAnimation) {
+      activeAnimation=true;
+      requestAnimationFrame(animate)
+    }
+
+  } else if (keycode=="ArrowLeft"&&playbackDirection!="backward") {
+    playbackDirection="backward";
+    if(position >= startTime+maxAutoplayDuration && !activeAnimation) {
+      activeAnimation=true;
+      requestAnimationFrame(animate)
+    }
   }
 
   if(axis !== null) {
@@ -2989,6 +3059,16 @@ function handleKey(event)
     drawScene();
   }
 }
+
+function stopAnimation(event) {
+  let keycode=event.key;
+  if ((keycode=="ArrowRight"&&playbackDirection=="forward") ||
+    (keycode=="ArrowLeft"&&playbackDirection=="backward")) {
+      if(position >= startTime+maxAutoplayDuration)
+        activeAnimation=false;
+      playbackDirection=null;
+    }}
+
 
 function setZoom()
 {
@@ -3198,6 +3278,8 @@ function drawScene()
   gl.clearColor(W.background[0],W.background[1],W.background[2],W.background[3]);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+  now=performance.now();
+
   for(const p of P)
     p.render();
 
@@ -3210,6 +3292,9 @@ function drawScene()
 
   if(wireframe == 0) remesh=false;
 }
+
+
+
 
 function setDimensions(width,height,X,Y)
 {
@@ -3413,6 +3498,185 @@ function Tcorners(T,m,M)
   return [minbound(v),maxbound(v)];
 }
 
+function toUser(controlpoints:vec3[]) {
+  return controlpoints.map(function(v:vec3) {
+    let V: vec4=[v[0],v[1],v[2],1];
+    let U: vec4=vec4.create();
+    vec4.transformMat4(U,V,T);
+    let u: vec3=[U[0],U[1],U[2]];
+    return u;
+  });
+}
+
+function transformCP(controlpoints:vec3[], t:number,
+                     f : ((v:vec3, t:number) => vec3)) {
+  return controlpoints.map(function(v:vec3) {
+    return f(v,t) as [number,number,number];
+  });
+}
+
+function fromUser(controlpoints:vec3[]) {
+  return controlpoints.map(function(v:vec3) {
+    let V: vec4=[v[0],v[1],v[2],1];
+    let U: vec4=vec4.create();
+    vec4.transformMat4(U,V,Tinv);
+    let u: vec3=[U[0],U[1],U[2]];
+    return u;
+  });
+}
+
+function transformColor(nodes:any[], t:number,
+                        f : ((v:vec3, c:vec4, t:number) => vec4)) {
+    return nodes.map(function(n:any) {
+        return f(n[0],n[1],t) as vec4;
+  });
+}
+
+let startTime:number=null;
+let maxAutoplayDuration:number=0;
+let maxSceneDuration:number=0;
+
+type Transformation = {
+  geometryTransform?: (v:vec3, t:number) => vec3;
+  colorTransform?: (v:vec3, c:vec4, t:number) => vec4;
+  durationInv: number;
+  autoplay?:boolean;
+}
+
+let transformStack: Transformation[] = [];
+let now:number;
+
+function animatedGeometry(){
+  if(transformStack.length == 0) return;
+  let stack=transformStack.filter(f => f.geometryTransform != null);
+
+  return function(controlpoints: vec3[]): vec3[] {
+    let cp=toUser(controlpoints);
+    const activeTime=startTime+playbackTime;
+    for(const {geometryTransform,durationInv,autoplay} of stack) {
+      const time=!autoplay?activeTime:now;
+      const t=Math.min((time-startTime)*durationInv,1.0);
+      cp=transformCP(cp,t,geometryTransform);
+    }
+    return fromUser(cp)
+  }
+}
+
+function animatedColor() {
+  if(transformStack.length == 0) return;
+  let stack=transformStack.filter(f => f.colorTransform != null);
+
+  return function(color,p) {
+    let P=toUser([p[0],p[12],p[15],p[3]]);
+    const activeTime=startTime+playbackTime;
+    for(const {colorTransform,durationInv,autoplay} of stack) {
+      const time=!autoplay?activeTime:now;
+      const t=Math.min((time-startTime)*durationInv,1.0);
+      color=transformColor(
+            [[P[0],color[0]],
+              [P[1],color[1]],
+              [P[2],color[2]],
+              [P[3],color[3]]],t,colorTransform);
+    }
+    return color;
+  }
+}
+
+let playbackDirection: "forward"|"backward"|null=null;
+let playbackTime:number=0;
+let playbackSpeed:number=1;
+let lastTimestamp:number|null=null;
+let autoplayAnimation=false;
+let activeAnimation=false;
+let position;
+let maxSceneDurationInv;
+
+function animate(timestamp:number) {
+  position=timestamp;
+  if(!lastTimestamp)
+    lastTimestamp=timestamp;
+
+  const t=timestamp-lastTimestamp;
+  lastTimestamp=timestamp;
+
+  if(playbackDirection=="forward") {
+    playbackTime+=t*playbackSpeed;
+  } else if(playbackDirection=="backward") {
+    playbackTime=Math.max(0, playbackTime-t*playbackSpeed);
+  }
+  if(slider)
+    slider.value=((playbackTime)*maxSceneDurationInv).toString();
+
+
+  remesh=true;
+
+  drawScene();
+
+  const continued=autoplayAnimation && !activeAnimation ?
+    timestamp < startTime+maxAutoplayDuration : activeAnimation;
+  if (continued) {
+    requestAnimationFrame(animate);
+  } else {
+    lastTimestamp=null;
+  }
+}
+
+let slider:HTMLInputElement;
+
+let activeSlider=false;
+
+function initSlider() {
+  activeSlider=true;
+  const p=document;
+  slider=p.createElement("input");
+  maxSceneDurationInv=1/maxSceneDuration;
+
+  slider.type="range";
+  slider.min="0";
+  slider.max="1";
+  slider.step="0.001";
+  slider.value=(playbackTime*maxSceneDurationInv).toString();
+
+  slider.className="slider";
+  slider.style.position="fixed"
+  slider.onkeydown=() =>  { return false; }
+
+  // We should let user be able to inject CSS code for everything,
+  // not just the slider.
+  // style = p.createElement("style");
+  // style.textContent = `
+  //     .slider {
+  //       width: 50%;
+  //       height: 30px;
+  //       left: 50%;
+  //       transform: translateX(-50%);
+  //       opacity: 0.7;
+  //       transition: opacity .2s;
+  //     }
+  //   `;
+  // document.head.appendChild(style);
+
+  slider.oninput=() => {
+    const value=parseFloat(slider.value);
+    playbackTime=(startTime+maxSceneDuration)*value;
+    if(position >= startTime+maxAutoplayDuration && !activeAnimation) {
+      activeAnimation=true;
+      requestAnimationFrame(animate)
+    }
+  }
+  slider.onchange=() => {
+    activeAnimation=false;
+  }
+
+  p.body.prepend(slider);
+
+}
+
+function deleteSlider() {
+  slider.remove();
+  activeSlider=false;
+}
+
 function light(direction,color)
 {
   Lights.push(new Light(direction,color));
@@ -3426,7 +3690,8 @@ function material(diffuse,emissive,specular,shininess,metallic,fresnel0)
 
 function patch(controlpoints,CenterIndex,MaterialIndex,color)
 {
-  P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color));
+  P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color,
+                         null,null,animatedGeometry(),animatedColor()));
 }
 
 function curve(controlpoints,CenterIndex,MaterialIndex)
@@ -3857,8 +4122,54 @@ async function initIBLOnceEXRLoaderReady()
   await Promise.all(promises);
 }
 
+function initTransform()
+{
+  T=mat4.create();
+  mat4.transpose(T,document.asy.Transform);
+  Tinv=mat4.create();
+  mat4.invert(Tinv,T);
+}
+
+function beginTransform(geometry,color,duration,autoplay)
+{
+  const msDuration=duration*1000;
+  if(msDuration > maxAutoplayDuration && autoplay)
+    maxAutoplayDuration=msDuration;
+  if(duration > maxSceneDuration)
+    maxSceneDuration=msDuration;
+
+  if(autoplay)
+    autoplayAnimation=true;
+  else
+    activeAnimation=true;
+
+  transformStack.push({
+      geometryTransform: geometry,
+      colorTransform: color,
+      durationInv: msDuration > 0 ? 1/msDuration : 0,
+      autoplay:autoplay,
+    }
+  )
+}
+
+function endTransform()
+{
+  transformStack.pop();
+}
+
+function interp(a,b,t)
+{
+  return [
+    a[0]*(1-t)+b[0]*t,
+    a[1]*(1-t)+b[1]*t,
+    a[2]*(1-t)+b[2]*t,
+    a[3]*(1-t)+b[3]*t,
+  ];
+}
+
 function webGLStart()
 {
+
   W.canvas=document.getElementById("Asymptote");
   W.embedded=window.top.document != document;
 
@@ -3882,6 +4193,7 @@ function webGLStart()
   W.canvas.addEventListener("touchleave",handleMouseUpOrTouchEnd,false);
   W.canvas.addEventListener("touchmove",handleTouchMove,false);
   document.addEventListener("keydown",handleKey,false);
+  document.addEventListener("keyup", stopAnimation, false);
 
   W.canvasWidth0=W.canvasWidth;
   W.canvasHeight0=W.canvasHeight;
@@ -3901,19 +4213,25 @@ function webGLStart()
     }
 
   home();
+  startTime=performance.now();
+  requestAnimationFrame(animate);
 }
 globalThis.window.webGLStart=webGLStart;
-globalThis.window.light=light
-globalThis.window.material= material
-globalThis.window.patch=patch
-globalThis.window.curve=curve
-globalThis.window.pixel=pixel
-globalThis.window.triangles=triangles
-globalThis.window.sphere=sphere
-globalThis.window.disk=disk
-globalThis.window.cylinder=cylinder
-globalThis.window.tube=tube
-globalThis.window.Positions=Positions
-globalThis.window.Normals=Normals
-globalThis.window.Colors=Colors
-globalThis.window.Indices=Indices
+globalThis.window.light=light;
+globalThis.window.material= material;
+globalThis.window.patch=patch;
+globalThis.window.curve=curve;
+globalThis.window.pixel=pixel;
+globalThis.window.triangles=triangles;
+globalThis.window.sphere=sphere;
+globalThis.window.disk=disk;
+globalThis.window.cylinder=cylinder;
+globalThis.window.tube=tube;
+globalThis.window.Positions=Positions;
+globalThis.window.Normals=Normals;
+globalThis.window.Colors=Colors;
+globalThis.window.Indices=Indices;
+globalThis.window.initTransform=initTransform;
+globalThis.window.beginTransform=beginTransform;
+globalThis.window.endTransform=endTransform;
+globalThis.window.interp=interp;
