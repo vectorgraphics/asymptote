@@ -45,7 +45,6 @@ endif()
 
 if (ENABLE_LSP)
     message(STATUS "LSP Enabled.")
-    # disable New Boost version warning
     set(USE_SYSTEM_RAPIDJSON ON CACHE INTERNAL "Use system rapidjson")
     set(USE_EXTERNAL_IXWEBSOCKET ON CACHE INTERNAL "Use (vcpkg) ixwebsocket")
     set(USE_EXTERNAL_ASIO ON CACHE INTERNAL "Use (vcpkg) asio")

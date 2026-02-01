@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = git@github.com:vectorgraphics/LspCpp
-	branch = dev/jamievlin/fix-asio-lib
-	commit = 4f458e9e9842266251da288b2be3a2f3fa19f7ce
-	parent = 17487a50831592027921238c15f1352d25f65d25
+	branch = master
+	commit = 492361a665cae2332d15e5c6b06e75965e66cade
+	parent = 96af06cc192b29c19dc3a4827c444e2c783f6800
 	method = merge
 	cmdver = 0.4.9

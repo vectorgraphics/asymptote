@@ -975,7 +975,7 @@ void addOption(option *o) {
 void version()
 {
   cerr << PACKAGE_NAME << " version " << REVISION
-       << " [(C) 2004 Andy Hammerlindl, John C. Bowman, Tom Prince]"
+       << " [(C) 2004-26 Andy Hammerlindl, John C. Bowman, Tom Prince]"
        << " <" << ASY_COMPILER_INFO << ">"
        << endl;
 }
