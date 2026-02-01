@@ -44,10 +44,10 @@ if [ $TRY_USE_CLANG_FORMAT -ne 0 ]; then
   fi
 fi
 
+npm run "$NPM_SCRIPT_TARGET" --prefix webgl
+
 ASYGL_OUTPUT_FROM_WEBPACK=webgl/dist/gl.js
 test -f "$ASYGL_OUTPUT_FROM_WEBPACK" || die "Missing $ASYGL_OUTPUT_FROM_WEBPACK"
-
-npm run "$NPM_SCRIPT_TARGET" --prefix webgl
 
 ASYGL_OUTPUT=base/webgl/asygl.js
 {
