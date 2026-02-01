@@ -590,7 +590,8 @@ typedef void (*LNK_CALL TAsyRegisterDynlibFn)(IAsyContext*, IAsyFfiRegisterer*);
 
 #define ASY_FOREIGN_FUNC_SIG(functionName)                                     \
   void LNK_CALL functionName(                                                  \
-          IAsyContext* context, IAsyArgs* args, IAsyItem* returnValue          \
+          IAsyContext* context, IAsyStackContext* stackContext,                \
+          IAsyArgs* args, IAsyItem* returnValue                                \
   )
 
 /**
