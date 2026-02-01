@@ -98,8 +98,7 @@ public:
   AsyFfiRegistererImpl(string const& dynlibName);
   void registerFunction(
           char const* name, TAsyForeignFunction fn,
-          AsyTypeInfo const& returnType, size_t numArgs,
-          AsyFnArgMetadata* argInfoPtr
+          AsyFunctionTypeMetadata const& fnTypeInfo
   ) override;
 
   /**
@@ -123,5 +122,8 @@ private:
 ty* asyTypesEnumToTy(AsyTypeInfo const& asyType);
 ty* processArrayTypesInfoToTy(AsyTypeInfo const& baseType);
 
+
+types::function* createFunctionTypeFromMetadata(AsyFunctionTypePtrRetMetadata const& fnTypeInfo);
 types::formal asyArgInfoToFormal(AsyFnArgMetadata const& argInfo);
+
 }// namespace camp

@@ -520,8 +520,7 @@ public:
 
   virtual void registerFunction(
           char const* name, TAsyForeignFunction fn,
-          AsyTypeInfo const& returnType, size_t numArgs,
-          AsyFnArgMetadata* argInfoPtr
+          AsyFunctionTypeMetadata const& fnTypeInfo
   )= 0;
 };
 

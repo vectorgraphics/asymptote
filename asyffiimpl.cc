@@ -118,18 +118,30 @@ AsyFfiRegistererImpl::AsyFfiRegistererImpl(string const& dynlibName)
 {}
 
 void AsyFfiRegistererImpl::registerFunction(
-        char const* name, TAsyForeignFunction fn, AsyTypeInfo const& returnType,
-        size_t numArgs, AsyFnArgMetadata* argInfoPtr
+        char const* name, TAsyForeignFunction fn,
+        AsyFunctionTypeMetadata const& fnTypeInfo
 )
 {
-  auto* functionSig= new types::function(asyTypesEnumToTy(returnType));
-  for (size_t i= 0; i < numArgs; ++i) {
-    functionSig->add(asyArgInfoToFormal(argInfoPtr[i]));
-  }
+  AsyFunctionTypePtrRetMetadata const fnMetadataPtr= {
+          &(fnTypeInfo.returnType), fnTypeInfo.numArgs, fnTypeInfo.argInfoPtr
+  };
 
+  types::function* functionSig= createFunctionTypeFromMetadata(fnMetadataPtr);
   recordVar->add(name, functionSig, fn);
 }
 record* AsyFfiRegistererImpl::getRecord() const { return recordVar; }
+
+types::function*
+createFunctionTypeFromMetadata(AsyFunctionTypePtrRetMetadata const& fnTypeInfo)
+{
+  auto* functionSig=
+          new types::function(asyTypesEnumToTy(*(fnTypeInfo.returnType)));
+  for (size_t i= 0; i < fnTypeInfo.numArgs; ++i) {
+    functionSig->add(asyArgInfoToFormal(fnTypeInfo.argInfoPtr[i]));
+  }
+
+  return functionSig;
+}
 
 ty* asyTypesEnumToTy(AsyTypeInfo const& asyType)
 {
