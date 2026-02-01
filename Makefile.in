@@ -128,7 +128,7 @@ ifeq ($(usinggit),yes)
 	revision = $(shell LC_ALL="C" git describe --long | \
 	sed -e 's/git-\([0-9]*\)-g.*/-\1/' | sed -e 's/-0-g.*//')
 endif
-ifeq ($(revision),)
+ifeq ($(revision),"")
 	revision = @VERSION@
 endif
 
