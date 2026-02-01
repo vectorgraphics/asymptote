@@ -45,8 +45,6 @@ endif()
 
 if (ENABLE_LSP)
     message(STATUS "LSP Enabled.")
-    # disable New Boost version warning
-    set(Boost_NO_WARN_NEW_VERSIONS 1)
     set(USE_SYSTEM_RAPIDJSON ON CACHE INTERNAL "Use system rapidjson")
     set(LSPCPP_USE_CPP17 ON CACHE INTERNAL "C++17 mode")
     # For transitive URI dependency

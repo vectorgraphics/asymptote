@@ -15,8 +15,14 @@
 #include "LibLsp/JsonRpc/stream.h"
 #include <atomic>
 #include <optional>
+#ifdef LSPCPP_USE_STANDALONE_ASIO
+#include <asio/thread_pool.hpp>
+#include <asio/post.hpp>
+#else
 #include <boost/asio/thread_pool.hpp>
 #include <boost/asio/post.hpp>
+namespace asio = boost::asio;
+#endif
 
 #include "LibLsp/JsonRpc/GCThreadContext.h"
 
@@ -168,7 +174,7 @@ struct RemoteEndPoint::Data
     }
     uint8_t max_workers;
     std::atomic<int> m_id;
-    std::shared_ptr<boost::asio::thread_pool> tp;
+    std::shared_ptr<asio::thread_pool> tp;
     // Method calls may be cancelled by ID, so keep track of their state.
     // This needs a mutex: handlers may finish on a different thread, and that's
     // when we clean up entries in the map.
@@ -632,7 +638,7 @@ void RemoteEndPoint::startProcessingMessages(std::shared_ptr<lsp::istream> r, st
     d_ptr->input = r;
     d_ptr->output = w;
     d_ptr->message_producer->bind(r);
-    d_ptr->tp = std::make_shared<boost::asio::thread_pool>(d_ptr->max_workers);
+    d_ptr->tp = std::make_shared<asio::thread_pool>(d_ptr->max_workers);
     message_producer_thread_ = std::make_shared<std::thread>(
         [&]()
         {
@@ -640,7 +646,7 @@ void RemoteEndPoint::startProcessingMessages(std::shared_ptr<lsp::istream> r, st
                 [&](std::string&& content)
                 {
                     auto const temp = std::make_shared<std::string>(std::move(content));
-                    boost::asio::post(
+                    asio::post(
                         *d_ptr->tp,
                         [this, temp]
                         {

@@ -441,7 +441,7 @@ struct option : public gc {
 
   // Outputs description of the command for the -help option.
   virtual void describe(char option) {
-    // Don't show the option if it has no desciption.
+    // Don't show the option if it has no description.
     if(!hide() && ((option == 'h') ^ env())) {
       const unsigned WIDTH=22;
       string start=describeStart();
@@ -974,7 +974,7 @@ void addOption(option *o) {
 void version()
 {
   cerr << PACKAGE_NAME << " version " << REVISION
-       << " [(C) 2004 Andy Hammerlindl, John C. Bowman, Tom Prince]"
+       << " [(C) 2004-26 Andy Hammerlindl, John C. Bowman, Tom Prince]"
        << endl;
 }
 

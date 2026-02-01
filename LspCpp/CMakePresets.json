@@ -16,6 +16,9 @@
         "LSPCPP_USE_CPP17": "true",
         "LSPCPP_SUPPORT_BOEHM_GC": "$env{LSPCPP_SUPPORT_BOEHM_GC}",
         "VCPKG_MANIFEST_FEATURES": "$env{LSPCPP_CI_VCPKG_FEATURES}",
+        "USE_EXTERNAL_IXWEBSOCKET": "true",
+        "USE_EXTERNAL_ASIO": "true",
+        "LSPCPP_STANDALONE_ASIO": "true",
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
       },
       "binaryDir": "${sourceDir}/cmake-build-ci"
