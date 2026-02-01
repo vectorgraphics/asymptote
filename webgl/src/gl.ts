@@ -3042,7 +3042,7 @@ function handleKey(event)
     playbackDirection="forward";
     if(position >= startTime+maxAutoplayDuration && !activeAnimation) {
       activeAnimation=true;
-      requestAnimationFrame(animate) 
+      requestAnimationFrame(animate)
     }
 
   } else if (keycode=="ArrowLeft"&&playbackDirection!="backward") {
@@ -3277,7 +3277,7 @@ function drawScene()
 
   gl.clearColor(W.background[0],W.background[1],W.background[2],W.background[3]);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  
+
   now=performance.now();
 
   for(const p of P)
@@ -3508,10 +3508,10 @@ function toUser(controlpoints:vec3[]) {
   });
 }
 
-function transformCP(controlpoints:vec3[], delta:number,
-                     f : ((v:vec3, delta:number) => vec3)) {
+function transformCP(controlpoints:vec3[], t:number,
+                     f : ((v:vec3, t:number) => vec3)) {
   return controlpoints.map(function(v:vec3) {
-    return f(v,delta) as [number,number,number];
+    return f(v,t) as [number,number,number];
   });
 }
 
@@ -3525,20 +3525,20 @@ function fromUser(controlpoints:vec3[]) {
   });
 }
 
-function transformColor(nodes:any[], delta:number,
-                        f : ((v:vec3, c:vec4, delta:number) => vec4)) {
+function transformColor(nodes:any[], t:number,
+                        f : ((v:vec3, c:vec4, t:number) => vec4)) {
     return nodes.map(function(n:any) {
-        return f(n[0],n[1],delta) as vec4;
+        return f(n[0],n[1],t) as vec4;
   });
 }
 
 let startTime:number=null;
 let maxAutoplayDuration:number=0;
-let maxSceneDuration:number=0; 
+let maxSceneDuration:number=0;
 
 type Transformation = {
-  geometryTransform?: (v:vec3, delta:number) => vec3;
-  colorTransform?: (v:vec3, c:vec4, delta:number) => vec4;
+  geometryTransform?: (v:vec3, t:number) => vec3;
+  colorTransform?: (v:vec3, c:vec4, t:number) => vec4;
   durationInv: number;
   autoplay?:boolean;
 }
@@ -3596,17 +3596,17 @@ function animate(timestamp:number) {
   if(!lastTimestamp)
     lastTimestamp=timestamp;
 
-  const delta=timestamp-lastTimestamp;
+  const t=timestamp-lastTimestamp;
   lastTimestamp=timestamp;
 
   if(playbackDirection=="forward") {
-    playbackTime+=delta*playbackSpeed;
+    playbackTime+=t*playbackSpeed;
   } else if(playbackDirection=="backward") {
-    playbackTime=Math.max(0, playbackTime-delta*playbackSpeed);
+    playbackTime=Math.max(0, playbackTime-t*playbackSpeed);
   }
   if(slider)
     slider.value=((playbackTime)*maxSceneDurationInv).toString();
-    
+
 
   remesh=true;
 
@@ -3623,16 +3623,16 @@ function animate(timestamp:number) {
 
 let slider:HTMLInputElement;
 
-let activeSlider=false; 
+let activeSlider=false;
 
 function initSlider() {
-  activeSlider=true; 
+  activeSlider=true;
   const p=document;
-  slider=p.createElement("input"); 
+  slider=p.createElement("input");
   maxSceneDurationInv=1/maxSceneDuration;
 
-  slider.type="range"; 
-  slider.min="0"; 
+  slider.type="range";
+  slider.min="0";
   slider.max="1";
   slider.step="0.001";
   slider.value=(playbackTime*maxSceneDurationInv).toString();
@@ -3648,21 +3648,20 @@ function initSlider() {
   //     .slider {
   //       width: 50%;
   //       height: 30px;
-  //       left: 50%;               
-  //       transform: translateX(-50%);  
+  //       left: 50%;
+  //       transform: translateX(-50%);
   //       opacity: 0.7;
   //       transition: opacity .2s;
-  //     }  
+  //     }
   //   `;
   // document.head.appendChild(style);
 
   slider.oninput=() => {
-    const value=parseFloat(slider.value); 
-    console.log("change")
+    const value=parseFloat(slider.value);
     playbackTime=(startTime+maxSceneDuration)*value;
     if(position >= startTime+maxAutoplayDuration && !activeAnimation) {
       activeAnimation=true;
-      requestAnimationFrame(animate) 
+      requestAnimationFrame(animate)
     }
   }
   slider.onchange=() => {
@@ -3675,7 +3674,7 @@ function initSlider() {
 
 function deleteSlider() {
   slider.remove();
-  activeSlider=false; 
+  activeSlider=false;
 }
 
 function light(direction,color)
@@ -4137,7 +4136,7 @@ function beginTransform(geometry,color,duration,autoplay)
   if(msDuration > maxAutoplayDuration && autoplay)
     maxAutoplayDuration=msDuration;
   if(duration > maxSceneDuration)
-    maxSceneDuration=msDuration; 
+    maxSceneDuration=msDuration;
 
   if(autoplay)
     autoplayAnimation=true;
@@ -4173,7 +4172,7 @@ function webGLStart()
 
   W.canvas=document.getElementById("Asymptote");
   W.embedded=window.top.document != document;
-  
+
   initGL();
 
   gl.enable(gl.BLEND);
