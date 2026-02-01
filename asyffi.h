@@ -300,11 +300,21 @@ enum AsyBaseTypes : uint8_t
   /** Corresponds to code */
   Code,
 
-  /** Corresponds to array */
+  /**
+   * Corresponds to array. If this type is specified in {@link AsyTypeInfo},
+   * {@link AsyTypeInfo.arrayTypeInfo} must be specified
+   */
   ArrayType,
 
   /** Corresponds to Asymptote structs */
   Record,
+
+  /**
+   * Corresponds to Asympote function type. If this type is specified in
+   * {@link AsyTypeInfo}, {@link AsyTypeInfo.functionTypeInfo} must be filled
+   * with appropriate information
+   */
+  Function,
 };
 
 class IAsyTensionSpecifier
@@ -338,6 +348,7 @@ public:
   virtual uint8_t getSideAsInt() const= 0;
 };
 
+
 struct AsyArrayTypeMetadata {
   /** The type of the item that the array is storing. Cannot be ArrayType */
   AsyBaseTypes typeOfItem;
@@ -347,6 +358,31 @@ struct AsyArrayTypeMetadata {
 
   /** Currently unused. May be used in the future */
   void* extraData;
+};
+
+struct AsyTypeInfo;
+struct AsyFnArgMetadata;
+
+/**
+ * Struct to hold data about a function type. Unlike
+ * {@link AsyFunctionTypeMetadata} AsyTypeInfo must be a pointer to an
+ * existing AsyTypeInfo object. This is because the former struct has
+ * a dependency on {@link AsyTypeInfo}, however AsyTypeInfo has a dependency
+ * on this struct
+ */
+struct AsyFunctionTypePtrRetMetadata {
+
+  /** Pointer to a return type object for a function */
+  AsyTypeInfo const* returnType;
+
+  /** Number of arguments */
+  size_t numArgs;
+
+  /**
+   * Pointer to an AsyFnArgMetadata array which stores information about
+   * each argument
+   */
+  AsyFnArgMetadata const* argInfoPtr;
 };
 
 struct AsyTypeInfo {
@@ -362,10 +398,28 @@ struct AsyTypeInfo {
     /** This is required for arrays. */
     AsyArrayTypeMetadata arrayTypeInfo;
 
+    AsyFunctionTypePtrRetMetadata functionTypeInfo;
     /** Some types may require extraData to be a pointer to another struct */
     void* otherPtr;
   } extraData;
 };
+
+/**
+ * This struct is like {@link AsyFunctionTypePtrRetMetadata} however
+ * returnType is not a pointer.
+ */
+struct AsyFunctionTypeMetadata {
+
+  /** Return type of the function */
+  AsyTypeInfo returnType;
+
+  /** Number of arguments */
+  size_t numArgs;
+
+  /** Pointer to an array about each argument's type information */
+  AsyFnArgMetadata const* argInfoPtr;
+};
+
 
 struct AsyFnArgMetadata {
   AsyTypeInfo type;
