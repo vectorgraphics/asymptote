@@ -49,8 +49,8 @@ extern "C" {
 
 #ifdef HAVE_NCURSES_CURSES_H
 #define USE_SETUPTERM
-#include <ncursesw/curses.h>
-#include <ncursesw/term.h>
+#include <ncurses/curses.h>
+#include <ncurses/term.h>
 #elif HAVE_NCURSES_H
 #define USE_SETUPTERM
 #include <ncurses.h>
