@@ -3478,14 +3478,6 @@ class Align {
   };
 }
 
-function Tcorners(T,m,M)
-{
-  let v=[T(m),T([m[0],m[1],M[2]]),T([m[0],M[1],m[2]]),
-         T([m[0],M[1],M[2]]),T([M[0],m[1],m[2]]),
-         T([M[0],m[1],M[2]]),T([M[0],M[1],m[2]]),T(M)];
-  return [minbound(v),maxbound(v)];
-}
-
 function toUser(controlpoints:vec3[]) {
   return controlpoints.map(function(v:vec3) {
     let V: vec4=[v[0],v[1],v[2],1];
