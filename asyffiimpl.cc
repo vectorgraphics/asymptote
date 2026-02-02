@@ -209,7 +209,7 @@ ty* asyTypesEnumToTy(AsyTypeInfo const& asyType)
       return types::primString();
     case ArrayType:
       return processArrayTypesInfoToTy(asyType);
-    case Function:
+    case FunctionType:
       return createFunctionTypeFromMetadata(asyType.extraData.functionTypeInfo);
     default:
       reportError("Invalid argument type");

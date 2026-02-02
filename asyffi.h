@@ -364,7 +364,7 @@ enum AsyBaseTypes : uint8_t
    * {@link AsyTypeInfo}, {@link AsyTypeInfo.functionTypeInfo} must be filled
    * with appropriate information
    */
-  Function,
+  FunctionType,
 };
 
 class IAsyTensionSpecifier
