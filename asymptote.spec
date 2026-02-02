@@ -28,7 +28,6 @@ BuildRequires:  libtool
 BuildRequires:  libtirpc-devel
 BuildRequires:  libglvnd-devel
 BuildRequires:  libcurl-devel
-BuildRequires:  boost-devel
 
 Requires:       tetex-latex
 Requires:       freeglut-devel >= 3.0.0
