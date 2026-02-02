@@ -136,6 +136,9 @@ let IBLReflMap=null;
 let IBLDiffuseMap=null;
 let IBLbdrfMap=null;
 
+let min=Math.min;
+let max=Math.max;
+
 function IBLReady()
 {
   return IBLReflMap !== null && IBLDiffuseMap !== null && IBLbdrfMap !== null;
@@ -187,7 +190,7 @@ function initShaders(ibl=false)
 {
   const maxUniforms=gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
   maxMaterials=Math.floor((maxUniforms-14)/4);
-  Nmaterials=Math.min(Math.max(Nmaterials,Materials.length),maxMaterials);
+  Nmaterials=min(max(Nmaterials,Materials.length),maxMaterials);
 
   const pixelOpt=["WIDTH"];
   const materialOpt=["NORMAL"];
@@ -287,7 +290,7 @@ function findGL()
   } else {
     restoreAttributes();
     if((Lights.length != nlights) ||
-       Math.min(Materials.length,maxMaterials) > Nmaterials) {
+       min(Materials.length,maxMaterials) > Nmaterials) {
       initShaders();
       saveAttributes();
     }
@@ -348,7 +351,7 @@ function getShader(gl,shaderScript,type,options=[])
   ]
 
   let consts=[
-    ['int','Nlights',Math.max(Lights.length,1)]
+    ['int','Nlights',max(Lights.length,1)]
   ]
 
   let addenum=`
@@ -663,7 +666,6 @@ abstract class Geometry {
   protected CenterIndex: number;
   protected Min: any[];
   protected Max: any[];
-  protected haveBounds: boolean;
   protected epsilon: number;
   protected Epsilon: number;
   protected res2: number;
@@ -690,12 +692,8 @@ abstract class Geometry {
       p=this.transform(this.controlpoints);
       let norm2=L2norm2(p);
       this.epsilon=norm2*Number.EPSILON;
-      if(this.haveBounds)
-        [this.Min,this.Max]=this.transform([this.Min,this.Max]);
-      else {
-        let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
-        [this.Min,this.Max]=this.Bounds(p,fuzz);
-      }
+      let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
+      [this.Min,this.Max]=this.Bounds(p,fuzz);
     } else
       p=this.controlpoints;
 
@@ -757,7 +755,7 @@ function L2norm2(p) {
   let norm2=0;
   let n=p.length;
   for(let i=1; i < n; ++i)
-    norm2=Math.max(norm2,abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
+    norm2=max(norm2,abs2([p[i][0]-p0[0],p[i][1]-p0[1],p[i][2]-p0[2]]));
   return norm2;
 }
 
@@ -777,7 +775,6 @@ class BezierPatch extends Geometry {
   constructor(protected controlpoints,
               protected CenterIndex, protected MaterialIndex,
               private Color = null,
-              protected Min = null, protected Max = null,
               protected geometryTransform = null,
               protected colorTransform = null) {
     super();
@@ -795,12 +792,8 @@ class BezierPatch extends Geometry {
     this.vertex=this.transparent ? this.data.Vertex.bind(this.data) :
       this.data.vertex.bind(this.data);
 
-    this.haveBounds=Min && Max;
-    this.Min=Min;
-    this.Max=Max;
-
     this.transform=geometryTransform;
-    if(!this.haveBounds && geometryTransform == null) {
+    if(geometryTransform == null) {
       let norm2=L2norm2(controlpoints);
       let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
       this.epsilon=norm2*Number.EPSILON;
@@ -934,7 +927,7 @@ class BezierPatch extends Geometry {
   }
 
   Bounds(p,fuzz) {
-    return [this.Bound(p,Math.min,fuzz),this.Bound(p,Math.max,fuzz)];
+    return [this.Bound(p,min,fuzz),this.Bound(p,max,fuzz)];
   }
 
 // Render a Bezier patch via subdivision.
@@ -1884,18 +1877,18 @@ class BezierPatch extends Geometry {
     // Check the horizontal flatness.
     let h=Flatness(p0,p12,p3,p15);
     // Check straightness of the horizontal edges and interior control curves.
-    h=Math.max(h,Straightness(p0,p[4],p[8],p12));
-    h=Math.max(h,Straightness(p[1],p[5],p[9],p[13]));
-    h=Math.max(h,Straightness(p3,p[7],p[11],p15));
-    h=Math.max(h,Straightness(p[2],p[6],p[10],p[14]));
+    h=max(h,Straightness(p0,p[4],p[8],p12));
+    h=max(h,Straightness(p[1],p[5],p[9],p[13]));
+    h=max(h,Straightness(p3,p[7],p[11],p15));
+    h=max(h,Straightness(p[2],p[6],p[10],p[14]));
 
     // Check the vertical flatness.
     let v=Flatness(p0,p3,p12,p15);
     // Check straightness of the vertical edges and interior control curves.
-    v=Math.max(v,Straightness(p0,p[1],p[2],p3));
-    v=Math.max(v,Straightness(p[4],p[5],p[6],p[7]));
-    v=Math.max(v,Straightness(p[8],p[9],p[10],p[11]));
-    v=Math.max(v,Straightness(p12,p[13],p[14],p15));
+    v=max(v,Straightness(p0,p[1],p[2],p3));
+    v=max(v,Straightness(p[4],p[5],p[6],p[7]));
+    v=max(v,Straightness(p[8],p[9],p[10],p[11]));
+    v=max(v,Straightness(p12,p[13],p[14],p15));
 
     return [h,v];
   }
@@ -1913,9 +1906,9 @@ class BezierPatch extends Geometry {
                 (p0[2]+p6[2]+p9[2])*third-p4[2]]);
 
     // Determine how straight the edges are.
-    d=Math.max(d,Straightness(p0,p[1],p[3],p6));
-    d=Math.max(d,Straightness(p0,p[2],p[5],p9));
-    return Math.max(d,Straightness(p6,p[7],p[8],p9));
+    d=max(d,Straightness(p0,p[1],p[3],p6));
+    d=max(d,Straightness(p0,p[2],p[5],p9));
+    return max(d,Straightness(p6,p[7],p[8],p9));
   }
 
   // Return the differential of the Bezier curve p0,p1,p2,p3 at 0.
@@ -2074,12 +2067,8 @@ class BezierCurve extends Geometry {
     this.CenterIndex=CenterIndex;
     this.MaterialIndex=MaterialIndex;
 
-    this.haveBounds=Min && Max;
-    this.Min=Min;
-    this.Max=Max;
-
     this.transform=transform;
-    if(!this.haveBounds && transform == null)
+    if(transform == null)
       [this.Min,this.Max]=this.Bounds(controlpoints,0);
   }
 
@@ -2094,24 +2083,24 @@ class BezierCurve extends Geometry {
       let m,M;
       m=M=x[0];
       if(n == 4) {
-        m=Math.min(m,x[3]);
-        M=Math.max(M,x[3]);
+        m=min(m,x[3]);
+        M=max(M,x[3]);
         let a=derivative(x[0],x[1],x[2],x[3]);
         let q=new quadraticroots(a[0],a[1],a[2]);
         if(q.roots != 0 && goodroot(q.t1)) {
           let v=bezier(x[0],x[1],x[2],x[3],q.t1);
-          m=Math.min(m,v);
-          M=Math.max(M,v);
+          m=min(m,v);
+          M=max(M,v);
         }
         if(q.roots == 2 && goodroot(q.t2)) {
           let v=bezier(x[0],x[1],x[2],x[3],q.t2);
-          m=Math.min(m,v);
-          M=Math.max(M,v);
+          m=min(m,v);
+          M=max(M,v);
         }
       } else {
         let v=x[1];
-        m=Math.min(m,v);
-        M=Math.max(M,v);
+        m=min(m,v);
+        M=max(M,v);
       }
       b[i]=m;
       B[i]=M;
@@ -2206,7 +2195,6 @@ class Pixel extends Geometry {
               transform = null) {
     super();
     this.CenterIndex=0;
-    this.haveBounds=true;
     this.Min=controlpoint;
     this.Max=controlpoint;
     this.transform=transform;
@@ -2218,7 +2206,7 @@ class Pixel extends Geometry {
   }
 
   Bounds(p,fuzz) {
-    return [this.Min,this.Max];
+    return [this.controlpoints[0],this.controlpoints[0]];
   }
 
   process(p) {
@@ -2265,7 +2253,7 @@ class Triangles extends Geometry {
   }
 
   Bounds(p,fuzz) {
-    return [this.Bounds(p,Math.min),this.Bounds(p,Math.max)];
+    return [this.Bounds(p,min),this.Bounds(p,max)];
   }
 
   setMaterialIndex() {
@@ -2616,7 +2604,7 @@ function bezierPPh(a,b,c,d)
 function Straightness(z0,c0,c1,z1)
 {
   let v=[third*(z1[0]-z0[0]),third*(z1[1]-z0[1]),third*(z1[2]-z0[2])];
-  return Math.max(abs2([c0[0]-v[0]-z0[0],c0[1]-v[1]-z0[1],c0[2]-v[2]-z0[2]]),
+  return max(abs2([c0[0]-v[0]-z0[0],c0[1]-v[1]-z0[1],c0[2]-v[2]-z0[2]]),
     abs2([z1[0]-v[0]-c1[0],z1[1]-v[1]-c1[1],z1[2]-v[2]-c1[2]]));
 }
 
@@ -2625,7 +2613,7 @@ function Flatness(a,b,c,d)
 {
   const u: ReadonlyVec3=[b[0]-a[0],b[1]-a[1],b[2]-a[2]];
   const v: ReadonlyVec3=[d[0]-c[0],d[1]-c[1],d[2]-c[2]];
-  return Math.max(abs2(cross(u,unit(v))),abs2(cross(v,unit(u))))/9;
+  return max(abs2(cross(u,unit(v))),abs2(cross(v,unit(u))))/9;
 }
 
 // Return the vertices of the box containing 3d points m and M.
@@ -2637,17 +2625,17 @@ function corners(m,M)
 
 function minbound(v) {
   return [
-    Math.min(v[0][0],v[1][0],v[2][0],v[3][0],v[4][0],v[5][0],v[6][0],v[7][0]),
-    Math.min(v[0][1],v[1][1],v[2][1],v[3][1],v[4][1],v[5][1],v[6][1],v[7][1]),
-    Math.min(v[0][2],v[1][2],v[2][2],v[3][2],v[4][2],v[5][2],v[6][2],v[7][2])
+    min(v[0][0],v[1][0],v[2][0],v[3][0],v[4][0],v[5][0],v[6][0],v[7][0]),
+    min(v[0][1],v[1][1],v[2][1],v[3][1],v[4][1],v[5][1],v[6][1],v[7][1]),
+    min(v[0][2],v[1][2],v[2][2],v[3][2],v[4][2],v[5][2],v[6][2],v[7][2])
   ];
 }
 
 function maxbound(v) {
   return [
-    Math.max(v[0][0],v[1][0],v[2][0],v[3][0],v[4][0],v[5][0],v[6][0],v[7][0]),
-    Math.max(v[0][1],v[1][1],v[2][1],v[3][1],v[4][1],v[5][1],v[6][1],v[7][1]),
-    Math.max(v[0][2],v[1][2],v[2][2],v[3][2],v[4][2],v[5][2],v[6][2],v[7][2])
+    max(v[0][0],v[1][0],v[2][0],v[3][0],v[4][0],v[5][0],v[6][0],v[7][0]),
+    max(v[0][1],v[1][1],v[2][1],v[3][1],v[4][1],v[5][1],v[6][1],v[7][1]),
+    max(v[0][2],v[1][2],v[2][2],v[3][2],v[4][2],v[5][2],v[6][2],v[7][2])
   ];
 }
 
@@ -2830,7 +2818,7 @@ function normMouse(v): ReadonlyVec3
     v0 *= denom;
     v1 *= denom;
   }
-  return [v0,v1,Math.sqrt(Math.max(1-v1*v1-v0*v0,0))];
+  return [v0,v1,Math.sqrt(max(1-v1*v1-v0*v0,0))];
 }
 
 interface arcball {
@@ -3421,8 +3409,8 @@ function resize()
     W.canvasHeight=W.canvasHeight0*window.devicePixelRatio;
   } else {
     let Aspect=W.canvasWidth0/W.canvasHeight0;
-    W.canvasWidth=Math.max(window.innerWidth-windowTrim,windowTrim);
-    W.canvasHeight=Math.max(window.innerHeight-windowTrim,windowTrim);
+    W.canvasWidth=max(window.innerWidth-windowTrim,windowTrim);
+    W.canvasHeight=max(window.innerHeight-windowTrim,windowTrim);
 
     if(!W.orthographic && !getAsyProjection() &&
        W.canvasWidth < W.canvasHeight*Aspect)
@@ -3555,7 +3543,7 @@ function animatedGeometry(){
     const activeTime=startTime+playbackTime;
     for(const {geometryTransform,durationInv,autoplay} of stack) {
       const time=!autoplay?activeTime:now;
-      const t=Math.min((time-startTime)*durationInv,1.0);
+      const t=min((time-startTime)*durationInv,1.0);
       cp=transformCP(cp,t,geometryTransform);
     }
     return fromUser(cp)
@@ -3571,7 +3559,7 @@ function animatedColor() {
     const activeTime=startTime+playbackTime;
     for(const {colorTransform,durationInv,autoplay} of stack) {
       const time=!autoplay?activeTime:now;
-      const t=Math.min((time-startTime)*durationInv,1.0);
+      const t=min((time-startTime)*durationInv,1.0);
       color=transformColor(
             [[P[0],color[0]],
               [P[1],color[1]],
@@ -3602,7 +3590,7 @@ function animate(timestamp:number) {
   if(playbackDirection=="forward") {
     playbackTime+=t*playbackSpeed;
   } else if(playbackDirection=="backward") {
-    playbackTime=Math.max(0, playbackTime-t*playbackSpeed);
+    playbackTime=max(0, playbackTime-t*playbackSpeed);
   }
   if(slider)
     slider.value=((playbackTime)*maxSceneDurationInv).toString();
@@ -3691,7 +3679,7 @@ function material(diffuse,emissive,specular,shininess,metallic,fresnel0)
 function patch(controlpoints,CenterIndex,MaterialIndex,color)
 {
   P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color,
-                         null,null,animatedGeometry(),animatedColor()));
+                         animatedGeometry(),animatedColor()));
 }
 
 function curve(controlpoints,CenterIndex,MaterialIndex)
@@ -3782,8 +3770,6 @@ function sphere(center,r,CenterIndex,MaterialIndex,dir)
     return p;
   }
 
-  let v=Tcorners(t,[-r,-r,z],[r,r,r]);
-  let Min=v[0], Max=v[1];
   for(let i=-1; i <= 1; i += 2) {
     rx=i*r;
     for(let j=-1; j <= 1; j += 2) {
@@ -3791,8 +3777,7 @@ function sphere(center,r,CenterIndex,MaterialIndex,dir)
       for(let k=s; k <= 1; k += 2) {
         rz=k*r;
         for(let m=0; m < 2; ++m)
-          P.push(new BezierPatch(T(octant[m]),CenterIndex,MaterialIndex,null,
-                                 Min,Max));
+          P.push(new BezierPatch(T(octant[m]),CenterIndex,MaterialIndex));
       }
     }
   }
@@ -3838,9 +3823,7 @@ function disk(center,r,CenterIndex,MaterialIndex,dir)
     return p;
   }
 
-  let v=Tcorners(A.T.bind(A),[-r,-r,0],[r,r,0]);
-  P.push(new BezierPatch(T(unitdisk),CenterIndex,MaterialIndex,null,
-                         v[0],v[1]));
+  P.push(new BezierPatch(T(unitdisk),CenterIndex,MaterialIndex));
 }
 
 // draw a cylinder with circular base of radius r about center and height h
@@ -3881,22 +3864,17 @@ function cylinder(center,r,h,CenterIndex,MaterialIndex,dir,core)
     return p;
   }
 
-  let v=Tcorners(A.T.bind(A),[-r,-r,0],[r,r,h]);
-  let Min=v[0], Max=v[1];
-
   for(let i=-1; i <= 1; i += 2) {
     rx=i*r;
     for(let j=-1; j <= 1; j += 2) {
       ry=j*r;
-      P.push(new BezierPatch(T(unitcylinder),CenterIndex,MaterialIndex,null,
-                             Min,Max));
+      P.push(new BezierPatch(T(unitcylinder),CenterIndex,MaterialIndex));
     }
   }
 
   if(core) {
     let Center=A.T([0,0,h]);
-    P.push(new BezierCurve([center,Center],CenterIndex,MaterialIndex,
-                           center,Center));
+    P.push(new BezierCurve([center,Center],CenterIndex,MaterialIndex));
   }
 }
 
@@ -3919,7 +3897,7 @@ function rmf(z0,c0,c1,z1,t)
     return (abs2(u) > norm) ? unit(u) : [1,0,0];
   }
 
-  let norm=Number.EPSILON*Math.max(abs2(z0),abs2(c0),abs2(c1),
+  let norm=Number.EPSILON*max(abs2(z0),abs2(c0),abs2(c1),
                                 abs2(z1));
 
 // Special case of dir for t in (0,1].
