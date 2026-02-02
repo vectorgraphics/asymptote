@@ -25,8 +25,7 @@ for (int i=0; i<=nb; ++i) draw(circle((0,0,0),i),lightgreen+white);
 path3 p=graph(x,y,z,-200,40,operator ..);
 path3 q=graph(u,v,w,-200,40,operator ..);
 
-revolution sph=sphere((0,0,0.5),0.5);
-draw(surface(sph),green+white+opacity(0.5));
+draw(scale3(0.5)*shift(Z)*unitsphere,green+white+opacity(0.5));
 
 draw(p,1bp+heavyred);
 draw(q,1bp+heavyblue);
