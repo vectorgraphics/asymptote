@@ -16,8 +16,42 @@
 
 #include "pair.h"
 
+/**
+ * Document of camp::
+ */
 namespace camp {
 
+/** 
+ * The transform datatype stores an affine transformation on the plane
+ * The datamembers are x, y, xx, xy, yx, and yy.  A pair (x,y) is
+ * transformed as
+ *
+ * ```
+ *   x' = t.x + t.xx * x + t.xy * y
+ *   y' = t.y + t.yx * x + t.yy * y
+ * ```
+ *
+ * The representation of this transformation as a matrix is:
+ * \f\[
+ * t = \begin{pmatrix} 
+ *          \mathtt{t.xx} & \mathtt{t.xy} & \mathtt{t.x} \\
+ *          \mathtt{t.yx} & \mathtt{t.yy} & \mathtt{t.y}
+ *     \end{pmatrix}
+ * \f\]
+ * A transformation is make by doing matrix multiplication:
+ * Given a pair \f$ p = (\mathtt{x}, \mathtt{y}) \f$, the transfomed pair is the result of \f$ t\cdot p \f$. 
+ * That is:
+ * 
+ * \f\[ 
+ * \begin{pmatrix} \mathtt{x'}\\ \mathtt{y'} \end{pmatrix} = 
+ * t\cdot p = 
+ * \begin{pmatrix}
+ * \mathtt{t.x} + \mathtt{t.xx} \cdot \mathtt{x} + \mathtt{t.xy} \cdot \mathtt{y} \\
+ * \mathtt{t.y} + \mathtt{t.yx} \cdot \mathtt{x} + \mathtt{t.yy} \cdot \mathtt{y} \\
+ * \end{pmatrix}
+ * \f\]
+ *
+ *****/
 class transform : public gc {
   double x;
   double y;
