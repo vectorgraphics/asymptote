@@ -471,9 +471,7 @@ def process_sections(
     return header_lines
 
 
-def finalize_output(
-    outHeaderFile: str, outSrcFile: str, header_lines: List
-) -> None:
+def finalize_output(outHeaderFile: str, outSrcFile: str, header_lines: List) -> None:
     header_lines.append("}\n\n")
     overwrite_if_changed(outHeaderFile, "".join(header_lines))
 
