@@ -6,7 +6,7 @@ import io
 import os
 import re
 import sys
-from typing import List, Optional, TextIO, Dict, Tuple
+from typing import Dict, List, Optional, TextIO, Tuple
 
 STACK = "Stack"
 
