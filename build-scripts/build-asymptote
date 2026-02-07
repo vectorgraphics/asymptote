@@ -13,7 +13,7 @@ test /usr -ef $BUILD/$BINDIR && exit
 LATEXDIR=$BUILD/$BINDIR/share/texmf/tex/latex/asymptote
 cd $BUILD
 rm -rf asymptote
-git clone http://github.com/vectorgraphics/asymptote
+git clone https://github.com/vectorgraphics/asymptote
 cd asymptote
 git log > ChangeLog
 VERSIONgit=`grep AC_INIT configure.ac | cut -s -d[ -f3 | cut -s -d] -f1`
@@ -35,13 +35,6 @@ find . -name ".[^.]*" -exec rm -rf {} \;
 make $MAKEFLAGS check || exit
 make uninstall
 build-scripts/build-asygl
-GLMATRIX=`/bin/ls -d gl-matrix-*-pruned`
-mkdir temp
-mv $GLMATRIX temp
-mkdir -p $GLMATRIX/dist
-cp temp/$GLMATRIX/LICENSE.js $GLMATRIX/
-cp temp/$GLMATRIX/dist/gl-matrix.js $GLMATRIX/dist/
-rm -rf temp
 make $MAKEFLAGS asy
 rm base/webgl/asygl-*.js
 make -j1 all

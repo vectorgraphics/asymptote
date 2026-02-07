@@ -70,6 +70,10 @@ public:
 
   virtual void precision(int digits)=0;
 
+  virtual void write(const string& s)=0;
+  virtual void write(double x)=0;
+
+  virtual void initTransform() {};
 };
 
 }

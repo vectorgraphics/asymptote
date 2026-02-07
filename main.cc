@@ -24,7 +24,23 @@
 #include <cerrno>
 #include <sys/types.h>
 
-#if !defined(_WIN32)
+#if defined(_WIN32)
+#include <signal.h>
+
+int _matherr(struct _exception *except)
+{
+  unsigned int cw = 0;
+  _controlfp_s(&cw, 0, 0);
+
+  if((except->type == _SING     && !(cw & _EM_ZERODIVIDE)) ||
+     (except->type == _DOMAIN   && !(cw & _EM_INVALID))    ||
+     (except->type == _OVERFLOW && !(cw & _EM_OVERFLOW))) {
+    std::cerr << "Floating exception" << std::endl;
+    raise(SIGFPE);
+  }
+  return 0;
+}
+#else
 #include <sys/wait.h>
 #endif
 
@@ -208,14 +224,12 @@ void *asymain(void *A)
   vm::dumpProfile();
 #endif
 
+#if !defined(_WIN32)
   if(getSetting<bool>("wait")) {
-#if defined(_WIN32)
-#pragma message("TODO: wait option not implement yet")
-#else
     int status;
     while(wait(&status) > 0);
-#endif
   }
+#endif
   exit(returnCode());
 }
 
