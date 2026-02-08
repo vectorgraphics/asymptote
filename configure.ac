@@ -416,7 +416,7 @@ AC_DEFUN([CHECK_LIB_STATIC],[
 if test "x$enable_readline" != "xno"; then
 if test "x$with_vcpkg" != "xno"; then  # vcpkg
    ADD_VCPKG_FEATURE(readline)
-   AC_DEFINE(HAVE_NCURSES_CURSES_H)
+   AC_DEFINE(HAVE_NCURSESW_CURSES_H)
    AC_DEFINE(HAVE_LIBCURSES)
    AC_DEFINE(HAVE_LIBREADLINE)
    ADD_VCPKG_LIB_FOR_PKGCONFIG(readline)
