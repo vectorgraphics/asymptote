@@ -18,6 +18,7 @@
 #include "symbol.h"
 #include "common.h"
 #include "util.h"
+#include <unordered_map>
 
 using std::ostream;
 
@@ -206,6 +207,19 @@ public:
   size_t hash() const {
     return (size_t)kind + 47;
   }
+
+  struct hashStruct
+  {
+    size_t operator()(primitiveTy const& obj) const { return obj.hash(); }
+  };
+
+  struct eqStruct
+  {
+    bool operator()(primitiveTy const& obj1, primitiveTy const& obj2) const
+    {
+      return obj1.equiv(&obj2);
+    }
+  };
 };
 
 class nullTy : public primitiveTy {
@@ -289,6 +303,15 @@ struct array : public ty {
 #include "primitives.h"
 #undef PRIMERROR
 #undef PRIMITIVE
+
+typedef mem::unordered_map<
+  primitiveTy, mem::vector<ty*>,
+  primitiveTy::hashStruct, primitiveTy::eqStruct
+> primTypeArrayCache;
+
+void initializeArrayTypeCache(primTypeArrayCache& cache);
+
+ty* getArrayType(ty* baseType, size_t const& dimension, primTypeArrayCache* cache);
 
 ty *primNull();
 

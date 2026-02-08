@@ -48,6 +48,65 @@ const signature::OPEN_t signature::OPEN;
 #undef PRIMERROR
 #undef PRIMITIVE
 
+void initializeArrayTypeCache(primTypeArrayCache& cache)
+{
+  cache.clear();
+
+#define PRIMITIVE(name, Name, asyName)                                         \
+  cache[p##Name]= {prim##Name(), name##Array(), name##Array2(), name##Array3()};
+#define PRIMERROR
+#define PRIMITIVES_MACRO_ONLY
+#include "primitives.h"
+
+  DEFINE_PRIMTIVES
+#undef PRIMITIVES_MACRO_ONLY
+#undef PRIMERROR
+#undef PRIMITIVE
+}
+
+ty* getArrayType(ty* baseType, size_t const& dimension, primTypeArrayCache* cache)
+{
+  auto* primTyCasted= dynamic_cast<primitiveTy*>(baseType);
+  bool cachePresent= cache != nullptr && primTyCasted != nullptr;
+
+  if (dimension == 0) {
+    return baseType;
+  }
+  mem::vector<ty*>* tyVec= nullptr;
+  if (cachePresent) {
+    auto [tyVecIt, _] = cache->try_emplace(*primTyCasted, mem::vector {baseType});
+    tyVec= &tyVecIt->second;
+  }
+
+  if (cachePresent) {
+    // we have already constructed the type earlier
+    if (tyVec->size()>=(dimension + 1)) {
+      return tyVec->at(dimension);
+    }
+
+    if (tyVec->capacity() < (dimension + 1)) {
+      tyVec->reserve(dimension + 1);
+    }
+  }
+
+  // tyVec is guaranteed to contain baseType from our construction
+  size_t const dimAtTop= cachePresent ? tyVec->size() - 1 : 0;
+  ty* top= cachePresent ? tyVec->back() : baseType;
+
+  // invariant: by the end of each step,
+  // tyVec's top is of dimension dim
+  for (size_t dim=dimAtTop; dim<dimension; ++dim) {
+    ty* newTop= new array(top);
+    if (cachePresent) {
+      tyVec->emplace_back(newTop);
+    }
+    top= newTop;
+  }
+
+  return top;
+}
+
+
 nullTy pNull;
 ty *primNull() { return &pNull; }
 
