@@ -405,9 +405,6 @@ struct AsyArrayTypeMetadata {
 
   /** Dimensions of the array. Can be 1, 2, or 3. */
   size_t dimension;
-
-  /** Currently unused. May be used in the future */
-  void* extraData;
 };
 
 struct AsyTypeInfo;
@@ -449,8 +446,6 @@ struct AsyTypeInfo {
     AsyArrayTypeMetadata arrayTypeInfo;
 
     AsyFunctionTypePtrRetMetadata functionTypeInfo;
-    /** Some types may require extraData to be a pointer to another struct */
-    void* otherPtr;
   } extraData;
 };
 
@@ -476,9 +471,6 @@ struct AsyFnArgMetadata {
   char const* name;
   bool optional;
   bool explicitArgs;
-
-  // to be used in the future?
-  void* extraData;
 };
 
 /**
