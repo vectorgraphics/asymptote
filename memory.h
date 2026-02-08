@@ -15,6 +15,7 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
+#include <initializer_list>
 
 #ifdef USEGC
 
@@ -73,12 +74,14 @@ struct GC_type_traits {};
 
 namespace mem {
 
-#define GC_CONTAINER(KIND)                                              \
-  template <typename T>                                                 \
-  struct KIND : public std::KIND<T, gc_allocator<T> >, public gc {      \
-    KIND() : std::KIND<T, gc_allocator<T> >() {}                        \
-    KIND(size_t n) : std::KIND<T, gc_allocator<T> >(n) {}               \
-    KIND(size_t n, const T& t) : std::KIND<T, gc_allocator<T> >(n,t) {} \
+#define GC_CONTAINER(KIND)                                                     \
+  template<typename T>                                                         \
+  struct KIND : public std::KIND<T, gc_allocator<T>>, public gc {              \
+    KIND() : std::KIND<T, gc_allocator<T>>() {}                                \
+    KIND(size_t n) : std::KIND<T, gc_allocator<T>>(n) {}                       \
+    KIND(size_t n, const T& t) : std::KIND<T, gc_allocator<T>>(n, t) {}        \
+    KIND(std::initializer_list<T> init)                                        \
+        : std::KIND<T, gc_allocator<T>>(init) {}                               \
   }
 
 GC_CONTAINER(list);
@@ -97,13 +100,12 @@ struct pair : public std::pair<T, S>, public gc {
 
 #undef GC_CONTAINER
 
-#define GC_CONTAINER(KIND)                                              \
-  template <typename Key,                                               \
-            typename T,                                                 \
-            typename Compare = std::less<Key> >                         \
-  struct KIND : public std::KIND<Key,T,Compare,PAIR_ALLOC>, public gc   \
-  {                                                                     \
-    KIND() : std::KIND<Key,T,Compare,PAIR_ALLOC> () {}                  \
+#define GC_CONTAINER(KIND)                                                     \
+  template<typename Key, typename T, typename Compare= std::less<Key>>         \
+  struct KIND : public std::KIND<Key, T, Compare, PAIR_ALLOC>, public gc {     \
+    KIND() : std::KIND<Key, T, Compare, PAIR_ALLOC>() {}                       \
+    KIND(std::initializer_list<std::pair<const Key, T>> init)                  \
+        : std::KIND<Key, T, Compare, PAIR_ALLOC>(init) {};                     \
   }
 
 GC_CONTAINER(map);
@@ -111,15 +113,16 @@ GC_CONTAINER(multimap);
 
 #undef GC_CONTAINER
 
-#define GC_CONTAINER(KIND)                              \
-  template <typename Key, typename T,                   \
-            typename Hash = std::hash<Key>,             \
-            typename Eq = std::equal_to<Key> >          \
-  struct KIND : public                                  \
-  std::KIND<Key,T,Hash,Eq,PAIR_ALLOC>, public gc {      \
-    KIND() : std::KIND<Key,T,Hash,Eq,PAIR_ALLOC> () {}  \
-    KIND(size_t n)                                      \
-      : std::KIND<Key,T,Hash,Eq,PAIR_ALLOC> (n) {}      \
+#define GC_CONTAINER(KIND)                                                     \
+  template<                                                                    \
+          typename Key, typename T, typename Hash= std::hash<Key>,             \
+          typename Eq= std::equal_to<Key>>                                     \
+  struct KIND : public std::KIND<Key, T, Hash, Eq, PAIR_ALLOC>, public gc {    \
+    KIND() : std::KIND<Key, T, Hash, Eq, PAIR_ALLOC>() {}                      \
+    KIND(size_t n) : std::KIND<Key, T, Hash, Eq, PAIR_ALLOC>(n) {}             \
+    KIND(std::initializer_list<std::pair<const Key, T>> init)                  \
+        : std::KIND<Key, T, Hash, Eq, PAIR_ALLOC>(init)                        \
+    {}                                                                         \
   }
 
 GC_CONTAINER(unordered_map);
