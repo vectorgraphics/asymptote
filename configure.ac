@@ -7,6 +7,7 @@ AC_INIT([Asymptote],[3.07git],[https://github.com/vectorgraphics/asymptote/issue
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
+m4_include([ax_gcc_x86_cpu_supports.m4])
 m4_include([pkg.m4])
 
 AH_TOP([#pragma once])
@@ -36,6 +37,47 @@ AC_C_BIGENDIAN(
 )
 
 echo Compiling with $CXXFLAGS $CFLAGS
+
+
+# --------------- additional optimizations ---------------------
+# Options for additional optimizations (link-time optimization, support for later x86-64 instruction sets (e.g. AVX2))
+
+AC_ARG_WITH(link-time-opt,
+   [AS_HELP_STRING(--with-link-time-opt=[[[yes]]],
+      [Enables link-time optimization. Enabled by default])],
+   [],
+   [with_link_time_opt=yes]
+)
+
+AS_IF(
+   [test "x$with_link_time_opt" = "xyes"],
+   [CFLAGS="$CFLAGS -flto"]
+)
+AC_ARG_WITH(x86-64-v3-targeting,
+   [AS_HELP_STRING(--with-x86-64-v3-targeting=[[[check]]],
+      [Targets x86_64_v3 CPUs or higher (i.e. AVX/AVX2 support).
+      Only supported if target CPU is Haswell/Excavator or higher. By default, turn on if system supports AVX2])],
+   [],
+   [with_x86_64_v3_targeting=check]
+)
+
+AS_IF(
+   [test "x$with_x86_64_v3_targeting" = "xcheck"],
+   [
+      AX_GCC_X86_CPU_SUPPORTS(avx2, [
+         with_x86_64_v3_targeting=yes
+         AC_MSG_NOTICE([System supports AVX2, targeting x86-64-v3])
+      ], [
+         AC_MSG_NOTICE([System does not support AVX2])
+      ])
+   ]
+)
+
+AS_IF(
+   [test "x$with_x86_64_v3_targeting" = "xyes"],
+   [CFLAGS="$CFLAGS -march=x86-64-v3"]
+)
+
 
 # --------------- begin vcpkg option/check ---------------------
 # result:
