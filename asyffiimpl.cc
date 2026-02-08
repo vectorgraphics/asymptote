@@ -210,7 +210,7 @@ ty* asyTypesEnumToTy(Asy::TypeInfo const& asyType)
     case BaseTypes::Str:
       return types::primString();
     case BaseTypes::ArrayType:
-      return processArrayTypesInfoToTy(asyType);
+      return processArrayTypesInfoToTy(asyType.extraData.arrayTypeInfo);
     case BaseTypes::FunctionType:
       return createFunctionTypeFromMetadata(asyType.extraData.functionTypeInfo);
     default:
@@ -219,49 +219,36 @@ ty* asyTypesEnumToTy(Asy::TypeInfo const& asyType)
   }
 }
 
-ty* processArrayTypesInfoToTy(Asy::TypeInfo const& asyType)
+ty* processArrayTypesInfoToTy(Asy::ArrayTypeMetadata const& arrayInfo)
 {
-  auto const& typeInfo= asyType.extraData.arrayTypeInfo;
-  ty* ret= nullptr;
-  switch (typeInfo.typeOfItem) {
-#define CASE_ARRAY_MULTIDIM(name, dimension)                                   \
-  case dimension:                                                              \
-    ret= types::name##Array##dimension();                                      \
-    break;
-
-// For each type, enter another switch statement to return the correct
-// type function based on the dimensions.
-#define PRIMITIVE(name, Name, asyName)                                         \
-  case BaseTypes::Name:                                                     \
-    switch (typeInfo.dimension) {                                              \
-      case 1:                                                                  \
-        ret= types::name##Array();                                             \
-        break;                                                                 \
-        CASE_ARRAY_MULTIDIM(name, 2)                                           \
-        CASE_ARRAY_MULTIDIM(name, 3)                                           \
-      default:                                                                 \
-        break;                                                                 \
-    }                                                                          \
-    break;
-#define EXCLUDE_POTENTIALLY_CONFLICTING_NAME_TYPE
-#define PRIMITIVES_MACRO_ONLY
-#include "primitives.h"
-
-
-    DEFINE_PRIMTIVES
-    PRIMITIVE(Int, Integer, _)
-    PRIMITIVE(string, Str, _)
-    default:
-      break;
-#undef EXCLUDE_POTENTIALLY_CONFLICTING_NAME_TYPE
-#undef PRIMITIVES_MACRO_ONLY
-#undef PRIMITIVE
+  auto* tyInfoPtr= arrayInfo.typeOfItem;
+  if (tyInfoPtr->baseType == BaseTypes::ArrayType) {
+    reportWarning("Array type should not contain an array type. "
+      "Instead, use higher dimensions to specify multidimensional arrays."
+      );
   }
 
-  if (ret == nullptr) {
-    reportError("Invalid dimensons or type information");
+  ty* baseType= asyTypesEnumToTy(*tyInfoPtr);
+  return getArrayTypeFromBaseType(baseType, arrayInfo.dimension);
+}
+
+namespace
+{
+
+// To avoid re-creating array types, we can use a cache.
+types::primTypeArrayCache arrayTypeCache;
+bool arrayTypecacheInitialized= false;
+}
+
+ty* getArrayTypeFromBaseType(ty* baseType, size_t const& dimension)
+{
+  if (!arrayTypecacheInitialized) {
+    types::initializeArrayTypeCache(arrayTypeCache);
+    arrayTypecacheInitialized= true;
   }
-  return ret;
+
+  return types::getArrayType(baseType, dimension, &arrayTypeCache);
+
 }
 
 types::formal asyArgInfoToFormal(Asy::FnArgMetadata const& argInfo)

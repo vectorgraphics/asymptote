@@ -133,11 +133,13 @@ private:
 };
 
 ty* asyTypesEnumToTy(Asy::TypeInfo const& asyType);
-ty* processArrayTypesInfoToTy(Asy::TypeInfo const& baseType);
+ty* processArrayTypesInfoToTy(Asy::ArrayTypeMetadata const& baseType);
 
 
 types::function*
 createFunctionTypeFromMetadata(Asy::FunctionTypePtrRetMetadata const& fnTypeInfo);
 types::formal asyArgInfoToFormal(Asy::FnArgMetadata const& argInfo);
+
+ty* getArrayTypeFromBaseType(ty* baseType, size_t const& dimension);
 
 }// namespace camp

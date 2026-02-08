@@ -406,16 +406,16 @@ public:
 namespace Asy
 {
 
+struct TypeInfo;
+struct FnArgMetadata;
+
 struct ArrayTypeMetadata {
   /** The type of the item that the array is storing. Cannot be ArrayType */
-  BaseTypes typeOfItem;
+  TypeInfo* typeOfItem;
 
   /** Dimensions of the array. Can be 1, 2, or 3. */
   size_t dimension;
 };
-
-struct TypeInfo;
-struct FnArgMetadata;
 
 /**
  * Struct to hold data about a function type. Unlike
