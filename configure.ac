@@ -447,7 +447,7 @@ else  # managed by the system
    CHECK_LIB_STATIC(tinfo,tinfo,tgetent,HAVE_LIBTINFO,AC_MSG_NOTICE([perhaps tgetent is in -lncurses]))
 
    PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,ncurses)
-   AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
+   AC_CHECK_HEADERS([ncursesw/curses.h ncurses/curses.h ncurses.h curses.h],[break])
    CHECK_LIB_STATIC(ncurses,ncurses,setupterm,HAVE_LIBCURSES,
                      AC_CHECK_LIB(curses,setupterm))
 fi
