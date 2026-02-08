@@ -111,7 +111,7 @@ public:
   AsyFfiRegistererImpl(string const& dynlibName);
   void registerFunction(
           char const* name, TAsyForeignFunction fn,
-          AsyFunctionTypeMetadata const& fnTypeInfo
+          Asy::FunctionTypeMetadata const& fnTypeInfo
   ) override;
 
   /**
@@ -132,12 +132,12 @@ private:
   types::dummyRecord* recordVar= nullptr;
 };
 
-ty* asyTypesEnumToTy(AsyTypeInfo const& asyType);
-ty* processArrayTypesInfoToTy(AsyTypeInfo const& baseType);
+ty* asyTypesEnumToTy(Asy::TypeInfo const& asyType);
+ty* processArrayTypesInfoToTy(Asy::TypeInfo const& baseType);
 
 
 types::function*
-createFunctionTypeFromMetadata(AsyFunctionTypePtrRetMetadata const& fnTypeInfo);
-types::formal asyArgInfoToFormal(AsyFnArgMetadata const& argInfo);
+createFunctionTypeFromMetadata(Asy::FunctionTypePtrRetMetadata const& fnTypeInfo);
+types::formal asyArgInfoToFormal(Asy::FnArgMetadata const& argInfo);
 
 }// namespace camp

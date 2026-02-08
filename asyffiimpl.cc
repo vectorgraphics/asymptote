@@ -16,6 +16,8 @@
 namespace camp
 {
 
+using Asy::BaseTypes;
+
 AsyArgsImpl::AsyArgsImpl(size_t const& argSize) : argsStorage(argSize) {}
 void AsyArgsImpl::setArgNum(size_t const& argNum, vm::item const& arg)
 {
@@ -164,10 +166,10 @@ AsyFfiRegistererImpl::AsyFfiRegistererImpl(string const& dynlibName)
 
 void AsyFfiRegistererImpl::registerFunction(
         char const* name, TAsyForeignFunction fn,
-        AsyFunctionTypeMetadata const& fnTypeInfo
+        Asy::FunctionTypeMetadata const& fnTypeInfo
 )
 {
-  AsyFunctionTypePtrRetMetadata const fnMetadataPtr= {
+  Asy::FunctionTypePtrRetMetadata const fnMetadataPtr= {
           &(fnTypeInfo.returnType), fnTypeInfo.numArgs, fnTypeInfo.argInfoPtr
   };
 
@@ -177,7 +179,7 @@ void AsyFfiRegistererImpl::registerFunction(
 record* AsyFfiRegistererImpl::getRecord() const { return recordVar; }
 
 types::function*
-createFunctionTypeFromMetadata(AsyFunctionTypePtrRetMetadata const& fnTypeInfo)
+createFunctionTypeFromMetadata(Asy::FunctionTypePtrRetMetadata const& fnTypeInfo)
 {
   auto* functionSig=
           new types::function(asyTypesEnumToTy(*(fnTypeInfo.returnType)));
@@ -188,11 +190,11 @@ createFunctionTypeFromMetadata(AsyFunctionTypePtrRetMetadata const& fnTypeInfo)
   return functionSig;
 }
 
-ty* asyTypesEnumToTy(AsyTypeInfo const& asyType)
+ty* asyTypesEnumToTy(Asy::TypeInfo const& asyType)
 {
   switch (asyType.baseType) {
 #define PRIMITIVE(name, Name, asyName)                                         \
-  case AsyBaseTypes::Name:                                                     \
+  case BaseTypes::Name:                                                     \
     return types::prim##Name();
 #define EXCLUDE_POTENTIALLY_CONFLICTING_NAME_TYPE
 #define PRIMITIVES_MACRO_ONLY
@@ -203,13 +205,13 @@ ty* asyTypesEnumToTy(AsyTypeInfo const& asyType)
 #undef EXCLUDE_POTENTIALLY_CONFLICTING_NAME_TYPE
 #undef PRIMITIVES_MACRO_ONLY
 #undef PRIMITIVE
-    case Integer:// handle integer case separately
+    case BaseTypes::Integer:// handle integer case separately
       return types::primInt();
-    case Str:
+    case BaseTypes::Str:
       return types::primString();
-    case ArrayType:
+    case BaseTypes::ArrayType:
       return processArrayTypesInfoToTy(asyType);
-    case FunctionType:
+    case BaseTypes::FunctionType:
       return createFunctionTypeFromMetadata(asyType.extraData.functionTypeInfo);
     default:
       reportError("Invalid argument type");
@@ -217,7 +219,7 @@ ty* asyTypesEnumToTy(AsyTypeInfo const& asyType)
   }
 }
 
-ty* processArrayTypesInfoToTy(AsyTypeInfo const& asyType)
+ty* processArrayTypesInfoToTy(Asy::TypeInfo const& asyType)
 {
   auto const& typeInfo= asyType.extraData.arrayTypeInfo;
   ty* ret= nullptr;
@@ -230,7 +232,7 @@ ty* processArrayTypesInfoToTy(AsyTypeInfo const& asyType)
 // For each type, enter another switch statement to return the correct
 // type function based on the dimensions.
 #define PRIMITIVE(name, Name, asyName)                                         \
-  case AsyBaseTypes::Name:                                                     \
+  case BaseTypes::Name:                                                     \
     switch (typeInfo.dimension) {                                              \
       case 1:                                                                  \
         ret= types::name##Array();                                             \
@@ -262,7 +264,7 @@ ty* processArrayTypesInfoToTy(AsyTypeInfo const& asyType)
   return ret;
 }
 
-types::formal asyArgInfoToFormal(AsyFnArgMetadata const& argInfo)
+types::formal asyArgInfoToFormal(Asy::FnArgMetadata const& argInfo)
 {
   ty* parsedArgType= asyTypesEnumToTy(argInfo.type);
   return {parsedArgType, symbol::literalTrans(argInfo.name), argInfo.optional,

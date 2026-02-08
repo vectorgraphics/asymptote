@@ -290,8 +290,11 @@ public:
 
 // question: will we ever exceed 256 primitive types?
 
+namespace Asy
+{
+
 /** Types of Asymptote */
-enum AsyBaseTypes : uint8_t
+enum BaseTypes : uint8_t
 {
   /** Corresponds to void.
    * If used as function return type, will not return any value */
@@ -351,8 +354,8 @@ enum AsyBaseTypes : uint8_t
   Code,
 
   /**
-   * Corresponds to array. If this type is specified in {@link AsyTypeInfo},
-   * {@link AsyTypeInfo.arrayTypeInfo} must be specified
+   * Corresponds to array. If this type is specified in {@link Asy::TypeInfo},
+   * {@link Asy::TypeInfo.arrayTypeInfo} must be specified
    */
   ArrayType,
 
@@ -361,11 +364,13 @@ enum AsyBaseTypes : uint8_t
 
   /**
    * Corresponds to Asympote function type. If this type is specified in
-   * {@link AsyTypeInfo}, {@link AsyTypeInfo.functionTypeInfo} must be filled
-   * with appropriate information
+   * {@link Asy::TypeInfo}, {@link Asy::TypeInfo.functionTypeInfo} must be
+   * filled with appropriate information
    */
   FunctionType,
 };
+
+}// namespace Asy
 
 class IAsyTensionSpecifier
 {
@@ -398,29 +403,31 @@ public:
   virtual uint8_t getSideAsInt() const= 0;
 };
 
+namespace Asy
+{
 
-struct AsyArrayTypeMetadata {
+struct ArrayTypeMetadata {
   /** The type of the item that the array is storing. Cannot be ArrayType */
-  AsyBaseTypes typeOfItem;
+  BaseTypes typeOfItem;
 
   /** Dimensions of the array. Can be 1, 2, or 3. */
   size_t dimension;
 };
 
-struct AsyTypeInfo;
-struct AsyFnArgMetadata;
+struct TypeInfo;
+struct FnArgMetadata;
 
 /**
  * Struct to hold data about a function type. Unlike
- * {@link AsyFunctionTypeMetadata} AsyTypeInfo must be a pointer to an
+ * {@link Asy::FunctionTypeMetadata} AsyTypeInfo must be a pointer to an
  * existing AsyTypeInfo object. This is because the former struct has
- * a dependency on {@link AsyTypeInfo}, however AsyTypeInfo has a dependency
+ * a dependency on {@link Asy::TypeInfo}, however AsyTypeInfo has a dependency
  * on this struct
  */
-struct AsyFunctionTypePtrRetMetadata {
+struct FunctionTypePtrRetMetadata {
 
   /** Pointer to a return type object for a function */
-  AsyTypeInfo const* returnType;
+  TypeInfo const* returnType;
 
   /** Number of arguments */
   size_t numArgs;
@@ -429,49 +436,51 @@ struct AsyFunctionTypePtrRetMetadata {
    * Pointer to an AsyFnArgMetadata array which stores information about
    * each argument
    */
-  AsyFnArgMetadata const* argInfoPtr;
+  FnArgMetadata const* argInfoPtr;
 };
 
-struct AsyTypeInfo {
-  AsyBaseTypes baseType;
+struct TypeInfo {
+  BaseTypes baseType;
 
   /**
    * Pointer to additional data. For most types, this value is not used.
-   * For {@link AsyBaseTypes::ArrayType}, extraData must point to a struct of
-   * {@link AsyArrayTypeMetadata} in arrayTypeInfo.
+   * For {@link Asy::BaseTypes::ArrayType}, extraData must point to a struct of
+   * {@link Asy::ArrayTypeMetadata} in arrayTypeInfo.
    */
   union
   {
     /** This is required for arrays. */
-    AsyArrayTypeMetadata arrayTypeInfo;
+    ArrayTypeMetadata arrayTypeInfo;
 
-    AsyFunctionTypePtrRetMetadata functionTypeInfo;
+    FunctionTypePtrRetMetadata functionTypeInfo;
   } extraData;
 };
 
 /**
- * This struct is like {@link AsyFunctionTypePtrRetMetadata} however
+ * This struct is like {@link Asy::FunctionTypePtrRetMetadata} however
  * returnType is not a pointer.
  */
-struct AsyFunctionTypeMetadata {
+struct FunctionTypeMetadata {
 
   /** Return type of the function */
-  AsyTypeInfo returnType;
+  TypeInfo returnType;
 
   /** Number of arguments */
   size_t numArgs;
 
   /** Pointer to an array about each argument's type information */
-  AsyFnArgMetadata const* argInfoPtr;
+  FnArgMetadata const* argInfoPtr;
 };
 
 
-struct AsyFnArgMetadata {
-  AsyTypeInfo type;
+struct FnArgMetadata {
+  TypeInfo type;
   char const* name;
   bool optional;
   bool explicitArgs;
 };
+
+}// namespace Asy
 
 /**
  * Setter/Getter interface for Pair and Triple types and other types
@@ -562,7 +571,7 @@ public:
 
   virtual void registerFunction(
           char const* name, TAsyForeignFunction fn,
-          AsyFunctionTypeMetadata const& fnTypeInfo
+          Asy::FunctionTypeMetadata const& fnTypeInfo
   )= 0;
 };
 
