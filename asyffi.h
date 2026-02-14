@@ -467,7 +467,7 @@ public:
 class IAsyBbox
 {
 public:
-  virtual ~IAsyBbox();
+  virtual ~IAsyBbox()= default;
 
   [[nodiscard]]
   virtual double getLeft() const= 0;
