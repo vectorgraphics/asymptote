@@ -444,6 +444,26 @@ public:
   virtual size_t getNodesCount() const= 0;
 };
 
+/** Interface representing guides */
+class IAsyGuide
+{
+public:
+  virtual ~IAsyGuide()= default;
+
+  /**
+   * Returns a created path that represents the guide. Path is allocated
+   * using the garbage collector.
+   */
+  virtual IAsyPath* solveGuide()= 0;
+
+  /** Whether the path is cyclic */
+  [[nodiscard]]
+  virtual bool isCyclic()= 0;
+
+  [[nodiscard]]
+  virtual uint8_t getLocation() const= 0;
+};
+
 class IAsyBbox
 {
 public:
