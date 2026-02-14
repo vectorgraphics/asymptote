@@ -413,7 +413,7 @@ struct ArrayTypeMetadata {
   /** The type of the item that the array is storing. Cannot be ArrayType */
   TypeInfo* typeOfItem;
 
-  /** Dimensions of the array. Can be 1, 2, or 3. */
+  /** Dimensions of the array. Must be greater than zero. */
   size_t dimension;
 };
 
@@ -439,7 +439,11 @@ struct FunctionTypePtrRetMetadata {
   FnArgMetadata const* argInfoPtr;
 };
 
+/**
+ * Information about a particular asymptote type.
+ */
 struct TypeInfo {
+  /** Base type information */
   BaseTypes baseType;
 
   /**
@@ -452,6 +456,7 @@ struct TypeInfo {
     /** This is required for arrays. */
     ArrayTypeMetadata arrayTypeInfo;
 
+    /** This is required for function types */
     FunctionTypePtrRetMetadata functionTypeInfo;
   } extraData;
 };
@@ -472,11 +477,20 @@ struct FunctionTypeMetadata {
   FnArgMetadata const* argInfoPtr;
 };
 
-
+/**
+ * Information about each argument for an asymptote external function
+ */
 struct FnArgMetadata {
+  /** Argument type */
   TypeInfo type;
+
+  /** Argument name */
   char const* name;
+
+  /** Whether the argument is optional */
   bool optional;
+
+  /** Whether the argument needs to be specified explicitly. */
   bool explicitArgs;
 };
 
