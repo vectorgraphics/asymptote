@@ -403,6 +403,68 @@ public:
   virtual uint8_t getSideAsInt() const= 0;
 };
 
+class IAsySolvedKnot
+{
+public:
+  virtual ~IAsySolvedKnot()= default;
+
+  [[nodiscard]]
+  virtual IAsyTuple const* getPre() const= 0;
+
+  [[nodiscard]]
+  virtual IAsyTuple const* getPoint() const= 0;
+
+  [[nodiscard]]
+  virtual IAsyTuple const* getPost() const= 0;
+
+  [[nodiscard]]
+  virtual bool isStraight() const= 0;
+};
+
+class IAsyPath
+{
+public:
+  virtual ~IAsyPath()= default;
+
+  [[nodiscard]]
+  virtual bool isCyclic() const= 0;
+
+  [[nodiscard]]
+  virtual double getCachedLength() const= 0;
+
+  /** Gets the nth solved knot.
+   * @remark The pointer returned here may not be stable, which means
+   * after certain operations, this pointer may no longer point to a valid
+   * object
+   */
+  [[nodiscard]]
+  virtual IAsySolvedKnot const* getNodeAt(size_t index) const= 0;
+
+  [[nodiscard]]
+  virtual size_t getNodesCount() const= 0;
+};
+
+class IAsyBbox
+{
+public:
+  virtual ~IAsyBbox();
+
+  [[nodiscard]]
+  virtual double getLeft() const= 0;
+
+  [[nodiscard]]
+  virtual double getRight() const= 0;
+
+  [[nodiscard]]
+  virtual double getTop() const= 0;
+
+  [[nodiscard]]
+  virtual double getBottom() const= 0;
+
+  [[nodiscard]]
+  virtual bool isEmpty() const= 0;
+};
+
 namespace Asy
 {
 
