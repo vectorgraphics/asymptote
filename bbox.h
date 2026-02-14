@@ -26,7 +26,7 @@ inline T max(T a, T b)
 }
 
 // The box that encloses a path
-struct bbox {
+struct bbox : public IAsyBbox {
   bool empty;
   double left;
   double bottom;
@@ -53,6 +53,34 @@ struct bbox {
 
   bool nonempty() const {
     return !empty;
+  }
+
+  [[nodiscard]]
+  double getLeft() const override
+  {
+    return left;
+  }
+
+  [[nodiscard]]
+  double getRight() const override
+  {
+    return right;
+  }
+
+  [[nodiscard]]
+  double getTop() const override
+  {
+    return top;
+  }
+  [[nodiscard]]
+  double getBottom() const override
+  {
+    return bottom;
+  }
+  [[nodiscard]]
+  bool isEmpty() const override
+  {
+    return empty;
   }
 
   // Add a point to a bbox
