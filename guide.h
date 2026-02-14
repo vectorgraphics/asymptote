@@ -16,10 +16,9 @@
 namespace camp {
 
 // Abstract base class for guides.
-class guide : public gc {
-protected:
+class guide : public gc, public IAsyGuide {
 public:
-  virtual ~guide() {}
+  ~guide() override {}
 
   // Returns the path that the guide represents.
   virtual path solve() {
@@ -40,6 +39,19 @@ public:
   // Needed so that multiguide can know where to put in ".." symbols.
   virtual side printLocation() const {
     return END;
+  }
+
+  IAsyPath* solveGuide() override {
+    return new path(solve());
+  }
+
+  [[nodiscard]]
+  bool isCyclic() override {
+    return cyclic();
+  }
+
+  uint8_t getLocation() const override {
+    return printLocation();
   }
 
 };
