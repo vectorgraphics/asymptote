@@ -55,12 +55,21 @@ inline Int adjustedIndex(Int i, Int n, bool cycles)
 }
 
 // Used in the storage of solved path knots.
-struct solvedKnot : public gc {
+struct solvedKnot : public gc, public IAsySolvedKnot {
   pair pre;
   pair point;
   pair post;
   bool straight;
   solvedKnot() : straight(false) {}
+
+  [[nodiscard]]
+  IAsyTuple const* getPre() const override;
+  [[nodiscard]]
+  IAsyTuple const* getPoint() const override;
+  [[nodiscard]]
+  IAsyTuple const* getPost() const override;
+  [[nodiscard]]
+  bool isStraight() const override;
 
   friend bool operator== (const solvedKnot& p, const solvedKnot& q)
   {
@@ -75,7 +84,7 @@ extern const double sqrtFuzz;
 extern const double BigFuzz;
 extern const double fuzzFactor;
 
-class path : public gc {
+class path : public gc, public IAsyPath {
   bool cycles;  // If the path is closed in a loop
 
   Int n; // The number of knots
@@ -89,6 +98,17 @@ class path : public gc {
 public:
   path()
     : cycles(false), n(0), nodes(), cached_length(-1) {}
+
+  [[nodiscard]]
+  bool isCyclic() const override;
+  [[nodiscard]]
+  double getCachedLength() const override;
+
+  [[nodiscard]]
+  const IAsySolvedKnot* getNodeAt(size_t index) const override;
+
+  [[nodiscard]]
+  size_t getNodesCount() const override;
 
   // Create a path of a single point
   path(pair z, bool = false)

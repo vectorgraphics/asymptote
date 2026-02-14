@@ -19,10 +19,12 @@
 namespace camp {
 
 const double Fuzz2=1000.0*DBL_EPSILON;
+
 const double Fuzz=sqrt(Fuzz2);
 const double Fuzz4=Fuzz2*Fuzz2;
 const double BigFuzz=10.0*Fuzz2;
 const double fuzzFactor=100.0;
+
 
 const double third=1.0/3.0;
 
@@ -396,6 +398,23 @@ inline void splitCubic(solvedKnot sn[], double t, const solvedKnot& left_,
     mid.post=split(t,x,right.pre); // m4
     mid.point=split(t,mid.pre,mid.post); // m5
   }
+}
+
+bool path::isCyclic() const
+{
+  return cycles;
+}
+double path::getCachedLength() const
+{
+  return cached_length;
+}
+IAsySolvedKnot const* path::getNodeAt(size_t index) const
+{
+  return nodes.data() + index;
+}
+size_t path::getNodesCount() const
+{
+  return nodes.size();
 }
 
 path path::subpath(double a, double b) const
@@ -1289,6 +1308,23 @@ path path::transformed(const transform& t) const
 
   path p(nodes, n, cyclic());
   return p;
+}
+
+IAsyTuple const* solvedKnot::getPre() const
+{
+  return &pre;
+}
+IAsyTuple const* solvedKnot::getPoint() const
+{
+  return &point;
+}
+IAsyTuple const* solvedKnot::getPost() const
+{
+  return &post;
+}
+bool solvedKnot::isStraight() const
+{
+  return straight;
 }
 
 path transformed(const transform& t, const path& p)
