@@ -606,7 +606,7 @@ public:
    * @return Object to the built-in function, or null if such built-in cannot be
    * found.
    */
-  virtual IAsyCallable* getFunction(
+  virtual IAsyCallable* getBuiltin(
           char const* module, char const* fnName, Asy::TypeInfo typeInfo
   )= 0;
 };

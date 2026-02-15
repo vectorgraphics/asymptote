@@ -175,9 +175,24 @@ void AsyStackContextImpl::callReturningToExistingItem(
   }
   *retItemCasted= stack->pop();
 }
-IAsyCallable* AsyStackContextImpl::getFunction(
+
+IAsyCallable* AsyStackContextImpl::getBuiltin(
         char const* module, const char* fnName, Asy::TypeInfo const typeInfo
 )
+{
+  auto* entryLoc= getVariableAccess(module, fnName, typeInfo);
+
+  if (auto const* builtinFnAccess=
+              dynamic_cast<trans::bltinAccess*>(entryLoc)) {
+    return new vm::bfunc(builtinFnAccess->getFunction());
+  }
+
+  return nullptr;
+}
+
+trans::access* AsyStackContextImpl::getVariableAccess(
+        char const* module, char const* fnName, Asy::TypeInfo const& typeInfo
+) const
 {
   auto& env= stack->getEnvironment()->e;
   auto* tyData= asyTypesEnumToTy(typeInfo);
@@ -201,17 +216,7 @@ IAsyCallable* AsyStackContextImpl::getFunction(
     return nullptr;
   }
 
-  auto* entryLoc= entry->getLocation();
-
-  if (auto const* builtinFnAccess=
-              dynamic_cast<trans::bltinAccess*>(entryLoc)) {
-    return new vm::bfunc(builtinFnAccess->getFunction());
-  } else if (auto const* fnAccess=
-                     dynamic_cast<trans::callableAccess*>(entryLoc)) {
-    return fnAccess->getFunction();
-  }
-
-  return nullptr;
+  return entry->getLocation();
 }
 
 AsyFfiRegistererImpl::AsyFfiRegistererImpl(string const& dynlibName)

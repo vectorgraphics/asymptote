@@ -106,10 +106,14 @@ public:
           IAsyItem* returnItem
   ) override;
 
-  IAsyCallable*
-  getFunction(
+  IAsyCallable* getBuiltin(
           char const* module, const char* fnName, Asy::TypeInfo typeInfo
   ) override;
+
+protected:
+  trans::access* getVariableAccess(
+          char const* module, char const* fnName, Asy::TypeInfo const& typeInfo
+  ) const;
 
 private:
   vm::stack* stack;
@@ -146,8 +150,9 @@ ty* asyTypesEnumToTy(Asy::TypeInfo const& asyType);
 ty* processArrayTypesInfoToTy(Asy::ArrayTypeMetadata const& arrayInfo);
 
 
-types::function*
-createFunctionTypeFromMetadata(Asy::FunctionTypePtrRetMetadata const& fnTypeInfo);
+types::function* createFunctionTypeFromMetadata(
+        Asy::FunctionTypePtrRetMetadata const& fnTypeInfo
+);
 types::formal asyArgInfoToFormal(Asy::FnArgMetadata const& argInfo);
 
 ty* getArrayTypeFromBaseType(ty* baseType, size_t const& dimension);
