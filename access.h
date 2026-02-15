@@ -71,6 +71,9 @@ class bltinAccess : public access {
 public:
   bltinAccess(vm::bltin f)
     : f(f) {}
+  
+  [[nodiscard]]
+  vm::bltin getFunction() const;
 
   void encode(action act, position pos, coder &e);
   void encode(action act, position pos, coder &e, frame *);
@@ -83,6 +86,9 @@ class callableAccess : public access {
 public:
   callableAccess(vm::callable *f)
     : f(f) {}
+  
+  [[nodiscard]]
+  vm::callable* getFunction() const;
 
   void encode(action act, position pos, coder &e);
   void encode(action act, position pos, coder &e, frame *);

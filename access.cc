@@ -36,6 +36,10 @@ static void bltinError(position pos)
   em << "built-in functions cannot be modified";
 }
 
+bltin bltinAccess::getFunction() const
+{
+  return f;
+}
 void bltinAccess::encode(action act, position pos, coder &e)
 {
   switch (act) {
@@ -57,6 +61,10 @@ void bltinAccess::encode(action act, position pos, coder &e, frame *)
   encode(act, pos, e);
 }
 
+vm::callable* callableAccess::getFunction() const
+{
+  return f;
+}
 /* callableAccess */
 void callableAccess::encode(action act, position pos, coder &e)
 {
