@@ -250,6 +250,9 @@ public:
 
   /** Creates a new cycle token */
   virtual TAsyFfiCycleToken createCycleToken()= 0;
+  
+  /** Gets a specified asymptote setting */
+  virtual IAsyItem* getSetting(char const* name)= 0;
 };
 
 // question: will we ever exceed 256 primitive types?

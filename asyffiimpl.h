@@ -76,6 +76,8 @@ public:
 
   TAsyFfiCycleToken createCycleToken() override;
 
+  IAsyItem* getSetting(char const* name) override;
+
 protected:
   template<typename TImpl, typename TInterface, typename... TCreationArgs>
   static TInterface* createNewItemGeneric(TCreationArgs&&... args)

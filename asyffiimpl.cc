@@ -131,6 +131,11 @@ IAsyCurlSpecifier* AsyContextImpl::createCurlSpecifier(double value, uint8_t s)
 }
 TAsyFfiCycleToken AsyContextImpl::createCycleToken() { return new cycleToken; }
 
+IAsyItem* AsyContextImpl::getSetting(char const* name)
+{
+  return &settings::Setting(string(name));
+}
+
 AsyStackContextImpl::AsyStackContextImpl(vm::stack* inStack) : stack(inStack) {}
 void AsyStackContextImpl::callVoid(
         IAsyCallable* callable, size_t const numArgs, IAsyItem const** ptrArgs
