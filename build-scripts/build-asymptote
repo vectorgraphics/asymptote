@@ -40,6 +40,7 @@ rm base/webgl/asygl-*.js
 make -j1 all
 make -j1 install
 strip asy
+rm -rf webgl/node_modules
 make DESTDIR="$BUILD/" latexdir=$LATEXDIR install
 rm $BUILD/$BINDIR/local/info/dir
 cp -a $BUILD/asymptote-$VERSION/ChangeLog .
