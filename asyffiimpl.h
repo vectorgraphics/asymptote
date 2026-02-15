@@ -101,6 +101,11 @@ public:
           IAsyItem* returnItem
   ) override;
 
+  IAsyCallable*
+  getFunction(
+          char const* module, const char* fnName, Asy::TypeInfo typeInfo
+  ) override;
+
 private:
   vm::stack* stack;
 };

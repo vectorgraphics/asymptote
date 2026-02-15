@@ -233,61 +233,6 @@ public:
   virtual TAsyFfiCycleToken createCycleToken()= 0;
 };
 
-
-/**
- * Context interface for any asy operations involving stack
- * (e.g., executing code in the current environment, changing variables, etc.)
- */
-class IAsyStackContext
-{
-public:
-  virtual ~IAsyStackContext()= default;
-
-  /**
-   * Calls an asymptote function. This does not pop any value out of stack
-   * after call
-   *
-   * @param callable Function to call
-   * @param numArgs number of arguments
-   * @param ptrArgs pointer to an array of IAsyItem pointers
-   */
-  virtual void
-  callVoid(IAsyCallable* callable, size_t numArgs, IAsyItem const** ptrArgs)= 0;
-
-  /**
-   * Calls an asymptote function and pops & returns the top-most item in the
-   * stack
-   *
-   * @param callable Function to call
-   * @param numArgs number of arguments
-   * @param ptrArgs pointer to an array of IAsyItem pointers
-   *
-   * @return Pointer to the popped item of the stack that is returned from the
-   * function.
-   *
-   * @remark Running this function on a void callable has undefined behaviour.
-   */
-  virtual IAsyItem* callReturning(
-          IAsyCallable* callable, size_t numArgs, IAsyItem const** ptrArgs
-  )= 0;
-
-  /**
-   * Calls an asymptote function and pops & returns the top-most item in the
-   * stack in an existing item
-   *
-   * @param callable Function to call
-   * @param numArgs number of arguments
-   * @param ptrArgs pointer to an array of IAsyItem pointers
-   * @param returnItem pointer to an item to store the returned object
-   *
-   * @remark Running this function on a void callable has undefined behaviour.
-   */
-  virtual void callReturningToExistingItem(
-          IAsyCallable* callable, size_t numArgs, IAsyItem const** ptrArgs,
-          IAsyItem* returnItem
-  )= 0;
-};
-
 // question: will we ever exceed 256 primitive types?
 
 namespace Asy
@@ -577,6 +522,75 @@ struct FnArgMetadata {
 };
 
 }// namespace Asy
+
+/**
+ * Context interface for any asy operations involving stack
+ * (e.g., executing code in the current environment, changing variables, etc.)
+ */
+class IAsyStackContext
+{
+public:
+  virtual ~IAsyStackContext()= default;
+
+  /**
+   * Calls an asymptote function. This does not pop any value out of stack
+   * after call
+   *
+   * @param callable Function to call
+   * @param numArgs number of arguments
+   * @param ptrArgs pointer to an array of IAsyItem pointers
+   */
+  virtual void
+  callVoid(IAsyCallable* callable, size_t numArgs, IAsyItem const** ptrArgs)= 0;
+
+  /**
+   * Calls an asymptote function and pops & returns the top-most item in the
+   * stack
+   *
+   * @param callable Function to call
+   * @param numArgs number of arguments
+   * @param ptrArgs pointer to an array of IAsyItem pointers
+   *
+   * @return Pointer to the popped item of the stack that is returned from the
+   * function.
+   *
+   * @remark Running this function on a void callable has undefined behaviour.
+   */
+  virtual IAsyItem* callReturning(
+          IAsyCallable* callable, size_t numArgs, IAsyItem const** ptrArgs
+  )= 0;
+
+  /**
+   * Calls an asymptote function and pops & returns the top-most item in the
+   * stack in an existing item
+   *
+   * @param callable Function to call
+   * @param numArgs number of arguments
+   * @param ptrArgs pointer to an array of IAsyItem pointers
+   * @param returnItem pointer to an item to store the returned object
+   *
+   * @remark Running this function on a void callable has undefined behaviour.
+   */
+  virtual void callReturningToExistingItem(
+          IAsyCallable* callable, size_t numArgs, IAsyItem const** ptrArgs,
+          IAsyItem* returnItem
+  )= 0;
+
+  /**
+   * Gets a function fnName, either from top-level or in a specified, if given.
+   *
+   * @param module If given, the function will be retrieved from this module,
+   * otherwise if this parameter is null, will get the function from top-level.
+   * @param fnName name of the function.
+   * @param typeInfo Type of the built-in function.
+   *
+   * @return Object to the built-in function, or null if such built-in cannot be
+   * found.
+   */
+  virtual IAsyCallable* getFunction(
+          char const* module, char const* fnName, Asy::TypeInfo typeInfo
+  )= 0;
+};
 
 /**
  * Setter/Getter interface for Pair and Triple types and other types

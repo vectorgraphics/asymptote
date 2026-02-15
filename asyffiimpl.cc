@@ -1,6 +1,7 @@
 #include "asyffiimpl.h"
 
 #include "absyn.h"
+#include "coenv.h"
 #include "common.h"
 #include "settings.h"
 #include "transform.h"
@@ -157,7 +158,44 @@ void AsyStackContextImpl::callReturningToExistingItem(
   }
   *retItemCasted= stack->pop();
 }
+IAsyCallable* AsyStackContextImpl::getFunction(
+        char const* module, const char* fnName, Asy::TypeInfo const typeInfo
+)
+{
+  auto& env = stack->getEnvironment()->e;
+  auto* tyData= asyTypesEnumToTy(typeInfo);
+  
+  auto const fnNameSym= symbol::trans(string(fnName));
+  
+  varEntry* entry= nullptr;
+  if (module != nullptr) {
+    record* moduleEntry= env.getLoadedModule(symbol::trans(string(module)));
+    if (!moduleEntry) {
+      // module not found
+      return nullptr;
+    }
+    
+    entry= moduleEntry->e.lookupVarByType(fnNameSym, tyData);
+  } else {
+    entry= env.lookupVarByType(fnNameSym, tyData);
+  }
+  
+  if (!entry) {
+    return nullptr;
+  }
+  
+  auto* entryLoc= entry->getLocation();
 
+  if (auto const* builtinFnAccess=
+              dynamic_cast<trans::bltinAccess*>(entryLoc)) {
+    return new vm::bfunc(builtinFnAccess->getFunction());
+  } else if (auto const* fnAccess=
+                     dynamic_cast<trans::callableAccess*>(entryLoc)) {
+    return fnAccess->getFunction();
+  }
+  
+  return nullptr;
+}
 
 AsyFfiRegistererImpl::AsyFfiRegistererImpl(string const& dynlibName)
     : libName(dynlibName), sym(symbol::literalTrans(dynlibName)),
