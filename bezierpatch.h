@@ -8,7 +8,7 @@
 #ifndef BEZIERPATCH_H
 #define BEZIERPATCH_H
 
-#include "drawelement.h"
+#include "bbox2.h"
 
 namespace camp {
 
@@ -16,23 +16,24 @@ namespace camp {
 
 struct BezierPatch
 {
-  vertexBuffer data;
+  VertexBuffer data;
+
   bool transparent;
   bool color;
   double epsilon;
   double Epsilon;
   double res2;
   double Res2; // Reduced resolution for Bezier triangles flatness test.
-  typedef GLuint (vertexBuffer::*vertexFunction)(const triple &v,
-                                                 const triple& n);
-  vertexFunction pvertex;
+  // typedef std::uint32_t (vertexBuffer::*vertexFunction)(const triple &v,
+  //                                                const triple& n);
+  // vertexFunction pvertex; // pointer to vertex function to use (transparent or not)
   bool Onscreen;
 
   BezierPatch() : transparent(false), color(false), Onscreen(true) {}
 
   void init(double res);
 
-  void init(double res, GLfloat *colors) {
+  void init(double res, float *colors) {
     transparent=false;
     color=colors;
     init(res);
@@ -91,18 +92,18 @@ struct BezierPatch
     // Check the horizontal flatness.
     double h=Flatness(p0,p12,p3,p15);
     // Check straightness of the horizontal edges and interior control curves.
-    h=max(h,Straightness(p0,p[4],p[8],p12));
-    h=max(h,Straightness(p[1],p[5],p[9],p[13]));
-    h=max(h,Straightness(p[2],p[6],p[10],p[14]));
-    h=max(h,Straightness(p3,p[7],p[11],p15));
+    h=std::max(h,Straightness(p0,p[4],p[8],p12));
+    h=std::max(h,Straightness(p[1],p[5],p[9],p[13]));
+    h=std::max(h,Straightness(p[2],p[6],p[10],p[14]));
+    h=std::max(h,Straightness(p3,p[7],p[11],p15));
 
     // Check the vertical flatness.
     double v=Flatness(p0,p3,p12,p15);
     // Check straightness of the vertical edges and interior control curves.
-    v=max(v,Straightness(p0,p[1],p[2],p3));
-    v=max(v,Straightness(p[4],p[5],p[6],p[7]));
-    v=max(v,Straightness(p[8],p[9],p[10],p[11]));
-    v=max(v,Straightness(p12,p[13],p[14],p15));
+    v=std::max(v,Straightness(p0,p[1],p[2],p3));
+    v=std::max(v,Straightness(p[4],p[5],p[6],p[7]));
+    v=std::max(v,Straightness(p[8],p[9],p[10],p[11]));
+    v=std::max(v,Straightness(p12,p[13],p[14],p15));
 
     return pair(h,v);
   }
@@ -129,38 +130,38 @@ struct BezierPatch
     return false;
   }
 
-  virtual void render(const triple *p, bool straight, GLfloat *c0=NULL);
+  virtual void render(const triple *p, bool straight, float *c0=NULL);
   void render(const triple *p,
-              GLuint I0, GLuint I1, GLuint I2, GLuint I3,
+              std::uint32_t I0, std::uint32_t I1, std::uint32_t I2, std::uint32_t I3,
               triple P0, triple P1, triple P2, triple P3,
               bool flat0, bool flat1, bool flat2, bool flat3,
-              GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL,
-              GLfloat *C3=NULL);
+              float *C0=NULL, float *C1=NULL, float *C2=NULL,
+              float *C3=NULL);
 
   void append() {
     if(transparent)
-      transparentData.Append(data);
+      transparentData.extendColor(data);
     else {
       if(color)
-        colorData.Append(data);
+        colorData.extendColor(data);
       else
-        materialData.append(data);
+        materialData.extendMaterial(data);
     }
   }
 
   virtual void notRendered() {
     if(transparent)
-      transparentData.rendered=false;
+      transparentData.renderCount=0;
     else {
       if(color)
-        colorData.rendered=false;
+        colorData.renderCount=0;
       else
-        materialData.rendered=false;
+        materialData.renderCount=0;
     }
   }
 
   void queue(const triple *g, bool straight, double ratio, bool Transparent,
-             GLfloat *colors=NULL) {
+             float *colors=NULL) {
     data.clear();
     Onscreen=true;
     transparent=Transparent;
@@ -185,19 +186,20 @@ public:
     double d=abs2((p0+p6+p9)*third-p[4]);
 
     // Determine how straight the edges are.
-    d=max(d,Straightness(p0,p[1],p[3],p6));
-    d=max(d,Straightness(p0,p[2],p[5],p9));
-    return max(d,Straightness(p6,p[7],p[8],p9));
+    d=std::max(d,Straightness(p0,p[1],p[3],p6));
+    d=std::max(d,Straightness(p0,p[2],p[5],p9));
+    return std::max(d,Straightness(p6,p[7],p[8],p9));
   }
 
-  void render(const triple *p, bool straight, GLfloat *c0=NULL);
+  void render(const triple *p, bool straight, float *c0=NULL);
   void render(const triple *p,
-              GLuint I0, GLuint I1, GLuint I2,
+              std::uint32_t I0, std::uint32_t I1, std::uint32_t I2,
               triple P0, triple P1, triple P2,
               bool flat0, bool flat1, bool flat2,
-              GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL);
+              float *C0=NULL, float *C1=NULL, float *C2=NULL);
 };
 
+// triangle groups (can mix vertex dependent and material index color)
 struct Triangles : public BezierPatch {
 public:
   Triangles() : BezierPatch() {}
@@ -209,21 +211,18 @@ public:
 
   void append() {
     if(transparent)
-      transparentData.Append(data);
+      transparentData.extendColor(data);
     else
-      triangleData.Append(data);
+      triangleData.extendColor(data);
   }
 
   void notRendered() {
     if(transparent)
-      transparentData.rendered=false;
+      transparentData.renderCount=0;
     else
-      triangleData.rendered=false;
+      triangleData.renderCount=0;
   }
-
 };
-
-extern void sortTriangles();
 
 #endif
 
