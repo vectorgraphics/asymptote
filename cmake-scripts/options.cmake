@@ -116,6 +116,12 @@ endif()
 
 option(OPTIMIZE_LINK_TIME "Enable link-time optimization. Enabled by default in release build types" ${default_lto})
 
+option(TARGET_X86_64_V3_OR_HIGHER
+    "Targets x86-64-v3 CPU architecture. Binaries will only work on systems with x86-64-v3 (e.g. AVX, AVX2) support (i.e Haswell/Excavator or newer CPUs).
+This option is inert if compiling for systems not x86 or x86-64."
+    true)
+
+
 # testing
 option(ENABLE_ASY_CXXTEST "Enable C++-side testing. This option is inert for final asy libraries and binaries" true)
 option(
