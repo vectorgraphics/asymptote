@@ -51,6 +51,11 @@ public:
   void updateAsyStringSized(
           void* asyStringPtr, const char* str, const size_t& size
   ) override;
+
+  size_t getStringLength(void* asyString) override;
+  void
+  copyString(void* asyString, char* destination, size_t bufferSize) override;
+
   IAsyArray* createNewArray(const size_t& initialSize) override;
 
   IAsyTransform* createNewTransform(

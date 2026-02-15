@@ -199,6 +199,25 @@ public:
   virtual void
   updateAsyStringSized(void* asyString, char const* str, size_t const& size)= 0;
 
+  /**
+   * Gets the length of the specified string (this length does not include
+   * the null terminator).
+   */
+  virtual size_t getStringLength(void* asyString)= 0;
+
+  /**
+   * Copies the string to a destination, including the null terminator of
+   * the string.
+   *
+   * @param asyString Opaque pointer to an asymptote string instance.
+   * @param destination Destination to copy to. It must point to a writable
+   * buffer of at least size bufferSize.
+   * @param bufferSize Size of the buffer to copy to. Make sure this number
+   * is at least the length of the string + 1 (for the null terminator).
+   */
+  virtual void
+  copyString(void* asyString, char* destination, size_t bufferSize)= 0;
+
   virtual IAsyArray* createNewArray(size_t const& initialSize)= 0;
 
   virtual IAsyTransform* createNewTransform(

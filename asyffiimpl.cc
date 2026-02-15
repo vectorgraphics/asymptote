@@ -11,6 +11,7 @@
 #include <array.h>
 #include <callable.h>
 
+#include <cstring>
 #include <guide.h>
 #include <stack.h>
 
@@ -75,6 +76,22 @@ void AsyContextImpl::updateAsyStringSized(
   auto* castedStr= static_cast<mem::string*>(asyStringPtr);
   castedStr->assign(str, size);
 }
+size_t AsyContextImpl::getStringLength(void* asyString)
+{
+  auto* castedStr= static_cast<mem::string*>(asyString);
+  return castedStr->length();
+}
+void AsyContextImpl::copyString(
+        void* asyString, char* destination, size_t bufferSize
+)
+{
+  auto* castedStr= static_cast<mem::string*>(asyString);
+  auto result= strcpy_s(destination, bufferSize, castedStr->c_str());
+  if (result != 0) {
+    reportError("Copy string failed.");
+  }
+}
+
 IAsyArray* AsyContextImpl::createNewArray(const size_t& initialSize)
 {
   return new vm::array(initialSize);
@@ -162,11 +179,11 @@ IAsyCallable* AsyStackContextImpl::getFunction(
         char const* module, const char* fnName, Asy::TypeInfo const typeInfo
 )
 {
-  auto& env = stack->getEnvironment()->e;
+  auto& env= stack->getEnvironment()->e;
   auto* tyData= asyTypesEnumToTy(typeInfo);
-  
+
   auto const fnNameSym= symbol::trans(string(fnName));
-  
+
   varEntry* entry= nullptr;
   if (module != nullptr) {
     record* moduleEntry= env.getLoadedModule(symbol::trans(string(module)));
@@ -174,16 +191,16 @@ IAsyCallable* AsyStackContextImpl::getFunction(
       // module not found
       return nullptr;
     }
-    
+
     entry= moduleEntry->e.lookupVarByType(fnNameSym, tyData);
   } else {
     entry= env.lookupVarByType(fnNameSym, tyData);
   }
-  
+
   if (!entry) {
     return nullptr;
   }
-  
+
   auto* entryLoc= entry->getLocation();
 
   if (auto const* builtinFnAccess=
@@ -193,7 +210,7 @@ IAsyCallable* AsyStackContextImpl::getFunction(
                      dynamic_cast<trans::callableAccess*>(entryLoc)) {
     return fnAccess->getFunction();
   }
-  
+
   return nullptr;
 }
 
@@ -216,8 +233,9 @@ void AsyFfiRegistererImpl::registerFunction(
 }
 record* AsyFfiRegistererImpl::getRecord() const { return recordVar; }
 
-types::function*
-createFunctionTypeFromMetadata(Asy::FunctionTypePtrRetMetadata const& fnTypeInfo)
+types::function* createFunctionTypeFromMetadata(
+        Asy::FunctionTypePtrRetMetadata const& fnTypeInfo
+)
 {
   auto* functionSig=
           new types::function(asyTypesEnumToTy(*(fnTypeInfo.returnType)));
@@ -232,7 +250,7 @@ ty* asyTypesEnumToTy(Asy::TypeInfo const& asyType)
 {
   switch (asyType.baseType) {
 #define PRIMITIVE(name, Name, asyName)                                         \
-  case BaseTypes::Name:                                                     \
+  case BaseTypes::Name:                                                        \
     return types::prim##Name();
 #define EXCLUDE_POTENTIALLY_CONFLICTING_NAME_TYPE
 #define PRIMITIVES_MACRO_ONLY
@@ -261,9 +279,10 @@ ty* processArrayTypesInfoToTy(Asy::ArrayTypeMetadata const& arrayInfo)
 {
   auto* tyInfoPtr= arrayInfo.typeOfItem;
   if (tyInfoPtr->baseType == BaseTypes::ArrayType) {
-    reportWarning("Array type should not contain an array type. "
-      "Instead, use higher dimensions to specify multidimensional arrays."
-      );
+    reportWarning(
+            "Array type should not contain an array type. "
+            "Instead, use higher dimensions to specify multidimensional arrays."
+    );
   }
 
   ty* baseType= asyTypesEnumToTy(*tyInfoPtr);
@@ -276,7 +295,7 @@ namespace
 // To avoid re-creating array types, we can use a cache.
 types::primTypeArrayCache arrayTypeCache;
 bool arrayTypecacheInitialized= false;
-}
+}// namespace
 
 ty* getArrayTypeFromBaseType(ty* baseType, size_t const& dimension)
 {
@@ -286,7 +305,6 @@ ty* getArrayTypeFromBaseType(ty* baseType, size_t const& dimension)
   }
 
   return types::getArrayType(baseType, dimension, &arrayTypeCache);
-
 }
 
 types::formal asyArgInfoToFormal(Asy::FnArgMetadata const& argInfo)
