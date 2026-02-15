@@ -138,7 +138,7 @@ private:
 };
 
 ty* asyTypesEnumToTy(Asy::TypeInfo const& asyType);
-ty* processArrayTypesInfoToTy(Asy::ArrayTypeMetadata const& baseType);
+ty* processArrayTypesInfoToTy(Asy::ArrayTypeMetadata const& arrayInfo);
 
 
 types::function*
