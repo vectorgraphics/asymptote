@@ -22,7 +22,7 @@ namespace camp {
 void checkEmpty3(Int n);
 
 // Used in the storage of solved path3 knots.
-struct solvedKnot3 : public gc {
+struct solvedKnot3 : public gc, public IAsySolvedKnot {
   triple pre;
   triple point;
   triple post;
@@ -33,6 +33,15 @@ struct solvedKnot3 : public gc {
   {
     return p.pre == q.pre && p.point == q.point && p.post == q.post;
   }
+
+  [[nodiscard]]
+  const IAsyTuple* getPre() const override;
+  [[nodiscard]]
+  const IAsyTuple* getPoint() const override;
+  [[nodiscard]]
+  const IAsyTuple* getPost() const override;
+  [[nodiscard]]
+  bool isStraight() const override;
 };
 
 class path3 : public gc {

@@ -24,6 +24,23 @@ void checkEmpty3(Int n) {
     reportError("nullpath3 has no points");
 }
 
+const IAsyTuple* solvedKnot3::getPre() const
+{
+  return &pre;
+}
+const IAsyTuple* solvedKnot3::getPoint() const
+{
+  return &point;
+}
+const IAsyTuple* solvedKnot3::getPost() const
+{
+  return &post;
+}
+bool solvedKnot3::isStraight() const
+{
+  return straight;
+}
+
 triple path3::point(double t) const
 {
   checkEmpty3(n);
