@@ -78,6 +78,15 @@ public:
 
   IAsyItem* getSetting(char const* name) override;
 
+  IAsyPath* createAsyPath(
+          int64_t n, bool cycles, size_t numSolvedKnots,
+          const IAsySolvedKnot* const* solvedKnotsPtr
+  ) override;
+  IAsyPath3* createAsyPath3(
+          int64_t n, bool cycles, size_t numSolvedKnots,
+          const IAsySolvedKnot* const* solvedKnotsPtr
+  ) override;
+
 protected:
   template<typename TImpl, typename TInterface, typename... TCreationArgs>
   static TInterface* createNewItemGeneric(TCreationArgs&&... args)

@@ -3,6 +3,7 @@
 #include "absyn.h"
 #include "coenv.h"
 #include "common.h"
+#include "path3.h"
 #include "settings.h"
 #include "transform.h"
 #include "util.h"
@@ -134,6 +135,58 @@ TAsyFfiCycleToken AsyContextImpl::createCycleToken() { return new cycleToken; }
 IAsyItem* AsyContextImpl::getSetting(char const* name)
 {
   return &settings::Setting(string(name));
+}
+IAsyPath* AsyContextImpl::createAsyPath(
+        int64_t n, bool cycles, size_t const numSolvedKnots,
+        const IAsySolvedKnot* const* solvedKnotsPtr
+)
+{
+  vector<solvedKnot> newSolvedKnots;
+  newSolvedKnots.reserve(numSolvedKnots);
+
+  for (size_t i= 0; i < numSolvedKnots; ++i) {
+    auto const* solvedKnotPtr= *(solvedKnotsPtr + i);
+    auto const* castedSolvedKnotPtr=
+            dynamic_cast<solvedKnot const*>(solvedKnotPtr);
+
+    if (!castedSolvedKnotPtr) {
+      reportError(
+              "Invalid IAsySolvedKnot pointer specified. The IAsySolvedKnot "
+              "must point to a solved knot of 2D type"
+      );
+      return nullptr;
+    }
+
+    newSolvedKnots.emplace_back(*castedSolvedKnotPtr);
+  }
+
+  return createNewItemGeneric<path, IAsyPath>(newSolvedKnots, n, cycles);
+}
+IAsyPath3* AsyContextImpl::createAsyPath3(
+        int64_t n, bool cycles, size_t const numSolvedKnots,
+        const IAsySolvedKnot* const* solvedKnotsPtr
+)
+{
+  vector<solvedKnot3> newSolvedKnots;
+  newSolvedKnots.reserve(numSolvedKnots);
+
+  for (size_t i= 0; i < numSolvedKnots; ++i) {
+    auto const* solvedKnotPtr= *(solvedKnotsPtr + i);
+    auto const* castedSolvedKnotPtr=
+            dynamic_cast<solvedKnot3 const*>(solvedKnotPtr);
+
+    if (!castedSolvedKnotPtr) {
+      reportError(
+              "Invalid IAsySolvedKnot pointer specified. The IAsySolvedKnot "
+              "must point to a solved knot of 3D type"
+      );
+      return nullptr;
+    }
+
+    newSolvedKnots.emplace_back(*castedSolvedKnotPtr);
+  }
+
+  return createNewItemGeneric<path3, IAsyPath3>(newSolvedKnots, n, cycles);
 }
 
 AsyStackContextImpl::AsyStackContextImpl(vm::stack* inStack) : stack(inStack) {}
