@@ -163,6 +163,10 @@ class IAsyTransform;
 class IAsyTensionSpecifier;
 class IAsyCurlSpecifier;
 
+class IAsyPath;
+class IAsySolvedKnot;
+class IAsyPath3;
+
 class IAsyContext
 {
 public:
@@ -253,6 +257,51 @@ public:
 
   /** Gets a specified asymptote setting */
   virtual IAsyItem* getSetting(char const* name)= 0;
+
+  // path functions
+
+  /**
+   * Creates a new 2D path.
+   *
+   * @param n number of knots
+   * @param cycles whether this path is cyclic
+   * @param numSolvedKnots number of solved knots to pass in
+   * @param solvedKnotsPtr pointer to an array of {@link IAsySolvedKnot*} to
+   * pass to path creation. Each solved knot must be of 2D type (having pairs as
+   * values instead of triples). This pointer must point
+   * to numSolvedKnots number of {@link IAsySolvedKnot*} pointers.
+   *
+   * @remark This object is created using Asymptote's built in allocator which
+   * means garbage collection will be handled automatically.
+   *
+   * @return pointer to the specified 2D IAsyPath
+   */
+  virtual IAsyPath* createAsyPath(
+          int64_t n, bool cycles, size_t numSolvedKnots,
+          IAsySolvedKnot const* const* solvedKnotsPtr
+  )= 0;
+
+  /**
+   * Creates a new 3D path
+   *
+   *
+   * @param n number of knots
+   * @param cycles whether this path is cyclic
+   * @param numSolvedKnots number of solved knots to pass in
+   * @param solvedKnotsPtr pointer to an array of {@link IAsySolvedKnot*} to
+   * pass to path creation. Each solved knot must be of 3D type (having triples
+   * as values instead of pairs). This pointer must point to
+   * numSolvedKnots number of {@link IAsySolvedKnot*} pointers.
+   *
+   * @remark This object is created using Asymptote's built in allocator which
+   * means garbage collection will be handled automatically.
+   *
+   * @return pointer to the specified 3D IAsyPath3.
+   */
+  virtual IAsyPath3* createAsyPath3(
+          int64_t n, bool cycles, size_t numSolvedKnots,
+          IAsySolvedKnot const* const* solvedKnotsPtr
+  )= 0;
 };
 
 // question: will we ever exceed 256 primitive types?
