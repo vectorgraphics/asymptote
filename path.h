@@ -110,6 +110,11 @@ public:
   [[nodiscard]]
   size_t getNodesCount() const override;
 
+  [[nodiscard]]
+  const IAsyBbox* getBox() const override;
+  [[nodiscard]]
+  const IAsyBbox* getTimes() const override;
+
   // Create a path of a single point
   path(pair z, bool = false)
     : cycles(false), n(1), nodes(1), cached_length(-1)

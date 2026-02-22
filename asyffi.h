@@ -388,6 +388,9 @@ public:
   virtual bool isStraight() const= 0;
 };
 
+class IAsyBbox;
+class IAsyBbox3;
+
 class IAsyPath
 {
 public:
@@ -409,6 +412,13 @@ public:
 
   [[nodiscard]]
   virtual size_t getNodesCount() const= 0;
+
+  [[nodiscard]]
+  virtual IAsyBbox const* getBox() const= 0;
+
+  /** Gets the times where minimum and maximum extents are attained. */
+  [[nodiscard]]
+  virtual IAsyBbox const* getTimes() const= 0;
 };
 
 /** Interface representing guides */

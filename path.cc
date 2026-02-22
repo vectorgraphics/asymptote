@@ -416,6 +416,14 @@ size_t path::getNodesCount() const
 {
   return nodes.size();
 }
+const IAsyBbox* path::getBox() const
+{
+  return &box;
+}
+const IAsyBbox* path::getTimes() const
+{
+  return &times;
+}
 
 path path::subpath(double a, double b) const
 {
