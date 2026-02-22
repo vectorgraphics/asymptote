@@ -44,7 +44,7 @@ struct solvedKnot3 : public gc, public IAsySolvedKnot {
   bool isStraight() const override;
 };
 
-class path3 : public gc {
+class path3 : public gc, public IAsyPath3 {
   bool cycles;  // If the path3 is closed in a loop
 
   Int n; // The number of knots
@@ -95,6 +95,19 @@ public:
     : cycles(p.cycles), n(p.n), nodes(p.nodes), cached_length(p.cached_length),
       box(p.box), times(p.times)
   {}
+
+  [[nodiscard]]
+  bool isCyclic() const override;
+  [[nodiscard]]
+  double getCachedLength() const override;
+  [[nodiscard]]
+  const IAsySolvedKnot* getNodeAt(size_t index) const override;
+  [[nodiscard]]
+  size_t getNodesCount() const override;
+  [[nodiscard]]
+  const IAsyBbox3* getBox() const override;
+  [[nodiscard]]
+  const IAsyBbox3* getTimes() const override;
 
   path3 unstraighten() const
   {

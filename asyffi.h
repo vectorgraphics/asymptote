@@ -421,6 +421,36 @@ public:
   virtual IAsyBbox const* getTimes() const= 0;
 };
 
+class IAsyPath3
+{
+public:
+  virtual ~IAsyPath3()= default;
+
+  [[nodiscard]]
+  virtual bool isCyclic() const= 0;
+
+  [[nodiscard]]
+  virtual double getCachedLength() const= 0;
+
+  /** Gets the nth solved knot.
+   * @remark The pointer returned here may not be stable, which means
+   * after certain operations, this pointer may no longer point to a valid
+   * object
+   */
+  [[nodiscard]]
+  virtual IAsySolvedKnot const* getNodeAt(size_t index) const= 0;
+
+  [[nodiscard]]
+  virtual size_t getNodesCount() const= 0;
+
+  [[nodiscard]]
+  virtual IAsyBbox3 const* getBox() const= 0;
+
+  /** Gets the times where minimum and maximum extents are attained. */
+  [[nodiscard]]
+  virtual IAsyBbox3 const* getTimes() const= 0;
+};
+
 /** Interface representing guides */
 class IAsyGuide
 {

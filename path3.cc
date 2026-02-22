@@ -40,6 +40,24 @@ bool solvedKnot3::isStraight() const
 {
   return straight;
 }
+bool path3::isCyclic() const
+{
+  return cycles;
+}
+double path3::getCachedLength() const
+{
+  return cached_length;
+}
+const IAsySolvedKnot* path3::getNodeAt(size_t const index) const
+{
+  return &nodes.at(index);
+}
+size_t path3::getNodesCount() const
+{
+  return nodes.size();
+}
+const IAsyBbox3* path3::getBox() const {}
+const IAsyBbox3* path3::getTimes() const {}
 
 triple path3::point(double t) const
 {
