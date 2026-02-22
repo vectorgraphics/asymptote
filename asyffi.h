@@ -250,7 +250,7 @@ public:
 
   /** Creates a new cycle token */
   virtual TAsyFfiCycleToken createCycleToken()= 0;
-  
+
   /** Gets a specified asymptote setting */
   virtual IAsyItem* getSetting(char const* name)= 0;
 };
@@ -452,6 +452,18 @@ public:
   virtual bool isEmpty() const= 0;
 };
 
+class IAsyBbox3 : public IAsyBbox
+{
+public:
+  ~IAsyBbox3() override= default;
+
+  [[nodiscard]]
+  virtual double getNear()= 0;
+
+  [[nodiscard]]
+  virtual double getFar()= 0;
+};
+
 namespace Asy
 {
 
@@ -609,9 +621,8 @@ public:
    * @return Object to the built-in function, or null if such built-in cannot be
    * found.
    */
-  virtual IAsyCallable* getBuiltin(
-          char const* module, char const* fnName, Asy::TypeInfo typeInfo
-  )= 0;
+  virtual IAsyCallable*
+  getBuiltin(char const* module, char const* fnName, Asy::TypeInfo typeInfo)= 0;
 };
 
 /**

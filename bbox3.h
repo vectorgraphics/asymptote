@@ -13,7 +13,7 @@
 namespace camp {
 
 // The box that encloses a path
-struct bbox3 {
+struct bbox3 : public IAsyBbox3 {
   bool empty;
   double leftBound;
   double bottomBound;
@@ -21,6 +21,43 @@ struct bbox3 {
   double rightBound;
   double topBound;
   double farBound;
+
+  [[nodiscard]]
+  double getLeft() const override
+  {
+    return leftBound;
+  }
+  
+  [[nodiscard]]
+  double getRight() const override
+  {
+    return rightBound;
+  }
+  [[nodiscard]]
+  double getTop() const override
+  {
+    return topBound;
+  }
+  [[nodiscard]]
+  double getBottom() const override
+  {
+    return bottomBound;
+  }
+  [[nodiscard]]
+  bool isEmpty() const override
+  {
+    return empty;
+  }
+  [[nodiscard]]
+  double getNear() override
+  {
+    return nearBound;
+  }
+  [[nodiscard]]
+  double getFar() override
+  {
+    return farBound;
+  }
 
   // Start bbox3 about the origin
   bbox3()
