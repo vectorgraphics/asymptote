@@ -87,6 +87,15 @@ public:
           const IAsySolvedKnot* const* solvedKnotsPtr
   ) override;
 
+  IAsySolvedKnot* createSolvedKnot2D(
+          const IAsyTuple* pre, const IAsyTuple* point, const IAsyTuple* post,
+          bool isStraight
+  ) override;
+  IAsySolvedKnot* createSolvedKnot3D(
+          const IAsyTuple* pre, const IAsyTuple* point, const IAsyTuple* post,
+          bool isStraight
+  ) override;
+
 protected:
   template<typename TImpl, typename TInterface, typename... TCreationArgs>
   static TInterface* createNewItemGeneric(TCreationArgs&&... args)

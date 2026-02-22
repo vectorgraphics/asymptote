@@ -188,6 +188,58 @@ IAsyPath3* AsyContextImpl::createAsyPath3(
 
   return createNewItemGeneric<path3, IAsyPath3>(newSolvedKnots, n, cycles);
 }
+IAsySolvedKnot* AsyContextImpl::createSolvedKnot2D(
+        const IAsyTuple* pre, const IAsyTuple* point, const IAsyTuple* post,
+        bool isStraight
+)
+{
+  auto const* preCasted= dynamic_cast<pair const*>(pre);
+  if (!preCasted) {
+    reportError("Invalid pre point specified");
+  }
+  auto const* pointCasted= dynamic_cast<pair const*>(point);
+  if (!pointCasted) {
+    reportError("Invalid main point specified");
+  }
+  auto const* postCasted= dynamic_cast<pair const*>(post);
+  if (!postCasted) {
+    reportError("Invalid post point specified");
+  }
+
+  auto* retSolvedKnot= new solvedKnot;
+  retSolvedKnot->pre= *preCasted;
+  retSolvedKnot->point= *pointCasted;
+  retSolvedKnot->post= *postCasted;
+  retSolvedKnot->straight= isStraight;
+
+  return retSolvedKnot;
+}
+IAsySolvedKnot* AsyContextImpl::createSolvedKnot3D(
+        const IAsyTuple* pre, const IAsyTuple* point, const IAsyTuple* post,
+        bool isStraight
+)
+{
+  auto const* preCasted= dynamic_cast<triple const*>(pre);
+  if (!preCasted) {
+    reportError("Invalid pre point specified");
+  }
+  auto const* pointCasted= dynamic_cast<triple const*>(point);
+  if (!pointCasted) {
+    reportError("Invalid main point specified");
+  }
+  auto const* postCasted= dynamic_cast<triple const*>(post);
+  if (!postCasted) {
+    reportError("Invalid post point specified");
+  }
+
+  auto* retSolvedKnot= new solvedKnot3;
+  retSolvedKnot->pre= *preCasted;
+  retSolvedKnot->point= *pointCasted;
+  retSolvedKnot->post= *postCasted;
+  retSolvedKnot->straight= isStraight;
+
+  return retSolvedKnot;
+}
 
 AsyStackContextImpl::AsyStackContextImpl(vm::stack* inStack) : stack(inStack) {}
 void AsyStackContextImpl::callVoid(
