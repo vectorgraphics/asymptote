@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.15)
+
 # This CMake script will delete build directories and files to bring the
 # package back to it's distribution state
 
@@ -47,10 +49,10 @@ FILE(GLOB TOPDIRECTORIES "${TOPDIR}/lib"
 FILE(GLOB_RECURSE LIB "${TOPDIR}/*.a")
 FILE(GLOB_RECURSE OBJ "${TOPDIR}/*.cpp.o")
 
-# CMake has trouble finding directories recursively, so locate these
-# files and then save the parent directory of the files
-GET_PARENT_DIRECTORIES(Makefile.cmake CMAKEFILES 0)
-GET_PARENT_DIRECTORIES(LastTest.log CMAKETESTING 1)
+# Delete CMakeFiles directories (specific to this project)
+FILE(GLOB CMAKEFILES "${TOPDIR}/CMakeFiles")
+FILE(GLOB CMAKEFILES_NESTED "${TOPDIR}/*/CMakeFiles")
+FILE(GLOB CMAKEFILES_NESTED_NESTED "${TOPDIR}/*/*/CMakeFiles")
 
 # Place these files and directories into a list
 SET(DEL ${TOPDIRECTORIES}
@@ -66,10 +68,13 @@ SET(DEL ${TOPDIRECTORIES}
         ${CMAKECACHE}
         ${CMAKEINSTALL}
         ${MAKEFILE}
-        ${CMAKEFILES}
-        ${CMAKETESTING}
         ${CMAKETESTFILES}
+        ${CMAKEFILES}
+        ${CMAKEFILES_NESTED}
+        ${CMAKEFILES_NESTED_NESTED}
 )
+
+
 
 # If we are not in the build dir, delete that as well
 IF(NOT (${BASEDIR} STREQUAL "build"))
