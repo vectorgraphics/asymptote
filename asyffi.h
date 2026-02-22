@@ -302,6 +302,40 @@ public:
           int64_t n, bool cycles, size_t numSolvedKnots,
           IAsySolvedKnot const* const* solvedKnotsPtr
   )= 0;
+
+  /**
+   * Creates a new 2D solved knot.
+   *
+   * @param pre pre pair point. This value must point to a pair.
+   * @param point the point. This value must point to a pair.
+   * @param post post pair point. This value must point to a pair.
+   * @param isStraight
+   *
+   * @remark This object is created using Asymptote's built in allocator which
+   * means garbage collection will be handled automatically.
+   * @return a new 2D solved knot.
+   */
+  virtual IAsySolvedKnot* createSolvedKnot2D(
+          IAsyTuple const* pre, IAsyTuple const* point, IAsyTuple const* post,
+          bool isStraight
+  )= 0;
+
+  /**
+   * Creates a new 3D solved knot.
+   *
+   * @param pre pre triple point. This value must point to a triple.
+   * @param point the point. This value must point to a triple.
+   * @param post post triple point. This value must point to a triple.
+   * @param isStraight
+   *
+   * @remark This object is created using Asymptote's built in allocator which
+   * means garbage collection will be handled automatically.
+   * @return a new 3D solved knot.
+   */
+  virtual IAsySolvedKnot* createSolvedKnot3D(
+          IAsyTuple const* pre, IAsyTuple const* point, IAsyTuple const* post,
+          bool isStraight
+  )= 0;
 };
 
 // question: will we ever exceed 256 primitive types?
