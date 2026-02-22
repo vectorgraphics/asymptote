@@ -56,8 +56,14 @@ size_t path3::getNodesCount() const
 {
   return nodes.size();
 }
-const IAsyBbox3* path3::getBox() const {}
-const IAsyBbox3* path3::getTimes() const {}
+const IAsyBbox3* path3::getBox() const
+{
+  return &box;
+}
+const IAsyBbox3* path3::getTimes() const
+{
+  return &times;
+}
 
 triple path3::point(double t) const
 {
