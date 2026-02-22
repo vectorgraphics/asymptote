@@ -776,8 +776,8 @@ class BezierPatch extends Geometry {
   constructor(protected controlpoints,
               protected CenterIndex, protected MaterialIndex,
               private Color = null,
-              protected geometryTransform = null,
-              protected colorTransform = null) {
+              protected geometryTransform = animatedGeometry(),
+              protected colorTransform = animatedColor()) {
     super();
     const n=controlpoints.length;
     if(Color) {
@@ -2062,7 +2062,7 @@ class quadraticroots {
 
 class BezierCurve extends Geometry {
   constructor(controlpoints,CenterIndex,MaterialIndex,Min = null,Max = null,
-              transform = null) {
+              transform = animatedGeometry()) {
     super();
     this.controlpoints=controlpoints;
     this.CenterIndex=CenterIndex;
@@ -2193,7 +2193,7 @@ class BezierCurve extends Geometry {
 
 class Pixel extends Geometry {
   constructor(private controlpoint,private width,protected MaterialIndex,
-              transform = null) {
+              transform = animatedGeometry()) {
     super();
     this.CenterIndex=0;
     this.Min=controlpoint;
@@ -3691,8 +3691,7 @@ function material(diffuse,emissive,specular,shininess,metallic,fresnel0)
 
 function patch(controlpoints,CenterIndex,MaterialIndex,color)
 {
-  P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color,
-                         animatedGeometry(),animatedColor()));
+  P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color));
 }
 
 function curve(controlpoints,CenterIndex,MaterialIndex)
