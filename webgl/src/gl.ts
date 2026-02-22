@@ -34,6 +34,7 @@ const asyRenderingCanvas = {
 
   ibl:false,
   webgl2:false,
+  autoplay: true,
 
   imageURL:"",
   image:"",
@@ -3028,12 +3029,18 @@ function handleKey(event)
   }
 
   if (keycode=="ArrowRight"&&playbackDirection!="forward") {
-    playbackDirection="forward";
+      document.asy.autoplay=false;
+      playbackDirection="forward";
       activeAnimation=true;
+      animationPaused=false;
+      lastTimestamp=null;
       requestAnimationFrame(animate);
    } else if (keycode=="ArrowLeft"&&playbackDirection!="backward") {
-    playbackDirection="backward";
+      document.asy.autoplay=false;
+      playbackDirection="backward";
       activeAnimation=true;
+      animationPaused=false;
+      lastTimestamp=null;
       requestAnimationFrame(animate);
   }
 
@@ -3046,6 +3053,7 @@ function handleKey(event)
 
 function stopAnimation(event) {
   activeAnimation=false;
+  playbackDirection=null;
 }
 
 function setZoom()
@@ -3550,6 +3558,8 @@ let playbackTime:number=0;
 let playbackSpeed:number=1;
 let lastTimestamp:number|null=null;
 let activeAnimation=false;
+let animationPaused=false;
+
 let position;
 let maxDurationInv;
 
@@ -3561,12 +3571,27 @@ function animate(timestamp:number) {
   const t=timestamp-lastTimestamp;
   lastTimestamp=timestamp;
 
+  if(playbackDirection==null && document.asy.autoplay)
+    playbackDirection="forward";
+
   if(playbackDirection=="forward") {
     playbackTime+=t*playbackSpeed;
+    if(playbackTime > maxDuration) {
+      playbackTime = maxDuration;
+      playbackDirection = null;
+      activeAnimation = false;
+      animationPaused = true;
+    }
   } else if(playbackDirection=="backward") {
-    playbackTime=max(0, playbackTime-t*playbackSpeed);
+    playbackTime=playbackTime-t*playbackSpeed;
+    if(playbackTime <= 0) {
+      playbackTime = 0;
+      playbackDirection = null;
+      activeAnimation = false;
+      animationPaused = true;
+    }
   }
-  if(slider) {
+  if(slider && !animationPaused && playbackDirection != null) {
     slider.value=(playbackTime*maxDurationInv).toString();
   }
 
@@ -3575,10 +3600,12 @@ function animate(timestamp:number) {
 
   drawScene();
 
-  if (activeAnimation) {
+  const continued=(document.asy.autoplay && playbackTime < maxDuration && !animationPaused) || activeAnimation;
+  if (continued) {
     requestAnimationFrame(animate);
   } else {
     lastTimestamp=null;
+    if(!activeAnimation) animationPaused=false;
   }
 }
 
@@ -3621,11 +3648,22 @@ function initSlider() {
   slider.oninput=() => {
     const value=parseFloat(slider.value);
     playbackTime=maxDuration*value;
-    requestAnimationFrame(animate);
+    document.asy.autoplay=false;
     playbackDirection=null;
+    animationPaused=true;
+    activeAnimation=false;
+    lastTimestamp=null;
+    requestAnimationFrame(animate);
   }
   slider.onchange=() => {
+    animationPaused=false;
     activeAnimation=false;
+    if(document.asy.autoplay && playbackTime < maxDuration) {
+      playbackDirection="forward";
+    } else {
+      playbackDirection=null;
+    }
+    lastTimestamp=null;
   }
 
   p.body.prepend(slider);
@@ -3637,6 +3675,7 @@ function deleteSlider() {
   playbackDirection=null;
   activeSlider=false;
   activeAnimation=false;
+  animationPaused=false;
 }
 
 function light(direction,color)

@@ -149,6 +149,7 @@ void jsfile::open(string name)
       << s << "ibl=" << std::boolalpha << ibl << ";"
       << newl
       << s << "absolute=" << std::boolalpha << getSetting<bool>("absolute") << ";"
+      << s << "autoplay=" << std::boolalpha << getSetting<bool>("autoplay") << ";"
       << newl;
   if(ibl) {
     out << s << "imageURL=\"" << getSetting<string>("imageURL")+"/\";" << newl;
