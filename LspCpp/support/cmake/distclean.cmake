@@ -49,10 +49,12 @@ FILE(GLOB TOPDIRECTORIES "${TOPDIR}/lib"
 FILE(GLOB_RECURSE LIB "${TOPDIR}/*.a")
 FILE(GLOB_RECURSE OBJ "${TOPDIR}/*.cpp.o")
 
-# Delete CMakeFiles directories (specific to this project)
+# Delete files and directories specific to this project
+FILE(GLOB JSON "compile_commands.json")
 FILE(GLOB CMAKEFILES "${TOPDIR}/CMakeFiles")
 FILE(GLOB CMAKEFILES_NESTED "${TOPDIR}/*/CMakeFiles")
-FILE(GLOB CMAKEFILES_NESTED_NESTED "${TOPDIR}/*/*/CMakeFiles")
+FILE(GLOB CMAKEFILES_NESTED2 "${TOPDIR}/*/*/CMakeFiles")
+FILE(GLOB CMAKEFILES_NESTED3 "${TOPDIR}/*/*/*/CMakeFiles")
 
 # Place these files and directories into a list
 SET(DEL ${TOPDIRECTORIES}
@@ -71,7 +73,9 @@ SET(DEL ${TOPDIRECTORIES}
         ${CMAKETESTFILES}
         ${CMAKEFILES}
         ${CMAKEFILES_NESTED}
-        ${CMAKEFILES_NESTED_NESTED}
+        ${CMAKEFILES_NESTED2}
+        ${CMAKEFILES_NESTED3}
+        ${JSON}
 )
 
 
