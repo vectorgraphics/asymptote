@@ -31,8 +31,30 @@ info:	$(SOURCE) $(ASYFILES:.asy=.png) latexusage.png
 
 html:	index.html
 
+cp -a /usr/local/share/info/asy-faq.info $BUILD/asymptote-$VERSION/doc/FAQclean: FORCE
+	-rm -f *.html texput.aux texput.log
+
+cleaner: FORCE clean
+	-rm -f Makefile
+
+cleanest: FORCE cleaner
+	-rm -f *.png asymptote.info
+
+distclean: FORCE cleaner
+maintainer-clean: FORCE cleanest
+
+
 clean: FORCE
-	-rm -f *.png *.html asymptote.info* texput.aux texput.log
+	-rm -f *.html texput.aux texput.log
+
+cleaner: FORCE clean
+	-rm -f Makefile
+
+cleanest: FORCE cleaner
+	-rm -f *.png asymptote.info
+
+distclean: FORCE cleaner
+maintainer-clean: FORCE cleanest
 
 distclean: FORCE clean
 	-rm -f Makefile
@@ -47,7 +69,7 @@ install: asymptote.info
 install-all: all install
 	${INSTALL} -p -m 644 *.png $(infodir)/asymptote
 
-uninstall: 
+uninstall:
 	-install-info --remove --infodir=$(infodir) asymptote.info
 	-cd $(infodir)/asymptote && rm -f asymptote.info *.png
 	-rmdir $(infodir)/asymptote

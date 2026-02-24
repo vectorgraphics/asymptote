@@ -8,8 +8,15 @@ faq: $(BFNNCONV) asy-faq.bfnn
 	perl bfnnconv.pl asy-faq.bfnn
 
 clean: FORCE
-	-rm -f *~ core a.out *.lout *.ps *.info *.ascii *.xrefdb *.post
+	-rm -f *~ core a.out *.lout *.ps *.ascii *.xrefdb *.post
 	-rm -rf *.html
+
+cleaner: FORCE clean
+cleanest: FORCE cleaner
+	-rm *.info
+
+distclean: FORCE cleaner
+maintainer-clean: FORCE cleanest
 
 install-all: install
 
@@ -31,10 +38,8 @@ uninstall: uninstall-all
 
 uninstall-all:
 	-cd $(docdir)/asy-faq.html && rm -rf *.html
-	-cd $(docdir) && rmdir asy-faq.html && rm asy-faq.ascii 
+	-cd $(docdir) && rmdir asy-faq.html && rm asy-faq.ascii
 	-install-info --remove --infodir=$(infodir) asy-faq.info
 	-rm -f $(infodir)/asy-faq.info
-
-distclean: FORCE clean
 
 FORCE:
