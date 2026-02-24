@@ -373,7 +373,6 @@ cleaner: FORCE clean
 	-rm -rf __pycache__
 	-rm -rf GUI/__pycache__
 	-rm -rf GUI/configs/__pycache__
-	-rm -rf GUI/xasyicons GUI/xasyqtui GUI/xasyversion
 	-$(MAKE) -C $(GC) distclean
 	-$(MAKE) -C libatomic_ops distclean
 	-cd $(GC) && rm -rf libatomic_ops .deps cord/.deps \
@@ -391,6 +390,7 @@ distclean: FORCE cleaner
 cleanest: FORCE maintainer-clean
 maintainer-clean: FORCE distclean
 	-rm -f configure config.h.in
+	-rm -rf GUI/xasyicons GUI/xasyqtui GUI/xasyversion
 	-cd $(GC) && rm -rf ltmain.sh missing \
 		test-driver configure autom4te.cache m4/l*.m4
 	-cd libatomic_ops && rm -rf ltmain.sh missing \
