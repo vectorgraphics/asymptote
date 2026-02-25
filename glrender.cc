@@ -1968,7 +1968,7 @@ void glrender(GLRenderArgs const& args, int oldpid)
 
   static bool initialized=false;
 
-  if(!(initialized && (interact::interactive))) {
+  if(!(initialized && interact::interactive)) {
     antialias=getSetting<Int>("antialias") > 1;
     double expand;
     if(format3d)
