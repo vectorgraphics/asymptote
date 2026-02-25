@@ -1,5 +1,7 @@
 import graph3;
 
+settings.outformat="html";
+
 size(20cm);
 
 currentprojection=perspective(250,-250,250);
@@ -270,14 +272,14 @@ beginTransform(geometry="
                color="
 function(x,c,t) {
   return interp(c,interp(c,red,(x[2]-zmin)/(zmax-zmin)),t);}",
-               7,false);
+               7);
 
 draw(S,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));
 
 beginTransform("
 function(x,t) {return [x[0],x[1],x[2]+10*Math.sin(8*Math.PI*t)];}",
-               5,true);
+               5);
 
 draw(Sknob,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));
@@ -286,7 +288,7 @@ beginTransform(geometry="
 function(x,t) {return [x[0]-xmax*t,x[1]-ymax*t,x[2]];}",
                color="
 function(x,c,t) {return interp(c,green,t);}",
-               7,true);
+               7);
 
 draw(Sbase,material(color,shininess=0.85,metallic=metallic),
      render(compression=Single));

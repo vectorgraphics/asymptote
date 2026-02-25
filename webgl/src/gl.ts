@@ -34,6 +34,7 @@ const asyRenderingCanvas = {
 
   ibl:false,
   webgl2:false,
+  autoplay: true,
 
   imageURL:"",
   image:"",
@@ -775,8 +776,8 @@ class BezierPatch extends Geometry {
   constructor(protected controlpoints,
               protected CenterIndex, protected MaterialIndex,
               private Color = null,
-              protected geometryTransform = null,
-              protected colorTransform = null) {
+              protected geometryTransform = animatedGeometry(),
+              protected colorTransform = animatedColor()) {
     super();
     const n=controlpoints.length;
     if(Color) {
@@ -2061,7 +2062,7 @@ class quadraticroots {
 
 class BezierCurve extends Geometry {
   constructor(controlpoints,CenterIndex,MaterialIndex,Min = null,Max = null,
-              transform = null) {
+              transform = animatedGeometry()) {
     super();
     this.controlpoints=controlpoints;
     this.CenterIndex=CenterIndex;
@@ -2192,7 +2193,7 @@ class BezierCurve extends Geometry {
 
 class Pixel extends Geometry {
   constructor(private controlpoint,private width,protected MaterialIndex,
-              transform = null) {
+              transform = animatedGeometry()) {
     super();
     this.CenterIndex=0;
     this.Min=controlpoint;
@@ -3026,19 +3027,21 @@ function handleKey(event)
   default:
     break;
   }
-  if (keycode=="ArrowRight"&&playbackDirection!="forward") {
-    playbackDirection="forward";
-    if(position >= startTime+maxAutoplayDuration && !activeAnimation) {
-      activeAnimation=true;
-      requestAnimationFrame(animate)
-    }
 
-  } else if (keycode=="ArrowLeft"&&playbackDirection!="backward") {
-    playbackDirection="backward";
-    if(position >= startTime+maxAutoplayDuration && !activeAnimation) {
+  if (keycode=="ArrowRight"&&playbackDirection!="forward") {
+      document.asy.autoplay=false;
+      playbackDirection="forward";
       activeAnimation=true;
-      requestAnimationFrame(animate)
-    }
+      animationPaused=false;
+      lastTimestamp=null;
+      requestAnimationFrame(animate);
+   } else if (keycode=="ArrowLeft"&&playbackDirection!="backward") {
+      document.asy.autoplay=false;
+      playbackDirection="backward";
+      activeAnimation=true;
+      animationPaused=false;
+      lastTimestamp=null;
+      requestAnimationFrame(animate);
   }
 
   if(axis !== null) {
@@ -3049,14 +3052,9 @@ function handleKey(event)
 }
 
 function stopAnimation(event) {
-  let keycode=event.key;
-  if ((keycode=="ArrowRight"&&playbackDirection=="forward") ||
-    (keycode=="ArrowLeft"&&playbackDirection=="backward")) {
-      if(position >= startTime+maxAutoplayDuration)
-        activeAnimation=false;
-      playbackDirection=null;
-    }}
-
+  activeAnimation=false;
+  playbackDirection=null;
+}
 
 function setZoom()
 {
@@ -3512,15 +3510,12 @@ function transformColor(nodes:any[], t:number,
   });
 }
 
-let startTime:number=null;
-let maxAutoplayDuration:number=0;
-let maxSceneDuration:number=0;
+let maxDuration:number=0;
 
 type Transformation = {
   geometryTransform?: (v:vec3, t:number) => vec3;
   colorTransform?: (v:vec3, c:vec4, t:number) => vec4;
   durationInv: number;
-  autoplay?:boolean;
 }
 
 let transformStack: Transformation[] = [];
@@ -3532,10 +3527,8 @@ function animatedGeometry(){
 
   return function(controlpoints: vec3[]): vec3[] {
     let cp=toUser(controlpoints);
-    const activeTime=startTime+playbackTime;
-    for(const {geometryTransform,durationInv,autoplay} of stack) {
-      const time=!autoplay?activeTime:now;
-      const t=min((time-startTime)*durationInv,1.0);
+    for(const {geometryTransform,durationInv} of stack) {
+      const t=min(playbackTime*durationInv,1.0);
       cp=transformCP(cp,t,geometryTransform);
     }
     return fromUser(cp)
@@ -3548,10 +3541,8 @@ function animatedColor() {
 
   return function(color,p) {
     let P=toUser([p[0],p[12],p[15],p[3]]);
-    const activeTime=startTime+playbackTime;
-    for(const {colorTransform,durationInv,autoplay} of stack) {
-      const time=!autoplay?activeTime:now;
-      const t=min((time-startTime)*durationInv,1.0);
+    for(const {colorTransform,durationInv} of stack) {
+      const t=min(playbackTime*durationInv,1.0);
       color=transformColor(
             [[P[0],color[0]],
               [P[1],color[1]],
@@ -3566,10 +3557,11 @@ let playbackDirection: "forward"|"backward"|null=null;
 let playbackTime:number=0;
 let playbackSpeed:number=1;
 let lastTimestamp:number|null=null;
-let autoplayAnimation=false;
 let activeAnimation=false;
+let animationPaused=false;
+
 let position;
-let maxSceneDurationInv;
+let maxDurationInv;
 
 function animate(timestamp:number) {
   position=timestamp;
@@ -3579,25 +3571,41 @@ function animate(timestamp:number) {
   const t=timestamp-lastTimestamp;
   lastTimestamp=timestamp;
 
+  if(playbackDirection==null && document.asy.autoplay)
+    playbackDirection="forward";
+
   if(playbackDirection=="forward") {
     playbackTime+=t*playbackSpeed;
+    if(playbackTime > maxDuration) {
+      playbackTime = maxDuration;
+      playbackDirection = null;
+      activeAnimation = false;
+      animationPaused = true;
+    }
   } else if(playbackDirection=="backward") {
-    playbackTime=max(0, playbackTime-t*playbackSpeed);
+    playbackTime=playbackTime-t*playbackSpeed;
+    if(playbackTime <= 0) {
+      playbackTime = 0;
+      playbackDirection = null;
+      activeAnimation = false;
+      animationPaused = true;
+    }
   }
-  if(slider)
-    slider.value=((playbackTime)*maxSceneDurationInv).toString();
+  if(slider && !animationPaused && playbackDirection != null) {
+    slider.value=(playbackTime*maxDurationInv).toString();
+  }
 
 
   remesh=true;
 
   drawScene();
 
-  const continued=autoplayAnimation && !activeAnimation ?
-    timestamp < startTime+maxAutoplayDuration : activeAnimation;
+  const continued=(document.asy.autoplay && playbackTime < maxDuration && !animationPaused) || activeAnimation;
   if (continued) {
     requestAnimationFrame(animate);
   } else {
     lastTimestamp=null;
+    if(!activeAnimation) animationPaused=false;
   }
 }
 
@@ -3607,21 +3615,22 @@ let activeSlider=false;
 
 function initSlider() {
   activeSlider=true;
+  playbackDirection=null;
   const p=document;
   slider=p.createElement("input");
-  maxSceneDurationInv=1/maxSceneDuration;
+  maxDurationInv=1/maxDuration;
 
   slider.type="range";
   slider.min="0";
   slider.max="1";
   slider.step="0.001";
-  slider.value=(playbackTime*maxSceneDurationInv).toString();
+  slider.value=(playbackTime*maxDurationInv).toString();
 
   slider.className="slider";
   slider.style.position="fixed"
   slider.onkeydown=() =>  { return false; }
 
-  // We should let user be able to inject CSS code for everything,
+  // We should let the user inject CSS code for everything,
   // not just the slider.
   // style = p.createElement("style");
   // style.textContent = `
@@ -3638,14 +3647,23 @@ function initSlider() {
 
   slider.oninput=() => {
     const value=parseFloat(slider.value);
-    playbackTime=(startTime+maxSceneDuration)*value;
-    if(position >= startTime+maxAutoplayDuration && !activeAnimation) {
-      activeAnimation=true;
-      requestAnimationFrame(animate)
-    }
+    playbackTime=maxDuration*value;
+    document.asy.autoplay=false;
+    playbackDirection=null;
+    animationPaused=true;
+    activeAnimation=false;
+    lastTimestamp=null;
+    requestAnimationFrame(animate);
   }
   slider.onchange=() => {
+    animationPaused=false;
     activeAnimation=false;
+    if(document.asy.autoplay && playbackTime < maxDuration) {
+      playbackDirection="forward";
+    } else {
+      playbackDirection=null;
+    }
+    lastTimestamp=null;
   }
 
   p.body.prepend(slider);
@@ -3654,7 +3672,10 @@ function initSlider() {
 
 function deleteSlider() {
   slider.remove();
+  playbackDirection=null;
   activeSlider=false;
+  activeAnimation=false;
+  animationPaused=false;
 }
 
 function light(direction,color)
@@ -3670,8 +3691,7 @@ function material(diffuse,emissive,specular,shininess,metallic,fresnel0)
 
 function patch(controlpoints,CenterIndex,MaterialIndex,color)
 {
-  P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color,
-                         animatedGeometry(),animatedColor()));
+  P.push(new BezierPatch(controlpoints,CenterIndex,MaterialIndex,color));
 }
 
 function curve(controlpoints,CenterIndex,MaterialIndex)
@@ -4100,24 +4120,16 @@ function initTransform()
   mat4.invert(Tinv,T);
 }
 
-function beginTransform(geometry,color,duration,autoplay)
+function beginTransform(geometry,color,duration)
 {
   const msDuration=duration*1000;
-  if(msDuration > maxAutoplayDuration && autoplay)
-    maxAutoplayDuration=msDuration;
-  if(duration > maxSceneDuration)
-    maxSceneDuration=msDuration;
-
-  if(autoplay)
-    autoplayAnimation=true;
-  else
-    activeAnimation=true;
+  if(duration > maxDuration)
+    maxDuration=msDuration;
 
   transformStack.push({
       geometryTransform: geometry,
       colorTransform: color,
       durationInv: msDuration > 0 ? 1/msDuration : 0,
-      autoplay:autoplay,
     }
   )
 }
@@ -4183,7 +4195,6 @@ function webGLStart()
     }
 
   home();
-  startTime=performance.now();
   requestAnimationFrame(animate);
 }
 globalThis.window.webGLStart=webGLStart;

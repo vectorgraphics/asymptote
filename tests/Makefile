@@ -15,6 +15,11 @@ $(EXTRADIRS)::
 clean:  FORCE
 	rm -f *.eps
 
-distclean: FORCE clean
+cleaner: FORCE clean
+
+cleanest: FORCE cleaner
+
+distclean: FORCE cleaner
+maintainer-clean: FORCE cleanest
 
 FORCE:
