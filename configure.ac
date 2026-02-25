@@ -416,7 +416,7 @@ AC_DEFUN([CHECK_LIB_STATIC],[
 if test "x$enable_readline" != "xno"; then
 if test "x$with_vcpkg" != "xno"; then  # vcpkg
    ADD_VCPKG_FEATURE(readline)
-   AC_DEFINE(HAVE_NCURSES_CURSES_H)
+   AC_DEFINE(HAVE_NCURSESW_CURSES_H)
    AC_DEFINE(HAVE_LIBCURSES)
    AC_DEFINE(HAVE_LIBREADLINE)
    ADD_VCPKG_LIB_FOR_PKGCONFIG(readline)
@@ -447,7 +447,7 @@ else  # managed by the system
    CHECK_LIB_STATIC(tinfo,tinfo,tgetent,HAVE_LIBTINFO,AC_MSG_NOTICE([perhaps tgetent is in -lncurses]))
 
    PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,ncurses)
-   AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
+   AC_CHECK_HEADERS([ncursesw/curses.h ncurses/curses.h ncurses.h curses.h],[break])
    CHECK_LIB_STATIC(ncurses,ncurses,setupterm,HAVE_LIBCURSES,
                      AC_CHECK_LIB(curses,setupterm))
 fi
