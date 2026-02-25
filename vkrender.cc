@@ -497,21 +497,6 @@ void AsyVkRender::keyCallback(GLFWwindow* window, int key, int scancode, int act
     case '_':
       app->shrink();
       break;
-    case 'P':
-      if(settings::getSetting<bool>("reverse")) app->Animate=false;
-      settings::Setting("reverse")=app->Step=false;
-      app->animate();
-      break;
-    case 'R':
-      if(!settings::getSetting<bool>("reverse")) app->Animate=false;
-      settings::Setting("reverse")=true;
-      app->Step=false;
-      app->animate();
-      break;
-    case ' ':
-      app->Step=true;
-      app->animate();
-      break;
     case 'Q':
       if(!app->Format.empty()) app->exportHandler(0);
       app->quit();
@@ -605,8 +590,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   for(int i=0; i < 16; ++i)
     Tup[i]=args.tup[i];
 
-  if(!(initialized && (interact::interactive ||
-                       settings::getSetting<bool>("animating")))) {
+  if(!(initialized && interact::interactive)) {
     antialias=settings::getSetting<Int>("antialias") > 1;
     double expand;
     if(format3d)
@@ -706,7 +690,6 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
     fxaa=settings::getSetting<bool>("fxaa");
     srgb=settings::getSetting<bool>("srgb");
 
-    Animate=settings::getSetting<bool>("autoplay") && vkthread;
     ibl=settings::getSetting<bool>("ibl");
   }
 
@@ -4699,7 +4682,6 @@ void AsyVkRender::nextFrame()
   if(delay > 0) {
     std::this_thread::sleep_for(std::chrono::duration<double>(delay));
   }
-  if(Step) Animate=false;
 }
 
 void AsyVkRender::clearBuffers()
@@ -4782,12 +4764,6 @@ void AsyVkRender::display()
     ++framecount;
   }
 
-#ifdef HAVE_PTHREAD
-  if(vkthread && Animate) {
-    queueExport=false;
-    nextFrame();
-  }
-#endif
   if(!vkthread) {
 #if defined(_WIN32)
 // TODO: Check if we need a threadless-based vk renderer
@@ -4907,18 +4883,6 @@ void AsyVkRender::clearMaterials()
 }
 
 #ifdef HAVE_VULKAN
-
-void AsyVkRender::animate()
-{
-  Animate=!Animate;
-  if(Animate) {
-    if(Fitscreen == 2) {
-      toggleFitScreen();
-      toggleFitScreen();
-    }
-    update();
-  } else idle();
-}
 
 void AsyVkRender::expand()
 {
@@ -5119,14 +5083,10 @@ void AsyVkRender::quit()
 #ifdef HAVE_VULKAN
   resize=false;
   if(vkthread) {
-    bool animating=settings::getSetting<bool>("animating");
-    if(animating)
-      settings::Setting("interrupt")=true;
     redraw=false;
     waitEvent=false;
-    Animate=settings::getSetting<bool>("autoplay");
 #ifdef HAVE_PTHREAD
-    if(!interact::interactive || animating) {
+    if(!interact::interactive) {
       idle();
       endwait(readySignal,readyLock);
     }
@@ -5168,7 +5128,7 @@ void AsyVkRender::idleFunc(std::function<void()> f)
 void AsyVkRender::idle()
 {
   idleFunc(nullptr);
-  Xspin=Yspin=Zspin=Animate=Step=false;
+  Xspin=Yspin=Zspin=false;
 }
 
 double AsyVkRender::spinStep()
@@ -5405,8 +5365,6 @@ void AsyVkRender::setosize() {
 }
 
 void AsyVkRender::fitscreen(bool reposition) {
-  if(Animate && Fitscreen == 2) Fitscreen=0;
-
   switch(Fitscreen) {
     case 0: // Original size
     {

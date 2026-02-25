@@ -388,9 +388,7 @@ private:
   bool Xspin = false;
   bool Yspin = false;
   bool Zspin = false;
-  bool Animate = false;
   string Format;
-  bool Step = false;
   bool View = false;
   string Prefix;
   bool ViewExport;
@@ -950,7 +948,6 @@ private:
   void spiny();
   void spinz();
 
-  void animate();
   void expand();
   void shrink();
   projection camera(bool user=true);
