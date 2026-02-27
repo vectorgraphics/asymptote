@@ -129,7 +129,7 @@ ifeq ($(usinggit),yes)
 	revision = $(shell LC_ALL="C" git describe --long | \
 	sed -e 's/git-\([0-9]*\)-g.*/-\1/' | sed -e 's/-0-g.*//')
 endif
-ifeq ($(revision),)
+ifeq ($(revision),"")
 	revision = @VERSION@
 endif
 
@@ -364,8 +364,9 @@ uninstall-docdir:
 clean:	FORCE
 	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
 	-cd LspCpp && $(MAKE) distclean
-	-cd LspCpp && rm -rf liblspcpp.a Makefile CMakeFiles third_party/uri/src/CMakeFiles
 	-cd tinyexr && $(MAKE) clean
+	cd doc && $(MAKE) clean
+	cd tests && $(MAKE) clean
 
 gc-clean: FORCE clean
 	-$(MAKE) -C $(GC) clean
@@ -374,31 +375,32 @@ cleaner: FORCE clean
 	-rm -rf __pycache__
 	-rm -rf GUI/__pycache__
 	-rm -rf GUI/configs/__pycache__
-	-rm -rf GUI/xasyicons GUI/xasyqtui GUI/xasyversion
 	-$(MAKE) -C $(GC) distclean
 	-$(MAKE) -C libatomic_ops distclean
 	-cd $(GC) && rm -rf libatomic_ops .deps cord/.deps \
 		cord/tests/.deps extra/.deps tests/.deps
 
 	-rm -f Makefile config.h config.log config.status \
-		errors.temp
+		errors.temp autom4te.cache
 	-rm -rf LspCpp/CMakeCache.txt
-	cd doc && $(MAKE) clean
-	cd tests && $(MAKE) distclean
+	cd doc && $(MAKE) cleaner
+	cd tests && $(MAKE) cleaner
 
-distclean: FORCE cleaner
-	cd doc && $(MAKE) distclean
-
-cleanest: FORCE maintainer-clean
-maintainer-clean: FORCE distclean
+cleanest: FORCE cleaner
 	-rm -f configure config.h.in
+	-rm -rf GUI/xasyicons GUI/xasyqtui GUI/xasyversion
 	-cd $(GC) && rm -rf ltmain.sh missing \
 		test-driver configure autom4te.cache m4/l*.m4
 	-cd libatomic_ops && rm -rf ltmain.sh missing \
 		test-driver configure autom4te.cache m4/l*.m4
 	-cd GUI && $(PYTHON) buildtool.py clean
-	-rm -rf autom4te.cache $(DIST)
+	-rm -rf $(DIST)
 	-rm -rf vcpkg_installed
+	cd doc && $(MAKE) cleanest
+	cd tests && $(MAKE) cleanest
+
+distclean: FORCE cleaner
+maintainer-clean: FORCE cleanest
 
 test: asy FORCE
 	./wce

@@ -1,6 +1,6 @@
 const path = require('path');
 module.exports = {
-    entry: './src/gl.ts',
+    entry: ['./src/gl.ts', './src/glmat.ts'],
     module: {
         rules: [
             {

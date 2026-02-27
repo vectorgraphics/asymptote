@@ -18,8 +18,16 @@ declare global {
         Positions: any[],
         Normals: any[],
         Colors: any[],
-        Indices: any[]
+        Indices: any[],
+        initTransform: Function,
+        beginTransform: Function,
+        endTransform: Function,
+        interp: Function,
+        javascript: (code: string) => void
     }
+
+    /** This is for gl-matrix functions */
+    var glmat: any;
 }
 
 export {};

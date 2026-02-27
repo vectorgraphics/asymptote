@@ -393,8 +393,6 @@ void updateModelViewData()
 }
 
 bool Xspin,Yspin,Zspin;
-bool Animate;
-bool Step;
 
 #ifdef HAVE_GL
 
@@ -409,7 +407,7 @@ void idleFunc(void (*f)())
 void idle()
 {
   idleFunc(NULL);
-  Xspin=Yspin=Zspin=Animate=Step=false;
+  Xspin=Yspin=Zspin=false;
 }
 #endif
 
@@ -995,13 +993,9 @@ void quit()
 #endif
 #ifdef HAVE_LIBGLUT
   if(glthread) {
-    bool animating=getSetting<bool>("animating");
-    if(animating)
-      Setting("interrupt")=true;
     home();
-    Animate=getSetting<bool>("autoplay");
 #ifdef HAVE_PTHREAD
-    if(!interact::interactive || animating) {
+    if(!interact::interactive) {
       idle();
       glutDisplayFunc(nodisplay);
       endwait(readySignal,readyLock);
@@ -1157,7 +1151,6 @@ void fullscreen(bool reposition=true)
 
 void fitscreen(bool reposition=true)
 {
-  if(Animate && Fitscreen == 2) Fitscreen=0;
   switch(Fitscreen) {
     case 0: // Original size
     {
@@ -1212,7 +1205,6 @@ void nextframe()
   if(delay > 0) {
     std::this_thread::sleep_for(std::chrono::duration<double>(delay));
   }
-  if(Step) Animate=false;
 }
 
 stopWatch Timer;
@@ -1220,7 +1212,7 @@ stopWatch Timer;
 void display()
 {
   if(queueScreen) {
-    if(!Animate) screen();
+    screen();
     queueScreen=false;
   }
 
@@ -1243,12 +1235,6 @@ void display()
   }
   glutSwapBuffers();
 
-#ifdef HAVE_PTHREAD
-  if(glthread && Animate) {
-    queueExport=false;
-    nextframe();
-  }
-#endif
   if(queueExport) {
     Export();
     queueExport=false;
@@ -1288,9 +1274,7 @@ void updateHandler(int)
   queueScreen=true;
   remesh=true;
   update();
-  if(interact::interactive || !Animate) {
-    glutShowWindow();
-  }
+  glutShowWindow();
 }
 
 void poll(int)
@@ -1304,18 +1288,6 @@ void poll(int)
     glexit=false;
   }
   glutTimerFunc(100.0,poll,0);
-}
-
-void animate()
-{
-  Animate=!Animate;
-  if(Animate) {
-    if(Fitscreen == 2) {
-      togglefitscreen();
-      togglefitscreen();
-    }
-    update();
-  } else idle();
 }
 
 void reshape(int width, int height)
@@ -1729,21 +1701,6 @@ void keyboard(unsigned char key, int x, int y)
     case '<':
       shrink();
       break;
-    case 'p':
-      if(getSetting<bool>("reverse")) Animate=false;
-      Setting("reverse")=Step=false;
-      animate();
-      break;
-    case 'r':
-      if(!getSetting<bool>("reverse")) Animate=false;
-      Setting("reverse")=true;
-      Step=false;
-      animate();
-      break;
-    case ' ':
-      Step=true;
-      animate();
-      break;
     case 17: // Ctrl-q
     case 'q':
       if(!Format.empty()) Export();
@@ -1803,9 +1760,9 @@ projection camera(bool user)
         double R2=Rotate[j4+2];
         double R3=Rotate[j4+3];
         double T4ij=T[i4+j];
-        sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
+        sumCamera += T4ij*(R3-cx*R0-cy*R1);
         sumUp += Tup[i4+j]*R1;
-        sumTarget += T4ij*(R3-cx*R0-cy*R1);
+        sumTarget += T4ij*(R3-cx*R0-cy*R1+cz*R2);
       }
       vCamera[i]=sumCamera;
       vUp[i]=sumUp;
@@ -2011,8 +1968,7 @@ void glrender(GLRenderArgs const& args, int oldpid)
 
   static bool initialized=false;
 
-  if(!(initialized && (interact::interactive ||
-                       getSetting<bool>("animating")))) {
+  if(!(initialized && interact::interactive)) {
     antialias=getSetting<Int>("antialias") > 1;
     double expand;
     if(format3d)
@@ -2232,8 +2188,6 @@ void glrender(GLRenderArgs const& args, int oldpid)
 
 #ifdef HAVE_LIBGLUT
 #ifndef HAVE_LIBOSMESA
-  Animate=getSetting<bool>("autoplay") && glthread;
-
   if(View) {
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;

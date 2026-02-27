@@ -287,6 +287,11 @@ void v3dfile::addPixel(triple const& z0, double width)
   getXDRFile() << (uint32_t) materialIndex;
 }
 
+void v3dfile::write(const string& s)
+{
+//  getXDRFile() << s;
+}
+
 void v3dfile::finalize()
 {
   if(!finalized) {

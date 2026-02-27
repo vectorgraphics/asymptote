@@ -3,7 +3,7 @@
 %global __python %{__python3}
 
 Name:           asymptote
-Version:        3.05
+Version:        3.08
 Release:        1%{?dist}
 Summary:        Descriptive vector graphics language
 
@@ -28,7 +28,6 @@ BuildRequires:  libtool
 BuildRequires:  libtirpc-devel
 BuildRequires:  libglvnd-devel
 BuildRequires:  libcurl-devel
-BuildRequires:  boost-devel
 
 Requires:       tetex-latex
 Requires:       freeglut-devel >= 3.0.0
