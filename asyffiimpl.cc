@@ -15,6 +15,7 @@
 #include <cstring>
 #include <guide.h>
 #include <stack.h>
+#include <string.h>
 
 namespace camp
 {
@@ -87,10 +88,7 @@ void AsyContextImpl::copyString(
 )
 {
   auto* castedStr= static_cast<mem::string*>(asyString);
-  auto result= strcpy_s(destination, bufferSize, castedStr->c_str());
-  if (result != 0) {
-    reportError("Copy string failed.");
-  }
+  strncpy(destination, castedStr->c_str(), bufferSize);
 }
 
 IAsyArray* AsyContextImpl::createNewArray(const size_t& initialSize)
