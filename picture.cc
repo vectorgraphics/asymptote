@@ -32,7 +32,6 @@ using std::ofstream;
 using vm::array;
 
 using namespace settings;
-using namespace gl;
 
 texstream::~texstream() {
   string texengine=getSetting<string>("tex");
@@ -59,6 +58,8 @@ texstream::~texstream() {
 }
 
 namespace camp {
+
+AsyVkRender *vk = new AsyVkRender();
 
 extern void draw();
 
@@ -1427,29 +1428,24 @@ void picture::render(double size2, const triple& Min, const triple& Max,
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
     if(remesh) (*p)->meshinit();
+
     (*p)->render(size2,Min,Max,perspective,remesh);
   }
-
-#ifdef HAVE_GL
-  drawBuffers();
-#endif
 }
 
-typedef gl::GLRenderArgs Communicate;
-
-Communicate com;
+AsyVkRender::VkrenderFunctionArgs com = {};
 
 extern bool allowRender;
 
 void glrenderWrapper()
 {
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
 #ifdef HAVE_PTHREAD
-  wait(initSignal,initLock);
-  endwait(initSignal,initLock);
+  vk->wait(vk->initSignal,vk->initLock);
+  vk->endwait(vk->initSignal,vk->initLock);
 #endif
   if(allowRender)
-    glrender(com);
+    vk->vkrender(com);
 #endif
 }
 
@@ -1477,13 +1473,10 @@ bool picture::shipout3(const string& prefix, const string& format,
     camp::reportError("to support V3D rendering, please install glm header files, then ./configure; make");
 #endif
 
-#ifndef HAVE_LIBOSMESA
-#ifndef HAVE_GL
+#ifndef HAVE_VULKAN
   if(!webgl)
-    camp::reportError("to support onscreen OpenGL rendering; please install the glut library, then ./configure; make");
+    camp::reportError("to support onscreen Vulkan rendering; please install the glfw, vulkan, and glslang development libraries, then ./configure; make");
 #endif
-#endif
-
 
   picture *pic = new picture;
 
@@ -1517,11 +1510,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool View=settings::view() && view;
 #endif
 
-#ifdef HAVE_GL
-  bool offscreen=false;
-#ifdef HAVE_LIBOSMESA
-  offscreen=true;
-#endif
+#ifdef HAVE_VULKAN
 #ifdef HAVE_PTHREAD
   bool animating=getSetting<bool>("animating");
   bool Wait=!interact::interactive || !View || animating;
@@ -1529,13 +1518,12 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 
   bool format3d=webgl || v3d;
-
   if(!format3d) {
-#ifdef HAVE_GL
-    if(glthread && !offscreen) {
+#ifdef HAVE_VULKAN
+    if(vk->vkthread) {
 #ifdef HAVE_PTHREAD
-      if(gl::initialize) {
-        gl::initialize=false;
+      if(vk->initialize) {
+        vk->initialize=!View || getSetting<bool>("offscreen");
         com.prefix=prefix;
         com.pic=pic;
         com.format=outputformat;
@@ -1550,30 +1538,36 @@ bool picture::shipout3(const string& prefix, const string& format,
         com.t=t;
         com.tup=tup;
         com.background=background;
-        com.nlights=nlights;
+        com.nlightsin=nlights;
         com.lights=lights;
         com.diffuse=diffuse;
         com.specular=specular;
         com.view=View;
         if(Wait)
-          pthread_mutex_lock(&readyLock);
+          pthread_mutex_lock(&vk->readyLock);
         allowRender=true;
-        wait(initSignal,initLock);
-        endwait(initSignal,initLock);
+        vk->wait(vk->initSignal,vk->initLock);
+        vk->endwait(vk->initSignal,vk->initLock);
         static bool initialize=true;
         if(initialize) {
-          wait(initSignal,initLock);
-          endwait(initSignal,initLock);
+          vk->wait(vk->initSignal,vk->initLock);
+          vk->endwait(vk->initSignal,vk->initLock);
           initialize=false;
         }
+//#ifdef HAVE_VULKAN
+//        glfwPostEmptyEvent();
+//#endif
         if(Wait) {
-          pthread_cond_wait(&readySignal,&readyLock);
-          pthread_mutex_unlock(&readyLock);
+          pthread_cond_wait(&vk->readySignal,&vk->readyLock);
+          pthread_mutex_unlock(&vk->readyLock);
         }
         return true;
       }
       if(Wait)
-        pthread_mutex_lock(&readyLock);
+        pthread_mutex_lock(&vk->readyLock);
+#ifdef HAVE_VULKAN
+      glfwPostEmptyEvent();
+#endif
 #endif
     } else {
 #if !defined(_WIN32)
@@ -1586,14 +1580,14 @@ bool picture::shipout3(const string& prefix, const string& format,
         return true;
       }
 #else
-#pragma message("TODO: Check if (1) we need detach-based gl renderer")
+#pragma message("TODO: Check if (1) we need detach-based VK renderer")
 #endif
     }
 #endif
   }
 
 #if HAVE_LIBGLM
-  gl::GLRenderArgs args;
+  AsyVkRender::VkrenderFunctionArgs args = {};
   args.prefix=prefix;
   args.pic=pic;
   args.format=outputformat;
@@ -1608,14 +1602,14 @@ bool picture::shipout3(const string& prefix, const string& format,
   args.t=t;
   args.tup=tup;
   args.background=background;
-  args.nlights=nlights;
+  args.nlightsin=nlights;
   args.lights=lights;
   args.diffuse=diffuse;
   args.specular=specular;
   args.view=View;
+  args.oldpid=oldpid;
 
-  glrender(args,oldpid);
-
+  vk->vkrender(args);
   if(format3d) {
     string name=buildname(prefix,format);
     abs3Doutfile *fileObj=nullptr;
@@ -1648,10 +1642,10 @@ bool picture::shipout3(const string& prefix, const string& format,
       htmlView(name);
 
 #ifdef HAVE_GL
-    if(format3dWait) {
-      format3dWait=false;
+    if(vk->format3dWait) {
+      vk->format3dWait=false;
 #ifdef HAVE_PTHREAD
-      endwait(initSignal,initLock);
+      endwait(vk->initSignal,vk->initLock);
 #endif
     }
 #endif
@@ -1660,11 +1654,11 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
 #endif
 
-#ifdef HAVE_GL
+#ifdef HAVE_VULKAN
 #ifdef HAVE_PTHREAD
-  if(glthread && !offscreen && Wait) {
-    pthread_cond_wait(&readySignal,&readyLock);
-    pthread_mutex_unlock(&readyLock);
+  if(vk->vkthread && Wait) {
+    pthread_cond_wait(&vk->readySignal,&vk->readyLock);
+    pthread_mutex_unlock(&vk->readyLock);
   }
   return true;
 #endif
@@ -1675,6 +1669,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 bool picture::shipout3(const string& prefix, const string format)
 {
+  camp::vk->redraw=false;
   bounds3();
   bool status;
 

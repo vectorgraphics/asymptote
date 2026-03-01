@@ -25,7 +25,7 @@ callableReal* => realRealFunction()
 #include "triple.h"
 #include "path3.h"
 #include "Delaunay.h"
-#include "glrender.h"
+// #include "glrender.h"
 
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
@@ -2228,6 +2228,8 @@ pair maxratio(triplearray2 *P, pair b)
 
 realarray *_projection()
 {
+  // what is this for?
+/*
 #ifdef HAVE_GL
   array *a=new array(14);
   gl::projection P=gl::camera();
@@ -2255,5 +2257,6 @@ realarray *_projection()
   (*a)[k++]=P.viewportshift.getx();
   (*a)[k++]=P.viewportshift.gety();
 #endif
+*/
   return new array(0);
 }

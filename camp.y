@@ -20,6 +20,14 @@
 #define __attribute__(x)
 #endif
 
+#ifndef YYDEBUG
+#ifdef __APPLE__
+#define YYDEBUG 1
+#else
+#define YYDEBUG 0
+#endif
+#endif
+
 // Used when a position needs to be determined and no token is
 // available.  Defined in camp.l.
 position lexerPos();

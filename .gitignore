@@ -156,21 +156,50 @@ base/v3dheadertypes.asy
 v3dtypes.h
 v3dtypes.py
 base/v3dtypes.asy
-
-LspCpp/CMakeCache.txt
-LspCpp/CMakeDoxyfile.in
-LspCpp/CMakeDoxygenDefaults.cmake
-LspCpp/CMakeFiles/
-LspCpp/Makefile
-LspCpp/cmake_install.cmake
-LspCpp/third_party/uri/CMakeFiles/
-LspCpp/third_party/uri/Doxyfile
-LspCpp/third_party/uri/Makefile
-LspCpp/third_party/uri/cmake_install.cmake
-LspCpp/third_party/uri/src/CMakeFiles/
-LspCpp/third_party/uri/src/Makefile
-LspCpp/third_party/uri/src/cmake_install.cmake
 base/webgl/asygl.js
+shaders/*.spv
+# CMake files
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+cmake-build-*
+CMakeUserPresets.json
+
+# visual studio files
+.vs
+*.DotSettings.user
+
+# ignore directory
+idir
+
+# windows-specific ignore
+*.aps
+*.exe
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+*.lnk
+*.stackdump
+
+# version package
+asy-pkg-version-suffix.cmake
 
 # CMake files
 CMakeLists.txt.user

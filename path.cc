@@ -24,8 +24,6 @@ const double Fuzz4=Fuzz2*Fuzz2;
 const double BigFuzz=10.0*Fuzz2;
 const double fuzzFactor=100.0;
 
-const double third=1.0/3.0;
-
 path nullpath;
 
 const char *nopoints="nullpath has no points";

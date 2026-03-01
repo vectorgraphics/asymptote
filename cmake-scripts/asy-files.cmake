@@ -25,9 +25,10 @@ set(CORE_BUILD_FILES
         access virtualfieldaccess absyn record interact fileio
         fftw++asy parallel simpson coder coenv impdatum locate asyparser program application
         varinit fundec refaccess envcompleter asyprocess constructor array memory
-        Delaunay predicates glrender tr shaders jsfile v3dfile
-        EXRFiles GLTextures lspserv symbolmaps win32helpers win32pipestream
+        Delaunay predicates jsfile v3dfile
+        EXRFiles lspserv symbolmaps win32helpers win32pipestream
         win32xdr xstream
+        vkrender vkutils vkdispatchstorage
         lspdec lspexp lspfundec lspstm
 )
 

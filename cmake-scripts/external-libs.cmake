@@ -178,44 +178,33 @@ else()
     message(STATUS "Disabling eigen3 support")
 endif()
 
-# OpenGL stuff
-if (ENABLE_OPENGL)
-    # fatal error here, since OpenGL is optional
-    find_package(OpenGL REQUIRED)
-    if (OPENGL_FOUND)
-        list(APPEND ASY_STATIC_LIBARIES OpenGL::GL)
+# Vulkan stuff
+if (ENABLE_VULKAN)
+    message(STATUS "If a warning about Vulkan::glslang comes up about missing debug configuration,
+that warning can be safely ignored. We are not using glslang from the vulkan package.
+We are using a separate glslang package
+    ")
+
+    find_package(Vulkan COMPONENTS glslang)
+    if (Vulkan_FOUND AND Vulkan_glslang_FOUND)
+        list(APPEND ASY_STATIC_LIBARIES Vulkan::Vulkan Vulkan::glslang)
+        list(APPEND ASY_MACROS HAVE_LIBVULKAN)
     else()
-        message(WARNING "gl libraries not found")
+        message(FATAL_ERROR "Vulkan not found")
     endif()
 
-    if (OPENGL_GLU_FOUND)
-        list(APPEND ASY_MACROS HAVE_LIBGL)
+    find_package(glfw3 CONFIG)
+    if (glfw3_FOUND)
+        list(APPEND ASY_STATIC_LIBARIES glfw)
     else()
-        message(FATAL_ERROR "GL components incomplete; will not use OpenGL")
+        message(FATAL_ERROR "glfw3 not found")
     endif()
 
-    find_package(FreeGLUT CONFIG)
-    if (FreeGLUT_FOUND)
-        list(APPEND ASY_STATIC_LIBARIES
-                $<IF:$<TARGET_EXISTS:FreeGLUT::freeglut>,FreeGLUT::freeglut,FreeGLUT::freeglut_static>)
-        list(APPEND ASY_MACROS FREEGLUT HAVE_LIBGLUT)
-    else()
-        message(FATAL_ERROR "freeglut not found; will not use freeglut")
-    endif()
-
-    if (ENABLE_GL_COMPUTE_SHADERS)
-        list(APPEND ASY_MACROS HAVE_COMPUTE_SHADER)
-    else()
-        message(WARNING "Compute shader disabled")
-    endif()
-
-    if (ENABLE_GL_SSBO)
-        list(APPEND ASY_MACROS HAVE_SSBO)
-    else()
-        message(WARNING "SSBO disabled")
+    if (ENABLE_VK_VALIDATION_LAYERS)
+        list(APPEND ASY_MACROS ENABLE_VK_VALIDATION)
     endif()
 else()
-    message(STATUS "Disabling opengl support")
+    message(STATUS "Disabling vulkan support")
 endif()
 
 
