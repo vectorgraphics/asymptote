@@ -723,8 +723,9 @@ void AsyVkRender::initVulkan()
   // Use smallest memory footprint during command buffer encoding
   setenv("MVK_CONFIG_PREFILL_METAL_COMMAND_BUFFERS", "2", true);
 
-  // Reduce memory pressure by using Metal argument buffers more efficiently
-  setenv("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "1", true);
+  // Disable Metal argument buffers (0) to avoid SSBO descriptor indexing
+  // issues with transparent rendering.
+  setenv("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "0", true);
 
   setenv("MVK_CONFIG_PERFORMANCE_TRACKING", "0", true);
 #endif
