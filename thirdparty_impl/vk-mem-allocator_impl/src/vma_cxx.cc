@@ -49,11 +49,21 @@ VmaAllocator UniqueAllocator::getAllocator() const
 }
 
 UniqueBuffer
-UniqueAllocator::createBuffer(VkBufferCreateInfo const& bufferCreateInfo, VmaAllocationCreateInfo const& allocInfo)
+UniqueAllocator::createBuffer(VkBufferCreateInfo const& bufferCreateInfo, VmaAllocationCreateInfo const& allocInfo, VkDeviceSize alignment)
 {
   VkBuffer buf;
   VmaAllocation alloc;
-  if (vmaCreateBuffer(_allocator, &bufferCreateInfo, &allocInfo, &buf, &alloc, nullptr) != VK_SUCCESS)
+  // Use vmaCreateBufferWithAlignment instead of vmaCreateBuffer
+  if (vmaCreateBufferWithAlignment(
+          _allocator,
+          &bufferCreateInfo,
+          &allocInfo,
+          alignment,
+          &buf,
+          &alloc,
+          nullptr) != VK_SUCCESS)
+
+    if (vmaCreateBuffer(_allocator, &bufferCreateInfo, &allocInfo, &buf, &alloc, nullptr) != VK_SUCCESS)
   {
     throw vk::OutOfDeviceMemoryError("Cannot create Vulkan memory buffer");
   }

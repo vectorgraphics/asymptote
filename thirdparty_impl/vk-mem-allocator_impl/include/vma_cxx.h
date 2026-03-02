@@ -114,7 +114,7 @@ public:
   VmaAllocator getAllocator() const;
 
   [[nodiscard]]
-  UniqueBuffer createBuffer(VkBufferCreateInfo const& bufferCreateInfo, VmaAllocationCreateInfo const& allocInfo);
+  UniqueBuffer createBuffer(VkBufferCreateInfo const& bufferCreateInfo, VmaAllocationCreateInfo const& allocInfo, VkDeviceSize alignment = 16);
 
   [[nodiscard]]
   UniqueImage createImage(VkImageCreateInfo const& imgCreateInfo, VmaAllocationCreateInfo const& allocInfo);
