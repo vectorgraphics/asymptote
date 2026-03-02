@@ -725,7 +725,7 @@ void AsyVkRender::initVulkan()
 
   // Disable Metal argument buffers (0) to avoid SSBO descriptor indexing
   // issues with transparent rendering.
-  setenv("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "0", true);
+  setenv("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "2", true);
 
   setenv("MVK_CONFIG_PERFORMANCE_TRACKING", "0", true);
 #endif
