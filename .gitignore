@@ -2,6 +2,7 @@
 *.o
 *.d
 *.d.*
+!*.d.ts
 
 ### python files
 __pycache__
@@ -254,3 +255,7 @@ tests/out.*
 
 cmake-scripts/generated
 tests/xdata
+
+# node modules
+node_modules
+webgl/dist

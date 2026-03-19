@@ -44,12 +44,18 @@ dot(z2);
 
 int n=10;
 real dt=(t2-t1)/n;
+real t=t1;
+
 for(int i=0; i <= n; ++i) {
   save();
 
-  real t=t1+dt*i;
-  draw(circle((t,0),1),red);
-  dot(wheelpoint(t));
+  void f(real dt) {
+    draw(circle((t,0),1),red);
+    dot(wheelpoint(t));
+    t += dt;
+  }
+
+  f(dt);
 
   a.add(); // Add currentpicture to animation.
   restore();

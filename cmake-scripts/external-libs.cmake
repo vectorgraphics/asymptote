@@ -231,8 +231,8 @@ if (ENABLE_RPC_FEATURES)
         set(BUILD_TESTING OFF CACHE INTERNAL "build testing")
         FetchContent_Declare(
                 fmem
-                GIT_REPOSITORY https://github.com/Kreijstal/fmem.git
-                GIT_TAG 5f79fef3606be5dac54d62c7d0e2123363afabd7
+                GIT_REPOSITORY https://github.com/jamievlin/fmem.git
+                GIT_TAG 4b8fac274276920d66a601cec860d24511d27787
         )
         FetchContent_MakeAvailable(fmem)
         set(BUILD_TESTING ${OLD_BUILD_TESTING} CACHE INTERNAL "build testing")

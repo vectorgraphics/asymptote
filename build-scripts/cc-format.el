@@ -1,14 +1,14 @@
-(defun change (old-pat new-pat) "Replace all occurences of old-pat to new-pat in current buffer."
+(defun change (old-pat new-pat) "Replace all occurrences of old-pat to new-pat in current buffer."
 (interactive "r")
 (goto-char (point-min))
 (replace-string old-pat new-pat))
 
-(defun changereg (old-regexp new-regexp) "Replace all occurences of old-regexp to new-regexp in current buffer."
+(defun changereg (old-regexp new-regexp) "Replace all occurrences of old-regexp to new-regexp in current buffer."
 (interactive "r")
 (goto-char (point-min))
 (replace-regexp old-regexp new-regexp))
 
-(defun querychangereg (old-regexp new-regexp) "Replace all occurences of old-regexp to new-regexp in current buffer, with query."
+(defun querychangereg (old-regexp new-regexp) "Replace all occurrences of old-regexp to new-regexp in current buffer, with query."
 (interactive "r")
 (goto-char (point-min))
 (query-replace-regexp old-regexp new-regexp))

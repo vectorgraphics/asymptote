@@ -1,4 +1,3 @@
-settings.autoplay=true;
 settings.loop=true;
 
 import graph3;

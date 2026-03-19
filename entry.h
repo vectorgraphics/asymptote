@@ -79,6 +79,7 @@ public:
 
   bool checkPerm(action act, coder &c);
   void reportPerm(action act, position pos, coder &c);
+  void listPerm();
 
   record *whereDefined() {
     return where;
