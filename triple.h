@@ -27,6 +27,7 @@ namespace camp {
 
 typedef double Triple[3];
 
+
 class triple;
 
 bool isIdTransform3(const double* t);
@@ -36,25 +37,92 @@ void multiplyTransform3(double*& t, const double* s, const double* r);
 void boundstriples(double& x, double& y, double& z, double& X, double& Y,
                    double& Z, size_t n, const triple* v);
 
+/**
+ * represents a triple `(x, y, z)` of cartesian coordinate.
+ * Once a `triple u = (...)` is created, its components can be read via
+ * `u.x`, `u.y`, `u.z`.
+ *
+ */
 class triple : virtual public gc {
   double x;
   double y;
   double z;
 
 public:
+  /**
+   * initialize this triple with (x,y,z) = (0,0,0);
+   *
+   * ```
+   * triple z; // is the same as `triple z = (0.0.0);`
+   * ```
+   *
+   */
   triple() : x(0.0), y(0.0), z(0.0) {}
+
+  /**
+   * initial this triple with the given `x`. Components `y` and `z` are set to zero.
+   * In Asymptote one can write:
+   *
+   * ```
+   * triple p = (2, 3, -5);
+   * ```
+   *
+   * to create a triple `(2, 3, -5)`, which can be used as a point in 3D-Coordinate system.
+   *
+   */
   triple(double x, double y=0.0, double z=0.0) : x(x), y(y), z(z) {}
+
+  /**
+   * In Asymptote one can write:
+   *
+   * ```
+   * triple a = (1, 3, -5);
+   * triple b = a;
+   * ```
+   *
+   * to make a copy of a.
+   */
   triple(const Triple& v) : x(v[0]), y(v[1]), z(v[2]) {}
 
   virtual ~triple() {}
 
+  /**
+   * C++ API to set value of `x`, `y` and `z` component of this triple.
+   *
+   */
   void set(double X, double Y=0.0, double Z=0.0) { x=X; y=Y; z=Z; }
 
+  /**
+   * get the x-component of the triple:
+   *
+   * ```
+   * triple a = (-3, 4, 5);
+   * real x = a.x; // x takes the value -3.0
+   * ```
+   */
   double getx() const { return x; }
+
+  /**
+   * get the y-component of the triple:
+   *
+   * ```
+   * triple a = (-3, 4, 5);
+   * real y = a.y; // y takes the value 4.0
+   * ```
+   */
   double gety() const { return y; }
+
+  /**
+   * get the z-component of the triple:
+   *
+   * ```
+   * triple a = (-3, 4, 5);
+   * real z = a.z; // z takes the value 5.0
+   * ```
+   */
   double getz() const { return z; }
 
-  // transform by row-major matrix
+  // transform by row-major matrix  
   friend triple operator* (const double* t, const triple& v) {
     if(t == NULL)
       return v;
@@ -171,31 +239,90 @@ public:
     b=pair(x,y);
   }
 
+  /**
+   * performs vector addition.
+   *
+   * For example:
+   *
+   * ```
+   * triple z = (1, 2, 3);
+   * triple w = (4, 5, 6);
+   * triple a = z + w; // a is same as (5, 7, 9)
+   * ```
+   */
   friend triple operator+ (const triple& z, const triple& w)
   {
     return triple(z.x + w.x, z.y + w.y, z.z + w.z);
   }
 
+  /**
+   * performs vector substraction. Result is a new triple.
+   * Example:
+   *
+   * ```
+   * triple z = (3, 5, 7);
+   * triple w = (1, 3, 4);
+   * triple v = z - w; // v is as same as (2, 2, 3)
+   * ```
+   */
   friend triple operator- (const triple& z, const triple& w)
   {
     return triple(z.x - w.x, z.y - w.y, z.z - w.z);
   }
 
+  /**
+   * creates a new triple with negate `(x, y, z)` values of this triple.
+   */
   friend triple operator- (const triple& z)
   {
     return triple(-z.x, -z.y, -z.z);
   }
 
+  /**
+   * performs a scalar multiplication. Result is product of a scalar with a vector.
+   * The result is a new triple. Example
+   *
+   * ```
+   * triple a = (1, -2, 3);
+   * triple b = 3 * a; // b is same as (2, -4, 6)
+   * ```
+   *
+   * @return a new triple
+   *
+   */
   friend triple operator* (double s, const triple& z)
   {
     return triple(s*z.x, s*z.y, s*z.z);
   }
 
+  /**
+   * peforms a scalar multiplication. Result is product of a scale with a vector.
+   * The result is a new triple. Example
+   *
+   * ```
+   * triple z = (1, -2, 3);
+   * triple b = z * 3; // b is same as (3, -6, 9)
+   * ```
+   *
+   * @return a new triple
+   */
   friend triple operator* (const triple& z, double s)
   {
     return triple(z.x*s, z.y*s, z.z*s);
   }
 
+  /**
+   * performs a multiplication of reciprocal value of `s` with vector `z`.
+   * Result is a new triple.
+   * Example:
+   *
+   * ```
+   * triple z = (-3, 21, -18);
+   * triple b = z / 3; // b is same as (-1, 7, -6);
+   * ```
+   *
+   * @return a new triple
+   */
   friend triple operator/ (const triple& z, double s)
   {
     if (s == 0.0)
@@ -204,6 +331,12 @@ public:
     return triple(z.x*s, z.y*s, z.z*s);
   }
 
+  /**
+   * performs vector addtion of this vector with vector `w`.
+   * Components of this triple are changed.
+   *
+   * @return this triple.
+   */
   const triple& operator+= (const triple& w)
   {
     x += w.x;
@@ -212,6 +345,20 @@ public:
     return *this;
   }
 
+  /**
+   * performs vector subtraction `w` from this triple (as vector).
+   * Components of this triple is changed.
+   * Example:
+   *
+   * ```
+   * triple u = (5, 4, 7);
+   * triple w = (1, 1, 1);
+   * u -= w; // u is now (4, 3, 6)
+   * ```
+   *
+   * @return this triple
+   *
+   */
   const triple& operator-= (const triple& w)
   {
     x -= w.x;
@@ -220,21 +367,57 @@ public:
     return *this;
   }
 
+  /**
+   * checks equality of this triple and triple `w`.
+   *
+   * ```
+   * triple z = (1, 2, 3);
+   * triple w = (1.0, 2.0, 3.0);
+   * bool isEq = z == w;
+   * ```
+   *
+   * This operator uses `==` on each components of the triples,
+   * which have type of double. So be carefull with small difference.
+   */
   friend bool operator== (const triple& z, const triple& w)
   {
     return z.x == w.x && z.y == w.y && z.z == w.z;
   }
 
+  /**
+   * checks NOT equality of this triple and triple `w`;
+   *
+   * ```
+   * triple z = (1, 2, 0.333);
+   * triple w = (1, 4/2.0, 1/3.0);
+   * bool isEq = z != w;
+   * ```
+   *
+   */
   friend bool operator!= (const triple& z, const triple& w)
   {
     return z.x != w.x || z.y != w.y || z.z != w.z;
   }
 
+  /**
+   * C++ to calculate \f$ x^2 + y^2 +z^2 \f$ of this triple.
+   *
+   * @return \f$ x^2 + y^2 +z^2 \f$
+   */
   double abs2() const
   {
     return x*x+y*y+z*z;
   }
 
+  /**
+   * Asymptote to calculate \f$ x^2 + y^2 +z^2 \f$ of a triple.
+   * Example:
+   *
+   * ```
+   * triple u = (2, 3, 5);
+   * real sqrLength = abs2(u); // 38
+   * ```
+   */
   friend double abs2(const triple &v)
   {
     return v.abs2();
@@ -267,6 +450,16 @@ public:
     return angle(x,y,warn);
   }
 
+  /**
+   * returns the unit vector in direction of `v`;
+   *
+   * ```
+   * triple v = (1, 1, 1);
+   * triple u = unit(v); // (0.577350269189626,0.577350269189626,0.577350269189626)
+   * ```
+   *
+   * @return a new triple
+   */
   friend triple unit(const triple& v)
   {
     double scale=v.length();
@@ -275,11 +468,39 @@ public:
     return triple(v.x*scale,v.y*scale,v.z*scale);
   }
 
+  /**
+   * performs the dot products of two vectors:
+   *
+   * ```
+   * triple u = (1, 2, 3);
+   * triple v = (2, -1, 0);
+   * real c = dot(u,v); // 0
+   * ```
+   *
+   * @return `u.x*v.x + u.y*v.y + u.z*v.z`
+   */
   friend double dot(const triple& u, const triple& v)
   {
     return u.x*v.x+u.y*v.y+u.z*v.z;
   }
 
+  /**
+   * performs the cross product of two vectors `u` and `v`. That is
+   *
+   * ```
+   * (u.y*v.z-u.z*v.y, u.z*v.x-u.x*v.z, u.x*v.y-v.x*u.y)
+   * ```
+   * Example:
+   *
+   * ```
+   * triple u = (1, 2, 3);
+   * triple v = (2, -1, 0);
+   * triple w = cross(u, v); // (3, 6, -5);
+   * ```
+   *
+   * @return a new triple
+   *
+   */
   friend triple cross(const triple& u, const triple& v)
   {
     return triple(u.y*v.z-u.z*v.y,
@@ -287,7 +508,18 @@ public:
                   u.x*v.y-u.y*v.x);
   }
 
-  // Returns a unit triple in the direction (theta,phi), in radians.
+  /**
+   * Returns a unit triple in the direction (theta,phi), in radians.
+   * For example:
+   *
+   * ```
+   * triple d = expi(pi/3, pi/6); // pi is defined in Asymptote
+   * ```
+   *
+   * @param theta in radian
+   * @param phi in radian
+   *
+   */
   friend triple expi(double theta, double phi)
   {
     double sintheta=sin(theta);
@@ -319,6 +551,17 @@ public:
     return s;
   }
 
+  /**
+   * In Asymptote once can use
+   *
+   * ```
+   * triple v = (1, 2, 3);
+   * write(v);
+   * ```
+   *
+   * to show 3 components of triple `v` in terminal.
+   *
+   */
   friend ostream& operator << (ostream& out, const triple& v)
   {
     out << "(" << v.x << "," << v.y << "," << v.z << ")";
@@ -344,7 +587,9 @@ public:
 
 triple expi(double theta, double phi);
 
-// Return the component of vector v perpendicular to a unit vector u.
+/**
+ * Returns the component of vector `v` perpendicular to a unit vector `u`.
+ */
 inline triple perp(triple v, triple u)
 {
   return v-dot(v,u)*u;
