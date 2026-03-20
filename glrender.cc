@@ -1750,16 +1750,18 @@ projection camera(bool user)
   double *Rotate=value_ptr(drotateMat);
 
   if(user) {
+    double shift[]={0.0,0.0,0.0,0.0};
     for(int i=0; i < 3; ++i) {
       double sumCamera=0.0, sumTarget=0.0, sumUp=0.0;
       int i4=4*i;
+      shift[3]=T[i4+2]*cz;
       for(int j=0; j < 4; ++j) {
         int j4=4*j;
         double R0=Rotate[j4];
         double R1=Rotate[j4+1];
         double R2=Rotate[j4+2];
         double R3=Rotate[j4+3];
-        double T4ij=T[i4+j];
+        double T4ij=T[i4+j]+shift[j]; // T -> T*shift(0,0,cz);
         sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
         sumUp += Tup[i4+j]*R1;
         sumTarget += T4ij*(R3-cx*R0-cy*R1);
@@ -1962,13 +1964,6 @@ void glrender(GLRenderArgs const& args, int oldpid)
 
   for(int i=0; i < 16; ++i)
     T[i]=args.t[i];
-
-  double cz=0.5*(Zmin+Zmax);
-//  T -> T*shift(0,0,cz);
-  for(int i=0; i < 3; ++i) {
-    int k=4*i+2;
-    T[k+1] += T[k]*cz;
-  }
 
   for(int i=0; i < 16; ++i)
     Tup[i]=args.tup[i];
