@@ -1760,9 +1760,9 @@ projection camera(bool user)
         double R2=Rotate[j4+2];
         double R3=Rotate[j4+3];
         double T4ij=T[i4+j];
-        sumCamera += T4ij*(R3-cx*R0-cy*R1);
+        sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
         sumUp += Tup[i4+j]*R1;
-        sumTarget += T4ij*(R3-cx*R0-cy*R1+cz*R2);
+        sumTarget += T4ij*(R3-cx*R0-cy*R1);
       }
       vCamera[i]=sumCamera;
       vUp[i]=sumUp;
@@ -1962,6 +1962,13 @@ void glrender(GLRenderArgs const& args, int oldpid)
 
   for(int i=0; i < 16; ++i)
     T[i]=args.t[i];
+
+  double cz=0.5*(Zmin+Zmax);
+//  T -> T*shift(0,0,cz);
+  for(int i=0; i < 3; ++i) {
+    int k=4*i+2;
+    T[k+1] += T[k]*cz;
+  }
 
   for(int i=0; i < 16; ++i)
     Tup[i]=args.tup[i];
