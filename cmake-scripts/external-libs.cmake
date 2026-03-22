@@ -73,7 +73,7 @@ if (ENABLE_READLINE)
             list(APPEND ASY_COMPILE_OPTS ${CURSES_CFLAGS})
             list(APPEND ASY_STATIC_LIBRARIES ${CURSES_LIBRARIES})
 
-            list(APPEND ASY_MACROS HAVE_NCURSES_CURSES_H HAVE_LIBCURSES)
+            list(APPEND ASY_MACROS HAVE_NCURSESW_CURSES_H HAVE_LIBCURSES)
         else()
             message(FATAL_ERROR "curses not found; will compile without curses")
         endif()
