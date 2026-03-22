@@ -1,7 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-
-  "builtin-baseline": "c49e1c4ed0bbde971759c750e0d5cc915c542db9",
+  "builtin-baseline": "f33cc491c85a7d643c5ab6da1667c1458e6d7abf",
   "name": "asymptote",
   "version": "0.0-snapshot",
   "dependencies": [
@@ -15,7 +14,9 @@
   "features": {
     "threading": {
       "description": "Enable threading support",
-      "dependencies": ["pthreads"]
+      "dependencies": [
+        "pthreads"
+      ]
     },
     "readline": {
       "description": "Enable readline support",
@@ -33,25 +34,34 @@
     },
     "curl": {
       "description": "Enable curl support",
-      "dependencies": ["curl"]
+      "dependencies": [
+        "curl"
+      ]
     },
     "eigen3": {
       "description": "eigen3 support",
-      "dependencies": ["eigen3"]
+      "dependencies": [
+        "eigen3"
+      ]
     },
     "gsl": {
       "description": "GSL support",
-      "dependencies": ["gsl"]
+      "dependencies": [
+        "gsl"
+      ]
     },
     "fftw3": {
       "description": "fftw3 support",
-      "dependencies": ["fftw3"]
-    },
-    "opengl": {
-      "description": "OpenGL Support",
       "dependencies": [
-        "opengl",
-        "freeglut"
+        "fftw3"
+      ]
+    },
+    "vulkan": {
+      "description": "Vulkan Support",
+      "dependencies": [
+        "vulkan",
+        "vulkan-sdk-components",
+        "glfw3"
       ]
     },
     "lsp": {

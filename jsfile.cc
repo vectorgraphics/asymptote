@@ -1,7 +1,7 @@
 #include "jsfile.h"
 
 #include "settings.h"
-#include "glrender.h"
+// #include "glrender.h"
 #include "drawelement.h"
 
 using namespace settings;
@@ -109,8 +109,8 @@ void jsfile::comment(string name)
   out << "<!-- Use the following line to embed this file within another web page:" << newl
       << newl
       << "<iframe src=\"" << name
-      << "\" width=\"" << gl::fullWidth
-      << "\" height=\"" << gl::fullHeight
+      << "\" width=\"" << vk->fullWidth
+      << "\" height=\"" << vk->fullHeight
       << "\" frameborder=\"0\"></iframe>" << newl
       << newl
       << "-->" << newl << newl;
@@ -142,8 +142,8 @@ void jsfile::open(string name)
 
   out << newl << "<script>" << newl;
   out << newl
-      << s << "canvasWidth=" << gl::fullWidth << ";" << newl
-      << s << "canvasHeight=" << gl::fullHeight << ";" << newl << newl
+      << s << "canvasWidth=" << vk->fullWidth << ";" << newl
+      << s << "canvasHeight=" << vk->fullHeight << ";" << newl << newl
       << s << "webgl2=" << std::boolalpha << webgl2 << ";"
       << newl
       << s << "ibl=" << std::boolalpha << ibl << ";"
@@ -156,18 +156,18 @@ void jsfile::open(string name)
     out << s << "image=\"" << getSetting<string>("image") << "\";" << newl << newl;
   }
   out << newl
-      <<  s << "minBound=[" << gl::Xmin << "," << gl::Ymin << "," << gl::Zmin << "];"
+      <<  s << "minBound=[" << vk->Xmin << "," << vk->Ymin << "," << vk->Zmin << "];"
       << newl
-      <<  s << "maxBound=[" << gl::Xmax << "," << gl::Ymax << "," << gl::Zmax << "];"
+      <<  s << "maxBound=[" << vk->Xmax << "," << vk->Ymax << "," << vk->Zmax << "];"
       << newl
-      << s << "orthographic=" << gl::orthographic << ";"
+      << s << "orthographic=" << vk->orthographic << ";"
       << newl
-      << s << "angleOfView=" << gl::Angle << ";"
+      << s << "angleOfView=" << vk->Angle << ";"
       << newl
-      << s << "initialZoom=" << gl::Zoom0 << ";" << newl;
-    if(gl::Shift != pair(0.0,0.0))
-      out << s << "viewportShift=" << gl::Shift*gl::Zoom0 << ";" << newl;
-    out << s << "viewportMargin=" << gl::Margin << ";" << newl << newl
+      << s << "initialZoom=" << vk->Zoom0 << ";" << newl;
+    if(vk->Shift != pair(0.0,0.0))
+      out << s << "viewportShift=" << vk->Shift*vk->Zoom0 << ";" << newl;
+    out << s << "viewportMargin=" << vk->Margin << ";" << newl << newl
         << s << "zoomFactor=" << getSetting<double>("zoomfactor") << ";" << newl
         << s << "zoomPinchFactor=" << getSetting<double>("zoomPinchFactor") << ";"
       << newl
@@ -179,25 +179,25 @@ void jsfile::open(string name)
       << newl
         << s << "vibrateTime=" << getSetting<double>("vibrateTime") << ";"
         << newl << newl;
-  out << s << "background=[" << gl::Background[0] << "," << gl::Background[1] << ","
-      << gl::Background[2] << "," << gl::Background[3] << "];"
+  out << s << "background=[" << vk->Background[0] << "," << vk->Background[1] << ","
+      << vk->Background[2] << "," << vk->Background[3] << "];"
       << newl << newl;
-  out << s << "Transform=[" << gl::T[0];
+  out << s << "Transform=[" << vk->T[0];
   for(int i=1; i < 16; ++i)
-    out << "," << newl << gl::T[i];
+    out << "," << newl << vk->T[i];
   out << "];" << newl << newl;
 
-  for(size_t i=0; i < gl::nlights; ++i) {
+  for(size_t i=0; i < vk->nlights; ++i) {
     size_t i4=4*i;
     out << "light(" << newl
-        << gl::Lights[i] << "," << newl
-        << "[" << gl::Diffuse[i4] << "," << gl::Diffuse[i4+1] << ","
-        << gl::Diffuse[i4+2] << "]);" << newl;
+        << vk->Lights[i] << "," << newl
+        << "[" << vk->LightsDiffuse[i4] << "," << vk->LightsDiffuse[i4+1] << ","
+        << vk->LightsDiffuse[i4+2] << "]);" << newl;
   }
   out << newl;
 
-  camp::clearCenters();
-  camp::clearMaterials();
+  vk->clearCenters();
+  vk->clearMaterials();
 #endif
 }
 
@@ -217,7 +217,7 @@ void jsfile::finish(string name)
       << newl << "</head>"
       << newl << newl << "<body style=\"overflow: hidden;\" onload=\"webGLStart();\">"
       << newl << "<canvas id=\"Asymptote\" width=\""
-      << gl::fullWidth << "\" height=\"" <<  gl::fullHeight
+      << vk->fullWidth << "\" height=\"" <<  vk->fullHeight
       << "\" style=\"border: none; cursor: pointer;\">"
       << newl << "</canvas>";
   footer(name);
