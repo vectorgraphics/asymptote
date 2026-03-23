@@ -370,7 +370,7 @@ clean:	FORCE
 gc-clean: FORCE clean
 	-$(MAKE) -C $(GC) clean
 
-cleaner: FORCE
+cleaner0: FORCE clean
 	-rm -rf __pycache__
 	-rm -rf GUI/__pycache__
 	-rm -rf GUI/configs/__pycache__
@@ -379,11 +379,13 @@ cleaner: FORCE
 	-cd $(GC) && rm -rf libatomic_ops autom4te.cache .deps cord/.deps \
 		cord/tests/.deps extra/.deps tests/.deps
 	-cd libatomic_ops && rm -rf autom4te.cache
-	-rm -f Makefile config.h config.log config.status errors.temp
+	-rm -f config.h config.log config.status errors.temp
 	-rm -rf autom4te.cache LspCpp/CMakeCache.txt
-	-cd doc && $(MAKE) cleaner
+	-rm -f Makefile
+
+cleaner: FORCE cleaner0
 	-cd tests && $(MAKE) cleaner
-	-$(MAKE) clean
+	-cd doc && $(MAKE) cleaner
 
 cleanest: FORCE
 	-rm -rf GUI/xasyicons GUI/xasyqtui GUI/xasyversion
@@ -394,9 +396,9 @@ cleanest: FORCE
 	-cd GUI && $(PYTHON) buildtool.py clean
 	-rm -rf $(DIST)
 	-rm -rf vcpkg_installed
+	-$(MAKE) cleaner0
 	-cd doc && $(MAKE) cleanest
 	-cd tests && $(MAKE) cleanest
-	-$(MAKE) cleaner
 	-rm -f configure config.h.in
 
 distclean: FORCE cleaner
