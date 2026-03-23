@@ -392,40 +392,44 @@ clean:	FORCE
 	-cd LspCpp && $(MAKE) distclean
 	-cd tinyexr && $(MAKE) clean
 	-cd highwayhash && $(MAKE) clean
-	cd doc && $(MAKE) clean
-	cd tests && $(MAKE) clean
+	-cd doc && $(MAKE) clean
+	-cd tests && $(MAKE) clean
 
 gc-clean: FORCE clean
 	-$(MAKE) -C $(GC) clean
 
-cleaner: FORCE clean
+cleaner0: FORCE clean
 	-rm -rf __pycache__
 	-rm -rf GUI/__pycache__
 	-rm -rf GUI/configs/__pycache__
 	-$(MAKE) -C $(GC) distclean
 	-$(MAKE) -C libatomic_ops distclean
-	-cd $(GC) && rm -rf libatomic_ops .deps cord/.deps \
+	-cd $(GC) && rm -rf libatomic_ops autom4te.cache .deps cord/.deps \
 		cord/tests/.deps extra/.deps tests/.deps
 
-	-rm -f Makefile config.h config.log config.status \
-		errors.temp autom4te.cache
-	-rm -rf LspCpp/CMakeCache.txt
-	cd doc && $(MAKE) cleaner
-	cd highwayhash && $(MAKE) distclean
-	cd tests && $(MAKE) cleaner
+	-cd libatomic_ops && rm -rf autom4te.cache
+	-cd highwayhash && $(MAKE) distclean
+	-rm -f config.h config.log config.status errors.temp
+	-rm -rf autom4te.cache LspCpp/CMakeCache.txt
+	-rm -f Makefile
 
-cleanest: FORCE cleaner
-	-rm -f configure config.h.in
+cleaner: FORCE cleaner0
+	-cd tests && $(MAKE) cleaner
+	-cd doc && $(MAKE) cleaner
+
+cleanest: FORCE
 	-rm -rf GUI/xasyicons GUI/xasyqtui GUI/xasyversion
 	-cd $(GC) && rm -rf ltmain.sh missing \
-		test-driver configure autom4te.cache m4/l*.m4
+		test-driver configure m4/l*.m4
 	-cd libatomic_ops && rm -rf ltmain.sh missing \
-		test-driver configure autom4te.cache m4/l*.m4
+		test-driver configure m4/l*.m4
 	-cd GUI && $(PYTHON) buildtool.py clean
 	-rm -rf $(DIST)
 	-rm -rf vcpkg_installed
-	cd doc && $(MAKE) cleanest
-	cd tests && $(MAKE) cleanest
+	-$(MAKE) cleaner0
+	-cd doc && $(MAKE) cleanest
+	-cd tests && $(MAKE) cleanest
+	-rm -f configure config.h.in
 
 distclean: FORCE cleaner
 maintainer-clean: FORCE cleanest

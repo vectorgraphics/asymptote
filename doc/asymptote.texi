@@ -9864,13 +9864,15 @@ documented at the beginning of module @code{three}.
 
 @cindex patch-dependent colors
 @cindex vertex-dependent colors
-The examples
-@code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/elevation.html,,elevation}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/elevation.asy,,.asy}} and @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/sphericalharmonic.html,,sphericalharmonic}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/sphericalharmonic.asy,,.asy}}
-illustrate how to draw a surface with patch-dependent colors.
-The examples @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vertexshading.html,,vertexshading}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vertexshading.asy,,.asy}} and @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/smoothelevation.html,,smoothelevation}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/smoothelevation.asy,,.asy}} illustrate
+The example
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/elevation.html,,elevation}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/elevation.asy,,.asy}}
+illustrates how to draw a surface with patch-dependent colors.
+The examples @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/sphericalharmonic.html,,sphericalharmonic}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/sphericalharmonic.asy,,.asy}},
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vertexshading.html,,vertexshading}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vertexshading.asy,,.asy}} and @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/smoothelevation.html,,smoothelevation}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/smoothelevation.asy,,.asy}} illustrate
 vertex-dependent colors, which are supported by
-@code{Asymptote}'s native @code{OpenGL}/@code{WebGL} renderers
-and the two-dimensional vector output format (@code{settings.render=0}). Since
+@code{Asymptote}'s native @code{OpenGL}/@code{WebGL} renderers,
+the three-dimensional vector output format @code{V3D}, and
+two-dimensional vector output (@code{settings.render=0}). Since
 the legacy @acronym{PRC} output format does not support vertex
 shading of Bezier surfaces, @acronym{PRC} patches are shaded with the mean of the four vertex colors.
 

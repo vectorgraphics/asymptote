@@ -37,8 +37,9 @@ clean: FORCE
 cleaner: FORCE clean
 	-rm -f Makefile
 
-cleanest: FORCE cleaner
+cleanest: FORCE
 	-rm -f *.png asymptote.info
+	-$(MAKE) cleaner
 
 distclean: FORCE cleaner
 maintainer-clean: FORCE cleanest
