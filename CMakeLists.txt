@@ -42,7 +42,7 @@ include(cmake-scripts/backport-libs.cmake)
 
 # PRC
 add_subdirectory(prc/)
-list(APPEND ASY_STATIC_LIBARIES PRC)
+list(APPEND ASY_STATIC_LIBRARIES PRC)
 
 get_target_property(prc_incl_dir PRC INCLUDE_DIRECTORIES)
 list(APPEND ASYMPTOTE_INCLUDES $<TARGET_PROPERTY:PRC,INCLUDE_DIRECTORIES>)
@@ -70,7 +70,7 @@ add_library(
 
 target_include_directories(asycore PUBLIC ${ASYMPTOTE_INCLUDES})
 add_dependencies(asycore asy_gen_headers)
-target_link_libraries(asycore PUBLIC ${ASY_STATIC_LIBARIES})
+target_link_libraries(asycore PUBLIC ${ASY_STATIC_LIBRARIES})
 target_compile_definitions(asycore PUBLIC ${ASY_MACROS})
 target_compile_options(asycore PUBLIC ${ASY_COMPILE_OPTS})
 

@@ -32,7 +32,7 @@ if (ENABLE_GC)
     unset(BUILD_SHARED_LIBS CACHE)
     set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED_LIBS})
 
-    list(APPEND ASY_STATIC_LIBARIES gc gccpp atomic_ops)
+    list(APPEND ASY_STATIC_LIBRARIES gc gccpp atomic_ops)
 
     if (WIN32)
         list(APPEND ASY_MACROS GC_NOT_DLL)
@@ -45,7 +45,7 @@ if (ENABLE_GC)
     # files are provided in include/gc/gc.h (and other files). Hence we append "/gc" to the include directories.
 
     if (WIN32)
-        list(APPEND ASY_STATIC_LIBARIES gctba)
+        list(APPEND ASY_STATIC_LIBRARIES gctba)
     endif()
     list(APPEND ASY_MACROS USEGC)
 else()
@@ -76,7 +76,7 @@ if (ENABLE_LSP)
 
     add_subdirectory(${LSP_REPO_ROOT})
 
-    list(APPEND ASY_STATIC_LIBARIES lspcpp)
+    list(APPEND ASY_STATIC_LIBRARIES lspcpp)
     list(APPEND ASY_MACROS HAVE_LSP=1)
 else()
     # only include lsp libraries
