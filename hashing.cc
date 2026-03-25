@@ -19,11 +19,11 @@ using namespace highwayhash;
 //   return result;
 // }
 
-uint64_t constexpr shiftLeftDefined(uint64_t x, int8_t shift) {
+uint64_t constexpr shiftLeftDefined(uint64_t x, uint8_t shift) {
   return shift >= 64 ? 0 : x << shift;
 }
 
-uint64_t random_bits(int8_t bits) {
+uint64_t random_bits(uint8_t bits) {
   static std::random_device *rd = new std::random_device();
   static auto *gen = new std::mt19937_64((*rd)());
   // uint64_t max = (bits >= 64 ? UINT64_C(-1) : (UINT64_C(1) << bits) - 1);

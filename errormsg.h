@@ -274,6 +274,11 @@ public:
       es.setMode(newMode);
     }
     ~ModeGuard() { es.setMode(oldMode); }
+
+    ModeGuard(const ModeGuard&) = delete;
+    ModeGuard& operator=(const ModeGuard&) = delete;
+    ModeGuard(ModeGuard&&) = delete;
+    ModeGuard& operator=(ModeGuard&&) = delete;
   };
 
   ModeGuard modeGuard(ErrorMode newMode) { return ModeGuard(*this, newMode); }

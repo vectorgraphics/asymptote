@@ -147,7 +147,7 @@ void dimensions::prettyprint(ostream &out, Int indent)
 
 types::array *dimensions::truetype(types::ty *base, ErrorMode tacit)
 {
-  if (tacit==ErrorMode::NORMAL && base->kind == ty_void) {
+  if (tacit != ErrorMode::SUPPRESS && base->kind == ty_void) {
     em.error(getPos());
     em << "cannot declare array of type void";
   }

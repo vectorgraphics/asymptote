@@ -12,7 +12,7 @@ set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "highwayhash shared libs flag")
 add_subdirectory(${HIGHWAYHASH_ROOT})
 unset(BUILD_SHARED_LIBS CACHE)
 set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED_LIBS})
-list(APPEND ASY_STATIC_LIBARIES highwayhash)
+list(APPEND ASY_STATIC_LIBRARIES highwayhash)
 
 # boehm gc
 if (ENABLE_GC)
