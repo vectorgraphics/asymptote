@@ -11,7 +11,7 @@ This file documents @code{Asymptote}, version @value{VERSION}.
 
 @url{https://asymptote.sourceforge.io}
 
-Copyright @copyright{} 2004-26 Andy Hammerlindl, John Bowman, and Tom Prince.
+Copyright @copyright{} 2004-2026 Andy Hammerlindl, John Bowman, and Tom Prince.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -627,6 +627,9 @@ make all
 make install
 @end verbatim
 @noindent
+You may need to replace the last line with @code{sudo make install}
+after first running @code{make all} without root privileges (to avoid
+generating files with incorrect permissions).
 Be sure to use @acronym{GNU} @code{make} (on non-@acronym{GNU} systems
 this command may be called @code{gmake}).
 To build the documentation, you may need to install the
@@ -776,15 +779,14 @@ apt-get build-dep asymptote
 
 @node Building the documentation
 @section Building the documentation
-Here are instructions for building the documentation:
+To build the PDF documentation doc/asymptote.pdf:
 @verbatim
-cd doc
-make  # for both the PDF version doc/asymptote.pdf and the HTML version
-cd png
-make  # for the HTML version only: doc/png/index.html
+make man
 @end verbatim
-Note that the @code{HTML} version cannot be built without
-executing @code{make} from @code{doc} folder first.
+To build the HTML documentation doc/png/index.html:
+@verbatim
+make html
+@end verbatim
 
 The @code{asy} executable is required for compiling the diagrams
 in the documentation.
@@ -3856,7 +3858,7 @@ Many further examples of picture and frame operations are provided in
 the base module @code{plain}.
 
 @cindex verbatim
-@cindex @code{postscript}
+@cindex @code{PostScript}
 It is possible to insert verbatim @code{PostScript} commands in a picture with
 one of the routines
 @verbatim
@@ -4797,7 +4799,7 @@ guide g=(0,0){up}..{SW}(100,100){NE}..{curl 3}(50,50)..(10,10);
 write("g=",g);
 @end verbatim
 
-@xref{Autounravel}, for an example overloading the @code{+} operator.
+@xref{Autounravel} for an example overloading the @code{+} operator.
 
 @node Implicit scaling, Functions, Operators, Programming
 @section Implicit scaling
@@ -7335,11 +7337,6 @@ picture @code{pic} of the elements of the arrays (@code{r},@code{theta}),
 using the given interpolation type.
 
 @end itemize
-
-@verbatim
-
-
-@end verbatim
 
 An axis can be drawn on a picture with one of the following commands:
 
@@ -9970,7 +9967,7 @@ asy -O 0,0 file
 The default offset is zero. The pair @code{aligndir} specifies
 an optional direction on the boundary of the page (mapped to the
 rectangle [-1,1]@math{\times}[-1,1]) to which the picture should be aligned; the
-default value @code{(0,0)} species center alignment.
+default value @code{(0,0)} specifies center alignment.
 
 @cindex @code{-c}
 The @code{-c} (@code{command}) option may be used to execute arbitrary
