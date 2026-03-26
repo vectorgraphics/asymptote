@@ -147,7 +147,7 @@ class qualifiedName : public name {
 
   // Gets the record type associated with the qualifier. Reports an
   // error and returns null if the type is not a record.
-  record *castToRecord(types::ty *t, ErrorMode tacit = ErrorMode::NORMAL);
+  record *castToRecord(types::ty *t);
 
   // Translates as a virtual field, if possible.  qt is the type of the
   // qualifier.  Return true if there was a matching virtual field.

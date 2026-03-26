@@ -158,24 +158,20 @@ AsymptoteLsp::SymbolLit simpleName::getLit() const
   return AsymptoteLsp::SymbolLit(static_cast<std::string>(id));
 }
 
-record *qualifiedName::castToRecord(types::ty *t, ErrorMode tacit)
+record *qualifiedName::castToRecord(types::ty *t)
 {
   switch (t->kind) {
     case ty_overloaded:
-      if (tacit==ErrorMode::NORMAL) {
-        em.compiler(qualifier->getPos());
-        em << "name::getType returned overloaded";
-      }
+      em.compiler(qualifier->getPos());
+      em << "name::getType returned overloaded";
       return 0;
     case ty_record:
       return (record *)t;
     case ty_error:
       return 0;
     default:
-      if (tacit==ErrorMode::NORMAL) {
-        em.error(qualifier->getPos());
-        em << "type \'" << *t << "\' is not a structure";
-      }
+      em.error(qualifier->getPos());
+      em << "type '" << *t << "' is not a structure";
       return 0;
   }
 }
@@ -240,7 +236,11 @@ types::ty *qualifiedName::varGetType(coenv &e)
   if (t)
     return t;
 
-  record *r = castToRecord(qt, ErrorMode::SUPPRESS);
+  record *r;
+  { // Suppress errors while calling castToRecord.
+    auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+    r = castToRecord(qt);
+  }
   return r ? r->e.varGetType(id) : 0;
 }
 
@@ -258,7 +258,11 @@ trans::varEntry *qualifiedName::getVarEntry(coenv &e)
   varEntry *qv = qualifier->getVarEntry(e);
 
   types::ty *qt = qualifier->getType(e, ErrorMode::SUPPRESS);
-  record *r = castToRecord(qt, ErrorMode::SUPPRESS);
+  record *r;
+  {  // Suppress errors while calling castToRecord.
+    auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+    r = castToRecord(qt);
+  }
   if (r) {
     types::ty *t = signatureless(r->e.varGetType(id));
     varEntry *v = t ? r->e.lookupVarByType(id, t) : 0;
@@ -270,9 +274,10 @@ trans::varEntry *qualifiedName::getVarEntry(coenv &e)
 
 types::ty *qualifiedName::typeTrans(coenv &e, ErrorMode tacit)
 {
+  auto modeGuard = em.modeGuard(tacit);
   types::ty *rt = qualifier->getType(e, tacit);
 
-  record *r = castToRecord(rt, tacit);
+  record *r = castToRecord(rt);
   if (!r)
     return primError();
 
@@ -296,7 +301,7 @@ tyEntry *qualifiedName::tyEntryTrans(coenv &e)
 {
   types::ty *rt = qualifier->getType(e, ErrorMode::NORMAL);
 
-  record *r = castToRecord(rt, ErrorMode::NORMAL);
+  record *r = castToRecord(rt);
   if (!r)
     return new tyEntry(primError(), nullptr, nullptr, nullPos);
 

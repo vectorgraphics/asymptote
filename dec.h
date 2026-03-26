@@ -114,7 +114,7 @@ public:
     return depth;
   }
 
-  types::array *truetype(types::ty *base, ErrorMode tacit=ErrorMode::NORMAL);
+  types::array *truetype(types::ty *base);
 };
 
 class arrayTy : public astType {

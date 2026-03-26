@@ -145,9 +145,9 @@ void dimensions::prettyprint(ostream &out, Int indent)
   out << "dimensions (" << depth << ")\n";
 }
 
-types::array *dimensions::truetype(types::ty *base, ErrorMode tacit)
+types::array *dimensions::truetype(types::ty *base)
 {
-  if (tacit != ErrorMode::SUPPRESS && base->kind == ty_void) {
+  if (base->kind == ty_void) {
     em.error(getPos());
     em << "cannot declare array of type void";
   }
@@ -194,7 +194,8 @@ types::ty *arrayTy::trans(coenv &e, ErrorMode tacit)
   if (ct->kind == types::ty_error)
     return ct;
 
-  types::array *t = dims->truetype(ct,tacit);
+  auto modeGuard = em.modeGuard(tacit);
+  types::array *t = dims->truetype(ct);
   assert(t);
 
   return t;
