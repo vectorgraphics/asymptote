@@ -1,28 +1,55 @@
 # Third-Party Licenses
 
-This document covers third-party components in Asymptote that are distributed under licenses other than the GNU Lesser General Public License (LGPL) v3 or later.
+Asymptote incorporates the following third-party components:
 
-## span.hpp - Boost Software License
+| Component | License | Location |
+|-----------|---------|----------|
+| span.hpp | Boost 1.0 | [span.hpp](span.hpp) |
+| HighwayHash | Apache 2.0 | [highwayhash/](highwayhash/) |
+| Boehm GC | Custom permissive | [gc/](gc/) |
+| LspCpp | MIT | [LspCpp/](LspCpp/) |
+| libatomic_ops | MIT / GPL-2.0 | [libatomic_ops/](libatomic_ops/) |
+| GLEW | BSD 3-Clause | [backports/glew/](backports/glew/) |
+| TinyEXR | BSD 3-Clause | [tinyexr/](tinyexr/) |
 
-The file [span.hpp](span.hpp) is a C++ header-only library for span types, maintained as part of the [span-lite](https://github.com/martinmoene/span-lite) project by Martin Moene.
+## Component Details
 
-**License**: Boost Software License, Version 1.0  
-**Copyright**: 2018-2021 Martin Moene  
-**Author**: Martin Moene
+### span.hpp (Boost 1.0)
+- Header-only C++ library for span types
+- Source: https://github.com/martinmoene/span-lite by Martin Moene
+- License: [LICENSE-BOOST.txt](LICENSE-BOOST.txt)
+- **Cannot be relicensed; must retain Boost license and Martin Moene attribution**
 
-This file is distributed under the Boost Software License, Version 1.0 (see [LICENSE-BOOST.txt](LICENSE-BOOST.txt) or https://www.boost.org/LICENSE_1_0.txt). It is based on the [C++ Standards Committee Paper P0122R7](http://wg21.link/p0122r7).
+### HighwayHash (Apache 2.0)
+- SIMD hash algorithm by Google
+- License in [highwayhash/LICENSE](highwayhash/LICENSE)
 
-### Compliance Note
+### Boehm-Demers-Weiser GC (Custom)
+- Conservative garbage collector
+- License headers in gc/ source files
+- Version 8.2.8
 
-When span.hpp is distributed as part of Asymptote (including in binary distributions for TeXLive or other package managers), the Boost Software License terms must be preserved and included in any distribution. The header file includes a notice referencing the Boost license, and the full license text is available in LICENSE-BOOST.txt.
+### LspCpp (MIT)
+- Language Server Protocol implementation
+- License in [LspCpp/LICENSE](LspCpp/LICENSE)
 
-### Derivative Works
+### libatomic_ops (MIT / GPL-2.0)
+- Core library: MIT License (core)
+- Extensions: GPL-2.0 (libatomic_ops_gpl.a)
+- License in [libatomic_ops/LICENSE](libatomic_ops/LICENSE)
 
-If you modify span.hpp, the Boost Software License requires:
-- Documentation of what changes were made
-- Retention of the original copyright notice and license text
-- Distribution of the modified source code under the same license
+### GLEW (BSD 3-Clause)
+- OpenGL Extension Wrangler Library
+- License header in [backports/glew/src/glew.c](backports/glew/src/glew.c)
 
----
+### TinyEXR (BSD 3-Clause)
+- OpenEXR image library
+- License header in [tinyexr/tinyexr.h](tinyexr/tinyexr.h)
 
-For questions about third-party components, please refer to the individual license files or contact the respective copyright holders.
+## Distribution Requirements
+
+**All components must be included with their license files in source distributions.**
+
+For modifications: Permissive licenses (MIT, BSD, Apache, Boost, Custom) allow modification if copyright and license are retained. GPL-2.0 code requires source distribution. Always document changes.
+
+For detailed distribution guidance, see [DISTRIBUTION-LICENSE-NOTICE.md](DISTRIBUTION-LICENSE-NOTICE.md).

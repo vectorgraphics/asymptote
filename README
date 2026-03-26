@@ -84,7 +84,33 @@ http://www.zondicons.com/zondicons.zip
 
 ========================================================================
 
-The file span.hpp is distributed under the Boost Software License, Version 1.0
-(see LICENSE-BOOST.txt). It is part of the span-lite project by Martin Moene
-(https://github.com/martinmoene/span-lite). For more information on third-party
-components and their licenses, see LICENSES-THIRD-PARTY.md.
+THIRD-PARTY COMPONENTS
+
+Asymptote includes the following third-party libraries, each with their own
+license terms. License files and notices are located in their respective
+directories:
+
+* span.hpp - Boost Software License v1.0 
+  (https://github.com/martinmoene/span-lite)
+
+* highwayhash/ - Apache License 2.0 
+  (https://github.com/google/highwayhash)
+
+* gc/ - Boehm-Demers-Weiser Garbage Collector (custom permissive license)
+  (https://www.hboehm.info/gc/)
+
+* LspCpp/ - MIT License 
+  (https://github.com/kuafuwang/LspCpp)
+
+* libatomic_ops/ - MIT License (core) / GPL-2.0 (extensions)
+  (https://boehm.info/atomic_ops/)
+
+* backports/glew/ - GLEW OpenGL Extension Wrangler - BSD 3-Clause License
+  (https://glew.sourceforge.net/)
+
+* tinyexr/ - TinyEXR Image Library - BSD 3-Clause License
+  (https://github.com/syoyo/tinyexr)
+
+For complete license information and compliance guidance, see
+LICENSES-THIRD-PARTY.md, DISTRIBUTION-LICENSE-NOTICE.md, and 
+MAINTAINER-LICENSE-GUIDE.md.

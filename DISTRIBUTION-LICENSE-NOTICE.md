@@ -1,131 +1,120 @@
-# Distribution and License Compliance Guide
+# Distribution License Compliance Guide
 
-This document provides guidance on maintaining license compliance when distributing Asymptote in various forms, including as a binary, standalone application, or as part of larger distributions like TeXLive.
+Asymptote incorporates 8 third-party components. All must be included with their licenses in all distributions.
+See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for component details.
+
+## License Files Required
+
+| Component | License File | License Type |
+|-----------|--------------|--------------|
+| Asymptote Core | LICENSE, LICENSE.LESSER | GNU LGPL v3+ |
+| span.hpp | LICENSE-BOOST.txt | Boost 1.0 |
+| highwayhash | highwayhash/LICENSE | Apache 2.0 |
+| LspCpp | LspCpp/LICENSE | MIT |
+| libatomic_ops | libatomic_ops/LICENSE, COPYING | MIT / GPL-2.0 |
+| backports/glew | backports/glew/src/glew.c | BSD 3-Clause |
+| tinyexr | tinyexr/tinyexr.h | BSD 3-Clause |
+| Boehm GC | gc/alloc.c | Custom permissive |
+
+**Documentation files to include**: LICENSES-THIRD-PARTY.md, MAINTAINER-LICENSE-GUIDE.md, README
 
 ## Source Distribution
 
-When distributing Asymptote source code:
-- Include all license files: LICENSE, LICENSE.LESSER, LICENSE-BOOST.txt
-- Include this guide: DISTRIBUTION-LICENSE-NOTICE.md
-- Include LICENSES-THIRD-PARTY.md
-- The span.hpp header file already contains its own license notice
-
-**No additional action required beyond standard source distribution.**
+✓ Include all components unchanged
+✓ Include all license files from above table
+✓ Include documentation files
+✓ No additional action required
 
 ## Binary Distribution
 
-When distributing Asymptote as a compiled binary or application:
+✓ Create LICENSES folder with all license files
+✓ Add to Help/About: links to licenses and source availability
+✓ Include written notice that source is available at https://github.com/vectorgraphics/asymptote
+✓ Include LICENSES-THIRD-PARTY.md with prominent visibility
 
-### Minimum Requirements
-- Include or reference: LICENSE, LICENSE.LESSER, LICENSE-BOOST.txt
-- Include LICENSES-THIRD-PARTY.md with prominent visibility
-- Provide written notice that Asymptote is licensed under LGPL v3+
-- Document the Boost Software License for span.hpp
-- Provide information on how to obtain source code (GPL requirement for binaries)
+## TeXLive / Package Manager Distribution
 
-### Best Practices
-- Create a LICENSES folder/section in your distribution containing all license files
-- Add to Help menu or About dialog: links to licenses and source availability
-- On installation: display or provide link to license information
-- Include a COPYING file in the binary distribution
+### TeXLive Structure
+```
+asymptote/
+├── doc/asymptote/: LICENSES-THIRD-PARTY.md, MAINTAINER-LICENSE-GUIDE.md
+└── licenses/asymptote/: All license files from table above
+```
 
-## TeXLive or Package Manager Distribution
-
-When including Asymptote in TeXLive, operating system packages, or other distributions:
-
-### Scope
-You must ensure End Users receive:
-- Information about Asymptote's LGPL v3+ license
-- Full text of LICENSE and LICENSE.LESSER
-- Full text of LICENSE-BOOST.txt
-- Reference to LICENSES-THIRD-PARTY.md
-- Access to source code for GPL compliance
-
-### Specific Requirements for TeXLive
-- Include all license files in the Asymptote package directory
-- Document the LGPL v3+ licensing in package metadata
-- Provide the Boost license as accessible documentation
-- If packaging includes source: include as-is without modification
-- If packaging includes binaries only: provide link to source repository
-
-### OS Package Managers (apt, yum, brew, etc.)
-- License metadata: LGPL-3.0-or-later AND Boost-1.0
-- Include docs: /usr/share/doc/asymptote/LICENSES-THIRD-PARTY.md
-- Include: /usr/share/licenses/asymptote/LICENSE-BOOST.txt
-- SPEC file or package control file should reference the license
+### OS Package Managers (apt, yum, brew)
+- License metadata: LGPL-3.0-or-later AND Apache-2.0 AND MIT AND Boost-1.0 AND BSD-3-Clause AND GPL-2.0
+- Place license files in `/usr/share/licenses/asymptote/`
+- Place LICENSES-THIRD-PARTY.md in `/usr/share/doc/asymptote/`
+- SPEC/control file should list all applicable licenses
 
 ## Modifications and Derivative Works
 
-If you modify Asymptote source code:
+| Component | License | Key Constraint |
+|-----------|---------|-----------------|
+| span.hpp | Boost 1.0 | ⚠️ Cannot relicense; retain Martin Moene copyright |
+| highwayhash | Apache 2.0 | Retain license; document changes |
+| LspCpp | MIT | Retain copyright; incorporate freely into LGPL |
+| libatomic_ops | MIT/GPL-2.0 | Core (MIT): retain license. Extensions (GPL-2.0): must be GPL in binaries |
+| GLEW, TinyEXR | BSD 3-Clause | Retain license and copyright headers |
+| Boehm GC | Custom | Retain copyright notice from source files |
 
-### For LGPL Code
-- Retain original copyright notices
-- Include list of modifications
-- Distribute modified source code under LGPL v3+
-- Include original LICENSE and LICENSE.LESSER files
+For LGPL core code: retain original copyright, include LICENSE.LESSER, document modifications.
 
-### For span.hpp
-- Retain the copyright notice for Martin Moene and span-lite project
-- Cannot relicense; must remain under Boost Software License
-- Document all changes made
-- Distribute modified source under Boost Software License
-- Include LICENSE-BOOST.txt
+## License Disclosure Examples
 
-## Documentation and Disclaimers
-
-### What to Include in Documentation
+### Minimal (About dialog, etc.)
 ```
-Asymptote is free software; you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation; either version 3 of the License, or
-(at your option) any later version.
+Asymptote is free software under GNU LGPL v3+. Includes third-party components:
+- span.hpp (Boost License)
+- HighwayHash (Apache 2.0)
+- LspCpp (MIT)
+- libatomic_ops (MIT / GPL-2.0)
+- GLEW, TinyEXR (BSD 3-Clause)
+- Boehm GC (Custom permissive)
 
-See LICENSE and LICENSE.LESSER for the full text.
-
-Asymptote includes span.hpp, distributed under the Boost Software License.
-See LICENSE-BOOST.txt for details.
+See LICENSES-THIRD-PARTY.md for details.
 ```
 
-### For Package Index Pages
-Include clear classification:
-- **Primary License**: LGPL-3.0-or-later
-- **Secondary Licenses**: Boost-1.0
-- **Source Location**: https://github.com/vectorgraphics/asymptote
+### Complete (Documentation)
+See third-party component catalog at LICENSES-THIRD-PARTY.md for full information.
 
-## Verification Checklist
-
-Before distributing Asymptote, verify:
+## Distribution Verification Checklist
 
 ### Source Distribution
-- [ ] All .cc, .h files are included with no modifications
-- [ ] LICENSE, LICENSE.LESSER files present
-- [ ] LICENSE-BOOST.txt present
-- [ ] LICENSES-THIRD-PARTY.md present
-- [ ] README includes span.hpp licensing information
-- [ ] span.hpp header is unmodified or changes are documented
+- [ ] All components included unchanged
+- [ ] All license files present (see table)
+- [ ] span.hpp header is unmodified
+- [ ] LICENSES-THIRD-PARTY.md and README included
 
 ### Binary Distribution
-- [ ] License files accessible to end users
-- [ ] Help/About section documents licenses
+- [ ] All license files accessible to end users
 - [ ] LGPL compliance statement visible
-- [ ] Boost license information provided
-- [ ] Source code availability documented
-- [ ] span.hpp.txt information is included if span.hpp was modified
+- [ ] Source repository link provided
+- [ ] Help/About section documents licenses
 
-### TeXLive Standard Package
-- [ ] package-name.doc/LICENSES-THIRD-PARTY.md
-- [ ] package-name.doc/LICENSE-BOOST.txt  
-- [ ] tlpkg contains license information
-- [ ] Source repository linked in documentation
+### TeXLive Package
+- [ ] All license files in asymptote.licenses/
+- [ ] LICENSES-THIRD-PARTY.md in doc/asymptote/
+- [ ] Source repository linked
+- [ ] tlpkg metadata lists all licenses
 
-## Questions and Support
+### OS Package Managers
+- [ ] License metadata includes all licenses
+- [ ] /usr/share/licenses/asymptote/ contains all files
+- [ ] /usr/share/doc/asymptote/LICENSES-THIRD-PARTY.md present
+- [ ] SPEC/control file documents all licenses
 
-For questions about licensing compliance:
-- LGPL/GPL inquiries: Refer to https://www.gnu.org/licenses/
-- Boost license inquiries: Refer to https://www.boost.org/LICENSE_1_0.txt
-- Specific Asymptote licensing: Contact the Asymptote project
-- span-lite: https://github.com/martinmoene/span-lite
+## Support and References
 
-## Summary
+- **LGPL/GPL**: https://www.gnu.org/licenses/
+- **Boost License**: https://www.boost.org/LICENSE_1_0.txt
+- **Asymptote**: https://github.com/vectorgraphics/asymptote
+- **span-lite**: https://github.com/martinmoene/span-lite
+- **HighwayHash**: https://github.com/google/highwayhash
+- **LspCpp**: https://github.com/kuafuwang/LspCpp
+- **libatomic_ops**: https://boehm.info/atomic_ops/
+- **Boehm GC**: https://www.hboehm.info/gc/
 
-The key principle is **transparency**: ensure end users and developers know what licenses apply and can access the full license text and source code. This guide helps achieve that regardless of how Asymptote is distributed.
+---
+**Key Principle**: Ensure transparency—end users and developers must know all applicable licenses, access full license text and source code, and understand any restrictions.
+
