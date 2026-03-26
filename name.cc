@@ -61,13 +61,13 @@ frame *name::frameTrans(coenv &e)
 }
 
 
-types::ty *name::getType(coenv &e, ErrorMode tacit)
+types::ty *name::getType(coenv &e)
 {
   types::ty *t=signatureless(varGetType(e));
-  if (tacit==ErrorMode::NORMAL && t && t->kind == ty_error)
+  if (!em.isSuppressed() && t && t->kind == ty_error)
     // Report errors associated with regarding the name as a variable.
     varTrans(trans::READ, e, t);
-  return t ? t : typeTrans(e, tacit);
+  return t ? t : typeTrans(e);
 }
 
 
@@ -110,17 +110,15 @@ trans::varEntry *simpleName::getCallee(coenv &e, signature *sig)
   return ve;
 }
 
-types::ty *simpleName::typeTrans(coenv &e, ErrorMode tacit)
+types::ty *simpleName::typeTrans(coenv &e)
 {
   types::ty *t = e.e.lookupType(id);
   if (t) {
     return t;
   }
   else {
-    if (tacit==ErrorMode::NORMAL) {
-      em.error(getPos());
-      em << "no type of name \'" << id << "\'";
-    }
+    em.error(getPos());
+    em << "no type of name \'" << id << "\'";
     return primError();
   }
 }
@@ -229,7 +227,11 @@ void qualifiedName::varTrans(action act, coenv &e, types::ty *target)
 
 types::ty *qualifiedName::varGetType(coenv &e)
 {
-  types::ty *qt = qualifier->getType(e, ErrorMode::SUPPRESS);
+  types::ty *qt;
+  { // Suppress errors while calling qualifier->getType.
+    auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+    qt = qualifier->getType(e);
+  }
 
   // Look for virtual fields.
   types::ty *t = qt->virtualFieldGetType(id);
@@ -257,11 +259,10 @@ trans::varEntry *qualifiedName::getVarEntry(coenv &e)
 {
   varEntry *qv = qualifier->getVarEntry(e);
 
-  types::ty *qt = qualifier->getType(e, ErrorMode::SUPPRESS);
   record *r;
-  {  // Suppress errors while calling castToRecord.
+  { // Suppress errors.
     auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
-    r = castToRecord(qt);
+    r = castToRecord(qualifier->getType(e));
   }
   if (r) {
     types::ty *t = signatureless(r->e.varGetType(id));
@@ -272,10 +273,9 @@ trans::varEntry *qualifiedName::getVarEntry(coenv &e)
     return qv;
 }
 
-types::ty *qualifiedName::typeTrans(coenv &e, ErrorMode tacit)
+types::ty *qualifiedName::typeTrans(coenv &e)
 {
-  auto modeGuard = em.modeGuard(tacit);
-  types::ty *rt = qualifier->getType(e, tacit);
+  types::ty *rt = qualifier->getType(e);
 
   record *r = castToRecord(rt);
   if (!r)
@@ -283,23 +283,21 @@ types::ty *qualifiedName::typeTrans(coenv &e, ErrorMode tacit)
 
   tyEntry *ent = r->e.lookupTyEntry(id);
   if (ent) {
-    if (tacit == ErrorMode::NORMAL)
+    if (!em.isSuppressed())
       ent->reportPerm(READ, getPos(), e.c);
     return ent->t;
   }
   else {
-    if (tacit == ErrorMode::NORMAL) {
-      em.error(getPos());
-      em << "no matching field or type of name \'" << id << "\' in \'"
-         << *r << "\'";
-    }
+    em.error(getPos());
+    em << "no matching field or type of name \'" << id << "\' in \'"
+       << *r << "\'";
     return primError();
   }
 }
 
 tyEntry *qualifiedName::tyEntryTrans(coenv &e)
 {
-  types::ty *rt = qualifier->getType(e, ErrorMode::NORMAL);
+  types::ty *rt = qualifier->getType(e);
 
   record *r = castToRecord(rt);
   if (!r)

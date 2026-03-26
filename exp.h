@@ -333,11 +333,9 @@ class fieldExp : public nameExp {
     }
 
     // As a type:
-    types::ty *typeTrans(coenv &, ErrorMode tacit = ErrorMode::NORMAL) {
-      if (tacit == ErrorMode::NORMAL) {
-        em.error(getPos());
-        em << "expression is not a type";
-      }
+    types::ty *typeTrans(coenv &) {
+      em.error(getPos());
+      em << "expression is not a type";
       return types::primError();
     }
 

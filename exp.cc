@@ -1280,7 +1280,8 @@ types::ty *castExp::trans(coenv &e)
 
 types::ty *castExp::getType(coenv &e)
 {
-  return target->trans(e, ErrorMode::SUPPRESS);
+  auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+  return target->trans(e);
 }
 
 

@@ -50,8 +50,7 @@ public:
   // appropriate error is reported and ty_error is returned.
   // Because this is used only on qualifiers (ie. names to the left of a
   // dot), it does not look at function variables.
-  // Tacit means that no error messages will be reported to the user.
-  virtual types::ty *getType(coenv &e, ErrorMode tacit = ErrorMode::NORMAL);
+  virtual types::ty *getType(coenv &e);
 
   // Pushes the highest level frame possible onto the stack.  Returning
   // the frame pushed.  If no frame can be pushed, returns 0.
@@ -76,10 +75,10 @@ public:
 
   // As a type:
   // Determines the type, as used in a variable declaration.
-  virtual types::ty *typeTrans(coenv &e, ErrorMode tacit=ErrorMode::NORMAL) = 0;
+  virtual types::ty *typeTrans(coenv &e) = 0;
   // Constructs the tyEntry of the name, needed so that we know the
   // parent frame for allocating new objects of that type.  Reports
-  // errors as typeTrans() does with tacit=false.
+  // errors unless em.isSuppressed() is true.
   virtual trans::tyEntry *tyEntryTrans(coenv &e) = 0;
 
   virtual void prettyprint(ostream &out, Int indent) = 0;
@@ -120,7 +119,7 @@ public:
   trans::varEntry *getCallee(coenv &e, types::signature *sig) override;
 
   // As a type:
-  types::ty *typeTrans(coenv &e, ErrorMode tacit = ErrorMode::NORMAL) override;
+  types::ty *typeTrans(coenv &e) override;
   virtual trans::tyEntry *tyEntryTrans(coenv &e) override;
   trans::frame *tyFrameTrans(coenv &e) override;
 
@@ -169,7 +168,7 @@ public:
   trans::varEntry *getCallee(coenv &e, types::signature *sig) override;
 
   // As a type:
-  types::ty *typeTrans(coenv &e, ErrorMode tacit = ErrorMode::NORMAL) override;
+  types::ty *typeTrans(coenv &e) override;
   trans::tyEntry *tyEntryTrans(coenv &e) override;
   trans::frame *tyFrameTrans(coenv &e) override;
 

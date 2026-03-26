@@ -263,6 +263,10 @@ public:
     return !anyStatusErrors;
   }
 
+  bool isSuppressed() const {
+    return mode == ErrorMode::SUPPRESS;
+  }
+
   class ModeGuard
   {
     errorstream& es;

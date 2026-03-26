@@ -31,13 +31,13 @@ public:
 
   // Build the corresponding types::formal to put into a signature.
   types::formal
-  trans(coenv& e, bool encodeDefVal, ErrorMode tacit= ErrorMode::NORMAL);
+  trans(coenv& e, bool encodeDefVal);
 
   // Add the formal parameter to the environment to prepare for the
   // function body's translation.
   virtual void transAsVar(coenv &e, Int index);
 
-  types::ty *getType(coenv &e, ErrorMode tacit=ErrorMode::NORMAL);
+  types::ty *getType(coenv &e);
 
   absyntax::astType *getAbsyntaxType() { return base; }
 
@@ -85,7 +85,7 @@ private:
   bool keywordOnly;
 
   void addToSignature(types::signature& sig,
-                      coenv &e, bool encodeDefVal, ErrorMode tacit);
+                      coenv &e, bool encodeDefVal);
 public:
   formals(position pos)
     : absyn(pos), rest(0), keywordOnly(false) {}
@@ -126,14 +126,12 @@ public:
   // encodeDefVal means that it will also encode information regarding
   // the default values into the signature
   types::signature *getSignature(coenv &e,
-                                 bool encodeDefVal = false,
-                                 ErrorMode tacit = ErrorMode::NORMAL);
+                                 bool encodeDefVal = false);
 
   // Returns the corresponding function type, assuming it has a return
   // value of "result."
   types::function *getType(types::ty *result, coenv &e,
-                           bool encodeDefVal = false,
-                           ErrorMode tacit = ErrorMode::NORMAL);
+                           bool encodeDefVal = false);
   
   mem::vector<tySymbolPair> *getFields();
 
@@ -168,11 +166,12 @@ public:
   virtual void baseTrans(coenv &e, types::function *ft);
   virtual types::ty *trans(coenv &e) override;
 
-  virtual types::function *transType(coenv &e, ErrorMode tacit);
+  virtual types::function *transType(coenv &e);
   virtual types::function*
-  transTypeAndAddOps(coenv& e, record* r, ErrorMode tacit);
+  transTypeAndAddOps(coenv& e, record* r);
   virtual types::ty *getType(coenv &e) override {
-    return transType(e, ErrorMode::SUPPRESS);
+    auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+    return transType(e);
   }
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
