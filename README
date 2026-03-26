@@ -81,3 +81,10 @@ under the CC-BY-SA 4.0 license:
 http://www.entypo.com/
 and under a CC license:
 http://www.zondicons.com/zondicons.zip
+
+========================================================================
+
+The file span.hpp is distributed under the Boost Software License, Version 1.0
+(see LICENSE-BOOST.txt). It is part of the span-lite project by Martin Moene
+(https://github.com/martinmoene/span-lite). For more information on third-party
+components and their licenses, see LICENSES-THIRD-PARTY.md.
