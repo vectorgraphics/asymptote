@@ -24,7 +24,6 @@
 #include "opsymbols.h"
 #include "asyprocess.h"
 
-//void runCode(absyntax::block *code);
 
 namespace absyntax {
 
@@ -44,8 +43,6 @@ void exp::prettyprint(ostream &out, Int indent)
 
 void exp::transAsType(coenv &e, types::ty *target) {
   trans(e);
-//  types::ty *t=trans(e);
-//  assert(t->kind==ty_error || equivalent(t,target));
 }
 
 void exp::transToType(coenv &e, types::ty *target)

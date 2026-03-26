@@ -942,7 +942,6 @@ public:
   void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
-  //types::ty *getType(coenv &e);
 
   bool scalable() { return false; }
 };
