@@ -4,11 +4,9 @@
 #include <random>
 #include <vector>
 
-#include <highwayhash/highwayhash_target.h>
-#include <highwayhash/instruction_sets.h>
+#include "wyhash.h"
 
 namespace hashing {
-using namespace highwayhash;
 
 uint64_t constexpr shiftLeftDefined(uint64_t x, uint8_t shift) {
   return shift >= 64 ? 0 : x << shift;
@@ -22,11 +20,16 @@ uint64_t random_bits(uint8_t bits) {
   return dist(*gen);
 }
 
+std::array<uint64_t, 4> make_secret_array(uint64_t seed) {
+  std::array<uint64_t, 4> secret;
+  make_secret(seed, secret.data());
+  return secret;
+}
+
 uint64_t hashSpan(span<const char> s) {
-  HH_ALIGNAS(32) static const HHKey key = {random_bits(64), random_bits(64),
-                                           random_bits(64), random_bits(64)};
-  HHResult64 result;
-  InstructionSets::Run<HighwayHash>(key, s.data(), s.size(), &result);
+  static const uint64_t seed = random_bits(64);
+  static const std::array<uint64_t, 4> secret = make_secret_array(seed);
+  uint64_t result = wyhash(s.data(), s.size(), seed, secret.data());
   return result & (shiftLeftDefined(1, 62) - 1);
 }
 
