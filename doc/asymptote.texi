@@ -1255,6 +1255,8 @@ independent of the pen line width.
 The use of arrows, bars, and margins is illustrated by the examples
 @code{@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.svg,,Pythagoras}@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.asy,,.asy}} and
 @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/sqrtx01.html,,sqrtx01}@uref{https://asymptote.sourceforge.io/gallery/sqrtx01.asy,,.asy}}.
+Since bars are intended for indicating precise dimensions, they should only be
+drawn with NoMargin (the default).
 
 The legend for a picture @code{pic} can be fit and aligned to a frame
 with the routine:
