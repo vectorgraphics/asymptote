@@ -497,13 +497,16 @@ Int seconds(string t=emptystring, string format=emptystring)
 
 string randString(Int len, string *chars) {
   string result(len, ' ');
-  if (chars == nullptr || chars->size() == 0) {
-    chars = new string(
+  const string *charsConst = chars;
+  static const string *alphabet = new string(
       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+
+  if (charsConst == nullptr || charsConst->size() == 0) {
+    charsConst = alphabet;
   }
-  Int maxIndex = chars->size() - 1;
+  Int maxIndex = charsConst->size() - 1;
   for (Int i = 0; i < len; ++i) {
-    char toAdd = (*chars)[camp::randInt(0, maxIndex)];
+    char toAdd = (*charsConst)[camp::randInt(0, maxIndex)];
     result[i] = toAdd;
   }
   return result;
