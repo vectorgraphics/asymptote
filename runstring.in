@@ -133,7 +133,7 @@ Int length(string *s)
 Int :stringHashHelper(string s)
 {
   span<const char> sSpan = {s.data(), s.length()};
-  return hashing::hashSpan(s);
+  return hashing::hashSpan(sSpan);
 }
 
 callable* :stringHash(string s)
@@ -428,7 +428,7 @@ Int ascii(string s)
 Int hash(string s)
 {
   span<const char> sSpan = {s.data(), s.length()};
-  return hashing::hashSpan(s);
+  return hashing::hashSpan(sSpan);
 }
 
 string string(Int x)

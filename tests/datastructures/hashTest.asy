@@ -34,7 +34,7 @@ StartTest('string.hash');
   // This assertion will fail on roughly 1 in 2^62 runs.
   assert(s.hash() != ('world').hash(),
          'Probabilistic test failed. Chance of spurious failure is roughly 1 '
-         'in 2^32.');
+         'in 2^62.');
 }
 EndTest();
 
