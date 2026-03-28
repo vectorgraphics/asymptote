@@ -105,7 +105,12 @@ public:
 
   // Sets the keytype and valuetype based on operator[] and operator[=].
   void computeKVTypes(const position& pos);
+  // Computes the key type without setting it. Intended for use when
+  // subscript notation is used on an object of the class currently
+  // being translated, so operator[] or operator[=] may not be defined yet.
   ty *keyType() override;
+  // Computes the value type without setting it, in case operator[]
+  // or operator[=] is defined later.
   ty *valType();
 
   void print(ostream& out) const override
