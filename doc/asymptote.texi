@@ -7574,7 +7574,9 @@ need either a @code{HashSet_T} or a @code{BTreeSet_T}:
 @itemx HashSet_T(T nullT,@*@ @ @ @ @ @ @ @ @ @ bool equiv(T a, T b) = operator ==, @*@ @ @ @ @ @ @ @ @ @ bool isNullT(T) = new bool(T t) @{ return equiv(t, nullT); @}@*@ @ @ @ @ @ @ @ @ )
 These two functions, which create a hash set, must be accessed from the
 @code{collections.hashset(T)} templated module. The type @code{T} must have a
-@code{hash} method, @pxref{Hash functions}.
+@code{hash} method, @pxref{Hash functions}. If @code{isNullT} is not defined, or if
+@code{!isNullT(null)}, then passing @code{null} to most methods will throw an error
+by trying to call @code{null.hash()}.
 
 @item BTreeSet_T()
 @itemx BTreeSet_T(T nullT, bool isNullT(T) = new bool(T t) @{ return t == nullT; @})
@@ -7634,6 +7636,8 @@ returns true iff @code{size() == 0}.
 @cindex @code{contains} @subentry @code{Set.contains}
 @item bool contains(T item)
 returns true if @code{item} (or an equivalent item) is present in the set.
+If @code{isNullT} is defined and @code{isNullT(item)} is true, this method
+always returns false.
 
 @cindex @code{Set} @subentry @code{.add}
 @cindex @code{add} @subentry @code{Set.add}
@@ -7653,6 +7657,7 @@ This method violates the principle of reversibility.
 @cindex @code{delete} @subentry @code{Set.delete}
 @item T delete(T item)
 removes @code{item} from the set if it is present, otherwise does nothing.
+This method does nothing if @code{isNullT(item)} is defined and true.
 The return value is true iff the set was modified.
 
 @cindex @code{Set} @subentry @code{.delete}
