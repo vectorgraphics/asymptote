@@ -21,6 +21,7 @@ using trans::frame;
 using trans::protoenv;
 using trans::varEntry;
 using trans::tyEntry;
+using trans::AutoUnravelRegistry;
 
 namespace types {
 
@@ -46,6 +47,10 @@ public:
   // after translation of the record is completed.  Constructors implicitly
   // defined by "operator init" are stored here.
   protoenv postdefenv;
+
+  // Registry of autounravel entries for this record.  Populated during
+  // translation; read by addNameOps when the record is used as a type.
+  AutoUnravelRegistry autounravelRegistry;
 
   record(symbol name, frame *level);
   ~record();

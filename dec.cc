@@ -87,7 +87,7 @@ void nameTy::prettyprint(ostream &out, Int indent)
 }
 
 void addNameOps(coenv &e, record *r, record *qt, varEntry *qv, position pos) {
-  for (auto au : qt->e.ve.getAutoUnravels()) {
+  for (auto au : qt->autounravelRegistry.getAutoUnravels()) {
     symbol auName = au.first;
     varEntry *v = au.second;
     if (!v->checkPerm(READ, e.c)) {
@@ -692,7 +692,7 @@ void addVar(coenv &e, record *r, varEntry *v, symbol id)
   if (r) {
     r->e.addVar(id, v);
     if (e.c.isAutoUnravel()) {
-      r->e.ve.registerAutoUnravel(id, v);
+      r->autounravelRegistry.registerAutoUnravel(id, v);
     }
   }
   e.e.addVar(id, v);
@@ -1044,7 +1044,7 @@ tyEntry *idpair::transAsUnravel(coenv &e, record *r,
     auto fieldsAdded = r->e.add(src, dest, source, qualifier, e.c)->varsAdded;
     if (e.c.isAutoUnravel()) {
       for (varEntry *v : fieldsAdded) {
-        r->e.ve.registerAutoUnravel(dest, v);
+        r->autounravelRegistry.registerAutoUnravel(dest, v);
       }
     }
   }
@@ -1138,7 +1138,9 @@ void recordInitializer(coenv &e, symbol id, record *r, position here)
 
     varEntry *v=makeVarEntry(here, e, r, ft);
     r->e.addVar(initSym, v);
-    r->e.ve.registerAutoUnravel(initSym, v, trans::AutounravelPriority::OFFER);
+    r->autounravelRegistry.registerAutoUnravel(
+            initSym, v, trans::AutounravelPriority::OFFER
+    );
     initializeVar(here, e, v, init);
     e.c.popModifier();
   }
@@ -1283,7 +1285,7 @@ void fromdec::transAsField(coenv &e, record *r)
   if (q.t) {
     if (fields==WILDCARD) {
       if (r)
-        r->e.add(q.t->e, q.v, e.c);
+        r->e.add(q.t->e, q.v, e.c, &r->autounravelRegistry);
       e.e.add(q.t->e, q.v, e.c);
     } else {
       auto typesAdded = fields->transAsUnravel(e, r, q.t->e, q.v);
