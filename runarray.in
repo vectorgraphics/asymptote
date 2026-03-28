@@ -939,17 +939,17 @@ Intarray* complement(Intarray *a, Int n)
 Int hash(Intarray *a)
 {
   size_t asize=checkArray(a);
-#if COMPACT
-  const uint64_t *start = reinterpret_cast<uint64_t*>(a->data());
-  span<const uint64_t> s = {start, asize};
-  return hashing::hashSpan(s);
-#else
   std::vector<uint64_t> v(asize);
+#if COMPACT
+  static_assert(sizeof(item) == sizeof(uint64_t),
+                "item size mismatch in COMPACT mode");
+  std::memcpy(v.data(), a->data(), asize * sizeof(uint64_t));
+#else
   for (size_t i = 0; i < asize; ++i) {
     v[i] = static_cast<uint64_t>(read<Int>(a,i));
   }
-  return hashing::hashSpan(v);
 #endif
+  return hashing::hashSpan(v);
 }
 
 // Generate the sequence {f(i) : i=0,1,...n-1} given a function f and integer n
