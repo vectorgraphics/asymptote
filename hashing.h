@@ -1,3 +1,5 @@
+#ifndef HASHING_H
+#define HASHING_H
 #include <cstdint>
 #include <array>
 
@@ -10,3 +12,5 @@ uint64_t hashSpan(span<const char> s);
 uint64_t hashInt(uint64_t i);
 
 }  // namespace hashing
+
+#endif  // HASHING_H
