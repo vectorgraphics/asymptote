@@ -21,7 +21,9 @@ callableReal* => realRealFunction()
 
 
 #include <cstdint>
+#include <cstring>
 #include <string>
+#include <vector>
 
 #include "array.h"
 #include "arrayop.h"
