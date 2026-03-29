@@ -13,7 +13,7 @@ clean: FORCE
 
 cleaner: FORCE clean
 cleanest: FORCE cleaner
-	-rm *.info
+	-rm -f *.info
 
 distclean: FORCE cleaner
 maintainer-clean: FORCE cleanest

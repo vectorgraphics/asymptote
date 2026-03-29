@@ -248,8 +248,9 @@ public:
   bool ibl=false;
   bool vkexit=false;
   bool hideWindow=false;
+  bool haveScene;
 
-  bool vkthread=false;;
+  bool vkthread=false;
   bool initialize=true;
   bool copied=false;
 

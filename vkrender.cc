@@ -207,8 +207,10 @@ void AsyVkRender::setProjection()
 {
   setDimensions(width, height, X, Y);
 
-  if(orthographic) vk->ortho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
-  else vk->frustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+  if(haveScene) {
+    if(orthographic) vk->ortho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+    else vk->frustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+  }
   newUniformBuffer = true;
 }
 
@@ -254,7 +256,7 @@ double AsyVkRender::getRenderResolution(triple Min) const
     return 0.0;
 
   prerender = 1.0 / prerender;
-  double perspective = orthographic ? 0.0 : 1.0 / Zmax;
+  double perspective = orthographic || Zmax == 0.0 ? 0.0 : 1.0 / Zmax;
   double s = perspective ? Min.getz() * perspective : 1.0;
   triple b(Xmin, Ymin, Zmin);
   triple B(Xmax, Ymax, Zmax);
@@ -267,19 +269,17 @@ double AsyVkRender::getRenderResolution(triple Min) const
 
 void AsyVkRender::initWindow()
 {
-  if (!window) {
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_FOCUSED, GLFW_FALSE);
-    glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE);
-    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-    window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
+  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+  glfwWindowHint(GLFW_FOCUSED, GLFW_FALSE);
+  glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE);
+  glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+  window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
 
-    if (window == nullptr)
-      runtimeError(
-        "failed to create a window with width "
-        + std::to_string(width) + " and height "
-        + std::to_string(height));
-  }
+  if (window == nullptr)
+    runtimeError(
+      "failed to create a window with width "
+      + std::to_string(width) + " and height "
+      + std::to_string(height));
 
   glfwSetWindowUserPointer(window, this);
   glfwSetMouseButtonCallback(window, mouseButtonCallback);
@@ -517,6 +517,7 @@ AsyVkRender::~AsyVkRender()
 {
   if (this->View) {
     glfwDestroyWindow(this->window);
+    this->window=nullptr;
     glfwTerminate();
   }
 
@@ -574,7 +575,8 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   Zmin = args.m.getz();
   Zmax = args.M.getz();
 
-  orthographic = (this->Angle == 0.0);
+  haveScene=Xmin < Xmax && Ymin < Ymax && Zmin < Zmax;
+  orthographic = this->Angle == 0.0;
   H = orthographic ? 0.0 : -tan(0.5 * this->Angle) * Zmax;
   Xfactor = Yfactor = 1.0;
 
@@ -694,7 +696,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   }
 
   if(View) {
-    if(vkinitialize)
+    if(!window)
       initWindow();
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
@@ -4725,7 +4727,7 @@ void AsyVkRender::render()
 
     triple m(xmin,ymin,Zmin);
     triple M(xmax,ymax,Zmax);
-    double perspective = orthographic ? 0.0 : 1.0 / Zmax;
+    double perspective=orthographic || Zmax == 0.0 ? 0.0 : 1.0/Zmax;
 
     double size2=hypot(width,height);
 
