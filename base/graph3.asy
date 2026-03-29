@@ -2301,7 +2301,8 @@ guide3 polargraph(real r(real,real), real theta(real), real phi(real),
     },0,1,n);
 }
 
-// True arc
+// return a true arc centered at c from triple v1 to v2
+// (assuming |v2-c|=|v1-c|).
 path3 Arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW,
           int n=nCircle)
 {
