@@ -6955,6 +6955,11 @@ regularity (with respect to modular arithmetic) when applied exactly once.
 This explains why the second example returns @code{id.hash()} instead
 of @code{id}, while @code{age} is not independently hashed in the
 first example.
+It may sometimes be most practical to feed the hash function's
+output back into it, as in @code{firstname} and @code{lastname} above, but this
+does not increase the hash quality; in theory, if we could serialize a
+@code{Person} object to a string and then hash the string, the hash quality
+would be even higher.
 
 @node Collections (containers)
 @section Collections (containers)
