@@ -81,7 +81,7 @@ struct Map_K_V {
     return result;
   }
 
-  void addAll(Iterable_K_V other) {
+  void add(Iterable_K_V other) {
     for (Pair_K_V kv : other) {
       this[kv.k] = kv.v;
     }

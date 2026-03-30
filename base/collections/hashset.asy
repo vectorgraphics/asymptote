@@ -46,8 +46,8 @@ struct HashSet_T {
       return false;
     }
     int bucket = item.hash();
-    for (int i = 0; i < buckets.length; ++i) {
-      HashEntry entry = buckets[bucket + i];
+    for (int index = bucket - buckets.length; index < bucket; ++index) {
+      HashEntry entry = buckets[index];
       if (entry == null) {
         return false;
       }
