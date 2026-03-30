@@ -1,6 +1,6 @@
 # Distribution License Compliance Guide
 
-Asymptote incorporates 8 third-party components. All must be included with their licenses in all distributions.
+Asymptote incorporates 7 third-party components. All must be included with their licenses in all distributions.
 
 > **Note**: `highwayhash/` has been replaced by `wyhash.h` (The Unlicense — Public Domain).
 See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for component details.
@@ -13,7 +13,6 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for component details.
 | span.hpp | LICENSE-BOOST.txt | Boost 1.0 |
 | wyhash | wyhash.h (header) | The Unlicense (Public Domain) |
 | LspCpp | LspCpp/LICENSE | MIT |
-| libatomic_ops | libatomic_ops/LICENSE, COPYING | MIT / GPL-2.0 |
 | backports/glew | backports/glew/src/glew.c | BSD 3-Clause |
 | tinyexr | tinyexr/tinyexr.h | BSD 3-Clause |
 | Boehm GC | gc/alloc.c | Custom permissive |
@@ -60,7 +59,6 @@ asymptote/
 | span.hpp | Boost 1.0 | ⚠️ Cannot relicense; retain Martin Moene copyright |
 | wyhash | The Unlicense (Public Domain) | No restrictions; attribution appreciated |
 | LspCpp | MIT | Retain copyright; incorporate freely into LGPL |
-| libatomic_ops | MIT/GPL-2.0 | Core (MIT): retain license. Extensions (GPL-2.0): must be GPL in binaries |
 | GLEW, TinyEXR | BSD 3-Clause | Retain license and copyright headers |
 | Boehm GC | Custom | Retain copyright notice from source files |
 
@@ -74,7 +72,6 @@ Asymptote is free software under GNU LGPL v3+. Includes third-party components:
 - span.hpp (Boost License)
 - wyhash (Public Domain)
 - LspCpp (MIT)
-- libatomic_ops (MIT / GPL-2.0)
 - GLEW, TinyEXR (BSD 3-Clause)
 - Boehm GC (Custom permissive)
 
@@ -118,7 +115,6 @@ See third-party component catalog at LICENSES-THIRD-PARTY.md for full informatio
 - **span-lite**: https://github.com/martinmoene/span-lite
 - **HighwayHash**: https://github.com/google/highwayhash
 - **LspCpp**: https://github.com/kuafuwang/LspCpp
-- **libatomic_ops**: https://boehm.info/atomic_ops/
 - **Boehm GC**: https://www.hboehm.info/gc/
 
 ---

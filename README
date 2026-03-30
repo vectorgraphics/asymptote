@@ -102,9 +102,6 @@ directories:
 * LspCpp/ - MIT License 
   (https://github.com/kuafuwang/LspCpp)
 
-* libatomic_ops/ - MIT License (core) / GPL-2.0 (extensions)
-  (https://boehm.info/atomic_ops/)
-
 * backports/glew/ - GLEW OpenGL Extension Wrangler - BSD 3-Clause License
   (https://glew.sourceforge.net/)
 

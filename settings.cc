@@ -1172,8 +1172,6 @@ struct licensesOption : public option {
       "                    https://www.hboehm.info/gc/" "\n"
       "  LspCpp            MIT License\n"
       "                    https://github.com/kuafuwang/LspCpp" "\n"
-      "  libatomic_ops     MIT (core) / GPL-2.0 (extensions)\n"
-      "                    https://github.com/ivmai/libatomic_ops" "\n"
       "  GLEW              BSD 3-Clause License\n"
       "                    https://glew.sourceforge.net/" "\n"
       "  TinyEXR           BSD 3-Clause License\n"

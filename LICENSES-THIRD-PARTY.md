@@ -8,7 +8,6 @@ Asymptote incorporates the following third-party components:
 | wyhash | The Unlicense (Public Domain) | [wyhash.h](wyhash.h) |
 | Boehm GC | Custom permissive | [gc/](gc/) |
 | LspCpp | MIT | [LspCpp/](LspCpp/) |
-| libatomic_ops | MIT / GPL-2.0 | [libatomic_ops/](libatomic_ops/) |
 | GLEW | BSD 3-Clause | [backports/glew/](backports/glew/) |
 | TinyEXR | BSD 3-Clause | [tinyexr/](tinyexr/) |
 
@@ -33,11 +32,6 @@ Asymptote incorporates the following third-party components:
 ### LspCpp (MIT)
 - Language Server Protocol implementation
 - License in [LspCpp/LICENSE](LspCpp/LICENSE)
-
-### libatomic_ops (MIT / GPL-2.0)
-- Core library: MIT License (core)
-- Extensions: GPL-2.0 (libatomic_ops_gpl.a)
-- License in [libatomic_ops/LICENSE](libatomic_ops/LICENSE)
 
 ### GLEW (BSD 3-Clause)
 - OpenGL Extension Wrangler Library

@@ -3,26 +3,17 @@ set(ASY_SUBREPO_CLONE_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(LSP_REPO_ROOT ${ASY_SUBREPO_CLONE_ROOT}/LspCpp)
 set(TINYEXR_SUBREPO_ROOT ${ASY_SUBREPO_CLONE_ROOT}/tinyexr)
 set(BOEHM_GC_ROOT ${ASY_SUBREPO_CLONE_ROOT}/gc)
-set(LIBATOMIC_OPS_ROOT ${ASY_SUBREPO_CLONE_ROOT}/libatomic_ops)
 # boehm gc
 if (ENABLE_GC)
-    set(enable_gpl OFF CACHE INTERNAL "libatomicops gpl libs option")
-    add_subdirectory(${LIBATOMIC_OPS_ROOT})
-
-    set(OLD_CFLAG_EXTRA ${CFLAG_EXTRA})
-    set(CFLAGS_EXTRA -I${LIBATOMIC_OPS_ROOT}/src)  # for bdwgc
-
     set(OLD_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
     set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "bdwgc shared libs flag")
     set(enable_cplusplus ON CACHE INTERNAL "bdwgc enable C++")
-    set(without_libatomic_ops ON CACHE INTERNAL "bdwgc use libatomic ops")
     add_subdirectory(${BOEHM_GC_ROOT})
 
-    set(CFLAG_EXTRA ${OLD_CFLAG_EXTRA})
     unset(BUILD_SHARED_LIBS CACHE)
     set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED_LIBS})
 
-    list(APPEND ASY_STATIC_LIBRARIES gc gccpp atomic_ops)
+    list(APPEND ASY_STATIC_LIBRARIES gc gccpp)
 
     if (WIN32)
         list(APPEND ASY_MACROS GC_NOT_DLL)
