@@ -34,6 +34,10 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for component details.
 ✓ Include written notice that source is available at https://github.com/vectorgraphics/asymptote
 ✓ Include LICENSES-THIRD-PARTY.md with prominent visibility
 
+**Note**: The `asy --licenses` command prints license and third-party attribution
+information at runtime, providing a fallback for compliance even if documentation
+files are not bundled with the binary.
+
 ## TeXLive / Package Manager Distribution
 
 ### TeXLive Structure

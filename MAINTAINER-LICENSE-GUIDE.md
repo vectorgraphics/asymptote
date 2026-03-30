@@ -47,10 +47,13 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for complete component de
 Retain original license for: wyhash.h, gc/, LspCpp/, libatomic_ops/, backports/glew/, tinyexr/
 _Note: wyhash.h is public domain, but retain the original header comment crediting Wang Yi._
 
+When adding, removing, or updating third-party components, also update the
+`licensesOption` output in `settings.cc` (printed by `asy --licenses`).
+
 ### Distributing Asymptote
 ✓ Include: LICENSE, LICENSE.LESSER, LICENSE-BOOST.txt, README, LICENSES-THIRD-PARTY.md
 ✓ Follow: DISTRIBUTION-LICENSE-NOTICE.md for your scenario (binary/TeXLive/package manager)
-✓ Binaries: Ensure users can access license texts
+✓ Binaries: Ensure users can access license texts (also available via `asy --licenses`)
 
 ### Contributing
 - All contributions: compatible with LGPL v3+

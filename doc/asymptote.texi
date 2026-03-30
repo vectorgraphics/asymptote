@@ -11511,6 +11511,12 @@ Also output knot guide solver diagnostics.
 Also output @code{Asymptote} traceback diagnostics.
 @end table
 
+@cindex licenses
+@cindex third-party licenses
+@cindex attribution
+Type @code{asy -licenses} to see the license and third-party attribution
+information for @code{Asymptote} and its bundled components.
+
 @node Interactive mode
 @chapter Interactive mode
 @cindex interactive mode
