@@ -435,13 +435,13 @@ exp *subscriptExp::evaluate(coenv &e, types::ty *)
   if (!base) {
     em.error(object->getPos());
     em << "object to index cannot be resolved";
-    return nullptr;
+    return exp::evaluate(e, primError());
   }
   types::ty *indexType = base->keyType();
   if (indexType->kind == ty_error) {
     em.error(object->getPos());
     em << "object does not have operator[=] set up correctly";
-    return nullptr;
+    return exp::evaluate(e, primError());
   }
   // Force object and index to be evaluated in the correct order.
   // (Note that in C++, the order of evaluation of function arguments is

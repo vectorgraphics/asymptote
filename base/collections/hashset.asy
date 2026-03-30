@@ -42,6 +42,9 @@ struct HashSet_T {
   };
 
   super.contains = new bool(T item) {
+    if (isNullT != null && isNullT(item)) {
+      return false;
+    }
     int bucket = item.hash();
     for (int i = 0; i < buckets.length; ++i) {
       HashEntry entry = buckets[bucket + i];
@@ -56,6 +59,9 @@ struct HashSet_T {
   };
 
   super.get = new T(T item) {
+    if (isNullT != null && isNullT(item)) {
+      return super.nullT;
+    }
     int bucket = item.hash();
     int end = bucket;
     int start = end - buckets.length;
@@ -242,6 +248,9 @@ struct HashSet_T {
   }
 
   super.extract = new T(T item) {
+    if (isNullT != null && isNullT(item)) {
+      return nullT;
+    }
     int index = find(item, item.hash());
     if (index == -1) {
       assert(false, 'Overcrowded hash table; zombies: ' + string(zombies) +
@@ -260,6 +269,9 @@ struct HashSet_T {
   };
 
   super.delete = new bool(T item) {
+    if (isNullT != null && isNullT(item)) {
+      return false;
+    }
     int index = find(item, item.hash());
     if (index == -1) {
       assert(false, 'Overcrowded hash table; zombies: ' + string(zombies) +

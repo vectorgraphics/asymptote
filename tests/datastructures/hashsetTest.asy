@@ -354,3 +354,37 @@ b.add(wrap(4));
 }
 
 EndTest();
+
+StartTest('HashSet_null_handling');
+
+// Test that operations on null don't cause null dereference.
+// This verifies the guard: if (isNullT != null && isNullT(item))
+// is applied before calling item.hash() in contains, get, extract, delete.
+Set_wrapped_int setWithNull = HashSet_wrapped_int(null);
+setWithNull.add(wrap(1));
+setWithNull.add(wrap(2));
+setWithNull.add(wrap(3));
+
+wrapped_int nullValue = null;
+
+// Test contains(null) - should return false without crashing
+assert(!setWithNull.contains(nullValue), 'contains(null) should return false');
+
+// Test get(null) - should return null without crashing
+wrapped_int result = setWithNull.get(nullValue);
+assert(alias(result, null), 'get(null) should return null');
+
+// Test extract(null) - should return null without crashing
+result = setWithNull.extract(nullValue);
+assert(alias(result, null), 'extract(null) should return null');
+
+// Test delete(null) - should return false without crashing
+assert(!setWithNull.delete(nullValue), 'delete(null) should return false');
+
+// Verify the set is unchanged
+assert(setWithNull.size() == 3, 'Set size should be unchanged after null operations');
+assert(setWithNull.contains(wrap(1)), 'Set should still contain 1');
+assert(setWithNull.contains(wrap(2)), 'Set should still contain 2');
+assert(setWithNull.contains(wrap(3)), 'Set should still contain 3');
+
+EndTest();
