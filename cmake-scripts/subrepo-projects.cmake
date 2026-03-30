@@ -4,7 +4,6 @@ set(LSP_REPO_ROOT ${ASY_SUBREPO_CLONE_ROOT}/LspCpp)
 set(TINYEXR_SUBREPO_ROOT ${ASY_SUBREPO_CLONE_ROOT}/tinyexr)
 set(BOEHM_GC_ROOT ${ASY_SUBREPO_CLONE_ROOT}/gc)
 set(LIBATOMIC_OPS_ROOT ${ASY_SUBREPO_CLONE_ROOT}/libatomic_ops)
-
 # boehm gc
 if (ENABLE_GC)
     set(enable_gpl OFF CACHE INTERNAL "libatomicops gpl libs option")

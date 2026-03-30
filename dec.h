@@ -63,10 +63,10 @@ public:
   addOps(coenv&, record*, AutounravelOption opt= AutounravelOption::Apply)
   {}
 
-  // Returns the internal representation of the type.  This method can
-  // be called by exp::getType which does not report errors, so tacit is
-  // needed to silence errors in this case.
-  virtual types::ty *trans(coenv &e, bool tacit = false) = 0;
+  // Returns the internal representation of the type. Error reporting
+  // depends on ambient error suppression state (set via
+  // em.modeGuard(ErrorMode) at call sites).
+  virtual types::ty *trans(coenv &e) = 0;
 
   virtual trans::tyEntry *transAsTyEntry(coenv &e, record *where);
 
@@ -93,7 +93,7 @@ public:
   void
   addOps(coenv& e, record* r,
          AutounravelOption opt= AutounravelOption::Apply) override;
-  types::ty *trans(coenv &e, bool tacit = false) override;
+  types::ty *trans(coenv &e) override;
   trans::tyEntry *transAsTyEntry(coenv &e, record *where) override;
 
   virtual operator string() const override;
@@ -114,7 +114,7 @@ public:
     return depth;
   }
 
-  types::array *truetype(types::ty *base, bool tacit=false);
+  types::array *truetype(types::ty *base);
 };
 
 class arrayTy : public astType {
@@ -134,7 +134,7 @@ public:
   addOps(coenv& e, record* r,
          AutounravelOption opt= AutounravelOption::Apply) override;
 
-  types::ty *trans(coenv &e, bool tacit = false) override;
+  types::ty *trans(coenv &e) override;
 
   operator string() const override;
 };
@@ -151,7 +151,7 @@ public:
 
   void prettyprint(ostream &out, Int indent) override;
 
-  types::ty *trans(coenv &e, bool tacit = false) override;
+  types::ty *trans(coenv &e) override;
   trans::tyEntry *transAsTyEntry(coenv &, record *) override {
     return ent;
   }
@@ -362,7 +362,8 @@ public:
 
   virtual void prettyprint(ostream &out, Int indent) override;
 
-  virtual types::ty *getType(types::ty *base, coenv &, bool = false);
+  virtual types::ty*
+  getType(types::ty* base, coenv&);
   virtual trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e,
                                      record *where);
 
@@ -391,9 +392,10 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  types::ty *getType(types::ty *base, coenv &e, bool tacit = false);
-  trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e, record *where);
-  void addOps(types::ty *base, coenv &e, record *r);
+  types::ty*
+  getType(types::ty* base, coenv& e);
+  trans::tyEntry* getTyEntry(trans::tyEntry* base, coenv& e, record* where);
+  void addOps(types::ty* base, coenv& e, record* r);
 };
 
 class decid : public absyn {

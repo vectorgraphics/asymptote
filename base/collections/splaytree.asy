@@ -1,13 +1,11 @@
 typedef import(T);
 
-from "template/imports/sortedset"(T=T) access
-    Set_T,
-    SortedSet_T,
-    operator cast;
+from collections.sortedset(T=T) access Set_T, SortedSet_T;
+from collections.iter(T=T) access Iter_T, Iterable_T;
 
-private struct treenode {
-  treenode leftchild;
-  treenode rightchild;
+private struct TreeNode {
+  TreeNode leftchild;
+  TreeNode rightchild;
   T value;
   void operator init(T value) {
     this.value = value;
@@ -37,14 +35,14 @@ private struct NodeProgressEnum {
 }
 
 private struct NodeInProgress {
-  treenode node;
+  TreeNode node;
   int progress = NodeProgressEnum.NOT_STARTED;
-  void operator init(treenode node) {
+  void operator init(TreeNode node) {
     this.node = node;
   }
 }
 
-void inOrderNonRecursive(treenode root, bool run(T)) {
+void inOrderNonRecursive(TreeNode root, bool run(T)) {
   if (root == null) return;
   NodeInProgress[] stack = new NodeInProgress[0];
   stack.cyclic = true;
@@ -72,20 +70,20 @@ void inOrderNonRecursive(treenode root, bool run(T)) {
 }
 
 
-private treenode splay(treenode[] ancestors, bool lessthan(T a, T b)) {
+private TreeNode splay(TreeNode[] ancestors, bool lessthan(T a, T b)) {
   bool operator < (T a, T b) = lessthan;
   
   if (ancestors.length == 0) return null;
 
-  treenode root = ancestors[0];
-  treenode current = ancestors.pop();
+  TreeNode root = ancestors[0];
+  TreeNode current = ancestors.pop();
   
   while (ancestors.length >= 2) {
-    treenode parent = ancestors.pop();
-    treenode grandparent = ancestors.pop();
+    TreeNode parent = ancestors.pop();
+    TreeNode grandparent = ancestors.pop();
 
     if (ancestors.length > 0) {
-      treenode greatparent = ancestors[-1];
+      TreeNode greatparent = ancestors[-1];
       if (greatparent.leftchild == grandparent) {
         greatparent.leftchild = current;
       } else greatparent.rightchild = current;
@@ -96,16 +94,16 @@ private treenode splay(treenode[] ancestors, bool lessthan(T a, T b)) {
 
     if (currentside == grandside) { // zig-zig
       if (currentside) { // both left
-        treenode B = current.rightchild;
-        treenode C = parent.rightchild;
+        TreeNode B = current.rightchild;
+        TreeNode C = parent.rightchild;
 
         current.rightchild = parent;
         parent.leftchild = B;
         parent.rightchild = grandparent;
         grandparent.leftchild = C;
       } else { // both right
-        treenode B = parent.leftchild;
-        treenode C = current.leftchild;
+        TreeNode B = parent.leftchild;
+        TreeNode C = current.leftchild;
 
         current.leftchild = parent;
         parent.leftchild = grandparent;
@@ -114,16 +112,16 @@ private treenode splay(treenode[] ancestors, bool lessthan(T a, T b)) {
       }
     } else { // zig-zag
       if (grandside) {  // left-right
-        treenode B = current.leftchild;
-        treenode C = current.rightchild;
+        TreeNode B = current.leftchild;
+        TreeNode C = current.rightchild;
 
         current.leftchild = parent;
         current.rightchild = grandparent;
         parent.rightchild = B;
         grandparent.leftchild = C;
       } else { //right-left
-        treenode B = current.leftchild;
-        treenode C = current.rightchild;
+        TreeNode B = current.leftchild;
+        TreeNode C = current.rightchild;
 
         current.leftchild = grandparent;
         current.rightchild = parent;
@@ -136,11 +134,11 @@ private treenode splay(treenode[] ancestors, bool lessthan(T a, T b)) {
   if (ancestors.length > 0) {
     ancestors.pop();
     if (current == root.leftchild) {
-      treenode B = current.rightchild;
+      TreeNode B = current.rightchild;
       current.rightchild = root;
       root.leftchild = B;
     } else {
-      treenode B = current.leftchild;
+      TreeNode B = current.leftchild;
       current.leftchild = root;
       root.rightchild = B;
     }
@@ -150,11 +148,12 @@ private treenode splay(treenode[] ancestors, bool lessthan(T a, T b)) {
 }
 
 struct SplayTree_T {
-  private treenode root = null;
+  private TreeNode root = null;
   restricted int size = 0;
-  private bool operator < (T a, T b);
+
   private T emptyresponse;
 
+  private bool operator < (T a, T b);
   void operator init(bool lessthan(T,T), T emptyresponse) {
     operator< = lessthan;
     this.emptyresponse = emptyresponse;
@@ -170,11 +169,11 @@ struct SplayTree_T {
   }
 
   bool contains(T value) {
-    treenode[] parentStack = new treenode[0];
+    TreeNode[] parentStack = new TreeNode[0];
     parentStack.cyclic = true;
     parentStack.push(root);
     while (true) {
-      treenode current = parentStack[-1];
+      TreeNode current = parentStack[-1];
       if (current == null) {
         parentStack.pop();
         root = splay(parentStack, operator<);
@@ -191,13 +190,13 @@ struct SplayTree_T {
   }
 
   T after(T item) {
-    treenode[] parentStack = new treenode[0];
+    TreeNode[] parentStack = new TreeNode[0];
     parentStack.cyclic = true;
     parentStack.push(root);
     T strictUpperBound = emptyresponse;
     bool found = false;
     while (true) {
-      treenode current = parentStack[-1];
+      TreeNode current = parentStack[-1];
       if (current == null) {
         parentStack.pop();
         root = splay(parentStack, operator<);
@@ -217,13 +216,13 @@ struct SplayTree_T {
   }
 
   T before(T item) {
-    treenode[] parentStack = new treenode[0];
+    TreeNode[] parentStack = new TreeNode[0];
     parentStack.cyclic = true;
     parentStack.push(root);
     T strictLowerBound = emptyresponse;
     bool found = false;
     while (true) {
-      treenode current = parentStack[-1];
+      TreeNode current = parentStack[-1];
       if (current == null) {
         parentStack.pop();
         root = splay(parentStack, operator<);
@@ -242,13 +241,13 @@ struct SplayTree_T {
     return emptyresponse;
   }
 
-  T firstGEQ(T item) {
-    treenode[] parentStack = new treenode[0];
+  T atOrAfter(T item) {
+    TreeNode[] parentStack = new TreeNode[0];
     parentStack.cyclic = true;
     parentStack.push(root);
     T upperBound = emptyresponse;
     while (true) {
-      treenode current = parentStack[-1];
+      TreeNode current = parentStack[-1];
       if (current == null) {
         parentStack.pop();
         root = splay(parentStack, operator<);
@@ -268,13 +267,13 @@ struct SplayTree_T {
     return emptyresponse;
   }
 
-  T firstLEQ(T item) {
-    treenode[] parentStack = new treenode[0];
+  T atOrBefore(T item) {
+    TreeNode[] parentStack = new TreeNode[0];
     parentStack.cyclic = true;
     parentStack.push(root);
     T lowerBound = emptyresponse;
     while (true) {
-      treenode current = parentStack[-1];
+      TreeNode current = parentStack[-1];
       if (current == null) {
         parentStack.pop();
         root = splay(parentStack, operator<);
@@ -296,9 +295,9 @@ struct SplayTree_T {
 
   T min() {
     if (root == null) return emptyresponse;
-    treenode[] ancestors = new treenode[0];
+    TreeNode[] ancestors = new TreeNode[0];
     ancestors.cyclic = true;
-    treenode current = root;
+    TreeNode current = root;
     while (current != null) {
       ancestors.push(current);
       current = current.leftchild;
@@ -309,9 +308,9 @@ struct SplayTree_T {
 
   T popMin() {
     if (root == null) return emptyresponse;
-    treenode[] ancestors = new treenode[0];
+    TreeNode[] ancestors = new TreeNode[0];
     ancestors.cyclic = true;
-    treenode current = root;
+    TreeNode current = root;
     while (current != null) {
       ancestors.push(current);
       current = current.leftchild;
@@ -325,9 +324,9 @@ struct SplayTree_T {
 
   T max() {
     if (root == null) return emptyresponse;
-    treenode[] ancestors = new treenode[0];
+    TreeNode[] ancestors = new TreeNode[0];
     ancestors.cyclic = true;
-    treenode current = root;
+    TreeNode current = root;
     while (current != null) {
       ancestors.push(current);
       current = current.rightchild;
@@ -338,9 +337,9 @@ struct SplayTree_T {
 
   T popMax() {
     if (root == null) return emptyresponse;
-    treenode[] ancestors = new treenode[0];
+    TreeNode[] ancestors = new TreeNode[0];
     ancestors.cyclic = true;
-    treenode current = root;
+    TreeNode current = root;
     while (current != null) {
       ancestors.push(current);
       current = current.rightchild;
@@ -355,29 +354,29 @@ struct SplayTree_T {
   /*
    * returns true iff the tree was modified
    */
-  bool insert(T value) {
+  bool add(T value) {
     if (root == null) {
-      root = treenode(value);
+      root = TreeNode(value);
       ++size;
       return true;
     }
-    treenode[] ancestors = new treenode[0];
+    TreeNode[] ancestors = new TreeNode[0];
     ancestors.cyclic = true;
     ancestors.push(root);
 
     bool toReturn = false;
     
     while (!toReturn) {
-      treenode current = ancestors[-1];
+      TreeNode current = ancestors[-1];
       if (value < current.value) {
         if (current.leftchild == null) {
-          current.leftchild = treenode(value);
+          current.leftchild = TreeNode(value);
           toReturn = true;
         }
         ancestors.push(current.leftchild);			
       } else if (current.value < value) {
         if (current.rightchild == null) {
-          current.rightchild = treenode(value);
+          current.rightchild = TreeNode(value);
           toReturn = true;
         }
         ancestors.push(current.rightchild);
@@ -392,19 +391,19 @@ struct SplayTree_T {
     return true;
   }
 
-  T replace(T item) {
+  T push(T item) {
     if (root == null) {
-      insert(item);
+      add(item);
       return emptyresponse;
     }
-    treenode[] ancestors = new treenode[0];
+    TreeNode[] ancestors = new TreeNode[0];
     ancestors.cyclic = true;
     ancestors.push(root);
-    treenode current = root;
+    TreeNode current = root;
     while (true) {
       if (item < current.value) {
         if (current.leftchild == null) {
-          current.leftchild = treenode(item);
+          current.leftchild = TreeNode(item);
           ancestors.push(current.leftchild);
           break;
         }
@@ -412,7 +411,7 @@ struct SplayTree_T {
         current = current.leftchild;
       } else if (current.value < item) {
         if (current.rightchild == null) {
-          current.rightchild = treenode(item);
+          current.rightchild = TreeNode(item);
           ancestors.push(current.rightchild);
           break;
         }
@@ -432,11 +431,11 @@ struct SplayTree_T {
 
   T get(T item) {
     if (root == null) return emptyresponse;
-    treenode[] parentStack = new treenode[0];
+    TreeNode[] parentStack = new TreeNode[0];
     parentStack.cyclic = true;
     parentStack.push(root);
     while (true) {
-      treenode current = parentStack[-1];
+      TreeNode current = parentStack[-1];
       if (current == null) {
         parentStack.pop();
         root = splay(parentStack, operator<);
@@ -456,19 +455,19 @@ struct SplayTree_T {
   }
 
   /*
-   * returns true iff the tree was modified
+   * returns the removed item, or emptyresponse if the item was not found
    */
-  bool delete(T value) {
-    treenode[] ancestors = new treenode[0];
+  T extract(T value) {
+    TreeNode[] ancestors = new TreeNode[0];
     ancestors.cyclic = true;  // Makes ancestors[-1] refer to the last entry.
     ancestors.push(root);
 
     while (true) {
-      treenode current = ancestors[-1];
+      TreeNode current = ancestors[-1];
       if (current == null) {
         ancestors.pop();
         root = splay(ancestors, operator<);
-        return false;
+        return emptyresponse;
       }
       if (value < current.value)
         ancestors.push(current.leftchild);
@@ -477,8 +476,9 @@ struct SplayTree_T {
       else break;
     }
 
-    treenode toDelete = ancestors.pop();
-    treenode parent = null;
+    TreeNode toDelete = ancestors.pop();
+    T retv = toDelete.value;
+    TreeNode parent = null;
     if (ancestors.length > 0) parent = ancestors[-1];
     
     if (toDelete.leftchild == null) {
@@ -496,9 +496,9 @@ struct SplayTree_T {
         parent.rightchild = toDelete.leftchild;
       } else parent.leftchild = toDelete.leftchild;
     } else {
-      treenode[] innerStack = new treenode[0];
+      TreeNode[] innerStack = new TreeNode[0];
       innerStack.cyclic = true;
-      treenode current = toDelete.rightchild;
+      TreeNode current = toDelete.rightchild;
       while (current != null) {
         innerStack.push(current);
         current = current.leftchild;
@@ -510,40 +510,82 @@ struct SplayTree_T {
 
     if (parent != null) root = splay(ancestors, operator<);
     --size;
-    return true;    
+    return retv;    
   }
 
   void forEach(bool run(T)) {
     inOrderNonRecursive(root, run);
   }
-  
-}
 
-SortedSet_T operator cast(SplayTree_T splaytree) {
-  SortedSet_T result = new SortedSet_T;
-  result.size = splaytree.size;
-  result.empty = splaytree.empty;
-  result.contains = splaytree.contains;
-  result.after = splaytree.after;
-  result.before = splaytree.before;
-  result.firstGEQ = splaytree.firstGEQ;
-  result.firstLEQ = splaytree.firstLEQ;
-  result.min = splaytree.min;
-  result.popMin = splaytree.popMin;
-  result.max = splaytree.max;
-  result.popMax = splaytree.popMax;
-  result.insert = splaytree.insert;
-  result.replace = splaytree.replace;
-  result.get = splaytree.get;
-  result.delete = splaytree.delete;
-  result.forEach = splaytree.forEach;
-  return result;
-}
+  Iter_T operator iter() {
+    Iter_T result = new Iter_T;
+    if (root == null) {
+      result.valid = new bool() { return false; };
+      result.get = new T() { assert(false, 'Invalid iterator'); return emptyresponse; };
+      result.advance = new void() { assert(false, 'Invalid iterator'); };
+      return result;
+    }
+    TreeNode[] stack = new TreeNode[0];
+    bool[] selfDone = new bool[0];
+    stack.cyclic = true;
+    selfDone.cyclic = true;
+    stack.push(root);
+    selfDone.push(false);
+    while (stack[-1].leftchild != null) {
+      stack.push(stack[-1].leftchild);
+      selfDone.push(false);
+    }
+    result.valid = new bool() {
+      return stack.length > 0;
+    };
+    result.get = new T() {
+      return stack[-1].value;
+    };
+    result.advance = new void() {
+      assert(stack.length > 0, 'Invalid iterator');
+      selfDone[-1] = true;
+      TreeNode current = stack[-1];
+      if (current.rightchild != null) {
+        current = current.rightchild;
+        stack.push(current);
+        selfDone.push(false);
+        while (current.leftchild != null) {
+          current = current.leftchild;
+          stack.push(current);
+          selfDone.push(false);
+        }
+      } else {
+        while (stack.length > 0 && selfDone[-1]) {
+          stack.pop();
+          selfDone.pop();
+        }
+      }
+    };
+    return result;
+  }
 
-Set_T operator cast(SplayTree_T splaytree) {
-  return (SortedSet_T)splaytree;
-}
+  autounravel SortedSet_T operator cast(SplayTree_T splaytree) {
+    SortedSet_T result = new SortedSet_T;
+    result.size = splaytree.size;
+    result.empty = splaytree.empty;
+    result.contains = splaytree.contains;
+    result.after = splaytree.after;
+    result.before = splaytree.before;
+    result.atOrAfter = splaytree.atOrAfter;
+    result.atOrBefore = splaytree.atOrBefore;
+    result.min = splaytree.min;
+    result.popMin = splaytree.popMin;
+    result.max = splaytree.max;
+    result.popMax = splaytree.popMax;
+    result.add = splaytree.add;
+    result.push = splaytree.push;
+    result.get = splaytree.get;
+    result.extract = splaytree.extract;
+    result.operator iter = splaytree.operator iter;
+    return result;
+  }
 
-T[] operator cast(SplayTree_T splaytree) {
-  return (SortedSet_T)splaytree;
+  autounravel Set_T operator cast(SplayTree_T splaytree) {
+    return (SortedSet_T)splaytree;
+  }
 }
