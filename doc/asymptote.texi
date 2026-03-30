@@ -6899,9 +6899,11 @@ function @code{hash(int[])} that can be helpful when constructing hash methods
 for user-defined structures: convert all the fields to integers (possibly by
 hashing them), put these integers into an array, and hash the array.
 
-Returning to the example of the @code{Person} structure from @ref{Structures},
-there are two reasonable ways we might define a hash function for it. The first
-is to create a hash function based on all the fields of the structure:
+Let's return to the example of the @code{Person} structure from
+@ref{Structures}, adding an @code{age} field to make it more interesting. For
+this structure, there are two reasonable ways we might define a hash function
+for it. The first is to create a hash function based on all the fields of the
+structure:
 @verbatim
 struct Person {
   string firstname;
@@ -6970,7 +6972,9 @@ container in the @code{collections} module.
 * Pairs::
 * Iterators and utilities::
 * Maps::
+* Using Maps as Sets::
 * Sets::
+* Using Sets as Maps::
 * Queues::
 * Wrapping arrays::             Arrays that can be used as keys or values
 @end menu
@@ -7654,7 +7658,7 @@ This method violates the principle of reversibility.
 
 @cindex @code{Set} @subentry @code{.delete}
 @cindex @code{delete} @subentry @code{Set.delete}
-@item T delete(T item)
+@item bool delete(T item)
 removes @code{item} from the set if it is present, otherwise does nothing.
 This method does nothing if @code{isNullT(item)} is defined and true.
 The return value is true iff the set was modified.
