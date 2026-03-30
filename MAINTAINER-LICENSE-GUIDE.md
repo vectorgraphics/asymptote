@@ -3,7 +3,7 @@
 ## Overview
 
 **Primary**: Asymptote is LGPL v3+. **Third-party components**: Each licensed separately.
-- **span.hpp** — Boost 1.0 | **highwayhash/** — Apache 2.0 | **gc/** — Custom permissive | **LspCpp/** — MIT
+- **span.hpp** — Boost 1.0 | **wyhash.h** — The Unlicense (Public Domain) | **gc/** — Custom permissive | **LspCpp/** — MIT
 - **libatomic_ops/** — MIT (core) / GPL-2.0 (extensions) | **backports/glew/** — BSD 3-Clause | **tinyexr/** — BSD 3-Clause
 
 See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for complete component details.
@@ -14,7 +14,7 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for complete component de
 |---------|-------|-----------------|
 | LGPL v3+ | All .cc/.h files (except third-party) | Default for new files |
 | Boost 1.0 | span.hpp only | ⚠️ Cannot be relicensed |
-| Apache 2.0 | highwayhash/ | Compatible with LGPL |
+| The Unlicense | wyhash.h | Public domain; compatible with everything |
 | MIT | LspCpp/, libatomic_ops (core) | Include copyright notice |
 | BSD 3-Clause | backports/glew/, tinyexr/ | Include copyright notice |
 | Custom Permissive | gc/ | See gc/alloc.c for terms |
@@ -44,7 +44,8 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for complete component de
 4. Update version number if warranted
 
 ### Updating Third-Party Components
-Retain original license for: highwayhash/, gc/, LspCpp/, libatomic_ops/, backports/glew/, tinyexr/
+Retain original license for: wyhash.h, gc/, LspCpp/, libatomic_ops/, backports/glew/, tinyexr/
+_Note: wyhash.h is public domain, but retain the original header comment crediting Wang Yi._
 
 ### Distributing Asymptote
 ✓ Include: LICENSE, LICENSE.LESSER, LICENSE-BOOST.txt, README, LICENSES-THIRD-PARTY.md

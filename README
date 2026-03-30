@@ -93,8 +93,8 @@ directories:
 * span.hpp - Boost Software License v1.0 
   (https://github.com/martinmoene/span-lite)
 
-* highwayhash/ - Apache License 2.0 
-  (https://github.com/google/highwayhash)
+* wyhash.h - The Unlicense (Public Domain)
+  (https://github.com/wangyi-fudan/wyhash)
 
 * gc/ - Boehm-Demers-Weiser Garbage Collector (custom permissive license)
   (https://www.hboehm.info/gc/)

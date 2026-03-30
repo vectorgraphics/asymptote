@@ -1,6 +1,8 @@
 # Distribution License Compliance Guide
 
 Asymptote incorporates 8 third-party components. All must be included with their licenses in all distributions.
+
+> **Note**: `highwayhash/` has been replaced by `wyhash.h` (The Unlicense — Public Domain).
 See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for component details.
 
 ## License Files Required
@@ -9,7 +11,7 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for component details.
 |-----------|--------------|--------------|
 | Asymptote Core | LICENSE, LICENSE.LESSER | GNU LGPL v3+ |
 | span.hpp | LICENSE-BOOST.txt | Boost 1.0 |
-| highwayhash | highwayhash/LICENSE | Apache 2.0 |
+| wyhash | wyhash.h (header) | The Unlicense (Public Domain) |
 | LspCpp | LspCpp/LICENSE | MIT |
 | libatomic_ops | libatomic_ops/LICENSE, COPYING | MIT / GPL-2.0 |
 | backports/glew | backports/glew/src/glew.c | BSD 3-Clause |
@@ -42,7 +44,7 @@ asymptote/
 ```
 
 ### OS Package Managers (apt, yum, brew)
-- License metadata: LGPL-3.0-or-later AND Apache-2.0 AND MIT AND Boost-1.0 AND BSD-3-Clause AND GPL-2.0
+- License metadata: LGPL-3.0-or-later AND Unlicense AND MIT AND Boost-1.0 AND BSD-3-Clause AND GPL-2.0
 - Place license files in `/usr/share/licenses/asymptote/`
 - Place LICENSES-THIRD-PARTY.md in `/usr/share/doc/asymptote/`
 - SPEC/control file should list all applicable licenses
@@ -52,7 +54,7 @@ asymptote/
 | Component | License | Key Constraint |
 |-----------|---------|-----------------|
 | span.hpp | Boost 1.0 | ⚠️ Cannot relicense; retain Martin Moene copyright |
-| highwayhash | Apache 2.0 | Retain license; document changes |
+| wyhash | The Unlicense (Public Domain) | No restrictions; attribution appreciated |
 | LspCpp | MIT | Retain copyright; incorporate freely into LGPL |
 | libatomic_ops | MIT/GPL-2.0 | Core (MIT): retain license. Extensions (GPL-2.0): must be GPL in binaries |
 | GLEW, TinyEXR | BSD 3-Clause | Retain license and copyright headers |
@@ -66,7 +68,7 @@ For LGPL core code: retain original copyright, include LICENSE.LESSER, document 
 ```
 Asymptote is free software under GNU LGPL v3+. Includes third-party components:
 - span.hpp (Boost License)
-- HighwayHash (Apache 2.0)
+- wyhash (Public Domain)
 - LspCpp (MIT)
 - libatomic_ops (MIT / GPL-2.0)
 - GLEW, TinyEXR (BSD 3-Clause)

@@ -5,7 +5,7 @@ Asymptote incorporates the following third-party components:
 | Component | License | Location |
 |-----------|---------|----------|
 | span.hpp | Boost 1.0 | [span.hpp](span.hpp) |
-| HighwayHash | Apache 2.0 | [highwayhash/](highwayhash/) |
+| wyhash | The Unlicense (Public Domain) | [wyhash.h](wyhash.h) |
 | Boehm GC | Custom permissive | [gc/](gc/) |
 | LspCpp | MIT | [LspCpp/](LspCpp/) |
 | libatomic_ops | MIT / GPL-2.0 | [libatomic_ops/](libatomic_ops/) |
@@ -20,9 +20,10 @@ Asymptote incorporates the following third-party components:
 - License: [LICENSE-BOOST.txt](LICENSE-BOOST.txt)
 - **Cannot be relicensed; must retain Boost license and Martin Moene attribution**
 
-### HighwayHash (Apache 2.0)
-- SIMD hash algorithm by Google
-- License in [highwayhash/LICENSE](highwayhash/LICENSE)
+### wyhash (The Unlicense — Public Domain)
+- Fast hash algorithm by Wang Yi
+- Source: https://github.com/wangyi-fudan/wyhash
+- License: Public domain (The Unlicense) — see header of [wyhash.h](wyhash.h)
 
 ### Boehm-Demers-Weiser GC (Custom)
 - Conservative garbage collector
