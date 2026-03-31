@@ -23,12 +23,14 @@ StartTest('overrideEquals: internal');
 {
   struct Outer {
     static struct Inner {
+      using F=bool(Inner, Inner);
+      static F oldEquals = operator ==;
       autounravel bool operator ==(Inner a, Inner b) {
         return true;
       }
     }
-    private typedef bool F(Inner, Inner);
-    assert(((F)operator ==) != ((F)alias));
+    from Inner unravel F;
+    assert(((F)operator ==) != ((F)Inner.oldEquals));
   }
   from Outer unravel Inner;
   Inner a = new Inner;

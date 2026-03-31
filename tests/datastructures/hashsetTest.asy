@@ -251,7 +251,6 @@ actions[DELETE_CONTAINS] = new void(int ...Set_wrapped_int[] sets) {
     wrapped_int deleted = s.extract(toDelete);
     assert(!alias(deleted, null), 'Delete returned null');
     typedef bool F(wrapped_int, wrapped_int);
-    assert(((F)operator ==) != ((F)alias));
     assert(deleted == toDelete, 'Delete returned ' + string(deleted.t) +
                       ' instead of ' + string(toDelete.t));
     assert(!s.contains(toDelete), 'Contains failed');

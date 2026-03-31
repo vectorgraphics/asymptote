@@ -1,0 +1,10 @@
+errortests/alias.asy: 14.6: cannot override builtin alias with a nullable alias-compatible signature
+errortests/alias.asy: 17.5: cannot override builtin alias with a nullable alias-compatible signature
+errortests/alias.asy: 20.6: cannot override builtin alias with a nullable alias-compatible signature
+errortests/alias.asy: 23.6: cannot override builtin alias with a nullable alias-compatible signature
+errortests/alias.asy: 27.6: cannot override builtin alias with a nullable alias-compatible signature
+errortests/alias.asy: 31.6: cannot override builtin alias with a nullable alias-compatible signature
+errortests/alias.asy: 34.6: cannot override builtin alias with a nullable alias-compatible signature
+errortests/alias.asy: 38.6: cannot override builtin alias with a nullable alias-compatible signature
+errortests/alias.asy: 45.24: cannot override builtin alias with a nullable alias-compatible signature
+errortests/alias.asy: 51.12: cannot override builtin alias with a nullable alias-compatible signature

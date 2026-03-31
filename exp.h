@@ -774,6 +774,13 @@ private:
   void reportMismatch(types::function *ft,
                       types::signature *source);
 
+  bool isAliasCall() const;
+  bool resolvedToOpenSignature() const;
+  types::ty *getTypeRegular(coenv &e);
+  types::ty *transRegular(coenv &e);
+  types::ty *getAliasType(coenv &e);
+  types::ty *transAlias(coenv &e);
+
   void reportNonFunction();
 
   // Caches either the application object used to apply the function to the

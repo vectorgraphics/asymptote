@@ -951,6 +951,122 @@ bool hasNamedParameters(signature *sig) {
   return false;
 }
 
+namespace {
+
+const symbol SYM_ALIAS = symbol::trans("alias");
+const symbol SYM_A = symbol::trans("a");
+const symbol SYM_B = symbol::trans("b");
+
+bool isConcreteAliasTarget(ty *target)
+{
+  return target &&
+    target->kind != ty_error &&
+    target->kind != ty_null &&
+    target->isReference() &&
+    !target->isOverloaded();
+}
+
+void addAliasTarget(overloaded *targets, ty *target)
+{
+  if (isConcreteAliasTarget(target))
+    targets->addDistinct(target, true);
+}
+
+void collectAliasCastTargets(ty *casts, ty *source, overloaded *targets)
+{
+  if (!casts)
+    return;
+
+  if (overloaded *o = dynamic_cast<overloaded *>(casts)) {
+    for (ty_iterator i = o->begin(); i != o->end(); ++i)
+      collectAliasCastTargets(*i, source, targets);
+    return;
+  }
+
+  function *ft = dynamic_cast<function *>(casts);
+  if (!ft)
+    return;
+
+  const signature *sig = ft->getSignature();
+  if (!sig || sig->isOpen || sig->hasRest() || sig->formals.size() != 1)
+    return;
+
+  if (equivalent(sig->getFormal(0).t, source))
+    addAliasTarget(targets, ft->getResult());
+}
+
+overloaded *collectAliasTargets(env &e, ty *source)
+{
+  overloaded *targets = new overloaded;
+
+  if (!source || source->kind == ty_error || source->kind == ty_null)
+    return targets;
+
+  if (overloaded *o = dynamic_cast<overloaded *>(source)) {
+    for (ty_iterator i = o->begin(); i != o->end(); ++i) {
+      overloaded *subTargets = collectAliasTargets(e, *i);
+      for (ty_iterator j = subTargets->begin(); j != subTargets->end(); ++j)
+        targets->addDistinct(*j);
+    }
+    return targets;
+  }
+
+  addAliasTarget(targets, source);
+  collectAliasCastTargets(e.varGetType(symbol::castsym), source, targets);
+
+  return targets;
+}
+
+overloaded *intersectAliasTargets(overloaded *left, overloaded *right)
+{
+  overloaded *common = new overloaded;
+
+  for (ty_iterator i = left->begin(); i != left->end(); ++i)
+    for (ty_iterator j = right->begin(); j != right->end(); ++j)
+      if (equivalent(*i, *j))
+        common->addDistinct(*i);
+
+  return common;
+}
+
+overloaded *buildAliasCandidates(overloaded *targets)
+{
+  overloaded *candidates = new overloaded;
+
+  for (ty_iterator i = targets->begin(); i != targets->end(); ++i)
+    candidates->addDistinct(
+      new function(primBoolean(), formal(*i, SYM_A), formal(*i, SYM_B))
+    );
+
+  return candidates;
+}
+
+bltin aliasCompareBuiltin(ty *target)
+{
+  switch (target->kind) {
+    case ty_array:
+      return run::boolArrayEq;
+    case ty_function:
+      return run::boolFuncEq;
+    default:
+      return run::boolMemEq;
+  }
+}
+
+bltin aliasNullBuiltin(ty *target)
+{
+  switch (target->kind) {
+    case ty_array:
+      return run::boolArrayEqNull;
+    case ty_function:
+      return run::boolFuncEqNull;
+    default:
+      return run::boolMemEqNull;
+  }
+}
+
+} // namespace
+
 void callExp::reportMismatch(function *ft, signature *source)
 {
   symbol s = callee->getName();
@@ -995,6 +1111,24 @@ void callExp::reportNonFunction() {
     em << "\'" << s << "\' is not a function";
   else
     em << "called expression is not a function";
+}
+
+bool callExp::isAliasCall() const
+{
+  return callee->getName() == SYM_ALIAS;
+}
+
+bool callExp::resolvedToOpenSignature() const
+{
+  if (cachedApp)
+    return cachedApp->getType()->getSignature()->isOpen;
+
+  if (cachedVarEntry) {
+    function *ft = dynamic_cast<function *>(cachedVarEntry->getType());
+    return ft && ft->getSignature()->isOpen;
+  }
+
+  return false;
 }
 
 types::ty *callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
@@ -1113,7 +1247,7 @@ types::ty *callExp::transPerfectMatch(coenv &e) {
   return ct ? ct : dynamic_cast<function *>(ve->getType())->getResult();
 }
 
-types::ty *callExp::trans(coenv &e)
+types::ty *callExp::transRegular(coenv &e)
 {
   if (cachedVarEntry == 0 && cachedApp == 0)
     cacheAppOrVarEntry(e, false);
@@ -1147,7 +1281,7 @@ types::ty *callExp::trans(coenv &e)
   return t->result;
 }
 
-types::ty *callExp::getType(coenv &e)
+types::ty *callExp::getTypeRegular(coenv &e)
 {
   if (cachedApp)
     return cachedApp->getType()->getResult();
@@ -1157,6 +1291,116 @@ types::ty *callExp::getType(coenv &e)
     return ft->getResult();
   }
   return cacheAppOrVarEntry(e, true);
+}
+
+types::ty *callExp::getAliasType(coenv &e)
+{
+  types::ty *t = getTypeRegular(e);
+  assert(t);
+
+  if (t->kind != ty_error && !resolvedToOpenSignature())
+    return t;
+
+  return primBoolean();
+}
+
+types::ty *callExp::transAlias(coenv &e)
+{
+  types::ty *t = getTypeRegular(e);
+  assert(t);
+
+  if (t->kind != ty_error && !resolvedToOpenSignature())
+    return transRegular(e);
+
+  cachedApp = 0;
+  cachedVarEntry = 0;
+
+  bool searchable;
+  signature *source = argTypes(e, &searchable);
+  if (!source) {
+    reportArgErrors(e);
+    return primError();
+  }
+
+  if (args->rest.val || args->size() != 2) {
+    em.error(getPos());
+    em << "alias takes exactly two parameters";
+    return primError();
+  }
+
+  exp *left = (*args)[0].val;
+  exp *right = (*args)[1].val;
+  types::ty *lt = left->getType(e);
+  types::ty *rt = right->getType(e);
+
+  if (lt->kind == ty_error || rt->kind == ty_error) {
+    reportArgErrors(e);
+    return primError();
+  }
+
+  if (lt->kind == ty_null && rt->kind == ty_null) {
+    e.c.encode(inst::constpush, (item)true);
+    return primBoolean();
+  }
+
+  overloaded *leftTargets = lt->kind == ty_null ? nullptr : collectAliasTargets(e.e, lt);
+  overloaded *rightTargets = rt->kind == ty_null ? nullptr : collectAliasTargets(e.e, rt);
+
+  overloaded *commonTargets = nullptr;
+  if (lt->kind == ty_null)
+    commonTargets = rightTargets;
+  else if (rt->kind == ty_null)
+    commonTargets = leftTargets;
+  else
+    commonTargets = intersectAliasTargets(leftTargets, rightTargets);
+
+  if (!commonTargets || commonTargets->sub.empty()) {
+    em.error(getPos());
+    em << "alias arguments must be nullable or implicitly castable to a common nullable type";
+    return primError();
+  }
+
+  overloaded *candidates = buildAliasCandidates(commonTargets);
+  application *app = resolve(e, candidates, source, false);
+  if (!app)
+    return primError();
+
+  function *targetFunction = app->getType();
+  ty *target = targetFunction->getSignature()->getFormal(0).t;
+
+  if (lt->kind == ty_null) {
+    right->transToType(e, target);
+    e.c.encode(inst::builtin, aliasNullBuiltin(target));
+    return primBoolean();
+  }
+
+  if (rt->kind == ty_null) {
+    left->transToType(e, target);
+    e.c.encode(inst::builtin, aliasNullBuiltin(target));
+    return primBoolean();
+  }
+
+  left->transToType(e, target);
+  right->transToType(e, target);
+  e.c.encode(inst::builtin, aliasCompareBuiltin(target));
+
+  return primBoolean();
+}
+
+types::ty *callExp::trans(coenv &e)
+{
+  if (isAliasCall())
+    return transAlias(e);
+
+  return transRegular(e);
+}
+
+types::ty *callExp::getType(coenv &e)
+{
+  if (isAliasCall())
+    return getAliasType(e);
+
+  return getTypeRegular(e);
 }
 
 bool callExp::resolved(coenv &e) {

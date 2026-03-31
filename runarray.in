@@ -896,9 +896,14 @@ callable* :arrayDelete(array *a)
   return new thunk(new bfunc(arrayDeleteHelper),a);
 }
 
-bool :arrayAlias(array *a, array *b)
+bool :boolArrayEq(array *a, array *b)
 {
   return a==b;
+}
+
+bool :boolArrayEqNull(array *a)
+{
+  return a==nullptr;
 }
 
 // Return array formed by indexing array a with elements of integer array b

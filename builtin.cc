@@ -601,17 +601,15 @@ void addArrayOps(venv &ve, types::array *t)
 {
   ty *ct = t->celltype;
 
-  // Check for the alias function to see if these operation have already been
-  // added, if they have, don't add them again.
-  static types::function aliasType(primBoolean(), primVoid(), primVoid());
-  aliasType.sig.formals[0].t = t;
-  aliasType.sig.formals[1].t = t;
+  // Check for the copy function to see if these operations have already been
+  // added. If they have, don't add them again.
+  static types::function copyType(primVoid(), primVoid(), primVoid());
+  copyType.result = t;
+  copyType.sig.formals[0].t = t;
+  copyType.sig.formals[1].t = primInt();
 
-  if (ve.lookByType(SYM(alias), &aliasType))
+  if (ve.lookByType(SYM(copy), &copyType))
     return;
-
-  addFunc(ve, run::arrayAlias,
-          primBoolean(), SYM(alias), formal(t, SYM(a)), formal(t, SYM(b)));
 
   size_t depth=(size_t) t->depth();
 
@@ -669,9 +667,6 @@ void addRecordOps(record* r)
             addFunc(ve, f, result, name, std::forward<formal>(formals)...);
     r->autounravelRegistry.registerAutoUnravel(name, fVar, AutounravelPriority::OFFER);
   };
-  // alias
-  addOp(run::boolMemEq, primBoolean(), SYM(alias), formal(r, SYM(a)),
-        formal(r, SYM(b)));
   // operator==
   addOp(run::boolMemEq, primBoolean(), SYM_EQ, formal(r, SYM(a)),
         formal(r, SYM(b)));
@@ -892,6 +887,7 @@ void base_venv(venv &ve)
   addOpenFunc(ve, openFunc, primInt(), SYM(openFunc));
 #endif
 
+  addOpenFunc(ve, run::boolMemEq, primBoolean(), SYM(alias));
   addOpenFunc(ve, printBytecode, primVoid(), SYM(printBytecode));
 
   gen_runtime_venv(ve);

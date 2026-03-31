@@ -18,11 +18,76 @@
 using std::memset;
 using types::ty;
 using types::signature;
+using types::function;
 using types::overloaded;
 using types::ty_vector;
 using types::ty_iterator;
 
 namespace trans {
+
+namespace {
+
+const symbol SYM_ALIAS = symbol::trans("alias");
+
+bool shadowsBuiltinAlias(ty *type)
+{
+  if (!type || type->kind == types::ty_error)
+    return false;
+
+  if (type->kind == types::ty_overloaded) {
+    ty_vector &sub = ((overloaded *) type)->sub;
+    for (ty_vector::iterator i = sub.begin(); i != sub.end(); ++i)
+      if (shadowsBuiltinAlias(*i))
+        return true;
+    return false;
+  }
+
+  function *ft = dynamic_cast<function *>(type);
+  if (!ft)
+    return false;
+
+  signature *sig = ft->getSignature();
+  if (!sig || sig->isOpen)
+    return false;
+
+  // Check rest-parameter cases that can intercept alias(a, b) without casts:
+  //   alias(... T[])    — rest-only, both args routed to rest as T
+  //   alias(T ... T[])  — one named T plus matching rest
+  if (sig->hasRest()) {
+    ty *restArr = sig->getRest().t;
+    if (restArr && restArr->kind == types::ty_array) {
+      ty *restElem = ((types::array *) restArr)->celltype;
+      if (restElem && restElem->isReference()) {
+        // rest-only
+        if (sig->formals.size() == 0)
+          return true;
+        // one named formal of the same nullable type as the rest element
+        if (sig->formals.size() == 1) {
+          ty *first = sig->getFormal(0).t;
+          if (first && first->isReference() && equivalent(first, restElem))
+            return true;
+        }
+      }
+    }
+  }
+
+  if (sig->formals.size() < 2)
+    return false;
+
+  ty *first = sig->getFormal(0).t;
+  ty *second = sig->getFormal(1).t;
+  if (!first || !second || !first->isReference() || !second->isReference() ||
+      !equivalent(first, second))
+    return false;
+
+  for (size_t i = 2; i < sig->formals.size(); ++i)
+    if (!sig->getFormal(i).defval)
+      return false;
+
+  return true;
+}
+
+} // namespace
 
 bool entry::pr::check(action act, coder &c) {
   // We assume PUBLIC permissions and one's without an associated record are not
@@ -681,6 +746,12 @@ void venv::collapseScope() {
 void venv::enter(symbol name, varEntry *v)
 {
   CHECKNAME(name);
+
+  if (name == SYM_ALIAS && shadowsBuiltinAlias(v->getType())) {
+    em.error(v->getPos());
+    em << "cannot override builtin alias with a nullable alias-compatible signature";
+    return;
+  }
 
   // Store the new variable.  If it shadows an older variable, that varEntry
   // will be returned.
