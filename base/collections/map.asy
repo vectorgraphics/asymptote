@@ -56,8 +56,7 @@ struct Map_K_V {
     if (size == 0) {
       assert(false, 'Cannot get a random key from an empty map');
     }
-    static int seed = 3567654160488757718;
-    int index = (++seed).hash() % size;
+    int index = rand(0, size - 1);
     for (K key : this) {
       if (index == 0) {
         return key;

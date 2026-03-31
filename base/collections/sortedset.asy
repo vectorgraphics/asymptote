@@ -169,8 +169,7 @@ struct Naive_T {
       assert(isNullT != null, 'No element to return');
       return nullT;
     }
-    static int seed = 3567654160488757718;
-    return buffer[(++seed).hash() % buffer.length];
+    return buffer[rand(0, buffer.length - 1)];
   };
 
   autounravel SortedSet_T operator cast(Naive_T naive) {

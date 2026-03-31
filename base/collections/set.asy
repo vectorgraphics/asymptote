@@ -64,8 +64,7 @@ struct Set_T {
       assert(isNullT != null, 'Cannot get a random item from an empty set');
       return nullT;
     }
-    static int seed = 3567654160488757718;
-    int index = (++seed).hash() % size;
+    int index = rand(0, size - 1);
     for (T item : this) {
       if (index == 0) {
         return item;
@@ -270,8 +269,7 @@ struct NaiveSet_T {
       assert(isNullT != null, 'Cannot get a random item from an empty set');
       return nullT;
     }
-    static int seed = 3567654160488757718;
-    int index = (++seed).hash() % items.length;
+    int index = rand(0, items.length - 1);
     return items[index];
   };
 
