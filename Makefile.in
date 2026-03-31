@@ -384,7 +384,7 @@ cleaner0: FORCE clean
 		cord/tests/.deps extra/.deps tests/.deps
 
 	-cd libatomic_ops && rm -rf autom4te.cache
-	-rm -f config.h config.log config.status errors.temp
+	-rm -f config.h config.log config.status
 	-rm -rf autom4te.cache LspCpp/CMakeCache.txt
 	-rm -f Makefile
 

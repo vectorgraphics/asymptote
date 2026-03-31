@@ -1,0 +1,9 @@
+errortests/operators.asy: 4.3: multiple operator[] definitions in one struct
+errortests/operators.asy: 11.3: operator[=] defined without operator[]
+errortests/operators.asy: 17.3: operator[=] must return void
+errortests/operators.asy: 28.3: no matching variable '<exp>.valid'
+errortests/operators.asy: 28.3: no matching variable '<exp>.get'
+errortests/operators.asy: 28.3: no matching variable '<exp>.advance'
+errortests/operators.asy: 38.16: cannot iterate over expression of type 'int(int i)'
+errortests/operators.asy: 45.17: cannot call 'int f(int i)' with parameter 'string'
+errortests/operators.asy: 48.17: cannot call 'int f(int i)' with parameter 'string'
