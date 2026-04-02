@@ -1,5 +1,6 @@
 import bezulate;
 private import interpolate;
+import palette;
 
 int nslice=12;
 real camerafactor=1.2;
@@ -771,6 +772,16 @@ struct primitive {
   }
 }
 
+using spatialPen=pen(triple, int);
+
+spatialPen cornerPen(...pen[] p) {
+  return new pen(triple, int i) {
+    return p[i];
+  };
+}
+
+private string nullsurface="null surface";
+
 struct surface {
   patch[] s;
   int index[][];// Position of patch corresponding to major U,V parameter in s.
@@ -807,6 +818,65 @@ struct surface {
         return patch(P[i],colors.length == 0 ? new pen[] : colors[i],
                      straight,planar,triangular);
       },P.length);
+  }
+
+  triple min() {
+    if(s.length == 0)
+      abort(nullsurface);
+    triple bound=s[0].min();
+    for(int i=1; i < s.length; ++i)
+      bound=s[i].min(bound);
+    return bound;
+  }
+
+  triple max() {
+    if(s.length == 0)
+      abort(nullsurface);
+    triple bound=s[0].max();
+    for(int i=1; i < s.length; ++i)
+      bound=s[i].max(bound);
+    return bound;
+  }
+
+  pair min(projection P) {
+    if(s.length == 0)
+      abort(nullsurface);
+    pair bound=s[0].min(P);
+    for(int i=1; i < s.length; ++i)
+      bound=s[i].min(P,bound);
+    return bound;
+  }
+
+  pair max(projection P) {
+    if(s.length == 0)
+      abort(nullsurface);
+    pair bound=s[0].max(P);
+    for(int i=1; i < s.length; ++i)
+      bound=s[i].max(P,bound);
+    return bound;
+  }
+
+  real min(real f(triple)) {
+    if(s.length == 0)
+      abort(nullsurface);
+    real m=min(s[0].map(f));
+    for(int i=1; i < s.length; ++i)
+      m=min(m,min(s[i].map(f)));
+    return m;
+  }
+
+  real max(real f(triple)) {
+    if(s.length == 0)
+      abort(nullsurface);
+    real m=max(s[0].map(f));
+    for(int i=1; i < s.length; ++i)
+      m=max(m,max(s[i].map(f)));
+    return m;
+  }
+
+  // Construct a spatialPen from f using the specified palette.
+  spatialPen palette(real f(triple), pen[] palette) {
+    return palette(f,min(f),max(f),palette);
   }
 
   void colors(pen[][] palette) {
@@ -1069,14 +1139,6 @@ struct surface {
   }
 }
 
-using spatialPen=pen(triple, int);
-
-spatialPen cornerPen(...pen[] p) {
-  return new pen(triple, int i) {
-    return p[i];
-  };
-}
-
 surface operator * (transform3 t, surface s)
 {
   surface S;
@@ -1092,46 +1154,24 @@ surface operator * (transform3 t, surface s)
   return S;
 }
 
-private string nullsurface="null surface";
-
 triple min(surface s)
 {
-  if(s.s.length == 0)
-    abort(nullsurface);
-  triple bound=s.s[0].min();
-  for(int i=1; i < s.s.length; ++i)
-    bound=s.s[i].min(bound);
-  return bound;
+  return s.min();
 }
 
 triple max(surface s)
 {
-  if(s.s.length == 0)
-    abort(nullsurface);
-  triple bound=s.s[0].max();
-  for(int i=1; i < s.s.length; ++i)
-    bound=s.s[i].max(bound);
-  return bound;
+  return s.max();
 }
 
 pair min(surface s, projection P)
 {
-  if(s.s.length == 0)
-    abort(nullsurface);
-  pair bound=s.s[0].min(P);
-  for(int i=1; i < s.s.length; ++i)
-    bound=s.s[i].min(P,bound);
-  return bound;
+  return s.min(P);
 }
 
 pair max(surface s, projection P)
 {
-  if(s.s.length == 0)
-    abort(nullsurface);
-  pair bound=s.s[0].max(P);
-  for(int i=1; i < s.s.length; ++i)
-    bound=s.s[i].max(P,bound);
-  return bound;
+  return s.max(P);
 }
 
 private triple[] split(triple z0, triple c0, triple c1, triple z1, real t=0.5)
