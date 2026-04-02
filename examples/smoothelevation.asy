@@ -14,7 +14,9 @@ real f(pair z) {return cos(2*pi*z.x)*sin(2*pi*z.y);}
 
 surface s=surface(f,(-1/2,-1/2),(1/2,1/2),20,Spline);
 
-spatialPen p=palette(zpart,min(s).z,max(s).z,Rainbow());
+real Zpart(triple v, int i) {return zpart(v);}
+
+spatialPen p=palette(Zpart,min(s).z,max(s).z,Rainbow());
 draw(s,p);
 
 scale(true);

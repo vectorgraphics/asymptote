@@ -264,14 +264,14 @@ pen[] palette(real[] f, pen[] palette)
                   f.length);
 }
 
-using spatialPen=pen(triple);
+using spatialPen=pen(triple, int);
 
 // Construct a pen[] array from f using the specified palette.
-spatialPen palette(real f(triple), real Min, real Max, pen[] palette)
+spatialPen palette(real f(triple, int), real Min, real Max, pen[] palette)
 {
-  if(palette.length == 0) return new pen(triple) {return nullpen;};
+  if(palette.length == 0) return new pen(triple, int) {return nullpen;};
   real step=Max == Min ? 0.0 : (palette.length-1)/(Max-Min);
-  return new pen(triple v) {return palette[round((f(v)-Min)*step)];};
+  return new pen(triple v, int i) {return palette[round((f(v,-1)-Min)*step)];};
 }
 
 // Construct a pen[][] array from f using the specified palette.
