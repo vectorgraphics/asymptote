@@ -758,6 +758,8 @@ struct primitive {
   }
 }
 
+using spatialPen=pen(triple);
+
 struct surface {
   patch[] s;
   int index[][];// Position of patch corresponding to major U,V parameter in s.
@@ -1799,7 +1801,7 @@ void drawTessellation(picture pic=currentpicture, surface s,
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
-          material[] surfacepen, pen[] meshpen=nullpens,
+          material[] surfacepen, pen[] meshpen=nullpens, pen spatialpen(triple)=null,
           light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
 {
@@ -1813,6 +1815,15 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
       if(is3D()) {
         render Render=render(render,interaction(render.interaction,
                                                 t*render.interaction.center));
+        if(spatialpen != null)
+          for(int i=0; i < s.s.length; ++i) {
+            triple[] corners=s.s[i].corners();
+            pen[] p;
+            for(triple v: corners)
+              p.push(spatialpen(v));
+            S.s[i].colors=p;
+          }
+
         draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight,name,Render);
       }
       if(pic != null) {
@@ -1844,7 +1855,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
-          material surfacepen=currentpen, pen meshpen=nullpen,
+          material surfacepen=currentpen, pen meshpen=nullpen, pen spatialpen(triple)=null,
           light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
 {
@@ -1855,7 +1866,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
     surfacepen.cyclic=true;
     pen[] meshpen={meshpen};
     meshpen.cyclic=true;
-    draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight,name,render);
+    draw(pic,s,nu,nv,surfacepen,meshpen,spatialpen,light,meshlight,name,render);
   }
 }
 
