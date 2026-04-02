@@ -63,8 +63,16 @@ struct patch {
     return new real[] {f(P[0][0]),f(P[3][0]),f(P[3][3]),f(P[0][3])};
   }
 
+  pen[] map(pen f(triple)) {
+    return new pen[] {f(P[0][0]),f(P[3][0]),f(P[3][3]),f(P[0][3])};
+  }
+
   real[] maptriangular(real f(triple)) {
     return new real[] {f(P[0][0]),f(P[3][0]),f(P[3][3])};
+  }
+
+  pen[] maptriangular(pen f(triple)) {
+    return new pen[] {f(P[0][0]),f(P[3][0]),f(P[3][3])};
   }
 
   triple Bu(int j, real u) {return bezier(P[0][j],P[1][j],P[2][j],P[3][j],u);}
@@ -262,7 +270,12 @@ struct patch {
       internal=internaltriangular;
       cornermean=cornermeantriangular;
       corners=cornerstriangular;
-      map=maptriangular;
+      using realTriple=real(triple);
+      using realMap=real[](realTriple);
+      map=(realMap) maptriangular;
+      using penTriple=pen(triple);
+      using penMap=pen[](penTriple);
+      map=(penMap) maptriangular;
       point=pointtriangular;
       normal=normaltriangular;
       normal00=normal00triangular;
@@ -757,8 +770,6 @@ struct primitive {
     this.valid=valid;
   }
 }
-
-using spatialPen=pen(triple);
 
 struct surface {
   patch[] s;
@@ -1816,13 +1827,8 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
         render Render=render(render,interaction(render.interaction,
                                                 t*render.interaction.center));
         if(spatialpen != null)
-          for(int i=0; i < s.s.length; ++i) {
-            triple[] corners=s.s[i].corners();
-            pen[] p;
-            for(triple v: corners)
-              p.push(spatialpen(v));
-            S.s[i].colors=p;
-          }
+          for(int i=0; i < s.s.length; ++i)
+            S.s[i].colors=s.s[i].map(spatialpen);
 
         draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight,name,Render);
       }
