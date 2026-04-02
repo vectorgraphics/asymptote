@@ -350,6 +350,8 @@ uninstall-asy:
 	-rmdir $(shaderdir)
 	-cd $(webgldir) && rm -f *.html *.js
 	-rmdir $(webgldir)
+	-cd $(asydir)/collections && rm -f *.asy
+	-rmdir $(asydir)/collections
 	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA)
 	-rmdir $(asydir)
 	-cd $(latexdir) && rm -f $(LATEXFILES)
@@ -361,7 +363,10 @@ uninstall-asy:
 uninstall-man:
 	cd doc && $(MAKE) uninstall
 
-uninstall-docdir:
+# uninstall-man removes files from $(docdir) itself; uninstall-asy removes
+# $(exampledir) and $(animationsdir) which are subdirectories of $(docdir).
+# Both must finish before we can rmdir $(docdir).
+uninstall-docdir: uninstall-man uninstall-asy
 	-rmdir $(docdir)
 
 clean:	FORCE
