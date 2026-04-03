@@ -1,4 +1,5 @@
 import three;
+import graph3;
 
 size(200);
 
@@ -17,3 +18,12 @@ draw(surface(shift(X)*((0,0,0)..controls (1,0,0) and (2,0,0)..(3,0,0)..
                        (1.5,3*sqrt(3)/2,0)..
                        controls (1,sqrt(3),0) and (0.5,sqrt(3)/2,0)..cycle),
              new triple[] {(1.5,sqrt(3)/2,2)}),cornerPen(red,green,blue));
+
+surface S=surface(new real(pair z) {return 1;},(0,0),(1,1),2,2);
+
+draw(shift(X+Y)*S,cornerPen(new pen[][] {
+      {red,green,blue,black},
+        {black,blue,green,red},
+        {green,red,black,blue},
+        {blue,black,red,green},
+        }));

@@ -64,16 +64,16 @@ struct patch {
     return new real[] {f(P[0][0]),f(P[3][0]),f(P[3][3]),f(P[0][3])};
   }
 
-  pen[] map(pen f(triple, int i)) {
-    return new pen[] {f(P[0][0],0),f(P[3][0],1),f(P[3][3],2),f(P[0][3],3)};
+  pen[] map(pen f(triple, int, int), int i) {
+    return new pen[] {f(P[0][0],i,0),f(P[3][0],i,1),f(P[3][3],i,2),f(P[0][3],i,3)};
   }
 
   real[] maptriangular(real f(triple)) {
     return new real[] {f(P[0][0]),f(P[3][0]),f(P[3][3])};
   }
 
-  pen[] maptriangular(pen f(triple, int i)) {
-    return new pen[] {f(P[0][0],0),f(P[3][0],1),f(P[3][3],2)};
+  pen[] maptriangular(pen f(triple, int, int), int i) {
+    return new pen[] {f(P[0][0],i,0),f(P[3][0],i,1),f(P[3][3],i,2)};
   }
 
   triple Bu(int j, real u) {return bezier(P[0][j],P[1][j],P[2][j],P[3][j],u);}
@@ -274,8 +274,8 @@ struct patch {
       using realTriple=real(triple);
       using realMap=real[](realTriple);
       map=(realMap) maptriangular;
-      using penTriple=pen(triple, int);
-      using penMap=pen[](penTriple);
+      using penTriple=pen(triple, int, int);
+      using penMap=pen[](penTriple, int);
       map=(penMap) maptriangular;
       point=pointtriangular;
       normal=normaltriangular;
@@ -772,12 +772,17 @@ struct primitive {
   }
 }
 
-using spatialPen=pen(triple, int);
+using spatialPen=pen(triple, int, int);
+
+spatialPen cornerPen(pen[][] p) {
+  p.cyclic=true;
+  return new pen(triple, int i, int j) {
+    return p[i][j];
+  };
+}
 
 spatialPen cornerPen(...pen[] p) {
-  return new pen(triple, int i) {
-    return p[i];
-  };
+  return cornerPen(new pen[][] {p});
 }
 
 private string nullsurface="null surface";
@@ -1860,7 +1865,7 @@ void drawTessellation(picture pic=currentpicture, surface s,
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
-          material[] surfacepen, pen[] meshpen=nullpens, pen spatialpen(triple, int)=null,
+          material[] surfacepen, pen[] meshpen=nullpens, pen spatialpen(triple, int, int)=null,
           light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
 {
@@ -1876,7 +1881,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
                                                 t*render.interaction.center));
         if(spatialpen != null)
           for(int i=0; i < s.s.length; ++i)
-            S.s[i].colors=s.s[i].map(spatialpen);
+            S.s[i].colors=s.s[i].map(spatialpen,i);
 
         draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight,name,Render);
       }
@@ -1909,7 +1914,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
-          material surfacepen=currentpen, pen meshpen=nullpen, pen spatialpen(triple,int)=null,
+          material surfacepen=currentpen, pen meshpen=nullpen, pen spatialpen(triple, int, int)=null,
           light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
 {
