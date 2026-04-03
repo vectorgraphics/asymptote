@@ -861,6 +861,39 @@ void AsyVkRender::recreateSwapChain()
   waitEvent=false;
 }
 
+void AsyVkRender::initializeSwapChainIfNeeded()
+{
+  device->waitIdle();
+
+  if (!surface) {
+    createSurface();
+  }
+
+  auto presentFamilyIndices = findQueueFamilies(physicalDevice, &*surface);
+
+  createSwapChain();
+
+  if (presentFamilyIndices.presentQueueFamilyFound) {
+    presentQueue = device->getQueue(presentFamilyIndices.presentQueueFamily, 0);
+  }
+
+  createImageViews();
+  createFramebuffers();
+  createImmediateRenderTargets();
+  transitionFXAAImages();
+
+  currentTimelineValue = 0;
+  for (auto& frameObj : frameObjects) {
+    frameObj.timelineValue = 0;
+    frameObj.computeTimelineValue = 0;
+  }
+
+  renderTimelineSemaphore.reset();
+  renderTimelineSemaphore = createTimelineSemaphore(0);
+
+  recreatePipeline = true;
+}
+
 void AsyVkRender::transitionFXAAImages()
 {
   auto cmdBuffer = beginSingleCommands();
@@ -1247,11 +1280,11 @@ QueueFamilyIndices AsyVkRender::findQueueFamilies(vk::PhysicalDevice& physicalDe
     if (family.queueFlags & vk::QueueFlagBits::eGraphics) {
       indices.renderQueueFamily = u,
       indices.renderQueueFamilyFound = true;
-    }
 
-    if (surface != nullptr && VK_FALSE != physicalDevice.getSurfaceSupportKHR(u, *surface)) {
-      indices.presentQueueFamily = u,
-      indices.presentQueueFamilyFound = true;
+      if (surface != nullptr && VK_FALSE != physicalDevice.getSurfaceSupportKHR(u, *surface)) {
+        indices.presentQueueFamily = u;
+        indices.presentQueueFamilyFound = true;
+      }
     }
 
     if (family.queueFlags & vk::QueueFlagBits::eTransfer) {
@@ -1293,7 +1326,7 @@ bool AsyVkRender::checkDeviceExtensionSupport(vk::PhysicalDevice& device)
 {
   auto extensions = device.enumerateDeviceExtensionProperties();
   std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
-  if (View) requiredExtensions.insert(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+  requiredExtensions.insert(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
   for (auto& extension : extensions) {
     requiredExtensions.erase(extension.extensionName);
@@ -1321,9 +1354,7 @@ void AsyVkRender::createLogicalDevice()
     extensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
     usePortability = true;
   }
-  if (View) {
-    extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-  }
+  extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   if (interlock) {
     if (supportedDeviceExtensions.find(VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME) == supportedDeviceExtensions.end()) {
       interlock=false;
@@ -1545,6 +1576,9 @@ void AsyVkRender::createExportResources()
 
 void AsyVkRender::createSwapChain()
 {
+  if (!surface)
+    createSurface();
+
   auto const swapDetails = SwapChainDetails(physicalDevice, *surface);
   auto && format = swapDetails.chooseSurfaceFormat();
   auto && extent = swapDetails.chooseExtent(width,height);
@@ -4484,6 +4518,10 @@ void AsyVkRender::drawFrame()
   // We check if the timeline value for this specific frame has been reached.
   if (frameObject.timelineValue > 0) {
     waitForTimelineSemaphore(*renderTimelineSemaphore, frameObject.timelineValue, timeout);
+  }
+
+  if (View && !swapChain) {
+    initializeSwapChainIfNeeded();
   }
 
   if (recreatePipeline)

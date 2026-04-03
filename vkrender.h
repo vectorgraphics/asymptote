@@ -887,6 +887,7 @@ private:
   void drawBuffers(FrameObject & object, int imageIndex);
   void drawFrame();
   void recreateSwapChain();
+  void initializeSwapChainIfNeeded();
   vk::UniqueShaderModule createShaderModule(EShLanguage lang, std::string const & filename, std::vector<std::string> const & options);
 #endif
 
