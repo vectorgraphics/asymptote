@@ -9,8 +9,10 @@ draw(box((-2,-2,-1),(2,2,1)));
 draw(shift(-Z)*surface(box((-2,-2),(2,2))),blue);
 draw(shift(Z)*surface(box((-2,-2),(2,2))),orange+opacity(0.5));
 
-surface s=unitsphere;
-spatialPen p=s.palette(zpart,Gradient(green+opacity(0.6),white,green+opacity(0.6)));
+surface s1=shift(0.5X+0.5Y)*unitsphere;
+surface s2=shift(-0.5X-0.5Y)*unitsphere;
 
-draw(shift(0.5X+0.5Y)*s,p);
-draw(shift(-0.5X-0.5Y)*s,p);
+pen[] p=Gradient(green+opacity(0.6),white,green+opacity(0.6));
+
+draw(s1,s1.palette(zpart,p));
+draw(s2,s2.palette(zpart,p));
