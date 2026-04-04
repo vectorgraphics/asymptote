@@ -12,3 +12,30 @@ runs:
       with:
         path: ~\AppData\Local\vcpkg\archives
         key: ${{ runner.os }}-vcpkg-cache
+
+    # Just add this new step to the end of the file
+    - name: Create vcpkg overlay for getopt-win32
+      shell: pwsh
+      run: |
+        $OverlayDir = "$env:GITHUB_WORKSPACE\vcpkg-overlays\getopt-win32"
+        New-Item -ItemType Directory -Force -Path $OverlayDir | Out-Null
+
+        # Copy the broken default portfile to use as a template
+        Copy-Item "$env:VCPKG_INSTALLATION_ROOT\ports\getopt-win32\*" -Destination $OverlayDir
+
+        # Dynamically fetch your new archive to get its SHA512 hash
+        $Url = "https://github.com/libimobiledevice-win32/getopt/archive/refs/tags/v1.0.tar.gz"
+        Invoke-WebRequest -Uri $Url -OutFile "temp.tar.gz"
+        $Sha512 = (Get-FileHash -Path "temp.tar.gz" -Algorithm SHA512).Hash.ToLower()
+        Remove-Item "temp.tar.gz"
+
+        # Patch the repository, tag, and hash
+        $PortFile = "$OverlayDir\portfile.cmake"
+        $Content = Get-Content $PortFile -Raw
+        $Content = $Content -replace 'xiaozhuai/getopt-win32', 'libimobiledevice-win32/getopt'
+        $Content = $Content -replace 'b69a586f0b1aa37b77c3cf0a9dedba1900007678', 'v1.0'
+        $Content = $Content -replace 'SHA512\s+[a-fA-F0-9]{128}', "SHA512 $Sha512"
+        $Content | Set-Content $PortFile
+
+        # Expose the custom overlay to CMake and vcpkg
+        echo "VCPKG_OVERLAY_PORTS=$env:GITHUB_WORKSPACE\vcpkg-overlays" >> $env:GITHUB_ENV
