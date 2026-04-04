@@ -22,7 +22,6 @@ build_files_to_src(CORE_BUILD_FILES CORE_SOURCE_FILES)
 include(cmake-scripts/subrepo-projects.cmake)
 include(cmake-scripts/external-libs.cmake)
 include(cmake-scripts/thirdparty-impl.cmake)
-include(cmake-scripts/backport-libs.cmake)
 
 # PRC
 add_subdirectory(prc/)
