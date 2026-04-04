@@ -48,12 +48,10 @@ typedef SSIZE_T ssize_t;
 #  include <boost/stacktrace.hpp>
 #endif
 
-#ifndef OMIT_OPTIONAL
-#include "optional.hpp"
+#include <optional.hpp>
 using nonstd::optional;
 using nonstd::nullopt;
 using nonstd::make_optional;
-#endif
 
 using std::make_pair;
 
