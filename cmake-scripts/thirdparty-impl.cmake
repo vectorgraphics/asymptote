@@ -12,6 +12,6 @@ if (ENABLE_VULKAN)
             ${CMAKE_CURRENT_SOURCE_DIR}/VulkanMemoryAllocator CACHE INTERNAL
             "VulkanMemoryAllocator repo location")
     add_subdirectory(${THIRDPARTY_IMPL_ROOT}/vk-mem-allocator_impl)
-    list(APPEND ASY_STATIC_LIBARIES vk-mem-allocator-impl)
+    list(APPEND ASY_STATIC_LIBRARIES vk-mem-allocator-impl)
     list(APPEND ASYMPTOTE_INCLUDES $<TARGET_PROPERTY:vk-mem-allocator-impl,INCLUDE_DIRECTORIES>)
 endif()

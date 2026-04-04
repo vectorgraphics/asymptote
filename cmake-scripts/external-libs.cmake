@@ -188,7 +188,7 @@ We are using a separate glslang package
 
     find_package(Vulkan COMPONENTS glslang)
     if (Vulkan_FOUND AND Vulkan_glslang_FOUND)
-        list(APPEND ASY_STATIC_LIBARIES Vulkan::Vulkan Vulkan::glslang)
+        list(APPEND ASY_STATIC_LIBRARIES Vulkan::Vulkan Vulkan::glslang)
         list(APPEND ASY_MACROS HAVE_LIBVULKAN)
     else()
         message(FATAL_ERROR "Vulkan not found")
@@ -196,7 +196,7 @@ We are using a separate glslang package
 
     find_package(glfw3 CONFIG)
     if (glfw3_FOUND)
-        list(APPEND ASY_STATIC_LIBARIES glfw)
+        list(APPEND ASY_STATIC_LIBRARIES glfw)
     else()
         message(FATAL_ERROR "glfw3 not found")
     endif()
