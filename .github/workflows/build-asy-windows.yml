@@ -28,6 +28,12 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
+      - name: Update pre-installed vcpkg
+        shell: pwsh
+        run: |
+          cd $env:VCPKG_INSTALLATION_ROOT
+          git pull
+          .\bootstrap-vcpkg.bat
       - name: Configure MSVC-Release
         shell: pwsh
         run: |
