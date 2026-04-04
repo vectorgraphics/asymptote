@@ -1579,6 +1579,8 @@ bool picture::shipout3(const string& prefix, const string& format,
         waitpid(pid,NULL,interact::interactive && View ? WNOHANG : 0);
         return true;
       }
+#else
+#pragma message("TODO: Check if (1) we need detach-based VK renderer")
 #endif
     }
 #endif
