@@ -3,7 +3,7 @@
 ## Overview
 
 **Primary**: Asymptote is LGPL v3+. **Third-party components**: Each licensed separately.
-- **span.hpp** — Boost 1.0 | **wyhash.h** — The Unlicense (Public Domain) | **gc/** — Custom permissive | **LspCpp/** — MIT
+- **backports/span/span.hpp** — Boost 1.0 | **backports/getopt/** — LGPL 2.1+ | **wyhash.h** — The Unlicense (Public Domain) | **gc/** — Custom permissive | **LspCpp/** — MIT
 - **libatomic_ops/** — MIT (core) / GPL-2.0 (extensions) | **backports/glew/** — BSD 3-Clause | **tinyexr/** — BSD 3-Clause
 
 See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for complete component details.
@@ -13,7 +13,8 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for complete component de
 | License | Scope | Key Constraint |
 |---------|-------|-----------------|
 | LGPL v3+ | All .cc/.h files (except third-party) | Default for new files |
-| Boost 1.0 | span.hpp only | ⚠️ Cannot be relicensed |
+| Boost 1.0 | backports/span/span.hpp only | ⚠️ Cannot be relicensed |
+| LGPL 2.1+ | backports/getopt/ | Retain FSF copyright; LGPL 3 satisfies "or later" |
 | The Unlicense | wyhash.h | Public domain; compatible with everything |
 | MIT | LspCpp/, libatomic_ops (core) | Include copyright notice |
 | BSD 3-Clause | backports/glew/, tinyexr/ | Include copyright notice |
@@ -25,7 +26,9 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for complete component de
 | File | Purpose |
 |------|---------|
 | LICENSE / LICENSE.LESSER | LGPL text |
-| LICENSE-BOOST.txt | Boost 1.0 text |
+| backports/span/LICENSE.txt | Boost 1.0 text (alongside span.hpp) |
+| backports/glew/LICENSE.txt | BSD 3-Clause + Mesa + Khronos text |
+| backports/getopt/LICENSE.txt | LGPL 2.1+ notice |
 | LICENSES-THIRD-PARTY.md | Component catalog |
 | DISTRIBUTION-LICENSE-NOTICE.md | Distribution guidance |
 
@@ -36,7 +39,7 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for complete component de
 - Include copyright year/authors
 - Do NOT modify span.hpp unless absolutely necessary
 
-### Modifying span.hpp
+### Modifying backports/span/span.hpp
 ⚠️ **Cannot be relicensed**. If modifying:
 1. Retain Martin Moene copyright (2018-2021)
 2. Document all changes clearly
@@ -44,14 +47,14 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for complete component de
 4. Update version number if warranted
 
 ### Updating Third-Party Components
-Retain original license for: wyhash.h, gc/, LspCpp/, libatomic_ops/, backports/glew/, tinyexr/
+Retain original license for: wyhash.h, gc/, LspCpp/, libatomic_ops/, backports/span/, backports/glew/, backports/getopt/, tinyexr/
 _Note: wyhash.h is public domain, but retain the original header comment crediting Wang Yi._
 
 When adding, removing, or updating third-party components, also update the
 `licensesOption` output in `settings.cc` (printed by `asy --licenses`).
 
 ### Distributing Asymptote
-✓ Include: LICENSE, LICENSE.LESSER, LICENSE-BOOST.txt, README, LICENSES-THIRD-PARTY.md
+✓ Include: LICENSE, LICENSE.LESSER, backports/span/LICENSE.txt, backports/glew/LICENSE.txt, backports/getopt/LICENSE.txt, README, LICENSES-THIRD-PARTY.md
 ✓ Follow: DISTRIBUTION-LICENSE-NOTICE.md for your scenario (binary/TeXLive/package manager)
 ✓ Binaries: Ensure users can access license texts (also available via `asy --licenses`)
 
@@ -82,7 +85,7 @@ When adding, removing, or updating third-party components, also update the
 | Can I modify Asymptote? | Yes, under LGPL v3+. If modifying span.hpp: Boost license applies. |
 | What if no licenses in distribution? | Violations of LGPL/GPL. Report to maintainers. |
 | TeXLive distribution? | Follow DISTRIBUTION-LICENSE-NOTICE.md. |
-| What about span.hpp license compliance? | span.hpp header has been updated to reference local LICENSE-BOOST.txt (not external LICENSE.txt) and use HTTPS. Original copyright (Martin Moene, 2018-2021) retained. |
+| What about span.hpp license compliance? | span.hpp is at backports/span/span.hpp; its header references LICENSE.txt in the same directory (Boost license). Original copyright (Martin Moene, 2018-2021) retained. |
 
 ## Reference Links
 

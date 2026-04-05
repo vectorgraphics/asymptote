@@ -1166,6 +1166,8 @@ struct licensesOption : public option {
       "\n"
       "  span.hpp          Boost Software License 1.0\n"
       "                    Martin Moene — https://github.com/martinmoene/span-lite" "\n"
+      "  GNU getopt        GNU Lesser General Public License 2.1+\n"
+      "                    Free Software Foundation — https://www.gnu.org/software/libc/" "\n"
       "  wyhash            The Unlicense (Public Domain)\n"
       "                    Wang Yi — https://github.com/wangyi-fudan/wyhash" "\n"
       "  Boehm GC          Custom permissive license\n"

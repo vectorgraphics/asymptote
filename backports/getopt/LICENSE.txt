@@ -1,0 +1,20 @@
+GNU getopt — from the GNU C Library
+Copyright (C) 1987-2001 Free Software Foundation, Inc.
+
+This code is free software; you can redistribute it and/or modify it under
+the terms of the GNU Lesser General Public License as published by the Free
+Software Foundation; either version 2.1 of the License, or (at your option)
+any later version.
+
+This code is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+details.
+
+The full text of the GNU Lesser General Public License version 2.1 is
+available at: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+
+Note: Asymptote's root LICENSE.LESSER contains the GNU Lesser General Public
+License version 3, which satisfies the "version 2.1 or any later version"
+option in the above notice. The getopt files in this directory may therefore
+be distributed under either LGPL 2.1 or LGPL 3.
