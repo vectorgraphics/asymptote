@@ -4,7 +4,6 @@ set(LSP_REPO_ROOT ${ASY_SUBREPO_CLONE_ROOT}/LspCpp)
 set(TINYEXR_SUBREPO_ROOT ${ASY_SUBREPO_CLONE_ROOT}/tinyexr)
 set(BOEHM_GC_ROOT ${ASY_SUBREPO_CLONE_ROOT}/gc)
 set(LIBATOMIC_OPS_ROOT ${ASY_SUBREPO_CLONE_ROOT}/libatomic_ops)
-
 # boehm gc
 if (ENABLE_GC)
     set(enable_gpl OFF CACHE INTERNAL "libatomicops gpl libs option")
@@ -39,6 +38,12 @@ if (ENABLE_GC)
         list(APPEND ASY_STATIC_LIBRARIES gctba)
     endif()
     list(APPEND ASY_MACROS USEGC)
+    # Propagate GC_ATOMIC_UNCOLLECTABLE to match how gc/CMakeLists.txt compiles the library
+    # (gc enables this by default via enable_atomic_uncollectable option), preventing ODR violations
+    # when LTO is active.
+    if (enable_atomic_uncollectable)
+        list(APPEND ASY_MACROS GC_ATOMIC_UNCOLLECTABLE)
+    endif()
 else()
     message(STATUS "Disabling gc support")
 endif()

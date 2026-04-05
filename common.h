@@ -53,6 +53,15 @@ using std::optional;
 using std::nullopt;
 using std::make_optional;
 
+
+#if __cplusplus < 202002L
+#  include "backports/span/span.hpp"
+using nonstd::span;
+#else
+#  include <span>
+using std::span;
+#endif
+
 using std::make_pair;
 
 #if !defined(FOR_SHARED) &&                                             \
