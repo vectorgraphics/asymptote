@@ -2257,6 +2257,7 @@ path Arc(pair c, real r, real angle1, real angle2, int n=nCircle)
   return Arc(c,r,angle1,angle2,angle2 >= angle1 ? CCW : CW,n);
 }
 
+// return a true arc centered at c from pair z1 to z2 (assuming |z2-c|=|z1-c|).
 path Arc(pair c, explicit pair z1, explicit pair z2, bool direction=CCW,
          int n=nCircle)
 {

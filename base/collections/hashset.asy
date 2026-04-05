@@ -46,8 +46,8 @@ struct HashSet_T {
       return false;
     }
     int bucket = item.hash();
-    for (int i = 0; i < buckets.length; ++i) {
-      HashEntry entry = buckets[bucket + i];
+    for (int index = bucket - buckets.length; index < bucket; ++index) {
+      HashEntry entry = buckets[index];
       if (entry == null) {
         return false;
       }
@@ -292,11 +292,10 @@ struct HashSet_T {
       assert(isNullT != null, 'Cannot get a random item from an empty set');
       return nullT;
     }
-    static int seed = 3567654160488757718;
     if (size # 2 > buckets.length # size) {
       // Most buckets are empty, so it's faster to iterate over the linked list
       // of full buckets.
-      int index = (++seed).hash() % size;
+      int index = rand(0, size - 1);
       for (T item : super) {
         if (index == 0) {
           return item;
@@ -307,7 +306,7 @@ struct HashSet_T {
     }
     HashEntry entry = null;
     do {
-      int index = (++seed).hash() % buckets.length;
+      int index = rand(0, buckets.length - 1);
       entry = buckets[index];
     } while (entry == null || entry.hash == -1);
     return entry.item;

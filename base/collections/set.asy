@@ -60,15 +60,18 @@ struct Set_T {
   // testing purposes.
   T getRandom() {
     int size = this.size();
-    static int seed = 3567654160488757718;
-    int index = (++seed).hash() % size;
+    if (size == 0) {
+      assert(isNullT != null, 'Cannot get a random item from an empty set');
+      return nullT;
+    }
+    int index = rand(0, size - 1);
     for (T item : this) {
       if (index == 0) {
         return item;
       }
       --index;
     }
-    assert(isNullT != null, 'Cannot get a random item from an empty set');
+    assert(false, 'Unreachable code');
     return nullT;
   }
 
@@ -260,14 +263,13 @@ struct NaiveSet_T {
     return nullT;
   };
 
-    // This implementation is O(1).
-    super.getRandom = new T() {
+  // This implementation is O(1).
+  super.getRandom = new T() {
     if (items.length == 0) {
       assert(isNullT != null, 'Cannot get a random item from an empty set');
       return nullT;
     }
-    static int seed = 3567654160488757718;
-    int index = (++seed).hash() % items.length;
+    int index = rand(0, items.length - 1);
     return items[index];
   };
 

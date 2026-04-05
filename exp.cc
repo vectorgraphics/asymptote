@@ -220,11 +220,8 @@ void fieldExp::prettyprint(ostream &out, Int indent)
 
 types::ty *fieldExp::getObject(coenv& e)
 {
-  types::ty *t = object->cgetType(e);
-  if (t->kind == ty_overloaded) {
-    t=((overloaded *)t)->signatureless();
-    if(!t) return primError();
-  }
+  types::ty *t = object->cgetType(e)->signatureless();
+  if (!t) return primError();
   return t;
 }
 
@@ -240,11 +237,7 @@ exp *fieldExp::evaluate(coenv &e, types::ty *t) {
 }
 
 types::ty *bracketsExp::getObjectType(coenv &e) {
-  types::ty *t = object->cgetType(e);
-  if (t->kind == ty_overloaded) {
-    t = ((overloaded *)t)->signatureless();
-  }
-  return t;
+  return object->cgetType(e)->signatureless();
 }
 
 array *bracketsExp::getArrayType(coenv &e)
@@ -266,14 +259,11 @@ array *bracketsExp::getArrayType(coenv &e)
 
 array *bracketsExp::transArray(coenv &e)
 {
-  types::ty *a = object->cgetType(e);
-  if (a->kind == ty_overloaded) {
-    a = ((overloaded *)a)->signatureless();
-    if (!a) {
-      em.error(object->getPos());
-      em << "expression is not an array";
-      return 0;
-    }
+  types::ty *a = object->cgetType(e)->signatureless();
+  if (!a) {
+    em.error(object->getPos());
+    em << "expression is not an array";
+    return 0;
   }
 
   object->transAsType(e, a);
@@ -293,9 +283,7 @@ array *bracketsExp::transArray(coenv &e)
 // Checks if the expression can be translated as an array.
 bool isAnArray(coenv &e, exp *x)
 {
-  types::ty *t=x->cgetType(e);
-  if (t->kind == ty_overloaded)
-    t=dynamic_cast<overloaded *>(t)->signatureless();
+  types::ty *t=x->cgetType(e)->signatureless();
   return t && t->kind==ty_array;
 }
 
@@ -357,13 +345,8 @@ types::ty *subscriptExp::trans(coenv &e)
 types::ty *subscriptExp::getType(coenv &e)
 {
   if (!isAnArray(e, object)) {
-    ty *t = object->cgetType(e);
-    if (t->kind == ty_overloaded) {
-      t = ((overloaded *)t)->signatureless();
-      if (!t)
-        return primError();
-    }
-    if (t->kind != ty_record) {
+    ty *t = object->cgetType(e)->signatureless();
+    if (!t || t->kind != ty_record) {
       return primError();
     }
     return static_cast<record*>(t)->valType();
@@ -428,10 +411,7 @@ void subscriptExp::transWrite(coenv &e, types::ty *t, exp *value)
 
 exp *subscriptExp::evaluate(coenv &e, types::ty *)
 {
-  types::ty *base = object->cgetType(e);
-  if (base->kind == ty_overloaded) {
-    base = ((overloaded *)base)->signatureless();
-  }
+  types::ty *base = object->cgetType(e)->signatureless();
   if (!base) {
     em.error(object->getPos());
     em << "object to index cannot be resolved";

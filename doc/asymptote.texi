@@ -1287,6 +1287,8 @@ independent of the pen line width.
 The use of arrows, bars, and margins is illustrated by the examples
 @code{@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.svg,,Pythagoras}@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.asy,,.asy}} and
 @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/sqrtx01.html,,sqrtx01}@uref{https://asymptote.sourceforge.io/gallery/sqrtx01.asy,,.asy}}.
+Since bars are intended for indicating precise dimensions, they should only be
+drawn with NoMargin (the default).
 
 The legend for a picture @code{pic} can be fit and aligned to a frame
 with the routine:
@@ -6899,9 +6901,11 @@ function @code{hash(int[])} that can be helpful when constructing hash methods
 for user-defined structures: convert all the fields to integers (possibly by
 hashing them), put these integers into an array, and hash the array.
 
-Returning to the example of the @code{Person} structure from @ref{Structures},
-there are two reasonable ways we might define a hash function for it. The first
-is to create a hash function based on all the fields of the structure:
+Let's return to the example of the @code{Person} structure from
+@ref{Structures}, adding an @code{age} field to make it more interesting. For
+this structure, there are two reasonable ways we might define a hash function
+for it. The first is to create a hash function based on all the fields of the
+structure:
 @verbatim
 struct Person {
   string firstname;
@@ -6953,6 +6957,11 @@ regularity (with respect to modular arithmetic) when applied exactly once.
 This explains why the second example returns @code{id.hash()} instead
 of @code{id}, while @code{age} is not independently hashed in the
 first example.
+It may sometimes be most practical to feed the hash function's
+output back into it, as in @code{firstname} and @code{lastname} above, but this
+does not increase the hash quality; in theory, if we could serialize a
+@code{Person} object to a string and then hash the string, the hash quality
+would be even higher.
 
 @node Collections (containers)
 @section Collections (containers)
@@ -6970,7 +6979,9 @@ container in the @code{collections} module.
 * Pairs::
 * Iterators and utilities::
 * Maps::
+* Using Maps as Sets::
 * Sets::
+* Using Sets as Maps::
 * Queues::
 * Wrapping arrays::             Arrays that can be used as keys or values
 @end menu
@@ -7654,7 +7665,7 @@ This method violates the principle of reversibility.
 
 @cindex @code{Set} @subentry @code{.delete}
 @cindex @code{delete} @subentry @code{Set.delete}
-@item T delete(T item)
+@item bool delete(T item)
 removes @code{item} from the set if it is present, otherwise does nothing.
 This method does nothing if @code{isNullT(item)} is defined and true.
 The return value is true iff the set was modified.

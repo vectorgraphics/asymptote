@@ -26,10 +26,7 @@ using vm::inst;
 
 
 types::ty *signatureless(types::ty *t) {
-  if (overloaded *o=dynamic_cast<overloaded *>(t))
-    return o->signatureless();
-  else
-    return (t && !t->getSignature()) ? t : 0;
+  return t ? t->signatureless() : nullptr;
 }
 
 

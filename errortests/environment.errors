@@ -1,0 +1,2 @@
+errortests/environment.asy: 43.3: built-in functions cannot be modified
+errortests/environment.asy: 51.11: cannot cast 'string' to 'int'
