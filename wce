@@ -18,10 +18,12 @@ def run_error_tests():
     test_files = sorted(glob.glob(pattern))
 
     # Exclude helper files that are not standalone tests.
-    helpers = {"errortestNonTemplate.asy", "errortestBrokenTemplate.asy",
-               "errortestTemplate.asy"}
-    test_files = [f for f in test_files
-                  if os.path.basename(f) not in helpers]
+    helpers = {
+        "errortestNonTemplate.asy",
+        "errortestBrokenTemplate.asy",
+        "errortestTemplate.asy",
+    }
+    test_files = [f for f in test_files if os.path.basename(f) not in helpers]
 
     if not test_files:
         print("No error test files found in errortests/", file=sys.stderr)
@@ -37,8 +39,7 @@ def run_error_tests():
         sys.stdout.flush()
 
         result = subprocess.run(
-            [ASY, "-q", "-sysdir", "base", "-noautoplain", "-debug",
-             module_path],
+            [ASY, "-q", "-sysdir", "base", "-noautoplain", "-debug", module_path],
             cwd=SCRIPT_DIR,
             capture_output=True,
             text=True,
@@ -59,6 +60,7 @@ def run_error_tests():
             print(" FAILED.")
             # Show a unified diff for diagnostics.
             import difflib
+
             diff = difflib.unified_diff(
                 expected.splitlines(keepends=True),
                 actual.splitlines(keepends=True),
@@ -78,9 +80,18 @@ def run_deconstruct_test():
 
     expected_file = os.path.join(SCRIPT_DIR, "deconstruct")
     result = subprocess.run(
-        [ASY, "-dvisvgmOptions=-v0", "-q", "-sysdir", "base",
-         "-outpipe", "2", "-xasy",
-         "-c", "draw(unitsquare); deconstruct()"],
+        [
+            ASY,
+            "-dvisvgmOptions=-v0",
+            "-q",
+            "-sysdir",
+            "base",
+            "-outpipe",
+            "2",
+            "-xasy",
+            "-c",
+            "draw(unitsquare); deconstruct()",
+        ],
         cwd=SCRIPT_DIR,
         capture_output=True,
         text=True,
@@ -100,6 +111,7 @@ def run_deconstruct_test():
     else:
         print(" FAILED.")
         import difflib
+
         diff = difflib.unified_diff(
             expected.splitlines(keepends=True),
             actual.splitlines(keepends=True),
