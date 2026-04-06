@@ -625,8 +625,8 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
       } else
 #endif
         {
-          screenWidth=width;
-          screenHeight=height;
+          screenWidth=fullWidth;
+          screenHeight=fullHeight;
         }
 
       width=min(fullWidth,screenWidth);
