@@ -3,6 +3,7 @@
 #include <thread>
 
 #include "vkrender.h"
+#include "glfw.h"
 #include "shaderResources.h"
 #include "picture.h"
 #include "drawimage.h"
@@ -36,6 +37,7 @@ using namespace glm;
 static size_t timeout=10000000000;
 
 void exitHandler(int);
+void *postEmptyEvent(void *);
 
 void runtimeError(const std::string& s)
 {
@@ -84,8 +86,6 @@ std::vector<char> readFile(const std::string& filename)
 }
 
 #ifdef HAVE_VULKAN
-void closeWindowHandler(GLFWwindow *);
-
 SwapChainDetails::SwapChainDetails(
   vk::PhysicalDevice gpu,
   vk::SurfaceKHR surface) :
@@ -220,12 +220,6 @@ void AsyVkRender::updateModelViewData()
   newUniformBuffer = true;
 }
 
-void *postEmptyEvent(void *)
-{
-  glfwPostEmptyEvent();
-  return NULL;
-}
-
 void AsyVkRender::update()
 {
   capzoom();
@@ -269,28 +263,7 @@ double AsyVkRender::getRenderResolution(triple Min) const
 
 void AsyVkRender::initWindow()
 {
-  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  glfwWindowHint(GLFW_FOCUSED, GLFW_FALSE);
-  glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE);
-  glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-  window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
-
-  if (window == nullptr)
-    runtimeError(
-      "failed to create a window with width "
-      + std::to_string(width) + " and height "
-      + std::to_string(height));
-
-  glfwSetWindowUserPointer(window, this);
-  glfwSetMouseButtonCallback(window, mouseButtonCallback);
-  glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
-  glfwSetScrollCallback(window, scrollCallback);
-  glfwSetCursorPosCallback(window, cursorPosCallback);
-  glfwSetKeyCallback(window, NULL);
-  glfwSetKeyCallback(window, keyCallback);
-  glfwSetWindowSizeLimits(window, 1, 1, GLFW_DONT_CARE, GLFW_DONT_CARE);
-  glfwSetWindowCloseCallback(window,closeWindowHandler);
-  glfwSetWindowFocusCallback(window,windowFocusCallback);
+  glfwInitWindow(this, width, height, title);
 }
 
 void AsyVkRender::updateHandler(int) {
@@ -310,215 +283,10 @@ void AsyVkRender::updateHandler(int) {
   vk->recreatePipeline=true;
 }
 
-std::string AsyVkRender::getAction(int button, int mods)
-{
-  size_t Button;
-  size_t nButtons=5;
-  switch(button) {
-    case GLFW_MOUSE_BUTTON_LEFT:
-      Button=0;
-      break;
-    case GLFW_MOUSE_BUTTON_MIDDLE:
-      Button=1;
-      break;
-    case GLFW_MOUSE_BUTTON_RIGHT:
-      Button=2;
-      break;
-    default:
-      Button=nButtons;
-  }
-
-  size_t Mod;
-  size_t nMods=4;
-
-  if (mods == 0)
-    Mod=0;
-  else if(mods & GLFW_MOD_SHIFT)
-    Mod=1;
-  else if(mods & GLFW_MOD_CONTROL)
-    Mod=2;
-  else if(mods & GLFW_MOD_ALT)
-    Mod=3;
-  else
-    Mod=nMods;
-
-  if(Button < nButtons) {
-    auto left=settings::getSetting<vm::array *>("leftbutton");
-    auto middle=settings::getSetting<vm::array *>("middlebutton");
-    auto right=settings::getSetting<vm::array *>("rightbutton");
-    auto wheelup=settings::getSetting<vm::array *>("wheelup");
-    auto wheeldown=settings::getSetting<vm::array *>("wheeldown");
-    vm::array *Buttons[]={left,middle,right,wheelup,wheeldown};
-    auto a=Buttons[button];
-    size_t size=checkArray(a);
-
-    if(Mod < size)
-      return vm::read<std::string>(a,Mod);
-  }
-
-  return "";
-}
-
-void AsyVkRender::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
-{
-  auto const currentAction = getAction(button, mods);
-
-  if (currentAction.empty())
-    return;
-
-  auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
-
-  app->lastAction = currentAction;
-}
-
-void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int height)
-{
-  if(width == 0 || height == 0)
-    return;
-
-  auto* app = static_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
-
-  if(width == app->width && height == app->height)
-    return;
-
-  app->reshape0(width,height);
-  app->update();
-  app->remesh=true;
-}
-
-void AsyVkRender::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
-{
-  auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
-  auto zoomFactor = settings::getSetting<double>("zoomfactor");
-
-  if(zoomFactor > 0.0) {
-    if (yoffset > 0)
-      app->Zoom *= zoomFactor;
-    else
-      app->Zoom /= zoomFactor;
-  }
-
-  app->update();
-}
-
-void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos)
-{
-  static double xprev = 0.0;
-  static double yprev = 0.0;
-
-  if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) != GLFW_PRESS)
-  {
-    xprev = xpos;
-    yprev = ypos;
-    return;
-  }
-
-  auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
-
-  if (app->lastAction == "rotate") {
-
-    Arcball arcball(xprev * 2 / app->width - 1, 1 - yprev * 2 / app->height, xpos * 2 / app->width - 1, 1 - ypos * 2 / app->height);
-    triple axis = arcball.axis;
-    app->rotateMat = rotate(2 * arcball.angle / app->Zoom * app->ArcballFactor,
-                                 dvec3(axis.getx(), axis.gety(), axis.getz())) * app->rotateMat;
-    app->update();
-  }
-  else if (app->lastAction == "shift") {
-
-    app->shift(xpos - xprev, ypos - yprev);
-    app->update();
-  }
-  else if (app->lastAction == "pan") {
-
-    if (app->orthographic)
-      app->shift(xpos - xprev, ypos - yprev);
-    else {
-      app->pan(xpos - xprev, ypos - yprev);
-    }
-    app->update();
-  }
-  else if (app->lastAction == "zoom") {
-
-    app->zoom(0.0, ypos - yprev);
-  }
-
-  xprev = xpos;
-  yprev = ypos;
-}
-
-void AsyVkRender::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-  if (action != GLFW_PRESS)
-    return;
-
-  auto* app = static_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
-
-  switch (key)
-  {
-    case 'H':
-      app->home();
-      app->redraw=true;
-      break;
-    case 'F':
-      app->toggleFitScreen();
-      break;
-    case 'X':
-      app->spinx();
-      break;
-    case 'Y':
-      app->spiny();
-      break;
-    case 'Z':
-      app->spinz();
-      break;
-    case 'S':
-      app->idle();
-      break;
-    case 'M':
-      app->cycleMode();
-      break;
-    case 'E':
-      app->queueExport = true;
-      break;
-    case 'C':
-      app->showCamera();
-      break;
-    case '.': // '>' = '.' + shift
-      if (!(mods & GLFW_MOD_SHIFT))
-        break;
-    case '+':
-    case '=':
-      app->expand();
-      break;
-    case ',': // '<' = ',' + shift
-      if (!(mods & GLFW_MOD_SHIFT))
-        break;
-    case '-':
-    case '_':
-      app->shrink();
-      break;
-    case 'Q':
-      if(!app->Format.empty()) app->exportHandler(0);
-      app->quit();
-      break;
-  }
-}
-
-void AsyVkRender::windowFocusCallback(GLFWwindow* window, int focused)
-{
-    if (focused) {
-        // Window gained focus: might need to recreate swapchain
-        auto app = reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
-        app->recreatePipeline = true;
-    }
-}
-
 AsyVkRender::~AsyVkRender()
 {
   if (this->View) {
-    glfwDestroyWindow(this->window);
-    this->window=nullptr;
-    glfwTerminate();
+    glfwCleanupWindow(this);
   }
 
   glslang::FinalizeProcess();
@@ -5155,12 +4923,6 @@ void AsyVkRender::quit()
 }
 
 #ifdef HAVE_VULKAN
-
-void closeWindowHandler(GLFWwindow *window)
-{
-  cout << endl;
-  exitHandler(0);
-}
 
 void AsyVkRender::idleFunc(std::function<void()> f)
 {

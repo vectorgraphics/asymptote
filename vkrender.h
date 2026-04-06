@@ -689,6 +689,7 @@ private:
   static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
   static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
   static void windowFocusCallback(GLFWwindow* window, int focused);
+  static void closeWindowHandler(GLFWwindow* window);
 
   void initWindow();
   void initVulkan();
@@ -970,6 +971,8 @@ private:
   void cycleMode();
 
   friend struct SwapChainDetails;
+  friend void glfwInitWindow(AsyVkRender*, int, int, const std::string&);
+  friend void glfwCleanupWindow(AsyVkRender*);
 };
 
 extern AsyVkRender* vk;
