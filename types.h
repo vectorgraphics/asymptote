@@ -102,6 +102,10 @@ public:
     return 0;
   }
 
+  virtual ty *signatureless() {
+    return getSignature() == nullptr ? this : nullptr;
+  }
+
   virtual bool primitive() {
     return false;
   }
@@ -176,6 +180,9 @@ public:
     return this==other;
   }
 
+  // If operator[=] is defined, returns the type of the key. For array types,
+  // returns primInt(). Otherwise returns primError().
+  virtual ty *keyType();
 
   // Returns a number for the type for use in a hash table.  Equivalent types
   // must yield the same number.
@@ -240,16 +247,16 @@ struct array : public ty {
     : ty(ty_array), celltype(celltype), pushtype(0), poptype(0),
       appendtype(0), inserttype(0), deletetype(0) {}
 
-  virtual bool isReference() {
+  virtual bool isReference() override {
     return true;
   }
 
-  bool equiv(const ty *other) const {
+  bool equiv(const ty *other) const override {
     return other->kind==ty_array &&
       equivalent(this->celltype,((array *)other)->celltype);
   }
 
-  size_t hash() const {
+  size_t hash() const override {
     return 1007 * celltype->hash();
   }
 
@@ -260,7 +267,7 @@ struct array : public ty {
       return 1;
   }
 
-  void print(ostream& out) const
+  void print(ostream& out) const override
   { out << *celltype << "[]"; }
 
   ty *pushType();
@@ -269,14 +276,16 @@ struct array : public ty {
   ty *insertType();
   ty *deleteType();
 
+  ty *keyType() override;
+
   // Initialize to an empty array by default.
-  trans::access *initializer();
+  trans::access *initializer() override;
 
   // NOTE: General vectorization of casts would be here.
 
   // Add length and push as virtual fields.
-  ty *virtualFieldGetType(symbol id);
-  trans::varEntry *virtualField(symbol id, signature *sig);
+  ty *virtualFieldGetType(symbol id) override;
+  trans::varEntry *virtualField(symbol id, signature *sig) override;
 };
 
 /* Base types */
@@ -522,7 +531,7 @@ public:
     : ty(ty_overloaded) { add(t); }
   virtual ~overloaded() {}
 
-  bool equiv(const ty *other) const
+  bool equiv(const ty *other) const override
   {
     for(ty_vector::const_iterator i=sub.begin();i!=sub.end();++i)
       if (equivalent(*i,other))
@@ -530,7 +539,7 @@ public:
     return false;
   }
 
-  size_t hash() const {
+  size_t hash() const override {
     // Overloaded types should not be hashed.
     assert(False);
     return 0;
@@ -574,11 +583,12 @@ public:
     }
   }
 
-  // Returns the signature-less type of the set.
-  ty *signatureless();
+  // If one of the types has no signature, returns that one; otherwise returns
+  // nullptr.
+  ty* signatureless() override;
 
   // True if one of the subtypes is castable.
-  bool castable(ty *target, caster &c);
+  bool castable(ty *target, caster &c) override;
 
   size_t size() const { return sub.size(); }
 

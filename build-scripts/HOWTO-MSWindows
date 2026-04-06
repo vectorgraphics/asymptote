@@ -24,4 +24,4 @@ Download NSIS 3+ ZIP from https://sourceforge.net/projects/nsis/ and extract to 
 
 # TODO: check if NSIS puts makensis in PATH or not for default installation
 
-./build-asymptote.ps1 <VERSION>
+./build-asymptote.ps1 [<VERSION>]
