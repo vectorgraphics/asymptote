@@ -13,7 +13,7 @@ private Pair_K_V operator tuple(K k, V v) {
 }
 
 struct HashMap_K_V {
-  struct _ { autounravel restricted Map_K_V map; }
+  restricted Map_K_V map;
 
   private HashSet_K_V pairs = HashSet_K_V(
     nullT=null,

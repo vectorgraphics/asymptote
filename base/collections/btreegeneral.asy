@@ -4,7 +4,7 @@ from collections.iter(T=T) access Iter_T, Iterable_T, Iterable;
 from collections.sortedset(T=T) access Set_T, SortedSet_T;
 
 struct BTreeSet_T {
-  struct _ { autounravel restricted SortedSet_T super; }
+  restricted SortedSet_T super;
   from super unravel nullT, isNullT;
   private bool lt(T, T) = null;
   private int size = 0;

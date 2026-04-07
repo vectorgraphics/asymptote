@@ -151,8 +151,8 @@ void trTileSize(TRcontext *tr, GLint width, GLint height, GLint border)
   assert(border >= 0);
   assert(width >= 1);
   assert(height >= 1);
-  assert(width >= 2*border);
-  assert(height >= 2*border);
+  assert(width >= 2*border+1);
+  assert(height >= 2*border+1);
 
   tr->TileBorder = border;
   tr->TileWidth = width;

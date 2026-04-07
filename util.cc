@@ -113,6 +113,8 @@ namespace
 int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
                 const char* hint, const char* application, int* ppid)
 {
+  if(*application == 0) application=hint;
+
   cout.flush();
   if (command.empty())
   {
@@ -150,17 +152,20 @@ int SystemWin32(const mem::vector<string>& command, int quiet, bool wait,
     startInfo.hStdError= quiet >= 2 ? nulFileHandle.getHandle() : GetStdHandle(STD_ERROR_HANDLE);
 
     ostringstream errorMessage;
-    errorMessage << "Cannot open " << application << "\n";
+    errorMessage << "Cannot open " << application;
     string const errorMessageOut=errorMessage.str();
-    w32::checkResult(CreateProcessA(
+    auto const result=CreateProcessA(
                        nullptr,
                        cmdlineStr.data(),
                        nullptr, nullptr, true,
                        0,
                        nullptr, nullptr,
                        &startInfo,
-                       &procInfo),
-                     errorMessageOut.c_str());
+                       &procInfo);
+    if(!result) {
+      execError(command.at(0).c_str(),hint,application);
+      w32::checkResult(result);
+    }
   }
   if (ppid)
   {
@@ -434,7 +439,7 @@ void execError(const char *command, const char *hint, const char *application)
          << ": " << endl << endl
          << "import settings;" << endl
          << hint << "=\"LOCATION\";" << endl << endl
-         << "where LOCATION specifies the location of "
+         << "where LOCATION is the fully qualified file name for "
          << application << "." << endl << endl
          << "Alternatively, set the environment variable ASYMPTOTE_" << s
          << endl << "or use the command line option -" << hint

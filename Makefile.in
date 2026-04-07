@@ -11,8 +11,8 @@ GCOPTIONS = @GCOPTIONS@
 GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
-LFLAGS = @LDFLAGS@ -Lhighwayhash/lib
-LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@ -lhighwayhash
+LFLAGS = @LDFLAGS@
+LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@
 CXX_STANDARD = @CXX_STANDARD@
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 LSP_ROOT=@LSP_ROOT@
@@ -90,7 +90,7 @@ DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -I.
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
-	-Iprc/include -I$(LSP_ROOT)/include -Ihighwayhash
+	-Iprc/include -I$(LSP_ROOT)/include
 GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
 
 # Options for compiling the object files for the shared library.
@@ -124,16 +124,19 @@ INSTALL = @INSTALL@
 REVISION = "const char *REVISION="
 last = $(shell head -1 revision.cc | sed -e 's/.*\"\(.*\)\";/\1/')
 usinggit = $(shell if test -d ".git"; then echo yes; fi)
+revision = ""
 ifeq ($(usinggit),yes)
 	revision = $(shell LC_ALL="C" git describe --long | \
 	sed -e 's/git-\([0-9]*\)-g.*/-\1/' | sed -e 's/-0-g.*//')
-else
+endif
+ifeq ($(revision),"")
 	revision = @VERSION@
 endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o @LSPLIB@ @GLEW@ highwayhash/lib/libhighwayhash.a
+asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) \
+		@LSPLIB@ @GLEW@
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
 $(XNAME): $(PYFILES)
@@ -171,28 +174,6 @@ $(LSP_ROOT)/liblspcpp.a:
 	"-fPIE @OPTIONS@ @LSP_CXX_BUILD_FLAGS@" \
 	@LSP_CMAKE_OPTIONS@
 	$(MAKE) -C $(LSP_ROOT)
-
-UNAME_M := $(shell uname -m)
-ifneq (,$(findstring aarch64,$(UNAME_M)))
-HHFLAGS := HH_AARCH64=1
-else ifneq (,$(findstring arm64,$(UNAME_M)))
-HHFLAGS := HH_AARCH64=1
-else ifneq (,$(findstring arm,$(UNAME_M)))
-HHFLAGS := HH_ARM=1
-else ifneq (,$(findstring powerpc,$(UNAME_M)))
-HHFLAGS := HH_POWER=1
-else ifneq (,$(findstring ppc,$(UNAME_M)))
-HHFLAGS := HH_POWER=1
-else ifneq (,$(findstring amd64,$(UNAME_M)))
-HHFLAGS := HH_X64=1
-else ifneq (,$(findstring AMD64,$(UNAME_M)))
-HHFLAGS := HH_X64=1
-else ifneq (,$(findstring x86_64,$(UNAME_M)))
-HHFLAGS := HH_X64=1
-endif
-
-highwayhash/lib/libhighwayhash.a:
-	cd highwayhash && $(MAKE) $(HHFLAGS) lib/libhighwayhash.a
 
 all:	asy sty man faq asy-keywords.el
 
@@ -281,7 +262,7 @@ opsymbols.h: camp.l opsymbols.py
 
 envcompleter.d: keywords.h
 
-asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy
+asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy asy-list.py
 	@echo Creating $@;
 	$(ASY) -l > asy.list
 	for dir in $(KEYWORDS); do \
@@ -289,7 +270,6 @@ asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy
 	  grep -v ^plain.asy$ | grep -v ^plain_ | grep -v ^three_ | \
 	  xargs ../$(ASY) -l >> ../asy.list; \
 	done
-	revision=`cat version.txt`
 	$(PYTHON) ./asy-list.py --asy-list-file asy.list --revision $(revision) --output-file $@
 
 install-notexhash: asy-keywords.el install-asy install-man
@@ -305,6 +285,7 @@ install-texhash: install-asy
 
 install-asy: asy sty $(PYFILES)
 	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
+	${INSTALL} -d $(asydir)/collections
 	${INSTALL} -d $(shaderdir) $(webgldir) \
 		$(GUIdir) $(GUIdir)/configs \
 		$(GUIdir)/res $(GUIdir)/res/icons \
@@ -314,6 +295,7 @@ install-asy: asy sty $(PYFILES)
 	${INSTALL} -p -m 755 $(NAME) $(bindir)
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) \
 		asy-keywords.el $(asydir)
+	${INSTALL} -p -m 644 base/collections/*.asy $(asydir)/collections
 	${INSTALL} -p -m 644 base/shaders/*.glsl $(shaderdir)
 	${INSTALL} -p -m 644 base/webgl/asygl.js \
 		$(webgldir)
@@ -368,6 +350,8 @@ uninstall-asy:
 	-rmdir $(shaderdir)
 	-cd $(webgldir) && rm -f *.html *.js
 	-rmdir $(webgldir)
+	-cd $(asydir)/collections && rm -f *.asy
+	-rmdir $(asydir)/collections
 	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA)
 	-rmdir $(asydir)
 	-cd $(latexdir) && rm -f $(LATEXFILES)
@@ -379,50 +363,57 @@ uninstall-asy:
 uninstall-man:
 	cd doc && $(MAKE) uninstall
 
-uninstall-docdir:
+# uninstall-man removes files from $(docdir) itself; uninstall-asy removes
+# $(exampledir) and $(animationsdir) which are subdirectories of $(docdir).
+# Both must finish before we can rmdir $(docdir).
+uninstall-docdir: uninstall-man uninstall-asy
 	-rmdir $(docdir)
 
 clean:	FORCE
 	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
 	-cd LspCpp && $(MAKE) distclean
-	-cd LspCpp && rm -rf liblspcpp.a Makefile CMakeFiles third_party/uri/src/CMakeFiles
 	-cd tinyexr && $(MAKE) clean
-	-cd highwayhash && $(MAKE) clean
+	-cd doc && $(MAKE) clean
+	-cd tests && $(MAKE) clean
 
 gc-clean: FORCE clean
 	-$(MAKE) -C $(GC) clean
 
-cleaner: FORCE clean
+cleaner0: FORCE clean
 	-rm -rf __pycache__
 	-rm -rf GUI/__pycache__
 	-rm -rf GUI/configs/__pycache__
-	-rm -rf GUI/xasyicons GUI/xasyqtui GUI/xasyversion
+	-rm -f GUI/{xasyversion,xasyicons,xasyqtui}/__init__.py
 	-$(MAKE) -C $(GC) distclean
 	-$(MAKE) -C libatomic_ops distclean
-	-cd $(GC) && rm -rf libatomic_ops .deps cord/.deps \
+	-cd $(GC) && rm -rf libatomic_ops autom4te.cache .deps cord/.deps \
 		cord/tests/.deps extra/.deps tests/.deps
 
-	-rm -f Makefile config.h config.log config.status \
-		errors.temp
-	-rm -rf LspCpp/CMakeCache.txt
-	cd doc && $(MAKE) clean
-	cd tests && $(MAKE) distclean
+	-cd libatomic_ops && rm -rf autom4te.cache
+	-rm -f config.h config.log config.status
+	-rm -rf autom4te.cache LspCpp/CMakeCache.txt
+	-rm -f Makefile
+
+cleaner: FORCE cleaner0
+	-cd tests && $(MAKE) cleaner
+	-cd doc && $(MAKE) cleaner
+
+cleanest: FORCE
+	-rm -rf GUI/xasyicons GUI/xasyqtui GUI/xasyversion
+	-cd $(GC) && rm -rf ltmain.sh missing \
+		test-driver configure m4/l*.m4
+	-cd libatomic_ops && rm -rf ltmain.sh missing \
+		test-driver configure m4/l*.m4
+	-cd GUI && $(PYTHON) buildtool.py clean
+	-rm -rf $(DIST)
+	-rm -rf vcpkg_installed
+	-$(MAKE) cleaner0
+	-cd doc && $(MAKE) cleanest
+	-cd tests && $(MAKE) cleanest
+	-rm -f configure config.h.in
 
 distclean: FORCE cleaner
-	cd doc && $(MAKE) distclean
-	cd highwayhash && $(MAKE) distclean
-
-
-cleanest: FORCE maintainer-clean
-maintainer-clean: FORCE distclean
-	-rm -f configure config.h.in
-	-cd $(GC) && rm -rf ltmain.sh missing \
-		test-driver configure autom4te.cache m4/l*.m4
-	-cd libatomic_ops && rm -rf ltmain.sh missing \
-		test-driver configure autom4te.cache m4/l*.m4
-	-cd GUI && $(PYTHON) buildtool.py clean
-	-rm -rf autom4te.cache $(DIST)
-	-rm -rf vcpkg_installed
+maintainer-clean: FORCE cleanest
 
 test: asy FORCE
 	./wce

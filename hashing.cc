@@ -1,42 +1,35 @@
 #include "hashing.h"
 
-#include <iostream>  // For Debugging ONLY
 #include <algorithm>
 #include <random>
 #include <vector>
 
-#include <highwayhash/highwayhash_target.h>
-#include <highwayhash/instruction_sets.h>
+#include "wyhash.h"
 
 namespace hashing {
-using namespace highwayhash;
 
-// uint64_t highwayHash() {
-//   HH_ALIGNAS(32) const HHKey key = {1, 2, 3, 4};
-//   char in[8] = {1};
-//   HHResult64 result;  // or HHResult128 or HHResult256
-//   InstructionSets::Run<HighwayHash>(key, in, 8, &result);
-//   return result;
-// }
-
-uint64_t constexpr shiftLeftDefined(uint64_t x, int8_t shift) {
+uint64_t constexpr shiftLeftDefined(uint64_t x, uint8_t shift) {
   return shift >= 64 ? 0 : x << shift;
 }
 
-uint64_t random_bits(int8_t bits) {
+uint64_t random_bits(uint8_t bits) {
   static std::random_device *rd = new std::random_device();
   static auto *gen = new std::mt19937_64((*rd)());
-  // uint64_t max = (bits >= 64 ? UINT64_C(-1) : (UINT64_C(1) << bits) - 1);
   std::uniform_int_distribution<uint64_t> dist(
     0, shiftLeftDefined(1, bits) - 1);
   return dist(*gen);
 }
 
+std::array<uint64_t, 4> make_secret_array(uint64_t seed) {
+  std::array<uint64_t, 4> secret;
+  make_secret(seed, secret.data());
+  return secret;
+}
+
 uint64_t hashSpan(span<const char> s) {
-  HH_ALIGNAS(32) static const HHKey key = {random_bits(64), random_bits(64),
-                                           random_bits(64), random_bits(64)};
-  HHResult64 result;
-  InstructionSets::Run<HighwayHash>(key, s.data(), s.size(), &result);
+  static const uint64_t seed = random_bits(64);
+  static const std::array<uint64_t, 4> secret = make_secret_array(seed);
+  uint64_t result = wyhash(s.data(), s.size(), seed, secret.data());
   return result & (shiftLeftDefined(1, 62) - 1);
 }
 

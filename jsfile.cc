@@ -14,12 +14,12 @@ const string s="document.asy.";
 size_t materialIndex=0;
 #endif
 
-jsfile::jsfile() : finished(false), fileName("")
+jsfile::jsfile() : finished(false), fileName(""), transformInitialized(false)
 {
 
 }
 
-jsfile::jsfile(string name) : finished(false), fileName(name)
+jsfile::jsfile(string name) : finished(false), fileName(name), transformInitialized(false)
 {
   open(name);
 }
@@ -149,6 +149,7 @@ void jsfile::open(string name)
       << s << "ibl=" << std::boolalpha << ibl << ";"
       << newl
       << s << "absolute=" << std::boolalpha << getSetting<bool>("absolute") << ";"
+      << s << "autoplay=" << std::boolalpha << getSetting<bool>("autoplay") << ";"
       << newl;
   if(ibl) {
     out << s << "imageURL=\"" << getSetting<string>("imageURL")+"/\";" << newl;
@@ -436,6 +437,23 @@ void jsfile::addStraightBezierTriangle(triple const* controls,
                                        prc::RGBAColour const* c)
 {
   addRawPatch(controls,3,c,3);
+}
+
+void jsfile::write(const string& s)
+{
+  out << s;
+}
+
+void jsfile::write(double x)
+{
+  out << x;
+}
+
+void jsfile::initTransform()
+{
+  if(transformInitialized) return;
+   transformInitialized=true;
+   out << "initTransform();" << newl;
 }
 
 }

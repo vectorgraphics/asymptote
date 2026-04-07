@@ -1,6 +1,6 @@
 typedef import(T);
 
-from collections.btreegeneral(T=T) access BTreeSet_T;
+from collections.btreegeneral(T=T) access BTreeSet_T, Set_T, SortedSet_T;
 
 private bool lt(T a, T b) = operator <;
 

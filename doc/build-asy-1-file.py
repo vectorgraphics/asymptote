@@ -27,12 +27,9 @@ def main():
         for match in arg_matches
         if match is not None
     ]
-    transformed_args = [
-        rf""".TP
+    transformed_args = [rf""".TP
 .B \-{arg}
-{desc}."""
-        for arg, desc in escaped_args_with_descs
-    ]
+{desc}.""" for arg, desc in escaped_args_with_descs]
 
     output = None
     try:

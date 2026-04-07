@@ -96,7 +96,7 @@ transform getTransform(xmap_t &xmap, picture::nodelist::iterator p)
 }
 
 
-function *transformFunction()
+function *jsTransform()
 {
   return new function(primTransform());
 }
@@ -307,6 +307,17 @@ void endgroup3(picture *f)
   f->append(new drawEnd3());
 }
 
+void beginTransform(picture *f, string geometry=emptystring,
+                    string color=emptystring, real duration)
+{
+  f->append(new drawBeginTransform(geometry,color,duration));
+}
+
+void endTransform(picture *f)
+{
+  f->append(new drawEndTransform());
+}
+
 void add(picture *dest, picture *src)
 {
   dest->add(*src);
@@ -325,6 +336,11 @@ void postscript(picture *f, string s)
 void tex(picture *f, string s)
 {
   f->append(new drawVerbatim(TeX,s));
+}
+
+void javascript(picture *f, string s)
+{
+  f->append(new drawVerbatim(JavaScript,s));
 }
 
 void postscript(picture *f, string s, pair min, pair max)

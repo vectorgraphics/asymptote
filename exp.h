@@ -333,11 +333,9 @@ class fieldExp : public nameExp {
     }
 
     // As a type:
-    types::ty *typeTrans(coenv &, ErrorMode tacit = ErrorMode::NORMAL) {
-      if (tacit == ErrorMode::NORMAL) {
-        em.error(getPos());
-        em << "expression is not a type";
-      }
+    types::ty *typeTrans(coenv &) {
+      em.error(getPos());
+      em << "expression is not a type";
       return types::primError();
     }
 
@@ -944,7 +942,6 @@ public:
   void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
-  //types::ty *getType(coenv &e);
 
   bool scalable() { return false; }
 };
@@ -1118,7 +1115,7 @@ public:
   types::ty *getType(coenv &e) override;
 };
 
-// Postfix expresions are illegal. This is caught here as we can give a
+// Postfix expressions are illegal. This is caught here as we can give a
 // more meaningful error message to the user, rather than a "parse
 // error."
 class postfixExp : public exp {

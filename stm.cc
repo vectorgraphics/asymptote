@@ -414,7 +414,11 @@ runnable* forIterUpdate(position pos, symbol it)
 
 extendedForStm::LoopType extendedForStm::transObjectDec(symbol a, coenv &e) {
   // Get the start type.  Handle type inference as a special case.
-  types::ty *t = start->trans(e, ErrorMode::SUPPRESS);
+  types::ty *t;
+  { // Suppress errors while probing the declared iteration variable type.
+    auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+    t = start->trans(e);
+  }
   if (t->kind == types::ty_inferred) {
     // First ensure the array expression is an unambiguous array.
 

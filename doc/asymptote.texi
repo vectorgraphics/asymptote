@@ -11,7 +11,7 @@ This file documents @code{Asymptote}, version @value{VERSION}.
 
 @url{https://asymptote.sourceforge.io}
 
-Copyright @copyright{} 2004-25 Andy Hammerlindl, John Bowman, and Tom Prince.
+Copyright @copyright{} 2004-2026 Andy Hammerlindl, John Bowman, and Tom Prince.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -660,6 +660,9 @@ make all
 make install
 @end verbatim
 @noindent
+You may need to replace the last line with @code{sudo make install}
+after first running @code{make all} without root privileges (to avoid
+generating files with incorrect permissions).
 Be sure to use @acronym{GNU} @code{make} (on non-@acronym{GNU} systems
 this command may be called @code{gmake}).
 To build the documentation, you may need to install the
@@ -809,15 +812,14 @@ apt-get build-dep asymptote
 
 @node Building the documentation
 @section Building the documentation
-Here are instructions for building the documentation:
+To build the PDF documentation doc/asymptote.pdf:
 @verbatim
-cd doc
-make  # for both the PDF version doc/asymptote.pdf and the HTML version
-cd png
-make  # for the HTML version only: doc/png/index.html
+make man
 @end verbatim
-Note that the @code{HTML} version cannot be built without
-executing @code{make} from @code{doc} folder first.
+To build the HTML documentation doc/png/index.html:
+@verbatim
+make html
+@end verbatim
 
 The @code{asy} executable is required for compiling the diagrams
 in the documentation.
@@ -1285,6 +1287,8 @@ independent of the pen line width.
 The use of arrows, bars, and margins is illustrated by the examples
 @code{@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.svg,,Pythagoras}@uref{https://asymptote.sourceforge.io/gallery/Pythagoras.asy,,.asy}} and
 @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/sqrtx01.html,,sqrtx01}@uref{https://asymptote.sourceforge.io/gallery/sqrtx01.asy,,.asy}}.
+Since bars are intended for indicating precise dimensions, they should only be
+drawn with NoMargin (the default).
 
 The legend for a picture @code{pic} can be fit and aligned to a frame
 with the routine:
@@ -3892,7 +3896,7 @@ Many further examples of picture and frame operations are provided in
 the base module @code{plain}.
 
 @cindex verbatim
-@cindex @code{postscript}
+@cindex @code{PostScript}
 It is possible to insert verbatim @code{PostScript} commands in a picture with
 one of the routines
 @verbatim
@@ -4835,7 +4839,7 @@ guide g=(0,0){up}..{SW}(100,100){NE}..{curl 3}(50,50)..(10,10);
 write("g=",g);
 @end verbatim
 
-@xref{Autounravel}, for an example overloading the @code{+} operator.
+@xref{Autounravel} for an example overloading the @code{+} operator.
 
 @node Bracket operators
 @subsection Bracket operators
@@ -6897,9 +6901,11 @@ function @code{hash(int[])} that can be helpful when constructing hash methods
 for user-defined structures: convert all the fields to integers (possibly by
 hashing them), put these integers into an array, and hash the array.
 
-Returning to the example of the @code{Person} structure from @ref{Structures},
-there are two reasonable ways we might define a hash function for it. The first
-is to create a hash function based on all the fields of the structure:
+Let's return to the example of the @code{Person} structure from
+@ref{Structures}, adding an @code{age} field to make it more interesting. For
+this structure, there are two reasonable ways we might define a hash function
+for it. The first is to create a hash function based on all the fields of the
+structure:
 @verbatim
 struct Person {
   string firstname;
@@ -6951,6 +6957,11 @@ regularity (with respect to modular arithmetic) when applied exactly once.
 This explains why the second example returns @code{id.hash()} instead
 of @code{id}, while @code{age} is not independently hashed in the
 first example.
+It may sometimes be most practical to feed the hash function's
+output back into it, as in @code{firstname} and @code{lastname} above, but this
+does not increase the hash quality; in theory, if we could serialize a
+@code{Person} object to a string and then hash the string, the hash quality
+would be even higher.
 
 @node Collections (containers)
 @section Collections (containers)
@@ -6968,7 +6979,9 @@ container in the @code{collections} module.
 * Pairs::
 * Iterators and utilities::
 * Maps::
+* Using Maps as Sets::
 * Sets::
+* Using Sets as Maps::
 * Queues::
 * Wrapping arrays::             Arrays that can be used as keys or values
 @end menu
@@ -7334,11 +7347,11 @@ The @code{nullValue} parameter gives the map something to return when
 a nonexistent key is looked up. This is useful in scenarios where missing keys
 are expected and should be handled gracefully.
 The @code{isNullValue} parameter defaults to a function that checks whether
-the value is equal to @code{nullValue} via @code{operator ==}.
+its argument is equal to @code{nullValue} via @code{operator ==}.
 This is usually the desired behavior, but it is occasionally necessary to
 override it;
  for instance,
-if you have overridden @code{operator==} assuming its parameters are not null,
+if you have overridden @code{operator ==} assuming its parameters are not null,
 then something like @code{isNullValue=new bool(V v)@{return alias(v,null);@}}
 might
 be appropriate.
@@ -7572,7 +7585,8 @@ need either a @code{HashSet_T} or a @code{BTreeSet_T}:
 @itemx HashSet_T(T nullT,@*@ @ @ @ @ @ @ @ @ @ bool equiv(T a, T b) = operator ==, @*@ @ @ @ @ @ @ @ @ @ bool isNullT(T) = new bool(T t) @{ return equiv(t, nullT); @}@*@ @ @ @ @ @ @ @ @ )
 These two functions, which create a hash set, must be accessed from the
 @code{collections.hashset(T)} templated module. The type @code{T} must have a
-@code{hash} method, @pxref{Hash functions}.
+@code{hash} method, @pxref{Hash functions}. If @code{isNullT} is not defined, or if
+@code{!isNullT(null)}, then passing @code{null} to most methods will throw an error.
 
 @item BTreeSet_T()
 @itemx BTreeSet_T(T nullT, bool isNullT(T) = new bool(T t) @{ return t == nullT; @})
@@ -7632,6 +7646,8 @@ returns true iff @code{size() == 0}.
 @cindex @code{contains} @subentry @code{Set.contains}
 @item bool contains(T item)
 returns true if @code{item} (or an equivalent item) is present in the set.
+If @code{isNullT} is defined and @code{isNullT(item)} is true, this method
+always returns false.
 
 @cindex @code{Set} @subentry @code{.add}
 @cindex @code{add} @subentry @code{Set.add}
@@ -7649,8 +7665,9 @@ This method violates the principle of reversibility.
 
 @cindex @code{Set} @subentry @code{.delete}
 @cindex @code{delete} @subentry @code{Set.delete}
-@item T delete(T item)
+@item bool delete(T item)
 removes @code{item} from the set if it is present, otherwise does nothing.
+This method does nothing if @code{isNullT(item)} is defined and true.
 The return value is true iff the set was modified.
 
 @cindex @code{Set} @subentry @code{.delete}
@@ -8481,20 +8498,7 @@ as illustrated in the example @code{@uref{https://asymptote.sourceforge.io/galle
 @node map
 @section @code{map}
 @cindex @code{map}
-This module creates a structure parameterized by the types specified in
-strings @code{key} and @code{value}, mapping keys to values with a
-specified default:
-@verbatim
-from map(Key=string, Value=int) access map;
-
-map M=map(Default=-1);
-
-M.add("z",2);
-M.add("a",3);
-M.add("d",4);
-write(M.lookup("a"));
-write(M.lookup("y"));
-@end verbatim
+The @code{map} module is deprecated in favor of @code{collections.map}, @pxref{Maps}.
 
 @node tree
 @section @code{tree}
@@ -8840,11 +8844,6 @@ picture @code{pic} of the elements of the arrays (@code{r},@code{theta}),
 using the given interpolation type.
 
 @end itemize
-
-@verbatim
-
-
-@end verbatim
 
 An axis can be drawn on a picture with one of the following commands:
 
@@ -9864,13 +9863,15 @@ documented at the beginning of module @code{three}.
 
 @cindex patch-dependent colors
 @cindex vertex-dependent colors
-The examples
-@code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/elevation.html,,elevation}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/elevation.asy,,.asy}} and @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/sphericalharmonic.html,,sphericalharmonic}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/sphericalharmonic.asy,,.asy}}
-illustrate how to draw a surface with patch-dependent colors.
-The examples @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vertexshading.html,,vertexshading}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vertexshading.asy,,.asy}} and @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/smoothelevation.html,,smoothelevation}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/smoothelevation.asy,,.asy}} illustrate
+The example
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/elevation.html,,elevation}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/elevation.asy,,.asy}}
+illustrates how to draw a surface with patch-dependent colors.
+The examples @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/sphericalharmonic.html,,sphericalharmonic}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/sphericalharmonic.asy,,.asy}},
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vertexshading.html,,vertexshading}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/vertexshading.asy,,.asy}} and @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/smoothelevation.html,,smoothelevation}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/smoothelevation.asy,,.asy}} illustrate
 vertex-dependent colors, which are supported by
-@code{Asymptote}'s native @code{OpenGL}/@code{WebGL} renderers
-and the two-dimensional vector output format (@code{settings.render=0}). Since
+@code{Asymptote}'s native @code{OpenGL}/@code{WebGL} renderers,
+the three-dimensional vector output format @code{V3D}, and
+two-dimensional vector output (@code{settings.render=0}). Since
 the legacy @acronym{PRC} output format does not support vertex
 shading of Bezier surfaces, @acronym{PRC} patches are shaded with the mean of the four vertex colors.
 
@@ -10765,8 +10766,9 @@ void axes3(picture pic=currentpicture,
            bool extend=false,
            triple min=(-infinity,-infinity,-infinity),
            triple max=(infinity,infinity,infinity),
-           pen p=currentpen, arrowbar3 arrow=None,
-           margin3 margin=NoMargin3, projection P=currentprojection);
+           pen p=currentpen, pen py=p, pen pz=p,
+           arrowbar3 arrow=None, margin3 margin=NoMargin3,
+           projection P=currentprojection);
 @end verbatim
 
 @cindex @code{YZEquals}
@@ -11472,7 +11474,7 @@ asy -O 0,0 file
 The default offset is zero. The pair @code{aligndir} specifies
 an optional direction on the boundary of the page (mapped to the
 rectangle [-1,1]@math{\times}[-1,1]) to which the picture should be aligned; the
-default value @code{(0,0)} species center alignment.
+default value @code{(0,0)} specifies center alignment.
 
 The @code{-c} (@code{command}) option may be used to execute arbitrary
 @code{Asymptote} code on the command line as a string. It is not

@@ -691,7 +691,7 @@ double path::arctime(double goal) const
 
 // }}}
 
-// {{{ Direction Time Calulation
+// {{{ Direction Time Calculation
 // Algorithm Stolen from Knuth's MetaFont
 inline double cubicDir(const solvedKnot& left, const solvedKnot& right,
                        const pair& rot)
@@ -805,8 +805,8 @@ void intersections(std::vector<double>& T, const path& g, const pair& z,
 inline bool online(const pair&p, const pair& q, const pair& z, double fuzz)
 {
   if(p == q) return (z-p).abs2() <= fuzz*fuzz;
-  return (z.getx()-p.getx())*(q.gety()-p.gety()) ==
-    (q.getx()-p.getx())*(z.gety()-p.gety());
+  return abs((z.getx()-p.getx())*(q.gety()-p.gety())-
+             (q.getx()-p.getx())*(z.gety()-p.gety())) <= fuzz;
 }
 
 // Return all intersection times of path g with the (infinite)
@@ -856,7 +856,8 @@ void lineintersections(std::vector<double>& T, const path& g,
       if(t >= -Fuzz2 && t <= 1.0+Fuzz2) {
         double s=i+t;
         if(cycles && s >= n-Fuzz2) s=0;
-        T.push_back(s);
+        if(online(p,q,g.point(s),fuzz))
+          T.push_back(s);
       }
     }
   }

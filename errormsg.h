@@ -257,10 +257,14 @@ public:
     anyStatusErrors=true;
   }
 
-  // Returns true if no errors have occured that should be reported by the
+  // Returns true if no errors have occurred that should be reported by the
   // return value of the process.
   bool processStatus() const {
     return !anyStatusErrors;
+  }
+
+  bool isSuppressed() const {
+    return mode == ErrorMode::SUPPRESS;
   }
 
   class ModeGuard
@@ -274,6 +278,11 @@ public:
       es.setMode(newMode);
     }
     ~ModeGuard() { es.setMode(oldMode); }
+
+    ModeGuard(const ModeGuard&) = delete;
+    ModeGuard& operator=(const ModeGuard&) = delete;
+    ModeGuard(ModeGuard&&) = delete;
+    ModeGuard& operator=(ModeGuard&&) = delete;
   };
 
   ModeGuard modeGuard(ErrorMode newMode) { return ModeGuard(*this, newMode); }

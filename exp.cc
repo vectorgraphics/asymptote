@@ -24,7 +24,6 @@
 #include "opsymbols.h"
 #include "asyprocess.h"
 
-//void runCode(absyntax::block *code);
 
 namespace absyntax {
 
@@ -44,8 +43,6 @@ void exp::prettyprint(ostream &out, Int indent)
 
 void exp::transAsType(coenv &e, types::ty *target) {
   trans(e);
-//  types::ty *t=trans(e);
-//  assert(t->kind==ty_error || equivalent(t,target));
 }
 
 void exp::transToType(coenv &e, types::ty *target)
@@ -223,11 +220,8 @@ void fieldExp::prettyprint(ostream &out, Int indent)
 
 types::ty *fieldExp::getObject(coenv& e)
 {
-  types::ty *t = object->cgetType(e);
-  if (t->kind == ty_overloaded) {
-    t=((overloaded *)t)->signatureless();
-    if(!t) return primError();
-  }
+  types::ty *t = object->cgetType(e)->signatureless();
+  if (!t) return primError();
   return t;
 }
 
@@ -243,11 +237,7 @@ exp *fieldExp::evaluate(coenv &e, types::ty *t) {
 }
 
 types::ty *bracketsExp::getObjectType(coenv &e) {
-  types::ty *t = object->cgetType(e);
-  if (t->kind == ty_overloaded) {
-    t = ((overloaded *)t)->signatureless();
-  }
-  return t;
+  return object->cgetType(e)->signatureless();
 }
 
 array *bracketsExp::getArrayType(coenv &e)
@@ -269,14 +259,11 @@ array *bracketsExp::getArrayType(coenv &e)
 
 array *bracketsExp::transArray(coenv &e)
 {
-  types::ty *a = object->cgetType(e);
-  if (a->kind == ty_overloaded) {
-    a = ((overloaded *)a)->signatureless();
-    if (!a) {
-      em.error(object->getPos());
-      em << "expression is not an array";
-      return 0;
-    }
+  types::ty *a = object->cgetType(e)->signatureless();
+  if (!a) {
+    em.error(object->getPos());
+    em << "expression is not an array";
+    return 0;
   }
 
   object->transAsType(e, a);
@@ -296,9 +283,7 @@ array *bracketsExp::transArray(coenv &e)
 // Checks if the expression can be translated as an array.
 bool isAnArray(coenv &e, exp *x)
 {
-  types::ty *t=x->cgetType(e);
-  if (t->kind == ty_overloaded)
-    t=dynamic_cast<overloaded *>(t)->signatureless();
+  types::ty *t=x->cgetType(e)->signatureless();
   return t && t->kind==ty_array;
 }
 
@@ -360,12 +345,8 @@ types::ty *subscriptExp::trans(coenv &e)
 types::ty *subscriptExp::getType(coenv &e)
 {
   if (!isAnArray(e, object)) {
-    ty *t = object->cgetType(e);
-    if (t->kind == ty_overloaded) {
-      t = t->signatureless();
-      if (!t)
-        return primError();
-    }
+    ty *t = object->cgetType(e)->signatureless();
+    if (!t) return primError();
     switch (t->kind) {
       case ty_record:
         return static_cast<record*>(t)->valType();
@@ -373,6 +354,9 @@ types::ty *subscriptExp::getType(coenv &e)
         return primString();
       default:
         return primError();
+    }
+    if (t->kind != ty_record) {
+      return primError();
     }
   }
 
@@ -435,20 +419,17 @@ void subscriptExp::transWrite(coenv &e, types::ty *t, exp *value)
 
 exp *subscriptExp::evaluate(coenv &e, types::ty *)
 {
-  types::ty *base = object->cgetType(e);
-  if (base->kind == ty_overloaded) {
-    base = ((overloaded *)base)->signatureless();
-  }
+  types::ty *base = object->cgetType(e)->signatureless();
   if (!base) {
     em.error(object->getPos());
     em << "object to index cannot be resolved";
-    return nullptr;
+    return exp::evaluate(e, primError());
   }
   types::ty *indexType = base->keyType();
   if (indexType->kind == ty_error) {
     em.error(object->getPos());
     em << "object does not have operator[=] set up correctly";
-    return nullptr;
+    return exp::evaluate(e, primError());
   }
   // Force object and index to be evaluated in the correct order.
   // (Note that in C++, the order of evaluation of function arguments is
@@ -1284,7 +1265,8 @@ types::ty *castExp::trans(coenv &e)
 
 types::ty *castExp::getType(coenv &e)
 {
-  return target->trans(e, ErrorMode::SUPPRESS);
+  auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+  return target->trans(e);
 }
 
 

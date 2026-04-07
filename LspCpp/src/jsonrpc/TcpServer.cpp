@@ -4,8 +4,7 @@
 #include "LibLsp/JsonRpc/TcpServer.h"
 #include <signal.h>
 #include <utility>
-#include <boost/bind/bind.hpp>
-
+#include <LibLsp/lsp/asio.h>
 #include "LibLsp/JsonRpc/MessageIssue.h"
 #include "LibLsp/JsonRpc/stream.h"
 
@@ -82,11 +81,11 @@ struct tcp_connect_session : std::enable_shared_from_this<tcp_connect_session>
 {
     /// Buffer for incoming data.
     std::array<unsigned char, 8192> buffer_;
-    boost::asio::ip::tcp::socket socket_;
+    asio::ip::tcp::socket socket_;
     /// Strand to ensure the connection's handlers are not called concurrently.
-    boost::asio::io_context::strand strand_;
+    asio::io_context::strand strand_;
     std::shared_ptr<tcp_stream_wrapper> proxy_;
-    explicit tcp_connect_session(boost::asio::io_context& io_context, boost::asio::ip::tcp::socket&& _socket)
+    explicit tcp_connect_session(asio::io_context& io_context, asio::ip::tcp::socket&& _socket)
         : socket_(std::move(_socket)), strand_(io_context), proxy_(new tcp_stream_wrapper(*this))
     {
         do_read();
@@ -94,9 +93,9 @@ struct tcp_connect_session : std::enable_shared_from_this<tcp_connect_session>
     void do_write(char const* data, size_t size)
     {
         socket_.async_write_some(
-            boost::asio::buffer(data, size), boost::asio::bind_executor(
+            asio::buffer(data, size), asio::bind_executor(
                                                  strand_,
-                                                 [this](boost::system::error_code ec, std::size_t)
+                                                 [this](asio_error_code ec, std::size_t)
                                                  {
                                                      if (!ec)
                                                      {
@@ -110,10 +109,10 @@ struct tcp_connect_session : std::enable_shared_from_this<tcp_connect_session>
     void do_read()
     {
         socket_.async_read_some(
-            boost::asio::buffer(buffer_),
-            boost::asio::bind_executor(
+            asio::buffer(buffer_),
+            asio::bind_executor(
                 strand_,
-                [this](boost::system::error_code ec, size_t bytes_transferred)
+                [this](asio_error_code ec, size_t bytes_transferred)
                 {
                     if (!ec)
                     {
@@ -188,13 +187,13 @@ struct TcpServer::Data
     {
     }
     /// The io_context used to perform asynchronous operations.
-    boost::asio::io_context io_context_;
+    asio::io_context io_context_;
 
-    std::shared_ptr<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>> work;
+    std::shared_ptr<asio::executor_work_guard<asio::io_context::executor_type>> work;
 
     std::shared_ptr<tcp_connect_session> _connect_session;
     /// Acceptor used to listen for incoming connections.
-    boost::asio::ip::tcp::acceptor acceptor_;
+    asio::ip::tcp::acceptor acceptor_;
 
     lsp::Log& _log;
 };
@@ -213,20 +212,20 @@ TcpServer::TcpServer(
 
 {
 
-    d_ptr->work = std::make_shared<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>>(
+    d_ptr->work = std::make_shared<asio::executor_work_guard<asio::io_context::executor_type>>(
         d_ptr->io_context_.get_executor()
     );
 
     // Open the acceptor with the option to reuse the address (i.e. SO_REUSEADDR).
-    boost::asio::ip::tcp::resolver resolver(d_ptr->io_context_);
-    boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve(address, port).begin();
+    asio::ip::tcp::resolver resolver(d_ptr->io_context_);
+    asio::ip::tcp::endpoint endpoint = *resolver.resolve(address, port).begin();
     d_ptr->acceptor_.open(endpoint.protocol());
-    d_ptr->acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+    d_ptr->acceptor_.set_option(asio::ip::tcp::acceptor::reuse_address(true));
     try
     {
         d_ptr->acceptor_.bind(endpoint);
     }
-    catch (boost::system::system_error& e)
+    catch (asio_system_error& e)
     {
         std::string temp = "Socket Server  bind failed.";
         d_ptr->_log.log(lsp::Log::Level::INFO, temp + e.what());
@@ -267,7 +266,7 @@ void TcpServer::stop()
 void TcpServer::do_accept()
 {
     d_ptr->acceptor_.async_accept(
-        [this](boost::system::error_code ec, boost::asio::ip::tcp::socket socket)
+        [this](asio_error_code ec, asio::ip::tcp::socket socket)
         {
             // Check whether the TcpServer was stopped by a signal before this
             // completion handler had a chance to run.

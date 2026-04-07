@@ -393,8 +393,6 @@ void updateModelViewData()
 }
 
 bool Xspin,Yspin,Zspin;
-bool Animate;
-bool Step;
 
 #ifdef HAVE_GL
 
@@ -409,7 +407,7 @@ void idleFunc(void (*f)())
 void idle()
 {
   idleFunc(NULL);
-  Xspin=Yspin=Zspin=Animate=Step=false;
+  Xspin=Yspin=Zspin=false;
 }
 #endif
 
@@ -854,7 +852,7 @@ void drawscene(int Width, int Height)
 
   triple m(xmin,ymin,Zmin);
   triple M(xmax,ymax,Zmax);
-  double perspective=orthographic ? 0.0 : 1.0/Zmax;
+  double perspective=orthographic || Zmax == 0.0 ? 0.0 : 1.0/Zmax;
 
   double size2=hypot(Width,Height);
 
@@ -897,7 +895,7 @@ void Export()
              << fullHeight << " image" << " using tiles of size "
              << width << "x" << height << endl;
 
-      unsigned border=min(min(1,width/2),height/2);
+      unsigned border=min(min(1,(width-1)/2),(height-1)/2);
       trTileSize(tr,width,height,border);
       trImageSize(tr,fullWidth,fullHeight);
       trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
@@ -995,13 +993,9 @@ void quit()
 #endif
 #ifdef HAVE_LIBGLUT
   if(glthread) {
-    bool animating=getSetting<bool>("animating");
-    if(animating)
-      Setting("interrupt")=true;
     home();
-    Animate=getSetting<bool>("autoplay");
 #ifdef HAVE_PTHREAD
-    if(!interact::interactive || animating) {
+    if(!interact::interactive) {
       idle();
       glutDisplayFunc(nodisplay);
       endwait(readySignal,readyLock);
@@ -1129,8 +1123,10 @@ void capzoom()
   if(Zoom <= minzoom) Zoom=minzoom;
   if(Zoom >= maxzoom) Zoom=maxzoom;
 
-  if(Zoom != lastzoom) remesh=true;
-  lastzoom=Zoom;
+  if(fabs(Zoom-lastzoom) > settings::getSetting<double>("zoomThreshold")) {
+    remesh=true;
+    lastzoom=Zoom;
+  }
 }
 
 void fullscreen(bool reposition=true)
@@ -1155,7 +1151,6 @@ void fullscreen(bool reposition=true)
 
 void fitscreen(bool reposition=true)
 {
-  if(Animate && Fitscreen == 2) Fitscreen=0;
   switch(Fitscreen) {
     case 0: // Original size
     {
@@ -1210,7 +1205,6 @@ void nextframe()
   if(delay > 0) {
     std::this_thread::sleep_for(std::chrono::duration<double>(delay));
   }
-  if(Step) Animate=false;
 }
 
 stopWatch Timer;
@@ -1218,7 +1212,7 @@ stopWatch Timer;
 void display()
 {
   if(queueScreen) {
-    if(!Animate) screen();
+    screen();
     queueScreen=false;
   }
 
@@ -1241,12 +1235,6 @@ void display()
   }
   glutSwapBuffers();
 
-#ifdef HAVE_PTHREAD
-  if(glthread && Animate) {
-    queueExport=false;
-    nextframe();
-  }
-#endif
   if(queueExport) {
     Export();
     queueExport=false;
@@ -1263,10 +1251,10 @@ void display()
 
 void update()
 {
+  capzoom();
+
   glutDisplayFunc(display);
   glutShowWindow();
-  if(Zoom != lastzoom) remesh=true;
-  lastzoom=Zoom;
   double cz=0.5*(Zmin+Zmax);
 
   dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
@@ -1286,9 +1274,7 @@ void updateHandler(int)
   queueScreen=true;
   remesh=true;
   update();
-  if(interact::interactive || !Animate) {
-    glutShowWindow();
-  }
+  glutShowWindow();
 }
 
 void poll(int)
@@ -1302,18 +1288,6 @@ void poll(int)
     glexit=false;
   }
   glutTimerFunc(100.0,poll,0);
-}
-
-void animate()
-{
-  Animate=!Animate;
-  if(Animate) {
-    if(Fitscreen == 2) {
-      togglefitscreen();
-      togglefitscreen();
-    }
-    update();
-  } else idle();
 }
 
 void reshape(int width, int height)
@@ -1727,21 +1701,6 @@ void keyboard(unsigned char key, int x, int y)
     case '<':
       shrink();
       break;
-    case 'p':
-      if(getSetting<bool>("reverse")) Animate=false;
-      Setting("reverse")=Step=false;
-      animate();
-      break;
-    case 'r':
-      if(!getSetting<bool>("reverse")) Animate=false;
-      Setting("reverse")=true;
-      Step=false;
-      animate();
-      break;
-    case ' ':
-      Step=true;
-      animate();
-      break;
     case 17: // Ctrl-q
     case 'q':
       if(!Format.empty()) Export();
@@ -1791,16 +1750,18 @@ projection camera(bool user)
   double *Rotate=value_ptr(drotateMat);
 
   if(user) {
+    double shift[]={0.0,0.0,0.0,0.0};
     for(int i=0; i < 3; ++i) {
       double sumCamera=0.0, sumTarget=0.0, sumUp=0.0;
       int i4=4*i;
+      shift[3]=T[i4+2]*cz;
       for(int j=0; j < 4; ++j) {
         int j4=4*j;
         double R0=Rotate[j4];
         double R1=Rotate[j4+1];
         double R2=Rotate[j4+2];
         double R3=Rotate[j4+3];
-        double T4ij=T[i4+j];
+        double T4ij=T[i4+j]+shift[j]; // T -> T*shift(0,0,cz);
         sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
         sumUp += Tup[i4+j]*R1;
         sumTarget += T4ij*(R3-cx*R0-cy*R1);
@@ -2009,8 +1970,7 @@ void glrender(GLRenderArgs const& args, int oldpid)
 
   static bool initialized=false;
 
-  if(!(initialized && (interact::interactive ||
-                       getSetting<bool>("animating")))) {
+  if(!(initialized && interact::interactive)) {
     antialias=getSetting<Int>("antialias") > 1;
     double expand;
     if(format3d)
@@ -2230,8 +2190,6 @@ void glrender(GLRenderArgs const& args, int oldpid)
 
 #ifdef HAVE_LIBGLUT
 #ifndef HAVE_LIBOSMESA
-  Animate=getSetting<bool>("autoplay") && glthread;
-
   if(View) {
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;

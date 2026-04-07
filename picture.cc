@@ -894,7 +894,8 @@ bool picture::postprocess(const string& prename, const string& outname,
         push_split(cmd,getSetting<string>("convertOptions"));
         cmd.push_back("-resize");
         cmd.push_back(String(100.0/expand)+"%x");
-        if(outputformat == "jpg") cmd.push_back("-flatten");
+        if(outputformat == "jpg" || outputformat == "jpeg")
+          cmd.push_back("-flatten");
         cmd.push_back(outputformat+":"+outname);
         status=System(cmd,0,true,"convert");
       }
@@ -1493,8 +1494,7 @@ bool picture::shipout3(const string& prefix, const string& format,
       ms.push((*p)->transf3());
     else if((*p)->endgroup3())
       ms.pop();
-    else
-      pic->append((*p)->transformed(ms.T()));
+    pic->append((*p)->transformed(ms.T()));
   }
 
   pic->b3=bbox3();
@@ -1585,8 +1585,6 @@ bool picture::shipout3(const string& prefix, const string& format,
         waitpid(pid,NULL,interact::interactive && View ? WNOHANG : 0);
         return true;
       }
-#else
-#pragma message("TODO: Check if (1) we need detach-based gl renderer")
 #endif
     }
 #endif
