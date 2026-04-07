@@ -32,8 +32,13 @@ _DEFAULT_BASE_DIR = os.path.join(SCRIPT_DIR, "base")
 
 
 class TestRunner:
-    def __init__(self, verbose: bool = False, filter_pattern: str = None,
-                 asy: str = None, base_dir: str = None):
+    def __init__(
+        self,
+        verbose: bool = False,
+        filter_pattern: str = None,
+        asy: str = None,
+        base_dir: str = None,
+    ):
         self.verbose = verbose
         self.filter_pattern = filter_pattern
         self.asy = asy or _DEFAULT_ASY
@@ -476,8 +481,12 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    runner = TestRunner(verbose=args.verbose, filter_pattern=args.filter,
-                        asy=args.asy, base_dir=args.base_dir)
+    runner = TestRunner(
+        verbose=args.verbose,
+        filter_pattern=args.filter,
+        asy=args.asy,
+        base_dir=args.base_dir,
+    )
 
     print(f"Running collections runtime error tests (asy = {runner.asy})\n")
     run_tests(runner)
