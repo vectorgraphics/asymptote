@@ -19,6 +19,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #endif
 
+#ifdef HAVE_GL
+#include "glrender.h"
+#endif
+
 using namespace prc;
 #include "material.h"
 
@@ -61,22 +65,57 @@ void setcolors(const RGBAColour& diffuse, const RGBAColour& emissive,
                       glm::vec4(specular.R,specular.G,specular.B,specular.A),
                       shininess,metallic,fresnel0);
 
-  auto p=vk->materialMap.find(m);
-  if(p != vk->materialMap.end()) materialIndex=p->second;
-  else {
-    materialIndex=vk->materials.size();
-    vk->materials.push_back(m);
-    vk->materialMap[m]=materialIndex;
-    if(out)
-      out->addMaterial(m);
+#if defined(HAVE_VULKAN) && defined(HAVE_GL)
+  if(!gl::glFallback) {
+#endif
+#ifdef HAVE_VULKAN
+    auto p=vk->materialMap.find(m);
+    if(p != vk->materialMap.end()) materialIndex=p->second;
+    else {
+      materialIndex=vk->materials.size();
+      vk->materials.push_back(m);
+      vk->materialMap[m]=materialIndex;
+      if(out)
+        out->addMaterial(m);
+    }
+#endif
+#if defined(HAVE_VULKAN) && defined(HAVE_GL)
+    return;
   }
+#endif
+#ifdef HAVE_GL
+  {
+    auto p=materialMap.find(m);
+    if(p != materialMap.end()) materialIndex=p->second;
+    else {
+      materialIndex=materials.size();
+      if(materialIndex >= nmaterials)
+        nmaterials=min(Maxmaterials,2*nmaterials);
+      materials.push_back(m);
+      materialMap[m]=materialIndex;
+      if(out)
+        out->addMaterial(m);
+    }
+  }
+#endif
 }
 
 #endif
 
 void clearMaterials()
 {
-  vk->clearMaterials();
+#if defined(HAVE_VULKAN) && defined(HAVE_GL)
+  if(!gl::glFallback)
+#endif
+#ifdef HAVE_VULKAN
+    vk->clearMaterials();
+#endif
+#if defined(HAVE_VULKAN) && defined(HAVE_GL)
+  else
+#endif
+#ifdef HAVE_GL
+    camp::clearGLMaterials();
+#endif
 }
 
 void drawBezierPatch::bounds(const double* t, bbox3& b)
@@ -263,6 +302,79 @@ bool drawBezierPatch::write(abs3Doutfile *out)
 void drawBezierPatch::render(double size2, const triple& b, const triple& B,
                              double perspective, bool remesh)
 {
+#if defined(HAVE_VULKAN) && defined(HAVE_GL)
+  if(gl::glFallback) {
+    // OpenGL fallback path
+    if(invisible) return;
+    transparent=colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
+      diffuse.A < 1.0;
+
+    setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
+
+    if(transparent)
+      setMaterial(transparentData,drawTransparent);
+    else {
+      if(colors)
+        setMaterial(colorData,drawColor);
+      else
+        setMaterial(materialData,drawMaterial);
+    }
+
+    bool offscreen;
+    if(billboard) {
+      drawElement::centerIndex=centerIndex;
+      BB.init(center);
+      offscreen=bbox2(Min,Max,BB).offscreen();
+    } else
+      offscreen=bbox2(Min,Max).offscreen();
+
+    if(offscreen) { // Fully offscreen
+      S.Onscreen=false;
+      S.data.clear();
+      S.transparent=transparent;
+      S.color=colors;
+      S.notRendered();
+      return;
+    }
+
+    triple *Controls;
+    triple Controls0[16];
+    if(billboard) {
+      Controls=Controls0;
+      for(size_t i=0; i < 16; i++)
+        Controls[i]=BB.transform(controls[i]);
+    } else {
+      Controls=controls;
+      if(!remesh && S.Onscreen) {
+        S.append();
+        return;
+      }
+    }
+
+    double s=perspective ? Min.getz()*perspective : 1.0;
+    const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
+
+    if(gl::outlinemode) {
+      setMaterial(material1Data,drawMaterial);
+      triple edge0[]={Controls[0],Controls[4],Controls[8],Controls[12]};
+      C.queue(edge0,straight,size3.length()/size2);
+      triple edge1[]={Controls[12],Controls[13],Controls[14],Controls[15]};
+      C.queue(edge1,straight,size3.length()/size2);
+      triple edge2[]={Controls[15],Controls[11],Controls[7],Controls[3]};
+      C.queue(edge2,straight,size3.length()/size2);
+      triple edge3[]={Controls[3],Controls[2],Controls[1],Controls[0]};
+      C.queue(edge3,straight,size3.length()/size2);
+    } else {
+      float c[16];
+      if(colors)
+        for(size_t i=0; i < 4; ++i)
+          storecolor(c,4*i,colors[i]);
+      S.queue(Controls,straight,size3.length()/size2,transparent,
+              colors ? c : NULL);
+    }
+    return;
+  }
+#endif
 #ifdef HAVE_VULKAN
   if(invisible) return;
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
@@ -513,6 +625,77 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
 void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
                                 double perspective, bool remesh)
 {
+#if defined(HAVE_VULKAN) && defined(HAVE_GL)
+  if(gl::glFallback) {
+    // OpenGL fallback path
+    if(invisible) return;
+    transparent=colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
+      diffuse.A < 1.0;
+
+    setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
+
+    if(transparent)
+      setMaterial(transparentData,drawTransparent);
+    else {
+      if(colors)
+        setMaterial(colorData,drawColor);
+      else
+        setMaterial(materialData,drawMaterial);
+    }
+
+    bool offscreen;
+    if(billboard) {
+      drawElement::centerIndex=centerIndex;
+      BB.init(center);
+      offscreen=bbox2(Min,Max,BB).offscreen();
+    } else
+      offscreen=bbox2(Min,Max).offscreen();
+
+    if(offscreen) {
+      S.Onscreen=false;
+      S.data.clear();
+      S.transparent=transparent;
+      S.color=colors;
+      S.notRendered();
+      return;
+    }
+
+    triple *Controls;
+    triple Controls0[10];
+    if(billboard) {
+      Controls=Controls0;
+      for(size_t i=0; i < 10; i++)
+        Controls[i]=BB.transform(controls[i]);
+    } else {
+      if(!remesh && S.Onscreen) {
+        S.append();
+        return;
+      }
+      Controls=controls;
+    }
+
+    double s=perspective ? Min.getz()*perspective : 1.0;
+    const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
+
+    if(gl::outlinemode) {
+      setMaterial(material1Data,drawMaterial);
+      triple edge0[]={Controls[0],Controls[1],Controls[3],Controls[6]};
+      C.queue(edge0,straight,size3.length()/size2);
+      triple edge1[]={Controls[6],Controls[7],Controls[8],Controls[9]};
+      C.queue(edge1,straight,size3.length()/size2);
+      triple edge2[]={Controls[9],Controls[5],Controls[2],Controls[0]};
+      C.queue(edge2,straight,size3.length()/size2);
+    } else {
+      float c[12];
+      if(colors)
+        for(size_t i=0; i < 3; ++i)
+          storecolor(c,4*i,colors[i]);
+      S.queue(Controls,straight,size3.length()/size2,transparent,
+              colors ? c : NULL);
+    }
+    return;
+  }
+#endif
 #ifdef HAVE_VULKAN
   if(invisible) return;
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
@@ -991,6 +1174,55 @@ void drawTriangles::render(double size2, const triple& b,
                            const triple& B, double perspective,
                            bool remesh)
 {
+#if defined(HAVE_VULKAN) && defined(HAVE_GL)
+  if(gl::glFallback) {
+    // OpenGL fallback path
+    if(invisible) return;
+    transparent=diffuse.A < 1.0;
+
+    setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
+
+    if(transparent)
+      setMaterial(transparentData,drawTransparent);
+    else
+      setMaterial(triangleData,drawTriangle);
+
+    bool offscreen;
+    if(billboard) {
+      drawElement::centerIndex=centerIndex;
+      BB.init(center);
+      offscreen=bbox2(Min,Max,BB).offscreen();
+    } else
+      offscreen=bbox2(Min,Max).offscreen();
+
+    if(offscreen) { // Fully offscreen
+      R.Onscreen=false;
+      R.data.clear();
+      R.transparent=transparent;
+      R.notRendered();
+      return;
+    }
+
+    triple *P0;
+    if(billboard) {
+      P0=new triple [nP];
+      for(size_t i=0; i < nP; i++)
+        P0[i]=BB.transform(P[i]);
+    } else {
+      if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render
+        R.append();
+        return;
+      }
+      P0=P;
+    }
+
+    R.queue(nP,P0,nN,N,nC,C,nI,PI,NI,CI,transparent);
+
+    if(billboard)
+      delete [] P0;
+    return;
+  }
+#endif
 #ifdef HAVE_VULKAN
   if(invisible) return;
   transparent=diffuse.A < 1.0;

@@ -8,7 +8,18 @@
 #ifndef BEZIERPATCH_H
 #define BEZIERPATCH_H
 
+#include <cstring>
+
 #include "bbox2.h"
+
+// Forward declaration — full definition is in rgba.h or prc/include/prc/oPRCFile.h
+namespace prc { struct RGBAColour; }
+
+// When both Vulkan and GL are compiled in, include glrender.h so that
+// GL types are available for runtime fallback.
+#if defined(HAVE_GL) && defined(HAVE_VULKAN)
+#include "glrender.h"
+#endif
 
 namespace camp {
 
@@ -139,24 +150,67 @@ struct BezierPatch
               float *C3=NULL);
 
   void append() {
+#if defined(HAVE_VULKAN) && defined(HAVE_GL)
+    if(gl::glFallback) {
+      if(transparent) {
+        vertexBuffer& dst=transparentData;
+        size_t offset=dst.Vertices.size();
+        dst.Vertices.resize(offset+data.colorVertices.size());
+        std::memcpy(&dst.Vertices[offset],data.colorVertices.data(),
+                    data.colorVertices.size()*sizeof(VertexData));
+        for(auto idx : data.indices)
+          dst.indices.push_back((GLuint)(idx+offset));
+      } else if(color) {
+        vertexBuffer& dst=colorData;
+        size_t offset=dst.Vertices.size();
+        dst.Vertices.resize(offset+data.colorVertices.size());
+        std::memcpy(&dst.Vertices[offset],data.colorVertices.data(),
+                    data.colorVertices.size()*sizeof(VertexData));
+        for(auto idx : data.indices)
+          dst.indices.push_back((GLuint)(idx+offset));
+      } else {
+        vertexBuffer& dst=materialData;
+        size_t offset=dst.vertices.size();
+        dst.vertices.resize(offset+data.materialVertices.size());
+        std::memcpy(&dst.vertices[offset],data.materialVertices.data(),
+                    data.materialVertices.size()*sizeof(vertexData));
+        for(auto idx : data.indices)
+          dst.indices.push_back((GLuint)(idx+offset));
+      }
+      return;
+    }
+#endif
     if(transparent)
-      transparentData.extendColor(data);
+      vkTransparentData.extendColor(data);
     else {
       if(color)
-        colorData.extendColor(data);
+        vkColorData.extendColor(data);
       else
-        materialData.extendMaterial(data);
+        vkMaterialData.extendMaterial(data);
     }
   }
 
   virtual void notRendered() {
+#if defined(HAVE_VULKAN) && defined(HAVE_GL)
+    if(gl::glFallback) {
+      if(transparent)
+        transparentData.rendered=false;
+      else {
+        if(color)
+          colorData.rendered=false;
+        else
+          materialData.rendered=false;
+      }
+      return;
+    }
+#endif
     if(transparent)
-      transparentData.renderCount=0;
+      vkTransparentData.renderCount=0;
     else {
       if(color)
-        colorData.renderCount=0;
+        vkColorData.renderCount=0;
       else
-        materialData.renderCount=0;
+        vkMaterialData.renderCount=0;
     }
   }
 
@@ -210,19 +264,54 @@ public:
              const uint32_t (*CI)[3], bool transparent);
 
   void append() {
+#if defined(HAVE_VULKAN) && defined(HAVE_GL)
+    if(gl::glFallback) {
+      if(transparent) {
+        vertexBuffer& dst=transparentData;
+        size_t offset=dst.Vertices.size();
+        dst.Vertices.resize(offset+data.colorVertices.size());
+        std::memcpy(&dst.Vertices[offset],data.colorVertices.data(),
+                    data.colorVertices.size()*sizeof(VertexData));
+        for(auto idx : data.indices)
+          dst.indices.push_back((GLuint)(idx+offset));
+      } else {
+        vertexBuffer& dst=triangleData;
+        size_t offset=dst.Vertices.size();
+        dst.Vertices.resize(offset+data.colorVertices.size());
+        std::memcpy(&dst.Vertices[offset],data.colorVertices.data(),
+                    data.colorVertices.size()*sizeof(VertexData));
+        for(auto idx : data.indices)
+          dst.indices.push_back((GLuint)(idx+offset));
+      }
+      return;
+    }
+#endif
     if(transparent)
-      transparentData.extendColor(data);
+      vkTransparentData.extendColor(data);
     else
-      triangleData.extendColor(data);
+      vkTriangleData.extendColor(data);
   }
 
   void notRendered() {
+#if defined(HAVE_VULKAN) && defined(HAVE_GL)
+    if(gl::glFallback) {
+      if(transparent)
+        transparentData.rendered=false;
+      else
+        triangleData.rendered=false;
+      return;
+    }
+#endif
     if(transparent)
-      transparentData.renderCount=0;
+      vkTransparentData.renderCount=0;
     else
-      triangleData.renderCount=0;
+      vkTriangleData.renderCount=0;
   }
 };
+
+#ifdef HAVE_GL
+extern void sortTriangles();
+#endif
 
 #endif
 

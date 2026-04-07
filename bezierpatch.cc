@@ -17,13 +17,18 @@ using ::orient3d;
 #ifdef HAVE_LIBGLM
 
 int MaterialIndex;
+// materialIndex is defined in glrender.cc when HAVE_GL; otherwise define here.
+#ifndef HAVE_GL
 size_t materialIndex;
+#endif
 bool colors;
 
-VertexBuffer materialData;
-VertexBuffer colorData;
-VertexBuffer triangleData;
-VertexBuffer transparentData;
+#ifdef HAVE_VULKAN
+VertexBuffer vkMaterialData;
+VertexBuffer vkColorData;
+VertexBuffer vkTriangleData;
+VertexBuffer vkTransparentData;
+#endif
 
 const double FillFactor=0.1;
 const double third=1.0/3.0;
@@ -855,6 +860,50 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
     }
   }
   append();
+}
+
+#endif
+
+#ifdef HAVE_GL
+
+static std::vector<GLfloat> gl_zbuffer;
+
+static void transformGL(const std::vector<VertexData>& b)
+{
+  unsigned n=b.size();
+  gl_zbuffer.resize(n);
+
+  double Tz0=gl::dView[2];
+  double Tz1=gl::dView[6];
+  double Tz2=gl::dView[10];
+  for(unsigned i=0; i < n; ++i) {
+    const GLfloat *v=b[i].position;
+    gl_zbuffer[i]=Tz0*v[0]+Tz1*v[1]+Tz2*v[2];
+  }
+}
+
+// Sort nonintersecting triangles by depth.
+static int compareGL(const void *p, const void *P)
+{
+  unsigned Ia=((GLuint *) p)[0];
+  unsigned Ib=((GLuint *) p)[1];
+  unsigned Ic=((GLuint *) p)[2];
+
+  unsigned IA=((GLuint *) P)[0];
+  unsigned IB=((GLuint *) P)[1];
+  unsigned IC=((GLuint *) P)[2];
+
+  return gl_zbuffer[Ia]+gl_zbuffer[Ib]+gl_zbuffer[Ic] <
+    gl_zbuffer[IA]+gl_zbuffer[IB]+gl_zbuffer[IC] ? -1 : 1;
+}
+
+void sortTriangles()
+{
+  if(!transparentData.indices.empty()) {
+    transformGL(transparentData.Vertices);
+    qsort(&transparentData.indices[0],transparentData.indices.size()/3,
+          3*sizeof(GLuint),compareGL);
+  }
 }
 
 #endif

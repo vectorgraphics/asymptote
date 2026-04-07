@@ -20,6 +20,13 @@
 #ifdef HAVE_VULKAN
 #include <vma_cxx.h>
 
+// GLEW must be included before GLFW (which pulls in GL/gl.h).
+// Include it here under HAVE_GL so we get the ordering right even
+// when vkrender.h is included first.
+#ifdef HAVE_GL
+#include <GL/glew.h>
+#endif
+
 #include <glslang/Public/ShaderLang.h>
 #include <GLFW/glfw3.h>
 #endif
@@ -251,6 +258,7 @@ public:
   bool haveScene;
 
   bool vkthread=false;
+  bool format3dWait=false;
   bool initialize=true;
   bool copied=false;
 
@@ -910,7 +918,6 @@ private:
   bool waitEvent=true;
   bool initialized=false;
   bool havewindow=false;
-  bool format3dWait=false;
 
   struct PipelineConfig {
     vk::PrimitiveTopology topology;

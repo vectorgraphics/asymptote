@@ -13,8 +13,8 @@ namespace camp {
 
 #ifdef HAVE_VULKAN
 
-VertexBuffer pointData;       // pixels
-VertexBuffer lineData;        // material Bezier curves
+VertexBuffer vkPointData;       // pixels
+VertexBuffer vkLineData;        // material Bezier curves
 
 void BezierCurve::init(double res)
 {

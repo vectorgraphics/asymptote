@@ -18,6 +18,10 @@
 #include "drawpath3.h"
 #include "seconds.h"
 
+#ifdef HAVE_GL
+#include "glrender.h"
+#endif
+
 #if defined(_WIN32)
 #include <Windows.h>
 #include <shellapi.h>
@@ -1473,9 +1477,9 @@ bool picture::shipout3(const string& prefix, const string& format,
     camp::reportError("to support V3D rendering, please install glm header files, then ./configure; make");
 #endif
 
-#ifndef HAVE_VULKAN
+#if !defined(HAVE_VULKAN) && !defined(HAVE_GL)
   if(!webgl)
-    camp::reportError("to support onscreen Vulkan rendering; please install the glfw, vulkan, and glslang development libraries, then ./configure; make");
+    camp::reportError("to support onscreen rendering, please install the Vulkan or OpenGL development libraries, then ./configure; make");
 #endif
 
   picture *pic = new picture;
@@ -1520,7 +1524,11 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool format3d=webgl || v3d;
   if(!format3d) {
 #ifdef HAVE_VULKAN
-    if(vk->vkthread) {
+    if(vk->vkthread
+#ifdef HAVE_GL
+       && !gl::glFallback
+#endif
+       ) {
 #ifdef HAVE_PTHREAD
       if(vk->initialize) {
         vk->initialize=!View || getSetting<bool>("offscreen");
@@ -1639,11 +1647,21 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(webgl && View)
       htmlView(name);
 
-#ifdef HAVE_GL
+#if defined(HAVE_GL) && defined(HAVE_VULKAN)
+    if(gl::glFallback) {
+      if(gl::format3dWait) {
+        gl::format3dWait=false;
+#ifdef HAVE_PTHREAD
+        gl::endwait(gl::initSignal,gl::initLock);
+#endif
+      }
+    } else
+#endif
+#ifdef HAVE_VULKAN
     if(vk->format3dWait) {
       vk->format3dWait=false;
 #ifdef HAVE_PTHREAD
-      endwait(vk->initSignal,vk->initLock);
+      vk->endwait(vk->initSignal,vk->initLock);
 #endif
     }
 #endif
@@ -1654,7 +1672,11 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifdef HAVE_VULKAN
 #ifdef HAVE_PTHREAD
-  if(vk->vkthread && Wait) {
+  if(vk->vkthread && Wait
+#ifdef HAVE_GL
+     && !gl::glFallback
+#endif
+     ) {
     pthread_cond_wait(&vk->readySignal,&vk->readyLock);
     pthread_mutex_unlock(&vk->readyLock);
   }

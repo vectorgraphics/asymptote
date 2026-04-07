@@ -81,6 +81,7 @@ option(ENABLE_GSL "Enable GSL support" true)
 option(ENABLE_EIGEN3 "Enable eigen3 support" true)
 option(ENABLE_FFTW3 "Enable fftw3 support" true)
 option(ENABLE_VULKAN "Whether to enable vulkan or not." true)
+option(ENABLE_GL "Whether to enable OpenGL fallback renderer." true)
 
 if (CMAKE_BUILD_TYPE IN_LIST cmake_release_build_types)
     set(default_vk_validation_opt false)

@@ -663,6 +663,58 @@ fi
 fi
 
 
+# -------------- offscreen rendering
+
+AC_ARG_ENABLE(offscreen,
+[AS_HELP_STRING(--enable-offscreen[[[=no]]],use OSMesa library to implement offscreen rendering)])
+
+# ----------- OpenGL (used as fallback when Vulkan is unavailable at runtime)
+AC_ARG_ENABLE(gl,
+[AS_HELP_STRING(--enable-gl[[[=yes]]],enable OpenGL fallback renderer)])
+
+if test "x$enable_gl" != "xno"; then
+if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
+   ADD_VCPKG_FEATURE(opengl)
+   AC_DEFINE(HAVE_LIBGL,1,[libgl is enabled])
+   AC_DEFINE(FREEGLUT,1,[Freeglut is enabled])
+   AC_DEFINE(HAVE_LIBGLUT,1,[Freeglut library is available])
+   INCL=$INCL" -Ibackports/glew/include"
+   GLEW="glew.o "
+   ADD_VCPKG_LIB_FOR_PKGCONFIG(glut)
+else  # managed by the system
+
+case "$OSTYPE" in
+     darwin*)
+              AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
+              AC_CHECK_HEADER(OpenGL/gl.h,
+                             [AC_DEFINE(HAVE_LIBGL,1,
+                             DEFINE([<gl.h> header]))])
+              AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT,1,
+                   DEFINE_LIB[GLUT])
+                           LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa "
+                           INCL=$INCL" -Ibackports/glew/include"
+                           GLEW="glew.o "],
+                                 AC_MSG_NOTICE([*** Could not find GLUT: will compile without OpenGL fallback support ***]))
+        ;;
+     *)
+         AC_CHECK_LIB([glut], [glutMainLoop],,
+                       AC_MSG_NOTICE([*** Could not find libglut: will compile without OpenGL fallback support ***]))
+         AC_CHECK_LIB([GL], [glDepthMask],
+                                 [AC_DEFINE(HAVE_LIBGL,1,
+                             DEFINE_LIB([GL]))
+                             LIBS=$LIBS"-lGL "
+                             GLEW="glew.o "
+                             INCL=$INCL" -Ibackports/glew/include"],
+                                   AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL fallback support ***]))
+esac
+   if test "x$enable_offscreen" = "xyes"; then
+           AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
+                        AC_MSG_NOTICE([*** Could not find libOSMesa: will compile without offscreen rendering support ***]))
+   fi
+fi
+fi
+
+
 # ------------------- VCPKG INSTALL
 
 if test "x$with_vcpkg" != "xno"; then

@@ -1046,6 +1046,7 @@ struct versionOption : public option {
 
     bool glm=false;
     bool gl=false;
+    bool opengl=false;
     bool gsl=false;
     bool fftw3=false;
     bool eigen=false;
@@ -1064,6 +1065,10 @@ struct versionOption : public option {
 
 #ifdef HAVE_VULKAN
     gl=true;
+#endif
+
+#ifdef HAVE_GL
+    opengl=true;
 #endif
 
 #ifdef HAVE_LIBGSL
@@ -1115,6 +1120,7 @@ struct versionOption : public option {
     feature("V3D      3D vector graphics output",glm && xdr);
     feature("WebGL    3D HTML rendering",glm);
     feature("Vulkan   3D Vulkan rendering",gl);
+    feature("OpenGL   3D OpenGL rendering (fallback)",opengl);
     feature("GSL      GNU Scientific Library (special functions)",gsl);
     feature("FFTW3    Fast Fourier transforms",fftw3);
     feature("Eigen    Eigenvalue library",eigen);
@@ -1127,7 +1133,7 @@ struct versionOption : public option {
     feature("Sigsegv  Distinguish stack overflows from segmentation faults",
             sigsegv);
     feature("GC       Boehm garbage collector",usegc);
-    feature("threads  Render Vulkan in separate thread",usethreads);
+    feature("threads  Render in separate thread",usethreads);
   }
 
   bool getOption() {

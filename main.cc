@@ -64,6 +64,9 @@ int _matherr(struct _exception *except)
 #include "interact.h"
 #include "fileio.h"
 #include "vkrender.h"
+#ifdef HAVE_GL
+#include "glrender.h"
+#endif
 #include "stack.h"
 
 #ifdef HAVE_LIBFFTW3
@@ -229,6 +232,13 @@ void *asymain(void *A)
     int status;
     while(wait(&status) > 0);
   }
+#endif
+#ifdef HAVE_GL
+#ifdef HAVE_PTHREAD
+  if(gl::glFallback && gl::glthread) {
+    pthread_kill(gl::mainthread,SIGURG);
+  }
+#endif
 #endif
   exit(returnCode());
 }

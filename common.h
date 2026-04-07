@@ -59,6 +59,12 @@ using std::make_pair;
  #define HAVE_VULKAN
  #endif
 
+#if !defined(FOR_SHARED) &&                                             \
+  ((defined(HAVE_LIBGL) && defined(HAVE_LIBGLUT) && defined(HAVE_LIBGLM)) || \
+   defined(HAVE_LIBOSMESA))
+#define HAVE_GL
+#endif
+
 #if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDIT)
 #define HAVE_READLINE
 #endif

@@ -12,7 +12,7 @@ GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@
-LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS) @LSPLIBS@
+LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@
 CXX_STANDARD = @CXX_STANDARD@
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 LSP_ROOT=@LSP_ROOT@
@@ -55,8 +55,8 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	access virtualfieldaccess absyn record interact fileio \
 	fftw++asy parallel simpson coder coenv impdatum locate asyparser program application \
 	varinit fundec refaccess envcompleter asyprocess constructor array memory \
-	Delaunay predicates jsfile v3dfile \
-	EXRFiles lspserv symbolmaps win32helpers win32pipestream \
+	Delaunay predicates glrender tr shaders jsfile v3dfile \
+	EXRFiles GLTextures lspserv symbolmaps win32helpers win32pipestream \
 	win32xdr xstream \
 	$(VMA_IMPL_FILES) vkrender vkdispatchstorage vkutils \
 	lspdec lspexp lspfundec lspstm
@@ -91,6 +91,7 @@ ASY = ./asy -dir base -config "" -render=0
 
 DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -I.
 CFLAGS = @CFLAGS@
+GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
 	-Iprc/include -I$(LSP_ROOT)/include -I.
@@ -137,7 +138,8 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@
+asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) \
+		@LSPLIB@ @GLEW@
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
 $(XNAME): $(PYFILES)
@@ -454,6 +456,9 @@ ifeq (,$(findstring clean,${MAKECMDGOALS}))
 endif
 
 FORCE:
+
+glew.o: glew.c config.h
+	$(CC) $(GLEWOPTS) -o $@ -c $<
 
 configure: configure.ac
 	autoheader && autoconf

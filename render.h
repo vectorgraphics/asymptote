@@ -189,13 +189,13 @@ struct VertexBuffer {
   }
 };
 
-extern VertexBuffer materialData;    // material Bezier patches & triangles
-extern VertexBuffer colorData;       // colored Bezier patches & triangles
-extern VertexBuffer triangleData;    // opaque indexed triangles
-extern VertexBuffer transparentData; // transparent patches & triangles
+extern VertexBuffer vkMaterialData;    // material Bezier patches & triangles
+extern VertexBuffer vkColorData;       // colored Bezier patches & triangles
+extern VertexBuffer vkTriangleData;    // opaque indexed triangles
+extern VertexBuffer vkTransparentData; // transparent patches & triangles
 
-extern VertexBuffer pointData;       // pixels
-extern VertexBuffer lineData;        // material Bezier curves
+extern VertexBuffer vkPointData;       // pixels
+extern VertexBuffer vkLineData;        // material Bezier curves
 
 extern glm::dmat4 projViewMat;
 extern glm::dmat4 normMat;

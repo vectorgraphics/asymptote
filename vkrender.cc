@@ -12,6 +12,17 @@
 #include "vkutils.h"
 #include "ThreadSafeQueue.h"
 
+#ifdef HAVE_GL
+#include "glrender.h"
+#endif
+
+// For dynamic Vulkan library loading (runtime availability check)
+#if defined(_WIN32)
+// Windows: use LoadLibrary
+#elif defined(__APPLE__) || defined(__linux__)
+#include <dlfcn.h>
+#endif
+
 // For debugging:
 #if defined(ENABLE_VK_VALIDATION)
 #define VALIDATION
@@ -708,8 +719,62 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 
   if(vkinitialize) {
     vkinitialize=false;
-    initVulkan();
+    try {
+      initVulkan();
+    } catch(const std::exception& e) {
+      // Vulkan initialization failed at runtime (e.g., no MoltenVK on macOS)
+      if (!gl::glFallback) {
+        // glFallback may already be set by tryLoadVulkanLibrary()
+#ifdef HAVE_GL
+        cerr << "Warning: Vulkan initialization failed (" << e.what()
+             << ").\nFalling back to OpenGL renderer." << endl;
+        gl::glFallback = true;
+#else
+        runtimeError(std::string("Vulkan initialization failed: ") + e.what());
+#endif
+      }
+    }
   }
+
+#ifdef HAVE_GL
+  if(gl::glFallback) {
+    gl::GLRenderArgs glargs;
+    glargs.prefix=Prefix;
+    glargs.pic=const_cast<picture*>(pic);
+    glargs.format=Format;
+    glargs.width=oWidth;
+    glargs.height=oHeight;
+    glargs.angle=Angle/radians;
+    glargs.zoom=Zoom0;
+    glargs.m=triple(Xmin,Ymin,Zmin);
+    glargs.M=triple(Xmax,Ymax,Zmax);
+    glargs.shift=Shift*Zoom0;
+    glargs.margin=Margin;
+    glargs.t=T;
+    glargs.tup=Tup;
+    double bg[4]={Background[0],Background[1],Background[2],Background[3]};
+    glargs.background=bg;
+    glargs.nlights=nlights;
+    glargs.lights=Lights;
+    glargs.diffuse=LightsDiffuse;
+    glargs.specular=nullptr;
+    glargs.view=ViewExport;
+#ifdef HAVE_PTHREAD
+    if(vkthread) {
+      // We are called from glrenderWrapper on the main thread.
+      // Tell GL it is running in threaded mode and record the main thread id
+      // so GL can send SIGUSR1 for subsequent redraws.
+      gl::glthread=true;
+      gl::mainthread=pthread_self();
+      // Unblock the background thread that waits on readySignal before
+      // entering the GLUT main loop (which may never return).
+      endwait(readySignal,readyLock);
+    }
+#endif
+    gl::glrender(glargs, Oldpid);
+    return;
+  }
+#endif
 
   readyForUpdate=true;
   mainLoop();
@@ -717,6 +782,78 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 }
 
 #ifdef HAVE_VULKAN
+
+// Attempt to dynamically load the Vulkan library at runtime.
+// Returns true if the Vulkan library (and a suitable ICD) is available.
+// On failure, sets gl::glFallback=true and prints a warning.
+static bool tryLoadVulkanLibrary()
+{
+  PFN_vkGetInstanceProcAddr procAddr = nullptr;
+
+#if defined(__APPLE__)
+  // Try the Vulkan loader first, then MoltenVK directly
+  const char* candidates[] = {
+    "libvulkan.1.dylib",
+    "libvulkan.dylib",
+    "libMoltenVK.dylib",
+    nullptr
+  };
+  for (const char** p = candidates; *p; ++p) {
+    void* handle = dlopen(*p, RTLD_NOW | RTLD_LOCAL | RTLD_NOLOAD);
+    if (!handle)
+      handle = dlopen(*p, RTLD_NOW | RTLD_LOCAL);
+    if (handle) {
+      procAddr = (PFN_vkGetInstanceProcAddr)
+                  dlsym(handle, "vkGetInstanceProcAddr");
+      if (procAddr) break;
+    }
+  }
+#elif defined(__linux__)
+  const char* candidates[] = {
+    "libvulkan.so.1",
+    "libvulkan.so",
+    nullptr
+  };
+  for (const char** p = candidates; *p; ++p) {
+    void* handle = dlopen(*p, RTLD_NOW | RTLD_LOCAL | RTLD_NOLOAD);
+    if (!handle)
+      handle = dlopen(*p, RTLD_NOW | RTLD_LOCAL);
+    if (handle) {
+      procAddr = (PFN_vkGetInstanceProcAddr)
+                  dlsym(handle, "vkGetInstanceProcAddr");
+      if (procAddr) break;
+    }
+  }
+#elif defined(_WIN32)
+  HMODULE handle = LoadLibraryA("vulkan-1.dll");
+  if (handle)
+    procAddr = (PFN_vkGetInstanceProcAddr)
+                GetProcAddress(handle, "vkGetInstanceProcAddr");
+#else
+  // On other platforms, assume Vulkan is available via static link
+  procAddr = vkGetInstanceProcAddr;
+#endif
+
+  if (!procAddr) {
+#ifdef __APPLE__
+    cerr << "Warning: Vulkan/MoltenVK library not found. "
+            "Falling back to OpenGL renderer.\n"
+            "To enable Vulkan, install the LunarG Vulkan SDK with MoltenVK "
+            "support from https://vulkan.lunarg.com/" << endl;
+#else
+    cerr << "Warning: Vulkan library not found. "
+            "Falling back to OpenGL renderer." << endl;
+#endif
+#ifdef HAVE_GL
+    gl::glFallback = true;
+#endif
+    return false;
+  }
+
+  VULKAN_HPP_DEFAULT_DISPATCHER.init(procAddr);
+  return true;
+}
+
 void AsyVkRender::initVulkan()
 {
 #ifdef __APPLE__
@@ -732,7 +869,8 @@ void AsyVkRender::initVulkan()
   setenv("MVK_CONFIG_PERFORMANCE_TRACKING", "0", true);
 #endif
 
-  VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
+  if (!tryLoadVulkanLibrary())
+    throw std::runtime_error("Vulkan library unavailable");
 
   if (!glslang::InitializeProcess())
     runtimeError("failed to initialize glslang");
@@ -3948,12 +4086,12 @@ void AsyVkRender::beginGraphicsFrameRender(int imageIndex)
 
 void AsyVkRender::resetFrameCopyData()
 {
-  materialData.copiedThisFrame=false;
-  colorData.copiedThisFrame=false;
-  triangleData.copiedThisFrame=false;
-  transparentData.copiedThisFrame=false;
-  lineData.copiedThisFrame=false;
-  pointData.copiedThisFrame=false;
+  vkMaterialData.copiedThisFrame=false;
+  vkColorData.copiedThisFrame=false;
+  vkTriangleData.copiedThisFrame=false;
+  vkTransparentData.copiedThisFrame=false;
+  vkLineData.copiedThisFrame=false;
+  vkPointData.copiedThisFrame=false;
 }
 
 void AsyVkRender::drawBuffer(DeviceBuffer & vertexBuffer,
@@ -4021,19 +4159,19 @@ void AsyVkRender::endFrame(int imageIndex)
 
 void AsyVkRender::clearData()
 {
-  pointData.clear();
-  lineData.clear();
-  materialData.clear();
-  colorData.clear();
-  triangleData.clear();
-  transparentData.clear();
+  vkPointData.clear();
+  vkLineData.clear();
+  vkMaterialData.clear();
+  vkColorData.clear();
+  vkTriangleData.clear();
+  vkTransparentData.clear();
 }
 
 void AsyVkRender::drawPoints(FrameObject & object)
 {
   drawBuffer(object.pointVertexBuffer,
              object.pointIndexBuffer,
-             &pointData,
+             &vkPointData,
              *getPipelineType(pointPipelines));
 }
 
@@ -4041,7 +4179,7 @@ void AsyVkRender::drawLines(FrameObject & object)
 {
   drawBuffer(object.lineVertexBuffer,
              object.lineIndexBuffer,
-             &lineData,
+             &vkLineData,
              *getPipelineType(linePipelines));
 }
 
@@ -4049,7 +4187,7 @@ void AsyVkRender::drawMaterials(FrameObject & object)
 {
   drawBuffer(object.materialVertexBuffer,
              object.materialIndexBuffer,
-             &materialData,
+             &vkMaterialData,
              *getPipelineType(materialPipelines));
 }
 
@@ -4057,7 +4195,7 @@ void AsyVkRender::drawColors(FrameObject & object)
 {
   drawBuffer(object.colorVertexBuffer,
              object.colorIndexBuffer,
-             &colorData,
+             &vkColorData,
              *getPipelineType(trianglePipelines));
 }
 
@@ -4065,7 +4203,7 @@ void AsyVkRender::drawTriangles(FrameObject & object)
 {
   drawBuffer(object.triangleVertexBuffer,
              object.triangleIndexBuffer,
-             &triangleData,
+             &vkTriangleData,
              *getPipelineType(trianglePipelines));
 }
 
@@ -4073,7 +4211,7 @@ void AsyVkRender::drawTransparent(FrameObject & object)
 {
   drawBuffer(object.transparentVertexBuffer,
              object.transparentIndexBuffer,
-             &transparentData,
+             &vkTransparentData,
              *getPipelineType(transparentPipelines));
 }
 
@@ -4220,27 +4358,27 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   if (!interlock) {
     drawBuffer(object.pointVertexBuffer,
                object.pointIndexBuffer,
-               &pointData,
+               &vkPointData,
                *pointPipelines[PIPELINE_COUNT],
                false);
     drawBuffer(object.lineVertexBuffer,
                object.lineIndexBuffer,
-               &lineData,
+               &vkLineData,
                *linePipelines[PIPELINE_COUNT],
                false);
     drawBuffer(object.materialVertexBuffer,
                object.materialIndexBuffer,
-               &materialData,
+               &vkMaterialData,
                *materialPipelines[PIPELINE_COUNT],
                false);
     drawBuffer(object.colorVertexBuffer,
                object.colorIndexBuffer,
-               &colorData,
+               &vkColorData,
                *trianglePipelines[PIPELINE_COUNT],
                false);
     drawBuffer(object.triangleVertexBuffer,
                object.triangleIndexBuffer,
-               &triangleData,
+               &vkTriangleData,
                *trianglePipelines[PIPELINE_COUNT],
                false);
   }
@@ -4250,7 +4388,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   // draw transparent
   drawBuffer(object.transparentVertexBuffer,
              object.transparentIndexBuffer,
-             &transparentData,
+             &vkTransparentData,
              *transparentPipelines[PIPELINE_COUNT],
              false);
 
@@ -4775,7 +4913,7 @@ void AsyVkRender::render()
     if(mode != DRAWMODE_OUTLINE)
       remesh=false;
 
-    Opaque=transparentData.indices.empty();
+    Opaque=vkTransparentData.indices.empty();
   }
 }
 

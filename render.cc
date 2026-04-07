@@ -42,7 +42,7 @@ int main()
   bool straight=false;
 
   S.queue(Controls,straight,size3.length()/size2,transparent,NULL);
-  cout << materialData.materialVertices.size() << endl;
+  cout << vkMaterialData.materialVertices.size() << endl;
 
   return 0;
 }

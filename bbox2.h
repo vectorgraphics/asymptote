@@ -12,6 +12,12 @@
 #include "render.h"
 #endif
 
+// When both GL and Vulkan are compiled in, glrender.h contains the Billboard
+// struct used by the GL fallback path.
+#if defined(HAVE_GL) && defined(HAVE_VULKAN)
+#include "glrender.h"
+#endif
+
 namespace camp {
 
 class bbox2 {
@@ -34,7 +40,7 @@ public:
     bounds(M);
   }
 
-  // take account of object bounds
+  // take account of object bounds (Vulkan path uses triple as billboard center)
   bbox2(const triple& m, const triple& M, const triple& BB) {
     Bounds(billboardTransform(BB,m));
     bounds(billboardTransform(BB,triple(m.getx(),m.gety(),M.getz())));
@@ -45,6 +51,20 @@ public:
     bounds(billboardTransform(BB,triple(M.getx(),M.gety(),m.getz())));
     bounds(billboardTransform(BB,M));
   }
+
+#if defined(HAVE_GL) && defined(HAVE_VULKAN)
+  // GL fallback path: take account of object bounds using Billboard struct
+  bbox2(const triple& m, const triple& M, const Billboard& BB) {
+    Bounds(BB.transform(m));
+    bounds(BB.transform(triple(m.getx(),m.gety(),M.getz())));
+    bounds(BB.transform(triple(m.getx(),M.gety(),m.getz())));
+    bounds(BB.transform(triple(m.getx(),M.gety(),M.getz())));
+    bounds(BB.transform(triple(M.getx(),m.gety(),m.getz())));
+    bounds(BB.transform(triple(M.getx(),m.gety(),M.getz())));
+    bounds(BB.transform(triple(M.getx(),M.gety(),m.getz())));
+    bounds(BB.transform(M));
+  }
+#endif
 
 // Is 2D bounding box formed by projecting 3d points in vector v offscreen?
   bool offscreen() {
