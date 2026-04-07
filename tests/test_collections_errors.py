@@ -22,8 +22,8 @@ import textwrap
 
 # One directory up from this file is the asymptote source root.
 SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ASY = os.path.join(SCRIPT_DIR, "asy")
-BASE_DIR = os.path.join(SCRIPT_DIR, "base")
+_DEFAULT_ASY = os.path.join(SCRIPT_DIR, "asy")
+_DEFAULT_BASE_DIR = os.path.join(SCRIPT_DIR, "base")
 
 
 # ---------------------------------------------------------------------------
@@ -32,9 +32,12 @@ BASE_DIR = os.path.join(SCRIPT_DIR, "base")
 
 
 class TestRunner:
-    def __init__(self, verbose: bool = False, filter_pattern: str = None):
+    def __init__(self, verbose: bool = False, filter_pattern: str = None,
+                 asy: str = None, base_dir: str = None):
         self.verbose = verbose
         self.filter_pattern = filter_pattern
+        self.asy = asy or _DEFAULT_ASY
+        self.base_dir = base_dir or _DEFAULT_BASE_DIR
         self.passed = 0
         self.failed = 0
         self.skipped = 0
@@ -50,7 +53,7 @@ class TestRunner:
             with os.fdopen(fd, "w") as f:
                 f.write(cleaned)
             result = subprocess.run(
-                [ASY, "-q", "-noautoplain", "-sysdir", BASE_DIR, tmpfile],
+                [self.asy, "-q", "-noautoplain", "-sysdir", self.base_dir, tmpfile],
                 cwd=SCRIPT_DIR,
                 capture_output=True,
                 text=True,
@@ -461,11 +464,22 @@ def main() -> int:
         metavar="PATTERN",
         help="only run tests whose name matches PATTERN (case-insensitive regex)",
     )
+    parser.add_argument(
+        "--asy",
+        default=_DEFAULT_ASY,
+        help="path to the asy executable (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--base-dir",
+        default=_DEFAULT_BASE_DIR,
+        help="path to the asy base/sysdir (default: %(default)s)",
+    )
     args = parser.parse_args()
 
-    runner = TestRunner(verbose=args.verbose, filter_pattern=args.filter)
+    runner = TestRunner(verbose=args.verbose, filter_pattern=args.filter,
+                        asy=args.asy, base_dir=args.base_dir)
 
-    print(f"Running collections runtime error tests (asy = {ASY})\n")
+    print(f"Running collections runtime error tests (asy = {runner.asy})\n")
     run_tests(runner)
     passed = runner.summary()
     return 0 if passed else 1
