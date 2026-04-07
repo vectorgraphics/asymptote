@@ -68,6 +68,7 @@ struct HashSet_T {
     for (int i = start; i < end; ++i) {
       HashEntry entry = buckets[i];
       if (entry == null) {
+        assert(isNullT != null, 'Item is not present.');
         return super.nullT;
       }
       if (entry.hash == bucket) {
