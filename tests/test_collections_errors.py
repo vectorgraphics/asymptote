@@ -14,6 +14,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import os
 import re
 import subprocess
@@ -33,23 +34,21 @@ _DEFAULT_BASE_DIR = os.path.join(SCRIPT_DIR, "base")
 # ---------------------------------------------------------------------------
 
 
+@dataclasses.dataclass
+class _Counts:
+    passed: int = 0
+    failed: int = 0
+    skipped: int = 0
+
+
+@dataclasses.dataclass
 class TestRunner:
-    def __init__(
-        self,
-        verbose: bool = False,
-        filter_pattern: Optional[str] = None,
-        asy: Optional[str] = None,
-        base_dir: Optional[str] = None,
-        simulate_failure: bool = False,
-    ):
-        self.verbose = verbose
-        self.filter_pattern = filter_pattern
-        self.asy = asy or _DEFAULT_ASY
-        self.base_dir = base_dir or _DEFAULT_BASE_DIR
-        self.simulate_failure = simulate_failure
-        self.passed = 0
-        self.failed = 0
-        self.skipped = 0
+    verbose: bool = False
+    filter_pattern: Optional[str] = None
+    asy: str = _DEFAULT_ASY
+    base_dir: str = _DEFAULT_BASE_DIR
+    simulate_failure: bool = False
+    counts: _Counts = dataclasses.field(default_factory=_Counts, init=False)
 
     def run_asy(self, code: str) -> tuple[str, int]:
         """Write *code* to a temp file, run asy on it, return stderr and return code."""
@@ -82,7 +81,7 @@ class TestRunner:
         if self.filter_pattern and not re.search(
             self.filter_pattern, name, re.IGNORECASE
         ):
-            self.skipped += 1
+            self.counts.skipped += 1
             return True
 
         if self.verbose:
@@ -94,34 +93,34 @@ class TestRunner:
                 print("FAILED")
                 print(f"    Expected pattern: {expected_pattern!r}")
                 print(f"    Got:              {actual!r}")
-            elif not self.failed:
+            elif not self.counts.failed:
                 print(f"\n  {name} ... FAILED")
                 print(f"    Expected pattern: {expected_pattern!r}")
                 print(f"    Got:              {actual!r}")
             else:
                 sys.stdout.write("F")
                 sys.stdout.flush()
-            self.failed += 1
+            self.counts.failed += 1
             return False
         if self.verbose:
             print("PASSED")
         else:
             sys.stdout.write(".")
             sys.stdout.flush()
-        self.passed += 1
+        self.counts.passed += 1
         return True
 
     def summary(self) -> bool:
         """Print a summary line and return True iff all tests passed."""
-        total = self.passed + self.failed + self.skipped
-        run = total - self.skipped
-        parts = [f"{self.passed}/{run} passed"]
-        if self.failed:
-            parts.append(f"{self.failed} failed")
-        if self.skipped:
-            parts.append(f"{self.skipped} skipped")
+        total = self.counts.passed + self.counts.failed + self.counts.skipped
+        run = total - self.counts.skipped
+        parts = [f"{self.counts.passed}/{run} passed"]
+        if self.counts.failed:
+            parts.append(f"{self.counts.failed} failed")
+        if self.counts.skipped:
+            parts.append(f"{self.counts.skipped} skipped")
         print("\n" + ", ".join(parts))
-        return self.failed == 0
+        return self.counts.failed == 0
 
 
 # ---------------------------------------------------------------------------
@@ -141,15 +140,26 @@ def run_tests(runner: TestRunner) -> None:
             print(to_print)
         else:
             if group_started:
-                print("  FAILED" if failures_at_group_start < runner.failed else "PASSED")  # close previous group, newline before next header
+                print(
+                    "  FAILED"
+                    if failures_at_group_start < runner.counts.failed
+                    else "PASSED"
+                )  # close previous group, newline before next header
             group_started = True
-            failures_at_group_start = runner.failed
+            failures_at_group_start = runner.counts.failed
             print(to_print, end="")
 
     def end_groups() -> None:
         """Close the final group without a trailing newline."""
         if not runner.verbose and group_started:
-            print("  FAILED" if failures_at_group_start < runner.failed else "PASSED", end="")
+            print(
+                (
+                    "  FAILED"
+                    if failures_at_group_start < runner.counts.failed
+                    else "PASSED"
+                ),
+                end="",
+            )
 
     # -----------------------------------------------------------------------
     # Queue
@@ -523,7 +533,7 @@ def main() -> int:
     parser.add_argument(
         "--simulate-failure",
         action="store_true",
-        help="replace asy output with non-matching text so every test fails; useful for previewing failure formatting",
+        help="simulate non-matching asy output so every test fails",
     )
     args = parser.parse_args()
 
