@@ -3438,6 +3438,11 @@ void AsyVkRender::createGraphicsPipelines()
     },
     // Color triangles
     {
+      vk::PrimitiveTopology::eTriangleList, drawMode, colorShaderOptions,
+      "colorPipeline", "vertex", "fragment", 0, true, false, false
+    },
+    // Triangle groups
+    {
       vk::PrimitiveTopology::eTriangleList, drawMode, triangleShaderOptions,
       "trianglePipeline", "vertex", "fragment", 0, true, false, false
     },
@@ -3459,9 +3464,10 @@ void AsyVkRender::createGraphicsPipelines()
   };
 
   createPipelineSet<MaterialVertex>(materialPipelines, configs[0]);
-  createPipelineSet<ColorVertex>(trianglePipelines, configs[1]);
-  createPipelineSet<MaterialVertex>(linePipelines, configs[2]);
-  createPipelineSet<PointVertex>(pointPipelines, configs[3]);
+  createPipelineSet<ColorVertex>(colorPipelines, configs[1]);
+  createPipelineSet<ColorVertex>(trianglePipelines, configs[2]);
+  createPipelineSet<MaterialVertex>(linePipelines, configs[3]);
+  createPipelineSet<PointVertex>(pointPipelines, configs[4]);
 
   // Create pipelines for transparent triangles
   PipelineConfig transparentConfig = {
@@ -3826,7 +3832,7 @@ void AsyVkRender::drawColors(FrameObject & object)
   drawBuffer(object.colorVertexBuffer,
              object.colorIndexBuffer,
              &colorData,
-             *getPipelineType(trianglePipelines));
+             *getPipelineType(colorPipelines));
 }
 
 void AsyVkRender::drawTriangles(FrameObject & object)
@@ -4004,7 +4010,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     drawBuffer(object.colorVertexBuffer,
                object.colorIndexBuffer,
                &colorData,
-               *trianglePipelines[PIPELINE_COUNT],
+               *colorPipelines[PIPELINE_COUNT],
                false);
     drawBuffer(object.triangleVertexBuffer,
                object.triangleIndexBuffer,
