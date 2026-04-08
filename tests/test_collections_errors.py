@@ -8,7 +8,7 @@ changes do not break the tests.
 
 Usage:
     python3 tests/test_collections_errors.py           # run all tests
-    python3 tests/test_collections_errors.py -v        # verbose (show PASSes)
+    python3 tests/test_collections_errors.py -v        # verbose
     python3 tests/test_collections_errors.py -k PAT    # filter tests by name
 """
 
@@ -19,6 +19,7 @@ import subprocess
 import sys
 import tempfile
 import textwrap
+from typing import Optional
 
 # One directory up from this file is the asymptote source root.
 SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -35,9 +36,9 @@ class TestRunner:
     def __init__(
         self,
         verbose: bool = False,
-        filter_pattern: str = None,
-        asy: str = None,
-        base_dir: str = None,
+        filter_pattern: Optional[str] = None,
+        asy: Optional[str] = None,
+        base_dir: Optional[str] = None,
     ):
         self.verbose = verbose
         self.filter_pattern = filter_pattern
@@ -47,8 +48,8 @@ class TestRunner:
         self.failed = 0
         self.skipped = 0
 
-    def run_asy(self, code: str) -> str:
-        """Write *code* to a temp file, run asy on it, and return stderr."""
+    def run_asy(self, code: str) -> tuple[str, int]:
+        """Write *code* to a temp file, run asy on it, return stderr and return code."""
         fd, tmpfile = tempfile.mkstemp(suffix=".asy", dir=SCRIPT_DIR)
         try:
             # Asy code snippets are embedded in Python triple-quoted strings
@@ -64,7 +65,7 @@ class TestRunner:
                 text=True,
                 check=False,
             )
-            return result.stderr
+            return result.stderr, result.returncode
         finally:
             os.unlink(tmpfile)
 
@@ -79,14 +80,22 @@ class TestRunner:
             self.skipped += 1
             return True
 
-        sys.stdout.write(f"  {name} ... ")
-        sys.stdout.flush()
-        actual = self.run_asy(code)
-        if re.search(expected_pattern, actual):
-            print("PASSED")
+        if self.verbose:
+            sys.stdout.write(f"  {name} ... ")
+            sys.stdout.flush()
+        actual, returncode = self.run_asy(code)
+        if returncode != 0 and re.search(expected_pattern, actual):
+            if self.verbose:
+                print("PASSED")
+            else:
+                sys.stdout.write(".")
+                sys.stdout.flush()
             self.passed += 1
             return True
-        print("FAILED")
+        if self.verbose:
+            print("FAILED")
+        else:
+            print(f"\n  {name} ... FAILED")
         print(f"    Expected pattern: {expected_pattern!r}")
         print(f"    Got:              {actual!r}")
         self.failed += 1
@@ -111,11 +120,29 @@ class TestRunner:
 
 
 def run_tests(runner: TestRunner) -> None:
+    # Tracks whether a non-verbose group is open (needs "PASSED" to close it).
+    group_started = False
+
+    def print_header(title: str) -> None:
+        nonlocal group_started
+        to_print = f"Testing runtime errors ({title})"
+        if runner.verbose:
+            print(to_print)
+        else:
+            if group_started:
+                print("PASSED")  # close previous group, newline before next header
+            group_started = True
+            print(to_print, end="")
+
+    def end_groups() -> None:
+        """Close the final group without a trailing newline."""
+        if not runner.verbose and group_started:
+            print("PASSED", end="")
 
     # -----------------------------------------------------------------------
     # Queue
     # -----------------------------------------------------------------------
-    print("Queue:")
+    print_header("Queue")
 
     runner.check(
         "pop from empty queue",
@@ -164,7 +191,7 @@ def run_tests(runner: TestRunner) -> None:
     # -----------------------------------------------------------------------
     # HashMap
     # -----------------------------------------------------------------------
-    print("HashMap:")
+    print_header("HashMap")
 
     runner.check(
         "get missing key (no nullValue)",
@@ -223,7 +250,7 @@ def run_tests(runner: TestRunner) -> None:
     # -----------------------------------------------------------------------
     # BTreeMap
     # -----------------------------------------------------------------------
-    print("BTreeMap:")
+    print_header("BTreeMap")
 
     runner.check(
         "get missing key (no nullValue)",
@@ -263,7 +290,7 @@ def run_tests(runner: TestRunner) -> None:
     # -----------------------------------------------------------------------
     # HashSet
     # -----------------------------------------------------------------------
-    print("HashSet:")
+    print_header("HashSet")
 
     runner.check(
         "get missing item (no nullT)",
@@ -322,7 +349,7 @@ def run_tests(runner: TestRunner) -> None:
     # -----------------------------------------------------------------------
     # BTreeSet  (accessed via collections.btree)
     # -----------------------------------------------------------------------
-    print("BTreeSet:")
+    print_header("BTreeSet")
 
     runner.check(
         "get missing item (no nullT)",
@@ -452,6 +479,8 @@ def run_tests(runner: TestRunner) -> None:
         r"assert FAILED: Concurrent modification",
     )
 
+    end_groups()
+
 
 # ---------------------------------------------------------------------------
 # Entry point
@@ -488,7 +517,10 @@ def main() -> int:
         base_dir=args.base_dir,
     )
 
-    print(f"Running collections runtime error tests (asy = {runner.asy})\n")
+    print(
+        f"Running collections runtime error tests (asy = {runner.asy})\n",
+        end="\n" if runner.verbose else "",
+    )
     run_tests(runner)
     passed = runner.summary()
     return 0 if passed else 1
