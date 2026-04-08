@@ -11,6 +11,7 @@ Usage:
     python3 tests/test_collections_errors.py -v        # verbose
     python3 tests/test_collections_errors.py -k PAT    # filter tests by name
 """
+
 from __future__ import annotations
 
 import argparse
