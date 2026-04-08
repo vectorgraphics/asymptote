@@ -204,3 +204,53 @@ install(
             ${ASY_WIN_RESOURCE_DIR}/asy.ico
         ${ASY_NSIS_INSTALL_ARGUMENT}
 )
+
+# Third-party attribution summary
+install(
+        FILES
+            ${CMAKE_CURRENT_SOURCE_DIR}/LICENSES-THIRD-PARTY.md
+            ${CMAKE_CURRENT_SOURCE_DIR}/DISTRIBUTION-LICENSE-NOTICE.md
+        ${ASY_NSIS_INSTALL_ARGUMENT}
+)
+
+# Third-party license files -> <install-root>/LICENSES/
+set(ASY_NSIS_INSTALL_LICENSES_ARGUMENT
+        COMPONENT ${ASY_PRE_NSIS_COMPONENT_NAME}
+        DESTINATION ${ASY_INSTALL_DIRECTORY}/LICENSES
+)
+
+install(
+        FILES ${CMAKE_CURRENT_SOURCE_DIR}/backports/span/LICENSE.txt
+        RENAME span-LICENSE.txt
+        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
+)
+
+install(
+        FILES ${CMAKE_CURRENT_SOURCE_DIR}/backports/getopt/LICENSE.txt
+        RENAME getopt-LICENSE.txt
+        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
+)
+
+install(
+        FILES ${CMAKE_CURRENT_SOURCE_DIR}/backports/glew/LICENSE.txt
+        RENAME glew-LICENSE.txt
+        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
+)
+
+install(
+        FILES ${CMAKE_CURRENT_SOURCE_DIR}/LspCpp/LICENSE
+        RENAME LspCpp-LICENSE.txt
+        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
+)
+
+install(
+        FILES ${CMAKE_CURRENT_SOURCE_DIR}/libatomic_ops/LICENSE
+        RENAME libatomic_ops-LICENSE.txt
+        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
+)
+
+install(
+        FILES ${CMAKE_CURRENT_SOURCE_DIR}/libatomic_ops/COPYING
+        RENAME libatomic_ops-COPYING.txt
+        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
+)

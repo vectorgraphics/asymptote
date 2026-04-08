@@ -35,8 +35,11 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for component details.
 ✓ Include LICENSES-THIRD-PARTY.md with prominent visibility
 
 **Note**: The `asy --licenses` command prints license and third-party attribution
-information at runtime, providing a fallback for compliance even if documentation
-files are not bundled with the binary.
+information at runtime as a supplemental convenience only. It does **not**
+replace the requirement to bundle the `LICENSES` folder and the documentation
+files listed above with binary distributions. If the install or packaging
+scripts do not copy these files automatically, distributors/packagers must
+add them manually to remain compliant.
 
 ## TeXLive / Package Manager Distribution
 

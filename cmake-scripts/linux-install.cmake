@@ -114,6 +114,75 @@ install(
 )
 #endregion
 
+#region license files
+# License and attribution files go under share/doc/asymptote/ following
+# CMAKE_INSTALL_DOCDIR conventions. Distribution packagers (Fedora, Debian,
+# etc.) are responsible for relocating to their distro-specific paths.
+set(ASY_DOCDIR_INSTALL_DIR ${CMAKE_INSTALL_DOCDIR})
+set(ASY_LICENSES_INSTALL_DIR ${ASY_DOCDIR_INSTALL_DIR}/licenses)
+
+install(
+        FILES
+            ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE
+            ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.LESSER
+            ${CMAKE_CURRENT_SOURCE_DIR}/LICENSES-THIRD-PARTY.md
+            ${CMAKE_CURRENT_SOURCE_DIR}/DISTRIBUTION-LICENSE-NOTICE.md
+        DESTINATION ${ASY_DOCDIR_INSTALL_DIR}
+        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
+        PERMISSIONS ${PERMISSION_644_LIST}
+)
+
+# Third-party license files in a licenses/ subdirectory, with component-prefixed
+# names to avoid collisions.
+install(
+        FILES ${CMAKE_CURRENT_SOURCE_DIR}/backports/span/LICENSE.txt
+        DESTINATION ${ASY_LICENSES_INSTALL_DIR}
+        RENAME span-LICENSE.txt
+        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
+        PERMISSIONS ${PERMISSION_644_LIST}
+)
+
+install(
+        FILES ${CMAKE_CURRENT_SOURCE_DIR}/backports/getopt/LICENSE.txt
+        DESTINATION ${ASY_LICENSES_INSTALL_DIR}
+        RENAME getopt-LICENSE.txt
+        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
+        PERMISSIONS ${PERMISSION_644_LIST}
+)
+
+install(
+        FILES ${CMAKE_CURRENT_SOURCE_DIR}/backports/glew/LICENSE.txt
+        DESTINATION ${ASY_LICENSES_INSTALL_DIR}
+        RENAME glew-LICENSE.txt
+        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
+        PERMISSIONS ${PERMISSION_644_LIST}
+)
+
+install(
+        FILES ${CMAKE_CURRENT_SOURCE_DIR}/LspCpp/LICENSE
+        DESTINATION ${ASY_LICENSES_INSTALL_DIR}
+        RENAME LspCpp-LICENSE.txt
+        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
+        PERMISSIONS ${PERMISSION_644_LIST}
+)
+
+install(
+        FILES ${CMAKE_CURRENT_SOURCE_DIR}/libatomic_ops/LICENSE
+        DESTINATION ${ASY_LICENSES_INSTALL_DIR}
+        RENAME libatomic_ops-LICENSE.txt
+        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
+        PERMISSIONS ${PERMISSION_644_LIST}
+)
+
+install(
+        FILES ${CMAKE_CURRENT_SOURCE_DIR}/libatomic_ops/COPYING
+        DESTINATION ${ASY_LICENSES_INSTALL_DIR}
+        RENAME libatomic_ops-COPYING.txt
+        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
+        PERMISSIONS ${PERMISSION_644_LIST}
+)
+#endregion
+
 #region documentation files
 if (ENABLE_DOCGEN)
     set(ASY_DOCS_INSTALL_COMPONENT asy-docs)

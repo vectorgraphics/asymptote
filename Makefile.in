@@ -272,7 +272,20 @@ asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy asy-list.py
 	done
 	$(PYTHON) ./asy-list.py --asy-list-file asy.list --revision $(revision) --output-file $@
 
-install-notexhash: asy-keywords.el install-asy install-man
+licensedir = $(docdir)/licenses
+
+install-licenses:
+	${INSTALL} -d $(docdir) $(licensedir)
+	${INSTALL} -p -m 644 LICENSE LICENSE.LESSER \
+		LICENSES-THIRD-PARTY.md DISTRIBUTION-LICENSE-NOTICE.md $(docdir)
+	${INSTALL} -p -m 644 backports/span/LICENSE.txt $(licensedir)/span-LICENSE.txt
+	${INSTALL} -p -m 644 backports/getopt/LICENSE.txt $(licensedir)/getopt-LICENSE.txt
+	${INSTALL} -p -m 644 backports/glew/LICENSE.txt $(licensedir)/glew-LICENSE.txt
+	${INSTALL} -p -m 644 LspCpp/LICENSE $(licensedir)/LspCpp-LICENSE.txt
+	${INSTALL} -p -m 644 libatomic_ops/LICENSE $(licensedir)/libatomic_ops-LICENSE.txt
+	${INSTALL} -p -m 644 libatomic_ops/COPYING $(licensedir)/libatomic_ops-COPYING.txt
+
+install-notexhash: asy-keywords.el install-asy install-licenses install-man
 
 install: install-notexhash install-texhash
 
@@ -367,6 +380,12 @@ uninstall-man:
 # $(exampledir) and $(animationsdir) which are subdirectories of $(docdir).
 # Both must finish before we can rmdir $(docdir).
 uninstall-docdir: uninstall-man uninstall-asy
+	-cd $(licensedir) && rm -f span-LICENSE.txt getopt-LICENSE.txt \
+		glew-LICENSE.txt LspCpp-LICENSE.txt \
+		libatomic_ops-LICENSE.txt libatomic_ops-COPYING.txt
+	-rmdir $(licensedir)
+	-cd $(docdir) && rm -f LICENSE LICENSE.LESSER \
+		LICENSES-THIRD-PARTY.md DISTRIBUTION-LICENSE-NOTICE.md
 	-rmdir $(docdir)
 
 clean:	FORCE
