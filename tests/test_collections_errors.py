@@ -11,6 +11,7 @@ Usage:
     python3 tests/test_collections_errors.py -v        # verbose
     python3 tests/test_collections_errors.py -k PAT    # filter tests by name
 """
+from __future__ import annotations
 
 import argparse
 import os
@@ -39,18 +40,22 @@ class TestRunner:
         filter_pattern: Optional[str] = None,
         asy: Optional[str] = None,
         base_dir: Optional[str] = None,
+        simulate_failure: bool = False,
     ):
         self.verbose = verbose
         self.filter_pattern = filter_pattern
         self.asy = asy or _DEFAULT_ASY
         self.base_dir = base_dir or _DEFAULT_BASE_DIR
+        self.simulate_failure = simulate_failure
         self.passed = 0
         self.failed = 0
         self.skipped = 0
 
     def run_asy(self, code: str) -> tuple[str, int]:
         """Write *code* to a temp file, run asy on it, return stderr and return code."""
-        fd, tmpfile = tempfile.mkstemp(suffix=".asy", dir=SCRIPT_DIR)
+        if self.simulate_failure:
+            return "<simulated output that does not match any expected pattern>", 1
+        fd, tmpfile = tempfile.mkstemp(suffix=".asy")
         try:
             # Asy code snippets are embedded in Python triple-quoted strings
             # which inherit Python indentation. Dedent them here so the
@@ -84,22 +89,27 @@ class TestRunner:
             sys.stdout.write(f"  {name} ... ")
             sys.stdout.flush()
         actual, returncode = self.run_asy(code)
-        if returncode != 0 and re.search(expected_pattern, actual):
+        if returncode == 0 or not re.search(expected_pattern, actual):
             if self.verbose:
-                print("PASSED")
+                print("FAILED")
+                print(f"    Expected pattern: {expected_pattern!r}")
+                print(f"    Got:              {actual!r}")
+            elif not self.failed:
+                print(f"\n  {name} ... FAILED")
+                print(f"    Expected pattern: {expected_pattern!r}")
+                print(f"    Got:              {actual!r}")
             else:
-                sys.stdout.write(".")
+                sys.stdout.write("F")
                 sys.stdout.flush()
-            self.passed += 1
-            return True
+            self.failed += 1
+            return False
         if self.verbose:
-            print("FAILED")
+            print("PASSED")
         else:
-            print(f"\n  {name} ... FAILED")
-        print(f"    Expected pattern: {expected_pattern!r}")
-        print(f"    Got:              {actual!r}")
-        self.failed += 1
-        return False
+            sys.stdout.write(".")
+            sys.stdout.flush()
+        self.passed += 1
+        return True
 
     def summary(self) -> bool:
         """Print a summary line and return True iff all tests passed."""
@@ -122,22 +132,24 @@ class TestRunner:
 def run_tests(runner: TestRunner) -> None:
     # Tracks whether a non-verbose group is open (needs "PASSED" to close it).
     group_started = False
+    failures_at_group_start = 0
 
     def print_header(title: str) -> None:
-        nonlocal group_started
+        nonlocal group_started, failures_at_group_start
         to_print = f"Testing runtime errors ({title})"
         if runner.verbose:
             print(to_print)
         else:
             if group_started:
-                print("PASSED")  # close previous group, newline before next header
+                print("  FAILED" if failures_at_group_start < runner.failed else "PASSED")  # close previous group, newline before next header
             group_started = True
+            failures_at_group_start = runner.failed
             print(to_print, end="")
 
     def end_groups() -> None:
         """Close the final group without a trailing newline."""
         if not runner.verbose and group_started:
-            print("PASSED", end="")
+            print("  FAILED" if failures_at_group_start < runner.failed else "PASSED", end="")
 
     # -----------------------------------------------------------------------
     # Queue
@@ -508,6 +520,11 @@ def main() -> int:
         default=_DEFAULT_BASE_DIR,
         help="path to the asy base/sysdir (default: %(default)s)",
     )
+    parser.add_argument(
+        "--simulate-failure",
+        action="store_true",
+        help="replace asy output with non-matching text so every test fails; useful for previewing failure formatting",
+    )
     args = parser.parse_args()
 
     runner = TestRunner(
@@ -515,6 +532,7 @@ def main() -> int:
         filter_pattern=args.filter,
         asy=args.asy,
         base_dir=args.base_dir,
+        simulate_failure=args.simulate_failure,
     )
 
     print(
