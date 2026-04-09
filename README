@@ -105,9 +105,6 @@ directories:
 * libatomic_ops/ - MIT License (core) / GPL-2.0 (extensions)
   (https://boehm.info/atomic_ops/)
 
-* backports/getopt/ - GNU getopt (LGPL-2.1-or-later)
-  (https://www.gnu.org/software/libc/)
-
 * backports/glew/ - GLEW OpenGL Extension Wrangler - BSD 3-Clause License
   (https://glew.sourceforge.net/)
 

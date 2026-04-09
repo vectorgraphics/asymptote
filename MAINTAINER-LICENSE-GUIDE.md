@@ -3,7 +3,7 @@
 ## Overview
 
 **Primary**: Asymptote is LGPL v3+. **Third-party components**: Each licensed separately.
-- **backports/span/span.hpp** — Boost 1.0 | **backports/getopt/** — LGPL 2.1+ | **wyhash/** — The Unlicense (Public Domain) | **gc/** — Custom permissive | **LspCpp/** — MIT
+- **backports/span/span.hpp** — Boost 1.0 | **wyhash/** — The Unlicense (Public Domain) | **gc/** — Custom permissive | **LspCpp/** — MIT
 - **libatomic_ops/** — MIT (core) / GPL-2.0 (extensions) | **backports/glew/** — BSD 3-Clause | **tinyexr/** — BSD 3-Clause
 
 See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for complete component details.
@@ -14,7 +14,6 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for complete component de
 |---------|-------|-----------------|
 | LGPL v3+ | All .cc/.h files (except third-party) | Default for new files |
 | Boost 1.0 | backports/span/span.hpp only | ⚠️ Cannot be relicensed |
-| LGPL 2.1+ | backports/getopt/ | Retain FSF copyright; LGPL 3 satisfies "or later" |
 | The Unlicense | wyhash/ | Public domain; compatible with everything |
 | MIT | LspCpp/, libatomic_ops (core) | Include copyright notice |
 | BSD 3-Clause | backports/glew/, tinyexr/ | Include copyright notice |
@@ -28,7 +27,6 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for complete component de
 | LICENSE / LICENSE.LESSER | LGPL text |
 | backports/span/LICENSE.txt | Boost 1.0 text (alongside span.hpp) |
 | backports/glew/LICENSE.txt | BSD 3-Clause + Mesa + Khronos text |
-| backports/getopt/LICENSE.txt | LGPL 2.1+ notice |
 | LICENSES-THIRD-PARTY.md | Component catalog |
 | DISTRIBUTION-LICENSE-NOTICE.md | Distribution guidance |
 
@@ -47,14 +45,14 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for complete component de
 4. Update version number if warranted
 
 ### Updating Third-Party Components
-Retain original license for: wyhash/, gc/, LspCpp/, libatomic_ops/, backports/span/, backports/glew/, backports/getopt/, tinyexr/
+Retain original license for: wyhash/, gc/, LspCpp/, libatomic_ops/, backports/span/, backports/glew/, tinyexr/
 _Note: wyhash/ is public domain, but retain the original header comment crediting Wang Yi._
 
 When adding, removing, or updating third-party components, also update
 `licenses.h`, both the short version and the full version.
 
 ### Distributing Asymptote
-✓ Include: LICENSE, LICENSE.LESSER, LICENSES-THIRD-PARTY.md, DISTRIBUTION-LICENSE-NOTICE.md, README; and in a licenses/ subdirectory: backports/span/LICENSE.txt, backports/glew/LICENSE.txt, backports/getopt/LICENSE.txt, wyhash/UNLICENSE.txt, LspCpp/LICENSE, libatomic_ops/LICENSE, libatomic_ops/COPYING
+✓ Include: LICENSE, LICENSE.LESSER, LICENSES-THIRD-PARTY.md, DISTRIBUTION-LICENSE-NOTICE.md, README; and in a licenses/ subdirectory: backports/span/LICENSE.txt, backports/glew/LICENSE.txt, wyhash/UNLICENSE.txt, LspCpp/LICENSE, libatomic_ops/LICENSE, libatomic_ops/COPYING
 ✓ Follow: DISTRIBUTION-LICENSE-NOTICE.md for your scenario (binary/TeXLive/package manager)
 ✓ Binaries: Ensure users can access license texts (also available via `asy --licenses=full`)
 

@@ -1,6 +1,6 @@
 # Distribution License Compliance Guide
 
-Asymptote incorporates 8 third-party components. All must be included with their licenses in all distributions.
+Asymptote incorporates 7 third-party components. All must be included with their licenses in all distributions.
 
 See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for component details.
 
@@ -10,7 +10,6 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for component details.
 |-----------|--------------|--------------|
 | Asymptote Core | LICENSE, LICENSE.LESSER | GNU LGPL v3+ |
 | span.hpp | backports/span/LICENSE.txt | Boost 1.0 |
-| GNU getopt | backports/getopt/LICENSE.txt | LGPL 2.1+ |
 | wyhash | wyhash/UNLICENSE.txt | The Unlicense (Public Domain) |
 | LspCpp | LspCpp/LICENSE | MIT |
 | libatomic_ops | libatomic_ops/LICENSE, COPYING | MIT / GPL-2.0 |
@@ -51,8 +50,8 @@ asymptote/
 └── licenses/asymptote/: All license files from table above
 ```
 
-### OS Package Managers (apt, yum, brew)
-- License metadata: LGPL-3.0-or-later AND LGPL-2.1-or-later AND Unlicense AND MIT AND Boost-1.0 AND BSD-3-Clause AND GPL-2.0
+### OS Package Managers (apt, yum, brew, macports)
+- License metadata: LGPL-3.0-or-later AND Unlicense AND MIT AND Boost-1.0 AND BSD-3-Clause AND GPL-2.0
 - Place license files in `/usr/share/licenses/asymptote/` or
 `/usr/share/doc/asymptote/licenses`, whichever is standard practice in your distribution.
 - Place LICENSES-THIRD-PARTY.md in `/usr/share/doc/asymptote/`
@@ -63,7 +62,6 @@ asymptote/
 | Component | License | Key Constraint |
 |-----------|---------|-----------------|
 | span.hpp | Boost 1.0 | ⚠️ Cannot relicense; retain Martin Moene copyright |
-| GNU getopt | LGPL 2.1+ | Retain copyright; satisfy LGPL (v2.1 or later) |
 | wyhash | The Unlicense (Public Domain) | No restrictions; attribution appreciated |
 | LspCpp | MIT | Retain copyright; incorporate freely into LGPL |
 | libatomic_ops | MIT/GPL-2.0 | Core (MIT): retain license. Extensions (GPL-2.0): must be GPL in binaries |
@@ -78,7 +76,6 @@ For LGPL core code: retain original copyright, include LICENSE.LESSER, document 
 ```
 Asymptote is free software under GNU LGPL v3+. Includes third-party components:
 - span.hpp (Boost License)
-- GNU getopt (LGPL 2.1+)
 - wyhash (Public Domain)
 - LspCpp (MIT)
 - libatomic_ops (MIT / GPL-2.0)

@@ -20,8 +20,6 @@ static const char *const summary =
   "\n"
   "  span.hpp          Boost Software License 1.0\n"
   "                    Martin Moene -- https://github.com/martinmoene/span-lite\n"
-  "  GNU getopt        GNU Lesser General Public License 2.1+\n"
-  "                    Free Software Foundation -- https://www.gnu.org/software/libc/\n"
   "  wyhash            The Unlicense (Public Domain)\n"
   "                    Wang Yi -- https://github.com/wangyi-fudan/wyhash\n"
   "  Boehm GC          Custom permissive license\n"
@@ -77,15 +75,6 @@ SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
 FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
-
-------------------------------------------------------------------------
-GNU getopt -- GNU Lesser General Public License 2.1 or later
-Free Software Foundation, Inc. <https://www.gnu.org/software/libc/>
-------------------------------------------------------------------------
-This component is governed by the GNU Lesser General Public License,
-version 2.1 or later. The source code used to build this binary is
-available at https://github.com/vectorgraphics/asymptote/
-Full license text: https://www.gnu.org/licenses/lgpl-2.1.html
 
 ------------------------------------------------------------------------
 wyhash -- The Unlicense (Public Domain)
