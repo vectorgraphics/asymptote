@@ -427,7 +427,7 @@ check-all: asy FORCE
 	./wce
 	$(MAKE) -C tests all
 
-.SUFFIXES: .c .cc .o .d .ui .py
+.SUFFIXES: .cc .o .d .ui .py
 %.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.cc)
 	$(CXX) $(OPTS) -o $@ -c $<
 %.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
@@ -435,12 +435,6 @@ check-all: asy FORCE
 	rm -f $@; \
 	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
 	sed 's,\($*\)\.o[ :]*,\1.o \1.pic.o $@ : ,g' < $@.$$$$ > $@; \
-	rm -f $@.$$$$
-%.d: %.c
-	@echo Creating $@; \
-	rm -f $@; \
-	${CC} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 # Compile for the shared library.  OpenGL must be disabled as it causes
 # crashes inside a shared library.
