@@ -49,7 +49,11 @@ Retain original license for: wyhash/, gc/, LspCpp/, libatomic_ops/, backports/sp
 _Note: wyhash/ is public domain, but retain the original header comment crediting Wang Yi._
 
 When adding, removing, or updating third-party components, also update
-`licenses.h`, both the short version and the full version.
+`licenses.h` (both the short summary and the full text), and the following
+install files:
+- `Makefile.in` — `install-licenses` target
+- `cmake-scripts/linux-install.cmake` — `install()` rules in the `#region license files` section
+- `cmake-scripts/win32-pre-nsis-installer.cmake` — `install()` rules after `# Third-party license files`
 
 ### Distributing Asymptote
 ✓ Include: LICENSE, LICENSE.LESSER, LICENSES-THIRD-PARTY.md, DISTRIBUTION-LICENSE-NOTICE.md, README; and in a licenses/ subdirectory: backports/span/LICENSE.txt, backports/glew/LICENSE.txt, wyhash/UNLICENSE.txt, LspCpp/LICENSE, libatomic_ops/LICENSE, libatomic_ops/COPYING
@@ -60,7 +64,7 @@ When adding, removing, or updating third-party components, also update
 - All contributions: compatible with LGPL v3+
 - span.hpp modifications: Boost license terms apply
 - Third-party modifications: retain original license terms
-- Adding new components: must be compatible or documented; update LICENSES-THIRD-PARTY.md, licenses.h, DISTRIBUTION-LICENSE-NOTICE.md, MAINTAINER-LICENSE-GUIDE.md (this file), and README.
+- Adding new components: must be compatible or documented; update LICENSES-THIRD-PARTY.md, licenses.h, DISTRIBUTION-LICENSE-NOTICE.md, MAINTAINER-LICENSE-GUIDE.md (this file), README, and all three install files (Makefile.in `install-licenses`, cmake-scripts/linux-install.cmake, cmake-scripts/win32-pre-nsis-installer.cmake).
 
 ## LGPL Header Template
 

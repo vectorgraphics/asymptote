@@ -260,3 +260,9 @@ install(
         RENAME libatomic_ops-COPYING.txt
         ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
 )
+
+install(
+        FILES ${CMAKE_CURRENT_SOURCE_DIR}/tinyexr/LICENSE.txt
+        RENAME tinyexr-LICENSE.txt
+        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
+)

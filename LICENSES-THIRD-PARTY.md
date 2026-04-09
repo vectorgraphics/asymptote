@@ -48,7 +48,8 @@ Asymptote incorporates the following third-party components:
 
 ### TinyEXR (BSD 3-Clause)
 - OpenEXR image library
-- License header in [tinyexr/tinyexr.h](tinyexr/tinyexr.h)
+- License: [tinyexr/LICENSE.txt](tinyexr/LICENSE.txt)
+- Also covers embedded OpenEXR code: Copyright (c) 2002, Industrial Light & Magic
 
 ## Distribution Requirements
 
