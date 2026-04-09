@@ -28,7 +28,7 @@ set(CORE_BUILD_FILES
         Delaunay predicates jsfile v3dfile
         EXRFiles lspserv symbolmaps win32helpers win32pipestream
         win32xdr xstream
-        vkrender vkutils vkdispatchstorage
+        glfw vkrender vkutils vkdispatchstorage
         lspdec lspexp lspfundec lspstm
 )
 
