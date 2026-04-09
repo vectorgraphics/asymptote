@@ -50,19 +50,19 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for complete component de
 Retain original license for: wyhash/, gc/, LspCpp/, libatomic_ops/, backports/span/, backports/glew/, backports/getopt/, tinyexr/
 _Note: wyhash/ is public domain, but retain the original header comment crediting Wang Yi._
 
-When adding, removing, or updating third-party components, also update the
-`licensesOption` output in `settings.cc` (printed by `asy --licenses`).
+When adding, removing, or updating third-party components, also update
+`licenses.h`, both the short version and the full version.
 
 ### Distributing Asymptote
 ✓ Include: LICENSE, LICENSE.LESSER, LICENSES-THIRD-PARTY.md, DISTRIBUTION-LICENSE-NOTICE.md, README; and in a licenses/ subdirectory: backports/span/LICENSE.txt, backports/glew/LICENSE.txt, backports/getopt/LICENSE.txt, wyhash/UNLICENSE.txt, LspCpp/LICENSE, libatomic_ops/LICENSE, libatomic_ops/COPYING
 ✓ Follow: DISTRIBUTION-LICENSE-NOTICE.md for your scenario (binary/TeXLive/package manager)
-✓ Binaries: Ensure users can access license texts (also available via `asy --licenses`)
+✓ Binaries: Ensure users can access license texts (also available via `asy --licenses=full`)
 
 ### Contributing
 - All contributions: compatible with LGPL v3+
 - span.hpp modifications: Boost license terms apply
 - Third-party modifications: retain original license terms
-- Adding new components: must be compatible or documented; update LICENSES-THIRD-PARTY.md, settings.cc, DISTRIBUTION-LICENSE-NOTICE.md, MAINTAINER-LICENSE-GUIDE.md (this file), and README.
+- Adding new components: must be compatible or documented; update LICENSES-THIRD-PARTY.md, licenses.h, DISTRIBUTION-LICENSE-NOTICE.md, MAINTAINER-LICENSE-GUIDE.md (this file), and README.
 
 ## LGPL Header Template
 
