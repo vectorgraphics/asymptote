@@ -24,9 +24,11 @@ Queue_T makeNaiveQueue(T[] initialData) {
     data.push(value);
   };
   queue.peek = new T() {
+    assert(data.length > 0, 'Queue is empty');
     return data[0];
   };
   queue.pop = new T() {
+    assert(data.length > 0, 'Queue is empty');
     ++version;
     T retv = data[0];
     data.delete(0);
@@ -120,12 +122,12 @@ struct ArrayQueue_T {
   }
 
   T peek() {
-    assert(size > 0);
+    assert(size > 0, 'Queue is empty');
     return data[start];
   }
 
   T pop() {
-    assert(size > 0);
+    assert(size > 0, 'Queue is empty');
     T retv = data[start];
     ++start;
     --size;
@@ -202,10 +204,12 @@ struct LinkedQueue_T {
   }
 
   T peek() {
+    assert(size > 0, 'Queue is empty');
     return head.value;
   }
 
   T pop() {
+    assert(size > 0, 'Queue is empty');
     ++version;
     T retv = head.value;
     head = head.next;
