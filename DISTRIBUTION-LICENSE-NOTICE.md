@@ -121,8 +121,8 @@ See third-party component catalog at LICENSES-THIRD-PARTY.md for full informatio
 - **Boost License**: https://www.boost.org/LICENSE_1_0.txt
 - **Asymptote**: https://github.com/vectorgraphics/asymptote
 - **span-lite**: https://github.com/martinmoene/span-lite
-- **HighwayHash**: https://github.com/google/highwayhash
 - **LspCpp**: https://github.com/kuafuwang/LspCpp
+- **wyhash**: https://github.com/wangyi-fudan/wyhash
 - **libatomic_ops**: https://boehm.info/atomic_ops/
 - **Boehm GC**: https://www.hboehm.info/gc/
 
