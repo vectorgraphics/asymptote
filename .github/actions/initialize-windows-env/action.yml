@@ -6,9 +6,28 @@ runs:
     - name: Install ninja
       shell: pwsh
       run: choco install ninja -y
+
     - name: Cache Vcpkg
       id: cache-vcpkg
       uses: actions/cache@v4
       with:
         path: ~\AppData\Local\vcpkg\archives
         key: ${{ runner.os }}-vcpkg-cache
+
+    - name: Create vcpkg overlay for getopt-win32
+      shell: pwsh
+      run: |
+        $OverlayDir = "$env:GITHUB_WORKSPACE\vcpkg-overlays\getopt-win32"
+        New-Item -ItemType Directory -Force -Path $OverlayDir | Out-Null
+
+        # Copy the default portfile to use as a template
+        Copy-Item "$env:VCPKG_INSTALLATION_ROOT\ports\getopt-win32\*" -Destination $OverlayDir
+
+        # Replace the expected hash with the actual hash
+        $PortFile = "$OverlayDir\portfile.cmake"
+        $Content = Get-Content $PortFile -Raw
+        $Content = $Content -replace '6e7595fa77efaed5c2e720b47fef31b7b16f757531b0fe9ebba2a1afe4b080ef518235e0caec5098bd733434725f5c79643f4edac0097ac6cee57e03c508ecaa', '9ca4e7ed7a1fe7bad9d9ef91b5e65c18a716f4c999818e3dd4f644fc861e1ae12e64255c27f12c0df3b1e44757d3d36c068682dd86d184c6f957b2cabda7bbf3'
+        $Content | Set-Content $PortFile
+
+        # Expose the custom overlay to CMake and vcpkg
+        echo "VCPKG_OVERLAY_PORTS=$env:GITHUB_WORKSPACE\vcpkg-overlays" >> $env:GITHUB_ENV
