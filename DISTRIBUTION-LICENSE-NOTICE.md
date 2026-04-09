@@ -18,7 +18,7 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for component details.
 | tinyexr | tinyexr/tinyexr.h | BSD 3-Clause |
 | Boehm GC | gc/alloc.c | Custom permissive |
 
-**Documentation files to include**: LICENSES-THIRD-PARTY.md, MAINTAINER-LICENSE-GUIDE.md, README
+**Documentation files to include**: LICENSES-THIRD-PARTY.md, DISTRIBUTION-LICENSE-NOTICE.md (this file), README
 
 ## Source Distribution
 
@@ -46,13 +46,14 @@ add them manually to remain compliant.
 ### TeXLive Structure
 ```
 asymptote/
-├── doc/asymptote/: LICENSES-THIRD-PARTY.md, MAINTAINER-LICENSE-GUIDE.md
+├── doc/asymptote/: LICENSES-THIRD-PARTY.md, DISTRIBUTION-LICENSE-NOTICE.md
 └── licenses/asymptote/: All license files from table above
 ```
 
 ### OS Package Managers (apt, yum, brew)
 - License metadata: LGPL-3.0-or-later AND LGPL-2.1-or-later AND Unlicense AND MIT AND Boost-1.0 AND BSD-3-Clause AND GPL-2.0
-- Place license files in `/usr/share/licenses/asymptote/`
+- Place license files in `/usr/share/licenses/asymptote/` or
+`/usr/share/doc/asymptote/licenses`, whichever is standard practice in your distribution.
 - Place LICENSES-THIRD-PARTY.md in `/usr/share/doc/asymptote/`
 - SPEC/control file should list all applicable licenses
 

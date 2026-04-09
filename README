@@ -115,5 +115,6 @@ directories:
   (https://github.com/syoyo/tinyexr)
 
 For complete license information and compliance guidance, see
-LICENSES-THIRD-PARTY.md, DISTRIBUTION-LICENSE-NOTICE.md, and 
+LICENSES-THIRD-PARTY.md and DISTRIBUTION-LICENSE-NOTICE.md.
+Maintainers working from the source tree should also consult
 MAINTAINER-LICENSE-GUIDE.md.
