@@ -6,7 +6,7 @@ Asymptote incorporates the following third-party components:
 |-----------|---------|----------|
 | span.hpp | Boost 1.0 | [backports/span/span.hpp](backports/span/span.hpp) |
 | GNU getopt | LGPL 2.1+ | [backports/getopt/](backports/getopt/) |
-| wyhash | The Unlicense (Public Domain) | [wyhash.h](wyhash.h) |
+| wyhash | The Unlicense (Public Domain) | [wyhash/](wyhash/) |
 | Boehm GC | Custom permissive | [gc/](gc/) |
 | LspCpp | MIT | [LspCpp/](LspCpp/) |
 | libatomic_ops | MIT / GPL-2.0 | [libatomic_ops/](libatomic_ops/) |
@@ -31,7 +31,8 @@ Asymptote incorporates the following third-party components:
 ### wyhash (The Unlicense — Public Domain)
 - Fast hash algorithm by Wang Yi
 - Source: https://github.com/wangyi-fudan/wyhash
-- License: Public domain (The Unlicense) — see header of [wyhash.h](wyhash.h)
+- Location: [wyhash/wyhash.h](wyhash/wyhash.h)
+- License: Public domain (The Unlicense) — [wyhash/UNLICENSE.txt](wyhash/UNLICENSE.txt)
 
 ### Boehm-Demers-Weiser GC (Custom)
 - Conservative garbage collector

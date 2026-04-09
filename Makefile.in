@@ -281,6 +281,7 @@ install-licenses:
 	${INSTALL} -p -m 644 backports/span/LICENSE.txt $(licensedir)/span-LICENSE.txt
 	${INSTALL} -p -m 644 backports/getopt/LICENSE.txt $(licensedir)/getopt-LICENSE.txt
 	${INSTALL} -p -m 644 backports/glew/LICENSE.txt $(licensedir)/glew-LICENSE.txt
+	${INSTALL} -p -m 644 wyhash/UNLICENSE.txt $(licensedir)/wyhash-UNLICENSE.txt
 	${INSTALL} -p -m 644 LspCpp/LICENSE $(licensedir)/LspCpp-LICENSE.txt
 	${INSTALL} -p -m 644 libatomic_ops/LICENSE $(licensedir)/libatomic_ops-LICENSE.txt
 	${INSTALL} -p -m 644 libatomic_ops/COPYING $(licensedir)/libatomic_ops-COPYING.txt
@@ -381,7 +382,7 @@ uninstall-man:
 # Both must finish before we can rmdir $(docdir).
 uninstall-docdir: uninstall-man uninstall-asy
 	-cd $(licensedir) && rm -f span-LICENSE.txt getopt-LICENSE.txt \
-		glew-LICENSE.txt LspCpp-LICENSE.txt \
+		glew-LICENSE.txt wyhash-UNLICENSE.txt LspCpp-LICENSE.txt \
 		libatomic_ops-LICENSE.txt libatomic_ops-COPYING.txt
 	-rmdir $(licensedir)
 	-cd $(docdir) && rm -f LICENSE LICENSE.LESSER \

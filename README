@@ -90,10 +90,10 @@ Asymptote includes the following third-party libraries, each with their own
 license terms. License files and notices are located in their respective
 directories:
 
-* span.hpp - Boost Software License v1.0 
+* backports/span/ - Boost Software License v1.0 
   (https://github.com/martinmoene/span-lite)
 
-* wyhash.h - The Unlicense (Public Domain)
+* wyhash/ - The Unlicense (Public Domain)
   (https://github.com/wangyi-fudan/wyhash)
 
 * gc/ - Boehm-Demers-Weiser Garbage Collector (custom permissive license)

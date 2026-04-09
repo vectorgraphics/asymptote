@@ -238,6 +238,12 @@ install(
 )
 
 install(
+        FILES ${CMAKE_CURRENT_SOURCE_DIR}/wyhash/UNLICENSE.txt
+        RENAME wyhash-UNLICENSE.txt
+        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
+)
+
+install(
         FILES ${CMAKE_CURRENT_SOURCE_DIR}/LspCpp/LICENSE
         RENAME LspCpp-LICENSE.txt
         ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}

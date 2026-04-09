@@ -11,7 +11,7 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for component details.
 | Asymptote Core | LICENSE, LICENSE.LESSER | GNU LGPL v3+ |
 | span.hpp | backports/span/LICENSE.txt | Boost 1.0 |
 | GNU getopt | backports/getopt/LICENSE.txt | LGPL 2.1+ |
-| wyhash | wyhash.h (header) | The Unlicense (Public Domain) |
+| wyhash | wyhash/UNLICENSE.txt | The Unlicense (Public Domain) |
 | LspCpp | LspCpp/LICENSE | MIT |
 | libatomic_ops | libatomic_ops/LICENSE, COPYING | MIT / GPL-2.0 |
 | backports/glew | backports/glew/LICENSE.txt | BSD 3-Clause |
