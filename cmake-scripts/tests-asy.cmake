@@ -25,7 +25,7 @@ add_test(
         NAME bundled.asy.collections_errors
         COMMAND ${PY3_INTERPRETER} ${ASY_ASYLANG_TEST_ROOT}/test_collections_errors.py
             --asy $<TARGET_FILE:asy>
-            --base-dir=${ASY_BUILD_BASE_DIR}
+            --asy-base-dir=${ASY_BUILD_BASE_DIR}
         WORKING_DIRECTORY ${ASY_ASYLANG_TEST_ROOT}
 )
 set_property(

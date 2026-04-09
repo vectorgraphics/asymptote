@@ -527,7 +527,7 @@ def main() -> int:
         help="path to the asy executable (default: %(default)s)",
     )
     parser.add_argument(
-        "--base-dir",
+        "--asy-base-dir",
         default=_DEFAULT_BASE_DIR,
         help="path to the asy base/sysdir (default: %(default)s)",
     )
@@ -542,7 +542,7 @@ def main() -> int:
         verbose=args.verbose,
         filter_pattern=args.filter,
         asy=args.asy,
-        base_dir=args.base_dir,
+        base_dir=args.asy_base_dir,
         simulate_failure=args.simulate_failure,
     )
 
