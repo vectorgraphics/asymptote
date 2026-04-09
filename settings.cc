@@ -43,6 +43,7 @@
 #include "array.h"
 
 #include "glrender.h"
+#include "licenses.h"
 
 #ifdef HAVE_LIBCURSES
 extern "C" {
@@ -1155,33 +1156,21 @@ struct licensesOption : public option {
   licensesOption(string name, char code, string desc)
     : option(name, code, noarg, desc, true) {}
 
+  // Accept an optional "=full" argument (long option only).
+  void longopt(c_option &o) override {
+    o.name=name.c_str();
+    o.has_arg=optional_argument;
+    o.flag=0;
+    o.val=0;
+  }
+
   bool getOption() {
     version();
-    // Note: URLs are separated from "\n" to avoid confusing IDEs.
-    cerr << "\n"
-      "Asymptote is free software under the GNU Lesser General Public\n"
-      "License v3+ (see LICENSE and LICENSE.LESSER).\n"
-      "\n"
-      "Third-party components:\n"
-      "\n"
-      "  span.hpp          Boost Software License 1.0\n"
-      "                    Martin Moene — https://github.com/martinmoene/span-lite" "\n"
-      "  GNU getopt        GNU Lesser General Public License 2.1+\n"
-      "                    Free Software Foundation — https://www.gnu.org/software/libc/" "\n"
-      "  wyhash            The Unlicense (Public Domain)\n"
-      "                    Wang Yi — https://github.com/wangyi-fudan/wyhash" "\n"
-      "  Boehm GC          Custom permissive license\n"
-      "                    https://www.hboehm.info/gc/" "\n"
-      "  LspCpp            MIT License\n"
-      "                    https://github.com/kuafuwang/LspCpp" "\n"
-      "  libatomic_ops     MIT (core) / GPL-2.0 (extensions)\n"
-      "                    https://github.com/ivmai/libatomic_ops" "\n"
-      "  GLEW              BSD 3-Clause License\n"
-      "                    https://glew.sourceforge.net/" "\n"
-      "  TinyEXR           BSD 3-Clause License\n"
-      "                    Syoyo Fujita — https://github.com/syoyo/tinyexr" "\n"
-      "\n"
-      "See LICENSES-THIRD-PARTY.md for full details." << endl;
+    if (optarg && string(optarg) == "full") {
+      cerr << licenses::full;
+    } else {
+      cerr << licenses::summary;
+    }
     exit(0);
 
     // Unreachable code.

@@ -34,12 +34,13 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for component details.
 ✓ Include written notice that source is available at https://github.com/vectorgraphics/asymptote
 ✓ Include LICENSES-THIRD-PARTY.md with prominent visibility
 
-**Note**: The `asy --licenses` command prints license and third-party attribution
-information at runtime as a supplemental convenience only. It does **not**
-replace the requirement to bundle the `LICENSES` folder and the documentation
-files listed above with binary distributions. If the install or packaging
-scripts do not copy these files automatically, distributors/packagers must
-add them manually to remain compliant.
+**Note**: The `asy --licenses=full` command embeds and prints all required copyright
+notices and license texts at runtime. It serves as a fallback compliance
+mechanism for binary distributions where the separate license files may not be
+present. When bundling license files alongside the binary is not practical,
+`asy --licenses=full` output alone is intended to satisfy the binary redistribution notice
+requirements for all included components. Bundling the `LICENSES` folder and
+`LICENSES-THIRD-PARTY.md` alongside the binary is still preferred when feasible.
 
 ## TeXLive / Package Manager Distribution
 
