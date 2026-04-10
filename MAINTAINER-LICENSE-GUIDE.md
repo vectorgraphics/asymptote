@@ -51,7 +51,7 @@ _Note: wyhash/ is public domain, but retain the original header comment creditin
 When adding, removing, or updating third-party components, also update
 `licenses.h` (both the short summary and the full text), and the following
 install files:
-- `Makefile.in` — `install-licenses` target
+- `Makefile.in` — `install-licenses` and `uninstall-docdir` targets
 - `cmake-scripts/linux-install.cmake` — `install()` rules in the `#region license files` section
 - `cmake-scripts/win32-pre-nsis-installer.cmake` — `install()` rules after `# Third-party license files`
 

@@ -15,7 +15,7 @@ See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for component details.
 | libatomic_ops | libatomic_ops/LICENSE, COPYING | MIT / GPL-2.0 |
 | backports/glew | backports/glew/LICENSE.txt | BSD 3-Clause |
 | tinyexr | tinyexr/LICENSE.txt | BSD 3-Clause |
-| Boehm GC | gc/alloc.c | Custom permissive |
+| Boehm GC | gc/LICENSE.txt | Custom permissive |
 
 **Documentation files to include**: LICENSES-THIRD-PARTY.md, DISTRIBUTION-LICENSE-NOTICE.md (this file), README
 

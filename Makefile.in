@@ -284,6 +284,8 @@ install-licenses:
 	${INSTALL} -p -m 644 LspCpp/LICENSE $(licensedir)/LspCpp-LICENSE.txt
 	${INSTALL} -p -m 644 libatomic_ops/LICENSE $(licensedir)/libatomic_ops-LICENSE.txt
 	${INSTALL} -p -m 644 libatomic_ops/COPYING $(licensedir)/libatomic_ops-COPYING.txt
+	${INSTALL} -p -m 644 tinyexr/LICENSE.txt $(licensedir)/tinyexr-LICENSE.txt
+	${INSTALL} -p -m 644 gc/LICENSE.txt $(licensedir)/gc-LICENSE.txt
 
 install-notexhash: asy-keywords.el install-asy install-licenses install-man
 
@@ -382,7 +384,8 @@ uninstall-man:
 uninstall-docdir: uninstall-man uninstall-asy
 	-cd $(licensedir) && rm -f span-LICENSE.txt \
 		glew-LICENSE.txt wyhash-UNLICENSE.txt LspCpp-LICENSE.txt \
-		libatomic_ops-LICENSE.txt libatomic_ops-COPYING.txt
+		libatomic_ops-LICENSE.txt libatomic_ops-COPYING.txt \
+		tinyexr-LICENSE.txt gc-LICENSE.txt
 	-rmdir $(licensedir)
 	-cd $(docdir) && rm -f LICENSE LICENSE.LESSER \
 		LICENSES-THIRD-PARTY.md DISTRIBUTION-LICENSE-NOTICE.md

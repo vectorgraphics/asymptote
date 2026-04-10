@@ -189,6 +189,14 @@ install(
         COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
         PERMISSIONS ${PERMISSION_644_LIST}
 )
+
+install(
+        FILES ${CMAKE_CURRENT_SOURCE_DIR}/gc/LICENSE.txt
+        DESTINATION ${ASY_LICENSES_INSTALL_DIR}
+        RENAME gc-LICENSE.txt
+        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
+        PERMISSIONS ${PERMISSION_644_LIST}
+)
 #endregion
 
 #region documentation files

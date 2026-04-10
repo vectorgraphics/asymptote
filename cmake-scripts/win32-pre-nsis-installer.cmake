@@ -260,3 +260,9 @@ install(
         RENAME tinyexr-LICENSE.txt
         ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
 )
+
+install(
+        FILES ${CMAKE_CURRENT_SOURCE_DIR}/gc/LICENSE.txt
+        RENAME gc-LICENSE.txt
+        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
+)
