@@ -11526,7 +11526,9 @@ Also output @code{Asymptote} traceback diagnostics.
 @cindex third-party licenses
 @cindex attribution
 Type @code{asy -licenses} to see the license and third-party attribution
-information for @code{Asymptote} and its bundled components.
+information for @code{Asymptote} and its bundled components. Type
+@code{asy -licenses=full} or @code{asy --licenses=full} to print the
+embedded full license texts.
 
 @node Interactive mode
 @chapter Interactive mode
