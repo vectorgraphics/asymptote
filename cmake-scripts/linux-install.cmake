@@ -135,69 +135,12 @@ install(
 
 # Third-party license files in a licenses/ subdirectory, with component-prefixed
 # names to avoid collisions.
-install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/backports/span/LICENSE.txt
+set(ASY_LICENSE_INSTALL_ARGS
         DESTINATION ${ASY_LICENSES_INSTALL_DIR}
-        RENAME span-LICENSE.txt
         COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
         PERMISSIONS ${PERMISSION_644_LIST}
 )
-
-install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/backports/glew/LICENSE.txt
-        DESTINATION ${ASY_LICENSES_INSTALL_DIR}
-        RENAME glew-LICENSE.txt
-        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
-        PERMISSIONS ${PERMISSION_644_LIST}
-)
-
-install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/wyhash/UNLICENSE.txt
-        DESTINATION ${ASY_LICENSES_INSTALL_DIR}
-        RENAME wyhash-UNLICENSE.txt
-        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
-        PERMISSIONS ${PERMISSION_644_LIST}
-)
-
-install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/LspCpp/LICENSE
-        DESTINATION ${ASY_LICENSES_INSTALL_DIR}
-        RENAME LspCpp-LICENSE.txt
-        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
-        PERMISSIONS ${PERMISSION_644_LIST}
-)
-
-install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/libatomic_ops/LICENSE
-        DESTINATION ${ASY_LICENSES_INSTALL_DIR}
-        RENAME libatomic_ops-LICENSE.txt
-        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
-        PERMISSIONS ${PERMISSION_644_LIST}
-)
-
-install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/libatomic_ops/COPYING
-        DESTINATION ${ASY_LICENSES_INSTALL_DIR}
-        RENAME libatomic_ops-COPYING.txt
-        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
-        PERMISSIONS ${PERMISSION_644_LIST}
-)
-
-install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/tinyexr/LICENSE.txt
-        DESTINATION ${ASY_LICENSES_INSTALL_DIR}
-        RENAME tinyexr-LICENSE.txt
-        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
-        PERMISSIONS ${PERMISSION_644_LIST}
-)
-
-install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/gc/LICENSE.txt
-        DESTINATION ${ASY_LICENSES_INSTALL_DIR}
-        RENAME gc-LICENSE.txt
-        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
-        PERMISSIONS ${PERMISSION_644_LIST}
-)
+include(cmake-scripts/install-third-party-licenses.cmake)
 #endregion
 
 #region documentation files

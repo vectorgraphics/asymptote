@@ -214,55 +214,8 @@ install(
 )
 
 # Third-party license files -> <install-root>/LICENSES/
-set(ASY_NSIS_INSTALL_LICENSES_ARGUMENT
+set(ASY_LICENSE_INSTALL_ARGS
         COMPONENT ${ASY_PRE_NSIS_COMPONENT_NAME}
         DESTINATION ${ASY_INSTALL_DIRECTORY}/LICENSES
 )
-
-install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/backports/span/LICENSE.txt
-        RENAME span-LICENSE.txt
-        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
-)
-
-install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/backports/glew/LICENSE.txt
-        RENAME glew-LICENSE.txt
-        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
-)
-
-install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/wyhash/UNLICENSE.txt
-        RENAME wyhash-UNLICENSE.txt
-        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
-)
-
-install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/LspCpp/LICENSE
-        RENAME LspCpp-LICENSE.txt
-        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
-)
-
-install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/libatomic_ops/LICENSE
-        RENAME libatomic_ops-LICENSE.txt
-        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
-)
-
-install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/libatomic_ops/COPYING
-        RENAME libatomic_ops-COPYING.txt
-        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
-)
-
-install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/tinyexr/LICENSE.txt
-        RENAME tinyexr-LICENSE.txt
-        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
-)
-
-install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/gc/LICENSE.txt
-        RENAME gc-LICENSE.txt
-        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
-)
+include(cmake-scripts/install-third-party-licenses.cmake)
