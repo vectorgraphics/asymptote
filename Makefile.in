@@ -279,7 +279,6 @@ install-licenses:
 	${INSTALL} -p -m 644 LICENSE LICENSE.LESSER \
 		LICENSES-THIRD-PARTY.md DISTRIBUTION-LICENSE-NOTICE.md $(docdir)
 	${INSTALL} -p -m 644 backports/span/LICENSE.txt $(licensedir)/span-LICENSE.txt
-	${INSTALL} -p -m 644 backports/getopt/LICENSE.txt $(licensedir)/getopt-LICENSE.txt
 	${INSTALL} -p -m 644 backports/glew/LICENSE.txt $(licensedir)/glew-LICENSE.txt
 	${INSTALL} -p -m 644 wyhash/UNLICENSE.txt $(licensedir)/wyhash-UNLICENSE.txt
 	${INSTALL} -p -m 644 LspCpp/LICENSE $(licensedir)/LspCpp-LICENSE.txt
@@ -381,7 +380,7 @@ uninstall-man:
 # $(exampledir) and $(animationsdir) which are subdirectories of $(docdir).
 # Both must finish before we can rmdir $(docdir).
 uninstall-docdir: uninstall-man uninstall-asy
-	-cd $(licensedir) && rm -f span-LICENSE.txt getopt-LICENSE.txt \
+	-cd $(licensedir) && rm -f span-LICENSE.txt \
 		glew-LICENSE.txt wyhash-UNLICENSE.txt LspCpp-LICENSE.txt \
 		libatomic_ops-LICENSE.txt libatomic_ops-COPYING.txt
 	-rmdir $(licensedir)

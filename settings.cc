@@ -24,11 +24,7 @@
 
 #include "common.h"
 
-#if HAVE_GNU_GETOPT_H
 #include <getopt.h>
-#else
-#include "getopt.h"
-#endif
 
 #include "util.h"
 #include "settings.h"

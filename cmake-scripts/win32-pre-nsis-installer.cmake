@@ -226,12 +226,6 @@ install(
 )
 
 install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/backports/getopt/LICENSE.txt
-        RENAME getopt-LICENSE.txt
-        ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}
-)
-
-install(
         FILES ${CMAKE_CURRENT_SOURCE_DIR}/backports/glew/LICENSE.txt
         RENAME glew-LICENSE.txt
         ${ASY_NSIS_INSTALL_LICENSES_ARGUMENT}

@@ -143,14 +143,6 @@ install(
 )
 
 install(
-        FILES ${CMAKE_CURRENT_SOURCE_DIR}/backports/getopt/LICENSE.txt
-        DESTINATION ${ASY_LICENSES_INSTALL_DIR}
-        RENAME getopt-LICENSE.txt
-        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
-        PERMISSIONS ${PERMISSION_644_LIST}
-)
-
-install(
         FILES ${CMAKE_CURRENT_SOURCE_DIR}/backports/glew/LICENSE.txt
         DESTINATION ${ASY_LICENSES_INSTALL_DIR}
         RENAME glew-LICENSE.txt
