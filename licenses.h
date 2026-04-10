@@ -39,6 +39,7 @@ static const char *const summary =
 // Full copyright notices and license texts printed by asy --licenses=full.
 // All notices and texts required for binary redistribution are reproduced
 // verbatim here, making this output a self-contained compliance document.
+// The string is split into chunks to avoid MSVC limits on string literal size.
 static const char *const full = R"RAW(
 Asymptote is free software under the GNU Lesser General Public License,
 version 3 or later (see https://www.gnu.org/licenses/).
@@ -47,7 +48,8 @@ Source code is available at https://github.com/vectorgraphics/asymptote/
 This binary incorporates the following third-party components. The full
 copyright notices and license terms required for binary redistribution are
 reproduced below.
-
+)RAW"
+R"RAW(
 ------------------------------------------------------------------------
 span.hpp -- Boost Software License 1.0
 Martin Moene <https://github.com/martinmoene/span-lite>
@@ -75,7 +77,8 @@ SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
 FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
-
+)RAW"
+R"RAW(
 ------------------------------------------------------------------------
 wyhash -- The Unlicense (Public Domain)
 Wang Yi <https://github.com/wangyi-fudan/wyhash>
@@ -104,7 +107,8 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 For more information, please refer to <https://unlicense.org/>
-
+)RAW"
+R"RAW(
 ------------------------------------------------------------------------
 Boehm-Demers-Weiser Garbage Collector -- Custom permissive license
 Hans-J. Boehm, Alan J. Demers, Xerox Corporation, Silicon Graphics,
@@ -160,7 +164,9 @@ that both that copyright notice and this permission notice appear
 in supporting documentation.  Hewlett-Packard Company makes no
 representations about the suitability of this software for any
 purpose.  It is provided "as is" without express or implied warranty.
-
+)RAW"
+#if defined(_MSC_VER)
+R"RAW(
 The files extra/msvc_dbg.c and include/private/msvc_dbg.h carry the
 following MIT license (compiled only on Windows):
 
@@ -184,7 +190,9 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
+)RAW"
+#endif
+R"RAW(
 ------------------------------------------------------------------------
 LspCpp -- MIT License
 kuafuwang <https://github.com/kuafuwang/LspCpp>
@@ -208,7 +216,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
-
+)RAW"
+R"RAW(
 ------------------------------------------------------------------------
 libatomic_ops -- MIT License (core) / GPL-2.0 (gpl extension library)
 Xerox Corporation, Silicon Graphics, Hewlett-Packard, Ivan Maidanski,
@@ -246,7 +255,8 @@ DEALINGS IN THE SOFTWARE.
 The GPL extension library (libatomic_ops_gpl.a) is covered by GPL-2.0:
   https://www.gnu.org/licenses/gpl-2.0.html
 Source: https://github.com/ivmai/libatomic_ops/
-
+)RAW"
+R"RAW(
 ------------------------------------------------------------------------
 GLEW -- BSD 3-Clause License
 Nigel Stewart, Milan Ikits, Marcelo E. Magallon, Lev Povalahev,
@@ -324,7 +334,8 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
-
+)RAW"
+R"RAW(
 ------------------------------------------------------------------------
 TinyEXR -- BSD 3-Clause License
 Syoyo Fujita and contributors <https://github.com/syoyo/tinyexr>
