@@ -163,13 +163,13 @@ Hash functions
 
 Collections (containers)
 
-* Pairs::
-* Iterators and utilities::
-* Maps::
-* Using Maps as Sets::
-* Sets::
-* Using Sets as Maps::
-* Queues::
+* Pairs::                       Generic pair type for any two types with hash support
+* Iterators and utilities::     Iterable structures and iterator manipulation tools
+* Maps::                        Hashmaps and b-tree maps (dictionaries/associative arrays)
+* Using Maps as Sets::          Using @code{Map_K_bool} for set operations
+* Sets::                        Hash sets and sorted b-tree sets with set operations
+* Using Sets as Maps::          Using @code{Set_Pair_K_V} as a map from keys to values
+* Queues::                      First-in-first-out (FIFO) queue data structure
 * Wrapping arrays::             Arrays that can be used as keys or values
 
 Iterators and utilities
@@ -7001,13 +7001,13 @@ or associative arrays), which are arguably the single most useful
 container in the @code{collections} module.
 
 @menu
-* Pairs::
-* Iterators and utilities::
-* Maps::
-* Using Maps as Sets::
-* Sets::
-* Using Sets as Maps::
-* Queues::
+* Pairs::                       Generic pair type for any two types with hash support
+* Iterators and utilities::     Iterable structures and iterator manipulation tools
+* Maps::                        Hashmaps and b-tree maps (dictionaries/associative arrays)
+* Using Maps as Sets::          Using @code{Map_K_bool} for set operations
+* Sets::                        Hash sets and sorted b-tree sets with set operations
+* Using Sets as Maps::          Using @code{Set_Pair_K_V} as a map from keys to values
+* Queues::                      First-in-first-out (FIFO) queue data structure
 * Wrapping arrays::             Arrays that can be used as keys or values
 @end menu
 
