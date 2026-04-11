@@ -86,32 +86,7 @@ http://www.zondicons.com/zondicons.zip
 
 THIRD-PARTY COMPONENTS
 
-Asymptote includes the following third-party libraries, each with their own
-license terms. License files and notices are located in their respective
-directories:
-
-* backports/span/ - Boost Software License v1.0 
-  (https://github.com/martinmoene/span-lite)
-
-* wyhash/ - The Unlicense (Public Domain)
-  (https://github.com/wangyi-fudan/wyhash)
-
-* gc/ - Boehm-Demers-Weiser Garbage Collector (custom permissive license)
-  (https://www.hboehm.info/gc/)
-
-* LspCpp/ - MIT License 
-  (https://github.com/kuafuwang/LspCpp)
-
-* libatomic_ops/ - MIT License (core) / GPL-2.0 (extensions)
-  (https://boehm.info/atomic_ops/)
-
-* backports/glew/ - GLEW OpenGL Extension Wrangler - BSD 3-Clause License
-  (https://glew.sourceforge.net/)
-
-* tinyexr/ - TinyEXR Image Library - BSD 3-Clause License
-  (https://github.com/syoyo/tinyexr)
-
-For complete license information and compliance guidance, see
-LICENSES-THIRD-PARTY.md and DISTRIBUTION-LICENSE-NOTICE.md.
-Maintainers working from the source tree should also consult
-MAINTAINER-LICENSE-GUIDE.md.
+Asymptote includes several third-party libraries (span-lite, wyhash,
+Boehm GC, LspCpp, libatomic_ops, GLEW, TinyEXR), each with their own
+license terms.  See LICENSES-THIRD-PARTY.md for the component list, or
+run asy --licenses=full for detailed copyright notices and license texts.

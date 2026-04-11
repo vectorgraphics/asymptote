@@ -2,59 +2,19 @@
 
 Asymptote incorporates the following third-party components:
 
-| Component | License | Location |
-|-----------|---------|----------|
-| span.hpp | Boost 1.0 | [backports/span/span.hpp](backports/span/span.hpp) |
-| wyhash | The Unlicense (Public Domain) | [wyhash/](wyhash/) |
-| Boehm GC | Custom permissive | [gc/](gc/) |
-| LspCpp | MIT | [LspCpp/](LspCpp/) |
-| libatomic_ops | MIT / GPL-2.0 | [libatomic_ops/](libatomic_ops/) |
-| GLEW | BSD 3-Clause | [backports/glew/](backports/glew/) |
-| TinyEXR | BSD 3-Clause | [tinyexr/](tinyexr/) |
+| Component | License | Source |
+|-----------|---------|--------|
+| span.hpp | Boost 1.0 | https://github.com/martinmoene/span-lite |
+| wyhash | The Unlicense (Public Domain) | https://github.com/wangyi-fudan/wyhash |
+| Boehm GC | Custom permissive | https://www.hboehm.info/gc/ |
+| LspCpp | MIT | https://github.com/kuafuwang/LspCpp |
+| libatomic_ops | MIT (core) / GPL-2.0 (extensions) | https://github.com/ivmai/libatomic_ops |
+| GLEW | BSD 3-Clause | https://glew.sourceforge.net/ |
+| TinyEXR | BSD 3-Clause | https://github.com/syoyo/tinyexr |
 
-## Component Details
+Full copyright notices and license texts for all components (including
+Asymptote's own LGPL) are available via `asy --licenses=full`, and in
+[licenses.h](licenses.h) in the source tree.
 
-### span.hpp (Boost 1.0)
-- Header-only C++ library for span types
-- Source: https://github.com/martinmoene/span-lite by Martin Moene
-- Location: [backports/span/span.hpp](backports/span/span.hpp)
-- License: [backports/span/LICENSE.txt](backports/span/LICENSE.txt) 
-- **Cannot be relicensed; must retain Boost license and Martin Moene attribution**
-
-### wyhash (The Unlicense — Public Domain)
-- Fast hash algorithm by Wang Yi
-- Source: https://github.com/wangyi-fudan/wyhash
-- Location: [wyhash/wyhash.h](wyhash/wyhash.h)
-- License: Public domain (The Unlicense) — [wyhash/UNLICENSE.txt](wyhash/UNLICENSE.txt)
-
-### Boehm-Demers-Weiser GC (Custom)
-- Conservative garbage collector
-- License headers in gc/ source files
-- Version 8.2.8
-
-### LspCpp (MIT)
-- Language Server Protocol implementation
-- License in [LspCpp/LICENSE](LspCpp/LICENSE)
-
-### libatomic_ops (MIT / GPL-2.0)
-- Core library: MIT License (core)
-- Extensions: GPL-2.0 (libatomic_ops_gpl.a)
-- License in [libatomic_ops/LICENSE](libatomic_ops/LICENSE)
-
-### GLEW (BSD 3-Clause)
-- OpenGL Extension Wrangler Library
-- License: [backports/glew/LICENSE.txt](backports/glew/LICENSE.txt)
-- Also covers Mesa (Brian Paul, MIT-style) and Khronos Group (MIT-style) portions
-
-### TinyEXR (BSD 3-Clause)
-- OpenEXR image library
-- License: [tinyexr/LICENSE.txt](tinyexr/LICENSE.txt)
-- Also covers embedded OpenEXR code: Copyright (c) 2002, Industrial Light & Magic
-
-## Distribution Requirements
-
-**All components must be included with their license files in source distributions.**
-
-For modifications: Permissive licenses (MIT, BSD, Apache, Boost, Custom) allow modification if copyright and license are retained. GPL-2.0 code requires source distribution. Always document changes.
-
-For detailed distribution guidance, see [DISTRIBUTION-LICENSE-NOTICE.md](DISTRIBUTION-LICENSE-NOTICE.md).
+See [MAINTAINER-LICENSE-GUIDE.md](MAINTAINER-LICENSE-GUIDE.md) for
+distribution and maintenance procedures.

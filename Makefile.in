@@ -277,7 +277,7 @@ licensedir = $(docdir)/licenses
 install-licenses:
 	${INSTALL} -d $(docdir) $(licensedir)
 	${INSTALL} -p -m 644 LICENSE LICENSE.LESSER \
-		LICENSES-THIRD-PARTY.md DISTRIBUTION-LICENSE-NOTICE.md $(docdir)
+		LICENSES-THIRD-PARTY.md $(docdir)
 	${INSTALL} -p -m 644 backports/span/LICENSE.txt $(licensedir)/span-LICENSE.txt
 	${INSTALL} -p -m 644 backports/glew/LICENSE.txt $(licensedir)/glew-LICENSE.txt
 	${INSTALL} -p -m 644 wyhash/UNLICENSE.txt $(licensedir)/wyhash-UNLICENSE.txt
@@ -388,7 +388,7 @@ uninstall-docdir: uninstall-man uninstall-asy
 		tinyexr-LICENSE.txt gc-LICENSE.txt
 	-rmdir $(licensedir)
 	-cd $(docdir) && rm -f LICENSE LICENSE.LESSER \
-		LICENSES-THIRD-PARTY.md DISTRIBUTION-LICENSE-NOTICE.md
+		LICENSES-THIRD-PARTY.md
 	-rmdir $(docdir)
 
 clean:	FORCE
