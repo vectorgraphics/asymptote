@@ -1650,7 +1650,8 @@ bool vperiodic(triple[][] a) {
 }
 
 // return the surface described by a matrix f
-surface surface(picture pic=currentpicture, triple[][] f, bool[][] cond={})
+surface surface(picture pic=currentpicture, triple[][] f, bool[][] cond={},
+                pen[][] vertexPens=null)
 {
   if(!rectangular(f)) abort("matrix is not rectangular");
 
@@ -1687,10 +1688,16 @@ surface surface(picture pic=currentpicture, triple[][] f, bool[][] cond={})
     for(int j=0; j < ny; ++j) {
       if(all || (condi[j] && condi[j+1] && condp[j] && condp[j+1])) {
         s.s[k]=patch(new triple[] {
-            Scale(pic,fi[j]),
+              Scale(pic,fi[j]),
               Scale(pic,fp[j]),
               Scale(pic,fp[j+1]),
-              Scale(pic,fi[j+1])});
+              Scale(pic,fi[j+1])},
+              colors=vertexPens == null ? new pen[] : new pen[] {
+                vertexPens[i][j],
+                vertexPens[i+1][j],
+                vertexPens[i+1][j+1],
+                vertexPens[i][j+1]
+              });
         indexi[j]=k;
         ++k;
       }
@@ -1998,7 +2005,8 @@ surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
 // return the surface described by a parametric function f over box(a,b),
 // interpolated linearly.
 surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
-                int nu=nmesh, int nv=nu, bool cond(pair z)=null)
+                int nu=nmesh, int nv=nu, bool cond(pair z)=null,
+                pen paramPen(pair z)=null)
 {
   if(nu <= 0 || nv <= 0) return nullsurface;
 
@@ -2012,6 +2020,7 @@ surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
   pair dz=(du,dv);
 
   triple[][] v=new triple[nu+1][nv+1];
+  pen[][] vertexPens=(paramPen == null ? null : new pen[nu+1][nv+1]);
 
   pair a=Scale(pic,a);
   pair b=Scale(pic,b);
@@ -2019,12 +2028,16 @@ surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
     real x=pic.scale.x.Tinv(interp(a.x,b.x,i*du));
     bool[] activei=all ? null : active[i];
     triple[] vi=v[i];
+    pen[] vertexPensi=vertexPens == null ? null : vertexPens[i];
     for(int j=0; j <= nv; ++j) {
       pair z=(x,pic.scale.y.Tinv(interp(a.y,b.y,j*dv)));
-      if(all || (activei[j]=cond(z))) vi[j]=f(z);
+      if(all || (activei[j]=cond(z))) {
+        vi[j]=f(z);
+        if(vertexPensi != null) vertexPensi[j]=paramPen(z);
+      }
     }
   }
-  return surface(pic,v,active);
+  return surface(pic,v,active,vertexPens);
 }
 
 // return the surface described by a parametric function f evaluated at u and v
