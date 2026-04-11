@@ -13,8 +13,13 @@ namespace licenses {
 // Short summary printed by asy --licenses.
 static const char *const summary =
   "\n"
+#if defined(_WIN32)
+  "Asymptote is free software under the GNU General Public\n"
+  "License v3+ (see LICENSE).\n"
+#else
   "Asymptote is free software under the GNU Lesser General Public\n"
   "License v3+ (see LICENSE and LICENSE.LESSER).\n"
+#endif
   "\n"
   "Third-party components:\n"
   "\n"
@@ -41,6 +46,19 @@ static const char *const summary =
 // verbatim here, making this output a self-contained compliance document.
 // The string is split into chunks to avoid MSVC limits on string literal size.
 static const char *const full =
+#if defined(_WIN32)
+R"RAW(
+Asymptote is free software under the GNU General Public License,
+version 3 or later. Source code: https://github.com/vectorgraphics/asymptote/
+
+[The source code and non-Windows binaries are available under the more
+permissive LGPL; see README.]
+
+The full text of the GNU General Public License (version 3) is reproduced below,
+followed by the copyright notices and license terms for all incorporated
+third-party components.
+)RAW"
+#else
 R"RAW(
 Asymptote is free software under the GNU Lesser General Public License,
 version 3 or later. Source code: https://github.com/vectorgraphics/asymptote/
@@ -217,7 +235,9 @@ whether future versions of the GNU Lesser General Public License shall
 apply, that proxy's public statement of acceptance of any version is
 permanent authorization for you to choose that version for the
 Library.
-
+)RAW"
+#endif  // defined(_WIN32)
+R"RAW(
 ========================================================================
 GNU GENERAL PUBLIC LICENSE, Version 3
 ========================================================================
