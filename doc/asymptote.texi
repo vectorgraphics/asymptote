@@ -154,12 +154,12 @@ Iterators
 
 Autounravel
 
-* When fields are autounraveled::
-* Where autounravel is legal::
+* Where fields are autounraveled::  Where autounraveling happens
+* Where autounravel is legal::  Valid autounravel locations
 
 Hash functions
 
-* Hashing user-defined structures::
+* Hashing user-defined structures::  Implementing hash methods for custom types
 
 Collections (containers)
 
@@ -175,19 +175,19 @@ Collections (containers)
 Iterators and utilities
 
 * @code{collections.iter(T)}::  Iterable structures
-* Combining (zipping) iterators::
-* Attaching a counter to an iterator::
+* Combining (zipping) iterators::  Iterating over multiple containers simultaneously
+* Attaching a counter to an iterator::  Enumerating elements with indices
 
 Maps
 
-* Initializing a @code{Map}::
-* The @code{Map} API::
+* Initializing a @code{Map}::   Creating hashmaps and b-tree maps
+* The @code{Map} API::          Methods for map operations
 
 Sets
 
-* Initializing a @code{Set}::
-* The @code{Set} API::
-* The @code{SortedSet} API::
+* Initializing a @code{Set}::   Creating hash sets and b-tree sets
+* The @code{Set} API::          Methods for set operations
+* The @code{SortedSet} API::    Additional methods for sorted sets
 
 User modules
 
@@ -6855,12 +6855,12 @@ Users who encounter a case where this might be useful can submit a
 feature request at @uref{https://github.com/vectorgraphics/asymptote/issues}.
 
 @menu
-* When fields are autounraveled::
-* Where autounravel is legal::
+* Where fields are autounraveled::  Where autounraveling happens
+* Where autounravel is legal::  Valid autounravel locations
 @end menu
 
-@node When fields are autounraveled
-@subsection When fields are autounraveled
+@node Where fields are autounraveled
+@subsection Where fields are autounraveled
 
 If a @code{struct} contains fields (including functions) that are declared with
 @code{autounravel}, these fields will be unraveled from the @code{struct} at:
@@ -6927,7 +6927,7 @@ will almost certainly have
 different hash values when hashed as an @code{int} versus a @code{real}.
 
 @menu
-* Hashing user-defined structures::
+* Hashing user-defined structures::  Implementing hash methods for custom types
 @end menu
 
 @node Hashing user-defined structures
@@ -7077,8 +7077,8 @@ p.hash = new int() {
 
 @menu
 * @code{collections.iter(T)}::  Iterable structures
-* Combining (zipping) iterators::
-* Attaching a counter to an iterator::
+* Combining (zipping) iterators::  Iterating over multiple containers simultaneously
+* Attaching a counter to an iterator::  Enumerating elements with indices
 @end menu
 
 @node @code{collections.iter(T)}
@@ -7353,8 +7353,8 @@ world 3
 @cindex @code{collections.hashmap}
 @cindex @code{collections.btreemap}
 @menu
-* Initializing a @code{Map}::
-* The @code{Map} API::
+* Initializing a @code{Map}::   Creating hashmaps and b-tree maps
+* The @code{Map} API::          Methods for map operations
 @end menu
 
 @node Initializing a @code{Map}
@@ -7615,9 +7615,9 @@ method should either return something or mutate the datastructure, but not
 both.)
 
 @menu
-* Initializing a @code{Set}::
-* The @code{Set} API::
-* The @code{SortedSet} API::
+* Initializing a @code{Set}::   Creating hash sets and b-tree sets
+* The @code{Set} API::          Methods for set operations
+* The @code{SortedSet} API::    Additional methods for sorted sets
 @end menu
 
 @node Initializing a @code{Set}
