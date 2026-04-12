@@ -662,6 +662,17 @@ esac
 fi
 fi
 
+# Check if Vulkan libraries should be bundled (macOS only)
+BUNDLE_VULKAN=no
+case "$OSTYPE" in
+    darwin*)
+        if echo "$LIBS" | grep -q "\-lvulkan"; then
+            BUNDLE_VULKAN=yes
+            AC_MSG_NOTICE([Will bundle Vulkan libraries for macOS distribution])
+        fi
+    ;;
+esac
+AC_SUBST(BUNDLE_VULKAN)
 
 # ------------------- VCPKG INSTALL
 

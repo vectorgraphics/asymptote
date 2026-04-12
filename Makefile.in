@@ -4,6 +4,8 @@ SILENT_MAKE = @
 
 ARCH = unix
 POLL = poll
+BUNDLE_VULKAN = @BUNDLE_VULKAN@
+CODESIGN_IDENTITY ?= -
 
 ASYGLVERSION = @ASYGLVERSION@
 GC = gc
@@ -140,6 +142,43 @@ export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
 asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
+ifeq ($(BUNDLE_VULKAN),yes)
+	@echo "Bundling Vulkan libraries for macOS..."
+	@mkdir -p lib
+	@vulkan_libs="$$(otool -L $(NAME) | awk '{ print $$1 }' | grep -E 'lib(glfw|vulkan|SPIRV|glslang)[^/]')"; \
+	moltenvk_dir="$$(echo "$$vulkan_libs" | grep libvulkan | head -1 | xargs dirname 2>/dev/null)"; \
+	for lib in $$vulkan_libs; do \
+		libname=$$(basename "$$lib"); \
+		cp "$$lib" lib/"$$libname"; \
+		chmod u+w lib/"$$libname"; \
+		install_name_tool -change "$$lib" "@executable_path/lib/$$libname" $(NAME); \
+	done; \
+	if [ -n "$$moltenvk_dir" ] && [ -f "$$moltenvk_dir/libMoltenVK.dylib" ]; then \
+		cp "$$moltenvk_dir/libMoltenVK.dylib" lib/; \
+		chmod u+w lib/libMoltenVK.dylib; \
+		icd_prefix=$$(cd "$$moltenvk_dir/.." 2>/dev/null && pwd); \
+		sys_icd="$$icd_prefix/share/vulkan/icd.d/MoltenVK_icd.json"; \
+		if [ -f "$$sys_icd" ]; then \
+			sed -E 's|("library_path"[[:space:]]*:[[:space:]]*)("[^"]*")(,?)|\1"./libMoltenVK.dylib"\3|' "$$sys_icd" > lib/MoltenVK_icd.json; \
+		else \
+			printf '{\n    "file_format_version": "1.0.0",\n    "ICD": {\n        "library_path": "./libMoltenVK.dylib",\n        "api_version": "1.0.0"\n    }\n}\n' > lib/MoltenVK_icd.json; \
+		fi; \
+	fi; \
+	for bundled in lib/*.dylib; do \
+		bname=$$(basename "$$bundled"); \
+		install_name_tool -id "@executable_path/lib/$$bname" "$$bundled" 2>/dev/null || true; \
+		for ref in $$vulkan_libs; do \
+			refname=$$(basename "$$ref"); \
+			if [ -f "lib/$$refname" ]; then \
+				install_name_tool -change "$$ref" "@executable_path/lib/$$refname" "$$bundled" 2>/dev/null || true; \
+			fi; \
+		done; \
+	done
+	@for bundled in lib/*.dylib; do \
+		codesign --sign "$(CODESIGN_IDENTITY)" --force "$$bundled" 2>/dev/null || true; \
+	done
+	@codesign --sign "$(CODESIGN_IDENTITY)" --force $(NAME) 2>/dev/null || true
+endif
 
 $(XNAME): $(PYFILES)
 	$(SILENT_MAKE)ln -sf GUI/xasy.py $(XNAME)
@@ -295,6 +334,12 @@ install-asy: asy sty $(PYFILES)
 	-${INSTALL} -d $(latexdir)
 	-${INSTALL} -d $(contextdir)
 	${INSTALL} -p -m 755 $(NAME) $(bindir)
+ifeq ($(BUNDLE_VULKAN),yes)
+	-if [ -d lib ]; then \
+		${INSTALL} -d $(bindir)/lib; \
+		${INSTALL} -p -m 644 lib/*.dylib lib/*.json $(bindir)/lib; \
+	fi
+endif
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) \
 		asy-keywords.el $(asydir)
 	${INSTALL} -p -m 644 base/collections/*.asy $(asydir)/collections
@@ -373,6 +418,7 @@ uninstall-docdir: uninstall-man uninstall-asy
 
 clean:	FORCE
 	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
+	-rm -rf lib
 	-cd LspCpp && $(MAKE) distclean
 	-cd tinyexr && $(MAKE) clean
 	-cd doc && $(MAKE) clean

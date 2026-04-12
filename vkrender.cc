@@ -28,6 +28,9 @@
 #include <vulkan/vulkan_win32.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
+#elif defined(__APPLE__)
+#include <mach-o/dyld.h>
+#include <sys/stat.h>
 #endif
 
 using settings::getSetting;
@@ -488,6 +491,27 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 void AsyVkRender::initVulkan()
 {
 #ifdef __APPLE__
+  // Point the Vulkan loader to the bundled MoltenVK ICD if available
+  {
+    char exePath[PATH_MAX];
+    uint32_t size = sizeof(exePath);
+    if (_NSGetExecutablePath(exePath, &size) == 0) {
+      char realPath[PATH_MAX];
+      if (realpath(exePath, realPath)) {
+        std::string exeDir(realPath);
+        size_t lastSlash = exeDir.rfind('/');
+        if (lastSlash != std::string::npos)
+          exeDir = exeDir.substr(0, lastSlash);
+        std::string icdPath = exeDir + "/lib/MoltenVK_icd.json";
+        struct stat st;
+        if (stat(icdPath.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
+          setenv("VK_ICD_FILENAMES", icdPath.c_str(), 0);
+          setenv("VK_DRIVER_FILES", icdPath.c_str(), 0);
+        }
+      }
+    }
+  }
+
   setenv("MVK_CONFIG_LOG_LEVEL","1",false);
 
   // Use smallest memory footprint during command buffer encoding
