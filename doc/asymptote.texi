@@ -77,7 +77,7 @@ file LICENSE in the top-level source directory).
 Installation
 
 * UNIX binary distributions::   Prebuilt @code{UNIX} binaries
-* MacOS X binary distributions::  Prebuilt @code{MacOS X} binaries
+* macOS X binary distributions::  Prebuilt @code{macOS X} binaries
 * Microsoft Windows::           Prebuilt @code{Microsoft Windows} binary
 * Configuring::                 Configuring @code{Asymptote} for your system
 * Search paths::                Where @code{Asymptote} looks for your files
@@ -274,7 +274,7 @@ consistency, yielding the same high level of typesetting quality that
 @code{SVG}, @code{WebGL}, @code{V3D}, and legacy @code{PRC} vector graphics,
 along with any format that the @code{ImageMagick} package can
 produce. You can even try it out in your Web browser without
-installing it, using the @code{Asymptote Web Application}
+installing it, using the @code{Asymptote Web Application}:
 
 @url{https://asymptote.ualberta.ca}
 
@@ -374,7 +374,7 @@ A quick reference card for @code{Asymptote} is available at
 
 @menu
 * UNIX binary distributions::   Prebuilt @code{UNIX} binaries
-* MacOS X binary distributions::  Prebuilt @code{MacOS X} binaries
+* macOS X binary distributions::  Prebuilt @code{macOS X} binaries
 * Microsoft Windows::           Prebuilt @code{Microsoft Windows} binary
 * Configuring::                 Configuring @code{Asymptote} for your system
 * Search paths::                Where @code{Asymptote} looks for your files
@@ -437,10 +437,10 @@ prebuilt @code{Asymptote} binaries from
 @url{https://ftp.debian.org/debian/pool/main/a/asymptote}
 @end quotation
 
-@node MacOS X binary distributions
-@section MacOS X binary distributions
-@cindex @code{MacOS X} binary distributions
-@code{MacOS X} users can either compile the @code{UNIX} source code
+@node macOS X binary distributions
+@section macOS X binary distributions
+@cindex @code{macOS X} binary distributions
+@code{macOS X} users can either compile the @code{UNIX} source code
 (@pxref{Compiling from UNIX source})
 or install the @code{Asymptote} binary available at
 
@@ -451,7 +451,7 @@ or at
 @url{https://brew.sh/}
 
 @noindent
-Note that many @code{MacOS X} (and FreeBSD) systems lack the
+Note that many @code{macOS X} (and FreeBSD) systems lack the
 @acronym{GNU} @code{readline} library. For full interactive
 functionality, @acronym{GNU} @code{readline} version 4.3 or later must
 be installed.
@@ -717,12 +717,12 @@ done as the root user. To install without root privileges, change the
 @verbatim
 ./configure --prefix=$HOME/asymptote
 @end verbatim
-@cindex @code{MacOS X} configuration
+@cindex @code{macOS X} configuration
 @cindex @code{clang}
 One can disable use of the Boehm garbage collector by configuring
 with @code{./configure --disable-gc}. For a list of other configuration
 options, say @code{./configure --help}. For example, under
-@code{MacOS X}, one can tell configure to use the @code{clang} compilers and
+@code{macOS X}, one can tell configure to use the @code{clang} compilers and
 look for header files and libraries in nonstandard locations:
 @verbatim
 ./configure CC=clang CXX=clang++ CPPFLAGS=-I/opt/local/include LDFLAGS=-L/opt/local/lib
@@ -4876,7 +4876,7 @@ guide g=(0,0){up}..{SW}(100,100){NE}..{curl 3}(50,50)..(10,10);
 write("g=",g);
 @end verbatim
 
-@xref{Autounravel} for an example overloading the @code{+} operator.
+@xref{Autounravel} for an example of overloading the @code{+} operator.
 
 @node Bracket operators
 @subsection Bracket operators
@@ -6639,7 +6639,7 @@ e
 
 @noindent The autounraveled (@pxref{Autounravel}) implicit cast
 to @code{Iterable_string} is not strictly necessary, but it allows
-the use of iterable utilities, @xref{Iterators and utilities}.
+the use of iterable utilities; @pxref{Iterators and utilities}.
 This enables code like the following, which uses the @code{enumerate}
 utility to attach counters to the iterated strings:
 @verbatim
@@ -7863,7 +7863,7 @@ preferred.
 @subsubsection The @code{SortedSet} API
 
 @cindex @code{BTreeSet_T}
-The @code{BTreeSet_T} implementation of @code{Set_T} (@pxref {Initializing a @code{Set}})
+The @code{BTreeSet_T} implementation of @code{Set_T} (@pxref{Initializing a @code{Set}})
 maintains its elements in sorted order. For the @code{Set_T} API, this has no effect other
 than the iteration order. However, the @code{SortedSet_T} API provides additional methods
 to take advantage of this ordering. The @code{SortedSet_T} structure is defined in the
@@ -11908,7 +11908,7 @@ Pictures are deconstructed into the @acronym{SVG} image format.
 Since @code{Qt5} does not support @code{SVG} clipping, you will need
 the @code{rsvg-convert} utility, which is part of the
 @code{librsvg2-tools} package on @code{UNIX} systems
-and the @code{librsvg} package on @code{MacOS X}; under
+and the @code{librsvg} package on @code{macOS X}; under
 @code{Microsoft Windows}, it is available as
 
 @url{https://sourceforge.net/projects/tumagcc/files/rsvg-convert-2.40.20.7z}
@@ -11996,7 +11996,7 @@ The source code for the command-line interface is available at
 @cindex @acronym{LSP}
 @cindex language server protocol
 
-Under @code{UNIX} and @code{MacOS X}, @code{Asymptote} supports features of the
+Under @code{UNIX} and @code{macOS X}, @code{Asymptote} supports features of the
 @uref{https://en.wikipedia.org/wiki/Language_Server_Protocol,Language
 Server Protocol (@acronym{LSP})}, including function signature and variable matching.
 Under @code{MSWindows}, @code{Asymptote} currently supports
@@ -12287,7 +12287,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  quartercircle darkgreen lightblue urx ury texpreamble sgn texi
 @c  LocalWords:  lineargraph datagraph vertices parametricgraph uncomment ggv
 @c  LocalWords:  loggraph generalaxis texhash arrowsize arrowangle arrowlength
-@c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config MacOS prebuilt
+@c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config macOS prebuilt
 @c  LocalWords:  ghostview SIGHUP PDF acroread xpdf cutbefore strptime
 @c  LocalWords:  libsigsegv intersectionpoint dotfactor vv firstcut pq logticks
 @c  LocalWords:  Unisys dvips vvv vvvv vvvvv traceback lastcut cutafter infodir
