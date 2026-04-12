@@ -165,11 +165,11 @@ SwapChainDetails::chooseImageCount() const
   return imageCount;
 }
 
-void AsyVkRender::setDimensions(int width, int height, double x, double y)
+void AsyVkRender::setDimensions(int Width, int Height, double X, double Y)
 {
-  double aspect = ((double) width) / height;
-  double xshift = (x / (double) width + Shift.getx() * Xfactor) * Zoom;
-  double yshift = (y / (double) height + Shift.gety() * Yfactor) * Zoom;
+  double aspect = ((double) Width) / Height;
+  double xshift = (X / (double) Width + Shift.getx() * Xfactor) * Zoom;
+  double yshift = (Y / (double) Height + Shift.gety() * Yfactor) * Zoom;
   double zoominv = 1.0 / Zoom;
   if (orthographic) {
     double xsize = Xmax - Xmin;
@@ -205,7 +205,7 @@ void AsyVkRender::setDimensions(int width, int height, double x, double y)
 
 void AsyVkRender::setProjection()
 {
-  setDimensions(width, height, X, Y);
+  setDimensions(Width, Height, X, Y);
 
   if(haveScene) {
     if(orthographic) vk->ortho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
@@ -255,7 +255,7 @@ double AsyVkRender::getRenderResolution(triple Min) const
   triple b(Xmin, Ymin, Zmin);
   triple B(Xmax, Ymax, Zmax);
   pair size3(s * (B.getx() - b.getx()), s * (B.gety() - b.gety()));
-  pair size2(width, height);
+  pair size2(Width, Height);
   return prerender * size3.length() / size2.length();
 }
 
@@ -263,7 +263,7 @@ double AsyVkRender::getRenderResolution(triple Min) const
 
 void AsyVkRender::initWindow()
 {
-  glfwInitWindow(this, width, height, title);
+  glfwInitWindow(this, Width, Height, title);
 }
 
 void AsyVkRender::updateHandler(int) {
@@ -380,8 +380,8 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
     fullHeight=(int) ceil(expand*args.height);
 
     if(format3d) {
-      width=fullWidth;
-      height=fullHeight;
+      Width=fullWidth;
+      Height=fullHeight;
     } else {
 #ifdef HAVE_VULKAN
       GLFWmonitor* monitor=NULL;
@@ -397,13 +397,13 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
           screenHeight=fullHeight;
         }
 
-      width=min(fullWidth,screenWidth);
-      height=min(fullHeight,screenHeight);
+      Width=min(fullWidth,screenWidth);
+      Height=min(fullHeight,screenHeight);
 
-      if(width > height*Aspect)
-        width=min((int) (ceil(height*Aspect)),screenWidth);
+      if(Width > Height*Aspect)
+        Width=min((int) (ceil(Height*Aspect)),screenWidth);
       else
-        height=min((int) (ceil(width/Aspect)),screenHeight);
+        Height=min((int) (ceil(Width/Aspect)),screenHeight);
     }
 
 #ifdef HAVE_VULKAN
@@ -415,8 +415,8 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
     }
     maxFragments=0;
 
-    ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(width,height);
-    Aspect=((double) width)/height;
+    ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
+    Aspect=((double) Width)/Height;
 
 #ifdef HAVE_VULKAN
     setosize();
@@ -469,7 +469,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
     fitscreen();
-    Aspect=((double) width)/height;
+    Aspect=((double) Width)/Height;
     setosize();
     initializedView=true;
   }
@@ -1349,7 +1349,7 @@ void AsyVkRender::createSwapChain()
 
   auto const swapDetails = SwapChainDetails(physicalDevice, *surface);
   auto && format = swapDetails.chooseSurfaceFormat();
-  auto && extent = swapDetails.chooseExtent(width,height);
+  auto && extent = swapDetails.chooseExtent(Width,Height);
 
   vk::ImageUsageFlags swapchainImgUsageFlags =
           vk::ImageUsageFlagBits::eColorAttachment
@@ -1407,7 +1407,7 @@ void AsyVkRender::createSwapChain()
 }
 
 void AsyVkRender::createOffscreenBuffers() {
-  backbufferExtent=vk::Extent2D(width, height);
+  backbufferExtent=vk::Extent2D(Width, Height);
 
   auto usageBits=vk::ImageUsageFlagBits::eColorAttachment |
     vk::ImageUsageFlagBits::eTransferSrc;
@@ -4541,7 +4541,7 @@ void AsyVkRender::render()
     triple M(xmax,ymax,Zmax);
     double perspective=orthographic || Zmax == 0.0 ? 0.0 : 1.0/Zmax;
 
-    double size2=hypot(width,height);
+    double size2=hypot(Width,Height);
 
     pic->render(size2,m,M,perspective,remesh);
     redraw=false;
@@ -4703,15 +4703,15 @@ void AsyVkRender::expand()
 {
   double resizeStep=settings::getSetting<double>("resizestep");
   if(resizeStep > 0.0)
-    setsize((int) (width*resizeStep+0.5),(int) (height*resizeStep+0.5));
+    setsize((int) (Width*resizeStep+0.5),(int) (Height*resizeStep+0.5));
 }
 
 void AsyVkRender::shrink()
 {
   double resizeStep=settings::getSetting<double>("resizestep");
   if(resizeStep > 0.0)
-    setsize(max((int) (width/resizeStep+0.5),1),
-            max((int) (height/resizeStep+0.5),1));
+    setsize(max((int) (Width/resizeStep+0.5),1),
+            max((int) (Height/resizeStep+0.5),1));
 }
 
 projection AsyVkRender::camera(bool user)
@@ -4760,8 +4760,8 @@ projection AsyVkRender::camera(bool user)
 
   return projection(orthographic,vCamera,vUp,vTarget,Zoom,
                     2.0*atan(tan(0.5*Angle)/Zoom)/radians,
-                    pair(X/width+Shift.getx(),
-                         Y/height+Shift.gety()));
+                    pair(X/Width+Shift.getx(),
+                         Y/Height+Shift.gety()));
 }
 
 void AsyVkRender::exportHandler(int) {
@@ -5056,8 +5056,8 @@ void AsyVkRender::pan(double dx, double dy)
   if(orthographic)
     shift(dx,dy);
   else {
-    cx += dx * (xmax - xmin) / width;
-    cy -= dy * (ymax - ymin) / height;
+    cx += dx * (xmax - xmin) / Width;
+    cy -= dy * (ymax - ymin) / Height;
     update();
   }
 }
@@ -5097,13 +5097,13 @@ void AsyVkRender::capsize(int& width, int& height) {
     height=screenHeight;
 }
 
-void AsyVkRender::windowposition(int& x, int& y, int Width, int Height)
+void AsyVkRender::windowposition(int& x, int& y, int width, int height)
 {
   if (width == -1) {
-    Width=width;
+    width=Width;
   }
   if (height == -1) {
-    Height=height;
+    height=Height;
   }
 
   pair z=settings::getSetting<pair>("position");
@@ -5138,21 +5138,21 @@ void AsyVkRender::setsize(int w, int h, bool reposition) {
 
 void AsyVkRender::fullscreen(bool reposition)
 {
-  width=screenWidth;
-  height=screenHeight;
-  Xfactor=((double) screenHeight)/height;
-  Yfactor=((double) screenWidth)/width;
+  Width=screenWidth;
+  Height=screenHeight;
+  Xfactor=((double) screenHeight)/Height;
+  Yfactor=((double) screenWidth)/Width;
   if(reposition)
     glfwSetWindowPos(window, 0, 0);
-  setsize(width,height,reposition);
+  setsize(Width,Height,reposition);
 }
 
-void AsyVkRender::reshape0(int Width, int Height) {
-  X=(X/width)*Width;
-  Y=(Y/height)*Height;
+void AsyVkRender::reshape0(int width, int height) {
+  X=(X/Width)*width;
+  Y=(Y/Height)*height;
 
-  width=Width;
-  height=Height;
+  Width=width;
+  Height=height;
 
   static int lastWidth=1;
   static int lastHeight=1;

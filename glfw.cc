@@ -83,7 +83,7 @@ void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int h
 
   auto* app = glfwGetApp(window);
 
-  if(width == app->width && height == app->height)
+  if(width == app->Width && height == app->Height)
     return;
 
   app->reshape0(width,height);
@@ -122,7 +122,7 @@ void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos
 
   if (app->lastAction == "rotate") {
 
-    Arcball arcball(xprev * 2 / app->width - 1, 1 - yprev * 2 / app->height, xpos * 2 / app->width - 1, 1 - ypos * 2 / app->height);
+    Arcball arcball(xprev * 2 / app->Width - 1, 1 - yprev * 2 / app->Height, xpos * 2 / app->Width - 1, 1 - ypos * 2 / app->Height);
     triple axis = arcball.axis;
     app->rotateMat = rotate(2 * arcball.angle / app->Zoom * app->ArcballFactor,
                                  glm::dvec3(axis.getx(), axis.gety(), axis.getz())) * app->rotateMat;

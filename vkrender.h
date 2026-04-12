@@ -373,7 +373,7 @@ private:
   double cx, cy;
 
   int screenWidth, screenHeight;
-  int width, height;
+  int Width, Height;
   int oldWidth,oldHeight;
   double Aspect;
   double oWidth, oHeight;
