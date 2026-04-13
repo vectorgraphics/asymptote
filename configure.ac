@@ -631,11 +631,10 @@ if test "x$enable_gl" != "xno"; then
 if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
    ADD_VCPKG_FEATURE(opengl)
    AC_DEFINE(HAVE_LIBGL,1,[libgl is enabled])
-   AC_DEFINE(FREEGLUT,1,[Freeglut is enabled])
-   AC_DEFINE(HAVE_LIBGLUT,1,[Freeglut library is available])
+   AC_DEFINE(HAVE_LIBGLFW,1,[GLFW library is available])
    INCL=$INCL" -Ibackports/glew/include"
    GLEW="glew.o "
-   ADD_VCPKG_LIB_FOR_PKGCONFIG(glut)
+   ADD_VCPKG_LIB_FOR_PKGCONFIG(glfw3)
 else  # managed by the system
    AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
 
@@ -645,16 +644,17 @@ case "$OSTYPE" in
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL,1,
                              DEFINE([<gl.h> header]))])
-              AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT,1,
-                   DEFINE_LIB[GLUT])
-                           LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa "
+              AC_CHECK_LIB([glfw], [glfwShowWindow],
+              [
+              AC_DEFINE(HAVE_LIBGLFW,1,DEFINE_LIB[GLFW])
+                           LIBS=$LIBS"-lglfw -framework OpenGL -framework Cocoa "
                            INCL=$INCL" -Ibackports/glew/include"
                            GLEW="glew.o "],
-                                 AC_MSG_NOTICE([*** Could not find GLUT: will compile without OpenGLLUT support ***]))
+                                 AC_MSG_NOTICE([*** Could not find GLFW: will compile without OpenGL support ***]))
         ;;
      *)
-         AC_CHECK_LIB([glut], [glutMainLoop],,
-                       AC_MSG_NOTICE([*** Could not find libglut: will compile without OpenGL support ***]))
+         AC_CHECK_LIB([glfw], [glfwShowWindow],,
+                       AC_MSG_NOTICE([*** Could not find libglfw: will compile without OpenGL support ***]))
          AC_CHECK_LIB([GL], [glDepthMask],
                                  [AC_DEFINE(HAVE_LIBGL,1,
                              DEFINE_LIB([GL]))

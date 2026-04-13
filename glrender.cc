@@ -10,6 +10,7 @@
 #include <cmath>
 #include <chrono>
 #include <thread>
+#include <functional>
 
 #if !defined(_WIN32)
 #include <sys/time.h>
@@ -43,24 +44,9 @@ pthread_t mainthread;
 #ifdef HAVE_GL
 #include "tr.h"
 
-#ifdef HAVE_LIBGLUT
-
-#ifdef __MSDOS__
-#ifndef FGAPI
-#define FGAPI GLUTAPI
-#endif
-#ifndef FGAPIENTRY
-#define FGAPIENTRY APIENTRY
-#endif
-#endif
-
-#define GLUT_BUILDING_LIB
-
-#ifdef FREEGLUT
-#include <GL/freeglut_ext.h>
-#endif
-
-#endif // HAVE_LIBGLUT
+#ifdef HAVE_LIBGLFW
+#include <GLFW/glfw3.h>
+#endif // HAVE_LIBGLFW
 
 #include "shaders.h"
 #include "GLTextures.h"
@@ -92,6 +78,7 @@ GLint sum3Shader;
 
 GLuint fragments;
 
+GLuint vao;  // Vertex Array Object
 GLuint offsetBuffer;
 GLuint indexBuffer;
 GLuint elementsBuffer;
@@ -181,6 +168,7 @@ bool glthread=false;
 bool glupdate=false;
 bool glexit=false;
 bool initialize=true;
+bool redraw=false;
 
 using camp::picture;
 using camp::drawRawImage;
@@ -238,6 +226,7 @@ pair Shift;
 pair Margin;
 double X,Y;
 int x0,y0;
+string currentAction="";
 double cx,cy;
 double Xfactor,Yfactor;
 double ArcballFactor;
@@ -398,15 +387,17 @@ bool Xspin,Yspin,Zspin;
 
 stopWatch spinTimer;
 
-void idleFunc(void (*f)())
+static std::function<void()> currentIdleFunc = nullptr;
+
+void idleFunc(std::function<void()> f)
 {
   spinTimer.reset();
-  glutIdleFunc(f);
+  currentIdleFunc = f;
 }
 
 void idle()
 {
-  idleFunc(NULL);
+  idleFunc(nullptr);
   Xspin=Yspin=Zspin=false;
 }
 #endif
@@ -415,11 +406,9 @@ void home(bool webgl=false)
 {
   X=Y=cx=cy=0.0;
 #ifdef HAVE_GL
-#ifdef HAVE_LIBGLUT
 #ifndef HAVE_LIBOSMESA
   if(!webgl)
     idle();
-#endif
 #endif
 #endif
   dviewMat=dmat4(1.0);
@@ -442,7 +431,7 @@ double Tup[16];
 
 #ifdef HAVE_GL
 
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGLFW
 int oldWidth,oldHeight;
 
 bool queueScreen=false;
@@ -450,7 +439,7 @@ bool queueScreen=false;
 string Action;
 
 double lastangle;
-int window;
+GLFWwindow* window;
 #endif
 
 using utils::statistics;
@@ -555,6 +544,15 @@ void noShaders()
 
 void initComputeShaders()
 {
+  // Ensure context is current before using OpenGL functions
+#ifdef HAVE_LIBGLFW
+#ifndef HAVE_LIBOSMESA
+  if(::gl::window) {
+    glfwMakeContextCurrent(::gl::window);
+  }
+#endif
+#endif
+
   string sum1=locateFile("shaders/sum1.glsl");
   string sum2=locateFile("shaders/sum2.glsl");
   string sum2fast=locateFile("shaders/sum2fast.glsl");
@@ -633,6 +631,15 @@ inline GLuint ceilpow2(GLuint n)
 
 void initShaders()
 {
+  // Ensure context is current before using OpenGL functions
+#ifdef HAVE_LIBGLFW
+#ifndef HAVE_LIBOSMESA
+  if(::gl::window) {
+    glfwMakeContextCurrent(::gl::window);
+  }
+#endif
+#endif
+
   Nlights=nlights == 0 ? 0 : max(Nlights,nlights);
   Nmaterials=max(Nmaterials,nmaterials);
 
@@ -798,9 +805,14 @@ void resizeBlendShader(GLuint maxsize)
 
 void setBuffers()
 {
-  GLuint vao;
-  glGenVertexArrays(1,&vao);
-  glBindVertexArray(vao);
+  if(settings::verbose > 2) {
+    cerr << "setBuffers: Creating VAO, camp::vao=" << camp::vao << endl;
+  }
+  glGenVertexArrays(1,&camp::vao);
+  if(settings::verbose > 2) {
+    cerr << "setBuffers: VAO created, camp::vao=" << camp::vao << endl;
+  }
+  glBindVertexArray(camp::vao);
 
   camp::material0Data.reserve0();
   camp::materialData.reserve();
@@ -823,7 +835,13 @@ void setBuffers()
   glGenBuffers(1, &camp::opaqueBuffer);
   glGenBuffers(1, &camp::opaqueDepthBuffer);
 #endif
+
+  if(settings::verbose > 2) {
+    cerr << "setBuffers: Done, camp::vao=" << camp::vao << endl;
+  }
 }
+
+bool exporting=false;
 
 void drawscene(int Width, int Height)
 {
@@ -839,11 +857,34 @@ void drawscene(int Width, int Height)
     wait(initSignal,initLock);
 #endif
 
+#ifdef HAVE_LIBGLFW
+#ifndef HAVE_LIBOSMESA
+  // Diagnostics for debugging segfault
+  if(settings::verbose > 2) {
+    cerr << "drawscene: Width=" << Width << " Height=" << Height
+         << " window=" << ::gl::window
+         << " current context=" << glfwGetCurrentContext() << endl;
+  }
+#endif
+#endif
+
   if((nlights == 0 && Nlights > 0) || nlights > Nlights ||
      nmaterials > Nmaterials) {
-    deleteShaders();
+    // Only delete shaders if they were initialized (check if pixelShader is valid)
+//    if(camp::pixelShader != 0) {
+      deleteShaders();
+//    }
     initShaders();
   }
+
+  if(settings::verbose > 2) {
+    cerr << "drawscene: about to call glClear..." << endl;
+  }
+
+  // Set viewport before clearing (in case it wasn't set)
+  // Skip during export - trBeginTile handles viewport for tiling
+  if(!exporting)
+    glViewport(0, 0, Width, Height);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -858,7 +899,18 @@ void drawscene(int Width, int Height)
   if(remesh)
     camp::clearCenters();
 
+  if(settings::verbose > 2) {
+    cerr << "drawscene: calling Picture->render()" << endl;
+  }
   Picture->render(size2,m,M,perspective,remesh);
+
+  if(settings::verbose > 2) {
+    cerr << "drawscene: Picture->render() complete" << endl;
+  }
+
+#ifdef HAVE_GL
+  camp::drawBuffers();
+#endif
 
   if(!outlinemode) remesh=false;
 }
@@ -868,8 +920,6 @@ int ceilquotient(int x, int y)
 {
   return (x+y-1)/y;
 }
-
-bool exporting=false;
 
 void Export()
 {
@@ -948,8 +998,8 @@ void Export()
   setProjection();
 
 #ifndef HAVE_LIBOSMESA
-#ifdef HAVE_LIBGLUT
-  glutPostRedisplay();
+#ifdef HAVE_LIBGLFW
+  redraw=true;
 #endif
 
 #ifdef HAVE_PTHREAD
@@ -967,10 +1017,7 @@ void nodisplay()
 {
 }
 
-void destroywindow()
-{
-  glutDestroyWindow(glutGetWindow());
-}
+// destroywindow is no longer needed with GLFW (window destruction is handled directly)
 
 // Return the greatest power of 2 less than or equal to n.
 inline unsigned int floorpow2(unsigned int n)
@@ -990,22 +1037,28 @@ void quit()
   if(ctx) OSMesaDestroyContext(ctx);
   exit(0);
 #endif
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGLFW
   if(glthread) {
     home();
 #ifdef HAVE_PTHREAD
     if(!interact::interactive) {
       idle();
-      glutDisplayFunc(nodisplay);
       endwait(readySignal,readyLock);
     }
 #endif
-    if(interact::interactive)
-      glutHideWindow();
+    // Always signal the window to close in threaded mode
+    glfwSetWindowShouldClose(window, true);
+    if(interact::interactive) {
+      glfwHideWindow(window);
+    }
   } else {
-    glutDestroyWindow(window);
+    if(window) glfwDestroyWindow(window);
+    glfwTerminate();
     exit(0);
   }
+#else
+  // No windowing system available - just exit
+  exit(0);
 #endif
 }
 
@@ -1036,15 +1089,13 @@ void mode()
       Nlights=1; // Force shader recompilation
       break;
   }
-#ifdef HAVE_LIBGLUT
 #ifndef HAVE_LIBOSMESA
-  glutPostRedisplay();
-#endif
+  redraw=true;
 #endif
 }
 
 // GUI-related functions
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGLFW
 bool capsize(int& width, int& height)
 {
   bool resize=false;
@@ -1105,14 +1156,16 @@ void setsize(int w, int h, bool reposition=true)
   capsize(w,h);
   if(reposition) {
     windowposition(x,y,w,h);
-    glutPositionWindow(x,y);
-  } else
-    glutPositionWindow(max(glutGet(GLUT_WINDOW_X)-2,0),
-                       max(glutGet(GLUT_WINDOW_Y)-2,0));
+    glfwSetWindowPos(window,x,y);
+  } else {
+    int wx, wy;
+    glfwGetWindowPos(window, &wx, &wy);
+    glfwSetWindowPos(window,max(wx-2,0),max(wy-2,0));
+  }
 
-  glutReshapeWindow(w,h);
+  glfwSetWindowSize(window,w,h);
   reshape0(w,h);
-  glutPostRedisplay();
+  redraw=true;
 }
 
 void capzoom()
@@ -1143,9 +1196,9 @@ void fullscreen(bool reposition=true)
   Yfactor=((double) screenWidth)/Width;
   reshape0(Width,Height);
   if(reposition)
-    glutPositionWindow(0,0);
-  glutReshapeWindow(Width,Height);
-  glutPostRedisplay();
+    glfwSetWindowPos(window,0,0);
+  glfwSetWindowSize(window,Width,Height);
+  redraw=true;
 }
 
 void fitscreen(bool reposition=true)
@@ -1232,7 +1285,7 @@ void display()
     }
     ++framecount;
   }
-  glutSwapBuffers();
+  glfwSwapBuffers(window);
 
   if(queueExport) {
     Export();
@@ -1252,8 +1305,8 @@ void update()
 {
   capzoom();
 
-  glutDisplayFunc(display);
-  glutShowWindow();
+  redraw=true;
+  glfwShowWindow(window);
   double cz=0.5*(Zmin+Zmax);
 
   dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
@@ -1264,8 +1317,6 @@ void update()
 
   setProjection();
   updateModelViewData();
-
-  glutPostRedisplay();
 }
 
 void updateHandler(int)
@@ -1273,21 +1324,10 @@ void updateHandler(int)
   queueScreen=true;
   remesh=true;
   update();
-  glutShowWindow();
+  glfwShowWindow(window);
 }
 
-void poll(int)
-{
-  if(glupdate) {
-    updateHandler(0);
-    glupdate=false;
-  }
-  if(glexit) {
-    exitHandler(0);
-    glexit=false;
-  }
-  glutTimerFunc(100.0,poll,0);
-}
+// poll is no longer needed with GLFW - event handling is done in the main loop
 
 void reshape(int width, int height)
 {
@@ -1302,7 +1342,7 @@ void reshape(int width, int height)
   }
 
   if(capsize(width,height))
-    glutReshapeWindow(width,height);
+    glfwSetWindowSize(window,width,height);
 
   reshape0(width,height);
   remesh=true;
@@ -1342,7 +1382,7 @@ void zoom(int x, int y)
       capzoom();
       y0=y;
       setProjection();
-      glutPostRedisplay();
+      redraw=true;
     }
   }
 }
@@ -1357,7 +1397,7 @@ void mousewheel(int wheel, int direction, int x, int y)
       Zoom /= zoomFactor;
     capzoom();
     setProjection();
-    glutPostRedisplay();
+    redraw=true;
   }
 }
 
@@ -1455,33 +1495,19 @@ void rotateZ(int x, int y)
   lastangle=angle;
 }
 
-#ifndef GLUT_WHEEL_UP
-#define GLUT_WHEEL_UP 3
-#endif
-
-#ifndef GLUT_WHEEL_DOWN
-#define GLUT_WHEEL_DOWN 4
-#endif
-
 string action(int button, int mod)
 {
   size_t Button;
   size_t nButtons=5;
   switch(button) {
-    case GLUT_LEFT_BUTTON:
+    case GLFW_MOUSE_BUTTON_LEFT:
       Button=0;
       break;
-    case GLUT_MIDDLE_BUTTON:
+    case GLFW_MOUSE_BUTTON_MIDDLE:
       Button=1;
       break;
-    case GLUT_RIGHT_BUTTON:
+    case GLFW_MOUSE_BUTTON_RIGHT:
       Button=2;
-      break;
-    case GLUT_WHEEL_UP:
-      Button=3;
-      break;
-    case GLUT_WHEEL_DOWN:
-      Button=4;
       break;
     default:
       Button=nButtons;
@@ -1493,13 +1519,13 @@ string action(int button, int mod)
     case 0:
       Mod=0;
       break;
-    case GLUT_ACTIVE_SHIFT:
+    case GLFW_MOD_SHIFT:
       Mod=1;
       break;
-    case GLUT_ACTIVE_CTRL:
+    case GLFW_MOD_CONTROL:
       Mod=2;
       break;
-    case GLUT_ACTIVE_ALT:
+    case GLFW_MOD_ALT:
       Mod=3;
       break;
     default:
@@ -1527,45 +1553,44 @@ void timeout(int)
 
 void mouse(int button, int state, int x, int y)
 {
-  int mod=glutGetModifiers();
+  int mod=0; // GLFW handles modifiers differently
   string Action=action(button,mod);
 
   if(Action == "zoomin") {
-    glutMotionFunc(NULL);
     mousewheel(0,1,x,y);
     return;
   }
   if(Action == "zoomout") {
-    glutMotionFunc(NULL);
     mousewheel(0,-1,x,y);
     return;
   }
 
-  if(state == GLUT_DOWN) {
+  bool isPress = (state == GLFW_PRESS);
+  if(isPress) {
     if(Action == "rotate") {
       x0=x; y0=y;
-      glutMotionFunc(rotate);
+      currentAction="rotate";
     } else if(Action == "shift") {
       x0=x; y0=y;
-      glutMotionFunc(shift);
+      currentAction="shift";
     } else if(Action == "pan") {
       x0=x; y0=y;
-      glutMotionFunc(pan);
+      currentAction="pan";
     } else if(Action == "zoom" || Action == "zoom/menu") {
       y0=y;
-      glutMotionFunc(zoom);
+      currentAction="zoom";
     } else if(Action == "rotateX") {
       lastangle=Degrees(x,y);
-      glutMotionFunc(rotateX);
+      currentAction="rotateX";
     } else if(Action == "rotateY") {
       lastangle=Degrees(x,y);
-      glutMotionFunc(rotateY);
+      currentAction="rotateY";
     } else if(Action == "rotateZ") {
       lastangle=Degrees(x,y);
-      glutMotionFunc(rotateZ);
+      currentAction="rotateZ";
     }
   } else {
-    glutMotionFunc(NULL);
+    currentAction="";
   }
 }
 
@@ -1661,33 +1686,34 @@ void showCamera()
 
 void keyboard(unsigned char key, int x, int y)
 {
+  // GLFW passes uppercase key codes for letters (e.g., 'Q' instead of 'q')
   switch(key) {
-    case 'h':
+    case 'H':
       home();
       update();
       break;
-    case 'f':
+    case 'F':
       togglefitscreen();
       break;
-    case 'x':
+    case 'X':
       spinx();
       break;
-    case 'y':
+    case 'Y':
       spiny();
       break;
-    case 'z':
+    case 'Z':
       spinz();
       break;
-    case 's':
+    case 'S':
       idle();
       break;
-    case 'm':
+    case 'M':
       mode();
       break;
-    case 'e':
+    case 'E':
       Export();
       break;
-    case 'c':
+    case 'C':
       showCamera();
       break;
     case '+':
@@ -1700,8 +1726,8 @@ void keyboard(unsigned char key, int x, int y)
     case '<':
       shrink();
       break;
-    case 17: // Ctrl-q
-    case 'q':
+    case 17: // Ctrl-q (ASCII control character)
+    case 'Q':
       if(!Format.empty()) Export();
       quit();
       break;
@@ -1718,20 +1744,19 @@ void setosize()
 
 void exportHandler(int=0)
 {
-#ifdef HAVE_LIBGLUT
 #ifndef HAVE_LIBOSMESA
+#ifdef HAVE_LIBGLFW
   if(!Iconify)
-    glutShowWindow();
+    glfwShowWindow(window);
 #endif
 #endif
   readyAfterExport=true;
   Export();
 
-#ifdef HAVE_LIBGLUT
 #ifndef HAVE_LIBOSMESA
+#ifdef HAVE_LIBGLFW
   if(!Iconify)
-    glutHideWindow();
-  glutDisplayFunc(nodisplay);
+    glfwHideWindow(window);
 #endif
 #endif
 }
@@ -1786,35 +1811,6 @@ projection camera(bool user)
                     2.0*atan(tan(0.5*Angle)/Zoom)/radians,
                     pair(X/Width+Shift.getx(),
                          Y/Height+Shift.gety()));
-}
-
-void init()
-{
-#ifdef HAVE_LIBGLUT
-  mem::vector<string> cmd;
-  cmd.push_back(settings::argv0);
-  if(!interact::interactive && Iconify)
-    cmd.push_back("-iconic");
-  push_split(cmd,getSetting<string>("glOptions"));
-  char **argv=args(cmd,true);
-  int argc=cmd.size();
-
-#ifndef __APPLE__
-  glutInitContextVersion(4,0);
-  glutInitContextProfile(GLUT_CORE_PROFILE);
-#endif
-
-  fpu_trap(false); // Work around FE_INVALID
-  glutInit(&argc,argv);
-  fpu_trap(settings::trap());
-
-
-#ifdef FREEGLUT
-  glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_GLUTMAINLOOP_RETURNS);
-#endif
-  screenWidth=glutGet(GLUT_SCREEN_WIDTH);
-  screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
-#endif
 }
 
 void init_osmesa()
@@ -1954,10 +1950,74 @@ void glrender(GLRenderArgs const& args, int oldpid)
     }
   }
 #else
-  if(glinitialize) {
-    if(!format3d) init();
-    Fitscreen=1;
+#ifdef HAVE_LIBGLFW
+  // Initialize GLFW and get screen dimensions (following Vulkan pattern)
+  static bool glfwInitialized = false;
+  if(!glfwInitialized) {
+    glfwSetErrorCallback([](int error, const char* description) {
+      cerr << "GLFW error [" << error << "]: " << description << endl;
+    });
+
+    if(!glfwInit()) {
+      cerr << "Failed to initialize GLFW" << endl;
+      exit(-1);
+    }
+    glfwInitialized = true;
+
+    // Get monitor based on device setting (same as Vulkan)
+    Int device = getSetting<Int>("device");
+    int numMonitors;
+    GLFWmonitor** monitors = glfwGetMonitors(&numMonitors);
+
+    // List available monitors when verbose >= 3 (like Vulkan lists devices)
+    if(settings::verbose >= 3) {
+      cerr << "Available displays:" << endl;
+      for(int i = 0; i < numMonitors; ++i) {
+        const char* name = glfwGetMonitorName(monitors[i]);
+        int mx, my, mw, mh;
+        glfwGetMonitorWorkarea(monitors[i], &mx, &my, &mw, &mh);
+        cerr << "  Display " << i << ": " << (name ? name : "unknown")
+             << " (" << mw << "x" << mh << ")" << endl;
+      }
+    }
+
+    GLFWmonitor* monitor = nullptr;
+
+    if (monitors && numMonitors > 0) {
+      int monitorIndex = (int)device;
+      if (monitorIndex < 0) {
+        monitorIndex = numMonitors + monitorIndex; // Convert negative index
+      }
+      if (monitorIndex >= 0 && monitorIndex < numMonitors) {
+        monitor = monitors[monitorIndex];
+      } else {
+        monitor = glfwGetPrimaryMonitor(); // Fallback to primary
+      }
+    } else {
+      monitor = glfwGetPrimaryMonitor();
+    }
+
+    if(monitor) {
+      int mx, my;
+      glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
+      if(settings::verbose >= 3) {
+        cerr << "Using display: " << glfwGetMonitorName(monitor)
+             << " (" << screenWidth << "x" << screenHeight << ")" << endl;
+      }
+    } else {
+      // Fallback if no monitor found
+      screenWidth = maxTileWidth;
+      screenHeight = maxTileHeight;
+    }
   }
+
+  Fitscreen=1;
+#else
+  if(glinitialize) {
+    Fitscreen=1;
+    glinitialize=false;
+  }
+#endif
 #endif
 #endif
 
@@ -2033,7 +2093,7 @@ void glrender(GLRenderArgs const& args, int oldpid)
 
     if(maxTileWidth <= 0) maxTileWidth=screenWidth;
     if(maxTileHeight <= 0) maxTileHeight=screenHeight;
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGLFW
     setosize();
 #endif
 #endif
@@ -2043,12 +2103,8 @@ void glrender(GLRenderArgs const& args, int oldpid)
   bool havewindow=initialized && glthread;
 
 #ifndef HAVE_LIBOSMESA
-#ifdef HAVE_LIBGLUT
-  unsigned int displaymode=GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH;
-#endif
-
-#ifdef __APPLE__
-  displaymode |= GLUT_3_2_CORE_PROFILE;
+#ifdef HAVE_LIBGLFW
+  // Window hints are reset right before each window creation
 #endif
 #endif
 
@@ -2067,73 +2123,167 @@ void glrender(GLRenderArgs const& args, int oldpid)
 #else
       pthread_kill(mainthread,SIGUSR1);
 #endif
+#ifdef HAVE_LIBGLFW
+      glfwPostEmptyEvent();
+#endif
     } else readyAfterExport=queueExport=true;
     return;
   }
 #endif
 
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGLFW
   if(View) {
     int x,y;
-    if(havewindow)
-      glutDestroyWindow(window);
+    if(havewindow && window)
+      glfwDestroyWindow(window);
+
+    // Reset all hints before setting OpenGL context version hints
+    glfwDefaultWindowHints();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    // Explicitly set SAMPLES to 0 (use default) to avoid invalid values
+    glfwWindowHint(GLFW_SAMPLES, 0);
+    // Don't specify profile - let GLFW choose
+    // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     windowposition(x,y);
-    glutInitWindowPosition(x,y);
-    glutInitWindowSize(1,1);
-    Int multisample=getSetting<Int>("multisample");
-    if(multisample <= 1) multisample=0;
-    if(multisample)
-      displaymode |= GLUT_MULTISAMPLE;
-    glutInitDisplayMode(displaymode);
+    // Note: GLFW_SAMPLES hint is disabled as it can cause errors with invalid values
+    // Int multisample=getSetting<Int>("multisample");
+    // if(multisample > 1) {
+    //   // Clamp to valid power-of-2 sample counts (1, 2, 4, 8, 16, 32)
+    //   if(multisample > 32) multisample = 32;
+    //   else if(multisample > 16) multisample = 16;
+    //   else if(multisample > 8) multisample = 8;
+    //   else if(multisample > 4) multisample = 4;
+    //   else if(multisample > 2) multisample = 2;
+    //   glfwWindowHint(GLFW_SAMPLES, multisample);
+    // }
 
-    int samples;
-
-#ifdef FREEGLUT
-#ifdef GLUT_INIT_MAJOR_VERSION
-    for(;;) {
-      if(multisample > 0)
-        glutSetOption(GLUT_MULTISAMPLE,multisample);
-#endif
-#endif
-      string title=string(PACKAGE_NAME)+": "+args.prefix;
-      fpu_trap(false); // Work around FE_INVALID
-      window=glutCreateWindow(title.c_str());
-      fpu_trap(settings::trap());
-
-      GLint samplebuf[1];
-      glGetIntegerv(GL_SAMPLES,samplebuf);
-      samples=samplebuf[0];
-#ifdef FREEGLUT
-#ifdef GLUT_INIT_MAJOR_VERSION
-      if(samples < multisample) {
-        multisample=floorpow2(multisample-1);
-        if(multisample > 1) {
-          glutReshapeWindow(1,1);
-          glutDisplayFunc(destroywindow);
-          glutShowWindow();
-          glutMainLoopEvent();
-          continue;
-        }
-      }
-      break;
-    }
-#endif
-#endif
-    if(settings::verbose > 1 && samples > 1)
-      cout << "Multisampling enabled with sample width " << samples
-           << endl;
-    glutDisplayFunc(display);
-    glutShowWindow();
-  } else if(!havewindow) {
-    glutInitWindowSize(maxTileWidth,maxTileHeight);
-    glutInitDisplayMode(displaymode);
+    string title=string(PACKAGE_NAME)+": "+args.prefix;
     fpu_trap(false); // Work around FE_INVALID
-    window=glutCreateWindow(Iconify ? "" : "Asymptote rendering window" );
+    window=glfwCreateWindow(Width, Height, title.c_str(), nullptr, nullptr);
     fpu_trap(settings::trap());
-    glutHideWindow();
+
+    if(!window) {
+      cerr << "Failed to create GLFW window" << endl;
+      exit(-1);
+    }
+
+    glfwMakeContextCurrent(window);
+    fpu_trap(settings::trap());
+
+    // Initialize GLEW immediately after context creation, before setting up callbacks
+    // This ensures OpenGL functions are available if any callback triggers during setup
+    glewExperimental = GL_TRUE;
+    int glew_result = glewInit();
+    if(glew_result != GLEW_OK) {
+      cerr << "GLEW initialization error: " << glewGetErrorString(glew_result) << endl;
+      exit(-1);
+    }
+
+    // Set GLSL version immediately after GLEW init
+    const char *GLSL_VERSION=(const char *)glGetString(GL_SHADING_LANGUAGE_VERSION);
+    if(GLSL_VERSION)
+      GLSLversion=(int) (100*atof(GLSL_VERSION)+0.5);
+    if(settings::verbose > 2)
+      cout << "GLSL version " << GLSL_VERSION << " (GLSLversion=" << GLSLversion << ")" << endl;
+
+    if(settings::verbose > 2) {
+      cerr << "Created visible window: " << Width << "x" << Height
+           << " window=" << window << endl;
+      // Check context attributes
+      int major = glfwGetWindowAttrib(window, GLFW_CONTEXT_VERSION_MAJOR);
+      int minor = glfwGetWindowAttrib(window, GLFW_CONTEXT_VERSION_MINOR);
+      cerr << "OpenGL context version: " << major << "." << minor << endl;
+    }
+
+    // Set up GLFW callbacks (after GLEW init)
+    glfwSetKeyCallback(window, [](GLFWwindow*, int key, int, int action, int mods) {
+      if(action != GLFW_PRESS) return;
+      ::gl::keyboard(static_cast<unsigned char>(key), 0, 0);
+    });
+    glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, int w, int h) {
+      ::gl::reshape(w, h);
+    });
+    glfwSetMouseButtonCallback(window, [](GLFWwindow* w, int button, int state, int mods) {
+      double xpos, ypos;
+      glfwGetCursorPos(w, &xpos, &ypos);
+      ::gl::mouse(button, (state == GLFW_RELEASE ? 1 : 0), static_cast<int>(xpos), static_cast<int>(ypos));
+    });
+    glfwSetCursorPosCallback(window, [](GLFWwindow* w, double xpos, double ypos) {
+      // Only respond if left mouse button is pressed (like glfw.cc does)
+      if(glfwGetMouseButton(w, GLFW_MOUSE_BUTTON_LEFT) != GLFW_PRESS) {
+        ::gl::currentAction = "";
+        return;
+      }
+
+      int x=static_cast<int>(xpos), y=static_cast<int>(ypos);
+      if(!::gl::currentAction.empty()) {
+        if(::gl::currentAction == "rotate") ::gl::rotate(x, y);
+        else if(::gl::currentAction == "shift") ::gl::shift(x, y);
+        else if(::gl::currentAction == "pan") ::gl::pan(x, y);
+        else if(::gl::currentAction == "zoom") ::gl::zoom(x, y);
+        else if(::gl::currentAction == "rotateX") ::gl::rotateX(x, y);
+        else if(::gl::currentAction == "rotateY") ::gl::rotateY(x, y);
+        else if(::gl::currentAction == "rotateZ") ::gl::rotateZ(x, y);
+      }
+    });
+    glfwSetScrollCallback(window, [](GLFWwindow* w, double, double yoffset) {
+      double xpos, ypos;
+      glfwGetCursorPos(w, &xpos, &ypos);
+      ::gl::mousewheel(0, yoffset > 0 ? 1 : -1, static_cast<int>(xpos), static_cast<int>(ypos));
+    });
+
+    glfwShowWindow(window);
+    glfwFocusWindow(window);  // Ensure input focus
+  } else if(!havewindow || !window) {
+    // Reset all hints before setting OpenGL context version hints
+    glfwDefaultWindowHints();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    // Explicitly set SAMPLES to 0 (use default) to avoid invalid values
+    glfwWindowHint(GLFW_SAMPLES, 0);
+    // Don't specify profile - let GLFW choose
+    // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    fpu_trap(false); // Work around FE_INVALID
+    window=glfwCreateWindow(maxTileWidth, maxTileHeight,
+                            Iconify ? "" : "Asymptote rendering window",
+                            nullptr, nullptr);
+    fpu_trap(settings::trap());
+    if(window) {
+      glfwMakeContextCurrent(window);
+
+      // Initialize GLEW immediately after context creation
+      glewExperimental = GL_TRUE;
+      int glew_result = glewInit();
+      if(glew_result != GLEW_OK) {
+        cerr << "GLEW initialization error: " << glewGetErrorString(glew_result) << endl;
+        exit(-1);
+      }
+
+      // Set GLSL version immediately after GLEW init
+      const char *GLSL_VERSION=(const char *)glGetString(GL_SHADING_LANGUAGE_VERSION);
+      if(GLSL_VERSION)
+        GLSLversion=(int) (100*atof(GLSL_VERSION)+0.5);
+      if(settings::verbose > 2)
+        cout << "GLSL version " << GLSL_VERSION << " (GLSLversion=" << GLSLversion << ")" << endl;
+
+      glfwHideWindow(window);
+      if(settings::verbose > 2) {
+        cerr << "Created hidden window: " << maxTileWidth << "x" << maxTileHeight
+             << " window=" << window << endl;
+        // Check context attributes
+        int major = glfwGetWindowAttrib(window, GLFW_CONTEXT_VERSION_MAJOR);
+        int minor = glfwGetWindowAttrib(window, GLFW_CONTEXT_VERSION_MINOR);
+        cerr << "OpenGL context version: " << major << "." << minor << endl;
+      }
+    } else {
+      cerr << "Failed to create hidden GLFW window" << endl;
+      exit(-1);
+    }
   }
-#endif // HAVE_LIBGLUT
+#endif // HAVE_LIBGLFW
 #endif // HAVE_LIBOSMESA
 
   initialized=true;
@@ -2145,6 +2295,89 @@ void glrender(GLRenderArgs const& args, int oldpid)
   GPUindexing=false;
   GPUcompress=false;
 #endif
+
+  if(glinitialize) {
+    glinitialize=false;
+
+#ifdef HAVE_LIBGLFW
+#ifndef HAVE_LIBOSMESA
+    // GLEW is already initialized right after window creation
+    // Just verify the context is still current
+    if(window) {
+      glfwMakeContextCurrent(window);
+      GLFWwindow* current = glfwGetCurrentContext();
+      if(settings::verbose > 2) {
+        cerr << "Post-window GLEW check: window=" << window << " current=" << current << endl;
+      }
+      if(current != window) {
+        cerr << "Failed to make OpenGL context current" << endl;
+        exit(-1);
+      }
+    } else {
+      cerr << "No OpenGL window/context available" << endl;
+      exit(-1);
+    }
+#endif
+#endif
+
+    // Check for any OpenGL errors after GLEW init (done earlier)
+    GLenum glerr = glGetError();
+    if(glerr != GL_NO_ERROR) {
+      cerr << "OpenGL error after GLEW init: " << glerr << endl;
+    }
+
+    if(settings::verbose > 2) {
+      cerr << "GLEW already initialized, OpenGL version: "
+           << glGetString(GL_VERSION) << endl;
+    }
+
+    // Verify OpenGL version is at least 3.0
+    const char *gl_version_str = (const char *)glGetString(GL_VERSION);
+    if(gl_version_str && gl_version_str[0] >= '1' && gl_version_str[2] >= '0') {
+      int major = gl_version_str[0] - '0';
+      int minor = gl_version_str[2] - '0';
+      if(major < 3 || (major == 3 && minor < 0)) {
+        cerr << "OpenGL version too low: " << gl_version_str
+             << " (need at least 3.0)" << endl;
+        exit(-1);
+      }
+    }
+
+    const char *GLSL_VERSION=(const char *)
+      glGetString(GL_SHADING_LANGUAGE_VERSION);
+
+    if(GLSL_VERSION)
+      GLSLversion=(int) (100*atof(GLSL_VERSION)+0.5);
+
+    if(GLSLversion < 130) {
+      cerr << "Unsupported GLSL version: " << (GLSL_VERSION ? GLSL_VERSION : "unknown") << "." << endl;
+      exit(-1);
+    }
+
+    if(settings::verbose > 2)
+      cout << "GLSL version " << GLSL_VERSION << endl;
+
+    // Check multisampling after GLEW initialization
+    int samples=0;
+    glGetIntegerv(GL_SAMPLES, &samples);
+    if(settings::verbose > 1 && samples > 1)
+      cout << "Multisampling enabled with sample width " << samples
+           << endl;
+
+    ibl=getSetting<bool>("ibl");
+    if(settings::verbose > 2) {
+      cerr << "glinitialize block: calling initShaders()" << endl;
+    }
+    initShaders();
+    if(settings::verbose > 2) {
+      cerr << "glinitialize block: after initShaders, materialShader[0]=" << camp::materialShader[0]
+           << " materialShader[1]=" << camp::materialShader[1] << endl;
+    }
+    if(settings::verbose > 2) {
+      cerr << "glinitialize block: calling setBuffers(), camp::vao=" << camp::vao << endl;
+    }
+    setBuffers();
+  }
 
   GLint val;
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
@@ -2158,50 +2391,25 @@ void glrender(GLRenderArgs const& args, int oldpid)
   Maxmaterials=val/sizeof(Material);
   if(nmaterials > Maxmaterials) nmaterials=Maxmaterials;
 
-  if(glinitialize) {
-    glinitialize=false;
-
-    const char *GLSL_VERSION=(const char *)
-      glGetString(GL_SHADING_LANGUAGE_VERSION);
-    GLSLversion=(int) (100*atof(GLSL_VERSION)+0.5);
-
-    if(GLSLversion < 130) {
-      cerr << "Unsupported GLSL version: " << GLSL_VERSION << "." << endl;
-      exit(-1);
-    }
-
-    if(settings::verbose > 2)
-      cout << "GLSL version " << GLSL_VERSION << endl;
-
-    int result = glewInit();
-
-    if(result != GLEW_OK) {
-      cerr << "GLEW initialization error." << endl;
-      exit(-1);
-    }
-
-    ibl=getSetting<bool>("ibl");
-    initShaders();
-    setBuffers();
-  }
-
   glClearColor(args.background[0],args.background[1],args.background[2],args.background[3]);
 
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGLFW
 #ifndef HAVE_LIBOSMESA
   if(View) {
-    if(!getSetting<bool>("fitscreen"))
-      Fitscreen=0;
-    firstFit=true;
-    fitscreen();
+    // Don't auto-fit screen - let user control with -fitscreen/-nofitscreen
+    // if(!getSetting<bool>("fitscreen"))
+    //   Fitscreen=0;
+    // firstFit=true;
+    // fitscreen();
     setosize();
   }
 #endif
 #endif
 
   glEnable(GL_DEPTH_TEST);
-  glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-  glEnable(GL_TEXTURE_3D);
+  // Note: GL_VERTEX_PROGRAM_POINT_SIZE and GL_TEXTURE_3D are removed in core profile
+  // glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+  // glEnable(GL_TEXTURE_3D);
 
   if(!camp::ssbo) {
     glEnable(GL_BLEND);
@@ -2217,26 +2425,36 @@ void glrender(GLRenderArgs const& args, int oldpid)
 #endif
 
   if(View) {
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGLFW
 #ifdef HAVE_PTHREAD
 #ifndef HAVE_LIBOSMESA
     initializedView=true;
 #endif
 #endif
-    glutReshapeFunc(reshape);
-    glutKeyboardFunc(keyboard);
-    glutMouseFunc(mouse);
-    glutDisplayFunc(display);
+    // GLFW callbacks are set up via glfwSet*Callback functions
+    // The main loop is handled manually below
 
-#ifdef __MSDOS__
-    if(glthread && interact::interactive)
-      poll(0);
-#endif
+    cerr << "DEBUG: Entering main loop (View=" << View << ", redraw=" << redraw << ")" << endl;
 
-    glutMainLoop();
+    // Ensure initial render happens
+    redraw=true;
+
+    while(!glfwWindowShouldClose(window)) {
+      if(redraw || queueExport) {
+        redraw=false;
+        display();
+      }
+
+      // Process idle function for spinning
+      if(currentIdleFunc) {
+        currentIdleFunc();
+      }
+
+      glfwPollEvents();
+    }
     cout << endl;
     exitHandler(0);
-#endif // HAVE_LIBGLUT
+#endif // HAVE_LIBGLFW
   } else {
     if(glthread) {
       if(havewindow) {
@@ -2544,6 +2762,14 @@ void setUniforms(vertexBuffer& data, GLint shader)
 {
   bool normal=shader != pixelShader;
 
+  // Check if shader is valid
+  if(shader == 0) {
+    if(settings::verbose > 2) {
+      cerr << "setUniforms: shader is 0!" << endl;
+    }
+    return;
+  }
+
   if(shader != gl::lastshader) {
     glUseProgram(shader);
 
@@ -2605,12 +2831,40 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
 {
   if(data.indices.empty()) return;
 
+  // Ensure VAO is valid (non-zero)
+  if(camp::vao == 0) {
+    if(settings::verbose > 2) {
+      cerr << "drawBuffer: VAO not initialized! Creating now..." << endl;
+    }
+    glGenVertexArrays(1, &camp::vao);
+  }
+
+  if(settings::verbose > 2) {
+    cerr << "drawBuffer: camp::vao=" << camp::vao << endl;
+  }
+
+  // Check for OpenGL errors before drawing
+  GLenum err = glGetError();
+  if(err != GL_NO_ERROR && settings::verbose > 2) {
+    cerr << "drawBuffer: OpenGL error at start: " << err << endl;
+  }
+
   bool normal=shader != pixelShader;
 
   const size_t size=sizeof(GLfloat);
   const size_t intsize=sizeof(GLint);
   const size_t bytestride=color ? sizeof(VertexData) :
     (normal ? sizeof(vertexData) : sizeof(vertexData0));
+
+  // Debug output for material rendering
+  if(settings::verbose > 2 && !data.vertices.empty()) {
+    cerr << "drawBuffer: vertices.size=" << data.vertices.size()
+         << " indices.size=" << data.indices.size()
+         << " copy=" << ((gl::remesh || data.partial || !data.rendered) && !gl::copied) << endl;
+  }
+
+  // Bind VAO before setting up vertex attributes (required in core profile)
+  glBindVertexArray(camp::vao);
 
   bool copy=(gl::remesh || data.partial || !data.rendered) && !gl::copied;
   if(color) registerBuffer(data.Vertices,data.VerticesBuffer,copy);
@@ -2649,6 +2903,12 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
 
   fpu_trap(false); // Work around FE_INVALID
   glDrawElements(data.type,data.indices.size(),GL_UNSIGNED_INT,(void *) 0);
+
+  // Check for OpenGL errors after draw call
+  err = glGetError();
+  if(err != GL_NO_ERROR && settings::verbose > 2) {
+    cerr << "drawBuffer: OpenGL error after glDrawElements: " << err << endl;
+  }
   fpu_trap(settings::trap());
 
   glDisableVertexAttribArray(positionAttrib);
@@ -2663,6 +2923,7 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
   glBindBuffer(GL_UNIFORM_BUFFER,0);
   glBindBuffer(GL_ARRAY_BUFFER,0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+  glBindVertexArray(0);  // Unbind VAO when done
 }
 
 void drawMaterial0()
@@ -2679,6 +2940,12 @@ void drawMaterial1()
 
 void drawMaterial()
 {
+  // Check for any pending OpenGL errors before drawing
+  GLenum err = glGetError();
+  if(err != GL_NO_ERROR && settings::verbose > 2) {
+    cerr << "drawMaterial: OpenGL error before drawBuffer: " << err << endl;
+  }
+
   drawBuffer(materialData,materialShader[Opaque]);
   materialData.clear();
 }
@@ -2739,6 +3006,19 @@ void drawBuffers()
   gl::copied=false;
   Opaque=transparentData.indices.empty();
   bool transparent=!Opaque;
+
+  if(settings::verbose > 2) {
+    cerr << "drawBuffers: Opaque=" << Opaque
+         << " material0 indices=" << material0Data.indices.size()
+         << " material1 indices=" << material1Data.indices.size()
+         << " material indices=" << materialData.indices.size()
+         << " material vertices=" << materialData.vertices.size()
+         << " color indices=" << colorData.indices.size()
+         << " triangle indices=" << triangleData.indices.size()
+         << " transparent indices=" << transparentData.indices.size()
+         << endl;
+  }
+
   if(camp::ssbo) {
     if(transparent) {
       refreshBuffers();

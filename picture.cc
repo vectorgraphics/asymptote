@@ -18,6 +18,10 @@
 #include "drawpath3.h"
 #include "seconds.h"
 
+#ifdef HAVE_LIBGLFW
+#include <GLFW/glfw3.h>
+#endif
+
 #if defined(_WIN32)
 #include <Windows.h>
 #include <shellapi.h>
@@ -1566,6 +1570,9 @@ bool picture::shipout3(const string& prefix, const string& format,
           endwait(initSignal,initLock);
           initialize=false;
         }
+        #ifdef HAVE_LIBGLFW
+        glfwPostEmptyEvent();
+#endif
         if(Wait) {
           pthread_cond_wait(&readySignal,&readyLock);
           pthread_mutex_unlock(&readyLock);
@@ -1574,6 +1581,9 @@ bool picture::shipout3(const string& prefix, const string& format,
       }
       if(Wait)
         pthread_mutex_lock(&readyLock);
+#ifdef HAVE_LIBGLFW
+        glfwPostEmptyEvent();
+#endif
 #endif
     } else {
 #if !defined(_WIN32)
@@ -1661,6 +1671,9 @@ bool picture::shipout3(const string& prefix, const string& format,
 #ifdef HAVE_GL
 #ifdef HAVE_PTHREAD
   if(glthread && !offscreen && Wait) {
+#ifdef HAVE_LIBGLFW
+    glfwPostEmptyEvent();
+#endif
     pthread_cond_wait(&readySignal,&readyLock);
     pthread_mutex_unlock(&readyLock);
   }
