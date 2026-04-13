@@ -33,62 +33,14 @@
 #include "vkRenderMessages.h"
 
 #include "render.h"
+#include "renderBase.h"
+#include "glfw.h"
 
 namespace camp
 {
 class picture;
 
-#define EMPTY_VIEW 0, nullptr
-#define SINGLETON_VIEW(x) 1, &(x)
-#define VEC_VIEW(x) static_cast<uint32_t>((x).size()), (x).data()
-#define STD_ARR_VIEW(x) static_cast<uint32_t>((x).size()), (x).data()
-#define ARR_VIEW(x) static_cast<uint32_t>(sizeof(x) / sizeof((x)[0])), x
-#define RAW_VIEW(x) static_cast<uint32_t>(sizeof(x)), x
-#define ST_VIEW(s) static_cast<uint32_t>(sizeof(s)), &s
-
-template<class T>
-inline T ceilquotient(T a, T b)
-{
-  return (a + b - 1) / b;
-}
-
-inline void store(float* f, double* C)
-{
-  f[0] = C[0];
-  f[1] = C[1];
-  f[2] = C[2];
-}
-
-inline void store(float* control, const triple& v)
-{
-  control[0] = v.getx();
-  control[1] = v.gety();
-  control[2] = v.getz();
-}
-
-inline void store(float* control, const triple& v, double weight)
-{
-  control[0] = v.getx() * weight;
-  control[1] = v.gety() * weight;
-  control[2] = v.getz() * weight;
-  control[3] = weight;
-}
-
 std::vector<char> readFile(const std::string& filename);
-
-enum DrawMode: int
-{
-   DRAWMODE_NORMAL,
-   DRAWMODE_OUTLINE,
-   DRAWMODE_WIREFRAME,
-   DRAWMODE_MAX
-};
-
-struct Light
-{
-  glm::vec4 direction;
-  glm::vec4 color;
-};
 
 #ifdef HAVE_VULKAN
 struct SwapChainDetails {
@@ -137,69 +89,10 @@ struct ComputePushConstants {
     uint32_t final;
 };
 
-struct Arcball {
-  double angle;
-  triple axis;
-
-  Arcball(double x0, double y0, double x, double y)
-  {
-    triple v0 = norm(x0, y0);
-    triple v1 = norm(x, y);
-    double Dot = dot(v0, v1);
-    angle = Dot > 1.0 ? 0.0 : Dot < -1.0 ? M_PI
-                                         : acos(Dot);
-    axis = unit(cross(v0, v1));
-  }
-
-  triple norm(double x, double y)
-  {
-    double norm = hypot(x, y);
-    if (norm > 1.0) {
-      double denom = 1.0 / norm;
-      x *= denom;
-      y *= denom;
-    }
-    return triple(x, y, sqrt(max(1.0 - x * x - y * y, 0.0)));
-  }
-};
-
-struct projection
-{
-public:
-  bool orthographic;
-  camp::triple camera;
-  camp::triple up;
-  camp::triple target;
-  double zoom;
-  double angle;
-  camp::pair viewportshift;
-
-  projection(bool orthographic=false, camp::triple camera=0.0,
-             camp::triple up=0.0, camp::triple target=0.0,
-             double zoom=0.0, double angle=0.0,
-             camp::pair viewportshift=0.0) :
-    orthographic(orthographic), camera(camera), up(up), target(target),
-    zoom(zoom), angle(angle), viewportshift(viewportshift) {}
-};
-
-#ifdef HAVE_VULKAN
-constexpr
-std::array<const char*, 4> deviceExtensions
-{
-  VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME,
-  VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
-  VK_KHR_MULTIVIEW_EXTENSION_NAME,
-  VK_KHR_MAINTENANCE2_EXTENSION_NAME
-};
-
-constexpr auto VB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer;
-constexpr auto IB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer;
-#endif
-
 extern glm::dmat4 projViewMat;
 extern glm::dmat4 normMat;
 
-class AsyVkRender
+class AsyVkRender : public AsyRender, public RenderCallbacks
 {
 public:
 
@@ -237,7 +130,17 @@ public:
 
   void vkrender(VkrenderFunctionArgs const& args);
 
-  double getRenderResolution(triple Min) const;
+  // Implementation of base class pure virtual
+  void render(RenderFunctionArgs const& args) override;
+
+  // RenderCallbacks interface implementation (GLFW callbacks)
+  void onMouseButton(int button, int action, int mods) override;
+  void onFramebufferResize(int width, int height) override;
+  void onScroll(double xoffset, double yoffset) override;
+  void onCursorPos(double xpos, double ypos) override;
+  void onKey(int key, int scancode, int action, int mods) override;
+  void onWindowFocus(int focused) override;
+  void onClose() override;
 
   bool framebufferResized=false;
   bool recreatePipeline=false;
@@ -257,7 +160,6 @@ public:
   int maxFramesInFlight;
   size_t framecount;
 
-  DrawMode mode = DRAWMODE_NORMAL;
   std::string title = "";
 
   /**
@@ -293,58 +195,25 @@ public:
   vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
 #endif
 
-  std::vector<Material> materials;
-  MaterialMap materialMap;
-
-  bool Opaque;
   std::uint32_t pixels;
-  bool orthographic;
-
-  glm::dmat4 rotateMat;
-  glm::dmat4 projMat;
-  glm::dmat4 viewMat;
-
-  double xmin, xmax;
-  double ymin, ymax;
-
-  double Xmin, Xmax;
-  double Ymin, Ymax;
-  double Zmin, Zmax;
-
-  int fullWidth, fullHeight;
-  double X,Y;
-  double Angle;
-  double Zoom;
-  double Zoom0;
-  pair Shift;
-  pair Margin;
-  double ArcballFactor;
-
-  camp::triple* Lights;
-  double* LightsDiffuse;
-  size_t nlights;
-  std::array<float, 4> Background;
 
   const double* dprojView;
   const double* dView;
 
-  double T[16];
-  double Tup[16];
-
-  void updateProjection();
-  void frustum(double left, double right, double bottom,
-               double top, double nearVal, double farVal);
-  void ortho(double left, double right, double bottom,
-             double top, double nearVal, double farVal);
-
-  void clearCenters();
-  void clearMaterials();
-
-  bool redraw=false;
   bool redisplay=false;
   bool resize=false;
 private:
 #ifdef HAVE_VULKAN
+  static constexpr std::array<const char*, 4> deviceExtensions = {
+    VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME,
+    VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
+    VK_KHR_MULTIVIEW_EXTENSION_NAME,
+    VK_KHR_MAINTENANCE2_EXTENSION_NAME
+  };
+
+  static constexpr auto VB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer;
+  static constexpr auto IB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer;
+
   struct DeviceBuffer {
     vk::BufferUsageFlags usage;
     VkMemoryPropertyFlagBits properties;
@@ -362,41 +231,10 @@ private:
   };
 #endif
 
-  const double pi=acos(-1.0);
-  const double degrees=180.0/pi;
-  const double radians=1.0/degrees;
-
-  const picture* pic = nullptr;
-
-  double H;
-  double Xfactor, Yfactor;
-  double cx, cy;
-
-  int screenWidth, screenHeight;
-  int Width, Height;
-  int oldWidth,oldHeight;
-  double Aspect;
-  double oWidth, oHeight;
-  double lastzoom;
-  int Fitscreen=1;
   int Oldpid;
-
-  utils::stopWatch spinTimer;
-  utils::stopWatch fpsTimer;
-  utils::stopWatch frameTimer;
-  utils::statistics fpsStats;
-  std::function<void()> currentIdleFunc = nullptr;
-  bool Xspin = false;
-  bool Yspin = false;
-  bool Zspin = false;
-  string Format;
-  bool View = false;
-  string Prefix;
   bool ViewExport;
-  bool antialias = false;
   bool readyAfterExport=false;
 
-  bool remesh=true;
   bool interlock=false;
   bool GPUcompress=false;
   bool fxaa=false;
@@ -670,28 +508,21 @@ private:
   uint32_t currentFrame = 0;
   vk::CommandBuffer currentCommandBuffer;
   std::vector<FrameObject> frameObjects;
+protected:
   std::string lastAction = "";
 
 #endif
 
-  void setDimensions(int Width, int Height, double X, double Y);
-  void updateModelViewData();
-  void setProjection();
-  void update();
+protected:
+  void setDimensions(int Width, int Height, double X, double Y) override;
+  void updateModelViewData() override;
+  void setProjection() override;
+  void update() override;
 
+public:
   static void updateHandler(int);
 
-  static std::string getAction(int button, int mod);
-
 #ifdef HAVE_VULKAN
-  static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-  static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
-  static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
-  static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
-  static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-  static void windowFocusCallback(GLFWwindow* window, int focused);
-  static void closeWindowHandler(GLFWwindow* window);
-
   void initWindow();
   void initVulkan();
 
@@ -895,17 +726,14 @@ private:
 
   void nextFrame();
   void clearBuffers();
-  void render();
+  void prepareScene();
   void display();
   void mainLoop();
   void cleanup();
   void processMessages(VulkanRendererMessage const& msg);
 
-  void idleFunc(std::function<void()> f);
-  void idle();
-
   // user controls
-  static void exportHandler(int=0);
+  void exportHandler(int=0) override;
   void Export(int imageIndex);
   bool readyForExport=false;
   bool readyForUpdate=false;
@@ -939,40 +767,19 @@ private:
     PipelineType end = PIPELINE_MAX
   );
 
-  void quit();
+  void quit() override;
 
-  double spinStep();
-  void rotateX(double step);
-  void rotateY(double step);
-  void rotateZ(double step);
-  void xspin();
-  void yspin();
-  void zspin();
-  void spinx();
-  void spiny();
-  void spinz();
+  virtual void expand() override;
+  virtual void shrink() override;
+  virtual void setsize(int w, int h, bool reposition=true) override;
+  virtual void fullscreen(bool reposition=true) override;
+  virtual void reshape0(int width, int height) override;
+  virtual void fitscreen(bool reposition=true) override;
+  virtual void toggleFitScreen() override;
+  virtual void home(bool webgl=false) override;
+  virtual void cycleMode() override;
 
-  void expand();
-  void shrink();
-  projection camera(bool user=true);
-  void showCamera();
-  void shift(double dx, double dy);
-  void pan(double dx, double dy);
-  void capzoom();
-  void zoom(double dx, double dy);
-  void capsize(int& w, int& h);
-  void windowposition(int& x, int& y, int width=-1, int height=-1);
-  void setsize(int w, int h, bool reposition=true);
-  void fullscreen(bool reposition=true);
-  void reshape0(int width, int height);
-  void setosize();
-  void fitscreen(bool reposition=true);
-  void toggleFitScreen();
-  void home(bool webgl=false);
-  void cycleMode();
-
-  friend struct SwapChainDetails;
-  friend void glfwInitWindow(AsyVkRender*, int, int, const std::string&);
+  friend void glfwInitWindow(AsyRender*, int, int, const std::string&);
   friend void glfwCleanupWindow(AsyVkRender*);
 };
 

@@ -16,6 +16,10 @@
 #include "material.h"
 #include "triple.h"
 
+#ifdef HAVE_VULKAN
+#include "vk.h"
+#endif
+
 namespace camp
 {
 

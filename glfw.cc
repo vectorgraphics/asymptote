@@ -1,282 +1,183 @@
 #include "common.h"
+#include "vm.h"
+#include "array.h"
 
 #ifdef HAVE_VULKAN
 
 #include "glfw.h"
-#include "vkrender.h"
 #include "settings.h"
 
-#include <thread>
-
 using settings::getSetting;
+using vm::read;
 
-// Forward declarations for functions defined in vkrender.cc
+// Forward declaration
 void runtimeError(const std::string& s);
 void exitHandler(int);
 
 namespace camp
 {
 
-void glfwInitWindow(AsyVkRender* app, int width, int height, const std::string& title)
+// Static GLFW callback wrappers that delegate to RenderCallbacks interface
+static void onMouseButton(GLFWwindow* window, int button, int action, int mods)
 {
-  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  glfwWindowHint(GLFW_FOCUSED, GLFW_FALSE);
-  glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE);
-  glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-
-  app->window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
-
-  if (app->window == nullptr)
-    runtimeError(
-      "failed to create a window with width "
-      + std::to_string(width) + " and height "
-      + std::to_string(height));
-
-  glfwSetWindowUserPointer(app->window, app);
-  glfwSetMouseButtonCallback(app->window, AsyVkRender::mouseButtonCallback);
-  glfwSetFramebufferSizeCallback(app->window, AsyVkRender::framebufferResizeCallback);
-  glfwSetScrollCallback(app->window, AsyVkRender::scrollCallback);
-  glfwSetCursorPosCallback(app->window, AsyVkRender::cursorPosCallback);
-  glfwSetKeyCallback(app->window, nullptr);
-  glfwSetKeyCallback(app->window, AsyVkRender::keyCallback);
-  glfwSetWindowSizeLimits(app->window, 1, 1, GLFW_DONT_CARE, GLFW_DONT_CARE);
-  glfwSetWindowCloseCallback(app->window, AsyVkRender::closeWindowHandler);
-  glfwSetWindowFocusCallback(app->window, AsyVkRender::windowFocusCallback);
+    auto callbacks = glfwGetCallbacks(window);
+    if (callbacks)
+        callbacks->onMouseButton(button, action, mods);
 }
 
-void glfwCleanupWindow(AsyVkRender* app)
+static void onFramebufferResize(GLFWwindow* window, int width, int height)
 {
-  if (app->window != nullptr) {
-    glfwDestroyWindow(app->window);
-    app->window = nullptr;
-  }
-  glfwTerminate();
+    auto callbacks = glfwGetCallbacks(window);
+    if (callbacks)
+        callbacks->onFramebufferResize(width, height);
+}
+
+static void onScroll(GLFWwindow* window, double xoffset, double yoffset)
+{
+    auto callbacks = glfwGetCallbacks(window);
+    if (callbacks)
+        callbacks->onScroll(xoffset, yoffset);
+}
+
+static void onCursorPos(GLFWwindow* window, double xpos, double ypos)
+{
+    auto callbacks = glfwGetCallbacks(window);
+    if (callbacks)
+        callbacks->onCursorPos(xpos, ypos);
+}
+
+static void onKey(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    auto callbacks = glfwGetCallbacks(window);
+    if (callbacks)
+        callbacks->onKey(key, scancode, action, mods);
+}
+
+static void onWindowFocus(GLFWwindow* window, int focused)
+{
+    auto callbacks = glfwGetCallbacks(window);
+    if (callbacks)
+        callbacks->onWindowFocus(focused);
+}
+
+static void onClose(GLFWwindow* window)
+{
+    auto callbacks = glfwGetCallbacks(window);
+    if (callbacks)
+        callbacks->onClose();
+}
+
+GLFWwindow* glfwCreateRenderWindow(int width, int height, const std::string& title,
+                                    RenderCallbacks* callbacks)
+{
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_FOCUSED, GLFW_FALSE);
+    glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+
+    auto window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+
+    if (window == nullptr)
+        runtimeError(
+            "failed to create a window with width "
+            + std::to_string(width) + " and height "
+            + std::to_string(height));
+
+    // Store callbacks in window user pointer
+    glfwSetWindowUserPointer(window, callbacks);
+
+    // Set up all callbacks
+    glfwSetMouseButtonCallback(window, onMouseButton);
+    glfwSetFramebufferSizeCallback(window, onFramebufferResize);
+    glfwSetScrollCallback(window, onScroll);
+    glfwSetCursorPosCallback(window, onCursorPos);
+    glfwSetKeyCallback(window, onKey);
+    glfwSetWindowSizeLimits(window, 1, 1, GLFW_DONT_CARE, GLFW_DONT_CARE);
+    glfwSetWindowCloseCallback(window, onClose);
+    glfwSetWindowFocusCallback(window, onWindowFocus);
+
+    return window;
+}
+
+void glfwDestroyWindow(GLFWwindow* window)
+{
+    if (window != nullptr) {
+        ::glfwDestroyWindow(window);  // Use global namespace to call GLFW's function
+    }
+    glfwTerminate();
 }
 
 void glfwPostEmptyEventWrapper()
 {
-  glfwPostEmptyEvent();
+    glfwPostEmptyEvent();
 }
 
-AsyVkRender* glfwGetApp(GLFWwindow* window)
+RenderCallbacks* glfwGetCallbacks(GLFWwindow* window)
 {
-  return reinterpret_cast<AsyVkRender*>(glfwGetWindowUserPointer(window));
+    return static_cast<RenderCallbacks*>(glfwGetWindowUserPointer(window));
 }
 
-// Static callback functions defined in AsyVkRender class but implemented here for clarity
-void AsyVkRender::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+// Helper function to get action string from button/mods (uses GLFW constants)
+// This is generic code that can be shared between Vulkan and OpenGL renderers
+static std::string getActionString(int button, int mods)
 {
-  auto const currentAction = getAction(button, mods);
+    size_t Button;
+    size_t nButtons = 5;
+    switch(button) {
+        case GLFW_MOUSE_BUTTON_LEFT:
+            Button = 0;
+            break;
+        case GLFW_MOUSE_BUTTON_MIDDLE:
+            Button = 1;
+            break;
+        case GLFW_MOUSE_BUTTON_RIGHT:
+            Button = 2;
+            break;
+        default:
+            Button = nButtons;
+    }
 
-  if (currentAction.empty())
-    return;
+    size_t Mod;
+    size_t nMods = 4;
 
-  auto app = glfwGetApp(window);
-
-  app->lastAction = currentAction;
-}
-
-void AsyVkRender::framebufferResizeCallback(GLFWwindow* window, int width, int height)
-{
-  if(width == 0 || height == 0)
-    return;
-
-  auto* app = glfwGetApp(window);
-
-  if(width == app->Width && height == app->Height)
-    return;
-
-  app->reshape0(width,height);
-  app->update();
-  app->remesh=true;
-}
-
-void AsyVkRender::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
-{
-  auto app = glfwGetApp(window);
-  auto zoomFactor = getSetting<double>("zoomfactor");
-
-  if(zoomFactor > 0.0) {
-    if (yoffset > 0)
-      app->Zoom *= zoomFactor;
+    if (mods == 0)
+        Mod = 0;
+    else if(mods & GLFW_MOD_SHIFT)
+        Mod = 1;
+    else if(mods & GLFW_MOD_CONTROL)
+        Mod = 2;
+    else if(mods & GLFW_MOD_ALT)
+        Mod = 3;
     else
-      app->Zoom /= zoomFactor;
-  }
+        Mod = nMods;
 
-  app->update();
-}
+    if(Button < nButtons) {
+        auto left = getSetting<vm::array *>("leftbutton");
+        auto middle = getSetting<vm::array *>("middlebutton");
+        auto right = getSetting<vm::array *>("rightbutton");
+        auto wheelup = getSetting<vm::array *>("wheelup");
+        auto wheeldown = getSetting<vm::array *>("wheeldown");
+        vm::array* buttonArray[] = {left, middle, right, wheelup, wheeldown};
+        auto a = buttonArray[Button];
+        size_t size = checkArray(a);
 
-void AsyVkRender::cursorPosCallback(GLFWwindow* window, double xpos, double ypos)
-{
-  static double xprev = 0.0;
-  static double yprev = 0.0;
-
-  if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) != GLFW_PRESS)
-  {
-    xprev = xpos;
-    yprev = ypos;
-    return;
-  }
-
-  auto app = glfwGetApp(window);
-
-  if (app->lastAction == "rotate") {
-
-    Arcball arcball(xprev * 2 / app->Width - 1, 1 - yprev * 2 / app->Height, xpos * 2 / app->Width - 1, 1 - ypos * 2 / app->Height);
-    triple axis = arcball.axis;
-    app->rotateMat = rotate(2 * arcball.angle / app->Zoom * app->ArcballFactor,
-                                 glm::dvec3(axis.getx(), axis.gety(), axis.getz())) * app->rotateMat;
-    app->update();
-  }
-  else if (app->lastAction == "shift") {
-
-    app->shift(xpos - xprev, ypos - yprev);
-    app->update();
-  }
-  else if (app->lastAction == "pan") {
-
-    if (app->orthographic)
-      app->shift(xpos - xprev, ypos - yprev);
-    else {
-      app->pan(xpos - xprev, ypos - yprev);
+        if(Mod < size)
+            return read<std::string>(a, Mod);
     }
-    app->update();
-  }
-  else if (app->lastAction == "zoom") {
 
-    app->zoom(0.0, ypos - yprev);
-  }
-
-  xprev = xpos;
-  yprev = ypos;
+    return "";
 }
 
-void AsyVkRender::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+// Export getActionString for use in renderer implementations
+std::string getGLFWAction(int button, int mods)
 {
-  if (action != GLFW_PRESS)
-    return;
-
-  auto* app = glfwGetApp(window);
-
-  switch (key)
-  {
-    case 'H':
-      app->home();
-      app->redraw=true;
-      break;
-    case 'F':
-      app->toggleFitScreen();
-      break;
-    case 'X':
-      app->spinx();
-      break;
-    case 'Y':
-      app->spiny();
-      break;
-    case 'Z':
-      app->spinz();
-      break;
-    case 'S':
-      app->idle();
-      break;
-    case 'M':
-      app->cycleMode();
-      break;
-    case 'E':
-      app->queueExport = true;
-      break;
-    case 'C':
-      app->showCamera();
-      break;
-    case '.': // '>' = '.' + shift
-      if (!(mods & GLFW_MOD_SHIFT))
-        break;
-    case '+':
-    case '=':
-      app->expand();
-      break;
-    case ',': // '<' = ',' + shift
-      if (!(mods & GLFW_MOD_SHIFT))
-        break;
-    case '-':
-    case '_':
-      app->shrink();
-      break;
-    case 'Q':
-      if(!app->Format.empty()) app->exportHandler(0);
-      app->quit();
-      break;
-  }
-}
-
-void AsyVkRender::windowFocusCallback(GLFWwindow* window, int focused)
-{
-    if (focused) {
-        // Window gained focus: might need to recreate swapchain
-        auto app = glfwGetApp(window);
-        app->recreatePipeline = true;
-    }
-}
-
-void AsyVkRender::closeWindowHandler(GLFWwindow *window)
-{
-  cout << endl;
-  exitHandler(0);
-}
-
-std::string AsyVkRender::getAction(int button, int mods)
-{
-  size_t Button;
-  size_t nButtons=5;
-  switch(button) {
-    case GLFW_MOUSE_BUTTON_LEFT:
-      Button=0;
-      break;
-    case GLFW_MOUSE_BUTTON_MIDDLE:
-      Button=1;
-      break;
-    case GLFW_MOUSE_BUTTON_RIGHT:
-      Button=2;
-      break;
-    default:
-      Button=nButtons;
-  }
-
-  size_t Mod;
-  size_t nMods=4;
-
-  if (mods == 0)
-    Mod=0;
-  else if(mods & GLFW_MOD_SHIFT)
-    Mod=1;
-  else if(mods & GLFW_MOD_CONTROL)
-    Mod=2;
-  else if(mods & GLFW_MOD_ALT)
-    Mod=3;
-  else
-    Mod=nMods;
-
-  if(Button < nButtons) {
-    auto left=getSetting<vm::array *>("leftbutton");
-    auto middle=getSetting<vm::array *>("middlebutton");
-    auto right=getSetting<vm::array *>("rightbutton");
-    auto wheelup=getSetting<vm::array *>("wheelup");
-    auto wheeldown=getSetting<vm::array *>("wheeldown");
-    vm::array *Buttons[]={left,middle,right,wheelup,wheeldown};
-    auto a=Buttons[button];
-    size_t size=checkArray(a);
-
-    if(Mod < size)
-      return vm::read<std::string>(a,Mod);
-  }
-
-  return "";
+    return getActionString(button, mods);
 }
 
 void *postEmptyEvent(void *)
 {
-  glfwPostEmptyEvent();
-  return NULL;
+    glfwPostEmptyEvent();
+    return NULL;
 }
 
 } // namespace camp
@@ -284,8 +185,8 @@ void *postEmptyEvent(void *)
 // postEmptyEvent is defined outside the namespace for pthread callback compatibility
 void *postEmptyEvent(void *)
 {
-  glfwPostEmptyEvent();
-  return NULL;
+    glfwPostEmptyEvent();
+    return NULL;
 }
 
 #endif // HAVE_VULKAN
