@@ -852,7 +852,7 @@ void drawscene(int Width, int Height)
 
   triple m(xmin,ymin,Zmin);
   triple M(xmax,ymax,Zmax);
-  double perspective=orthographic ? 0.0 : 1.0/Zmax;
+  double perspective=orthographic || Zmax == 0.0 ? 0.0 : 1.0/Zmax;
 
   double size2=hypot(Width,Height);
 
@@ -895,7 +895,7 @@ void Export()
              << fullHeight << " image" << " using tiles of size "
              << width << "x" << height << endl;
 
-      unsigned border=min(min(1,width/2),height/2);
+      unsigned border=min(min(1,(width-1)/2),(height-1)/2);
       trTileSize(tr,width,height,border);
       trImageSize(tr,fullWidth,fullHeight);
       trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);

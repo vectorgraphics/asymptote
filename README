@@ -51,7 +51,7 @@ fftw3:
 https://www.fftw.org/fftw-3.3.10.tar.gz
 
 getopt:
-https://github.com/xiaozhuai/getopt-win32
+https://github.com/libimobiledevice-win32/getopt
 
 freeglut:
 https://github.com/freeglut/freeglut

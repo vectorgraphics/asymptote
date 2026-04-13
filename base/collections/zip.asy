@@ -12,7 +12,7 @@ T[][] zip(...T[][] arrays) {
       minLength = arrays[i].length;
     }
   }
-  T[][] truncated = new T[arrays.length][minLength];
+  T[][] truncated = new T[arrays.length][];
   for (int i = 0; i < arrays.length; ++i) {
     truncated[i] = arrays[i][0:minLength];
   }
@@ -82,13 +82,13 @@ Iterable_array_T zip(T keyword default ...Iterable_T[] iterables) {
     }
     Iter_array_T result;
     result.advance = new void() {
-      for (Iter_T iter : iters) {
-        if (iter.valid()) iter.advance();
+      for (int i = 0; i < iters.length; ++i) {
+        if (iters[i].valid()) iters[i].advance();
       }
     };
     result.valid = new bool() {
-      for (Iter_T iter : iters) {
-        if (iter.valid()) {
+      for (int i = 0; i < iters.length; ++i) {
+        if (iters[i].valid()) {
           return true;
         }
       }

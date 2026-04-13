@@ -125,7 +125,7 @@ public:
     double prerender=settings::getSetting<double>("prerender");
     if(prerender <= 0.0) return 0.0;
     prerender=1.0/prerender;
-    double perspective=gl::orthographic ? 0.0 : 1.0/gl::Zmax;
+    double perspective=gl::orthographic || gl::Zmax == 0.0 ? 0.0 : 1.0/gl::Zmax;
     double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
     triple b(gl::Xmin,gl::Ymin,gl::Zmin);
     triple B(gl::Xmax,gl::Ymax,gl::Zmax);

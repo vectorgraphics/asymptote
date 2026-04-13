@@ -528,3 +528,91 @@ b.add(wrap(4));
   assert(c.contains(wrap(4)), 'Symmetric difference failed: missing 4');
 }
 EndTest();
+
+StartTest('BTree: atOrAfter and atOrBefore');
+{
+  from collections.sortedset(T=int) access SortedSet_T as SortedSet_int;
+  from collections.btree(T=int) access BTreeSet_T as BTreeSet_int;
+
+  BTreeSet_int btree = BTreeSet_int(nullT=-1, maxPivots=4);
+  SortedSet_int set = btree;
+
+  // Insert even numbers 0, 2, 4, ..., 18
+  for (int i = 0; i < 20; i += 2) {
+    set.add(i);
+  }
+
+  // atOrAfter for a present element returns that element.
+  assert(set.atOrAfter(4) == 4);
+  // atOrAfter for a missing element returns the next larger.
+  assert(set.atOrAfter(5) == 6);
+  // atOrAfter for something beyond max returns nullT.
+  assert(set.atOrAfter(19) == -1);
+
+  // atOrBefore for a present element returns that element.
+  assert(set.atOrBefore(4) == 4);
+  // atOrBefore for a missing element returns the next smaller.
+  assert(set.atOrBefore(5) == 4);
+  // atOrBefore for something below min returns nullT.
+  assert(set.atOrBefore(-1) == -1);
+}
+EndTest();
+
+StartTest('BTree: extract and push');
+{
+  from collections.set(T=int) access Set_T as Set_int;
+  from collections.btree(T=int) access BTreeSet_T as BTreeSet_int;
+
+  BTreeSet_int btree = BTreeSet_int(nullT=-1, maxPivots=4);
+  Set_int set = btree;
+
+  set.add(10);
+  set.add(20);
+  set.add(30);
+
+  // get returns the element.
+  assert(set.get(20) == 20);
+
+  // push on a new element returns nullT.
+  int replaced = set.push(25);
+  assert(replaced == -1);
+  assert(set.size() == 4);
+
+  // push on an existing element returns the old element.
+  replaced = set.push(20);
+  assert(replaced == 20);
+  assert(set.size() == 4);
+
+  // extract removes and returns the element.
+  int extracted = set.extract(25);
+  assert(extracted == 25);
+  assert(set.size() == 3);
+  assert(!set.contains(25));
+
+  // extract on a non-existent element returns nullT.
+  extracted = set.extract(99);
+  assert(extracted == -1);
+  assert(set.size() == 3);
+}
+EndTest();
+
+StartTest('BTree: newEmpty');
+{
+  from collections.set(T=int) access Set_T as Set_int;
+  from collections.btree(T=int) access BTreeSet_T as BTreeSet_int;
+
+  BTreeSet_int btree = BTreeSet_int(nullT=-1, maxPivots=4);
+  Set_int set = btree;
+  set.add(1);
+  set.add(2);
+  set.add(3);
+
+  Set_int emptyClone = set.newEmpty();
+  assert(emptyClone.size() == 0);
+  assert(emptyClone.empty());
+  emptyClone.add(42);
+  assert(emptyClone.contains(42));
+  assert(!set.contains(42));
+  assert(set.size() == 3);
+}
+EndTest();

@@ -1,3 +1,13 @@
+// NOTE: This splay tree implementation predates the btree implementation and
+// is not documented. For all practical purposes, the btree (btreegeneral.asy)
+// is preferred: it has more stable iteration behavior (read-only operations
+// on a splay tree mutate the tree structure, silently undermining iterators)
+// and conforms fully to the documented Set/SortedSet API. This implementation
+// is retained for historical/testing purposes but does not fully conform to
+// the documented interface — in particular, nullT, isNullT, equiv, and
+// newEmpty are not wired up, and there is no concurrent modification detection
+// on iterators.
+
 typedef import(T);
 
 from collections.sortedset(T=T) access Set_T, SortedSet_T;

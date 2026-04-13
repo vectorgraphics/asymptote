@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ([2.71])
-AC_INIT([Asymptote],[3.10git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_INIT([Asymptote],[3.11git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -708,7 +708,6 @@ fi
 CPPFLAGS=$CPPFLAGS" $INCL"
 CXX_STANDARD=$cxxstd
 
-AC_SUBST(getopt)
 AC_SUBST(ASYGLVERSION)
 AC_SUBST(GCOPTIONS)
 AC_SUBST(GCLIB)

@@ -1,0 +1,32 @@
+errortests/templates.asy: 4.29: expected 'as'
+errortests/templates.asy: 6.30: expected 'as'
+errortests/templates.asy: 8.23: expected typename=
+errortests/templates.asy: 10.3: Parametrized imports disallowed to reduce naming conflicts. Try 'access <module>(<type parameters>) as <newname>;'.
+errortestNonTemplate.asy: 1.1: expected 'typedef import(<types>);'
+errortests/templates.asy: 12.3: could not load module 'errortestNonTemplate'
+errortests/templates.asy: 15.3: unexpected 'typedef import'
+errortests/templates.asy: 16.3: Expected 'typedef import(<types>);'
+errortests/templates.asy: 20.34: too few types passed: got 2, expected 3
+errortests/templates.asy: 20.3: could not load module 'errortestBrokenTemplate'
+errortests/templates.asy: 22.51: template argument name does not match module: passed T, expected C
+errortests/templates.asy: 22.3: could not load module 'errortestBrokenTemplate'
+errortests/templates.asy: 24.41: template argument name does not match module: passed C, expected B
+errortests/templates.asy: 24.3: could not load module 'errortestBrokenTemplate'
+errortestBrokenTemplate.asy: 5.1: unexpected 'typedef import'
+errortestBrokenTemplate.asy: 1.1: templated module access requires template parameters
+errortests/templates.asy: 36.27: non-statically nested types cannot be used in templates
+errortests/templates.asy: 39.26: non-statically nested types cannot be used in templates
+errortests/templates.asy: 40.26: non-statically nested types cannot be used in templates
+errortests/templates.asy: 46.28: template argument name does not match module: passed B, expected A
+errortests/templates.asy: 46.3: could not load module 'errortestTemplate'
+errortests/templates.asy: 48.28: template argument name does not match module: passed C, expected A
+errortests/templates.asy: 48.3: could not load module 'errortestTemplate'
+errortests/templates.asy: 50.35: template argument name does not match module: passed D, expected B
+errortests/templates.asy: 50.3: could not load module 'errortestTemplate'
+errortests/templates.asy: 52.28: template argument name does not match module: passed C, expected A
+errortests/templates.asy: 52.3: could not load module 'errortestTemplate'
+errortests/templates.asy: 54.28: too few types passed: got 1, expected 2
+errortests/templates.asy: 54.3: could not load module 'errortestTemplate'
+errortests/templates.asy: 56.28: too many types passed: got 3, expected 2
+errortests/templates.asy: 56.3: could not load module 'errortestTemplate'
+errortestTemplate.asy: 1.1: unexpected 'typedef import'
