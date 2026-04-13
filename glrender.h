@@ -28,13 +28,8 @@
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
-
-#ifdef HAVE_LIBGLUT
-#include <GLUT/glut.h>
-#ifndef GLUT_3_2_CORE_PROFILE
-#undef HAVE_GL
-#endif
-
+#else
+#include <GL/gl.h>
 #endif
 
 #ifdef HAVE_LIBOSMESA
@@ -48,22 +43,8 @@
 #include <GL/osmesa.h>
 #endif
 
-#else
-
-#ifdef HAVE_LIBGLUT
-#include <GL/glut.h>
-#endif
-
-#ifdef HAVE_LIBOSMESA
-#ifndef APIENTRY
-#define APIENTRY
-#endif
-#ifndef GLAPI
-#define GLAPI
-#endif
-#include <GL/osmesa.h>
-#endif
-
+#ifdef HAVE_LIBGLFW
+#include <GLFW/glfw3.h>
 #endif
 
 #else
@@ -220,6 +201,9 @@ struct Billboard {
 };
 
 extern Billboard BB;
+#ifdef HAVE_GL
+extern GLuint vao;  // Vertex Array Object
+#endif
 
 #ifdef HAVE_LIBGLM
 typedef mem::map<const Material,size_t> MaterialMap;
@@ -431,4 +415,4 @@ void drawTransparent();
 
 }
 
-#endif
+#endif  // GLRENDER_H
