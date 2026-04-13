@@ -320,8 +320,8 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
 }
 
 void AsyVkRender::updateHandler(int) {
-  if(vk->View && !interact::interactive) {
-    glfwHideWindow(vk->window);
+  if(vk->View && vk->window && !interact::interactive) {
+    ::glfwHideWindow(vk->window);
     if(!getSetting<bool>("fitscreen"))
       vk->Fitscreen=0;
   }
@@ -478,9 +478,9 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   }
 
 #ifdef HAVE_VULKAN
-  havewindow=initialized && vkthread;
+  havewindow=initialized && renderThread;
 
-  if(vkthread && format3d)
+  if(renderThread && format3d)
     format3dWait=true;
 
   clearMaterials();
@@ -489,7 +489,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 #endif
 
 #ifdef HAVE_PTHREAD
-  if(vkthread && initializedView) {
+  if(renderThread && initializedView) {
     if(View) {
       // called from asymain thread, main thread handles vulkan rendering
       hideWindow=false;
@@ -4575,7 +4575,7 @@ void AsyVkRender::prepareScene()
 
 #ifdef HAVE_PTHREAD
   static bool first=true;
-  if(vkthread && first) {
+  if(renderThread && first) {
     wait(initSignal,initLock);
     endwait(initSignal,initLock);
     first=false;
@@ -4611,8 +4611,8 @@ void AsyVkRender::display()
 {
   prepareScene();
 
-  if(View && !hideWindow && !glfwGetWindowAttrib(window,GLFW_VISIBLE))
-    glfwShowWindow(window);
+  if(View && window && !hideWindow && !glfwGetWindowAttrib(window,GLFW_VISIBLE))
+    ::glfwShowWindow(window);
 
   drawFrame();
 
@@ -4633,7 +4633,7 @@ void AsyVkRender::display()
     ++framecount;
   }
 
-  if(!vkthread) {
+  if(!renderThread) {
 #if defined(_WIN32)
 // TODO: Check if we need a threadless-based vk renderer
 #else
@@ -4706,7 +4706,7 @@ void AsyVkRender::mainLoop()
   } else {
     update();
     display();
-    if(vkthread) {
+    if(renderThread) {
       if(havewindow) {
 #ifdef HAVE_PTHREAD
         if(pthread_equal(pthread_self(),this->mainthread))
@@ -4852,7 +4852,7 @@ void AsyVkRender::Export(int imageIndex) {
   redraw=true;
 
 #ifdef HAVE_PTHREAD
-  if(vkthread && readyAfterExport) {
+  if(renderThread && readyAfterExport) {
     readyAfterExport=false;
     endwait(readySignal,readyLock);
   }
@@ -4863,7 +4863,7 @@ void AsyVkRender::quit()
 {
 #ifdef HAVE_VULKAN
   resize=false;
-  if(vkthread) {
+  if(renderThread) {
     redraw=false;
     waitEvent=false;
 #ifdef HAVE_PTHREAD
@@ -4873,18 +4873,16 @@ void AsyVkRender::quit()
     }
 
 #endif
-    if(View) {
-      glfwHideWindow(window);
+    if(View && window) {
+      ::glfwHideWindow(window);
       hideWindow=true;
     }
   } else {
-    if(View) {
-       if(window) {
-        camp::glfwDestroyWindow(window);
-        window=nullptr;
-      }
-      glfwTerminate();
+    if(View && window) {
+       camp::glfwDestroyWindow(window);
+       window=nullptr;
     }
+    glfwTerminate();
     glslang::FinalizeProcess();
 
     exit(0);
@@ -4896,12 +4894,11 @@ void AsyVkRender::setsize(int w, int h, bool reposition) {
   int x,y;
   capsize(w,h);
 
-  if (View) {
-    glfwSetWindowSize(window, w, h);
-
+  if (View && window) {
+    glfwSetRenderWindow(window, w, h, false);
     if (reposition) {
       windowposition(x, y, w, h);
-      glfwSetWindowPos(window, x, y);
+      ::glfwSetWindowPos(window, x, y);
     }
   }
 
@@ -4915,8 +4912,8 @@ void AsyVkRender::fullscreen(bool reposition)
   Height=screenHeight;
   Xfactor=((double) screenHeight)/Height;
   Yfactor=((double) screenWidth)/Width;
-  if(reposition)
-    glfwSetWindowPos(window, 0, 0);
+  if(reposition && window)
+    ::glfwSetWindowPos(window, 0, 0);
   setsize(Width,Height,reposition);
 }
 
@@ -4973,7 +4970,7 @@ void AsyVkRender::fitscreen(bool reposition) {
 }
 
 void AsyVkRender::toggleFitScreen() {
-  glfwHideWindow(window);
+  if (window) ::glfwHideWindow(window);
   Fitscreen = (Fitscreen + 1) % 3;
   fitscreen();
 }

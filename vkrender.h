@@ -147,12 +147,9 @@ public:
   bool recreateBlendPipeline=false;
   bool shouldUpdateBuffers=true;
   bool newUniformBuffer=true;
-  bool queueExport=false;
   bool ibl=false;
   bool vkexit=false;
-  bool hideWindow=false;
 
-  bool vkthread=false;
   bool initialize=true;
   bool copied=false;
 
@@ -174,20 +171,6 @@ public:
 
   pthread_cond_t readySignal = PTHREAD_COND_INITIALIZER;
   pthread_mutex_t readyLock = PTHREAD_MUTEX_INITIALIZER;
-
-  void endwait(pthread_cond_t& signal, pthread_mutex_t& lock)
-  {
-    pthread_mutex_lock(&lock);
-    pthread_cond_signal(&signal);
-    pthread_mutex_unlock(&lock);
-  }
-  void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
-  {
-    pthread_mutex_lock(&lock);
-    pthread_cond_signal(&signal);
-    pthread_cond_wait(&signal,&lock);
-    pthread_mutex_unlock(&lock);
-  }
 #endif
 
 #ifdef HAVE_VULKAN

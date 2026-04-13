@@ -13,6 +13,10 @@
 #include <array>
 #include <functional>
 
+#ifdef HAVE_PTHREAD
+#include <pthread.h>
+#endif
+
 #include "glmCommon.h"
 
 #include "common.h"
@@ -233,6 +237,12 @@ public:
   bool queueExport=false;
   bool haveScene=false;
 
+  // Thread flag (was vkthread in Vulkan renderer)
+  bool renderThread=false;
+
+  // Window visibility
+  bool hideWindow=false;
+
   // Spin state
   std::function<void()> currentIdleFunc = nullptr;
   bool Xspin = false;
@@ -331,6 +341,23 @@ public:
 
   // Key handling (library-agnostic)
   virtual void onKey(int key, int scancode, int action, int mods);
+
+#ifdef HAVE_PTHREAD
+  // Pthread synchronization helpers
+  void endwait(pthread_cond_t& signal, pthread_mutex_t& lock)
+  {
+    pthread_mutex_lock(&lock);
+    pthread_cond_signal(&signal);
+    pthread_mutex_unlock(&lock);
+  }
+  void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
+  {
+    pthread_mutex_lock(&lock);
+    pthread_cond_signal(&signal);
+    pthread_cond_wait(&signal,&lock);
+    pthread_mutex_unlock(&lock);
+  }
+#endif
 };
 
 extern glm::dmat4 projViewMat;

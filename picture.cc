@@ -1520,7 +1520,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool format3d=webgl || v3d;
   if(!format3d) {
 #ifdef HAVE_VULKAN
-    if(vk->vkthread) {
+    if(vk->renderThread) {
 #ifdef HAVE_PTHREAD
       if(vk->initialize) {
         vk->initialize=!View || getSetting<bool>("offscreen");
@@ -1654,7 +1654,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifdef HAVE_VULKAN
 #ifdef HAVE_PTHREAD
-  if(vk->vkthread && Wait) {
+  if(vk->renderThread && Wait) {
     pthread_cond_wait(&vk->readySignal,&vk->readyLock);
     pthread_mutex_unlock(&vk->readyLock);
   }

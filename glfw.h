@@ -75,6 +75,26 @@ void glfwRunLoop(GLFWwindow* window,
                  std::function<std::function<void()>()> getIdleFunc = nullptr,
                  std::function<bool()> shouldWait = nullptr);
 
+/**
+ * Set window size and optionally reposition.
+ */
+void glfwSetRenderWindow(GLFWwindow* window, int width, int height, bool reposition=true);
+
+/**
+ * Hide a GLFW window.
+ */
+void glfwHideWindow(GLFWwindow* window);
+
+/**
+ * Show a GLFW window.
+ */
+void glfwShowWindow(GLFWwindow* window);
+
+/**
+ * Set window position.
+ */
+void glfwSetWindowPos(GLFWwindow* window, int xpos, int ypos);
+
 } // namespace camp
 
 #endif // HAVE_VULKAN

@@ -112,6 +112,47 @@ void glfwPostEmptyEventWrapper()
     glfwPostEmptyEvent();
 }
 
+/**
+ * Set window size and optionally reposition.
+ */
+void glfwSetRenderWindow(GLFWwindow* window, int width, int height, bool reposition)
+{
+    ::glfwSetWindowSize(window, width, height);
+    if (reposition) {
+        // Position will be calculated by the caller using windowposition()
+    }
+}
+
+/**
+ * Hide a GLFW window.
+ */
+void glfwHideWindow(GLFWwindow* window)
+{
+    if (window != nullptr) {
+        ::glfwHideWindow(window);
+    }
+}
+
+/**
+ * Show a GLFW window.
+ */
+void glfwShowWindow(GLFWwindow* window)
+{
+    if (window != nullptr) {
+        ::glfwShowWindow(window);
+    }
+}
+
+/**
+ * Set window position.
+ */
+void glfwSetWindowPos(GLFWwindow* window, int xpos, int ypos)
+{
+    if (window != nullptr) {
+        ::glfwSetWindowPos(window, xpos, ypos);
+    }
+}
+
 RenderCallbacks* glfwGetCallbacks(GLFWwindow* window)
 {
     return static_cast<RenderCallbacks*>(glfwGetWindowUserPointer(window));

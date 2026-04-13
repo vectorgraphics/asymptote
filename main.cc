@@ -101,7 +101,7 @@ int sigsegv_handler (void *, int emergency)
   if(!emergency) return 0; // Really a stack overflow
   em.runtime(vm::getPos());
 #ifdef HAVE_VULKAN
-  if(camp::vk->vkthread)
+  if(camp::vk->renderThread)
     cerr << "Stack overflow or segmentation fault: rerun with -nothreads"
          << endl;
   else
@@ -250,9 +250,9 @@ int main(int argc, char *argv[])
   fpu_trap(trap());
   Args args(argc,argv);
 #ifdef HAVE_VULKAN
-  camp::vk->vkthread=getSetting<bool>("threads");
+  camp::vk->renderThread=getSetting<bool>("threads");
 #if HAVE_PTHREAD
-  if(camp::vk->vkthread) {
+  if(camp::vk->renderThread) {
     pthread_t thread;
     try {
 #if defined(_WIN32)
@@ -282,13 +282,13 @@ int main(int argc, char *argv[])
 #endif // !defined(_WIN32)
         for (;;)
           camp::glrenderWrapper();
-      } else camp::vk->vkthread=false;
+      } else camp::vk->renderThread=false;
     } catch(std::bad_alloc&) {
       outOfMemory();
     }
   }
 #endif // HAVE_PTHREAD
-  camp::vk->vkthread=false;
+  camp::vk->renderThread=false;
 #endif // HAVE_VULKAN
   asymain(&args);
 }
