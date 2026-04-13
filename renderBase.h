@@ -230,6 +230,8 @@ public:
   bool resize=false;
   bool remesh=true;
   bool antialias = false;
+  bool queueExport=false;
+  bool haveScene=false;
 
   // Spin state
   std::function<void()> currentIdleFunc = nullptr;
@@ -320,12 +322,15 @@ public:
   void idle();
 
   // Window management (library-agnostic parts)
-  virtual void expand() = 0;
-  virtual void shrink() = 0;
+  virtual void expand();
+  virtual void shrink();
 
   // Export handler
   virtual void exportHandler(int=0) = 0;
   virtual void quit() = 0;
+
+  // Key handling (library-agnostic)
+  virtual void onKey(int key, int scancode, int action, int mods);
 };
 
 extern glm::dmat4 projViewMat;

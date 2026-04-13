@@ -180,6 +180,46 @@ void *postEmptyEvent(void *)
     return NULL;
 }
 
+/**
+ * Generic GLFW event loop for interactive rendering.
+ * This is library-agnostic and can be used by both Vulkan and OpenGL renderers.
+ */
+void glfwRunLoop(GLFWwindow* window,
+                 std::function<bool()> shouldContinue,
+                 std::function<bool()> shouldDisplay,
+                 std::function<void()> doDisplay,
+                 std::function<void()> processMessages,
+                 std::function<std::function<void()>()> getIdleFunc,
+                 std::function<bool()> shouldWait)
+{
+    while (shouldContinue()) {
+        if (shouldDisplay()) {
+            doDisplay();
+        }
+
+        if (processMessages) {
+            processMessages();
+        }
+
+        if (getIdleFunc) {
+            auto idleFunc = getIdleFunc();
+            if (idleFunc != nullptr) {
+                idleFunc();
+                glfwPollEvents();
+            } else {
+                // Use shouldWait to decide between wait and poll
+                if (shouldWait && shouldWait()) {
+                    glfwWaitEvents();
+                } else {
+                    glfwPollEvents();
+                }
+            }
+        } else {
+            glfwPollEvents();
+        }
+    }
+}
+
 } // namespace camp
 
 // postEmptyEvent is defined outside the namespace for pthread callback compatibility

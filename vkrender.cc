@@ -1,6 +1,7 @@
 #include <limits>
 #include <chrono>
 #include <thread>
+#include <functional>
 
 #include "vkrender.h"
 #include "glfw.h"
@@ -165,70 +166,21 @@ SwapChainDetails::chooseImageCount() const
   return imageCount;
 }
 
-void AsyVkRender::setDimensions(int Width, int Height, double X, double Y)
-{
-  double aspect = ((double) Width) / Height;
-  double xshift = (X / (double) Width + Shift.getx() * Xfactor) * Zoom;
-  double yshift = (Y / (double) Height + Shift.gety() * Yfactor) * Zoom;
-  double zoominv = 1.0 / Zoom;
-  if (orthographic) {
-    double xsize = Xmax - Xmin;
-    double ysize = Ymax - Ymin;
-    if (xsize < ysize * aspect) {
-      double r = 0.5 * ysize * aspect * zoominv;
-      double X0 = 2.0 * r * xshift;
-      double Y0 = ysize * zoominv * yshift;
-      xmin = -r - X0;
-      xmax = r - X0;
-      ymin = Ymin * zoominv - Y0;
-      ymax = Ymax * zoominv - Y0;
-    } else {
-      double r = 0.5 * xsize * zoominv / aspect;
-      double X0 = xsize * zoominv * xshift;
-      double Y0 = 2.0 * r * yshift;
-      xmin = Xmin * zoominv - X0;
-      xmax = Xmax * zoominv - X0;
-      ymin = -r - Y0;
-      ymax = r - Y0;
-    }
-  } else {
-    double r = H * zoominv;
-    double rAspect = r * aspect;
-    double X0 = 2.0 * rAspect * xshift;
-    double Y0 = 2.0 * r * yshift;
-    xmin = -rAspect - X0;
-    xmax = rAspect - X0;
-    ymin = -r - Y0;
-    ymax = r - Y0;
-  }
-}
-
 void AsyVkRender::setProjection()
 {
-  setDimensions(Width, Height, X, Y);
-
-  if(haveScene) {
-    if(orthographic) vk->ortho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
-    else vk->frustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
-  }
+  AsyRender::setProjection();
   newUniformBuffer = true;
 }
 
 void AsyVkRender::updateModelViewData()
 {
-  normMat = inverse(viewMat);
+  AsyRender::updateModelViewData();
   newUniformBuffer = true;
 }
 
 void AsyVkRender::update()
 {
-  capzoom();
-
-  double cz = 0.5 * (Zmin + Zmax);
-  viewMat = translate(translate(dmat4(1.0), dvec3(cx, cy, cz)) * rotateMat, dvec3(0, 0, -cz));
-
-  setProjection();
-  updateModelViewData();
+  AsyRender::update();
 
 #ifdef HAVE_PTHREAD
   if(View) {
@@ -237,7 +189,6 @@ void AsyVkRender::update()
       pthread_join(postThread,NULL);
   }
 #endif
-  redraw=true;
 }
 
 void AsyVkRender::initWindow()
@@ -324,58 +275,7 @@ void AsyVkRender::onCursorPos(double xpos, double ypos)
 
 void AsyVkRender::onKey(int key, int scancode, int action, int mods)
 {
-    if (action != GLFW_PRESS)
-        return;
-
-    switch (key)
-    {
-        case 'H':
-            home();
-            redraw = true;
-            break;
-        case 'F':
-            toggleFitScreen();
-            break;
-        case 'X':
-            spinx();
-            break;
-        case 'Y':
-            spiny();
-            break;
-        case 'Z':
-            spinz();
-            break;
-        case 'S':
-            idle();
-            break;
-        case 'M':
-            cycleMode();
-            break;
-        case 'E':
-            queueExport = true;
-            break;
-        case 'C':
-            showCamera();
-            break;
-        case '.': // '>' = '.' + shift
-            if (!(mods & GLFW_MOD_SHIFT))
-                break;
-        case '+':
-        case '=':
-            expand();
-            break;
-        case ',': // '<' = ',' + shift
-            if (!(mods & GLFW_MOD_SHIFT))
-                break;
-        case '-':
-        case '_':
-            shrink();
-            break;
-        case 'Q':
-            if(!Format.empty()) exportHandler(0);
-            quit();
-            break;
-    }
+    AsyRender::onKey(key, scancode, action, mods);
 }
 
 void AsyVkRender::onWindowFocus(int focused)
@@ -4769,9 +4669,18 @@ void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
 void AsyVkRender::mainLoop()
 {
   if(View) {
-    while(!glfwWindowShouldClose(window)) {
-      if(redraw || redisplay || queueExport)
-        {
+    // Use the generic GLFW event loop from glfw.cc
+    // This keeps the event loop logic library-agnostic
+
+    glfwRunLoop(window,
+      // shouldContinue: continue while window is open
+      [this](){ return !glfwWindowShouldClose(window); },
+
+      // shouldDisplay: display when needed
+      [this](){ return redraw || redisplay || queueExport; },
+
+      // doDisplay: handle display logic
+      [this](){
         redisplay=false;
         waitEvent=true;
         if(resize) {
@@ -4779,22 +4688,21 @@ void AsyVkRender::mainLoop()
           resize=false;
         }
         display();
-      }
+      },
 
-      auto const message=messageQueue.dequeue();
-      if(message.has_value())
-        processMessages(*message);
+      // processMessages: dequeue and process messages
+      [this](){
+        auto const message=messageQueue.dequeue();
+        if(message.has_value())
+          processMessages(*message);
+      },
 
-      if(currentIdleFunc != nullptr) {
-        currentIdleFunc();
-        glfwPollEvents();
-      } else {
-        if(waitEvent)
-          glfwWaitEvents();
-        else
-          glfwPollEvents();
-      }
-    }
+      // getIdleFunc: return current idle function (or nullptr)
+      [this](){ return currentIdleFunc; },
+
+      // shouldWait: use waitEvent to decide between wait and poll
+      [this](){ return waitEvent; }
+    );
   } else {
     update();
     display();
@@ -4819,21 +4727,6 @@ void AsyVkRender::mainLoop()
 }
 
 #endif
-
-void AsyVkRender::expand()
-{
-  double resizeStep=settings::getSetting<double>("resizestep");
-  if(resizeStep > 0.0)
-    setsize((int) (Width*resizeStep+0.5),(int) (Height*resizeStep+0.5));
-}
-
-void AsyVkRender::shrink()
-{
-  double resizeStep=settings::getSetting<double>("resizestep");
-  if(resizeStep > 0.0)
-    setsize(max((int) (Width/resizeStep+0.5),1),
-            max((int) (Height/resizeStep+0.5),1));
-}
 
 void AsyVkRender::exportHandler(int) {
 

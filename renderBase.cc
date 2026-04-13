@@ -2,6 +2,10 @@
 #include "settings.h"
 #include "drawelement.h"
 
+#ifdef HAVE_VULKAN
+#include <GLFW/glfw3.h>
+#endif
+
 using settings::getSetting;
 using namespace glm;
 
@@ -28,22 +32,68 @@ double AsyRender::getRenderResolution(triple Min) const
 // Default implementations for virtual methods that can have generic behavior
 void AsyRender::setDimensions(int Width, int Height, double X, double Y)
 {
-  // Default implementation - derived classes should override
+  double aspect = ((double) Width) / Height;
+  double xshift = (X / (double) Width + Shift.getx() * Xfactor) * Zoom;
+  double yshift = (Y / (double) Height + Shift.gety() * Yfactor) * Zoom;
+  double zoominv = 1.0 / Zoom;
+  if (orthographic) {
+    double xsize = Xmax - Xmin;
+    double ysize = Ymax - Ymin;
+    if (xsize < ysize * aspect) {
+      double r = 0.5 * ysize * aspect * zoominv;
+      double X0 = 2.0 * r * xshift;
+      double Y0 = ysize * zoominv * yshift;
+      xmin = -r - X0;
+      xmax = r - X0;
+      ymin = Ymin * zoominv - Y0;
+      ymax = Ymax * zoominv - Y0;
+    } else {
+      double r = 0.5 * xsize * zoominv / aspect;
+      double X0 = xsize * zoominv * xshift;
+      double Y0 = 2.0 * r * yshift;
+      xmin = Xmin * zoominv - X0;
+      xmax = Xmax * zoominv - X0;
+      ymin = -r - Y0;
+      ymax = r - Y0;
+    }
+  } else {
+    double r = H * zoominv;
+    double rAspect = r * aspect;
+    double X0 = 2.0 * rAspect * xshift;
+    double Y0 = 2.0 * r * yshift;
+    xmin = -rAspect - X0;
+    xmax = rAspect - X0;
+    ymin = -r - Y0;
+    ymax = r - Y0;
+  }
 }
 
 void AsyRender::setProjection()
 {
-  // Default implementation - derived classes should override
+  setDimensions(Width, Height, X, Y);
+
+  if(haveScene) {
+    if(orthographic) ortho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+    else frustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+  }
 }
 
 void AsyRender::updateModelViewData()
 {
-  // Default implementation - derived classes should override
+  normMat = inverse(viewMat);
 }
 
 void AsyRender::update()
 {
-  // Default implementation - derived classes should override
+  capzoom();
+
+  double cz = 0.5 * (Zmin + Zmax);
+  viewMat = translate(translate(dmat4(1.0), dvec3(cx, cy, cz)) * rotateMat, dvec3(0, 0, -cz));
+
+  setProjection();
+  updateModelViewData();
+
+  redraw=true;
 }
 
 void AsyRender::updateProjection()
@@ -378,12 +428,17 @@ void AsyRender::idle()
 
 void AsyRender::expand()
 {
-  // Default implementation - derived classes should override
+  double resizeStep = settings::getSetting<double>("resizestep");
+  if(resizeStep > 0.0)
+    setsize((int) (Width*resizeStep+0.5), (int) (Height*resizeStep+0.5));
 }
 
 void AsyRender::shrink()
 {
-  // Default implementation - derived classes should override
+  double resizeStep = settings::getSetting<double>("resizestep");
+  if(resizeStep > 0.0)
+    setsize(max((int) (Width/resizeStep+0.5),1),
+            max((int) (Height/resizeStep+0.5),1));
 }
 
 void AsyRender::exportHandler(int)
@@ -394,6 +449,62 @@ void AsyRender::exportHandler(int)
 void AsyRender::quit()
 {
   // Default implementation - derived classes should override
+}
+
+void AsyRender::onKey(int key, int scancode, int action, int mods)
+{
+    if (action != GLFW_PRESS)
+        return;
+
+    switch (key)
+    {
+        case 'H':
+            home();
+            redraw = true;
+            break;
+        case 'F':
+            toggleFitScreen();
+            break;
+        case 'X':
+            spinx();
+            break;
+        case 'Y':
+            spiny();
+            break;
+        case 'Z':
+            spinz();
+            break;
+        case 'S':
+            idle();
+            break;
+        case 'M':
+            cycleMode();
+            break;
+        case 'E':
+            queueExport = true;
+            break;
+        case 'C':
+            showCamera();
+            break;
+        case '.': // '>' = '.' + shift
+            if (!(mods & GLFW_MOD_SHIFT))
+                break;
+        case '+':
+        case '=':
+            expand();
+            break;
+        case ',': // '<' = ',' + shift
+            if (!(mods & GLFW_MOD_SHIFT))
+                break;
+        case '-':
+        case '_':
+            shrink();
+            break;
+        case 'Q':
+            if(!Format.empty()) exportHandler(0);
+            quit();
+            break;
+    }
 }
 
 } // namespace camp

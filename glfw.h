@@ -57,6 +57,24 @@ RenderCallbacks* glfwGetCallbacks(GLFWwindow* window);
  */
 std::string getGLFWAction(int button, int mods);
 
+/**
+ * Generic GLFW event loop for interactive rendering.
+ * @param window GLFW window
+ * @param shouldContinue Function that returns true if loop should continue
+ * @param shouldDisplay Function that returns true if frame should be displayed
+ * @param doDisplay Function to call to display a frame
+ * @param processMessages Function to call to process pending messages (optional)
+ * @param getIdleFunc Function that returns current idle function (optional)
+ * @param shouldWait Function that returns true if glfwWaitEvents should be used (optional)
+ */
+void glfwRunLoop(GLFWwindow* window,
+                 std::function<bool()> shouldContinue,
+                 std::function<bool()> shouldDisplay,
+                 std::function<void()> doDisplay,
+                 std::function<void()> processMessages = nullptr,
+                 std::function<std::function<void()>()> getIdleFunc = nullptr,
+                 std::function<bool()> shouldWait = nullptr);
+
 } // namespace camp
 
 #endif // HAVE_VULKAN

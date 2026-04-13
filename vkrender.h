@@ -151,7 +151,6 @@ public:
   bool ibl=false;
   bool vkexit=false;
   bool hideWindow=false;
-  bool haveScene;
 
   bool vkthread=false;
   bool initialize=true;
@@ -514,7 +513,6 @@ protected:
 #endif
 
 protected:
-  void setDimensions(int Width, int Height, double X, double Y) override;
   void updateModelViewData() override;
   void setProjection() override;
   void update() override;
@@ -769,8 +767,6 @@ public:
 
   void quit() override;
 
-  virtual void expand() override;
-  virtual void shrink() override;
   virtual void setsize(int w, int h, bool reposition=true) override;
   virtual void fullscreen(bool reposition=true) override;
   virtual void reshape0(int width, int height) override;
