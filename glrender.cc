@@ -41,7 +41,7 @@ pthread_t mainthread;
 #endif
 }
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 #include "tr.h"
 
 #ifdef HAVE_LIBGLFW
@@ -55,7 +55,10 @@ pthread_t mainthread;
 using settings::locateFile;
 using utils::stopWatch;
 
-#endif // HAVE_GL
+using namespace settings;
+using namespace glm;
+
+#endif // HAVE_RENDERER
 
 #ifdef HAVE_LIBGLM
 
@@ -383,7 +386,7 @@ void updateModelViewData()
 
 bool Xspin,Yspin,Zspin;
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 
 stopWatch spinTimer;
 
@@ -405,7 +408,7 @@ void idle()
 void home(bool webgl=false)
 {
   X=Y=cx=cy=0.0;
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 #ifndef HAVE_LIBOSMESA
   if(!webgl)
     idle();
@@ -429,7 +432,7 @@ void home(bool webgl=false)
 double T[16];
 double Tup[16];
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 
 #ifdef HAVE_LIBGLFW
 int oldWidth,oldHeight;
@@ -812,6 +815,7 @@ void setBuffers()
   if(settings::verbose > 2) {
     cerr << "setBuffers: VAO created, camp::vao=" << camp::vao << endl;
   }
+  // Bind VAO once and leave it bound for all subsequent draw operations
   glBindVertexArray(camp::vao);
 
   camp::material0Data.reserve0();
@@ -908,7 +912,7 @@ void drawscene(int Width, int Height)
     cerr << "drawscene: Picture->render() complete" << endl;
   }
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   camp::drawBuffers();
 #endif
 
@@ -1878,7 +1882,7 @@ bool NVIDIA()
   return string(GLSL_VERSION).find("NVIDIA") != string::npos;
 }
 
-#endif /* HAVE_GL */
+#endif /* HAVE_RENDERER */
 
 // angle=0 means orthographic.
 void glrender(GLRenderArgs const& args, int oldpid)
@@ -1929,7 +1933,7 @@ void glrender(GLRenderArgs const& args, int oldpid)
   bool webgl=args.format == "html";
   bool format3d=webgl || v3d;
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
 #ifndef HAVE_LIBOSMESA
   static bool initializedView=false;
@@ -2088,7 +2092,7 @@ void glrender(GLRenderArgs const& args, int oldpid)
 
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
     Aspect=((double) Width)/Height;
 
     if(maxTileWidth <= 0) maxTileWidth=screenWidth;
@@ -2099,7 +2103,7 @@ void glrender(GLRenderArgs const& args, int oldpid)
 #endif
   }
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   bool havewindow=initialized && glthread;
 
 #ifndef HAVE_LIBOSMESA
@@ -2139,25 +2143,26 @@ void glrender(GLRenderArgs const& args, int oldpid)
 
     // Reset all hints before setting OpenGL context version hints
     glfwDefaultWindowHints();
+    // Core profile requires at least OpenGL 3.2; let GLFW choose higher if available
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     // Explicitly set SAMPLES to 0 (use default) to avoid invalid values
     glfwWindowHint(GLFW_SAMPLES, 0);
-    // Don't specify profile - let GLFW choose
-    // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // Enable core profile for modern OpenGL features
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     windowposition(x,y);
-    // Note: GLFW_SAMPLES hint is disabled as it can cause errors with invalid values
-    // Int multisample=getSetting<Int>("multisample");
-    // if(multisample > 1) {
-    //   // Clamp to valid power-of-2 sample counts (1, 2, 4, 8, 16, 32)
-    //   if(multisample > 32) multisample = 32;
-    //   else if(multisample > 16) multisample = 16;
-    //   else if(multisample > 8) multisample = 8;
-    //   else if(multisample > 4) multisample = 4;
-    //   else if(multisample > 2) multisample = 2;
-    //   glfwWindowHint(GLFW_SAMPLES, multisample);
-    // }
+    // Configure multisampling based on settings (GLFW will clamp to supported values)
+    Int multisample=getSetting<Int>("multisample");
+    if(multisample > 1) {
+      // Clamp to valid power-of-2 sample counts (1, 2, 4, 8, 16, 32)
+      if(multisample > 32) multisample = 32;
+      else if(multisample > 16) multisample = 16;
+      else if(multisample > 8) multisample = 8;
+      else if(multisample > 4) multisample = 4;
+      else if(multisample > 2) multisample = 2;
+      glfwWindowHint(GLFW_SAMPLES, multisample);
+    }
 
     string title=string(PACKAGE_NAME)+": "+args.prefix;
     fpu_trap(false); // Work around FE_INVALID
@@ -2239,12 +2244,11 @@ void glrender(GLRenderArgs const& args, int oldpid)
   } else if(!havewindow || !window) {
     // Reset all hints before setting OpenGL context version hints
     glfwDefaultWindowHints();
+    // Core profile requires at least OpenGL 3.2; let GLFW choose higher if available
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    // Explicitly set SAMPLES to 0 (use default) to avoid invalid values
-    glfwWindowHint(GLFW_SAMPLES, 0);
-    // Don't specify profile - let GLFW choose
-    // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    // Enable core profile for modern OpenGL features
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     fpu_trap(false); // Work around FE_INVALID
     window=glfwCreateWindow(maxTileWidth, maxTileHeight,
@@ -2478,14 +2482,14 @@ void glrender(GLRenderArgs const& args, int oldpid)
     }
   }
 
-#endif /* HAVE_GL */
+#endif /* HAVE_RENDERER */
 }
 
 } // namespace gl
 
 #endif
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 
 namespace camp {
 
@@ -2831,12 +2835,13 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
 {
   if(data.indices.empty()) return;
 
-  // Ensure VAO is valid (non-zero)
+  // Ensure VAO is valid (non-zero) - should already be bound from setBuffers()
   if(camp::vao == 0) {
     if(settings::verbose > 2) {
       cerr << "drawBuffer: VAO not initialized! Creating now..." << endl;
     }
     glGenVertexArrays(1, &camp::vao);
+    glBindVertexArray(camp::vao);  // Bind once and leave it bound
   }
 
   if(settings::verbose > 2) {
@@ -2863,8 +2868,7 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
          << " copy=" << ((gl::remesh || data.partial || !data.rendered) && !gl::copied) << endl;
   }
 
-  // Bind VAO before setting up vertex attributes (required in core profile)
-  glBindVertexArray(camp::vao);
+  // VAO is already bound from setBuffers(), no need to bind here
 
   bool copy=(gl::remesh || data.partial || !data.rendered) && !gl::copied;
   if(color) registerBuffer(data.Vertices,data.VerticesBuffer,copy);
@@ -2911,6 +2915,7 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
   }
   fpu_trap(settings::trap());
 
+  // Disable attribute arrays but keep VAO bound for next draw call
   glDisableVertexAttribArray(positionAttrib);
   if(normal && gl::Nlights > 0)
     glDisableVertexAttribArray(normalAttrib);
@@ -2923,7 +2928,7 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
   glBindBuffer(GL_UNIFORM_BUFFER,0);
   glBindBuffer(GL_ARRAY_BUFFER,0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-  glBindVertexArray(0);  // Unbind VAO when done
+  // VAO remains bound for subsequent draw operations
 }
 
 void drawMaterial0()
@@ -3063,4 +3068,217 @@ void setMaterial(vertexBuffer& data, draw_t *draw)
 }
 
 }
-#endif /* HAVE_GL */
+#endif /* HAVE_RENDERER */
+
+// Definitions for extern variables declared in renderBase.h (must be unconditional)
+namespace camp {
+glm::dmat4 projViewMat;
+glm::dmat4 normMat;
+}
+
+#ifdef HAVE_RENDERER
+namespace camp {
+
+AsyGLRender::~AsyGLRender()
+{
+#ifdef HAVE_RENDERER
+  if (this->View && glfwWindow != nullptr) {
+    ::glfwDestroyWindow(static_cast<GLFWwindow*>(glfwWindow));
+    glfwWindow = nullptr;
+  }
+#endif
+}
+
+void AsyGLRender::render(RenderFunctionArgs const& args)
+{
+  // Delegate to the legacy glrender function
+  gl::GLRenderArgs legacy_args;
+  legacy_args.prefix = args.prefix;
+  legacy_args.pic = const_cast<camp::picture*>(args.pic);
+  legacy_args.format = args.format;
+  legacy_args.width = args.width;
+  legacy_args.height = args.height;
+  legacy_args.angle = args.angle;
+  legacy_args.zoom = args.zoom;
+  legacy_args.m = args.m;
+  legacy_args.M = args.M;
+  legacy_args.shift = args.shift;
+  legacy_args.margin = args.margin;
+  legacy_args.t = args.t;
+  legacy_args.tup = args.tup;
+  legacy_args.background = args.background;
+  legacy_args.nlights = args.nlightsin;
+  legacy_args.lights = args.lights;
+  legacy_args.diffuse = args.diffuse;
+  legacy_args.specular = args.specular;
+  legacy_args.view = args.view;
+
+  gl::glrender(legacy_args, args.oldpid);
+}
+
+void AsyGLRender::onMouseButton(int button, int action, int mods)
+{
+    auto const currentActionStr = getGLFWAction(button, mods);
+    if (currentActionStr.empty()) return;
+    if (action == GLFW_PRESS) {
+        lastAction = currentActionStr;
+    } else if (action == GLFW_RELEASE) {
+        lastAction.clear();
+    }
+}
+
+void AsyGLRender::onFramebufferResize(int width, int height)
+{
+    if(width == 0 || height == 0) return;
+    if(width == Width && height == Height) return;
+    reshape0(width, height);
+    update();
+    remesh = true;
+}
+
+void AsyGLRender::onScroll(double xoffset, double yoffset)
+{
+    auto zoomFactor = getSetting<double>("zoomfactor");
+    if(zoomFactor > 0.0) {
+        if (yoffset > 0) Zoom *= zoomFactor;
+        else Zoom /= zoomFactor;
+    }
+    update();
+}
+
+void AsyGLRender::onCursorPos(double xpos, double ypos)
+{
+    static double xprev = 0.0;
+    static double yprev = 0.0;
+
+    if (lastAction == "rotate") {
+        Arcball arcball(xprev * 2 / Width - 1, 1 - yprev * 2 / Height,
+                        xpos * 2 / Width - 1, 1 - ypos * 2 / Height);
+        triple axis = arcball.axis;
+        rotateMat = rotate(2 * arcball.angle / Zoom * ArcballFactor,
+                           glm::dvec3(axis.getx(), axis.gety(), axis.getz())) * rotateMat;
+        update();
+    } else if (lastAction == "shift") {
+        shift(xpos - xprev, ypos - yprev);
+        update();
+    } else if (lastAction == "pan") {
+        if (orthographic) shift(xpos - xprev, ypos - yprev);
+        else pan(xpos - xprev, ypos - yprev);
+        update();
+    } else if (lastAction == "zoom") {
+        zoom(0.0, ypos - yprev);
+    }
+    xprev = xpos;
+    yprev = ypos;
+}
+
+void AsyGLRender::onKey(int key, int scancode, int action, int mods)
+{
+    AsyRender::onKey(key, scancode, action, mods);
+}
+
+void AsyGLRender::onWindowFocus(int focused) {}
+
+void AsyGLRender::onClose()
+{
+    AsyRender::onClose();
+    exitHandler(0);
+}
+
+void AsyGLRender::display()
+{
+#ifdef HAVE_RENDERER
+  GLFWwindow* win = static_cast<GLFWwindow*>(glfwWindow);
+  if(View && glfwWindow && !hideWindow && !glfwGetWindowAttrib(win,GLFW_VISIBLE))
+    ::glfwShowWindow(win);
+#endif
+  gl::drawscene(Width, Height);
+
+  bool fps=settings::verbose > 2;
+  if(fps) {
+    if(framecount < 20) fpsTimer.reset();
+    else {
+      double s=fpsTimer.seconds(true);
+      if(s > 0.0) {
+        double rate=1.0/s;
+        fpsStats.add(rate);
+        if(framecount % 20 == 0)
+          cout << "FPS=" << rate << "\t" << fpsStats.mean()
+               << " +/- " << fpsStats.stdev() << endl;
+      }
+    }
+    ++framecount;
+  }
+
+#ifdef HAVE_RENDERER
+  if(glfwWindow) glfwSwapBuffers(static_cast<GLFWwindow*>(glfwWindow));
+#endif
+
+  if(!renderThread) {
+#if defined(_WIN32)
+#else
+    if(gl::Oldpid != 0 && waitpid(gl::Oldpid,NULL,WNOHANG) != gl::Oldpid) {
+      kill(gl::Oldpid,SIGHUP);
+      gl::Oldpid=0;
+    }
+#endif
+  }
+}
+
+void AsyGLRender::update()
+{
+  capzoom();
+  redraw=true;
+#ifdef HAVE_RENDERER
+  if(glfwWindow) ::glfwShowWindow(static_cast<GLFWwindow*>(glfwWindow));
+#endif
+  double cz=0.5*(Zmin+Zmax);
+  viewMat = translate(translate(dmat4(1.0), dvec3(cx, cy, cz)) * rotateMat, dvec3(0, 0, -cz));
+  setProjection();
+  updateModelViewData();
+}
+
+void AsyGLRender::mainLoop()
+{
+#ifdef HAVE_RENDERER
+  if(View) {
+    GLFWwindow* win = static_cast<GLFWwindow*>(glfwWindow);
+
+    glfwRunLoop(win,
+      [win](){ return !glfwWindowShouldClose(win); },
+      [this](){ return redraw || redisplay || queueExport; },
+      [this](){
+        redisplay=false;
+        waitEvent=true;
+        if(resize) { fitscreen(!interact::interactive); resize=false; }
+        display();
+      },
+      nullptr,
+      [this](){ return currentIdleFunc; },
+      [this](){ return waitEvent; }
+    );
+  } else {
+    update();
+    display();
+    if(renderThread) exportHandler();
+    else { exportHandler(); quit(); }
+  }
+#endif
+}
+
+void AsyGLRender::exportHandler(int)
+{
+#ifdef HAVE_RENDERER
+  gl::readyAfterExport=true;
+#endif
+  gl::Export();
+}
+
+void AsyGLRender::reshape0(int width, int height)
+{
+  AsyRender::reshape0(width, height);
+}
+
+} // namespace camp
+
+#endif // HAVE_RENDERER

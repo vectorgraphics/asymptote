@@ -12,7 +12,7 @@
 
 namespace camp {
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 
 extern const double Fuzz;
 extern const double Fuzz2;

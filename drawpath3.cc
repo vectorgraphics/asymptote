@@ -62,7 +62,7 @@ bool drawPath3::write(abs3Doutfile *out)
 void drawPath3::render(double size2, const triple& b, const triple& B,
                        double perspective, bool remesh)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   if(invisible) return;
 
   setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
@@ -185,7 +185,7 @@ void drawNurbsPath3::ratio(const double* t, pair &b, double (*m)(double, double)
 
 void drawNurbsPath3::displacement()
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   size_t nknots=degree+n+1;
   if(Controls == NULL) {
     Controls=new(UseGC)  GLfloat[(weights ? 4 : 3)*n];
@@ -206,7 +206,7 @@ void drawNurbsPath3::displacement()
 void drawNurbsPath3::render(double, const triple&, const triple&,
                             double, bool remesh)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   if(invisible) return;
 
 // TODO: implement NURBS renderer
@@ -240,7 +240,7 @@ bool drawPixel::write(abs3Doutfile *out)
 void drawPixel::render(double size2, const triple& b, const triple& B,
                        double perspective, bool remesh)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   if(invisible) return;
 
   RGBAColour Black(0.0,0.0,0.0,color.A);

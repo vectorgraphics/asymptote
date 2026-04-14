@@ -4,7 +4,7 @@
 
 #include "GLTextures.h"
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 
 namespace gl
 {

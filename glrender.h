@@ -18,13 +18,13 @@
 #include <glm/gtx/transform.hpp>
 #endif
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 
 #include <csignal>
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
 #endif
-#include <GL/glew.h>
+#include "GL/glew.h"
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
@@ -45,6 +45,7 @@
 
 #ifdef HAVE_LIBGLFW
 #include <GLFW/glfw3.h>
+#include "glfw.h"
 #endif
 
 #else
@@ -63,31 +64,12 @@ typedef unsigned int GLenum;
 #include "material.h"
 #endif
 
+#include "renderBase.h"
+
 namespace camp {
 class picture;
 
-inline void store(GLfloat *f, double *C)
-{
-  f[0]=C[0];
-  f[1]=C[1];
-  f[2]=C[2];
-}
-
-inline void store(GLfloat *control, const camp::triple& v)
-{
-  control[0]=v.getx();
-  control[1]=v.gety();
-  control[2]=v.getz();
-}
-
-inline void store(GLfloat *control, const triple& v, double weight)
-{
-  control[0]=v.getx()*weight;
-  control[1]=v.gety()*weight;
-  control[2]=v.getz()*weight;
-  control[3]=weight;
-}
-
+// store functions moved to renderBase.h
 }
 
 namespace gl {
@@ -136,7 +118,7 @@ public:
     zoom(zoom), angle(angle), viewportshift(viewportshift) {}
 };
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 extern GLuint ubo;
 GLuint initHDR();
 #endif
@@ -201,7 +183,7 @@ struct Billboard {
 };
 
 extern Billboard BB;
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 extern GLuint vao;  // Vertex Array Object
 #endif
 
@@ -413,6 +395,53 @@ void drawTransparent();
 
 #endif
 
-}
+#ifdef HAVE_RENDERER
+// OpenGL renderer class following Vulkan pattern
+class AsyGLRender : public AsyRender, public RenderCallbacks
+{
+public:
+  AsyGLRender() = default;
+  ~AsyGLRender();
+
+  void render(RenderFunctionArgs const& args) override;
+
+  // RenderCallbacks interface implementation
+  void onMouseButton(int button, int action, int mods) override;
+  void onFramebufferResize(int width, int height) override;
+  void onScroll(double xoffset, double yoffset) override;
+  void onCursorPos(double xpos, double ypos) override;
+  void onKey(int key, int scancode, int action, int mods) override;
+  void onWindowFocus(int focused) override;
+  void onClose() override;
+
+  // OpenGL-specific state
+  bool outlinemode = false;
+  bool ibl = false;
+  bool glupdate = false;
+  bool glexit = false;
+  bool initialize = true;
+  int Mode = 2;
+
+#ifdef HAVE_PTHREAD
+  pthread_cond_t initSignal = PTHREAD_COND_INITIALIZER;
+  pthread_mutex_t initLock = PTHREAD_MUTEX_INITIALIZER;
+  pthread_cond_t readySignal = PTHREAD_COND_INITIALIZER;
+  pthread_mutex_t readyLock = PTHREAD_MUTEX_INITIALIZER;
+#endif
+
+protected:
+  void mainLoop();
+  void display();
+  void update();
+  void exportHandler(int = 0) override;
+  virtual void reshape0(int width, int height) override;
+};
+
+// Global OpenGL renderer instance (in camp namespace to avoid conflict with settings.h::gl)
+extern AsyGLRender* gl;
+
+#endif // HAVE_RENDERER
+
+} // namespace camp
 
 #endif  // GLRENDER_H
