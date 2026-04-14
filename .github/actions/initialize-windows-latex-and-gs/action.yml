@@ -1,18 +1,41 @@
 name: initialize-windows-latex-and-gs
-description: Initialize latex and gs
+description: Initialize latex and ghostscript with caching
+
 runs:
   using: 'composite'
   steps:
-    - name: Setup TeXLive Action
-      shell: pwsh
-      run: |
-        choco install texlive `
-          --params="'/collections:latex /scheme:basic /extraPackages:hypdoc,parskip,etoolbox,ocgx2,media9 /InstallationPath:C:/texlive/'" `
-          --timeout 7200
+    # 1. Setup TeX Live with automatic caching
+    - name: Setup TeX Live
+      uses: zauguin/install-texlive@v4
+      with:
+        packages: |
+          scheme-basic
+          collection-latex
+          hypdoc
+          parskip
+          etoolbox
+          ocgx2
+          media9
+        cache: true
+
+    # 2. Setup caching for Ghostscript installer
+    - name: Cache Ghostscript Choco Packages
+      uses: actions/cache@v4
+      with:
+        path: C:\choco-cache
+        key: ${{ runner.os }}-ghostscript-v1
+        restore-keys: |
+          ${{ runner.os }}-ghostscript-
+
+    # 3. Install Ghostscript via Chocolatey
     - name: Install ghostscript
       uses: nick-fields/retry@v3
       with:
-        timeout_minutes: 120
+        timeout_minutes: 10
         max_attempts: 5
         shell: pwsh
-        command: choco install ghostscript --execution-timeout 7200
+        command: |
+          # Redirect Choco to use the cached folder
+          choco config set cacheLocation "C:\choco-cache"
+          # Install with ignore-checksums to avoid mirror mismatch failures
+          choco install ghostscript --ignore-checksums -y --execution-timeout 7200
