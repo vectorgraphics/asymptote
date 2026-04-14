@@ -689,7 +689,6 @@ public:
 #endif
 
   void nextFrame();
-  void clearBuffers();
   void prepareScene();
   void display();
   void mainLoop();

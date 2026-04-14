@@ -486,7 +486,6 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
       // called from asymain thread, main thread handles vulkan rendering
       hideWindow=false;
       messageQueue.enqueue(updateRenderer);
-      clearBuffers();
     } else readyAfterExport=queueExport=true;
     return;
   }
@@ -4542,23 +4541,6 @@ void AsyVkRender::nextFrame()
   delay -= seconds;
   if(delay > 0) {
     std::this_thread::sleep_for(std::chrono::duration<double>(delay));
-  }
-}
-
-void AsyVkRender::clearBuffers()
-{
-  // Get the most recent frame that was started and wait for it
-  // to finish before clearing buffers
-  int previousFrameIndex = currentFrame - 1;
-
-  if (previousFrameIndex < 0) {
-    previousFrameIndex = maxFramesInFlight - 1;
-  }
-
-  (void) device->waitForFences(1, &*frameObjects[previousFrameIndex].inFlightFence, VK_TRUE, timeout);
-
-  for (int i = 0; i < maxFramesInFlight; i++) {
-    frameObjects[i].reset();
   }
 }
 
