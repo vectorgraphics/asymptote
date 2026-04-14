@@ -74,14 +74,11 @@ int _matherr(struct _exception *except)
 #endif
 
 #include "stack.h"
+#include "glrender.h"
 
 using namespace settings;
 
 using interact::interactive;
-
-namespace gl {
-extern bool glexit;
-}
 
 namespace run {
 void purge();
@@ -105,8 +102,8 @@ int sigsegv_handler (void *, int emergency)
 {
   if(!emergency) return 0; // Really a stack overflow
   em.runtime(vm::getPos());
-#ifdef HAVE_GL
-  if(gl::glthread)
+#ifdef HAVE_RENDERER
+  if(camp::gl->renderThread)
     cerr << "Stack overflow or segmentation fault: rerun with -nothreads"
          << endl;
   else
@@ -233,18 +230,6 @@ void *asymain(void *A)
     while(wait(&status) > 0);
   }
 #endif
-#ifdef HAVE_GL
-#ifdef HAVE_PTHREAD
-  if(gl::glthread) {
-#ifdef __MSDOS__ // Signals are unreliable in MSWindows
-    gl::glexit=true;
-#else
-    pthread_kill(gl::mainthread,SIGURG);
-    pthread_join(gl::mainthread,NULL);
-#endif
-  }
-#endif
-#endif
   exit(returnCode());
 }
 
@@ -262,60 +247,48 @@ int main(int argc, char *argv[])
     em.statusError();
   }
 
+  fpu_trap(trap());
   Args args(argc,argv);
-#ifdef HAVE_GL
-#if defined(__APPLE__) || defined(_WIN32)
-  bool usethreads=true;
-#else
-  bool usethreads=view();
-#endif
-  gl::glthread=usethreads ? getSetting<bool>("threads") : false;
+#ifdef HAVE_RENDERER
+  camp::gl->renderThread=getSetting<bool>("threads");
 #if HAVE_PTHREAD
-#ifndef HAVE_LIBOSMESA
-  if(gl::glthread) {
+  if(camp::gl->renderThread) {
     pthread_t thread;
     try {
 #if defined(_WIN32)
-      auto asymainPtr = [](void* args) -> void*
-      {
+      auto asymainPtr = [](void* args) -> void* {
 #if defined(USEGC)
         GC_stack_base gsb {};
         GC_get_stack_base(&gsb);
         GC_register_my_thread(&gsb);
-#endif
+#endif // defined(USEGC)
         auto* ret = asymain(args);
 
 #if defined(USEGC)
         GC_unregister_my_thread();
-#endif
+#endif // defined(USEGC)
         return reinterpret_cast<void*>(ret);
       };
-#else
+#else // defined(_WIN32)
       auto* asymainPtr = asymain;
-#endif
+#endif // defined(_WIN32)
       if(pthread_create(&thread,NULL,asymainPtr,&args) == 0) {
-        gl::mainthread=pthread_self();
+        camp::gl->mainthread=pthread_self();
 #if !defined(_WIN32)
         sigset_t set;
         sigemptyset(&set);
         sigaddset(&set, SIGCHLD);
         pthread_sigmask(SIG_BLOCK, &set, NULL);
-#endif
-        for(;;) {
-#if !defined(_WIN32)
-          Signal(SIGURG,exitHandler);
-#endif
+#endif // !defined(_WIN32)
+        for (;;)
           camp::glrenderWrapper();
-          gl::initialize=true;
-        }
-      } else gl::glthread=false;
+      } else camp::gl->renderThread=false;
     } catch(std::bad_alloc&) {
       outOfMemory();
     }
   }
-#endif
-#endif
-  gl::glthread=false;
-#endif
+#endif // HAVE_PTHREAD
+  camp::gl->renderThread=false;
+#endif // HAVE_RENDERER
   asymain(&args);
 }

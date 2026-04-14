@@ -44,7 +44,7 @@
 
 #include "common.h"
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 
 #include <assert.h>
 #include <math.h>

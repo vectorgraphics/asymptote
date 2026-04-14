@@ -259,7 +259,7 @@ bool drawBezierPatch::write(abs3Doutfile *out)
 void drawBezierPatch::render(double size2, const triple& b, const triple& B,
                              double perspective, bool remesh)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   if(invisible) return;
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
     diffuse.A < 1.0;
@@ -521,7 +521,7 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
 void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
                                 double perspective, bool remesh)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   if(invisible) return;
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
     diffuse.A < 1.0;
@@ -675,7 +675,7 @@ void drawNurbs::ratio(const double *t, pair &b, double (*m)(double, double),
 
 void drawNurbs::displacement()
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   size_t n=nu*nv;
   size_t nuknots=udegree+nu+1;
   size_t nvknots=vdegree+nv+1;
@@ -1011,7 +1011,7 @@ void drawTriangles::render(double size2, const triple& b,
                            const triple& B, double perspective,
                            bool remesh)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   if(invisible) return;
   transparent=diffuse.A < 1.0;
 

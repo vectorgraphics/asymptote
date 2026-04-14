@@ -1063,7 +1063,7 @@ struct versionOption : public option {
     glm=true;
 #endif
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
     gl=true;
 #endif
 

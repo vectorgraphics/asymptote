@@ -64,6 +64,10 @@ texstream::~texstream() {
 
 namespace camp {
 
+#ifdef HAVE_RENDERER
+AsyGLRender *gl = new AsyGLRender();
+#endif
+
 extern void draw();
 
 bool isIdTransform3(const double* t)
@@ -1434,7 +1438,7 @@ void picture::render(double size2, const triple& Min, const triple& Max,
     (*p)->render(size2,Min,Max,perspective,remesh);
   }
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   drawBuffers();
 #endif
 }
@@ -1447,13 +1451,13 @@ extern bool allowRender;
 
 void glrenderWrapper()
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
-  wait(initSignal,initLock);
-  endwait(initSignal,initLock);
+  camp::gl->wait(camp::gl->initSignal,camp::gl->initLock);
+  camp::gl->endwait(camp::gl->initSignal,camp::gl->initLock);
 #endif
   if(allowRender)
-    glrender(com);
+    gl::glrender(com);
 #endif
 }
 
@@ -1482,7 +1486,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 
 #ifndef HAVE_LIBOSMESA
-#ifndef HAVE_GL
+#ifndef HAVE_RENDERER
   if(!webgl)
     camp::reportError("to support onscreen OpenGL rendering; please install the glut library, then ./configure; make");
 #endif
@@ -1521,7 +1525,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool View=settings::view() && view;
 #endif
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   bool offscreen=false;
 #ifdef HAVE_LIBOSMESA
   offscreen=true;
@@ -1535,7 +1539,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool format3d=webgl || v3d;
 
   if(!format3d) {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
     if(glthread && !offscreen) {
 #ifdef HAVE_PTHREAD
       if(gl::initialize) {
@@ -1655,7 +1659,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(webgl && View)
       htmlView(name);
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
     if(format3dWait) {
       format3dWait=false;
 #ifdef HAVE_PTHREAD
@@ -1668,7 +1672,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
 #endif
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
   if(glthread && !offscreen && Wait) {
 #ifdef HAVE_LIBGLFW

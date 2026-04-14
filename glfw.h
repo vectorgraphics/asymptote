@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 
 #include <GLFW/glfw3.h>
 #include <string>
@@ -8,66 +8,99 @@
 namespace camp
 {
 
-class AsyRender
+/**
+ * Virtual interface for renderer callbacks.
+ * Derived renderers (AsyVkRender, AsyGLRender) implement this interface
+ * to handle GLFW window events in a renderer-specific way.
+ */
+struct RenderCallbacks
 {
-public:
-  GLFWwindow* window = nullptr;
+    virtual ~RenderCallbacks() = default;
 
-  int Width, Height;
-  double Zoom;
-  double ArcballFactor;
-  bool orthographic;
-  std::string Format;
-
-  std::string lastAction = "";
-
-  // Static callback functions (implemented in glfw.cc)
-  static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-  static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
-  static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
-  static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
-  static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-  static void closeWindowHandler(GLFWwindow *window);
-
-  // Virtual methods to be implemented by renderer-specific classes
-  virtual void reshape0(int width, int height) = 0;
-  virtual void update() = 0;
-  virtual void shift(double dx, double dy) = 0;
-  virtual void pan(double dx, double dy) = 0;
-  virtual void zoom(double dx, double dy) = 0;
-  virtual void home() = 0;
-  virtual void quit() = 0;
-  virtual void exportHandler(int=0) = 0;
-
-  // Helper function for getting action from button/mods
-  static std::string getAction(int button, int mods);
-
-  virtual ~AsyRender() = default;
+    virtual void onMouseButton(int button, int action, int mods) = 0;
+    virtual void onFramebufferResize(int width, int height) = 0;
+    virtual void onScroll(double xoffset, double yoffset) = 0;
+    virtual void onCursorPos(double xpos, double ypos) = 0;
+    virtual void onKey(int key, int scancode, int action, int mods) = 0;
+    virtual void onWindowFocus(int focused) = 0;
+    virtual void onClose() = 0;
 };
+
+// Forward declaration
+class AsyRender;
 
 /**
  * Initialize GLFW window with the given dimensions and title.
- * Sets up all callback functions for mouse, keyboard, and window events.
+ * Sets up all callback functions using the provided RenderCallbacks interface.
  */
-void glfwInitWindow(AsyRender* app, int width, int height, const std::string& title);
+GLFWwindow* glfwCreateRenderWindow(int width, int height, const std::string& title,
+                                    RenderCallbacks* callbacks);
 
 /**
  * Terminate GLFW resources associated with the window.
- * Called during cleanup/destructor.
  */
-void glfwCleanupWindow(AsyRender* app);
+void glfwDestroyWindow(GLFWwindow* window);
 
 /**
  * Post an empty event to wake up the main loop.
- * Used for thread synchronization when updates are needed.
  */
 void glfwPostEmptyEventWrapper();
 
 /**
- * Get GLFW window user pointer as AsyRender*.
+ * Get RenderCallbacks from GLFW window user pointer.
  */
-AsyRender* glfwGetApp(GLFWwindow* window);
+RenderCallbacks* glfwGetCallbacks(GLFWwindow* window);
+
+/**
+ * Get action string from button/mods combination.
+ * Shared utility for renderer callback implementations.
+ */
+std::string getGLFWAction(int button, int mods);
+
+/**
+ * Generic GLFW event loop for interactive rendering.
+ * @param window GLFW window
+ * @param shouldContinue Function that returns true if loop should continue
+ * @param shouldDisplay Function that returns true if frame should be displayed
+ * @param doDisplay Function to call to display a frame
+ * @param processMessages Function to call to process pending messages (optional)
+ * @param getIdleFunc Function that returns current idle function (optional)
+ * @param shouldWait Function that returns true if glfwWaitEvents should be used (optional)
+ */
+void glfwRunLoop(GLFWwindow* window,
+                 std::function<bool()> shouldContinue,
+                 std::function<bool()> shouldDisplay,
+                 std::function<void()> doDisplay,
+                 std::function<void()> processMessages = nullptr,
+                 std::function<std::function<void()>()> getIdleFunc = nullptr,
+                 std::function<bool()> shouldWait = nullptr);
+
+/**
+ * Set window size and optionally reposition.
+ */
+void glfwSetRenderWindow(GLFWwindow* window, int width, int height, bool reposition=true);
+
+/**
+ * Hide a GLFW window (wrapper to avoid namespace conflicts).
+ */
+void glfwRendererHideWindow(GLFWwindow* window);
+
+/**
+ * Show a GLFW window (wrapper to avoid namespace conflicts).
+ */
+void glfwRendererShowWindow(GLFWwindow* window);
+
+/**
+ * Set window position (wrapper to avoid namespace conflicts).
+ */
+void glfwRendererSetWindowPos(GLFWwindow* window, int xpos, int ypos);
+
+inline void runtimeError(const std::string& s)
+{
+  cerr << "error: " << s << endl;
+  exit(-1);
+}
 
 } // namespace camp
 
-#endif // HAVE_GL
+#endif // HAVE_RENDERER
