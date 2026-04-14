@@ -2,7 +2,7 @@
 #include "vm.h"
 #include "array.h"
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 
 #include "glfw.h"
 #include "settings.h"
@@ -124,9 +124,9 @@ void glfwSetRenderWindow(GLFWwindow* window, int width, int height, bool reposit
 }
 
 /**
- * Hide a GLFW window.
+ * Hide a GLFW window (wrapper to avoid namespace conflicts).
  */
-void glfwHideWindow(GLFWwindow* window)
+void glfwRendererHideWindow(GLFWwindow* window)
 {
     if (window != nullptr) {
         ::glfwHideWindow(window);
@@ -134,9 +134,9 @@ void glfwHideWindow(GLFWwindow* window)
 }
 
 /**
- * Show a GLFW window.
+ * Show a GLFW window (wrapper to avoid namespace conflicts).
  */
-void glfwShowWindow(GLFWwindow* window)
+void glfwRendererShowWindow(GLFWwindow* window)
 {
     if (window != nullptr) {
         ::glfwShowWindow(window);
@@ -144,9 +144,9 @@ void glfwShowWindow(GLFWwindow* window)
 }
 
 /**
- * Set window position.
+ * Set window position (wrapper to avoid namespace conflicts).
  */
-void glfwSetWindowPos(GLFWwindow* window, int xpos, int ypos)
+void glfwRendererSetWindowPos(GLFWwindow* window, int xpos, int ypos)
 {
     if (window != nullptr) {
         ::glfwSetWindowPos(window, xpos, ypos);
@@ -270,4 +270,4 @@ void *postEmptyEvent(void *)
     return NULL;
 }
 
-#endif // HAVE_VULKAN
+#endif // HAVE_RENDERER

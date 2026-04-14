@@ -1,13 +1,17 @@
 #include "renderBase.h"
 #include "settings.h"
 #include "drawelement.h"
+#include "interact.h"
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 #include <GLFW/glfw3.h>
 #endif
 
 using settings::getSetting;
 using namespace glm;
+
+// Forward declaration for pthread callback (defined in glfw.cc)
+void *postEmptyEvent(void *);
 
 namespace camp
 {
@@ -94,6 +98,14 @@ void AsyRender::update()
   updateModelViewData();
 
   redraw=true;
+
+#ifdef HAVE_PTHREAD
+  if(View) {
+    pthread_t postThread;
+    if(pthread_create(&postThread,NULL,postEmptyEvent,NULL) == 0)
+      pthread_join(postThread,NULL);
+  }
+#endif
 }
 
 void AsyRender::updateProjection()
@@ -278,6 +290,71 @@ void AsyRender::setosize()
   oldHeight = (int) ceil(oHeight);
 }
 
+/**
+ * Set window to fullscreen size.
+ * Base implementation handles dimension calculation and GLFW window operations.
+ */
+void AsyRender::fullscreen(bool reposition)
+{
+  Width = screenWidth;
+  Height = screenHeight;
+  Xfactor = ((double) screenHeight) / Height;
+  Yfactor = ((double) screenWidth) / Width;
+
+  setsize(Width, Height, reposition);
+}
+
+/**
+ * Set window size and optionally reposition.
+ * Base implementation handles GLFW window operations and common logic.
+ */
+void AsyRender::setsize(int w, int h, bool reposition)
+{
+#ifdef HAVE_RENDERER
+  // Handle GLFW window operations (library-agnostic for Vulkan/OpenGL)
+  if (View && glfwWindow != nullptr) {
+    ::glfwSetWindowSize(static_cast<GLFWwindow*>(glfwWindow), w, h);
+    if (reposition) {
+      int x, y;
+      windowposition(x, y, w, h);
+      ::glfwSetWindowPos(static_cast<GLFWwindow*>(glfwWindow), x, y);
+    }
+  }
+#endif
+
+  capsize(w, h);
+  reshape0(w, h);
+  update();
+}
+
+/**
+ * Handle window resize.
+ * Base implementation handles dimension updates and projection.
+ */
+void AsyRender::reshape0(int width, int height)
+{
+  // Scale X,Y proportionally with new dimensions
+  X = (X / Width) * width;
+  Y = (Y / Height) * height;
+
+  Width = width;
+  Height = height;
+
+  static int lastWidth = 1;
+  static int lastHeight = 1;
+  if (View && width * height > 1 &&
+      (width != lastWidth || height != lastHeight)) {
+
+    if (settings::verbose > 1)
+      cout << "Rendering " << stripDir(Prefix) << " as "
+           << width << "x" << height << " image" << endl;
+    lastWidth = width;
+    lastHeight = height;
+  }
+
+  setProjection();
+}
+
 void AsyRender::fitscreen(bool reposition)
 {
   switch(Fitscreen) {
@@ -310,6 +387,13 @@ void AsyRender::fitscreen(bool reposition)
 
 void AsyRender::toggleFitScreen()
 {
+#ifdef HAVE_RENDERER
+  // Hide window before changing size (library-agnostic for Vulkan/OpenGL)
+  if (glfwWindow != nullptr) {
+    ::glfwHideWindow(static_cast<GLFWwindow*>(glfwWindow));
+  }
+#endif
+
   Fitscreen = (Fitscreen + 1) % 3;
   fitscreen();
 }
@@ -332,6 +416,13 @@ void AsyRender::cycleMode()
   mode = DrawMode((mode + 1) % DRAWMODE_MAX);
   remesh = true;
   redraw = true;
+
+  // Update IBL setting based on mode
+  if (mode == DRAWMODE_NORMAL) {
+    ibl = settings::getSetting<bool>("ibl");
+  } else if (mode == DRAWMODE_OUTLINE) {
+    ibl = false;
+  }
 }
 
 double AsyRender::spinStep()
@@ -448,7 +539,60 @@ void AsyRender::exportHandler(int)
 
 void AsyRender::quit()
 {
-  // Default implementation - derived classes should override
+#ifdef HAVE_RENDERER
+  // Stop all rendering activity
+  resize = false;
+  waitEvent = false;
+  redraw = false;
+
+  if (renderThread) {
+#ifdef HAVE_PTHREAD
+    if (!interact::interactive) {
+      idle();
+      endwait(readySignal, readyLock);
+    }
+#endif
+
+    // Hide window but don't destroy it (will be reused)
+    if (View && glfwWindow) {
+      ::glfwHideWindow(static_cast<GLFWwindow*>(glfwWindow));
+      hideWindow = true;
+    }
+    // In threaded mode, don't call exit() - the main thread handles that
+  } else {
+    // Non-threaded mode: finalize graphics library before cleanup
+    finalizeProcess();
+
+    // Clean up and exit
+    if (View && glfwWindow) {
+      ::glfwDestroyWindow(static_cast<GLFWwindow*>(glfwWindow));
+      glfwWindow = nullptr;
+    }
+
+    // Terminate GLFW before exiting
+    glfwTerminate();
+
+    exit(0);
+  }
+#endif
+}
+
+/**
+ * Finalize graphics library resources.
+ * Default implementation does nothing; derived classes override for specific cleanup.
+ */
+void AsyRender::finalizeProcess()
+{
+  // Default: no-op
+}
+
+/**
+ * Window close handler (library-agnostic).
+ * Can be overridden by derived classes for renderer-specific cleanup.
+ */
+void AsyRender::onClose()
+{
+  // Default: no-op - derived classes can override for specific behavior
 }
 
 void AsyRender::onKey(int key, int scancode, int action, int mods)

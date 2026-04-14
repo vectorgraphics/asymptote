@@ -12,7 +12,7 @@
 
 #include "common.h"
 
-#if defined(HAVE_VULKAN)
+#if defined(HAVE_RENDERER)
 
 // We undefined NDEBUG for common.h, but some files
 // do not use common.h, causing includes

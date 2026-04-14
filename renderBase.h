@@ -221,6 +221,12 @@ public:
   double lastzoom;
   int Fitscreen=1;
 
+#ifdef HAVE_RENDERER
+  // GLFW window pointer (shared between Vulkan and OpenGL renderers)
+  // Using void* to avoid requiring GLFW header in all files that include this
+  void* glfwWindow = nullptr;
+#endif
+
   // Timer and statistics
   utils::stopWatch spinTimer;
   utils::stopWatch fpsTimer;
@@ -234,8 +240,10 @@ public:
   bool resize=false;
   bool remesh=true;
   bool antialias = false;
+  bool ibl = false;
   bool queueExport=false;
   bool haveScene=false;
+  bool waitEvent=true;
 
   // Thread flag (was vkthread in Vulkan renderer)
   bool renderThread=false;
@@ -252,6 +260,12 @@ public:
   // Picture reference
   const picture* pic = nullptr;
 
+  // Mouse/interaction state
+  std::string lastAction = "";
+
+  // Window title
+  std::string title = "";
+
   // Internal state
   double H;
   double Xfactor, Yfactor;
@@ -260,6 +274,15 @@ public:
   // Transform matrices (used by camera())
   double T[16];
   double Tup[16];
+
+#ifdef HAVE_PTHREAD
+  // Pthread synchronization primitives (shared between renderers)
+  pthread_t mainthread;
+  pthread_cond_t initSignal = PTHREAD_COND_INITIALIZER;
+  pthread_mutex_t initLock = PTHREAD_MUTEX_INITIALIZER;
+  pthread_cond_t readySignal = PTHREAD_COND_INITIALIZER;
+  pthread_mutex_t readyLock = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 protected:
   const double pi=acos(-1.0);
@@ -304,16 +327,16 @@ public:
   // Window size management
   void capsize(int& w, int& h);
   void windowposition(int& x, int& y, int width=-1, int height=-1);
-  virtual void setsize(int w, int h, bool reposition=true) = 0;
-  virtual void fullscreen(bool reposition=true) = 0;
-  virtual void reshape0(int width, int height) = 0;
+  virtual void setsize(int w, int h, bool reposition=true);
+  virtual void fullscreen(bool reposition=true);
+  virtual void reshape0(int width, int height);
   void setosize();
-  virtual void fitscreen(bool reposition=true) = 0;
-  virtual void toggleFitScreen() = 0;
-  virtual void home(bool webgl=false) = 0;
+  virtual void fitscreen(bool reposition=true);
+  virtual void toggleFitScreen();
+  virtual void home(bool webgl=false);
 
   // Mode cycling
-  virtual void cycleMode() = 0;
+  virtual void cycleMode();
 
   // Spin controls
   double spinStep();
@@ -337,7 +360,13 @@ public:
 
   // Export handler
   virtual void exportHandler(int=0) = 0;
-  virtual void quit() = 0;
+  virtual void quit();
+
+  // Window close handler (library-agnostic)
+  virtual void onClose();
+
+  // Finalize graphics library resources (virtual for renderer-specific cleanup)
+  virtual void finalizeProcess();
 
   // Key handling (library-agnostic)
   virtual void onKey(int key, int scancode, int action, int mods);

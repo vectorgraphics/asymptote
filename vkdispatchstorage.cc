@@ -7,6 +7,6 @@
 
 #include "vk.h"
 
-#if defined(HAVE_VULKAN)
+#if defined(HAVE_RENDERER)
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 #endif

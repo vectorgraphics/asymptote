@@ -17,7 +17,7 @@
 #include "common.h"
 
 #include "vk.h"
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 #include <vma_cxx.h>
 
 #include <glslang/Public/ShaderLang.h>
@@ -42,7 +42,7 @@ class picture;
 
 std::vector<char> readFile(const std::string& filename);
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 struct SwapChainDetails {
   vk::SurfaceCapabilitiesKHR capabilities;
   std::vector<vk::SurfaceFormatKHR> formats;
@@ -156,24 +156,12 @@ public:
   int maxFramesInFlight;
   size_t framecount;
 
-  std::string title = "";
-
   /**
    * @remark Main thread is the consumer, other thread is the sender of messages;
    */
    ThreadSafeQueue<VulkanRendererMessage> messageQueue;
 
-#ifdef HAVE_PTHREAD
-  pthread_t mainthread;
-
-  pthread_cond_t initSignal = PTHREAD_COND_INITIALIZER;
-  pthread_mutex_t initLock = PTHREAD_MUTEX_INITIALIZER;
-
-  pthread_cond_t readySignal = PTHREAD_COND_INITIALIZER;
-  pthread_mutex_t readyLock = PTHREAD_MUTEX_INITIALIZER;
-#endif
-
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
   vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
 #endif
 
@@ -183,9 +171,8 @@ public:
   const double* dView;
 
   bool redisplay=false;
-  bool resize=false;
 private:
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
   static constexpr std::array<const char*, 4> deviceExtensions = {
     VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME,
     VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
@@ -244,9 +231,8 @@ private:
 
   size_t nmaterials=1; // Number of materials currently allocated in memory
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 
-  GLFWwindow* window=nullptr;
   vk::UniqueInstance instance;
 
   std::vector<const char*> validationLayers {};
@@ -490,20 +476,17 @@ private:
   uint32_t currentFrame = 0;
   vk::CommandBuffer currentCommandBuffer;
   std::vector<FrameObject> frameObjects;
-protected:
-  std::string lastAction = "";
-
 #endif
 
 protected:
   void updateModelViewData() override;
   void setProjection() override;
-  void update() override;
+  // update() now implemented in base class AsyRender::update()
 
 public:
   static void updateHandler(int);
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
   void initWindow();
   void initVulkan();
 
@@ -718,7 +701,6 @@ public:
   void Export(int imageIndex);
   bool readyForExport=false;
   bool readyForUpdate=false;
-  bool waitEvent=true;
   bool initialized=false;
   bool havewindow=false;
   bool format3dWait=false;
@@ -748,14 +730,11 @@ public:
     PipelineType end = PIPELINE_MAX
   );
 
-  void quit() override;
+  // Graphics library cleanup
+  void finalizeProcess() override;
 
-  virtual void setsize(int w, int h, bool reposition=true) override;
-  virtual void fullscreen(bool reposition=true) override;
+  // Vulkan-specific overrides that add to base class behavior
   virtual void reshape0(int width, int height) override;
-  virtual void fitscreen(bool reposition=true) override;
-  virtual void toggleFitScreen() override;
-  virtual void home(bool webgl=false) override;
   virtual void cycleMode() override;
 
   friend void glfwInitWindow(AsyRender*, int, int, const std::string&);

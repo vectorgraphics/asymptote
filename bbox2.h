@@ -6,7 +6,7 @@
 #include "triple.h"
 #include "glmCommon.h"
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 #include "vkrender.h"
 #else
 #include "render.h"

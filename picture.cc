@@ -1439,7 +1439,7 @@ extern bool allowRender;
 
 void glrenderWrapper()
 {
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
   vk->wait(vk->initSignal,vk->initLock);
   vk->endwait(vk->initSignal,vk->initLock);
@@ -1473,7 +1473,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     camp::reportError("to support V3D rendering, please install glm header files, then ./configure; make");
 #endif
 
-#ifndef HAVE_VULKAN
+#ifndef HAVE_RENDERER
   if(!webgl)
     camp::reportError("to support onscreen Vulkan rendering; please install the glfw, vulkan, and glslang development libraries, then ./configure; make");
 #endif
@@ -1510,7 +1510,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool View=settings::view() && view;
 #endif
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
   bool animating=getSetting<bool>("animating");
   bool Wait=!interact::interactive || !View || animating;
@@ -1519,7 +1519,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
   bool format3d=webgl || v3d;
   if(!format3d) {
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
     if(vk->renderThread) {
 #ifdef HAVE_PTHREAD
       if(vk->initialize) {
@@ -1554,7 +1554,7 @@ bool picture::shipout3(const string& prefix, const string& format,
           vk->endwait(vk->initSignal,vk->initLock);
           initialize=false;
         }
-//#ifdef HAVE_VULKAN
+//#ifdef HAVE_RENDERER
 //        glfwPostEmptyEvent();
 //#endif
         if(Wait) {
@@ -1565,7 +1565,7 @@ bool picture::shipout3(const string& prefix, const string& format,
       }
       if(Wait)
         pthread_mutex_lock(&vk->readyLock);
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
       glfwPostEmptyEvent();
 #endif
 #endif
@@ -1652,7 +1652,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
 #endif
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
   if(vk->renderThread && Wait) {
     pthread_cond_wait(&vk->readySignal,&vk->readyLock);

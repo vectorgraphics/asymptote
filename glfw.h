@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 
 #include <GLFW/glfw3.h>
 #include <string>
@@ -81,20 +81,20 @@ void glfwRunLoop(GLFWwindow* window,
 void glfwSetRenderWindow(GLFWwindow* window, int width, int height, bool reposition=true);
 
 /**
- * Hide a GLFW window.
+ * Hide a GLFW window (wrapper to avoid namespace conflicts).
  */
-void glfwHideWindow(GLFWwindow* window);
+void glfwRendererHideWindow(GLFWwindow* window);
 
 /**
- * Show a GLFW window.
+ * Show a GLFW window (wrapper to avoid namespace conflicts).
  */
-void glfwShowWindow(GLFWwindow* window);
+void glfwRendererShowWindow(GLFWwindow* window);
 
 /**
- * Set window position.
+ * Set window position (wrapper to avoid namespace conflicts).
  */
-void glfwSetWindowPos(GLFWwindow* window, int xpos, int ypos);
+void glfwRendererSetWindowPos(GLFWwindow* window, int xpos, int ypos);
 
 } // namespace camp
 
-#endif // HAVE_VULKAN
+#endif // HAVE_RENDERER

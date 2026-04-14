@@ -1,6 +1,6 @@
 #include "vkutils.h"
 
-#if defined(HAVE_VULKAN)
+#if defined(HAVE_RENDERER)
 
 #include "errormsg.h"
 

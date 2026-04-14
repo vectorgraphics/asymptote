@@ -49,7 +49,7 @@ protected:
   bool primitive;
 
 public:
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
   BezierCurve C;
   bool transparent;
 #endif

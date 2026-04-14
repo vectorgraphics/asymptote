@@ -46,7 +46,7 @@ void runtimeError(const std::string& s)
   exit(-1);
 }
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 uint32_t apiVersion=VK_API_VERSION_1_4;
 
 std::vector<const char*> instanceExtensions
@@ -86,7 +86,7 @@ std::vector<char> readFile(const std::string& filename)
   return buffer;
 }
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 SwapChainDetails::SwapChainDetails(
   vk::PhysicalDevice gpu,
   vk::SurfaceKHR surface) :
@@ -178,22 +178,11 @@ void AsyVkRender::updateModelViewData()
   newUniformBuffer = true;
 }
 
-void AsyVkRender::update()
-{
-  AsyRender::update();
-
-#ifdef HAVE_PTHREAD
-  if(View) {
-    pthread_t postThread;
-    if(pthread_create(&postThread,NULL,postEmptyEvent,NULL) == 0)
-      pthread_join(postThread,NULL);
-  }
-#endif
-}
+// update() now implemented in base class AsyRender::update()
 
 void AsyVkRender::initWindow()
 {
-  window = glfwCreateRenderWindow(Width, Height, title, this);
+  glfwWindow = static_cast<void*>(glfwCreateRenderWindow(Width, Height, title, this));
 }
 
 // RenderCallbacks interface implementation
@@ -288,7 +277,10 @@ void AsyVkRender::onWindowFocus(int focused)
 
 void AsyVkRender::onClose()
 {
-    cout << endl;
+    // Call base class close handler
+    AsyRender::onClose();
+
+    // Vulkan-specific: trigger exit with cleanup
     exitHandler(0);
 }
 
@@ -320,8 +312,8 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
 }
 
 void AsyVkRender::updateHandler(int) {
-  if(vk->View && vk->window && !interact::interactive) {
-    ::glfwHideWindow(vk->window);
+  if(vk->View && vk->glfwWindow && !interact::interactive) {
+    ::glfwHideWindow(static_cast<GLFWwindow*>(vk->glfwWindow));
     if(!getSetting<bool>("fitscreen"))
       vk->Fitscreen=0;
   }
@@ -338,9 +330,9 @@ void AsyVkRender::updateHandler(int) {
 
 AsyVkRender::~AsyVkRender()
 {
-  if (this->View && window != nullptr) {
-    camp::glfwDestroyWindow(window);
-    window = nullptr;
+  if (this->View && glfwWindow != nullptr) {
+    ::glfwDestroyWindow(static_cast<GLFWwindow*>(glfwWindow));
+    glfwWindow = nullptr;
   }
 
   glslang::FinalizeProcess();
@@ -437,7 +429,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
       Width=fullWidth;
       Height=fullHeight;
     } else {
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
       GLFWmonitor* monitor=NULL;
       glfwInit();
       monitor=glfwGetPrimaryMonitor();
@@ -460,7 +452,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
         Height=min((int) (ceil(Width/Aspect)),screenHeight);
     }
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
     home(format3d);
 #endif
     if(format3d) {
@@ -472,12 +464,12 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
     Aspect=((double) Width)/Height;
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
     setosize();
 #endif
   }
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
   havewindow=initialized && renderThread;
 
   if(renderThread && format3d)
@@ -508,7 +500,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   checkpow2(blockSize,"GPUblockSize");
   groupSize=localSize*blockSize;
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
   if(vkinitialize) {
     interlock=settings::getSetting<bool>("GPUinterlock");
     fxaa=settings::getSetting<bool>("fxaa");
@@ -518,7 +510,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   }
 
   if(View) {
-    if(!window)
+    if(!glfwWindow)
       initWindow();
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
@@ -538,7 +530,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 #endif
 }
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 void AsyVkRender::initVulkan()
 {
 #ifdef __APPLE__
@@ -910,7 +902,7 @@ void AsyVkRender::createSurface()
 {
 #if defined(_WIN32)
   vk::Win32SurfaceCreateInfoKHR createInfo = {};
-  createInfo.hwnd = glfwGetWin32Window(window);
+  createInfo.hwnd = glfwGetWin32Window(static_cast<GLFWwindow*>(glfwWindow));
   createInfo.hinstance = GetModuleHandleA(nullptr);
 
   vk::SurfaceKHR tmpSurface;
@@ -924,7 +916,7 @@ void AsyVkRender::createSurface()
   surface=vk::UniqueSurfaceKHR(tmpSurface);
 #else
   VkSurfaceKHR surfaceTmp;
-  if (glfwCreateWindowSurface(*instance, window, nullptr, &surfaceTmp) != VK_SUCCESS)
+  if (glfwCreateWindowSurface(*instance, static_cast<GLFWwindow*>(glfwWindow), nullptr, &surfaceTmp) != VK_SUCCESS)
     runtimeError("failed to create window surface");
   surface=vk::UniqueSurfaceKHR(surfaceTmp, *instance);
 #endif
@@ -4611,8 +4603,9 @@ void AsyVkRender::display()
 {
   prepareScene();
 
-  if(View && window && !hideWindow && !glfwGetWindowAttrib(window,GLFW_VISIBLE))
-    ::glfwShowWindow(window);
+  GLFWwindow* win = static_cast<GLFWwindow*>(glfwWindow);
+  if(View && glfwWindow && !hideWindow && !glfwGetWindowAttrib(win,GLFW_VISIBLE))
+    ::glfwShowWindow(win);
 
   drawFrame();
 
@@ -4672,9 +4665,10 @@ void AsyVkRender::mainLoop()
     // Use the generic GLFW event loop from glfw.cc
     // This keeps the event loop logic library-agnostic
 
-    glfwRunLoop(window,
+    GLFWwindow* win = static_cast<GLFWwindow*>(glfwWindow);
+    glfwRunLoop(win,
       // shouldContinue: continue while window is open
-      [this](){ return !glfwWindowShouldClose(window); },
+      [win](){ return !glfwWindowShouldClose(win); },
 
       // shouldDisplay: display when needed
       [this](){ return redraw || redisplay || queueExport; },
@@ -4859,149 +4853,33 @@ void AsyVkRender::Export(int imageIndex) {
 #endif
 }
 
-void AsyVkRender::quit()
+void AsyVkRender::finalizeProcess()
 {
-#ifdef HAVE_VULKAN
-  resize=false;
-  if(renderThread) {
-    redraw=false;
-    waitEvent=false;
-#ifdef HAVE_PTHREAD
-    if(!interact::interactive) {
-      idle();
-      endwait(readySignal,readyLock);
-    }
-
+#ifdef HAVE_RENDERER
+  glslang::FinalizeProcess();
 #endif
-    if(View && window) {
-      ::glfwHideWindow(window);
-      hideWindow=true;
-    }
-  } else {
-    if(View && window) {
-       camp::glfwDestroyWindow(window);
-       window=nullptr;
-    }
-    glfwTerminate();
-    glslang::FinalizeProcess();
-
-    exit(0);
-  }
-#endif
-}
-
-void AsyVkRender::setsize(int w, int h, bool reposition) {
-  int x,y;
-  capsize(w,h);
-
-  if (View && window) {
-    glfwSetRenderWindow(window, w, h, false);
-    if (reposition) {
-      windowposition(x, y, w, h);
-      ::glfwSetWindowPos(window, x, y);
-    }
-  }
-
-  reshape0(w,h);
-  update();
-}
-
-void AsyVkRender::fullscreen(bool reposition)
-{
-  Width=screenWidth;
-  Height=screenHeight;
-  Xfactor=((double) screenHeight)/Height;
-  Yfactor=((double) screenWidth)/Width;
-  if(reposition && window)
-    ::glfwSetWindowPos(window, 0, 0);
-  setsize(Width,Height,reposition);
 }
 
 void AsyVkRender::reshape0(int width, int height) {
-  X=(X/Width)*width;
-  Y=(Y/Height)*height;
+  // Base class handles dimension updates and projection
+  AsyRender::reshape0(width, height);
 
-  Width=width;
-  Height=height;
-
-  static int lastWidth=1;
-  static int lastHeight=1;
-  if(View && width*height > 1 &&
-     (width != lastWidth || height != lastHeight)) {
-
-    if(settings::verbose > 1)
-      cout << "Rendering " << stripDir(Prefix) << " as "
-           << width << "x" << height << " image" << endl;
-    lastWidth=width;
-    lastHeight=height;
-  }
-
-  setProjection();
-  framebufferResized=true;
-}
-
-void AsyVkRender::fitscreen(bool reposition) {
-  switch(Fitscreen) {
-    case 0: // Original size
-    {
-      Xfactor=Yfactor=1.0;
-      double pixelRatio=settings::getSetting<double>("devicepixelratio");
-      setsize(oldWidth*pixelRatio,oldHeight*pixelRatio,reposition);
-      break;
-    }
-    case 1: // Fit to screen in one dimension
-    {
-      int w=screenWidth;
-      int h=screenHeight;
-      if(w > h*Aspect)
-        w=min((int) ceil(h*Aspect),w);
-      else
-        h=min((int) ceil(w/Aspect),h);
-
-      setsize(w,h,reposition);
-      break;
-    }
-    case 2: // Full screen
-    {
-      fullscreen(reposition);
-      break;
-    }
-  }
-}
-
-void AsyVkRender::toggleFitScreen() {
-  if (window) ::glfwHideWindow(window);
-  Fitscreen = (Fitscreen + 1) % 3;
-  fitscreen();
-}
-
-void AsyVkRender::home(bool webgl) {
-  if(!webgl)
-    idle();
-  X = Y = cx = cy = 0;
-  rotateMat = viewMat = dmat4(1.0);
-  lastzoom=Zoom=Zoom0;
-  framecount=0;
-
-  setProjection();
-  updateModelViewData();
+  // Vulkan-specific: flag for swapchain recreation
+  framebufferResized = true;
 }
 
 void AsyVkRender::cycleMode() {
-  if(device)
+  // Wait for GPU to finish (Vulkan-specific)
+  if (device) {
     device->waitIdle();
-  mode=DrawMode((mode + 1) % DRAWMODE_MAX);
-  remesh=true;
-  redraw=true;
-  newUniformBuffer=true;
+  }
 
-  if (mode == DRAWMODE_NORMAL) {
-    ibl=settings::getSetting<bool>("ibl");
-  }
-  if (mode == DRAWMODE_OUTLINE) {
-    ibl=false;
-  }
-  recreatePipeline=true;
+  // Use base class implementation for mode cycling
+  AsyRender::cycleMode();
+
+  // Vulkan-specific: update uniform buffer and pipeline flags
+  newUniformBuffer = true;
+  recreatePipeline = true;
 }
 
 } // namespace camp
