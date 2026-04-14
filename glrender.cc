@@ -29,6 +29,7 @@
 #include "drawimage.h"
 #include "interact.h"
 #include "fpu.h"
+#include "renderBase.h"
 
 extern uint32_t CLZ(uint32_t a);
 
@@ -228,9 +229,9 @@ bool haveScene;
 pair Shift;
 pair Margin;
 double X,Y;
-int x0,y0;
 string currentAction="";
 double cx,cy;
+double xprev,yprev;  // Track previous cursor position (like vkrender.cc)
 double Xfactor,Yfactor;
 double ArcballFactor;
 
@@ -251,6 +252,7 @@ bool antialias;
 double Zoom;
 double Zoom0;
 double lastzoom;
+double zoomFactor = 0.0;
 
 GLint lastshader=-1;
 
@@ -1353,41 +1355,38 @@ void reshape(int width, int height)
   remesh=true;
 }
 
-void shift(int x, int y)
+void shift(double dx, double dy)
 {
-  double Zoominv=1.0/Zoom;
-  X += (x-x0)*Zoominv;
-  Y += (y0-y)*Zoominv;
-  x0=x; y0=y;
+  double Zoominv = 1.0 / Zoom;
+  X += dx * Zoominv;
+  Y += -dy * Zoominv;
   update();
 }
 
-void pan(int x, int y)
+void pan(double dx, double dy)
 {
   if(orthographic)
-    shift(x,y);
+    shift(dx, dy);
   else {
-    cx += (x-x0)*(xmax-xmin)/Width;
-    cy += (y0-y)*(ymax-ymin)/Height;
-    x0=x; y0=y;
+    cx += dx * (xmax-xmin)/Width;
+    cy += -dy * (ymax-ymin)/Height;
     update();
   }
 }
 
-void zoom(int x, int y)
+void zoom(double dx, double dy)
 {
-  if(ignorezoom) {ignorezoom=false; y0=y; return;}
-  double zoomFactor=getSetting<double>("zoomfactor");
+  if(ignorezoom) {ignorezoom=false; return;}
+  double zoomFactor = getSetting<double>("zoomfactor");
   if(zoomFactor > 0.0) {
-    double zoomStep=getSetting<double>("zoomstep");
-    const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
-    double stepPower=zoomStep*(y0-y);
+    double zoomStep = getSetting<double>("zoomstep");
+    const double limit = log(0.1*DBL_MAX)/log(zoomFactor);
+    double stepPower = zoomStep * (-dy);
     if(fabs(stepPower) < limit) {
-      Zoom *= pow(zoomFactor,stepPower);
+      Zoom *= pow(zoomFactor, stepPower);
       capzoom();
-      y0=y;
       setProjection();
-      redraw=true;
+      redraw = true;
     }
   }
 }
@@ -1406,58 +1405,14 @@ void mousewheel(int wheel, int direction, int x, int y)
   }
 }
 
-struct arcball {
-  double angle;
-  triple axis;
-
-  arcball(double x0, double y0, double x, double y) {
-    triple v0=norm(x0,y0);
-    triple v1=norm(x,y);
-    double Dot=dot(v0,v1);
-    angle=Dot > 1.0 ? 0.0 : Dot < -1.0 ? pi : acos(Dot);
-    axis=unit(cross(v0,v1));
-  }
-
-  triple norm(double x, double y) {
-    double norm=hypot(x,y);
-    if(norm > 1.0) {
-      double denom=1.0/norm;
-      x *= denom;
-      y *= denom;
-    }
-    return triple(x,y,sqrt(max(1.0-x*x-y*y,0.0)));
-  }
-};
-
-inline double glx(int x) {
-  return 2.0*x/Width-1.0;
-}
-
-inline double gly(int y) {
-  return 1.0-2.0*y/Height;
-}
-
-void rotate(int x, int y)
-{
-  if(x != x0 || y != y0) {
-    arcball A(glx(x0),gly(y0),glx(x),gly(y));
-    triple v=A.axis;
-    drotateMat=glm::rotate<double>(2*A.angle/Zoom*ArcballFactor,
-                                   glm::dvec3(v.getx(),v.gety(),v.getz()))*
-      drotateMat;
-    x0=x; y0=y;
-    update();
-  }
-}
-
-double Degrees(int x, int y)
+inline double Degrees(int x, int y)
 {
   return atan2(0.5*Height-y-Y,x-0.5*Width-X)*degrees;
 }
 
 void rotateX(double step)
 {
-  dmat4 tmpRot(1.0);
+  glm::dmat4 tmpRot(1.0);
   tmpRot=glm::rotate(tmpRot,glm::radians(step),dvec3(1,0,0));
   drotateMat=tmpRot*drotateMat;
   update();
@@ -1465,7 +1420,7 @@ void rotateX(double step)
 
 void rotateY(double step)
 {
-  dmat4 tmpRot(1.0);
+  glm::dmat4 tmpRot(1.0);
   tmpRot=glm::rotate(tmpRot,glm::radians(step),dvec3(0,1,0));
   drotateMat=tmpRot*drotateMat;
   update();
@@ -1473,7 +1428,7 @@ void rotateY(double step)
 
 void rotateZ(double step)
 {
-  dmat4 tmpRot(1.0);
+  glm::dmat4 tmpRot(1.0);
   tmpRot=glm::rotate(tmpRot,glm::radians(step),dvec3(0,0,1));
   drotateMat=tmpRot*drotateMat;
   update();
@@ -1572,17 +1527,17 @@ void mouse(int button, int state, int x, int y)
 
   bool isPress = (state == GLFW_PRESS);
   if(isPress) {
+    // Initialize xprev/yprev for all actions (like vkrender.cc model)
+    xprev = static_cast<double>(x);
+    yprev = static_cast<double>(y);
+
     if(Action == "rotate") {
-      x0=x; y0=y;
       currentAction="rotate";
     } else if(Action == "shift") {
-      x0=x; y0=y;
       currentAction="shift";
     } else if(Action == "pan") {
-      x0=x; y0=y;
       currentAction="pan";
     } else if(Action == "zoom" || Action == "zoom/menu") {
-      y0=y;
       currentAction="zoom";
     } else if(Action == "rotateX") {
       lastangle=Degrees(x,y);
@@ -2140,15 +2095,13 @@ void glrender(GLRenderArgs const& args, int oldpid)
   if(View) {
     int x,y;
     if(havewindow && window)
-      glfwDestroyWindow(window);
+      ::glfwDestroyWindow(static_cast<GLFWwindow*>(window));
 
     // Reset all hints before setting OpenGL context version hints
     glfwDefaultWindowHints();
     // Core profile requires at least OpenGL 3.2; let GLFW choose higher if available
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    // Explicitly set SAMPLES to 0 (use default) to avoid invalid values
-    glfwWindowHint(GLFW_SAMPLES, 0);
     // Enable core profile for modern OpenGL features
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
@@ -2203,41 +2156,86 @@ void glrender(GLRenderArgs const& args, int oldpid)
       cerr << "OpenGL context version: " << major << "." << minor << endl;
     }
 
-    // Set up GLFW callbacks (after GLEW init)
-    glfwSetKeyCallback(window, [](GLFWwindow*, int key, int, int action, int mods) {
+    // Set up GLFW callbacks - use AsyGLRender's callback methods
+    // These delegate to the base class functions in renderBase.h/cc
+    glfwSetKeyCallback(window, [](GLFWwindow*, int key, int scancode, int action, int mods) {
       if(action != GLFW_PRESS) return;
       ::gl::keyboard(static_cast<unsigned char>(key), 0, 0);
     });
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, int w, int h) {
       ::gl::reshape(w, h);
     });
-    glfwSetMouseButtonCallback(window, [](GLFWwindow* w, int button, int state, int mods) {
+    glfwSetMouseButtonCallback(window, [](GLFWwindow* w, int button, int action, int mods) {
       double xpos, ypos;
       glfwGetCursorPos(w, &xpos, &ypos);
-      ::gl::mouse(button, (state == GLFW_RELEASE ? 1 : 0), static_cast<int>(xpos), static_cast<int>(ypos));
+      auto const currentActionStr = camp::getGLFWAction(button, mods);
+      if (currentActionStr.empty())
+        return;
+
+      if (action == GLFW_PRESS) {
+        ::gl::currentAction = currentActionStr;
+        // Initialize xprev/yprev when button is pressed
+        ::gl::xprev = xpos;
+        ::gl::yprev = ypos;
+      } else if (action == GLFW_RELEASE) {
+        ::gl::currentAction.clear();
+      }
     });
     glfwSetCursorPosCallback(window, [](GLFWwindow* w, double xpos, double ypos) {
-      // Only respond if left mouse button is pressed (like glfw.cc does)
-      if(glfwGetMouseButton(w, GLFW_MOUSE_BUTTON_LEFT) != GLFW_PRESS) {
-        ::gl::currentAction = "";
-        return;
-      }
-
-      int x=static_cast<int>(xpos), y=static_cast<int>(ypos);
       if(!::gl::currentAction.empty()) {
-        if(::gl::currentAction == "rotate") ::gl::rotate(x, y);
-        else if(::gl::currentAction == "shift") ::gl::shift(x, y);
-        else if(::gl::currentAction == "pan") ::gl::pan(x, y);
-        else if(::gl::currentAction == "zoom") ::gl::zoom(x, y);
-        else if(::gl::currentAction == "rotateX") ::gl::rotateX(x, y);
-        else if(::gl::currentAction == "rotateY") ::gl::rotateY(x, y);
-        else if(::gl::currentAction == "rotateZ") ::gl::rotateZ(x, y);
+        if(::gl::currentAction == "rotate") {
+          // Use Arcball from renderBase.h (same as vkrender.cc)
+          camp::Arcball arcball(::gl::xprev * 2 / ::gl::Width - 1, 1 - ::gl::yprev * 2 / ::gl::Height,
+                                xpos * 2 / ::gl::Width - 1, 1 - ypos * 2 / ::gl::Height);
+          camp::triple axis = arcball.axis;
+          // Update gl::drotateMat using the Arcball rotation
+          glm::dmat4 rot = glm::rotate(2 * arcball.angle / ::gl::Zoom * ::gl::ArcballFactor,
+                                       glm::dvec3(axis.getx(), axis.gety(), axis.getz()));
+          ::gl::drotateMat = rot * ::gl::drotateMat;
+          ::gl::update();
+        } else if(::gl::currentAction == "shift") {
+          ::gl::shift(xpos - ::gl::xprev, ypos - ::gl::yprev);
+          ::gl::update();
+        } else if(::gl::currentAction == "pan") {
+          if(::gl::orthographic) {
+            ::gl::shift(xpos - ::gl::xprev, ypos - ::gl::yprev);
+            ::gl::update();
+          } else {
+            ::gl::pan(xpos - ::gl::xprev, ypos - ::gl::yprev);
+            ::gl::update();
+          }
+        } else if(::gl::currentAction == "zoom") {
+          ::gl::zoom(0.0, ypos - ::gl::yprev);
+        } else if(::gl::currentAction == "rotateX") {
+          double angle = ::gl::Degrees(static_cast<int>(xpos), static_cast<int>(ypos));
+          ::gl::rotateX(angle - ::gl::lastangle);
+          ::gl::lastangle = angle;
+        } else if(::gl::currentAction == "rotateY") {
+          double angle = ::gl::Degrees(static_cast<int>(xpos), static_cast<int>(ypos));
+          ::gl::rotateY(angle - ::gl::lastangle);
+          ::gl::lastangle = angle;
+        } else if(::gl::currentAction == "rotateZ") {
+          double angle = ::gl::Degrees(static_cast<int>(xpos), static_cast<int>(ypos));
+          ::gl::rotateZ(angle - ::gl::lastangle);
+          ::gl::lastangle = angle;
+        }
       }
+      ::gl::xprev = xpos;
+      ::gl::yprev = ypos;
     });
     glfwSetScrollCallback(window, [](GLFWwindow* w, double, double yoffset) {
       double xpos, ypos;
       glfwGetCursorPos(w, &xpos, &ypos);
-      ::gl::mousewheel(0, yoffset > 0 ? 1 : -1, static_cast<int>(xpos), static_cast<int>(ypos));
+      ::gl::zoomFactor = getSetting<double>("zoomfactor");
+      if(::gl::zoomFactor > 0.0) {
+        if(yoffset > 0)
+          ::gl::Zoom *= ::gl::zoomFactor;
+        else
+          ::gl::Zoom /= ::gl::zoomFactor;
+        ::gl::capzoom();
+        ::gl::setProjection();
+        ::gl::redraw = true;
+      }
     });
 
     glfwShowWindow(window);
@@ -3153,21 +3151,21 @@ void AsyGLRender::onCursorPos(double xpos, double ypos)
     static double yprev = 0.0;
 
     if (lastAction == "rotate") {
-        Arcball arcball(xprev * 2 / Width - 1, 1 - yprev * 2 / Height,
+        camp::Arcball arcball(xprev * 2 / Width - 1, 1 - yprev * 2 / Height,
                         xpos * 2 / Width - 1, 1 - ypos * 2 / Height);
-        triple axis = arcball.axis;
-        rotateMat = rotate(2 * arcball.angle / Zoom * ArcballFactor,
+        camp::triple axis = arcball.axis;
+        rotateMat = glm::rotate(2 * arcball.angle / Zoom * ArcballFactor,
                            glm::dvec3(axis.getx(), axis.gety(), axis.getz())) * rotateMat;
         update();
     } else if (lastAction == "shift") {
-        shift(xpos - xprev, ypos - yprev);
+        AsyRender::shift(xpos - xprev, ypos - yprev);
         update();
     } else if (lastAction == "pan") {
-        if (orthographic) shift(xpos - xprev, ypos - yprev);
-        else pan(xpos - xprev, ypos - yprev);
+        if (orthographic) AsyRender::shift(xpos - xprev, ypos - yprev);
+        else AsyRender::pan(xpos - xprev, ypos - yprev);
         update();
     } else if (lastAction == "zoom") {
-        zoom(0.0, ypos - yprev);
+        AsyRender::zoom(0.0, ypos - yprev);
     }
     xprev = xpos;
     yprev = ypos;
