@@ -193,7 +193,11 @@ void AsyVkRender::onMouseButton(int button, int action, int mods)
     if (currentAction.empty())
         return;
 
-    lastAction = currentAction;
+    if (action == GLFW_PRESS) {
+        lastAction = currentAction;
+    } else if (action == GLFW_RELEASE) {
+        lastAction.clear();
+    }
 }
 
 void AsyVkRender::onFramebufferResize(int width, int height)
