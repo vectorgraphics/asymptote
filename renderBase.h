@@ -184,6 +184,7 @@ public:
   glm::dmat4 rotateMat;
   glm::dmat4 projMat;
   glm::dmat4 viewMat;
+  glm::dmat4 projViewMat;  // Combined projection-view matrix for offscreen culling
 
   // Viewport dimensions
   int fullWidth, fullHeight;
@@ -390,7 +391,8 @@ public:
 #endif
 };
 
-extern glm::dmat4 projViewMat;
-extern glm::dmat3 normMat;  // Normal matrix is 3x3 for normal transformation
-
 } // namespace camp
+
+// Note: projViewMat is now a member of AsyRender, accessed via camp::glRenderer->projViewMat
+extern glm::dmat3 dnormMat;  // Double precision normal matrix for internal use
+extern glm::mat3 normMat;    // Float precision normal matrix for shaders

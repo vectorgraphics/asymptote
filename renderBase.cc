@@ -4,6 +4,11 @@
 #include "interact.h"
 
 #ifdef HAVE_RENDERER
+// Forward declaration for OpenGL mode function (defined in glrender.cc)
+void mode();
+#endif
+
+#ifdef HAVE_RENDERER
 #include <GLFW/glfw3.h>
 #endif
 
@@ -84,7 +89,7 @@ void AsyRender::setProjection()
 
 void AsyRender::updateModelViewData()
 {
-  normMat = inverse(viewMat);
+  // Default implementation - derived classes override this
 }
 
 void AsyRender::update()
@@ -410,6 +415,7 @@ void AsyRender::home(bool webgl)
   framecount = 0;
 
   setProjection();
+
   updateModelViewData();
 }
 
@@ -422,9 +428,20 @@ void AsyRender::cycleMode()
   // Update IBL setting based on mode
   if (mode == DRAWMODE_NORMAL) {
     ibl = settings::getSetting<bool>("ibl");
+#ifdef HAVE_RENDERER
+    if(camp::glRenderer) camp::glRenderer->outlinemode = false;
+#endif
   } else if (mode == DRAWMODE_OUTLINE) {
     ibl = false;
+#ifdef HAVE_RENDERER
+    if(camp::glRenderer) camp::glRenderer->outlinemode = true;
+#endif
   }
+
+  // Call OpenGL-specific mode function to update all rendering state
+#ifdef HAVE_RENDERER
+  ::mode();
+#endif
 }
 
 double AsyRender::spinStep()

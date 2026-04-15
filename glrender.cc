@@ -37,13 +37,10 @@ bool GPUindexing = false;  // Disabled by default - compute shaders not needed f
 bool GPUcompress;
 
 #ifdef HAVE_RENDERER
-// Define extern variables declared in renderBase.h and glrender.h
+// Global matrices for shader compatibility (accessed from setUniforms)
 namespace camp {
-glm::dmat4 projViewMat;
-glm::dmat3 normMat;  // Normal matrix is 3x3, not 4x4
-double glBBT[9] = {0};  // Definition for camp namespace (matches glrender.h)
-
-glm::mat4 viewMat;
+glm::mat3 normMat;   // Normal matrix is 3x3, not 4x4
+double glBBT[9] = {0};
 const double *dView;
 }
 
@@ -154,11 +151,7 @@ void clearMaterials()
   transparentData.partial=false;
 }
 
-} // end namespace camp
-
-// Additional global variables needed by other modules (extern declarations only - definitions are in AsyRender base class)
-namespace camp {
-extern int fullWidth, fullHeight;
+//extern int fullWidth, fullHeight;
 extern bool orthographic_gl;  // Note: different name to avoid conflict with v3dheadertypes::orthographic enum
 extern double Angle, Zoom0;
 extern camp::pair Shift, Margin;
@@ -168,21 +161,13 @@ extern double Xmin, Xmax, Ymin, Ymax, Zmin, Zmax;  // These are now member varia
 
 extern void exitHandler(int);
 
-using camp::picture;
-using camp::drawRawImage;
-using camp::transform;
-using camp::pair;
-using camp::triple;
+using namespace camp;
 using vm::array;
 using vm::read;
-using camp::bbox3;
 using settings::getSetting;
 using settings::Setting;
 
-// Global variables for cross-translation-unit compatibility (following Vulkan pattern)
-// These are kept minimal - most state is in AsyGLRender member variables
 namespace camp {
-// Minimal globals for shader compatibility (following Vulkan pattern)
 bool orthographic_gl = false;
 }
 
@@ -506,7 +491,7 @@ void initShaders()
   std::vector<ShaderfileModePair> shaders(2);
   std::vector<std::string> shaderParams;
 
-  if(camp::glRenderer && camp::glRenderer->ibl) {
+  if(camp::glRenderer->ibl) {
     shaderParams.push_back("USE_IBL");
     initIBL();
   }
@@ -577,7 +562,7 @@ void initShaders()
   shaderParams.pop_back();
 
   shaderParams.push_back("GENERAL");
-  if(Mode != 0)
+  if(camp::glRenderer->mode != camp::DRAWMODE_NORMAL)
     shaderParams.push_back("WIREFRAME");
   camp::generalShader[0]=compileAndLinkShader(shaders,shaderParams,camp::ssbo,
                                               camp::interlock);
@@ -697,31 +682,16 @@ bool exporting=false;
 
 void drawscene(int Width, int Height)
 {
-  // Access all state through the renderer instance (following Vulkan pattern)
-  camp::AsyGLRender* glr = camp::glRenderer;
-  if(!glr) return;
-
 #ifdef HAVE_PTHREAD
   static bool first=true;
-  if(glr->renderThread && first) {
-    glr->wait(glr->initSignal,glr->initLock);
-    glr->endwait(glr->initSignal,glr->initLock);
+  if(first) {
+    camp::glRenderer->wait(camp::glRenderer->initSignal,camp::glRenderer->initLock);
+    camp::glRenderer->endwait(camp::glRenderer->initSignal,camp::glRenderer->initLock);
     first=false;
   }
 
   if(format3dWait)
-    glr->wait(glr->initSignal,glr->initLock);
-#endif
-
-#ifdef HAVE_LIBGLFW
-#ifndef HAVE_LIBOSMESA
-  // Diagnostics for debugging segfault
-  if(settings::verbose > 2) {
-    cerr << "drawscene: Width=" << Width << " Height=" << Height
-         << " window=" << (glr ? glr->glfwWindow : nullptr)
-         << " current context=" << glfwGetCurrentContext() << endl;
-  }
-#endif
+    camp::glRenderer->wait(camp::glRenderer->initSignal,camp::glRenderer->initLock);
 #endif
 
   if((nlights == 0 && Nlights > 0) || nlights > Nlights ||
@@ -741,20 +711,14 @@ void drawscene(int Width, int Height)
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  // Use member variables from AsyGLRender (following Vulkan pattern)
-  cerr << "DEBUG drawscene: xmin=" << glr->xmin << " xmax=" << glr->xmax
-       << " ymin=" << glr->ymin << " ymax=" << glr->ymax
-       << " Zmin=" << glr->Zmin << " Zmax=" << glr->Zmax << endl;
-  if(glr->xmin >= glr->xmax || glr->ymin >= glr->ymax || glr->Zmin >= glr->Zmax) return;
+  // Use member variables from AsyCAMP::GLRENDERERender (following Vulkan pattern)
+  if(camp::glRenderer->xmin >= camp::glRenderer->xmax || camp::glRenderer->ymin >= camp::glRenderer->ymax || camp::glRenderer->Zmin >= camp::glRenderer->Zmax) return;
 
-  triple m(glr->xmin,glr->ymin,glr->Zmin);
-  triple M(glr->xmax,glr->ymax,glr->Zmax);
-  double perspective=glr->orthographic || glr->Zmax == 0.0 ? 0.0 : 1.0/glr->Zmax;
+  triple m(camp::glRenderer->xmin,camp::glRenderer->ymin,camp::glRenderer->Zmin);
+  triple M(camp::glRenderer->xmax,camp::glRenderer->ymax,camp::glRenderer->Zmax);
+  double perspective=camp::glRenderer->orthographic || camp::glRenderer->Zmax == 0.0 ? 0.0 : 1.0/camp::glRenderer->Zmax;
 
   double size2=hypot(Width,Height);
-
-  cerr << "DEBUG: m=(" << m.getx() << "," << m.gety() << "," << m.getz() << ") M=(" << M.getx() << "," << M.gety() << "," << M.getz() << ")" << endl;
-  cerr << "DEBUG: Picture=" << (void*)Picture << " size2=" << size2 << " perspective=" << perspective << endl;
 
   if(remesh)
     camp::clearCenters();
@@ -869,11 +833,11 @@ void Export()
 
 #ifndef HAVE_LIBOSMESA
 #ifdef HAVE_LIBGLFW
-  if(camp::glRenderer) camp::glRenderer->redraw=true;
+  camp::glRenderer->redraw=true;
 #endif
 
 #ifdef HAVE_PTHREAD
-  if(camp::glRenderer && camp::glRenderer->renderThread && readyAfterExport) {
+  if(camp::glRenderer->renderThread && readyAfterExport) {
     readyAfterExport=false;
     camp::glRenderer->endwait(camp::glRenderer->readySignal,camp::glRenderer->readyLock);
   }
@@ -908,7 +872,7 @@ void quit()
   exit(0);
 #endif
 #ifdef HAVE_LIBGLFW
-  if(camp::glRenderer && camp::glRenderer->renderThread) {
+  if(camp::glRenderer->renderThread) {
     camp::glRenderer->home();
 #ifdef HAVE_PTHREAD
     if(!interact::interactive) {
@@ -924,8 +888,8 @@ void quit()
       }
     }
   } else {
-    if(camp::glRenderer && camp::glRenderer->glfwWindow != nullptr) {
-      glfwDestroyWindow(static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow));
+    if(camp::glRenderer->glfwWindow != nullptr) {
+      ::glfwDestroyWindow(static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow));
     }
     glfwTerminate();
     exit(0);
@@ -941,34 +905,33 @@ void mode()
   remesh=true;
   if(camp::ssbo)
     camp::initSSBO=true;
-  ++Mode;
-  if(Mode > 2) Mode=0;
+  ++::Mode;
+  if(::Mode > 2) ::Mode=0;
 
-  switch(Mode) {
+  switch(::Mode) {
     case 0: // regular
-      if(camp::glRenderer) camp::glRenderer->outlinemode=false;
-      if(camp::glRenderer) camp::glRenderer->ibl=getSetting<bool>("ibl");
+      camp::glRenderer->outlinemode=false;
+      camp::glRenderer->ibl=getSetting<bool>("ibl");
       nlights=nlights0;
       lastshader=-1;
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
       break;
     case 1: // outline
-      if(camp::glRenderer) camp::glRenderer->outlinemode=true;
-      if(camp::glRenderer) camp::glRenderer->ibl=false;
+      camp::glRenderer->outlinemode=true;
+      camp::glRenderer->ibl=false;
       nlights=0; // Force shader recompilation
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       break;
     case 2: // wireframe
-      if(camp::glRenderer) camp::glRenderer->outlinemode=false;
+      camp::glRenderer->outlinemode=false;
       Nlights=1; // Force shader recompilation
       break;
   }
 #ifndef HAVE_LIBOSMESA
-  if(camp::glRenderer) camp::glRenderer->redraw=true;
+  camp::glRenderer->redraw=true;
 #endif
 }
 
-// GUI-related functions
 #ifdef HAVE_LIBGLFW
 bool capsize(int& width, int& height)
 {
@@ -1050,44 +1013,40 @@ void setsize(int w, int h, bool reposition=true)
 
   glfwSetWindowSize(win,w,h);
   reshape0(w,h);
-  if(camp::glRenderer) camp::glRenderer->redraw=true;
+  camp::glRenderer->redraw=true;
 }
 
 void capzoom()
 {
   static double maxzoom=sqrt(DBL_MAX);
   static double minzoom=1.0/maxzoom;
-  camp::AsyGLRender* glr = camp::glRenderer;
-  if(!glr) return;
-  if(glr->Zoom <= minzoom) glr->Zoom=minzoom;
-  if(glr->Zoom >= maxzoom) glr->Zoom=maxzoom;
+  if(camp::glRenderer->Zoom <= minzoom) camp::glRenderer->Zoom=minzoom;
+  if(camp::glRenderer->Zoom >= maxzoom) camp::glRenderer->Zoom=maxzoom;
 
-  if(fabs(glr->Zoom-glr->lastzoom) > settings::getSetting<double>("zoomThreshold")) {
+  if(fabs(camp::glRenderer->Zoom-camp::glRenderer->lastzoom) > settings::getSetting<double>("zoomThreshold")) {
     remesh=true;
-    glr->lastzoom=glr->Zoom;
+    camp::glRenderer->lastzoom=camp::glRenderer->Zoom;
   }
 }
 
 void fullscreen(bool reposition=true)
 {
-  camp::AsyGLRender* glr = camp::glRenderer;
-  if(!glr) return;
   Width=screenWidth;
   Height=screenHeight;
   if(firstFit) {
     if(Width < Height*Aspect)
-      glr->Zoom *= Width/(Height*Aspect);
+      camp::glRenderer->Zoom *= Width/(Height*Aspect);
     capzoom();
     // Note: setProjection is protected, will be called from class methods
     firstFit=false;
   }
-  glr->Xfactor=((double) screenHeight)/Height;
-  glr->Yfactor=((double) screenWidth)/Width;
+  camp::glRenderer->Xfactor=((double) screenHeight)/Height;
+  camp::glRenderer->Yfactor=((double) screenWidth)/Width;
   reshape0(Width,Height);
 
-  // Use window from glRenderer if available, otherwise use global window variable
+  // Use window from camp::glRendererenderer if available, otherwise use global window variable
   GLFWwindow* win = nullptr;
-  if (camp::glRenderer && camp::glRenderer->glfwWindow != nullptr) {
+  if (camp::glRenderer->glfwWindow != nullptr) {
     win = static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow);
   } else {
     win = ::window;
@@ -1099,17 +1058,15 @@ void fullscreen(bool reposition=true)
     glfwSetWindowSize(win,Width,Height);
   }
 
-  if(camp::glRenderer) camp::glRenderer->redraw=true;
+  camp::glRenderer->redraw=true;
 }
 
 void fitscreen(bool reposition=true)
 {
-  camp::AsyGLRender* glr = camp::glRenderer;
-  if(!glr) return;
   switch(Fitscreen) {
     case 0: // Original size
     {
-      glr->Xfactor=glr->Yfactor=1.0;
+      camp::glRenderer->Xfactor=camp::glRenderer->Yfactor=1.0;
       double pixelRatio=getSetting<double>("devicepixelratio");
       setsize(oldWidth*pixelRatio,oldHeight*pixelRatio,reposition);
       break;
@@ -1142,7 +1099,7 @@ void togglefitscreen()
 
 void screen()
 {
-  if(camp::glRenderer && camp::glRenderer->renderThread && !interact::interactive)
+  if(camp::glRenderer->renderThread && !interact::interactive)
     fitscreen(false);
 }
 
@@ -1151,7 +1108,7 @@ stopWatch frameTimer;
 void nextframe()
 {
 #ifdef HAVE_PTHREAD
-  if(camp::glRenderer) {
+  {
     camp::glRenderer->endwait(camp::glRenderer->readySignal,camp::glRenderer->readyLock);
   }
 #endif
@@ -1221,24 +1178,13 @@ void camp::AsyGLRender::update()
 {
   capzoom();
 
-  if(camp::glRenderer) camp::glRenderer->redraw=true;
+  camp::glRenderer->redraw=true;
 #ifdef HAVE_RENDERER
   if(camp::glRenderer->glfwWindow) ::glfwShowWindow(static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow));
 #endif
-  // Use member variables from the renderer instance (matching reference GLUT code)
-  double dZmin = camp::glRenderer->Zmin;
-  double dZmax = camp::glRenderer->Zmax;
-  double cz=0.5*(dZmin+dZmax);
 
-  // Match reference: two translations - first to center, then back along Z
-  // Use member variables cx, cy, rotateMat which are updated during interaction
-  camp::viewMat = translate(translate(dmat4(1.0), dvec3(camp::glRenderer->cx, camp::glRenderer->cy, cz)) * camp::glRenderer->rotateMat,
-                            dvec3(0, 0, -cz));
-
-  // Sync member viewMat and update projection matrices
-  camp::glRenderer->viewMat = glm::dmat4(camp::viewMat);
-  setProjection();
-  camp::glRenderer->updateModelViewData();
+  // Call base class update which has the correct view matrix computation (matching reference GLUT code)
+  AsyRender::update();
 }
 
 void updateHandler(int)
@@ -1264,7 +1210,7 @@ void updateHandler(int)
 
 void reshape(int width, int height)
 {
-  if(camp::glRenderer && camp::glRenderer->renderThread) {
+  if(camp::glRenderer->renderThread) {
     static bool initialize=true;
     if(initialize) {
       initialize=false;
@@ -1680,13 +1626,13 @@ void setUniforms(vertexBuffer& data, GLint shader)
   }
 
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
-                     value_ptr(glm::mat4(projViewMat)));
+                     value_ptr(glm::mat4(camp::glRenderer->projViewMat)));
 
   glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE,
-                     value_ptr(glm::mat4(viewMat)));
+                     value_ptr(glm::mat4(camp::glRenderer->viewMat)));
   if(normal)
     glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE,
-                       value_ptr(glm::mat3(normMat)));
+                       value_ptr(normMat));
 
   if(shader == countShader) {
     lastshader=shader;
@@ -1698,8 +1644,8 @@ void setUniforms(vertexBuffer& data, GLint shader)
     glUniform1ui(glGetUniformLocation(shader,"nlights"),nlights);
 
     for(size_t i=0; i < nlights; ++i) {
-      triple Lighti=Lights[i];
-      size_t i4=4*i;
+      triple Lighti=camp::glRenderer->Lights[i];
+      double *Diffusei=camp::glRenderer->Diffuse+4*i;
       glUniform3f(glGetUniformLocation(shader,
                                        getLightIndex(i,"direction").c_str()),
                   (GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),
@@ -1707,8 +1653,8 @@ void setUniforms(vertexBuffer& data, GLint shader)
 
       glUniform3f(glGetUniformLocation(shader,
                                        getLightIndex(i,"color").c_str()),
-                  (GLfloat) Diffuse[i4],(GLfloat) Diffuse[i4+1],
-                  (GLfloat) Diffuse[i4+2]);
+                  (GLfloat) Diffusei[0],(GLfloat) Diffusei[1],
+                  (GLfloat) Diffusei[2]);
     }
 
     // IBL textures - disabled for now due to template issues
@@ -2064,6 +2010,14 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   Lights = args.lights;
   Diffuse = args.diffuse;
   Specular = args.specular;
+
+  // Also set class member variables for use in setUniforms
+  camp::glRenderer->Lights = args.lights;
+  camp::glRenderer->Diffuse = args.diffuse;
+  camp::glRenderer->Specular = args.specular;
+  camp::glRenderer->Nlights = nlights;
+  nlights0 = nlights;
+
   View = args.view;
   Angle = args.angle * ASY_RADIANS;
   Zoom0 = std::fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
@@ -2087,10 +2041,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   xmax = Xmax;
   ymin = Ymin;
   ymax = Ymax;
-
-  cerr << "DEBUG: After setting - Xmin=" << Xmin << " Ymin=" << Ymin << " Zmin=" << Zmin << endl;
-  cerr << "DEBUG: After setting - Xmax=" << Xmax << " Ymax=" << Ymax << " Zmax=" << Zmax << endl;
-  cerr << "DEBUG: After setting - xmin=" << xmin << " xmax=" << xmax << " ymin=" << ymin << " ymax=" << ymax << endl;
 
   haveScene = Xmin < Xmax && Ymin < Ymax && Zmin < Zmax;
   orthographic = Angle == 0.0;
@@ -2336,8 +2286,8 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
 
-  Mode = 2;
-  cycleMode();
+  ::Mode=2;
+  ::mode();
 
   ViewExport = View;
 #ifdef HAVE_LIBOSMESA
@@ -2398,6 +2348,7 @@ void AsyGLRender::onScroll(double xoffset, double yoffset)
     }
     capzoom();
     setProjection();
+    update();
     redraw = true;
 }
 
@@ -2491,8 +2442,12 @@ void AsyGLRender::setProjection()
 
 void AsyGLRender::updateModelViewData()
 {
-  normMat=dmat3(glm::inverse(viewMat));
-  const double *T=value_ptr(normMat);
+  // Update normal matrix for shaders (inverse transpose of view matrix rotation)
+  dmat3 norm = dmat3(glm::inverse(this->viewMat));
+  camp::normMat = mat3(norm);  // Convert to float precision for shaders
+
+  // Also update glBBT for billboard transformations
+  const double *T=value_ptr(norm);
   for(size_t i=0; i < 9; ++i)
     glBBT[i]=T[i];
 }
