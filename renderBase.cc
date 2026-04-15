@@ -77,8 +77,8 @@ void AsyRender::setProjection()
   setDimensions(Width, Height, X, Y);
 
   if(haveScene) {
-    if(orthographic) ortho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
-    else frustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+    if(orthographic) this->ortho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+    else this->frustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
   }
 }
 

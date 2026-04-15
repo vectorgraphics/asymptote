@@ -106,11 +106,12 @@ void jsfile::svgtohtml(string prefix)
 void jsfile::comment(string name)
 {
 #ifdef HAVE_LIBGLM
+
   out << "<!-- Use the following line to embed this file within another web page:" << newl
       << newl
       << "<iframe src=\"" << name
-      << "\" width=\"" << gl::fullWidth
-      << "\" height=\"" << gl::fullHeight
+      << "\" width=\"" << camp::glRenderer->fullWidth
+      << "\" height=\"" << camp::glRenderer->fullHeight
       << "\" frameborder=\"0\"></iframe>" << newl
       << newl
       << "-->" << newl << newl;
@@ -124,6 +125,7 @@ void jsfile::open(string name)
   meta(name,false);
 
 #ifdef HAVE_LIBGLM
+
   out.precision(getSetting<Int>("digits"));
 
   bool ibl=getSetting<bool>("ibl");
@@ -142,8 +144,8 @@ void jsfile::open(string name)
 
   out << newl << "<script>" << newl;
   out << newl
-      << s << "canvasWidth=" << gl::fullWidth << ";" << newl
-      << s << "canvasHeight=" << gl::fullHeight << ";" << newl << newl
+      << s << "canvasWidth=" << camp::glRenderer->fullWidth << ";" << newl
+      << s << "canvasHeight=" << camp::glRenderer->fullHeight << ";" << newl << newl
       << s << "webgl2=" << std::boolalpha << webgl2 << ";"
       << newl
       << s << "ibl=" << std::boolalpha << ibl << ";"
@@ -156,18 +158,18 @@ void jsfile::open(string name)
     out << s << "image=\"" << getSetting<string>("image") << "\";" << newl << newl;
   }
   out << newl
-      <<  s << "minBound=[" << gl::Xmin << "," << gl::Ymin << "," << gl::Zmin << "];"
+      <<  s << "minBound=[" << camp::glRenderer->Xmin << "," << camp::glRenderer->Ymin << "," << camp::glRenderer->Zmin << "];"
       << newl
-      <<  s << "maxBound=[" << gl::Xmax << "," << gl::Ymax << "," << gl::Zmax << "];"
+      <<  s << "maxBound=[" << camp::glRenderer->Xmax << "," << camp::glRenderer->Ymax << "," << camp::glRenderer->Zmax << "];"
       << newl
-      << s << "orthographic=" << gl::orthographic << ";"
+      << s << "orthographic=" << camp::glRenderer->orthographic << ";"
       << newl
-      << s << "angleOfView=" << gl::Angle << ";"
+      << s << "angleOfView=" << camp::glRenderer->Angle << ";"
       << newl
-      << s << "initialZoom=" << gl::Zoom0 << ";" << newl;
-    if(gl::Shift != pair(0.0,0.0))
-      out << s << "viewportShift=" << gl::Shift*gl::Zoom0 << ";" << newl;
-    out << s << "viewportMargin=" << gl::Margin << ";" << newl << newl
+      << s << "initialZoom=" << camp::glRenderer->Zoom0 << ";" << newl;
+    if(camp::glRenderer->Shift != pair(0.0,0.0))
+      out << s << "viewportShift=" << camp::glRenderer->Shift*camp::glRenderer->Zoom0 << ";" << newl;
+    out << s << "viewportMargin=" << camp::glRenderer->Margin << ";" << newl << newl
         << s << "zoomFactor=" << getSetting<double>("zoomfactor") << ";" << newl
         << s << "zoomPinchFactor=" << getSetting<double>("zoomPinchFactor") << ";"
       << newl
@@ -179,20 +181,20 @@ void jsfile::open(string name)
       << newl
         << s << "vibrateTime=" << getSetting<double>("vibrateTime") << ";"
         << newl << newl;
-  out << s << "background=[" << gl::Background[0] << "," << gl::Background[1] << ","
-      << gl::Background[2] << "," << gl::Background[3] << "];"
+  out << s << "background=[" << camp::glRenderer->Background[0] << "," << camp::glRenderer->Background[1] << ","
+      << camp::glRenderer->Background[2] << "," << camp::glRenderer->Background[3] << "];"
       << newl << newl;
-  out << s << "Transform=[" << gl::T[0];
+  out << s << "Transform=[" << camp::glRenderer->T[0];
   for(int i=1; i < 16; ++i)
-    out << "," << newl << gl::T[i];
+    out << "," << newl << camp::glRenderer->T[i];
   out << "];" << newl << newl;
 
-  for(size_t i=0; i < gl::nlights; ++i) {
+  for(size_t i=0; i < camp::glRenderer->nlights; ++i) {
     size_t i4=4*i;
     out << "light(" << newl
-        << gl::Lights[i] << "," << newl
-        << "[" << gl::Diffuse[i4] << "," << gl::Diffuse[i4+1] << ","
-        << gl::Diffuse[i4+2] << "]);" << newl;
+        << camp::glRenderer->Lights[i] << "," << newl
+        << "[" << camp::glRenderer->Diffuse[i4] << "," << camp::glRenderer->Diffuse[i4+1] << ","
+        << camp::glRenderer->Diffuse[i4+2] << "]);" << newl;
   }
   out << newl;
 
@@ -204,6 +206,7 @@ void jsfile::open(string name)
 void jsfile::finish(string name)
 {
 #ifdef HAVE_LIBGLM
+
   finished=true;
   size_t ncenters=drawElement::centers.size();
   if(ncenters > 0) {
@@ -217,7 +220,7 @@ void jsfile::finish(string name)
       << newl << "</head>"
       << newl << newl << "<body style=\"overflow: hidden;\" onload=\"webGLStart();\">"
       << newl << "<canvas id=\"Asymptote\" width=\""
-      << gl::fullWidth << "\" height=\"" <<  gl::fullHeight
+      << camp::glRenderer->fullWidth << "\" height=\"" <<  camp::glRenderer->fullHeight
       << "\" style=\"border: none; cursor: pointer;\">"
       << newl << "</canvas>";
   footer(name);

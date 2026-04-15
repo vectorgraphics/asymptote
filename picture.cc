@@ -18,6 +18,13 @@
 #include "drawpath3.h"
 #include "seconds.h"
 
+#ifdef HAVE_RENDERER
+// Extern declarations from glrender.cc for access in picture.cc
+extern bool format3dWait;
+
+// Global OpenGL renderer instance is defined inside the camp namespace below
+#endif
+
 #ifdef HAVE_LIBGLFW
 #include <GLFW/glfw3.h>
 #endif
@@ -65,7 +72,8 @@ texstream::~texstream() {
 namespace camp {
 
 #ifdef HAVE_RENDERER
-AsyGLRender *gl = new AsyGLRender();
+// Initialize the global OpenGL renderer instance
+AsyGLRender* glRenderer = new AsyGLRender();
 #endif
 
 extern void draw();
@@ -1443,7 +1451,7 @@ void picture::render(double size2, const triple& Min, const triple& Max,
 #endif
 }
 
-typedef gl::GLRenderArgs Communicate;
+typedef AsyGLRender::GLRenderArgs Communicate;
 
 Communicate com;
 
@@ -1453,11 +1461,54 @@ void glrenderWrapper()
 {
 #ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
-  camp::gl->wait(camp::gl->initSignal,camp::gl->initLock);
-  camp::gl->endwait(camp::gl->initSignal,camp::gl->initLock);
+  camp::glRenderer->wait(camp::glRenderer->initSignal,camp::glRenderer->initLock);
+  camp::glRenderer->endwait(camp::glRenderer->initSignal,camp::glRenderer->initLock);
 #endif
-  if(allowRender)
-    gl::glrender(com);
+  if(allowRender) {
+    AsyGLRender::GLRenderArgs args;
+    args.prefix = com.prefix;
+    args.pic = com.pic;
+    args.format = com.format;
+    args.width = com.width;
+    args.height = com.height;
+    args.angle = com.angle;
+    args.zoom = com.zoom;
+    args.m = com.m;
+    args.M = com.M;
+    args.shift = com.shift;
+    args.margin = com.margin;
+    args.t = com.t;
+    args.tup = com.tup;
+    args.background = com.background;
+    args.nlights = com.nlights;
+    args.lights = com.lights;
+    args.diffuse = com.diffuse;
+    args.specular = com.specular;
+    args.view = com.view;
+
+    AsyRender::RenderFunctionArgs renderArgs;
+    renderArgs.prefix = args.prefix;
+    renderArgs.pic = args.pic;
+    renderArgs.format = args.format;
+    renderArgs.width = args.width;
+    renderArgs.height = args.height;
+    renderArgs.angle = args.angle;
+    renderArgs.zoom = args.zoom;
+    renderArgs.m = args.m;
+    renderArgs.M = args.M;
+    renderArgs.shift = args.shift;
+    renderArgs.margin = args.margin;
+    renderArgs.t = args.t;
+    renderArgs.tup = args.tup;
+    renderArgs.background = args.background;
+    renderArgs.nlightsin = args.nlights;
+    renderArgs.lights = args.lights;
+    renderArgs.diffuse = args.diffuse;
+    renderArgs.specular = args.specular;
+    renderArgs.view = args.view;
+
+    camp::glRenderer->render(renderArgs);
+  }
 #endif
 }
 
@@ -1540,10 +1591,10 @@ bool picture::shipout3(const string& prefix, const string& format,
 
   if(!format3d) {
 #ifdef HAVE_RENDERER
-    if(glthread && !offscreen) {
+    if(camp::glRenderer && camp::glRenderer->renderThread && !offscreen) {
 #ifdef HAVE_PTHREAD
-      if(gl::initialize) {
-        gl::initialize=false;
+      if(camp::glRenderer->initialize) {
+        camp::glRenderer->initialize=false;
         com.prefix=prefix;
         com.pic=pic;
         com.format=outputformat;
@@ -1564,27 +1615,27 @@ bool picture::shipout3(const string& prefix, const string& format,
         com.specular=specular;
         com.view=View;
         if(Wait)
-          pthread_mutex_lock(&readyLock);
+          pthread_mutex_lock(&camp::glRenderer->readyLock);
         allowRender=true;
-        wait(initSignal,initLock);
-        endwait(initSignal,initLock);
+        camp::glRenderer->wait(camp::glRenderer->initSignal,camp::glRenderer->initLock);
+        camp::glRenderer->endwait(camp::glRenderer->initSignal,camp::glRenderer->initLock);
         static bool initialize=true;
         if(initialize) {
-          wait(initSignal,initLock);
-          endwait(initSignal,initLock);
+          camp::glRenderer->wait(camp::glRenderer->initSignal,camp::glRenderer->initLock);
+          camp::glRenderer->endwait(camp::glRenderer->initSignal,camp::glRenderer->initLock);
           initialize=false;
         }
         #ifdef HAVE_LIBGLFW
         glfwPostEmptyEvent();
 #endif
         if(Wait) {
-          pthread_cond_wait(&readySignal,&readyLock);
-          pthread_mutex_unlock(&readyLock);
+          pthread_cond_wait(&camp::glRenderer->readySignal,&camp::glRenderer->readyLock);
+          pthread_mutex_unlock(&camp::glRenderer->readyLock);
         }
         return true;
       }
       if(Wait)
-        pthread_mutex_lock(&readyLock);
+        pthread_mutex_lock(&camp::glRenderer->readyLock);
 #ifdef HAVE_LIBGLFW
         glfwPostEmptyEvent();
 #endif
@@ -1605,7 +1656,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
 
 #if HAVE_LIBGLM
-  gl::GLRenderArgs args;
+  AsyGLRender::GLRenderArgs args;
   args.prefix=prefix;
   args.pic=pic;
   args.format=outputformat;
@@ -1626,7 +1677,30 @@ bool picture::shipout3(const string& prefix, const string& format,
   args.specular=specular;
   args.view=View;
 
-  glrender(args,oldpid);
+  if(camp::glRenderer) {
+    AsyRender::RenderFunctionArgs renderArgs;
+    renderArgs.prefix = args.prefix;
+    renderArgs.pic = args.pic;
+    renderArgs.format = args.format;
+    renderArgs.width = args.width;
+    renderArgs.height = args.height;
+    renderArgs.angle = args.angle;
+    renderArgs.zoom = args.zoom;
+    renderArgs.m = args.m;
+    renderArgs.M = args.M;
+    renderArgs.shift = args.shift;
+    renderArgs.margin = args.margin;
+    renderArgs.t = args.t;
+    renderArgs.tup = args.tup;
+    renderArgs.background = args.background;
+    renderArgs.nlightsin = args.nlights;
+    renderArgs.lights = args.lights;
+    renderArgs.diffuse = args.diffuse;
+    renderArgs.specular = args.specular;
+    renderArgs.view = args.view;
+
+    camp::glRenderer->render(renderArgs);
+  }
 
   if(format3d) {
     string name=buildname(prefix,format);
@@ -1663,7 +1737,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(format3dWait) {
       format3dWait=false;
 #ifdef HAVE_PTHREAD
-      endwait(initSignal,initLock);
+      camp::glRenderer->endwait(camp::glRenderer->initSignal,camp::glRenderer->initLock);
 #endif
     }
 #endif
@@ -1674,12 +1748,12 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
-  if(glthread && !offscreen && Wait) {
+  if(camp::glRenderer && camp::glRenderer->renderThread && !offscreen && Wait) {
 #ifdef HAVE_LIBGLFW
     glfwPostEmptyEvent();
 #endif
-    pthread_cond_wait(&readySignal,&readyLock);
-    pthread_mutex_unlock(&readyLock);
+    pthread_cond_wait(&camp::glRenderer->readySignal,&camp::glRenderer->readyLock);
+    pthread_mutex_unlock(&camp::glRenderer->readyLock);
   }
   return true;
 #endif

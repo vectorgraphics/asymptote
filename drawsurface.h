@@ -125,12 +125,15 @@ public:
     double prerender=settings::getSetting<double>("prerender");
     if(prerender <= 0.0) return 0.0;
     prerender=1.0/prerender;
-    double perspective=gl::orthographic || gl::Zmax == 0.0 ? 0.0 : 1.0/gl::Zmax;
-    double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
-    triple b(gl::Xmin,gl::Ymin,gl::Zmin);
-    triple B(gl::Xmax,gl::Ymax,gl::Zmax);
+    // Access state through renderer instance (following Vulkan pattern)
+    AsyGLRender* glr = camp::glRenderer;
+    if(!glr) return 0.0;  // No renderer - nothing to render
+    double perspective=glr->orthographic || glr->Zmax == 0.0 ? 0.0 : 1.0/glr->Zmax;
+    double s=perspective ? Min.getz()*perspective : 1.0;
+    triple b(glr->Xmin, glr->Ymin, glr->Zmin);
+    triple B(glr->Xmax, glr->Ymax, glr->Zmax);
     pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-    pair size2(gl::fullWidth,gl::fullHeight);
+    pair size2(glr->fullWidth, glr->fullHeight);
     return prerender*size3.length()/size2.length();
   }
 

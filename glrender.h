@@ -68,99 +68,17 @@ typedef unsigned int GLenum;
 
 namespace camp {
 class picture;
-
-// store functions moved to renderBase.h
-}
-
-namespace gl {
-
-extern bool outlinemode;
-extern bool wireframeMode;
-
-extern bool orthographic;
-
-// 2D bounds
-extern double xmin,xmax;
-extern double ymin,ymax;
-
-// 3D bounds
-extern double Xmin,Xmax;
-extern double Ymin,Ymax;
-extern double Zmin,Zmax;
-
-extern int fullWidth,fullHeight;
-extern double Zoom0;
-extern double Angle;
-extern camp::pair Shift;
-extern camp::pair Margin;
-
-extern camp::triple *Lights;
-extern size_t nlights;
-extern double *Diffuse;
-extern double Background[4];
-
-struct projection
-{
-public:
-  bool orthographic;
-  camp::triple camera;
-  camp::triple up;
-  camp::triple target;
-  double zoom;
-  double angle;
-  camp::pair viewportshift;
-
-  projection(bool orthographic=false, camp::triple camera=0.0,
-             camp::triple up=0.0, camp::triple target=0.0,
-             double zoom=0.0, double angle=0.0,
-             camp::pair viewportshift=0.0) :
-    orthographic(orthographic), camera(camera), up(up), target(target),
-    zoom(zoom), angle(angle), viewportshift(viewportshift) {}
-};
-
-#ifdef HAVE_RENDERER
-extern GLuint ubo;
-GLuint initHDR();
-#endif
-
-projection camera(bool user=true);
-
-struct GLRenderArgs
-{
-  string prefix;
-  camp::picture* pic;
-  string format;
-  double width;
-  double height;
-  double angle;
-  double zoom;
-  camp::triple m;
-  camp::triple M;
-  camp::pair shift;
-  camp::pair margin;
-  double *t;
-  double *tup;
-  double *background;
-  size_t nlights;
-  camp::triple *lights;
-  double *diffuse;
-  double *specular;
-  bool view;
-};
-
-void glrender(GLRenderArgs const& args, int oldpid=0);
-
-extern const double *dprojView;
-extern const double *dView;
-
-extern double BBT[9];
-extern double T[16];
-
-extern bool format3dWait;
-
 }
 
 namespace camp {
+
+// Global BBT matrix for billboard transformations (accessed from multiple translation units)
+extern double glBBT[9];
+
+// Projection matrices for shader compatibility (following Vulkan pattern)
+#ifdef HAVE_LIBGLM
+extern const double* dprojView;  // For drawelement.h Transform2T
+#endif
 
 struct Billboard {
   double cx,cy,cz;
@@ -172,13 +90,9 @@ struct Billboard {
   }
 
   triple transform(const triple& v) const {
-    double x=v.getx()-cx;
-    double y=v.gety()-cy;
-    double z=v.getz()-cz;
-
-    return triple(x*gl::BBT[0]+y*gl::BBT[3]+z*gl::BBT[6]+cx,
-                  x*gl::BBT[1]+y*gl::BBT[4]+z*gl::BBT[7]+cy,
-                  x*gl::BBT[2]+y*gl::BBT[5]+z*gl::BBT[8]+cz);
+    return triple((v.getx()-cx)*glBBT[0]+(v.gety()-cy)*glBBT[3]+(v.getz()-cz)*glBBT[6]+cx,
+                  (v.getx()-cx)*glBBT[1]+(v.gety()-cy)*glBBT[4]+(v.getz()-cz)*glBBT[7]+cy,
+                  (v.getx()-cx)*glBBT[2]+(v.gety()-cy)*glBBT[5]+(v.getz()-cz)*glBBT[8]+cz);
   }
 };
 
@@ -395,6 +309,12 @@ void drawTransparent();
 
 #endif
 
+#ifdef HAVE_LIBGLM
+// Forward declarations for texture types (defined in GLTextures.h)
+template<typename T, typename F> class GLTexture2;
+template<typename T, typename F> class GLTexture3;
+#endif
+
 #ifdef HAVE_RENDERER
 // OpenGL renderer class following Vulkan pattern
 class AsyGLRender : public AsyRender, public RenderCallbacks
@@ -403,9 +323,47 @@ public:
   AsyGLRender() = default;
   ~AsyGLRender();
 
+  /*
+  // Override virtual methods from AsyRender
+  void frustum(double left, double right, double bottom,
+               double top, double nearVal, double farVal) override;
+  void ortho(double left, double right, double bottom,
+             double top, double nearVal, double farVal) override;
+  */
+  void setProjection() override;
+  void updateModelViewData() override;
+//  void updateProjection() override;
+
+  /** Argument for glrender function - legacy compatibility */
+  struct GLRenderArgs: public gc
+  {
+    string prefix;
+    picture* pic;
+    string format;
+    double width;
+    double height;
+    double angle;
+    double zoom;
+    triple m;
+    triple M;
+    pair shift;
+    pair margin;
+    double *t;
+    double *tup;
+    double *background;
+    size_t nlights;
+    triple *lights;
+    double *diffuse;
+    double *specular;
+    bool view;
+  };
+
   void render(RenderFunctionArgs const& args) override;
 
-  // RenderCallbacks interface implementation
+  // Legacy glrender function for compatibility - delegates to render()
+  static void legacyGlRender(GLRenderArgs const& args, int oldpid=0);
+
+  // RenderCallbacks interface implementation (GLFW callbacks)
   void onMouseButton(int button, int action, int mods) override;
   void onFramebufferResize(int width, int height) override;
   void onScroll(double xoffset, double yoffset) override;
@@ -414,13 +372,20 @@ public:
   void onWindowFocus(int focused) override;
   void onClose() override;
 
-  // OpenGL-specific state
+  // OpenGL-specific state (mirroring AsyVkRender pattern)
   bool outlinemode = false;
   bool ibl = false;
   bool glupdate = false;
   bool glexit = false;
   bool initialize = true;
   int Mode = 2;
+  bool copied = false;
+
+  // Lighting (OpenGL-specific, public for jsfile/v3dfile access)
+  size_t Nlights = 1;
+  camp::triple* Lights = nullptr;
+  double* Diffuse = nullptr;
+  double* Specular = nullptr;
 
 #ifdef HAVE_PTHREAD
   pthread_cond_t initSignal = PTHREAD_COND_INITIALIZER;
@@ -429,16 +394,99 @@ public:
   pthread_mutex_t readyLock = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
+private:
+  // OpenGL-specific members (following Vulkan pattern)
+#ifdef HAVE_RENDERER
+  // Shaders
+  GLint pixelShader = 0;
+  GLint materialShader[2] = {0, 0};
+  GLint colorShader[2] = {0, 0};
+  GLint generalShader[2] = {0, 0};
+  GLint countShader = 0;
+  GLint transparentShader = 0;
+  GLint blendShader = 0;
+  GLint zeroShader = 0;
+  GLint compressShader = 0;
+  GLint sum1Shader = 0;
+  GLint sum2Shader = 0;
+  GLint sum2fastShader = 0;
+  GLint sum3Shader = 0;
+
+  // VAO and buffers
+  GLuint vao = 0;
+  GLuint offsetBuffer = 0;
+  GLuint indexBuffer = 0;
+  GLuint elementsBuffer = 0;
+  GLuint countBuffer = 0;
+  GLuint globalSumBuffer = 0;
+  GLuint fragmentBuffer = 0;
+  GLuint depthBuffer = 0;
+  GLuint opaqueBuffer = 0;
+  GLuint opaqueDepthBuffer = 0;
+  GLuint feedbackBuffer = 0;
+
+  // Framebuffers/textures (for export)
+  GLuint pixels = 0;
+  GLuint elements = 0;
+  GLuint lastpixels = 0;
+  int maxTileWidth = 1024;
+  int maxTileHeight = 768;
+
+  // Rendering state
+  GLint lastshader = -1;
+  bool ssbo = false;
+  bool interlock = false;
+  bool initSSBO = true;
+  GLuint fragments = 0;
+  GLuint maxFragments = 0;
+  GLuint maxSize = 1;
+
+  // GPU settings
+  GLuint processors = 0;
+  GLuint localSize = 0;
+  GLuint blockSize = 0;
+  GLuint groupSize = 0;
+
+  // IBL textures - kept as globals in glrender.cc where GLTextures.h is available
+
+  double BBT[9] = {0};
+
+  // Mouse interaction state
+  double xprev = 0.0;
+  double yprev = 0.0;
+  double lastangle = 0.0;
+  string currentAction = "";
+
+  // Window state
+  bool queueExport = false;
+  bool readyAfterExport = false;
+  bool format3dWait = false;
+  bool exporting = false;
+  int oldWidth = 0;
+  int oldHeight = 0;
+  bool firstFit = true;
+
+  // Spin state
+  bool Xspin = false;
+  bool Yspin = false;
+  bool Zspin = false;
+
+  // Timer for FPS measurement
+  utils::stopWatch spinTimer;
+#endif
+
+public:
+  void update();
+
 protected:
   void mainLoop();
   void display();
-  void update();
   void exportHandler(int = 0) override;
   virtual void reshape0(int width, int height) override;
 };
 
-// Global OpenGL renderer instance (in camp namespace to avoid conflict with settings.h::gl)
-extern AsyGLRender* gl;
+// Global OpenGL renderer instance (defined in picture.cc)
+extern AsyGLRender* glRenderer;
 
 #endif // HAVE_RENDERER
 
