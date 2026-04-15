@@ -33,16 +33,20 @@
 
 extern uint32_t CLZ(uint32_t a);
 
-bool GPUindexing;
+bool GPUindexing = false;  // Disabled by default - compute shaders not needed for opaque rendering
 bool GPUcompress;
 
-namespace gl {
-#ifdef HAVE_PTHREAD
-pthread_t mainthread;
-#endif
+#ifdef HAVE_RENDERER
+// Define extern variables declared in renderBase.h and glrender.h
+namespace camp {
+glm::dmat4 projViewMat;
+glm::dmat3 normMat;  // Normal matrix is 3x3, not 4x4
+double glBBT[9] = {0};  // Definition for camp namespace (matches glrender.h)
+
+glm::mat4 viewMat;
+const double *dView;
 }
 
-#ifdef HAVE_RENDERER
 #include "tr.h"
 
 #ifdef HAVE_LIBGLFW
@@ -150,29 +154,19 @@ void clearMaterials()
   transparentData.partial=false;
 }
 
+} // end namespace camp
+
+// Additional global variables needed by other modules (extern declarations only - definitions are in AsyRender base class)
+namespace camp {
+extern int fullWidth, fullHeight;
+extern bool orthographic_gl;  // Note: different name to avoid conflict with v3dheadertypes::orthographic enum
+extern double Angle, Zoom0;
+extern camp::pair Shift, Margin;
+extern double T[16], Tup[16];
+extern double Xmin, Xmax, Ymin, Ymax, Zmin, Zmax;  // These are now member variables in AsyRender
 }
 
 extern void exitHandler(int);
-
-namespace gl {
-
-GLint gs2;
-GLint gs;
-GLint g;
-GLuint processors;
-GLuint localSize;
-GLuint blockSize;
-GLuint groupSize;
-//GLint maxgroups;
-GLuint maxSize;
-
-bool outlinemode=false;
-bool ibl=false;
-bool glthread=false;
-bool glupdate=false;
-bool glexit=false;
-bool initialize=true;
-bool redraw=false;
 
 using camp::picture;
 using camp::drawRawImage;
@@ -185,24 +179,29 @@ using camp::bbox3;
 using settings::getSetting;
 using settings::Setting;
 
+// Global variables for cross-translation-unit compatibility (following Vulkan pattern)
+// These are kept minimal - most state is in AsyGLRender member variables
+namespace camp {
+// Minimal globals for shader compatibility (following Vulkan pattern)
+bool orthographic_gl = false;
+}
+
+// OpenGL-specific global state (minimal set for shader compatibility)
 bool Iconify=false;
 bool ignorezoom;
 int Fitscreen=1;
 bool firstFit;
-
 bool queueExport=false;
 bool readyAfterExport=false;
 bool remesh;
 bool copied;
-
 int Mode;
-
 double Aspect;
 bool View;
 bool ViewExport;
 int Oldpid;
 string Prefix;
-const picture* Picture;
+const camp::picture* Picture;
 string Format;
 int fullWidth,fullHeight;
 int Width,Height;
@@ -213,78 +212,34 @@ double oWidth,oHeight;
 int screenWidth,screenHeight;
 int maxTileWidth;
 int maxTileHeight;
-
-double Angle;
-bool orthographic;
 double H;
-
-double xmin,xmax;
-double ymin,ymax;
-
-double Xmin,Xmax;
-double Ymin,Ymax;
-double Zmin,Zmax;
 bool haveScene;
-
-pair Shift;
-pair Margin;
-double X,Y;
+double gl_X, gl_Y;
 string currentAction="";
 double cx,cy;
-double xprev,yprev;  // Track previous cursor position (like vkrender.cc)
-double Xfactor,Yfactor;
-double ArcballFactor;
-
-static const double pi=acos(-1.0);
-static const double degrees=180.0/pi;
-static const double radians=1.0/degrees;
-
-double Background[4];
-
-size_t Nlights=1; // Maximum number of lights compiled in shader
-size_t nlights; // Actual number of lights
+double xprev,yprev;
+static const double ASY_PI=acos(-1.0);
+static const double ASY_DEGREES=180.0/ASY_PI;
+static const double ASY_RADIANS=1.0/ASY_DEGREES;
+size_t Nlights=1;
+size_t nlights;
 size_t nlights0;
-triple *Lights;
+camp::triple *Lights;
 double *Diffuse;
 double *Specular;
 bool antialias;
-
-double Zoom;
-double Zoom0;
-double lastzoom;
 double zoomFactor = 0.0;
-
 GLint lastshader=-1;
-
 bool format3dWait=false;
-
-using glm::dvec3;
-using glm::dmat3;
-using glm::mat3;
-using glm::mat4;
-using glm::dmat4;
-using glm::value_ptr;
-using glm::translate;
-
-using camp::interlock;
-using camp::ssbo;
-
-mat3 normMat;
-dmat3 dnormMat;
-
-mat4 projViewMat;
-mat4 viewMat;
-
-dmat4 dprojMat;
-dmat4 dprojViewMat;
-dmat4 dviewMat;
-dmat4 drotateMat;
-
-const double *dprojView;
-const double *dView;
-double BBT[9];
-
 unsigned int framecount;
+
+// GPU compute state
+GLuint localSize=0;
+GLuint blockSize=0;
+GLuint groupSize=0;
+GLuint g=0;
+GLuint maxSize=1;
+GLuint processors=0;
 
 template<class T>
 inline T min(T a, T b)
@@ -298,7 +253,7 @@ inline T max(T a, T b)
   return (a > b) ? a : b;
 }
 
-glm::vec4 vec4(triple v)
+glm::vec4 vec4(camp::triple v)
 {
   return glm::vec4(v.getx(),v.gety(),v.getz(),0);
 }
@@ -308,128 +263,7 @@ glm::vec4 vec4(double *v)
   return glm::vec4(v[0],v[1],v[2],v[3]);
 }
 
-void setDimensions(int Width, int Height, double X, double Y)
-{
-  double Aspect=((double) Width)/Height;
-  double xshift=(X/Width+Shift.getx()*Xfactor)*Zoom;
-  double yshift=(Y/Height+Shift.gety()*Yfactor)*Zoom;
-  double Zoominv=1.0/Zoom;
-  if(orthographic) {
-    double xsize=Xmax-Xmin;
-    double ysize=Ymax-Ymin;
-    if(xsize < ysize*Aspect) {
-      double r=0.5*ysize*Aspect*Zoominv;
-      double X0=2.0*r*xshift;
-      double Y0=(Ymax-Ymin)*Zoominv*yshift;
-      xmin=-r-X0;
-      xmax=r-X0;
-      ymin=Ymin*Zoominv-Y0;
-      ymax=Ymax*Zoominv-Y0;
-    } else {
-      double r=0.5*xsize*Zoominv/Aspect;
-      double X0=(Xmax-Xmin)*Zoominv*xshift;
-      double Y0=2.0*r*yshift;
-      xmin=Xmin*Zoominv-X0;
-      xmax=Xmax*Zoominv-X0;
-      ymin=-r-Y0;
-      ymax=r-Y0;
-    }
-  } else {
-    double r=H*Zoominv;
-    double rAspect=r*Aspect;
-    double X0=2.0*rAspect*xshift;
-    double Y0=2.0*r*yshift;
-    xmin=-rAspect-X0;
-    xmax=rAspect-X0;
-    ymin=-r-Y0;
-    ymax=r-Y0;
-  }
-}
-
-void updateProjection()
-{
-  dprojViewMat=dprojMat*dviewMat;
-  projViewMat=mat4(dprojViewMat);
-  dprojView=value_ptr(dprojViewMat);
-}
-
-void frustum(GLdouble left, GLdouble right, GLdouble bottom,
-             GLdouble top, GLdouble nearVal, GLdouble farVal)
-{
-  dprojMat=glm::frustum(left,right,bottom,top,nearVal,farVal);
-  updateProjection();
-}
-
-void ortho(GLdouble left, GLdouble right, GLdouble bottom,
-           GLdouble top, GLdouble nearVal, GLdouble farVal)
-{
-  dprojMat=glm::ortho(left,right,bottom,top,nearVal,farVal);
-  updateProjection();
-}
-
-void setProjection()
-{
-  setDimensions(Width,Height,X,Y);
-  if(haveScene) {
-    if(orthographic) ortho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
-    else frustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
-  }
-}
-
-void updateModelViewData()
-{
-  // Like Fortran, OpenGL uses transposed (column-major) format!
-  dnormMat=dmat3(glm::inverse(dviewMat));
-  double *T=value_ptr(dnormMat);
-  for(size_t i=0; i < 9; ++i)
-    BBT[i]=T[i];
-  normMat=mat3(dnormMat);
-}
-
 bool Xspin,Yspin,Zspin;
-
-#ifdef HAVE_RENDERER
-
-stopWatch spinTimer;
-
-static std::function<void()> currentIdleFunc = nullptr;
-
-void idleFunc(std::function<void()> f)
-{
-  spinTimer.reset();
-  currentIdleFunc = f;
-}
-
-void idle()
-{
-  idleFunc(nullptr);
-  Xspin=Yspin=Zspin=false;
-}
-#endif
-
-void home(bool webgl=false)
-{
-  X=Y=cx=cy=0.0;
-#ifdef HAVE_RENDERER
-#ifndef HAVE_LIBOSMESA
-  if(!webgl)
-    idle();
-#endif
-#endif
-  dviewMat=dmat4(1.0);
-  if(!camp::ssbo)
-    dView=value_ptr(dviewMat);
-  viewMat=mat4(dviewMat);
-
-  drotateMat=dmat4(1.0);
-
-  updateModelViewData();
-
-  remesh=true;
-  lastzoom=Zoom=Zoom0;
-  setDimensions(Width,Height,0,0);
-  framecount=0;
-}
 
 double T[16];
 double Tup[16];
@@ -450,18 +284,21 @@ GLFWwindow* window;
 using utils::statistics;
 statistics S;
 
-GLTexture2<float,GL_FLOAT> IBLbrdfTex;
-GLTexture2<float,GL_FLOAT> irradiance;
-GLTexture3<float,GL_FLOAT> reflTextures;
-
-GLTexture2<float,GL_FLOAT> fromEXR(string const& EXRFile, GLTexturesFmt const& fmt, GLint const& textureNumber)
-{
-  camp::IEXRFile fil(EXRFile);
-  return GLTexture2<float,GL_FLOAT> {fil.getData(),fil.size(),textureNumber,fmt};
+namespace camp {
+// IBL textures - disabled for now due to template issues
+void* iblbrdfTex = nullptr;
+void* irradianceTex = nullptr;
+void* reflTexturesTex = nullptr;
 }
 
-GLTexture3<float,GL_FLOAT> fromEXR3(
-  mem::vector<string> const& EXRFiles, GLTexturesFmt const& fmt, GLint const& textureNumber)
+gl::GLTexture2<float,GL_FLOAT> fromEXR(string const& EXRFile, gl::GLTexturesFmt const& fmt, GLint const& textureNumber)
+{
+  camp::IEXRFile fil(EXRFile);
+  return gl::GLTexture2<float,GL_FLOAT> {fil.getData(),fil.size(),textureNumber,fmt};
+}
+
+gl::GLTexture3<float,GL_FLOAT> fromEXR3(
+  mem::vector<string> const& EXRFiles, gl::GLTexturesFmt const& fmt, GLint const& textureNumber)
 {
   // 3d reflectance textures
   std::vector<float> data;
@@ -475,7 +312,7 @@ GLTexture3<float,GL_FLOAT> fromEXR3(
     std::copy(fil3.getData(),fil3.getData()+imSize,std::back_inserter(data));
   }
 
-  return GLTexture3<float,GL_FLOAT> {
+  return gl::GLTexture3<float,GL_FLOAT> {
           data.data(),
           std::tuple<int,int,int>(wi,ht,static_cast<int>(count)),textureNumber,
           fmt
@@ -484,17 +321,17 @@ GLTexture3<float,GL_FLOAT> fromEXR3(
 
 void initIBL()
 {
-  GLTexturesFmt fmt;
+  gl::GLTexturesFmt fmt;
   fmt.internalFmt=GL_RGB16F;
   string imageDir=locateFile(getSetting<string>("imageDir"))+"/";
   string imagePath=imageDir+getSetting<string>("image")+"/";
-  irradiance=fromEXR(imagePath+"diffuse.exr",fmt,1);
+  // IBL textures - disabled for now due to template issues
+  // camp::irradianceTex=fromEXR(imagePath+"diffuse.exr",fmt,1);
+  // gl::GLTexturesFmt fmtRefl;
+  // fmtRefl.internalFmt=GL_RG16F;
+  // camp::IBLbrdfTex=fromEXR(imageDir+"refl.exr",fmtRefl,2);
 
-  GLTexturesFmt fmtRefl;
-  fmtRefl.internalFmt=GL_RG16F;
-  IBLbrdfTex=fromEXR(imageDir+"refl.exr",fmtRefl,2);
-
-  GLTexturesFmt fmt3;
+  gl::GLTexturesFmt fmt3;
   fmt3.internalFmt=GL_RGB16F;
   fmt3.wrapS=GL_REPEAT;
   fmt3.wrapR=GL_CLAMP_TO_EDGE;
@@ -508,7 +345,8 @@ void initIBL()
     files.emplace_back(mss.str());
   }
 
-  reflTextures=fromEXR3(files,fmt3,3);
+  // IBL textures - disabled for now due to template issues
+  // camp::reflTexturesTex=fromEXR3(files,fmt3,3);
 }
 
 void *glrenderWrapper(void *a);
@@ -520,25 +358,10 @@ unsigned char *osmesa_buffer;
 
 #ifdef HAVE_PTHREAD
 
-pthread_cond_t initSignal=PTHREAD_COND_INITIALIZER;
-pthread_mutex_t initLock=PTHREAD_MUTEX_INITIALIZER;
+// Note: Pthread synchronization primitives are now members of AsyGLRender class
+// to align with Vulkan renderer pattern (vkrender.cc)
+// The wait() and endwait() functions are now methods of AsyRender base class
 
-pthread_cond_t readySignal=PTHREAD_COND_INITIALIZER;
-pthread_mutex_t readyLock=PTHREAD_MUTEX_INITIALIZER;
-
-void endwait(pthread_cond_t& signal, pthread_mutex_t& lock)
-{
-  pthread_mutex_lock(&lock);
-  pthread_cond_signal(&signal);
-  pthread_mutex_unlock(&lock);
-}
-void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
-{
-  pthread_mutex_lock(&lock);
-  pthread_cond_signal(&signal);
-  pthread_cond_wait(&signal,&lock);
-  pthread_mutex_unlock(&lock);
-}
 #endif
 
 void noShaders()
@@ -552,8 +375,8 @@ void initComputeShaders()
   // Ensure context is current before using OpenGL functions
 #ifdef HAVE_LIBGLFW
 #ifndef HAVE_LIBOSMESA
-  if(::gl::window) {
-    glfwMakeContextCurrent(::gl::window);
+  if(::window) {
+    glfwMakeContextCurrent(::window);
   }
 #endif
 #endif
@@ -571,9 +394,9 @@ void initComputeShaders()
 
   shaders[0]=ShaderfileModePair(sum1.c_str(),GL_COMPUTE_SHADER);
   ostringstream s,s2;
-  s << "LOCALSIZE " << gl::localSize << "u" << endl;
+  s << "LOCALSIZE " << localSize << "u" << endl;
   shaderParams.push_back(s.str().c_str());
-  s2 << "BLOCKSIZE " << gl::blockSize << "u" << endl;
+  s2 << "BLOCKSIZE " << blockSize << "u" << endl;
   shaderParams.push_back(s2.str().c_str());
   GLuint rc=compileAndLinkShader(shaders,shaderParams,true,false,true,true);
   if(rc == 0) {
@@ -619,7 +442,7 @@ void initBlendShader()
     shaderParams.push_back("GPUCOMPRESS");
   shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
   shaders[1]=ShaderfileModePair(blend.c_str(),GL_FRAGMENT_SHADER);
-  camp::blendShader=compileAndLinkShader(shaders,shaderParams,ssbo);
+  camp::blendShader=compileAndLinkShader(shaders,shaderParams,camp::ssbo);
 }
 
 // Return the smallest power of 2 greater than or equal to n.
@@ -639,14 +462,14 @@ void initShaders()
   // Ensure context is current before using OpenGL functions
 #ifdef HAVE_LIBGLFW
 #ifndef HAVE_LIBOSMESA
-  if(::gl::window) {
-    glfwMakeContextCurrent(::gl::window);
+  if(::window) {
+    glfwMakeContextCurrent(::window);
   }
 #endif
 #endif
 
-  Nlights=nlights == 0 ? 0 : max(Nlights,nlights);
-  Nmaterials=max(Nmaterials,nmaterials);
+  Nlights=nlights == 0 ? 0 : std::max(Nlights,nlights);
+  Nmaterials=std::max(Nmaterials,nmaterials);
 
   string zero=locateFile("shaders/zero.glsl");
   string compress=locateFile("shaders/compress.glsl");
@@ -659,13 +482,31 @@ void initShaders()
      screen.empty() || count.empty())
     noShaders();
 
-  if(GPUindexing)
+  // Only try compute shaders if GPUindexing is explicitly enabled and we have a valid context
+  // Note: GPUindexing defaults to false as compute shaders are not needed for opaque rendering
+  if(GPUindexing) {
+#ifdef HAVE_LIBGLFW
+#ifndef HAVE_LIBOSMESA
+    // Check if we have a valid OpenGL context before trying compute shaders
+    if(::window && glfwGetCurrentContext() == ::window) {
+      initComputeShaders();
+    } else {
+      GPUindexing = false; // Disable if no valid context
+      if(settings::verbose > 2)
+        cout << "No valid OpenGL context for compute shaders" << endl;
+    }
+#else
     initComputeShaders();
+#endif
+#else
+    initComputeShaders();
+#endif
+  }
 
   std::vector<ShaderfileModePair> shaders(2);
   std::vector<std::string> shaderParams;
 
-  if(ibl) {
+  if(camp::glRenderer && camp::glRenderer->ibl) {
     shaderParams.push_back("USE_IBL");
     initIBL();
   }
@@ -686,20 +527,20 @@ void initShaders()
   camp::countShader=0;
 #endif
 
-  ssbo=camp::countShader;
+  camp::ssbo=camp::countShader;
 #ifdef HAVE_LIBOSMESA
-  interlock=false;
+  camp::interlock=false;
 #else
-  interlock=ssbo && getSetting<bool>("GPUinterlock");
+  camp::interlock=camp::ssbo && getSetting<bool>("GPUinterlock");
 #endif
 
-  if(!ssbo && settings::verbose > 2)
+  if(!camp::ssbo && settings::verbose > 2)
     cout << "No SSBO support; order-independent transparency unavailable"
          << endl;
 
   shaders[1]=ShaderfileModePair(fragment.c_str(),GL_FRAGMENT_SHADER);
   shaderParams.push_back("MATERIAL");
-  if(orthographic)
+  if(camp::orthographic_gl)
     shaderParams.push_back("ORTHOGRAPHIC");
 
   ostringstream lights,materials,opaque;
@@ -709,57 +550,57 @@ void initShaders()
   shaderParams.push_back(materials.str().c_str());
 
   shaderParams.push_back("WIDTH");
-  camp::pixelShader=compileAndLinkShader(shaders,shaderParams,ssbo);
+  camp::pixelShader=compileAndLinkShader(shaders,shaderParams,camp::ssbo);
   shaderParams.pop_back();
 
   shaderParams.push_back("NORMAL");
-  if(interlock) shaderParams.push_back("HAVE_INTERLOCK");
+  if(camp::interlock) shaderParams.push_back("HAVE_INTERLOCK");
   camp::materialShader[0]=compileAndLinkShader(shaders,shaderParams,
-                                               ssbo,interlock,false,true);
-  if(interlock && !camp::materialShader[0]) {
+                                               camp::ssbo,camp::interlock,false,true);
+  if(camp::interlock && !camp::materialShader[0]) {
     shaderParams.pop_back();
-    interlock=false;
-    camp::materialShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo);
+    camp::interlock=false;
+    camp::materialShader[0]=compileAndLinkShader(shaders,shaderParams,camp::ssbo);
     if(settings::verbose > 2)
       cout << "No fragment shader interlock support" << endl;
   }
 
   shaderParams.push_back("OPAQUE");
-  camp::materialShader[1]=compileAndLinkShader(shaders,shaderParams,ssbo);
+  camp::materialShader[1]=compileAndLinkShader(shaders,shaderParams,camp::ssbo);
   shaderParams.pop_back();
 
   shaderParams.push_back("COLOR");
-  camp::colorShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo,
-                                            interlock);
+  camp::colorShader[0]=compileAndLinkShader(shaders,shaderParams,camp::ssbo,
+                                            camp::interlock);
   shaderParams.push_back("OPAQUE");
-  camp::colorShader[1]=compileAndLinkShader(shaders,shaderParams,ssbo);
+  camp::colorShader[1]=compileAndLinkShader(shaders,shaderParams,camp::ssbo);
   shaderParams.pop_back();
 
   shaderParams.push_back("GENERAL");
   if(Mode != 0)
     shaderParams.push_back("WIREFRAME");
-  camp::generalShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo,
-                                              interlock);
+  camp::generalShader[0]=compileAndLinkShader(shaders,shaderParams,camp::ssbo,
+                                              camp::interlock);
   shaderParams.push_back("OPAQUE");
-  camp::generalShader[1]=compileAndLinkShader(shaders,shaderParams,ssbo);
+  camp::generalShader[1]=compileAndLinkShader(shaders,shaderParams,camp::ssbo);
   shaderParams.pop_back();
 
   shaderParams.push_back("TRANSPARENT");
-  camp::transparentShader=compileAndLinkShader(shaders,shaderParams,ssbo,
-                                               interlock);
+  camp::transparentShader=compileAndLinkShader(shaders,shaderParams,camp::ssbo,
+                                               camp::interlock);
   shaderParams.clear();
 
-  if(ssbo) {
+  if(camp::ssbo) {
     if(GPUindexing)
       shaderParams.push_back("GPUINDEXING");
     shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
     shaders[1]=ShaderfileModePair(compress.c_str(),GL_FRAGMENT_SHADER);
-    camp::compressShader=compileAndLinkShader(shaders,shaderParams,ssbo);
+    camp::compressShader=compileAndLinkShader(shaders,shaderParams,camp::ssbo);
     if(GPUindexing)
       shaderParams.pop_back();
     else {
       shaders[1]=ShaderfileModePair(zero.c_str(),GL_FRAGMENT_SHADER);
-      camp::zeroShader=compileAndLinkShader(shaders,shaderParams,ssbo);
+      camp::zeroShader=compileAndLinkShader(shaders,shaderParams,camp::ssbo);
     }
     maxSize=1;
     initBlendShader();
@@ -792,20 +633,25 @@ void deleteShaders()
     glDeleteProgram(camp::compressShader);
   }
 
-  glDeleteProgram(camp::transparentShader);
+  if (camp::transparentShader != 0)
+    glDeleteProgram(camp::transparentShader);
   for(unsigned int opaque=0; opaque < 2; ++opaque) {
-    glDeleteProgram(camp::generalShader[opaque]);
-    glDeleteProgram(camp::colorShader[opaque]);
-    glDeleteProgram(camp::materialShader[opaque]);
+    if (camp::generalShader[opaque] != 0)
+      glDeleteProgram(camp::generalShader[opaque]);
+    if (camp::colorShader[opaque] != 0)
+      glDeleteProgram(camp::colorShader[opaque]);
+    if (camp::materialShader[opaque] != 0)
+      glDeleteProgram(camp::materialShader[opaque]);
   }
-  glDeleteProgram(camp::pixelShader);
+  if (camp::pixelShader != 0)
+    glDeleteProgram(camp::pixelShader);
 }
 
 void resizeBlendShader(GLuint maxsize)
 {
-  gl::maxSize=ceilpow2(maxsize);
-  gl::deleteBlendShader();
-  gl::initBlendShader();
+  maxSize=ceilpow2(maxsize);
+  deleteBlendShader();
+  initBlendShader();
 }
 
 void setBuffers()
@@ -852,16 +698,20 @@ bool exporting=false;
 
 void drawscene(int Width, int Height)
 {
+  // Access all state through the renderer instance (following Vulkan pattern)
+  camp::AsyGLRender* glr = camp::glRenderer;
+  if(!glr) return;
+
 #ifdef HAVE_PTHREAD
   static bool first=true;
-  if(glthread && first) {
-    wait(initSignal,initLock);
-    endwait(initSignal,initLock);
+  if(glr->renderThread && first) {
+    glr->wait(glr->initSignal,glr->initLock);
+    glr->endwait(glr->initSignal,glr->initLock);
     first=false;
   }
 
   if(format3dWait)
-    wait(initSignal,initLock);
+    glr->wait(glr->initSignal,glr->initLock);
 #endif
 
 #ifdef HAVE_LIBGLFW
@@ -869,7 +719,7 @@ void drawscene(int Width, int Height)
   // Diagnostics for debugging segfault
   if(settings::verbose > 2) {
     cerr << "drawscene: Width=" << Width << " Height=" << Height
-         << " window=" << ::gl::window
+         << " window=" << (glr ? glr->glfwWindow : nullptr)
          << " current context=" << glfwGetCurrentContext() << endl;
   }
 #endif
@@ -877,10 +727,7 @@ void drawscene(int Width, int Height)
 
   if((nlights == 0 && Nlights > 0) || nlights > Nlights ||
      nmaterials > Nmaterials) {
-    // Only delete shaders if they were initialized (check if pixelShader is valid)
-//    if(camp::pixelShader != 0) {
-      deleteShaders();
-//    }
+    deleteShaders();
     initShaders();
   }
 
@@ -895,13 +742,20 @@ void drawscene(int Width, int Height)
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  if(xmin >= xmax || ymin >= ymax || Zmin >= Zmax) return;
+  // Use member variables from AsyGLRender (following Vulkan pattern)
+  cerr << "DEBUG drawscene: xmin=" << glr->xmin << " xmax=" << glr->xmax
+       << " ymin=" << glr->ymin << " ymax=" << glr->ymax
+       << " Zmin=" << glr->Zmin << " Zmax=" << glr->Zmax << endl;
+  if(glr->xmin >= glr->xmax || glr->ymin >= glr->ymax || glr->Zmin >= glr->Zmax) return;
 
-  triple m(xmin,ymin,Zmin);
-  triple M(xmax,ymax,Zmax);
-  double perspective=orthographic || Zmax == 0.0 ? 0.0 : 1.0/Zmax;
+  triple m(glr->xmin,glr->ymin,glr->Zmin);
+  triple M(glr->xmax,glr->ymax,glr->Zmax);
+  double perspective=glr->orthographic || glr->Zmax == 0.0 ? 0.0 : 1.0/glr->Zmax;
 
   double size2=hypot(Width,Height);
+
+  cerr << "DEBUG: m=(" << m.getx() << "," << m.gety() << "," << m.getz() << ") M=(" << M.getx() << "," << M.gety() << "," << M.getz() << ")" << endl;
+  cerr << "DEBUG: Picture=" << (void*)Picture << " size2=" << size2 << " perspective=" << perspective << endl;
 
   if(remesh)
     camp::clearCenters();
@@ -909,7 +763,8 @@ void drawscene(int Width, int Height)
   if(settings::verbose > 2) {
     cerr << "drawscene: calling Picture->render()" << endl;
   }
-  Picture->render(size2,m,M,perspective,remesh);
+  if(Picture)
+    Picture->render(size2,m,M,perspective,remesh);
 
   if(settings::verbose > 2) {
     cerr << "drawscene: Picture->render() complete" << endl;
@@ -919,7 +774,7 @@ void drawscene(int Width, int Height)
   camp::drawBuffers();
 #endif
 
-  if(!outlinemode) remesh=false;
+  if(!camp::glRenderer || !camp::glRenderer->outlinemode) remesh=false;
 }
 
 // Return x divided by y rounded up to the nearest integer.
@@ -942,30 +797,39 @@ void Export()
     if(data) {
       TRcontext *tr=trNew();
       int width=ceilquotient(fullWidth,
-                             ceilquotient(fullWidth,min(maxTileWidth,Width)));
+                             ceilquotient(fullWidth,std::min(maxTileWidth,Width)));
       int height=ceilquotient(fullHeight,
                               ceilquotient(fullHeight,
-                                           min(maxTileHeight,Height)));
+                                           std::min(maxTileHeight,Height)));
       if(settings::verbose > 1)
         cout << "Exporting " << Prefix << " as " << fullWidth << "x"
              << fullHeight << " image" << " using tiles of size "
              << width << "x" << height << endl;
 
-      unsigned border=min(min(1,(width-1)/2),(height-1)/2);
+      unsigned border=std::min(std::min(1,(width-1)/2),(height-1)/2);
       trTileSize(tr,width,height,border);
       trImageSize(tr,fullWidth,fullHeight);
       trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
 
-      setDimensions(fullWidth,fullHeight,X/Width*fullWidth,Y/Width*fullWidth);
+      // Note: setDimensions is protected, use global state directly
+      // Width and Height are already set above via reshape0()
+
+      // Use member variables from AsyGLRender (following Vulkan pattern)
+      double dXmin = camp::glRenderer->xmin;
+      double dXmax = camp::glRenderer->xmax;
+      double dYmin = camp::glRenderer->ymin;
+      double dYmax = camp::glRenderer->ymax;
+      double dZmin = camp::glRenderer->Zmin;
+      double dZmax = camp::glRenderer->Zmax;
 
       size_t count=0;
       if(haveScene) {
-        (orthographic ? trOrtho : trFrustum)(tr,xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+        (camp::orthographic_gl ? trOrtho : trFrustum)(tr,dXmin,dXmax,dYmin,dYmax,-dZmax,-dZmin);
         do {
           trBeginTile(tr);
           remesh=true;
           drawscene(fullWidth,fullHeight);
-          gl::lastshader=-1;
+          lastshader=-1;
           ++count;
         } while (trEndTile(tr));
       } else {// clear screen and return
@@ -1002,17 +866,17 @@ void Export()
     outOfMemory();
   }
   remesh=true;
-  setProjection();
+  // Note: setProjection is protected, will be called from class methods
 
 #ifndef HAVE_LIBOSMESA
 #ifdef HAVE_LIBGLFW
-  redraw=true;
+  if(camp::glRenderer) camp::glRenderer->redraw=true;
 #endif
 
 #ifdef HAVE_PTHREAD
-  if(glthread && readyAfterExport) {
+  if(camp::glRenderer && camp::glRenderer->renderThread && readyAfterExport) {
     readyAfterExport=false;
-    endwait(readySignal,readyLock);
+    camp::glRenderer->endwait(camp::glRenderer->readySignal,camp::glRenderer->readyLock);
   }
 #endif
 #endif
@@ -1045,21 +909,25 @@ void quit()
   exit(0);
 #endif
 #ifdef HAVE_LIBGLFW
-  if(glthread) {
-    home();
+  if(camp::glRenderer && camp::glRenderer->renderThread) {
+    camp::glRenderer->home();
 #ifdef HAVE_PTHREAD
     if(!interact::interactive) {
-      idle();
-      endwait(readySignal,readyLock);
+      // idle() is no longer needed with GLFW event loop
+      camp::glRenderer->endwait(camp::glRenderer->readySignal,camp::glRenderer->readyLock);
     }
 #endif
     // Always signal the window to close in threaded mode
-    glfwSetWindowShouldClose(window, true);
-    if(interact::interactive) {
-      glfwHideWindow(window);
+    if (camp::glRenderer->glfwWindow != nullptr) {
+      glfwSetWindowShouldClose(static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow), true);
+      if(interact::interactive) {
+        glfwHideWindow(static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow));
+      }
     }
   } else {
-    if(window) glfwDestroyWindow(window);
+    if(camp::glRenderer && camp::glRenderer->glfwWindow != nullptr) {
+      glfwDestroyWindow(static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow));
+    }
     glfwTerminate();
     exit(0);
   }
@@ -1079,25 +947,25 @@ void mode()
 
   switch(Mode) {
     case 0: // regular
-      outlinemode=false;
-      ibl=getSetting<bool>("ibl");
+      if(camp::glRenderer) camp::glRenderer->outlinemode=false;
+      if(camp::glRenderer) camp::glRenderer->ibl=getSetting<bool>("ibl");
       nlights=nlights0;
       lastshader=-1;
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
       break;
     case 1: // outline
-      outlinemode=true;
-      ibl=false;
+      if(camp::glRenderer) camp::glRenderer->outlinemode=true;
+      if(camp::glRenderer) camp::glRenderer->ibl=false;
       nlights=0; // Force shader recompilation
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       break;
     case 2: // wireframe
-      outlinemode=false;
+      if(camp::glRenderer) camp::glRenderer->outlinemode=false;
       Nlights=1; // Force shader recompilation
       break;
   }
 #ifndef HAVE_LIBOSMESA
-  redraw=true;
+  if(camp::glRenderer) camp::glRenderer->redraw=true;
 #endif
 }
 
@@ -1119,8 +987,8 @@ bool capsize(int& width, int& height)
 
 void reshape0(int width, int height)
 {
-  X=(X/Width)*width;
-  Y=(Y/Height)*height;
+  gl_X=(gl_X/Width)*width;
+  gl_Y=(gl_Y/Height)*height;
 
   Width=width;
   Height=height;
@@ -1135,7 +1003,7 @@ void reshape0(int width, int height)
     lastHeight=Height;
   }
 
-  setProjection();
+  // Note: setProjection is protected, will be called from class methods
   glViewport(0,0,Width,Height);
   if(camp::ssbo)
     camp::initSSBO=true;
@@ -1161,59 +1029,88 @@ void setsize(int w, int h, bool reposition=true)
   int x,y;
 
   capsize(w,h);
-  if(reposition) {
-    windowposition(x,y,w,h);
-    glfwSetWindowPos(window,x,y);
+
+  // Use window from glRenderer if available, otherwise use global window variable
+  GLFWwindow* win = nullptr;
+  if (camp::glRenderer && camp::glRenderer->glfwWindow != nullptr) {
+    win = static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow);
   } else {
-    int wx, wy;
-    glfwGetWindowPos(window, &wx, &wy);
-    glfwSetWindowPos(window,max(wx-2,0),max(wy-2,0));
+    win = ::window;
   }
 
-  glfwSetWindowSize(window,w,h);
+  if (win == nullptr) return;
+
+  if(reposition) {
+    windowposition(x,y,w,h);
+    glfwSetWindowPos(win,x,y);
+  } else {
+    int wx, wy;
+    glfwGetWindowPos(win, &wx, &wy);
+    glfwSetWindowPos(win,std::max(wx-2,0),std::max(wy-2,0));
+  }
+
+  glfwSetWindowSize(win,w,h);
   reshape0(w,h);
-  redraw=true;
+  if(camp::glRenderer) camp::glRenderer->redraw=true;
 }
 
 void capzoom()
 {
   static double maxzoom=sqrt(DBL_MAX);
   static double minzoom=1.0/maxzoom;
-  if(Zoom <= minzoom) Zoom=minzoom;
-  if(Zoom >= maxzoom) Zoom=maxzoom;
+  camp::AsyGLRender* glr = camp::glRenderer;
+  if(!glr) return;
+  if(glr->Zoom <= minzoom) glr->Zoom=minzoom;
+  if(glr->Zoom >= maxzoom) glr->Zoom=maxzoom;
 
-  if(fabs(Zoom-lastzoom) > settings::getSetting<double>("zoomThreshold")) {
+  if(fabs(glr->Zoom-glr->lastzoom) > settings::getSetting<double>("zoomThreshold")) {
     remesh=true;
-    lastzoom=Zoom;
+    glr->lastzoom=glr->Zoom;
   }
 }
 
 void fullscreen(bool reposition=true)
 {
+  camp::AsyGLRender* glr = camp::glRenderer;
+  if(!glr) return;
   Width=screenWidth;
   Height=screenHeight;
   if(firstFit) {
     if(Width < Height*Aspect)
-      Zoom *= Width/(Height*Aspect);
+      glr->Zoom *= Width/(Height*Aspect);
     capzoom();
-    setProjection();
+    // Note: setProjection is protected, will be called from class methods
     firstFit=false;
   }
-  Xfactor=((double) screenHeight)/Height;
-  Yfactor=((double) screenWidth)/Width;
+  glr->Xfactor=((double) screenHeight)/Height;
+  glr->Yfactor=((double) screenWidth)/Width;
   reshape0(Width,Height);
-  if(reposition)
-    glfwSetWindowPos(window,0,0);
-  glfwSetWindowSize(window,Width,Height);
-  redraw=true;
+
+  // Use window from glRenderer if available, otherwise use global window variable
+  GLFWwindow* win = nullptr;
+  if (camp::glRenderer && camp::glRenderer->glfwWindow != nullptr) {
+    win = static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow);
+  } else {
+    win = ::window;
+  }
+
+  if (win != nullptr) {
+    if(reposition)
+      glfwSetWindowPos(win,0,0);
+    glfwSetWindowSize(win,Width,Height);
+  }
+
+  if(camp::glRenderer) camp::glRenderer->redraw=true;
 }
 
 void fitscreen(bool reposition=true)
 {
+  camp::AsyGLRender* glr = camp::glRenderer;
+  if(!glr) return;
   switch(Fitscreen) {
     case 0: // Original size
     {
-      Xfactor=Yfactor=1.0;
+      glr->Xfactor=glr->Yfactor=1.0;
       double pixelRatio=getSetting<double>("devicepixelratio");
       setsize(oldWidth*pixelRatio,oldHeight*pixelRatio,reposition);
       break;
@@ -1223,9 +1120,9 @@ void fitscreen(bool reposition=true)
       int w=screenWidth;
       int h=screenHeight;
       if(w > h*Aspect)
-        w=min((int) ceil(h*Aspect),w);
+        w=std::min((int) ceil(h*Aspect),w);
       else
-        h=min((int) ceil(w/Aspect),h);
+        h=std::min((int) ceil(w/Aspect),h);
       setsize(w,h,reposition);
       break;
     }
@@ -1246,7 +1143,7 @@ void togglefitscreen()
 
 void screen()
 {
-  if(glthread && !interact::interactive)
+  if(camp::glRenderer && camp::glRenderer->renderThread && !interact::interactive)
     fitscreen(false);
 }
 
@@ -1255,7 +1152,9 @@ stopWatch frameTimer;
 void nextframe()
 {
 #ifdef HAVE_PTHREAD
-  endwait(readySignal,readyLock);
+  if(camp::glRenderer) {
+    camp::glRenderer->endwait(camp::glRenderer->readySignal,camp::glRenderer->readyLock);
+  }
 #endif
   double delay=getSetting<double>("framerate");
   if(delay != 0.0) delay=1.0/delay;
@@ -1292,13 +1191,24 @@ void display()
     }
     ++framecount;
   }
-  glfwSwapBuffers(window);
+
+  // Use window from glRenderer if available, otherwise use global window variable
+  GLFWwindow* win = nullptr;
+  if (camp::glRenderer && camp::glRenderer->glfwWindow != nullptr) {
+    win = static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow);
+  } else {
+    win = ::window;
+  }
+
+  if (win != nullptr) {
+    glfwSwapBuffers(win);
+  }
 
   if(queueExport) {
     Export();
     queueExport=false;
   }
-  if(!glthread) {
+  if(!camp::glRenderer || !camp::glRenderer->renderThread) {
 #if !defined(_WIN32)
     if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
       kill(Oldpid,SIGHUP);
@@ -1308,37 +1218,54 @@ void display()
   }
 }
 
-void update()
+void camp::AsyGLRender::update()
 {
   capzoom();
 
-  redraw=true;
-  glfwShowWindow(window);
-  double cz=0.5*(Zmin+Zmax);
+  if(camp::glRenderer) camp::glRenderer->redraw=true;
+#ifdef HAVE_RENDERER
+  if(camp::glRenderer->glfwWindow) ::glfwShowWindow(static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow));
+#endif
+  // Use member variables from the renderer instance (matching reference GLUT code)
+  double dZmin = camp::glRenderer->Zmin;
+  double dZmax = camp::glRenderer->Zmax;
+  double cz=0.5*(dZmin+dZmax);
 
-  dviewMat=translate(translate(dmat4(1.0),dvec3(cx,cy,cz))*drotateMat,
-                     dvec3(0,0,-cz));
-  if(!camp::ssbo)
-    dView=value_ptr(dviewMat);
-  viewMat=mat4(dviewMat);
+  // Match reference: two translations - first to center, then back along Z
+  // Use member variables cx, cy, rotateMat which are updated during interaction
+  camp::viewMat = translate(translate(dmat4(1.0), dvec3(camp::glRenderer->cx, camp::glRenderer->cy, cz)) * camp::glRenderer->rotateMat,
+                            dvec3(0, 0, -cz));
 
+  // Sync member viewMat and update projection matrices
+  camp::glRenderer->viewMat = glm::dmat4(camp::viewMat);
   setProjection();
-  updateModelViewData();
+  camp::glRenderer->updateModelViewData();
 }
 
 void updateHandler(int)
 {
   queueScreen=true;
   remesh=true;
-  update();
-  glfwShowWindow(window);
+  camp::glRenderer->update();
+
+  // Use window from glRenderer if available, otherwise use global window variable
+  GLFWwindow* win = nullptr;
+  if (camp::glRenderer && camp::glRenderer->glfwWindow != nullptr) {
+    win = static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow);
+  } else {
+    win = ::window;
+  }
+
+  if (win != nullptr) {
+    glfwShowWindow(win);
+  }
 }
 
 // poll is no longer needed with GLFW - event handling is done in the main loop
 
 void reshape(int width, int height)
 {
-  if(glthread) {
+  if(camp::glRenderer && camp::glRenderer->renderThread) {
     static bool initialize=true;
     if(initialize) {
       initialize=false;
@@ -1348,366 +1275,41 @@ void reshape(int width, int height)
     }
   }
 
-  if(capsize(width,height))
-    glfwSetWindowSize(window,width,height);
+  // Use window from glRenderer if available, otherwise use global window variable
+  GLFWwindow* win = nullptr;
+  if (camp::glRenderer && camp::glRenderer->glfwWindow != nullptr) {
+    win = static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow);
+  } else {
+    win = ::window;
+  }
+
+  if(capsize(width,height)) {
+    if (win != nullptr) {
+      glfwSetWindowSize(win,width,height);
+    }
+  }
 
   reshape0(width,height);
   remesh=true;
 }
 
-void shift(double dx, double dy)
-{
-  double Zoominv = 1.0 / Zoom;
-  X += dx * Zoominv;
-  Y += -dy * Zoominv;
-  update();
-}
-
-void pan(double dx, double dy)
-{
-  if(orthographic)
-    shift(dx, dy);
-  else {
-    cx += dx * (xmax-xmin)/Width;
-    cy += -dy * (ymax-ymin)/Height;
-    update();
-  }
-}
-
-void zoom(double dx, double dy)
-{
-  if(ignorezoom) {ignorezoom=false; return;}
-  double zoomFactor = getSetting<double>("zoomfactor");
-  if(zoomFactor > 0.0) {
-    double zoomStep = getSetting<double>("zoomstep");
-    const double limit = log(0.1*DBL_MAX)/log(zoomFactor);
-    double stepPower = zoomStep * (-dy);
-    if(fabs(stepPower) < limit) {
-      Zoom *= pow(zoomFactor, stepPower);
-      capzoom();
-      setProjection();
-      redraw = true;
-    }
-  }
-}
-
-void mousewheel(int wheel, int direction, int x, int y)
-{
-  double zoomFactor=getSetting<double>("zoomfactor");
-  if(zoomFactor > 0.0) {
-    if(direction > 0)
-      Zoom *= zoomFactor;
-    else
-      Zoom /= zoomFactor;
-    capzoom();
-    setProjection();
-    redraw=true;
-  }
-}
-
-inline double Degrees(int x, int y)
-{
-  return atan2(0.5*Height-y-Y,x-0.5*Width-X)*degrees;
-}
-
-void rotateX(double step)
-{
-  glm::dmat4 tmpRot(1.0);
-  tmpRot=glm::rotate(tmpRot,glm::radians(step),dvec3(1,0,0));
-  drotateMat=tmpRot*drotateMat;
-  update();
-}
-
-void rotateY(double step)
-{
-  glm::dmat4 tmpRot(1.0);
-  tmpRot=glm::rotate(tmpRot,glm::radians(step),dvec3(0,1,0));
-  drotateMat=tmpRot*drotateMat;
-  update();
-}
-
-void rotateZ(double step)
-{
-  glm::dmat4 tmpRot(1.0);
-  tmpRot=glm::rotate(tmpRot,glm::radians(step),dvec3(0,0,1));
-  drotateMat=tmpRot*drotateMat;
-  update();
-}
-
-void rotateX(int x, int y)
-{
-  double angle=Degrees(x,y);
-  rotateX(angle-lastangle);
-  lastangle=angle;
-}
-
-void rotateY(int x, int y)
-{
-  double angle=Degrees(x,y);
-  rotateY(angle-lastangle);
-  lastangle=angle;
-}
-
-void rotateZ(int x, int y)
-{
-  double angle=Degrees(x,y);
-  rotateZ(angle-lastangle);
-  lastangle=angle;
-}
-
-string action(int button, int mod)
-{
-  size_t Button;
-  size_t nButtons=5;
-  switch(button) {
-    case GLFW_MOUSE_BUTTON_LEFT:
-      Button=0;
-      break;
-    case GLFW_MOUSE_BUTTON_MIDDLE:
-      Button=1;
-      break;
-    case GLFW_MOUSE_BUTTON_RIGHT:
-      Button=2;
-      break;
-    default:
-      Button=nButtons;
-  }
-
-  size_t Mod;
-  size_t nMods=4;
-  switch(mod) {
-    case 0:
-      Mod=0;
-      break;
-    case GLFW_MOD_SHIFT:
-      Mod=1;
-      break;
-    case GLFW_MOD_CONTROL:
-      Mod=2;
-      break;
-    case GLFW_MOD_ALT:
-      Mod=3;
-      break;
-    default:
-      Mod=nMods;
-  }
-
-  if(Button < nButtons) {
-    array *left=getSetting<array *>("leftbutton");
-    array *middle=getSetting<array *>("middlebutton");
-    array *right=getSetting<array *>("rightbutton");
-    array *wheelup=getSetting<array *>("wheelup");
-    array *wheeldown=getSetting<array *>("wheeldown");
-    array *Buttons[]={left,middle,right,wheelup,wheeldown};
-    array *a=Buttons[button];
-    size_t size=checkArray(a);
-    if(Mod < size)
-      return read<string>(a,Mod);
-  }
-  return "";
-}
-
-void timeout(int)
-{
-}
-
-void mouse(int button, int state, int x, int y)
-{
-  int mod=0; // GLFW handles modifiers differently
-  string Action=action(button,mod);
-
-  if(Action == "zoomin") {
-    mousewheel(0,1,x,y);
-    return;
-  }
-  if(Action == "zoomout") {
-    mousewheel(0,-1,x,y);
-    return;
-  }
-
-  bool isPress = (state == GLFW_PRESS);
-  if(isPress) {
-    // Initialize xprev/yprev for all actions (like vkrender.cc model)
-    xprev = static_cast<double>(x);
-    yprev = static_cast<double>(y);
-
-    if(Action == "rotate") {
-      currentAction="rotate";
-    } else if(Action == "shift") {
-      currentAction="shift";
-    } else if(Action == "pan") {
-      currentAction="pan";
-    } else if(Action == "zoom" || Action == "zoom/menu") {
-      currentAction="zoom";
-    } else if(Action == "rotateX") {
-      lastangle=Degrees(x,y);
-      currentAction="rotateX";
-    } else if(Action == "rotateY") {
-      lastangle=Degrees(x,y);
-      currentAction="rotateY";
-    } else if(Action == "rotateZ") {
-      lastangle=Degrees(x,y);
-      currentAction="rotateZ";
-    }
-  } else {
-    currentAction="";
-  }
-}
-
-double spinstep()
-{
-  return getSetting<double>("spinstep")*spinTimer.seconds(true);
-}
-
-void xspin()
-{
-  rotateX(spinstep());
-}
-
-void yspin()
-{
-  rotateY(spinstep());
-}
-
-void zspin()
-{
-  rotateZ(spinstep());
-}
-
-void expand()
-{
-  double resizeStep=getSetting<double>("resizestep");
-  if(resizeStep > 0.0)
-    setsize((int) (Width*resizeStep+0.5),(int) (Height*resizeStep+0.5));
-}
-
-void shrink()
-{
-  double resizeStep=getSetting<double>("resizestep");
-  if(resizeStep > 0.0)
-    setsize(max((int) (Width/resizeStep+0.5),1),
-            max((int) (Height/resizeStep+0.5),1));
-}
-
-void spinx()
-{
-  if(Xspin)
-    idle();
-  else {
-    idleFunc(xspin);
-    Xspin=true;
-    Yspin=Zspin=false;
-  }
-}
-
-void spiny()
-{
-  if(Yspin)
-    idle();
-  else {
-    idleFunc(yspin);
-    Yspin=true;
-    Xspin=Zspin=false;
-  }
-}
-
-void spinz()
-{
-  if(Zspin)
-    idle();
-  else {
-    idleFunc(zspin);
-    Zspin=true;
-    Xspin=Yspin=false;
-  }
-}
-
-void showCamera()
-{
-  projection P=camera();
-  string projection=P.orthographic ? "orthographic(" : "perspective(";
-  string indent(2+projection.length(),' ');
-  cout << endl
-       << "currentprojection=" << endl << "  "
-       << projection << "camera=" << P.camera << "," << endl
-       << indent << "up=" << P.up << "," << endl
-       << indent << "target=" << P.target << "," << endl
-       << indent << "zoom=" << P.zoom;
-  if(!orthographic)
-    cout << "," << endl << indent << "angle=" << P.angle;
-  if(P.viewportshift != pair(0.0,0.0))
-    cout << "," << endl << indent << "viewportshift=" << P.viewportshift*Zoom;
-  if(orthographic)
-    cout << ",center=false";
-  else
-    cout << "," << endl << indent << "autoadjust=false";
-  cout << ");" << endl;
-}
-
-void keyboard(unsigned char key, int x, int y)
-{
-  // GLFW passes uppercase key codes for letters (e.g., 'Q' instead of 'q')
-  switch(key) {
-    case 'H':
-      home();
-      update();
-      break;
-    case 'F':
-      togglefitscreen();
-      break;
-    case 'X':
-      spinx();
-      break;
-    case 'Y':
-      spiny();
-      break;
-    case 'Z':
-      spinz();
-      break;
-    case 'S':
-      idle();
-      break;
-    case 'M':
-      mode();
-      break;
-    case 'E':
-      Export();
-      break;
-    case 'C':
-      showCamera();
-      break;
-    case '+':
-    case '=':
-    case '>':
-      expand();
-      break;
-    case '-':
-    case '_':
-    case '<':
-      shrink();
-      break;
-    case 17: // Ctrl-q (ASCII control character)
-    case 'Q':
-      if(!Format.empty()) Export();
-      quit();
-      break;
-  }
-}
-
-void setosize()
-{
-  oldWidth=(int) ceil(oWidth);
-  oldHeight=(int) ceil(oHeight);
-}
-#endif
-// end of GUI-related functions
-
 void exportHandler(int=0)
 {
 #ifndef HAVE_LIBOSMESA
 #ifdef HAVE_LIBGLFW
-  if(!Iconify)
-    glfwShowWindow(window);
+  if(!Iconify) {
+    // Use window from glRenderer if available, otherwise use global window variable
+    GLFWwindow* win = nullptr;
+    if (camp::glRenderer && camp::glRenderer->glfwWindow != nullptr) {
+      win = static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow);
+    } else {
+      win = ::window;
+    }
+
+    if (win != nullptr) {
+      glfwShowWindow(win);
+    }
+  }
 #endif
 #endif
   readyAfterExport=true;
@@ -1719,58 +1321,6 @@ void exportHandler(int=0)
     glfwHideWindow(window);
 #endif
 #endif
-}
-
-static bool glinitialize=true;
-
-projection camera(bool user)
-{
-  if(glinitialize) return projection();
-
-  camp::Triple vCamera,vUp,vTarget;
-
-  double cz=0.5*(Zmin+Zmax);
-
-  double *Rotate=value_ptr(drotateMat);
-
-  if(user) {
-    double shift[]={0.0,0.0,0.0,0.0};
-    for(int i=0; i < 3; ++i) {
-      double sumCamera=0.0, sumTarget=0.0, sumUp=0.0;
-      int i4=4*i;
-      shift[3]=T[i4+2]*cz;
-      for(int j=0; j < 4; ++j) {
-        int j4=4*j;
-        double R0=Rotate[j4];
-        double R1=Rotate[j4+1];
-        double R2=Rotate[j4+2];
-        double R3=Rotate[j4+3];
-        double T4ij=T[i4+j]+shift[j]; // T -> T*shift(0,0,cz);
-        sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
-        sumUp += Tup[i4+j]*R1;
-        sumTarget += T4ij*(R3-cx*R0-cy*R1);
-      }
-      vCamera[i]=sumCamera;
-      vUp[i]=sumUp;
-      vTarget[i]=sumTarget;
-    }
-  } else {
-    for(int i=0; i < 3; ++i) {
-      int i4=4*i;
-      double R0=Rotate[i4];
-      double R1=Rotate[i4+1];
-      double R2=Rotate[i4+2];
-      double R3=Rotate[i4+3];
-      vCamera[i]=R3-cx*R0-cy*R1-cz*R2;
-      vUp[i]=R1;
-      vTarget[i]=R3-cx*R0-cy*R1;
-    }
-  }
-
-  return projection(orthographic,vCamera,vUp,vTarget,Zoom,
-                    2.0*atan(tan(0.5*Angle)/Zoom)/radians,
-                    pair(X/Width+Shift.getx(),
-                         Y/Height+Shift.gety()));
 }
 
 void init_osmesa()
@@ -1840,656 +1390,6 @@ bool NVIDIA()
 
 #endif /* HAVE_RENDERER */
 
-// angle=0 means orthographic.
-void glrender(GLRenderArgs const& args, int oldpid)
-{
-  Iconify=getSetting<bool>("iconify");
-
-  auto zoomVal=std::fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
-
-  Prefix=args.prefix;
-  Picture=args.pic;
-  Format=args.format;
-
-  nlights0=nlights=args.nlights;
-
-  Lights=args.lights;
-  Diffuse=args.diffuse;
-  Specular=args.specular;
-  View=args.view;
-  Angle=args.angle*radians;
-  Zoom0=zoomVal;
-  Oldpid=oldpid;
-  Shift=args.shift/zoomVal;
-  Margin=args.margin;
-  for(size_t i=0; i < 4; ++i)
-    Background[i]=args.background[i];
-
-  Xmin=args.m.getx();
-  Xmax=args.M.getx();
-  Ymin=args.m.gety();
-  Ymax=args.M.gety();
-  Zmin=args.m.getz();
-  Zmax=args.M.getz();
-
-  haveScene=Xmin < Xmax && Ymin < Ymax && Zmin < Zmax;
-  orthographic=Angle == 0.0;
-  H=orthographic ? 0.0 : -tan(0.5*Angle)*Zmax;
-
-  ignorezoom=false;
-  Xfactor=Yfactor=1.0;
-
-  pair maxtile=getSetting<pair>("maxtile");
-  maxTileWidth=(int) maxtile.getx();
-  maxTileHeight=(int) maxtile.gety();
-  if(maxTileWidth <= 0) maxTileWidth=1024;
-  if(maxTileHeight <= 0) maxTileHeight=768;
-
-  bool v3d=args.format == "v3d";
-  bool webgl=args.format == "html";
-  bool format3d=webgl || v3d;
-
-#ifdef HAVE_RENDERER
-#ifdef HAVE_PTHREAD
-#ifndef HAVE_LIBOSMESA
-  static bool initializedView=false;
-#endif
-#endif
-
-#ifdef HAVE_LIBOSMESA
-  if(!webgl) {
-    screenWidth=maxTileWidth;
-    screenHeight=maxTileHeight;
-
-    static bool osmesa_initialized=false;
-    if(!osmesa_initialized) {
-      osmesa_initialized=true;
-      fpu_trap(false); // Work around FE_INVALID.
-      init_osmesa();
-      fpu_trap(settings::trap());
-    }
-  }
-#else
-#ifdef HAVE_LIBGLFW
-  // Initialize GLFW and get screen dimensions (following Vulkan pattern)
-  static bool glfwInitialized = false;
-  if(!glfwInitialized) {
-    glfwSetErrorCallback([](int error, const char* description) {
-      cerr << "GLFW error [" << error << "]: " << description << endl;
-    });
-
-    if(!glfwInit()) {
-      cerr << "Failed to initialize GLFW" << endl;
-      exit(-1);
-    }
-    glfwInitialized = true;
-
-    // Get monitor based on device setting (same as Vulkan)
-    Int device = getSetting<Int>("device");
-    int numMonitors;
-    GLFWmonitor** monitors = glfwGetMonitors(&numMonitors);
-
-    // List available monitors when verbose >= 3 (like Vulkan lists devices)
-    if(settings::verbose >= 3) {
-      cerr << "Available displays:" << endl;
-      for(int i = 0; i < numMonitors; ++i) {
-        const char* name = glfwGetMonitorName(monitors[i]);
-        int mx, my, mw, mh;
-        glfwGetMonitorWorkarea(monitors[i], &mx, &my, &mw, &mh);
-        cerr << "  Display " << i << ": " << (name ? name : "unknown")
-             << " (" << mw << "x" << mh << ")" << endl;
-      }
-    }
-
-    GLFWmonitor* monitor = nullptr;
-
-    if (monitors && numMonitors > 0) {
-      int monitorIndex = (int)device;
-      if (monitorIndex < 0) {
-        monitorIndex = numMonitors + monitorIndex; // Convert negative index
-      }
-      if (monitorIndex >= 0 && monitorIndex < numMonitors) {
-        monitor = monitors[monitorIndex];
-      } else {
-        monitor = glfwGetPrimaryMonitor(); // Fallback to primary
-      }
-    } else {
-      monitor = glfwGetPrimaryMonitor();
-    }
-
-    if(monitor) {
-      int mx, my;
-      glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
-      if(settings::verbose >= 3) {
-        cerr << "Using display: " << glfwGetMonitorName(monitor)
-             << " (" << screenWidth << "x" << screenHeight << ")" << endl;
-      }
-    } else {
-      // Fallback if no monitor found
-      screenWidth = maxTileWidth;
-      screenHeight = maxTileHeight;
-    }
-  }
-
-  Fitscreen=1;
-#else
-  if(glinitialize) {
-    Fitscreen=1;
-    glinitialize=false;
-  }
-#endif
-#endif
-#endif
-
-  for(int i=0; i < 16; ++i)
-    T[i]=args.t[i];
-
-  for(int i=0; i < 16; ++i)
-    Tup[i]=args.tup[i];
-
-  static bool initialized=false;
-
-  if(!(initialized && interact::interactive)) {
-    antialias=getSetting<Int>("antialias") > 1;
-    double expand;
-    if(format3d)
-      expand=1.0;
-    else {
-      expand=getSetting<double>("render");
-      if(expand < 0)
-        expand *= (Format.empty() || Format == "eps" || Format == "pdf")                 ? -2.0 : -1.0;
-      if(antialias) expand *= 2.0;
-    }
-
-    oWidth=args.width;
-    oHeight=args.height;
-    Aspect=args.width/args.height;
-
-    // Force a hard viewport limit to work around direct rendering bugs.
-    // Alternatively, one can use -glOptions=-indirect (with a performance
-    // penalty).
-    pair maxViewport=getSetting<pair>("maxviewport");
-    int maxWidth=maxViewport.getx() > 0 ? (int) ceil(maxViewport.getx()) :
-      screenWidth;
-    int maxHeight=maxViewport.gety() > 0 ? (int) ceil(maxViewport.gety()) :
-      screenHeight;
-    if(maxWidth <= 0) maxWidth=max(maxHeight,2);
-    if(maxHeight <= 0) maxHeight=max(maxWidth,2);
-
-    if(screenWidth <= 0) screenWidth=maxWidth;
-    else screenWidth=min(screenWidth,maxWidth);
-    if(screenHeight <= 0) screenHeight=maxHeight;
-    else screenHeight=min(screenHeight,maxHeight);
-
-    fullWidth=(int) ceil(expand*args.width);
-    fullHeight=(int) ceil(expand*args.height);
-
-    if(format3d) {
-      Width=fullWidth;
-      Height=fullHeight;
-    } else {
-      Width=min(fullWidth,screenWidth);
-      Height=min(fullHeight,screenHeight);
-
-      if(Width > Height*Aspect)
-        Width=min((int) (ceil(Height*Aspect)),screenWidth);
-      else
-        Height=min((int) (ceil(Width/Aspect)),screenHeight);
-    }
-
-    home(format3d);
-    setProjection();
-    if(format3d) {
-      remesh=true;
-      return;
-    }
-
-    camp::maxFragments=0;
-
-    ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
-
-#ifdef HAVE_RENDERER
-    Aspect=((double) Width)/Height;
-
-    if(maxTileWidth <= 0) maxTileWidth=screenWidth;
-    if(maxTileHeight <= 0) maxTileHeight=screenHeight;
-#ifdef HAVE_LIBGLFW
-    setosize();
-#endif
-#endif
-  }
-
-#ifdef HAVE_RENDERER
-  bool havewindow=initialized && glthread;
-
-#ifndef HAVE_LIBOSMESA
-#ifdef HAVE_LIBGLFW
-  // Window hints are reset right before each window creation
-#endif
-#endif
-
-  if(glthread && format3d)
-    format3dWait=true;
-
-  camp::clearMaterials();
-
-#ifndef HAVE_LIBOSMESA
-
-#ifdef HAVE_PTHREAD
-  if(glthread && initializedView) {
-    if(View) {
-#ifdef __MSDOS__ // Signals are unreliable in MSWindows
-      glupdate=true;
-#else
-      pthread_kill(mainthread,SIGUSR1);
-#endif
-#ifdef HAVE_LIBGLFW
-      glfwPostEmptyEvent();
-#endif
-    } else readyAfterExport=queueExport=true;
-    return;
-  }
-#endif
-
-#ifdef HAVE_LIBGLFW
-  if(View) {
-    int x,y;
-    if(havewindow && window)
-      ::glfwDestroyWindow(static_cast<GLFWwindow*>(window));
-
-    // Reset all hints before setting OpenGL context version hints
-    glfwDefaultWindowHints();
-    // Core profile requires at least OpenGL 3.2; let GLFW choose higher if available
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    // Enable core profile for modern OpenGL features
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    windowposition(x,y);
-    // Configure multisampling based on settings (GLFW will clamp to supported values)
-    Int multisample=getSetting<Int>("multisample");
-    if(multisample > 1) {
-      // Clamp to valid power-of-2 sample counts (1, 2, 4, 8, 16, 32)
-      if(multisample > 32) multisample = 32;
-      else if(multisample > 16) multisample = 16;
-      else if(multisample > 8) multisample = 8;
-      else if(multisample > 4) multisample = 4;
-      else if(multisample > 2) multisample = 2;
-      glfwWindowHint(GLFW_SAMPLES, multisample);
-    }
-
-    string title=string(PACKAGE_NAME)+": "+args.prefix;
-    fpu_trap(false); // Work around FE_INVALID
-    window=glfwCreateWindow(Width, Height, title.c_str(), nullptr, nullptr);
-    fpu_trap(settings::trap());
-
-    if(!window) {
-      cerr << "Failed to create GLFW window" << endl;
-      exit(-1);
-    }
-
-    glfwMakeContextCurrent(window);
-    fpu_trap(settings::trap());
-
-    // Initialize GLEW immediately after context creation, before setting up callbacks
-    // This ensures OpenGL functions are available if any callback triggers during setup
-    glewExperimental = GL_TRUE;
-    int glew_result = glewInit();
-    if(glew_result != GLEW_OK) {
-      cerr << "GLEW initialization error: " << glewGetErrorString(glew_result) << endl;
-      exit(-1);
-    }
-
-    // Set GLSL version immediately after GLEW init
-    const char *GLSL_VERSION=(const char *)glGetString(GL_SHADING_LANGUAGE_VERSION);
-    if(GLSL_VERSION)
-      GLSLversion=(int) (100*atof(GLSL_VERSION)+0.5);
-    if(settings::verbose > 2)
-      cout << "GLSL version " << GLSL_VERSION << " (GLSLversion=" << GLSLversion << ")" << endl;
-
-    if(settings::verbose > 2) {
-      cerr << "Created visible window: " << Width << "x" << Height
-           << " window=" << window << endl;
-      // Check context attributes
-      int major = glfwGetWindowAttrib(window, GLFW_CONTEXT_VERSION_MAJOR);
-      int minor = glfwGetWindowAttrib(window, GLFW_CONTEXT_VERSION_MINOR);
-      cerr << "OpenGL context version: " << major << "." << minor << endl;
-    }
-
-    // Set up GLFW callbacks - use AsyGLRender's callback methods
-    // These delegate to the base class functions in renderBase.h/cc
-    glfwSetKeyCallback(window, [](GLFWwindow*, int key, int scancode, int action, int mods) {
-      if(action != GLFW_PRESS) return;
-      ::gl::keyboard(static_cast<unsigned char>(key), 0, 0);
-    });
-    glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, int w, int h) {
-      ::gl::reshape(w, h);
-    });
-    glfwSetMouseButtonCallback(window, [](GLFWwindow* w, int button, int action, int mods) {
-      double xpos, ypos;
-      glfwGetCursorPos(w, &xpos, &ypos);
-      auto const currentActionStr = camp::getGLFWAction(button, mods);
-      if (currentActionStr.empty())
-        return;
-
-      if (action == GLFW_PRESS) {
-        ::gl::currentAction = currentActionStr;
-        // Initialize xprev/yprev when button is pressed
-        ::gl::xprev = xpos;
-        ::gl::yprev = ypos;
-      } else if (action == GLFW_RELEASE) {
-        ::gl::currentAction.clear();
-      }
-    });
-    glfwSetCursorPosCallback(window, [](GLFWwindow* w, double xpos, double ypos) {
-      if(!::gl::currentAction.empty()) {
-        if(::gl::currentAction == "rotate") {
-          // Use Arcball from renderBase.h (same as vkrender.cc)
-          camp::Arcball arcball(::gl::xprev * 2 / ::gl::Width - 1, 1 - ::gl::yprev * 2 / ::gl::Height,
-                                xpos * 2 / ::gl::Width - 1, 1 - ypos * 2 / ::gl::Height);
-          camp::triple axis = arcball.axis;
-          // Update gl::drotateMat using the Arcball rotation
-          glm::dmat4 rot = glm::rotate(2 * arcball.angle / ::gl::Zoom * ::gl::ArcballFactor,
-                                       glm::dvec3(axis.getx(), axis.gety(), axis.getz()));
-          ::gl::drotateMat = rot * ::gl::drotateMat;
-          ::gl::update();
-        } else if(::gl::currentAction == "shift") {
-          ::gl::shift(xpos - ::gl::xprev, ypos - ::gl::yprev);
-          ::gl::update();
-        } else if(::gl::currentAction == "pan") {
-          if(::gl::orthographic) {
-            ::gl::shift(xpos - ::gl::xprev, ypos - ::gl::yprev);
-            ::gl::update();
-          } else {
-            ::gl::pan(xpos - ::gl::xprev, ypos - ::gl::yprev);
-            ::gl::update();
-          }
-        } else if(::gl::currentAction == "zoom") {
-          ::gl::zoom(0.0, ypos - ::gl::yprev);
-        } else if(::gl::currentAction == "rotateX") {
-          double angle = ::gl::Degrees(static_cast<int>(xpos), static_cast<int>(ypos));
-          ::gl::rotateX(angle - ::gl::lastangle);
-          ::gl::lastangle = angle;
-        } else if(::gl::currentAction == "rotateY") {
-          double angle = ::gl::Degrees(static_cast<int>(xpos), static_cast<int>(ypos));
-          ::gl::rotateY(angle - ::gl::lastangle);
-          ::gl::lastangle = angle;
-        } else if(::gl::currentAction == "rotateZ") {
-          double angle = ::gl::Degrees(static_cast<int>(xpos), static_cast<int>(ypos));
-          ::gl::rotateZ(angle - ::gl::lastangle);
-          ::gl::lastangle = angle;
-        }
-      }
-      ::gl::xprev = xpos;
-      ::gl::yprev = ypos;
-    });
-    glfwSetScrollCallback(window, [](GLFWwindow* w, double, double yoffset) {
-      double xpos, ypos;
-      glfwGetCursorPos(w, &xpos, &ypos);
-      ::gl::zoomFactor = getSetting<double>("zoomfactor");
-      if(::gl::zoomFactor > 0.0) {
-        if(yoffset > 0)
-          ::gl::Zoom *= ::gl::zoomFactor;
-        else
-          ::gl::Zoom /= ::gl::zoomFactor;
-        ::gl::capzoom();
-        ::gl::setProjection();
-        ::gl::redraw = true;
-      }
-    });
-
-    glfwShowWindow(window);
-    glfwFocusWindow(window);  // Ensure input focus
-  } else if(!havewindow || !window) {
-    // Reset all hints before setting OpenGL context version hints
-    glfwDefaultWindowHints();
-    // Core profile requires at least OpenGL 3.2; let GLFW choose higher if available
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    // Enable core profile for modern OpenGL features
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    fpu_trap(false); // Work around FE_INVALID
-    window=glfwCreateWindow(maxTileWidth, maxTileHeight,
-                            Iconify ? "" : "Asymptote rendering window",
-                            nullptr, nullptr);
-    fpu_trap(settings::trap());
-    if(window) {
-      glfwMakeContextCurrent(window);
-
-      // Initialize GLEW immediately after context creation
-      glewExperimental = GL_TRUE;
-      int glew_result = glewInit();
-      if(glew_result != GLEW_OK) {
-        cerr << "GLEW initialization error: " << glewGetErrorString(glew_result) << endl;
-        exit(-1);
-      }
-
-      // Set GLSL version immediately after GLEW init
-      const char *GLSL_VERSION=(const char *)glGetString(GL_SHADING_LANGUAGE_VERSION);
-      if(GLSL_VERSION)
-        GLSLversion=(int) (100*atof(GLSL_VERSION)+0.5);
-      if(settings::verbose > 2)
-        cout << "GLSL version " << GLSL_VERSION << " (GLSLversion=" << GLSLversion << ")" << endl;
-
-      glfwHideWindow(window);
-      if(settings::verbose > 2) {
-        cerr << "Created hidden window: " << maxTileWidth << "x" << maxTileHeight
-             << " window=" << window << endl;
-        // Check context attributes
-        int major = glfwGetWindowAttrib(window, GLFW_CONTEXT_VERSION_MAJOR);
-        int minor = glfwGetWindowAttrib(window, GLFW_CONTEXT_VERSION_MINOR);
-        cerr << "OpenGL context version: " << major << "." << minor << endl;
-      }
-    } else {
-      cerr << "Failed to create hidden GLFW window" << endl;
-      exit(-1);
-    }
-  }
-#endif // HAVE_LIBGLFW
-#endif // HAVE_LIBOSMESA
-
-  initialized=true;
-
-#if defined(HAVE_COMPUTE_SHADER) && !defined(HAVE_LIBOSMESA)
-  GPUindexing=getSetting<bool>("GPUindexing");
-  GPUcompress=getSetting<bool>("GPUcompress");
-#else
-  GPUindexing=false;
-  GPUcompress=false;
-#endif
-
-  if(glinitialize) {
-    glinitialize=false;
-
-#ifdef HAVE_LIBGLFW
-#ifndef HAVE_LIBOSMESA
-    // GLEW is already initialized right after window creation
-    // Just verify the context is still current
-    if(window) {
-      glfwMakeContextCurrent(window);
-      GLFWwindow* current = glfwGetCurrentContext();
-      if(settings::verbose > 2) {
-        cerr << "Post-window GLEW check: window=" << window << " current=" << current << endl;
-      }
-      if(current != window) {
-        cerr << "Failed to make OpenGL context current" << endl;
-        exit(-1);
-      }
-    } else {
-      cerr << "No OpenGL window/context available" << endl;
-      exit(-1);
-    }
-#endif
-#endif
-
-    // Check for any OpenGL errors after GLEW init (done earlier)
-    GLenum glerr = glGetError();
-    if(glerr != GL_NO_ERROR) {
-      cerr << "OpenGL error after GLEW init: " << glerr << endl;
-    }
-
-    if(settings::verbose > 2) {
-      cerr << "GLEW already initialized, OpenGL version: "
-           << glGetString(GL_VERSION) << endl;
-    }
-
-    // Verify OpenGL version is at least 3.0
-    const char *gl_version_str = (const char *)glGetString(GL_VERSION);
-    if(gl_version_str && gl_version_str[0] >= '1' && gl_version_str[2] >= '0') {
-      int major = gl_version_str[0] - '0';
-      int minor = gl_version_str[2] - '0';
-      if(major < 3 || (major == 3 && minor < 0)) {
-        cerr << "OpenGL version too low: " << gl_version_str
-             << " (need at least 3.0)" << endl;
-        exit(-1);
-      }
-    }
-
-    const char *GLSL_VERSION=(const char *)
-      glGetString(GL_SHADING_LANGUAGE_VERSION);
-
-    if(GLSL_VERSION)
-      GLSLversion=(int) (100*atof(GLSL_VERSION)+0.5);
-
-    if(GLSLversion < 130) {
-      cerr << "Unsupported GLSL version: " << (GLSL_VERSION ? GLSL_VERSION : "unknown") << "." << endl;
-      exit(-1);
-    }
-
-    if(settings::verbose > 2)
-      cout << "GLSL version " << GLSL_VERSION << endl;
-
-    // Check multisampling after GLEW initialization
-    int samples=0;
-    glGetIntegerv(GL_SAMPLES, &samples);
-    if(settings::verbose > 1 && samples > 1)
-      cout << "Multisampling enabled with sample width " << samples
-           << endl;
-
-    ibl=getSetting<bool>("ibl");
-    if(settings::verbose > 2) {
-      cerr << "glinitialize block: calling initShaders()" << endl;
-    }
-    initShaders();
-    if(settings::verbose > 2) {
-      cerr << "glinitialize block: after initShaders, materialShader[0]=" << camp::materialShader[0]
-           << " materialShader[1]=" << camp::materialShader[1] << endl;
-    }
-    if(settings::verbose > 2) {
-      cerr << "glinitialize block: calling setBuffers(), camp::vao=" << camp::vao << endl;
-    }
-    setBuffers();
-  }
-
-  GLint val;
-  glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&val);
-
-  if(GPUindexing) {
-    gl::localSize=getSetting<Int>("GPUlocalSize");
-    gl::blockSize=getSetting<Int>("GPUblockSize");
-    gl::groupSize=gl::localSize*gl::blockSize;
-  }
-
-  Maxmaterials=val/sizeof(Material);
-  if(nmaterials > Maxmaterials) nmaterials=Maxmaterials;
-
-  glClearColor(args.background[0],args.background[1],args.background[2],args.background[3]);
-
-#ifdef HAVE_LIBGLFW
-#ifndef HAVE_LIBOSMESA
-  if(View) {
-    // Don't auto-fit screen - let user control with -fitscreen/-nofitscreen
-    // if(!getSetting<bool>("fitscreen"))
-    //   Fitscreen=0;
-    // firstFit=true;
-    // fitscreen();
-    setosize();
-  }
-#endif
-#endif
-
-  glEnable(GL_DEPTH_TEST);
-  // Note: GL_VERTEX_PROGRAM_POINT_SIZE and GL_TEXTURE_3D are removed in core profile
-  // glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-  // glEnable(GL_TEXTURE_3D);
-
-  if(!camp::ssbo) {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-  }
-
-  Mode=2;
-  mode();
-
-  ViewExport=View;
-#ifdef HAVE_LIBOSMESA
-  View=false;
-#endif
-
-  if(View) {
-#ifdef HAVE_LIBGLFW
-#ifdef HAVE_PTHREAD
-#ifndef HAVE_LIBOSMESA
-    initializedView=true;
-#endif
-#endif
-    // GLFW callbacks are set up via glfwSet*Callback functions
-    // The main loop is handled manually below
-
-    cerr << "DEBUG: Entering main loop (View=" << View << ", redraw=" << redraw << ")" << endl;
-
-    // Ensure initial render happens
-    redraw=true;
-
-    while(!glfwWindowShouldClose(window)) {
-      if(redraw || queueExport) {
-        redraw=false;
-        display();
-      }
-
-      // Process idle function for spinning
-      if(currentIdleFunc) {
-        currentIdleFunc();
-      }
-
-      glfwPollEvents();
-    }
-    cout << endl;
-    exitHandler(0);
-#endif // HAVE_LIBGLFW
-  } else {
-    if(glthread) {
-      if(havewindow) {
-        readyAfterExport=true;
-#ifdef HAVE_PTHREAD
-#if !defined(_WIN32)
-        pthread_kill(mainthread,SIGUSR1);
-#endif
-#endif
-      } else {
-        initialized=true;
-        readyAfterExport=true;
-#if !defined(_WIN32)
-        Signal(SIGUSR1,exportHandler);
-#endif
-        exportHandler();
-      }
-    } else {
-      exportHandler();
-      quit();
-    }
-  }
-
-#endif /* HAVE_RENDERER */
-}
-
-} // namespace gl
-
-#endif
-
-#ifdef HAVE_RENDERER
-
 namespace camp {
 
 string getLightIndex(size_t const& index, string const& fieldName) {
@@ -2522,8 +1422,8 @@ void registerBuffer(const std::vector<T>& buffervector, GLuint& bufferIndex,
 void clearCount()
 {
   glUseProgram(zeroShader);
-  gl::lastshader=zeroShader;
-  glUniform1ui(glGetUniformLocation(zeroShader,"width"),gl::Width);
+  lastshader=zeroShader;
+  glUniform1ui(glGetUniformLocation(zeroShader,"width"),Width);
   fpu_trap(false); // Work around FE_INVALID
   glDrawArrays(GL_TRIANGLES, 0, 3);
   fpu_trap(settings::trap());
@@ -2534,8 +1434,8 @@ void compressCount()
 {
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
   glUseProgram(compressShader);
-  gl::lastshader=compressShader;
-  glUniform1ui(glGetUniformLocation(compressShader,"width"),gl::Width);
+  lastshader=compressShader;
+  glUniform1ui(glGetUniformLocation(compressShader,"width"),Width);
   fpu_trap(false); // Work around FE_INVALID
   glDrawArrays(GL_TRIANGLES, 0, 3);
   fpu_trap(settings::trap());
@@ -2546,22 +1446,22 @@ void partialSums(bool readSize=false)
 {
   // Compute partial sums on the GPU
   glUseProgram(sum1Shader);
-  glDispatchCompute(gl::g,1,1);
+  glDispatchCompute(g,1,1);
 
-  if(gl::elements <= gl::groupSize*gl::groupSize)
+  if(elements <= groupSize*groupSize)
     glUseProgram(sum2fastShader);
   else {
     glUseProgram(sum2Shader);
     glUniform1ui(glGetUniformLocation(sum2Shader,"blockSize"),
-                 gl::ceilquotient(gl::g,gl::localSize));
+                 ceilquotient(g,localSize));
   }
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDispatchCompute(1,1,1);
 
   glUseProgram(sum3Shader);
-  glUniform1ui(glGetUniformLocation(sum3Shader,"final"),gl::elements-1);
+  glUniform1ui(glGetUniformLocation(sum3Shader,"final"),elements-1);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-  glDispatchCompute(gl::g,1,1);
+  glDispatchCompute(g,1,1);
 }
 
 void resizeFragmentBuffer()
@@ -2573,8 +1473,8 @@ void resizeFragmentBuffer()
     GLuint *feedback=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_ONLY);
 
     GLuint maxDepth=feedback[0];
-    if(maxDepth > gl::maxSize)
-      gl::resizeBlendShader(maxDepth);
+    if(maxDepth > maxSize)
+      resizeBlendShader(maxDepth);
 
     fragments=feedback[1];
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
@@ -2601,24 +1501,24 @@ void resizeFragmentBuffer()
 void refreshBuffers()
 {
   GLuint zero=0;
-  gl::pixels=(gl::Width+1)*(gl::Height+1);
+  pixels=(Width+1)*(Height+1);
 
   if(initSSBO) {
-    gl::processors=1;
+    processors=1;
 
     GLuint Pixels;
     if(GPUindexing) {
-      GLuint G=gl::ceilquotient(gl::pixels,gl::groupSize);
-      Pixels=gl::groupSize*G;
+      GLuint G=ceilquotient(pixels,groupSize);
+      Pixels=groupSize*G;
 
-      GLuint globalSize=gl::localSize*gl::ceilquotient(G,gl::localSize);
+      GLuint globalSize=localSize*ceilquotient(G,localSize);
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
       glBufferData(GL_SHADER_STORAGE_BUFFER,globalSize*sizeof(GLuint),NULL,
                    GL_DYNAMIC_READ);
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                         GL_UNSIGNED_INT,&zero);
       glBindBufferBase(GL_SHADER_STORAGE_BUFFER,3,camp::globalSumBuffer);
-    } else Pixels=gl::pixels;
+    } else Pixels=pixels;
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,(Pixels+2)*sizeof(GLuint),
@@ -2638,7 +1538,7 @@ void refreshBuffers()
       glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER,0,camp::elementsBuffer);
 
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::indexBuffer);
-      glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(GLuint),
+      glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),
                    NULL,GL_DYNAMIC_DRAW);
       glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::indexBuffer);
     }
@@ -2646,13 +1546,13 @@ void refreshBuffers()
                       GL_UNSIGNED_INT,&zero); // Clear count or index buffer
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::opaqueBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,gl::pixels*sizeof(glm::vec4),NULL,
+    glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(glm::vec4),NULL,
                  GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,6,camp::opaqueBuffer);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::opaqueDepthBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,
-                 sizeof(GLuint)+gl::pixels*sizeof(GLfloat),NULL,
+                 sizeof(GLuint)+pixels*sizeof(GLfloat),NULL,
                  GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,7,camp::opaqueDepthBuffer);
     const GLfloat zerof=0.0;
@@ -2669,7 +1569,7 @@ void refreshBuffers()
 
   // Determine the fragment offsets
 
-  if(gl::exporting && GPUindexing && !GPUcompress) {
+  if(exporting && GPUindexing && !GPUcompress) {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                       GL_UNSIGNED_INT,&zero);
@@ -2692,16 +1592,16 @@ void refreshBuffers()
   if(GPUcompress) {
     compressCount();
     GLuint *p=(GLuint *) glMapBuffer(GL_ATOMIC_COUNTER_BUFFER,GL_READ_WRITE);
-    gl::elements=GPUindexing ? p[0] : p[0]-1;
+    elements=GPUindexing ? p[0] : p[0]-1;
     p[0]=1;
     glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
-    if(gl::elements == 0) return;
+    if(elements == 0) return;
   } else
-    gl::elements=gl::pixels;
+    elements=pixels;
 
   if(GPUindexing) {
-    gl::g=gl::ceilquotient(gl::elements,gl::groupSize);
-    gl::elements=gl::groupSize*gl::g;
+    g=ceilquotient(elements,groupSize);
+    elements=groupSize*g;
 
     if(settings::verbose > 3) {
       static bool first=true;
@@ -2715,14 +1615,14 @@ void refreshBuffers()
         partialSums();
       glFinish();
       double T=Timer.seconds()/N;
-      cout << "elements=" << gl::elements << endl;
+      cout << "elements=" << elements << endl;
       cout << "Tmin (ms)=" << T*1e3 << endl;
-      cout << "Megapixels/second=" << gl::elements/T/1e6 << endl;
+      cout << "Megapixels/second=" << elements/T/1e6 << endl;
     }
 
     partialSums(true);
   } else {
-    size_t size=gl::elements*sizeof(GLuint);
+    size_t size=elements*sizeof(GLuint);
 
     // Compute partial sums on the CPU
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
@@ -2738,7 +1638,7 @@ void refreshBuffers()
                                                GL_MAP_WRITE_BIT);
 
     size_t Offset=offset[0]=count[0];
-    for(size_t i=1; i < gl::elements; ++i)
+    for(size_t i=1; i < elements; ++i)
       offset[i]=Offset += count[i];
     fragments=Offset;
 
@@ -2748,17 +1648,17 @@ void refreshBuffers()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
-    if(gl::exporting) {
+    if(exporting) {
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                         GL_UNSIGNED_INT,&zero);
     } else
       clearCount();
 
-    if(maxsize > gl::maxSize)
-      gl::resizeBlendShader(maxsize);
+    if(maxsize > maxSize)
+      resizeBlendShader(maxsize);
   }
-  gl::lastshader=-1;
+  lastshader=-1;
 }
 
 void setUniforms(vertexBuffer& data, GLint shader)
@@ -2773,33 +1673,33 @@ void setUniforms(vertexBuffer& data, GLint shader)
     return;
   }
 
-  if(shader != gl::lastshader) {
+  if(shader != lastshader) {
     glUseProgram(shader);
 
     if(normal)
-      glUniform1ui(glGetUniformLocation(shader,"width"),gl::Width);
+      glUniform1ui(glGetUniformLocation(shader,"width"),Width);
   }
 
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
-                     value_ptr(gl::projViewMat));
+                     value_ptr(glm::mat4(projViewMat)));
 
   glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE,
-                     value_ptr(gl::viewMat));
+                     value_ptr(glm::mat4(viewMat)));
   if(normal)
     glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE,
-                       value_ptr(gl::normMat));
+                       value_ptr(glm::mat3(normMat)));
 
   if(shader == countShader) {
-    gl::lastshader=shader;
+    lastshader=shader;
     return;
   }
 
-  if(shader != gl::lastshader) {
-    gl::lastshader=shader;
-    glUniform1ui(glGetUniformLocation(shader,"nlights"),gl::nlights);
+  if(shader != lastshader) {
+    lastshader=shader;
+    glUniform1ui(glGetUniformLocation(shader,"nlights"),nlights);
 
-    for(size_t i=0; i < gl::nlights; ++i) {
-      triple Lighti=gl::Lights[i];
+    for(size_t i=0; i < nlights; ++i) {
+      triple Lighti=Lights[i];
       size_t i4=4*i;
       glUniform3f(glGetUniformLocation(shader,
                                        getLightIndex(i,"direction").c_str()),
@@ -2808,24 +1708,22 @@ void setUniforms(vertexBuffer& data, GLint shader)
 
       glUniform3f(glGetUniformLocation(shader,
                                        getLightIndex(i,"color").c_str()),
-                  (GLfloat) gl::Diffuse[i4],(GLfloat) gl::Diffuse[i4+1],
-                  (GLfloat) gl::Diffuse[i4+2]);
+                  (GLfloat) Diffuse[i4],(GLfloat) Diffuse[i4+1],
+                  (GLfloat) Diffuse[i4+2]);
     }
 
-    if(settings::getSetting<bool>("ibl")) {
-      gl::IBLbrdfTex.setUniform(glGetUniformLocation(shader,
-                                                     "reflBRDFSampler"));
-      gl::irradiance.setUniform(glGetUniformLocation(shader,
-                                                     "diffuseSampler"));
-      gl::reflTextures.setUniform(glGetUniformLocation(shader,
-                                                       "reflImgSampler"));
-    }
+    // IBL textures - disabled for now due to template issues
+    // if(settings::getSetting<bool>("ibl")) {
+    //   camp::IBLbrdfTex.setUniform(glGetUniformLocation(shader, "reflBRDFSampler"));
+    //   camp::irradianceTex.setUniform(glGetUniformLocation(shader, "diffuseSampler"));
+    //   camp::reflTexturesTex.setUniform(glGetUniformLocation(shader, "reflImgSampler"));
+    // }
   }
 
   GLuint binding=0;
   GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
   glUniformBlockBinding(shader,blockindex,binding);
-  bool copy=(gl::remesh || data.partial || !data.rendered) && !gl::copied;
+  bool copy=(remesh || data.partial || !data.rendered) && !copied;
   registerBuffer(data.materials,data.materialsBuffer,copy,GL_UNIFORM_BUFFER);
   glBindBufferBase(GL_UNIFORM_BUFFER,binding,data.materialsBuffer);
 }
@@ -2864,12 +1762,12 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
   if(settings::verbose > 2 && !data.vertices.empty()) {
     cerr << "drawBuffer: vertices.size=" << data.vertices.size()
          << " indices.size=" << data.indices.size()
-         << " copy=" << ((gl::remesh || data.partial || !data.rendered) && !gl::copied) << endl;
+         << " copy=" << ((remesh || data.partial || !data.rendered) && !copied) << endl;
   }
 
   // VAO is already bound from setBuffers(), no need to bind here
 
-  bool copy=(gl::remesh || data.partial || !data.rendered) && !gl::copied;
+  bool copy=(remesh || data.partial || !data.rendered) && !copied;
   if(color) registerBuffer(data.Vertices,data.VerticesBuffer,copy);
   else if(normal) registerBuffer(data.vertices,data.verticesBuffer,copy);
   else registerBuffer(data.vertices0,data.vertices0Buffer,copy);
@@ -2884,7 +1782,7 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
                         (void *) 0);
   glEnableVertexAttribArray(positionAttrib);
 
-  if(normal && gl::Nlights > 0) {
+  if(normal && Nlights > 0) {
     glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
                           (void *) (3*size));
     glEnableVertexAttribArray(normalAttrib);
@@ -2916,7 +1814,7 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
 
   // Disable attribute arrays but keep VAO bound for next draw call
   glDisableVertexAttribArray(positionAttrib);
-  if(normal && gl::Nlights > 0)
+  if(normal && Nlights > 0)
     glDisableVertexAttribArray(normalAttrib);
   if(!normal)
     glDisableVertexAttribArray(widthAttrib);
@@ -2976,11 +1874,11 @@ void aBufferTransparency()
   // Blend transparent fragments
   glDisable(GL_DEPTH_TEST);
   glUseProgram(blendShader);
-  gl::lastshader=blendShader;
-  glUniform1ui(glGetUniformLocation(blendShader,"width"),gl::Width);
+  lastshader=blendShader;
+  glUniform1ui(glGetUniformLocation(blendShader,"width"),Width);
   glUniform4f(glGetUniformLocation(blendShader,"background"),
-              gl::Background[0],gl::Background[1],gl::Background[2],
-              gl::Background[3]);
+              camp::glRenderer->Background[0],camp::glRenderer->Background[1],camp::glRenderer->Background[2],
+              camp::glRenderer->Background[3]);
   fpu_trap(false); // Work around FE_INVALID
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDrawArrays(GL_TRIANGLES,0,3);
@@ -3007,7 +1905,7 @@ void drawTransparent()
 
 void drawBuffers()
 {
-  gl::copied=false;
+  copied=false;
   Opaque=transparentData.indices.empty();
   bool transparent=!Opaque;
 
@@ -3028,7 +1926,7 @@ void drawBuffers()
       refreshBuffers();
       if(!interlock) {
         resizeFragmentBuffer();
-        gl::copied=true;
+        copied=true;
       }
     }
   }
@@ -3041,7 +1939,7 @@ void drawBuffers()
 
   if(transparent) {
     if(camp::ssbo)
-      gl::copied=true;
+      copied=true;
     if(interlock) resizeFragmentBuffer();
     drawTransparent();
   }
@@ -3069,12 +1967,6 @@ void setMaterial(vertexBuffer& data, draw_t *draw)
 }
 #endif /* HAVE_RENDERER */
 
-// Definitions for extern variables declared in renderBase.h (must be unconditional)
-namespace camp {
-glm::dmat4 projViewMat;
-glm::dmat4 normMat;
-}
-
 #ifdef HAVE_RENDERER
 namespace camp {
 
@@ -3085,42 +1977,405 @@ AsyGLRender::~AsyGLRender()
     ::glfwDestroyWindow(static_cast<GLFWwindow*>(glfwWindow));
     glfwWindow = nullptr;
   }
+
+  // Cleanup OpenGL resources
+  glDeleteProgram(pixelShader);
+  for(int i=0; i<2; ++i) {
+    glDeleteProgram(materialShader[i]);
+    glDeleteProgram(colorShader[i]);
+    glDeleteProgram(generalShader[i]);
+  }
+  glDeleteProgram(countShader);
+  glDeleteProgram(transparentShader);
+  glDeleteProgram(blendShader);
+  glDeleteProgram(zeroShader);
+  glDeleteProgram(compressShader);
+  glDeleteProgram(sum1Shader);
+  glDeleteProgram(sum2Shader);
+  glDeleteProgram(sum2fastShader);
+  glDeleteProgram(sum3Shader);
+
+  if(vao) glDeleteVertexArrays(1, &vao);
+  if(offsetBuffer) glDeleteBuffers(1, &offsetBuffer);
+  if(indexBuffer) glDeleteBuffers(1, &indexBuffer);
+  if(elementsBuffer) glDeleteBuffers(1, &elementsBuffer);
+  if(countBuffer) glDeleteBuffers(1, &countBuffer);
+  if(globalSumBuffer) glDeleteBuffers(1, &globalSumBuffer);
+  if(fragmentBuffer) glDeleteBuffers(1, &fragmentBuffer);
+  if(depthBuffer) glDeleteBuffers(1, &depthBuffer);
+  if(opaqueBuffer) glDeleteBuffers(1, &opaqueBuffer);
+  if(opaqueDepthBuffer) glDeleteBuffers(1, &opaqueDepthBuffer);
+  if(feedbackBuffer) glDeleteBuffers(1, &feedbackBuffer);
 #endif
 }
 
 void AsyGLRender::render(RenderFunctionArgs const& args)
 {
-  // Delegate to the legacy glrender function
-  gl::GLRenderArgs legacy_args;
-  legacy_args.prefix = args.prefix;
-  legacy_args.pic = const_cast<camp::picture*>(args.pic);
-  legacy_args.format = args.format;
-  legacy_args.width = args.width;
-  legacy_args.height = args.height;
-  legacy_args.angle = args.angle;
-  legacy_args.zoom = args.zoom;
-  legacy_args.m = args.m;
-  legacy_args.M = args.M;
-  legacy_args.shift = args.shift;
-  legacy_args.margin = args.margin;
-  legacy_args.t = args.t;
-  legacy_args.tup = args.tup;
-  legacy_args.background = args.background;
-  legacy_args.nlights = args.nlightsin;
-  legacy_args.lights = args.lights;
-  legacy_args.diffuse = args.diffuse;
-  legacy_args.specular = args.specular;
-  legacy_args.view = args.view;
+  // Initialize GLFW and get screen dimensions FIRST (matching reference pattern)
+#ifdef HAVE_LIBGLFW
+#ifndef HAVE_LIBOSMESA
+  static bool glfwInitialized = false;
+  if(!glfwInitialized) {
+    glfwSetErrorCallback([](int error, const char* description) {
+      cerr << "GLFW error [" << error << "]: " << description << endl;
+    });
 
-  gl::glrender(legacy_args, args.oldpid);
+    if(!::glfwInit()) {
+      cerr << "Failed to initialize GLFW" << endl;
+      exit(-1);
+    }
+    glfwInitialized = true;
+
+    // Get monitor based on device setting (same as reference)
+    Int device = getSetting<Int>("device");
+    int numMonitors;
+    GLFWmonitor** monitors = glfwGetMonitors(&numMonitors);
+
+    GLFWmonitor* monitor = nullptr;
+    if (monitors && numMonitors > 0) {
+      int monitorIndex = (int)device;
+      if (monitorIndex < 0) monitorIndex = numMonitors + monitorIndex;
+      if (monitorIndex >= 0 && monitorIndex < numMonitors)
+        monitor = monitors[monitorIndex];
+      else
+        monitor = glfwGetPrimaryMonitor();
+    } else {
+      monitor = glfwGetPrimaryMonitor();
+    }
+
+    if(monitor) {
+      int mx, my;
+      glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
+    } else {
+      // Fallback if no monitor found (e.g., no X display)
+      screenWidth = maxTileWidth > 0 ? maxTileWidth : 1024;
+      screenHeight = maxTileHeight > 0 ? maxTileHeight : 768;
+    }
+  }
+#endif
+#endif
+
+  // Initialize from arguments (following Vulkan pattern - use member variables)
+  Prefix = args.prefix;
+  Picture = args.pic;  // Set global Picture variable for drawscene()
+  pic = args.pic;      // Also set member variable
+  Format = args.format;
+  nlights = args.nlightsin;
+
+  Lights = args.lights;
+  Diffuse = args.diffuse;
+  Specular = args.specular;
+  View = args.view;
+  Angle = args.angle * ASY_RADIANS;
+  Zoom0 = std::fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
+  Shift = args.shift / Zoom0;
+  Margin = args.margin;
+
+  for(int i=0; i<4; ++i) {
+    Background[i] = static_cast<float>(args.background[i]);
+  }
+
+  // Use member variables from AsyRender base class (following Vulkan pattern)
+  Xmin = args.m.getx();
+  Xmax = args.M.getx();
+  Ymin = args.m.gety();
+  Ymax = args.M.gety();
+  Zmin = args.m.getz();
+  Zmax = args.M.getz();
+
+  // Also set lowercase viewport bounds (member variables from AsyRender)
+  xmin = Xmin;
+  xmax = Xmax;
+  ymin = Ymin;
+  ymax = Ymax;
+
+  cerr << "DEBUG: After setting - Xmin=" << Xmin << " Ymin=" << Ymin << " Zmin=" << Zmin << endl;
+  cerr << "DEBUG: After setting - Xmax=" << Xmax << " Ymax=" << Ymax << " Zmax=" << Zmax << endl;
+  cerr << "DEBUG: After setting - xmin=" << xmin << " xmax=" << xmax << " ymin=" << ymin << " ymax=" << ymax << endl;
+
+  haveScene = Xmin < Xmax && Ymin < Ymax && Zmin < Zmax;
+  orthographic = Angle == 0.0;
+  H = orthographic ? 0.0 : -tan(0.5 * Angle) * Zmax;
+  Xfactor = Yfactor = 1.0;
+
+  // Sync minimal globals with member variables (following Vulkan pattern)
+  camp::orthographic_gl = orthographic;
+
+  for(int i=0; i<16; ++i) {
+    T[i] = args.t[i];
+    Tup[i] = args.tup[i];
+  }
+
+  // Initialize window dimensions and aspect ratio
+  bool v3d = args.format == "v3d";
+  bool webgl = args.format == "html";
+  bool format3d = webgl || v3d;
+
+  antialias = settings::getSetting<Int>("antialias") > 1;
+  double expand;
+  if(format3d) {
+    expand = 1.0;
+  } else {
+    expand = settings::getSetting<double>("render");
+    if(expand < 0)
+      expand *= (Format.empty() || Format == "eps" || Format == "pdf") ? -2.0 : -1.0;
+    if(antialias) expand *= 2.0;
+  }
+
+  oWidth = args.width;
+  oHeight = args.height;
+  Aspect = args.width / args.height;
+  Aspect = args.width / args.height;
+
+  pair maxViewport = settings::getSetting<pair>("maxviewport");
+  int maxWidth = maxViewport.getx() > 0 ? (int)ceil(maxViewport.getx()) : screenWidth;
+  int maxHeight = maxViewport.gety() > 0 ? (int)ceil(maxViewport.gety()) : screenHeight;
+  if(maxWidth <= 0) maxWidth = max(maxHeight, 2);
+  if(maxHeight <= 0) maxHeight = max(maxWidth, 2);
+
+  if(screenWidth <= 0) screenWidth = maxWidth;
+  else screenWidth = min(screenWidth, maxWidth);
+  if(screenHeight <= 0) screenHeight = maxHeight;
+  else screenHeight = min(screenHeight, maxHeight);
+
+  fullWidth = (int)ceil(expand * args.width);
+  fullHeight = (int)ceil(expand * args.height);
+
+  if(format3d) {
+    Width = fullWidth;
+    Height = fullHeight;
+  } else {
+    Width = min(fullWidth, screenWidth);
+    Height = min(fullHeight, screenHeight);
+    if(Width > Height * Aspect)
+      Width = min((int)ceil(Height * Aspect), screenWidth);
+    else
+      Height = min((int)ceil(Width / Aspect), screenHeight);
+  }
+
+  // Initialize view state
+  home(format3d);
+  setProjection();
+
+  if(format3d) {
+    remesh = true;
+    return;
+  }
+
+  maxFragments = 0;
+  ArcballFactor = 1 + 8.0 * hypot(Margin.getx(), Margin.gety()) / hypot(Width, Height);
+  Aspect = (double)Width / Height;
+
+#ifdef HAVE_LIBGLFW
+  setosize();
+#endif
+
+  // Create GLFW window BEFORE OpenGL initialization if viewing and not using OSMesa
+#ifdef HAVE_LIBGLFW
+#ifndef HAVE_LIBOSMESA
+  if(View && glfwWindow == nullptr) {
+    // Use appropriate window size - for hidden windows use maxTile dimensions
+    int winWidth = Width;
+    int winHeight = Height;
+    if(!View || Iconify) {
+      // For hidden/offscreen rendering, use larger tile dimensions
+      winWidth = maxTileWidth > 0 ? maxTileWidth : 1024;
+      winHeight = maxTileHeight > 0 ? maxTileHeight : 768;
+    }
+
+    GLFWwindow* newWindow = glfwCreateRenderWindow(winWidth, winHeight, title.empty() ? Prefix.c_str() : title.c_str(), this);
+    if(newWindow == nullptr) {
+      cerr << "Failed to create GLFW window" << endl;
+      exit(-1);
+    }
+    glfwWindow = static_cast<void*>(newWindow);
+    // Also set the global window variable for compatibility with existing code
+    ::window = newWindow;
+
+    // Make context current before GLEW initialization (matching reference pattern)
+    glfwMakeContextCurrent(::window);
+
+    // Initialize GLEW immediately after context creation (matching reference pattern)
+    glewExperimental = GL_TRUE;
+    GLenum glewErr = glewInit();
+    if(glewErr != GLEW_OK) {
+      cerr << "GLEW initialization error: " << glewGetErrorString(glewErr) << endl;
+      exit(-1);
+    }
+
+    // Set GLSL version immediately after GLEW init (matching reference pattern)
+    const char *GLSL_VERSION=(const char *)glGetString(GL_SHADING_LANGUAGE_VERSION);
+    if(GLSL_VERSION)
+      GLSLversion=(int) (100*atof(GLSL_VERSION)+0.5);
+    if(settings::verbose > 2)
+      cout << "GLSL version " << GLSL_VERSION << " (GLSLversion=" << GLSLversion << ")" << endl;
+
+    if(settings::verbose > 2) {
+      cerr << "Created window and initialized GLEW: " << Width << "x" << Height
+           << " window=" << ::window << endl;
+    }
+  }
+#endif
+#endif
+
+  // Initialize GPU settings - compute shaders disabled by default for stability
+  // Only enable if explicitly set AND we have a valid OpenGL context
+#if defined(HAVE_COMPUTE_SHADER) && !defined(HAVE_LIBOSMESA)
+  bool gpuIndexingRequested = settings::getSetting<bool>("GPUindexing");
+  GPUcompress = settings::getSetting<bool>("GPUcompress");
+  // Only enable GPUindexing if explicitly requested AND we have a valid window/context
+#ifdef HAVE_LIBGLFW
+  if(gpuIndexingRequested && ::window) {
+    if(glfwGetCurrentContext() == ::window) {
+      GPUindexing = true;
+    } else {
+      GPUindexing = false;
+      if(settings::verbose > 2)
+        cout << "No valid OpenGL context for compute shaders" << endl;
+    }
+  } else {
+    GPUindexing = false;
+  }
+#else
+  GPUindexing = gpuIndexingRequested;
+#endif
+#else
+  GPUindexing = false;
+  GPUcompress = false;
+#endif
+
+  // Initialize OpenGL if needed
+  if(initialize) {
+    initialize = false;
+
+#ifdef HAVE_LIBGLFW
+#ifndef HAVE_LIBOSMESA
+    // GLEW already initialized right after window creation above
+    // Just verify the context is still current
+    if(::window) {
+      glfwMakeContextCurrent(::window);
+      GLFWwindow* current = glfwGetCurrentContext();
+      if(settings::verbose > 2) {
+        cerr << "Post-window GLEW check: ::window=" << ::window << " current=" << current << endl;
+      }
+      if(current != ::window) {
+        cerr << "Failed to make OpenGL context current" << endl;
+        exit(-1);
+      }
+    } else {
+      cerr << "No OpenGL window/context available" << endl;
+      exit(-1);
+    }
+#endif
+#endif
+
+    // Check for any OpenGL errors after GLEW init (done earlier)
+    GLenum glerr = glGetError();
+    if(glerr != GL_NO_ERROR) {
+      cerr << "OpenGL error after GLEW init: " << glerr << endl;
+    }
+    const char* gl_version_str = (const char*)glGetString(GL_VERSION);
+    if(gl_version_str) {
+      int major = gl_version_str[0] - '0';
+      int minor = gl_version_str[2] - '0';
+      if(major < 3 || (major == 3 && minor < 0)) {
+        cerr << "OpenGL version too low: " << gl_version_str
+             << " (need at least 3.0)" << endl;
+        exit(-1);
+      }
+    }
+
+    const char* GLSL_VERSION = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+    if(GLSL_VERSION) {
+      GLSLversion = (int)(100 * atof(GLSL_VERSION) + 0.5);
+      if(GLSLversion < 130) {
+        cerr << "Unsupported GLSL version: " << GLSL_VERSION << endl;
+        exit(-1);
+      }
+    }
+
+    // Check multisampling
+    int samples = 0;
+    glGetIntegerv(GL_SAMPLES, &samples);
+    if(settings::verbose > 1 && samples > 1) {
+      cout << "Multisampling enabled with sample width " << samples << endl;
+    }
+
+    ibl = settings::getSetting<bool>("ibl");
+    initShaders();
+    setBuffers();
+
+    // Initialize GPU compute parameters
+    if(GPUindexing) {
+      localSize = settings::getSetting<Int>("GPUlocalSize");
+      blockSize = settings::getSetting<Int>("GPUblockSize");
+      groupSize = localSize * blockSize;
+    }
+  }
+
+  GLint val;
+  glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &val);
+  Maxmaterials = val / sizeof(Material);
+  if(nmaterials > Maxmaterials) nmaterials = Maxmaterials;
+
+  glClearColor(args.background[0], args.background[1],
+               args.background[2], args.background[3]);
+
+#ifndef HAVE_LIBOSMESA
+  if(View) {
+    if(!getSetting<bool>("fitscreen"))
+      Fitscreen=0;
+    firstFit=true;
+    fitscreen();
+    setosize();
+  }
+#endif
+
+  glEnable(GL_DEPTH_TEST);
+  if(!ssbo) {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  }
+
+  Mode = 2;
+  cycleMode();
+
+  ViewExport = View;
+#ifdef HAVE_LIBOSMESA
+  View = false;
+#endif
+
+  // Enter main loop or export
+  if(View) {
+    // Ensure initial render happens (matching reference pattern)
+    redraw = true;
+    mainLoop();
+  } else {
+    update();
+    display();
+    if(renderThread) {
+      exportHandler();
+    } else {
+      exportHandler();
+      quit();
+    }
+  }
 }
 
+// RenderCallbacks interface implementation
 void AsyGLRender::onMouseButton(int button, int action, int mods)
 {
     auto const currentActionStr = getGLFWAction(button, mods);
     if (currentActionStr.empty()) return;
     if (action == GLFW_PRESS) {
         lastAction = currentActionStr;
+        // Capture initial position for movement tracking
+        double xpos, ypos;
+        if(glfwWindow) {
+            glfwGetCursorPos(static_cast<GLFWwindow*>(glfwWindow), &xpos, &ypos);
+            xprev = xpos;
+            yprev = ypos;
+        }
     } else if (action == GLFW_RELEASE) {
         lastAction.clear();
     }
@@ -3139,33 +2394,32 @@ void AsyGLRender::onScroll(double xoffset, double yoffset)
 {
     auto zoomFactor = getSetting<double>("zoomfactor");
     if(zoomFactor > 0.0) {
-        if (yoffset > 0) Zoom *= zoomFactor;
-        else Zoom /= zoomFactor;
+        if (yoffset > 0) camp::glRenderer->Zoom *= zoomFactor;
+        else camp::glRenderer->Zoom /= zoomFactor;
     }
-    update();
+    capzoom();
+    setProjection();
+    redraw = true;
 }
 
 void AsyGLRender::onCursorPos(double xpos, double ypos)
 {
-    static double xprev = 0.0;
-    static double yprev = 0.0;
-
     if (lastAction == "rotate") {
         camp::Arcball arcball(xprev * 2 / Width - 1, 1 - yprev * 2 / Height,
                         xpos * 2 / Width - 1, 1 - ypos * 2 / Height);
         camp::triple axis = arcball.axis;
-        rotateMat = glm::rotate(2 * arcball.angle / Zoom * ArcballFactor,
+        rotateMat = glm::rotate(2 * arcball.angle / camp::glRenderer->Zoom * ArcballFactor,
                            glm::dvec3(axis.getx(), axis.gety(), axis.getz())) * rotateMat;
         update();
     } else if (lastAction == "shift") {
-        AsyRender::shift(xpos - xprev, ypos - yprev);
+        shift(xpos - xprev, ypos - yprev);
         update();
     } else if (lastAction == "pan") {
-        if (orthographic) AsyRender::shift(xpos - xprev, ypos - yprev);
-        else AsyRender::pan(xpos - xprev, ypos - yprev);
+        if (orthographic_gl) shift(xpos - xprev, ypos - yprev);
+        else pan(xpos - xprev, ypos - yprev);
         update();
     } else if (lastAction == "zoom") {
-        AsyRender::zoom(0.0, ypos - yprev);
+        zoom(0.0, ypos - yprev);
     }
     xprev = xpos;
     yprev = ypos;
@@ -3188,10 +2442,16 @@ void AsyGLRender::display()
 {
 #ifdef HAVE_RENDERER
   GLFWwindow* win = static_cast<GLFWwindow*>(glfwWindow);
-  if(View && glfwWindow && !hideWindow && !glfwGetWindowAttrib(win,GLFW_VISIBLE))
-    ::glfwShowWindow(win);
+  if(View && glfwWindow != nullptr) {
+    // Make OpenGL context current before any GL operations
+    ::glfwMakeContextCurrent(win);
+
+    if(!hideWindow && !glfwGetWindowAttrib(win,GLFW_VISIBLE))
+      ::glfwShowWindow(win);
+  }
 #endif
-  gl::drawscene(Width, Height);
+
+  drawscene(Width, Height);
 
   bool fps=settings::verbose > 2;
   if(fps) {
@@ -3216,38 +2476,50 @@ void AsyGLRender::display()
   if(!renderThread) {
 #if defined(_WIN32)
 #else
-    if(gl::Oldpid != 0 && waitpid(gl::Oldpid,NULL,WNOHANG) != gl::Oldpid) {
-      kill(gl::Oldpid,SIGHUP);
-      gl::Oldpid=0;
+    // Oldpid is now in AsyRender base class
+    if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
+      kill(Oldpid,SIGHUP);
+      Oldpid=0;
     }
 #endif
   }
 }
 
+void AsyGLRender::setProjection()
+{
+  AsyRender::setProjection();
+}
+
+void AsyGLRender::updateModelViewData()
+{
+  normMat=dmat3(glm::inverse(viewMat));
+  const double *T=value_ptr(normMat);
+  for(size_t i=0; i < 9; ++i)
+    glBBT[i]=T[i];
+}
+
+/*
 void AsyGLRender::update()
 {
-  capzoom();
-  redraw=true;
-#ifdef HAVE_RENDERER
   if(glfwWindow) ::glfwShowWindow(static_cast<GLFWwindow*>(glfwWindow));
-#endif
-  double cz=0.5*(Zmin+Zmax);
-  viewMat = translate(translate(dmat4(1.0), dvec3(cx, cy, cz)) * rotateMat, dvec3(0, 0, -cz));
-  setProjection();
-  updateModelViewData();
-}
+  AsyRender::update();
+  }*/
 
 void AsyGLRender::mainLoop()
 {
 #ifdef HAVE_RENDERER
-  if(View) {
+  if(View && glfwWindow != nullptr) {
     GLFWwindow* win = static_cast<GLFWwindow*>(glfwWindow);
 
     glfwRunLoop(win,
-      [win](){ return !glfwWindowShouldClose(win); },
+      [win](){
+        if (win == nullptr) return false;
+        return !glfwWindowShouldClose(win);
+      },
       [this](){ return redraw || redisplay || queueExport; },
       [this](){
         redisplay=false;
+        redraw=false;
         waitEvent=true;
         if(resize) { fitscreen(!interact::interactive); resize=false; }
         display();
@@ -3268,9 +2540,9 @@ void AsyGLRender::mainLoop()
 void AsyGLRender::exportHandler(int)
 {
 #ifdef HAVE_RENDERER
-  gl::readyAfterExport=true;
+  readyAfterExport=true;
 #endif
-  gl::Export();
+  Export();
 }
 
 void AsyGLRender::reshape0(int width, int height)
@@ -3279,5 +2551,7 @@ void AsyGLRender::reshape0(int width, int height)
 }
 
 } // namespace camp
+
+#endif // HAVE_LIBGLM
 
 #endif // HAVE_RENDERER

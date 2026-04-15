@@ -305,7 +305,7 @@ protected:
 
 public:
   // Projection matrix functions
-  void updateProjection();
+  virtual void updateProjection();
   virtual void frustum(double left, double right, double bottom,
                        double top, double nearVal, double farVal);
   virtual void ortho(double left, double right, double bottom,
@@ -391,6 +391,6 @@ public:
 };
 
 extern glm::dmat4 projViewMat;
-extern glm::dmat4 normMat;
+extern glm::dmat3 normMat;  // Normal matrix is 3x3 for normal transformation
 
 } // namespace camp

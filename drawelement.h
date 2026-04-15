@@ -126,13 +126,13 @@ public:
   }
 
   void Bounds(const triple& v) {
-    pair V=Transform2T(gl::dprojView,v);
+    pair V=Transform2T(glm::value_ptr(projViewMat),v);
     x=X=V.getx();
     y=Y=V.gety();
   }
 
   void bounds(const triple& v) {
-    pair V=Transform2T(gl::dprojView,v);
+    pair V=Transform2T(glm::value_ptr(projViewMat),v);
     double a=V.getx();
     double b=V.gety();
     if(a < x) x=a;

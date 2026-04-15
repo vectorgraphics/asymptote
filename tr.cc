@@ -357,10 +357,12 @@ void trBeginTile(TRcontext *tr)
     * (tr->CurrentRow * tr->TileHeightNB - border) / tr->ImageHeight;
   top = bottom + (tr->Top - tr->Bottom) * tileHeight / tr->ImageHeight;
 
+#if 0 // FIXME
   if (tr->Perspective)
     frustum(left, right, bottom, top, tr->Near, tr->Far);
   else
     ortho(left, right, bottom, top, tr->Near, tr->Far);
+#endif
 }
 
 
