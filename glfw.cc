@@ -10,8 +10,6 @@
 using settings::getSetting;
 using vm::read;
 
-// Forward declaration
-void runtimeError(const std::string& s);
 void exitHandler(int);
 
 namespace camp

@@ -10,7 +10,7 @@ namespace camp
 
 /**
  * Virtual interface for renderer callbacks.
- * Derived renderers (AsyVkRender, AsyGlRender) implement this interface
+ * Derived renderers (AsyVkRender, AsyGLRender) implement this interface
  * to handle GLFW window events in a renderer-specific way.
  */
 struct RenderCallbacks
@@ -94,6 +94,12 @@ void glfwRendererShowWindow(GLFWwindow* window);
  * Set window position (wrapper to avoid namespace conflicts).
  */
 void glfwRendererSetWindowPos(GLFWwindow* window, int xpos, int ypos);
+
+inline void runtimeError(const std::string& s)
+{
+  cerr << "error: " << s << endl;
+  exit(-1);
+}
 
 } // namespace camp
 

@@ -40,12 +40,6 @@ static size_t timeout=10000000000;
 void exitHandler(int);
 void *postEmptyEvent(void *);
 
-void runtimeError(const std::string& s)
-{
-  cerr << "error: " << s << endl;
-  exit(-1);
-}
-
 #ifdef HAVE_RENDERER
 uint32_t apiVersion=VK_API_VERSION_1_4;
 
