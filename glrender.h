@@ -378,7 +378,7 @@ public:
   bool glupdate = false;
   bool glexit = false;
   bool initialize = true;
-  int Mode = 2;
+//  int Mode = 0;
   bool copied = false;
 
   // Lighting (OpenGL-specific, public for jsfile/v3dfile access)
