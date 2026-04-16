@@ -396,3 +396,9 @@ public:
 // Note: projViewMat is now a member of AsyRender, accessed via camp::glR->projViewMat
 extern glm::dmat3 dnormMat;  // Double precision normal matrix for internal use
 extern glm::mat3 normMat;    // Float precision normal matrix for shaders
+
+// External declarations from glrender.cc
+namespace camp {
+extern bool format3dWait;
+void mode();
+}

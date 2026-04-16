@@ -17,11 +17,9 @@
 #include "drawsurface.h"
 #include "drawpath3.h"
 #include "seconds.h"
+#include "renderBase.h"
 
 #ifdef HAVE_RENDERER
-// Extern declarations from glrender.cc for access in picture.cc
-extern bool format3dWait;
-
 // Global OpenGL renderer instance is defined inside the camp namespace below
 #endif
 

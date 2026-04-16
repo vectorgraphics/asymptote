@@ -23,6 +23,7 @@
 #include "statistics.h"
 #include "bezierpatch.h"
 #include "beziercurve.h"
+#include "exithandlers.h"
 
 #include "picture.h"
 #include "bbox3.h"
@@ -37,13 +38,6 @@ bool GPUindexing = false;  // Disabled by default - compute shaders not needed f
 bool GPUcompress;
 
 #ifdef HAVE_RENDERER
-// Global matrices for shader compatibility (accessed from setUniforms)
-namespace camp {
-glm::mat3 normMat;   // Normal matrix is 3x3, not 4x4
-double glBBT[9] = {0};
-const double *dView;
-}
-
 #include "tr.h"
 
 #ifdef HAVE_LIBGLFW
@@ -59,13 +53,17 @@ using utils::stopWatch;
 
 using namespace settings;
 using namespace glm;
-using namespace camp;
 
 #endif // HAVE_RENDERER
 
 #ifdef HAVE_LIBGLM
 
 namespace camp {
+// Global matrices for shader compatibility (accessed from setUniforms)
+glm::mat3 normMat;   // Normal matrix is 3x3, not 4x4
+double glBBT[9] = {0};
+const double *dView;
+
 Billboard BB;
 
 vertexBuffer material0Data(GL_POINTS);
@@ -86,6 +84,8 @@ size_t Maxmaterials;
 size_t Nmaterials=1;
 size_t nmaterials=48;
 unsigned int Opaque=0;
+
+bool orthographic_gl = false;
 
 void clearCenters()
 {
@@ -108,24 +108,21 @@ void clearMaterials()
 }
 
 //extern int fullWidth, fullHeight;
-extern bool orthographic_gl;  // Note: different name to avoid conflict with v3dheadertypes::orthographic enum
+// Note: different name to avoid conflict with v3dheadertypes::orthographic enum
 extern double Angle, Zoom0;
 extern pair Shift, Margin;
 extern double T[16], Tup[16];
 extern double Xmin, Xmax, Ymin, Ymax, Zmin, Zmax;  // These are now member variables in AsyRender
-}
 
-extern void exitHandler(int);
+// IBL textures - disabled for now due to template issues
+void* iblbrdfTex = nullptr;
+void* irradianceTex = nullptr;
+void* reflTexturesTex = nullptr;
 
-using namespace camp;
-using vm::array;
-using vm::read;
-using settings::getSetting;
-using settings::Setting;
+bool Xspin,Yspin,Zspin;
 
-namespace camp {
-bool orthographic_gl = false;
-}
+double T[16];
+double Tup[16];
 
 // OpenGL-specific global state (minimal set for shader compatibility)
 bool Iconify=false;
@@ -162,7 +159,6 @@ triple *Lights;  // Use glR->Lights
 double *Diffuse;  // Use glR->Diffuse
 double *Specular;  // Use glR->Specular
 bool antialias;  // Use glR->antialias from base class
-double zoomFactor = 0.0;
 GLint lastshader=-1;  // Moved to AsyGLRender class member
 bool format3dWait=false;  // Keep as global for threading
 unsigned int framecount;  // Use glR->framecount from base class
@@ -175,18 +171,6 @@ GLuint g=0;
 GLuint maxSize=1;  // Moved to AsyGLRender class member
 GLuint processors=0;
 
-template<class T>
-inline T min(T a, T b)
-{
-  return (a < b) ? a : b;
-}
-
-template<class T>
-inline T max(T a, T b)
-{
-  return (a > b) ? a : b;
-}
-
 glm::vec4 vec4(triple v)
 {
   return glm::vec4(v.getx(),v.gety(),v.getz(),0);
@@ -197,13 +181,9 @@ glm::vec4 vec4(double *v)
   return glm::vec4(v[0],v[1],v[2],v[3]);
 }
 
-bool Xspin,Yspin,Zspin;
-
-double T[16];
-double Tup[16];
-
 #ifdef HAVE_RENDERER
 
+// GLFW window globals - kept in camp namespace for type compatibility
 #ifdef HAVE_LIBGLFW
 int oldWidth,oldHeight;
 
@@ -217,13 +197,6 @@ GLFWwindow* window;
 
 using utils::statistics;
 statistics S;
-
-namespace camp {
-// IBL textures - disabled for now due to template issues
-void* iblbrdfTex = nullptr;
-void* irradianceTex = nullptr;
-void* reflTexturesTex = nullptr;
-}
 
 gl::GLTexture2<float,GL_FLOAT> fromEXR(string const& EXRFile, gl::GLTexturesFmt const& fmt, GLint const& textureNumber)
 {
@@ -309,8 +282,8 @@ void initComputeShaders()
   // Ensure context is current before using OpenGL functions
 #ifdef HAVE_LIBGLFW
 #ifndef HAVE_LIBOSMESA
-  if(::window) {
-    glfwMakeContextCurrent(::window);
+  if(window) {
+    glfwMakeContextCurrent(window);
   }
 #endif
 #endif
@@ -396,8 +369,8 @@ void initShaders()
   // Ensure context is current before using OpenGL functions
 #ifdef HAVE_LIBGLFW
 #ifndef HAVE_LIBOSMESA
-  if(::window) {
-    glfwMakeContextCurrent(::window);
+  if(window) {
+    glfwMakeContextCurrent(window);
   }
 #endif
 #endif
@@ -422,7 +395,7 @@ void initShaders()
 #ifdef HAVE_LIBGLFW
 #ifndef HAVE_LIBOSMESA
     // Check if we have a valid OpenGL context before trying compute shaders
-    if(::window && glfwGetCurrentContext() == ::window) {
+    if(window && glfwGetCurrentContext() == window) {
       initComputeShaders();
     } else {
       GPUindexing = false; // Disable if no valid context
@@ -854,10 +827,10 @@ void mode()
   remesh=true;
   if(glR->ssbo)
     glR->initSSBO=true;
-  ++::Mode;
-  if(::Mode > 2) ::Mode=0;
+  ++Mode;
+  if(Mode > 2) Mode=0;
 
-  switch(::Mode) {
+  switch(Mode) {
     case 0: // regular
       glR->outlinemode=false;
       glR->ibl=getSetting<bool>("ibl");
@@ -946,7 +919,7 @@ void setsize(int w, int h, bool reposition=true)
   if (glR && glR->glfwWindow != nullptr) {
     win = static_cast<GLFWwindow*>(glR->glfwWindow);
   } else {
-    win = ::window;
+    win = window;
   }
 
   if (win == nullptr) return;
@@ -998,7 +971,7 @@ void fullscreen(bool reposition=true)
   if (glR->glfwWindow != nullptr) {
     win = static_cast<GLFWwindow*>(glR->glfwWindow);
   } else {
-    win = ::window;
+    win = window;
   }
 
   if (win != nullptr) {
@@ -1102,7 +1075,7 @@ void display()
   if (glR && glR->glfwWindow != nullptr) {
     win = static_cast<GLFWwindow*>(glR->glfwWindow);
   } else {
-    win = ::window;
+    win = window;
   }
 
   if (win != nullptr) {
@@ -1147,7 +1120,7 @@ void updateHandler(int)
   if (glR && glR->glfwWindow != nullptr) {
     win = static_cast<GLFWwindow*>(glR->glfwWindow);
   } else {
-    win = ::window;
+    win = window;
   }
 
   if (win != nullptr) {
@@ -1174,7 +1147,7 @@ void reshape(int width, int height)
   if (glR && glR->glfwWindow != nullptr) {
     win = static_cast<GLFWwindow*>(glR->glfwWindow);
   } else {
-    win = ::window;
+    win = window;
   }
 
   if(capsize(width,height)) {
@@ -1197,7 +1170,7 @@ void exportHandler(int=0)
     if (glR && glR->glfwWindow != nullptr) {
       win = static_cast<GLFWwindow*>(glR->glfwWindow);
     } else {
-      win = ::window;
+      win = window;
     }
 
     if (win != nullptr) {
@@ -1283,8 +1256,6 @@ bool NVIDIA()
 }
 
 #endif /* HAVE_RENDERER */
-
-namespace camp {
 
 string getLightIndex(size_t const& index, string const& fieldName) {
   ostringstream buf;
@@ -1858,12 +1829,6 @@ void setMaterial(vertexBuffer& data, draw_t *draw)
   materialIndex=data.materialTable[materialIndex];
 }
 
-}
-#endif /* HAVE_RENDERER */
-
-#ifdef HAVE_RENDERER
-namespace camp {
-
 AsyGLRender::~AsyGLRender()
 {
 #ifdef HAVE_RENDERER
@@ -2088,10 +2053,10 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     }
     glfwWindow = static_cast<void*>(newWindow);
     // Also set the global window variable for compatibility with existing code
-    ::window = newWindow;
+    window = newWindow;
 
     // Make context current before GLEW initialization (matching reference pattern)
-    glfwMakeContextCurrent(::window);
+    glfwMakeContextCurrent(window);
 
     // Initialize GLEW immediately after context creation (matching reference pattern)
     glewExperimental = GL_TRUE;
@@ -2110,7 +2075,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 
     if(settings::verbose > 2) {
       cerr << "Created window and initialized GLEW: " << Width << "x" << Height
-           << " window=" << ::window << endl;
+           << " window=" << window << endl;
     }
   }
 #endif
@@ -2123,8 +2088,8 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   GPUcompress = settings::getSetting<bool>("GPUcompress");
   // Only enable GPUindexing if explicitly requested AND we have a valid window/context
 #ifdef HAVE_LIBGLFW
-  if(gpuIndexingRequested && ::window) {
-    if(glfwGetCurrentContext() == ::window) {
+  if(gpuIndexingRequested && window) {
+    if(glfwGetCurrentContext() == window) {
       GPUindexing = true;
     } else {
       GPUindexing = false;
@@ -2150,13 +2115,13 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 #ifndef HAVE_LIBOSMESA
     // GLEW already initialized right after window creation above
     // Just verify the context is still current
-    if(::window) {
-      glfwMakeContextCurrent(::window);
+    if(window) {
+      glfwMakeContextCurrent(window);
       GLFWwindow* current = glfwGetCurrentContext();
       if(settings::verbose > 2) {
-        cerr << "Post-window GLEW check: ::window=" << ::window << " current=" << current << endl;
+        cerr << "Post-window GLEW check: window=" << window << " current=" << current << endl;
       }
-      if(current != ::window) {
+      if(current != window) {
         cerr << "Failed to make OpenGL context current" << endl;
         exit(-1);
       }
@@ -2235,8 +2200,8 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
 
-  ::Mode=2;
-  ::mode();
+  Mode=2;
+  camp::mode();
 
   ViewExport = View;
 #ifdef HAVE_LIBOSMESA
@@ -2334,7 +2299,7 @@ void AsyGLRender::onWindowFocus(int focused) {}
 void AsyGLRender::onClose()
 {
     AsyRender::onClose();
-    exitHandler(0);
+    ::exitHandler(0);
 }
 
 void AsyGLRender::display()
