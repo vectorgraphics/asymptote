@@ -311,7 +311,7 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
 
 void AsyVkRender::updateHandler(int) {
   if(vk->View && vk->glfwWindow && !interact::interactive) {
-    ::glfwHideWindow(static_cast<GLFWwindow*>(vk->glfwWindow));
+    ::glfwHideWindow(vk->getGLFWWindow());
     if(!getSetting<bool>("fitscreen"))
       vk->Fitscreen=0;
   }
@@ -329,7 +329,7 @@ void AsyVkRender::updateHandler(int) {
 AsyVkRender::~AsyVkRender()
 {
   if (this->View && glfwWindow != nullptr) {
-    ::glfwDestroyWindow(static_cast<GLFWwindow*>(glfwWindow));
+    ::glfwDestroyWindow(getGLFWWindow());
     glfwWindow = nullptr;
   }
 
@@ -899,7 +899,7 @@ void AsyVkRender::createSurface()
 {
 #if defined(_WIN32)
   vk::Win32SurfaceCreateInfoKHR createInfo = {};
-  createInfo.hwnd = glfwGetWin32Window(static_cast<GLFWwindow*>(glfwWindow));
+  createInfo.hwnd = glfwGetWin32Window(getGLFWWindow());
   createInfo.hinstance = GetModuleHandleA(nullptr);
 
   vk::SurfaceKHR tmpSurface;
@@ -913,7 +913,7 @@ void AsyVkRender::createSurface()
   surface=vk::UniqueSurfaceKHR(tmpSurface);
 #else
   VkSurfaceKHR surfaceTmp;
-  if (glfwCreateWindowSurface(*instance, static_cast<GLFWwindow*>(glfwWindow), nullptr, &surfaceTmp) != VK_SUCCESS)
+  if (glfwCreateWindowSurface(*instance, getGLFWWindow(), nullptr, &surfaceTmp) != VK_SUCCESS)
     runtimeError("failed to create window surface");
   surface=vk::UniqueSurfaceKHR(surfaceTmp, *instance);
 #endif
@@ -4583,7 +4583,7 @@ void AsyVkRender::display()
 {
   prepareScene();
 
-  GLFWwindow* win = static_cast<GLFWwindow*>(glfwWindow);
+  GLFWwindow* win = getGLFWWindow();
   if(View && glfwWindow && !hideWindow && !glfwGetWindowAttrib(win,GLFW_VISIBLE))
     ::glfwShowWindow(win);
 
@@ -4645,7 +4645,7 @@ void AsyVkRender::mainLoop()
     // Use the generic GLFW event loop from glfw.cc
     // This keeps the event loop logic library-agnostic
 
-    GLFWwindow* win = static_cast<GLFWwindow*>(glfwWindow);
+    GLFWwindow* win = getGLFWWindow();
     glfwRunLoop(win,
       // shouldContinue: continue while window is open
       [win](){ return !glfwWindowShouldClose(win); },

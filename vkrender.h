@@ -732,6 +732,9 @@ public:
   // Graphics library cleanup
   void finalizeProcess() override;
 
+  /** Returns the GLFW window pointer (does the static_cast from void* once) */
+  GLFWwindow* getGLFWWindow() const { return static_cast<GLFWwindow*>(glfwWindow); }
+
   // Vulkan-specific overrides that add to base class behavior
   virtual void reshape0(int width, int height) override;
   virtual void cycleMode() override;
