@@ -125,7 +125,6 @@ bool Iconify=false;
 bool ignorezoom;
 int Fitscreen=1;
 bool firstFit;
-int Mode;
 bool ViewExport;
 int Oldpid;
 // Note: Prefix, Format, fullWidth, fullHeight, Width, Height are now in AsyRender base class
@@ -344,8 +343,8 @@ void initShaders()
 #endif
 #endif
 
-  size_t Nlights=gl->nlights == 0 ? 0 : std::max(gl->Nlights,gl->nlights);
-  Nmaterials=std::max(Nmaterials,nmaterials);
+  gl->Nlights = gl->nlights == 0 ? 0 : std::max(gl->Nlights, gl->nlights);
+  Nmaterials = std::max(Nmaterials, nmaterials);
 
   string zero=locateFile("shaders/zero.glsl");
   string compress=locateFile("shaders/compress.glsl");
@@ -420,7 +419,7 @@ void initShaders()
     shaderParams.push_back("ORTHOGRAPHIC");
 
   ostringstream lights,materials,opaque;
-  lights << "Nlights " << Nlights;
+  lights << "Nlights " << gl->Nlights;
   shaderParams.push_back(lights.str().c_str());
   materials << "Nmaterials " << Nmaterials;
   shaderParams.push_back(materials.str().c_str());
@@ -585,8 +584,7 @@ void drawscene(int Width, int Height)
     gl->wait(gl->initSignal,gl->initLock);
 #endif
 
-  size_t Nlights=gl->nlights;
-  if((Nlights == 0 && gl->Nlights > 0) || Nlights > gl->Nlights ||
+  if((gl->nlights == 0 && gl->Nlights > 0) || gl->nlights > gl->Nlights ||
      nmaterials > Nmaterials) {
     deleteShaders();
     initShaders();
@@ -781,35 +779,33 @@ void quit()
 #endif
 }
 
-void mode()
+void AsyGLRender::cycleMode()
 {
-  gl->remesh=true;
-  if(gl->ssbo)
-    gl->initSSBO=true;
-  ++Mode;
-  if(Mode > 2) Mode=0;
+  // Call base class to handle mode cycling, ibl, and outlinemode
+  AsyRender::cycleMode();
 
-  switch(Mode) {
-    case 0: // regular
-      gl->outlinemode=false;
-      gl->ibl=getSetting<bool>("ibl");
-      gl->nlights=gl->nlights;
-      gl->lastshader=-1;
+  // OpenGL-specific: restore nlights and set polygon mode
+  remesh=true;
+  if(ssbo)
+    initSSBO=true;
+
+  switch(mode) {
+    case DRAWMODE_NORMAL: // regular
+      nlights=nlights0;  // Restore original number of lights
+      lastshader=-1;
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
       break;
-    case 1: // outline
-      gl->outlinemode=true;
-      gl->ibl=false;
-      gl->nlights=0; // Force shader recompilation
+    case DRAWMODE_OUTLINE: // outline
+      nlights=0; // Force shader recompilation
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       break;
-    case 2: // wireframe
-      gl->outlinemode=false;
-      gl->Nlights=1; // Force shader recompilation
+    case DRAWMODE_WIREFRAME: // wireframe
+      outlinemode=false;
+      Nlights=1; // Force shader recompilation
       break;
   }
 #ifndef HAVE_LIBOSMESA
-  gl->redraw=true;
+  redraw=true;
 #endif
 }
 
@@ -1483,6 +1479,22 @@ void setUniforms(vertexBuffer& data, GLint shader)
     //   irradianceTex.setUniform(glGetUniformLocation(shader, "diffuseSampler"));
     //   reflTexturesTex.setUniform(glGetUniformLocation(shader, "reflImgSampler"));
     // }
+  } else if (normal) {
+    // Even if shader hasn't changed, update nlights uniform and light data if needed
+    glUniform1ui(glGetUniformLocation(shader,"nlights"),gl->nlights);
+    for(size_t i=0; i < gl->nlights; ++i) {
+      triple Lighti=gl->Lights[i];
+      double *Diffusei=gl->Diffuse+4*i;
+      glUniform3f(glGetUniformLocation(shader,
+                                       getLightIndex(i,"direction").c_str()),
+                  (GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),
+                  (GLfloat) Lighti.getz());
+
+      glUniform3f(glGetUniformLocation(shader,
+                                       getLightIndex(i,"color").c_str()),
+                  (GLfloat) Diffusei[0],(GLfloat) Diffusei[1],
+                  (GLfloat) Diffusei[2]);
+    }
   }
 
   GLuint binding=0;
@@ -1831,6 +1843,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   gl->Specular = args.specular;
   gl->Nlights = nlights;
   gl->nlights = nlights;
+  gl->nlights0 = nlights;  // Save original for mode restoration
 
   View = args.view;
   Angle = args.angle * ASY_RADIANS;
@@ -2074,8 +2087,8 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
 
-  Mode=2;
-  camp::mode();
+  mode = DRAWMODE_WIREFRAME;
+  cycleMode();
 
   ViewExport = View;
 #ifdef HAVE_LIBOSMESA

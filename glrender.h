@@ -374,15 +374,14 @@ public:
 
   // OpenGL-specific state (mirroring AsyVkRender pattern)
   bool outlinemode = false;
-  bool ibl = false;
   bool glupdate = false;
   bool glexit = false;
   bool initialize = true;
-//  int Mode = 0;
   bool copied = false;
 
   // Lighting (OpenGL-specific, public for jsfile/v3dfile access)
   size_t Nlights = 1;
+  size_t nlights0 = 0;  // Saved original number of lights for mode restoration
   camp::triple* Lights = nullptr;
   double* Diffuse = nullptr;
   double* Specular = nullptr;
@@ -478,6 +477,7 @@ public:
 
 public:
   void update();
+  void cycleMode() override;
 
   /** Returns the GLFW window pointer (does the static_cast from void* once) */
   GLFWwindow* getGLFWWindow() const { return static_cast<GLFWwindow*>(glfwWindow); }

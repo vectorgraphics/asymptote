@@ -420,7 +420,7 @@ void AsyRender::home(bool webgl)
 
 void AsyRender::cycleMode()
 {
-  mode = DrawMode((mode + 1) % DRAWMODE_MAX);
+  mode = DrawMode((mode + 1) % NUM_DRAW_MODES);
   remesh = true;
   redraw = true;
 
@@ -437,10 +437,7 @@ void AsyRender::cycleMode()
 #endif
   }
 
-  // Call OpenGL-specific mode function to update all rendering state
-#ifdef HAVE_RENDERER
-  camp::mode();
-#endif
+  // Renderer-specific mode handling is done in derived class cycleMode() override
 }
 
 double AsyRender::spinStep()
