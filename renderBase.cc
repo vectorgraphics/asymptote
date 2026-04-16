@@ -413,7 +413,7 @@ void AsyRender::home(bool webgl)
 
 void AsyRender::cycleMode()
 {
-  mode = DrawMode((mode + 1) % DRAWMODE_MAX);
+  mode = DrawMode((mode + 1) % NUM_DRAW_MODES);
   remesh = true;
   redraw = true;
 
@@ -545,7 +545,7 @@ void AsyRender::quit()
   waitEvent = false;
   redraw = false;
 
-  if (renderThread) {
+  if (thread) {
 #ifdef HAVE_PTHREAD
     if (!interact::interactive) {
       idle();

@@ -17,10 +17,9 @@
 #include <pthread.h>
 #endif
 
-#include "glmCommon.h"
-
 #include "common.h"
 
+#include "glmCommon.h"
 #include "material.h"
 #include "pen.h"
 #include "triple.h"
@@ -74,9 +73,10 @@ enum DrawMode: int
 {
    DRAWMODE_NORMAL,
    DRAWMODE_OUTLINE,
-   DRAWMODE_WIREFRAME,
-   DRAWMODE_MAX
+   DRAWMODE_WIREFRAME
 };
+
+constexpr int NUM_DRAW_MODES = 3;
 
 struct Light
 {
@@ -183,6 +183,7 @@ public:
   glm::dmat4 rotateMat;
   glm::dmat4 projMat;
   glm::dmat4 viewMat;
+//  glm::dmat4 projViewMat;  // Combined projection*view matrix for offscreen culling
 
   // Viewport dimensions
   int fullWidth, fullHeight;
@@ -245,8 +246,7 @@ public:
   bool haveScene=false;
   bool waitEvent=true;
 
-  // Thread flag (was vkthread in Vulkan renderer)
-  bool renderThread=false;
+  bool thread=false;
 
   // Window visibility
   bool hideWindow=false;
@@ -389,7 +389,7 @@ public:
 #endif
 };
 
-extern glm::dmat4 projViewMat;
+extern bool format3dWait;
+void mode();
 extern glm::dmat4 normMat;
-
 } // namespace camp

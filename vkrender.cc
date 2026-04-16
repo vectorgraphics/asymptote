@@ -468,9 +468,9 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   }
 
 #ifdef HAVE_RENDERER
-  havewindow=initialized && renderThread;
+  havewindow=initialized && thread;
 
-  if(renderThread && format3d)
+  if(thread && format3d)
     format3dWait=true;
 
   clearMaterials();
@@ -479,7 +479,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 #endif
 
 #ifdef HAVE_PTHREAD
-  if(renderThread && initializedView) {
+  if(thread && initializedView) {
     if(View) {
       // called from asymain thread, main thread handles vulkan rendering
       hideWindow=false;
@@ -4547,7 +4547,7 @@ void AsyVkRender::prepareScene()
 
 #ifdef HAVE_PTHREAD
   static bool first=true;
-  if(renderThread && first) {
+  if(thread && first) {
     wait(initSignal,initLock);
     endwait(initSignal,initLock);
     first=false;
@@ -4606,7 +4606,7 @@ void AsyVkRender::display()
     ++framecount;
   }
 
-  if(!renderThread) {
+  if(!thread) {
 #if defined(_WIN32)
 // TODO: Check if we need a threadless-based vk renderer
 #else
@@ -4680,7 +4680,7 @@ void AsyVkRender::mainLoop()
   } else {
     update();
     display();
-    if(renderThread) {
+    if(thread) {
       if(havewindow) {
 #ifdef HAVE_PTHREAD
         if(pthread_equal(pthread_self(),this->mainthread))
@@ -4826,7 +4826,7 @@ void AsyVkRender::Export(int imageIndex) {
   redraw=true;
 
 #ifdef HAVE_PTHREAD
-  if(renderThread && readyAfterExport) {
+  if(thread && readyAfterExport) {
     readyAfterExport=false;
     endwait(readySignal,readyLock);
   }

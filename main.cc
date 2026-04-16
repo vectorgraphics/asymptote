@@ -101,7 +101,7 @@ int sigsegv_handler (void *, int emergency)
   if(!emergency) return 0; // Really a stack overflow
   em.runtime(vm::getPos());
 #ifdef HAVE_RENDERER
-  if(camp::vk->renderThread)
+  if(camp::vk->thread)
     cerr << "Stack overflow or segmentation fault: rerun with -nothreads"
          << endl;
   else
@@ -250,9 +250,9 @@ int main(int argc, char *argv[])
   fpu_trap(trap());
   Args args(argc,argv);
 #ifdef HAVE_RENDERER
-  camp::vk->renderThread=getSetting<bool>("threads");
+  camp::vk->thread=getSetting<bool>("threads");
 #if HAVE_PTHREAD
-  if(camp::vk->renderThread) {
+  if(camp::vk->thread) {
     pthread_t thread;
     try {
 #if defined(_WIN32)
@@ -282,13 +282,13 @@ int main(int argc, char *argv[])
 #endif // !defined(_WIN32)
         for (;;)
           camp::glrenderWrapper();
-      } else camp::vk->renderThread=false;
+      } else camp::vk->thread=false;
     } catch(std::bad_alloc&) {
       outOfMemory();
     }
   }
 #endif // HAVE_PTHREAD
-  camp::vk->renderThread=false;
+  camp::vk->thread=false;
 #endif // HAVE_RENDERER
   asymain(&args);
 }
