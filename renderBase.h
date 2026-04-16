@@ -30,8 +30,6 @@
 namespace camp
 {
 
-typedef mem::map<const Material, size_t> MaterialMap;
-
 class picture;
 struct drawElement;
 
@@ -78,7 +76,6 @@ enum DrawMode: int
    DRAWMODE_WIREFRAME
 };
 
-// Number of valid draw modes (for cycling)
 constexpr int NUM_DRAW_MODES = 3;
 
 struct Light
@@ -186,7 +183,7 @@ public:
   glm::dmat4 rotateMat;
   glm::dmat4 projMat;
   glm::dmat4 viewMat;
-  glm::dmat4 projViewMat;  // Combined projection-view matrix for offscreen culling
+  glm::dmat4 projViewMat;  // Combined projection*view matrix for offscreen culling
 
   // Viewport dimensions
   int fullWidth, fullHeight;
@@ -249,7 +246,6 @@ public:
   bool haveScene=false;
   bool waitEvent=true;
 
-  // Thread flag (was vkthread in Vulkan renderer)
   bool thread=false;
 
   // Window visibility
@@ -308,7 +304,7 @@ protected:
 
 public:
   // Projection matrix functions
-  virtual void updateProjection();
+  void updateProjection();
   virtual void frustum(double left, double right, double bottom,
                        double top, double nearVal, double farVal);
   virtual void ortho(double left, double right, double bottom,
@@ -393,14 +389,10 @@ public:
 #endif
 };
 
-} // namespace camp
-
-// Note: projViewMat is now a member of AsyRender, accessed via camp::gl->projViewMat
-extern glm::dmat3 dnormMat;  // Double precision normal matrix for internal use
-extern glm::mat3 normMat;    // Float precision normal matrix for shaders
-
-// External declarations from glrender.cc
-namespace camp {
 extern bool format3dWait;
 void mode();
-}
+
+extern glm::dmat3 dnormMat;  // Double precision normal matrix for CPU calculations
+extern glm::mat3 normMat;    // Float precision normal matrix for shaders
+
+} // namespace camp

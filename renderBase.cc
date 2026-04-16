@@ -4,10 +4,6 @@
 #include "interact.h"
 
 #ifdef HAVE_RENDERER
-// mode() function is declared in renderBase.h (forward declared from glrender.cc)
-#endif
-
-#ifdef HAVE_RENDERER
 #include <GLFW/glfw3.h>
 #endif
 
@@ -81,14 +77,14 @@ void AsyRender::setProjection()
   setDimensions(Width, Height, X, Y);
 
   if(haveScene) {
-    if(orthographic) this->ortho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
-    else this->frustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+    if(orthographic) ortho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+    else frustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
   }
 }
 
 void AsyRender::updateModelViewData()
 {
-  // Default implementation - derived classes override this
+//  normMat = inverse(viewMat);
 }
 
 void AsyRender::update()
@@ -104,13 +100,11 @@ void AsyRender::update()
   redraw=true;
 
 #ifdef HAVE_PTHREAD
-#ifdef HAVE_RENDERER
   if(View) {
     pthread_t postThread;
     if(pthread_create(&postThread,NULL,postEmptyEvent,NULL) == 0)
       pthread_join(postThread,NULL);
   }
-#endif
 #endif
 }
 
@@ -414,7 +408,6 @@ void AsyRender::home(bool webgl)
   framecount = 0;
 
   setProjection();
-
   updateModelViewData();
 }
 
@@ -427,17 +420,11 @@ void AsyRender::cycleMode()
   // Update IBL setting based on mode
   if (mode == DRAWMODE_NORMAL) {
     ibl = settings::getSetting<bool>("ibl");
-#ifdef HAVE_RENDERER
-    if(camp::gl) camp::gl->outlinemode = false;
-#endif
+    gl->outlinemode = false;
   } else if (mode == DRAWMODE_OUTLINE) {
     ibl = false;
-#ifdef HAVE_RENDERER
-    if(camp::gl) camp::gl->outlinemode = true;
-#endif
+    gl->outlinemode = true;
   }
-
-  // Renderer-specific mode handling is done in derived class cycleMode() override
 }
 
 double AsyRender::spinStep()

@@ -98,6 +98,8 @@ public:
 extern size_t Nmaterials; // Number of materials compiled in shader
 extern size_t nmaterials; // Current size of materials buffer
 extern size_t Maxmaterials; // Maximum size of materials buffer
+
+typedef mem::map<const Material, size_t> MaterialMap;
 }
 
 #endif
