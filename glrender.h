@@ -442,6 +442,7 @@ public:
   GLuint maxSize = 1;
 
   // GPU settings
+  GLuint g = 0;
   GLuint processors = 0;
   GLuint localSize = 0;
   GLuint blockSize = 0;
@@ -477,6 +478,9 @@ public:
 
 public:
   void update();
+
+  /** Returns the GLFW window pointer (does the static_cast from void* once) */
+  GLFWwindow* getGLFWWindow() const { return static_cast<GLFWwindow*>(glfwWindow); }
 
 protected:
   void mainLoop();
