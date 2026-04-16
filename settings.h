@@ -23,7 +23,7 @@ namespace camp {
 void glrenderWrapper();
 }
 
-namespace gl {
+namespace camp {
 extern bool glthread;
 extern bool initialize;
 

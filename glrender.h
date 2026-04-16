@@ -72,6 +72,12 @@ class picture;
 
 namespace camp {
 
+// Forward declarations for texture types (defined in GLTextures.h)
+#ifdef HAVE_LIBGLM
+template<typename T, GLuint GLDataType> class GLTexture2;
+template<typename T, GLuint GLDataType> class GLTexture3;
+#endif
+
 // Global BBT matrix for billboard transformations (accessed from multiple translation units)
 extern double glBBT[9];
 
@@ -307,12 +313,6 @@ void drawColor();
 void drawTriangle();
 void drawTransparent();
 
-#endif
-
-#ifdef HAVE_LIBGLM
-// Forward declarations for texture types (defined in GLTextures.h)
-template<typename T, typename F> class GLTexture2;
-template<typename T, typename F> class GLTexture3;
 #endif
 
 #ifdef HAVE_RENDERER

@@ -6,7 +6,7 @@
 
 #ifdef HAVE_RENDERER
 
-namespace gl
+namespace camp
 {
 
 AGLTexture::~AGLTexture()
@@ -39,6 +39,6 @@ void AGLTexture::setActive() const
   glActiveTexture(GL_TEXTURE0+textureNumber);
 }
 
-} // namespace gl
+} // namespace camp
 
 #endif

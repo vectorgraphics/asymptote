@@ -41,7 +41,7 @@ using std::ofstream;
 using vm::array;
 
 using namespace settings;
-using namespace gl;
+using namespace camp;
 
 texstream::~texstream() {
   string texengine=getSetting<string>("tex");
