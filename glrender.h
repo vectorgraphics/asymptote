@@ -394,10 +394,10 @@ public:
   pthread_mutex_t readyLock = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
-private:
+public:
   // OpenGL-specific members (following Vulkan pattern)
 #ifdef HAVE_RENDERER
-  // Shaders
+  // Shaders - made public for standalone function access during refactoring
   GLint pixelShader = 0;
   GLint materialShader[2] = {0, 0};
   GLint colorShader[2] = {0, 0};
@@ -412,7 +412,7 @@ private:
   GLint sum2fastShader = 0;
   GLint sum3Shader = 0;
 
-  // VAO and buffers
+  // VAO and buffers - made public for standalone function access during refactoring
   GLuint vao = 0;
   GLuint offsetBuffer = 0;
   GLuint indexBuffer = 0;
@@ -486,7 +486,7 @@ protected:
 };
 
 // Global OpenGL renderer instance (defined in picture.cc)
-extern AsyGLRender* glRenderer;
+extern AsyGLRender* glR;
 
 #endif // HAVE_RENDERER
 
