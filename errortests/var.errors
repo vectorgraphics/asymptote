@@ -1,0 +1,24 @@
+errortests/var.asy: 3.7: inferred variable declaration without initializer
+errortests/var.asy: 6.20: cannot cast 'int' to 'var'
+errortests/var.asy: 9.4: cannot cast 'int' to 'var'
+errortests/var.asy: 10.12: cannot cast 'int' to 'var'
+errortests/var.asy: 11.12: cannot cast 'var' to 'int'
+errortests/var.asy: 14.25: cannot cast 'int' to 'var'
+errortests/var.asy: 14.28: cannot cast 'int' to 'var'
+errortests/var.asy: 14.31: cannot cast 'int' to 'var'
+errortests/var.asy: 15.13: cannot cast 'int[]' to 'var[]'
+errortests/var.asy: 16.14: cannot cast 'int' to 'var'
+errortests/var.asy: 16.17: cannot cast 'int' to 'var'
+errortests/var.asy: 16.20: cannot cast 'int' to 'var'
+errortests/var.asy: 17.15: cannot cast 'int' to 'var'
+errortests/var.asy: 17.18: cannot cast 'int' to 'var'
+errortests/var.asy: 17.21: cannot cast 'int' to 'var'
+errortests/var.asy: 18.13: cannot cast 'var[]' to 'int[]'
+errortests/var.asy: 19.3: type 'var' is not a structure
+errortests/var.asy: 22.17: cannot cast 'int' to 'var'
+errortests/var.asy: 26.7: could not infer type of initializer
+errortests/var.asy: 30.7: could not infer type of initializer
+errortests/var.asy: 32.7: could not infer type of initializer
+errortests/var.asy: 36.16: cannot iterate over expression of type 'int'
+errortests/var.asy: 41.16: cannot resolve type for iteration
+errortests/var.asy: 54.7: array expression cannot be used as an address

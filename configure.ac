@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ([2.71])
-AC_INIT([Asymptote],[3.09git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_INIT([Asymptote],[3.11git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -416,7 +416,7 @@ AC_DEFUN([CHECK_LIB_STATIC],[
 if test "x$enable_readline" != "xno"; then
 if test "x$with_vcpkg" != "xno"; then  # vcpkg
    ADD_VCPKG_FEATURE(readline)
-   AC_DEFINE(HAVE_NCURSES_CURSES_H)
+   AC_DEFINE(HAVE_NCURSESW_CURSES_H)
    AC_DEFINE(HAVE_LIBCURSES)
    AC_DEFINE(HAVE_LIBREADLINE)
    ADD_VCPKG_LIB_FOR_PKGCONFIG(readline)
@@ -447,7 +447,7 @@ else  # managed by the system
    CHECK_LIB_STATIC(tinfo,tinfo,tgetent,HAVE_LIBTINFO,AC_MSG_NOTICE([perhaps tgetent is in -lncurses]))
 
    PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,ncurses)
-   AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
+   AC_CHECK_HEADERS([ncursesw/curses.h ncurses/curses.h ncurses.h curses.h],[break])
    CHECK_LIB_STATIC(ncurses,ncurses,setupterm,HAVE_LIBCURSES,
                      AC_CHECK_LIB(curses,setupterm))
 fi
@@ -708,7 +708,6 @@ fi
 CPPFLAGS=$CPPFLAGS" $INCL"
 CXX_STANDARD=$cxxstd
 
-AC_SUBST(getopt)
 AC_SUBST(ASYGLVERSION)
 AC_SUBST(GCOPTIONS)
 AC_SUBST(GCLIB)

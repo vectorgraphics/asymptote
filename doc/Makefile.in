@@ -85,19 +85,22 @@ clean: FORCE
             {asymptote,asymptote_}.{aux,cp,cps,dvi,fn,info,ky,log,pg,toc,tp,vr}
 	-rm -f asymptote_.texi
 	-rm -f {CAD,TeXShopAndAsymptote,asyRefCard}.{aux,dvi,log,toc}
-	cd png && $(MAKE) clean
+	-cd png && $(MAKE) clean
 
-cleaner: FORCE clean
+cleaner0: FORCE clean
 	-rm -f version.texi Makefile
-	cd png && $(MAKE) cleaner
-	cd FAQ && $(MAKE) cleaner
 
-cleanest: FORCE cleaner
+cleaner: FORCE cleaner0
+	-cd png && $(MAKE) cleaner
+	-cd FAQ && $(MAKE) cleaner
+
+cleanest: FORCE
 	-rm -f $(DOCFILES)
 	-rm -f options asy.1
 	-rm -f $(ASYFILES:.asy=.pdf)
-	cd png && $(MAKE) cleanest
-	cd FAQ && $(MAKE) cleanest
+	-$(MAKE) cleaner0
+	-cd png && $(MAKE) cleanest
+	-cd FAQ && $(MAKE) cleanest
 
 distclean: FORCE cleaner
 maintainer-clean: FORCE cleanest

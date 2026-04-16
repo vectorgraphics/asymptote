@@ -2911,19 +2911,21 @@ function Camera()
   let cy=center.y;
   let cz=0.5*(viewParam.zmin+viewParam.zmax);
 
+  let shift=[0.0,0.0,0.0,0.0];
   for(let i=0; i < 3; ++i) {
     let sumCamera=0.0, sumTarget=0.0, sumUp=0.0;
     let i4=4*i;
+    shift[3]=W.Transform[i4+2]*cz;
     for(let j=0; j < 4; ++j) {
       let j4=4*j;
       let R0=rotMat[j4];
       let R1=rotMat[j4+1];
       let R2=rotMat[j4+2];
       let R3=rotMat[j4+3];
-      let T4ij=W.Transform[i4+j];
-      sumCamera += T4ij*(R3-cx*R0-cy*R1);
+      let T4ij=W.Transform[i4+j]+shift[j]; // T -> T*shift(0,0,cz);
+      sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
       sumUp += T4ij*R1;
-      sumTarget += T4ij*(R3-cx*R0-cy*R1+cz*R2);
+      sumTarget += T4ij*(R3-cx*R0-cy*R1);
     }
     vCamera[i]=sumCamera;
     vUp[i]=sumUp;

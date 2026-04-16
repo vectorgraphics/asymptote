@@ -52,6 +52,10 @@ extern "C" {
 #define USE_SETUPTERM
 #include <ncurses/curses.h>
 #include <ncurses/term.h>
+#elif HAVE_NCURSESW_CURSES_H
+#define USE_SETUPTERM
+#include <ncursesw/curses.h>
+#include <ncursesw/term.h>
 #elif HAVE_NCURSES_H
 #define USE_SETUPTERM
 #include <ncurses.h>
@@ -975,7 +979,7 @@ void addOption(option *o) {
 void version()
 {
   cerr << PACKAGE_NAME << " version " << REVISION
-       << " [(C) 2004-26 Andy Hammerlindl, John C. Bowman, Tom Prince]"
+       << " [(C) 2004-2026 Andy Hammerlindl, John C. Bowman, Tom Prince]"
        << " <" << ASY_COMPILER_INFO << ">"
        << endl;
 }

@@ -1,5 +1,21 @@
 cmake_minimum_required(VERSION 3.27)
 
+if (NOT CMAKE_HOST_SYSTEM_PROCESSOR)
+    if (WIN32)
+        if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+            set(CMAKE_HOST_SYSTEM_PROCESSOR "x86_64")
+        else()
+            set(CMAKE_HOST_SYSTEM_PROCESSOR "i386")
+        endif()
+    else()
+        execute_process(COMMAND uname -m OUTPUT_VARIABLE CMAKE_HOST_SYSTEM_PROCESSOR OUTPUT_STRIP_TRAILING_WHITESPACE)
+    endif()
+endif()
+message(STATUS "Host processor: ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+if (NOT CMAKE_SYSTEM_PROCESSOR)
+    set(CMAKE_SYSTEM_PROCESSOR ${CMAKE_HOST_SYSTEM_PROCESSOR})
+endif()
+
 include(cmake-scripts/common.cmake)
 include(asy-pkg-version-suffix.cmake OPTIONAL RESULT_VARIABLE ASY_ADDR_VERSION_SUFFIX_FILE)
 include(cmake-scripts/options.cmake)
@@ -26,7 +42,7 @@ include(cmake-scripts/backport-libs.cmake)
 
 # PRC
 add_subdirectory(prc/)
-list(APPEND ASY_STATIC_LIBARIES PRC)
+list(APPEND ASY_STATIC_LIBRARIES PRC)
 
 get_target_property(prc_incl_dir PRC INCLUDE_DIRECTORIES)
 list(APPEND ASYMPTOTE_INCLUDES $<TARGET_PROPERTY:PRC,INCLUDE_DIRECTORIES>)
@@ -54,7 +70,7 @@ add_library(
 
 target_include_directories(asycore PUBLIC ${ASYMPTOTE_INCLUDES})
 add_dependencies(asycore asy_gen_headers)
-target_link_libraries(asycore PUBLIC ${ASY_STATIC_LIBARIES})
+target_link_libraries(asycore PUBLIC ${ASY_STATIC_LIBRARIES})
 target_compile_definitions(asycore PUBLIC ${ASY_MACROS})
 target_compile_options(asycore PUBLIC ${ASY_COMPILE_OPTS})
 

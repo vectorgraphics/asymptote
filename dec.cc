@@ -71,9 +71,11 @@ bool usableInTemplate(ty *t) {
 }
 
 
-trans::tyEntry *astType::transAsTyEntry(coenv &e, record *where)
+trans::tyEntry* astType::transAsTyEntry(coenv& e, record* where)
 {
-  return new trans::tyEntry(trans(e, false), nullptr, where, getPos());
+  return new trans::tyEntry(
+          trans(e), nullptr, where, getPos()
+  );
 }
 
 
@@ -85,7 +87,7 @@ void nameTy::prettyprint(ostream &out, Int indent)
 }
 
 void addNameOps(coenv &e, record *r, record *qt, varEntry *qv, position pos) {
-  for (auto au : qt->e.ve.getAutoUnravels()) {
+  for (auto au : qt->autounravelRegistry.getAutoUnravels()) {
     symbol auName = au.first;
     varEntry *v = au.second;
     if (!v->checkPerm(READ, e.c)) {
@@ -113,19 +115,22 @@ void addNameOps(coenv &e, record *r, record *qt, varEntry *qv, position pos) {
 
 void nameTy::addOps(coenv &e, record *r, AutounravelOption opt)
 {
-  if (opt == AutounravelOption::Apply)
-  {
-    if (record* qt= dynamic_cast<record*>(id->getType(e, true)); qt)
-    {
+  if (opt == AutounravelOption::Apply) {
+    record* qt;
+    { // Suppress errors while probing the type.
+      auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+      qt = dynamic_cast<record*>(id->getType(e));
+    }
+    if (qt) {
       varEntry* qv= id->getVarEntry(e);
       addNameOps(e, r, qt, qv, getPos());
     }
   }
 }
 
-types::ty *nameTy::trans(coenv &e, bool tacit)
+types::ty *nameTy::trans(coenv &e)
 {
-  return id->typeTrans(e, tacit);
+  return id->typeTrans(e);
 }
 
 trans::tyEntry *nameTy::transAsTyEntry(coenv &e, record *)
@@ -144,9 +149,9 @@ void dimensions::prettyprint(ostream &out, Int indent)
   out << "dimensions (" << depth << ")\n";
 }
 
-types::array *dimensions::truetype(types::ty *base, bool tacit)
+types::array *dimensions::truetype(types::ty *base)
 {
-  if (!tacit && base->kind == ty_void) {
+  if (base->kind == ty_void) {
     em.error(getPos());
     em << "cannot declare array of type void";
   }
@@ -172,7 +177,11 @@ void arrayTy::prettyprint(ostream &out, Int indent)
 // NOTE: Can this be merged with trans somehow?
 void arrayTy::addOps(coenv &e, record *r, AutounravelOption)
 {
-  types::ty *t=trans(e, true);
+  types::ty *t;
+  { // Suppress errors while probing the array type.
+    auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+    t = trans(e);
+  }
 
   // Only add ops if it is an array (and not, say, an error)
   if (t->kind == types::ty_array) {
@@ -184,16 +193,16 @@ void arrayTy::addOps(coenv &e, record *r, AutounravelOption)
   }
 }
 
-types::ty *arrayTy::trans(coenv &e, bool tacit)
+types::ty *arrayTy::trans(coenv &e)
 {
-  types::ty *ct = cell->trans(e, tacit);
+  types::ty *ct = cell->trans(e);
   assert(ct);
 
   // Don't make an array of errors.
   if (ct->kind == types::ty_error)
     return ct;
 
-  types::array *t = dims->truetype(ct,tacit);
+  types::array *t = dims->truetype(ct);
   assert(t);
 
   return t;
@@ -220,7 +229,7 @@ void tyEntryTy::prettyprint(ostream &out, Int indent)
   out << "tyEntryTy: " << *(ent->t) << "\n";
 }
 
-types::ty *tyEntryTy::trans(coenv &, bool) {
+types::ty *tyEntryTy::trans(coenv &) {
   return ent->t;
 }
 
@@ -566,7 +575,7 @@ void decidstart::prettyprint(ostream &out, Int indent)
     dims->prettyprint(out, indent+1);
 }
 
-types::ty *decidstart::getType(types::ty *base, coenv &, bool)
+types::ty *decidstart::getType(types::ty *base, coenv &)
 {
   return dims ? dims->truetype(base) : base;
 }
@@ -575,7 +584,8 @@ trans::tyEntry *decidstart::getTyEntry(trans::tyEntry *base, coenv &e,
                                        record *where)
 {
   return dims ? new trans::tyEntry(
-                        getType(base->t, e, false), nullptr, where, getPos()
+                        getType(base->t, e), nullptr, where,
+                        getPos()
                 )
               : base;
 }
@@ -604,12 +614,12 @@ void decidstart::addOps(types::ty *base, coenv &e, record *r)
     params->prettyprint(out, indent+1);
 }
 
-types::ty *fundecidstart::getType(types::ty *base, coenv &e, bool tacit)
+types::ty *fundecidstart::getType(types::ty *base, coenv &e)
 {
-  types::ty *result = decidstart::getType(base, e, tacit);
+  types::ty *result = decidstart::getType(base, e);
 
   if (params) {
-    return params->getType(result, e, true, tacit);
+    return params->getType(result, e, true);
   }
   else {
     types::ty *t = new function(base);
@@ -617,21 +627,26 @@ types::ty *fundecidstart::getType(types::ty *base, coenv &e, bool tacit)
   }
 }
 
-trans::tyEntry *fundecidstart::getTyEntry(trans::tyEntry *base, coenv &e,
-                                          record *where)
+trans::tyEntry*
+fundecidstart::getTyEntry(trans::tyEntry* base, coenv& e, record* where)
 {
-  return new trans::tyEntry(getType(base->t,e,false), nullptr, where, getPos());
+  return new trans::tyEntry(
+          getType(base->t, e), nullptr, where, getPos()
+  );
 }
 
-void fundecidstart::addOps(types::ty *base, coenv &e, record *r)
+void fundecidstart::addOps(types::ty* base, coenv& e, record* r)
 {
   decidstart::addOps(base, e, r);
 
   params->addOps(e, r);
 
-  types::function *ft=dynamic_cast<types::function *>(getType(base, e, true));
+  types::function* ft;
+  { // Suppress errors while probing the function type.
+    auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+    ft = dynamic_cast<types::function*>(getType(base, e));
+  }
   assert(ft);
-
 }
 
 
@@ -677,7 +692,7 @@ void addVar(coenv &e, record *r, varEntry *v, symbol id)
   if (r) {
     r->e.addVar(id, v);
     if (e.c.isAutoUnravel()) {
-      r->e.ve.registerAutoUnravel(id, v);
+      r->autounravelRegistry.registerAutoUnravel(id, v);
     }
   }
   e.e.addVar(id, v);
@@ -1031,7 +1046,7 @@ tyEntry *idpair::transAsUnravel(coenv &e, record *r,
     auto fieldsAdded = r->e.add(src, dest, source, qualifier, e.c)->varsAdded;
     if (e.c.isAutoUnravel()) {
       for (varEntry *v : fieldsAdded) {
-        r->e.ve.registerAutoUnravel(dest, v);
+        r->autounravelRegistry.registerAutoUnravel(dest, v);
       }
     }
   }
@@ -1115,7 +1130,7 @@ void recordInitializer(coenv &e, symbol id, record *r, position here)
   assert(r);
   {
     e.c.pushModifier(AUTOUNRAVEL);
-    function *ft = fun.transType(e, false);
+    function *ft = fun.transType(e);
     assert(ft);
 
     symbol initSym=symbol::opTrans("init");
@@ -1125,7 +1140,9 @@ void recordInitializer(coenv &e, symbol id, record *r, position here)
 
     varEntry *v=makeVarEntry(here, e, r, ft);
     r->e.addVar(initSym, v);
-    r->e.ve.registerAutoUnravel(initSym, v, trans::AutounravelPriority::OFFER);
+    r->autounravelRegistry.registerAutoUnravel(
+            initSym, v, trans::AutounravelPriority::OFFER
+    );
     initializeVar(here, e, v, init);
     e.c.popModifier();
   }
@@ -1202,7 +1219,9 @@ class PermissionSetter {
   coder &c;
   permission oldPerm;
 public:
-  PermissionSetter(coder &c, permission newPerm) : c(c), oldPerm(c.getPermission()) {
+  PermissionSetter(coder& c, permission newPerm)
+      : c(c), oldPerm(c.getPermission())
+  {
     c.setPermission(newPerm);
   }
   ~PermissionSetter() {
@@ -1268,7 +1287,7 @@ void fromdec::transAsField(coenv &e, record *r)
   if (q.t) {
     if (fields==WILDCARD) {
       if (r)
-        r->e.add(q.t->e, q.v, e.c);
+        r->e.add(q.t->e, q.v, e.c, &r->autounravelRegistry);
       e.e.add(q.t->e, q.v, e.c);
     } else {
       auto typesAdded = fields->transAsUnravel(e, r, q.t->e, q.v);
@@ -1297,7 +1316,7 @@ void unraveldec::prettyprint(ostream &out, Int indent)
 fromdec::qualifier unraveldec::getQualifier(coenv &e, record *)
 {
   // getType is where errors in the qualifier are reported.
-  record *qt=dynamic_cast<record *>(id->getType(e, false));
+  record *qt=dynamic_cast<record *>(id->getType(e));
   if (!qt) {
     em.error(getPos());
     em << "qualifier is not a record";
@@ -1444,6 +1463,7 @@ void recorddec::transAsField(coenv &e, record *parent)
   // the default initializer first.
   re.c.closeRecord();
 
+  r->computeKVTypes(getPos());
 
   // Add types and variables defined during the record that should be added to
   // the enclosing environment.  These are the implicit constructors defined by

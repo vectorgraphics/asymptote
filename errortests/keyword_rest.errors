@@ -1,0 +1,40 @@
+errortests/keyword_rest.asy: 4.34: unnamed argument after rest argument
+errortests/keyword_rest.asy: 5.37: additional rest argument
+errortests/keyword_rest.asy: 6.28: unnamed argument after rest argument
+errortests/keyword_rest.asy: 7.31: additional rest argument
+errortests/keyword_rest.asy: 10.22: normal parameter after rest parameter
+errortests/keyword_rest.asy: 11.22: normal parameter after rest parameter
+errortests/keyword_rest.asy: 12.31: normal parameter after rest parameter
+errortests/keyword_rest.asy: 13.31: normal parameter after rest parameter
+errortests/keyword_rest.asy: 14.24: normal parameter after keyword-only parameter
+errortests/keyword_rest.asy: 15.24: normal parameter after keyword-only parameter
+errortests/keyword_rest.asy: 16.24: normal parameter after keyword-only parameter
+errortests/keyword_rest.asy: 16.31: normal parameter after keyword-only parameter
+errortests/keyword_rest.asy: 17.24: normal parameter after keyword-only parameter
+errortests/keyword_rest.asy: 17.31: normal parameter after keyword-only parameter
+errortests/keyword_rest.asy: 18.32: normal parameter after keyword-only parameter
+errortests/keyword_rest.asy: 19.32: normal parameter after keyword-only parameter
+errortests/keyword_rest.asy: 20.32: normal parameter after keyword-only parameter
+errortests/keyword_rest.asy: 20.39: normal parameter after keyword-only parameter
+errortests/keyword_rest.asy: 21.32: normal parameter after keyword-only parameter
+errortests/keyword_rest.asy: 21.39: normal parameter after keyword-only parameter
+errortests/keyword_rest.asy: 24.13: expected 'keyword' here
+errortests/keyword_rest.asy: 25.13: expected 'keyword' here
+errortests/keyword_rest.asy: 26.21: expected 'keyword' here
+errortests/keyword_rest.asy: 27.21: expected 'keyword' here
+errortests/keyword_rest.asy: 28.36: expected 'keyword' here
+errortests/keyword_rest.asy: 28.32: normal parameter after keyword-only parameter
+errortests/keyword_rest.asy: 29.36: expected 'keyword' here
+errortests/keyword_rest.asy: 29.32: normal parameter after keyword-only parameter
+errortests/keyword_rest.asy: 30.21: expected 'keyword' here
+errortests/keyword_rest.asy: 31.21: expected 'keyword' here
+errortests/keyword_rest.asy: 32.13: expected 'keyword' here
+errortests/keyword_rest.asy: 33.13: expected 'keyword' here
+errortests/keyword_rest.asy: 34.13: expected 'keyword' here
+errortests/keyword_rest.asy: 35.13: expected 'keyword' here
+errortests/keyword_rest.asy: 36.13: expected 'keyword' here
+errortests/keyword_rest.asy: 37.13: expected 'keyword' here
+errortests/keyword_rest.asy: 38.21: expected 'keyword' here
+errortests/keyword_rest.asy: 39.21: expected 'keyword' here
+errortests/keyword_rest.asy: 40.21: expected 'keyword' here
+errortests/keyword_rest.asy: 41.21: expected 'keyword' here

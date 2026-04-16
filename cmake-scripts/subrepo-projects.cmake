@@ -4,7 +4,6 @@ set(LSP_REPO_ROOT ${ASY_SUBREPO_CLONE_ROOT}/LspCpp)
 set(TINYEXR_SUBREPO_ROOT ${ASY_SUBREPO_CLONE_ROOT}/tinyexr)
 set(BOEHM_GC_ROOT ${ASY_SUBREPO_CLONE_ROOT}/gc)
 set(LIBATOMIC_OPS_ROOT ${ASY_SUBREPO_CLONE_ROOT}/libatomic_ops)
-
 # boehm gc
 if (ENABLE_GC)
     set(enable_gpl OFF CACHE INTERNAL "libatomicops gpl libs option")
@@ -23,7 +22,7 @@ if (ENABLE_GC)
     unset(BUILD_SHARED_LIBS CACHE)
     set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED_LIBS})
 
-    list(APPEND ASY_STATIC_LIBARIES gc gccpp atomic_ops)
+    list(APPEND ASY_STATIC_LIBRARIES gc gccpp atomic_ops)
 
     if (WIN32)
         list(APPEND ASY_MACROS GC_NOT_DLL)
@@ -36,9 +35,15 @@ if (ENABLE_GC)
     # files are provided in include/gc/gc.h (and other files). Hence we append "/gc" to the include directories.
 
     if (WIN32)
-        list(APPEND ASY_STATIC_LIBARIES gctba)
+        list(APPEND ASY_STATIC_LIBRARIES gctba)
     endif()
     list(APPEND ASY_MACROS USEGC)
+    # Propagate GC_ATOMIC_UNCOLLECTABLE to match how gc/CMakeLists.txt compiles the library
+    # (gc enables this by default via enable_atomic_uncollectable option), preventing ODR violations
+    # when LTO is active.
+    if (enable_atomic_uncollectable)
+        list(APPEND ASY_MACROS GC_ATOMIC_UNCOLLECTABLE)
+    endif()
 else()
     message(STATUS "Disabling gc support")
 endif()
@@ -67,7 +72,7 @@ if (ENABLE_LSP)
 
     add_subdirectory(${LSP_REPO_ROOT})
 
-    list(APPEND ASY_STATIC_LIBARIES lspcpp)
+    list(APPEND ASY_STATIC_LIBRARIES lspcpp)
     list(APPEND ASY_MACROS HAVE_LSP=1)
 else()
     # only include lsp libraries

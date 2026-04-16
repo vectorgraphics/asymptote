@@ -48,10 +48,19 @@ typedef SSIZE_T ssize_t;
 #  include <boost/stacktrace.hpp>
 #endif
 
-#include <optional.hpp>
-using nonstd::optional;
-using nonstd::nullopt;
-using nonstd::make_optional;
+#include <optional>
+using std::optional;
+using std::nullopt;
+using std::make_optional;
+
+
+#if __cplusplus < 202002L
+#  include "backports/span/span.hpp"
+using nonstd::span;
+#else
+#  include <span>
+using std::span;
+#endif
 
 using std::make_pair;
 

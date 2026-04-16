@@ -1,5 +1,5 @@
 			  ASYMPTOTE
-      Copyright 2004-26 Andy Hammerlindl, John Bowman, and Tom Prince
+      Copyright 2004-2026 Andy Hammerlindl, John Bowman, and Tom Prince
 
 Asymptote is a powerful descriptive vector graphics language for technical
 drawing, inspired by MetaPost but with an improved C++-like
@@ -51,7 +51,7 @@ fftw3:
 https://www.fftw.org/fftw-3.3.10.tar.gz
 
 getopt:
-https://github.com/xiaozhuai/getopt-win32
+https://github.com/libimobiledevice-win32/getopt
 
 freeglut:
 https://github.com/freeglut/freeglut

@@ -810,10 +810,9 @@ void setBuffers()
 
 #ifdef HAVE_SSBO
   glGenBuffers(1, &camp::offsetBuffer);
-  if(GPUindexing) {
+  if(GPUindexing)
     glGenBuffers(1, &camp::globalSumBuffer);
-    glGenBuffers(1, &camp::feedbackBuffer);
-  }
+  glGenBuffers(1, &camp::feedbackBuffer);
   glGenBuffers(1, &camp::countBuffer);
   if(GPUcompress) {
     glGenBuffers(1, &camp::indexBuffer);
@@ -852,7 +851,7 @@ void drawscene(int Width, int Height)
 
   triple m(xmin,ymin,Zmin);
   triple M(xmax,ymax,Zmax);
-  double perspective=orthographic ? 0.0 : 1.0/Zmax;
+  double perspective=orthographic || Zmax == 0.0 ? 0.0 : 1.0/Zmax;
 
   double size2=hypot(Width,Height);
 
@@ -895,7 +894,7 @@ void Export()
              << fullHeight << " image" << " using tiles of size "
              << width << "x" << height << endl;
 
-      unsigned border=min(min(1,width/2),height/2);
+      unsigned border=min(min(1,(width-1)/2),(height-1)/2);
       trTileSize(tr,width,height,border);
       trImageSize(tr,fullWidth,fullHeight);
       trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
@@ -1750,19 +1749,21 @@ projection camera(bool user)
   double *Rotate=value_ptr(drotateMat);
 
   if(user) {
+    double shift[]={0.0,0.0,0.0,0.0};
     for(int i=0; i < 3; ++i) {
       double sumCamera=0.0, sumTarget=0.0, sumUp=0.0;
       int i4=4*i;
+      shift[3]=T[i4+2]*cz;
       for(int j=0; j < 4; ++j) {
         int j4=4*j;
         double R0=Rotate[j4];
         double R1=Rotate[j4+1];
         double R2=Rotate[j4+2];
         double R3=Rotate[j4+3];
-        double T4ij=T[i4+j];
-        sumCamera += T4ij*(R3-cx*R0-cy*R1);
+        double T4ij=T[i4+j]+shift[j]; // T -> T*shift(0,0,cz);
+        sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
         sumUp += Tup[i4+j]*R1;
-        sumTarget += T4ij*(R3-cx*R0-cy*R1+cz*R2);
+        sumTarget += T4ij*(R3-cx*R0-cy*R1);
       }
       vCamera[i]=sumCamera;
       vUp[i]=sumUp;

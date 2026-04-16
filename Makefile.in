@@ -56,7 +56,7 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	EXRFiles GLTextures lspserv symbolmaps win32helpers win32pipestream \
 	win32xdr xstream \
 	lspdec lspexp lspfundec lspstm \
-	dlmanager dynlib asyffiimpl
+	hashing random dlmanager dynlib asyffiimpl
 
 FILES = $(COREFILES) main
 
@@ -135,7 +135,8 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ @GLEW@
+asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) \
+		@LSPLIB@ @GLEW@
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
 $(XNAME): $(PYFILES)
@@ -284,6 +285,7 @@ install-texhash: install-asy
 
 install-asy: asy sty $(PYFILES)
 	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
+	${INSTALL} -d $(asydir)/collections
 	${INSTALL} -d $(shaderdir) $(webgldir) \
 		$(GUIdir) $(GUIdir)/configs \
 		$(GUIdir)/res $(GUIdir)/res/icons \
@@ -293,6 +295,7 @@ install-asy: asy sty $(PYFILES)
 	${INSTALL} -p -m 755 $(NAME) $(bindir)
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) \
 		asy-keywords.el $(asydir)
+	${INSTALL} -p -m 644 base/collections/*.asy $(asydir)/collections
 	${INSTALL} -p -m 644 base/shaders/*.glsl $(shaderdir)
 	${INSTALL} -p -m 644 base/webgl/asygl.js \
 		$(webgldir)
@@ -347,6 +350,8 @@ uninstall-asy:
 	-rmdir $(shaderdir)
 	-cd $(webgldir) && rm -f *.html *.js
 	-rmdir $(webgldir)
+	-cd $(asydir)/collections && rm -f *.asy
+	-rmdir $(asydir)/collections
 	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA)
 	-rmdir $(asydir)
 	-cd $(latexdir) && rm -f $(LATEXFILES)
@@ -358,46 +363,54 @@ uninstall-asy:
 uninstall-man:
 	cd doc && $(MAKE) uninstall
 
-uninstall-docdir:
+# uninstall-man removes files from $(docdir) itself; uninstall-asy removes
+# $(exampledir) and $(animationsdir) which are subdirectories of $(docdir).
+# Both must finish before we can rmdir $(docdir).
+uninstall-docdir: uninstall-man uninstall-asy
 	-rmdir $(docdir)
 
 clean:	FORCE
 	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
 	-cd LspCpp && $(MAKE) distclean
 	-cd tinyexr && $(MAKE) clean
-	cd doc && $(MAKE) clean
-	cd tests && $(MAKE) clean
+	-cd doc && $(MAKE) clean
+	-cd tests && $(MAKE) clean
 
 gc-clean: FORCE clean
 	-$(MAKE) -C $(GC) clean
 
-cleaner: FORCE clean
+cleaner0: FORCE clean
 	-rm -rf __pycache__
 	-rm -rf GUI/__pycache__
 	-rm -rf GUI/configs/__pycache__
+	-rm -f GUI/{xasyversion,xasyicons,xasyqtui}/__init__.py
 	-$(MAKE) -C $(GC) distclean
 	-$(MAKE) -C libatomic_ops distclean
-	-cd $(GC) && rm -rf libatomic_ops .deps cord/.deps \
+	-cd $(GC) && rm -rf libatomic_ops autom4te.cache .deps cord/.deps \
 		cord/tests/.deps extra/.deps tests/.deps
 
-	-rm -f Makefile config.h config.log config.status \
-		errors.temp autom4te.cache
-	-rm -rf LspCpp/CMakeCache.txt
-	cd doc && $(MAKE) cleaner
-	cd tests && $(MAKE) cleaner
+	-cd libatomic_ops && rm -rf autom4te.cache
+	-rm -f config.h config.log config.status
+	-rm -rf autom4te.cache LspCpp/CMakeCache.txt
+	-rm -f Makefile
 
-cleanest: FORCE cleaner
-	-rm -f configure config.h.in
+cleaner: FORCE cleaner0
+	-cd tests && $(MAKE) cleaner
+	-cd doc && $(MAKE) cleaner
+
+cleanest: FORCE
 	-rm -rf GUI/xasyicons GUI/xasyqtui GUI/xasyversion
 	-cd $(GC) && rm -rf ltmain.sh missing \
-		test-driver configure autom4te.cache m4/l*.m4
+		test-driver configure m4/l*.m4
 	-cd libatomic_ops && rm -rf ltmain.sh missing \
-		test-driver configure autom4te.cache m4/l*.m4
+		test-driver configure m4/l*.m4
 	-cd GUI && $(PYTHON) buildtool.py clean
 	-rm -rf $(DIST)
 	-rm -rf vcpkg_installed
-	cd doc && $(MAKE) cleanest
-	cd tests && $(MAKE) cleanest
+	-$(MAKE) cleaner0
+	-cd doc && $(MAKE) cleanest
+	-cd tests && $(MAKE) cleanest
+	-rm -f configure config.h.in
 
 distclean: FORCE cleaner
 maintainer-clean: FORCE cleanest

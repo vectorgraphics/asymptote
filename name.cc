@@ -26,10 +26,7 @@ using vm::inst;
 
 
 types::ty *signatureless(types::ty *t) {
-  if (overloaded *o=dynamic_cast<overloaded *>(t))
-    return o->signatureless();
-  else
-    return (t && !t->getSignature()) ? t : 0;
+  return t ? t->signatureless() : nullptr;
 }
 
 
@@ -61,13 +58,13 @@ frame *name::frameTrans(coenv &e)
 }
 
 
-types::ty *name::getType(coenv &e, bool tacit)
+types::ty *name::getType(coenv &e)
 {
   types::ty *t=signatureless(varGetType(e));
-  if (!tacit && t && t->kind == ty_error)
+  if (!em.isSuppressed() && t && t->kind == ty_error)
     // Report errors associated with regarding the name as a variable.
     varTrans(trans::READ, e, t);
-  return t ? t : typeTrans(e, tacit);
+  return t ? t : typeTrans(e);
 }
 
 
@@ -110,17 +107,15 @@ trans::varEntry *simpleName::getCallee(coenv &e, signature *sig)
   return ve;
 }
 
-types::ty *simpleName::typeTrans(coenv &e, bool tacit)
+types::ty *simpleName::typeTrans(coenv &e)
 {
   types::ty *t = e.e.lookupType(id);
   if (t) {
     return t;
   }
   else {
-    if (!tacit) {
-      em.error(getPos());
-      em << "no type of name \'" << id << "\'";
-    }
+    em.error(getPos());
+    em << "no type of name \'" << id << "\'";
     return primError();
   }
 }
@@ -158,24 +153,20 @@ AsymptoteLsp::SymbolLit simpleName::getLit() const
   return AsymptoteLsp::SymbolLit(static_cast<std::string>(id));
 }
 
-record *qualifiedName::castToRecord(types::ty *t, bool tacit)
+record *qualifiedName::castToRecord(types::ty *t)
 {
   switch (t->kind) {
     case ty_overloaded:
-      if (!tacit) {
-        em.compiler(qualifier->getPos());
-        em << "name::getType returned overloaded";
-      }
+      em.compiler(qualifier->getPos());
+      em << "name::getType returned overloaded";
       return 0;
     case ty_record:
       return (record *)t;
     case ty_error:
       return 0;
     default:
-      if (!tacit) {
-        em.error(qualifier->getPos());
-        em << "type \'" << *t << "\' is not a structure";
-      }
+      em.error(qualifier->getPos());
+      em << "type '" << *t << "' is not a structure";
       return 0;
   }
 }
@@ -233,14 +224,22 @@ void qualifiedName::varTrans(action act, coenv &e, types::ty *target)
 
 types::ty *qualifiedName::varGetType(coenv &e)
 {
-  types::ty *qt = qualifier->getType(e, true);
+  types::ty *qt;
+  { // Suppress errors while calling qualifier->getType.
+    auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+    qt = qualifier->getType(e);
+  }
 
   // Look for virtual fields.
   types::ty *t = qt->virtualFieldGetType(id);
   if (t)
     return t;
 
-  record *r = castToRecord(qt, true);
+  record *r;
+  { // Suppress errors while calling castToRecord.
+    auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+    r = castToRecord(qt);
+  }
   return r ? r->e.varGetType(id) : 0;
 }
 
@@ -249,7 +248,6 @@ trans::varEntry *qualifiedName::getCallee(coenv &e, signature *sig)
   // getTypeAsCallee is an optimization attempt.  We don't try optimizing the
   // rarer qualifiedName call case.
   // TODO: See if this is worth implementing.
-  //cout << "FAIL BY QUALIFIED NAME" << endl;
   return 0;
 }
 
@@ -257,8 +255,11 @@ trans::varEntry *qualifiedName::getVarEntry(coenv &e)
 {
   varEntry *qv = qualifier->getVarEntry(e);
 
-  types::ty *qt = qualifier->getType(e, true);
-  record *r = castToRecord(qt, true);
+  record *r;
+  { // Suppress errors.
+    auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+    r = castToRecord(qualifier->getType(e));
+  }
   if (r) {
     types::ty *t = signatureless(r->e.varGetType(id));
     varEntry *v = t ? r->e.lookupVarByType(id, t) : 0;
@@ -268,35 +269,33 @@ trans::varEntry *qualifiedName::getVarEntry(coenv &e)
     return qv;
 }
 
-types::ty *qualifiedName::typeTrans(coenv &e, bool tacit)
+types::ty *qualifiedName::typeTrans(coenv &e)
 {
-  types::ty *rt = qualifier->getType(e, tacit);
+  types::ty *rt = qualifier->getType(e);
 
-  record *r = castToRecord(rt, tacit);
+  record *r = castToRecord(rt);
   if (!r)
     return primError();
 
   tyEntry *ent = r->e.lookupTyEntry(id);
   if (ent) {
-    if (!tacit)
+    if (!em.isSuppressed())
       ent->reportPerm(READ, getPos(), e.c);
     return ent->t;
   }
   else {
-    if (!tacit) {
-      em.error(getPos());
-      em << "no matching field or type of name \'" << id << "\' in \'"
-         << *r << "\'";
-    }
+    em.error(getPos());
+    em << "no matching field or type of name \'" << id << "\' in \'"
+       << *r << "\'";
     return primError();
   }
 }
 
 tyEntry *qualifiedName::tyEntryTrans(coenv &e)
 {
-  types::ty *rt = qualifier->getType(e, false);
+  types::ty *rt = qualifier->getType(e);
 
-  record *r = castToRecord(rt, false);
+  record *r = castToRecord(rt);
   if (!r)
     return new tyEntry(primError(), nullptr, nullptr, nullPos);
 

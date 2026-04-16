@@ -1,0 +1,54 @@
+errortests/permissions.asy: 12.4: accessing private field outside of structure
+errortests/permissions.asy: 13.4: accessing private field outside of structure
+errortests/permissions.asy: 14.4: accessing private field outside of structure
+errortests/permissions.asy: 14.4: accessing private field outside of structure
+errortests/permissions.asy: 15.4: modifying non-public field outside of structure
+errortests/permissions.asy: 16.4: modifying non-public field outside of structure
+errortests/permissions.asy: 18.4: accessing private field outside of structure
+errortests/permissions.asy: 19.4: accessing private field outside of structure
+errortests/permissions.asy: 20.4: accessing private field outside of structure
+errortests/permissions.asy: 21.4: modifying non-public field outside of structure
+errortests/permissions.asy: 30.18: no matching types or fields of name 'x'
+errortests/permissions.asy: 31.18: no matching types or fields of name 'f'
+errortests/permissions.asy: 41.3: modifying non-public field outside of structure
+errortests/permissions.asy: 42.3: modifying non-public field outside of structure
+errortests/permissions.asy: 44.3: modifying non-public field outside of structure
+errortests/permissions.asy: 50.4: accessing private field outside of structure
+errortests/permissions.asy: 51.4: accessing private field outside of structure
+errortests/permissions.asy: 53.4: accessing private field outside of structure
+errortests/permissions.asy: 54.4: accessing private field outside of structure
+errortests/permissions.asy: 60.18: no matching types or fields of name 'T'
+errortests/permissions.asy: 67.4: accessing private field outside of structure
+errortests/permissions.asy: 68.4: accessing private field outside of structure
+errortests/permissions.asy: 70.4: accessing private field outside of structure
+errortests/permissions.asy: 71.4: accessing private field outside of structure
+errortests/permissions.asy: 78.18: no matching types or fields of name 'T'
+errortests/permissions.asy: 86.11: modifying non-public field outside of structure
+errortests/permissions.asy: 87.11: modifying non-public field outside of structure
+errortests/permissions.asy: 88.11: modifying non-public field outside of structure
+errortests/permissions.asy: 89.11: modifying non-public field outside of structure
+errortests/permissions.asy: 93.3: modifying non-public field outside of structure
+errortests/permissions.asy: 94.3: modifying non-public field outside of structure
+errortests/permissions.asy: 95.3: modifying non-public field outside of structure
+errortests/permissions.asy: 96.3: modifying non-public field outside of structure
+errortests/permissions.asy: 100.3: modifying non-public field outside of structure
+errortests/permissions.asy: 101.3: modifying non-public field outside of structure
+errortests/permissions.asy: 102.3: modifying non-public field outside of structure
+errortests/permissions.asy: 103.3: modifying non-public field outside of structure
+errortests/permissions.asy: 107.11: modifying non-public field outside of structure
+errortests/permissions.asy: 108.11: modifying non-public field outside of structure
+errortests/permissions.asy: 109.11: modifying non-public field outside of structure
+errortests/permissions.asy: 110.11: modifying non-public field outside of structure
+errortests/permissions.asy: 111.3: modifying non-public field outside of structure
+errortests/permissions.asy: 112.3: modifying non-public field outside of structure
+errortests/permissions.asy: 113.3: modifying non-public field outside of structure
+errortests/permissions.asy: 114.3: modifying non-public field outside of structure
+errortests/permissions.asy: 129.4: accessing private field outside of structure
+errortests/permissions.asy: 130.9: accessing private field outside of structure
+errortests/permissions.asy: 131.4: accessing private field outside of structure
+errortests/permissions.asy: 132.4: accessing private field outside of structure
+errortests/permissions.asy: 136.4: accessing private field outside of structure
+errortests/permissions.asy: 137.9: accessing private field outside of structure
+errortests/permissions.asy: 138.4: accessing private field outside of structure
+errortests/permissions.asy: 139.4: accessing private field outside of structure
+errortests/permissions.asy: 150.4: accessing private field outside of structure
