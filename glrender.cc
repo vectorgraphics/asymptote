@@ -59,6 +59,7 @@ using utils::stopWatch;
 
 using namespace settings;
 using namespace glm;
+using namespace camp;
 
 #endif // HAVE_RENDERER
 
@@ -66,51 +67,6 @@ using namespace glm;
 
 namespace camp {
 Billboard BB;
-
-GLint pixelShader;
-GLint materialShader[2];
-GLint colorShader[2];
-GLint generalShader[2];
-GLint countShader;
-GLint transparentShader;
-GLint blendShader;
-GLint zeroShader;
-GLint compressShader;
-GLint sum1Shader;
-GLint sum2Shader;
-GLint sum2fastShader;
-GLint sum3Shader;
-
-GLuint fragments;
-
-GLuint vao;  // Vertex Array Object
-GLuint offsetBuffer;
-GLuint indexBuffer;
-GLuint elementsBuffer;
-GLuint countBuffer;
-GLuint globalSumBuffer;
-GLuint fragmentBuffer;
-GLuint depthBuffer;
-GLuint opaqueBuffer;
-GLuint opaqueDepthBuffer;
-GLuint feedbackBuffer;
-
-bool ssbo;
-bool interlock;
-}
-
-#endif
-
-#ifdef HAVE_LIBGLM
-using camp::Material;
-using camp::Maxmaterials;
-using camp::Nmaterials;
-using camp::nmaterials;
-using camp::MaterialMap;
-
-namespace camp {
-bool initSSBO;
-GLuint maxFragments;
 
 vertexBuffer material0Data(GL_POINTS);
 vertexBuffer material1Data(GL_LINES);
@@ -133,8 +89,8 @@ unsigned int Opaque=0;
 
 void clearCenters()
 {
-  camp::drawElement::centers.clear();
-  camp::drawElement::centermap.clear();
+  drawElement::centers.clear();
+  drawElement::centermap.clear();
 }
 
 void clearMaterials()
@@ -154,7 +110,7 @@ void clearMaterials()
 //extern int fullWidth, fullHeight;
 extern bool orthographic_gl;  // Note: different name to avoid conflict with v3dheadertypes::orthographic enum
 extern double Angle, Zoom0;
-extern camp::pair Shift, Margin;
+extern pair Shift, Margin;
 extern double T[16], Tup[16];
 extern double Xmin, Xmax, Ymin, Ymax, Zmin, Zmax;  // These are now member variables in AsyRender
 }
@@ -176,54 +132,47 @@ bool Iconify=false;
 bool ignorezoom;
 int Fitscreen=1;
 bool firstFit;
-bool queueExport=false;
-bool readyAfterExport=false;
-bool remesh;
-bool copied;
+bool queueExport=false;  // Moved to AsyGLRender class member - use glR->queueExport
+bool readyAfterExport=false;  // Moved to AsyGLRender class member
+bool remesh;  // Use glR->remesh from base class
+bool copied;  // Use glR->copied
 int Mode;
-double Aspect;
-bool View;
+double Aspect;  // Use glR->Aspect from base class
+bool View;  // Use glR->View from base class
 bool ViewExport;
 int Oldpid;
-string Prefix;
-const camp::picture* Picture;
-string Format;
-int fullWidth,fullHeight;
-int Width,Height;
-GLuint pixels;
-GLuint elements;
-GLuint lastpixels;
-double oWidth,oHeight;
-int screenWidth,screenHeight;
-int maxTileWidth;
-int maxTileHeight;
-double H;
-bool haveScene;
+// Note: Prefix, Format, fullWidth, fullHeight, Width, Height are now in AsyRender base class
+const picture* Picture;  // Keep as global for drawscene() compatibility
+// Note: pixels, elements, lastpixels, oWidth, oHeight, screenWidth, screenHeight are now in AsyGLRender/AsyRender
+int maxTileWidth;  // Moved to AsyGLRender class member
+int maxTileHeight;  // Moved to AsyGLRender class member
+double H;  // Use glR->H from base class
+bool haveScene;  // Use glR->haveScene from base class
 double gl_X, gl_Y;
-string currentAction="";
+string currentAction="";  // Use glR->currentAction
 double cx,cy;
-double xprev,yprev;
+double xprev,yprev;  // Use glR->xprev/yprev
 static const double ASY_PI=acos(-1.0);
 static const double ASY_DEGREES=180.0/ASY_PI;
 static const double ASY_RADIANS=1.0/ASY_DEGREES;
-size_t Nlights=1;
-size_t nlights;
+size_t Nlights=1;  // Use glR->Nlights
+size_t nlights;  // Use glR->nlights from base class
 size_t nlights0;
-camp::triple *Lights;
-double *Diffuse;
-double *Specular;
-bool antialias;
+triple *Lights;  // Use glR->Lights
+double *Diffuse;  // Use glR->Diffuse
+double *Specular;  // Use glR->Specular
+bool antialias;  // Use glR->antialias from base class
 double zoomFactor = 0.0;
-GLint lastshader=-1;
-bool format3dWait=false;
-unsigned int framecount;
+GLint lastshader=-1;  // Moved to AsyGLRender class member
+bool format3dWait=false;  // Keep as global for threading
+unsigned int framecount;  // Use glR->framecount from base class
 
-// GPU compute state
+// GPU compute state - moved to AsyGLRender class members
 GLuint localSize=0;
 GLuint blockSize=0;
 GLuint groupSize=0;
 GLuint g=0;
-GLuint maxSize=1;
+GLuint maxSize=1;  // Moved to AsyGLRender class member
 GLuint processors=0;
 
 template<class T>
@@ -238,7 +187,7 @@ inline T max(T a, T b)
   return (a > b) ? a : b;
 }
 
-glm::vec4 vec4(camp::triple v)
+glm::vec4 vec4(triple v)
 {
   return glm::vec4(v.getx(),v.gety(),v.getz(),0);
 }
@@ -278,7 +227,7 @@ void* reflTexturesTex = nullptr;
 
 gl::GLTexture2<float,GL_FLOAT> fromEXR(string const& EXRFile, gl::GLTexturesFmt const& fmt, GLint const& textureNumber)
 {
-  camp::IEXRFile fil(EXRFile);
+  IEXRFile fil(EXRFile);
   return gl::GLTexture2<float,GL_FLOAT> {fil.getData(),fil.size(),textureNumber,fmt};
 }
 
@@ -291,7 +240,7 @@ gl::GLTexture3<float,GL_FLOAT> fromEXR3(
   int wi=0, ht=0;
 
   for(string const& EXRFile : EXRFiles) {
-    camp::IEXRFile fil3(EXRFile);
+    IEXRFile fil3(EXRFile);
     std::tie(wi,ht)=fil3.size();
     size_t imSize=4*wi*ht;
     std::copy(fil3.getData(),fil3.getData()+imSize,std::back_inserter(data));
@@ -311,10 +260,10 @@ void initIBL()
   string imageDir=locateFile(getSetting<string>("imageDir"))+"/";
   string imagePath=imageDir+getSetting<string>("image")+"/";
   // IBL textures - disabled for now due to template issues
-  // camp::irradianceTex=fromEXR(imagePath+"diffuse.exr",fmt,1);
+  // irradianceTex=fromEXR(imagePath+"diffuse.exr",fmt,1);
   // gl::GLTexturesFmt fmtRefl;
   // fmtRefl.internalFmt=GL_RG16F;
-  // camp::IBLbrdfTex=fromEXR(imageDir+"refl.exr",fmtRefl,2);
+  // IBLbrdfTex=fromEXR(imageDir+"refl.exr",fmtRefl,2);
 
   gl::GLTexturesFmt fmt3;
   fmt3.internalFmt=GL_RGB16F;
@@ -331,7 +280,7 @@ void initIBL()
   }
 
   // IBL textures - disabled for now due to template issues
-  // camp::reflTexturesTex=fromEXR3(files,fmt3,3);
+  // reflTexturesTex=fromEXR3(files,fmt3,3);
 }
 
 void *glrenderWrapper(void *a);
@@ -391,18 +340,18 @@ void initComputeShaders()
   } else {
 //    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT,0,&maxgroups);
 //    maxgroups=min(1024,maxgroups/(GLint) (localSize*localSize));
-    camp::sum1Shader=rc;
+    glR->sum1Shader=rc;
 
     shaders[0]=ShaderfileModePair(sum2.c_str(),GL_COMPUTE_SHADER);
-    camp::sum2Shader=compileAndLinkShader(shaders,shaderParams,true,false,
+    glR->sum2Shader=compileAndLinkShader(shaders,shaderParams,true,false,
                                           true);
 
     shaders[0]=ShaderfileModePair(sum2fast.c_str(),GL_COMPUTE_SHADER);
-    camp::sum2fastShader=compileAndLinkShader(shaders,shaderParams,true,false,
+    glR->sum2fastShader=compileAndLinkShader(shaders,shaderParams,true,false,
                                               true);
 
     shaders[0]=ShaderfileModePair(sum3.c_str(),GL_COMPUTE_SHADER);
-    camp::sum3Shader=compileAndLinkShader(shaders,shaderParams,true,false,
+    glR->sum3Shader=compileAndLinkShader(shaders,shaderParams,true,false,
                                           true);
   }
 }
@@ -427,7 +376,7 @@ void initBlendShader()
     shaderParams.push_back("GPUCOMPRESS");
   shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
   shaders[1]=ShaderfileModePair(blend.c_str(),GL_FRAGMENT_SHADER);
-  camp::blendShader=compileAndLinkShader(shaders,shaderParams,camp::ssbo);
+  glR->blendShader=compileAndLinkShader(shaders,shaderParams,glR->ssbo);
 }
 
 // Return the smallest power of 2 greater than or equal to n.
@@ -491,7 +440,7 @@ void initShaders()
   std::vector<ShaderfileModePair> shaders(2);
   std::vector<std::string> shaderParams;
 
-  if(camp::glRenderer->ibl) {
+  if(glR->ibl) {
     shaderParams.push_back("USE_IBL");
     initIBL();
   }
@@ -504,28 +453,28 @@ void initShaders()
   if(GPUcompress)
     shaderParams.push_back("GPUCOMPRESS");
   shaders[1]=ShaderfileModePair(count.c_str(),GL_FRAGMENT_SHADER);
-  camp::countShader=compileAndLinkShader(shaders,shaderParams,
+  glR->countShader=compileAndLinkShader(shaders,shaderParams,
                                          true,false,false,true);
-  if(camp::countShader)
+  if(glR->countShader)
     shaderParams.push_back("HAVE_SSBO");
 #else
-  camp::countShader=0;
+  glR->countShader=0;
 #endif
 
-  camp::ssbo=camp::countShader;
+  glR->ssbo=glR->countShader;
 #ifdef HAVE_LIBOSMESA
-  camp::interlock=false;
+  glR->interlock=false;
 #else
-  camp::interlock=camp::ssbo && getSetting<bool>("GPUinterlock");
+  glR->interlock=glR->ssbo && getSetting<bool>("GPUinterlock");
 #endif
 
-  if(!camp::ssbo && settings::verbose > 2)
+  if(!glR->ssbo && settings::verbose > 2)
     cout << "No SSBO support; order-independent transparency unavailable"
          << endl;
 
   shaders[1]=ShaderfileModePair(fragment.c_str(),GL_FRAGMENT_SHADER);
   shaderParams.push_back("MATERIAL");
-  if(camp::orthographic_gl)
+  if(orthographic_gl)
     shaderParams.push_back("ORTHOGRAPHIC");
 
   ostringstream lights,materials,opaque;
@@ -535,106 +484,106 @@ void initShaders()
   shaderParams.push_back(materials.str().c_str());
 
   shaderParams.push_back("WIDTH");
-  camp::pixelShader=compileAndLinkShader(shaders,shaderParams,camp::ssbo);
+  glR->pixelShader=compileAndLinkShader(shaders,shaderParams,glR->ssbo);
   shaderParams.pop_back();
 
   shaderParams.push_back("NORMAL");
-  if(camp::interlock) shaderParams.push_back("HAVE_INTERLOCK");
-  camp::materialShader[0]=compileAndLinkShader(shaders,shaderParams,
-                                               camp::ssbo,camp::interlock,false,true);
-  if(camp::interlock && !camp::materialShader[0]) {
+  if(glR->interlock) shaderParams.push_back("HAVE_INTERLOCK");
+  glR->materialShader[0]=compileAndLinkShader(shaders,shaderParams,
+                                               glR->ssbo,glR->interlock,false,true);
+  if(glR->interlock && !glR->materialShader[0]) {
     shaderParams.pop_back();
-    camp::interlock=false;
-    camp::materialShader[0]=compileAndLinkShader(shaders,shaderParams,camp::ssbo);
+    glR->interlock=false;
+    glR->materialShader[0]=compileAndLinkShader(shaders,shaderParams,glR->ssbo);
     if(settings::verbose > 2)
       cout << "No fragment shader interlock support" << endl;
   }
 
   shaderParams.push_back("OPAQUE");
-  camp::materialShader[1]=compileAndLinkShader(shaders,shaderParams,camp::ssbo);
+  glR->materialShader[1]=compileAndLinkShader(shaders,shaderParams,glR->ssbo);
   shaderParams.pop_back();
 
   shaderParams.push_back("COLOR");
-  camp::colorShader[0]=compileAndLinkShader(shaders,shaderParams,camp::ssbo,
-                                            camp::interlock);
+  glR->colorShader[0]=compileAndLinkShader(shaders,shaderParams,glR->ssbo,
+                                            glR->interlock);
   shaderParams.push_back("OPAQUE");
-  camp::colorShader[1]=compileAndLinkShader(shaders,shaderParams,camp::ssbo);
+  glR->colorShader[1]=compileAndLinkShader(shaders,shaderParams,glR->ssbo);
   shaderParams.pop_back();
 
   shaderParams.push_back("GENERAL");
-  if(camp::glRenderer->mode != camp::DRAWMODE_NORMAL)
+  if(glR->mode != DRAWMODE_NORMAL)
     shaderParams.push_back("WIREFRAME");
-  camp::generalShader[0]=compileAndLinkShader(shaders,shaderParams,camp::ssbo,
-                                              camp::interlock);
+  glR->generalShader[0]=compileAndLinkShader(shaders,shaderParams,glR->ssbo,
+                                              glR->interlock);
   shaderParams.push_back("OPAQUE");
-  camp::generalShader[1]=compileAndLinkShader(shaders,shaderParams,camp::ssbo);
+  glR->generalShader[1]=compileAndLinkShader(shaders,shaderParams,glR->ssbo);
   shaderParams.pop_back();
 
   shaderParams.push_back("TRANSPARENT");
-  camp::transparentShader=compileAndLinkShader(shaders,shaderParams,camp::ssbo,
-                                               camp::interlock);
+  glR->transparentShader=compileAndLinkShader(shaders,shaderParams,glR->ssbo,
+                                               glR->interlock);
   shaderParams.clear();
 
-  if(camp::ssbo) {
+  if(glR->ssbo) {
     if(GPUindexing)
       shaderParams.push_back("GPUINDEXING");
     shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
     shaders[1]=ShaderfileModePair(compress.c_str(),GL_FRAGMENT_SHADER);
-    camp::compressShader=compileAndLinkShader(shaders,shaderParams,camp::ssbo);
+    glR->compressShader=compileAndLinkShader(shaders,shaderParams,glR->ssbo);
     if(GPUindexing)
       shaderParams.pop_back();
     else {
       shaders[1]=ShaderfileModePair(zero.c_str(),GL_FRAGMENT_SHADER);
-      camp::zeroShader=compileAndLinkShader(shaders,shaderParams,camp::ssbo);
+      glR->zeroShader=compileAndLinkShader(shaders,shaderParams,glR->ssbo);
     }
-    maxSize=1;
+    glR->maxSize=1;
     initBlendShader();
   }
-  lastshader=-1;
+  glR->lastshader=-1;
 }
 
 void deleteComputeShaders()
 {
-  glDeleteProgram(camp::sum1Shader);
-  glDeleteProgram(camp::sum2Shader);
-  glDeleteProgram(camp::sum2fastShader);
-  glDeleteProgram(camp::sum3Shader);
+  glDeleteProgram(glR->sum1Shader);
+  glDeleteProgram(glR->sum2Shader);
+  glDeleteProgram(glR->sum2fastShader);
+  glDeleteProgram(glR->sum3Shader);
 }
 
 void deleteBlendShader()
 {
-  glDeleteProgram(camp::blendShader);
+  glDeleteProgram(glR->blendShader);
 }
 
 void deleteShaders()
 {
-  if(camp::ssbo) {
+  if(glR->ssbo) {
     deleteBlendShader();
     if(GPUindexing)
       deleteComputeShaders();
     else
-      glDeleteProgram(camp::zeroShader);
-    glDeleteProgram(camp::countShader);
-    glDeleteProgram(camp::compressShader);
+      glDeleteProgram(glR->zeroShader);
+    glDeleteProgram(glR->countShader);
+    glDeleteProgram(glR->compressShader);
   }
 
-  if (camp::transparentShader != 0)
-    glDeleteProgram(camp::transparentShader);
+  if (glR->transparentShader != 0)
+    glDeleteProgram(glR->transparentShader);
   for(unsigned int opaque=0; opaque < 2; ++opaque) {
-    if (camp::generalShader[opaque] != 0)
-      glDeleteProgram(camp::generalShader[opaque]);
-    if (camp::colorShader[opaque] != 0)
-      glDeleteProgram(camp::colorShader[opaque]);
-    if (camp::materialShader[opaque] != 0)
-      glDeleteProgram(camp::materialShader[opaque]);
+    if (glR->generalShader[opaque] != 0)
+      glDeleteProgram(glR->generalShader[opaque]);
+    if (glR->colorShader[opaque] != 0)
+      glDeleteProgram(glR->colorShader[opaque]);
+    if (glR->materialShader[opaque] != 0)
+      glDeleteProgram(glR->materialShader[opaque]);
   }
-  if (camp::pixelShader != 0)
-    glDeleteProgram(camp::pixelShader);
+  if (glR->pixelShader != 0)
+    glDeleteProgram(glR->pixelShader);
 }
 
 void resizeBlendShader(GLuint maxsize)
 {
-  maxSize=ceilpow2(maxsize);
+  glR->maxSize=ceilpow2(maxsize);
   deleteBlendShader();
   initBlendShader();
 }
@@ -642,39 +591,39 @@ void resizeBlendShader(GLuint maxsize)
 void setBuffers()
 {
   if(settings::verbose > 2) {
-    cerr << "setBuffers: Creating VAO, camp::vao=" << camp::vao << endl;
+    cerr << "setBuffers: Creating VAO, glR->vao=" << glR->vao << endl;
   }
-  glGenVertexArrays(1,&camp::vao);
+  glGenVertexArrays(1,&glR->vao);
   if(settings::verbose > 2) {
-    cerr << "setBuffers: VAO created, camp::vao=" << camp::vao << endl;
+    cerr << "setBuffers: VAO created, glR->vao=" << glR->vao << endl;
   }
   // Bind VAO once and leave it bound for all subsequent draw operations
-  glBindVertexArray(camp::vao);
+  glBindVertexArray(glR->vao);
 
-  camp::material0Data.reserve0();
-  camp::materialData.reserve();
-  camp::colorData.Reserve();
-  camp::triangleData.Reserve();
-  camp::transparentData.Reserve();
+  material0Data.reserve0();
+  materialData.reserve();
+  colorData.Reserve();
+  triangleData.Reserve();
+  transparentData.Reserve();
 
 #ifdef HAVE_SSBO
-  glGenBuffers(1, &camp::offsetBuffer);
+  glGenBuffers(1, &glR->offsetBuffer);
   if(GPUindexing)
-    glGenBuffers(1, &camp::globalSumBuffer);
-  glGenBuffers(1, &camp::feedbackBuffer);
-  glGenBuffers(1, &camp::countBuffer);
+    glGenBuffers(1, &glR->globalSumBuffer);
+  glGenBuffers(1, &glR->feedbackBuffer);
+  glGenBuffers(1, &glR->countBuffer);
   if(GPUcompress) {
-    glGenBuffers(1, &camp::indexBuffer);
-    glGenBuffers(1, &camp::elementsBuffer);
+    glGenBuffers(1, &glR->indexBuffer);
+    glGenBuffers(1, &glR->elementsBuffer);
   }
-  glGenBuffers(1, &camp::fragmentBuffer);
-  glGenBuffers(1, &camp::depthBuffer);
-  glGenBuffers(1, &camp::opaqueBuffer);
-  glGenBuffers(1, &camp::opaqueDepthBuffer);
+  glGenBuffers(1, &glR->fragmentBuffer);
+  glGenBuffers(1, &glR->depthBuffer);
+  glGenBuffers(1, &glR->opaqueBuffer);
+  glGenBuffers(1, &glR->opaqueDepthBuffer);
 #endif
 
   if(settings::verbose > 2) {
-    cerr << "setBuffers: Done, camp::vao=" << camp::vao << endl;
+    cerr << "setBuffers: Done, glR->vao=" << glR->vao << endl;
   }
 }
 
@@ -685,13 +634,13 @@ void drawscene(int Width, int Height)
 #ifdef HAVE_PTHREAD
   static bool first=true;
   if(first) {
-    camp::glRenderer->wait(camp::glRenderer->initSignal,camp::glRenderer->initLock);
-    camp::glRenderer->endwait(camp::glRenderer->initSignal,camp::glRenderer->initLock);
+    glR->wait(glR->initSignal,glR->initLock);
+    glR->endwait(glR->initSignal,glR->initLock);
     first=false;
   }
 
   if(format3dWait)
-    camp::glRenderer->wait(camp::glRenderer->initSignal,camp::glRenderer->initLock);
+    glR->wait(glR->initSignal,glR->initLock);
 #endif
 
   if((nlights == 0 && Nlights > 0) || nlights > Nlights ||
@@ -711,17 +660,17 @@ void drawscene(int Width, int Height)
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  // Use member variables from AsyCAMP::GLRENDERERender (following Vulkan pattern)
-  if(camp::glRenderer->xmin >= camp::glRenderer->xmax || camp::glRenderer->ymin >= camp::glRenderer->ymax || camp::glRenderer->Zmin >= camp::glRenderer->Zmax) return;
+  // Use member variables from AsyGLRENDERERender (following Vulkan pattern)
+  if(glR->xmin >= glR->xmax || glR->ymin >= glR->ymax || glR->Zmin >= glR->Zmax) return;
 
-  triple m(camp::glRenderer->xmin,camp::glRenderer->ymin,camp::glRenderer->Zmin);
-  triple M(camp::glRenderer->xmax,camp::glRenderer->ymax,camp::glRenderer->Zmax);
-  double perspective=camp::glRenderer->orthographic || camp::glRenderer->Zmax == 0.0 ? 0.0 : 1.0/camp::glRenderer->Zmax;
+  triple m(glR->xmin,glR->ymin,glR->Zmin);
+  triple M(glR->xmax,glR->ymax,glR->Zmax);
+  double perspective=glR->orthographic || glR->Zmax == 0.0 ? 0.0 : 1.0/glR->Zmax;
 
   double size2=hypot(Width,Height);
 
   if(remesh)
-    camp::clearCenters();
+    clearCenters();
 
   if(settings::verbose > 2) {
     cerr << "drawscene: calling Picture->render()" << endl;
@@ -734,10 +683,10 @@ void drawscene(int Width, int Height)
   }
 
 #ifdef HAVE_RENDERER
-  camp::drawBuffers();
+  drawBuffers();
 #endif
 
-  if(!camp::glRenderer || !camp::glRenderer->outlinemode) remesh=false;
+  if(!glR || !glR->outlinemode) remesh=false;
 }
 
 // Return x divided by y rounded up to the nearest integer.
@@ -748,7 +697,7 @@ int ceilquotient(int x, int y)
 
 void Export()
 {
-  size_t ndata=3*fullWidth*fullHeight;
+  size_t ndata=3*glR->fullWidth*glR->fullHeight;
   if(ndata == 0) return;
   glReadBuffer(GL_BACK_LEFT);
   glPixelStorei(GL_PACK_ALIGNMENT,1);
@@ -759,44 +708,44 @@ void Export()
     unsigned char *data=new unsigned char[ndata];
     if(data) {
       TRcontext *tr=trNew();
-      int width=ceilquotient(fullWidth,
-                             ceilquotient(fullWidth,std::min(maxTileWidth,Width)));
-      int height=ceilquotient(fullHeight,
-                              ceilquotient(fullHeight,
-                                           std::min(maxTileHeight,Height)));
+      int width=ceilquotient(glR->fullWidth,
+                             ceilquotient(glR->fullWidth,std::min(glR->maxTileWidth,glR->Width)));
+      int height=ceilquotient(glR->fullHeight,
+                              ceilquotient(glR->fullHeight,
+                                           std::min(glR->maxTileHeight,glR->Height)));
       if(settings::verbose > 1)
-        cout << "Exporting " << Prefix << " as " << fullWidth << "x"
-             << fullHeight << " image" << " using tiles of size "
+        cout << "Exporting " << glR->Prefix << " as " << glR->fullWidth << "x"
+             << glR->fullHeight << " image" << " using tiles of size "
              << width << "x" << height << endl;
 
       unsigned border=std::min(std::min(1,(width-1)/2),(height-1)/2);
       trTileSize(tr,width,height,border);
-      trImageSize(tr,fullWidth,fullHeight);
+      trImageSize(tr,glR->fullWidth,glR->fullHeight);
       trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
 
       // Note: setDimensions is protected, use global state directly
       // Width and Height are already set above via reshape0()
 
       // Use member variables from AsyGLRender (following Vulkan pattern)
-      double dXmin = camp::glRenderer->xmin;
-      double dXmax = camp::glRenderer->xmax;
-      double dYmin = camp::glRenderer->ymin;
-      double dYmax = camp::glRenderer->ymax;
-      double dZmin = camp::glRenderer->Zmin;
-      double dZmax = camp::glRenderer->Zmax;
+      double dXmin = glR->xmin;
+      double dXmax = glR->xmax;
+      double dYmin = glR->ymin;
+      double dYmax = glR->ymax;
+      double dZmin = glR->Zmin;
+      double dZmax = glR->Zmax;
 
       size_t count=0;
-      if(haveScene) {
-        (camp::orthographic_gl ? trOrtho : trFrustum)(tr,dXmin,dXmax,dYmin,dYmax,-dZmax,-dZmin);
+      if(glR->haveScene) {
+        (orthographic_gl ? trOrtho : trFrustum)(tr,dXmin,dXmax,dYmin,dYmax,-dZmax,-dZmin);
         do {
           trBeginTile(tr);
           remesh=true;
-          drawscene(fullWidth,fullHeight);
-          lastshader=-1;
+          drawscene(glR->fullWidth,glR->fullHeight);
+          glR->lastshader=-1;
           ++count;
         } while (trEndTile(tr));
       } else {// clear screen and return
-        drawscene(fullWidth,fullHeight);
+        drawscene(glR->fullWidth,glR->fullHeight);
       }
 
       if(settings::verbose > 1)
@@ -805,21 +754,21 @@ void Export()
 
       picture pic;
       drawRawImage *Image=NULL;
-      if(haveScene) {
-        double w=oWidth;
-        double h=oHeight;
-        double Aspect=((double) fullWidth)/fullHeight;
+      if(glR->haveScene) {
+        double w=glR->oWidth;
+        double h=glR->oHeight;
+        double Aspect=((double) glR->fullWidth)/glR->fullHeight;
         if(w > h*Aspect) w=(int) (h*Aspect+0.5);
         else h=(int) (w/Aspect+0.5);
         // Render an antialiased image.
 
-        Image=new drawRawImage(data,fullWidth,fullHeight,
+        Image=new drawRawImage(data,glR->fullWidth,glR->fullHeight,
                                transform(0.0,0.0,w,0.0,0.0,h),
-                               antialias);
+                               glR->antialias);
         pic.append(Image);
       }
 
-      pic.shipout(NULL,Prefix,Format,false,ViewExport);
+      pic.shipout(NULL,glR->Prefix,glR->Format,false,ViewExport);
       if(Image)
         delete Image;
       delete[] data;
@@ -833,18 +782,18 @@ void Export()
 
 #ifndef HAVE_LIBOSMESA
 #ifdef HAVE_LIBGLFW
-  camp::glRenderer->redraw=true;
+  glR->redraw=true;
 #endif
 
 #ifdef HAVE_PTHREAD
-  if(camp::glRenderer->renderThread && readyAfterExport) {
+  if(glR->renderThread && readyAfterExport) {
     readyAfterExport=false;
-    camp::glRenderer->endwait(camp::glRenderer->readySignal,camp::glRenderer->readyLock);
+    glR->endwait(glR->readySignal,glR->readyLock);
   }
 #endif
 #endif
   exporting=false;
-  camp::initSSBO=true;
+  glR->initSSBO=true;
 }
 
 void nodisplay()
@@ -872,24 +821,24 @@ void quit()
   exit(0);
 #endif
 #ifdef HAVE_LIBGLFW
-  if(camp::glRenderer->renderThread) {
-    camp::glRenderer->home();
+  if(glR->renderThread) {
+    glR->home();
 #ifdef HAVE_PTHREAD
     if(!interact::interactive) {
       // idle() is no longer needed with GLFW event loop
-      camp::glRenderer->endwait(camp::glRenderer->readySignal,camp::glRenderer->readyLock);
+      glR->endwait(glR->readySignal,glR->readyLock);
     }
 #endif
     // Always signal the window to close in threaded mode
-    if (camp::glRenderer->glfwWindow != nullptr) {
-      glfwSetWindowShouldClose(static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow), true);
+    if (glR->glfwWindow != nullptr) {
+      glfwSetWindowShouldClose(static_cast<GLFWwindow*>(glR->glfwWindow), true);
       if(interact::interactive) {
-        glfwHideWindow(static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow));
+        glfwHideWindow(static_cast<GLFWwindow*>(glR->glfwWindow));
       }
     }
   } else {
-    if(camp::glRenderer->glfwWindow != nullptr) {
-      ::glfwDestroyWindow(static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow));
+    if(glR->glfwWindow != nullptr) {
+      ::glfwDestroyWindow(static_cast<GLFWwindow*>(glR->glfwWindow));
     }
     glfwTerminate();
     exit(0);
@@ -903,32 +852,32 @@ void quit()
 void mode()
 {
   remesh=true;
-  if(camp::ssbo)
-    camp::initSSBO=true;
+  if(glR->ssbo)
+    glR->initSSBO=true;
   ++::Mode;
   if(::Mode > 2) ::Mode=0;
 
   switch(::Mode) {
     case 0: // regular
-      camp::glRenderer->outlinemode=false;
-      camp::glRenderer->ibl=getSetting<bool>("ibl");
+      glR->outlinemode=false;
+      glR->ibl=getSetting<bool>("ibl");
       nlights=nlights0;
-      lastshader=-1;
+      glR->lastshader=-1;
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
       break;
     case 1: // outline
-      camp::glRenderer->outlinemode=true;
-      camp::glRenderer->ibl=false;
+      glR->outlinemode=true;
+      glR->ibl=false;
       nlights=0; // Force shader recompilation
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       break;
     case 2: // wireframe
-      camp::glRenderer->outlinemode=false;
+      glR->outlinemode=false;
       Nlights=1; // Force shader recompilation
       break;
   }
 #ifndef HAVE_LIBOSMESA
-  camp::glRenderer->redraw=true;
+  glR->redraw=true;
 #endif
 }
 
@@ -936,12 +885,12 @@ void mode()
 bool capsize(int& width, int& height)
 {
   bool resize=false;
-  if(width > screenWidth) {
-    width=screenWidth;
+  if(width > glR->screenWidth) {
+    width=glR->screenWidth;
     resize=true;
   }
-  if(height > screenHeight) {
-    height=screenHeight;
+  if(height > glR->screenHeight) {
+    height=glR->screenHeight;
     resize=true;
   }
   return resize;
@@ -949,39 +898,39 @@ bool capsize(int& width, int& height)
 
 void reshape0(int width, int height)
 {
-  gl_X=(gl_X/Width)*width;
-  gl_Y=(gl_Y/Height)*height;
+  gl_X=(gl_X/glR->Width)*width;
+  gl_Y=(gl_Y/glR->Height)*height;
 
-  Width=width;
-  Height=height;
+  glR->Width=width;
+  glR->Height=height;
 
   static int lastWidth=1;
   static int lastHeight=1;
-  if(View && Width*Height > 1 && (Width != lastWidth || Height != lastHeight)
+  if(View && glR->Width*glR->Height > 1 && (glR->Width != lastWidth || glR->Height != lastHeight)
      && settings::verbose > 1) {
-    cout << "Rendering " << stripDir(Prefix) << " as "
-         << Width << "x" << Height << " image" << endl;
-    lastWidth=Width;
-    lastHeight=Height;
+    cout << "Rendering " << stripDir(glR->Prefix) << " as "
+         << glR->Width << "x" << glR->Height << " image" << endl;
+    lastWidth=glR->Width;
+    lastHeight=glR->Height;
   }
 
   // Note: setProjection is protected, will be called from class methods
-  glViewport(0,0,Width,Height);
-  if(camp::ssbo)
-    camp::initSSBO=true;
+  glViewport(0,0,glR->Width,glR->Height);
+  if(glR->ssbo)
+    glR->initSSBO=true;
 }
 
-void windowposition(int& x, int& y, int width=Width, int height=Height)
+void windowposition(int& x, int& y, int width=-1, int height=-1)
 {
   pair z=getSetting<pair>("position");
   x=(int) z.getx();
   y=(int) z.gety();
   if(x < 0) {
-    x += screenWidth-width;
+    x += glR->screenWidth-width;
     if(x < 0) x=0;
   }
   if(y < 0) {
-    y += screenHeight-height;
+    y += glR->screenHeight-height;
     if(y < 0) y=0;
   }
 }
@@ -992,10 +941,10 @@ void setsize(int w, int h, bool reposition=true)
 
   capsize(w,h);
 
-  // Use window from glRenderer if available, otherwise use global window variable
+  // Use window from glR if available, otherwise use global window variable
   GLFWwindow* win = nullptr;
-  if (camp::glRenderer && camp::glRenderer->glfwWindow != nullptr) {
-    win = static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow);
+  if (glR && glR->glfwWindow != nullptr) {
+    win = static_cast<GLFWwindow*>(glR->glfwWindow);
   } else {
     win = ::window;
   }
@@ -1013,41 +962,41 @@ void setsize(int w, int h, bool reposition=true)
 
   glfwSetWindowSize(win,w,h);
   reshape0(w,h);
-  camp::glRenderer->redraw=true;
+  glR->redraw=true;
 }
 
 void capzoom()
 {
   static double maxzoom=sqrt(DBL_MAX);
   static double minzoom=1.0/maxzoom;
-  if(camp::glRenderer->Zoom <= minzoom) camp::glRenderer->Zoom=minzoom;
-  if(camp::glRenderer->Zoom >= maxzoom) camp::glRenderer->Zoom=maxzoom;
+  if(glR->Zoom <= minzoom) glR->Zoom=minzoom;
+  if(glR->Zoom >= maxzoom) glR->Zoom=maxzoom;
 
-  if(fabs(camp::glRenderer->Zoom-camp::glRenderer->lastzoom) > settings::getSetting<double>("zoomThreshold")) {
+  if(fabs(glR->Zoom-glR->lastzoom) > settings::getSetting<double>("zoomThreshold")) {
     remesh=true;
-    camp::glRenderer->lastzoom=camp::glRenderer->Zoom;
+    glR->lastzoom=glR->Zoom;
   }
 }
 
 void fullscreen(bool reposition=true)
 {
-  Width=screenWidth;
-  Height=screenHeight;
+  glR->Width=glR->screenWidth;
+  glR->Height=glR->screenHeight;
   if(firstFit) {
-    if(Width < Height*Aspect)
-      camp::glRenderer->Zoom *= Width/(Height*Aspect);
+    if(glR->Width < glR->Height*glR->Aspect)
+      glR->Zoom *= glR->Width/(glR->Height*glR->Aspect);
     capzoom();
     // Note: setProjection is protected, will be called from class methods
     firstFit=false;
   }
-  camp::glRenderer->Xfactor=((double) screenHeight)/Height;
-  camp::glRenderer->Yfactor=((double) screenWidth)/Width;
-  reshape0(Width,Height);
+  glR->Xfactor=((double) glR->screenHeight)/glR->Height;
+  glR->Yfactor=((double) glR->screenWidth)/glR->Width;
+  reshape0(glR->Width,glR->Height);
 
-  // Use window from camp::glRendererenderer if available, otherwise use global window variable
+  // Use window from glR if available, otherwise use global window variable
   GLFWwindow* win = nullptr;
-  if (camp::glRenderer->glfwWindow != nullptr) {
-    win = static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow);
+  if (glR->glfwWindow != nullptr) {
+    win = static_cast<GLFWwindow*>(glR->glfwWindow);
   } else {
     win = ::window;
   }
@@ -1055,10 +1004,10 @@ void fullscreen(bool reposition=true)
   if (win != nullptr) {
     if(reposition)
       glfwSetWindowPos(win,0,0);
-    glfwSetWindowSize(win,Width,Height);
+    glfwSetWindowSize(win,glR->Width,glR->Height);
   }
 
-  camp::glRenderer->redraw=true;
+  glR->redraw=true;
 }
 
 void fitscreen(bool reposition=true)
@@ -1066,19 +1015,19 @@ void fitscreen(bool reposition=true)
   switch(Fitscreen) {
     case 0: // Original size
     {
-      camp::glRenderer->Xfactor=camp::glRenderer->Yfactor=1.0;
+      glR->Xfactor=glR->Yfactor=1.0;
       double pixelRatio=getSetting<double>("devicepixelratio");
       setsize(oldWidth*pixelRatio,oldHeight*pixelRatio,reposition);
       break;
     }
     case 1: // Fit to screen in one dimension
     {
-      int w=screenWidth;
-      int h=screenHeight;
-      if(w > h*Aspect)
-        w=std::min((int) ceil(h*Aspect),w);
+      int w=glR->screenWidth;
+      int h=glR->screenHeight;
+      if(w > h*glR->Aspect)
+        w=std::min((int) ceil(h*glR->Aspect),w);
       else
-        h=std::min((int) ceil(w/Aspect),h);
+        h=std::min((int) ceil(w/glR->Aspect),h);
       setsize(w,h,reposition);
       break;
     }
@@ -1099,7 +1048,7 @@ void togglefitscreen()
 
 void screen()
 {
-  if(camp::glRenderer->renderThread && !interact::interactive)
+  if(glR->renderThread && !interact::interactive)
     fitscreen(false);
 }
 
@@ -1109,7 +1058,7 @@ void nextframe()
 {
 #ifdef HAVE_PTHREAD
   {
-    camp::glRenderer->endwait(camp::glRenderer->readySignal,camp::glRenderer->readyLock);
+    glR->endwait(glR->readySignal,glR->readyLock);
   }
 #endif
   double delay=getSetting<double>("framerate");
@@ -1131,7 +1080,7 @@ void display()
   }
 
   bool fps=settings::verbose > 2;
-  drawscene(Width,Height);
+  drawscene(glR->Width,glR->Height);
   if(fps) {
     if(framecount < 20) // Measure steady-state framerate
       Timer.reset();
@@ -1148,10 +1097,10 @@ void display()
     ++framecount;
   }
 
-  // Use window from glRenderer if available, otherwise use global window variable
+  // Use window from glR if available, otherwise use global window variable
   GLFWwindow* win = nullptr;
-  if (camp::glRenderer && camp::glRenderer->glfwWindow != nullptr) {
-    win = static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow);
+  if (glR && glR->glfwWindow != nullptr) {
+    win = static_cast<GLFWwindow*>(glR->glfwWindow);
   } else {
     win = ::window;
   }
@@ -1164,7 +1113,7 @@ void display()
     Export();
     queueExport=false;
   }
-  if(!camp::glRenderer || !camp::glRenderer->renderThread) {
+  if(!glR || !glR->renderThread) {
 #if !defined(_WIN32)
     if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
       kill(Oldpid,SIGHUP);
@@ -1174,13 +1123,13 @@ void display()
   }
 }
 
-void camp::AsyGLRender::update()
+void AsyGLRender::update()
 {
   capzoom();
 
-  camp::glRenderer->redraw=true;
+  glR->redraw=true;
 #ifdef HAVE_RENDERER
-  if(camp::glRenderer->glfwWindow) ::glfwShowWindow(static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow));
+  if(glR->glfwWindow) ::glfwShowWindow(static_cast<GLFWwindow*>(glR->glfwWindow));
 #endif
 
   // Call base class update which has the correct view matrix computation (matching reference GLUT code)
@@ -1191,12 +1140,12 @@ void updateHandler(int)
 {
   queueScreen=true;
   remesh=true;
-  camp::glRenderer->update();
+  glR->update();
 
-  // Use window from glRenderer if available, otherwise use global window variable
+  // Use window from glR if available, otherwise use global window variable
   GLFWwindow* win = nullptr;
-  if (camp::glRenderer && camp::glRenderer->glfwWindow != nullptr) {
-    win = static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow);
+  if (glR && glR->glfwWindow != nullptr) {
+    win = static_cast<GLFWwindow*>(glR->glfwWindow);
   } else {
     win = ::window;
   }
@@ -1210,7 +1159,7 @@ void updateHandler(int)
 
 void reshape(int width, int height)
 {
-  if(camp::glRenderer->renderThread) {
+  if(glR->renderThread) {
     static bool initialize=true;
     if(initialize) {
       initialize=false;
@@ -1220,10 +1169,10 @@ void reshape(int width, int height)
     }
   }
 
-  // Use window from glRenderer if available, otherwise use global window variable
+  // Use window from glR if available, otherwise use global window variable
   GLFWwindow* win = nullptr;
-  if (camp::glRenderer && camp::glRenderer->glfwWindow != nullptr) {
-    win = static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow);
+  if (glR && glR->glfwWindow != nullptr) {
+    win = static_cast<GLFWwindow*>(glR->glfwWindow);
   } else {
     win = ::window;
   }
@@ -1243,10 +1192,10 @@ void exportHandler(int=0)
 #ifndef HAVE_LIBOSMESA
 #ifdef HAVE_LIBGLFW
   if(!Iconify) {
-    // Use window from glRenderer if available, otherwise use global window variable
+    // Use window from glR if available, otherwise use global window variable
     GLFWwindow* win = nullptr;
-    if (camp::glRenderer && camp::glRenderer->glfwWindow != nullptr) {
-      win = static_cast<GLFWwindow*>(camp::glRenderer->glfwWindow);
+    if (glR && glR->glfwWindow != nullptr) {
+      win = static_cast<GLFWwindow*>(glR->glfwWindow);
     } else {
       win = ::window;
     }
@@ -1366,9 +1315,9 @@ void registerBuffer(const std::vector<T>& buffervector, GLuint& bufferIndex,
 
 void clearCount()
 {
-  glUseProgram(zeroShader);
-  lastshader=zeroShader;
-  glUniform1ui(glGetUniformLocation(zeroShader,"width"),Width);
+  glUseProgram(glR->zeroShader);
+  glR->lastshader=glR->zeroShader;
+  glUniform1ui(glGetUniformLocation(glR->zeroShader,"width"),glR->Width);
   fpu_trap(false); // Work around FE_INVALID
   glDrawArrays(GL_TRIANGLES, 0, 3);
   fpu_trap(settings::trap());
@@ -1378,9 +1327,9 @@ void clearCount()
 void compressCount()
 {
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
-  glUseProgram(compressShader);
-  lastshader=compressShader;
-  glUniform1ui(glGetUniformLocation(compressShader,"width"),Width);
+  glUseProgram(glR->compressShader);
+  glR->lastshader=glR->compressShader;
+  glUniform1ui(glGetUniformLocation(glR->compressShader,"width"),glR->Width);
   fpu_trap(false); // Work around FE_INVALID
   glDrawArrays(GL_TRIANGLES, 0, 3);
   fpu_trap(settings::trap());
@@ -1390,21 +1339,21 @@ void compressCount()
 void partialSums(bool readSize=false)
 {
   // Compute partial sums on the GPU
-  glUseProgram(sum1Shader);
+  glUseProgram(glR->sum1Shader);
   glDispatchCompute(g,1,1);
 
-  if(elements <= groupSize*groupSize)
-    glUseProgram(sum2fastShader);
+  if(glR->elements <= groupSize*groupSize)
+    glUseProgram(glR->sum2fastShader);
   else {
-    glUseProgram(sum2Shader);
-    glUniform1ui(glGetUniformLocation(sum2Shader,"blockSize"),
+    glUseProgram(glR->sum2Shader);
+    glUniform1ui(glGetUniformLocation(glR->sum2Shader,"blockSize"),
                  ceilquotient(g,localSize));
   }
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDispatchCompute(1,1,1);
 
-  glUseProgram(sum3Shader);
-  glUniform1ui(glGetUniformLocation(sum3Shader,"final"),elements-1);
+  glUseProgram(glR->sum3Shader);
+  glUniform1ui(glGetUniformLocation(glR->sum3Shader,"final"),glR->elements-1);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDispatchCompute(g,1,1);
 }
@@ -1414,139 +1363,139 @@ void resizeFragmentBuffer()
   if(GPUindexing) {
     glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::feedbackBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->feedbackBuffer);
     GLuint *feedback=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_ONLY);
 
     GLuint maxDepth=feedback[0];
-    if(maxDepth > maxSize)
+    if(maxDepth > glR->maxSize)
       resizeBlendShader(maxDepth);
 
-    fragments=feedback[1];
+    glR->fragments=feedback[1];
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
   }
 
-  if(fragments > maxFragments) {
+  if(glR->fragments > glR->maxFragments) {
     // Initialize the alpha buffer
-    maxFragments=11*fragments/10;
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::fragmentBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,maxFragments*sizeof(glm::vec4),
+    glR->maxFragments=11*glR->fragments/10;
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->fragmentBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,glR->maxFragments*sizeof(glm::vec4),
                  NULL,GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,4,camp::fragmentBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,4,glR->fragmentBuffer);
 
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::depthBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,maxFragments*sizeof(GLfloat),
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->depthBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,glR->maxFragments*sizeof(GLfloat),
                  NULL,GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,5,camp::depthBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,5,glR->depthBuffer);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::feedbackBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->feedbackBuffer);
   }
 }
 
 void refreshBuffers()
 {
   GLuint zero=0;
-  pixels=(Width+1)*(Height+1);
+  glR->pixels=(glR->Width+1)*(glR->Height+1);
 
-  if(initSSBO) {
+  if(glR->initSSBO) {
     processors=1;
 
     GLuint Pixels;
     if(GPUindexing) {
-      GLuint G=ceilquotient(pixels,groupSize);
+      GLuint G=ceilquotient(glR->pixels,groupSize);
       Pixels=groupSize*G;
 
       GLuint globalSize=localSize*ceilquotient(G,localSize);
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::globalSumBuffer);
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->globalSumBuffer);
       glBufferData(GL_SHADER_STORAGE_BUFFER,globalSize*sizeof(GLuint),NULL,
                    GL_DYNAMIC_READ);
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                         GL_UNSIGNED_INT,&zero);
-      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,3,camp::globalSumBuffer);
-    } else Pixels=pixels;
+      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,3,glR->globalSumBuffer);
+    } else Pixels=glR->pixels;
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->offsetBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,(Pixels+2)*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,camp::offsetBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,glR->offsetBuffer);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->countBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,(Pixels+2)*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,camp::countBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,glR->countBuffer);
 
     if(GPUcompress) {
       GLuint one=1;
-      glBindBuffer(GL_ATOMIC_COUNTER_BUFFER,camp::elementsBuffer);
+      glBindBuffer(GL_ATOMIC_COUNTER_BUFFER,glR->elementsBuffer);
       glBufferData(GL_ATOMIC_COUNTER_BUFFER,sizeof(GLuint),&one,
                    GL_DYNAMIC_DRAW);
-      glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER,0,camp::elementsBuffer);
+      glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER,0,glR->elementsBuffer);
 
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::indexBuffer);
-      glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->indexBuffer);
+      glBufferData(GL_SHADER_STORAGE_BUFFER,glR->pixels*sizeof(GLuint),
                    NULL,GL_DYNAMIC_DRAW);
-      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,camp::indexBuffer);
+      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,glR->indexBuffer);
     }
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                       GL_UNSIGNED_INT,&zero); // Clear count or index buffer
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::opaqueBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(glm::vec4),NULL,
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->opaqueBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,glR->pixels*sizeof(glm::vec4),NULL,
                  GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,6,camp::opaqueBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,6,glR->opaqueBuffer);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::opaqueDepthBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->opaqueDepthBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,
-                 sizeof(GLuint)+pixels*sizeof(GLfloat),NULL,
+                 sizeof(GLuint)+glR->pixels*sizeof(GLfloat),NULL,
                  GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,7,camp::opaqueDepthBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,7,glR->opaqueDepthBuffer);
     const GLfloat zerof=0.0;
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32F,GL_RED,GL_FLOAT,&zerof);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::feedbackBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->feedbackBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,2*sizeof(GLuint),NULL,
                  GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,8,camp::feedbackBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,8,glR->feedbackBuffer);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::feedbackBuffer);
-    initSSBO=false;
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->feedbackBuffer);
+    glR->initSSBO=false;
   }
 
   // Determine the fragment offsets
 
   if(exporting && GPUindexing && !GPUcompress) {
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->countBuffer);
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                       GL_UNSIGNED_INT,&zero);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::feedbackBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->feedbackBuffer);
   }
 
-  if(!interlock) {
-    drawBuffer(material1Data,countShader);
-    drawBuffer(materialData,countShader);
-    drawBuffer(colorData,countShader,true);
-    drawBuffer(triangleData,countShader,true);
+  if(!glR->interlock) {
+    drawBuffer(material1Data,glR->countShader);
+    drawBuffer(materialData,glR->countShader);
+    drawBuffer(colorData,glR->countShader,true);
+    drawBuffer(triangleData,glR->countShader,true);
   }
 
   glDepthMask(GL_FALSE); // Don't write to depth buffer
   glDisable(GL_MULTISAMPLE);
-  drawBuffer(transparentData,countShader,true);
+  drawBuffer(transparentData,glR->countShader,true);
   glEnable(GL_MULTISAMPLE);
   glDepthMask(GL_TRUE); // Write to depth buffer
 
   if(GPUcompress) {
     compressCount();
     GLuint *p=(GLuint *) glMapBuffer(GL_ATOMIC_COUNTER_BUFFER,GL_READ_WRITE);
-    elements=GPUindexing ? p[0] : p[0]-1;
+    glR->elements=GPUindexing ? p[0] : p[0]-1;
     p[0]=1;
     glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
-    if(elements == 0) return;
+    if(glR->elements == 0) return;
   } else
-    elements=pixels;
+    glR->elements=glR->pixels;
 
   if(GPUindexing) {
-    g=ceilquotient(elements,groupSize);
-    elements=groupSize*g;
+    g=ceilquotient(glR->elements,groupSize);
+    glR->elements=groupSize*g;
 
     if(settings::verbose > 3) {
       static bool first=true;
@@ -1560,55 +1509,55 @@ void refreshBuffers()
         partialSums();
       glFinish();
       double T=Timer.seconds()/N;
-      cout << "elements=" << elements << endl;
+      cout << "elements=" << glR->elements << endl;
       cout << "Tmin (ms)=" << T*1e3 << endl;
-      cout << "Megapixels/second=" << elements/T/1e6 << endl;
+      cout << "Megapixels/second=" << glR->elements/T/1e6 << endl;
     }
 
     partialSums(true);
   } else {
-    size_t size=elements*sizeof(GLuint);
+    size_t size=glR->elements*sizeof(GLuint);
 
     // Compute partial sums on the CPU
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->countBuffer);
     GLuint *p=(GLuint *) glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
                                           0,size+sizeof(GLuint),
                                               GL_MAP_READ_BIT);
     GLuint maxsize=p[0];
     GLuint *count=p+1;
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->offsetBuffer);
     GLuint *offset=(GLuint *) glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
                                                sizeof(GLuint),size,
                                                GL_MAP_WRITE_BIT);
 
     size_t Offset=offset[0]=count[0];
-    for(size_t i=1; i < elements; ++i)
+    for(size_t i=1; i < glR->elements; ++i)
       offset[i]=Offset += count[i];
-    fragments=Offset;
+    glR->fragments=Offset;
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::offsetBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->offsetBuffer);
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->countBuffer);
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
     if(exporting) {
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER,camp::countBuffer);
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER,glR->countBuffer);
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                         GL_UNSIGNED_INT,&zero);
     } else
       clearCount();
 
-    if(maxsize > maxSize)
+    if(maxsize > glR->maxSize)
       resizeBlendShader(maxsize);
   }
-  lastshader=-1;
+  glR->lastshader=-1;
 }
 
 void setUniforms(vertexBuffer& data, GLint shader)
 {
-  bool normal=shader != pixelShader;
+  bool normal=shader != glR->pixelShader;
 
   // Check if shader is valid
   if(shader == 0) {
@@ -1618,34 +1567,34 @@ void setUniforms(vertexBuffer& data, GLint shader)
     return;
   }
 
-  if(shader != lastshader) {
+  if(shader != glR->lastshader) {
     glUseProgram(shader);
 
     if(normal)
-      glUniform1ui(glGetUniformLocation(shader,"width"),Width);
+      glUniform1ui(glGetUniformLocation(shader,"width"),glR->Width);
   }
 
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
-                     value_ptr(glm::mat4(camp::glRenderer->projViewMat)));
+                     value_ptr(glm::mat4(glR->projViewMat)));
 
   glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE,
-                     value_ptr(glm::mat4(camp::glRenderer->viewMat)));
+                     value_ptr(glm::mat4(glR->viewMat)));
   if(normal)
     glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE,
                        value_ptr(normMat));
 
-  if(shader == countShader) {
-    lastshader=shader;
+  if(shader == glR->countShader) {
+    glR->lastshader=shader;
     return;
   }
 
-  if(shader != lastshader) {
-    lastshader=shader;
+  if(shader != glR->lastshader) {
+    glR->lastshader=shader;
     glUniform1ui(glGetUniformLocation(shader,"nlights"),nlights);
 
     for(size_t i=0; i < nlights; ++i) {
-      triple Lighti=camp::glRenderer->Lights[i];
-      double *Diffusei=camp::glRenderer->Diffuse+4*i;
+      triple Lighti=glR->Lights[i];
+      double *Diffusei=glR->Diffuse+4*i;
       glUniform3f(glGetUniformLocation(shader,
                                        getLightIndex(i,"direction").c_str()),
                   (GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),
@@ -1659,9 +1608,9 @@ void setUniforms(vertexBuffer& data, GLint shader)
 
     // IBL textures - disabled for now due to template issues
     // if(settings::getSetting<bool>("ibl")) {
-    //   camp::IBLbrdfTex.setUniform(glGetUniformLocation(shader, "reflBRDFSampler"));
-    //   camp::irradianceTex.setUniform(glGetUniformLocation(shader, "diffuseSampler"));
-    //   camp::reflTexturesTex.setUniform(glGetUniformLocation(shader, "reflImgSampler"));
+    //   IBLbrdfTex.setUniform(glGetUniformLocation(shader, "reflBRDFSampler"));
+    //   irradianceTex.setUniform(glGetUniformLocation(shader, "diffuseSampler"));
+    //   reflTexturesTex.setUniform(glGetUniformLocation(shader, "reflImgSampler"));
     // }
   }
 
@@ -1678,16 +1627,16 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
   if(data.indices.empty()) return;
 
   // Ensure VAO is valid (non-zero) - should already be bound from setBuffers()
-  if(camp::vao == 0) {
+  if(glR->vao == 0) {
     if(settings::verbose > 2) {
       cerr << "drawBuffer: VAO not initialized! Creating now..." << endl;
     }
-    glGenVertexArrays(1, &camp::vao);
-    glBindVertexArray(camp::vao);  // Bind once and leave it bound
+    glGenVertexArrays(1, &glR->vao);
+    glBindVertexArray(glR->vao);  // Bind once and leave it bound
   }
 
   if(settings::verbose > 2) {
-    cerr << "drawBuffer: camp::vao=" << camp::vao << endl;
+    cerr << "drawBuffer: glR->vao=" << glR->vao << endl;
   }
 
   // Check for OpenGL errors before drawing
@@ -1696,7 +1645,7 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
     cerr << "drawBuffer: OpenGL error at start: " << err << endl;
   }
 
-  bool normal=shader != pixelShader;
+  bool normal=shader != glR->pixelShader;
 
   const size_t size=sizeof(GLfloat);
   const size_t intsize=sizeof(GLint);
@@ -1719,7 +1668,7 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
 
   registerBuffer(data.indices,data.indicesBuffer,copy,GL_ELEMENT_ARRAY_BUFFER);
 
-  camp::setUniforms(data,shader);
+  setUniforms(data,shader);
 
   data.rendered=true;
 
@@ -1775,13 +1724,13 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
 
 void drawMaterial0()
 {
-  drawBuffer(material0Data,pixelShader);
+  drawBuffer(material0Data,glR->pixelShader);
   material0Data.clear();
 }
 
 void drawMaterial1()
 {
-  drawBuffer(material1Data,materialShader[Opaque]);
+  drawBuffer(material1Data,glR->materialShader[Opaque]);
   material1Data.clear();
 }
 
@@ -1793,19 +1742,19 @@ void drawMaterial()
     cerr << "drawMaterial: OpenGL error before drawBuffer: " << err << endl;
   }
 
-  drawBuffer(materialData,materialShader[Opaque]);
+  drawBuffer(materialData,glR->materialShader[Opaque]);
   materialData.clear();
 }
 
 void drawColor()
 {
-  drawBuffer(colorData,colorShader[Opaque],true);
+  drawBuffer(colorData,glR->colorShader[Opaque],true);
   colorData.clear();
 }
 
 void drawTriangle()
 {
-  drawBuffer(triangleData,generalShader[Opaque],true);
+  drawBuffer(triangleData,glR->generalShader[Opaque],true);
   triangleData.clear();
 }
 
@@ -1813,17 +1762,17 @@ void aBufferTransparency()
 {
   // Collect transparent fragments
   glDepthMask(GL_FALSE); // Disregard depth
-  drawBuffer(transparentData,transparentShader,true);
+  drawBuffer(transparentData,glR->transparentShader,true);
   glDepthMask(GL_TRUE); // Respect depth
 
   // Blend transparent fragments
   glDisable(GL_DEPTH_TEST);
-  glUseProgram(blendShader);
-  lastshader=blendShader;
-  glUniform1ui(glGetUniformLocation(blendShader,"width"),Width);
-  glUniform4f(glGetUniformLocation(blendShader,"background"),
-              camp::glRenderer->Background[0],camp::glRenderer->Background[1],camp::glRenderer->Background[2],
-              camp::glRenderer->Background[3]);
+  glUseProgram(glR->blendShader);
+  glR->lastshader=glR->blendShader;
+  glUniform1ui(glGetUniformLocation(glR->blendShader,"width"),glR->Width);
+  glUniform4f(glGetUniformLocation(glR->blendShader,"background"),
+              glR->Background[0],glR->Background[1],glR->Background[2],
+              glR->Background[3]);
   fpu_trap(false); // Work around FE_INVALID
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDrawArrays(GL_TRIANGLES,0,3);
@@ -1834,7 +1783,7 @@ void aBufferTransparency()
 
 void drawTransparent()
 {
-  if(camp::ssbo) {
+  if(glR->ssbo) {
     glDisable(GL_MULTISAMPLE);
     aBufferTransparency();
     glEnable(GL_MULTISAMPLE);
@@ -1842,7 +1791,7 @@ void drawTransparent()
     sortTriangles();
     transparentData.rendered=false; // Force copying of sorted triangles to GPU
     glDepthMask(GL_FALSE); // Don't write to depth buffer
-    drawBuffer(transparentData,transparentShader,true);
+    drawBuffer(transparentData,glR->transparentShader,true);
     glDepthMask(GL_TRUE); // Write to depth buffer
     transparentData.clear();
   }
@@ -1866,10 +1815,10 @@ void drawBuffers()
          << endl;
   }
 
-  if(camp::ssbo) {
+  if(glR->ssbo) {
     if(transparent) {
       refreshBuffers();
-      if(!interlock) {
+      if(!glR->interlock) {
         resizeFragmentBuffer();
         copied=true;
       }
@@ -1883,9 +1832,9 @@ void drawBuffers()
   drawTriangle();
 
   if(transparent) {
-    if(camp::ssbo)
+    if(glR->ssbo)
       copied=true;
-    if(interlock) resizeFragmentBuffer();
+    if(glR->interlock) resizeFragmentBuffer();
     drawTransparent();
   }
   Opaque=0;
@@ -2012,10 +1961,10 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   Specular = args.specular;
 
   // Also set class member variables for use in setUniforms
-  camp::glRenderer->Lights = args.lights;
-  camp::glRenderer->Diffuse = args.diffuse;
-  camp::glRenderer->Specular = args.specular;
-  camp::glRenderer->Nlights = nlights;
+  glR->Lights = args.lights;
+  glR->Diffuse = args.diffuse;
+  glR->Specular = args.specular;
+  glR->Nlights = nlights;
   nlights0 = nlights;
 
   View = args.view;
@@ -2048,7 +1997,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   Xfactor = Yfactor = 1.0;
 
   // Sync minimal globals with member variables (following Vulkan pattern)
-  camp::orthographic_gl = orthographic;
+  orthographic_gl = orthographic;
 
   for(int i=0; i<16; ++i) {
     T[i] = args.t[i];
@@ -2281,7 +2230,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 #endif
 
   glEnable(GL_DEPTH_TEST);
-  if(!ssbo) {
+  if(!glR->ssbo) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
@@ -2343,8 +2292,8 @@ void AsyGLRender::onScroll(double xoffset, double yoffset)
 {
     auto zoomFactor = getSetting<double>("zoomfactor");
     if(zoomFactor > 0.0) {
-        if (yoffset > 0) camp::glRenderer->Zoom *= zoomFactor;
-        else camp::glRenderer->Zoom /= zoomFactor;
+        if (yoffset > 0) glR->Zoom *= zoomFactor;
+        else glR->Zoom /= zoomFactor;
     }
     capzoom();
     setProjection();
@@ -2355,10 +2304,10 @@ void AsyGLRender::onScroll(double xoffset, double yoffset)
 void AsyGLRender::onCursorPos(double xpos, double ypos)
 {
     if (lastAction == "rotate") {
-        camp::Arcball arcball(xprev * 2 / Width - 1, 1 - yprev * 2 / Height,
+        Arcball arcball(xprev * 2 / Width - 1, 1 - yprev * 2 / Height,
                         xpos * 2 / Width - 1, 1 - ypos * 2 / Height);
-        camp::triple axis = arcball.axis;
-        rotateMat = glm::rotate(2 * arcball.angle / camp::glRenderer->Zoom * ArcballFactor,
+        triple axis = arcball.axis;
+        rotateMat = glm::rotate(2 * arcball.angle / glR->Zoom * ArcballFactor,
                            glm::dvec3(axis.getx(), axis.gety(), axis.getz())) * rotateMat;
         update();
     } else if (lastAction == "shift") {
@@ -2444,7 +2393,7 @@ void AsyGLRender::updateModelViewData()
 {
   // Update normal matrix for shaders (inverse transpose of view matrix rotation)
   dmat3 norm = dmat3(glm::inverse(this->viewMat));
-  camp::normMat = mat3(norm);  // Convert to float precision for shaders
+  normMat = mat3(norm);  // Convert to float precision for shaders
 
   // Also update glBBT for billboard transformations
   const double *T=value_ptr(norm);

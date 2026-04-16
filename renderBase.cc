@@ -429,12 +429,12 @@ void AsyRender::cycleMode()
   if (mode == DRAWMODE_NORMAL) {
     ibl = settings::getSetting<bool>("ibl");
 #ifdef HAVE_RENDERER
-    if(camp::glRenderer) camp::glRenderer->outlinemode = false;
+    if(camp::glR) camp::glR->outlinemode = false;
 #endif
   } else if (mode == DRAWMODE_OUTLINE) {
     ibl = false;
 #ifdef HAVE_RENDERER
-    if(camp::glRenderer) camp::glRenderer->outlinemode = true;
+    if(camp::glR) camp::glR->outlinemode = true;
 #endif
   }
 
