@@ -198,14 +198,14 @@ GLFWwindow* window;
 using utils::statistics;
 statistics S;
 
-gl::GLTexture2<float,GL_FLOAT> fromEXR(string const& EXRFile, gl::GLTexturesFmt const& fmt, GLint const& textureNumber)
+camp::GLTexture2<float,GL_FLOAT> fromEXR(string const& EXRFile, camp::GLTexturesFmt const& fmt, GLint const& textureNumber)
 {
   IEXRFile fil(EXRFile);
-  return gl::GLTexture2<float,GL_FLOAT> {fil.getData(),fil.size(),textureNumber,fmt};
+  return camp::GLTexture2<float,GL_FLOAT> {fil.getData(),fil.size(),textureNumber,fmt};
 }
 
-gl::GLTexture3<float,GL_FLOAT> fromEXR3(
-  mem::vector<string> const& EXRFiles, gl::GLTexturesFmt const& fmt, GLint const& textureNumber)
+camp::GLTexture3<float,GL_FLOAT> fromEXR3(
+  mem::vector<string> const& EXRFiles, camp::GLTexturesFmt const& fmt, GLint const& textureNumber)
 {
   // 3d reflectance textures
   std::vector<float> data;
@@ -219,7 +219,7 @@ gl::GLTexture3<float,GL_FLOAT> fromEXR3(
     std::copy(fil3.getData(),fil3.getData()+imSize,std::back_inserter(data));
   }
 
-  return gl::GLTexture3<float,GL_FLOAT> {
+  return camp::GLTexture3<float,GL_FLOAT> {
           data.data(),
           std::tuple<int,int,int>(wi,ht,static_cast<int>(count)),textureNumber,
           fmt
@@ -228,17 +228,17 @@ gl::GLTexture3<float,GL_FLOAT> fromEXR3(
 
 void initIBL()
 {
-  gl::GLTexturesFmt fmt;
+  camp::GLTexturesFmt fmt;
   fmt.internalFmt=GL_RGB16F;
   string imageDir=locateFile(getSetting<string>("imageDir"))+"/";
   string imagePath=imageDir+getSetting<string>("image")+"/";
   // IBL textures - disabled for now due to template issues
   // irradianceTex=fromEXR(imagePath+"diffuse.exr",fmt,1);
-  // gl::GLTexturesFmt fmtRefl;
+  // camp::GLTexturesFmt fmtRefl;
   // fmtRefl.internalFmt=GL_RG16F;
   // IBLbrdfTex=fromEXR(imageDir+"refl.exr",fmtRefl,2);
 
-  gl::GLTexturesFmt fmt3;
+  camp::GLTexturesFmt fmt3;
   fmt3.internalFmt=GL_RGB16F;
   fmt3.wrapS=GL_REPEAT;
   fmt3.wrapR=GL_CLAMP_TO_EDGE;
