@@ -332,7 +332,6 @@ public:
   */
   void setProjection() override;
   void updateModelViewData() override;
-//  void updateProjection() override;
 
   /** Argument for glrender function - legacy compatibility */
   struct GLRenderArgs: public gc
