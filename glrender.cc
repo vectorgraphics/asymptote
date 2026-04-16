@@ -810,10 +810,9 @@ void setBuffers()
 
 #ifdef HAVE_SSBO
   glGenBuffers(1, &camp::offsetBuffer);
-  if(GPUindexing) {
+  if(GPUindexing)
     glGenBuffers(1, &camp::globalSumBuffer);
-    glGenBuffers(1, &camp::feedbackBuffer);
-  }
+  glGenBuffers(1, &camp::feedbackBuffer);
   glGenBuffers(1, &camp::countBuffer);
   if(GPUcompress) {
     glGenBuffers(1, &camp::indexBuffer);
