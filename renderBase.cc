@@ -4,8 +4,7 @@
 #include "interact.h"
 
 #ifdef HAVE_RENDERER
-// Forward declaration for OpenGL mode function (defined in glrender.cc)
-void mode();
+// mode() function is declared in renderBase.h (forward declared from glrender.cc)
 #endif
 
 #ifdef HAVE_RENDERER
@@ -440,7 +439,7 @@ void AsyRender::cycleMode()
 
   // Call OpenGL-specific mode function to update all rendering state
 #ifdef HAVE_RENDERER
-  ::mode();
+  camp::mode();
 #endif
 }
 
