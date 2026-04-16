@@ -75,9 +75,11 @@ enum DrawMode: int
 {
    DRAWMODE_NORMAL,
    DRAWMODE_OUTLINE,
-   DRAWMODE_WIREFRAME,
-   DRAWMODE_MAX
+   DRAWMODE_WIREFRAME
 };
+
+// Number of valid draw modes (for cycling)
+constexpr int NUM_DRAW_MODES = 3;
 
 struct Light
 {
