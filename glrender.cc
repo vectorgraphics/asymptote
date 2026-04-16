@@ -1978,26 +1978,12 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 #endif
 #endif
 
-  // Initialize GPU settings - compute shaders disabled by default for stability
-  // Only enable if explicitly set AND we have a valid OpenGL context
 #if defined(HAVE_COMPUTE_SHADER) && !defined(HAVE_LIBOSMESA)
-  bool gpuIndexingRequested = settings::getSetting<bool>("GPUindexing");
-  GPUcompress = settings::getSetting<bool>("GPUcompress");
-  // Only enable GPUindexing if explicitly requested AND we have a valid window/context
-#ifdef HAVE_LIBGLFW
-  if(gpuIndexingRequested && glfwGetCurrentContext() == gl->getGLFWWindow()) {
-    GPUindexing = true;
-  } else {
-    GPUindexing = false;
-    if(settings::verbose > 2)
-      cout << "No valid OpenGL context for compute shaders" << endl;
-  }
+  GPUindexing=getSetting<bool>("GPUindexing");
+  GPUcompress=getSetting<bool>("GPUcompress");
 #else
-  GPUindexing = gpuIndexingRequested;
-#endif
-#else
-  GPUindexing = false;
-  GPUcompress = false;
+  GPUindexing=false;
+  GPUcompress=false;
 #endif
 
   // Initialize OpenGL if needed
