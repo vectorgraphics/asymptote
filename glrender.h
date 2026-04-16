@@ -486,7 +486,7 @@ protected:
 };
 
 // Global OpenGL renderer instance (defined in picture.cc)
-extern AsyGLRender* glR;
+extern AsyGLRender* gl;
 
 #endif // HAVE_RENDERER
 

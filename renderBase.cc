@@ -428,12 +428,12 @@ void AsyRender::cycleMode()
   if (mode == DRAWMODE_NORMAL) {
     ibl = settings::getSetting<bool>("ibl");
 #ifdef HAVE_RENDERER
-    if(camp::glR) camp::glR->outlinemode = false;
+    if(camp::gl) camp::gl->outlinemode = false;
 #endif
   } else if (mode == DRAWMODE_OUTLINE) {
     ibl = false;
 #ifdef HAVE_RENDERER
-    if(camp::glR) camp::glR->outlinemode = true;
+    if(camp::gl) camp::gl->outlinemode = true;
 #endif
   }
 
@@ -563,7 +563,7 @@ void AsyRender::quit()
   waitEvent = false;
   redraw = false;
 
-  if (renderThread) {
+  if (thread) {
 #ifdef HAVE_PTHREAD
     if (!interact::interactive) {
       idle();

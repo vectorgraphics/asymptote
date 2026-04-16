@@ -110,8 +110,8 @@ void jsfile::comment(string name)
   out << "<!-- Use the following line to embed this file within another web page:" << newl
       << newl
       << "<iframe src=\"" << name
-      << "\" width=\"" << camp::glR->fullWidth
-      << "\" height=\"" << camp::glR->fullHeight
+      << "\" width=\"" << camp::gl->fullWidth
+      << "\" height=\"" << camp::gl->fullHeight
       << "\" frameborder=\"0\"></iframe>" << newl
       << newl
       << "-->" << newl << newl;
@@ -144,8 +144,8 @@ void jsfile::open(string name)
 
   out << newl << "<script>" << newl;
   out << newl
-      << s << "canvasWidth=" << camp::glR->fullWidth << ";" << newl
-      << s << "canvasHeight=" << camp::glR->fullHeight << ";" << newl << newl
+      << s << "canvasWidth=" << camp::gl->fullWidth << ";" << newl
+      << s << "canvasHeight=" << camp::gl->fullHeight << ";" << newl << newl
       << s << "webgl2=" << std::boolalpha << webgl2 << ";"
       << newl
       << s << "ibl=" << std::boolalpha << ibl << ";"
@@ -158,18 +158,18 @@ void jsfile::open(string name)
     out << s << "image=\"" << getSetting<string>("image") << "\";" << newl << newl;
   }
   out << newl
-      <<  s << "minBound=[" << camp::glR->Xmin << "," << camp::glR->Ymin << "," << camp::glR->Zmin << "];"
+      <<  s << "minBound=[" << camp::gl->Xmin << "," << camp::gl->Ymin << "," << camp::gl->Zmin << "];"
       << newl
-      <<  s << "maxBound=[" << camp::glR->Xmax << "," << camp::glR->Ymax << "," << camp::glR->Zmax << "];"
+      <<  s << "maxBound=[" << camp::gl->Xmax << "," << camp::gl->Ymax << "," << camp::gl->Zmax << "];"
       << newl
-      << s << "orthographic=" << camp::glR->orthographic << ";"
+      << s << "orthographic=" << camp::gl->orthographic << ";"
       << newl
-      << s << "angleOfView=" << camp::glR->Angle << ";"
+      << s << "angleOfView=" << camp::gl->Angle << ";"
       << newl
-      << s << "initialZoom=" << camp::glR->Zoom0 << ";" << newl;
-    if(camp::glR->Shift != pair(0.0,0.0))
-      out << s << "viewportShift=" << camp::glR->Shift*camp::glR->Zoom0 << ";" << newl;
-    out << s << "viewportMargin=" << camp::glR->Margin << ";" << newl << newl
+      << s << "initialZoom=" << camp::gl->Zoom0 << ";" << newl;
+    if(camp::gl->Shift != pair(0.0,0.0))
+      out << s << "viewportShift=" << camp::gl->Shift*camp::gl->Zoom0 << ";" << newl;
+    out << s << "viewportMargin=" << camp::gl->Margin << ";" << newl << newl
         << s << "zoomFactor=" << getSetting<double>("zoomfactor") << ";" << newl
         << s << "zoomPinchFactor=" << getSetting<double>("zoomPinchFactor") << ";"
       << newl
@@ -181,20 +181,20 @@ void jsfile::open(string name)
       << newl
         << s << "vibrateTime=" << getSetting<double>("vibrateTime") << ";"
         << newl << newl;
-  out << s << "background=[" << camp::glR->Background[0] << "," << camp::glR->Background[1] << ","
-      << camp::glR->Background[2] << "," << camp::glR->Background[3] << "];"
+  out << s << "background=[" << camp::gl->Background[0] << "," << camp::gl->Background[1] << ","
+      << camp::gl->Background[2] << "," << camp::gl->Background[3] << "];"
       << newl << newl;
-  out << s << "Transform=[" << camp::glR->T[0];
+  out << s << "Transform=[" << camp::gl->T[0];
   for(int i=1; i < 16; ++i)
-    out << "," << newl << camp::glR->T[i];
+    out << "," << newl << camp::gl->T[i];
   out << "];" << newl << newl;
 
-  for(size_t i=0; i < camp::glR->nlights; ++i) {
+  for(size_t i=0; i < camp::gl->nlights; ++i) {
     size_t i4=4*i;
     out << "light(" << newl
-        << camp::glR->Lights[i] << "," << newl
-        << "[" << camp::glR->Diffuse[i4] << "," << camp::glR->Diffuse[i4+1] << ","
-        << camp::glR->Diffuse[i4+2] << "]);" << newl;
+        << camp::gl->Lights[i] << "," << newl
+        << "[" << camp::gl->Diffuse[i4] << "," << camp::gl->Diffuse[i4+1] << ","
+        << camp::gl->Diffuse[i4+2] << "]);" << newl;
   }
   out << newl;
 
@@ -220,7 +220,7 @@ void jsfile::finish(string name)
       << newl << "</head>"
       << newl << newl << "<body style=\"overflow: hidden;\" onload=\"webGLStart();\">"
       << newl << "<canvas id=\"Asymptote\" width=\""
-      << camp::glR->fullWidth << "\" height=\"" <<  camp::glR->fullHeight
+      << camp::gl->fullWidth << "\" height=\"" <<  camp::gl->fullHeight
       << "\" style=\"border: none; cursor: pointer;\">"
       << newl << "</canvas>";
   footer(name);

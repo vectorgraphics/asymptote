@@ -126,7 +126,7 @@ public:
     if(prerender <= 0.0) return 0.0;
     prerender=1.0/prerender;
     // Access state through renderer instance (following Vulkan pattern)
-    AsyGLRender* glr = camp::glR;
+    AsyGLRender* glr = camp::gl;
     if(!glr) return 0.0;  // No renderer - nothing to render
     double perspective=glr->orthographic || glr->Zmax == 0.0 ? 0.0 : 1.0/glr->Zmax;
     double s=perspective ? Min.getz()*perspective : 1.0;

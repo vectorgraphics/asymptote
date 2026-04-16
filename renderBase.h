@@ -248,7 +248,7 @@ public:
   bool waitEvent=true;
 
   // Thread flag (was vkthread in Vulkan renderer)
-  bool renderThread=false;
+  bool thread=false;
 
   // Window visibility
   bool hideWindow=false;
@@ -393,7 +393,7 @@ public:
 
 } // namespace camp
 
-// Note: projViewMat is now a member of AsyRender, accessed via camp::glR->projViewMat
+// Note: projViewMat is now a member of AsyRender, accessed via camp::gl->projViewMat
 extern glm::dmat3 dnormMat;  // Double precision normal matrix for internal use
 extern glm::mat3 normMat;    // Float precision normal matrix for shaders
 

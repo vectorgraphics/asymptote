@@ -71,7 +71,7 @@ namespace camp {
 
 #ifdef HAVE_RENDERER
 // Initialize the global OpenGL renderer instance
-AsyGLRender* glR = new AsyGLRender();
+AsyGLRender* gl = new AsyGLRender();
 #endif
 
 extern void draw();
@@ -1459,8 +1459,8 @@ void glrenderWrapper()
 {
 #ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
-  camp::glR->wait(camp::glR->initSignal,camp::glR->initLock);
-  camp::glR->endwait(camp::glR->initSignal,camp::glR->initLock);
+  camp::gl->wait(camp::gl->initSignal,camp::gl->initLock);
+  camp::gl->endwait(camp::gl->initSignal,camp::gl->initLock);
 #endif
   if(allowRender) {
     AsyGLRender::GLRenderArgs args;
@@ -1505,7 +1505,7 @@ void glrenderWrapper()
     renderArgs.specular = args.specular;
     renderArgs.view = args.view;
 
-    camp::glR->render(renderArgs);
+    camp::gl->render(renderArgs);
   }
 #endif
 }
@@ -1589,10 +1589,10 @@ bool picture::shipout3(const string& prefix, const string& format,
 
   if(!format3d) {
 #ifdef HAVE_RENDERER
-    if(camp::glR && camp::glR->renderThread && !offscreen) {
+    if(camp::gl && camp::gl->thread && !offscreen) {
 #ifdef HAVE_PTHREAD
-      if(camp::glR->initialize) {
-        camp::glR->initialize=false;
+      if(camp::gl->initialize) {
+        camp::gl->initialize=false;
         com.prefix=prefix;
         com.pic=pic;
         com.format=outputformat;
@@ -1613,27 +1613,27 @@ bool picture::shipout3(const string& prefix, const string& format,
         com.specular=specular;
         com.view=View;
         if(Wait)
-          pthread_mutex_lock(&camp::glR->readyLock);
+          pthread_mutex_lock(&camp::gl->readyLock);
         allowRender=true;
-        camp::glR->wait(camp::glR->initSignal,camp::glR->initLock);
-        camp::glR->endwait(camp::glR->initSignal,camp::glR->initLock);
+        camp::gl->wait(camp::gl->initSignal,camp::gl->initLock);
+        camp::gl->endwait(camp::gl->initSignal,camp::gl->initLock);
         static bool initialize=true;
         if(initialize) {
-          camp::glR->wait(camp::glR->initSignal,camp::glR->initLock);
-          camp::glR->endwait(camp::glR->initSignal,camp::glR->initLock);
+          camp::gl->wait(camp::gl->initSignal,camp::gl->initLock);
+          camp::gl->endwait(camp::gl->initSignal,camp::gl->initLock);
           initialize=false;
         }
         #ifdef HAVE_LIBGLFW
         glfwPostEmptyEvent();
 #endif
         if(Wait) {
-          pthread_cond_wait(&camp::glR->readySignal,&camp::glR->readyLock);
-          pthread_mutex_unlock(&camp::glR->readyLock);
+          pthread_cond_wait(&camp::gl->readySignal,&camp::gl->readyLock);
+          pthread_mutex_unlock(&camp::gl->readyLock);
         }
         return true;
       }
       if(Wait)
-        pthread_mutex_lock(&camp::glR->readyLock);
+        pthread_mutex_lock(&camp::gl->readyLock);
 #ifdef HAVE_LIBGLFW
         glfwPostEmptyEvent();
 #endif
@@ -1675,7 +1675,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   args.specular=specular;
   args.view=View;
 
-  if(camp::glR) {
+  if(camp::gl) {
     AsyRender::RenderFunctionArgs renderArgs;
     renderArgs.prefix = args.prefix;
     renderArgs.pic = args.pic;
@@ -1697,7 +1697,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     renderArgs.specular = args.specular;
     renderArgs.view = args.view;
 
-    camp::glR->render(renderArgs);
+    camp::gl->render(renderArgs);
   }
 
   if(format3d) {
@@ -1735,7 +1735,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(format3dWait) {
       format3dWait=false;
 #ifdef HAVE_PTHREAD
-      camp::glR->endwait(camp::glR->initSignal,camp::glR->initLock);
+      camp::gl->endwait(camp::gl->initSignal,camp::gl->initLock);
 #endif
     }
 #endif
@@ -1746,12 +1746,12 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
-  if(camp::glR && camp::glR->renderThread && !offscreen && Wait) {
+  if(camp::gl && camp::gl->thread && !offscreen && Wait) {
 #ifdef HAVE_LIBGLFW
     glfwPostEmptyEvent();
 #endif
-    pthread_cond_wait(&camp::glR->readySignal,&camp::glR->readyLock);
-    pthread_mutex_unlock(&camp::glR->readyLock);
+    pthread_cond_wait(&camp::gl->readySignal,&camp::gl->readyLock);
+    pthread_mutex_unlock(&camp::gl->readyLock);
   }
   return true;
 #endif
