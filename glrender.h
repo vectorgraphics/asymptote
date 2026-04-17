@@ -375,7 +375,7 @@ public:
   bool outlinemode = false;
   bool glupdate = false;
   bool glexit = false;
-  bool initialize = true;
+  bool initialized = false;
   bool copied = false;
 
   // Lighting (OpenGL-specific, public for jsfile/v3dfile access)
@@ -459,6 +459,7 @@ public:
   // Window state
   bool queueExport = false;
   bool readyAfterExport = false;
+  bool havewindow = false;
   bool format3dWait = false;
   bool exporting = false;
   int oldWidth = 0;
@@ -485,6 +486,8 @@ protected:
   void mainLoop();
   void display();
   void exportHandler(int = 0) override;
+  void updateHandler(int = 0);
+  void processMessages(RendererMessage const& msg) override;
   virtual void reshape0(int width, int height) override;
 };
 

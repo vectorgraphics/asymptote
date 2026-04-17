@@ -126,12 +126,11 @@ bool ignorezoom;
 int Fitscreen=1;
 bool firstFit;
 bool ViewExport;
-int Oldpid;
+// Note: Oldpid is now a member variable in AsyRender base class
 // Note: Prefix, Format, fullWidth, fullHeight, Width, Height are now in AsyRender base class
 const picture* Picture;  // Keep as global for drawscene() compatibility
 double gl_X, gl_Y;
 string currentAction="";
-double cx,cy;
 double xprev,yprev;
 static const double ASY_PI=acos(-1.0);
 static const double ASY_DEGREES=180.0/ASY_PI;
@@ -158,10 +157,6 @@ glm::vec4 vec4(double *v)
 
 // GLFW window globals - kept in camp namespace for type compatibility
 #ifdef HAVE_LIBGLFW
-int oldWidth,oldHeight;
-
-bool queueScreen=false;
-
 string Action;
 
 double lastangle;
@@ -879,7 +874,7 @@ void fitscreen(bool reposition=true)
     {
       gl->Xfactor=gl->Yfactor=1.0;
       double pixelRatio=getSetting<double>("devicepixelratio");
-      setsize(oldWidth*pixelRatio,oldHeight*pixelRatio,reposition);
+      setsize(gl->oldWidth*pixelRatio,gl->oldHeight*pixelRatio,reposition);
       break;
     }
     case 1: // Fit to screen in one dimension
@@ -936,11 +931,6 @@ stopWatch Timer;
 
 void display()
 {
-  if(queueScreen) {
-    screen();
-    queueScreen=false;
-  }
-
   bool fps=settings::verbose > 2;
   drawscene(gl->Width,gl->Height);
   if(fps) {
@@ -967,9 +957,10 @@ void display()
   }
   if(!gl->thread) {
 #if !defined(_WIN32)
-    if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
-      kill(Oldpid,SIGHUP);
-      Oldpid=0;
+    // Oldpid is now in AsyRender base class
+    if(gl->Oldpid != 0 && waitpid(gl->Oldpid,NULL,WNOHANG) != gl->Oldpid) {
+      kill(gl->Oldpid,SIGHUP);
+      gl->Oldpid=0;
     }
 #endif
   }
@@ -988,15 +979,6 @@ void update()
   gl->update();
 }
 
-void updateHandler(int)
-{
-  queueScreen=true;
-  gl->remesh=true;
-  update();
-
-  glfwShowWindow(gl->getGLFWWindow());
-}
-
 // poll is no longer needed with GLFW - event handling is done in the main loop
 
 void reshape(int width, int height)
@@ -1006,7 +988,7 @@ void reshape(int width, int height)
     if(initialize) {
       initialize=false;
 #if !defined(_WIN32)
-      Signal(SIGUSR1,updateHandler);
+      // Signal handler no longer needed - using message queue system instead
 #endif
     }
   }
@@ -1735,6 +1717,22 @@ AsyGLRender::~AsyGLRender()
 
 void AsyGLRender::render(RenderFunctionArgs const& args)
 {
+#ifdef HAVE_PTHREAD
+  // Check if this is a subsequent call from asymain thread after initialization
+  // Use message queue to signal render thread instead of blocking with signals
+  static bool hasInitializedView = false;
+  if(thread && hasInitializedView) {
+    if(View) {
+      // Called from asymain thread, main thread handles OpenGL rendering
+      hideWindow = false;
+      messageQueue.enqueue(RendererMessage::updateRenderer);
+    } else {
+      readyAfterExport = queueExport = true;
+    }
+    return;
+  }
+#endif
+
   // Initialize GLFW and get screen dimensions FIRST (matching reference pattern)
 #ifdef HAVE_LIBGLFW
 #ifndef HAVE_LIBOSMESA
@@ -1953,8 +1951,8 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 #endif
 
   // Initialize OpenGL if needed
-  if(initialize) {
-    initialize = false;
+  if(!initialized) {
+    initialized = true;
 
 #ifdef HAVE_LIBGLFW
 #ifndef HAVE_LIBOSMESA
@@ -2024,6 +2022,9 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     firstFit=true;
     fitscreen();
     setosize();
+#ifdef HAVE_PTHREAD
+    hasInitializedView = true;
+#endif
   }
 #endif
 
@@ -2039,6 +2040,10 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   ViewExport = View;
 #ifdef HAVE_LIBOSMESA
   View = false;
+#endif
+
+#ifdef HAVE_RENDERER
+  havewindow = initialized && thread;
 #endif
 
   // Enter main loop or export
@@ -2172,9 +2177,9 @@ void AsyGLRender::display()
 #if defined(_WIN32)
 #else
     // Oldpid is now in AsyRender base class
-    if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
-      kill(Oldpid,SIGHUP);
-      Oldpid=0;
+    if(gl->Oldpid != 0 && waitpid(gl->Oldpid,NULL,WNOHANG) != gl->Oldpid) {
+      kill(gl->Oldpid,SIGHUP);
+      gl->Oldpid=0;
     }
 #endif
   }
@@ -2213,11 +2218,18 @@ void AsyGLRender::update()
 void AsyGLRender::mainLoop()
 {
 #ifdef HAVE_RENDERER
+  fprintf(stderr, "DEBUG mainLoop(): entered View=%d\n", (int)View);
+
   if(View) {
     GLFWwindow* win = getGLFWWindow();
 
     glfwRunLoop(win,
-      [win](){ return !glfwWindowShouldClose(win); },
+      [win](){
+        bool result = !glfwWindowShouldClose(win);
+        fprintf(stderr, "DEBUG shouldContinue: glfwWindowShouldClose=%d returning=%d\n",
+                (int)glfwWindowShouldClose(win), (int)result);
+        return result;
+      },
       [this](){ return redraw || redisplay || queueExport; },
       [this](){
         redisplay=false;
@@ -2226,15 +2238,38 @@ void AsyGLRender::mainLoop()
         if(resize) { fitscreen(!interact::interactive); resize=false; }
         display();
       },
-      nullptr,
+      [this](){ auto const message=messageQueue.dequeue(); if(message.has_value()) processMessages(*message); },
       [this](){ return currentIdleFunc; },
       [this](){ return waitEvent; }
     );
+
+    // Signal asymain after glfwRunLoop exits. This ensures the signal is not lost
+    // (it would be lost if sent during quit() while asymain is still inside glfwRunLoop).
+#ifdef HAVE_PTHREAD
+    if(thread) {
+      endwait(readySignal, readyLock);
+    }
+#endif
   } else {
     update();
     display();
-    if(thread) exportHandler();
-    else { exportHandler(); quit(); }
+    if(thread) {
+      if(havewindow) {
+#ifdef HAVE_PTHREAD
+        if(pthread_equal(pthread_self(),mainthread))
+          exportHandler();
+        else
+          messageQueue.enqueue(RendererMessage::exportRender);
+#endif
+      } else {
+        initialized=true;
+        readyAfterExport=true;
+        exportHandler();
+      }
+    } else {
+      exportHandler();
+      quit();
+    }
   }
 #endif
 }
@@ -2245,6 +2280,40 @@ void AsyGLRender::exportHandler(int)
   readyAfterExport=true;
 #endif
   Export();
+}
+
+void AsyGLRender::updateHandler(int)
+{
+  if(View && glfwWindow && !interact::interactive) {
+    ::glfwHideWindow(getGLFWWindow());
+    if(!getSetting<bool>("fitscreen"))
+      Fitscreen=0;
+  }
+
+  resize=true;
+  redisplay=true;
+  redraw=true;
+  remesh=true;
+  waitEvent=false;
+}
+
+void AsyGLRender::processMessages(RendererMessage const& msg)
+{
+  switch (msg)
+  {
+    case RendererMessage::exportRender: {
+      // Call exportHandler directly (matching Vulkan pattern)
+      exportHandler(0);
+    }
+      break;
+    case RendererMessage::updateRenderer: {
+      // Call updateHandler directly (matching Vulkan pattern)
+      updateHandler(0);
+    }
+      break;
+    default:
+      break;
+  }
 }
 
 void AsyGLRender::reshape0(int width, int height)
