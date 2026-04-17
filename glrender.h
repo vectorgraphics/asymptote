@@ -333,34 +333,7 @@ public:
   void setProjection() override;
   void updateModelViewData() override;
 
-  /** Argument for glrender function - legacy compatibility */
-  struct GLRenderArgs: public gc
-  {
-    string prefix;
-    picture* pic;
-    string format;
-    double width;
-    double height;
-    double angle;
-    double zoom;
-    triple m;
-    triple M;
-    pair shift;
-    pair margin;
-    double *t;
-    double *tup;
-    double *background;
-    size_t nlights;
-    triple *lights;
-    double *diffuse;
-    double *specular;
-    bool view;
-  };
-
   void render(RenderFunctionArgs const& args) override;
-
-  // Legacy glrender function for compatibility - delegates to render()
-  static void legacyGlRender(GLRenderArgs const& args, int oldpid=0);
 
   // RenderCallbacks interface implementation (GLFW callbacks)
   void onMouseButton(int button, int action, int mods) override;

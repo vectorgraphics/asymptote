@@ -230,7 +230,6 @@ void *asymain(void *A)
     while(wait(&status) > 0);
   }
 #endif
-  fprintf(stderr, "DEBUG asymain(): calling exit(returnCode=%d)\n", returnCode());
   exit(returnCode());
 }
 

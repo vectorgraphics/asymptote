@@ -2218,18 +2218,12 @@ void AsyGLRender::update()
 void AsyGLRender::mainLoop()
 {
 #ifdef HAVE_RENDERER
-  fprintf(stderr, "DEBUG mainLoop(): entered View=%d\n", (int)View);
 
   if(View) {
     GLFWwindow* win = getGLFWWindow();
 
     glfwRunLoop(win,
-      [win](){
-        bool result = !glfwWindowShouldClose(win);
-        fprintf(stderr, "DEBUG shouldContinue: glfwWindowShouldClose=%d returning=%d\n",
-                (int)glfwWindowShouldClose(win), (int)result);
-        return result;
-      },
+      [win](){ return !glfwWindowShouldClose(win); },
       [this](){ return redraw || redisplay || queueExport; },
       [this](){
         redisplay=false;

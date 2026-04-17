@@ -1449,9 +1449,7 @@ void picture::render(double size2, const triple& Min, const triple& Max,
 #endif
 }
 
-typedef AsyGLRender::GLRenderArgs Communicate;
-
-Communicate com;
+AsyRender::RenderFunctionArgs com = {};
 
 extern bool allowRender;
 
@@ -1459,54 +1457,11 @@ void glrenderWrapper()
 {
 #ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
-  camp::gl->wait(camp::gl->initSignal,camp::gl->initLock);
-  camp::gl->endwait(camp::gl->initSignal,camp::gl->initLock);
+  gl->wait(gl->initSignal,gl->initLock);
+  gl->endwait(gl->initSignal,gl->initLock);
 #endif
-  if(allowRender) {
-    AsyGLRender::GLRenderArgs args;
-    args.prefix = com.prefix;
-    args.pic = com.pic;
-    args.format = com.format;
-    args.width = com.width;
-    args.height = com.height;
-    args.angle = com.angle;
-    args.zoom = com.zoom;
-    args.m = com.m;
-    args.M = com.M;
-    args.shift = com.shift;
-    args.margin = com.margin;
-    args.t = com.t;
-    args.tup = com.tup;
-    args.background = com.background;
-    args.nlights = com.nlights;
-    args.lights = com.lights;
-    args.diffuse = com.diffuse;
-    args.specular = com.specular;
-    args.view = com.view;
-
-    AsyRender::RenderFunctionArgs renderArgs;
-    renderArgs.prefix = args.prefix;
-    renderArgs.pic = args.pic;
-    renderArgs.format = args.format;
-    renderArgs.width = args.width;
-    renderArgs.height = args.height;
-    renderArgs.angle = args.angle;
-    renderArgs.zoom = args.zoom;
-    renderArgs.m = args.m;
-    renderArgs.M = args.M;
-    renderArgs.shift = args.shift;
-    renderArgs.margin = args.margin;
-    renderArgs.t = args.t;
-    renderArgs.tup = args.tup;
-    renderArgs.background = args.background;
-    renderArgs.nlightsin = args.nlights;
-    renderArgs.lights = args.lights;
-    renderArgs.diffuse = args.diffuse;
-    renderArgs.specular = args.specular;
-    renderArgs.view = args.view;
-
-    camp::gl->render(renderArgs);
-  }
+  if(allowRender)
+    gl->render(com);
 #endif
 }
 
@@ -1518,8 +1473,6 @@ bool picture::shipout3(const string& prefix, const string& format,
                        size_t nlights, triple *lights, double *diffuse,
                        double *specular, bool view)
 {
-  fprintf(stderr, "DEBUG shipout3(): entered prefix=%s\n", prefix.c_str());
-
   if(getSetting<bool>("interrupt"))
     return true;
 
@@ -1591,10 +1544,10 @@ bool picture::shipout3(const string& prefix, const string& format,
 
   if(!format3d) {
 #ifdef HAVE_RENDERER
-    if(camp::gl && camp::gl->thread && !offscreen) {
+    if(gl->thread && !offscreen) {
 #ifdef HAVE_PTHREAD
-      if(!camp::gl->initialized) {
-        camp::gl->initialized=true;
+      if(!gl->initialized) {
+        gl->initialized=true;
         com.prefix=prefix;
         com.pic=pic;
         com.format=outputformat;
@@ -1609,34 +1562,34 @@ bool picture::shipout3(const string& prefix, const string& format,
         com.t=t;
         com.tup=tup;
         com.background=background;
-        com.nlights=nlights;
+        com.nlightsin=nlights;
         com.lights=lights;
         com.diffuse=diffuse;
         com.specular=specular;
         com.view=View;
         if(Wait)
-          pthread_mutex_lock(&camp::gl->readyLock);
+          pthread_mutex_lock(&gl->readyLock);
         allowRender=true;
-        camp::gl->wait(camp::gl->initSignal,camp::gl->initLock);
-        camp::gl->endwait(camp::gl->initSignal,camp::gl->initLock);
+        gl->wait(gl->initSignal,gl->initLock);
+        gl->endwait(gl->initSignal,gl->initLock);
         static bool initialize=true;
         if(initialize) {
-          camp::gl->wait(camp::gl->initSignal,camp::gl->initLock);
-          camp::gl->endwait(camp::gl->initSignal,camp::gl->initLock);
+          gl->wait(gl->initSignal,gl->initLock);
+          gl->endwait(gl->initSignal,gl->initLock);
           initialize=false;
         }
-        #ifdef HAVE_LIBGLFW
+#ifdef HAVE_RENDERER
         glfwPostEmptyEvent();
 #endif
         if(Wait) {
-          pthread_cond_wait(&camp::gl->readySignal,&camp::gl->readyLock);
-          pthread_mutex_unlock(&camp::gl->readyLock);
+          pthread_cond_wait(&gl->readySignal,&gl->readyLock);
+          pthread_mutex_unlock(&gl->readyLock);
         }
         return true;
       }
       if(Wait)
-        pthread_mutex_lock(&camp::gl->readyLock);
-#ifdef HAVE_LIBGLFW
+        pthread_mutex_lock(&gl->readyLock);
+#ifdef HAVE_RENDERER
       glfwPostEmptyEvent();
 #endif
 #endif
@@ -1656,52 +1609,27 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
 
 #if HAVE_LIBGLM
-  AsyGLRender::GLRenderArgs args;
-  args.prefix=prefix;
-  args.pic=pic;
-  args.format=outputformat;
-  args.width=width;
-  args.height=height;
-  args.angle=angle;
-  args.zoom=zoom;
-  args.m=m;
-  args.M=M;
-  args.shift=shift;
-  args.margin=margin;
-  args.t=t;
-  args.tup=tup;
-  args.background=background;
-  args.nlights=nlights;
-  args.lights=lights;
-  args.diffuse=diffuse;
-  args.specular=specular;
-  args.view=View;
+  com.prefix=prefix;
+  com.pic=pic;
+  com.format=outputformat;
+  com.width=width;
+  com.height=height;
+  com.angle=angle;
+  com.zoom=zoom;
+  com.m=m;
+  com.M=M;
+  com.shift=shift;
+  com.margin=margin;
+  com.t=t;
+  com.tup=tup;
+  com.background=background;
+  com.nlightsin=nlights;
+  com.lights=lights;
+  com.diffuse=diffuse;
+  com.specular=specular;
+  com.view=View;
 
-  if(camp::gl) {
-    AsyRender::RenderFunctionArgs renderArgs;
-    renderArgs.prefix = args.prefix;
-    renderArgs.pic = args.pic;
-    renderArgs.format = args.format;
-    renderArgs.width = args.width;
-    renderArgs.height = args.height;
-    renderArgs.angle = args.angle;
-    renderArgs.zoom = args.zoom;
-    renderArgs.m = args.m;
-    renderArgs.M = args.M;
-    renderArgs.shift = args.shift;
-    renderArgs.margin = args.margin;
-    renderArgs.t = args.t;
-    renderArgs.tup = args.tup;
-    renderArgs.background = args.background;
-    renderArgs.nlightsin = args.nlights;
-    renderArgs.lights = args.lights;
-    renderArgs.diffuse = args.diffuse;
-    renderArgs.specular = args.specular;
-    renderArgs.view = args.view;
-
-    camp::gl->render(renderArgs);
-    fprintf(stderr, "DEBUG shipout3(): render() returned\n");
-  }
+  gl->render(com);
 
   if(format3d) {
     string name=buildname(prefix,format);
@@ -1735,10 +1663,10 @@ bool picture::shipout3(const string& prefix, const string& format,
       htmlView(name);
 
 #ifdef HAVE_RENDERER
-    if(format3dWait) {
-      format3dWait=false;
+    if(gl->format3dWait) {
+      gl->format3dWait=false;
 #ifdef HAVE_PTHREAD
-      camp::gl->endwait(camp::gl->initSignal,camp::gl->initLock);
+      gl->endwait(gl->initSignal,gl->initLock);
 #endif
     }
 #endif
@@ -1749,9 +1677,9 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
-  if(camp::gl->thread && Wait) {
-    pthread_cond_wait(&camp::gl->readySignal,&camp::gl->readyLock);
-    pthread_mutex_unlock(&camp::gl->readyLock);
+  if(gl->thread && !offscreen && Wait) {
+    pthread_cond_wait(&gl->readySignal,&gl->readyLock);
+    pthread_mutex_unlock(&gl->readyLock);
   }
   return true;
 #endif
