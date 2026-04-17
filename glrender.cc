@@ -327,6 +327,45 @@ inline GLuint ceilpow2(GLuint n)
   return ++n;
 }
 
+void setBuffers()
+{
+  if(settings::verbose > 2) {
+    cerr << "setBuffers: Creating VAO, gl->vao=" << gl->vao << endl;
+  }
+  glGenVertexArrays(1,&gl->vao);
+  if(settings::verbose > 2) {
+    cerr << "setBuffers: VAO created, gl->vao=" << gl->vao << endl;
+  }
+  // Bind VAO once and leave it bound for all subsequent draw operations
+  glBindVertexArray(gl->vao);
+
+  material0Data.reserve0();
+  materialData.reserve();
+  colorData.Reserve();
+  triangleData.Reserve();
+  transparentData.Reserve();
+
+#ifdef HAVE_SSBO
+  glGenBuffers(1, &gl->offsetBuffer);
+  if(GPUindexing)
+    glGenBuffers(1, &gl->globalSumBuffer);
+  glGenBuffers(1, &gl->feedbackBuffer);
+  glGenBuffers(1, &gl->countBuffer);
+  if(GPUcompress) {
+    glGenBuffers(1, &gl->indexBuffer);
+    glGenBuffers(1, &gl->elementsBuffer);
+  }
+  glGenBuffers(1, &gl->fragmentBuffer);
+  glGenBuffers(1, &gl->depthBuffer);
+  glGenBuffers(1, &gl->opaqueBuffer);
+  glGenBuffers(1, &gl->opaqueDepthBuffer);
+#endif
+
+  if(settings::verbose > 2) {
+    cerr << "setBuffers: Done, gl->vao=" << gl->vao << endl;
+  }
+}
+
 void initShaders()
 {
   gl->Nlights = gl->nlights == 0 ? 0 : std::max(gl->Nlights, gl->nlights);
@@ -451,6 +490,9 @@ void initShaders()
     initBlendShader();
   }
   gl->lastshader=-1;
+
+  if(gl->vao == 0)
+    setBuffers();
 }
 
 void deleteComputeShaders()
@@ -499,45 +541,6 @@ void resizeBlendShader(GLuint maxsize)
   initBlendShader();
 }
 
-void setBuffers()
-{
-  if(settings::verbose > 2) {
-    cerr << "setBuffers: Creating VAO, gl->vao=" << gl->vao << endl;
-  }
-  glGenVertexArrays(1,&gl->vao);
-  if(settings::verbose > 2) {
-    cerr << "setBuffers: VAO created, gl->vao=" << gl->vao << endl;
-  }
-  // Bind VAO once and leave it bound for all subsequent draw operations
-  glBindVertexArray(gl->vao);
-
-  material0Data.reserve0();
-  materialData.reserve();
-  colorData.Reserve();
-  triangleData.Reserve();
-  transparentData.Reserve();
-
-#ifdef HAVE_SSBO
-  glGenBuffers(1, &gl->offsetBuffer);
-  if(GPUindexing)
-    glGenBuffers(1, &gl->globalSumBuffer);
-  glGenBuffers(1, &gl->feedbackBuffer);
-  glGenBuffers(1, &gl->countBuffer);
-  if(GPUcompress) {
-    glGenBuffers(1, &gl->indexBuffer);
-    glGenBuffers(1, &gl->elementsBuffer);
-  }
-  glGenBuffers(1, &gl->fragmentBuffer);
-  glGenBuffers(1, &gl->depthBuffer);
-  glGenBuffers(1, &gl->opaqueBuffer);
-  glGenBuffers(1, &gl->opaqueDepthBuffer);
-#endif
-
-  if(settings::verbose > 2) {
-    cerr << "setBuffers: Done, gl->vao=" << gl->vao << endl;
-  }
-}
-
 bool exporting=false;
 
 void drawscene(int Width, int Height)
@@ -558,7 +561,6 @@ void drawscene(int Width, int Height)
      nmaterials > Nmaterials) {
     deleteShaders();
     initShaders();
-    if(gl->vao == 0) setBuffers();
   }
 
   if(settings::verbose > 2) {
@@ -2018,7 +2020,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 
     ibl = settings::getSetting<bool>("ibl");
     initShaders();
-    if(gl->vao == 0) setBuffers();
 
     // Initialize GPU compute parameters
     if(GPUindexing) {
