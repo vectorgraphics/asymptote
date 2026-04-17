@@ -18,6 +18,7 @@
 #endif
 
 #include "common.h"
+#include "ThreadSafeQueue.h"
 
 #include "glmCommon.h"
 #include "material.h"
@@ -130,6 +131,16 @@ public:
 };
 
 /**
+ * RendererMessage - Message types for inter-thread communication.
+ * Used to send commands from asymain thread to render thread.
+ */
+enum class RendererMessage
+{
+  exportRender,   // Request to export/render a frame
+  updateRenderer  // Request to update renderer state
+};
+
+/**
  * AsyRender - Library-agnostic base class for renderers.
  * Contains code that is independent of the underlying graphics API (Vulkan, OpenGL, etc.).
  */
@@ -222,6 +233,9 @@ public:
   double lastzoom;
   int Fitscreen=1;
 
+  // Child process ID for export (used by both OpenGL and Vulkan)
+  int Oldpid = 0;
+
 #ifdef HAVE_RENDERER
   // GLFW window pointer (shared between Vulkan and OpenGL renderers)
   // Using void* to avoid requiring GLFW header in all files that include this
@@ -282,6 +296,9 @@ public:
   pthread_mutex_t initLock = PTHREAD_MUTEX_INITIALIZER;
   pthread_cond_t readySignal = PTHREAD_COND_INITIALIZER;
   pthread_mutex_t readyLock = PTHREAD_MUTEX_INITIALIZER;
+
+  // Message queue for inter-thread communication (asymain -> render thread)
+  ThreadSafeQueue<RendererMessage> messageQueue;
 #endif
 
 protected:
@@ -360,6 +377,10 @@ public:
 
   // Export handler
   virtual void exportHandler(int=0) = 0;
+
+  // Message processing for inter-thread communication
+  virtual void processMessages(RendererMessage const& msg);
+
   virtual void quit();
 
   // Window close handler (library-agnostic)

@@ -1518,6 +1518,8 @@ bool picture::shipout3(const string& prefix, const string& format,
                        size_t nlights, triple *lights, double *diffuse,
                        double *specular, bool view)
 {
+  fprintf(stderr, "DEBUG shipout3(): entered prefix=%s\n", prefix.c_str());
+
   if(getSetting<bool>("interrupt"))
     return true;
 
@@ -1591,8 +1593,8 @@ bool picture::shipout3(const string& prefix, const string& format,
 #ifdef HAVE_RENDERER
     if(camp::gl && camp::gl->thread && !offscreen) {
 #ifdef HAVE_PTHREAD
-      if(camp::gl->initialize) {
-        camp::gl->initialize=false;
+      if(!camp::gl->initialized) {
+        camp::gl->initialized=true;
         com.prefix=prefix;
         com.pic=pic;
         com.format=outputformat;
@@ -1635,7 +1637,7 @@ bool picture::shipout3(const string& prefix, const string& format,
       if(Wait)
         pthread_mutex_lock(&camp::gl->readyLock);
 #ifdef HAVE_LIBGLFW
-        glfwPostEmptyEvent();
+      glfwPostEmptyEvent();
 #endif
 #endif
     } else {
@@ -1698,6 +1700,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     renderArgs.view = args.view;
 
     camp::gl->render(renderArgs);
+    fprintf(stderr, "DEBUG shipout3(): render() returned\n");
   }
 
   if(format3d) {
@@ -1746,10 +1749,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
-  if(camp::gl && camp::gl->thread && !offscreen && Wait) {
-#ifdef HAVE_LIBGLFW
-    glfwPostEmptyEvent();
-#endif
+  if(camp::gl->thread && Wait) {
     pthread_cond_wait(&camp::gl->readySignal,&camp::gl->readyLock);
     pthread_mutex_unlock(&camp::gl->readyLock);
   }

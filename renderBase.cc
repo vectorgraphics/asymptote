@@ -539,6 +539,27 @@ void AsyRender::exportHandler(int)
   // Default implementation - derived classes should override
 }
 
+/**
+ * Process messages from the message queue (inter-thread communication).
+ * Default implementation does nothing - derived classes should override.
+ * Vulkan and OpenGL each implement their own version matching their patterns.
+ */
+void AsyRender::processMessages(RendererMessage const& msg)
+{
+  // Default no-op - derived classes must override for actual message handling
+  switch (msg)
+  {
+    case RendererMessage::exportRender:
+      // Derived classes should call exportHandler directly
+      break;
+    case RendererMessage::updateRenderer:
+      // Derived classes should call updateHandler or set appropriate flags
+      break;
+    default:
+      break;
+  }
+}
+
 void AsyRender::quit()
 {
 #ifdef HAVE_RENDERER
@@ -551,12 +572,12 @@ void AsyRender::quit()
 #ifdef HAVE_PTHREAD
     if (!interact::interactive) {
       idle();
-      endwait(readySignal, readyLock);
     }
 #endif
 
-    // Hide window but don't destroy it (will be reused)
+    // Signal window to close and hide it
     if (View && glfwWindow) {
+      ::glfwSetWindowShouldClose(static_cast<GLFWwindow*>(glfwWindow), GLFW_TRUE);
       ::glfwHideWindow(static_cast<GLFWwindow*>(glfwWindow));
       hideWindow = true;
     }
