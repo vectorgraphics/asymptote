@@ -275,7 +275,7 @@ void initComputeShaders()
       cout << "No compute shader support" << endl;
   } else {
 //    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT,0,&maxgroups);
-//    maxgroups=min(1024,maxgroups/(GLint) (localSize*localSize));
+//    maxgroups=min(1024,maxgroups/(GLint) (gl->localSize*gl->localSize));
     gl->sum1Shader=rc;
 
     shaders[0]=ShaderfileModePair(sum2.c_str(),GL_COMPUTE_SHADER);
@@ -558,6 +558,7 @@ void drawscene(int Width, int Height)
      nmaterials > Nmaterials) {
     deleteShaders();
     initShaders();
+    if(gl->vao == 0) setBuffers();
   }
 
   if(settings::verbose > 2) {
@@ -2017,7 +2018,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 
     ibl = settings::getSetting<bool>("ibl");
     initShaders();
-    setBuffers();
+    if(gl->vao == 0) setBuffers();
 
     // Initialize GPU compute parameters
     if(GPUindexing) {
