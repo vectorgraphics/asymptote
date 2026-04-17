@@ -555,10 +555,6 @@ void drawscene(int Width, int Height)
     initShaders();
   }
 
-  if(settings::verbose > 2) {
-    cerr << "drawscene: about to call glClear..." << endl;
-  }
-
   // Set viewport before clearing (in case it wasn't set)
   // Skip during export - trBeginTile handles viewport for tiling
   if(!exporting)
@@ -1441,19 +1437,6 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
 {
   if(data.indices.empty()) return;
 
-  // Ensure VAO is valid (non-zero) - should already be bound from setBuffers()
-  if(gl->vao == 0) {
-    if(settings::verbose > 2) {
-      cerr << "drawBuffer: VAO not initialized! Creating now..." << endl;
-    }
-    glGenVertexArrays(1, &gl->vao);
-    glBindVertexArray(gl->vao);  // Bind once and leave it bound
-  }
-
-  if(settings::verbose > 2) {
-    cerr << "drawBuffer: gl->vao=" << gl->vao << endl;
-  }
-
   // Check for OpenGL errors before drawing
   GLenum err = glGetError();
   if(err != GL_NO_ERROR && settings::verbose > 2) {
@@ -1712,6 +1695,14 @@ AsyGLRender::~AsyGLRender()
 #endif
 }
 
+bool ispow2(unsigned int n) {return n > 0 && !(n & (n - 1));}
+void checkpow2(unsigned int n, std::string s) {
+  if(!ispow2(n)) {
+    runtimeError(s+" must be a power of two");
+    exit(-1);
+  }
+}
+
 void AsyGLRender::render(RenderFunctionArgs const& args)
 {
   Iconify=getSetting<bool>("iconify");
@@ -1810,6 +1801,20 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     oHeight=args.height;
     Aspect=args.width/args.height;
 
+    // Force a hard viewport limit to work around direct rendering bugs.
+    // Alternatively, one can use -glOptions=-indirect (with a performance
+    // penalty).
+    pair maxViewport = settings::getSetting<pair>("maxviewport");
+    int maxWidth = maxViewport.getx() > 0 ? (int)ceil(maxViewport.getx()) : screenWidth;
+    int maxHeight = maxViewport.gety() > 0 ? (int)ceil(maxViewport.gety()) : screenHeight;
+    if(maxWidth <= 0) maxWidth = max(maxHeight, 2);
+    if(maxHeight <= 0) maxHeight = max(maxWidth, 2);
+
+    if(screenWidth <= 0) screenWidth=maxWidth;
+    else screenWidth=min(screenWidth,maxWidth);
+    if(screenHeight <= 0) screenHeight=maxHeight;
+    else screenHeight=min(screenHeight,maxHeight);
+
     fullWidth=(int) ceil(expand*args.width);
     fullHeight=(int) ceil(expand*args.height);
 
@@ -1872,99 +1877,11 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   if(thread && initializedView) {
     if(View) {
       // Called from asymain thread, main thread handles rendering
-      hideWindow = false;
+      hideWindow=false;
       messageQueue.enqueue(RendererMessage::updateRenderer);
-    } else {
-      readyAfterExport = queueExport = true;
-    }
+    } else readyAfterExport=queueExport=true;
     return;
   }
-#endif
-
-#if 0
-  // Initialize GLFW and get screen dimensions FIRST (matching reference pattern)
-#ifdef HAVE_LIBGLFW
-#ifndef HAVE_LIBOSMESA
-  static bool glfwInitialized = false;
-  if(!glfwInitialized) {
-    glfwSetErrorCallback([](int error, const char* description) {
-      cerr << "GLFW error [" << error << "]: " << description << endl;
-    });
-
-    if(!::glfwInit()) {
-      cerr << "Failed to initialize GLFW" << endl;
-      exit(-1);
-    }
-    glfwInitialized = true;
-
-#ifdef HAVE_RENDERER
-      GLFWmonitor* monitor=NULL;
-      glfwInit();
-      monitor=glfwGetPrimaryMonitor();
-      if(monitor) {
-        int mx, my;
-        glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
-      } else
-#endif
-        {
-          screenWidth=fullWidth;
-          screenHeight=fullHeight;
-        }
-
-      Width=min(fullWidth,screenWidth);
-      Height=min(fullHeight,screenHeight);
-
-      if(Width > Height*Aspect)
-        Width=min((int) (ceil(Height*Aspect)),screenWidth);
-      else
-        Height=min((int) (ceil(Width/Aspect)),screenHeight);
-    }
-  }
-#endif
-#endif
-
-  antialias = settings::getSetting<Int>("antialias") > 1;
-  double expand;
-  if(format3d) {
-    expand = 1.0;
-  } else {
-    expand = settings::getSetting<double>("render");
-    if(expand < 0)
-      expand *= (Format.empty() || Format == "eps" || Format == "pdf") ? -2.0 : -1.0;
-    if(antialias) expand *= 2.0;
-  }
-#endif
-
-  oWidth = args.width;
-  oHeight = args.height;
-  Aspect = args.width / args.height;
-
-  pair maxViewport = settings::getSetting<pair>("maxviewport");
-  int maxWidth = maxViewport.getx() > 0 ? (int)ceil(maxViewport.getx()) : screenWidth;
-  int maxHeight = maxViewport.gety() > 0 ? (int)ceil(maxViewport.gety()) : screenHeight;
-  if(maxWidth <= 0) maxWidth = max(maxHeight, 2);
-  if(maxHeight <= 0) maxHeight = max(maxWidth, 2);
-
-  if(screenWidth <= 0) screenWidth = maxWidth;
-  else screenWidth = min(screenWidth, maxWidth);
-  if(screenHeight <= 0) screenHeight = maxHeight;
-  else screenHeight = min(screenHeight, maxHeight);
-
-  // Initialize view state
-  home(format3d);
-  setProjection();
-
-  if(format3d) {
-    remesh = true;
-    return;
-  }
-
-  maxFragments = 0;
-  ArcballFactor = 1 + 8.0 * hypot(Margin.getx(), Margin.gety()) / hypot(Width, Height);
-  Aspect = (double)Width / Height;
-
-#ifdef HAVE_LIBGLFW
-  setosize();
 #endif
 
   // Create GLFW window BEFORE OpenGL initialization if viewing and not using OSMesa
@@ -1974,11 +1891,11 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     // Use appropriate window size - for hidden windows use maxTile dimensions
     int winWidth = Width;
     int winHeight = Height;
-    if(!View || Iconify) {
-      // For hidden/offscreen rendering, use larger tile dimensions
-      winWidth = maxTileWidth > 0 ? maxTileWidth : 1024;
-      winHeight = maxTileHeight > 0 ? maxTileHeight : 768;
-    }
+//    if(!View || Iconify) {
+//      // For hidden/offscreen rendering, use larger tile dimensions
+//      winWidth = maxTileWidth > 0 ? maxTileWidth : 1024;
+//      winHeight = maxTileHeight > 0 ? maxTileHeight : 768;
+//    }
 
     GLFWwindow* newWindow = glfwCreateRenderWindow(winWidth, winHeight, title.empty() ? Prefix.c_str() : title.c_str(), this);
     if(newWindow == nullptr) {
@@ -2025,32 +1942,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   if(!initialized) {
     initialized = true;
 
-#ifdef HAVE_LIBGLFW
-#ifndef HAVE_LIBOSMESA
-    // Verify the context is still current after window creation
-    GLFWwindow* current = glfwGetCurrentContext();
-    if(settings::verbose > 2) {
-      cerr << "Post-window GLEW check: glfwWindow=" << gl->glfwWindow << " current=" << current << endl;
-    }
-#endif
-#endif
-
-    // Check for any OpenGL errors after GLEW init (done earlier)
-    GLenum glerr = glGetError();
-    if(glerr != GL_NO_ERROR) {
-      cerr << "OpenGL error after GLEW init: " << glerr << endl;
-    }
-    const char* gl_version_str = (const char*)glGetString(GL_VERSION);
-    if(gl_version_str) {
-      int major = gl_version_str[0] - '0';
-      int minor = gl_version_str[2] - '0';
-      if(major < 3 || (major == 3 && minor < 0)) {
-        cerr << "OpenGL version too low: " << gl_version_str
-             << " (need at least 3.0)" << endl;
-        exit(-1);
-      }
-    }
-
     const char* GLSL_VERSION = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
     if(GLSL_VERSION) {
       GLSLversion = (int)(100 * atof(GLSL_VERSION) + 0.5);
@@ -2073,7 +1964,9 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     // Initialize GPU compute parameters
     if(GPUindexing) {
       localSize = settings::getSetting<Int>("GPUlocalSize");
+      checkpow2(localSize,"GPUlocalSize");
       blockSize = settings::getSetting<Int>("GPUblockSize");
+      checkpow2(blockSize,"GPUblockSize");
       groupSize = localSize * blockSize;
     }
   }
@@ -2093,9 +1986,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     firstFit=true;
     fitscreen();
     setosize();
-#ifdef HAVE_PTHREAD
     initializedView = true;
-#endif
   }
 #endif
 
