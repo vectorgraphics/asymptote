@@ -251,13 +251,6 @@ void noShaders()
 
 void initComputeShaders()
 {
-  // Ensure context is current before using OpenGL functions
-#ifdef HAVE_LIBGLFW
-#ifndef HAVE_LIBOSMESA
-  glfwMakeContextCurrent(gl->getGLFWWindow());
-#endif
-#endif
-
   string sum1=locateFile("shaders/sum1.glsl");
   string sum2=locateFile("shaders/sum2.glsl");
   string sum2fast=locateFile("shaders/sum2fast.glsl");
@@ -336,13 +329,6 @@ inline GLuint ceilpow2(GLuint n)
 
 void initShaders()
 {
-  // Ensure context is current before using OpenGL functions
-#ifdef HAVE_LIBGLFW
-#ifndef HAVE_LIBOSMESA
-  glfwMakeContextCurrent(gl->getGLFWWindow());
-#endif
-#endif
-
   gl->Nlights = gl->nlights == 0 ? 0 : std::max(gl->Nlights, gl->nlights);
   Nmaterials = std::max(Nmaterials, nmaterials);
 
@@ -357,25 +343,9 @@ void initShaders()
      screen.empty() || count.empty())
     noShaders();
 
-  // Only try compute shaders if GPUindexing is explicitly enabled and we have a valid context
-  // Note: GPUindexing defaults to false as compute shaders are not needed for opaque rendering
+  // Only try compute shaders if GPUindexing is explicitly enabled
   if(GPUindexing) {
-#ifdef HAVE_LIBGLFW
-#ifndef HAVE_LIBOSMESA
-    // Check if we have a valid OpenGL context before trying compute shaders
-    if(glfwGetCurrentContext() == gl->getGLFWWindow()) {
-      initComputeShaders();
-    } else {
-      GPUindexing = false; // Disable if no valid context
-      if(settings::verbose > 2)
-        cout << "No valid OpenGL context for compute shaders" << endl;
-    }
-#else
     initComputeShaders();
-#endif
-#else
-    initComputeShaders();
-#endif
   }
 
   std::vector<ShaderfileModePair> shaders(2);
@@ -2005,16 +1975,10 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 
 #ifdef HAVE_LIBGLFW
 #ifndef HAVE_LIBOSMESA
-    // GLEW already initialized right after window creation above
-    // Just verify the context is still current
-    glfwMakeContextCurrent(gl->getGLFWWindow());
+    // Verify the context is still current after window creation
     GLFWwindow* current = glfwGetCurrentContext();
     if(settings::verbose > 2) {
       cerr << "Post-window GLEW check: glfwWindow=" << gl->glfwWindow << " current=" << current << endl;
-    }
-    if(current != gl->getGLFWWindow()) {
-      cerr << "Failed to make OpenGL context current" << endl;
-      exit(-1);
     }
 #endif
 #endif
