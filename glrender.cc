@@ -87,8 +87,6 @@ size_t Nmaterials=1;
 size_t nmaterials=48;
 unsigned int Opaque=0;
 
-bool orthographic_gl = false;
-
 void clearCenters()
 {
   drawElement::centers.clear();
@@ -122,7 +120,6 @@ double Tup[16];
 
 // OpenGL-specific global state (minimal set for shader compatibility)
 bool Iconify=false;
-bool ignorezoom;
 int Fitscreen=1;
 bool firstFit;
 bool ViewExport;
@@ -419,7 +416,7 @@ void initShaders()
 
   shaders[1]=ShaderfileModePair(fragment.c_str(),GL_FRAGMENT_SHADER);
   shaderParams.push_back("MATERIAL");
-  if(orthographic_gl)
+  if(gl->orthographic)
     shaderParams.push_back("ORTHOGRAPHIC");
 
   ostringstream lights,materials,opaque;
@@ -642,7 +639,7 @@ void Export()
 
       size_t count=0;
       if(gl->haveScene) {
-        (orthographic_gl ? trOrtho : trFrustum)(tr,dXmin,dXmax,dYmin,dYmax,-dZmax,-dZmin);
+        (gl->orthographic ? trOrtho : trFrustum)(tr,dXmin,dXmax,dYmin,dYmax,-dZmax,-dZmin);
         do {
           trBeginTile(tr);
           gl->remesh=true;
@@ -1717,67 +1714,16 @@ AsyGLRender::~AsyGLRender()
 
 void AsyGLRender::render(RenderFunctionArgs const& args)
 {
-#ifdef HAVE_PTHREAD
-  // Check if this is a subsequent call from asymain thread after initialization
-  // Use message queue to signal render thread instead of blocking with signals
-  static bool hasInitializedView = false;
-  if(thread && hasInitializedView) {
-    if(View) {
-      // Called from asymain thread, main thread handles OpenGL rendering
-      hideWindow = false;
-      messageQueue.enqueue(RendererMessage::updateRenderer);
-    } else {
-      readyAfterExport = queueExport = true;
-    }
-    return;
-  }
+  Iconify=getSetting<bool>("iconify");
+
+#if !defined(_WIN32)
+  setenv("XMODIFIERS","",true);
 #endif
 
-  // Initialize GLFW and get screen dimensions FIRST (matching reference pattern)
-#ifdef HAVE_LIBGLFW
-#ifndef HAVE_LIBOSMESA
-  static bool glfwInitialized = false;
-  if(!glfwInitialized) {
-    glfwSetErrorCallback([](int error, const char* description) {
-      cerr << "GLFW error [" << error << "]: " << description << endl;
-    });
+  bool v3d=args.format == "v3d";
+  bool webgl=args.format == "html";
+  bool format3d=webgl || v3d;
 
-    if(!::glfwInit()) {
-      cerr << "Failed to initialize GLFW" << endl;
-      exit(-1);
-    }
-    glfwInitialized = true;
-
-    // Get monitor based on device setting (same as reference)
-    Int device = getSetting<Int>("device");
-    int numMonitors;
-    GLFWmonitor** monitors = glfwGetMonitors(&numMonitors);
-
-    GLFWmonitor* monitor = nullptr;
-    if (monitors && numMonitors > 0) {
-      int monitorIndex = (int)device;
-      if (monitorIndex < 0) monitorIndex = numMonitors + monitorIndex;
-      if (monitorIndex >= 0 && monitorIndex < numMonitors)
-        monitor = monitors[monitorIndex];
-      else
-        monitor = glfwGetPrimaryMonitor();
-    } else {
-      monitor = glfwGetPrimaryMonitor();
-    }
-
-    if(monitor) {
-      int mx, my;
-      glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
-    } else {
-      // Fallback if no monitor found (e.g., no X display)
-      screenWidth = maxTileWidth > 0 ? maxTileWidth : 1024;
-      screenHeight = maxTileHeight > 0 ? maxTileHeight : 768;
-    }
-  }
-#endif
-#endif
-
-  // Initialize from arguments (following Vulkan pattern - use member variables)
   Prefix = args.prefix;
   Picture = args.pic;  // Set global Picture variable for drawscene()
   pic = args.pic;      // Also set member variable
@@ -1788,13 +1734,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   Diffuse = args.diffuse;
   Specular = args.specular;
 
-  // Also set class member variables for use in setUniforms
-  gl->Lights = args.lights;
-  gl->Diffuse = args.diffuse;
-  gl->Specular = args.specular;
-  gl->Nlights = nlights;
-  gl->nlights = nlights;
-  gl->nlights0 = nlights;  // Save original for mode restoration
+  nlights0 = nlights;  // Save original for mode restoration
 
   View = args.view;
   Angle = args.angle * ASY_RADIANS;
@@ -1814,29 +1754,174 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   Zmin = args.m.getz();
   Zmax = args.M.getz();
 
-  // Also set lowercase viewport bounds (member variables from AsyRender)
-  xmin = Xmin;
-  xmax = Xmax;
-  ymin = Ymin;
-  ymax = Ymax;
-
   haveScene = Xmin < Xmax && Ymin < Ymax && Zmin < Zmax;
   orthographic = Angle == 0.0;
   H = orthographic ? 0.0 : -tan(0.5 * Angle) * Zmax;
+
   Xfactor = Yfactor = 1.0;
 
-  // Sync minimal globals with member variables (following Vulkan pattern)
-  orthographic_gl = orthographic;
+  pair maxtile=getSetting<pair>("maxtile");
+  maxTileWidth=(int) maxtile.getx();
+  maxTileHeight=(int) maxtile.gety();
+  if(maxTileWidth <= 0) maxTileWidth=1024;
+  if(maxTileHeight <= 0) maxTileHeight=768;
 
-  for(int i=0; i<16; ++i) {
-    T[i] = args.t[i];
-    Tup[i] = args.tup[i];
+#ifdef HAVE_PTHREAD
+  static bool initializedView=false;
+
+#ifdef HAVE_LIBOSMESA
+  if(!webgl) {
+    screenWidth=maxTileWidth;
+    screenHeight=maxTileHeight;
+
+    static bool osmesa_initialized=false;
+    if(!osmesa_initialized) {
+      osmesa_initialized=true;
+      fpu_trap(false); // Work around FE_INVALID.
+      init_osmesa();
+      fpu_trap(settings::trap());
+    }
+  }
+#else
+  if(!gl->initialized)
+    Fitscreen=1;
+#endif
+#endif
+
+  for(int i=0; i < 16; ++i)
+    T[i]=args.t[i];
+
+  for(int i=0; i < 16; ++i)
+    Tup[i]=args.tup[i];
+
+  if(!(initialized && interact::interactive)) {
+    antialias=settings::getSetting<Int>("antialias") > 1;
+    double expand;
+    if(format3d)
+      expand=1.0;
+    else {
+      expand=settings::getSetting<double>("render");
+      if(expand < 0)
+        expand *= (Format.empty() || Format == "eps" || Format == "pdf")                 ? -2.0 : -1.0;
+      if(antialias) expand *= 2.0;
+    }
+
+    oWidth=args.width;
+    oHeight=args.height;
+    Aspect=args.width/args.height;
+
+    fullWidth=(int) ceil(expand*args.width);
+    fullHeight=(int) ceil(expand*args.height);
+
+    if(format3d) {
+      Width=fullWidth;
+      Height=fullHeight;
+    } else {
+#ifdef HAVE_RENDERER
+      GLFWmonitor* monitor=NULL;
+      glfwInit();
+      monitor=glfwGetPrimaryMonitor();
+      if(monitor) {
+        int mx, my;
+        glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
+      } else
+#endif
+        {
+          screenWidth=fullWidth;
+          screenHeight=fullHeight;
+        }
+
+      Width=min(fullWidth,screenWidth);
+      Height=min(fullHeight,screenHeight);
+
+      if(Width > Height*Aspect)
+        Width=min((int) (ceil(Height*Aspect)),screenWidth);
+      else
+        Height=min((int) (ceil(Width/Aspect)),screenHeight);
+    }
+
+
+#ifdef HAVE_RENDERER
+    home(format3d);
+#endif
+    if(format3d) {
+      remesh=true;
+      return;
+    }
+    maxFragments=0;
+
+    ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
+    Aspect=((double) Width)/Height;
+
+#ifdef HAVE_RENDERER
+    setosize();
+#endif
   }
 
-  // Initialize window dimensions and aspect ratio
-  bool v3d = args.format == "v3d";
-  bool webgl = args.format == "html";
-  bool format3d = webgl || v3d;
+#ifdef HAVE_RENDERER
+  havewindow=initialized && thread;
+
+  if(thread && format3d)
+    format3dWait=true;
+
+  clearMaterials();
+  initialized=true;
+#endif
+
+#ifdef HAVE_PTHREAD
+  if(thread && initializedView) {
+    if(View) {
+      // Called from asymain thread, main thread handles rendering
+      hideWindow = false;
+      messageQueue.enqueue(RendererMessage::updateRenderer);
+    } else {
+      readyAfterExport = queueExport = true;
+    }
+    return;
+  }
+#endif
+
+#if 0
+  // Initialize GLFW and get screen dimensions FIRST (matching reference pattern)
+#ifdef HAVE_LIBGLFW
+#ifndef HAVE_LIBOSMESA
+  static bool glfwInitialized = false;
+  if(!glfwInitialized) {
+    glfwSetErrorCallback([](int error, const char* description) {
+      cerr << "GLFW error [" << error << "]: " << description << endl;
+    });
+
+    if(!::glfwInit()) {
+      cerr << "Failed to initialize GLFW" << endl;
+      exit(-1);
+    }
+    glfwInitialized = true;
+
+#ifdef HAVE_RENDERER
+      GLFWmonitor* monitor=NULL;
+      glfwInit();
+      monitor=glfwGetPrimaryMonitor();
+      if(monitor) {
+        int mx, my;
+        glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
+      } else
+#endif
+        {
+          screenWidth=fullWidth;
+          screenHeight=fullHeight;
+        }
+
+      Width=min(fullWidth,screenWidth);
+      Height=min(fullHeight,screenHeight);
+
+      if(Width > Height*Aspect)
+        Width=min((int) (ceil(Height*Aspect)),screenWidth);
+      else
+        Height=min((int) (ceil(Width/Aspect)),screenHeight);
+    }
+  }
+#endif
+#endif
 
   antialias = settings::getSetting<Int>("antialias") > 1;
   double expand;
@@ -1848,6 +1933,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
       expand *= (Format.empty() || Format == "eps" || Format == "pdf") ? -2.0 : -1.0;
     if(antialias) expand *= 2.0;
   }
+#endif
 
   oWidth = args.width;
   oHeight = args.height;
@@ -1863,21 +1949,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   else screenWidth = min(screenWidth, maxWidth);
   if(screenHeight <= 0) screenHeight = maxHeight;
   else screenHeight = min(screenHeight, maxHeight);
-
-  fullWidth = (int)ceil(expand * args.width);
-  fullHeight = (int)ceil(expand * args.height);
-
-  if(format3d) {
-    Width = fullWidth;
-    Height = fullHeight;
-  } else {
-    Width = min(fullWidth, screenWidth);
-    Height = min(fullHeight, screenHeight);
-    if(Width > Height * Aspect)
-      Width = min((int)ceil(Height * Aspect), screenWidth);
-    else
-      Height = min((int)ceil(Width / Aspect), screenHeight);
-  }
 
   // Initialize view state
   home(format3d);
@@ -2023,7 +2094,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     fitscreen();
     setosize();
 #ifdef HAVE_PTHREAD
-    hasInitializedView = true;
+    initializedView = true;
 #endif
   }
 #endif
