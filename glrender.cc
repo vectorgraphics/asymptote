@@ -727,28 +727,8 @@ void quit()
   if(osmesa_buffer) delete[] osmesa_buffer;
   if(ctx) OSMesaDestroyContext(ctx);
   exit(0);
-#endif
-#ifdef HAVE_LIBGLFW
-  if(gl->thread) {
-    gl->home();
-#ifdef HAVE_PTHREAD
-    if(!interact::interactive) {
-      gl->endwait(gl->readySignal,gl->readyLock);
-    }
-#endif
-    // Always signal the window to close in threaded mode
-    glfwSetWindowShouldClose(gl->getGLFWWindow(), true);
-    if(interact::interactive) {
-      glfwHideWindow(gl->getGLFWWindow());
-    }
-  } else {
-    ::glfwDestroyWindow(gl->getGLFWWindow());
-    glfwTerminate();
-    exit(0);
-  }
 #else
-  // No windowing system available - just exit
-  exit(0);
+  gl->quit();
 #endif
 }
 
