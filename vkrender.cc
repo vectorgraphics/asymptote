@@ -282,33 +282,6 @@ void AsyVkRender::onClose()
     exitHandler(0);
 }
 
-void AsyVkRender::render(RenderFunctionArgs const& args)
-{
-  VkrenderFunctionArgs vkargs;
-  vkargs.prefix = args.prefix;
-  vkargs.pic = args.pic;
-  vkargs.format = args.format;
-  vkargs.width = args.width;
-  vkargs.height = args.height;
-  vkargs.angle = args.angle;
-  vkargs.zoom = args.zoom;
-  vkargs.m = args.m;
-  vkargs.M = args.M;
-  vkargs.shift = args.shift;
-  vkargs.margin = args.margin;
-  vkargs.t = args.t;
-  vkargs.tup = args.tup;
-  vkargs.background = args.background;
-  vkargs.nlightsin = args.nlightsin;
-  vkargs.lights = args.lights;
-  vkargs.diffuse = args.diffuse;
-  vkargs.specular = args.specular;
-  vkargs.view = args.view;
-  vkargs.oldpid = args.oldpid;
-
-  vkrender(vkargs);
-}
-
 void AsyVkRender::updateHandler(int) {
   if(vk->View && vk->glfwWindow && !interact::interactive) {
     ::glfwHideWindow(vk->getGLFWWindow());
@@ -346,10 +319,10 @@ void checkpow2(unsigned int n, std::string s) {
   }
 }
 
-void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
+void AsyVkRender::render(RenderFunctionArgs const& args)
 {
 #if !defined(_WIN32)
-      setenv("XMODIFIERS","",true);
+  setenv("XMODIFIERS","",true);
 #endif
 
   bool v3d=args.format == "v3d";
@@ -481,7 +454,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 #ifdef HAVE_PTHREAD
   if(thread && initializedView) {
     if(View) {
-      // called from asymain thread, main thread handles vulkan rendering
+      // Called from asymain thread, main thread handles rendering
       hideWindow=false;
       messageQueue.enqueue(updateRenderer);
     } else readyAfterExport=queueExport=true;

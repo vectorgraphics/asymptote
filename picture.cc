@@ -1433,7 +1433,7 @@ void picture::render(double size2, const triple& Min, const triple& Max,
   }
 }
 
-AsyVkRender::VkrenderFunctionArgs com = {};
+AsyRender::RenderFunctionArgs com = {};
 
 extern bool allowRender;
 
@@ -1445,7 +1445,7 @@ void glrenderWrapper()
   vk->endwait(vk->initSignal,vk->initLock);
 #endif
   if(allowRender)
-    vk->vkrender(com);
+    vk->render(com);
 #endif
 }
 
@@ -1585,7 +1585,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
 
 #if HAVE_LIBGLM
-  AsyVkRender::VkrenderFunctionArgs args = {};
+  AsyRender::RenderFunctionArgs args = {};
   args.prefix=prefix;
   args.pic=pic;
   args.format=outputformat;
@@ -1607,7 +1607,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   args.view=View;
   args.oldpid=oldpid;
 
-  vk->vkrender(args);
+  vk->render(args);
   if(format3d) {
     string name=buildname(prefix,format);
     abs3Doutfile *fileObj=nullptr;

@@ -128,9 +128,7 @@ public:
     int oldpid=0;
   };
 
-  void vkrender(VkrenderFunctionArgs const& args);
-
-  // Implementation of base class pure virtual
+  // Implementation of base class pure virtual (actual rendering implementation)
   void render(RenderFunctionArgs const& args) override;
 
   // RenderCallbacks interface implementation (GLFW callbacks)
