@@ -549,12 +549,12 @@ void AsyRender::quit()
 #ifdef HAVE_PTHREAD
     if (!interact::interactive) {
       idle();
-      endwait(readySignal, readyLock);
     }
 #endif
 
-    // Hide window but don't destroy it (will be reused)
+    // Signal window to close and hide it
     if (View && glfwWindow) {
+      ::glfwSetWindowShouldClose(static_cast<GLFWwindow*>(glfwWindow), GLFW_TRUE);
       ::glfwHideWindow(static_cast<GLFWwindow*>(glfwWindow));
       hideWindow = true;
     }
