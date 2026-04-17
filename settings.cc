@@ -39,7 +39,8 @@
 #include "array.h"
 
 #include "glrender.h"
-#include "licenses.h"
+
+#include <fstream>
 
 #ifdef HAVE_LIBCURSES
 extern "C" {
@@ -1148,6 +1149,205 @@ struct versionOption : public option {
   }
 };
 
+// Short license summary printed by asy --licenses.
+static const char *const licensesSummary =
+  "\n"
+#if defined(_WIN32)
+  "Asymptote is free software under the GNU General Public\n"
+  "License v3+ (see licenses/LICENSE).\n"
+#else
+  "Asymptote is free software under the GNU Lesser General Public\n"
+  "License v3+ (see licenses/LICENSE and licenses/LICENSE.LESSER).\n"
+#endif
+  "\n"
+  "Third-party components:\n"
+  "\n"
+  // URLs separated from \n to avoid confusing IDEs that support hyperlinking.
+  "  span.hpp          Boost Software License 1.0\n"
+  "                    Martin Moene -- https://github.com/martinmoene/span-lite" "\n"
+  "  wyhash            The Unlicense (Public Domain)\n"
+  "                    Wang Yi -- https://github.com/wangyi-fudan/wyhash" "\n"
+  "  Boehm GC          Custom permissive license\n"
+  "                    https://www.hboehm.info/gc/" "\n"
+  "  LspCpp            MIT License\n"
+  "                    https://github.com/kuafuwang/LspCpp" "\n"
+  "  libatomic_ops     MIT (core) / GPL-2.0 (extensions)\n"
+  "                    https://github.com/ivmai/libatomic_ops" "\n"
+  "  GLEW              BSD 3-Clause License\n"
+  "                    https://glew.sourceforge.net/" "\n"
+  "  TinyEXR           BSD 3-Clause License\n"
+  "                    Syoyo Fujita -- https://github.com/syoyo/tinyexr" "\n"
+  "\n"
+  "Use --licenses=full for complete copyright notices and license texts.\n"
+  "Source: https://github.com/vectorgraphics/asymptote/\n";
+
+// Resolve the directory containing the license files at runtime.
+// Search order: dirname(argv0)/doc/licenses/ (local/build-tree layout),
+// then the compile-time install path ASYMPTOTE_LICENSEDIR.
+static string resolveLicenseDir() {
+  if (argv0) {
+    string local = stripFile(string(argv0)) + "doc" + dirsep + "licenses";
+    string probe = local + dirsep + "LICENSE";
+    struct stat st;
+    if (stat(probe.c_str(), &st) == 0)
+      return local;
+  }
+#ifdef ASYMPTOTE_LICENSEDIR
+  return ASYMPTOTE_LICENSEDIR;
+#else
+  return docdir + dirsep + "licenses";
+#endif
+}
+
+// Print the contents of a file to out. Returns true on success.
+static bool printLicenseFile(const string& path, ostream& out) {
+  std::ifstream f(path.c_str());
+  if (!f.is_open()) return false;
+  out << f.rdbuf();
+  return true;
+}
+
+// Print the full license text, reading from license files at runtime.
+// Returns true if all files were found and printed, false otherwise.
+static bool printLicensesFull(ostream& out) {
+  string ldir = resolveLicenseDir();
+  int missing = 0;
+
+  auto requireFile = [&](const string& filename, const string& desc) -> bool {
+    string path = ldir + dirsep + filename;
+    if (!printLicenseFile(path, out)) {
+      cerr << argv0 << ": license file not found: " << path << "\n";
+      cerr << "  (" << desc << ")\n";
+      ++missing;
+      return false;
+    }
+    return true;
+  };
+
+  // Platform-conditional preamble
+#if defined(_WIN32)
+  out <<
+    "\nAsymptote is free software under the GNU General Public License,\n"
+    "version 3 or later. Source code: https://github.com/vectorgraphics/asymptote/\n"
+    "\n"
+    "[The source code and non-Windows binaries are available under the more\n"
+    "permissive LGPL; see README.]\n"
+    "\n"
+    "The full text of the GNU General Public License (version 3) is reproduced below,\n"
+    "followed by the copyright notices and license terms for all incorporated\n"
+    "third-party components.\n";
+#else
+  out <<
+    "\nAsymptote is free software under the GNU Lesser General Public License,\n"
+    "version 3 or later. Source code: https://github.com/vectorgraphics/asymptote/\n"
+    "\n"
+    "The full texts of the GNU Lesser General Public License (version 3) and the\n"
+    "GNU General Public License (version 3) are reproduced below, followed by the\n"
+    "copyright notices and license terms for all incorporated third-party components.\n"
+    "\n"
+    "========================================================================\n"
+    "GNU LESSER GENERAL PUBLIC LICENSE, Version 3\n"
+    "========================================================================\n";
+  requireFile("LICENSE.LESSER",
+    "Asymptote -- GNU Lesser General Public License v3+");
+#endif
+
+  out <<
+    "\n"
+    "========================================================================\n"
+    "GNU GENERAL PUBLIC LICENSE, Version 3\n"
+    "========================================================================\n";
+  requireFile("LICENSE",
+    "Asymptote -- GNU General Public License v3+");
+
+  out <<
+    "\n"
+    "========================================================================\n"
+    "THIRD-PARTY COMPONENT LICENSES\n"
+    "========================================================================\n"
+    "\n"
+    "This binary incorporates the following third-party components. The full\n"
+    "copyright notices and license terms required for binary redistribution are\n"
+    "reproduced below.\n";
+
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "span.hpp -- Boost Software License 1.0\n"
+    "Martin Moene <https://github.com/martinmoene/span-lite>\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("span-LICENSE.txt",
+    "span.hpp -- Boost Software License 1.0 -- Martin Moene");
+
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "wyhash -- The Unlicense (Public Domain)\n"
+    "Wang Yi <https://github.com/wangyi-fudan/wyhash>\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("wyhash-UNLICENSE.txt",
+    "wyhash -- The Unlicense -- Wang Yi");
+
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "Boehm-Demers-Weiser Garbage Collector -- Custom permissive license\n"
+    "Hans-J. Boehm, Alan J. Demers, Xerox Corporation, Silicon Graphics,\n"
+    "Hewlett-Packard Development Company, Ivan Maidanski, Fergus Henderson\n"
+    "<https://www.hboehm.info/gc/>\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("gc-LICENSE.txt",
+    "Boehm GC -- Custom permissive license -- https://www.hboehm.info/gc/");
+
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "LspCpp -- MIT License\n"
+    "kuafuwang <https://github.com/kuafuwang/LspCpp>\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("LspCpp-LICENSE.txt",
+    "LspCpp -- MIT License -- https://github.com/kuafuwang/LspCpp");
+
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "libatomic_ops -- MIT License (core) / GPL-2.0 (gpl extension library)\n"
+    "Xerox Corporation, Silicon Graphics, Hewlett-Packard, Ivan Maidanski,\n"
+    "and contributors <https://github.com/ivmai/libatomic_ops>\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("libatomic_ops-LICENSE.txt",
+    "libatomic_ops -- MIT License (core) -- https://github.com/ivmai/libatomic_ops");
+
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "(libatomic_ops GPL-2.0 extension library license)\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("libatomic_ops-COPYING.txt",
+    "libatomic_ops -- GPL-2.0 (gpl extension) -- https://github.com/ivmai/libatomic_ops");
+
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "GLEW -- BSD 3-Clause License\n"
+    "Nigel Stewart, Milan Ikits, Marcelo E. Magallon, Lev Povalahev,\n"
+    "Brian Paul, The Khronos Group <https://glew.sourceforge.net/>\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("glew-LICENSE.txt",
+    "GLEW -- BSD 3-Clause License -- https://glew.sourceforge.net/");
+
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "TinyEXR -- BSD 3-Clause License\n"
+    "Syoyo Fujita and contributors <https://github.com/syoyo/tinyexr>\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("tinyexr-LICENSE.txt",
+    "TinyEXR -- BSD 3-Clause License -- https://github.com/syoyo/tinyexr");
+
+  return missing == 0;
+}
+
 struct licensesOption : public option {
   licensesOption(string name, char code, string desc)
     : option(name, code, noarg, desc, true) {}
@@ -1163,9 +1363,10 @@ struct licensesOption : public option {
   bool getOption() {
     version();
     if (optarg && string(optarg) == "full") {
-      cerr << licenses::full;
+      bool success = printLicensesFull(cerr);
+      exit(success ? 0 : 1);
     } else {
-      cerr << licenses::summary;
+      cerr << licensesSummary;
     }
     exit(0);
 

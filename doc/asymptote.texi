@@ -11749,7 +11749,7 @@ Also output @code{Asymptote} traceback diagnostics.
 Type @code{asy -licenses} to see the license and third-party attribution
 information for @code{Asymptote} and its bundled components. Type
 @code{asy -licenses=full} or @code{asy --licenses=full} to print the
-embedded full license texts.
+full license texts (read from the installed @file{licenses/} directory).
 
 @node Interactive mode
 @chapter Interactive mode

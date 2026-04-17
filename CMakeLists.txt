@@ -87,7 +87,11 @@ include(cmake-scripts/asy-base-files.cmake)
 
 # asy + base files
 add_custom_target(asy-basefiles DEPENDS ${ASY_OUTPUT_BASE_FILES})
-add_custom_target(asy-with-basefiles ALL DEPENDS asy asy-basefiles)
+
+# license files in build tree (for running asy locally without installing)
+include(cmake-scripts/copy-build-licenses.cmake)
+
+add_custom_target(asy-with-basefiles ALL DEPENDS asy asy-basefiles asy-licenses)
 
 # asy misc files
 if (ENABLE_MISCFILES_GEN)

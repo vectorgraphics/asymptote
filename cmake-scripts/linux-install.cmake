@@ -115,25 +115,25 @@ install(
 #endregion
 
 #region license files
-# License and attribution files go under share/doc/asymptote/ following
-# CMAKE_INSTALL_DOCDIR conventions. Distribution packagers (Fedora, Debian,
-# etc.) are responsible for relocating to their distro-specific paths.
+# License and attribution files go under share/doc/asymptote/licenses/
+# following CMAKE_INSTALL_DOCDIR conventions. Distribution packagers (Fedora,
+# Debian, etc.) may override the install location via the ASY_LICENSEDIR
+# cache variable (set in cmake-scripts/gnu-install-macros.cmake).
 set(ASY_DOCDIR_INSTALL_DIR ${CMAKE_INSTALL_DOCDIR})
-set(ASY_LICENSES_INSTALL_DIR ${ASY_DOCDIR_INSTALL_DIR}/licenses)
+set(ASY_LICENSES_INSTALL_DIR ${ASY_LICENSEDIR_INSTALL_DEST})
 
 install(
         FILES
             ${CMAKE_CURRENT_SOURCE_DIR}/README
-            ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE
-            ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.LESSER
             ${CMAKE_CURRENT_SOURCE_DIR}/LICENSES-THIRD-PARTY.md
         DESTINATION ${ASY_DOCDIR_INSTALL_DIR}
         COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
         PERMISSIONS ${PERMISSION_644_LIST}
 )
 
-# Third-party license files in a licenses/ subdirectory, with component-prefixed
-# names to avoid collisions.
+# All license files (LICENSE, LICENSE.LESSER, and all third-party files) are
+# installed from the already-renamed build-tree copies produced by
+# copy-build-licenses.cmake.
 set(ASY_LICENSE_INSTALL_ARGS
         DESTINATION ${ASY_LICENSES_INSTALL_DIR}
         COMPONENT ${ASY_BASE_INSTALL_COMPONENT}

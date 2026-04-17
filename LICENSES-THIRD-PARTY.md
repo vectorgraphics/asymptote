@@ -13,8 +13,8 @@ Asymptote incorporates the following third-party components:
 | TinyEXR | BSD 3-Clause | https://github.com/syoyo/tinyexr |
 
 Full copyright notices and license texts for all components (including
-Asymptote's own LGPL) are available via `asy --licenses=full`, and in
-[licenses.h](licenses.h) in the source tree.
+Asymptote's own LGPL) are available via `asy --licenses=full`, which reads
+from the `licenses/` directory installed alongside the binary.
 
 See [MAINTAINER-LICENSE-GUIDE.md](MAINTAINER-LICENSE-GUIDE.md) for
 distribution and maintenance procedures.

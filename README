@@ -89,4 +89,5 @@ THIRD-PARTY COMPONENTS
 Asymptote includes several third-party libraries (span-lite, wyhash,
 Boehm GC, LspCpp, libatomic_ops, GLEW, TinyEXR), each with their own
 license terms.  See LICENSES-THIRD-PARTY.md for the component list, or
-run asy --licenses=full for detailed copyright notices and license texts.
+run asy --licenses=full to print the full license texts from the installed
+licenses/ directory.
