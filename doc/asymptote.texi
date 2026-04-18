@@ -53,17 +53,17 @@ file LICENSE in the top-level source directory).
 * Description::                 What is @code{Asymptote}?
 * Installation::                Downloading and installing
 * Tutorial::                    Getting started
-* Drawing commands::            Four primitive graphics commands
+* Drawing commands::            Four primitive drawing commands
 * Bezier curves::               Path connectors and direction specifiers
 * Programming::                 The @code{Asymptote} vector graphics language
-* LaTeX usage::                 Embedding @code{Asymptote} commands within @code{LaTeX}
+* LaTeX usage::                 Embedding @code{Asymptote} commands within @LaTeX{}
 * User modules::                Modules commonly used by users
 * Specialty modules::           Modules for specialized applications
 * Developer modules::           Modules for @code{Asymptote} developers
 * Options::                     Command-line options
 * Interactive mode::            Typing @code{Asymptote} commands interactively
 * GUI::                         Graphical user interface
-* Command-Line Interface::      Remote command-line interface
+* Command-Line Interface::      Remote HTTP API to Asymptote server
 * Language server protocol::    Help when writing code
 * PostScript to Asymptote::     @code{Asymptote} backend to @code{pstoedit}
 * Help::                        Where to get help and submit bug reports
@@ -77,7 +77,7 @@ file LICENSE in the top-level source directory).
 Installation
 
 * UNIX binary distributions::   Prebuilt @code{UNIX} binaries
-* MacOS X binary distributions::  Prebuilt @code{MacOS X} binaries
+* macOS X binary distributions::  Prebuilt @code{macOS X} binaries
 * Microsoft Windows::           Prebuilt @code{Microsoft Windows} binary
 * Configuring::                 Configuring @code{Asymptote} for your system
 * Search paths::                Where @code{Asymptote} looks for your files
@@ -92,7 +92,7 @@ Tutorial
 * Drawing in batch mode::       Run @code{Asymptote} on a text file
 * Drawing in interactive mode::  Running @code{Asymptote} interactively
 * Figure size::                 Specifying the figure size
-* Labels::                      Adding @code{LaTeX} labels
+* Labels::                      Adding @LaTeX{} labels
 * Paths::                       Drawing lines and curves
 
 Drawing commands
@@ -109,7 +109,7 @@ Programming
 * Pens::                        Colors, line types, line widths, font sizes
 * Transforms::                  Affine transforms
 * Frames and pictures::         Canvases for immediate and deferred drawing
-* Deferred drawing::            Witholding drawing until all data is available
+* Deferred drawing::            Withholding drawing until all data is available
 * Files::                       Reading and writing your data
 * Variable initializers::       Initialize your variables
 * Structures::                  Organize your data
@@ -154,60 +154,71 @@ Iterators
 
 Autounravel
 
-* When fields are autounraveled::
-* Where autounravel is legal::
+* Where fields are autounraveled::  Where autounraveling happens
+* Where autounravel is legal::  Valid autounravel locations
 
 Hash functions
 
-* Hashing user-defined structures::
+* Hashing user-defined structures::  Implementing hash methods for custom types
 
 Collections (containers)
 
-* Pairs::
-* Iterators and utilities::
-* Maps::
-* Using Maps as Sets::
-* Sets::
-* Using Sets as Maps::
-* Queues::
+* Pairs::                       Generic pair of two types with hash support
+* Iterators and utilities::     Iterable structures and manipulation tools
+* Maps::                        Hashmaps and b-tree maps (dictionaries/associative arrays)
+* Using Maps as Sets::          @code{Map_K_bool} for set operations
+* Sets::                        Hash sets and sorted b-tree sets
+* Using Sets as Maps::          @code{Set_Pair_K_V} to map keys to values
+* Queues::                      First-in-first-out (FIFO) queue
 * Wrapping arrays::             Arrays that can be used as keys or values
 
 Iterators and utilities
 
 * @code{collections.iter(T)}::  Iterable structures
-* Combining (zipping) iterators::
-* Attaching a counter to an iterator::
+* Combining (zipping) iterators::  Iterating over multiple containers simultaneously
+* Attaching a counter to an iterator::  Enumerating elements with indices
+
+Maps
+
+* Initializing a @code{Map}::   Creating hashmaps and b-tree maps
+* The @code{Map} API::          Methods for map operations
+
+Sets
+
+* Initializing a @code{Set}::   Creating hash sets and b-tree sets
+* The @code{Set} API::          Methods for set operations
+* The @code{SortedSet} API::    Additional methods for sorted sets
 
 User modules
 
-* graph::                    2D linear & logarithmic graphs
-* three::                    3D vector graphics
-* graph3::                   3D linear & logarithmic graphs
-* palette::                  Color density images and palettes
-* colormap::                 Colormaps from matplotlib
-* texcolors::                @acronym{CMYK} @TeX{} colors
-* x11colors::                @acronym{RGB} @code{X11} colors
-* fontsize::                 Nonstandard font sizes
-* contour::                  Contour lines
-* geometry::                 Geometry routines
-* grid3::                    3D grids
-* interpolate::              Interpolation routines
-* markers::                  Custom path marker routines
-* math::                     Extend @code{Asymptote}'s math capabilities
-* patterns::                 Custom fill and draw patterns
-* roundedpath::              Round the sharp corners of paths
-* slopefield::               Slope fields
-* smoothcontour3::           Smooth implicit surfaces
-* solids::                   3D solid geometry
-* stats::                    Statistics routines and histograms
-* tube::                     3D rotation minimizing tubes
+* graph::                       2D linear & logarithmic graphs
+* three::                       3D vector graphics
+* graph3::                      3D linear & logarithmic graphs
+* palette::                     Color density images and palettes
+* colormap::                    Colormaps from matplotlib
+* texcolors::                   @acronym{CMYK} @TeX{} colors
+* x11colors::                   @acronym{RGB} @code{X11} colors
+* fontsize::                    Nonstandard font sizes
+* contour::                     Contour lines
+* geometry::                    Geometry routines
+* grid3::                       3D grids
+* interpolate::                 Interpolation routines
+* markers::                     Custom path marker routines
+* math::                        Extend @code{Asymptote}'s math capabilities
+* patterns::                    Custom fill and draw patterns
+* roundedpath::                 Round the sharp corners of paths
+* slopefield::                  Slope fields
+* smoothcontour3::              Smooth implicit surfaces
+* solids::                      3D solid geometry
+* stats::                       Statistics routines and histograms
+* tube::                        3D rotation minimizing tubes
 
 Specialty modules
 
 * animation::                   Embedded @acronym{PDF} and @acronym{MPEG} movies
 * animate::                     Portable clickable @acronym{PDF} movies with controls
 * annotate::                    Annotate your @acronym{PDF} files
-* babel::                       Interface to @code{LaTeX} @code{babel} package
+* babel::                       Interface to @LaTeX{} @code{babel} package
 * binarytree::                  Binary tree drawing module
 * bsp::                         Binary space partition for hidden surface removal
 * CAD::                         2D CAD pen and measurement functions (DIN 15)
@@ -256,14 +267,14 @@ Graphical User Interface
 @cindex @code{Asymptote Web Application}
 @code{Asymptote} is a powerful descriptive vector graphics language that
 provides a mathematical coordinate-based framework for technical drawing.
-Labels and equations are typeset with @code{LaTeX}, for overall document
-consistency, yielding the same high-quality level of typesetting that
-@code{LaTeX} provides for scientific text. By default it produces
+Labels and equations are typeset with @LaTeX{}, for overall document
+consistency, yielding the same high level of typesetting quality that
+@LaTeX{} provides for scientific text. By default it produces
 @code{PostScript} output, but it can also generate @code{OpenGL}, @code{PDF},
 @code{SVG}, @code{WebGL}, @code{V3D}, and legacy @code{PRC} vector graphics,
 along with any format that the @code{ImageMagick} package can
 produce. You can even try it out in your Web browser without
-installing it, using the @code{Asymptote Web Application}
+installing it, using the @code{Asymptote Web Application}:
 
 @url{https://asymptote.ualberta.ca}
 
@@ -272,7 +283,7 @@ curl utility (@pxref{Command-Line Interface}).
 
 A major advantage of @code{Asymptote} over other graphics packages is
 that it is a high-level programming language, as opposed to just a graphics
-program: it can therefore exploit the best features of the script
+application: it can therefore exploit the best features of the script
 (command-driven) and graphical-user-interface (@acronym{GUI}) methods for
 producing figures. The rudimentary @acronym{GUI} @code{xasy} included with the
 package allows one to move script-generated objects
@@ -284,7 +295,7 @@ simple @code{Asymptote} graphics commands (@pxref{Drawing commands}).
 
 @code{Asymptote} is mathematically oriented (one can
 use complex multiplication to rotate a vector) and uses
-@code{LaTeX} to do the
+@LaTeX{} to do the
 typesetting of labels. This is an important feature for scientific
 applications. It was inspired by an earlier drawing program (with a weaker
 syntax and capabilities) called @code{MetaPost}.
@@ -293,9 +304,9 @@ The @code{Asymptote} vector graphics language provides:
 
 @itemize @bullet
 @item a standard for typesetting mathematical figures, just
-as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
+as @TeX{}/@LaTeX{} is the de-facto standard for typesetting equations.
 
-@item @code{LaTeX} typesetting of labels, for overall document consistency;
+@item @LaTeX{} typesetting of labels, for overall document consistency;
 
 @item the ability to generate and embed 3D vector @acronym{WebGL}
 graphics within @acronym{HTML} files;
@@ -330,10 +341,10 @@ objects that should scale with figure size;
 @end itemize
 
 Many of the features of @code{Asymptote} are written in the
-@code{Asymptote} language itself. While the stock version of
-@code{Asymptote} is designed for mathematics typesetting needs, one can
+@code{Asymptote} language itself. While
+@code{Asymptote} is designed for mathematical typesetting needs, one can
 write @code{Asymptote} modules that tailor it to specific
-applications; for example, a scientific graphing module is available
+applications. For example, a scientific graphing module is available
 (@pxref{graph}). Examples of @code{Asymptote} code and output,
 including animations, are available at
 @quotation
@@ -363,7 +374,7 @@ A quick reference card for @code{Asymptote} is available at
 
 @menu
 * UNIX binary distributions::   Prebuilt @code{UNIX} binaries
-* MacOS X binary distributions::  Prebuilt @code{MacOS X} binaries
+* macOS X binary distributions::  Prebuilt @code{macOS X} binaries
 * Microsoft Windows::           Prebuilt @code{Microsoft Windows} binary
 * Configuring::                 Configuring @code{Asymptote} for your system
 * Search paths::                Where @code{Asymptote} looks for your files
@@ -404,7 +415,7 @@ texhash
 @end verbatim
 @noindent
 The @code{texhash} command, which installs LaTeX style files, is optional.
-The executable file will be @code{/usr/local/bin/asy}) and example code
+The executable file will be @code{/usr/local/bin/asy} and example code
 will be installed by default in @code{@value{Docdir}/examples}.
 
 @noindent
@@ -426,10 +437,10 @@ prebuilt @code{Asymptote} binaries from
 @url{https://ftp.debian.org/debian/pool/main/a/asymptote}
 @end quotation
 
-@node MacOS X binary distributions
-@section MacOS X binary distributions
-@cindex @code{MacOS X} binary distributions
-@code{MacOS X} users can either compile the @code{UNIX} source code
+@node macOS X binary distributions
+@section macOS X binary distributions
+@cindex @code{macOS X} binary distributions
+@code{macOS X} users can either compile the @code{UNIX} source code
 (@pxref{Compiling from UNIX source})
 or install the @code{Asymptote} binary available at
 
@@ -440,7 +451,7 @@ or at
 @url{https://brew.sh/}
 
 @noindent
-Note that many @code{MacOS X} (and FreeBSD) systems lack the
+Note that many @code{macOS X} (and FreeBSD) systems lack the
 @acronym{GNU} @code{readline} library. For full interactive
 functionality, @acronym{GNU} @code{readline} version 4.3 or later must
 be installed.
@@ -706,12 +717,12 @@ done as the root user. To install without root privileges, change the
 @verbatim
 ./configure --prefix=$HOME/asymptote
 @end verbatim
-@cindex @code{MacOS X} configuration
+@cindex @code{macOS X} configuration
 @cindex @code{clang}
 One can disable use of the Boehm garbage collector by configuring
 with @code{./configure --disable-gc}. For a list of other configuration
 options, say @code{./configure --help}. For example, under
-@code{MacOS X}, one can tell configure to use the @code{clang} compilers and
+@code{macOS X}, one can tell configure to use the @code{clang} compilers and
 look for header files and libraries in nonstandard locations:
 @verbatim
 ./configure CC=clang CXX=clang++ CPPFLAGS=-I/opt/local/include LDFLAGS=-L/opt/local/lib
@@ -874,7 +885,7 @@ make uninstall
 * Drawing in batch mode::       Run @code{Asymptote} on a text file
 * Drawing in interactive mode::  Running @code{Asymptote} interactively
 * Figure size::                 Specifying the figure size
-* Labels::                      Adding @code{LaTeX} labels
+* Labels::                      Adding @LaTeX{} labels
 * Paths::                       Drawing lines and curves
 @end menu
 
@@ -965,7 +976,7 @@ However, it is often inconvenient to work directly in
 @code{PostScript} coordinates.
 The next example produces identical output to the previous example, by
 scaling the line @code{(0,0)--(1,1)} to fit a rectangle of width
-@code{100.5 bp} and height @code{100.5 bp} (the extra @code{0.5bp}
+@code{100.5bp} and height @code{100.5bp} (the extra @code{0.5bp}
 accounts for the line width):
 @verbatim
 size(100.5,100.5);
@@ -1012,7 +1023,7 @@ draw(unitsquare);
 @section Labels
 @cindex @code{label}
 Adding labels is easy in @code{Asymptote}; one specifies the
-label as a double-quoted @code{LaTeX} string, a
+label as a double-quoted @LaTeX{} string, a
 coordinate, and an optional alignment direction:
 @verbatiminclude labelsquare.asy
 @sp 1
@@ -1890,7 +1901,7 @@ should coincide with the first node of the second path).
 * Pens::                        Colors, line types, line widths, font sizes
 * Transforms::                  Affine transforms
 * Frames and pictures::         Canvases for immediate and deferred drawing
-* Deferred drawing::            Witholding drawing until all data is available
+* Deferred drawing::            Withholding drawing until all data is available
 * Files::                       Reading and writing your data
 * Variable initializers::       Initialize your variables
 * Structures::                  Organize your data
@@ -2901,7 +2912,7 @@ Analogous to @code{size(path p)}.
 Analogous to @code{length(path p)}.
 
 @cindex @code{cyclic}
-@item bool cyclic(path p);
+@item bool cyclic(guide g);
 Analogous to @code{cyclic(path p)}.
 
 @cindex @code{point}
@@ -3073,14 +3084,14 @@ import texcolors;
 Note that there is some overlap between these two standards
 and the definitions of some colors (such as @code{Green}) actually disagree.
 
-@code{Asymptote} also comes with a @code{asycolors.sty} @code{LaTeX} package
-that defines to @code{LaTeX} @acronym{CMYK} versions of
+@code{Asymptote} also comes with a @code{asycolors.sty} @LaTeX{} package
+that defines to @LaTeX{} @acronym{CMYK} versions of
 @code{Asymptote}'s predefined colors, so that they can be used
-directly within @code{LaTeX} strings. Normally, such colors are
-passed to @code{LaTeX} via a pen argument; however, to change the
+directly within @LaTeX{} strings. Normally, such colors are
+passed to @LaTeX{} via a pen argument; however, to change the
 color of only a portion of a string, say for a slide presentation,
 (@pxref{slide}) it may be desirable to specify the color directly to
-@code{LaTeX}. This file can be passed to @code{LaTeX} with the
+@LaTeX{}. This file can be passed to @LaTeX{} with the
 @code{Asymptote} command
 @verbatim
 usepackage("asycolors");
@@ -3266,7 +3277,7 @@ available from
 @quotation
 @url{http://mirror.ctan.org/macros/latex/contrib/type1cm/}
 @end quotation
-and included in recent @code{LaTeX} distributions). The font size and line
+and included in recent @LaTeX{} distributions). The font size and line
 skip of a pen can be examined with the routines
 @code{real fontsize(pen p=currentpen)} and
 @code{real lineskip(pen p=currentpen)}, respectively.
@@ -3527,6 +3538,7 @@ scale by @code{x} in the @math{x} direction and by @code{y} in the
 @cindex @code{slant}
 maps @code{(x,y)} --> @code{(x+s*y,y)};
 @item transform rotate(real angle, pair z=(0,0));
+@cindex @code{rotate}
 rotates by @code{angle} in degrees about @code{z};
 @item transform reflect(pair a, pair b);
 @cindex @code{reflect}
@@ -3935,7 +3947,7 @@ associated with the resulting @code{PostScript} code.
 @anchor{tex}
 @cindex @code{tex}
 Verbatim @TeX{} commands can be inserted in the intermediate
-@code{LaTeX} output file with one of the functions
+@LaTeX{} output file with one of the functions
 @verbatim
 void tex(picture pic=currentpicture, string s);
 void tex(picture pic=currentpicture, string s, pair min, pair max)
@@ -3967,7 +3979,7 @@ provides a convenient abbreviation for
 texpreamble("\usepackage["+options+"]{"+s+"}");
 @end verbatim
 @noindent
-that can be used for importing @code{LaTeX} packages.
+that can be used for importing @LaTeX{} packages.
 
 @end table
 
@@ -4864,7 +4876,7 @@ guide g=(0,0){up}..{SW}(100,100){NE}..{curl 3}(50,50)..(10,10);
 write("g=",g);
 @end verbatim
 
-@xref{Autounravel} for an example overloading the @code{+} operator.
+@xref{Autounravel} for an example of overloading the @code{+} operator.
 
 @node Bracket operators
 @subsection Bracket operators
@@ -6627,7 +6639,7 @@ e
 
 @noindent The autounraveled (@pxref{Autounravel}) implicit cast
 to @code{Iterable_string} is not strictly necessary, but it allows
-the use of iterable utilities, @xref{Iterators and utilities}.
+the use of iterable utilities; @pxref{Iterators and utilities}.
 This enables code like the following, which uses the @code{enumerate}
 utility to attach counters to the iterated strings:
 @verbatim
@@ -6843,12 +6855,12 @@ Users who encounter a case where this might be useful can submit a
 feature request at @uref{https://github.com/vectorgraphics/asymptote/issues}.
 
 @menu
-* When fields are autounraveled::
-* Where autounravel is legal::
+* Where fields are autounraveled::  Where autounraveling happens
+* Where autounravel is legal::  Valid autounravel locations
 @end menu
 
-@node When fields are autounraveled
-@subsection When fields are autounraveled
+@node Where fields are autounraveled
+@subsection Where fields are autounraveled
 
 If a @code{struct} contains fields (including functions) that are declared with
 @code{autounravel}, these fields will be unraveled from the @code{struct} at:
@@ -6915,7 +6927,7 @@ will almost certainly have
 different hash values when hashed as an @code{int} versus a @code{real}.
 
 @menu
-* Hashing user-defined structures::
+* Hashing user-defined structures::  Implementing hash methods for custom types
 @end menu
 
 @node Hashing user-defined structures
@@ -7001,13 +7013,13 @@ or associative arrays), which are arguably the single most useful
 container in the @code{collections} module.
 
 @menu
-* Pairs::
-* Iterators and utilities::
-* Maps::
-* Using Maps as Sets::
-* Sets::
-* Using Sets as Maps::
-* Queues::
+* Pairs::                       Generic pair of two types with hash support
+* Iterators and utilities::     Iterable structures and manipulation tools
+* Maps::                        Hashmaps and b-tree maps (dictionaries/associative arrays)
+* Using Maps as Sets::          @code{Map_K_bool} for set operations
+* Sets::                        Hash sets and sorted b-tree sets
+* Using Sets as Maps::          @code{Set_Pair_K_V} to map keys to values
+* Queues::                      First-in-first-out (FIFO) queue
 * Wrapping arrays::             Arrays that can be used as keys or values
 @end menu
 
@@ -7065,8 +7077,8 @@ p.hash = new int() {
 
 @menu
 * @code{collections.iter(T)}::  Iterable structures
-* Combining (zipping) iterators::
-* Attaching a counter to an iterator::
+* Combining (zipping) iterators::  Iterating over multiple containers simultaneously
+* Attaching a counter to an iterator::  Enumerating elements with indices
 @end menu
 
 @node @code{collections.iter(T)}
@@ -7340,6 +7352,11 @@ world 3
 @cindex @code{collections.map}
 @cindex @code{collections.hashmap}
 @cindex @code{collections.btreemap}
+@menu
+* Initializing a @code{Map}::   Creating hashmaps and b-tree maps
+* The @code{Map} API::          Methods for map operations
+@end menu
+
 @node Initializing a @code{Map}
 @subsubsection Initializing a @code{Map}
 The @code{Map_K_V} structure itself is defined in the templated module
@@ -7597,6 +7614,12 @@ successful. (By contrast, the @code{Map_K_V} API follows the principle that a
 method should either return something or mutate the datastructure, but not
 both.)
 
+@menu
+* Initializing a @code{Set}::   Creating hash sets and b-tree sets
+* The @code{Set} API::          Methods for set operations
+* The @code{SortedSet} API::    Additional methods for sorted sets
+@end menu
+
 @node Initializing a @code{Set}
 @subsubsection Initializing a @code{Set}
 
@@ -7840,7 +7863,7 @@ preferred.
 @subsubsection The @code{SortedSet} API
 
 @cindex @code{BTreeSet_T}
-The @code{BTreeSet_T} implementation of @code{Set_T} (@pxref {Initializing a @code{Set}})
+The @code{BTreeSet_T} implementation of @code{Set_T} (@pxref{Initializing a @code{Set}})
 maintains its elements in sorted order. For the @code{Set_T} API, this has no effect other
 than the iteration order. However, the @code{SortedSet_T} API provides additional methods
 to take advantage of this ordering. The @code{SortedSet_T} structure is defined in the
@@ -8141,24 +8164,24 @@ Important note: If you use an @code{Array_T} as a key in a hashmap, you must
 ensure that the array is not modified while it is a key in the hashmap.
 
 @node LaTeX usage
-@chapter @code{LaTeX} usage
-@cindex @code{LaTeX} usage
+@chapter @LaTeX{} usage
+@cindex @LaTeX{} usage
 @cindex @code{asymptote.sty}
 
-@code{Asymptote} comes with a convenient @code{LaTeX} style file
-@code{asymptote.sty} (v1.36 or later required) that makes @code{LaTeX}
+@code{Asymptote} comes with a convenient @LaTeX{} style file
+@code{asymptote.sty} (v1.36 or later required) that makes @LaTeX{}
 @code{Asymptote}-aware. Entering @code{Asymptote} code
-directly into the @code{LaTeX} source file, at the point where it is
+directly into the @LaTeX{} source file, at the point where it is
 needed, keeps figures organized and avoids the need to invent new file
 names for each figure. Simply add the line
 @code{\usepackage@{asymptote@}} at the beginning of your file
 and enclose your @code{Asymptote} code within a
 @code{\begin@{asy@}...\end@{asy@}} environment. As with the
-@code{LaTeX} @code{comment} environment, the @code{\end@{asy@}} command
+@LaTeX{} @code{comment} environment, the @code{\end@{asy@}} command
 must appear on a line by itself, with no trailing commands/comments.
 A blank line is not allowed after @code{\begin@{asy@}}.
 
-The sample @code{LaTeX} file below, named @code{latexusage.tex}, can
+The sample @LaTeX{} file below, named @code{latexusage.tex}, can
 be run as follows:
 @verbatim
 latex latexusage
@@ -8179,7 +8202,7 @@ To switch between using inline Asymptote code with @code{latex} and
 
 @cindex @code{latexmk}
 @cindex @code{perl}
-An even better method for processing a @code{LaTeX} file with embedded
+An even better method for processing a @LaTeX{} file with embedded
 @code{Asymptote} code is to use the @code{latexmk} utility from
 @quotation
 @url{http://mirror.ctan.org/support/latexmk/}
@@ -8223,9 +8246,9 @@ environments.
 Three-dimensional @acronym{PRC} files may either be embedded within
 the page (the default) or attached as annotated (but printable)
 attachments, using the @code{attach} option and the @code{attachfile2}
-(or older @code{attachfile}) @code{LaTeX} package.
+(or older @code{attachfile}) @LaTeX{} package.
 The @code{inline} option generates
-inline @code{LaTeX} code instead of @acronym{EPS} or @acronym{PDF}
+inline @LaTeX{} code instead of @acronym{EPS} or @acronym{PDF}
 files. This makes 2D LaTeX symbols visible to the
 @code{\begin@{asy@}...\end@{asy@}} environment.  In this mode,
 Asymptote correctly aligns 2D LaTeX symbols defined outside of
@@ -8254,27 +8277,27 @@ Here now is @code{latexusage.tex}:
 These are the most commonly used base modules for creating graphics and visualizations.
 
 @menu
-* graph::                    2D linear & logarithmic graphs
-* three::                    3D vector graphics
-* graph3::                   3D linear & logarithmic graphs
-* palette::                  Color density images and palettes
-* colormap::                 Colormaps from matplotlib
-* texcolors::                @acronym{CMYK} @TeX{} colors
-* x11colors::                @acronym{RGB} @code{X11} colors
-* fontsize::                 Nonstandard font sizes
-* contour::                  Contour lines
-* geometry::                 Geometry routines
-* grid3::                    3D grids
-* interpolate::              Interpolation routines
-* markers::                  Custom path marker routines
-* math::                     Extend @code{Asymptote}'s math capabilities
-* patterns::                 Custom fill and draw patterns
-* roundedpath::              Round the sharp corners of paths
-* slopefield::               Slope fields
-* smoothcontour3::           Smooth implicit surfaces
-* solids::                   3D solid geometry
-* stats::                    Statistics routines and histograms
-* tube::                     3D rotation minimizing tubes
+* graph::                       2D linear & logarithmic graphs
+* three::                       3D vector graphics
+* graph3::                      3D linear & logarithmic graphs
+* palette::                     Color density images and palettes
+* colormap::                    Colormaps from matplotlib
+* texcolors::                   @acronym{CMYK} @TeX{} colors
+* x11colors::                   @acronym{RGB} @code{X11} colors
+* fontsize::                    Nonstandard font sizes
+* contour::                     Contour lines
+* geometry::                    Geometry routines
+* grid3::                       3D grids
+* interpolate::                 Interpolation routines
+* markers::                     Custom path marker routines
+* math::                        Extend @code{Asymptote}'s math capabilities
+* patterns::                    Custom fill and draw patterns
+* roundedpath::                 Round the sharp corners of paths
+* slopefield::                  Slope fields
+* smoothcontour3::              Smooth implicit surfaces
+* solids::                      3D solid geometry
+* stats::                       Statistics routines and histograms
+* tube::                        3D rotation minimizing tubes
 @end menu
 
 
@@ -8525,7 +8548,7 @@ be chosen:
 override the default tick label format (@code{defaultformat}, initially
 "$%.4g$"), rotation, pen, and alignment (for example, @code{LeftSide},
 @code{Center}, or @code{RightSide}) relative to the axis. To enable
-@code{LaTeX} math mode fonts, the format string should begin and
+@LaTeX{} math mode fonts, the format string should begin and
 end with @code{$} @pxref{format}. If the format string is @code{trailingzero},
 trailing zeros will be added to the tick labels; if the format string is
 @code{"%"}, the tick label will be suppressed;
@@ -8579,7 +8602,7 @@ their labels. The @code{OmitFormat(string s=defaultformat, ... real[] x)}
 ticklabel can be used to remove specific tick labels but not the
 corresponding ticks. The tickmodifier @code{NoZero} is an abbreviation for
 @code{OmitTick(0)} and the ticklabel @code{NoZeroFormat} is an
-abbrevation for @code{OmitFormat(0)}.
+abbreviation for @code{OmitFormat(0)}.
 
 @cindex custom tick locations
 @cindex @code{LeftTicks}
@@ -9516,8 +9539,8 @@ A stationary preview image with a resolution of @code{n} pixels per
 the file to be viewed with other @code{PDF} viewers. Alternatively, the
 file @code{externalprc.tex} illustrates how the resulting @acronym{PRC} and
 rendered image files can be extracted and processed in a separate
-@code{LaTeX} file. However, see @ref{LaTeX usage} for an easier way
-to embed three-dimensional @code{Asymptote} pictures within @code{LaTeX}.
+@LaTeX{} file. However, see @ref{LaTeX usage} for an easier way
+to embed three-dimensional @code{Asymptote} pictures within @LaTeX{}.
 For specialized applications where only the raw @acronym{PRC} file is
 required, specify @code{settings.outformat="prc"}.
 The @acronym{PRC} specification is available from
@@ -9530,7 +9553,7 @@ with an external viewer or converted to an alternate 3D format
 using the Python @code{pyv3d} library. @acronym{V3D} content can be automatically embedded within
 a @acronym{PDF} file using the options @code{settings.outformat="pdf"} and
 @code{settings.v3d=true}. Alternatively, a V3D file @code{file.v3d} may be manually embedded
-within a @acronym{PDF} file using the @code{media9} @code{LaTeX} package:
+within a @acronym{PDF} file using the @code{media9} @LaTeX{} package:
 @verbatim
 \includemedia[noplaybutton,width=100pt,height=200pt]{}{file.v3d}%
 @end verbatim
@@ -11024,7 +11047,7 @@ These modules are for specialized applications.
 * animation::                   Embedded @acronym{PDF} and @acronym{MPEG} movies
 * animate::                     Portable clickable @acronym{PDF} movies with controls
 * annotate::                    Annotate your @acronym{PDF} files
-* babel::                       Interface to @code{LaTeX} @code{babel} package
+* babel::                       Interface to @LaTeX{} @code{babel} package
 * binarytree::                  Binary tree drawing module
 * bsp::                         Binary space partition for hidden surface removal
 * CAD::                         2D CAD pen and measurement functions (DIN 15)
@@ -11075,7 +11098,7 @@ optional controls. This requires installing the module
 @end quotation
 @noindent
 (version 2007/11/30 or later) in a new directory @code{animate} in the
-local @code{LaTeX} directory (for example, in
+local @LaTeX{} directory (for example, in
 @code{/usr/local/share/texmf/tex/latex/animate}). On @code{UNIX} systems,
 one must then execute the command @code{texhash}.
 
@@ -11084,7 +11107,7 @@ directory, along with the slide presentations @code{@uref{https://asymptote.sour
 and @code{@uref{https://asymptote.sourceforge.io/intro.pdf,,intro}}, illustrate the use of embedded @acronym{PDF} movies.
 The examples @code{inlinemovie.tex} and @code{inlinemovie3.tex}
 show how to generate and embed @acronym{PDF} movies directly within a
-@code{LaTeX} file (@pxref{LaTeX usage}).
+@LaTeX{} file (@pxref{LaTeX usage}).
 The member function
 @verbatim
 string pdf(fit fit=NoBox, real delay=animationdelay, string options="",
@@ -11120,7 +11143,7 @@ Currently, annotations are only implemented for the @code{latex}
 @node babel
 @section @code{babel}
 @cindex @code{babel}
-This module implements the @code{LaTeX} @code{babel} package in
+This module implements the @LaTeX{} @code{babel} package in
 @code{Asymptote}. For example:
 @verbatim
 import babel;
@@ -11171,7 +11194,7 @@ This is a simple tree drawing module used by the example @code{@uref{https://asy
 @node embed
 @section @code{embed}
 @cindex @code{embed}
-This module provides an interface to the @code{LaTeX} package
+This module provides an interface to the @LaTeX{} package
 (included with @code{MikTeX})
 @quotation
 @url{http://mirror.ctan.org/macros/latex/contrib/media9}
@@ -11662,7 +11685,7 @@ with the default setting @code{settings.dvisvgmOptions="--optimize"}.
 
 @code{Asymptote} can also produce any output format supported
 by the @code{ImageMagick} @code{magick} program (version 7 or
-later.
+later).
 The optional setting @code{-render n} requests
 an output resolution of @code{n} pixels per @code{bp}. Antialiasing is
 controlled by the parameter @code{antialias}, which by default
@@ -11733,10 +11756,10 @@ Additional debugging output is produced with each additional @code{-v} option:
 @item -v
 Display top-level module and final output file names.
 @item -vv
-Also display imported and included module names and final @code{LaTeX} and
+Also display imported and included module names and final @LaTeX{} and
 @code{dvips} processing information.
 @item -vvv
-Also output @code{LaTeX} bidirectional pipe diagnostics.
+Also output @LaTeX{} bidirectional pipe diagnostics.
 @item -vvvv
 Also output knot guide solver diagnostics.
 @item -vvvvv
@@ -11893,7 +11916,7 @@ Pictures are deconstructed into the @acronym{SVG} image format.
 Since @code{Qt5} does not support @code{SVG} clipping, you will need
 the @code{rsvg-convert} utility, which is part of the
 @code{librsvg2-tools} package on @code{UNIX} systems
-and the @code{librsvg} package on @code{MacOS X}; under
+and the @code{librsvg} package on @code{macOS X}; under
 @code{Microsoft Windows}, it is available as
 
 @url{https://sourceforge.net/projects/tumagcc/files/rsvg-convert-2.40.20.7z}
@@ -11904,7 +11927,7 @@ option within @code{xasy}'s settings.
 
 @cindex @code{dvisvgmMultipleFiles}
 Deconstruction of a picture into its components is fastest when using
-the @code{LaTeX} TeX engine. The default setting
+the @LaTeX{} TeX engine. The default setting
 @code{dvisvgmMultipleFiles=true} speeds up deconstruction
 under @acronym{PDF} TeX engines.
 
@@ -11981,7 +12004,7 @@ The source code for the command-line interface is available at
 @cindex @acronym{LSP}
 @cindex language server protocol
 
-Under @code{UNIX} and @code{MacOS X}, @code{Asymptote} supports features of the
+Under @code{UNIX} and @code{macOS X}, @code{Asymptote} supports features of the
 @uref{https://en.wikipedia.org/wiki/Language_Server_Protocol,Language
 Server Protocol (@acronym{LSP})}, including function signature and variable matching.
 Under @code{MSWindows}, @code{Asymptote} currently supports
@@ -12032,9 +12055,9 @@ M-x lsp
 @chapter @code{PostScript} to @code{Asymptote}
 @cindex @code{pstoedit}
 The excellent @code{PostScript} editor @code{pstoedit} (version 3.50 or later;
-available from @url{https://sourceforge.net/projects/pstoedit/}) includes an
-@code{Asymptote} backend. Unlike virtually all other @code{pstoedit}
-backends, this driver includes native clipping, even-odd fill rule,
+available from @url{https://sourceforge.net/projects/pstoedit/}) can convert
+@code{PostScript} to @code{Asymptote} code.
+This driver includes native clipping, even-odd fill rule,
 @code{PostScript} subpath, and full image support. Here is an example:
 
 @noindent
@@ -12069,7 +12092,7 @@ addressed in the @acronym{FAQ} should be sent to the
 @noindent
 Including an example that illustrates what you are trying to do will help
 you get useful feedback.
-@code{LaTeX} problems can often be diagnosed with the @code{-vv} or
+@LaTeX{} problems can often be diagnosed with the @code{-vv} or
 @code{-vvv} command-line options.
 Contributions in the form of patches or @code{Asymptote} modules can be
 posted here:
@@ -12272,7 +12295,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  quartercircle darkgreen lightblue urx ury texpreamble sgn texi
 @c  LocalWords:  lineargraph datagraph vertices parametricgraph uncomment ggv
 @c  LocalWords:  loggraph generalaxis texhash arrowsize arrowangle arrowlength
-@c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config MacOS prebuilt
+@c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config macOS prebuilt
 @c  LocalWords:  ghostview SIGHUP PDF acroread xpdf cutbefore strptime
 @c  LocalWords:  libsigsegv intersectionpoint dotfactor vv firstcut pq logticks
 @c  LocalWords:  Unisys dvips vvv vvvv vvvvv traceback lastcut cutafter infodir
