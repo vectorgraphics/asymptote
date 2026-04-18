@@ -70,9 +70,10 @@ struct QueueFamilyIndices {
 };
 
 struct UniformBufferObject {
-  glm::mat4 projViewMat { };
-  glm::mat4 viewMat { };
-  glm::mat4 normMat { };
+  glm::mat4 projViewMat;
+  glm::mat4 viewMat;
+  // GLSL mat3 in std140 = 3 columns of vec4 (48 bytes)
+  glm::vec4 normMat[3];
 };
 
 struct PushConstants
@@ -89,8 +90,12 @@ struct ComputePushConstants {
     uint32_t final;
 };
 
-extern glm::dmat4 projViewMat;
-extern glm::dmat4 normMat;
+extern glm::dmat4 projViewMat;  // Deprecated - use getProjViewMat() instead
+extern glm::dmat4 normMat;      // Deprecated - use getNormMat() instead
+
+// Accessor functions to avoid synchronization with vk instance
+const glm::dmat4& getProjViewMat();
+const glm::dmat3& getNormMat();
 
 class AsyVkRender : public AsyRender, public RenderCallbacks
 {

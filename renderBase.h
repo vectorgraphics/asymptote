@@ -183,7 +183,7 @@ public:
   glm::dmat4 rotateMat;
   glm::dmat4 projMat;
   glm::dmat4 viewMat;
-//  glm::dmat4 projViewMat;  // Combined projection*view matrix for offscreen culling
+  glm::dmat4 projViewMat;  // Combined projection*view matrix for offscreen culling
 
   // Viewport dimensions
   int fullWidth, fullHeight;
@@ -274,6 +274,10 @@ public:
   // Transform matrices (used by camera())
   double T[16];
   double Tup[16];
+
+  // Normal matrix for shader transformations
+  glm::dmat3 dnormMat;  // Double precision normal matrix for CPU calculations
+  glm::mat3 normMat;    // Float precision normal matrix for shaders
 
 #ifdef HAVE_PTHREAD
   // Pthread synchronization primitives (shared between renderers)
@@ -391,5 +395,4 @@ public:
 
 extern bool format3dWait;
 void mode();
-extern glm::dmat4 normMat;
 } // namespace camp

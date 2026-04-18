@@ -59,8 +59,18 @@ std::vector<const char*> instanceExtensions
 
 namespace camp
 {
-dmat4 projViewMat;
-dmat4 normMat;
+// Global BBT matrix for billboard transformations (accessed from multiple translation units)
+double BBT[9] = {0};
+
+const glm::dmat4& getProjViewMat()
+{
+  return vk->projViewMat;
+}
+
+const glm::dmat3& getNormMat()
+{
+  return vk->dnormMat;
+}
 
 const Int timePartialSumVerbosity=4;
 
@@ -169,6 +179,12 @@ void AsyVkRender::setProjection()
 void AsyVkRender::updateModelViewData()
 {
   AsyRender::updateModelViewData();
+
+  // Update BBT array for Billboard transformations (using dnormMat directly)
+  const double *T=value_ptr(vk->dnormMat);
+  for(size_t i=0; i < 9; ++i)
+    BBT[i]=T[i];
+
   newUniformBuffer = true;
 }
 
@@ -283,7 +299,7 @@ void AsyVkRender::onClose()
 }
 
 void AsyVkRender::updateHandler(int) {
-  if(vk->View && vk->glfwWindow && !interact::interactive) {
+  if(vk->View && !interact::interactive) {
     ::glfwHideWindow(vk->getGLFWWindow());
     if(!getSetting<bool>("fitscreen"))
       vk->Fitscreen=0;
@@ -301,7 +317,7 @@ void AsyVkRender::updateHandler(int) {
 
 AsyVkRender::~AsyVkRender()
 {
-  if (this->View && glfwWindow != nullptr) {
+  if (this->View) {
     ::glfwDestroyWindow(getGLFWWindow());
     glfwWindow = nullptr;
   }
@@ -3621,9 +3637,13 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
 
   UniformBufferObject ubo{ };
 
-  ubo.projViewMat = projViewMat;
-  ubo.viewMat = viewMat;
-  ubo.normMat = normMat;
+  // Access matrices directly to avoid synchronization
+  ubo.projViewMat = glm::mat4(getProjViewMat());
+  ubo.viewMat = glm::mat4(vk->viewMat);
+  // Fill normMat as 3 vec4 columns for std140 mat3 layout (48 bytes)
+  ubo.normMat[0] = glm::vec4(vk->dnormMat[0], 0.0f);
+  ubo.normMat[1] = glm::vec4(vk->dnormMat[1], 0.0f);
+  ubo.normMat[2] = glm::vec4(vk->dnormMat[2], 0.0f);
 
   memcpy(frameObjects[currentFrame].uboMappedMemory->getCopyPtr(), &ubo, sizeof(ubo));
 
@@ -4557,7 +4577,7 @@ void AsyVkRender::display()
   prepareScene();
 
   GLFWwindow* win = getGLFWWindow();
-  if(View && glfwWindow && !hideWindow && !glfwGetWindowAttrib(win,GLFW_VISIBLE))
+  if(View && !hideWindow && !glfwGetWindowAttrib(win,GLFW_VISIBLE))
     ::glfwShowWindow(win);
 
   drawFrame();

@@ -7,11 +7,6 @@
 using namespace std;
 using namespace camp;
 
-namespace camp {
-glm::dmat4 projViewMat;
-glm::dmat4 normMat;
-}
-
 int main()
 {
   int n=16;
