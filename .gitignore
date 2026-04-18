@@ -6,6 +6,7 @@
 
 ### python files
 __pycache__
+/venv/
 
 ### Compressed packages and Garbage Collector
 *.tar.gz
@@ -73,6 +74,7 @@ history
 /base/webgl/asygl.js
 /v3dheadertypes.py
 /v3dtypes.py
+/doc/licenses/
 
 ### TeX-related
 ## Core latex/pdflatex auxiliary files:
