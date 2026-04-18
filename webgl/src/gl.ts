@@ -3529,7 +3529,9 @@ function animatedGeometry(){
 
   return function(controlpoints: vec3[]): vec3[] {
     let cp=toUser(controlpoints);
-    for(const {geometryTransform,durationInv} of stack) {
+    // Process stack in reverse order - inner transforms first
+    for(let i = stack.length - 1; i >= 0; i--) {
+      const {geometryTransform,durationInv} = stack[i];
       const t=min(playbackTime*durationInv,1.0);
       cp=transformCP(cp,t,geometryTransform);
     }
@@ -3543,7 +3545,9 @@ function animatedColor() {
 
   return function(color,p) {
     let P=toUser([p[0],p[12],p[15],p[3]]);
-    for(const {colorTransform,durationInv} of stack) {
+    // Process stack in reverse order - inner transforms first
+    for(let i = stack.length - 1; i >= 0; i--) {
+      const {colorTransform,durationInv} = stack[i];
       const t=min(playbackTime*durationInv,1.0);
       color=transformColor(
             [[P[0],color[0]],
