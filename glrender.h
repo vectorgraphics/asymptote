@@ -79,7 +79,7 @@ template<typename T, GLuint GLDataType> class GLTexture3;
 #endif
 
 // Global BBT matrix for billboard transformations (accessed from multiple translation units)
-extern double glBBT[9];
+extern double BBT[9];
 
 // Projection matrices for shader compatibility (following Vulkan pattern)
 #ifdef HAVE_LIBGLM
@@ -96,9 +96,9 @@ struct Billboard {
   }
 
   triple transform(const triple& v) const {
-    return triple((v.getx()-cx)*glBBT[0]+(v.gety()-cy)*glBBT[3]+(v.getz()-cz)*glBBT[6]+cx,
-                  (v.getx()-cx)*glBBT[1]+(v.gety()-cy)*glBBT[4]+(v.getz()-cz)*glBBT[7]+cy,
-                  (v.getx()-cx)*glBBT[2]+(v.gety()-cy)*glBBT[5]+(v.getz()-cz)*glBBT[8]+cz);
+    return triple((v.getx()-cx)*BBT[0]+(v.gety()-cy)*BBT[3]+(v.getz()-cz)*BBT[6]+cx,
+                  (v.getx()-cx)*BBT[1]+(v.gety()-cy)*BBT[4]+(v.getz()-cz)*BBT[7]+cy,
+                  (v.getx()-cx)*BBT[2]+(v.gety()-cy)*BBT[5]+(v.getz()-cz)*BBT[8]+cz);
   }
 };
 
@@ -323,14 +323,6 @@ public:
   AsyGLRender() = default;
   ~AsyGLRender();
 
-  /*
-  // Override virtual methods from AsyRender
-  void frustum(double left, double right, double bottom,
-               double top, double nearVal, double farVal) override;
-  void ortho(double left, double right, double bottom,
-             double top, double nearVal, double farVal) override;
-  */
-  void setProjection() override;
   void updateModelViewData() override;
 
   void render(RenderFunctionArgs const& args) override;
@@ -421,8 +413,6 @@ public:
 
   // IBL textures - kept as globals in glrender.cc where GLTextures.h is available
 
-  double BBT[9] = {0};
-
   // Mouse interaction state
   double xprev = 0.0;
   double yprev = 0.0;
@@ -466,6 +456,11 @@ protected:
 
 // Global OpenGL renderer instance (defined in picture.cc)
 extern AsyGLRender* gl;
+
+void frustum(double left, double right, double bottom,
+             double top, double nearVal, double farVal);
+void ortho(double left, double right, double bottom,
+           double top, double nearVal, double farVal);
 
 #endif // HAVE_RENDERER
 

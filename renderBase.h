@@ -289,6 +289,10 @@ public:
   double T[16];
   double Tup[16];
 
+  // Normal matrices for shader transformations
+  glm::dmat3 dnormMat;  // Double precision normal matrix for CPU calculations
+  glm::mat3 normMat;    // Float precision normal matrix for shaders
+
 #ifdef HAVE_PTHREAD
   // Pthread synchronization primitives (shared between renderers)
   pthread_t mainthread;
@@ -412,8 +416,5 @@ public:
 
 extern bool format3dWait;
 void mode();
-
-extern glm::dmat3 dnormMat;  // Double precision normal matrix for CPU calculations
-extern glm::mat3 normMat;    // Float precision normal matrix for shaders
 
 } // namespace camp

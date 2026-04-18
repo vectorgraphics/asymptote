@@ -1567,6 +1567,7 @@ bool picture::shipout3(const string& prefix, const string& format,
         com.diffuse=diffuse;
         com.specular=specular;
         com.view=View;
+        com.oldpid=oldpid;
         if(Wait)
           pthread_mutex_lock(&gl->readyLock);
         allowRender=true;

@@ -61,8 +61,7 @@ using namespace glm;
 
 namespace camp {
 // Global matrices for shader compatibility (accessed from setUniforms)
-glm::mat3 normMat;   // Normal matrix is 3x3, not 4x4
-double glBBT[9] = {0};
+double BBT[9] = {0};
 const double *dView;
 
 Billboard BB;
@@ -225,14 +224,6 @@ void *glrenderWrapper(void *a);
 #ifdef HAVE_LIBOSMESA
 OSMesaContext ctx;
 unsigned char *osmesa_buffer;
-#endif
-
-#ifdef HAVE_PTHREAD
-
-// Note: Pthread synchronization primitives are now members of AsyGLRender class
-// to align with Vulkan renderer pattern (vkrender.cc)
-// The wait() and endwait() functions are now methods of AsyRender base class
-
 #endif
 
 void noShaders()
@@ -922,43 +913,6 @@ void nextframe()
 
 stopWatch Timer;
 
-void display()
-{
-  bool fps=settings::verbose > 2;
-  drawscene(gl->Width,gl->Height);
-  if(fps) {
-    if(gl->framecount < 20) // Measure steady-state framerate
-      Timer.reset();
-    else {
-      double s=Timer.seconds(true);
-      if(s > 0.0) {
-        double rate=1.0/s;
-        S.add(rate);
-        if(gl->framecount % 20 == 0)
-          cout << "FPS=" << rate << "\t" << S.mean() << " +/- " << S.stdev()
-               << endl;
-      }
-    }
-    ++gl->framecount;
-  }
-
-  glfwSwapBuffers(gl->getGLFWWindow());
-
-  if(gl->queueExport) {
-    Export();
-    gl->queueExport=false;
-  }
-  if(!gl->thread) {
-#if !defined(_WIN32)
-    // Oldpid is now in AsyRender base class
-    if(gl->Oldpid != 0 && waitpid(gl->Oldpid,NULL,WNOHANG) != gl->Oldpid) {
-      kill(gl->Oldpid,SIGHUP);
-      gl->Oldpid=0;
-    }
-#endif
-  }
-}
-
 void update()
 {
   capzoom();
@@ -1376,7 +1330,7 @@ void setUniforms(vertexBuffer& data, GLint shader)
                      value_ptr(glm::mat4(gl->viewMat)));
   if(normal)
     glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE,
-                       value_ptr(normMat));
+                       value_ptr(gl->normMat));
 
   if(shader == gl->countShader) {
     gl->lastshader=shader;
@@ -2147,21 +2101,27 @@ void AsyGLRender::display()
   }
 }
 
-void AsyGLRender::setProjection()
+void frustum(GLdouble left, GLdouble right, GLdouble bottom,
+             GLdouble top, GLdouble nearVal, GLdouble farVal)
 {
-  AsyRender::setProjection();
+  gl->projMat=glm::frustum(left,right,bottom,top,nearVal,farVal);
+  gl->updateProjection();
+}
+
+void ortho(GLdouble left, GLdouble right, GLdouble bottom,
+           GLdouble top, GLdouble nearVal, GLdouble farVal)
+{
+  gl->projMat=glm::ortho(left,right,bottom,top,nearVal,farVal);
+  gl->updateProjection();
 }
 
 void AsyGLRender::updateModelViewData()
 {
-  // Update normal matrix for shaders (inverse transpose of view matrix rotation)
-  dmat3 norm = dmat3(glm::inverse(this->viewMat));
-  normMat = mat3(norm);  // Convert to float precision for shaders
+  AsyRender::updateModelViewData();
 
-  // Also update glBBT for billboard transformations
-  const double *T=value_ptr(norm);
+  const double *T=value_ptr(this->dnormMat);
   for(size_t i=0; i < 9; ++i)
-    glBBT[i]=T[i];
+    BBT[i]=T[i];
 }
 
 void AsyGLRender::update()
