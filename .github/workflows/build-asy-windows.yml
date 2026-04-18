@@ -102,6 +102,7 @@ jobs:
             cmake-build-msvc/release/asy.exe
             cmake-build-msvc/release/base
             cmake-build-msvc/release/*.dll
+            cmake-build-msvc/release/doc/licenses
       - name: Archive Asymptote misc files
         uses: actions/upload-artifact@v4
         with:
