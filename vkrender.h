@@ -99,35 +99,6 @@ public:
   AsyVkRender() = default;
   ~AsyVkRender();
 
-  /** Argument for AsyVkRender::vkrender function */
-  struct VkrenderFunctionArgs: public gc
-  {
-    string prefix;
-    picture const* pic;
-    string format;
-    double width;
-    double height;
-    double angle;
-    double zoom;
-    triple m;
-    triple M;
-    pair shift;
-    pair margin;
-
-    double* t;
-    double* tup;
-    double* background;
-
-    size_t nlightsin;
-
-    triple* lights;
-    double* diffuse;
-    double* specular;
-
-    bool view;
-    int oldpid=0;
-  };
-
   // Implementation of base class pure virtual (actual rendering implementation)
   void render(RenderFunctionArgs const& args) override;
 
