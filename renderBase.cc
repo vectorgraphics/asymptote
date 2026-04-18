@@ -15,8 +15,7 @@ void *postEmptyEvent(void *);
 
 namespace camp
 {
-dmat4 projViewMat;
-dmat4 normMat;
+// Global matrices removed - use getProjViewMat() and getNormMat() instead
 
 double AsyRender::getRenderResolution(triple Min) const
 {

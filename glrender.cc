@@ -66,6 +66,17 @@ const double *dView;
 
 Billboard BB;
 
+// Accessor functions - directly access gl instance to avoid synchronization
+const glm::dmat4& getProjViewMat()
+{
+  return gl->projViewMat;
+}
+
+const glm::dmat3& getNormMat()
+{
+  return gl->dnormMat;
+}
+
 // Vertex buffers - these remain globals as they are populated by drawElement rendering
 vertexBuffer material0Data(GL_POINTS);
 vertexBuffer material1Data(GL_LINES);
@@ -2119,13 +2130,13 @@ void AsyGLRender::updateModelViewData()
 {
   AsyRender::updateModelViewData();
 
-  // Sync global matrices for bbox2.h offscreen culling
-  camp::projViewMat = this->projViewMat;
-  camp::normMat = glm::dmat4(this->dnormMat);
-
+  // Update BBT array for Billboard transformations (using dnormMat directly)
   const double *T=value_ptr(this->dnormMat);
   for(size_t i=0; i < 9; ++i)
     BBT[i]=T[i];
+
+  // Update dView pointer for offscreen culling
+  dView = value_ptr(this->viewMat);
 }
 
 void AsyGLRender::update()

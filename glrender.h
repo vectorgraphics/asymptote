@@ -74,13 +74,13 @@ template<typename T, GLuint GLDataType> class GLTexture3;
 // Global BBT matrix for billboard transformations (accessed from multiple translation units)
 extern double BBT[9];
 
-// Global projection/view matrices for offscreen culling (bbox2.h)
+// Accessor functions for matrices (to avoid synchronization with gl instance)
 #ifdef HAVE_LIBGLM
-extern glm::dmat4 projViewMat;
-extern glm::dmat4 normMat;
+const glm::dmat4& getProjViewMat();
+const glm::dmat3& getNormMat();
 #endif
 
-// Projection matrices for shader compatibility (following Vulkan pattern)
+// Projection matrix pointer for shader compatibility (following Vulkan pattern)
 #ifdef HAVE_LIBGLM
 extern const double* dprojView;  // For drawelement.h Transform2T
 #endif

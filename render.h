@@ -198,8 +198,9 @@ extern VertexBuffer pointData;       // pixels
 extern VertexBuffer lineData;        // material Bezier curves
 
 #ifdef HAVE_LIBGLM
-extern glm::dmat4 projViewMat;
-extern glm::dmat4 normMat;
+// Accessor functions for matrices (to avoid synchronization)
+const glm::dmat4& getProjViewMat();
+const glm::dmat3& getNormMat();
 
 inline triple billboardTransform(const triple& center, const triple& v)
 {
@@ -211,11 +212,12 @@ inline triple billboardTransform(const triple& center, const triple& v)
   double y = v.gety() - cy;
   double z = v.getz() - cz;
 
+  const glm::dmat3& normMat = getNormMat();
   const double* BBT = glm::value_ptr(normMat);
 
-  return triple(x * BBT[0] + y * BBT[4] + z * BBT[8] + cx,
-                x * BBT[1] + y * BBT[5] + z * BBT[9] + cy,
-                x * BBT[2] + y * BBT[6] + z * BBT[10] + cz);
+  return triple(x * BBT[0] + y * BBT[3] + z * BBT[6] + cx,
+                x * BBT[1] + y * BBT[4] + z * BBT[7] + cy,
+                x * BBT[2] + y * BBT[5] + z * BBT[8] + cz);
 }
 #endif
 
