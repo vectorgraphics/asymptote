@@ -12,11 +12,7 @@
 #include <iomanip>
 #include <fstream>
 
-#ifdef HAVE_LIBGLM
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#endif
+#include "glmCommon.h"
 
 using namespace prc;
 #include "material.h"
@@ -279,7 +275,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   if(billboard) {
     drawElement::centerIndex=centerIndex;
     BB.init(center);
-    offscreen=bbox2(Min,Max,BB).offscreen();
+    offscreen=bbox2(Min,Max,center).offscreen();
   } else
     offscreen=bbox2(Min,Max).offscreen();
 
@@ -541,7 +537,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
   if(billboard) {
     drawElement::centerIndex=centerIndex;
     BB.init(center);
-    offscreen=bbox2(Min,Max,BB).offscreen();
+    offscreen=bbox2(Min,Max,center).offscreen();
   } else
     offscreen=bbox2(Min,Max).offscreen();
 
@@ -1026,7 +1022,7 @@ void drawTriangles::render(double size2, const triple& b,
   if(billboard) {
     drawElement::centerIndex=centerIndex;
     BB.init(center);
-    offscreen=bbox2(Min,Max,BB).offscreen();
+    offscreen=bbox2(Min,Max,center).offscreen();
   } else
     offscreen=bbox2(Min,Max).offscreen();
 

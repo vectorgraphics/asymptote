@@ -15,6 +15,8 @@ void *postEmptyEvent(void *);
 
 namespace camp
 {
+dmat4 projViewMat;
+dmat4 normMat;
 
 double AsyRender::getRenderResolution(triple Min) const
 {

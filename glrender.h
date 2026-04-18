@@ -7,16 +7,9 @@
 #define GLRENDER_H
 
 #include "common.h"
+#include "glmCommon.h"
 #include "triple.h"
 #include "pen.h"
-
-#ifdef HAVE_LIBGLM
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/transform.hpp>
-#endif
 
 #ifdef HAVE_RENDERER
 
@@ -81,6 +74,12 @@ template<typename T, GLuint GLDataType> class GLTexture3;
 // Global BBT matrix for billboard transformations (accessed from multiple translation units)
 extern double BBT[9];
 
+// Global projection/view matrices for offscreen culling (bbox2.h)
+#ifdef HAVE_LIBGLM
+extern glm::dmat4 projViewMat;
+extern glm::dmat4 normMat;
+#endif
+
 // Projection matrices for shader compatibility (following Vulkan pattern)
 #ifdef HAVE_LIBGLM
 extern const double* dprojView;  // For drawelement.h Transform2T
@@ -108,8 +107,6 @@ extern GLuint vao;  // Vertex Array Object
 #endif
 
 #ifdef HAVE_LIBGLM
-typedef mem::map<const Material,size_t> MaterialMap;
-
 extern std::vector<Material> materials;
 extern MaterialMap materialMap;
 extern size_t materialIndex;

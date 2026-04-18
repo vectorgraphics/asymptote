@@ -2119,6 +2119,10 @@ void AsyGLRender::updateModelViewData()
 {
   AsyRender::updateModelViewData();
 
+  // Sync global matrices for bbox2.h offscreen culling
+  camp::projViewMat = this->projViewMat;
+  camp::normMat = glm::dmat4(this->dnormMat);
+
   const double *T=value_ptr(this->dnormMat);
   for(size_t i=0; i < 9; ++i)
     BBT[i]=T[i];

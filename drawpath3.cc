@@ -7,12 +7,7 @@
 #include "drawpath3.h"
 #include "drawsurface.h"
 #include "material.h"
-
-#ifdef HAVE_LIBGLM
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#endif
+#include "glmCommon.h"
 
 namespace camp {
 
@@ -73,7 +68,7 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
   if(billboard) {
     drawElement::centerIndex=centerIndex;
     BB.init(center);
-    offscreen=bbox2(Min,Max,BB).offscreen();
+    offscreen=bbox2(Min,Max,center).offscreen();
   } else
     offscreen=bbox2(Min,Max).offscreen();
 

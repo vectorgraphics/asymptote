@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common.h"
+
 #ifdef HAVE_LIBGLM
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>

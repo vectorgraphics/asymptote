@@ -26,7 +26,7 @@
 #include "triple.h"
 #include "seconds.h"
 #include "statistics.h"
-// #include "render.h"  // TODO: Add when render.h is updated for OpenGL
+#include "render.h"
 
 namespace camp
 {
@@ -216,9 +216,11 @@ public:
   double xmin, xmax;
   double ymin, ymax;
 
+#ifdef HAVE_LIBGLM
   // Materials
   std::vector<Material> materials;
   MaterialMap materialMap;
+#endif
   bool Opaque;
 
   // Draw mode

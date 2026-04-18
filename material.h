@@ -1,15 +1,14 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-#ifdef HAVE_LIBGLM
-
 #include <iostream>
 #include <fstream>
 
 #include "common.h"
+#include "glmCommon.h"
 #include "triple.h"
 
-#include <glm/glm.hpp>
+#ifdef HAVE_LIBGLM
 
 namespace glm {
 
@@ -99,7 +98,6 @@ extern size_t Nmaterials; // Number of materials compiled in shader
 extern size_t nmaterials; // Current size of materials buffer
 extern size_t Maxmaterials; // Maximum size of materials buffer
 
-typedef mem::map<const Material, size_t> MaterialMap;
 }
 
 #endif
