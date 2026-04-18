@@ -33,6 +33,9 @@ struct BezierPatch
 
   void init(double res);
 
+  template<bool T, bool C>
+  uint32_t addVertex(triple pos, triple norm, int matIdx, const float* col = nullptr);
+
   void init(double res, float *colors) {
     transparent=false;
     color=colors;
@@ -131,6 +134,16 @@ struct BezierPatch
   }
 
   virtual void render(const triple *p, bool straight, float *c0=NULL);
+
+  // Template-based render to eliminate runtime branching
+  template<bool T, bool C>
+  void render(const triple *p,
+                      std::uint32_t I0, std::uint32_t I1, std::uint32_t I2, std::uint32_t I3,
+                      triple P0, triple P1, triple P2, triple P3,
+                      bool flat0, bool flat1, bool flat2, bool flat3,
+                      float *C0=NULL, float *C1=NULL, float *C2=NULL,
+                      float *C3=NULL);
+
   void render(const triple *p,
               std::uint32_t I0, std::uint32_t I1, std::uint32_t I2, std::uint32_t I3,
               triple P0, triple P1, triple P2, triple P3,
@@ -192,6 +205,15 @@ public:
   }
 
   void render(const triple *p, bool straight, float *c0=NULL);
+
+  // Template-based render for triangles
+  template<bool T, bool C>
+  void render(const triple *p,
+                              std::uint32_t I0, std::uint32_t I1, std::uint32_t I2,
+                              triple P0, triple P1, triple P2,
+                              bool flat0, bool flat1, bool flat2,
+                              float *C0=NULL, float *C1=NULL, float *C2=NULL);
+
   void render(const triple *p,
               std::uint32_t I0, std::uint32_t I1, std::uint32_t I2,
               triple P0, triple P1, triple P2,
