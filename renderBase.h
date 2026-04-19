@@ -216,11 +216,9 @@ public:
   double xmin, xmax;
   double ymin, ymax;
 
-#ifdef HAVE_LIBGLM
   // Materials
   std::vector<Material> materials;
   MaterialMap materialMap;
-#endif
   bool Opaque;
 
   // Draw mode
@@ -234,6 +232,8 @@ public:
   double oWidth, oHeight;
   double lastzoom;
   int Fitscreen=1;
+
+  bool readyForExport=false;
 
   // Child process ID for export (used by both OpenGL and Vulkan)
   int Oldpid = 0;
@@ -381,11 +381,11 @@ public:
   virtual void expand();
   virtual void shrink();
 
-  // Export handler
+  virtual void updateHandler(int=0) = 0;
   virtual void exportHandler(int=0) = 0;
 
   // Message processing for inter-thread communication
-  virtual void processMessages(RendererMessage const& msg);
+  void processMessages(RendererMessage const& msg);
 
   virtual void quit();
 

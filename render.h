@@ -16,6 +16,10 @@
 #include "material.h"
 #include "triple.h"
 
+#ifdef HAVE_LIBVULKAN
+#include "vk.h"
+#endif
+
 namespace camp
 {
 
@@ -46,7 +50,7 @@ struct MaterialVertex
   glm::vec3 normal;
   glm::i32 material;
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_LIBVULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(MaterialVertex), vk::VertexInputRate::eVertex);
@@ -76,7 +80,7 @@ struct ColorVertex
   glm::i32 material;
   glm::vec4 color;
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_LIBVULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(ColorVertex), vk::VertexInputRate::eVertex);
@@ -107,7 +111,7 @@ struct PointVertex
   glm::f32 width;
   glm::i32 material;
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_LIBVULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(PointVertex), vk::VertexInputRate::eVertex);
@@ -188,14 +192,6 @@ struct VertexBuffer {
     pointVertices.insert(pointVertices.end(), other.pointVertices.begin(), other.pointVertices.end());
   }
 };
-
-extern VertexBuffer shared_materialData;    // material Bezier patches & triangles
-extern VertexBuffer shared_colorData;       // colored Bezier patches & triangles
-extern VertexBuffer shared_triangleData;    // opaque indexed triangles
-extern VertexBuffer shared_transparentData; // transparent patches & triangles
-
-extern VertexBuffer pointData;       // pixels
-extern VertexBuffer lineData;        // material Bezier curves
 
 #ifdef HAVE_LIBGLM
 // Accessor functions for matrices (to avoid synchronization)

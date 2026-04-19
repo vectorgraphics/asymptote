@@ -15,7 +15,6 @@ void *postEmptyEvent(void *);
 
 namespace camp
 {
-// Global matrices removed - use getProjViewMat() and getNormMat() instead
 
 double AsyRender::getRenderResolution(triple Min) const
 {
@@ -86,7 +85,6 @@ void AsyRender::setProjection()
 void AsyRender::updateModelViewData()
 {
   // Update normal matrix (inverse transpose of view matrix rotation)
-  // This is the library-agnostic core computation
   dnormMat = dmat3(glm::inverse(this->viewMat));
   normMat = mat3(dnormMat);  // Convert to float precision for shaders
 }
@@ -424,10 +422,8 @@ void AsyRender::cycleMode()
   // Update IBL setting based on mode
   if (mode == DRAWMODE_NORMAL) {
     ibl = settings::getSetting<bool>("ibl");
-    gl->outlinemode = false;
   } else if (mode == DRAWMODE_OUTLINE) {
     ibl = false;
-    gl->outlinemode = true;
   }
 }
 
@@ -545,19 +541,20 @@ void AsyRender::exportHandler(int)
 
 /**
  * Process messages from the message queue (inter-thread communication).
- * Default implementation does nothing - derived classes should override.
- * Vulkan and OpenGL each implement their own version matching their patterns.
  */
 void AsyRender::processMessages(RendererMessage const& msg)
 {
-  // Default no-op - derived classes must override for actual message handling
   switch (msg)
   {
     case RendererMessage::exportRender:
-      // Derived classes should call exportHandler directly
+      if (readyForExport)
+      {
+        readyForExport=false;
+        exportHandler(0);
+      }
       break;
     case RendererMessage::updateRenderer:
-      // Derived classes should call updateHandler or set appropriate flags
+      updateHandler(0);
       break;
     default:
       break;

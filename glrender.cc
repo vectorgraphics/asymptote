@@ -590,7 +590,8 @@ void drawscene(int Width, int Height)
   drawBuffers();
 #endif
 
-  if(gl->outlinemode) gl->remesh=false;
+  if(gl->mode != DRAWMODE_OUTLINE)
+    gl->remesh=false;
 }
 
 // Return x divided by y rounded up to the nearest integer.
@@ -724,7 +725,7 @@ void quit()
 
 void AsyGLRender::cycleMode()
 {
-  // Call base class to handle mode cycling, ibl, and outlinemode
+  // Call base class to handle mode cycling and ibl
   AsyRender::cycleMode();
 
   // OpenGL-specific: restore nlights and set polygon mode
@@ -743,7 +744,6 @@ void AsyGLRender::cycleMode()
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       break;
     case DRAWMODE_WIREFRAME: // wireframe
-      outlinemode=false;
       Nlights=1; // Force shader recompilation
       break;
   }
@@ -1621,6 +1621,20 @@ void setMaterial(vertexBuffer& data, draw_t *draw)
   materialIndex=data.materialTable[materialIndex];
 }
 
+void AsyGLRender::updateHandler(int) {
+  if(View && !interact::interactive) {
+    ::glfwHideWindow(getGLFWWindow());
+    if(!getSetting<bool>("fitscreen"))
+      Fitscreen=0;
+  }
+
+  resize=true;
+  redisplay=true;
+  redraw=true;
+  remesh=true;
+  waitEvent=false;
+}
+
 AsyGLRender::~AsyGLRender()
 {
 #ifdef HAVE_RENDERER
@@ -2211,40 +2225,6 @@ void AsyGLRender::exportHandler(int)
   readyAfterExport=true;
 #endif
   Export();
-}
-
-void AsyGLRender::updateHandler(int)
-{
-  if(View && glfwWindow && !interact::interactive) {
-    ::glfwHideWindow(getGLFWWindow());
-    if(!getSetting<bool>("fitscreen"))
-      Fitscreen=0;
-  }
-
-  resize=true;
-  redisplay=true;
-  redraw=true;
-  remesh=true;
-  waitEvent=false;
-}
-
-void AsyGLRender::processMessages(RendererMessage const& msg)
-{
-  switch (msg)
-  {
-    case RendererMessage::exportRender: {
-      // Call exportHandler directly (matching Vulkan pattern)
-      exportHandler(0);
-    }
-      break;
-    case RendererMessage::updateRenderer: {
-      // Call updateHandler directly (matching Vulkan pattern)
-      updateHandler(0);
-    }
-      break;
-    default:
-      break;
-  }
 }
 
 void AsyGLRender::reshape0(int width, int height)

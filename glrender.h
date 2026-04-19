@@ -445,9 +445,8 @@ public:
 protected:
   void mainLoop();
   void display();
-  void exportHandler(int = 0) override;
+  void exportHandler(int = 0);
   void updateHandler(int = 0);
-  void processMessages(RendererMessage const& msg) override;
   virtual void reshape0(int width, int height) override;
 };
 
