@@ -2117,6 +2117,12 @@ void AsyGLRender::display()
 
 #ifdef HAVE_RENDERER
   glfwSwapBuffers(static_cast<GLFWwindow*>(glfwWindow));
+
+  if(queueExport) {
+    // Wait for the just-submitted frame to finish before exporting
+    exportHandler();
+    queueExport=false;
+  }
 #endif
 
   if(!thread) {
