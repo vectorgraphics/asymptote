@@ -63,12 +63,12 @@ namespace camp
 
 const glm::dmat4& getProjViewMat()
 {
-  return vk->projViewMat;
+  return gl->projViewMat;
 }
 
 const glm::dmat3& getNormMat()
 {
-  return vk->normMat;
+  return gl->normMat;
 }
 
 const Int timePartialSumVerbosity=4;
@@ -3634,11 +3634,11 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
 
   // Access matrices directly to avoid synchronization
   ubo.projViewMat = glm::mat4(getProjViewMat());
-  ubo.viewMat = glm::mat4(vk->viewMat);
+  ubo.viewMat = glm::mat4(gl->viewMat);
   // Fill normMat as 3 vec4 columns for std140 mat3 layout (48 bytes)
-  ubo.normMat[0] = glm::vec4(vk->normMat[0], 0.0f);
-  ubo.normMat[1] = glm::vec4(vk->normMat[1], 0.0f);
-  ubo.normMat[2] = glm::vec4(vk->normMat[2], 0.0f);
+  ubo.normMat[0] = glm::vec4(gl->normMat[0], 0.0f);
+  ubo.normMat[1] = glm::vec4(gl->normMat[1], 0.0f);
+  ubo.normMat[2] = glm::vec4(gl->normMat[2], 0.0f);
 
   memcpy(frameObjects[currentFrame].uboMappedMemory->getCopyPtr(), &ubo, sizeof(ubo));
 
@@ -4677,8 +4677,8 @@ void AsyVkRender::mainLoop()
 
 void AsyVkRender::exportHandler(int) {
 
-  vk->readyAfterExport=true;
-  vk->Export(0);
+  gl->readyAfterExport=true;
+  gl->Export(0);
 }
 
 void AsyVkRender::Export(int imageIndex) {

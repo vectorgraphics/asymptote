@@ -8,6 +8,7 @@
 #include "drawpath3.h"
 #include "arrayop.h"
 #include "picture.h"
+#include "renderBase.h"
 
 #include <iostream>
 #include <iomanip>
@@ -61,12 +62,12 @@ void setcolors(const RGBAColour& diffuse, const RGBAColour& emissive,
                       glm::vec4(specular.R,specular.G,specular.B,specular.A),
                       shininess,metallic,fresnel0);
 
-  auto p=vk->materialMap.find(m);
-  if(p != vk->materialMap.end()) materialIndex=p->second;
+  auto p=gl->materialMap.find(m);
+  if(p != gl->materialMap.end()) materialIndex=p->second;
   else {
-    materialIndex=vk->materials.size();
-    vk->materials.push_back(m);
-    vk->materialMap[m]=materialIndex;
+    materialIndex=gl->materials.size();
+    gl->materials.push_back(m);
+    gl->materialMap[m]=materialIndex;
     if(out)
       out->addMaterial(m);
   }
@@ -76,7 +77,7 @@ void setcolors(const RGBAColour& diffuse, const RGBAColour& emissive,
 
 void clearMaterials()
 {
-  vk->clearMaterials();
+  gl->clearMaterials();
 }
 
 void drawBezierPatch::bounds(const double* t, bbox3& b)
@@ -239,7 +240,7 @@ bool drawBezierPatch::write(abs3Doutfile *out)
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
     out->addStraightPatch(Controls,colors);
   } else {
-    double prerender=vk->getRenderResolution(Min);
+    double prerender=gl->getRenderResolution(Min);
     if(prerender) {
       float c[16];
       if(colors)
@@ -304,7 +305,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
 
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  if(vk->mode == DRAWMODE_OUTLINE) {
+  if(gl->mode == DRAWMODE_OUTLINE) {
     triple edge0[]={Controls[0],Controls[4],Controls[8],Controls[12]};
     C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[12],Controls[13],Controls[14],Controls[15]};
@@ -489,7 +490,7 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
     triple Controls[]={controls[0],controls[6],controls[9]};
     out->addStraightBezierTriangle(Controls,colors);
   } else {
-    double prerender=vk->getRenderResolution(Min);
+    double prerender=gl->getRenderResolution(Min);
     if(prerender) {
       float c[12];
       if(colors)
@@ -553,7 +554,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
 
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  if(vk->mode == DRAWMODE_OUTLINE) {
+  if(gl->mode == DRAWMODE_OUTLINE) {
     triple edge0[]={Controls[0],Controls[1],Controls[3],Controls[6]};
     C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[6],Controls[7],Controls[8],Controls[9]};

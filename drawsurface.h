@@ -12,6 +12,7 @@
 #include "path3.h"
 #include "beziercurve.h"
 #include "bezierpatch.h"
+#include "renderBase.h"
 
 namespace run {
 void inverse(double *a, size_t n);

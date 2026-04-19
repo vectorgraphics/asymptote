@@ -59,7 +59,10 @@ texstream::~texstream() {
 
 namespace camp {
 
-AsyVkRender *vk = new AsyVkRender();
+// Initialize the global renderer instances (base class pointer for unified interface)
+// The actual type is AsyVkRender* for Vulkan builds, but named 'gl' for consistency
+AsyRender *gl = new AsyVkRender();
+AsyVkRender *GL = static_cast<AsyVkRender*>(gl);  // Typed pointer for Vulkan-specific code
 
 extern void draw();
 
@@ -1441,11 +1444,11 @@ void glrenderWrapper()
 {
 #ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
-  vk->wait(vk->initSignal,vk->initLock);
-  vk->endwait(vk->initSignal,vk->initLock);
+  gl->wait(gl->initSignal,gl->initLock);
+  gl->endwait(gl->initSignal,gl->initLock);
 #endif
   if(allowRender)
-    vk->render(com);
+    gl->render(com);
 #endif
 }
 
@@ -1520,10 +1523,10 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool format3d=webgl || v3d;
   if(!format3d) {
 #ifdef HAVE_RENDERER
-    if(vk->thread) {
+    if(gl->thread) {
 #ifdef HAVE_PTHREAD
-      if(vk->initialize) {
-        vk->initialize=!View || getSetting<bool>("offscreen");
+      if(!gl->initialized) {
+        gl->initialized=true;
         com.prefix=prefix;
         com.pic=pic;
         com.format=outputformat;
@@ -1544,27 +1547,27 @@ bool picture::shipout3(const string& prefix, const string& format,
         com.specular=specular;
         com.view=View;
         if(Wait)
-          pthread_mutex_lock(&vk->readyLock);
+          pthread_mutex_lock(&gl->readyLock);
         allowRender=true;
-        vk->wait(vk->initSignal,vk->initLock);
-        vk->endwait(vk->initSignal,vk->initLock);
+        gl->wait(gl->initSignal,gl->initLock);
+        gl->endwait(gl->initSignal,gl->initLock);
         static bool initialize=true;
         if(initialize) {
-          vk->wait(vk->initSignal,vk->initLock);
-          vk->endwait(vk->initSignal,vk->initLock);
+          gl->wait(gl->initSignal,gl->initLock);
+          gl->endwait(gl->initSignal,gl->initLock);
           initialize=false;
         }
 //#ifdef HAVE_RENDERER
 //        glfwPostEmptyEvent();
 //#endif
         if(Wait) {
-          pthread_cond_wait(&vk->readySignal,&vk->readyLock);
-          pthread_mutex_unlock(&vk->readyLock);
+          pthread_cond_wait(&gl->readySignal,&gl->readyLock);
+          pthread_mutex_unlock(&gl->readyLock);
         }
         return true;
       }
       if(Wait)
-        pthread_mutex_lock(&vk->readyLock);
+        pthread_mutex_lock(&gl->readyLock);
 #ifdef HAVE_RENDERER
       glfwPostEmptyEvent();
 #endif
@@ -1607,7 +1610,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   args.view=View;
   args.oldpid=oldpid;
 
-  vk->render(args);
+  gl->render(args);
   if(format3d) {
     string name=buildname(prefix,format);
     abs3Doutfile *fileObj=nullptr;
@@ -1640,10 +1643,10 @@ bool picture::shipout3(const string& prefix, const string& format,
       htmlView(name);
 
 #ifdef HAVE_GL
-    if(vk->format3dWait) {
-      vk->format3dWait=false;
+    if(gl->format3dWait) {
+      gl->format3dWait=false;
 #ifdef HAVE_PTHREAD
-      endwait(vk->initSignal,vk->initLock);
+      endwait(gl->initSignal,gl->initLock);
 #endif
     }
 #endif
@@ -1654,9 +1657,9 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
-  if(vk->thread && Wait) {
-    pthread_cond_wait(&vk->readySignal,&vk->readyLock);
-    pthread_mutex_unlock(&vk->readyLock);
+  if(gl->thread && Wait) {
+    pthread_cond_wait(&gl->readySignal,&gl->readyLock);
+    pthread_mutex_unlock(&gl->readyLock);
   }
   return true;
 #endif
@@ -1667,7 +1670,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 bool picture::shipout3(const string& prefix, const string format)
 {
-  camp::vk->redraw=false;
+  camp::gl->redraw=false;
   bounds3();
   bool status;
 

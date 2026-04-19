@@ -119,11 +119,10 @@ public:
   bool recreateBlendPipeline=false;
   bool shouldUpdateBuffers=true;
   bool newUniformBuffer=true;
-  bool ibl=false;
+  // Note: ibl is now in base class AsyRender
   bool vkexit=false;
 
-  bool initialize=true;
-  bool copied=false;
+  // Note: initialize and copied are now in base class as 'initialized' and 'copied'
 
   int maxFramesInFlight;
   size_t framecount;
@@ -172,10 +171,6 @@ private:
   };
 #endif
 
-  bool ViewExport;
-  bool readyAfterExport=false;
-
-  bool interlock=false;
   bool GPUcompress=false;
   bool fxaa=false;
   bool srgb=false;
@@ -666,11 +661,10 @@ public:
 
   // user controls
   void exportHandler(int=0);
-  void Export(int imageIndex);
+  void Export(int imageIndex=0);
   bool readyForUpdate=false;
-  bool initialized=false;
+  // Note: initialized and format3dWait are now in base class AsyRender
   bool havewindow=false;
-  bool format3dWait=false;
 
   struct PipelineConfig {
     vk::PrimitiveTopology topology;
@@ -710,7 +704,5 @@ public:
   friend void glfwInitWindow(AsyRender*, int, int, const std::string&);
   friend void glfwCleanupWindow(AsyVkRender*);
 };
-
-extern AsyVkRender* vk;
 
 } // namespace camp
