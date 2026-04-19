@@ -12,7 +12,6 @@
 
 #include "common.h"
 #include "bbox.h"
-#include "bbox2.h"
 #include "bbox3.h"
 #include "pen.h"
 #include "psfile.h"
@@ -20,11 +19,14 @@
 #include "prcfile.h"
 #include "jsfile.h"
 #include "v3dfile.h"
-#include "glrender.h"
 #include "arrayop.h"
 #include "material.h"
+#include "glrender.h"
+#include "bbox2.h"
 
 namespace camp {
+
+extern int MaterialIndex;
 
 enum Interaction {EMBEDDED=0,BILLBOARD};
 

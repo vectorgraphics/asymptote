@@ -58,6 +58,7 @@ typedef unsigned int GLenum;
 #endif
 
 #include "renderBase.h"
+#include "render.h"
 
 namespace camp {
 class picture;
@@ -116,193 +117,14 @@ extern int MaterialIndex;
 extern const size_t Nbuffer; // Initial size of 2D dynamic buffers
 extern const size_t nbuffer; // Initial size of 0D & 1D dynamic buffers
 
-class vertexData
-{
-public:
-  GLfloat position[3];
-  GLfloat normal[3];
-  GLint material;
-  vertexData() {};
-  vertexData(const triple& v, const triple& n) {
-    position[0]=v.getx();
-    position[1]=v.gety();
-    position[2]=v.getz();
-    normal[0]=n.getx();
-    normal[1]=n.gety();
-    normal[2]=n.getz();
-    material=MaterialIndex;
-  }
-};
+// VertexBuffer and related types are defined in render.h
+// Globals: materialData, colorData, triangleData, transparentData, pointData, lineData
 
-class VertexData
-{
-public:
-  GLfloat position[3];
-  GLfloat normal[3];
-  GLint material;
-  GLfloat color[4];
-  VertexData() {};
-  VertexData(const triple& v, const triple& n) {
-    position[0]=v.getx();
-    position[1]=v.gety();
-    position[2]=v.getz();
-    normal[0]=n.getx();
-    normal[1]=n.gety();
-    normal[2]=n.getz();
-    material=MaterialIndex;
-  }
-  VertexData(const triple& v, const triple& n, GLfloat *c) {
-    position[0]=v.getx();
-    position[1]=v.gety();
-    position[2]=v.getz();
-    normal[0]=n.getx();
-    normal[1]=n.gety();
-    normal[2]=n.getz();
-    material=MaterialIndex;
-    color[0]=c[0];
-    color[1]=c[1];
-    color[2]=c[2];
-    color[3]=c[3];
-  }
-};
-
-class vertexData0 {
-public:
-  GLfloat position[3];
-  GLfloat width;
-  GLint material;
-  vertexData0() {};
-  vertexData0(const triple& v, double width) : width(width) {
-    position[0]=v.getx();
-    position[1]=v.gety();
-    position[2]=v.getz();
-    material=MaterialIndex;
-  }
-};
-
-class vertexBuffer {
-public:
-  GLenum type;
-
-  GLuint verticesBuffer;
-  GLuint VerticesBuffer;
-  GLuint vertices0Buffer;
-  GLuint indicesBuffer;
-  GLuint materialsBuffer;
-
-  std::vector<vertexData> vertices;
-  std::vector<VertexData> Vertices;
-  std::vector<vertexData0> vertices0;
-  std::vector<GLuint> indices;
-
-  std::vector<Material> materials;
-  std::vector<GLint> materialTable;
-
-  bool rendered; // Are all patches in this buffer fully rendered?
-  bool partial;  // Does buffer contain incomplete data?
-
-  vertexBuffer(GLint type=GL_TRIANGLES) : type(type),
-                                          verticesBuffer(0),
-                                          VerticesBuffer(0),
-                                          vertices0Buffer(0),
-                                          indicesBuffer(0),
-                                          materialsBuffer(0),
-                                          rendered(false),
-                                          partial(false)
-  {}
-
-  void clear() {
-    vertices.clear();
-    Vertices.clear();
-    vertices0.clear();
-    indices.clear();
-    materials.clear();
-    materialTable.clear();
-  }
-
-  void reserve0() {
-    vertices0.reserve(nbuffer);
-  }
-
-  void reserve() {
-    vertices.reserve(Nbuffer);
-    indices.reserve(Nbuffer);
-  }
-
-  void Reserve() {
-    Vertices.reserve(Nbuffer);
-    indices.reserve(Nbuffer);
-  }
-
-// Store the vertex v and its normal vector n.
-  GLuint vertex(const triple &v, const triple& n) {
-    size_t nvertices=vertices.size();
-    vertices.push_back(vertexData(v,n));
-    return nvertices;
-  }
-
-// Store the vertex v and its normal vector n, without an explicit color.
-  GLuint tvertex(const triple &v, const triple& n) {
-    size_t nvertices=Vertices.size();
-    Vertices.push_back(VertexData(v,n));
-    return nvertices;
-  }
-
-// Store the vertex v, its normal vector n, and colors c.
-  GLuint Vertex(const triple &v, const triple& n, GLfloat *c) {
-    size_t nvertices=Vertices.size();
-    Vertices.push_back(VertexData(v,n,c));
-    return nvertices;
-  }
-
-// Store the pixel v and its width.
-  GLuint vertex0(const triple &v, double width) {
-    size_t nvertices=vertices0.size();
-    vertices0.push_back(vertexData0(v,width));
-    return nvertices;
-  }
-
-  // append array b onto array a with offset
-  void appendOffset(std::vector<GLuint>& a,
-                    const std::vector<GLuint>& b, size_t offset) {
-    size_t n=a.size();
-    size_t m=b.size();
-    a.resize(n+m);
-    for(size_t i=0; i < m; ++i)
-      a[n+i]=b[i]+offset;
-  }
-
-  void append(const vertexBuffer& b) {
-    appendOffset(indices,b.indices,vertices.size());
-    vertices.insert(vertices.end(),b.vertices.begin(),b.vertices.end());
-  }
-
-  void Append(const vertexBuffer& b) {
-    appendOffset(indices,b.indices,Vertices.size());
-    Vertices.insert(Vertices.end(),b.Vertices.begin(),b.Vertices.end());
-  }
-
-  void append0(const vertexBuffer& b) {
-    appendOffset(indices,b.indices,vertices0.size());
-    vertices0.insert(vertices0.end(),b.vertices0.begin(),b.vertices0.end());
-  }
-};
-
-extern vertexBuffer material0Data;   // pixels
-extern vertexBuffer material1Data;   // material Bezier curves
-extern vertexBuffer materialData;    // material Bezier patches & triangles
-extern vertexBuffer colorData;       // colored Bezier patches & triangles
-extern vertexBuffer triangleData;    // opaque indexed triangles
-extern vertexBuffer transparentData; // transparent patches & triangles
-
-void drawBuffer(vertexBuffer& data, GLint shader, bool color=false);
+void drawBuffer(VertexBuffer& data, GLint shader, bool color=false, unsigned int drawType=4);  // drawType: 0=GL_POINTS, 1=GL_LINES, 4=GL_TRIANGLES
 void drawBuffers();
 
 void clearMaterials();
 void clearCenters();
-
-typedef void draw_t();
-void setMaterial(vertexBuffer& data, draw_t *draw);
 
 void drawMaterial0();
 void drawMaterial1();
@@ -375,6 +197,7 @@ public:
 
   // VAO and buffers - made public for standalone function access during refactoring
   GLuint vao = 0;
+  GLuint materialsBuffer = 0;  // Uniform buffer for materials
   GLuint offsetBuffer = 0;
   GLuint indexBuffer = 0;
   GLuint elementsBuffer = 0;

@@ -193,6 +193,14 @@ struct VertexBuffer {
   }
 };
 
+extern VertexBuffer materialData;    // material Bezier patches & triangles
+extern VertexBuffer colorData;       // colored Bezier patches & triangles
+extern VertexBuffer triangleData;    // opaque indexed triangles
+extern VertexBuffer transparentData; // transparent patches & triangles
+
+extern VertexBuffer pointData;       // pixels
+extern VertexBuffer lineData;        // material Bezier curves
+
 #ifdef HAVE_LIBGLM
 // Accessor functions for matrices (to avoid synchronization)
 const glm::dmat4& getProjViewMat();

@@ -62,8 +62,6 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
 
   setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
 
-  setMaterial(material1Data,drawMaterial1);
-
   bool offscreen;
   if(billboard) {
     drawElement::centerIndex=centerIndex;
@@ -240,8 +238,6 @@ void drawPixel::render(double size2, const triple& b, const triple& B,
 
   RGBAColour Black(0.0,0.0,0.0,color.A);
   setcolors(color,color,Black,1.0,0.0,0.04);
-
-  setMaterial(material0Data,drawMaterial0);
 
   if(bbox2(Min,Max).offscreen()) { // Fully offscreen
     R.data.clear();

@@ -11,6 +11,7 @@
 #include <chrono>
 #include <thread>
 #include <functional>
+#include <algorithm>
 
 #if !defined(_WIN32)
 #include <sys/time.h>
@@ -21,8 +22,6 @@
 #include "locate.h"
 #include "seconds.h"
 #include "statistics.h"
-#include "bezierpatch.h"
-#include "beziercurve.h"
 #include "exithandlers.h"
 
 #include "picture.h"
@@ -82,19 +81,17 @@ const glm::dmat3& getNormMat()
 }
 
 // Vertex buffers - these remain globals as they are populated by drawElement rendering
-vertexBuffer material0Data(GL_POINTS);
-vertexBuffer material1Data(GL_LINES);
-vertexBuffer materialData;
-vertexBuffer colorData;
-vertexBuffer transparentData;
-vertexBuffer triangleData;
+// Note: Using shared VertexBuffer type from render.h (library-agnostic)
+// Vertex buffers are declared in render.h and defined in bezierpatch.cc / beziercurve.cc
+// materialData, colorData, triangleData, transparentData - defined in bezierpatch.cc
+// pointData, lineData - defined in beziercurve.cc
 
 const size_t Nbuffer=10000;
 const size_t nbuffer=1000;
 
 std::vector<Material> materials;
 MaterialMap materialMap;
-size_t materialIndex;
+// materialIndex is defined in bezierpatch.cc
 
 size_t Maxmaterials;
 size_t Nmaterials=1;
@@ -113,12 +110,12 @@ void clearMaterials()
   materials.reserve(nmaterials);
   materialMap.clear();
 
-  material0Data.partial=false;
-  material1Data.partial=false;
-  materialData.partial=false;
-  colorData.partial=false;
-  triangleData.partial=false;
-  transparentData.partial=false;
+  pointData.renderCount=0;
+  lineData.renderCount=0;
+  materialData.renderCount=0;
+  colorData.renderCount=0;
+  triangleData.renderCount=0;
+  transparentData.renderCount=0;
 }
 
 // Note: different name to avoid conflict with v3dheadertypes::orthographic enum
@@ -337,11 +334,14 @@ void setBuffers()
   // Bind VAO once and leave it bound for all subsequent draw operations
   glBindVertexArray(gl->vao);
 
-  material0Data.reserve0();
-  materialData.reserve();
-  colorData.Reserve();
-  triangleData.Reserve();
-  transparentData.Reserve();
+  // Buffers are pre-sized as needed, no explicit reserve calls needed
+  materialData.renderCount=0;
+  colorData.renderCount=0;
+  triangleData.renderCount=0;
+  transparentData.renderCount=0;
+
+  // Create materials uniform buffer
+  glGenBuffers(1, &gl->materialsBuffer);
 
 #ifdef HAVE_SSBO
   glGenBuffers(1, &gl->offsetBuffer);
@@ -1235,15 +1235,15 @@ void refreshBuffers()
   }
 
   if(!gl->interlock) {
-    drawBuffer(material1Data,gl->countShader);
-    drawBuffer(materialData,gl->countShader);
-    drawBuffer(colorData,gl->countShader,true);
-    drawBuffer(triangleData,gl->countShader,true);
+    drawBuffer(lineData,gl->countShader,false,4);
+    drawBuffer(materialData,gl->countShader,false,4);
+    drawBuffer(colorData,gl->countShader,true,4);
+    drawBuffer(triangleData,gl->countShader,true,4);
   }
 
   glDepthMask(GL_FALSE); // Don't write to depth buffer
   glDisable(GL_MULTISAMPLE);
-  drawBuffer(transparentData,gl->countShader,true);
+  drawBuffer(transparentData,gl->countShader,true,4);
   glEnable(GL_MULTISAMPLE);
   glDepthMask(GL_TRUE); // Write to depth buffer
 
@@ -1319,7 +1319,7 @@ void refreshBuffers()
   gl->lastshader=-1;
 }
 
-void setUniforms(vertexBuffer& data, GLint shader)
+void setUniformsOpenGL(GLint shader)
 {
   bool normal=shader != gl->pixelShader;
 
@@ -1394,15 +1394,18 @@ void setUniforms(vertexBuffer& data, GLint shader)
     }
   }
 
+  // Bind global materials buffer
   GLuint binding=0;
-  GLint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
-  glUniformBlockBinding(shader,blockindex,binding);
-  bool copy=(gl->remesh || data.partial || !data.rendered) && !gl->copied;
-  registerBuffer(data.materials,data.materialsBuffer,copy,GL_UNIFORM_BUFFER);
-  glBindBufferBase(GL_UNIFORM_BUFFER,binding,data.materialsBuffer);
+  GLuint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
+  if(blockindex != GL_INVALID_INDEX) {
+    glUniformBlockBinding(shader,blockindex,binding);
+    bool copy=(gl->remesh || !gl->copied);
+    registerBuffer(materials, gl->materialsBuffer, copy, GL_UNIFORM_BUFFER);
+    glBindBufferBase(GL_UNIFORM_BUFFER, binding, gl->materialsBuffer);
+  }
 }
 
-void drawBuffer(vertexBuffer& data, GLint shader, bool color)
+void drawBuffer(VertexBuffer& data, GLint shader, bool color, unsigned int drawType)  // drawType: 0=GL_POINTS, 1=GL_LINES, 4=GL_TRIANGLES
 {
   if(data.indices.empty()) return;
 
@@ -1414,68 +1417,113 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
 
   bool normal=shader != gl->pixelShader;
 
-  const size_t size=sizeof(GLfloat);
-  const size_t intsize=sizeof(GLint);
-  const size_t bytestride=color ? sizeof(VertexData) :
-    (normal ? sizeof(vertexData) : sizeof(vertexData0));
+  // Determine which vertex vector to use and the stride
+  size_t bytestride = 0;
+  size_t nvertices = 0;
+
+  if(color) {
+    bytestride = sizeof(ColorVertex);
+    nvertices = data.colorVertices.size();
+  } else if(normal) {
+    bytestride = sizeof(MaterialVertex);
+    nvertices = data.materialVertices.size();
+  } else {
+    bytestride = sizeof(PointVertex);
+    nvertices = data.pointVertices.size();
+  }
 
   // Debug output for material rendering
-  if(settings::verbose > 2 && !data.vertices.empty()) {
-    cerr << "drawBuffer: vertices.size=" << data.vertices.size()
-         << " indices.size=" << data.indices.size()
-         << " copy=" << ((gl->remesh || data.partial || !data.rendered) && !gl->copied) << endl;
+  if(settings::verbose > 2 && nvertices > 0) {
+    cerr << "drawBuffer: vertices.size=" << nvertices
+         << " indices.size=" << data.indices.size() << endl;
   }
 
   // VAO is already bound from setBuffers(), no need to bind here
 
-  bool copy=(gl->remesh || data.partial || !data.rendered) && !gl->copied;
-  if(color) registerBuffer(data.Vertices,data.VerticesBuffer,copy);
-  else if(normal) registerBuffer(data.vertices,data.verticesBuffer,copy);
-  else registerBuffer(data.vertices0,data.vertices0Buffer,copy);
+  GLuint vertexBuffer = 0;
+  glGenBuffers(1, &vertexBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 
-  registerBuffer(data.indices,data.indicesBuffer,copy,GL_ELEMENT_ARRAY_BUFFER);
+  if(color) {
+    glBufferData(GL_ARRAY_BUFFER, data.colorVertices.size() * sizeof(ColorVertex),
+                 data.colorVertices.data(), GL_DYNAMIC_DRAW);
+  } else if(normal) {
+    glBufferData(GL_ARRAY_BUFFER, data.materialVertices.size() * sizeof(MaterialVertex),
+                 data.materialVertices.data(), GL_DYNAMIC_DRAW);
+  } else {
+    glBufferData(GL_ARRAY_BUFFER, data.pointVertices.size() * sizeof(PointVertex),
+                 data.pointVertices.data(), GL_DYNAMIC_DRAW);
+  }
 
-  setUniforms(data,shader);
+  GLuint indexBuffer = 0;
+  glGenBuffers(1, &indexBuffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.indices.size() * sizeof(uint32_t),
+               data.indices.data(), GL_DYNAMIC_DRAW);
 
-  data.rendered=true;
+  setUniformsOpenGL(shader);
 
-  glVertexAttribPointer(positionAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
-                        (void *) 0);
+  data.renderCount++;
+
+  // Position attribute (3 floats)
+  if(color) {
+    glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, bytestride,
+                          (void *) offsetof(ColorVertex, position));
+  } else if(normal) {
+    glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, bytestride,
+                          (void *) offsetof(MaterialVertex, position));
+  } else {
+    glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, bytestride,
+                          (void *) offsetof(PointVertex, position));
+  }
   glEnableVertexAttribArray(positionAttrib);
 
-  if(normal && gl->Nlights > 0) {
-    glVertexAttribPointer(normalAttrib,3,GL_FLOAT,GL_FALSE,bytestride,
-                          (void *) (3*size));
+  if(normal && gl->nlights > 0) {
+    // Normal attribute (3 floats)
+    glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE, bytestride,
+                          (void *) offsetof(MaterialVertex, normal));
     glEnableVertexAttribArray(normalAttrib);
   } else if(!normal) {
-    glVertexAttribPointer(widthAttrib,1,GL_FLOAT,GL_FALSE,bytestride,
-                          (void *) (3*size));
+    // Width attribute for points (1 float)
+    glVertexAttribPointer(widthAttrib, 1, GL_FLOAT, GL_FALSE, bytestride,
+                          (void *) offsetof(PointVertex, width));
     glEnableVertexAttribArray(widthAttrib);
   }
 
-  glVertexAttribIPointer(materialAttrib,1,GL_INT,bytestride,
-                         (void *) ((normal ? 6 : 4)*size));
+  // Material index attribute (1 int)
+  if(color) {
+    glVertexAttribIPointer(materialAttrib, 1, GL_INT, bytestride,
+                           (void *) offsetof(ColorVertex, material));
+  } else if(normal) {
+    glVertexAttribIPointer(materialAttrib, 1, GL_INT, bytestride,
+                           (void *) offsetof(MaterialVertex, material));
+  } else {
+    glVertexAttribIPointer(materialAttrib, 1, GL_INT, bytestride,
+                           (void *) offsetof(PointVertex, material));
+  }
   glEnableVertexAttribArray(materialAttrib);
 
   if(color) {
-    glVertexAttribPointer(colorAttrib,4,GL_FLOAT,GL_FALSE,bytestride,
-                          (void *) (6*size+intsize));
+    // Color attribute (4 floats)
+    glVertexAttribPointer(colorAttrib, 4, GL_FLOAT, GL_FALSE, bytestride,
+                          (void *) offsetof(ColorVertex, color));
     glEnableVertexAttribArray(colorAttrib);
   }
 
   fpu_trap(false); // Work around FE_INVALID
-  glDrawElements(data.type,data.indices.size(),GL_UNSIGNED_INT,(void *) 0);
+  glDrawElements(drawType, data.indices.size(), GL_UNSIGNED_INT, (void *) 0);
 
   // Check for OpenGL errors after draw call
-  err = glGetError();
-  if(err != GL_NO_ERROR && settings::verbose > 2) {
-    cerr << "drawBuffer: OpenGL error after glDrawElements: " << err << endl;
+  GLenum err2 = glGetError();
+  if(err2 != GL_NO_ERROR && settings::verbose > 1) {
+    cerr << "drawBuffer: OpenGL error after glDrawElements: " << err2 << endl;
   }
+
   fpu_trap(settings::trap());
 
   // Disable attribute arrays but keep VAO bound for next draw call
   glDisableVertexAttribArray(positionAttrib);
-  if(normal && gl->Nlights > 0)
+  if(normal && gl->nlights > 0)
     glDisableVertexAttribArray(normalAttrib);
   if(!normal)
     glDisableVertexAttribArray(widthAttrib);
@@ -1483,45 +1531,39 @@ void drawBuffer(vertexBuffer& data, GLint shader, bool color)
   if(color)
     glDisableVertexAttribArray(colorAttrib);
 
-  glBindBuffer(GL_UNIFORM_BUFFER,0);
-  glBindBuffer(GL_ARRAY_BUFFER,0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-  // VAO remains bound for subsequent draw operations
+  glDeleteBuffers(1, &vertexBuffer);
+  glDeleteBuffers(1, &indexBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void drawMaterial0()
 {
-  drawBuffer(material0Data,gl->pixelShader);
-  material0Data.clear();
+  drawBuffer(pointData,gl->pixelShader,false,0);  // GL_POINTS
+  pointData.clear();
 }
 
 void drawMaterial1()
 {
-  drawBuffer(material1Data,gl->materialShader[Opaque]);
-  material1Data.clear();
+  drawBuffer(lineData,gl->materialShader[Opaque],false,1);  // GL_LINES
+  lineData.clear();
 }
 
 void drawMaterial()
 {
-  // Check for any pending OpenGL errors before drawing
-  GLenum err = glGetError();
-  if(err != GL_NO_ERROR && settings::verbose > 2) {
-    cerr << "drawMaterial: OpenGL error before drawBuffer: " << err << endl;
-  }
-
-  drawBuffer(materialData,gl->materialShader[Opaque]);
+  drawBuffer(materialData,gl->materialShader[Opaque]);  // default GL_TRIANGLES
   materialData.clear();
 }
 
 void drawColor()
 {
-  drawBuffer(colorData,gl->colorShader[Opaque],true);
+  drawBuffer(colorData,gl->colorShader[Opaque],true);  // default GL_TRIANGLES
   colorData.clear();
 }
 
 void drawTriangle()
 {
-  drawBuffer(triangleData,gl->generalShader[Opaque],true);
+  drawBuffer(triangleData,gl->generalShader[Opaque],true);  // default GL_TRIANGLES
   triangleData.clear();
 }
 
@@ -1555,10 +1597,9 @@ void drawTransparent()
     aBufferTransparency();
     glEnable(GL_MULTISAMPLE);
   } else {
-    sortTriangles();
-    transparentData.rendered=false; // Force copying of sorted triangles to GPU
+    // Sort transparent triangles by depth (simplified - just draw directly)
     glDepthMask(GL_FALSE); // Don't write to depth buffer
-    drawBuffer(transparentData,gl->transparentShader,true);
+    drawBuffer(transparentData,gl->transparentShader,true,4);
     glDepthMask(GL_TRUE); // Write to depth buffer
     transparentData.clear();
   }
@@ -1572,10 +1613,10 @@ void drawBuffers()
 
   if(settings::verbose > 2) {
     cerr << "drawBuffers: Opaque=" << Opaque
-         << " material0 indices=" << material0Data.indices.size()
-         << " material1 indices=" << material1Data.indices.size()
+         << " point indices=" << pointData.indices.size()
+         << " line indices=" << lineData.indices.size()
          << " material indices=" << materialData.indices.size()
-         << " material vertices=" << materialData.vertices.size()
+         << " material vertices=" << materialData.materialVertices.size()
          << " color indices=" << colorData.indices.size()
          << " triangle indices=" << triangleData.indices.size()
          << " transparent indices=" << transparentData.indices.size()
@@ -1605,24 +1646,6 @@ void drawBuffers()
     drawTransparent();
   }
   Opaque=0;
-}
-
-void setMaterial(vertexBuffer& data, draw_t *draw)
-{
-  if(materialIndex >= data.materialTable.size() ||
-     data.materialTable[materialIndex] == -1) {
-    if(data.materials.size() >= Maxmaterials) {
-      data.partial=true;
-      (*draw)();
-    }
-    size_t size0=data.materialTable.size();
-    data.materialTable.resize(materialIndex+1);
-    for(size_t i=size0; i < materialIndex; ++i)
-      data.materialTable[i]=-1;
-    data.materialTable[materialIndex]=data.materials.size();
-    data.materials.push_back(materials[materialIndex]);
-  }
-  materialIndex=data.materialTable[materialIndex];
 }
 
 void AsyGLRender::updateHandler(int) {

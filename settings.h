@@ -24,18 +24,7 @@ void glrenderWrapper();
 }
 
 namespace camp {
-extern bool glthread;
-extern bool initialize;
-
-#ifdef HAVE_PTHREAD
 extern pthread_t mainthread;
-extern pthread_cond_t initSignal;
-extern pthread_mutex_t initLock;
-extern pthread_cond_t readySignal;
-extern pthread_mutex_t readyLock;
-void wait(pthread_cond_t& signal, pthread_mutex_t& lock);
-void endwait(pthread_cond_t& signal, pthread_mutex_t& lock);
-#endif
 }
 
 namespace settings {

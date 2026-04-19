@@ -262,15 +262,6 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
 
   setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
 
-  if(transparent)
-    setMaterial(transparentData,drawTransparent);
-  else {
-    if(colors)
-      setMaterial(colorData,drawColor);
-    else
-      setMaterial(materialData,drawMaterial);
-  }
-
   bool offscreen;
   if(billboard) {
     drawElement::centerIndex=centerIndex;
@@ -308,7 +299,6 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
   if(camp::gl && camp::gl->outlinemode) {
-    setMaterial(material1Data,drawMaterial);
     triple edge0[]={Controls[0],Controls[4],Controls[8],Controls[12]};
     C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[12],Controls[13],Controls[14],Controls[15]};
@@ -524,15 +514,6 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
 
   setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
 
-  if(transparent)
-    setMaterial(transparentData,drawTransparent);
-  else {
-    if(colors)
-      setMaterial(colorData,drawColor);
-    else
-      setMaterial(materialData,drawMaterial);
-  }
-
   bool offscreen;
   if(billboard) {
     drawElement::centerIndex=centerIndex;
@@ -569,7 +550,6 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
   if(camp::gl && camp::gl->outlinemode) {
-    setMaterial(material1Data,drawMaterial);
     triple edge0[]={Controls[0],Controls[1],Controls[3],Controls[6]};
     C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[6],Controls[7],Controls[8],Controls[9]};
@@ -1012,11 +992,6 @@ void drawTriangles::render(double size2, const triple& b,
   transparent=diffuse.A < 1.0;
 
   setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
-
-  if(transparent)
-    setMaterial(transparentData,drawTransparent);
-  else
-    setMaterial(triangleData,drawTriangle);
 
   bool offscreen;
   if(billboard) {

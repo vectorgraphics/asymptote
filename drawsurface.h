@@ -587,11 +587,11 @@ public:
   }
 
 #ifdef HAVE_LIBGLM
-  drawBaseTriangles(const vertexBuffer& vb, const triple& center,
+  drawBaseTriangles(const VertexBuffer& vb, const triple& center,
                     Interaction interaction, bool isColor,
                     const triple& Min, const triple& Max) :
     transparent(false),
-    nP(isColor ? vb.Vertices.size() : vb.vertices.size()), center(center),
+    nP(isColor ? vb.colorVertices.size() : vb.materialVertices.size()), center(center),
     nN(nP), nI(vb.indices.size()/3), Ni(0),
     interaction(interaction), Min(Min), Max(Max) {
     init();
@@ -599,15 +599,15 @@ public:
     P=new(UseGC) triple[nP];
     N=new(UseGC) triple[nN];
     if(!isColor) {
-      for (size_t i=0; i < vb.vertices.size(); ++i) {
-        P[i]=triple(vb.vertices[i].position[0], vb.vertices[i].position[1], vb.vertices[i].position[2]);
-        N[i]=triple(vb.vertices[i].normal[0], vb.vertices[i].normal[1], vb.vertices[i].normal[2]);
+      for (size_t i=0; i < vb.materialVertices.size(); ++i) {
+        P[i]=triple(vb.materialVertices[i].position.x, vb.materialVertices[i].position.y, vb.materialVertices[i].position.z);
+        N[i]=triple(vb.materialVertices[i].normal.x, vb.materialVertices[i].normal.y, vb.materialVertices[i].normal.z);
       }
     }
     else {
-      for (size_t i=0; i < vb.Vertices.size(); ++i) {
-        P[i]=triple(vb.Vertices[i].position[0], vb.Vertices[i].position[1], vb.Vertices[i].position[2]);
-        N[i]=triple(vb.Vertices[i].normal[0], vb.Vertices[i].normal[1], vb.Vertices[i].normal[2]);
+      for (size_t i=0; i < vb.colorVertices.size(); ++i) {
+        P[i]=triple(vb.colorVertices[i].position.x, vb.colorVertices[i].position.y, vb.colorVertices[i].position.z);
+        N[i]=triple(vb.colorVertices[i].normal.x, vb.colorVertices[i].normal.y, vb.colorVertices[i].normal.z);
       }
     }
 
@@ -752,7 +752,7 @@ public:
   }
 
 #ifdef HAVE_LIBGLM
-  drawTriangles(vertexBuffer const& vb, const triple &center, bool isColor,
+  drawTriangles(VertexBuffer const& vb, const triple &center, bool isColor,
                 prc::RGBAColour diffuse,
                 prc::RGBAColour emissive,
                 prc::RGBAColour specular,
@@ -763,7 +763,7 @@ public:
                 bool invisible,
                 const triple& Min, const triple& Max) :
     drawBaseTriangles(vb,center,interaction,isColor,Min,Max),
-    nC(isColor ? vb.Vertices.size() : 0), C(nullptr),
+    nC(isColor ? vb.colorVertices.size() : 0), C(nullptr),
     CI(isColor ? PI : nullptr),
     Ci(isColor ? Ni : 0),
     diffuse(diffuse), emissive(emissive), specular(specular),
@@ -772,10 +772,10 @@ public:
     if(isColor) {
       C=new(UseGC) prc::RGBAColour[nC];
       for(size_t i=0; i < nC; ++i) {
-        C[i].Set(vb.Vertices[i].color[0],
-                 vb.Vertices[i].color[1],
-                 vb.Vertices[i].color[2],
-                 vb.Vertices[i].color[3]);
+        C[i].Set(vb.colorVertices[i].color.x,
+                 vb.colorVertices[i].color.y,
+                 vb.colorVertices[i].color.z,
+                 vb.colorVertices[i].color.w);
       }
     }
   }
