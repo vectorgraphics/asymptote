@@ -539,6 +539,28 @@ void AsyRender::exportHandler(int)
   // Default implementation - derived classes should override
 }
 
+/**
+ * Process messages from the message queue (inter-thread communication).
+ */
+void AsyRender::processMessages(RendererMessage const& msg)
+{
+  switch (msg)
+  {
+    case RendererMessage::exportRender:
+      if (readyForExport)
+      {
+        readyForExport=false;
+        exportHandler(0);
+      }
+      break;
+    case RendererMessage::updateRenderer:
+      updateHandler(0);
+      break;
+    default:
+      break;
+  }
+}
+
 void AsyRender::quit()
 {
 #ifdef HAVE_RENDERER

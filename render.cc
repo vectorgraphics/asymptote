@@ -1,4 +1,4 @@
-// g++ -DOMIT_OPTIONAL render.cc bezierpatch.cc
+// g++ render.cc bezierpatch.cc
 
 #include <iostream>
 #include "rgba.h"

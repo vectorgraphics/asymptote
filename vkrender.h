@@ -29,8 +29,6 @@
 #include "triple.h"
 #include "seconds.h"
 #include "statistics.h"
-#include "ThreadSafeQueue.h"
-#include "vkRenderMessages.h"
 
 #include "render.h"
 #include "renderBase.h"
@@ -133,7 +131,7 @@ public:
   /**
    * @remark Main thread is the consumer, other thread is the sender of messages;
    */
-   ThreadSafeQueue<VulkanRendererMessage> messageQueue;
+   ThreadSafeQueue<RendererMessage> messageQueue;
 
 #ifdef HAVE_RENDERER
   vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
@@ -174,7 +172,6 @@ private:
   };
 #endif
 
-  int Oldpid;
   bool ViewExport;
   bool readyAfterExport=false;
 
@@ -455,10 +452,9 @@ private:
 protected:
   void updateModelViewData() override;
   void setProjection() override;
-  // update() now implemented in base class AsyRender::update()
 
 public:
-  static void updateHandler(int);
+  void updateHandler(int=0);
 
 #ifdef HAVE_RENDERER
   void initWindow();
@@ -667,12 +663,10 @@ public:
   void display();
   void mainLoop();
   void cleanup();
-  void processMessages(VulkanRendererMessage const& msg);
 
   // user controls
-  void exportHandler(int=0) override;
+  void exportHandler(int=0);
   void Export(int imageIndex);
-  bool readyForExport=false;
   bool readyForUpdate=false;
   bool initialized=false;
   bool havewindow=false;

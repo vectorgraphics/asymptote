@@ -18,6 +18,7 @@
 #endif
 
 #include "common.h"
+#include "ThreadSafeQueue.h"
 
 #include "glmCommon.h"
 #include "material.h"
@@ -130,6 +131,16 @@ public:
 };
 
 /**
+ * RendererMessage - Message types for inter-thread communication.
+ * Used to send commands from asymain thread to render thread.
+ */
+enum class RendererMessage
+{
+  exportRender,   // Request to export/render a frame
+  updateRenderer  // Request to update renderer state
+};
+
+/**
  * AsyRender - Library-agnostic base class for renderers.
  * Contains code that is independent of the underlying graphics API (Vulkan, OpenGL, etc.).
  */
@@ -222,6 +233,11 @@ public:
   double lastzoom;
   int Fitscreen=1;
 
+  bool readyForExport=false;
+
+  // Child process ID for export (used by both OpenGL and Vulkan)
+  int Oldpid = 0;
+
 #ifdef HAVE_RENDERER
   // GLFW window pointer (shared between Vulkan and OpenGL renderers)
   // Using void* to avoid requiring GLFW header in all files that include this
@@ -275,7 +291,7 @@ public:
   double T[16];
   double Tup[16];
 
-  // Normal matrix for shader transformations
+  // Normal matrices for shader transformations
   glm::dmat3 dnormMat;  // Double precision normal matrix for CPU calculations
   glm::mat3 normMat;    // Float precision normal matrix for shaders
 
@@ -286,6 +302,9 @@ public:
   pthread_mutex_t initLock = PTHREAD_MUTEX_INITIALIZER;
   pthread_cond_t readySignal = PTHREAD_COND_INITIALIZER;
   pthread_mutex_t readyLock = PTHREAD_MUTEX_INITIALIZER;
+
+  // Message queue for inter-thread communication (asymain -> render thread)
+  ThreadSafeQueue<RendererMessage> messageQueue;
 #endif
 
 protected:
@@ -362,8 +381,12 @@ public:
   virtual void expand();
   virtual void shrink();
 
-  // Export handler
+  virtual void updateHandler(int=0) = 0;
   virtual void exportHandler(int=0) = 0;
+
+  // Message processing for inter-thread communication
+  void processMessages(RendererMessage const& msg);
+
   virtual void quit();
 
   // Window close handler (library-agnostic)
@@ -395,4 +418,5 @@ public:
 
 extern bool format3dWait;
 void mode();
+
 } // namespace camp

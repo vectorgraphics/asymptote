@@ -16,7 +16,7 @@
 #include "material.h"
 #include "triple.h"
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_LIBVULKAN
 #include "vk.h"
 #endif
 
@@ -50,7 +50,7 @@ struct MaterialVertex
   glm::vec3 normal;
   glm::i32 material;
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_LIBVULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(MaterialVertex), vk::VertexInputRate::eVertex);
@@ -80,7 +80,7 @@ struct ColorVertex
   glm::i32 material;
   glm::vec4 color;
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_LIBVULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(ColorVertex), vk::VertexInputRate::eVertex);
@@ -111,7 +111,7 @@ struct PointVertex
   glm::f32 width;
   glm::i32 material;
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_LIBVULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(PointVertex), vk::VertexInputRate::eVertex);

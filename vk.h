@@ -6,15 +6,11 @@
 
 #pragma once
 
-#if HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "common.h"
 
 #if defined(HAVE_RENDERER)
 
-// We undefined NDEBUG for common.h, but some files
+// We undefined NDEBUG in common.h, but some files
 // do not use common.h, causing includes
 // to be a mix of NDEBUG-ed vulkan header and those without
 #undef NDEBUG

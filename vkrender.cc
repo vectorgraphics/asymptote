@@ -35,6 +35,7 @@ using settings::getSetting;
 using settings::Setting;
 using namespace glm;
 
+
 static size_t timeout=10000000000;
 
 void exitHandler(int);
@@ -299,20 +300,20 @@ void AsyVkRender::onClose()
 }
 
 void AsyVkRender::updateHandler(int) {
-  if(vk->View && !interact::interactive) {
-    ::glfwHideWindow(vk->getGLFWWindow());
+  if(View && !interact::interactive) {
+    ::glfwHideWindow(getGLFWWindow());
     if(!getSetting<bool>("fitscreen"))
-      vk->Fitscreen=0;
+      Fitscreen=0;
   }
 
-  if(vk->device)
-    vk->device->waitIdle();
-  vk->resize=true;
-  vk->redisplay=true;
-  vk->redraw=true;
-  vk->remesh=true;
-  vk->waitEvent=false;
-  vk->recreatePipeline=true;
+  if(device)
+    device->waitIdle();
+  resize=true;
+  redisplay=true;
+  redraw=true;
+  remesh=true;
+  waitEvent=false;
+  recreatePipeline=true;
 }
 
 AsyVkRender::~AsyVkRender()
@@ -472,7 +473,7 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
     if(View) {
       // Called from asymain thread, main thread handles rendering
       hideWindow=false;
-      messageQueue.enqueue(updateRenderer);
+      messageQueue.enqueue(RendererMessage::updateRenderer);
     } else readyAfterExport=queueExport=true;
     return;
   }
@@ -4610,27 +4611,6 @@ void AsyVkRender::display()
   }
 }
 
-void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
-{
-  switch (msg)
-  {
-    case exportRender: {
-      if (readyForExport)
-      {
-        readyForExport=false;
-        exportHandler(0);
-      }
-    }
-      break;
-    case updateRenderer: {
-      updateHandler(0);
-    }
-      break;
-    default:
-      break;
-  }
-}
-
 void AsyVkRender::mainLoop()
 {
   if(View) {
@@ -4686,7 +4666,7 @@ void AsyVkRender::mainLoop()
         if(pthread_equal(pthread_self(),this->mainthread))
           exportHandler();
         else
-          messageQueue.enqueue(exportRender);
+          messageQueue.enqueue(RendererMessage::exportRender);
 #endif
       } else {
         initialized=true;
