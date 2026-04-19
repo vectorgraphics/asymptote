@@ -640,15 +640,21 @@ abstract class Geometry {
   }
 
   T(v) {
-    let c0=this.c[0];
-    let c1=this.c[1];
-    let c2=this.c[2];
-    let x=v[0]-c0;
-    let y=v[1]-c1;
-    let z=v[2]-c2;
-    return [x*normMat[0]+y*normMat[3]+z*normMat[6]+c0,
-            x*normMat[1]+y*normMat[4]+z*normMat[7]+c1,
-            x*normMat[2]+y*normMat[5]+z*normMat[8]+c2];
+    // First, apply the transform to the center point to get its transformed position
+    let centerTrans = this.transform ? this.transform([this.c])[0] : this.c;
+
+    // Calculate the offset of the original vertex relative to the original center (this.c)
+    let dx = v[0] - this.c[0];
+    let dy = v[1] - this.c[1];
+    let dz = v[2] - this.c[2];
+
+    // Apply the Billboard transformation (normMat) to the offset,
+    // and add the result to the transformed center point position
+    return [
+        dx * normMat[0] + dy * normMat[3] + dz * normMat[6] + centerTrans[0],
+        dx * normMat[1] + dy * normMat[4] + dz * normMat[7] + centerTrans[1],
+        dx * normMat[2] + dy * normMat[5] + dz * normMat[8] + centerTrans[2]
+    ];
   }
 
   Tcorners(m,M) {
@@ -722,10 +728,10 @@ abstract class Geometry {
       }
       P=p;
     } else { // Transform billboard labels
-      let n=p.length;
+      let n=this.controlpoints.length;
       P=Array(n);
       for(let i=0; i < n; ++i)
-        P[i]=this.T(p[i]);
+        P[i]=this.T(this.controlpoints[i]);
     }
 
     let s=W.orthographic ? 1 : this.Min[2]/W.maxBound[2];
