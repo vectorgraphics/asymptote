@@ -60,8 +60,6 @@ std::vector<const char*> instanceExtensions
 
 namespace camp
 {
-// Global BBT matrix for billboard transformations (accessed from multiple translation units)
-double BBT[9] = {0};
 
 const glm::dmat4& getProjViewMat()
 {
@@ -180,11 +178,6 @@ void AsyVkRender::setProjection()
 void AsyVkRender::updateModelViewData()
 {
   AsyRender::updateModelViewData();
-
-  // Update BBT array for Billboard transformations (using dnormMat directly)
-  const double *T=value_ptr(vk->dnormMat);
-  for(size_t i=0; i < 9; ++i)
-    BBT[i]=T[i];
 
   newUniformBuffer = true;
 }
