@@ -754,7 +754,7 @@ void transform(const std::vector<VertexData>& b)
   unsigned n=b.size();
   zbuffer.resize(n);
 
-  extern const double* dView;
+  const double* dView = value_ptr(getViewMat());
   double Tz0=dView[2];
   double Tz1=dView[6];
   double Tz2=dView[10];

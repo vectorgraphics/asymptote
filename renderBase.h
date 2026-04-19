@@ -292,8 +292,7 @@ public:
   double Tup[16];
 
   // Normal matrices for shader transformations
-  glm::dmat3 dnormMat;  // Double precision normal matrix for CPU calculations
-  glm::mat3 normMat;    // Float precision normal matrix for shaders
+  glm::dmat3 normMat;  // Double precision normal matrix for CPU calculations
 
 #ifdef HAVE_PTHREAD
   // Pthread synchronization primitives (shared between renderers)

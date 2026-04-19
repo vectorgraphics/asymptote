@@ -62,7 +62,6 @@ using namespace glm;
 namespace camp {
 // Global matrices for shader compatibility (accessed from setUniforms)
 double BBT[9] = {0};
-const double *dView;
 
 Billboard BB;
 
@@ -72,9 +71,14 @@ const glm::dmat4& getProjViewMat()
   return gl->projViewMat;
 }
 
+const glm::dmat4& getViewMat()
+{
+  return gl->viewMat;
+}
+
 const glm::dmat3& getNormMat()
 {
-  return gl->dnormMat;
+  return gl->normMat;
 }
 
 // Vertex buffers - these remain globals as they are populated by drawElement rendering
@@ -1341,7 +1345,7 @@ void setUniforms(vertexBuffer& data, GLint shader)
                      value_ptr(glm::mat4(gl->viewMat)));
   if(normal)
     glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE,
-                       value_ptr(gl->normMat));
+                       value_ptr(glm::mat3(gl->normMat)));
 
   if(shader == gl->countShader) {
     gl->lastshader=shader;
@@ -2144,13 +2148,10 @@ void AsyGLRender::updateModelViewData()
 {
   AsyRender::updateModelViewData();
 
-  // Update BBT array for Billboard transformations (using dnormMat directly)
-  const double *T=value_ptr(this->dnormMat);
+  // Update BBT array for Billboard transformations (using normMat directly)
+  const double *T=value_ptr(this->normMat);
   for(size_t i=0; i < 9; ++i)
     BBT[i]=T[i];
-
-  // Update dView pointer for offscreen culling
-  dView = value_ptr(this->viewMat);
 }
 
 void AsyGLRender::update()

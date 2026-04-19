@@ -77,6 +77,7 @@ extern double BBT[9];
 // Accessor functions for matrices (to avoid synchronization with gl instance)
 #ifdef HAVE_LIBGLM
 const glm::dmat4& getProjViewMat();
+const glm::dmat4& getViewMat();
 const glm::dmat3& getNormMat();
 #endif
 
