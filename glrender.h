@@ -109,8 +109,6 @@ extern GLuint vao;  // Vertex Array Object
 #endif
 
 #ifdef HAVE_LIBGLM
-extern std::vector<Material> materials;
-extern MaterialMap materialMap;
 extern size_t materialIndex;
 extern int MaterialIndex;
 
@@ -120,18 +118,8 @@ extern const size_t nbuffer; // Initial size of 0D & 1D dynamic buffers
 // VertexBuffer and related types are defined in render.h
 // Globals: materialData, colorData, triangleData, transparentData, pointData, lineData
 
-void drawBuffer(VertexBuffer& data, GLint shader, bool color=false, unsigned int drawType=4);  // drawType: 0=GL_POINTS, 1=GL_LINES, 4=GL_TRIANGLES
-void drawBuffers();
-
 void clearMaterials();
 void clearCenters();
-
-void drawMaterial0();
-void drawMaterial1();
-void drawMaterial();
-void drawColor();
-void drawTriangle();
-void drawTransparent();
 
 #endif
 
@@ -162,6 +150,7 @@ public:
   bool glexit = false;
   bool initialized = false;
   bool copied = false;
+  bool Iconify = false;
 
   // Lighting (OpenGL-specific, public for jsfile/v3dfile access)
   size_t Nlights = 1;
@@ -265,6 +254,37 @@ public:
 
   /** Returns the GLFW window pointer (does the static_cast from void* once) */
   GLFWwindow* getGLFWWindow() const { return static_cast<GLFWwindow*>(glfwWindow); }
+
+  // Shader and buffer management functions
+  void initComputeShaders();
+  void initBlendShader();
+  void setBuffers();
+  void initShaders();
+  void deleteComputeShaders();
+  void deleteBlendShader();
+  void deleteShaders();
+  void resizeBlendShader(GLuint maxsize);
+
+  // Rendering functions
+  void drawscene(int Width, int Height);
+  void Export();
+  void refreshBuffers();
+  void setUniformsOpenGL(GLint shader);
+  void drawBuffer(VertexBuffer& data, GLint shader, bool color=false, unsigned int drawType=4);
+  void drawMaterial0();
+  void drawMaterial1();
+  void drawMaterial();
+  void drawColor();
+  void drawTriangle();
+  void aBufferTransparency();
+  void drawTransparent();
+  void drawBuffers();
+
+  // GPU compute functions
+  void clearCount();
+  void compressCount();
+  void partialSums(bool readSize=false);
+  void resizeFragmentBuffer();
 
 protected:
   void mainLoop();

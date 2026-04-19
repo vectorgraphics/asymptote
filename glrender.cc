@@ -89,10 +89,6 @@ const glm::dmat3& getNormMat()
 const size_t Nbuffer=10000;
 const size_t nbuffer=1000;
 
-std::vector<Material> materials;
-MaterialMap materialMap;
-// materialIndex is defined in bezierpatch.cc
-
 size_t Maxmaterials;
 size_t Nmaterials=1;
 size_t nmaterials=48;
@@ -106,9 +102,9 @@ void clearCenters()
 
 void clearMaterials()
 {
-  materials.clear();
-  materials.reserve(nmaterials);
-  materialMap.clear();
+  gl->materials.clear();
+  gl->materials.reserve(nmaterials);
+  gl->materialMap.clear();
 
   pointData.renderCount=0;
   lineData.renderCount=0;
@@ -129,22 +125,17 @@ bool Xspin,Yspin,Zspin;
 double T[16];
 double Tup[16];
 
-// OpenGL-specific global state (minimal set for shader compatibility)
-bool Iconify=false;
-int Fitscreen=1;
-bool firstFit;
-bool ViewExport;
-// Note: Oldpid is now a member variable in AsyRender base class
-// Note: Prefix, Format, fullWidth, fullHeight, Width, Height are now in AsyRender base class
+// OpenGL-specific global state
+bool format3dWait=false;  // Keep as global for threading
 const picture* Picture;  // Keep as global for drawscene() compatibility
 double gl_X, gl_Y;
-string currentAction="";
 double xprev,yprev;
 static const double ASY_PI=acos(-1.0);
 static const double ASY_DEGREES=180.0/ASY_PI;
 static const double ASY_RADIANS=1.0/ASY_DEGREES;
 
-bool format3dWait=false;  // Keep as global for threading
+bool firstFit;
+bool ViewExport;
 
 // IBL textures - disabled for now due to template issues
 void* iblbrdfTex = nullptr;
@@ -244,7 +235,7 @@ void noShaders()
   exit(-1);
 }
 
-void initComputeShaders()
+void AsyGLRender::initComputeShaders()
 {
   string sum1=locateFile("shaders/sum1.glsl");
   string sum2=locateFile("shaders/sum2.glsl");
@@ -259,9 +250,9 @@ void initComputeShaders()
 
   shaders[0]=ShaderfileModePair(sum1.c_str(),GL_COMPUTE_SHADER);
   ostringstream s,s2;
-  s << "LOCALSIZE " << gl->localSize << "u" << endl;
+  s << "LOCALSIZE " << localSize << "u" << endl;
   shaderParams.push_back(s.str().c_str());
-  s2 << "BLOCKSIZE " << gl->blockSize << "u" << endl;
+  s2 << "BLOCKSIZE " << blockSize << "u" << endl;
   shaderParams.push_back(s2.str().c_str());
   GLuint rc=compileAndLinkShader(shaders,shaderParams,true,false,true,true);
   if(rc == 0) {
@@ -270,24 +261,24 @@ void initComputeShaders()
       cout << "No compute shader support" << endl;
   } else {
 //    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT,0,&maxgroups);
-//    maxgroups=min(1024,maxgroups/(GLint) (gl->localSize*gl->localSize));
-    gl->sum1Shader=rc;
+//    maxgroups=min(1024,maxgroups/(GLint) (localSize*blockSize));
+    sum1Shader=rc;
 
     shaders[0]=ShaderfileModePair(sum2.c_str(),GL_COMPUTE_SHADER);
-    gl->sum2Shader=compileAndLinkShader(shaders,shaderParams,true,false,
+    sum2Shader=compileAndLinkShader(shaders,shaderParams,true,false,
                                           true);
 
     shaders[0]=ShaderfileModePair(sum2fast.c_str(),GL_COMPUTE_SHADER);
-    gl->sum2fastShader=compileAndLinkShader(shaders,shaderParams,true,false,
+    sum2fastShader=compileAndLinkShader(shaders,shaderParams,true,false,
                                               true);
 
     shaders[0]=ShaderfileModePair(sum3.c_str(),GL_COMPUTE_SHADER);
-    gl->sum3Shader=compileAndLinkShader(shaders,shaderParams,true,false,
+    sum3Shader=compileAndLinkShader(shaders,shaderParams,true,false,
                                           true);
   }
 }
 
-void initBlendShader()
+void AsyGLRender::initBlendShader()
 {
   string screen=locateFile("shaders/screen.glsl");
   string blend=locateFile("shaders/blend.glsl");
@@ -299,7 +290,7 @@ void initBlendShader()
   std::vector<std::string> shaderParams;
 
   ostringstream s;
-  s << "ARRAYSIZE " << gl->maxSize << "u" << endl;
+  s << "ARRAYSIZE " << maxSize << "u" << endl;
   shaderParams.push_back(s.str().c_str());
   if(GPUindexing)
     shaderParams.push_back("GPUINDEXING");
@@ -307,7 +298,7 @@ void initBlendShader()
     shaderParams.push_back("GPUCOMPRESS");
   shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
   shaders[1]=ShaderfileModePair(blend.c_str(),GL_FRAGMENT_SHADER);
-  gl->blendShader=compileAndLinkShader(shaders,shaderParams,gl->ssbo);
+  blendShader=compileAndLinkShader(shaders,shaderParams,ssbo);
 }
 
 // Return the smallest power of 2 greater than or equal to n.
@@ -322,17 +313,17 @@ inline GLuint ceilpow2(GLuint n)
   return ++n;
 }
 
-void setBuffers()
+void AsyGLRender::setBuffers()
 {
   if(settings::verbose > 2) {
-    cerr << "setBuffers: Creating VAO, gl->vao=" << gl->vao << endl;
+    cerr << "setBuffers: Creating VAO, vao=" << vao << endl;
   }
-  glGenVertexArrays(1,&gl->vao);
+  glGenVertexArrays(1,&vao);
   if(settings::verbose > 2) {
-    cerr << "setBuffers: VAO created, gl->vao=" << gl->vao << endl;
+    cerr << "setBuffers: VAO created, vao=" << vao << endl;
   }
   // Bind VAO once and leave it bound for all subsequent draw operations
-  glBindVertexArray(gl->vao);
+  glBindVertexArray(vao);
 
   // Buffers are pre-sized as needed, no explicit reserve calls needed
   materialData.renderCount=0;
@@ -341,32 +332,32 @@ void setBuffers()
   transparentData.renderCount=0;
 
   // Create materials uniform buffer
-  glGenBuffers(1, &gl->materialsBuffer);
+  glGenBuffers(1, &materialsBuffer);
 
 #ifdef HAVE_SSBO
-  glGenBuffers(1, &gl->offsetBuffer);
+  glGenBuffers(1, &offsetBuffer);
   if(GPUindexing)
-    glGenBuffers(1, &gl->globalSumBuffer);
-  glGenBuffers(1, &gl->feedbackBuffer);
-  glGenBuffers(1, &gl->countBuffer);
+    glGenBuffers(1, &globalSumBuffer);
+  glGenBuffers(1, &feedbackBuffer);
+  glGenBuffers(1, &countBuffer);
   if(GPUcompress) {
-    glGenBuffers(1, &gl->indexBuffer);
-    glGenBuffers(1, &gl->elementsBuffer);
+    glGenBuffers(1, &indexBuffer);
+    glGenBuffers(1, &elementsBuffer);
   }
-  glGenBuffers(1, &gl->fragmentBuffer);
-  glGenBuffers(1, &gl->depthBuffer);
-  glGenBuffers(1, &gl->opaqueBuffer);
-  glGenBuffers(1, &gl->opaqueDepthBuffer);
+  glGenBuffers(1, &fragmentBuffer);
+  glGenBuffers(1, &depthBuffer);
+  glGenBuffers(1, &opaqueBuffer);
+  glGenBuffers(1, &opaqueDepthBuffer);
 #endif
 
   if(settings::verbose > 2) {
-    cerr << "setBuffers: Done, gl->vao=" << gl->vao << endl;
+    cerr << "setBuffers: Done, vao=" << vao << endl;
   }
 }
 
-void initShaders()
+void AsyGLRender::initShaders()
 {
-  gl->Nlights = gl->nlights == 0 ? 0 : std::max(gl->Nlights, gl->nlights);
+  Nlights = nlights == 0 ? 0 : std::max(Nlights, nlights);
   Nmaterials = std::max(Nmaterials, nmaterials);
 
   string zero=locateFile("shaders/zero.glsl");
@@ -388,7 +379,7 @@ void initShaders()
   std::vector<ShaderfileModePair> shaders(2);
   std::vector<std::string> shaderParams;
 
-  if(gl->ibl) {
+  if(ibl) {
     shaderParams.push_back("USE_IBL");
     initIBL();
   }
@@ -401,161 +392,159 @@ void initShaders()
   if(GPUcompress)
     shaderParams.push_back("GPUCOMPRESS");
   shaders[1]=ShaderfileModePair(count.c_str(),GL_FRAGMENT_SHADER);
-  gl->countShader=compileAndLinkShader(shaders,shaderParams,
+  countShader=compileAndLinkShader(shaders,shaderParams,
                                          true,false,false,true);
-  if(gl->countShader)
+  if(countShader)
     shaderParams.push_back("HAVE_SSBO");
 #else
-  gl->countShader=0;
+  countShader=0;
 #endif
 
-  gl->ssbo=gl->countShader;
+  ssbo=countShader;
 #ifdef HAVE_LIBOSMESA
-  gl->interlock=false;
+  interlock=false;
 #else
-  gl->interlock=gl->ssbo && getSetting<bool>("GPUinterlock");
+  interlock=ssbo && getSetting<bool>("GPUinterlock");
 #endif
 
-  if(!gl->ssbo && settings::verbose > 2)
+  if(!ssbo && settings::verbose > 2)
     cout << "No SSBO support; order-independent transparency unavailable"
          << endl;
 
   shaders[1]=ShaderfileModePair(fragment.c_str(),GL_FRAGMENT_SHADER);
   shaderParams.push_back("MATERIAL");
-  if(gl->orthographic)
+  if(orthographic)
     shaderParams.push_back("ORTHOGRAPHIC");
 
   ostringstream lights,materials,opaque;
-  lights << "Nlights " << gl->Nlights;
+  lights << "Nlights " << Nlights;
   shaderParams.push_back(lights.str().c_str());
   materials << "Nmaterials " << Nmaterials;
   shaderParams.push_back(materials.str().c_str());
 
   shaderParams.push_back("WIDTH");
-  gl->pixelShader=compileAndLinkShader(shaders,shaderParams,gl->ssbo);
+  pixelShader=compileAndLinkShader(shaders,shaderParams,ssbo);
   shaderParams.pop_back();
 
   shaderParams.push_back("NORMAL");
-  if(gl->interlock) shaderParams.push_back("HAVE_INTERLOCK");
-  gl->materialShader[0]=compileAndLinkShader(shaders,shaderParams,
-                                               gl->ssbo,gl->interlock,false,true);
-  if(gl->interlock && !gl->materialShader[0]) {
+  if(interlock) shaderParams.push_back("HAVE_INTERLOCK");
+  materialShader[0]=compileAndLinkShader(shaders,shaderParams,
+                                               ssbo,interlock,false,true);
+  if(interlock && !materialShader[0]) {
     shaderParams.pop_back();
-    gl->interlock=false;
-    gl->materialShader[0]=compileAndLinkShader(shaders,shaderParams,gl->ssbo);
+    interlock=false;
+    materialShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo);
     if(settings::verbose > 2)
       cout << "No fragment shader interlock support" << endl;
   }
 
   shaderParams.push_back("OPAQUE");
-  gl->materialShader[1]=compileAndLinkShader(shaders,shaderParams,gl->ssbo);
+  materialShader[1]=compileAndLinkShader(shaders,shaderParams,ssbo);
   shaderParams.pop_back();
 
   shaderParams.push_back("COLOR");
-  gl->colorShader[0]=compileAndLinkShader(shaders,shaderParams,gl->ssbo,
-                                            gl->interlock);
+  colorShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo,
+                                            interlock);
   shaderParams.push_back("OPAQUE");
-  gl->colorShader[1]=compileAndLinkShader(shaders,shaderParams,gl->ssbo);
+  colorShader[1]=compileAndLinkShader(shaders,shaderParams,ssbo);
   shaderParams.pop_back();
 
   shaderParams.push_back("GENERAL");
-  if(gl->mode != DRAWMODE_NORMAL)
+  if(mode != DRAWMODE_NORMAL)
     shaderParams.push_back("WIREFRAME");
-  gl->generalShader[0]=compileAndLinkShader(shaders,shaderParams,gl->ssbo,
-                                              gl->interlock);
+  generalShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo,
+                                              interlock);
   shaderParams.push_back("OPAQUE");
-  gl->generalShader[1]=compileAndLinkShader(shaders,shaderParams,gl->ssbo);
+  generalShader[1]=compileAndLinkShader(shaders,shaderParams,ssbo);
   shaderParams.pop_back();
 
   shaderParams.push_back("TRANSPARENT");
-  gl->transparentShader=compileAndLinkShader(shaders,shaderParams,gl->ssbo,
-                                               gl->interlock);
+  transparentShader=compileAndLinkShader(shaders,shaderParams,ssbo,
+                                               interlock);
   shaderParams.clear();
 
-  if(gl->ssbo) {
+  if(ssbo) {
     if(GPUindexing)
       shaderParams.push_back("GPUINDEXING");
     shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
     shaders[1]=ShaderfileModePair(compress.c_str(),GL_FRAGMENT_SHADER);
-    gl->compressShader=compileAndLinkShader(shaders,shaderParams,gl->ssbo);
+    compressShader=compileAndLinkShader(shaders,shaderParams,ssbo);
     if(GPUindexing)
       shaderParams.pop_back();
     else {
       shaders[1]=ShaderfileModePair(zero.c_str(),GL_FRAGMENT_SHADER);
-      gl->zeroShader=compileAndLinkShader(shaders,shaderParams,gl->ssbo);
+      zeroShader=compileAndLinkShader(shaders,shaderParams,ssbo);
     }
-    gl->maxSize=1;
+    maxSize=1;
     initBlendShader();
   }
-  gl->lastshader=-1;
+  lastshader=-1;
 
-  if(gl->vao == 0)
+  if(vao == 0)
     setBuffers();
 }
 
-void deleteComputeShaders()
+void AsyGLRender::deleteComputeShaders()
 {
-  glDeleteProgram(gl->sum1Shader);
-  glDeleteProgram(gl->sum2Shader);
-  glDeleteProgram(gl->sum2fastShader);
-  glDeleteProgram(gl->sum3Shader);
+  glDeleteProgram(sum1Shader);
+  glDeleteProgram(sum2Shader);
+  glDeleteProgram(sum2fastShader);
+  glDeleteProgram(sum3Shader);
 }
 
-void deleteBlendShader()
+void AsyGLRender::deleteBlendShader()
 {
-  glDeleteProgram(gl->blendShader);
+  glDeleteProgram(blendShader);
 }
 
-void deleteShaders()
+void AsyGLRender::deleteShaders()
 {
-  if(gl->ssbo) {
+  if(ssbo) {
     deleteBlendShader();
     if(GPUindexing)
       deleteComputeShaders();
     else
-      glDeleteProgram(gl->zeroShader);
-    glDeleteProgram(gl->countShader);
-    glDeleteProgram(gl->compressShader);
+      glDeleteProgram(zeroShader);
+    glDeleteProgram(countShader);
+    glDeleteProgram(compressShader);
   }
 
-  if (gl->transparentShader != 0)
-    glDeleteProgram(gl->transparentShader);
+  if (transparentShader != 0)
+    glDeleteProgram(transparentShader);
   for(unsigned int opaque=0; opaque < 2; ++opaque) {
-    if (gl->generalShader[opaque] != 0)
-      glDeleteProgram(gl->generalShader[opaque]);
-    if (gl->colorShader[opaque] != 0)
-      glDeleteProgram(gl->colorShader[opaque]);
-    if (gl->materialShader[opaque] != 0)
-      glDeleteProgram(gl->materialShader[opaque]);
+    if (generalShader[opaque] != 0)
+      glDeleteProgram(generalShader[opaque]);
+    if (colorShader[opaque] != 0)
+      glDeleteProgram(colorShader[opaque]);
+    if (materialShader[opaque] != 0)
+      glDeleteProgram(materialShader[opaque]);
   }
-  if (gl->pixelShader != 0)
-    glDeleteProgram(gl->pixelShader);
+  if (pixelShader != 0)
+    glDeleteProgram(pixelShader);
 }
 
-void resizeBlendShader(GLuint maxsize)
+void AsyGLRender::resizeBlendShader(GLuint maxsize)
 {
-  gl->maxSize=ceilpow2(maxsize);
+  maxSize=ceilpow2(maxsize);
   deleteBlendShader();
   initBlendShader();
 }
 
-bool exporting=false;
-
-void drawscene(int Width, int Height)
+void AsyGLRender::drawscene(int Width, int Height)
 {
 #ifdef HAVE_PTHREAD
   static bool first=true;
   if(first) {
-    gl->wait(gl->initSignal,gl->initLock);
-    gl->endwait(gl->initSignal,gl->initLock);
+    wait(initSignal,initLock);
+    endwait(initSignal,initLock);
     first=false;
   }
 
   if(format3dWait)
-    gl->wait(gl->initSignal,gl->initLock);
+    wait(initSignal,initLock);
 #endif
 
-  if((gl->nlights == 0 && gl->Nlights > 0) || gl->nlights > gl->Nlights ||
+  if((nlights == 0 && Nlights > 0) || nlights > Nlights ||
      nmaterials > Nmaterials) {
     deleteShaders();
     initShaders();
@@ -569,22 +558,22 @@ void drawscene(int Width, int Height)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Use member variables from AsyGLRender (following Vulkan pattern)
-  if(gl->xmin >= gl->xmax || gl->ymin >= gl->ymax || gl->Zmin >= gl->Zmax) return;
+  if(xmin >= xmax || ymin >= ymax || Zmin >= Zmax) return;
 
-  triple m(gl->xmin,gl->ymin,gl->Zmin);
-  triple M(gl->xmax,gl->ymax,gl->Zmax);
-  double perspective=gl->orthographic || gl->Zmax == 0.0 ? 0.0 : 1.0/gl->Zmax;
+  triple m(xmin,ymin,Zmin);
+  triple M(xmax,ymax,Zmax);
+  double perspective=orthographic || Zmax == 0.0 ? 0.0 : 1.0/Zmax;
 
   double size2=hypot(Width,Height);
 
-  if(gl->remesh)
+  if(remesh)
     clearCenters();
 
   if(settings::verbose > 2) {
     cerr << "drawscene: calling Picture->render()" << endl;
   }
   if(Picture)
-    Picture->render(size2,m,M,perspective,gl->remesh);
+    Picture->render(size2,m,M,perspective,remesh);
 
   if(settings::verbose > 2) {
     cerr << "drawscene: Picture->render() complete" << endl;
@@ -594,8 +583,8 @@ void drawscene(int Width, int Height)
   drawBuffers();
 #endif
 
-  if(gl->mode != DRAWMODE_OUTLINE)
-    gl->remesh=false;
+  if(mode != DRAWMODE_OUTLINE)
+    remesh=false;
 }
 
 // Return x divided by y rounded up to the nearest integer.
@@ -604,9 +593,9 @@ int ceilquotient(int x, int y)
   return (x+y-1)/y;
 }
 
-void Export()
+void AsyGLRender::Export()
 {
-  size_t ndata=3*gl->fullWidth*gl->fullHeight;
+  size_t ndata=3*fullWidth*fullHeight;
   if(ndata == 0) return;
   glReadBuffer(GL_BACK_LEFT);
   glPixelStorei(GL_PACK_ALIGNMENT,1);
@@ -617,41 +606,41 @@ void Export()
     unsigned char *data=new unsigned char[ndata];
     if(data) {
       TRcontext *tr=trNew();
-      int width=ceilquotient(gl->fullWidth,
-                             ceilquotient(gl->fullWidth,std::min(gl->maxTileWidth,gl->Width)));
-      int height=ceilquotient(gl->fullHeight,
-                              ceilquotient(gl->fullHeight,
-                                           std::min(gl->maxTileHeight,gl->Height)));
+      int width=ceilquotient(fullWidth,
+                             ceilquotient(fullWidth,std::min(maxTileWidth,Width)));
+      int height=ceilquotient(fullHeight,
+                              ceilquotient(fullHeight,
+                                           std::min(maxTileHeight,Height)));
       if(settings::verbose > 1)
-        cout << "Exporting " << gl->Prefix << " as " << gl->fullWidth << "x"
-             << gl->fullHeight << " image" << " using tiles of size "
+        cout << "Exporting " << Prefix << " as " << fullWidth << "x"
+             << fullHeight << " image" << " using tiles of size "
              << width << "x" << height << endl;
 
       unsigned border=std::min(std::min(1,(width-1)/2),(height-1)/2);
       trTileSize(tr,width,height,border);
-      trImageSize(tr,gl->fullWidth,gl->fullHeight);
+      trImageSize(tr,fullWidth,fullHeight);
       trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
 
       // Use member variables from AsyGLRender (following Vulkan pattern)
-      double dXmin = gl->xmin;
-      double dXmax = gl->xmax;
-      double dYmin = gl->ymin;
-      double dYmax = gl->ymax;
-      double dZmin = gl->Zmin;
-      double dZmax = gl->Zmax;
+      double dXmin = xmin;
+      double dXmax = xmax;
+      double dYmin = ymin;
+      double dYmax = ymax;
+      double dZmin = Zmin;
+      double dZmax = Zmax;
 
       size_t count=0;
-      if(gl->haveScene) {
-        (gl->orthographic ? trOrtho : trFrustum)(tr,dXmin,dXmax,dYmin,dYmax,-dZmax,-dZmin);
+      if(haveScene) {
+        (orthographic ? trOrtho : trFrustum)(tr,dXmin,dXmax,dYmin,dYmax,-dZmax,-dZmin);
         do {
           trBeginTile(tr);
-          gl->remesh=true;
-          drawscene(gl->fullWidth,gl->fullHeight);
-          gl->lastshader=-1;
+          remesh=true;
+          drawscene(fullWidth,fullHeight);
+          lastshader=-1;
           ++count;
         } while (trEndTile(tr));
       } else {// clear screen and return
-        drawscene(gl->fullWidth,gl->fullHeight);
+        drawscene(fullWidth,fullHeight);
       }
 
       if(settings::verbose > 1)
@@ -660,21 +649,21 @@ void Export()
 
       picture pic;
       drawRawImage *Image=NULL;
-      if(gl->haveScene) {
-        double w=gl->oWidth;
-        double h=gl->oHeight;
-        double Aspect=((double) gl->fullWidth)/gl->fullHeight;
+      if(haveScene) {
+        double w=oWidth;
+        double h=oHeight;
+        double Aspect=((double) fullWidth)/fullHeight;
         if(w > h*Aspect) w=(int) (h*Aspect+0.5);
         else h=(int) (w/Aspect+0.5);
         // Render an antialiased image.
 
-        Image=new drawRawImage(data,gl->fullWidth,gl->fullHeight,
+        Image=new drawRawImage(data,fullWidth,fullHeight,
                                transform(0.0,0.0,w,0.0,0.0,h),
-                               gl->antialias);
+                               antialias);
         pic.append(Image);
       }
 
-      pic.shipout(NULL,gl->Prefix,gl->Format,false,ViewExport);
+      pic.shipout(NULL,Prefix,Format,false,ViewExport);
       if(Image)
         delete Image;
       delete[] data;
@@ -683,22 +672,22 @@ void Export()
   } catch(std::bad_alloc&) {
     outOfMemory();
   }
-  gl->remesh=true;
+  remesh=true;
 
 #ifndef HAVE_LIBOSMESA
 #ifdef HAVE_LIBGLFW
-  gl->redraw=true;
+  redraw=true;
 #endif
 
 #ifdef HAVE_PTHREAD
-  if(gl->thread && gl->readyAfterExport) {
-    gl->readyAfterExport=false;
-    gl->endwait(gl->readySignal,gl->readyLock);
+  if(thread && readyAfterExport) {
+    readyAfterExport=false;
+    endwait(readySignal,readyLock);
   }
 #endif
 #endif
   exporting=false;
-  gl->initSSBO=true;
+  initSSBO=true;
 }
 
 void nodisplay()
@@ -868,7 +857,7 @@ void fullscreen(bool reposition=true)
 
 void fitscreen(bool reposition=true)
 {
-  switch(Fitscreen) {
+  switch(gl->Fitscreen) {
     case 0: // Original size
     {
       gl->Xfactor=gl->Yfactor=1.0;
@@ -897,8 +886,8 @@ void fitscreen(bool reposition=true)
 
 void togglefitscreen()
 {
-  ++Fitscreen;
-  if(Fitscreen > 2) Fitscreen=0;
+  ++gl->Fitscreen;
+  if(gl->Fitscreen > 2) gl->Fitscreen=0;
   fitscreen();
 }
 
@@ -967,17 +956,17 @@ void exportHandler(int=0)
 {
 #ifndef HAVE_LIBOSMESA
 #ifdef HAVE_LIBGLFW
-  if(!Iconify) {
+  if(!gl->Iconify) {
     glfwShowWindow(gl->getGLFWWindow());
   }
 #endif
 #endif
   gl->readyAfterExport=true;
-  Export();
+  gl->Export();
 
 #ifndef HAVE_LIBOSMESA
 #ifdef HAVE_LIBGLFW
-  if(!Iconify)
+  if(!gl->Iconify)
     glfwHideWindow(gl->getGLFWWindow());
 #endif
 #endif
@@ -1077,189 +1066,189 @@ void registerBuffer(const std::vector<T>& buffervector, GLuint& bufferIndex,
   }
 }
 
-void clearCount()
+void AsyGLRender::clearCount()
 {
-  glUseProgram(gl->zeroShader);
-  gl->lastshader=gl->zeroShader;
-  glUniform1ui(glGetUniformLocation(gl->zeroShader,"width"),gl->Width);
+  glUseProgram(zeroShader);
+  lastshader=zeroShader;
+  glUniform1ui(glGetUniformLocation(zeroShader,"width"),Width);
   fpu_trap(false); // Work around FE_INVALID
   glDrawArrays(GL_TRIANGLES, 0, 3);
   fpu_trap(settings::trap());
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }
 
-void compressCount()
+void AsyGLRender::compressCount()
 {
   glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
-  glUseProgram(gl->compressShader);
-  gl->lastshader=gl->compressShader;
-  glUniform1ui(glGetUniformLocation(gl->compressShader,"width"),gl->Width);
+  glUseProgram(compressShader);
+  lastshader=compressShader;
+  glUniform1ui(glGetUniformLocation(compressShader,"width"),Width);
   fpu_trap(false); // Work around FE_INVALID
   glDrawArrays(GL_TRIANGLES, 0, 3);
   fpu_trap(settings::trap());
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }
 
-void partialSums(bool readSize=false)
+void AsyGLRender::partialSums(bool readSize)
 {
   // Compute partial sums on the GPU
-  glUseProgram(gl->sum1Shader);
-  glDispatchCompute(gl->g,1,1);
+  glUseProgram(sum1Shader);
+  glDispatchCompute(g,1,1);
 
-  if(gl->elements <= gl->groupSize*gl->groupSize)
-    glUseProgram(gl->sum2fastShader);
+  if(elements <= groupSize*groupSize)
+    glUseProgram(sum2fastShader);
   else {
-    glUseProgram(gl->sum2Shader);
-    glUniform1ui(glGetUniformLocation(gl->sum2Shader,"blockSize"),
-                 ceilquotient(gl->g,gl->localSize));
+    glUseProgram(sum2Shader);
+    glUniform1ui(glGetUniformLocation(sum2Shader,"blockSize"),
+                 ceilquotient(g,localSize));
   }
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDispatchCompute(1,1,1);
 
-  glUseProgram(gl->sum3Shader);
-  glUniform1ui(glGetUniformLocation(gl->sum3Shader,"final"),gl->elements-1);
+  glUseProgram(sum3Shader);
+  glUniform1ui(glGetUniformLocation(sum3Shader,"final"),elements-1);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-  glDispatchCompute(gl->g,1,1);
+  glDispatchCompute(g,1,1);
 }
 
-void resizeFragmentBuffer()
+void AsyGLRender::resizeFragmentBuffer()
 {
   if(GPUindexing) {
     glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->feedbackBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,feedbackBuffer);
     GLuint *feedback=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_ONLY);
 
     GLuint maxDepth=feedback[0];
-    if(maxDepth > gl->maxSize)
+    if(maxDepth > maxSize)
       resizeBlendShader(maxDepth);
 
-    gl->fragments=feedback[1];
+    fragments=feedback[1];
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
   }
 
-  if(gl->fragments > gl->maxFragments) {
+  if(fragments > maxFragments) {
     // Initialize the alpha buffer
-    gl->maxFragments=11*gl->fragments/10;
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->fragmentBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,gl->maxFragments*sizeof(glm::vec4),
+    maxFragments=11*fragments/10;
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,fragmentBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,maxFragments*sizeof(glm::vec4),
                  NULL,GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,4,gl->fragmentBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,4,fragmentBuffer);
 
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->depthBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,gl->maxFragments*sizeof(GLfloat),
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,depthBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,maxFragments*sizeof(GLfloat),
                  NULL,GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,5,gl->depthBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,5,depthBuffer);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->feedbackBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,feedbackBuffer);
   }
 }
 
-void refreshBuffers()
+void AsyGLRender::refreshBuffers()
 {
   GLuint zero=0;
-  gl->pixels=(gl->Width+1)*(gl->Height+1);
+  pixels=(Width+1)*(Height+1);
 
-  if(gl->initSSBO) {
-    gl->processors=1;
+  if(initSSBO) {
+    processors=1;
 
     GLuint Pixels;
     if(GPUindexing) {
-      GLuint G=ceilquotient(gl->pixels,gl->groupSize);
-      Pixels=gl->groupSize*G;
+      GLuint G=ceilquotient(pixels,groupSize);
+      Pixels=groupSize*G;
 
-      GLuint globalSize=gl->localSize*ceilquotient(G,gl->localSize);
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->globalSumBuffer);
+      GLuint globalSize=localSize*ceilquotient(G,localSize);
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER,globalSumBuffer);
       glBufferData(GL_SHADER_STORAGE_BUFFER,globalSize*sizeof(GLuint),NULL,
                    GL_DYNAMIC_READ);
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                         GL_UNSIGNED_INT,&zero);
-      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,3,gl->globalSumBuffer);
-    } else Pixels=gl->pixels;
+      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,3,globalSumBuffer);
+    } else Pixels=pixels;
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->offsetBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,offsetBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,(Pixels+2)*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,gl->offsetBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,offsetBuffer);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->countBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,countBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,(Pixels+2)*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,gl->countBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,countBuffer);
 
     if(GPUcompress) {
       GLuint one=1;
-      glBindBuffer(GL_ATOMIC_COUNTER_BUFFER,gl->elementsBuffer);
+      glBindBuffer(GL_ATOMIC_COUNTER_BUFFER,elementsBuffer);
       glBufferData(GL_ATOMIC_COUNTER_BUFFER,sizeof(GLuint),&one,
                    GL_DYNAMIC_DRAW);
-      glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER,0,gl->elementsBuffer);
+      glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER,0,elementsBuffer);
 
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->indexBuffer);
-      glBufferData(GL_SHADER_STORAGE_BUFFER,gl->pixels*sizeof(GLuint),
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER,indexBuffer);
+      glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),
                    NULL,GL_DYNAMIC_DRAW);
-      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,gl->indexBuffer);
+      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,indexBuffer);
     }
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                       GL_UNSIGNED_INT,&zero); // Clear count or index buffer
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->opaqueBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,gl->pixels*sizeof(glm::vec4),NULL,
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,opaqueBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(glm::vec4),NULL,
                  GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,6,gl->opaqueBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,6,opaqueBuffer);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->opaqueDepthBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,opaqueDepthBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,
-                 sizeof(GLuint)+gl->pixels*sizeof(GLfloat),NULL,
+                 sizeof(GLuint)+pixels*sizeof(GLfloat),NULL,
                  GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,7,gl->opaqueDepthBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,7,opaqueDepthBuffer);
     const GLfloat zerof=0.0;
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32F,GL_RED,GL_FLOAT,&zerof);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->feedbackBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,feedbackBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,2*sizeof(GLuint),NULL,
                  GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,8,gl->feedbackBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,8,feedbackBuffer);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->feedbackBuffer);
-    gl->initSSBO=false;
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,feedbackBuffer);
+    initSSBO=false;
   }
 
   // Determine the fragment offsets
 
   if(exporting && GPUindexing && !GPUcompress) {
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->countBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,countBuffer);
     glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                       GL_UNSIGNED_INT,&zero);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->feedbackBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,feedbackBuffer);
   }
 
-  if(!gl->interlock) {
-    drawBuffer(lineData,gl->countShader,false,4);
-    drawBuffer(materialData,gl->countShader,false,4);
-    drawBuffer(colorData,gl->countShader,true,4);
-    drawBuffer(triangleData,gl->countShader,true,4);
+  if(!interlock) {
+    drawBuffer(lineData,countShader,false,4);
+    drawBuffer(materialData,countShader,false,4);
+    drawBuffer(colorData,countShader,true,4);
+    drawBuffer(triangleData,countShader,true,4);
   }
 
   glDepthMask(GL_FALSE); // Don't write to depth buffer
   glDisable(GL_MULTISAMPLE);
-  drawBuffer(transparentData,gl->countShader,true,4);
+  drawBuffer(transparentData,countShader,true,4);
   glEnable(GL_MULTISAMPLE);
   glDepthMask(GL_TRUE); // Write to depth buffer
 
   if(GPUcompress) {
     compressCount();
     GLuint *p=(GLuint *) glMapBuffer(GL_ATOMIC_COUNTER_BUFFER,GL_READ_WRITE);
-    gl->elements=GPUindexing ? p[0] : p[0]-1;
+    elements=GPUindexing ? p[0] : p[0]-1;
     p[0]=1;
     glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
-    if(gl->elements == 0) return;
+    if(elements == 0) return;
   } else
-    gl->elements=gl->pixels;
+    elements=pixels;
 
   if(GPUindexing) {
-    gl->g=ceilquotient(gl->elements,gl->groupSize);
-    gl->elements=gl->groupSize*gl->g;
+    g=ceilquotient(elements,groupSize);
+    elements=groupSize*g;
 
     if(settings::verbose > 3) {
       static bool first=true;
@@ -1273,55 +1262,55 @@ void refreshBuffers()
         partialSums();
       glFinish();
       double T=Timer.seconds()/N;
-      cout << "elements=" << gl->elements << endl;
+      cout << "elements=" << elements << endl;
       cout << "Tmin (ms)=" << T*1e3 << endl;
-      cout << "Megapixels/second=" << gl->elements/T/1e6 << endl;
+      cout << "Megapixels/second=" << elements/T/1e6 << endl;
     }
 
     partialSums(true);
   } else {
-    size_t size=gl->elements*sizeof(GLuint);
+    size_t size=elements*sizeof(GLuint);
 
     // Compute partial sums on the CPU
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->countBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,countBuffer);
     GLuint *p=(GLuint *) glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
                                           0,size+sizeof(GLuint),
                                               GL_MAP_READ_BIT);
     GLuint maxsize=p[0];
     GLuint *count=p+1;
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->offsetBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,offsetBuffer);
     GLuint *offset=(GLuint *) glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
                                                sizeof(GLuint),size,
                                                GL_MAP_WRITE_BIT);
 
     size_t Offset=offset[0]=count[0];
-    for(size_t i=1; i < gl->elements; ++i)
+    for(size_t i=1; i < elements; ++i)
       offset[i]=Offset += count[i];
-    gl->fragments=Offset;
+    fragments=Offset;
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->offsetBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,offsetBuffer);
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->countBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,countBuffer);
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
     if(exporting) {
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER,gl->countBuffer);
+      glBindBuffer(GL_SHADER_STORAGE_BUFFER,countBuffer);
       glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
                         GL_UNSIGNED_INT,&zero);
     } else
       clearCount();
 
-    if(maxsize > gl->maxSize)
+    if(maxsize > maxSize)
       resizeBlendShader(maxsize);
   }
-  gl->lastshader=-1;
+  lastshader=-1;
 }
 
-void setUniformsOpenGL(GLint shader)
+void AsyGLRender::setUniformsOpenGL(GLint shader)
 {
-  bool normal=shader != gl->pixelShader;
+  bool normal=shader != pixelShader;
 
   // Check if shader is valid
   if(shader == 0) {
@@ -1331,34 +1320,34 @@ void setUniformsOpenGL(GLint shader)
     return;
   }
 
-  if(shader != gl->lastshader) {
+  if(shader != lastshader) {
     glUseProgram(shader);
 
     if(normal)
-      glUniform1ui(glGetUniformLocation(shader,"width"),gl->Width);
+      glUniform1ui(glGetUniformLocation(shader,"width"),Width);
   }
 
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
-                     value_ptr(glm::mat4(gl->projViewMat)));
+                     value_ptr(glm::mat4(projViewMat)));
 
   glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE,
-                     value_ptr(glm::mat4(gl->viewMat)));
+                     value_ptr(glm::mat4(viewMat)));
   if(normal)
     glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE,
-                       value_ptr(glm::mat3(gl->normMat)));
+                       value_ptr(glm::mat3(normMat)));
 
-  if(shader == gl->countShader) {
-    gl->lastshader=shader;
+  if(shader == countShader) {
+    lastshader=shader;
     return;
   }
 
-  if(shader != gl->lastshader) {
-    gl->lastshader=shader;
-    glUniform1ui(glGetUniformLocation(shader,"nlights"),gl->nlights);
+  if(shader != lastshader) {
+    lastshader=shader;
+    glUniform1ui(glGetUniformLocation(shader,"nlights"),nlights);
 
-    for(size_t i=0; i < gl->nlights; ++i) {
-      triple Lighti=gl->Lights[i];
-      double *Diffusei=gl->Diffuse+4*i;
+    for(size_t i=0; i < nlights; ++i) {
+      triple Lighti=Lights[i];
+      double *Diffusei=Diffuse+4*i;
       glUniform3f(glGetUniformLocation(shader,
                                        getLightIndex(i,"direction").c_str()),
                   (GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),
@@ -1378,10 +1367,10 @@ void setUniformsOpenGL(GLint shader)
     // }
   } else if (normal) {
     // Even if shader hasn't changed, update nlights uniform and light data if needed
-    glUniform1ui(glGetUniformLocation(shader,"nlights"),gl->nlights);
-    for(size_t i=0; i < gl->nlights; ++i) {
-      triple Lighti=gl->Lights[i];
-      double *Diffusei=gl->Diffuse+4*i;
+    glUniform1ui(glGetUniformLocation(shader,"nlights"),nlights);
+    for(size_t i=0; i < nlights; ++i) {
+      triple Lighti=Lights[i];
+      double *Diffusei=Diffuse+4*i;
       glUniform3f(glGetUniformLocation(shader,
                                        getLightIndex(i,"direction").c_str()),
                   (GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),
@@ -1399,13 +1388,13 @@ void setUniformsOpenGL(GLint shader)
   GLuint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
   if(blockindex != GL_INVALID_INDEX) {
     glUniformBlockBinding(shader,blockindex,binding);
-    bool copy=(gl->remesh || !gl->copied);
-    registerBuffer(materials, gl->materialsBuffer, copy, GL_UNIFORM_BUFFER);
-    glBindBufferBase(GL_UNIFORM_BUFFER, binding, gl->materialsBuffer);
+    bool copy=(remesh || !copied);
+    registerBuffer(materials, materialsBuffer, copy, GL_UNIFORM_BUFFER);
+    glBindBufferBase(GL_UNIFORM_BUFFER, binding, materialsBuffer);
   }
 }
 
-void drawBuffer(VertexBuffer& data, GLint shader, bool color, unsigned int drawType)  // drawType: 0=GL_POINTS, 1=GL_LINES, 4=GL_TRIANGLES
+void AsyGLRender::drawBuffer(VertexBuffer& data, GLint shader, bool color, unsigned int drawType)  // drawType: 0=GL_POINTS, 1=GL_LINES, 4=GL_TRIANGLES
 {
   if(data.indices.empty()) return;
 
@@ -1415,7 +1404,7 @@ void drawBuffer(VertexBuffer& data, GLint shader, bool color, unsigned int drawT
     cerr << "drawBuffer: OpenGL error at start: " << err << endl;
   }
 
-  bool normal=shader != gl->pixelShader;
+  bool normal=shader != pixelShader;
 
   // Determine which vertex vector to use and the stride
   size_t bytestride = 0;
@@ -1478,7 +1467,7 @@ void drawBuffer(VertexBuffer& data, GLint shader, bool color, unsigned int drawT
   }
   glEnableVertexAttribArray(positionAttrib);
 
-  if(normal && gl->nlights > 0) {
+  if(normal && nlights > 0) {
     // Normal attribute (3 floats)
     glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE, bytestride,
                           (void *) offsetof(MaterialVertex, normal));
@@ -1523,7 +1512,7 @@ void drawBuffer(VertexBuffer& data, GLint shader, bool color, unsigned int drawT
 
   // Disable attribute arrays but keep VAO bound for next draw call
   glDisableVertexAttribArray(positionAttrib);
-  if(normal && gl->nlights > 0)
+  if(normal && nlights > 0)
     glDisableVertexAttribArray(normalAttrib);
   if(!normal)
     glDisableVertexAttribArray(widthAttrib);
@@ -1537,51 +1526,51 @@ void drawBuffer(VertexBuffer& data, GLint shader, bool color, unsigned int drawT
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void drawMaterial0()
+void AsyGLRender::drawMaterial0()
 {
-  drawBuffer(pointData,gl->pixelShader,false,0);  // GL_POINTS
+  drawBuffer(pointData,pixelShader,false,0);  // GL_POINTS
   pointData.clear();
 }
 
-void drawMaterial1()
+void AsyGLRender::drawMaterial1()
 {
-  drawBuffer(lineData,gl->materialShader[Opaque],false,1);  // GL_LINES
+  drawBuffer(lineData,materialShader[Opaque],false,1);  // GL_LINES
   lineData.clear();
 }
 
-void drawMaterial()
+void AsyGLRender::drawMaterial()
 {
-  drawBuffer(materialData,gl->materialShader[Opaque]);  // default GL_TRIANGLES
+  drawBuffer(materialData,materialShader[Opaque]);  // default GL_TRIANGLES
   materialData.clear();
 }
 
-void drawColor()
+void AsyGLRender::drawColor()
 {
-  drawBuffer(colorData,gl->colorShader[Opaque],true);  // default GL_TRIANGLES
+  drawBuffer(colorData,colorShader[Opaque],true);  // default GL_TRIANGLES
   colorData.clear();
 }
 
-void drawTriangle()
+void AsyGLRender::drawTriangle()
 {
-  drawBuffer(triangleData,gl->generalShader[Opaque],true);  // default GL_TRIANGLES
+  drawBuffer(triangleData,generalShader[Opaque],true);  // default GL_TRIANGLES
   triangleData.clear();
 }
 
-void aBufferTransparency()
+void AsyGLRender::aBufferTransparency()
 {
   // Collect transparent fragments
   glDepthMask(GL_FALSE); // Disregard depth
-  drawBuffer(transparentData,gl->transparentShader,true);
+  drawBuffer(transparentData,transparentShader,true);
   glDepthMask(GL_TRUE); // Respect depth
 
   // Blend transparent fragments
   glDisable(GL_DEPTH_TEST);
-  glUseProgram(gl->blendShader);
-  gl->lastshader=gl->blendShader;
-  glUniform1ui(glGetUniformLocation(gl->blendShader,"width"),gl->Width);
-  glUniform4f(glGetUniformLocation(gl->blendShader,"background"),
-              gl->Background[0],gl->Background[1],gl->Background[2],
-              gl->Background[3]);
+  glUseProgram(blendShader);
+  lastshader=blendShader;
+  glUniform1ui(glGetUniformLocation(blendShader,"width"),Width);
+  glUniform4f(glGetUniformLocation(blendShader,"background"),
+              Background[0],Background[1],Background[2],
+              Background[3]);
   fpu_trap(false); // Work around FE_INVALID
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDrawArrays(GL_TRIANGLES,0,3);
@@ -1590,24 +1579,24 @@ void aBufferTransparency()
   glEnable(GL_DEPTH_TEST);
 }
 
-void drawTransparent()
+void AsyGLRender::drawTransparent()
 {
-  if(gl->ssbo) {
+  if(ssbo) {
     glDisable(GL_MULTISAMPLE);
     aBufferTransparency();
     glEnable(GL_MULTISAMPLE);
   } else {
     // Sort transparent triangles by depth (simplified - just draw directly)
     glDepthMask(GL_FALSE); // Don't write to depth buffer
-    drawBuffer(transparentData,gl->transparentShader,true,4);
+    drawBuffer(transparentData,transparentShader,true,4);
     glDepthMask(GL_TRUE); // Write to depth buffer
     transparentData.clear();
   }
 }
 
-void drawBuffers()
+void AsyGLRender::drawBuffers()
 {
-  gl->copied=false;
+  copied=false;
   Opaque=transparentData.indices.empty();
   bool transparent=!Opaque;
 
@@ -1623,12 +1612,12 @@ void drawBuffers()
          << endl;
   }
 
-  if(gl->ssbo) {
+  if(ssbo) {
     if(transparent) {
       refreshBuffers();
-      if(!gl->interlock) {
+      if(!interlock) {
         resizeFragmentBuffer();
-        gl->copied=true;
+        copied=true;
       }
     }
   }
@@ -1640,9 +1629,9 @@ void drawBuffers()
   drawTriangle();
 
   if(transparent) {
-    if(gl->ssbo)
-      gl->copied=true;
-    if(gl->interlock) resizeFragmentBuffer();
+    if(ssbo)
+      copied=true;
+    if(interlock) resizeFragmentBuffer();
     drawTransparent();
   }
   Opaque=0;
@@ -1652,7 +1641,7 @@ void AsyGLRender::updateHandler(int) {
   if(View && !interact::interactive) {
     ::glfwHideWindow(getGLFWWindow());
     if(!getSetting<bool>("fitscreen"))
-      Fitscreen=0;
+      gl->Fitscreen=0;
   }
 
   resize=true;
@@ -1711,7 +1700,7 @@ void checkpow2(unsigned int n, std::string s) {
 
 void AsyGLRender::render(RenderFunctionArgs const& args)
 {
-  Iconify=getSetting<bool>("iconify");
+  gl->Iconify=getSetting<bool>("iconify");
 
 #if !defined(_WIN32)
   setenv("XMODIFIERS","",true);
@@ -1781,7 +1770,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   }
 #else
   if(!gl->initialized)
-    Fitscreen=1;
+    gl->Fitscreen=1;
 #endif
 #endif
 
@@ -1988,7 +1977,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 #ifndef HAVE_LIBOSMESA
   if(View) {
     if(!getSetting<bool>("fitscreen"))
-      Fitscreen=0;
+      gl->Fitscreen=0;
     firstFit=true;
     fitscreen();
     setosize();

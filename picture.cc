@@ -1445,7 +1445,7 @@ void picture::render(double size2, const triple& Min, const triple& Max,
   }
 
 #ifdef HAVE_RENDERER
-  drawBuffers();
+  gl->drawBuffers();
 #endif
 }
 

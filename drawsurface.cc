@@ -56,14 +56,12 @@ void setcolors(const RGBAColour& diffuse, const RGBAColour& emissive,
                       glm::vec4(specular.R,specular.G,specular.B,specular.A),
                       shininess,metallic,fresnel0);
 
-  auto p=materialMap.find(m);
-  if(p != materialMap.end()) materialIndex=p->second;
+  auto p=gl->materialMap.find(m);
+  if(p != gl->materialMap.end()) materialIndex=p->second;
   else {
-    materialIndex=materials.size();
-    if(materialIndex >= nmaterials)
-      nmaterials=min(Maxmaterials,2*nmaterials);
-    materials.push_back(m);
-    materialMap[m]=materialIndex;
+    materialIndex=gl->materials.size();
+    gl->materials.push_back(m);
+    gl->materialMap[m]=materialIndex;
     if(out)
       out->addMaterial(m);
   }
