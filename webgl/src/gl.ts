@@ -713,10 +713,22 @@ abstract class Geometry {
       v=this.Tcorners(this.Min,this.Max);
     }
 
-    if(this.offscreen(v)) { // Fully offscreen
-      this.data.clear();
-      this.notRendered();
-      return;
+    // In render() method around line 716
+    if(this.CenterIndex != 0 && this.transform) {
+      // For billboards with transforms, check offscreen using actual transformed points
+      let transformedPoints = this.controlpoints.map(point => this.T(point));
+      if(this.offscreen(transformedPoints)) {
+        this.data.clear();
+        this.notRendered();
+        return;
+      }
+    } else {
+      // Regular offscreen check for non-billboards
+      if(this.offscreen(v)) {
+        this.data.clear();
+        this.notRendered();
+        return;
+      }
     }
 
     let P;
