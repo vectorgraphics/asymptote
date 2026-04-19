@@ -16,7 +16,7 @@
 #include "material.h"
 #include "triple.h"
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
 #include "vk.h"
 #endif
 
@@ -50,7 +50,7 @@ struct MaterialVertex
   glm::vec3 normal;
   glm::i32 material;
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(MaterialVertex), vk::VertexInputRate::eVertex);
@@ -80,7 +80,7 @@ struct ColorVertex
   glm::i32 material;
   glm::vec4 color;
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(ColorVertex), vk::VertexInputRate::eVertex);
@@ -111,7 +111,7 @@ struct PointVertex
   glm::f32 width;
   glm::i32 material;
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(PointVertex), vk::VertexInputRate::eVertex);
@@ -201,6 +201,7 @@ extern VertexBuffer transparentData; // transparent patches & triangles
 extern VertexBuffer pointData;       // pixels
 extern VertexBuffer lineData;        // material Bezier curves
 
+#ifdef HAVE_LIBGLM
 // Accessor functions for matrices (to avoid synchronization)
 const glm::dmat4& getProjViewMat();
 const glm::dmat3& getNormMat();
@@ -222,5 +223,6 @@ inline triple billboardTransform(const triple& center, const triple& v)
                 x * BBT[1] + y * BBT[4] + z * BBT[7] + cy,
                 x * BBT[2] + y * BBT[5] + z * BBT[8] + cz);
 }
+#endif
 
 } // namespace camp

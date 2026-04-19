@@ -7,6 +7,14 @@
 using namespace std;
 using namespace camp;
 
+namespace camp {
+const glm::dmat4& getProjViewMat()
+{
+  static glm::dmat4 dummy;
+  return dummy;
+}
+}
+
 int main()
 {
   int n=16;
