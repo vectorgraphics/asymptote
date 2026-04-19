@@ -85,8 +85,7 @@ void AsyRender::setProjection()
 void AsyRender::updateModelViewData()
 {
   // Update normal matrix (inverse transpose of view matrix rotation)
-  dnormMat = dmat3(glm::inverse(this->viewMat));
-  normMat = mat3(dnormMat);  // Convert to float precision for shaders
+  normMat = dmat3(inverse(viewMat));
 }
 
 void AsyRender::update()

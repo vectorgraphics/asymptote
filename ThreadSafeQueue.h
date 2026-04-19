@@ -46,7 +46,7 @@ public:
   ThreadSafeQueue& operator= (ThreadSafeQueue const& other) = delete;
   ThreadSafeQueue& operator= (ThreadSafeQueue&& other) noexcept = delete;
 
-  
+
   void enqueue(T const& item)
   {
     pthread_mutex_lock(&_lockMutex);
@@ -69,7 +69,7 @@ public:
     return ret;
   }
 
-  
+
   private:
   std::queue<T> _internalQueue;
   pthread_mutex_t _lockMutex;
@@ -84,7 +84,7 @@ public:
   ThreadSafeQueue() = default;
   ~ThreadSafeQueue() = default;
   ThreadSafeQueue(ThreadSafeQueue const& other) = default;
-  ThreadSafeQueue(ThreadSafeQueue&& other) noexcept = default; 
+  ThreadSafeQueue(ThreadSafeQueue&& other) noexcept = default;
   ThreadSafeQueue& operator=(ThreadSafeQueue const& other)= delete;
   ThreadSafeQueue& operator=(ThreadSafeQueue&& other) noexcept= delete;
 

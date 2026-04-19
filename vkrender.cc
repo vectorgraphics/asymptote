@@ -68,7 +68,7 @@ const glm::dmat4& getProjViewMat()
 
 const glm::dmat3& getNormMat()
 {
-  return vk->dnormMat;
+  return vk->normMat;
 }
 
 const Int timePartialSumVerbosity=4;
@@ -3636,9 +3636,9 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
   ubo.projViewMat = glm::mat4(getProjViewMat());
   ubo.viewMat = glm::mat4(vk->viewMat);
   // Fill normMat as 3 vec4 columns for std140 mat3 layout (48 bytes)
-  ubo.normMat[0] = glm::vec4(vk->dnormMat[0], 0.0f);
-  ubo.normMat[1] = glm::vec4(vk->dnormMat[1], 0.0f);
-  ubo.normMat[2] = glm::vec4(vk->dnormMat[2], 0.0f);
+  ubo.normMat[0] = glm::vec4(vk->normMat[0], 0.0f);
+  ubo.normMat[1] = glm::vec4(vk->normMat[1], 0.0f);
+  ubo.normMat[2] = glm::vec4(vk->normMat[2], 0.0f);
 
   memcpy(frameObjects[currentFrame].uboMappedMemory->getCopyPtr(), &ubo, sizeof(ubo));
 

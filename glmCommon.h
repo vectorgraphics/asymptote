@@ -6,6 +6,9 @@
 
 #pragma once
 
+#include "common.h"
+
+#ifdef HAVE_LIBGLM
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_ENABLE_EXPERIMENTAL
@@ -14,3 +17,4 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/transform.hpp>
+#endif
