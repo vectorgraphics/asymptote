@@ -51,7 +51,7 @@ void v3dfile::addHeaders()
     size_t i4=4*i;
     headers.emplace_back(make_unique<LightHeader>(
                            camp::gl->Lights[i],
-                           prc::RGBAColour(camp::gl->Diffuse[i4], camp::gl->Diffuse[i4+1], camp::gl->Diffuse[i4+2], 1.0)
+                           prc::RGBAColour(camp::gl->LightsDiffuse[i4], camp::gl->LightsDiffuse[i4+1], camp::gl->LightsDiffuse[i4+2], 1.0)
                            ));
   }
 

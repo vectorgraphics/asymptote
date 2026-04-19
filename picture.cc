@@ -70,8 +70,9 @@ texstream::~texstream() {
 namespace camp {
 
 #ifdef HAVE_RENDERER
-// Initialize the global OpenGL renderer instance
-AsyGLRender* gl = new AsyGLRender();
+// Initialize the global renderer instance (typed as base class for unification)
+// The actual object is AsyGLRender, but we use AsyRender* for unified interface
+AsyRender* gl = new AsyGLRender();
 #endif
 
 extern void draw();
@@ -1445,7 +1446,7 @@ void picture::render(double size2, const triple& Min, const triple& Max,
   }
 
 #ifdef HAVE_RENDERER
-  gl->drawBuffers();
+  static_cast<AsyGLRender*>(gl)->drawBuffers();
 #endif
 }
 

@@ -126,16 +126,12 @@ double T[16];
 double Tup[16];
 
 // OpenGL-specific global state
-bool format3dWait=false;  // Keep as global for threading
 const picture* Picture;  // Keep as global for drawscene() compatibility
 double gl_X, gl_Y;
 double xprev,yprev;
 static const double ASY_PI=acos(-1.0);
 static const double ASY_DEGREES=180.0/ASY_PI;
 static const double ASY_RADIANS=1.0/ASY_DEGREES;
-
-bool firstFit;
-bool ViewExport;
 
 // IBL textures - disabled for now due to template issues
 void* iblbrdfTex = nullptr;
@@ -158,7 +154,6 @@ glm::vec4 vec4(double *v)
 #ifdef HAVE_LIBGLFW
 string Action;
 
-double lastangle;
 #endif
 
 using utils::statistics;
@@ -534,13 +529,13 @@ void AsyGLRender::drawscene(int Width, int Height)
 {
 #ifdef HAVE_PTHREAD
   static bool first=true;
-  if(first) {
+  if(thread && first) {
     wait(initSignal,initLock);
     endwait(initSignal,initLock);
     first=false;
   }
 
-  if(format3dWait)
+  if(gl->format3dWait)
     wait(initSignal,initLock);
 #endif
 
@@ -569,15 +564,8 @@ void AsyGLRender::drawscene(int Width, int Height)
   if(remesh)
     clearCenters();
 
-  if(settings::verbose > 2) {
-    cerr << "drawscene: calling Picture->render()" << endl;
-  }
   if(Picture)
     Picture->render(size2,m,M,perspective,remesh);
-
-  if(settings::verbose > 2) {
-    cerr << "drawscene: Picture->render() complete" << endl;
-  }
 
 #ifdef HAVE_RENDERER
   drawBuffers();
@@ -593,7 +581,7 @@ int ceilquotient(int x, int y)
   return (x+y-1)/y;
 }
 
-void AsyGLRender::Export()
+void AsyGLRender::Export(int)
 {
   size_t ndata=3*fullWidth*fullHeight;
   if(ndata == 0) return;
@@ -663,7 +651,7 @@ void AsyGLRender::Export()
         pic.append(Image);
       }
 
-      pic.shipout(NULL,Prefix,Format,false,ViewExport);
+      pic.shipout(NULL,Prefix,Format,false,gl->ViewExport);
       if(Image)
         delete Image;
       delete[] data;
@@ -804,7 +792,7 @@ void setsize(int w, int h, bool reposition=true)
 
   capsize(w,h);
 
-  GLFWwindow* win = gl->getGLFWWindow();
+  GLFWwindow* win = static_cast<GLFWwindow*>(gl->getGLFWWindow());
 
   if(reposition) {
     windowposition(x,y,w,h);
@@ -837,17 +825,17 @@ void fullscreen(bool reposition=true)
 {
   gl->Width=gl->screenWidth;
   gl->Height=gl->screenHeight;
-  if(firstFit) {
+  if(gl->firstFit) {
     if(gl->Width < gl->Height*gl->Aspect)
       gl->Zoom *= gl->Width/(gl->Height*gl->Aspect);
     capzoom();
-    firstFit=false;
+    gl->firstFit=false;
   }
   gl->Xfactor=((double) gl->screenHeight)/gl->Height;
   gl->Yfactor=((double) gl->screenWidth)/gl->Width;
   reshape0(gl->Width,gl->Height);
 
-  GLFWwindow* win = gl->getGLFWWindow();
+  GLFWwindow* win = static_cast<GLFWwindow*>(gl->getGLFWWindow());
   if(reposition)
     glfwSetWindowPos(win,0,0);
   glfwSetWindowSize(win,gl->Width,gl->Height);
@@ -923,7 +911,8 @@ void update()
 
   gl->redraw=true;
 #ifdef HAVE_RENDERER
-  ::glfwShowWindow(gl->getGLFWWindow());
+  if(gl->glfwWindow)
+    ::glfwShowWindow(static_cast<GLFWwindow*>(gl->getGLFWWindow()));
 #endif
 
   // Call the AsyGLRender::update() method which handles view matrix computation
@@ -945,7 +934,7 @@ void reshape(int width, int height)
   }
 
   if(capsize(width,height)) {
-    glfwSetWindowSize(gl->getGLFWWindow(),width,height);
+    glfwSetWindowSize(static_cast<GLFWwindow*>(gl->getGLFWWindow()),width,height);
   }
 
   reshape0(width,height);
@@ -956,8 +945,8 @@ void exportHandler(int=0)
 {
 #ifndef HAVE_LIBOSMESA
 #ifdef HAVE_LIBGLFW
-  if(!gl->Iconify) {
-    glfwShowWindow(gl->getGLFWWindow());
+  if(gl->glfwWindow && !gl->Iconify) {
+    glfwShowWindow(static_cast<GLFWwindow*>(gl->getGLFWWindow()));
   }
 #endif
 #endif
@@ -966,8 +955,8 @@ void exportHandler(int=0)
 
 #ifndef HAVE_LIBOSMESA
 #ifdef HAVE_LIBGLFW
-  if(!gl->Iconify)
-    glfwHideWindow(gl->getGLFWWindow());
+  if(gl->glfwWindow && !gl->Iconify)
+    glfwHideWindow(static_cast<GLFWwindow*>(gl->getGLFWWindow()));
 #endif
 #endif
 }
@@ -1347,7 +1336,7 @@ void AsyGLRender::setUniformsOpenGL(GLint shader)
 
     for(size_t i=0; i < nlights; ++i) {
       triple Lighti=Lights[i];
-      double *Diffusei=Diffuse+4*i;
+      double *Diffusei= LightsDiffuse+4*i;
       glUniform3f(glGetUniformLocation(shader,
                                        getLightIndex(i,"direction").c_str()),
                   (GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),
@@ -1370,7 +1359,7 @@ void AsyGLRender::setUniformsOpenGL(GLint shader)
     glUniform1ui(glGetUniformLocation(shader,"nlights"),nlights);
     for(size_t i=0; i < nlights; ++i) {
       triple Lighti=Lights[i];
-      double *Diffusei=Diffuse+4*i;
+      double *Diffusei= LightsDiffuse+4*i;
       glUniform3f(glGetUniformLocation(shader,
                                        getLightIndex(i,"direction").c_str()),
                   (GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),
@@ -1639,7 +1628,7 @@ void AsyGLRender::drawBuffers()
 
 void AsyGLRender::updateHandler(int) {
   if(View && !interact::interactive) {
-    ::glfwHideWindow(getGLFWWindow());
+    ::glfwHideWindow(static_cast<GLFWwindow*>(getGLFWWindow()));
     if(!getSetting<bool>("fitscreen"))
       gl->Fitscreen=0;
   }
@@ -1655,7 +1644,7 @@ AsyGLRender::~AsyGLRender()
 {
 #ifdef HAVE_RENDERER
   if (this->View) {
-    ::glfwDestroyWindow(getGLFWWindow());
+    ::glfwDestroyWindow(static_cast<GLFWwindow*>(glfwWindow));
     glfwWindow = nullptr;
   }
 
@@ -1717,7 +1706,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   nlights = args.nlightsin;
 
   Lights = args.lights;
-  Diffuse = args.diffuse;
+  LightsDiffuse = args.diffuse;
   Specular = args.specular;
 
   nlights0 = nlights;  // Save original for mode restoration
@@ -1862,7 +1851,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   havewindow=initialized && thread;
 
   if(thread && format3d)
-    format3dWait=true;
+    gl->format3dWait=true;
 
   clearMaterials();
   initialized=true;
@@ -1978,7 +1967,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   if(View) {
     if(!getSetting<bool>("fitscreen"))
       gl->Fitscreen=0;
-    firstFit=true;
+    gl->firstFit=true;
     fitscreen();
     setosize();
     initializedView = true;
@@ -1994,7 +1983,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   mode = DRAWMODE_WIREFRAME;
   cycleMode();
 
-  ViewExport = View;
+  gl->ViewExport = View;
 #ifdef HAVE_LIBOSMESA
   View = false;
 #endif
@@ -2029,7 +2018,7 @@ void AsyGLRender::onMouseButton(int button, int action, int mods)
         lastAction = currentActionStr;
         // Capture initial position for movement tracking
         double xpos, ypos;
-        glfwGetCursorPos(getGLFWWindow(), &xpos, &ypos);
+        glfwGetCursorPos(static_cast<GLFWwindow*>(glfwWindow), &xpos, &ypos);
         xprev = xpos;
         yprev = ypos;
     } else if (action == GLFW_RELEASE) {
@@ -2098,8 +2087,8 @@ void AsyGLRender::onClose()
 void AsyGLRender::display()
 {
 #ifdef HAVE_RENDERER
-  GLFWwindow* win = getGLFWWindow();
-  if(View) {
+  GLFWwindow* win = static_cast<GLFWwindow*>(glfwWindow);
+  if(View && win) {
     // Make OpenGL context current before any GL operations
     ::glfwMakeContextCurrent(win);
 
@@ -2127,7 +2116,7 @@ void AsyGLRender::display()
   }
 
 #ifdef HAVE_RENDERER
-  glfwSwapBuffers(getGLFWWindow());
+  glfwSwapBuffers(static_cast<GLFWwindow*>(glfwWindow));
 #endif
 
   if(!thread) {
@@ -2172,7 +2161,8 @@ void AsyGLRender::update()
 
   redraw=true;
 #ifdef HAVE_RENDERER
-  ::glfwShowWindow(getGLFWWindow());
+  if(glfwWindow)
+    ::glfwShowWindow(static_cast<GLFWwindow*>(glfwWindow));
 #endif
 
   // Call base class update which has the correct view matrix computation (matching reference GLUT code)
@@ -2184,7 +2174,7 @@ void AsyGLRender::mainLoop()
 #ifdef HAVE_RENDERER
 
   if(View) {
-    GLFWwindow* win = getGLFWWindow();
+    GLFWwindow* win = static_cast<GLFWwindow*>(glfwWindow);
 
     glfwRunLoop(win,
       [win](){ return !glfwWindowShouldClose(win); },

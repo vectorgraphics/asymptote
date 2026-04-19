@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common.h"
+
 #include <chrono>
 #include <cmath>
 #include <utility>
@@ -234,6 +236,7 @@ public:
   int Fitscreen=1;
 
   bool readyForExport=false;
+  bool readyAfterExport=false;
 
   // Child process ID for export (used by both OpenGL and Vulkan)
   int Oldpid = 0;
@@ -242,6 +245,9 @@ public:
   // GLFW window pointer (shared between Vulkan and OpenGL renderers)
   // Using void* to avoid requiring GLFW header in all files that include this
   void* glfwWindow = nullptr;
+
+  /** Returns the GLFW window pointer as void*. Cast to appropriate type by caller. */
+  void* getGLFWWindow() const { return glfwWindow; }
 #endif
 
   // Timer and statistics
@@ -261,6 +267,22 @@ public:
   bool queueExport=false;
   bool haveScene=false;
   bool waitEvent=true;
+
+  // Initialization state (used by both OpenGL and Vulkan)
+  bool initialized = false;
+  bool copied = false;
+  bool format3dWait = false;
+
+  // SSBO support flag (true if shader storage buffers are available)
+  // Vulkan always supports SSBOs, OpenGL may or may not - default to false for safety
+  bool ssbo = false;  // Will be set based on capability detection
+  bool interlock = false;  // Fragment shader interlock support
+
+  // Renderer-specific initialization flags (used by both OpenGL and Vulkan)
+  bool initSSBO = true;  // Flag to indicate if SSBO buffers need initialization
+  bool Iconify = false;  // Whether to iconify/hide the window during rendering
+  bool firstFit = true;  // Flag for initial fit screen adjustment
+  bool ViewExport = false;  // Whether to export during view
 
   bool thread=false;
 
@@ -322,9 +344,11 @@ protected:
   virtual void setDimensions(int Width, int Height, double X, double Y);
   virtual void setProjection();
   virtual void updateModelViewData();
-  virtual void update();
 
 public:
+  // Update projection and view matrices (called from free functions)
+  virtual void update();
+
   // Projection matrix functions
   void updateProjection();
   virtual void frustum(double left, double right, double bottom,
@@ -382,6 +406,7 @@ public:
 
   virtual void updateHandler(int=0) = 0;
   virtual void exportHandler(int=0) = 0;
+  virtual void Export(int imageIndex=0) = 0;
 
   // Message processing for inter-thread communication
   void processMessages(RendererMessage const& msg);
@@ -415,7 +440,15 @@ public:
 #endif
 };
 
-extern bool format3dWait;
+// Renderer pointer - unified interface for both OpenGL and Vulkan
+// This allows dynamic loading of the appropriate renderer at runtime
+extern AsyRender* gl;  // Global renderer instance (type depends on build configuration)
+
+#ifdef HAVE_RENDERER
+class AsyGLRender;  // Forward declaration
+class AsyVkRender;   // Forward declaration (if Vulkan is available)
+#endif
+
 void mode();
 
 } // namespace camp

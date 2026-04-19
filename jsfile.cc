@@ -193,8 +193,8 @@ void jsfile::open(string name)
     size_t i4=4*i;
     out << "light(" << newl
         << camp::gl->Lights[i] << "," << newl
-        << "[" << camp::gl->Diffuse[i4] << "," << camp::gl->Diffuse[i4+1] << ","
-        << camp::gl->Diffuse[i4+2] << "]);" << newl;
+        << "[" << camp::gl->LightsDiffuse[i4] << "," << camp::gl->LightsDiffuse[i4+1] << ","
+        << camp::gl->LightsDiffuse[i4+2] << "]);" << newl;
   }
   out << newl;
 

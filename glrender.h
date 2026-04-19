@@ -145,26 +145,16 @@ public:
   void onClose() override;
 
   // OpenGL-specific state (mirroring AsyVkRender pattern)
+  // Note: initialized, copied, Iconify are now in base class AsyRender for unified access
   bool outlinemode = false;
   bool glupdate = false;
   bool glexit = false;
-  bool initialized = false;
-  bool copied = false;
-  bool Iconify = false;
 
   // Lighting (OpenGL-specific, public for jsfile/v3dfile access)
+  // Note: Lights and LightsDiffuse are now in base class AsyRender for unified access
   size_t Nlights = 1;
   size_t nlights0 = 0;  // Saved original number of lights for mode restoration
-  camp::triple* Lights = nullptr;
-  double* Diffuse = nullptr;
   double* Specular = nullptr;
-
-#ifdef HAVE_PTHREAD
-  pthread_cond_t initSignal = PTHREAD_COND_INITIALIZER;
-  pthread_mutex_t initLock = PTHREAD_MUTEX_INITIALIZER;
-  pthread_cond_t readySignal = PTHREAD_COND_INITIALIZER;
-  pthread_mutex_t readyLock = PTHREAD_MUTEX_INITIALIZER;
-#endif
 
 public:
   // OpenGL-specific members (following Vulkan pattern)
@@ -205,11 +195,8 @@ public:
   int maxTileWidth = 1024;
   int maxTileHeight = 768;
 
-  // Rendering state
+  // Rendering state (ssbo, interlock, initSSBO now in base class)
   GLint lastshader = -1;
-  bool ssbo = false;
-  bool interlock = false;
-  bool initSSBO = true;
   GLuint fragments = 0;
   GLuint maxFragments = 0;
   GLuint maxSize = 1;
@@ -223,37 +210,24 @@ public:
 
   // IBL textures - kept as globals in glrender.cc where GLTextures.h is available
 
-  // Mouse interaction state
+  // Mouse interaction state (lastangle now in base class for unified access)
   double xprev = 0.0;
   double yprev = 0.0;
-  double lastangle = 0.0;
   string currentAction = "";
 
-  // Window state
-  bool queueExport = false;
-  bool readyAfterExport = false;
+  // Window state (readyAfterExport, format3dWait, queueExport, firstFit now in base class)
   bool havewindow = false;
-  bool format3dWait = false;
   bool exporting = false;
   int oldWidth = 0;
   int oldHeight = 0;
-  bool firstFit = true;
 
-  // Spin state
-  bool Xspin = false;
-  bool Yspin = false;
-  bool Zspin = false;
-
-  // Timer for FPS measurement
+  // Spin state (Xspin, Yspin, Zspin now in base class)
   utils::stopWatch spinTimer;
 #endif
 
 public:
   void update();
   void cycleMode() override;
-
-  /** Returns the GLFW window pointer (does the static_cast from void* once) */
-  GLFWwindow* getGLFWWindow() const { return static_cast<GLFWwindow*>(glfwWindow); }
 
   // Shader and buffer management functions
   void initComputeShaders();
@@ -267,7 +241,7 @@ public:
 
   // Rendering functions
   void drawscene(int Width, int Height);
-  void Export();
+  void Export(int imageIndex=0);
   void refreshBuffers();
   void setUniformsOpenGL(GLint shader);
   void drawBuffer(VertexBuffer& data, GLint shader, bool color=false, unsigned int drawType=4);
@@ -294,8 +268,8 @@ protected:
   virtual void reshape0(int width, int height) override;
 };
 
-// Global OpenGL renderer instance (defined in picture.cc)
-extern AsyGLRender* gl;
+// Note: The global renderer pointer 'gl' is declared in renderBase.h as AsyRender*
+// This allows unified access to both OpenGL and Vulkan renderers through the base class
 
 void frustum(double left, double right, double bottom,
              double top, double nearVal, double farVal);
