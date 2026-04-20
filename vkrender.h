@@ -647,6 +647,7 @@ public:
 
   void prepareScene();
   void display() override;
+  GLFWwindow* getRenderWindow() const;
   void cleanup();
 
   // user controls

@@ -4,7 +4,8 @@
 #include "interact.h"
 
 #ifdef HAVE_RENDERER
-#include <GLFW/glfw3.h>
+// Forward declaration for GLFWwindow to avoid including glfw3.h here
+struct GLFWwindow;
 #endif
 
 using settings::getSetting;

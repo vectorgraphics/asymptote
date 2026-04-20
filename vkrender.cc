@@ -4542,7 +4542,7 @@ void AsyVkRender::display()
 {
   prepareScene();
 
-  GLFWwindow* win = static_cast<GLFWwindow*>(getGLFWWindow());
+  GLFWwindow* win = getRenderWindow();
   if(View && !hideWindow && !glfwGetWindowAttrib(win,GLFW_VISIBLE))
     ::glfwShowWindow(win);
 
@@ -4573,6 +4573,11 @@ void AsyVkRender::display()
     }
 #endif
   }
+}
+
+GLFWwindow* AsyVkRender::getRenderWindow() const
+{
+  return static_cast<GLFWwindow*>(glfwWindow);
 }
 
 #endif
