@@ -321,14 +321,6 @@ AsyVkRender::~AsyVkRender()
 
 #endif
 
-bool ispow2(unsigned int n) {return n > 0 && !(n & (n - 1));}
-void checkpow2(unsigned int n, std::string s) {
-  if(!ispow2(n)) {
-    runtimeError(s+" must be a power of two");
-    exit(-1);
-  }
-}
-
 void AsyVkRender::render(RenderFunctionArgs const& args)
 {
 #if !defined(_WIN32)
@@ -4514,20 +4506,6 @@ void AsyVkRender::drawFrame()
   }
 
   currentFrame = (currentFrame + 1) % maxFramesInFlight;
-}
-
-void AsyVkRender::nextFrame()
-{
-#ifdef HAVE_PTHREAD
-  endwait(readySignal,readyLock);
-#endif
-  double delay=settings::getSetting<double>("framerate");
-  if(delay != 0.0) delay=1.0/delay;
-  double seconds=frameTimer.seconds(true);
-  delay -= seconds;
-  if(delay > 0) {
-    std::this_thread::sleep_for(std::chrono::duration<double>(delay));
-  }
 }
 
 void AsyVkRender::prepareScene()

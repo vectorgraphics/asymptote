@@ -95,12 +95,6 @@ void glfwRendererShowWindow(GLFWwindow* window);
  */
 void glfwRendererSetWindowPos(GLFWwindow* window, int xpos, int ypos);
 
-inline void runtimeError(const std::string& s)
-{
-  cerr << "error: " << s << endl;
-  exit(-1);
-}
-
 } // namespace camp
 
 #endif // HAVE_RENDERER

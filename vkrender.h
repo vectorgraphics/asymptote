@@ -653,7 +653,6 @@ public:
   vk::UniqueShaderModule createShaderModule(EShLanguage lang, std::string const & filename, std::vector<std::string> const & options);
 #endif
 
-  void nextFrame();
   void prepareScene();
   void display();
   void mainLoop();

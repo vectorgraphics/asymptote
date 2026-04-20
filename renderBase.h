@@ -50,6 +50,22 @@ inline T ceilquotient(T a, T b)
   return (a + b - 1) / b;
 }
 
+// Runtime error handling (used by both OpenGL and Vulkan)
+inline void runtimeError(const std::string& s)
+{
+  cerr << "error: " << s << endl;
+  exit(-1);
+}
+
+// Utility functions for power-of-two checks (used by both OpenGL and Vulkan)
+inline bool ispow2(unsigned int n) {return n > 0 && !(n & (n - 1));}
+inline void checkpow2(unsigned int n, std::string s) {
+  if(!ispow2(n)) {
+    runtimeError(s+" must be a power of two");
+    exit(-1);
+  }
+}
+
 inline void store(float* f, double* C)
 {
   f[0] = C[0];
