@@ -708,8 +708,6 @@ void AsyGLRender::cycleMode()
   // Call base class to handle mode cycling and ibl
   AsyRender::cycleMode();
 
-  // OpenGL-specific: restore nlights and set polygon mode
-  remesh=true;
   if(ssbo)
     initSSBO=true;
 
@@ -727,72 +725,9 @@ void AsyGLRender::cycleMode()
       Nlights=1; // Force shader recompilation
       break;
   }
-#ifndef HAVE_LIBOSMESA
-  redraw=true;
-#endif
 }
 
 #ifdef HAVE_LIBGLFW
-bool capsize(int& width, int& height)
-{
-  bool resize=false;
-  if(width > gl->screenWidth) {
-    width=gl->screenWidth;
-    resize=true;
-  }
-  if(height > gl->screenHeight) {
-    height=gl->screenHeight;
-    resize=true;
-  }
-  return resize;
-}
-
-
-
-
-
-
-
-
-
-stopWatch frameTimer;
-
-void nextframe()
-{
-#ifdef HAVE_PTHREAD
-  {
-    gl->endwait(gl->readySignal,gl->readyLock);
-  }
-#endif
-  double delay=getSetting<double>("framerate");
-  if(delay != 0.0) delay=1.0/delay;
-  double seconds=frameTimer.seconds(true);
-  delay -= seconds;
-  if(delay > 0) {
-    std::this_thread::sleep_for(std::chrono::duration<double>(delay));
-  }
-}
-
-
-void reshape(int width, int height)
-{
-  if(gl->thread) {
-    static bool initialize=true;
-    if(initialize) {
-      initialize=false;
-#if !defined(_WIN32)
-      // Signal handler no longer needed - using message queue system instead
-#endif
-    }
-  }
-
-  if(capsize(width,height)) {
-    glfwSetWindowSize(static_cast<GLFWwindow*>(gl->getGLFWWindow()),width,height);
-  }
-
-  gl->reshape0(width,height);
-  gl->remesh=true;
-}
 
 void init_osmesa()
 {
@@ -1459,20 +1394,6 @@ void AsyGLRender::drawBuffers()
   Opaque=0;
 }
 
-void AsyGLRender::updateHandler(int) {
-  if(View && !interact::interactive) {
-    ::glfwHideWindow(static_cast<GLFWwindow*>(getGLFWWindow()));
-    if(!getSetting<bool>("fitscreen"))
-      gl->Fitscreen=0;
-  }
-
-  resize=true;
-  redisplay=true;
-  redraw=true;
-  remesh=true;
-  waitEvent=false;
-}
-
 AsyGLRender::~AsyGLRender()
 {
 #ifdef HAVE_RENDERER
@@ -1510,14 +1431,6 @@ AsyGLRender::~AsyGLRender()
   if(opaqueDepthBuffer) glDeleteBuffers(1, &opaqueDepthBuffer);
   if(feedbackBuffer) glDeleteBuffers(1, &feedbackBuffer);
 #endif
-}
-
-bool ispow2(unsigned int n) {return n > 0 && !(n & (n - 1));}
-void checkpow2(unsigned int n, std::string s) {
-  if(!ispow2(n)) {
-    runtimeError(s+" must be a power of two");
-    exit(-1);
-  }
 }
 
 void AsyGLRender::render(RenderFunctionArgs const& args)
@@ -1864,7 +1777,7 @@ void AsyGLRender::onFramebufferResize(int width, int height)
 {
     if(width == 0 || height == 0) return;
     if(width == Width && height == Height) return;
-    reshape0(width, height);
+    reshape(width, height);
     update();
     remesh = true;
 }
@@ -2082,10 +1995,10 @@ void AsyGLRender::exportHandler(int)
 #endif
 }
 
-void AsyGLRender::reshape0(int width, int height)
+void AsyGLRender::reshape(int width, int height)
 {
   // Call base class to handle dimension updates and projection
-  AsyRender::reshape0(width, height);
+  AsyRender::reshape(width, height);
 
   // OpenGL-specific: update viewport and mark SSBO for reinitialization
 #ifdef HAVE_RENDERER

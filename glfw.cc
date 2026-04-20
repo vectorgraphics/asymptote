@@ -4,6 +4,7 @@
 
 #ifdef HAVE_RENDERER
 
+#include "renderBase.h"
 #include "glfw.h"
 #include "settings.h"
 

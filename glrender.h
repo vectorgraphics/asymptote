@@ -264,8 +264,7 @@ protected:
   void mainLoop();
   void display();
   void exportHandler(int = 0);
-  void updateHandler(int = 0);
-  virtual void reshape0(int width, int height) override;
+  virtual void reshape(int width, int height) override;
 };
 
 // Note: The global renderer pointer 'gl' is declared in renderBase.h as AsyRender*

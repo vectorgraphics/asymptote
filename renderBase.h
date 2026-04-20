@@ -50,6 +50,22 @@ inline T ceilquotient(T a, T b)
   return (a + b - 1) / b;
 }
 
+// Runtime error handling (used by both OpenGL and Vulkan)
+inline void runtimeError(const std::string& s)
+{
+  cerr << "error: " << s << endl;
+  exit(-1);
+}
+
+// Utility functions for power-of-two checks (used by both OpenGL and Vulkan)
+inline bool ispow2(unsigned int n) {return n > 0 && !(n & (n - 1));}
+inline void checkpow2(unsigned int n, std::string s) {
+  if(!ispow2(n)) {
+    runtimeError(s+" must be a power of two");
+    exit(-1);
+  }
+}
+
 inline void store(float* f, double* C)
 {
   f[0] = C[0];
@@ -376,7 +392,7 @@ public:
   void windowposition(int& x, int& y, int width=-1, int height=-1);
   virtual void setsize(int w, int h, bool reposition=true);
   virtual void fullscreen(bool reposition=true);
-  virtual void reshape0(int width, int height);
+  virtual void reshape(int width, int height);
   void setosize();
   virtual void fitscreen(bool reposition=true);
   virtual void toggleFitScreen();
@@ -405,7 +421,7 @@ public:
   virtual void expand();
   virtual void shrink();
 
-  virtual void updateHandler(int=0) = 0;
+  virtual void updateHandler(int=0);
   virtual void exportHandler(int=0) = 0;
   virtual void Export(int imageIndex=0) = 0;
 

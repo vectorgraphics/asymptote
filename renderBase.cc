@@ -324,7 +324,7 @@ void AsyRender::setsize(int w, int h, bool reposition)
 #endif
 
   capsize(w, h);
-  reshape0(w, h);
+  reshape(w, h);
   update();
 }
 
@@ -332,7 +332,7 @@ void AsyRender::setsize(int w, int h, bool reposition)
  * Handle window resize.
  * Base implementation handles dimension updates and projection.
  */
-void AsyRender::reshape0(int width, int height)
+void AsyRender::reshape(int width, int height)
 {
   // Scale X,Y proportionally with new dimensions
   X = (X / Width) * width;
@@ -536,6 +536,27 @@ void AsyRender::shrink()
 void AsyRender::exportHandler(int)
 {
   // Default implementation - derived classes should override
+}
+
+/**
+ * Update handler - common to both OpenGL and Vulkan renderers.
+ * Hides window if viewing interactively and sets rendering flags.
+ */
+void AsyRender::updateHandler(int)
+{
+#ifdef HAVE_RENDERER
+  if(View && !interact::interactive) {
+    ::glfwHideWindow(static_cast<GLFWwindow*>(getGLFWWindow()));
+    if(!getSetting<bool>("fitscreen"))
+      Fitscreen=0;
+  }
+#endif
+
+  resize=true;
+  redisplay=true;
+  redraw=true;
+  remesh=true;
+  waitEvent=false;
 }
 
 /**
