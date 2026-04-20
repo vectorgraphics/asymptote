@@ -216,7 +216,6 @@ public:
   string currentAction = "";
 
   // Window state (readyAfterExport, format3dWait, queueExport, firstFit now in base class)
-  bool havewindow = false;
   bool exporting = false;
   int oldWidth = 0;
   int oldHeight = 0;
@@ -261,8 +260,7 @@ public:
   void resizeFragmentBuffer();
 
 protected:
-  void mainLoop();
-  void display();
+  void display() override;
   void exportHandler(int = 0);
   virtual void reshape(int width, int height) override;
 };

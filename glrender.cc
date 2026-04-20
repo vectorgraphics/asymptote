@@ -1920,59 +1920,6 @@ void AsyGLRender::update()
   AsyRender::update();
 }
 
-void AsyGLRender::mainLoop()
-{
-#ifdef HAVE_RENDERER
-
-  if(View) {
-    GLFWwindow* win = static_cast<GLFWwindow*>(glfwWindow);
-
-    glfwRunLoop(win,
-      [win](){ return !glfwWindowShouldClose(win); },
-      [this](){ return redraw || redisplay || queueExport; },
-      [this](){
-        redisplay=false;
-        redraw=false;
-        waitEvent=true;
-        if(resize) { fitscreen(!interact::interactive); resize=false; }
-        display();
-      },
-      [this](){ auto const message=messageQueue.dequeue(); if(message.has_value()) processMessages(*message); },
-      [this](){ return currentIdleFunc; },
-      [this](){ return waitEvent; }
-    );
-
-    // Signal asymain after glfwRunLoop exits. This ensures the signal is not lost
-    // (it would be lost if sent during quit() while asymain is still inside glfwRunLoop).
-#ifdef HAVE_PTHREAD
-    if(thread) {
-      endwait(readySignal, readyLock);
-    }
-#endif
-  } else {
-    update();
-    display();
-    if(thread) {
-      if(havewindow) {
-#ifdef HAVE_PTHREAD
-        if(pthread_equal(pthread_self(),mainthread))
-          exportHandler();
-        else
-          messageQueue.enqueue(RendererMessage::exportRender);
-#endif
-      } else {
-        initialized=true;
-        readyAfterExport=true;
-        exportHandler();
-      }
-    } else {
-      exportHandler();
-      quit();
-    }
-  }
-#endif
-}
-
 void AsyGLRender::exportHandler(int)
 {
 #ifdef HAVE_RENDERER
