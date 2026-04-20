@@ -93,12 +93,6 @@ size_t Maxmaterials;
 size_t Nmaterials=1;
 size_t nmaterials=48;
 
-void clearCenters()
-{
-  drawElement::centers.clear();
-  drawElement::centermap.clear();
-}
-
 // Note: different name to avoid conflict with v3dheadertypes::orthographic enum
 extern double Angle, Zoom0;
 extern pair Shift, Margin;
@@ -506,20 +500,6 @@ void AsyGLRender::resizeBlendShader(GLuint maxsize)
   maxSize=ceilpow2(maxsize);
   deleteBlendShader();
   initBlendShader();
-}
-
-void clearMaterials()
-{
-  gl->materials.clear();
-  gl->materials.reserve(nmaterials);
-  gl->materialMap.clear();
-
-  pointData.renderCount=0;
-  lineData.renderCount=0;
-  materialData.renderCount=0;
-  colorData.renderCount=0;
-  triangleData.renderCount=0;
-  transparentData.renderCount=0;
 }
 
 void AsyGLRender::drawFrame()
@@ -1808,53 +1788,25 @@ void AsyGLRender::onClose()
     ::exitHandler(0);
 }
 
-void AsyGLRender::display()
+/**
+ * Show the window if hidden (GLFW-specific implementation).
+ */
+void AsyGLRender::showWindow()
 {
-  prepareScene();
-
   GLFWwindow* win = getRenderWindow();
 
   if(View && !hideWindow && !glfwGetWindowAttrib(win,GLFW_VISIBLE))
     ::glfwShowWindow(win);
+}
 
-  drawFrame();
-
-  bool fps=settings::verbose > 2;
-  if(fps) {
-    if(framecount < 20) fpsTimer.reset();
-    else {
-      double s=fpsTimer.seconds(true);
-      if(s > 0.0) {
-        double rate=1.0/s;
-        fpsStats.add(rate);
-        if(framecount % 20 == 0)
-          cout << "FPS=" << rate << "\t" << fpsStats.mean()
-               << " +/- " << fpsStats.stdev() << endl;
-      }
-    }
-    ++framecount;
-  }
-
+/**
+ * Swap front and back buffers (GLFW-specific implementation).
+ */
+void AsyGLRender::swapBuffers()
+{
 #ifdef HAVE_RENDERER
   glfwSwapBuffers(getRenderWindow());
-
-  if(queueExport) {
-    // Wait for the just-submitted frame to finish before exporting
-    exportHandler();
-    queueExport=false;
-  }
 #endif
-
-  if(!thread) {
-#if defined(_WIN32)
-#else
-    // Oldpid is now in AsyRender base class
-    if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
-      kill(Oldpid,SIGHUP);
-      Oldpid=0;
-    }
-#endif
-  }
 }
 
 void frustum(GLdouble left, GLdouble right, GLdouble bottom,

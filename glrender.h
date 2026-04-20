@@ -242,8 +242,11 @@ public:
   void deleteShaders();
   void resizeBlendShader(GLuint maxsize);
 
-  // Rendering functions
-  void drawFrame();
+  // Rendering functions (virtual hooks for base class display())
+  void drawFrame() override;
+  void swapBuffers() override;
+  void showWindow() override;
+
   void Export(int imageIndex=0);
   void refreshBuffers();
   void setUniformsOpenGL(GLint shader);
@@ -264,7 +267,6 @@ public:
   void resizeFragmentBuffer();
 
 protected:
-  void display() override;
   void exportHandler(int = 0);
   virtual void reshape(int width, int height) override;
 };

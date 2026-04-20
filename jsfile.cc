@@ -1,7 +1,6 @@
 #include "jsfile.h"
 
 #include "settings.h"
-#include "glrender.h"
 #include "drawelement.h"
 
 using namespace settings;
@@ -110,8 +109,8 @@ void jsfile::comment(string name)
   out << "<!-- Use the following line to embed this file within another web page:" << newl
       << newl
       << "<iframe src=\"" << name
-      << "\" width=\"" << camp::gl->fullWidth
-      << "\" height=\"" << camp::gl->fullHeight
+      << "\" width=\"" << gl->fullWidth
+      << "\" height=\"" << gl->fullHeight
       << "\" frameborder=\"0\"></iframe>" << newl
       << newl
       << "-->" << newl << newl;
@@ -144,8 +143,8 @@ void jsfile::open(string name)
 
   out << newl << "<script>" << newl;
   out << newl
-      << s << "canvasWidth=" << camp::gl->fullWidth << ";" << newl
-      << s << "canvasHeight=" << camp::gl->fullHeight << ";" << newl << newl
+      << s << "canvasWidth=" << gl->fullWidth << ";" << newl
+      << s << "canvasHeight=" << gl->fullHeight << ";" << newl << newl
       << s << "webgl2=" << std::boolalpha << webgl2 << ";"
       << newl
       << s << "ibl=" << std::boolalpha << ibl << ";"
@@ -158,18 +157,18 @@ void jsfile::open(string name)
     out << s << "image=\"" << getSetting<string>("image") << "\";" << newl << newl;
   }
   out << newl
-      <<  s << "minBound=[" << camp::gl->Xmin << "," << camp::gl->Ymin << "," << camp::gl->Zmin << "];"
+      <<  s << "minBound=[" << gl->Xmin << "," << gl->Ymin << "," << gl->Zmin << "];"
       << newl
-      <<  s << "maxBound=[" << camp::gl->Xmax << "," << camp::gl->Ymax << "," << camp::gl->Zmax << "];"
+      <<  s << "maxBound=[" << gl->Xmax << "," << gl->Ymax << "," << gl->Zmax << "];"
       << newl
-      << s << "orthographic=" << camp::gl->orthographic << ";"
+      << s << "orthographic=" << gl->orthographic << ";"
       << newl
-      << s << "angleOfView=" << camp::gl->Angle << ";"
+      << s << "angleOfView=" << gl->Angle << ";"
       << newl
-      << s << "initialZoom=" << camp::gl->Zoom0 << ";" << newl;
-    if(camp::gl->Shift != pair(0.0,0.0))
-      out << s << "viewportShift=" << camp::gl->Shift*camp::gl->Zoom0 << ";" << newl;
-    out << s << "viewportMargin=" << camp::gl->Margin << ";" << newl << newl
+      << s << "initialZoom=" << gl->Zoom0 << ";" << newl;
+    if(gl->Shift != pair(0.0,0.0))
+      out << s << "viewportShift=" << gl->Shift*gl->Zoom0 << ";" << newl;
+    out << s << "viewportMargin=" << gl->Margin << ";" << newl << newl
         << s << "zoomFactor=" << getSetting<double>("zoomfactor") << ";" << newl
         << s << "zoomPinchFactor=" << getSetting<double>("zoomPinchFactor") << ";"
       << newl
@@ -181,25 +180,25 @@ void jsfile::open(string name)
       << newl
         << s << "vibrateTime=" << getSetting<double>("vibrateTime") << ";"
         << newl << newl;
-  out << s << "background=[" << camp::gl->Background[0] << "," << camp::gl->Background[1] << ","
-      << camp::gl->Background[2] << "," << camp::gl->Background[3] << "];"
+  out << s << "background=[" << gl->Background[0] << "," << gl->Background[1] << ","
+      << gl->Background[2] << "," << gl->Background[3] << "];"
       << newl << newl;
-  out << s << "Transform=[" << camp::gl->T[0];
+  out << s << "Transform=[" << gl->T[0];
   for(int i=1; i < 16; ++i)
-    out << "," << newl << camp::gl->T[i];
+    out << "," << newl << gl->T[i];
   out << "];" << newl << newl;
 
-  for(size_t i=0; i < camp::gl->nlights; ++i) {
+  for(size_t i=0; i < gl->nlights; ++i) {
     size_t i4=4*i;
     out << "light(" << newl
-        << camp::gl->Lights[i] << "," << newl
-        << "[" << camp::gl->LightsDiffuse[i4] << "," << camp::gl->LightsDiffuse[i4+1] << ","
-        << camp::gl->LightsDiffuse[i4+2] << "]);" << newl;
+        << gl->Lights[i] << "," << newl
+        << "[" << gl->LightsDiffuse[i4] << "," << gl->LightsDiffuse[i4+1] << ","
+        << gl->LightsDiffuse[i4+2] << "]);" << newl;
   }
   out << newl;
 
-  camp::clearCenters();
-  camp::clearMaterials();
+  gl->clearCenters();
+  gl->clearMaterials();
 #endif
 }
 
@@ -220,7 +219,7 @@ void jsfile::finish(string name)
       << newl << "</head>"
       << newl << newl << "<body style=\"overflow: hidden;\" onload=\"webGLStart();\">"
       << newl << "<canvas id=\"Asymptote\" width=\""
-      << camp::gl->fullWidth << "\" height=\"" <<  camp::gl->fullHeight
+      << gl->fullWidth << "\" height=\"" <<  gl->fullHeight
       << "\" style=\"border: none; cursor: pointer;\">"
       << newl << "</canvas>";
   footer(name);

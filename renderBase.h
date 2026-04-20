@@ -433,8 +433,13 @@ public:
   // Message processing for inter-thread communication
   void processMessages(RendererMessage const& msg);
 
-  // Display/render the current frame (virtual - implemented by derived classes)
-  virtual void display() = 0;
+  // Display/render the current frame (library-agnostic implementation in base class)
+  virtual void display();
+
+  // Virtual hooks for library-specific operations (override in derived classes)
+  virtual void swapBuffers();
+  virtual void showWindow();
+  virtual void drawFrame() = 0;
 
   virtual void quit();
 
