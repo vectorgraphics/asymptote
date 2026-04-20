@@ -68,7 +68,9 @@ using std::make_pair;
   ((defined(HAVE_LIBGL) && defined(HAVE_LIBGLFW) && defined(HAVE_LIBGLM)) || \
    defined(HAVE_LIBOSMESA))
 #define HAVE_RENDERER
+const bool vulkan=false;
 #endif
+
 
 #if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDIT)
 #define HAVE_READLINE

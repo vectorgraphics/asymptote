@@ -17,15 +17,6 @@
 #include "drawsurface.h"
 #include "drawpath3.h"
 #include "seconds.h"
-#include "renderBase.h"
-
-#ifdef HAVE_RENDERER
-// Global OpenGL renderer instance is defined inside the camp namespace below
-#endif
-
-#ifdef HAVE_LIBGLFW
-#include <GLFW/glfw3.h>
-#endif
 
 #if defined(_WIN32)
 #include <Windows.h>
@@ -41,7 +32,6 @@ using std::ofstream;
 using vm::array;
 
 using namespace settings;
-using namespace camp;
 
 texstream::~texstream() {
   string texengine=getSetting<string>("tex");
@@ -70,9 +60,11 @@ texstream::~texstream() {
 namespace camp {
 
 #ifdef HAVE_RENDERER
-// Initialize the global renderer instance (typed as base class for unification)
-// The actual object is AsyGLRender, but we use AsyRender* for unified interface
+#ifdef HAVE_LIBVULKAN
+AsyRender* gl = new AsyVkRender();
+#else
 AsyRender* gl = new AsyGLRender();
+#endif
 #endif
 
 extern void draw();
@@ -1446,7 +1438,7 @@ void picture::render(double size2, const triple& Min, const triple& Max,
   }
 }
 
-AsyRender::RenderFunctionArgs com = {};
+AsyRender::RenderFunctionArgs args = {};
 
 extern bool allowRender;
 
@@ -1458,7 +1450,7 @@ void glrenderWrapper()
   gl->endwait(gl->initSignal,gl->initLock);
 #endif
   if(allowRender)
-    gl->render(com);
+    gl->render(args);
 #endif
 }
 
@@ -1488,8 +1480,18 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifndef HAVE_LIBOSMESA
 #ifndef HAVE_RENDERER
-  if(!webgl)
-    camp::reportError("to support onscreen OpenGL rendering; please install the glut library, then ./configure; make");
+  if(!webgl) {
+    string renderer;
+    string dependencies;
+    if(vulkan) {
+      renderLibrary="Vulkan";
+      dependencies="glfw, vulkan, and glslang";
+    } else {
+      renderLibrary="OpenGL";
+      dependencies="glfw and GL";
+    }
+    camp::reportError("to support onscreen "+renderLibrary+" rendering; please install the "+dependencies+" development libraries, then ./configure; make");
+  }
 #endif
 #endif
 
@@ -1529,7 +1531,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 #ifdef HAVE_RENDERER
   bool offscreen=false;
 #ifdef HAVE_LIBOSMESA
-  offscreen=true;
+  offscreen=!vulkan;
 #endif
 #ifdef HAVE_PTHREAD
   bool animating=getSetting<bool>("animating");
@@ -1538,33 +1540,32 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 
   bool format3d=webgl || v3d;
-
   if(!format3d) {
 #ifdef HAVE_RENDERER
     if(gl->thread && !offscreen) {
 #ifdef HAVE_PTHREAD
       if(!gl->initialized) {
         gl->initialized=true;
-        com.prefix=prefix;
-        com.pic=pic;
-        com.format=outputformat;
-        com.width=width;
-        com.height=height;
-        com.angle=angle;
-        com.zoom=zoom;
-        com.m=m;
-        com.M=M;
-        com.shift=shift;
-        com.margin=margin;
-        com.t=t;
-        com.tup=tup;
-        com.background=background;
-        com.nlightsin=nlights;
-        com.lights=lights;
-        com.diffuse=diffuse;
-        com.specular=specular;
-        com.view=View;
-        com.oldpid=oldpid;
+        args.prefix=prefix;
+        args.pic=pic;
+        args.format=outputformat;
+        args.width=width;
+        args.height=height;
+        args.angle=angle;
+        args.zoom=zoom;
+        args.m=m;
+        args.M=M;
+        args.shift=shift;
+        args.margin=margin;
+        args.t=t;
+        args.tup=tup;
+        args.background=background;
+        args.nlightsin=nlights;
+        args.lights=lights;
+        args.diffuse=diffuse;
+        args.specular=specular;
+        args.view=View;
+        args.oldpid=oldpid;
         if(Wait)
           pthread_mutex_lock(&gl->readyLock);
         allowRender=true;
@@ -1576,9 +1577,6 @@ bool picture::shipout3(const string& prefix, const string& format,
           gl->endwait(gl->initSignal,gl->initLock);
           initialize=false;
         }
-#ifdef HAVE_RENDERER
-        glfwPostEmptyEvent();
-#endif
         if(Wait) {
           pthread_cond_wait(&gl->readySignal,&gl->readyLock);
           pthread_mutex_unlock(&gl->readyLock);
@@ -1607,28 +1605,28 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
 
 #if HAVE_LIBGLM
-  com.prefix=prefix;
-  com.pic=pic;
-  com.format=outputformat;
-  com.width=width;
-  com.height=height;
-  com.angle=angle;
-  com.zoom=zoom;
-  com.m=m;
-  com.M=M;
-  com.shift=shift;
-  com.margin=margin;
-  com.t=t;
-  com.tup=tup;
-  com.background=background;
-  com.nlightsin=nlights;
-  com.lights=lights;
-  com.diffuse=diffuse;
-  com.specular=specular;
-  com.view=View;
+  args.prefix=prefix;
+  args.pic=pic;
+  args.format=outputformat;
+  args.width=width;
+  args.height=height;
+  args.angle=angle;
+  args.zoom=zoom;
+  args.m=m;
+  args.M=M;
+  args.shift=shift;
+  args.margin=margin;
+  args.t=t;
+  args.tup=tup;
+  args.background=background;
+  args.nlightsin=nlights;
+  args.lights=lights;
+  args.diffuse=diffuse;
+  args.specular=specular;
+  args.view=View;
+  args.oldpid=oldpid;
 
-  gl->render(com);
-
+  gl->render(args);
   if(format3d) {
     string name=buildname(prefix,format);
     abs3Doutfile *fileObj=nullptr;
@@ -1688,6 +1686,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 bool picture::shipout3(const string& prefix, const string format)
 {
+  gl->redraw=false;
   bounds3();
   bool status;
 
