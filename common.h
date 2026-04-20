@@ -66,6 +66,7 @@ using std::make_pair;
 
 #if !defined(FOR_SHARED) && (defined(HAVE_LIBVULKAN) || defined(HAVE_LIBGL)) && defined(HAVE_LIBGLM)
  #define HAVE_RENDERER
+const bool vulkan=true;
 #endif
 
 #if defined(HAVE_LIBREADLINE) || defined(HAVE_LIBEDIT)
