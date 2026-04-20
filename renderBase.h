@@ -342,11 +342,12 @@ public:
 protected:
   // Virtual functions for derived classes to override (not pure - have default implementations)
   virtual void setDimensions(int Width, int Height, double X, double Y);
-  virtual void setProjection();
   virtual void updateModelViewData();
 
 public:
-  // Update projection and view matrices (called from free functions)
+  virtual void setProjection();
+
+  // Update projection and view matrices
   virtual void update();
 
   // Projection matrix functions

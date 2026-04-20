@@ -127,7 +127,6 @@ double Tup[16];
 
 // OpenGL-specific global state
 const picture* Picture;  // Keep as global for drawscene() compatibility
-double gl_X, gl_Y;
 double xprev,yprev;
 static const double ASY_PI=acos(-1.0);
 static const double ASY_DEGREES=180.0/ASY_PI;
@@ -249,7 +248,7 @@ void AsyGLRender::initComputeShaders()
   shaderParams.push_back(s.str().c_str());
   s2 << "BLOCKSIZE " << blockSize << "u" << endl;
   shaderParams.push_back(s2.str().c_str());
-  GLuint rc=compileAndLinkShader(shaders,shaderParams,true,false,true,true);
+  GLuint rc=compileAndLinkShader(shaders,shaderParams,true,false,true,false);
   if(rc == 0) {
     GPUindexing=false; // Compute shaders are unavailable.
     if(settings::verbose > 2)
@@ -748,29 +747,6 @@ bool capsize(int& width, int& height)
   return resize;
 }
 
-void reshape0(int width, int height)
-{
-  gl_X=(gl_X/gl->Width)*width;
-  gl_Y=(gl_Y/gl->Height)*height;
-
-  gl->Width=width;
-  gl->Height=height;
-
-  static int lastWidth=1;
-  static int lastHeight=1;
-  if(gl->View && gl->Width*gl->Height > 1 && (gl->Width != lastWidth || gl->Height != lastHeight)
-     && settings::verbose > 1) {
-    cout << "Rendering " << stripDir(gl->Prefix) << " as "
-         << gl->Width << "x" << gl->Height << " image" << endl;
-    lastWidth=gl->Width;
-    lastHeight=gl->Height;
-  }
-
-  glViewport(0,0,gl->Width,gl->Height);
-  if(gl->ssbo)
-    gl->initSSBO=true;
-}
-
 void windowposition(int& x, int& y, int width=-1, int height=-1)
 {
   pair z=getSetting<pair>("position");
@@ -804,7 +780,7 @@ void setsize(int w, int h, bool reposition=true)
   }
 
   glfwSetWindowSize(win,w,h);
-  reshape0(w,h);
+  gl->reshape0(w,h);
   gl->redraw=true;
 }
 
@@ -833,7 +809,7 @@ void fullscreen(bool reposition=true)
   }
   gl->Xfactor=((double) gl->screenHeight)/gl->Height;
   gl->Yfactor=((double) gl->screenWidth)/gl->Width;
-  reshape0(gl->Width,gl->Height);
+  gl->reshape0(gl->Width,gl->Height);
 
   GLFWwindow* win = static_cast<GLFWwindow*>(gl->getGLFWWindow());
   if(reposition)
@@ -937,7 +913,7 @@ void reshape(int width, int height)
     glfwSetWindowSize(static_cast<GLFWwindow*>(gl->getGLFWWindow()),width,height);
   }
 
-  reshape0(width,height);
+  gl->reshape0(width,height);
   gl->remesh=true;
 }
 
@@ -1922,6 +1898,15 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   GPUcompress=false;
 #endif
 
+  // Initialize GPU compute parameters (must be done before any call to initShaders())
+  if(GPUindexing) {
+    localSize = settings::getSetting<Int>("GPUlocalSize");
+    checkpow2(localSize,"GPUlocalSize");
+    blockSize = settings::getSetting<Int>("GPUblockSize");
+    checkpow2(blockSize,"GPUblockSize");
+    groupSize = localSize * blockSize;
+  }
+
   // Initialize OpenGL if needed
   if(!initialized) {
     initialized = true;
@@ -1945,14 +1930,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     ibl = settings::getSetting<bool>("ibl");
     initShaders();
 
-    // Initialize GPU compute parameters
-    if(GPUindexing) {
-      localSize = settings::getSetting<Int>("GPUlocalSize");
-      checkpow2(localSize,"GPUlocalSize");
-      blockSize = settings::getSetting<Int>("GPUblockSize");
-      checkpow2(blockSize,"GPUblockSize");
-      groupSize = localSize * blockSize;
-    }
   }
 
   GLint val;
@@ -2238,7 +2215,15 @@ void AsyGLRender::exportHandler(int)
 
 void AsyGLRender::reshape0(int width, int height)
 {
+  // Call base class to handle dimension updates and projection
   AsyRender::reshape0(width, height);
+
+  // OpenGL-specific: update viewport and mark SSBO for reinitialization
+#ifdef HAVE_RENDERER
+  glViewport(0, 0, Width, Height);
+  if(ssbo)
+    initSSBO = true;
+#endif
 }
 
 } // namespace camp
