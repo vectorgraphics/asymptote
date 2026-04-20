@@ -324,7 +324,7 @@ void AsyRender::setsize(int w, int h, bool reposition)
 #endif
 
   capsize(w, h);
-  reshape0(w, h);
+  reshape(w, h);
   update();
 }
 
@@ -332,7 +332,7 @@ void AsyRender::setsize(int w, int h, bool reposition)
  * Handle window resize.
  * Base implementation handles dimension updates and projection.
  */
-void AsyRender::reshape0(int width, int height)
+void AsyRender::reshape(int width, int height)
 {
   // Scale X,Y proportionally with new dimensions
   X = (X / Width) * width;

@@ -698,7 +698,7 @@ public:
   GLFWwindow* getGLFWWindow() const { return static_cast<GLFWwindow*>(glfwWindow); }
 
   // Vulkan-specific overrides that add to base class behavior
-  virtual void reshape0(int width, int height) override;
+  virtual void reshape(int width, int height) override;
   virtual void cycleMode() override;
 
   friend void glfwInitWindow(AsyRender*, int, int, const std::string&);

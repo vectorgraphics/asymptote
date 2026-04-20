@@ -376,7 +376,7 @@ public:
   void windowposition(int& x, int& y, int width=-1, int height=-1);
   virtual void setsize(int w, int h, bool reposition=true);
   virtual void fullscreen(bool reposition=true);
-  virtual void reshape0(int width, int height);
+  virtual void reshape(int width, int height);
   void setosize();
   virtual void fitscreen(bool reposition=true);
   virtual void toggleFitScreen();

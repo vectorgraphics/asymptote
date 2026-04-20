@@ -212,7 +212,7 @@ void AsyVkRender::onFramebufferResize(int width, int height)
     if(width == Width && height == Height)
         return;
 
-    reshape0(width, height);
+    reshape(width, height);
     update();
     remesh = true;
 }
@@ -4813,9 +4813,9 @@ void AsyVkRender::finalizeProcess()
 #endif
 }
 
-void AsyVkRender::reshape0(int width, int height) {
+void AsyVkRender::reshape(int width, int height) {
   // Base class handles dimension updates and projection
-  AsyRender::reshape0(width, height);
+  AsyRender::reshape(width, height);
 
   // Vulkan-specific: flag for swapchain recreation
   framebufferResized = true;
