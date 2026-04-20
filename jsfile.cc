@@ -1,7 +1,6 @@
 #include "jsfile.h"
 
 #include "settings.h"
-// #include "glrender.h"
 #include "drawelement.h"
 
 using namespace settings;
@@ -106,6 +105,7 @@ void jsfile::svgtohtml(string prefix)
 void jsfile::comment(string name)
 {
 #ifdef HAVE_LIBGLM
+
   out << "<!-- Use the following line to embed this file within another web page:" << newl
       << newl
       << "<iframe src=\"" << name
@@ -124,6 +124,7 @@ void jsfile::open(string name)
   meta(name,false);
 
 #ifdef HAVE_LIBGLM
+
   out.precision(getSetting<Int>("digits"));
 
   bool ibl=getSetting<bool>("ibl");
@@ -204,6 +205,7 @@ void jsfile::open(string name)
 void jsfile::finish(string name)
 {
 #ifdef HAVE_LIBGLM
+
   finished=true;
   size_t ncenters=drawElement::centers.size();
   if(ncenters > 0) {
