@@ -747,119 +747,13 @@ bool capsize(int& width, int& height)
   return resize;
 }
 
-void windowposition(int& x, int& y, int width=-1, int height=-1)
-{
-  pair z=getSetting<pair>("position");
-  x=(int) z.getx();
-  y=(int) z.gety();
-  if(x < 0) {
-    x += gl->screenWidth-width;
-    if(x < 0) x=0;
-  }
-  if(y < 0) {
-    y += gl->screenHeight-height;
-    if(y < 0) y=0;
-  }
-}
 
-void setsize(int w, int h, bool reposition=true)
-{
-  int x,y;
 
-  capsize(w,h);
 
-  GLFWwindow* win = static_cast<GLFWwindow*>(gl->getGLFWWindow());
 
-  if(reposition) {
-    windowposition(x,y,w,h);
-    glfwSetWindowPos(win,x,y);
-  } else {
-    int wx, wy;
-    glfwGetWindowPos(win, &wx, &wy);
-    glfwSetWindowPos(win,std::max(wx-2,0),std::max(wy-2,0));
-  }
 
-  glfwSetWindowSize(win,w,h);
-  gl->reshape0(w,h);
-  gl->redraw=true;
-}
 
-void capzoom()
-{
-  static double maxzoom=sqrt(DBL_MAX);
-  static double minzoom=1.0/maxzoom;
-  if(gl->Zoom <= minzoom) gl->Zoom=minzoom;
-  if(gl->Zoom >= maxzoom) gl->Zoom=maxzoom;
 
-  if(fabs(gl->Zoom-gl->lastzoom) > settings::getSetting<double>("zoomThreshold")) {
-    gl->remesh=true;
-    gl->lastzoom=gl->Zoom;
-  }
-}
-
-void fullscreen(bool reposition=true)
-{
-  gl->Width=gl->screenWidth;
-  gl->Height=gl->screenHeight;
-  if(gl->firstFit) {
-    if(gl->Width < gl->Height*gl->Aspect)
-      gl->Zoom *= gl->Width/(gl->Height*gl->Aspect);
-    capzoom();
-    gl->firstFit=false;
-  }
-  gl->Xfactor=((double) gl->screenHeight)/gl->Height;
-  gl->Yfactor=((double) gl->screenWidth)/gl->Width;
-  gl->reshape0(gl->Width,gl->Height);
-
-  GLFWwindow* win = static_cast<GLFWwindow*>(gl->getGLFWWindow());
-  if(reposition)
-    glfwSetWindowPos(win,0,0);
-  glfwSetWindowSize(win,gl->Width,gl->Height);
-
-  gl->redraw=true;
-}
-
-void fitscreen(bool reposition=true)
-{
-  switch(gl->Fitscreen) {
-    case 0: // Original size
-    {
-      gl->Xfactor=gl->Yfactor=1.0;
-      double pixelRatio=getSetting<double>("devicepixelratio");
-      setsize(gl->oldWidth*pixelRatio,gl->oldHeight*pixelRatio,reposition);
-      break;
-    }
-    case 1: // Fit to screen in one dimension
-    {
-      int w=gl->screenWidth;
-      int h=gl->screenHeight;
-      if(w > h*gl->Aspect)
-        w=std::min((int) ceil(h*gl->Aspect),w);
-      else
-        h=std::min((int) ceil(w/gl->Aspect),h);
-      setsize(w,h,reposition);
-      break;
-    }
-    case 2: // Full screen
-    {
-      fullscreen(reposition);
-      break;
-    }
-  }
-}
-
-void togglefitscreen()
-{
-  ++gl->Fitscreen;
-  if(gl->Fitscreen > 2) gl->Fitscreen=0;
-  fitscreen();
-}
-
-void screen()
-{
-  if(gl->thread && !interact::interactive)
-    fitscreen(false);
-}
 
 stopWatch frameTimer;
 
@@ -879,23 +773,6 @@ void nextframe()
   }
 }
 
-stopWatch Timer;
-
-void update()
-{
-  capzoom();
-
-  gl->redraw=true;
-#ifdef HAVE_RENDERER
-  if(gl->glfwWindow)
-    ::glfwShowWindow(static_cast<GLFWwindow*>(gl->getGLFWWindow()));
-#endif
-
-  // Call the AsyGLRender::update() method which handles view matrix computation
-  gl->update();
-}
-
-// poll is no longer needed with GLFW - event handling is done in the main loop
 
 void reshape(int width, int height)
 {
@@ -915,26 +792,6 @@ void reshape(int width, int height)
 
   gl->reshape0(width,height);
   gl->remesh=true;
-}
-
-void exportHandler(int=0)
-{
-#ifndef HAVE_LIBOSMESA
-#ifdef HAVE_LIBGLFW
-  if(gl->glfwWindow && !gl->Iconify) {
-    glfwShowWindow(static_cast<GLFWwindow*>(gl->getGLFWWindow()));
-  }
-#endif
-#endif
-  gl->readyAfterExport=true;
-  gl->Export();
-
-#ifndef HAVE_LIBOSMESA
-#ifdef HAVE_LIBGLFW
-  if(gl->glfwWindow && !gl->Iconify)
-    glfwHideWindow(static_cast<GLFWwindow*>(gl->getGLFWWindow()));
-#endif
-#endif
 }
 
 void init_osmesa()
@@ -2117,15 +1974,13 @@ void AsyGLRender::display()
 void frustum(GLdouble left, GLdouble right, GLdouble bottom,
              GLdouble top, GLdouble nearVal, GLdouble farVal)
 {
-  gl->projMat=glm::frustum(left,right,bottom,top,nearVal,farVal);
-  gl->updateProjection();
+  gl->frustum(left, right, bottom, top, nearVal, farVal);
 }
 
 void ortho(GLdouble left, GLdouble right, GLdouble bottom,
            GLdouble top, GLdouble nearVal, GLdouble farVal)
 {
-  gl->projMat=glm::ortho(left,right,bottom,top,nearVal,farVal);
-  gl->updateProjection();
+  gl->ortho(left, right, bottom, top, nearVal, farVal);
 }
 
 void AsyGLRender::updateModelViewData()
@@ -2209,8 +2064,22 @@ void AsyGLRender::exportHandler(int)
 {
 #ifdef HAVE_RENDERER
   readyAfterExport=true;
+#ifndef HAVE_LIBOSMESA
+#ifdef HAVE_LIBGLFW
+  if(glfwWindow && !Iconify) {
+    glfwShowWindow(static_cast<GLFWwindow*>(glfwWindow));
+  }
+#endif
 #endif
   Export();
+
+#ifndef HAVE_LIBOSMESA
+#ifdef HAVE_LIBGLFW
+  if(glfwWindow && !Iconify)
+    glfwHideWindow(static_cast<GLFWwindow*>(glfwWindow));
+#endif
+#endif
+#endif
 }
 
 void AsyGLRender::reshape0(int width, int height)
