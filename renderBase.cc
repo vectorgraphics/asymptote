@@ -2,6 +2,7 @@
 #include "settings.h"
 #include "drawelement.h"
 #include "interact.h"
+#include "picture.h"
 
 #ifdef HAVE_RENDERER
 // Forward declaration for GLFWwindow to avoid including glfw3.h here
@@ -139,6 +140,53 @@ void AsyRender::clearMaterials()
 {
   materials.clear();
   materialMap.clear();
+}
+
+void AsyRender::clearData()
+{
+  pointData.clear();
+  lineData.clear();
+  materialData.clear();
+  colorData.clear();
+  triangleData.clear();
+  transparentData.clear();
+}
+
+void AsyRender::prepareScene()
+{
+
+#ifdef HAVE_PTHREAD
+  static bool first=true;
+  if(thread && first) {
+    wait(initSignal,initLock);
+    endwait(initSignal,initLock);
+    first=false;
+  }
+
+  if(format3dWait)
+    wait(initSignal,initLock);
+#endif
+
+  if(redraw) {
+    clearData();
+
+    if(remesh)
+      clearCenters();
+
+    triple m(xmin,ymin,Zmin);
+    triple M(xmax,ymax,Zmax);
+    double perspective=orthographic || Zmax == 0.0 ? 0.0 : 1.0/Zmax;
+
+    double size2=hypot(Width,Height);
+
+    pic->render(size2,m,M,perspective,remesh);
+    redraw=false;
+
+    if(mode != DRAWMODE_OUTLINE)
+      remesh=false;
+
+    Opaque=transparentData.indices.empty();
+  }
 }
 
 projection AsyRender::camera(bool user)
@@ -629,6 +677,77 @@ void AsyRender::quit()
 void AsyRender::finalizeProcess()
 {
   // Default: no-op
+}
+
+/**
+ * Display/render the current frame (library-agnostic implementation).
+ * Uses virtual hooks for library-specific operations.
+ */
+void AsyRender::display()
+{
+  prepareScene();
+
+  // Show window if needed (library-specific)
+  showWindow();
+
+  // Draw the frame (renderer-specific)
+  drawFrame();
+
+  // FPS tracking
+  bool fps = settings::verbose > 2;
+  if(fps) {
+    if(framecount < 20) fpsTimer.reset();
+    else {
+      double s = fpsTimer.seconds(true);
+      if(s > 0.0) {
+        double rate = 1.0/s;
+        fpsStats.add(rate);
+        if(framecount % 20 == 0)
+          cout << "FPS=" << rate << "\t" << fpsStats.mean()
+               << " +/- " << fpsStats.stdev() << endl;
+      }
+    }
+    ++framecount;
+  }
+
+  // Swap buffers (library-specific)
+  swapBuffers();
+
+  // Handle export queue
+  if(queueExport) {
+    // Wait for the just-submitted frame to finish before exporting
+    exportHandler();
+    queueExport = false;
+  }
+
+  // Process management (non-Windows)
+  if(!thread) {
+#if defined(_WIN32)
+#else
+    if(Oldpid != 0 && waitpid(Oldpid, NULL, WNOHANG) != Oldpid) {
+      kill(Oldpid, SIGHUP);
+      Oldpid = 0;
+    }
+#endif
+  }
+}
+
+/**
+ * Swap front and back buffers (library-specific).
+ * Default: no-op - override in derived classes.
+ */
+void AsyRender::swapBuffers()
+{
+  // Default: no-op - derived classes must override
+}
+
+/**
+ * Show the window if hidden (library-specific).
+ * Default: no-op - override in derived classes.
+ */
+void AsyRender::showWindow()
+{
+  // Default: no-op - derived classes can override for specific behavior
 }
 
 /**

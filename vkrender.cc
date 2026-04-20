@@ -3809,16 +3809,6 @@ void AsyVkRender::endFrame(int imageIndex)
   endFrameCommands();
 }
 
-void AsyVkRender::clearData()
-{
-  pointData.clear();
-  lineData.clear();
-  materialData.clear();
-  colorData.clear();
-  triangleData.clear();
-  transparentData.clear();
-}
-
 void AsyVkRender::drawPoints(FrameObject & object)
 {
   drawBuffer(object.pointVertexBuffer,
@@ -4501,78 +4491,22 @@ void AsyVkRender::drawFrame()
   currentFrame = (currentFrame + 1) % maxFramesInFlight;
 }
 
-void AsyVkRender::prepareScene()
+/**
+ * Show the window if hidden (GLFW-specific implementation).
+ */
+void AsyVkRender::showWindow()
 {
-
-#ifdef HAVE_PTHREAD
-  static bool first=true;
-  if(thread && first) {
-    wait(initSignal,initLock);
-    endwait(initSignal,initLock);
-    first=false;
-  }
-
-  if(format3dWait)
-    wait(initSignal,initLock);
-#endif
-
-  if(redraw) {
-    clearData();
-
-    if(remesh)
-      clearCenters();
-
-    triple m(xmin,ymin,Zmin);
-    triple M(xmax,ymax,Zmax);
-    double perspective=orthographic || Zmax == 0.0 ? 0.0 : 1.0/Zmax;
-
-    double size2=hypot(Width,Height);
-
-    pic->render(size2,m,M,perspective,remesh);
-    redraw=false;
-
-    if(mode != DRAWMODE_OUTLINE)
-      remesh=false;
-
-    Opaque=transparentData.indices.empty();
-  }
-}
-
-void AsyVkRender::display()
-{
-  prepareScene();
-
   GLFWwindow* win = getRenderWindow();
   if(View && !hideWindow && !glfwGetWindowAttrib(win,GLFW_VISIBLE))
     ::glfwShowWindow(win);
+}
 
-  drawFrame();
-
-  bool fps=settings::verbose > 2;
-  if(fps) {
-    if(framecount < 20) // Measure steady-state framerate
-      fpsTimer.reset();
-    else {
-      double s=fpsTimer.seconds(true);
-      if(s > 0.0) {
-        double rate=1.0/s;
-        fpsStats.add(rate);
-        if(framecount % 20 == 0)
-          cout << "FPS=" << rate << "\t" << fpsStats.mean()
-               << " +/- " << fpsStats.stdev() << endl;
-      }
-    }
-    ++framecount;
-  }
-
-  if(!thread) {
-#if !defined(_WIN32)
-    if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
-      kill(Oldpid,SIGHUP);
-      Oldpid=0;
-    }
-#endif
-  }
+/**
+ * Swap front and back buffers (Vulkan-specific implementation).
+ */
+void AsyVkRender::swapBuffers()
+{
+  // Vulkan buffer swap is handled in drawFrame() via present
 }
 
 GLFWwindow* AsyVkRender::getRenderWindow() const

@@ -639,14 +639,14 @@ public:
   void blendFrame(int imageIndex);
   void preDrawBuffers(FrameObject & object, int imageIndex);
   void drawBuffers(FrameObject & object, int imageIndex);
-  void drawFrame();
+  void drawFrame() override;
+  void swapBuffers() override;
+  void showWindow() override;
   void recreateSwapChain();
   void initializeSwapChainIfNeeded();
   vk::UniqueShaderModule createShaderModule(EShLanguage lang, std::string const & filename, std::vector<std::string> const & options);
 #endif
 
-  void prepareScene();
-  void display() override;
   GLFWwindow* getRenderWindow() const;
   void cleanup();
 
