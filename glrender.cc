@@ -1398,7 +1398,7 @@ AsyGLRender::~AsyGLRender()
 {
 #ifdef HAVE_RENDERER
   if (this->View) {
-    ::glfwDestroyWindow(static_cast<GLFWwindow*>(glfwWindow));
+    ::glfwDestroyWindow(getRenderWindow());
     glfwWindow = nullptr;
   }
 
@@ -1765,7 +1765,7 @@ void AsyGLRender::onMouseButton(int button, int action, int mods)
         lastAction = currentActionStr;
         // Capture initial position for movement tracking
         double xpos, ypos;
-        glfwGetCursorPos(static_cast<GLFWwindow*>(glfwWindow), &xpos, &ypos);
+        glfwGetCursorPos(getRenderWindow(), &xpos, &ypos);
         xprev = xpos;
         yprev = ypos;
     } else if (action == GLFW_RELEASE) {
@@ -1834,7 +1834,7 @@ void AsyGLRender::onClose()
 void AsyGLRender::display()
 {
 #ifdef HAVE_RENDERER
-  GLFWwindow* win = static_cast<GLFWwindow*>(glfwWindow);
+  GLFWwindow* win = getRenderWindow();
   if(View && win) {
     // Make OpenGL context current before any GL operations
     ::glfwMakeContextCurrent(win);
@@ -1863,7 +1863,7 @@ void AsyGLRender::display()
   }
 
 #ifdef HAVE_RENDERER
-  glfwSwapBuffers(static_cast<GLFWwindow*>(glfwWindow));
+  glfwSwapBuffers(getRenderWindow());
 
   if(queueExport) {
     // Wait for the just-submitted frame to finish before exporting
@@ -1913,12 +1913,19 @@ void AsyGLRender::update()
   redraw=true;
 #ifdef HAVE_RENDERER
   if(glfwWindow)
-    ::glfwShowWindow(static_cast<GLFWwindow*>(glfwWindow));
+    ::glfwShowWindow(getRenderWindow());
 #endif
 
   // Call base class update which has the correct view matrix computation (matching reference GLUT code)
   AsyRender::update();
 }
+
+#ifdef HAVE_RENDERER
+GLFWwindow* AsyGLRender::getRenderWindow() const
+{
+  return static_cast<GLFWwindow*>(glfwWindow);
+}
+#endif
 
 void AsyGLRender::exportHandler(int)
 {
@@ -1927,7 +1934,7 @@ void AsyGLRender::exportHandler(int)
 #ifndef HAVE_LIBOSMESA
 #ifdef HAVE_LIBGLFW
   if(glfwWindow && !Iconify) {
-    glfwShowWindow(static_cast<GLFWwindow*>(glfwWindow));
+    glfwShowWindow(getRenderWindow());
   }
 #endif
 #endif
@@ -1936,7 +1943,7 @@ void AsyGLRender::exportHandler(int)
 #ifndef HAVE_LIBOSMESA
 #ifdef HAVE_LIBGLFW
   if(glfwWindow && !Iconify)
-    glfwHideWindow(static_cast<GLFWwindow*>(glfwWindow));
+    glfwHideWindow(getRenderWindow());
 #endif
 #endif
 #endif

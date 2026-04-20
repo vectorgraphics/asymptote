@@ -222,6 +222,9 @@ public:
 
   // Spin state (Xspin, Yspin, Zspin now in base class)
   utils::stopWatch spinTimer;
+
+public:
+  GLFWwindow* getRenderWindow() const;
 #endif
 
 public:
