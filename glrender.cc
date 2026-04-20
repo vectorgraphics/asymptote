@@ -92,26 +92,11 @@ const size_t nbuffer=1000;
 size_t Maxmaterials;
 size_t Nmaterials=1;
 size_t nmaterials=48;
-unsigned int Opaque=0;
 
 void clearCenters()
 {
   drawElement::centers.clear();
   drawElement::centermap.clear();
-}
-
-void clearMaterials()
-{
-  gl->materials.clear();
-  gl->materials.reserve(nmaterials);
-  gl->materialMap.clear();
-
-  pointData.renderCount=0;
-  lineData.renderCount=0;
-  materialData.renderCount=0;
-  colorData.renderCount=0;
-  triangleData.renderCount=0;
-  transparentData.renderCount=0;
 }
 
 // Note: different name to avoid conflict with v3dheadertypes::orthographic enum
@@ -126,7 +111,6 @@ double T[16];
 double Tup[16];
 
 // OpenGL-specific global state
-const picture* Picture;  // Keep as global for drawscene() compatibility
 double xprev,yprev;
 static const double ASY_PI=acos(-1.0);
 static const double ASY_DEGREES=180.0/ASY_PI;
@@ -524,20 +508,22 @@ void AsyGLRender::resizeBlendShader(GLuint maxsize)
   initBlendShader();
 }
 
-void AsyGLRender::drawscene(int Width, int Height)
+void clearMaterials()
 {
-#ifdef HAVE_PTHREAD
-  static bool first=true;
-  if(thread && first) {
-    wait(initSignal,initLock);
-    endwait(initSignal,initLock);
-    first=false;
-  }
+  gl->materials.clear();
+  gl->materials.reserve(nmaterials);
+  gl->materialMap.clear();
 
-  if(gl->format3dWait)
-    wait(initSignal,initLock);
-#endif
+  pointData.renderCount=0;
+  lineData.renderCount=0;
+  materialData.renderCount=0;
+  colorData.renderCount=0;
+  triangleData.renderCount=0;
+  transparentData.renderCount=0;
+}
 
+void AsyGLRender::drawFrame()
+{
   if((nlights == 0 && Nlights > 0) || nlights > Nlights ||
      nmaterials > Nmaterials) {
     deleteShaders();
@@ -554,24 +540,9 @@ void AsyGLRender::drawscene(int Width, int Height)
   // Use member variables from AsyGLRender (following Vulkan pattern)
   if(xmin >= xmax || ymin >= ymax || Zmin >= Zmax) return;
 
-  triple m(xmin,ymin,Zmin);
-  triple M(xmax,ymax,Zmax);
-  double perspective=orthographic || Zmax == 0.0 ? 0.0 : 1.0/Zmax;
-
-  double size2=hypot(Width,Height);
-
-  if(remesh)
-    clearCenters();
-
-  if(Picture)
-    Picture->render(size2,m,M,perspective,remesh);
-
 #ifdef HAVE_RENDERER
   drawBuffers();
 #endif
-
-  if(mode != DRAWMODE_OUTLINE)
-    remesh=false;
 }
 
 // Return x divided by y rounded up to the nearest integer.
@@ -622,12 +593,14 @@ void AsyGLRender::Export(int)
         do {
           trBeginTile(tr);
           remesh=true;
-          drawscene(fullWidth,fullHeight);
+          prepareScene();
+          drawFrame();
           lastshader=-1;
           ++count;
         } while (trEndTile(tr));
       } else {// clear screen and return
-        drawscene(fullWidth,fullHeight);
+        prepareScene();
+        drawFrame();
       }
 
       if(settings::verbose > 1)
@@ -1145,8 +1118,9 @@ void AsyGLRender::setUniformsOpenGL(GLint shader)
   GLuint blockindex=glGetUniformBlockIndex(shader,"MaterialBuffer");
   if(blockindex != GL_INVALID_INDEX) {
     glUniformBlockBinding(shader,blockindex,binding);
-    bool copy=(remesh || !copied);
+    bool copy=shouldUpdateBuffers;
     registerBuffer(materials, materialsBuffer, copy, GL_UNIFORM_BUFFER);
+    shouldUpdateBuffers=false;
     glBindBufferBase(GL_UNIFORM_BUFFER, binding, materialsBuffer);
   }
 }
@@ -1332,7 +1306,7 @@ void AsyGLRender::aBufferTransparency()
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDrawArrays(GL_TRIANGLES,0,3);
   fpu_trap(settings::trap());
-  transparentData.clear();
+  // Don't clear transparentData - it needs to persist for subsequent frames
   glEnable(GL_DEPTH_TEST);
 }
 
@@ -1347,13 +1321,12 @@ void AsyGLRender::drawTransparent()
     glDepthMask(GL_FALSE); // Don't write to depth buffer
     drawBuffer(transparentData,transparentShader,true,4);
     glDepthMask(GL_TRUE); // Write to depth buffer
-    transparentData.clear();
+    // Don't clear transparentData - it needs to persist for subsequent frames
   }
 }
 
 void AsyGLRender::drawBuffers()
 {
-  copied=false;
   Opaque=transparentData.indices.empty();
   bool transparent=!Opaque;
 
@@ -1362,7 +1335,6 @@ void AsyGLRender::drawBuffers()
          << " point indices=" << pointData.indices.size()
          << " line indices=" << lineData.indices.size()
          << " material indices=" << materialData.indices.size()
-         << " material vertices=" << materialData.materialVertices.size()
          << " color indices=" << colorData.indices.size()
          << " triangle indices=" << triangleData.indices.size()
          << " transparent indices=" << transparentData.indices.size()
@@ -1372,9 +1344,16 @@ void AsyGLRender::drawBuffers()
   if(ssbo) {
     if(transparent) {
       refreshBuffers();
+      // Reset copiedThisFrame after count pass so render pass can upload
+      pointData.copiedThisFrame = false;
+      lineData.copiedThisFrame = false;
+      materialData.copiedThisFrame = false;
+      colorData.copiedThisFrame = false;
+      triangleData.copiedThisFrame = false;
+      transparentData.copiedThisFrame = false;
+
       if(!interlock) {
         resizeFragmentBuffer();
-        copied=true;
       }
     }
   }
@@ -1386,8 +1365,6 @@ void AsyGLRender::drawBuffers()
   drawTriangle();
 
   if(transparent) {
-    if(ssbo)
-      copied=true;
     if(interlock) resizeFragmentBuffer();
     drawTransparent();
   }
@@ -1446,8 +1423,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   bool format3d=webgl || v3d;
 
   Prefix = args.prefix;
-  Picture = args.pic;  // Set global Picture variable for drawscene()
-  pic = args.pic;      // Also set member variable
+  pic = args.pic;
   Format = args.format;
   nlights = args.nlightsin;
 
@@ -1600,6 +1576,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     gl->format3dWait=true;
 
   clearMaterials();
+  shouldUpdateBuffers=true;
   initialized=true;
 #endif
 
@@ -1833,18 +1810,14 @@ void AsyGLRender::onClose()
 
 void AsyGLRender::display()
 {
-#ifdef HAVE_RENDERER
+  prepareScene();
+
   GLFWwindow* win = getRenderWindow();
-  if(View && win) {
-    // Make OpenGL context current before any GL operations
-    ::glfwMakeContextCurrent(win);
 
-    if(!hideWindow && !glfwGetWindowAttrib(win,GLFW_VISIBLE))
-      ::glfwShowWindow(win);
-  }
-#endif
+  if(View && !hideWindow && !glfwGetWindowAttrib(win,GLFW_VISIBLE))
+    ::glfwShowWindow(win);
 
-  drawscene(Width, Height);
+  drawFrame();
 
   bool fps=settings::verbose > 2;
   if(fps) {
@@ -1876,9 +1849,9 @@ void AsyGLRender::display()
 #if defined(_WIN32)
 #else
     // Oldpid is now in AsyRender base class
-    if(gl->Oldpid != 0 && waitpid(gl->Oldpid,NULL,WNOHANG) != gl->Oldpid) {
-      kill(gl->Oldpid,SIGHUP);
-      gl->Oldpid=0;
+    if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
+      kill(Oldpid,SIGHUP);
+      Oldpid=0;
     }
 #endif
   }

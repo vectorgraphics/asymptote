@@ -2,6 +2,7 @@
 #include "settings.h"
 #include "drawelement.h"
 #include "interact.h"
+#include "picture.h"
 
 #ifdef HAVE_RENDERER
 // Forward declaration for GLFWwindow to avoid including glfw3.h here
@@ -139,6 +140,53 @@ void AsyRender::clearMaterials()
 {
   materials.clear();
   materialMap.clear();
+}
+
+void AsyRender::clearData()
+{
+  pointData.clear();
+  lineData.clear();
+  materialData.clear();
+  colorData.clear();
+  triangleData.clear();
+  transparentData.clear();
+}
+
+void AsyRender::prepareScene()
+{
+
+#ifdef HAVE_PTHREAD
+  static bool first=true;
+  if(thread && first) {
+    wait(initSignal,initLock);
+    endwait(initSignal,initLock);
+    first=false;
+  }
+
+  if(format3dWait)
+    wait(initSignal,initLock);
+#endif
+
+  if(redraw) {
+    clearData();
+
+    if(remesh)
+      clearCenters();
+
+    triple m(xmin,ymin,Zmin);
+    triple M(xmax,ymax,Zmax);
+    double perspective=orthographic || Zmax == 0.0 ? 0.0 : 1.0/Zmax;
+
+    double size2=hypot(Width,Height);
+
+    pic->render(size2,m,M,perspective,remesh);
+    redraw=false;
+
+    if(mode != DRAWMODE_OUTLINE)
+      remesh=false;
+
+    Opaque=transparentData.indices.empty();
+  }
 }
 
 projection AsyRender::camera(bool user)

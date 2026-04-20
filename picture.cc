@@ -1444,10 +1444,6 @@ void picture::render(double size2, const triple& Min, const triple& Max,
     if(remesh) (*p)->meshinit();
     (*p)->render(size2,Min,Max,perspective,remesh);
   }
-
-#ifdef HAVE_RENDERER
-  static_cast<AsyGLRender*>(gl)->drawBuffers();
-#endif
 }
 
 AsyRender::RenderFunctionArgs com = {};

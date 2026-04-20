@@ -149,6 +149,7 @@ public:
   bool outlinemode = false;
   bool glupdate = false;
   bool glexit = false;
+  bool shouldUpdateBuffers = true;
 
   // Lighting (OpenGL-specific, public for jsfile/v3dfile access)
   // Note: Lights and LightsDiffuse are now in base class AsyRender for unified access
@@ -242,7 +243,7 @@ public:
   void resizeBlendShader(GLuint maxsize);
 
   // Rendering functions
-  void drawscene(int Width, int Height);
+  void drawFrame();
   void Export(int imageIndex=0);
   void refreshBuffers();
   void setUniformsOpenGL(GLint shader);
