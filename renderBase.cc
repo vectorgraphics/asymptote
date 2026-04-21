@@ -642,12 +642,12 @@ void AsyRender::quit()
 #ifdef HAVE_PTHREAD
     if (!interact::interactive) {
       idle();
+      endwait(readySignal, readyLock);
     }
 #endif
 
-    // Signal window to close and hide it
+    // Hide window but don't destroy it (will be reused)
     if (View && glfwWindow) {
-      ::glfwSetWindowShouldClose(static_cast<GLFWwindow*>(glfwWindow), GLFW_TRUE);
       ::glfwHideWindow(static_cast<GLFWwindow*>(glfwWindow));
       hideWindow = true;
     }
@@ -850,14 +850,6 @@ void AsyRender::mainLoop()
       // shouldWait: use waitEvent to decide between wait and poll
       [this](){ return waitEvent; }
     );
-
-    // Signal asymain after glfwRunLoop exits. This ensures the signal is not lost
-    // (it would be lost if sent during quit() while asymain is still inside glfwRunLoop).
-#ifdef HAVE_PTHREAD
-    if(thread) {
-      endwait(readySignal, readyLock);
-    }
-#endif
   } else {
     update();
     display();
