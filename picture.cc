@@ -1545,7 +1545,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(gl->thread && !offscreen) {
 #ifdef HAVE_PTHREAD
       if(!gl->initialized) {
-        gl->initialized=true;
+        gl->initialized=!View || offscreen;
         args.prefix=prefix;
         args.pic=pic;
         args.format=outputformat;
