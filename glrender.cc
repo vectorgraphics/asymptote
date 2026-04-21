@@ -1375,8 +1375,6 @@ AsyGLRender::~AsyGLRender()
 
 void AsyGLRender::render(RenderFunctionArgs const& args)
 {
-  Iconify=getSetting<bool>("iconify");
-
 #if !defined(_WIN32)
   setenv("XMODIFIERS","",true);
 #endif
@@ -1554,20 +1552,15 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   }
 #endif
 
-  // Create GLFW window BEFORE OpenGL initialization if viewing and not using OSMesa
+// Create GLFW window BEFORE OpenGL initialization if not using OSMesa
 #ifdef HAVE_LIBGLFW
 #ifndef HAVE_LIBOSMESA
-  if(View && glfwWindow == nullptr) {
-    // Use appropriate window size - for hidden windows use maxTile dimensions
-    int winWidth = Width;
-    int winHeight = Height;
-//    if(!View || Iconify) {
-//      // For hidden/offscreen rendering, use larger tile dimensions
-//      winWidth = maxTileWidth > 0 ? maxTileWidth : 1024;
-//      winHeight = maxTileHeight > 0 ? maxTileHeight : 768;
-//    }
+  if(!glfwWindow) {
+    // For non-View rendering, hide the window during creation to prevent flash
+    if(!View)
+      glfwWindowHint(GLFW_VISIBLE, 0);
 
-    GLFWwindow* newWindow = glfwCreateRenderWindow(winWidth, winHeight, title.empty() ? Prefix.c_str() : title.c_str(), this);
+    GLFWwindow* newWindow = glfwCreateRenderWindow(Width, Height, title.empty() ? Prefix.c_str() : title.c_str(), this);
     if(newWindow == nullptr) {
       cerr << "Failed to create GLFW window" << endl;
       exit(-1);
@@ -1816,7 +1809,7 @@ void AsyGLRender::update()
 
   redraw=true;
 #ifdef HAVE_RENDERER
-  if(glfwWindow)
+  if(glfwWindow && View)
     ::glfwShowWindow(getRenderWindow());
 #endif
 
@@ -1837,7 +1830,7 @@ void AsyGLRender::exportHandler(int)
   readyAfterExport=true;
 #ifndef HAVE_LIBOSMESA
 #ifdef HAVE_LIBGLFW
-  if(glfwWindow && !Iconify) {
+  if(glfwWindow && View) {
     glfwShowWindow(getRenderWindow());
   }
 #endif
@@ -1846,7 +1839,7 @@ void AsyGLRender::exportHandler(int)
 
 #ifndef HAVE_LIBOSMESA
 #ifdef HAVE_LIBGLFW
-  if(glfwWindow && !Iconify)
+  if(glfwWindow && View)
     glfwHideWindow(getRenderWindow());
 #endif
 #endif

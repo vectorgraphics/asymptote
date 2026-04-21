@@ -299,7 +299,6 @@ public:
 
   // Renderer-specific initialization flags (used by both OpenGL and Vulkan)
   bool initSSBO = true;  // Flag to indicate if SSBO buffers need initialization
-  bool Iconify = false;  // Whether to iconify/hide the window during rendering
   bool firstFit = true;  // Flag for initial fit screen adjustment
   bool ViewExport = false;  // Whether to export during view
 

@@ -1381,7 +1381,7 @@ void initSettings() {
   addOption(new pairSetting("maxtile", 0, "pair",
                             "Maximum rendering tile size",pair(1024,768)));
   addOption(new boolSetting("iconify", 0,
-                            "Iconify rendering window", false));
+                            "", false));
   addOption(new boolSetting("thick", 0,
                             "Render thick 3D lines", true));
   addOption(new boolSetting("thin", 0,
