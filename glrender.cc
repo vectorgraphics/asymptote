@@ -570,12 +570,14 @@ void AsyGLRender::Export(int)
         do {
           trBeginTile(tr);
           remesh=true;
+          redraw=true;
           prepareScene();
           drawFrame();
           lastshader=-1;
           ++count;
         } while (trEndTile(tr));
       } else {// clear screen and return
+        redraw=true;
         prepareScene();
         drawFrame();
       }
