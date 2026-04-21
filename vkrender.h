@@ -125,12 +125,6 @@ public:
   // Note: initialize and copied are now in base class as 'initialized' and 'copied'
 
   int maxFramesInFlight;
-  size_t framecount;
-
-  /**
-   * @remark Main thread is the consumer, other thread is the sender of messages;
-   */
-   ThreadSafeQueue<RendererMessage> messageQueue;
 
 #ifdef HAVE_RENDERER
   vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
@@ -140,8 +134,6 @@ public:
 
   const double* dprojView;
   const double* dView;
-
-  bool redisplay=false;
 private:
 #ifdef HAVE_RENDERER
   static constexpr std::array<const char*, 4> deviceExtensions = {
@@ -654,8 +646,7 @@ public:
 #endif
 
   void prepareScene();
-  void display();
-  void mainLoop();
+  void display() override;
   void cleanup();
 
   // user controls
@@ -663,7 +654,6 @@ public:
   void Export(int imageIndex=0);
   bool readyForUpdate=false;
   // Note: initialized and format3dWait are now in base class AsyRender
-  bool havewindow=false;
 
   struct PipelineConfig {
     vk::PrimitiveTopology topology;

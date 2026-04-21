@@ -539,6 +539,27 @@ void AsyRender::exportHandler(int)
 }
 
 /**
+ * Update handler - common to both OpenGL and Vulkan renderers.
+ * Hides window if viewing interactively and sets rendering flags.
+ */
+void AsyRender::updateHandler(int)
+{
+#ifdef HAVE_RENDERER
+  if(View && !interact::interactive) {
+    ::glfwHideWindow(static_cast<GLFWwindow*>(getGLFWWindow()));
+    if(!getSetting<bool>("fitscreen"))
+      Fitscreen=0;
+  }
+#endif
+
+  resize=true;
+  redisplay=true;
+  redraw=true;
+  remesh=true;
+  waitEvent=false;
+}
+
+/**
  * Process messages from the message queue (inter-thread communication).
  */
 void AsyRender::processMessages(RendererMessage const& msg)
@@ -672,6 +693,64 @@ void AsyRender::onKey(int key, int scancode, int action, int mods)
             quit();
             break;
     }
+}
+
+void AsyRender::mainLoop()
+{
+  if(View) {
+    GLFWwindow* win = static_cast<GLFWwindow*>(getGLFWWindow());
+    glfwRunLoop(win,
+      // shouldContinue: continue while window is open
+      [win](){ return !glfwWindowShouldClose(win); },
+
+      // shouldDisplay: display when needed
+      [this](){ return redraw || redisplay || queueExport; },
+
+      // doDisplay: handle display logic
+      [this](){
+        redisplay=false;
+        waitEvent=true;
+        if(resize) {
+          fitscreen(!interact::interactive);
+          resize=false;
+        }
+        display();
+      },
+
+      // processMessages: dequeue and process messages
+      [this](){
+        auto const message=messageQueue.dequeue();
+        if(message.has_value())
+          processMessages(*message);
+      },
+
+      // getIdleFunc: return current idle function (or nullptr)
+      [this](){ return currentIdleFunc; },
+
+      // shouldWait: use waitEvent to decide between wait and poll
+      [this](){ return waitEvent; }
+    );
+  } else {
+    update();
+    display();
+    if(thread) {
+      if(havewindow) {
+#ifdef HAVE_PTHREAD
+        if(pthread_equal(pthread_self(),this->mainthread))
+          exportHandler();
+        else
+          messageQueue.enqueue(RendererMessage::exportRender);
+#endif
+      } else {
+        initialized=true;
+        readyForExport=true;
+        exportHandler();
+      }
+    } else {
+      exportHandler();
+      quit();
+    }
+  }
 }
 
 } // namespace camp

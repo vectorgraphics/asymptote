@@ -293,19 +293,12 @@ void AsyVkRender::onClose()
 }
 
 void AsyVkRender::updateHandler(int) {
-  if(View && !interact::interactive) {
-    ::glfwHideWindow(getGLFWWindow());
-    if(!getSetting<bool>("fitscreen"))
-      Fitscreen=0;
-  }
+  // Call base class implementation for common functionality
+  AsyRender::updateHandler();
 
+  // Vulkan-specific additions
   if(device)
     device->waitIdle();
-  resize=true;
-  redisplay=true;
-  redraw=true;
-  remesh=true;
-  waitEvent=false;
   recreatePipeline=true;
 }
 
@@ -4549,7 +4542,7 @@ void AsyVkRender::display()
 {
   prepareScene();
 
-  GLFWwindow* win = getGLFWWindow();
+  GLFWwindow* win = static_cast<GLFWwindow*>(getGLFWWindow());
   if(View && !hideWindow && !glfwGetWindowAttrib(win,GLFW_VISIBLE))
     ::glfwShowWindow(win);
 
@@ -4579,67 +4572,6 @@ void AsyVkRender::display()
       Oldpid=0;
     }
 #endif
-  }
-}
-
-void AsyVkRender::mainLoop()
-{
-  if(View) {
-    // Use the generic GLFW event loop from glfw.cc
-    // This keeps the event loop logic library-agnostic
-
-    GLFWwindow* win = getGLFWWindow();
-    glfwRunLoop(win,
-      // shouldContinue: continue while window is open
-      [win](){ return !glfwWindowShouldClose(win); },
-
-      // shouldDisplay: display when needed
-      [this](){ return redraw || redisplay || queueExport; },
-
-      // doDisplay: handle display logic
-      [this](){
-        redisplay=false;
-        waitEvent=true;
-        if(resize) {
-          fitscreen(!interact::interactive);
-          resize=false;
-        }
-        display();
-      },
-
-      // processMessages: dequeue and process messages
-      [this](){
-        auto const message=messageQueue.dequeue();
-        if(message.has_value())
-          processMessages(*message);
-      },
-
-      // getIdleFunc: return current idle function (or nullptr)
-      [this](){ return currentIdleFunc; },
-
-      // shouldWait: use waitEvent to decide between wait and poll
-      [this](){ return waitEvent; }
-    );
-  } else {
-    update();
-    display();
-    if(thread) {
-      if(havewindow) {
-#ifdef HAVE_PTHREAD
-        if(pthread_equal(pthread_self(),this->mainthread))
-          exportHandler();
-        else
-          messageQueue.enqueue(RendererMessage::exportRender);
-#endif
-      } else {
-        initialized=true;
-        readyForExport=true;
-        exportHandler();
-      }
-    } else {
-      exportHandler();
-      quit();
-    }
   }
 }
 

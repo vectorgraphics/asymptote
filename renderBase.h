@@ -284,6 +284,9 @@ public:
   bool haveScene=false;
   bool waitEvent=true;
 
+  // Window state (used by mainLoop)
+  bool havewindow = false;
+
   // Initialization state (used by both OpenGL and Vulkan)
   bool initialized = false;
   bool copied = false;
@@ -421,12 +424,15 @@ public:
   virtual void expand();
   virtual void shrink();
 
-  virtual void updateHandler(int=0) = 0;
+  virtual void updateHandler(int=0);
   virtual void exportHandler(int=0) = 0;
   virtual void Export(int imageIndex=0) = 0;
 
   // Message processing for inter-thread communication
   void processMessages(RendererMessage const& msg);
+
+  // Display/render the current frame (virtual - implemented by derived classes)
+  virtual void display() = 0;
 
   virtual void quit();
 
@@ -438,6 +444,9 @@ public:
 
   // Key handling (library-agnostic)
   virtual void onKey(int key, int scancode, int action, int mods);
+
+  // Main event loop (shared between OpenGL and Vulkan renderers)
+  void mainLoop();
 
 #ifdef HAVE_PTHREAD
   // Pthread synchronization helpers
