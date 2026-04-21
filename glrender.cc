@@ -25,6 +25,7 @@
 #include "exithandlers.h"
 
 #include "picture.h"
+#include "bezierpatch.h"
 #include "bbox3.h"
 #include "drawimage.h"
 #include "interact.h"
@@ -1278,7 +1279,8 @@ void AsyGLRender::drawTransparent()
     aBufferTransparency();
     glEnable(GL_MULTISAMPLE);
   } else {
-    // Sort transparent triangles by depth (simplified - just draw directly)
+    sortTriangles();
+    transparentData.renderCount=0; // Force re-upload of sorted triangles to GPU
     glDepthMask(GL_FALSE); // Don't write to depth buffer
     drawBuffer(transparentData,transparentShader,true,4);
     glDepthMask(GL_TRUE); // Write to depth buffer

@@ -882,6 +882,47 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
   append();
 }
 
+std::vector<double> zbuffer;
+
+void transform(const std::vector<ColorVertex>& b)
+{
+  unsigned n=b.size();
+  zbuffer.resize(n);
+
+  const glm::dmat4& projView=getProjViewMat();
+  double Tz0=projView[2][0];
+  double Tz1=projView[2][1];
+  double Tz2=projView[2][2];
+  for(unsigned i=0; i < n; ++i) {
+    const glm::vec3& v=b[i].position;
+    zbuffer[i]=Tz0*v.x+Tz1*v.y+Tz2*v.z;
+  }
+}
+
+// Sort nonintersecting triangles by depth.
+int compare(const void *p, const void *P)
+{
+  unsigned Ia=((GLuint *) p)[0];
+  unsigned Ib=((GLuint *) p)[1];
+  unsigned Ic=((GLuint *) p)[2];
+
+  unsigned IA=((GLuint *) P)[0];
+  unsigned IB=((GLuint *) P)[1];
+  unsigned IC=((GLuint *) P)[2];
+
+  return zbuffer[Ia]+zbuffer[Ib]+zbuffer[Ic] <
+    zbuffer[IA]+zbuffer[IB]+zbuffer[IC] ? -1 : 1;
+}
+
+void sortTriangles()
+{
+  if(!transparentData.indices.empty()) {
+    transform(transparentData.colorVertices);
+    qsort(&transparentData.indices[0],transparentData.indices.size()/3,
+          3*sizeof(GLuint),compare);
+  }
+}
+
 #endif
 
 } //namespace camp
