@@ -98,14 +98,6 @@ extern double Angle, Zoom0;
 extern pair Shift, Margin;
 extern double T[16], Tup[16];
 extern double Xmin, Xmax, Ymin, Ymax, Zmin, Zmax;  // These are now member variables in AsyRender
-
-bool Xspin,Yspin,Zspin;
-
-double T[16];
-double Tup[16];
-
-// OpenGL-specific global state
-double xprev,yprev;
 static const double ASY_PI=acos(-1.0);
 static const double ASY_DEGREES=180.0/ASY_PI;
 static const double ASY_RADIANS=1.0/ASY_DEGREES;
