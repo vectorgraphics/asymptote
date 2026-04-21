@@ -365,6 +365,11 @@ void AsyGLRender::initShaders()
 #endif
 
   ssbo=countShader;
+  if(!ssbo) {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  }
+
 #ifdef HAVE_LIBOSMESA
   interlock=false;
 #else
@@ -595,7 +600,7 @@ void AsyGLRender::Export(int)
         pic.append(Image);
       }
 
-      pic.shipout(NULL,Prefix,Format,false,gl->ViewExport);
+      pic.shipout(NULL,Prefix,Format,false,ViewExport);
       if(Image)
         delete Image;
       delete[] data;
@@ -1368,7 +1373,7 @@ AsyGLRender::~AsyGLRender()
 
 void AsyGLRender::render(RenderFunctionArgs const& args)
 {
-  gl->Iconify=getSetting<bool>("iconify");
+  Iconify=getSetting<bool>("iconify");
 
 #if !defined(_WIN32)
   setenv("XMODIFIERS","",true);
@@ -1436,8 +1441,8 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     }
   }
 #else
-  if(!gl->initialized)
-    gl->Fitscreen=1;
+  if(!initialized)
+    Fitscreen=1;
 #endif
 #endif
 
@@ -1529,7 +1534,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   havewindow=initialized && thread;
 
   if(thread && format3d)
-    gl->format3dWait=true;
+    format3dWait=true;
 
   clearMaterials();
   shouldUpdateBuffers=true;
@@ -1587,7 +1592,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 
     if(settings::verbose > 2) {
       cerr << "Created window and initialized GLEW: " << Width << "x" << Height
-           << " glfwWindow=" << gl->glfwWindow << endl;
+           << " glfwWindow=" << glfwWindow << endl;
     }
   }
 #endif
@@ -1646,8 +1651,8 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 #ifndef HAVE_LIBOSMESA
   if(View) {
     if(!getSetting<bool>("fitscreen"))
-      gl->Fitscreen=0;
-    gl->firstFit=true;
+      Fitscreen=0;
+    firstFit=true;
     fitscreen();
     setosize();
     initializedView = true;
@@ -1655,15 +1660,11 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 #endif
 
   glEnable(GL_DEPTH_TEST);
-  if(!gl->ssbo) {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  }
 
   mode = DRAWMODE_WIREFRAME;
   cycleMode();
 
-  gl->ViewExport = View;
+  ViewExport = View;
 #ifdef HAVE_LIBOSMESA
   View = false;
 #endif
