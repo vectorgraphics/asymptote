@@ -103,10 +103,10 @@ static const double ASY_PI=acos(-1.0);
 static const double ASY_DEGREES=180.0/ASY_PI;
 static const double ASY_RADIANS=1.0/ASY_DEGREES;
 
-// IBL textures - disabled for now due to template issues
-void* iblbrdfTex = nullptr;
-void* irradianceTex = nullptr;
-void* reflTexturesTex = nullptr;
+// IBL texture objects (defined in initIBL())
+camp::GLTexture2<float,GL_FLOAT> iblbrdfTex;
+camp::GLTexture2<float,GL_FLOAT> irradianceTex;
+camp::GLTexture3<float,GL_FLOAT> reflTexturesTex;
 
 glm::vec4 vec4(triple v)
 {
@@ -163,11 +163,11 @@ void initIBL()
   fmt.internalFmt=GL_RGB16F;
   string imageDir=locateFile(getSetting<string>("imageDir"))+"/";
   string imagePath=imageDir+getSetting<string>("image")+"/";
-  // IBL textures - disabled for now due to template issues
-  // irradianceTex=fromEXR(imagePath+"diffuse.exr",fmt,1);
-  // camp::GLTexturesFmt fmtRefl;
-  // fmtRefl.internalFmt=GL_RG16F;
-  // IBLbrdfTex=fromEXR(imageDir+"refl.exr",fmtRefl,2);
+  irradianceTex=fromEXR(imagePath+"diffuse.exr",fmt,1);
+
+  camp::GLTexturesFmt fmtRefl;
+  fmtRefl.internalFmt=GL_RG16F;
+  iblbrdfTex=fromEXR(imageDir+"refl.exr",fmtRefl,2);
 
   camp::GLTexturesFmt fmt3;
   fmt3.internalFmt=GL_RGB16F;
@@ -183,8 +183,7 @@ void initIBL()
     files.emplace_back(mss.str());
   }
 
-  // IBL textures - disabled for now due to template issues
-  // reflTexturesTex=fromEXR3(files,fmt3,3);
+  reflTexturesTex=fromEXR3(files,fmt3,3);
 }
 
 void *glrenderWrapper(void *a);
@@ -1067,12 +1066,11 @@ void AsyGLRender::setUniformsOpenGL(GLint shader)
                   (GLfloat) Diffusei[2]);
     }
 
-    // IBL textures - disabled for now due to template issues
-    // if(settings::getSetting<bool>("ibl")) {
-    //   IBLbrdfTex.setUniform(glGetUniformLocation(shader, "reflBRDFSampler"));
-    //   irradianceTex.setUniform(glGetUniformLocation(shader, "diffuseSampler"));
-    //   reflTexturesTex.setUniform(glGetUniformLocation(shader, "reflImgSampler"));
-    // }
+    if(settings::getSetting<bool>("ibl")) {
+      iblbrdfTex.setUniform(glGetUniformLocation(shader, "reflBRDFSampler"));
+      irradianceTex.setUniform(glGetUniformLocation(shader, "diffuseSampler"));
+      reflTexturesTex.setUniform(glGetUniformLocation(shader, "reflImgSampler"));
+    }
   }
 
   // Bind global materials buffer
