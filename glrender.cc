@@ -1067,22 +1067,6 @@ void AsyGLRender::setUniformsOpenGL(GLint shader)
     //   irradianceTex.setUniform(glGetUniformLocation(shader, "diffuseSampler"));
     //   reflTexturesTex.setUniform(glGetUniformLocation(shader, "reflImgSampler"));
     // }
-  } else if (normal) {
-    // Even if shader hasn't changed, update nlights uniform and light data if needed
-    glUniform1ui(glGetUniformLocation(shader,"nlights"),nlights);
-    for(size_t i=0; i < nlights; ++i) {
-      triple Lighti=Lights[i];
-      double *Diffusei= LightsDiffuse+4*i;
-      glUniform3f(glGetUniformLocation(shader,
-                                       getLightIndex(i,"direction").c_str()),
-                  (GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),
-                  (GLfloat) Lighti.getz());
-
-      glUniform3f(glGetUniformLocation(shader,
-                                       getLightIndex(i,"color").c_str()),
-                  (GLfloat) Diffusei[0],(GLfloat) Diffusei[1],
-                  (GLfloat) Diffusei[2]);
-    }
   }
 
   // Bind global materials buffer
