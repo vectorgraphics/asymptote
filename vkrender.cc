@@ -4620,14 +4620,6 @@ void AsyVkRender::mainLoop()
       // shouldWait: use waitEvent to decide between wait and poll
       [this](){ return waitEvent; }
     );
-
-    // Signal asymain after glfwRunLoop exits. This ensures the signal is not lost
-    // (it would be lost if sent during quit() while asymain is still inside glfwRunLoop).
-#ifdef HAVE_PTHREAD
-    if(thread) {
-      endwait(readySignal, readyLock);
-    }
-#endif
   } else {
     update();
     display();
