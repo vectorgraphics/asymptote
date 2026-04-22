@@ -502,6 +502,11 @@ void AsyGLRender::drawFrame()
 #ifdef HAVE_RENDERER
   drawBuffers();
 #endif
+
+  if(queueExport) {
+    queueExport=false;
+    Export();
+  }
 }
 
 // Return x divided by y rounded up to the nearest integer.
@@ -538,17 +543,11 @@ void AsyGLRender::Export(int)
       trImageSize(tr,fullWidth,fullHeight);
       trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
 
-      // Use member variables from AsyGLRender (following Vulkan pattern)
-      double dXmin = xmin;
-      double dXmax = xmax;
-      double dYmin = ymin;
-      double dYmax = ymax;
-      double dZmin = Zmin;
-      double dZmax = Zmax;
+      setDimensions(fullWidth,fullHeight,X/Width*fullWidth,Y/Width*fullWidth);
 
       size_t count=0;
       if(haveScene) {
-        (orthographic ? trOrtho : trFrustum)(tr,dXmin,dXmax,dYmin,dYmax,-dZmax,-dZmin);
+        (orthographic ? trOrtho : trFrustum)(tr,xmin,xmax,ymin,ymax,-Zmax,-Zmin);
         do {
           trBeginTile(tr);
           remesh=true;
@@ -594,18 +593,21 @@ void AsyGLRender::Export(int)
     outOfMemory();
   }
   remesh=true;
+  update();
 
-#ifndef HAVE_LIBOSMESA
-#ifdef HAVE_LIBGLFW
-  redraw=true;
-#endif
 
 #ifdef HAVE_PTHREAD
   if(thread && readyAfterExport) {
     readyAfterExport=false;
     endwait(readySignal,readyLock);
   }
+
+#ifndef HAVE_LIBOSMESA
+#ifdef HAVE_LIBGLFW
+  glfwPostEmptyEvent();
 #endif
+#endif
+
 #endif
   exporting=false;
   initSSBO=true;
@@ -1805,24 +1807,8 @@ GLFWwindow* AsyGLRender::getRenderWindow() const
 
 void AsyGLRender::exportHandler(int)
 {
-#ifdef HAVE_RENDERER
   readyAfterExport=true;
-#ifndef HAVE_LIBOSMESA
-#ifdef HAVE_LIBGLFW
-  if(glfwWindow && View) {
-    glfwShowWindow(getRenderWindow());
-  }
-#endif
-#endif
   Export();
-
-#ifndef HAVE_LIBOSMESA
-#ifdef HAVE_LIBGLFW
-  if(glfwWindow && View)
-    glfwHideWindow(getRenderWindow());
-#endif
-#endif
-#endif
 }
 
 void AsyGLRender::reshape(int width, int height)

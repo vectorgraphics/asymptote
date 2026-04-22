@@ -713,13 +713,6 @@ void AsyRender::display()
   // Swap buffers (library-specific)
   swapBuffers();
 
-  // Handle export queue
-  if(queueExport) {
-    // Wait for the just-submitted frame to finish before exporting
-    exportHandler();
-    queueExport = false;
-  }
-
   // Process management (non-Windows)
   if(!thread) {
 #if defined(_WIN32)
