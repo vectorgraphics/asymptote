@@ -90,15 +90,10 @@ const glm::dmat3& getNormMat()
 const size_t Nbuffer=10000;
 const size_t nbuffer=1000;
 
-size_t Maxmaterials;
-size_t Nmaterials=1;
-size_t nmaterials=48;
 
-// Note: different name to avoid conflict with v3dheadertypes::orthographic enum
-extern double Angle, Zoom0;
-extern pair Shift, Margin;
-extern double T[16], Tup[16];
-extern double Xmin, Xmax, Ymin, Ymax, Zmin, Zmax;  // These are now member variables in AsyRender
+
+
+
 static const double ASY_PI=acos(-1.0);
 static const double ASY_DEGREES=180.0/ASY_PI;
 static const double ASY_RADIANS=1.0/ASY_DEGREES;
@@ -322,7 +317,7 @@ void AsyGLRender::setBuffers()
 void AsyGLRender::initShaders()
 {
   Nlights = nlights == 0 ? 0 : std::max(Nlights, nlights);
-  Nmaterials = std::max(Nmaterials, nmaterials);
+  nmaterials = materials.size();
 
   string zero=locateFile("shaders/zero.glsl");
   string compress=locateFile("shaders/compress.glsl");
@@ -388,7 +383,7 @@ void AsyGLRender::initShaders()
   ostringstream lights,materials,opaque;
   lights << "Nlights " << Nlights;
   shaderParams.push_back(lights.str().c_str());
-  materials << "Nmaterials " << Nmaterials;
+  materials << "Nmaterials " << nmaterials;
   shaderParams.push_back(materials.str().c_str());
 
   shaderParams.push_back("WIDTH");
@@ -502,7 +497,7 @@ void AsyGLRender::resizeBlendShader(GLuint maxsize)
 void AsyGLRender::drawFrame()
 {
   if((nlights == 0 && Nlights > 0) || nlights > Nlights ||
-     nmaterials > Nmaterials) {
+     materials.size() > nmaterials) {
     deleteShaders();
     initShaders();
   }
@@ -1635,10 +1630,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 
   }
 
-  GLint val;
-  glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &val);
-  Maxmaterials = val / sizeof(Material);
-  if(nmaterials > Maxmaterials) nmaterials = Maxmaterials;
+
 
   glClearColor(args.background[0], args.background[1],
                args.background[2], args.background[3]);

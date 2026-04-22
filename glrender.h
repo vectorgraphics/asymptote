@@ -112,8 +112,7 @@ extern GLuint vao;  // Vertex Array Object
 extern size_t materialIndex;
 extern int MaterialIndex;
 
-extern const size_t Nbuffer; // Initial size of 2D dynamic buffers
-extern const size_t nbuffer; // Initial size of 0D & 1D dynamic buffers
+
 
 // VertexBuffer and related types are defined in render.h
 // Globals: materialData, colorData, triangleData, transparentData, pointData, lineData
@@ -154,6 +153,7 @@ public:
   // Lighting (OpenGL-specific, public for jsfile/v3dfile access)
   // Note: Lights and LightsDiffuse are now in base class AsyRender for unified access
   size_t Nlights = 1;
+  size_t nmaterials = 0;
   size_t nlights0 = 0;  // Saved original number of lights for mode restoration
   double* Specular = nullptr;
 
