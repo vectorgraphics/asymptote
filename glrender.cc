@@ -66,17 +66,17 @@ double BBT[9] = {0};
 Billboard BB;
 
 // Accessor functions - directly access gl instance to avoid synchronization
-const glm::dmat4& getProjViewMat()
+const dmat4& getProjViewMat()
 {
   return gl->projViewMat;
 }
 
-const glm::dmat4& getViewMat()
+const dmat4& getViewMat()
 {
   return gl->viewMat;
 }
 
-const glm::dmat3& getNormMat()
+const dmat3& getNormMat()
 {
   return gl->normMat;
 }
@@ -90,18 +90,7 @@ camp::GLTexture2<float,GL_FLOAT> iblbrdfTex;
 camp::GLTexture2<float,GL_FLOAT> irradianceTex;
 camp::GLTexture3<float,GL_FLOAT> reflTexturesTex;
 
-glm::vec4 vec4(triple v)
-{
-  return glm::vec4(v.getx(),v.gety(),v.getz(),0);
-}
-
-glm::vec4 vec4(double *v)
-{
-  return glm::vec4(v[0],v[1],v[2],v[3]);
-}
-
 #ifdef HAVE_RENDERER
-
 // GLFW window globals - kept in camp namespace for type compatibility
 #ifdef HAVE_LIBGLFW
 string Action;
@@ -824,7 +813,7 @@ void AsyGLRender::resizeFragmentBuffer()
     // Initialize the alpha buffer
     maxFragments=11*fragments/10;
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,fragmentBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,maxFragments*sizeof(glm::vec4),
+    glBufferData(GL_SHADER_STORAGE_BUFFER,maxFragments*sizeof(vec4),
                  NULL,GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,4,fragmentBuffer);
 
@@ -886,7 +875,7 @@ void AsyGLRender::refreshBuffers()
                       GL_UNSIGNED_INT,&zero); // Clear count or index buffer
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,opaqueBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(glm::vec4),NULL,
+    glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(vec4),NULL,
                  GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,6,opaqueBuffer);
 
@@ -1021,13 +1010,13 @@ void AsyGLRender::setUniformsOpenGL(GLint shader)
   }
 
   glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
-                     value_ptr(glm::mat4(projViewMat)));
+                     value_ptr(mat4(projViewMat)));
 
   glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE,
-                     value_ptr(glm::mat4(viewMat)));
+                     value_ptr(mat4(viewMat)));
   if(normal)
     glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE,
-                       value_ptr(glm::mat3(normMat)));
+                       value_ptr(mat3(normMat)));
 
   if(shader == countShader) {
     lastshader=shader;
@@ -1711,8 +1700,8 @@ void AsyGLRender::onCursorPos(double xpos, double ypos)
         Arcball arcball(xprev * 2 / Width - 1, 1 - yprev * 2 / Height,
                         xpos * 2 / Width - 1, 1 - ypos * 2 / Height);
         triple axis = arcball.axis;
-        rotateMat = glm::rotate(2 * arcball.angle / Zoom * ArcballFactor,
-                           glm::dvec3(axis.getx(), axis.gety(), axis.getz())) * rotateMat;
+        rotateMat = rotate(2 * arcball.angle / Zoom * ArcballFactor,
+                           dvec3(axis.getx(), axis.gety(), axis.getz())) * rotateMat;
         update();
     } else if (lastAction == "shift") {
         shift(xpos - xprev, ypos - yprev);
