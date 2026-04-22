@@ -3619,11 +3619,11 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
 
   // Access matrices directly to avoid synchronization
   ubo.projViewMat = glm::mat4(getProjViewMat());
-  ubo.viewMat = glm::mat4(gl->viewMat);
+  ubo.viewMat = glm::mat4(viewMat);
   // Fill normMat as 3 vec4 columns for std140 mat3 layout (48 bytes)
-  ubo.normMat[0] = glm::vec4(gl->normMat[0], 0.0f);
-  ubo.normMat[1] = glm::vec4(gl->normMat[1], 0.0f);
-  ubo.normMat[2] = glm::vec4(gl->normMat[2], 0.0f);
+  ubo.normMat[0] = glm::vec4(normMat[0], 0.0f);
+  ubo.normMat[1] = glm::vec4(normMat[1], 0.0f);
+  ubo.normMat[2] = glm::vec4(normMat[2], 0.0f);
 
   memcpy(frameObjects[currentFrame].uboMappedMemory->getCopyPtr(), &ubo, sizeof(ubo));
 
@@ -4518,8 +4518,8 @@ GLFWwindow* AsyVkRender::getRenderWindow() const
 
 void AsyVkRender::exportHandler(int) {
 
-  gl->readyAfterExport=true;
-  gl->Export(0);
+  readyAfterExport=true;
+  Export(0);
 }
 
 void AsyVkRender::Export(int imageIndex) {
