@@ -16,6 +16,9 @@
 #include "material.h"
 #include "triple.h"
 
+constexpr size_t Nbuffer = 10000;  // Initial size of 2D dynamic buffers
+constexpr size_t nbuffer = 1000;   // Initial size of 0D & 1D dynamic buffers
+
 #ifdef HAVE_LIBVULKAN
 #include "vk.h"
 #endif
@@ -144,6 +147,14 @@ struct VertexBuffer {
 
   int renderCount=0;  // Are all patches in this buffer fully rendered?
   bool copiedThisFrame=false;
+
+  VertexBuffer()
+  {
+    materialVertices.reserve(Nbuffer);
+    colorVertices.reserve(nbuffer);
+    pointVertices.reserve(nbuffer);
+    indices.reserve(Nbuffer);
+  }
 
   void clear()
   {

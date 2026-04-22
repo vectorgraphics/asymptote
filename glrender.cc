@@ -81,19 +81,6 @@ const glm::dmat3& getNormMat()
   return gl->normMat;
 }
 
-// Vertex buffers - these remain globals as they are populated by drawElement rendering
-// Note: Using shared VertexBuffer type from render.h (library-agnostic)
-// Vertex buffers are declared in render.h and defined in bezierpatch.cc / beziercurve.cc
-// materialData, colorData, triangleData, transparentData - defined in bezierpatch.cc
-// pointData, lineData - defined in beziercurve.cc
-
-const size_t Nbuffer=10000;
-const size_t nbuffer=1000;
-
-
-
-
-
 static const double ASY_PI=acos(-1.0);
 static const double ASY_DEGREES=180.0/ASY_PI;
 static const double ASY_RADIANS=1.0/ASY_DEGREES;
