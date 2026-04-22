@@ -61,12 +61,12 @@ std::vector<const char*> instanceExtensions
 namespace camp
 {
 
-const glm::dmat4& getProjViewMat()
+const dmat4& getProjViewMat()
 {
   return gl->projViewMat;
 }
 
-const glm::dmat3& getNormMat()
+const dmat3& getNormMat()
 {
   return gl->normMat;
 }
@@ -244,7 +244,7 @@ void AsyVkRender::onCursorPos(double xpos, double ypos)
         Arcball arcball(xprev * 2 / Width - 1, 1 - yprev * 2 / Height, xpos * 2 / Width - 1, 1 - ypos * 2 / Height);
         triple axis = arcball.axis;
         rotateMat = rotate(2 * arcball.angle / Zoom * ArcballFactor,
-                             glm::dvec3(axis.getx(), axis.gety(), axis.getz())) * rotateMat;
+                             dvec3(axis.getx(), axis.gety(), axis.getz())) * rotateMat;
         update();
     }
     else if (lastAction == "shift") {
@@ -3618,12 +3618,12 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
   UniformBufferObject ubo{ };
 
   // Access matrices directly to avoid synchronization
-  ubo.projViewMat = glm::mat4(getProjViewMat());
-  ubo.viewMat = glm::mat4(viewMat);
+  ubo.projViewMat = mat4(getProjViewMat());
+  ubo.viewMat = mat4(viewMat);
   // Fill normMat as 3 vec4 columns for std140 mat3 layout (48 bytes)
-  ubo.normMat[0] = glm::vec4(normMat[0], 0.0f);
-  ubo.normMat[1] = glm::vec4(normMat[1], 0.0f);
-  ubo.normMat[2] = glm::vec4(normMat[2], 0.0f);
+  ubo.normMat[0] = vec4(normMat[0], 0.0f);
+  ubo.normMat[1] = vec4(normMat[1], 0.0f);
+  ubo.normMat[2] = vec4(normMat[2], 0.0f);
 
   memcpy(frameObjects[currentFrame].uboMappedMemory->getCopyPtr(), &ubo, sizeof(ubo));
 
