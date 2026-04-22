@@ -248,9 +248,6 @@ public:
 
 #endif
 
-// No-SSBO fallback: sort transparent triangles by centroid depth
-void sortTriangles();
-
 } //namespace camp
 
 #endif

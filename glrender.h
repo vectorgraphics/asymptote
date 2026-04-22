@@ -279,6 +279,9 @@ void frustum(double left, double right, double bottom,
 void ortho(double left, double right, double bottom,
            double top, double nearVal, double farVal);
 
+// No-SSBO fallback: sort transparent triangles by centroid depth
+void sortTriangles();
+
 #endif // HAVE_RENDERER
 
 } // namespace camp

@@ -2,7 +2,7 @@ set(ASYMPTOTE_INCLUDES ${ASY_INCLUDE_DIR})
 set(CAMP_BUILD_FILES
         camperror path drawpath drawlabel picture psfile texfile util settings
         guide flatguide knot drawfill path3 drawpath3 drawsurface
-        beziercurve bezierpatch pen pipestream
+        beziercurve bezierpatch sortTriangles pen pipestream
 )
 
 set(RUNTIME_BUILD_FILES
