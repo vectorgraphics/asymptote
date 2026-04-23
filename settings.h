@@ -23,10 +23,6 @@ namespace camp {
 void glrenderWrapper();
 }
 
-namespace camp {
-extern pthread_t mainthread;
-}
-
 namespace settings {
 extern char *argv0;
 

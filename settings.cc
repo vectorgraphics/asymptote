@@ -42,8 +42,6 @@
 #include "pipestream.h"
 #include "array.h"
 
-#include "glrender.h"
-
 #ifdef HAVE_LIBCURSES
 extern "C" {
 
@@ -1350,8 +1348,6 @@ void initSettings() {
                            "Antialiasing width for rasterized output", 2));
   addOption(new IntSetting("multisample", 0, "n",
                            "Multisampling width for screen images", 4));
-  addOption(new IntSetting("device", 0, "n",
-                           "Set GPU device (0 = primary, negative = last N)", -1));
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
                             true));
