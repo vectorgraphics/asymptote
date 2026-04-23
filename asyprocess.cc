@@ -30,7 +30,6 @@ namespace camp {
 pen& defaultpen() {
   return processData().defaultpen;
 }
-extern void clearMaterials();
 }
 
 unsigned int count=0;
@@ -621,7 +620,6 @@ class iprompt : public icore {
       restart=true;
       startline="";
       run::purge();
-      camp::clearMaterials();
       return true;
     }
     else return false;
