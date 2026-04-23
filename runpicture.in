@@ -499,7 +499,7 @@ void shipout3(string prefix, picture *f, string format=emptystring,
   copyArray2C(T,t,true,4);
   copyArray2C(Tup,tup,true,4);
   copyArrayC(Background,background);
-  copyArrayC(Lights,lights);
+  copyArrayC(Lights,lights,0,UseGC);
   copyArray2C(Diffuse,diffuse,false,4,UseGC);
   copyArray2C(Specular,specular,false,4,UseGC);
 
@@ -509,7 +509,6 @@ void shipout3(string prefix, picture *f, string format=emptystring,
   delete[] Background;
   delete[] T;
   delete[] Tup;
-  delete[] Lights;
 }
 
 void shipout3(string prefix, picture *f, string format=defaultformat3)
