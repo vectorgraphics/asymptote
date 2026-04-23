@@ -12,7 +12,6 @@
 #include "path3.h"
 #include "beziercurve.h"
 #include "bezierpatch.h"
-#include "renderBase.h"
 
 namespace run {
 void inverse(double *a, size_t n);
@@ -121,19 +120,6 @@ public:
 
     center=t*s->center;
   }
-
-  // double renderResolution() {
-  //   double prerender=settings::getSetting<double>("prerender");
-  //   if(prerender <= 0.0) return 0.0;
-  //   prerender=1.0/prerender;
-  //   double perspective=gl::orthographic ? 0.0 : 1.0/gl::Zmax;
-  //   double s=perspective ? Min.getz()*perspective : 1.0; // Move to glrender
-  //   triple b(gl::Xmin,gl::Ymin,gl::Zmin);
-  //   triple B(gl::Xmax,gl::Ymax,gl::Zmax);
-  //   pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-  //   pair size2(gl::fullWidth,gl::fullHeight);
-  //   return prerender*size3.length()/size2.length();
-  // }
 
   virtual ~drawSurface() {}
 
@@ -598,14 +584,14 @@ public:
     N=new(UseGC) triple[nN];
     if(!isColor) {
       for (size_t i=0; i < vb.materialVertices.size(); ++i) {
-        P[i]=triple(vb.materialVertices[i].position[0], vb.materialVertices[i].position[1], vb.materialVertices[i].position[2]);
-        N[i]=triple(vb.materialVertices[i].normal[0], vb.materialVertices[i].normal[1], vb.materialVertices[i].normal[2]);
+        P[i]=triple(vb.materialVertices[i].position.x, vb.materialVertices[i].position.y, vb.materialVertices[i].position.z);
+        N[i]=triple(vb.materialVertices[i].normal.x, vb.materialVertices[i].normal.y, vb.materialVertices[i].normal.z);
       }
     }
     else {
       for (size_t i=0; i < vb.colorVertices.size(); ++i) {
-        P[i]=triple(vb.colorVertices[i].position[0], vb.colorVertices[i].position[1], vb.colorVertices[i].position[2]);
-        N[i]=triple(vb.colorVertices[i].normal[0], vb.colorVertices[i].normal[1], vb.colorVertices[i].normal[2]);
+        P[i]=triple(vb.colorVertices[i].position.x, vb.colorVertices[i].position.y, vb.colorVertices[i].position.z);
+        N[i]=triple(vb.colorVertices[i].normal.x, vb.colorVertices[i].normal.y, vb.colorVertices[i].normal.z);
       }
     }
 
@@ -770,10 +756,10 @@ public:
     if(isColor) {
       C=new(UseGC) prc::RGBAColour[nC];
       for(size_t i=0; i < nC; ++i) {
-        C[i].Set(vb.colorVertices[i].color[0],
-                 vb.colorVertices[i].color[1],
-                 vb.colorVertices[i].color[2],
-                 vb.colorVertices[i].color[3]);
+        C[i].Set(vb.colorVertices[i].color.x,
+                 vb.colorVertices[i].color.y,
+                 vb.colorVertices[i].color.z,
+                 vb.colorVertices[i].color.w);
       }
     }
   }

@@ -31,7 +31,7 @@ using settings::getSetting;
 
 void storecolor(float *colors, int i, const vm::array &pens, int j)
 {
-  pen p=vm::read<camp::pen>(pens,j);
+  pen p=vm::read<pen>(pens,j);
   p.torgb();
   colors[i]=p.red();
   colors[i+1]=p.green();
@@ -68,11 +68,6 @@ void setcolors(const RGBAColour& diffuse, const RGBAColour& emissive,
 }
 
 #endif
-
-void clearMaterials()
-{
-  gl->clearMaterials();
-}
 
 void drawBezierPatch::bounds(const double* t, bbox3& b)
 {
