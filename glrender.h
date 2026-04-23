@@ -72,9 +72,6 @@ template<typename T, GLuint GLDataType> class GLTexture2;
 template<typename T, GLuint GLDataType> class GLTexture3;
 #endif
 
-// Global BBT matrix for billboard transformations (accessed from multiple translation units)
-extern double BBT[9];
-
 // Accessor functions for matrices (to avoid synchronization with gl instance)
 #ifdef HAVE_LIBGLM
 const glm::dmat4& getProjViewMat();
@@ -87,23 +84,6 @@ const glm::dmat3& getNormMat();
 extern const double* dprojView;  // For drawelement.h Transform2T
 #endif
 
-struct Billboard {
-  double cx,cy,cz;
-
-  void init(const triple& center) {
-    cx=center.getx();
-    cy=center.gety();
-    cz=center.getz();
-  }
-
-  triple transform(const triple& v) const {
-    return triple((v.getx()-cx)*BBT[0]+(v.gety()-cy)*BBT[3]+(v.getz()-cz)*BBT[6]+cx,
-                  (v.getx()-cx)*BBT[1]+(v.gety()-cy)*BBT[4]+(v.getz()-cz)*BBT[7]+cy,
-                  (v.getx()-cx)*BBT[2]+(v.gety()-cy)*BBT[5]+(v.getz()-cz)*BBT[8]+cz);
-  }
-};
-
-extern Billboard BB;
 #ifdef HAVE_RENDERER
 extern GLuint vao;  // Vertex Array Object
 #endif
@@ -129,8 +109,6 @@ class AsyGLRender : public AsyRender, public RenderCallbacks
 public:
   AsyGLRender() = default;
   ~AsyGLRender();
-
-  void updateModelViewData() override;
 
   void render(RenderFunctionArgs const& args) override;
 

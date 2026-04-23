@@ -60,11 +60,6 @@ using namespace glm;
 #ifdef HAVE_LIBGLM
 
 namespace camp {
-// Global matrices for shader compatibility (accessed from setUniforms)
-double BBT[9] = {0};
-
-Billboard BB;
-
 // Accessor functions - directly access gl instance to avoid synchronization
 const dmat4& getProjViewMat()
 {
@@ -1761,16 +1756,6 @@ void ortho(GLdouble left, GLdouble right, GLdouble bottom,
            GLdouble top, GLdouble nearVal, GLdouble farVal)
 {
   gl->ortho(left, right, bottom, top, nearVal, farVal);
-}
-
-void AsyGLRender::updateModelViewData()
-{
-  AsyRender::updateModelViewData();
-
-  // Update BBT array for Billboard transformations (using normMat directly)
-  const double *T=value_ptr(this->normMat);
-  for(size_t i=0; i < 9; ++i)
-    BBT[i]=T[i];
 }
 
 void AsyGLRender::update()
