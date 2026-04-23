@@ -121,22 +121,6 @@ public:
     center=t*s->center;
   }
 
-  double renderResolution() {
-    double prerender=settings::getSetting<double>("prerender");
-    if(prerender <= 0.0) return 0.0;
-    prerender=1.0/prerender;
-    // Access state through renderer instance (following Vulkan pattern)
-    AsyRender* glr = camp::gl;
-    if(!glr) return 0.0;  // No renderer - nothing to render
-    double perspective=glr->orthographic || glr->Zmax == 0.0 ? 0.0 : 1.0/glr->Zmax;
-    double s=perspective ? Min.getz()*perspective : 1.0;
-    triple b(glr->Xmin, glr->Ymin, glr->Zmin);
-    triple B(glr->Xmax, glr->Ymax, glr->Zmax);
-    pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
-    pair size2(glr->fullWidth, glr->fullHeight);
-    return prerender*size3.length()/size2.length();
-  }
-
   virtual ~drawSurface() {}
 
   bool is3D() {return true;}

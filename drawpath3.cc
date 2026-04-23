@@ -65,7 +65,6 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
   bool offscreen;
   if(billboard) {
     drawElement::centerIndex=centerIndex;
-    BB.init(center);
     offscreen=bbox2(Min,Max,center).offscreen();
   } else
     offscreen=bbox2(Min,Max).offscreen();
@@ -73,7 +72,6 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
   if(offscreen) { // Fully offscreen
     R.Onscreen=false;
     R.data.clear();
-    R.notRendered();
     return;
   }
 
@@ -84,7 +82,7 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
   if(billboard) {
     Controls=Controls0;
     for(size_t i=0; i < 4; i++)
-      Controls[i]=BB.transform(controls[i]);
+      Controls[i]=billboardTransform(center,controls[i]);
   } else {
     Controls=controls;
     if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render

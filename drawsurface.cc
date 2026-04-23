@@ -229,7 +229,7 @@ bool drawBezierPatch::write(abs3Doutfile *out)
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
     out->addStraightPatch(Controls,colors);
   } else {
-    double prerender=renderResolution();
+    double prerender=gl->getRenderResolution(Min);
     if(prerender) {
       float c[16];
       if(colors)
@@ -263,7 +263,6 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   bool offscreen;
   if(billboard) {
     drawElement::centerIndex=centerIndex;
-    BB.init(center);
     offscreen=bbox2(Min,Max,center).offscreen();
   } else
     offscreen=bbox2(Min,Max).offscreen();
@@ -273,7 +272,6 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
     S.data.clear();
     S.transparent=transparent;
     S.color=colors;
-    S.notRendered();
     return;
   }
 
@@ -282,7 +280,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   if(billboard) {
     Controls=Controls0;
     for(size_t i=0; i < 16; i++) {
-      Controls[i]=BB.transform(controls[i]);
+      Controls[i]=billboardTransform(center,controls[i]);
     }
   } else {
     Controls=controls;
@@ -296,7 +294,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
 
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  if(gl && gl->mode == DRAWMODE_OUTLINE) {
+  if(gl->mode == DRAWMODE_OUTLINE) {
     triple edge0[]={Controls[0],Controls[4],Controls[8],Controls[12]};
     C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[12],Controls[13],Controls[14],Controls[15]};
@@ -481,7 +479,7 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
     triple Controls[]={controls[0],controls[6],controls[9]};
     out->addStraightBezierTriangle(Controls,colors);
   } else {
-    double prerender=renderResolution();
+    double prerender=gl->getRenderResolution(Min);
     if(prerender) {
       float c[12];
       if(colors)
@@ -515,7 +513,6 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
   bool offscreen;
   if(billboard) {
     drawElement::centerIndex=centerIndex;
-    BB.init(center);
     offscreen=bbox2(Min,Max,center).offscreen();
   } else
     offscreen=bbox2(Min,Max).offscreen();
@@ -525,7 +522,6 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
     S.data.clear();
     S.transparent=transparent;
     S.color=colors;
-    S.notRendered();
     return;
   }
 
@@ -534,7 +530,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
   if(billboard) {
     Controls=Controls0;
     for(size_t i=0; i < 10; i++)
-      Controls[i]=BB.transform(controls[i]);
+      Controls[i]=billboardTransform(center,controls[i]);
   } else {
     if(!remesh && S.Onscreen) { // Fully onscreen; no need to re-render
       S.append();
@@ -547,7 +543,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
 
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  if(gl && gl->mode == DRAWMODE_OUTLINE) {
+  if(gl->mode == DRAWMODE_OUTLINE) {
     triple edge0[]={Controls[0],Controls[1],Controls[3],Controls[6]};
     C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[6],Controls[7],Controls[8],Controls[9]};
@@ -994,7 +990,6 @@ void drawTriangles::render(double size2, const triple& b,
   bool offscreen;
   if(billboard) {
     drawElement::centerIndex=centerIndex;
-    BB.init(center);
     offscreen=bbox2(Min,Max,center).offscreen();
   } else
     offscreen=bbox2(Min,Max).offscreen();
@@ -1003,7 +998,6 @@ void drawTriangles::render(double size2, const triple& b,
     R.Onscreen=false;
     R.data.clear();
     R.transparent=transparent;
-    R.notRendered();
     return;
   }
 
@@ -1011,7 +1005,7 @@ void drawTriangles::render(double size2, const triple& b,
   if(billboard) {
     P0=new triple [nP];
     for(size_t i=0; i < nP; i++)
-      P0[i]=BB.transform(P[i]);
+      P0[i]=billboardTransform(center,P[i]);
   } else {
     if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render
       R.append();
