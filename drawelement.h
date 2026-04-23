@@ -21,6 +21,7 @@
 #include "v3dfile.h"
 #include "arrayop.h"
 #include "material.h"
+//#include "glrender.h"
 #include "vkrender.h"
 #include "bbox2.h"
 

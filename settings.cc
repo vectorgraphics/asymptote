@@ -42,8 +42,6 @@
 #include "pipestream.h"
 #include "array.h"
 
-// #include "glrender.h"
-
 #ifdef HAVE_LIBCURSES
 extern "C" {
 
@@ -1345,7 +1343,7 @@ void initSettings() {
   addOption(new boolSetting("vsync", 0,
                            "Vertically synchronize with monitor", false));
   addOption(new boolSetting("srgb", 0,
-                            "Output 3d renderer in sRGB space", false));
+                            "Render 3D images in sRGB space", false));
   addOption(new boolSetting("offscreen", 0,
                             "Use offscreen rendering", false));
   addOption(new IntSetting("device", 0, "n",
@@ -1379,7 +1377,7 @@ void initSettings() {
   addOption(new pairSetting("maxtile", 0, "pair",
                             "Maximum rendering tile size",pair(1024,768)));
   addOption(new boolSetting("iconify", 0,
-                            "Iconify rendering window", false));
+                            "", false));
   addOption(new boolSetting("thick", 0,
                             "Render thick 3D lines", true));
   addOption(new boolSetting("thin", 0,

@@ -5,12 +5,7 @@
 #include "pair.h"
 #include "triple.h"
 #include "glmCommon.h"
-
-#ifdef HAVE_RENDERER
-#include "vkrender.h"
-#else
 #include "render.h"
-#endif
 
 namespace camp {
 
