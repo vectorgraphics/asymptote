@@ -63,7 +63,6 @@ int _matherr(struct _exception *except)
 #include "locate.h"
 #include "interact.h"
 #include "fileio.h"
-#include "stack.h"
 
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
@@ -73,8 +72,7 @@ int _matherr(struct _exception *except)
 #include <combaseapi.h>
 #endif
 
-#include "stack.h"
-#include "glrender.h"
+#include "renderBase.h"
 
 using namespace settings;
 
@@ -145,7 +143,10 @@ void *asymain(void *A)
 
 #if defined(_WIN32)
   // see https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecuteexa
-  CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+  if(!SUCCEEDED(
+       CoInitializeEx(nullptr,
+                      COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE)))
+    camp::reportError("CoInitializeEx Failed");
 #endif
 
   if(interactive) {

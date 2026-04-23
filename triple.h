@@ -15,7 +15,7 @@
 #include <cmath>
 #include <cstring>
 
-#include <glm/glm.hpp>
+#include "glmCommon.h"
 
 #include "common.h"
 #include "angle.h"

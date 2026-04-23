@@ -121,8 +121,8 @@ protected:
   triple Min,Max;
 
 #ifdef HAVE_LIBGLM
-  GLfloat *Controls;
-  GLfloat *Knots;
+  float *Controls;
+  float *Knots;
 #endif
 
 public:

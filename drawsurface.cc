@@ -29,9 +29,9 @@ using settings::getSetting;
 
 #ifdef HAVE_LIBGLM
 
-void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
+void storecolor(float *colors, int i, const vm::array &pens, int j)
 {
-  pen p=vm::read<camp::pen>(pens,j);
+  pen p=vm::read<pen>(pens,j);
   p.torgb();
   colors[i]=p.red();
   colors[i+1]=p.green();
@@ -39,7 +39,7 @@ void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
   colors[i+3]=p.opacity();
 }
 
-void storecolor(GLfloat *colors, int i, const RGBAColour& p)
+void storecolor(float *colors, int i, const RGBAColour& p)
 {
   colors[i]=p.R;
   colors[i+1]=p.G;
@@ -231,7 +231,7 @@ bool drawBezierPatch::write(abs3Doutfile *out)
   } else {
     double prerender=renderResolution();
     if(prerender) {
-      GLfloat c[16];
+      float c[16];
       if(colors)
         for(size_t i=0; i < 4; ++i)
           storecolor(c,4*i,colors[i]);
@@ -296,7 +296,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
 
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  if(camp::gl && camp::gl->mode == DRAWMODE_OUTLINE) {
+  if(gl && gl->mode == DRAWMODE_OUTLINE) {
     triple edge0[]={Controls[0],Controls[4],Controls[8],Controls[12]};
     C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[12],Controls[13],Controls[14],Controls[15]};
@@ -306,7 +306,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
     triple edge3[]={Controls[3],Controls[2],Controls[1],Controls[0]};
     C.queue(edge3,straight,size3.length()/size2);
   } else {
-    GLfloat c[16];
+    float c[16];
     if(colors)
       for(size_t i=0; i < 4; ++i)
         storecolor(c,4*i,colors[i]);
@@ -483,7 +483,7 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
   } else {
     double prerender=renderResolution();
     if(prerender) {
-      GLfloat c[12];
+      float c[12];
       if(colors)
         for(size_t i=0; i < 3; ++i)
           storecolor(c,4*i,colors[i]);
@@ -547,7 +547,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
 
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  if(camp::gl && camp::gl->mode == DRAWMODE_OUTLINE) {
+  if(gl && gl->mode == DRAWMODE_OUTLINE) {
     triple edge0[]={Controls[0],Controls[1],Controls[3],Controls[6]};
     C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[6],Controls[7],Controls[8],Controls[9]};
@@ -555,7 +555,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
     triple edge2[]={Controls[9],Controls[5],Controls[2],Controls[0]};
     C.queue(edge2,straight,size3.length()/size2);
   } else {
-    GLfloat c[12];
+    float c[12];
     if(colors)
       for(size_t i=0; i < 3; ++i)
         storecolor(c,4*i,colors[i]);
@@ -655,9 +655,9 @@ void drawNurbs::displacement()
   size_t nvknots=vdegree+nv+1;
 
   if(Controls == NULL) {
-    Controls=new(UseGC)  GLfloat[(weights ? 4 : 3)*n];
-    uKnots=new(UseGC) GLfloat[nuknots];
-    vKnots=new(UseGC) GLfloat[nvknots];
+    Controls=new(UseGC)  float[(weights ? 4 : 3)*n];
+    uKnots=new(UseGC) float[nuknots];
+    vKnots=new(UseGC) float[nvknots];
   }
 
   if(weights)

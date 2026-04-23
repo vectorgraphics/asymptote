@@ -6,7 +6,6 @@
 
 #include "common.h"
 
-
 namespace camp
 {
 class IEXRFile

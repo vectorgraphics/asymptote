@@ -54,6 +54,13 @@ public:
     specular(m.specular), parameters(m.parameters) {}
   ~Material() {}
 
+  std::size_t hash() const {
+
+    return ((std::hash<glm::vec4>()(diffuse) ^ (std::hash<glm::vec4>()(emissive) << 1) >> 1)
+            ^ (std::hash<glm::vec4>()(specular) << 1) >> 1)
+            ^ (std::hash<glm::vec4>()(parameters) << 1);
+  }
+
   Material& operator=(Material const& m)
   {
     diffuse=m.diffuse;
@@ -61,6 +68,11 @@ public:
     specular=m.specular;
     parameters=m.parameters;
     return *this;
+  }
+
+  friend bool operator == (const Material& m1, const Material& m2) {
+
+    return m1.hash() == m2.hash();
   }
 
   friend bool operator < (const Material& m1, const Material& m2) {
@@ -93,11 +105,17 @@ public:
     return out;
   }
 };
+}
 
-extern size_t Nmaterials; // Number of materials compiled in shader
-extern size_t nmaterials; // Current size of materials buffer
-extern size_t Maxmaterials; // Maximum size of materials buffer
+namespace std
+{
+  template<>
+  struct hash<const camp::Material> {
 
+    size_t operator()(const camp::Material& m) const {
+      return m.hash();
+    }
+  };
 }
 
 #endif
