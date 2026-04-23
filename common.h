@@ -64,8 +64,9 @@ using std::span;
 
 using std::make_pair;
 
-#if !defined(FOR_SHARED) && (defined(HAVE_LIBVULKAN) || defined(HAVE_LIBGL)) && defined(HAVE_LIBGLM)
- #define HAVE_RENDERER
+#if !defined(FOR_SHARED) && defined(HAVE_LIBGLM) && \
+  defined(HAVE_LIBGLFW) && defined(HAVE_LIBVULKAN)
+#define HAVE_RENDERER
 const bool vulkan=true;
 #endif
 

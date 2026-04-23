@@ -7,18 +7,12 @@
 #include "drawsurface.h"
 #include "drawpath3.h"
 #include "arrayop.h"
-#include "picture.h"
-#include "renderBase.h"
 
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 
-#ifdef HAVE_LIBGLM
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#endif
+#include "glmCommon.h"
 
 using namespace prc;
 #include "material.h"

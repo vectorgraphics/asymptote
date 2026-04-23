@@ -244,7 +244,7 @@ AC_ARG_WITH(vcpkg-target-triplet,
 if test "x$with_vcpkg" != "xno"; then
    VCPKG_INSTALL_ARGUMENTS="--triplet=$vcpkg_triplet "
    VCPKG_PKG_CONFIG_LOC="vcpkg_installed/$vcpkg_triplet/lib/pkgconfig"
-   INCL=$INCL"-Ivcpkg_installed/$vcpkg_triplet/include "
+   INCL=$INCL" -Ivcpkg_installed/$vcpkg_triplet/include"
    LIBS=$LIBS"-Lvcpkg_installed/$vcpkg_triplet/lib "
 
    VCPKG_LIBS_TO_USE_PKG_CONFIG=""
@@ -594,7 +594,7 @@ fi
 
 # ----------- tinyexr
 TINYEXR_ROOT=tinyexr
-INCL=$INCL"-I$TINYEXR_ROOT "
+INCL=$INCL" -I$TINYEXR_ROOT"
 AC_SUBST(TINYEXR_ROOT)
 
 # ----------- vulkan
@@ -604,7 +604,7 @@ AC_ARG_ENABLE(vulkan,
 VMA_REPO_ROOT=VulkanMemoryAllocator
 VMA_IMPL_FILES=""
 if test "x$enable_vulkan" != "xno"; then
-INCL="-I$VMA_REPO_ROOT/include "$INCL"-Ithirdparty_impl/vk-mem-allocator_impl/include "
+INCL=" -I$VMA_REPO_ROOT/include "$INCL" -Ithirdparty_impl/vk-mem-allocator_impl/include "
 VMA_IMPL_FILES=$VMA_IMPL_FILES" vma_cxx vma_impl"
 
 if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
@@ -617,7 +617,9 @@ else  # managed by the system
 
 case "$OSTYPE" in
      *)
-         AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
+	  AC_CHECK_LIB([glfw], [glfwShowWindow],,
+                      AC_MSG_NOTICE([*** Could not find libglfw: will compile without Vulkan support ***]))
+          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
           AC_CHECK_LIB([glfw], [glfwShowWindow],
           [
           AC_CHECK_LIB([vulkan], [vkCreateInstance],
@@ -662,7 +664,6 @@ esac
 fi
 fi
 
-
 # ------------------- VCPKG INSTALL
 
 if test "x$with_vcpkg" != "xno"; then
@@ -671,7 +672,7 @@ $vcpkg_exec install $VCPKG_INSTALL_ARGUMENTS
 
 LIBS=$LIBS"$(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --libs $VCPKG_LIBS_TO_USE_PKG_CONFIG) "
 CFLAGS=$CFLAGS" $(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --cflags-only-other $VCPKG_LIBS_TO_USE_PKG_CONFIG)"
-INCL=$INCL"$(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --cflags-only-I $VCPKG_LIBS_TO_USE_PKG_CONFIG) "
+INCL=$INCL" $(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --cflags-only-I $VCPKG_LIBS_TO_USE_PKG_CONFIG)"
 fi
 
 # ----------------- xdr ------------------------
@@ -713,6 +714,7 @@ AC_SUBST(DEFS)
 AC_SUBST(OPTIONS)
 AC_SUBST(GLEW)
 AC_SUBST(VMA_IMPL_FILES)
+
 # we are on C++ >= 11, so unordered map is a guarantee
 AC_DEFINE(HAVE_UNORDERED_MAP,1,[Unordered map is present])
 

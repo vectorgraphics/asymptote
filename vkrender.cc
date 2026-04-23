@@ -304,7 +304,7 @@ void AsyVkRender::updateHandler(int) {
 
 AsyVkRender::~AsyVkRender()
 {
-  if (this->View) {
+  if (View) {
     ::glfwDestroyWindow(getGLFWWindow());
     glfwWindow = nullptr;
   }
@@ -324,29 +324,29 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
   bool webgl=args.format == "html";
   bool format3d=webgl || v3d;
 
-  this->pic = args.pic;
-  this->Prefix=args.prefix;
-  this->Format = args.format;
-  this->remesh = true;
-  this->nlights = args.nlightsin;
-  this->Lights = args.lights;
-  this->LightsDiffuse = args.diffuse;
-  this->Oldpid = args.oldpid;
+  pic = args.pic;
+  Prefix=args.prefix;
+  Format = args.format;
+  remesh = true;
+  nlights = args.nlightsin;
+  Lights = args.lights;
+  LightsDiffuse = args.diffuse;
+  Oldpid = args.oldpid;
 
-  this->Angle = args.angle * radians;
-  this->lastzoom = 0;
-  this->Zoom0 = args.zoom;
-  this->Shift = args.shift / args.zoom;
-  this->Margin = args.margin;
+  Angle = args.angle * radians;
+  lastzoom = 0;
+  Zoom0 = args.zoom;
+  Shift = args.shift / args.zoom;
+  Margin = args.margin;
 
   for (int i = 0; i < 4; i++)
-    this->Background[i] = static_cast<float>(args.background[i]);
+    Background[i] = static_cast<float>(args.background[i]);
 
-  this->ViewExport=args.view;
+  ViewExport=args.view;
 
-  this->View = args.view && !settings::getSetting<bool>("offscreen");
+  View = args.view && !settings::getSetting<bool>("offscreen");
 
-  this->title = std::string(PACKAGE_NAME)+": "+ args.prefix.c_str();
+  title = std::string(PACKAGE_NAME)+": "+ args.prefix.c_str();
 
   Xmin = args.m.getx();
   Xmax = args.M.getx();
@@ -356,8 +356,8 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
   Zmax = args.M.getz();
 
   haveScene=Xmin < Xmax && Ymin < Ymax && Zmin < Zmax;
-  orthographic = this->Angle == 0.0;
-  H = orthographic ? 0.0 : -tan(0.5 * this->Angle) * Zmax;
+  orthographic = Angle == 0.0;
+  H = orthographic ? 0.0 : -tan(0.5 * Angle) * Zmax;
   Xfactor = Yfactor = 1.0;
 
 #ifdef HAVE_PTHREAD
@@ -442,7 +442,7 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
     format3dWait=true;
 
   clearMaterials();
-  this->shouldUpdateBuffers = true;
+  shouldUpdateBuffers = true;
   initialized=true;
 #endif
 
@@ -858,7 +858,7 @@ void AsyVkRender::createDebugMessenger()
           },
           this
   );
-  this->debugUtilsMsg=
+  debugUtilsMsg=
           instance->createDebugUtilsMessengerEXTUnique(
           debugCreateInfo);
 #endif
@@ -942,7 +942,7 @@ void AsyVkRender::pickPhysicalDevice()
       {
         size_t score = 0u;
 
-        if (!this->isDeviceSuitable(device))
+        if (!isDeviceSuitable(device))
           return score;
 
         auto const msaa = getMaxMSAASamples(device).second;
