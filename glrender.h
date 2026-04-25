@@ -31,6 +31,7 @@
 #endif
 #define GLEW_OSMESA
 #include <GL/osmesa.h>
+#endif
 #endif // HAVE_LIBGL || HAVE_LIBOSMESA
 
 #include "glmCommon.h"
@@ -43,7 +44,7 @@
 #include "glfw.h"
 #endif
 
-#else
+#else // !HAVE_RENDERER
 typedef unsigned int GLuint;
 typedef int GLint;
 typedef float GLfloat;

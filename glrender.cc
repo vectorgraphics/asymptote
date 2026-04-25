@@ -24,6 +24,20 @@
 #include "statistics.h"
 #include "exithandlers.h"
 
+// Include OpenGL headers BEFORE anything that pulls in <windows.h>
+// (which defines GL types via <wingdi.h> on Windows)
+#ifdef HAVE_RENDERER
+#include "glrender.h"
+#include "tr.h"
+#include "shaders.h"
+#include "GLTextures.h"
+#include "EXRFiles.h"
+
+#ifdef HAVE_LIBGLFW
+#include <GLFW/glfw3.h>
+#endif // HAVE_LIBGLFW
+#endif // HAVE_RENDERER
+
 #include "picture.h"
 #include "bezierpatch.h"
 #include "bbox3.h"
@@ -40,24 +54,11 @@ bool GPUcompress;
 
 const string SHADERS="shaders/GL/";
 
-#ifdef HAVE_RENDERER
-#include "tr.h"
-
-#ifdef HAVE_LIBGLFW
-#include <GLFW/glfw3.h>
-#endif // HAVE_LIBGLFW
-
-#include "shaders.h"
-#include "GLTextures.h"
-#include "EXRFiles.h"
-
 using settings::locateFile;
 using utils::stopWatch;
 
 using namespace settings;
 using namespace glm;
-
-#endif // HAVE_RENDERER
 
 #ifdef HAVE_LIBGLM
 
