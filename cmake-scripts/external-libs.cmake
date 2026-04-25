@@ -191,7 +191,7 @@ We are using a separate glslang package
         list(APPEND ASY_STATIC_LIBRARIES Vulkan::Vulkan Vulkan::glslang)
         list(APPEND ASY_MACROS HAVE_LIBVULKAN)
     else()
-        message(FATAL_ERROR "Vulkan not found")
+        message(WARNING "Vulkan not found")
     endif()
 
     find_package(glfw3 CONFIG)
@@ -199,7 +199,7 @@ We are using a separate glslang package
         list(APPEND ASY_STATIC_LIBRARIES glfw)
         list(APPEND ASY_MACROS HAVE_LIBGLFW)
     else()
-        message(FATAL_ERROR "glfw3 not found")
+        message(WARNING "glfw3 not found")
     endif()
 
     if (ENABLE_VK_VALIDATION_LAYERS)
@@ -220,7 +220,7 @@ if (ENABLE_OPENGL)
     endif()
 
     find_package(glfw3 CONFIG)
-    if (glfw3_FOUND AND NOT ENABLE_VULKAN)
+    if (glfw3_FOUND AND NOT Vulkan_FOUND)
         list(APPEND ASY_STATIC_LIBRARIES glfw)
         list(APPEND ASY_MACROS HAVE_LIBGLFW)
     endif()
