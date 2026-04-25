@@ -32,6 +32,8 @@ bool vulkan = false;
 
 namespace camp {
 
+static bool initializedRenderer = false;
+
 bool tryLoadVulkan()
 {
 #if defined(HAVE_LIBVULKAN)
@@ -81,25 +83,33 @@ void unloadVulkan()
     // Nothing to unload -- Vulkan is linked, not dynamically loaded.
 }
 
-void initRenderer()
+/**
+ * Create the renderer object without performing any GPU/Vulkan probing.
+ * Called from main.cc before starting threads so that gl is non-null and
+ * the render thread can safely access gl->wait(...).
+ * The constructor of AsyVkRender/AsyGLRender is trivial (= default);
+ * no actual graphics-library initialisation occurs here.
+ *
+ * Type selection: respect the user's -vulkan/-novulkan setting combined with
+ * compile-time availability.  No runtime Vulkan probe is performed here.
+ */
+void createRenderer()
 {
     if (gl != nullptr)
-        return; // Already initialised
+        return; // Already created
 
     bool useVulkan = settings::getSetting<bool>("vulkan");
-    vulkan = useVulkan && tryLoadVulkan();
 
-    if (vulkan) {
 #ifdef HAVE_LIBVULKAN
+    if (useVulkan) {
         gl = new AsyVkRender();
+    } else
 #endif
-    } else {
 #ifdef HAVE_LIBGL
-        if (settings::verbose > 1)
-            std::cout << "Using OpenGL renderer" << std::endl;
+    {
         gl = new AsyGLRender();
-#endif
     }
+#endif
 
     if (!gl) {
         camp::reportError("No 3D rendering library available");
@@ -111,14 +121,33 @@ void initRenderer()
 #endif
 }
 
+void initRenderer()
+{
+    if (initializedRenderer)
+        return; // Already fully initialised
+
+    initializedRenderer = true;
+
+    bool useVulkan = settings::getSetting<bool>("vulkan");
+    vulkan = useVulkan && tryLoadVulkan();
+
+#ifdef HAVE_LIBGL
+    if (!vulkan && settings::verbose > 1)
+        std::cout << "Using OpenGL renderer" << std::endl;
+#endif
+}
+
 } // namespace camp
 
 #else // !HAVE_RENDERER
 
 namespace camp {
 
+static bool initializedRenderer = false;
+
 bool tryLoadVulkan() { return false; }
 void unloadVulkan() {}
+void createRenderer() {}
 void initRenderer() {}
 
 } // namespace camp

@@ -256,14 +256,18 @@ int main(int argc, char *argv[])
   }
 
 #ifdef HAVE_RENDERER
-  // Only initialise the renderer if rendering is actually needed.
-  // In headless modes (e.g., -l to list variables) no GPU/display is
-  // required, so we defer creation until shipout3 is called.
+  // Create the renderer object early so that the render thread has a
+  // valid gl pointer to access (for gl->wait(...)).  The constructor is
+  // trivial (= default); no GPU/Vulkan initialisation occurs here.
+  // Actual runtime Vulkan probing and any renderer replacement happens
+  // lazily inside initRenderer() when shipout3 is first called.
 #if defined(__APPLE__) || defined(_WIN32)
   camp::AsyRender::threads = getSetting<bool>("threads");
 #else
   camp::AsyRender::threads = view() ? getSetting<bool>("threads") : false;
 #endif
+
+  camp::createRenderer();
 #endif
 
   fpu_trap(trap());

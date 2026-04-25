@@ -7,20 +7,9 @@
 
 namespace camp {
 
-/**
- * Dynamically probe for Vulkan availability at runtime.
- * Returns true if the Vulkan loader library can be loaded and
- * vkCreateInstance is resolvable.  On success, the Vulkan dispatch
- * table is initialised so that AsyVkRender can use it without
- * linking -lvulkan at load time.
- *
- * If this returns false the application should fall back to OpenGL.
- */
 bool tryLoadVulkan();
-
-/**
- * Release the dynamically-loaded Vulkan library (if any).
- */
+void createRenderer();
+void initRenderer();
 void unloadVulkan();
 
 } // namespace camp
