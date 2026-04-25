@@ -10,6 +10,8 @@
 
 #include "GL/glew.h"
 
+#include "glmCommon.h"
+
 namespace camp
 {
 struct GLTexturesFmt

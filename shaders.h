@@ -8,6 +8,10 @@
 #include <GL/glew.h>
 #endif
 
+#ifdef HAVE_LIBGLM
+#include "glmCommon.h"
+#endif
+
 #include <string>
 
 extern int GLSLversion;

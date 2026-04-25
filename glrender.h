@@ -7,13 +7,8 @@
 #define GLRENDER_H
 
 #include "common.h"
-#include "glmCommon.h"
-#include "triple.h"
-#include "pen.h"
 
 #ifdef HAVE_RENDERER
-
-#include <csignal>
 
 #if defined(HAVE_LIBGL) || defined(HAVE_LIBOSMESA)
 #ifdef __APPLE__
@@ -36,8 +31,12 @@
 #endif
 #define GLEW_OSMESA
 #include <GL/osmesa.h>
-#endif
 #endif // HAVE_LIBGL || HAVE_LIBOSMESA
+
+#include "glmCommon.h"
+#include <csignal>
+#include "triple.h"
+#include "pen.h"
 
 #ifdef HAVE_LIBGLFW
 #include <GLFW/glfw3.h>
