@@ -197,6 +197,7 @@ We are using a separate glslang package
     find_package(glfw3 CONFIG)
     if (glfw3_FOUND)
         list(APPEND ASY_STATIC_LIBRARIES glfw)
+        list(APPEND ASY_MACROS HAVE_LIBGLFW)
     else()
         message(FATAL_ERROR "glfw3 not found")
     endif()
@@ -206,6 +207,37 @@ We are using a separate glslang package
     endif()
 else()
     message(STATUS "Disabling vulkan support")
+endif()
+
+# OpenGL stuff
+if (ENABLE_OPENGL)
+    find_package(OpenGL REQUIRED)
+    if (OPENGL_FOUND)
+        list(APPEND ASY_STATIC_LIBRARIES OpenGL::GL)
+        list(APPEND ASY_MACROS HAVE_LIBGL)
+    else()
+        message(WARNING "gl libraries not found")
+    endif()
+
+    find_package(glfw3 CONFIG)
+    if (glfw3_FOUND AND NOT ENABLE_VULKAN)
+        list(APPEND ASY_STATIC_LIBRARIES glfw)
+        list(APPEND ASY_MACROS HAVE_LIBGLFW)
+    endif()
+
+    if (ENABLE_GL_COMPUTE_SHADERS)
+        list(APPEND ASY_MACROS HAVE_COMPUTE_SHADER)
+    else()
+        message(WARNING "Compute shader disabled")
+    endif()
+
+    if (ENABLE_GL_SSBO)
+        list(APPEND ASY_MACROS HAVE_SSBO)
+    else()
+        message(WARNING "SSBO disabled")
+    endif()
+else()
+    message(STATUS "Disabling opengl support")
 endif()
 
 

@@ -22,14 +22,42 @@ bool vulkan = false;
 namespace camp {
 
 // Holds the dlopen handle for libvulkan.so (or equivalent).
+// Null when Vulkan was linked statically at build time.
 static void *vulkanHandle = nullptr;
 
 bool tryLoadVulkan()
 {
     if (vulkanHandle)
-        return true;  // already loaded
+        return true;  // already loaded via dlopen
 
-    // Try common Vulkan loader library names for different platforms.
+    // When -lvulkan is linked at build time, vkGetInstanceProcAddr is
+    // already resolved by the dynamic linker.  We can probe Vulkan
+    // availability directly without dlopen.
+    PFN_vkGetInstanceProcAddr getInstanceProcAddr =
+        reinterpret_cast<PFN_vkGetInstanceProcAddr>(
+            dlsym(RTLD_DEFAULT, "vkGetInstanceProcAddr"));
+
+    if (getInstanceProcAddr) {
+        // The Vulkan loader is already available (linked or pre-loaded).
+        VULKAN_HPP_DEFAULT_DISPATCHER.init(getInstanceProcAddr);
+
+        // Quick sanity check: can we enumerate instance layers?
+        try {
+            auto props = vk::enumerateInstanceLayerProperties();
+            (void)props;  // suppress unused-variable warning
+        } catch (const std::exception &e) {
+            if (settings::verbose > 1)
+                std::cerr << "warning: Vulkan instance enumeration failed ("
+                          << e.what() << ")" << std::endl;
+            return false;
+        }
+
+        if (settings::verbose > 1)
+            std::cout << "Vulkan available (linked at build time)" << std::endl;
+        return true;
+    }
+
+    // Not linked — try dlopen as a last resort.
     const char *candidates[] = {
         "libvulkan.so.1",
         "libvulkan.so"
@@ -38,8 +66,7 @@ bool tryLoadVulkan()
     for (const char *name : candidates) {
         vulkanHandle = dlopen(name, RTLD_NOW | RTLD_GLOBAL);
         if (vulkanHandle) {
-            // Resolve vkGetInstanceProcAddr and initialise the dispatch table.
-            PFN_vkGetInstanceProcAddr getInstanceProcAddr =
+            getInstanceProcAddr =
                 reinterpret_cast<PFN_vkGetInstanceProcAddr>(
                     dlsym(vulkanHandle, "vkGetInstanceProcAddr"));
 
@@ -53,10 +80,9 @@ bool tryLoadVulkan()
 
             VULKAN_HPP_DEFAULT_DISPATCHER.init(getInstanceProcAddr);
 
-            // Quick sanity check: can we enumerate instance extensions?
             try {
                 auto props = vk::enumerateInstanceLayerProperties();
-                (void)props;  // suppress unused-variable warning
+                (void)props;
             } catch (const std::exception &e) {
                 std::cerr << "warning: Vulkan instance enumeration failed ("
                           << e.what() << ")" << std::endl;
