@@ -61,9 +61,7 @@ namespace camp {
 
 #ifdef HAVE_RENDERER
 #ifdef HAVE_LIBVULKAN
-AsyRender* gl = new AsyVkRender();
-#else
-AsyRender* gl = new AsyGLRender();
+AsyRender* gl;
 #endif
 #endif
 

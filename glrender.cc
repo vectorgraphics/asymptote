@@ -38,6 +38,8 @@ extern uint32_t CLZ(uint32_t a);
 bool GPUindexing = false;  // Disabled by default - compute shaders not needed for opaque rendering
 bool GPUcompress;
 
+const string SHADERS="shaders/GL/";
+
 #ifdef HAVE_RENDERER
 #include "tr.h"
 
@@ -155,10 +157,10 @@ void noShaders()
 
 void AsyGLRender::initComputeShaders()
 {
-  string sum1=locateFile("shaders/sum1.glsl");
-  string sum2=locateFile("shaders/sum2.glsl");
-  string sum2fast=locateFile("shaders/sum2fast.glsl");
-  string sum3=locateFile("shaders/sum3.glsl");
+  string sum1=locateFile(SHADERS+"sum1.glsl");
+  string sum2=locateFile(SHADERS+"sum2.glsl");
+  string sum2fast=locateFile(SHADERS+"sum2fast.glsl");
+  string sum3=locateFile(SHADERS+"sum3.glsl");
 
   if(sum1.empty() || sum2.empty() || sum2fast.empty() || sum3.empty())
     noShaders();
@@ -198,8 +200,8 @@ void AsyGLRender::initComputeShaders()
 
 void AsyGLRender::initBlendShader()
 {
-  string screen=locateFile("shaders/screen.glsl");
-  string blend=locateFile("shaders/blend.glsl");
+  string screen=locateFile(SHADERS+"screen.glsl");
+  string blend=locateFile(SHADERS+"blend.glsl");
 
   if(screen.empty() || blend.empty())
     noShaders();
@@ -278,12 +280,12 @@ void AsyGLRender::initShaders()
   Nlights = nlights == 0 ? 0 : std::max(Nlights, nlights);
   nmaterials = materials.size();
 
-  string zero=locateFile("shaders/zero.glsl");
-  string compress=locateFile("shaders/compress.glsl");
-  string vertex=locateFile("shaders/vertex.glsl");
-  string count=locateFile("shaders/count.glsl");
-  string fragment=locateFile("shaders/fragment.glsl");
-  string screen=locateFile("shaders/screen.glsl");
+  string zero=locateFile(SHADERS+"zero.glsl");
+  string compress=locateFile(SHADERS+"compress.glsl");
+  string vertex=locateFile(SHADERS+"vertex.glsl");
+  string count=locateFile(SHADERS+"count.glsl");
+  string fragment=locateFile(SHADERS+"fragment.glsl");
+  string screen=locateFile(SHADERS+"screen.glsl");
 
   if(zero.empty() || compress.empty() || vertex.empty() || fragment.empty() ||
      screen.empty() || count.empty())

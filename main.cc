@@ -45,6 +45,8 @@ int _matherr(struct _exception *except)
 #endif
 
 #include "common.h"
+#include "glrender.h"
+#include "vkrender.h"
 
 #ifdef HAVE_LIBSIGSEGV
 #include <sigsegv.h>
@@ -247,6 +249,11 @@ int main(int argc, char *argv[])
   } catch(handled_error const&) {
     em.statusError();
   }
+
+  if(vulkan)
+    camp::gl = new camp::AsyVkRender();
+  else
+    camp::gl = new camp::AsyGLRender();
 
   fpu_trap(trap());
   Args args(argc,argv);
