@@ -60,9 +60,7 @@ texstream::~texstream() {
 namespace camp {
 
 #ifdef HAVE_RENDERER
-#ifdef HAVE_LIBVULKAN
 AsyRender* gl;
-#endif
 #endif
 
 extern void draw();

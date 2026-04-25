@@ -45,6 +45,7 @@ int _matherr(struct _exception *except)
 #endif
 
 #include "common.h"
+#include "rendererloader.h"
 #include "glrender.h"
 #include "vkrender.h"
 
@@ -249,6 +250,10 @@ int main(int argc, char *argv[])
   } catch(handled_error const&) {
     em.statusError();
   }
+
+#ifdef HAVE_RENDERER
+  vulkan = camp::tryLoadVulkan();
+#endif
 
   if(vulkan)
     camp::gl = new camp::AsyVkRender();

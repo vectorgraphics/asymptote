@@ -60,7 +60,7 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	win32xdr xstream \
 	$(VMA_IMPL_FILES) vkrender vkdispatchstorage vkutils \
 	lspdec lspexp lspfundec lspstm \
-	hashing random
+	hashing random rendererloader
 
 FILES = $(COREFILES) main
 
