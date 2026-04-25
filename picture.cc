@@ -17,6 +17,9 @@
 #include "drawsurface.h"
 #include "drawpath3.h"
 #include "seconds.h"
+#ifdef HAVE_RENDERER
+#include "glfw.h"
+#endif
 
 #if defined(_WIN32)
 #include <Windows.h>

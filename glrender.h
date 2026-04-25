@@ -14,6 +14,8 @@
 #ifdef HAVE_RENDERER
 
 #include <csignal>
+
+#if defined(HAVE_LIBGL) || defined(HAVE_LIBOSMESA)
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
 #endif
@@ -35,6 +37,7 @@
 #define GLEW_OSMESA
 #include <GL/osmesa.h>
 #endif
+#endif // HAVE_LIBGL || HAVE_LIBOSMESA
 
 #ifdef HAVE_LIBGLFW
 #include <GLFW/glfw3.h>

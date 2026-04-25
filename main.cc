@@ -46,8 +46,12 @@ int _matherr(struct _exception *except)
 
 #include "common.h"
 #include "rendererloader.h"
+#ifdef HAVE_LIBGL
 #include "glrender.h"
+#endif
+#ifdef HAVE_LIBVULKAN
 #include "vkrender.h"
+#endif
 
 #ifdef HAVE_LIBSIGSEGV
 #include <sigsegv.h>

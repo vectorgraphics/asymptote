@@ -21,8 +21,9 @@
 #include "v3dfile.h"
 #include "arrayop.h"
 #include "material.h"
-#include "glrender.h"
-#include "vkrender.h"
+#ifdef HAVE_RENDERER
+#include "renderBase.h"
+#endif
 #include "bbox2.h"
 
 namespace camp {
