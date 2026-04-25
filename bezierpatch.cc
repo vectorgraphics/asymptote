@@ -29,10 +29,10 @@ const double FillFactor=0.1;
 const double third=1.0/3.0;
 
 // Named constants for template parameters
-constexpr bool TRANSPARENT = true;
-constexpr bool OPAQUE = false;
-constexpr bool COLOR = true;
-constexpr bool MATERIAL = false;
+constexpr bool IsTransparent = true;
+constexpr bool IsOpaque = false;
+constexpr bool IsColor = true;
+constexpr bool IsMaterial = false;
 
 void BezierPatch::init(double res)
 {
@@ -107,41 +107,41 @@ void BezierPatch::render(const triple *p, bool straight, float *c0)
     float *c3=c0+12;
 
     if(transparent) {
-      i0=addVertex<TRANSPARENT,COLOR>(p0,n0,MaterialIndex,c0);
-      i1=addVertex<TRANSPARENT,COLOR>(p12,n1,MaterialIndex,c1);
-      i2=addVertex<TRANSPARENT,COLOR>(p15,n2,MaterialIndex,c2);
-      i3=addVertex<TRANSPARENT,COLOR>(p3,n3,MaterialIndex,c3);
+      i0=addVertex<IsTransparent,IsColor>(p0,n0,MaterialIndex,c0);
+      i1=addVertex<IsTransparent,IsColor>(p12,n1,MaterialIndex,c1);
+      i2=addVertex<IsTransparent,IsColor>(p15,n2,MaterialIndex,c2);
+      i3=addVertex<IsTransparent,IsColor>(p3,n3,MaterialIndex,c3);
     } else {
-      i0=addVertex<OPAQUE,COLOR>(p0,n0,MaterialIndex,c0);
-      i1=addVertex<OPAQUE,COLOR>(p12,n1,MaterialIndex,c1);
-      i2=addVertex<OPAQUE,COLOR>(p15,n2,MaterialIndex,c2);
-      i3=addVertex<OPAQUE,COLOR>(p3,n3,MaterialIndex,c3);
+      i0=addVertex<IsOpaque,IsColor>(p0,n0,MaterialIndex,c0);
+      i1=addVertex<IsOpaque,IsColor>(p12,n1,MaterialIndex,c1);
+      i2=addVertex<IsOpaque,IsColor>(p15,n2,MaterialIndex,c2);
+      i3=addVertex<IsOpaque,IsColor>(p3,n3,MaterialIndex,c3);
     }
 
     if(!straight) {
       if(transparent)
-        render<TRANSPARENT,COLOR>(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false, c0,c1,c2,c3);
+        render<IsTransparent,IsColor>(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false, c0,c1,c2,c3);
       else
-        render<OPAQUE,COLOR>(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false, c0,c1,c2,c3);
+        render<IsOpaque,IsColor>(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false, c0,c1,c2,c3);
     }
   } else {
     if(transparent) {
-      i0=addVertex<TRANSPARENT,MATERIAL>(p0,n0,MaterialIndex);
-      i1=addVertex<TRANSPARENT,MATERIAL>(p12,n1,MaterialIndex);
-      i2=addVertex<TRANSPARENT,MATERIAL>(p15,n2,MaterialIndex);
-      i3=addVertex<TRANSPARENT,MATERIAL>(p3,n3,MaterialIndex);
+      i0=addVertex<IsTransparent,IsMaterial>(p0,n0,MaterialIndex);
+      i1=addVertex<IsTransparent,IsMaterial>(p12,n1,MaterialIndex);
+      i2=addVertex<IsTransparent,IsMaterial>(p15,n2,MaterialIndex);
+      i3=addVertex<IsTransparent,IsMaterial>(p3,n3,MaterialIndex);
     } else {
-      i0=addVertex<OPAQUE,MATERIAL>(p0,n0,MaterialIndex);
-      i1=addVertex<OPAQUE,MATERIAL>(p12,n1,MaterialIndex);
-      i2=addVertex<OPAQUE,MATERIAL>(p15,n2,MaterialIndex);
-      i3=addVertex<OPAQUE,MATERIAL>(p3,n3,MaterialIndex);
+      i0=addVertex<IsOpaque,IsMaterial>(p0,n0,MaterialIndex);
+      i1=addVertex<IsOpaque,IsMaterial>(p12,n1,MaterialIndex);
+      i2=addVertex<IsOpaque,IsMaterial>(p15,n2,MaterialIndex);
+      i3=addVertex<IsOpaque,IsMaterial>(p3,n3,MaterialIndex);
     }
 
     if(!straight) {
       if(transparent)
-        render<TRANSPARENT,MATERIAL>(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false);
+        render<IsTransparent,IsMaterial>(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false);
       else
-        render<OPAQUE,MATERIAL>(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false);
+        render<IsOpaque,IsMaterial>(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false);
     }
   }
 
@@ -580,37 +580,37 @@ void BezierTriangle::render(const triple *p, bool straight, float *c0)
     float *c2=c0+8;
 
     if(transparent) {
-      i0=addVertex<TRANSPARENT,COLOR>(p0,n0,MaterialIndex,c0);
-      i1=addVertex<TRANSPARENT,COLOR>(p6,n1,MaterialIndex,c1);
-      i2=addVertex<TRANSPARENT,COLOR>(p9,n2,MaterialIndex,c2);
+      i0=addVertex<IsTransparent,IsColor>(p0,n0,MaterialIndex,c0);
+      i1=addVertex<IsTransparent,IsColor>(p6,n1,MaterialIndex,c1);
+      i2=addVertex<IsTransparent,IsColor>(p9,n2,MaterialIndex,c2);
     } else {
-      i0=addVertex<OPAQUE,COLOR>(p0,n0,MaterialIndex,c0);
-      i1=addVertex<OPAQUE,COLOR>(p6,n1,MaterialIndex,c1);
-      i2=addVertex<OPAQUE,COLOR>(p9,n2,MaterialIndex,c2);
+      i0=addVertex<IsOpaque,IsColor>(p0,n0,MaterialIndex,c0);
+      i1=addVertex<IsOpaque,IsColor>(p6,n1,MaterialIndex,c1);
+      i2=addVertex<IsOpaque,IsColor>(p9,n2,MaterialIndex,c2);
     }
 
     if(!straight) {
       if(transparent)
-        render<TRANSPARENT,COLOR>(p,i0,i1,i2,p0,p6,p9,false,false,false,c0,c1,c2);
+        render<IsTransparent,IsColor>(p,i0,i1,i2,p0,p6,p9,false,false,false,c0,c1,c2);
       else
-        render<OPAQUE,COLOR>(p,i0,i1,i2,p0,p6,p9,false,false,false,c0,c1,c2);
+        render<IsOpaque,IsColor>(p,i0,i1,i2,p0,p6,p9,false,false,false,c0,c1,c2);
     }
   } else {
     if(transparent) {
-      i0=addVertex<TRANSPARENT,MATERIAL>(p0,n0,MaterialIndex);
-      i1=addVertex<TRANSPARENT,MATERIAL>(p6,n1,MaterialIndex);
-      i2=addVertex<TRANSPARENT,MATERIAL>(p9,n2,MaterialIndex);
+      i0=addVertex<IsTransparent,IsMaterial>(p0,n0,MaterialIndex);
+      i1=addVertex<IsTransparent,IsMaterial>(p6,n1,MaterialIndex);
+      i2=addVertex<IsTransparent,IsMaterial>(p9,n2,MaterialIndex);
     } else {
-      i0=addVertex<OPAQUE,MATERIAL>(p0,n0,MaterialIndex);
-      i1=addVertex<OPAQUE,MATERIAL>(p6,n1,MaterialIndex);
-      i2=addVertex<OPAQUE,MATERIAL>(p9,n2,MaterialIndex);
+      i0=addVertex<IsOpaque,IsMaterial>(p0,n0,MaterialIndex);
+      i1=addVertex<IsOpaque,IsMaterial>(p6,n1,MaterialIndex);
+      i2=addVertex<IsOpaque,IsMaterial>(p9,n2,MaterialIndex);
     }
 
     if(!straight) {
       if(transparent)
-        render<TRANSPARENT,MATERIAL>(p,i0,i1,i2,p0,p6,p9,false,false,false);
+        render<IsTransparent,IsMaterial>(p,i0,i1,i2,p0,p6,p9,false,false,false);
       else
-        render<OPAQUE,MATERIAL>(p,i0,i1,i2,p0,p6,p9,false,false,false);
+        render<IsOpaque,IsMaterial>(p,i0,i1,i2,p0,p6,p9,false,false,false);
     }
   }
 
