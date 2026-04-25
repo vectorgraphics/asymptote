@@ -1064,19 +1064,10 @@ void AsyGLRender::drawBuffer(VertexBuffer& data, GLint shader, bool color, unsig
 
   if(color) {
     bytestride = sizeof(ColorVertex);
-    nvertices = data.colorVertices.size();
   } else if(normal) {
     bytestride = sizeof(MaterialVertex);
-    nvertices = data.materialVertices.size();
   } else {
     bytestride = sizeof(PointVertex);
-    nvertices = data.pointVertices.size();
-  }
-
-  // Debug output for material rendering
-  if(settings::verbose > 2 && nvertices > 0) {
-    cerr << "drawBuffer: vertices.size=" << nvertices
-         << " indices.size=" << data.indices.size() << endl;
   }
 
   // VAO is already bound from setBuffers(), no need to bind here
@@ -1251,17 +1242,6 @@ void AsyGLRender::drawBuffers()
 {
   Opaque=transparentData.indices.empty();
   bool transparent=!Opaque;
-
-  if(settings::verbose > 2) {
-    cerr << "drawBuffers: Opaque=" << Opaque
-         << " point indices=" << pointData.indices.size()
-         << " line indices=" << lineData.indices.size()
-         << " material indices=" << materialData.indices.size()
-         << " color indices=" << colorData.indices.size()
-         << " triangle indices=" << triangleData.indices.size()
-         << " transparent indices=" << transparentData.indices.size()
-         << endl;
-  }
 
   if(ssbo) {
     if(transparent) {
