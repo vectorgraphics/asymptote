@@ -1058,19 +1058,7 @@ void AsyGLRender::drawBuffer(VertexBuffer& data, GLint shader, bool color, unsig
 
   bool normal=shader != pixelShader;
 
-  // Determine which vertex vector to use and the stride
-  size_t bytestride = 0;
-  size_t nvertices = 0;
-
-  if(color) {
-    bytestride = sizeof(ColorVertex);
-  } else if(normal) {
-    bytestride = sizeof(MaterialVertex);
-  } else {
-    bytestride = sizeof(PointVertex);
-  }
-
-  // VAO is already bound from setBuffers(), no need to bind here
+  // VAO is already bound in setBuffers()
 
   GLuint vertexBuffer = 0;
   glGenBuffers(1, &vertexBuffer);
@@ -1099,45 +1087,46 @@ void AsyGLRender::drawBuffer(VertexBuffer& data, GLint shader, bool color, unsig
 
   // Position attribute (3 floats)
   if(color) {
-    glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, bytestride,
+    glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, sizeof(ColorVertex),
                           (void *) offsetof(ColorVertex, position));
   } else if(normal) {
-    glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, bytestride,
+    glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, sizeof(MaterialVertex),
                           (void *) offsetof(MaterialVertex, position));
   } else {
-    glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, bytestride,
+    glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, sizeof(PointVertex),
                           (void *) offsetof(PointVertex, position));
   }
   glEnableVertexAttribArray(positionAttrib);
 
   if(normal && nlights > 0) {
     // Normal attribute (3 floats)
-    glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE, bytestride,
+    glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE,
+                          color ? sizeof(ColorVertex) : sizeof(MaterialVertex),
                           (void *) offsetof(MaterialVertex, normal));
     glEnableVertexAttribArray(normalAttrib);
   } else if(!normal) {
     // Width attribute for points (1 float)
-    glVertexAttribPointer(widthAttrib, 1, GL_FLOAT, GL_FALSE, bytestride,
+    glVertexAttribPointer(widthAttrib, 1, GL_FLOAT, GL_FALSE, sizeof(PointVertex),
                           (void *) offsetof(PointVertex, width));
     glEnableVertexAttribArray(widthAttrib);
   }
 
   // Material index attribute (1 int)
   if(color) {
-    glVertexAttribIPointer(materialAttrib, 1, GL_INT, bytestride,
+    glVertexAttribIPointer(materialAttrib, 1, GL_INT, sizeof(ColorVertex),
                            (void *) offsetof(ColorVertex, material));
   } else if(normal) {
-    glVertexAttribIPointer(materialAttrib, 1, GL_INT, bytestride,
+    glVertexAttribIPointer(materialAttrib, 1, GL_INT, sizeof(MaterialVertex),
                            (void *) offsetof(MaterialVertex, material));
   } else {
-    glVertexAttribIPointer(materialAttrib, 1, GL_INT, bytestride,
+    glVertexAttribIPointer(materialAttrib, 1, GL_INT, sizeof(PointVertex),
                            (void *) offsetof(PointVertex, material));
   }
   glEnableVertexAttribArray(materialAttrib);
 
   if(color) {
     // Color attribute (4 floats)
-    glVertexAttribPointer(colorAttrib, 4, GL_FLOAT, GL_FALSE, bytestride,
+    glVertexAttribPointer(colorAttrib, 4, GL_FLOAT, GL_FALSE, sizeof(ColorVertex),
                           (void *) offsetof(ColorVertex, color));
     glEnableVertexAttribArray(colorAttrib);
   }
