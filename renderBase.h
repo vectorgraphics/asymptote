@@ -302,7 +302,8 @@ public:
   bool firstFit = true;  // Flag for initial fit screen adjustment
   bool ViewExport = false;  // Whether to export during view
 
-  bool thread=false;
+  // Spin state
+  static inline bool threads = false;
 
   // Window visibility
   bool hideWindow=false;
@@ -479,6 +480,14 @@ extern AsyRender* gl;  // Global renderer instance (type depends on build config
 #ifdef HAVE_RENDERER
 class AsyGLRender;  // Forward declaration
 class AsyVkRender;   // Forward declaration (if Vulkan is available)
+
+/**
+ * Lazily initialise the global renderer (Vulkan or OpenGL) on first use.
+ * This defers all graphics-library loading until a shipout3 call actually
+ * requires rendering, allowing headless modes like "-l" to run without
+ * needing any GPU / display at all.
+ */
+void initRenderer();
 #endif
 
 void mode();

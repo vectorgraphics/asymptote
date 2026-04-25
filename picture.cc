@@ -1444,6 +1444,8 @@ extern bool allowRender;
 void glrenderWrapper()
 {
 #ifdef HAVE_RENDERER
+  if (gl == nullptr)
+    return; // Renderer not yet initialised
 #ifdef HAVE_PTHREAD
   gl->wait(gl->initSignal,gl->initLock);
   gl->endwait(gl->initSignal,gl->initLock);
@@ -1465,6 +1467,10 @@ bool picture::shipout3(const string& prefix, const string& format,
     return true;
 
   if(width <= 0 || height <= 0) return false;
+
+#ifdef HAVE_RENDERER
+  initRenderer();
+#endif
 
   bool webgl=format == "html";
   bool v3d=format == "v3d";
@@ -1541,7 +1547,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool format3d=webgl || v3d;
   if(!format3d) {
 #ifdef HAVE_RENDERER
-    if(gl->thread && !offscreen) {
+    if(AsyRender::threads && !offscreen) {
 #ifdef HAVE_PTHREAD
       if(!gl->initialized) {
         gl->initialized=!View || offscreen;
@@ -1672,7 +1678,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
-  if(gl->thread && !offscreen && Wait) {
+  if(AsyRender::threads && !offscreen && Wait) {
     pthread_cond_wait(&gl->readySignal,&gl->readyLock);
     pthread_mutex_unlock(&gl->readyLock);
   }
@@ -1685,6 +1691,9 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 bool picture::shipout3(const string& prefix, const string format)
 {
+#ifdef HAVE_RENDERER
+  initRenderer();
+#endif
   gl->redraw=false;
   bounds3();
   bool status;

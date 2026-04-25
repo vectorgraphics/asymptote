@@ -572,7 +572,7 @@ void AsyGLRender::Export(int)
 
 
 #ifdef HAVE_PTHREAD
-  if(thread && readyAfterExport) {
+  if(threads && readyAfterExport) {
     readyAfterExport=false;
     endwait(readySignal,readyLock);
   }
@@ -1459,9 +1459,9 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   }
 
 #ifdef HAVE_RENDERER
-  havewindow=initialized && thread;
+  havewindow=initialized && threads;
 
-  if(thread && format3d)
+  if(threads && format3d)
     format3dWait=true;
 
   clearMaterials();
@@ -1470,7 +1470,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 #endif
 
 #ifdef HAVE_PTHREAD
-  if(thread && initializedView) {
+  if(threads && initializedView) {
     if(View) {
       // Called from asymain thread, main thread handles rendering
       hideWindow=false;
@@ -1590,7 +1590,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 #endif
 
 #ifdef HAVE_RENDERER
-  havewindow = initialized && thread;
+  havewindow = initialized && threads;
 #endif
 
   // Enter main loop or export
@@ -1601,7 +1601,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   } else {
     update();
     display();
-    if(thread) {
+    if(threads) {
       exportHandler();
     } else {
       exportHandler();

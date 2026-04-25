@@ -158,7 +158,7 @@ void AsyRender::prepareScene()
 
 #ifdef HAVE_PTHREAD
   static bool first=true;
-  if(thread && first) {
+  if(threads && first) {
     wait(initSignal,initLock);
     endwait(initSignal,initLock);
     first=false;
@@ -639,7 +639,7 @@ void AsyRender::quit()
   waitEvent = false;
   redraw = false;
 
-  if (thread) {
+  if (threads) {
 #ifdef HAVE_PTHREAD
     if (!interact::interactive) {
       idle();
@@ -715,7 +715,7 @@ void AsyRender::display()
   swapBuffers();
 
   // Process management (non-Windows)
-  if(!thread) {
+  if(!threads) {
 #if defined(_WIN32)
 #else
     if(Oldpid != 0 && waitpid(Oldpid, NULL, WNOHANG) != Oldpid) {
@@ -847,7 +847,7 @@ void AsyRender::mainLoop()
   } else {
     update();
     display();
-    if(thread) {
+    if(threads) {
       if(havewindow) {
 #ifdef HAVE_PTHREAD
         if(pthread_equal(pthread_self(),this->mainthread))

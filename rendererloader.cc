@@ -5,6 +5,7 @@
  *****/
 
 #include "rendererloader.h"
+#include "camperror.h"
 
 #ifdef HAVE_RENDERER
 
@@ -12,6 +13,11 @@
 bool vulkan = false;
 
 #if defined(HAVE_LIBVULKAN)
+#include "vkrender.h"
+#endif
+#if defined(HAVE_LIBGL)
+#include "glrender.h"
+#endif
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -19,6 +25,7 @@ bool vulkan = false;
 #include <dlfcn.h>
 #endif
 #include <iostream>
+#include <pthread.h>
 
 #include "vk.h"          // pulls in vulkan.hpp with dynamic dispatch
 #include "settings.h"    // for settings::verbose
@@ -27,6 +34,7 @@ namespace camp {
 
 bool tryLoadVulkan()
 {
+#if defined(HAVE_LIBVULKAN)
     // Resolve vkGetInstanceProcAddr from the process address space.
     // This works whether Vulkan was linked at build time or loaded
     // by a dependent library (e.g., vcpkg's vulkan-loader).
@@ -63,6 +71,9 @@ bool tryLoadVulkan()
     if (settings::verbose > 1)
         std::cout << "Vulkan available" << std::endl;
     return true;
+#else
+    return false;
+#endif // HAVE_LIBVULKAN
 }
 
 void unloadVulkan()
@@ -70,19 +81,37 @@ void unloadVulkan()
     // Nothing to unload -- Vulkan is linked, not dynamically loaded.
 }
 
+void initRenderer()
+{
+    if (gl != nullptr)
+        return; // Already initialised
+
+    bool useVulkan = settings::getSetting<bool>("vulkan");
+    vulkan = useVulkan && tryLoadVulkan();
+
+    if (vulkan) {
+#ifdef HAVE_LIBVULKAN
+        gl = new AsyVkRender();
+#endif
+    } else {
+#ifdef HAVE_LIBGL
+        if (settings::verbose > 1)
+            std::cout << "Using OpenGL renderer" << std::endl;
+        gl = new AsyGLRender();
+#endif
+    }
+
+    if (!gl) {
+        camp::reportError("No 3D rendering library available");
+    }
+
+#ifdef HAVE_PTHREAD
+    if (gl)
+        gl->mainthread = pthread_self();
+#endif
+}
+
 } // namespace camp
-
-#else // !HAVE_LIBVULKAN
-
-// No Vulkan support compiled in at all.
-namespace camp {
-
-bool tryLoadVulkan() { return false; }
-void unloadVulkan() {}
-
-} // namespace camp
-
-#endif // HAVE_LIBVULKAN
 
 #else // !HAVE_RENDERER
 
@@ -90,6 +119,7 @@ namespace camp {
 
 bool tryLoadVulkan() { return false; }
 void unloadVulkan() {}
+void initRenderer() {}
 
 } // namespace camp
 

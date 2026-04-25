@@ -108,7 +108,7 @@ int sigsegv_handler (void *, int emergency)
   if(!emergency) return 0; // Really a stack overflow
   em.runtime(vm::getPos());
 #ifdef HAVE_RENDERER
-  if(camp::gl->thread)
+  if(camp::AsyRender::threads)
     cerr << "Stack overflow or segmentation fault: rerun with -nothreads"
          << endl;
   else
@@ -256,22 +256,21 @@ int main(int argc, char *argv[])
   }
 
 #ifdef HAVE_RENDERER
-  vulkan = camp::tryLoadVulkan();
+  // Only initialise the renderer if rendering is actually needed.
+  // In headless modes (e.g., -l to list variables) no GPU/display is
+  // required, so we defer creation until shipout3 is called.
+#if defined(__APPLE__) || defined(_WIN32)
+  camp::AsyRender::threads = getSetting<bool>("threads");
+#else
+  camp::AsyRender::threads = view() ? getSetting<bool>("threads") : false;
 #endif
-
-  if(vulkan)
-    camp::gl = new camp::AsyVkRender();
-#ifdef HAVE_LIBGL
-  else
-    camp::gl = new camp::AsyGLRender();
 #endif
 
   fpu_trap(trap());
   Args args(argc,argv);
 #ifdef HAVE_RENDERER
-  camp::gl->thread=getSetting<bool>("threads");
 #if HAVE_PTHREAD
-  if(camp::gl->thread) {
+  if(camp::AsyRender::threads) {
     pthread_t thread;
     try {
 #if defined(_WIN32)
@@ -292,7 +291,6 @@ int main(int argc, char *argv[])
       auto* asymainPtr = asymain;
 #endif // defined(_WIN32)
       if(pthread_create(&thread,NULL,asymainPtr,&args) == 0) {
-        camp::gl->mainthread=pthread_self();
 #if !defined(_WIN32)
         sigset_t set;
         sigemptyset(&set);
@@ -301,13 +299,12 @@ int main(int argc, char *argv[])
 #endif // !defined(_WIN32)
         for (;;)
           camp::glrenderWrapper();
-      } else camp::gl->thread=false;
+      } else camp::AsyRender::threads=false;
     } catch(std::bad_alloc&) {
       outOfMemory();
     }
   }
 #endif // HAVE_PTHREAD
-  camp::gl->thread=false;
 #endif // HAVE_RENDERER
   asymain(&args);
 }

@@ -441,9 +441,9 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
   }
 
 #ifdef HAVE_RENDERER
-  havewindow=initialized && thread;
+  havewindow=initialized && threads;
 
-  if(thread && format3d)
+  if(threads && format3d)
     format3dWait=true;
 
   clearMaterials();
@@ -452,7 +452,7 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
 #endif
 
 #ifdef HAVE_PTHREAD
-  if(thread && initializedView) {
+  if(threads && initializedView) {
     if(View) {
       // Called from asymain thread, main thread handles rendering
       hideWindow=false;
@@ -4648,7 +4648,7 @@ void AsyVkRender::Export(int imageIndex) {
   redraw=true;
 
 #ifdef HAVE_PTHREAD
-  if(thread && readyAfterExport) {
+  if(threads && readyAfterExport) {
     readyAfterExport=false;
     endwait(readySignal,readyLock);
   }
