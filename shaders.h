@@ -1,8 +1,12 @@
 #ifndef __TOGL_SHADERSPROC
 #define __TOGL_SHADERSPROC
 
+#include "common.h"
+
+#if defined(HAVE_LIBGLM) && (defined(HAVE_LIBGL) || defined(HAVE_LIBOSMESA))
 #define GLEW_NO_GLU
 #include <GL/glew.h>
+#endif
 
 #include <string>
 
