@@ -442,7 +442,7 @@ protected:
   void setProjection() override;
 
 public:
-  void updateHandler(int=0);
+  void updateHandler(int=0) override;
 
 #ifdef HAVE_RENDERER
   void initWindow();
@@ -652,8 +652,8 @@ public:
   void cleanup();
 
   // user controls
-  void exportHandler(int=0);
-  void Export(int imageIndex=0);
+  void exportHandler(int=0) override;
+  void Export(int imageIndex=0) override;
   bool readyForUpdate=false;
   // Note: initialized and format3dWait are now in base class AsyRender
 

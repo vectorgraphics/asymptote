@@ -34,7 +34,7 @@ namespace camp
 {
 
 class picture;
-struct drawElement;
+class drawElement;
 
 #define EMPTY_VIEW 0, nullptr
 #define SINGLETON_VIEW(x) 1, &(x)

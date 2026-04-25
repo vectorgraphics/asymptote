@@ -207,7 +207,7 @@ public:
 #endif
 
 public:
-  void update();
+  void update() override;
   void cycleMode() override;
 
   // Shader and buffer management functions
@@ -225,7 +225,7 @@ public:
   void swapBuffers() override;
   void showWindow() override;
 
-  void Export(int imageIndex=0);
+  void Export(int imageIndex=0) override;
   void refreshBuffers();
   void setUniformsOpenGL(GLint shader);
   void drawBuffer(VertexBuffer& data, GLint shader, bool color=false, unsigned int drawType=4);
@@ -245,7 +245,7 @@ public:
   void resizeFragmentBuffer();
 
 protected:
-  void exportHandler(int = 0);
+  void exportHandler(int = 0) override;
   virtual void reshape(int width, int height) override;
 };
 

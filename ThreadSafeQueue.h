@@ -7,6 +7,7 @@
 #pragma once
 
 #include <queue>
+#include <mutex>
 #include "common.h"
 
 #if defined(HAVE_PTHREAD)
@@ -15,32 +16,19 @@ template<typename T>
 class ThreadSafeQueue
 {
 public:
-  ThreadSafeQueue()
-  {
-    if (pthread_mutex_init(&this->_lockMutex, nullptr) != 0)
-    {
-      throw std::runtime_error("Cannot initialize mutex");
-    }
-  }
+  ThreadSafeQueue() = default;
+  ~ThreadSafeQueue() noexcept = default;
 
-  ~ThreadSafeQueue() noexcept
+  ThreadSafeQueue(ThreadSafeQueue const& other)
   {
-    pthread_mutex_destroy(&this->_lockMutex);
-  }
-
-  ThreadSafeQueue(ThreadSafeQueue const& other) :
-    ThreadSafeQueue()
-  {
-    pthread_mutex_lock(&other._lockMutex);
+    std::lock_guard<std::mutex> lock(other._lockMutex);
     _internalQueue = other._internalQueue;
-    pthread_mutex_unlock(&other._lockMutex);
   }
 
-  ThreadSafeQueue(ThreadSafeQueue&& other) noexcept : ThreadSafeQueue()
+  ThreadSafeQueue(ThreadSafeQueue&& other) noexcept
   {
-    pthread_mutex_lock(&other._lockMutex);
-    _internalQueue= std::move(other._internalQueue);
-    pthread_mutex_unlock(&other._lockMutex);
+    std::lock_guard<std::mutex> lock(other._lockMutex);
+    _internalQueue = std::move(other._internalQueue);
   }
 
   ThreadSafeQueue& operator= (ThreadSafeQueue const& other) = delete;
@@ -49,30 +37,25 @@ public:
 
   void enqueue(T const& item)
   {
-    pthread_mutex_lock(&_lockMutex);
+    std::lock_guard<std::mutex> lock(_lockMutex);
     _internalQueue.push(item);
-    pthread_mutex_unlock(&_lockMutex);
   }
 
   optional<T> dequeue()
   {
-    optional<T> ret = nullopt;
-    pthread_mutex_lock(&_lockMutex);
+    std::lock_guard<std::mutex> lock(_lockMutex);
+    if (_internalQueue.empty())
+      return nullopt;
 
-    if (!_internalQueue.empty())
-    {
-      ret=make_optional(std::move(_internalQueue.front()));
-      _internalQueue.pop();
-    }
-
-    pthread_mutex_unlock(&_lockMutex);
-    return ret;
+    auto value = make_optional(std::move(_internalQueue.front()));
+    _internalQueue.pop();
+    return value;
   }
 
 
   private:
   std::queue<T> _internalQueue;
-  pthread_mutex_t _lockMutex;
+  mutable std::mutex _lockMutex;
 };
 
 #else
