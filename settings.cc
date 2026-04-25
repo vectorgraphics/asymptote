@@ -1043,6 +1043,16 @@ struct versionOption : public option {
 
 void displayFeatures(bool enabled)
 {
+    static bool probed = false;
+    static bool vulkanAvailable = false;
+    if (!probed) {
+#ifdef HAVE_RENDERER
+        bool useVulkan = getSetting<bool>("vulkan");
+        vulkanAvailable = useVulkan && camp::tryLoadVulkan();
+#endif
+        probed = true;
+    }
+
     cerr << endl << (enabled ? "EN" : "DIS") << "ABLED OPTIONS:" << endl;
 
     auto feature = [&](const char *s, bool cond) {
@@ -1071,8 +1081,7 @@ void displayFeatures(bool enabled)
 #endif
 
 #ifdef HAVE_RENDERER
-    bool useVulkan = getSetting<bool>("vulkan");
-    if (useVulkan && camp::tryLoadVulkan())
+    if (vulkanAvailable)
         havevulkan = true;
     else {
 #ifdef HAVE_LIBGL
