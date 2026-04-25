@@ -261,8 +261,10 @@ int main(int argc, char *argv[])
 
   if(vulkan)
     camp::gl = new camp::AsyVkRender();
+#ifdef HAVE_LIBGL
   else
     camp::gl = new camp::AsyGLRender();
+#endif
 
   fpu_trap(trap());
   Args args(argc,argv);
