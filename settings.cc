@@ -1044,6 +1044,7 @@ struct versionOption : public option {
 
     bool glm=false;
     bool gl=false;
+    bool ssbo=false;
     bool gsl=false;
     bool fftw3=false;
     bool eigen=false;
@@ -1062,6 +1063,10 @@ struct versionOption : public option {
 
 #ifdef HAVE_RENDERER
     gl=true;
+#endif
+
+#ifdef HAVE_SSBO
+    ssbo=true;
 #endif
 
 #ifdef HAVE_LIBGSL
@@ -1112,7 +1117,13 @@ struct versionOption : public option {
 
     feature("V3D      3D vector graphics output",glm && xdr);
     feature("WebGL    3D HTML rendering",glm);
+#ifdef HAVE_LIBOSMESA
+    feature("OpenGL   3D OSMesa offscreen rendering",gl);
+#else
+    feature("OpenGL   3D OpenGL rendering",gl);
+#endif
     feature("Vulkan   3D Vulkan rendering",gl);
+    feature("SSBO     GLSL shader storage buffer objects",ssbo);
     feature("GSL      GNU Scientific Library (special functions)",gsl);
     feature("FFTW3    Fast Fourier transforms",fftw3);
     feature("Eigen    Eigenvalue library",eigen);
@@ -1125,7 +1136,7 @@ struct versionOption : public option {
     feature("Sigsegv  Distinguish stack overflows from segmentation faults",
             sigsegv);
     feature("GC       Boehm garbage collector",usegc);
-    feature("threads  Render Vulkan in separate thread",usethreads);
+    feature("threads  Render OpenGL/Vulkan in separate thread",usethreads);
   }
 
   bool getOption() {
@@ -1351,6 +1362,8 @@ void initSettings() {
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
                             true));
+  addOption(new boolSetting("GPUindexing", 0,
+                            "Compute indexing partial sums on GPU", true));
   addOption(new boolSetting("GPUinterlock", 0,
                             "Use fragment shader interlock", true));
   addOption(new boolSetting("GPUcompress", 0,

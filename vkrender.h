@@ -21,6 +21,7 @@
 #include <vma_cxx.h>
 
 #include <glslang/Public/ShaderLang.h>
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #endif
 

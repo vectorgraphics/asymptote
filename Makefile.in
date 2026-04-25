@@ -12,7 +12,7 @@ GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@
-LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS) @LSPLIBS@
+LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@
 CXX_STANDARD = @CXX_STANDARD@
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 LSP_ROOT=@LSP_ROOT@
@@ -24,7 +24,7 @@ BISON ?= bison
 
 # Libraries needed to make asymptote.so.
 # We have to remove OpenGL, threading, GC, etc from this.
-SHAREDLIBS = $(filter-out -lglut -GL -pthread $(GCLIBS), $(LIBS))
+SHAREDLIBS = $(filter-out -lglut -lglfw -GL -pthread $(GCLIBS), $(LIBS))
 
 vpath %.cc prc
 vpath %.cc thirdparty_impl/tinyexr_impl/src
@@ -34,7 +34,7 @@ vpath %.py GUI
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill path3 drawpath3 drawsurface \
-       beziercurve bezierpatch pen pipestream
+       beziercurve bezierpatch sortTriangles pen pipestream
 
 RUNTIME_FILES = runtime runbacktrace runpicture runlabel runhistory runarray \
 	runfile runsystem runpair runtriple runpath runpath3d runstring \
@@ -55,10 +55,10 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	access virtualfieldaccess absyn record interact fileio \
 	fftw++asy parallel simpson coder coenv impdatum locate asyparser program application \
 	varinit fundec refaccess envcompleter asyprocess constructor array memory \
-	Delaunay predicates jsfile v3dfile \
-	EXRFiles lspserv symbolmaps win32helpers win32pipestream \
+	Delaunay predicates glrender glfw renderBase tr shaders jsfile v3dfile \
+	EXRFiles GLTextures lspserv symbolmaps win32helpers win32pipestream \
 	win32xdr xstream \
-	$(VMA_IMPL_FILES) glfw renderBase vkrender vkdispatchstorage vkutils \
+	$(VMA_IMPL_FILES) vkrender vkdispatchstorage vkutils \
 	lspdec lspexp lspfundec lspstm \
 	hashing random
 
@@ -106,6 +106,7 @@ CXX = @CXX@
 CC = @CC@
 MAKEDEPEND = $(OPTS) -O0 -M -MG -DDEPEND
 LEX = @LEX@
+GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -138,7 +139,7 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@
+asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ @GLEW@
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
 $(XNAME): $(PYFILES)
@@ -168,7 +169,7 @@ doc/version.texi: version.txt
 	echo @set Datadir @datadir@ >> $@
 	echo @set Docdir @docdir@ >> $@
 
-asymptote.so: $(COREFILES:=.pic.o)
+asymptote.so: $(COREFILES:=.pic.o) glew.o
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
 $(LSP_ROOT)/liblspcpp.a:
@@ -427,7 +428,10 @@ check-all: asy FORCE
 	./wce
 	$(MAKE) -C tests all
 
-.SUFFIXES: .cc .o .d .ui .py
+glew.o: glew.c config.h
+	$(CC) $(GLEWOPTS) -o $@ -c $<
+
+.SUFFIXES: .c .cc .o .d .ui .py
 %.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.cc)
 	$(CXX) $(OPTS) -o $@ -c $<
 %.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
@@ -435,6 +439,12 @@ check-all: asy FORCE
 	rm -f $@; \
 	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
 	sed 's,\($*\)\.o[ :]*,\1.o \1.pic.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+%.d: %.c
+	@echo Creating $@; \
+	rm -f $@; \
+	${CC} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 # Compile for the shared library.  OpenGL must be disabled as it causes
 # crashes inside a shared library.

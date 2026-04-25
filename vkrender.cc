@@ -61,12 +61,17 @@ std::vector<const char*> instanceExtensions
 namespace camp
 {
 
-const dmat4& getProjViewMat()
+const glm::dmat4& getProjViewMat()
 {
   return gl->projViewMat;
 }
 
-const dmat3& getNormMat()
+const glm::dmat4& getViewMat()
+{
+  return gl->viewMat;
+}
+
+const glm::dmat3& getNormMat()
 {
   return gl->normMat;
 }

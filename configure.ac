@@ -588,16 +588,16 @@ else
          HAVE_LIBGLM,1,
          DEFINE([the <glm/glm.hpp> header]))
       ],
-      AC_MSG_NOTICE([*** Could not find glm header files: will compile without WebGL or Vulkan support ***])
+      AC_MSG_NOTICE([*** Could not find glm header files: will compile without WebGL or OpenGL/Vulkan support ***])
    )
 fi
 
-# ----------- tinyexr
 TINYEXR_ROOT=tinyexr
 INCL=$INCL" -I$TINYEXR_ROOT"
 AC_SUBST(TINYEXR_ROOT)
 
-# ----------- vulkan
+# ------------------- Vulkan -----------------
+
 AC_ARG_ENABLE(vulkan,
 [AS_HELP_STRING(--enable-vulkan[[[=yes]]],enable Vulkan Library)])
 
@@ -661,6 +661,80 @@ case "$OSTYPE" in
           ],
           AC_MSG_NOTICE([*** Could not find libglfw: will compile without Vulkan support ***]))
 esac
+fi
+fi
+
+# ------------------- OpenGL (fallback) -----------------
+
+AC_ARG_ENABLE(gl,
+[AS_HELP_STRING(--enable-gl[[[=yes]]],enable OpenGL Library)])
+
+if test "x$with_vcpkg" != "xno"; then
+   AC_DEFINE(HAVE_SSBO,1)  # SSBO/Compute shader check should be done at runtime, not at compilation
+   AC_DEFINE(HAVE_COMPUTE_SHADER,1)
+else
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+      [#include <GL/gl.h>]
+      [#if !defined(GL_VERSION_4_3) && !defined(GL_ARB_shader_storage_buffer_object)]
+      [#error]
+      [#endif ]
+      )],
+      AC_DEFINE(HAVE_SSBO,1,DEFINE([GLSL shader storage buffer objects])))
+
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+      [#include <GL/gl.h>]
+      [#if !defined(GL_VERSION_4_3) && !defined(GL_ARB_compute_shader)]
+      [#error]
+      [#endif ]
+      )],
+      AC_DEFINE(HAVE_COMPUTE_SHADER,1,DEFINE([GLSL compute shaders])))
+fi
+
+# -------------- offscreen rendering
+
+AC_ARG_ENABLE(offscreen,
+[AS_HELP_STRING(--enable-offscreen[[[=no]]],use OSMesa library to implement offscreen rendering)])
+
+if test "x$enable_gl" != "xno"; then
+if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
+   ADD_VCPKG_FEATURE(opengl)
+   AC_DEFINE(HAVE_LIBGL,1,[libgl is enabled])
+   AC_DEFINE(HAVE_LIBGLFW,1,[GLFW library is available])
+   INCL=$INCL" -Ibackports/glew/include"
+   GLEW="glew.o "
+   ADD_VCPKG_LIB_FOR_PKGCONFIG(glfw3)
+else  # managed by the system
+   AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
+
+case "$OSTYPE" in
+     darwin*)
+              AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
+              AC_CHECK_HEADER(OpenGL/gl.h,
+                             [AC_DEFINE(HAVE_LIBGL,1,
+                             DEFINE([<gl.h> header]))])
+              AC_CHECK_LIB([glfw], [glfwShowWindow],
+              [
+              AC_DEFINE(HAVE_LIBGLFW,1,DEFINE_LIB[GLFW])
+                           LIBS=$LIBS"-lglfw -framework OpenGL -framework Cocoa "
+                           INCL=$INCL" -Ibackports/glew/include"
+                           GLEW="glew.o "],
+                                 AC_MSG_NOTICE([*** Could not find GLFW: will compile without OpenGL support ***]))
+        ;;
+     *)
+         AC_CHECK_LIB([glfw], [glfwShowWindow],,
+                       AC_MSG_NOTICE([*** Could not find libglfw: will compile without OpenGL support ***]))
+         AC_CHECK_LIB([GL], [glDepthMask],
+                                 [AC_DEFINE(HAVE_LIBGL,1,
+                             DEFINE_LIB([GL]))
+                             LIBS=$LIBS"-lGL "
+                             GLEW="glew.o "
+                             INCL=$INCL" -Ibackports/glew/include"],
+                                   AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
+esac
+   if test "x$enable_offscreen" = "xyes"; then
+           AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
+                        AC_MSG_NOTICE([*** Could not find libOSMesa: will compile without offscreen rendering support ***]))
+   fi
 fi
 fi
 
