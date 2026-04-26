@@ -2907,8 +2907,7 @@ object embed(string prefix=outprefix(), string label=prefix,
              P.infinity ? 0 : 2aTan(Tan(0.5*P.angle)*P.zoom),
              P.zoom,m,M,P.viewportshift,S.viewportmargin,
              tinv*inv,inv*shift(0,0,zcenter),Light.background(),Light.position,
-             Light.diffuse,Light.specular,
-             view && !preview);
+             Light.diffuse,view && !preview);
     if(settings.v3d) {
       string content=prefix+".v3d";
       F.L=Embed(content,S.width,S.height);

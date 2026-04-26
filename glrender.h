@@ -136,7 +136,6 @@ public:
   size_t Nlights = 1;
   size_t nmaterials = 0;
   size_t nlights0 = 0;  // Saved original number of lights for mode restoration
-  double* Specular = nullptr;
 
 public:
   // OpenGL-specific members (following Vulkan pattern)

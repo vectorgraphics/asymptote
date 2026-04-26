@@ -1322,7 +1322,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 
   Lights = args.lights;
   LightsDiffuse = args.diffuse;
-  Specular = args.specular;
 
   nlights0 = nlights;  // Save original for mode restoration
 

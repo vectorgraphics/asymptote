@@ -206,7 +206,6 @@ public:
 
     triple* lights;
     double* diffuse;
-    double* specular;
 
     bool view;
     int oldpid=0;

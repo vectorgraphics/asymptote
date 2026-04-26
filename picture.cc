@@ -1461,7 +1461,7 @@ bool picture::shipout3(const string& prefix, const string& format,
                        const pair& margin, double *t, double *tup,
                        double *background,
                        size_t nlights, triple *lights, double *diffuse,
-                       double *specular, bool view)
+                       bool view)
 {
   if(getSetting<bool>("interrupt"))
     return true;
@@ -1568,7 +1568,6 @@ bool picture::shipout3(const string& prefix, const string& format,
         args.nlightsin=nlights;
         args.lights=lights;
         args.diffuse=diffuse;
-        args.specular=specular;
         args.view=View;
         args.oldpid=oldpid;
         if(Wait)
@@ -1627,7 +1626,6 @@ bool picture::shipout3(const string& prefix, const string& format,
   args.nlightsin=nlights;
   args.lights=lights;
   args.diffuse=diffuse;
-  args.specular=specular;
   args.view=View;
   args.oldpid=oldpid;
 
