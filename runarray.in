@@ -41,7 +41,14 @@ static const char *installFFTW=
 #endif
 
 #ifdef HAVE_EIGEN_DENSE
+#if __GNUC__ >= 15
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 #include <Eigen/Dense>
+#if __GNUC__ >= 15
+#pragma GCC diagnostic pop
+#endif
 typedef std::complex<double> Complex;
 static const char *square="matrix must be square";
 using Eigen::MatrixXd;
