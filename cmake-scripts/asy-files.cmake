@@ -32,11 +32,4 @@ set(CORE_BUILD_FILES
         lspdec lspexp lspfundec lspstm
 )
 
-# OpenGL-specific files (only compiled when ENABLE_OPENGL is ON)
-if (ENABLE_OPENGL)
-    list(APPEND CORE_BUILD_FILES
-            sortTriangles glrender tr shaders GLTextures
-    )
-endif()
-
 set(ASY_CSV_ENUM_FILES v3dtypes v3dheadertypes)

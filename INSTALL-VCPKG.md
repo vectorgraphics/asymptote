@@ -23,9 +23,6 @@ Make sure flex and bison is available in path, if not, install them manually fir
 sudo pacman -S flex bison
 ```
 
-For OpenGL, make sure all relevant dependencies for freeglut is installed. The relevant dependencies
-should be shown during vcpkg install
-
 ## Using CMake
 
 ### Quick start (Linux)

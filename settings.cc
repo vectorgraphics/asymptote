@@ -1043,6 +1043,11 @@ struct versionOption : public option {
 
 void displayFeatures(bool enabled)
 {
+#ifdef _WIN32
+    // On Windows, Vulkan availability is determined at compile time.
+    // Runtime probing via GetProcAddress/tryLoadVulkan is unreliable
+    // when asy.exe is distributed to different machines.
+#else
     static bool probed = false;
     static bool vulkanAvailable = false;
     if (!probed) {
@@ -1052,6 +1057,7 @@ void displayFeatures(bool enabled)
 #endif
         probed = true;
     }
+#endif
 
     cerr << endl << (enabled ? "EN" : "DIS") << "ABLED OPTIONS:" << endl;
 
@@ -1080,6 +1086,11 @@ void displayFeatures(bool enabled)
     glm=true;
 #endif
 
+#ifdef _WIN32
+#ifdef HAVE_LIBVULKAN
+    havevulkan = true;
+#endif
+#else
 #ifdef HAVE_RENDERER
     if (vulkanAvailable)
         havevulkan = true;
@@ -1088,6 +1099,7 @@ void displayFeatures(bool enabled)
         haveopengl = true;
 #endif
     }
+#endif
 #endif
 
 #ifdef HAVE_SSBO

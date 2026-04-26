@@ -80,14 +80,6 @@ option(ENABLE_THREADING "enable threading support" true)
 option(ENABLE_GSL "Enable GSL support" true)
 option(ENABLE_EIGEN3 "Enable eigen3 support" true)
 option(ENABLE_FFTW3 "Enable fftw3 support" true)
-option(ENABLE_VULKAN "Whether to enable vulkan or not." true)
-option(ENABLE_OPENGL "Whether to enable OpenGL as a fallback renderer." false)
-cmake_dependent_option(ENABLE_GL_COMPUTE_SHADERS
-        "Whether to enable compute shaders for OpenGL. Requires OpenGL >= 4.3 and GL_ARB_compute_shader"
-        true "ENABLE_OPENGL" false)
-cmake_dependent_option(ENABLE_GL_SSBO
-        "Whether to enable compute SSBO. Requires OpenGL >= 4.3 and GL_ARB_shader_storage_buffer_object"
-        true "ENABLE_OPENGL" false)
 
 if (CMAKE_BUILD_TYPE IN_LIST cmake_release_build_types)
     set(default_vk_validation_opt false)

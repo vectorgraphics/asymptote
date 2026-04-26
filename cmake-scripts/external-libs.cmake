@@ -179,65 +179,29 @@ else()
 endif()
 
 
-# Vulkan stuff
-if (ENABLE_VULKAN)
-    message(STATUS "If a warning about Vulkan::glslang comes up about missing debug configuration,
+# Vulkan
+message(STATUS "If a warning about Vulkan::glslang comes up about missing debug configuration,
 that warning can be safely ignored. We are not using glslang from the vulkan package.
 We are using a separate glslang package
     ")
 
-    find_package(Vulkan COMPONENTS glslang)
-    if (Vulkan_FOUND AND Vulkan_glslang_FOUND)
-        list(APPEND ASY_STATIC_LIBRARIES Vulkan::Vulkan Vulkan::glslang)
-        list(APPEND ASY_MACROS HAVE_LIBVULKAN)
-    else()
-        message(WARNING "Vulkan not found")
-    endif()
-
-    find_package(glfw3 CONFIG)
-    if (glfw3_FOUND)
-        list(APPEND ASY_STATIC_LIBRARIES glfw)
-        list(APPEND ASY_MACROS HAVE_LIBGLFW)
-    else()
-        message(WARNING "glfw3 not found")
-    endif()
-
-    if (ENABLE_VK_VALIDATION_LAYERS)
-        list(APPEND ASY_MACROS ENABLE_VK_VALIDATION)
-    endif()
+find_package(Vulkan COMPONENTS glslang)
+if (Vulkan_FOUND AND Vulkan_glslang_FOUND)
+    list(APPEND ASY_STATIC_LIBRARIES Vulkan::Vulkan Vulkan::glslang)
+    list(APPEND ASY_MACROS HAVE_LIBVULKAN)
 else()
-    message(STATUS "Disabling vulkan support")
+    message(FATAL_ERROR "Vulkan not found")
 endif()
 
-# OpenGL stuff
-if (ENABLE_OPENGL)
-    find_package(OpenGL REQUIRED)
-    if (OPENGL_FOUND)
-        list(APPEND ASY_STATIC_LIBRARIES OpenGL::GL)
-        list(APPEND ASY_MACROS HAVE_LIBGL)
-    else()
-        message(WARNING "gl libraries not found")
-    endif()
-
-    find_package(glfw3 CONFIG)
-    if (glfw3_FOUND AND NOT Vulkan_FOUND)
-        list(APPEND ASY_STATIC_LIBRARIES glfw)
-        list(APPEND ASY_MACROS HAVE_LIBGLFW)
-    endif()
-
-    if (ENABLE_GL_COMPUTE_SHADERS)
-        list(APPEND ASY_MACROS HAVE_COMPUTE_SHADER)
-    else()
-        message(WARNING "Compute shader disabled")
-    endif()
-
-    if (ENABLE_GL_SSBO)
-        list(APPEND ASY_MACROS HAVE_SSBO)
-    else()
-        message(WARNING "SSBO disabled")
-    endif()
+find_package(glfw3 CONFIG)
+if (glfw3_FOUND)
+    list(APPEND ASY_STATIC_LIBRARIES glfw)
 else()
-    message(STATUS "Disabling opengl support")
+    message(FATAL_ERROR "glfw3 not found")
+endif()
+
+if (ENABLE_VK_VALIDATION_LAYERS)
+    list(APPEND ASY_MACROS ENABLE_VK_VALIDATION)
 endif()
 
 

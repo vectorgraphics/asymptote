@@ -19,9 +19,7 @@ bool vulkan = false;
 #include "glrender.h"
 #endif
 
-#if defined(_WIN32)
-#include <windows.h>
-#else
+#ifndef _WIN32
 #include <dlfcn.h>
 #endif
 #include <iostream>
@@ -37,18 +35,15 @@ static bool initializedRenderer = false;
 bool tryLoadVulkan()
 {
 #if defined(HAVE_LIBVULKAN)
-    // Resolve vkGetInstanceProcAddr from the process address space.
-    // This works whether Vulkan was linked at build time or loaded
-    // by a dependent library (e.g., vcpkg's vulkan-loader).
-#if defined(_WIN32)
-    PFN_vkGetInstanceProcAddr getInstanceProcAddr =
-        reinterpret_cast<PFN_vkGetInstanceProcAddr>(
-            GetProcAddress(GetModuleHandleA(nullptr), "vkGetInstanceProcAddr"));
+#ifdef _WIN32
+    // On Windows, Vulkan is linked statically via vulkan-1.lib.
+    // If the exe started, the DLL is present -- no runtime probe needed.
+    return true;
 #else
+    // On Unix, resolve vkGetInstanceProcAddr from the process address space.
     PFN_vkGetInstanceProcAddr getInstanceProcAddr =
         reinterpret_cast<PFN_vkGetInstanceProcAddr>(
             dlsym(RTLD_DEFAULT, "vkGetInstanceProcAddr"));
-#endif
 
     if (!getInstanceProcAddr) {
         if (settings::verbose > 1)
@@ -73,6 +68,7 @@ bool tryLoadVulkan()
     if (settings::verbose > 1)
         std::cout << "Vulkan available" << std::endl;
     return true;
+#endif // _WIN32
 #else
     return false;
 #endif // HAVE_LIBVULKAN
