@@ -340,7 +340,7 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
 
   Angle = args.angle * radians;
   lastzoom = 0;
-  Zoom0 = args.zoom;
+  Zoom0 = std::fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
   Shift = args.shift / args.zoom;
   Margin = args.margin;
 
