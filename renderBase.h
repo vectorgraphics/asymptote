@@ -66,6 +66,21 @@ inline void checkpow2(unsigned int n, std::string s) {
   }
 }
 
+/**
+ * Detect NVIDIA RTX 3000-series (Ampere) GPUs which have a known driver bug
+ * with fragment shader interlock causing rendering artifacts.
+ * Checks for "RTX 30", "RTX30", or chip codename "GA10" in the device string.
+ */
+inline bool isNVIDIA30xx(const char* deviceStr)
+{
+  if (!deviceStr) return false;
+  string s(deviceStr);
+  return s.find("NVIDIA") != string::npos &&
+         (s.find("RTX 30") != string::npos ||
+          s.find("RTX30") != string::npos ||
+          s.find("GA10") != string::npos);
+}
+
 inline void store(float* f, double* C)
 {
   f[0] = C[0];

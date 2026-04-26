@@ -331,6 +331,9 @@ void AsyGLRender::initShaders()
   interlock=false;
 #else
   interlock=ssbo && getSetting<bool>("GPUinterlock");
+
+  if(isNVIDIA30xx((const char*)glGetString(GL_RENDERER)))
+    interlock = false;
 #endif
 
   if(!ssbo && settings::verbose > 2)

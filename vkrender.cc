@@ -533,6 +533,9 @@ void AsyVkRender::initVulkan()
   if (View) createSurface();
   pickPhysicalDevice();
 
+  if(isNVIDIA30xx(physicalDevice.getProperties().deviceName))
+    interlock = false;
+
   fpu_trap(false); // Work around FE_INVALID.
 
   createLogicalDevice();
