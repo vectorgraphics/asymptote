@@ -636,7 +636,6 @@ void AsyVkRender::recreateSwapChain()
     createAttachments();
     createCountRenderPass();
     createGraphicsRenderPass();
-    createGraphicsPipelineLayout();
     createGraphicsPipelines();
     createComputePipelines();
     createFramebuffers();
@@ -3532,21 +3531,6 @@ void AsyVkRender::createComputePipeline(
   std::vector<vk::DescriptorSetLayout> const& descSetLayout
 )
 {
-  auto const filename = SHADER_DIRECTORY + shaderFile + ".glsl";
-
-  std::vector<std::string> options;
-
-  modifyShaderOptions(options, PIPELINE_DONTCARE);
-
-  vk::UniqueShaderModule computeShaderModule = createShaderModule(EShLangCompute, filename, options);
-
-  auto computeShaderStageInfo = vk::PipelineShaderStageCreateInfo(
-    vk::PipelineShaderStageCreateFlags(),
-    vk::ShaderStageFlagBits::eCompute,
-    *computeShaderModule,
-    "main"
-  );
-
   auto miscConstant = vk::PushConstantRange(
     vk::ShaderStageFlagBits::eCompute,
     0,
@@ -3565,12 +3549,38 @@ void AsyVkRender::createComputePipeline(
 
   layout = device->createPipelineLayoutUnique(pipelineLayoutCI, nullptr);
 
-  auto computePipelineCI = vk::ComputePipelineCreateInfo();
+  createComputePipelineOnly(*layout, pipeline, shaderFile);
+}
 
-  computePipelineCI.layout = *layout;
+// Create a compute pipeline using an existing layout (does NOT create a new layout).
+// This is needed when multiple compute pipelines share the same VkPipelineLayout,
+// since createComputePipeline() would otherwise destroy and recreate the layout
+// on each call, leaving earlier pipelines referencing a destroyed object.
+void AsyVkRender::createComputePipelineOnly(
+  vk::PipelineLayout layout,
+  vk::UniquePipeline& pipeline,
+  std::string const& shaderFile
+)
+{
+  auto const filename = SHADER_DIRECTORY + shaderFile + ".glsl";
+
+  std::vector<std::string> options;
+  modifyShaderOptions(options, PIPELINE_DONTCARE);
+
+  vk::UniqueShaderModule computeShaderModule = createShaderModule(EShLangCompute, filename, options);
+
+  auto computeShaderStageInfo = vk::PipelineShaderStageCreateInfo(
+    vk::PipelineShaderStageCreateFlags(),
+    vk::ShaderStageFlagBits::eCompute,
+    *computeShaderModule,
+    "main"
+  );
+
+  auto computePipelineCI = vk::ComputePipelineCreateInfo();
+  computePipelineCI.layout = layout;
   computePipelineCI.stage = computeShaderStageInfo;
 
-auto result = device->createComputePipelineUnique(VK_NULL_HANDLE, computePipelineCI);
+  auto result = device->createComputePipelineUnique(VK_NULL_HANDLE, computePipelineCI);
   if (result.result != vk::Result::eSuccess)
     runtimeError("failed to create compute pipeline");
   else
@@ -3580,9 +3590,14 @@ auto result = device->createComputePipelineUnique(VK_NULL_HANDLE, computePipelin
 void AsyVkRender::createComputePipelines()
 {
   std::vector const computeDescSetLayoutVec { *computeDescriptorSetLayout };
+
+  // Create the shared pipeline layout only once, then create all three
+  // pipelines using it.  Previously each call to createComputePipeline()
+  // created a new layout and destroyed the old one, leaving sum1Pipeline
+  // and sum2Pipeline referencing a destroyed VkPipelineLayout.
   createComputePipeline(sumPipelineLayout, sum1Pipeline, "sum1", computeDescSetLayoutVec);
-  createComputePipeline(sumPipelineLayout, sum2Pipeline, "sum2", computeDescSetLayoutVec);
-  createComputePipeline(sumPipelineLayout, sum3Pipeline, "sum3", computeDescSetLayoutVec);
+  createComputePipelineOnly(*sumPipelineLayout, sum2Pipeline, "sum2");
+  createComputePipelineOnly(*sumPipelineLayout, sum3Pipeline, "sum3");
 
   if (fxaa)
   {

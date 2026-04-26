@@ -619,6 +619,11 @@ public:
     std::string const& shaderFile,
     std::vector<vk::DescriptorSetLayout> const& descSetLayout
   );
+  void createComputePipelineOnly(
+    vk::PipelineLayout layout,
+    vk::UniquePipeline & pipeline,
+    std::string const& shaderFile
+  );
   void createComputePipelines();
 
   void createAttachments();
