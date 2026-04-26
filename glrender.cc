@@ -1309,6 +1309,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 #if !defined(_WIN32)
   setenv("XMODIFIERS","",true);
 #endif
+  lastshader = -1;
 
   bool v3d=args.format == "v3d";
   bool webgl=args.format == "html";
