@@ -12,7 +12,7 @@ option(Uri_BUILD_DOCS "Build the URI documentation." ON)
 option(Uri_FULL_WARNINGS "Build the library with all warnings turned on." ON)
 option(Uri_WARNINGS_AS_ERRORS "Treat warnings as errors." ON)
 option(Uri_USE_STATIC_CRT "Use static C Runtime library (/MT or MTd)." ON)
-option(Uri_DISABLE_LIBCXX "Disable libc++ (only applies if compiler is clang)" OFF)
+option(Uri_USE_LIBCXX "Use libc++ (only applies if compiler is clang)" OFF)
 
 find_package(Threads REQUIRED)
 
@@ -42,7 +42,7 @@ if (${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-  if (NOT Uri_DISABLE_LIBCXX)
+  if (Uri_USE_LIBCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
   endif()
 
