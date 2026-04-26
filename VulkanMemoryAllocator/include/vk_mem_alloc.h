@@ -6838,6 +6838,7 @@ void VmaBlockMetadata::DebugLogAllocation(VkDeviceSize offset, VkDeviceSize size
 
         userData = allocation->GetUserData();
         const char* name = allocation->GetName();
+        (void)name;
 
 #if VMA_STATS_STRING_ENABLED
         VMA_LEAK_LOG_FORMAT("UNFREED ALLOCATION; Offset: %" PRIu64 "; Size: %" PRIu64 "; UserData: %p; Name: %s; Type: %s; Usage: %" PRIu64,
