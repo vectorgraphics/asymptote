@@ -75,6 +75,13 @@ GLFWwindow* glfwCreateRenderWindow(int width, int height, const std::string& tit
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+#ifdef __APPLE__
+    // On macOS, OpenGL 3.2+ requires core profile and forward-compat hints.
+    // Without these, glfwCreateWindow returns NULL on Intel Macs with
+    // AMD/Intel integrated graphics
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+#endif
   }
   glfwWindowHint(GLFW_FOCUSED, GLFW_FALSE);
   glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE);
