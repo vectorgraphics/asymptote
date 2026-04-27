@@ -1505,11 +1505,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
       if(settings::verbose > 1 && samples > 1)
         cout << "Multisampling enabled with sample width " << samples << endl;
     }
-
-    if(settings::verbose > 2) {
-      cerr << "Created window and initialized GLEW: " << Width << "x" << Height
-           << " glfwWindow=" << glfwWindow << endl;
-    }
   }
 #endif
 #endif

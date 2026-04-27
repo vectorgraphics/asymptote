@@ -274,7 +274,7 @@ public:
     return angle(x,y,warn);
   }
 
-  friend triple unit(const triple& v, const triple& v0=triple(0.0,0.0,0.0))
+  friend triple unit(const triple& v, const triple& v0)
   {
     double scale=v.length();
     if(std::fpclassify(scale) == FP_NORMAL) {
@@ -350,6 +350,9 @@ public:
 #endif
 
 };
+
+// Default-argument wrapper for MSVC ADL compatibility.
+inline triple unit(const triple& v, const triple& v0 = triple(0.0, 0.0, 0.0));
 
 triple expi(double theta, double phi);
 
