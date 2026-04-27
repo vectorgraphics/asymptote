@@ -222,18 +222,6 @@ void AsyGLRender::initBlendShader()
   blendShader=compileAndLinkShader(shaders,shaderParams,ssbo);
 }
 
-// Return the smallest power of 2 greater than or equal to n.
-inline GLuint ceilpow2(GLuint n)
-{
-  --n;
-  n |= n >> 1;
-  n |= n >> 2;
-  n |= n >> 4;
-  n |= n >> 8;
-  n |= n >> 16;
-  return ++n;
-}
-
 void AsyGLRender::setBuffers()
 {
   glGenVertexArrays(1,&vao);
@@ -442,9 +430,9 @@ void AsyGLRender::deleteShaders()
     glDeleteProgram(pixelShader);
 }
 
-void AsyGLRender::resizeBlendShader(GLuint maxsize)
+void AsyGLRender::resizeBlendShader(GLuint maxDepth)
 {
-  maxSize=ceilpow2(maxsize);
+  maxSize=ceilpow2(maxDepth);
   deleteBlendShader();
   initBlendShader();
 }
@@ -937,7 +925,7 @@ void AsyGLRender::refreshBuffers()
     GLuint *p=(GLuint *) glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
                                           0,size+sizeof(GLuint),
                                               GL_MAP_READ_BIT);
-    GLuint maxsize=p[0];
+    GLuint maxDepth=p[0];
     GLuint *count=p+1;
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,offsetBuffer);
@@ -963,8 +951,8 @@ void AsyGLRender::refreshBuffers()
     } else
       clearCount();
 
-    if(maxsize > maxSize)
-      resizeBlendShader(maxsize);
+    if(maxDepth > maxSize)
+      resizeBlendShader(maxDepth);
   }
   lastshader=-1;
 }
@@ -1491,7 +1479,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
       exit(-1);
     }
 
-    // Set GLSL version immediately after GLEW init (matching reference pattern)
     const char *GLSL_VERSION=(const char *)glGetString(GL_SHADING_LANGUAGE_VERSION);
     if(GLSL_VERSION)
       GLSLversion=(int) (100*atof(GLSL_VERSION)+0.5);

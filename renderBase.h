@@ -44,17 +44,29 @@ class drawElement;
 #define RAW_VIEW(x) static_cast<uint32_t>(sizeof(x)), x
 #define ST_VIEW(s) static_cast<uint32_t>(sizeof(s)), &s
 
+// Runtime error handling (used by both OpenGL and Vulkan)
+inline void runtimeError(const std::string& s)
+{
+  cerr << "error: " << s << endl;
+  exit(-1);
+}
+
 template<class T>
 inline T ceilquotient(T a, T b)
 {
   return (a + b - 1) / b;
 }
 
-// Runtime error handling (used by both OpenGL and Vulkan)
-inline void runtimeError(const std::string& s)
+// Return the smallest power of 2 greater than or equal to n.
+inline unsigned int ceilpow2(unsigned int n)
 {
-  cerr << "error: " << s << endl;
-  exit(-1);
+  --n;
+  n |= n >> 1;
+  n |= n >> 2;
+  n |= n >> 4;
+  n |= n >> 8;
+  n |= n >> 16;
+  return ++n;
 }
 
 // Utility functions for power-of-two checks (used by both OpenGL and Vulkan)

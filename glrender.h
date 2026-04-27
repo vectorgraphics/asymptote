@@ -217,7 +217,7 @@ public:
   void deleteComputeShaders();
   void deleteBlendShader();
   void deleteShaders();
-  void resizeBlendShader(GLuint maxsize);
+  void resizeBlendShader(GLuint maxDepth);
 
   // Rendering functions (virtual hooks for base class display())
   void drawFrame() override;

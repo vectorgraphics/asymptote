@@ -3971,8 +3971,7 @@ void AsyVkRender::partialSums(FrameObject & object, bool timing)
 
 void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
 
-  maxSize=maxDepth;
-
+  maxSize=ceilpow2(maxDepth);
   recreateBlendPipeline=true;
 }
 
