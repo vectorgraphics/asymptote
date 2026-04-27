@@ -125,14 +125,11 @@ public:
   void onClose() override;
 
   // OpenGL-specific state (mirroring AsyVkRender pattern)
-  // Note: initialized, copied, Iconify are now in base class AsyRender for unified access
   bool outlinemode = false;
   bool glupdate = false;
   bool glexit = false;
   bool shouldUpdateBuffers = true;
 
-  // Lighting (OpenGL-specific, public for jsfile/v3dfile access)
-  // Note: Lights and LightsDiffuse are now in base class AsyRender for unified access
   size_t Nlights = 1;
   size_t nmaterials = 0;
   size_t nlights0 = 0;  // Saved original number of lights for mode restoration

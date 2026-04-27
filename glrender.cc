@@ -236,13 +236,7 @@ inline GLuint ceilpow2(GLuint n)
 
 void AsyGLRender::setBuffers()
 {
-  if(settings::verbose > 2) {
-    cerr << "setBuffers: Creating VAO, vao=" << vao << endl;
-  }
   glGenVertexArrays(1,&vao);
-  if(settings::verbose > 2) {
-    cerr << "setBuffers: VAO created, vao=" << vao << endl;
-  }
   // Bind VAO once and leave it bound for all subsequent draw operations
   glBindVertexArray(vao);
 
@@ -270,10 +264,6 @@ void AsyGLRender::setBuffers()
   glGenBuffers(1, &opaqueBuffer);
   glGenBuffers(1, &opaqueDepthBuffer);
 #endif
-
-  if(settings::verbose > 2) {
-    cerr << "setBuffers: Done, vao=" << vao << endl;
-  }
 }
 
 void AsyGLRender::initShaders()
@@ -983,14 +973,6 @@ void AsyGLRender::setUniformsOpenGL(GLint shader)
 {
   bool normal=shader != pixelShader;
 
-  // Check if shader is valid
-  if(shader == 0) {
-    if(settings::verbose > 2) {
-      cerr << "setUniforms: shader is 0!" << endl;
-    }
-    return;
-  }
-
   if(shader != lastshader) {
     glUseProgram(shader);
 
@@ -1516,6 +1498,14 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     if(settings::verbose > 2)
       cout << "GLSL version " << GLSL_VERSION << " (GLSLversion=" << GLSLversion << ")" << endl;
 
+    // Check multisampling
+    {
+      int samples = 0;
+      glGetIntegerv(GL_SAMPLES, &samples);
+      if(settings::verbose > 1 && samples > 1)
+        cout << "Multisampling enabled with sample width " << samples << endl;
+    }
+
     if(settings::verbose > 2) {
       cerr << "Created window and initialized GLEW: " << Width << "x" << Height
            << " glfwWindow=" << glfwWindow << endl;
@@ -1540,33 +1530,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     checkpow2(blockSize,"GPUblockSize");
     groupSize = localSize * blockSize;
   }
-
-  // Initialize OpenGL if needed
-  if(!initialized) {
-    initialized = true;
-
-    const char* GLSL_VERSION = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
-    if(GLSL_VERSION) {
-      GLSLversion = (int)(100 * atof(GLSL_VERSION) + 0.5);
-      if(GLSLversion < 130) {
-        cerr << "Unsupported GLSL version: " << GLSL_VERSION << endl;
-        exit(-1);
-      }
-    }
-
-    // Check multisampling
-    int samples = 0;
-    glGetIntegerv(GL_SAMPLES, &samples);
-    if(settings::verbose > 1 && samples > 1) {
-      cout << "Multisampling enabled with sample width " << samples << endl;
-    }
-
-    ibl = settings::getSetting<bool>("ibl");
-    initShaders();
-
-  }
-
-
 
   glClearColor(args.background[0], args.background[1],
                args.background[2], args.background[3]);
