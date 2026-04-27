@@ -45,6 +45,13 @@ int _matherr(struct _exception *except)
 #endif
 
 #include "common.h"
+#include "rendererloader.h"
+#ifdef HAVE_LIBGL
+#include "glrender.h"
+#endif
+#ifdef HAVE_LIBVULKAN
+#include "vkrender.h"
+#endif
 
 #ifdef HAVE_LIBSIGSEGV
 #include <sigsegv.h>
@@ -63,8 +70,6 @@ int _matherr(struct _exception *except)
 #include "locate.h"
 #include "interact.h"
 #include "fileio.h"
-#include "vkrender.h"
-#include "stack.h"
 
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
@@ -73,6 +78,8 @@ int _matherr(struct _exception *except)
 #if defined(_WIN32)
 #include <combaseapi.h>
 #endif
+
+#include "renderBase.h"
 
 using namespace settings;
 
@@ -100,8 +107,8 @@ int sigsegv_handler (void *, int emergency)
 {
   if(!emergency) return 0; // Really a stack overflow
   em.runtime(vm::getPos());
-#ifdef HAVE_VULKAN
-  if(camp::vk->vkthread)
+#ifdef HAVE_RENDERER
+  if(camp::AsyRender::threads)
     cerr << "Stack overflow or segmentation fault: rerun with -nothreads"
          << endl;
   else
@@ -136,16 +143,17 @@ void *asymain(void *A)
 {
   setsignal(signalHandler);
   Args *args=(Args *) A;
+  fpu_trap(trap());
 #ifdef HAVE_LIBFFTW3
   fftwpp::wisdomName=".wisdom";
 #endif
 
 #if defined(_WIN32)
   // see https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecuteexa
-  if (!SUCCEEDED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE)))
-  {
+  if(!SUCCEEDED(
+       CoInitializeEx(nullptr,
+                      COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE)))
     camp::reportError("CoInitializeEx Failed");
-  }
 #endif
 
   if(interactive) {
@@ -247,12 +255,26 @@ int main(int argc, char *argv[])
     em.statusError();
   }
 
+#ifdef HAVE_RENDERER
+  // Create the renderer object early so that the render thread has a
+  // valid gl pointer to access (for gl->wait(...)).  The constructor is
+  // trivial (= default); no GPU/Vulkan initialisation occurs here.
+  // Actual runtime Vulkan probing and any renderer replacement happens
+  // lazily inside initRenderer() when shipout3 is first called.
+#if defined(__APPLE__) || defined(_WIN32)
+  camp::AsyRender::threads = getSetting<bool>("threads");
+#else
+  camp::AsyRender::threads = view() ? getSetting<bool>("threads") : false;
+#endif
+
+  camp::createRenderer();
+#endif
+
   fpu_trap(trap());
   Args args(argc,argv);
-#ifdef HAVE_VULKAN
-  camp::vk->vkthread=getSetting<bool>("threads");
+#ifdef HAVE_RENDERER
 #if HAVE_PTHREAD
-  if(camp::vk->vkthread) {
+  if(camp::AsyRender::threads) {
     pthread_t thread;
     try {
 #if defined(_WIN32)
@@ -273,7 +295,6 @@ int main(int argc, char *argv[])
       auto* asymainPtr = asymain;
 #endif // defined(_WIN32)
       if(pthread_create(&thread,NULL,asymainPtr,&args) == 0) {
-        camp::vk->mainthread=pthread_self();
 #if !defined(_WIN32)
         sigset_t set;
         sigemptyset(&set);
@@ -282,13 +303,12 @@ int main(int argc, char *argv[])
 #endif // !defined(_WIN32)
         for (;;)
           camp::glrenderWrapper();
-      } else camp::vk->vkthread=false;
+      } else camp::AsyRender::threads=false;
     } catch(std::bad_alloc&) {
       outOfMemory();
     }
   }
 #endif // HAVE_PTHREAD
-  camp::vk->vkthread=false;
-#endif // HAVE_VULKAN
+#endif // HAVE_RENDERER
   asymain(&args);
 }

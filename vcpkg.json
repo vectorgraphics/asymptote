@@ -6,6 +6,10 @@
   "dependencies": [
     "zlib",
     "glm",
+    "vulkan",
+    "vulkan-sdk-components",
+    "glfw3",
+    "glslang",
     {
       "name": "getopt-win32",
       "platform": "windows"
@@ -54,14 +58,6 @@
       "description": "fftw3 support",
       "dependencies": [
         "fftw3"
-      ]
-    },
-    "vulkan": {
-      "description": "Vulkan Support",
-      "dependencies": [
-        "vulkan",
-        "vulkan-sdk-components",
-        "glfw3"
       ]
     },
     "lsp": {

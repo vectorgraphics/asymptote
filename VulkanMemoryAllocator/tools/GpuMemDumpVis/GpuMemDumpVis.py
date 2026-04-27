@@ -63,7 +63,7 @@ def ProcessBlock(poolData, block):
         allocData = {'Type': alloc['Type'], 'Size': int(alloc['Size']), 'Usage': int(alloc['Usage']) if 'Usage' in alloc else 0 }
         blockInfo['Suballocations'].append(allocData)
     poolData['Blocks'].append(blockInfo)
-    
+
 def IsDataEmpty():
     global data
     for poolData in data.values():
@@ -208,7 +208,7 @@ def DrawBlock(draw, y, block, pixelsPerByte):
         byte = byteEnd
         x = xEnd
 
-def DrawDedicatedAllocationBlock(draw, y, dedicatedAlloc, pixelsPerByte): 
+def DrawDedicatedAllocationBlock(draw, y, dedicatedAlloc, pixelsPerByte):
     sizePixels = int(dedicatedAlloc['Size'] * pixelsPerByte)
     draw.rectangle([IMG_MARGIN, y, IMG_MARGIN + sizePixels, y + MAP_SIZE], fill=TypeToColor(dedicatedAlloc['Type'], dedicatedAlloc['Usage']), outline=COLOR_OUTLINE)
 
@@ -216,13 +216,13 @@ def DrawDedicatedAllocationBlock(draw, y, dedicatedAlloc, pixelsPerByte):
 if __name__ == '__main__':
     args = ParseArgs()
     jsonSrc = json.load(open(args.DumpFile, 'rb'))
- 
+
     if 'General' in jsonSrc:
         currentApi = jsonSrc['General']['API']
     else:
         print("Wrong JSON format, cannot determine graphics API!")
         exit(1)
-        
+
     # Process default pools
     if 'DefaultPools' in jsonSrc:
         for memoryPool in jsonSrc['DefaultPools'].items():
@@ -253,7 +253,7 @@ if __name__ == '__main__':
         print("There is nothing to put on the image. Please make sure you generated the stats string with detailed map enabled.")
         exit(1)
     RemoveEmptyType()
-    # Calculate dimmensions and create data image       
+    # Calculate dimmensions and create data image
     imgHeight, pixelsPerByte = CalcParams()
     img = Image.new('RGB', (IMG_WIDTH, imgHeight), 'white')
     draw = ImageDraw.Draw(img)
@@ -281,7 +281,7 @@ if __name__ == '__main__':
             draw.text((x + IMG_MARGIN - textLength - TEXT_MARGIN, y), text, fill=COLOR_TEXT_H2, font=font)
         byte += bytesBetweenGridLines
     y += FONT_SIZE + IMG_MARGIN
-    
+
     # Draw main content
     for memType in sorted(data.keys()):
         memPoolData = data[memType]

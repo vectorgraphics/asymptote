@@ -1,18 +1,14 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-#ifdef HAVE_LIBGLM
-
 #include <iostream>
 #include <fstream>
 
 #include "common.h"
+#include "glmCommon.h"
 #include "triple.h"
 
-#define GLM_ENABLE_EXPERIMENTAL
-
-#include <glm/glm.hpp>
-#include <glm/gtx/hash.hpp>
+#ifdef HAVE_LIBGLM
 
 namespace glm {
 
@@ -109,7 +105,6 @@ public:
     return out;
   }
 };
-
 }
 
 namespace std

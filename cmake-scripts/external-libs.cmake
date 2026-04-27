@@ -179,33 +179,30 @@ else()
 endif()
 
 
-# Vulkan stuff
-if (ENABLE_VULKAN)
-    message(STATUS "If a warning about Vulkan::glslang comes up about missing debug configuration,
+# Vulkan
+message(STATUS "If a warning about Vulkan::glslang comes up about missing debug configuration,
 that warning can be safely ignored. We are not using glslang from the vulkan package.
 We are using a separate glslang package
     ")
 
-    find_package(Vulkan COMPONENTS glslang)
-    if (Vulkan_FOUND AND Vulkan_glslang_FOUND)
-        list(APPEND ASY_STATIC_LIBRARIES Vulkan::Vulkan Vulkan::glslang)
-        list(APPEND ASY_MACROS HAVE_LIBVULKAN)
-    else()
-        message(FATAL_ERROR "Vulkan not found")
-    endif()
-
-    find_package(glfw3 CONFIG)
-    if (glfw3_FOUND)
-        list(APPEND ASY_STATIC_LIBRARIES glfw)
-    else()
-        message(FATAL_ERROR "glfw3 not found")
-    endif()
-
-    if (ENABLE_VK_VALIDATION_LAYERS)
-        list(APPEND ASY_MACROS ENABLE_VK_VALIDATION)
-    endif()
+find_package(Vulkan COMPONENTS glslang)
+if (Vulkan_FOUND AND Vulkan_glslang_FOUND)
+    list(APPEND ASY_STATIC_LIBRARIES Vulkan::Vulkan Vulkan::glslang)
+    list(APPEND ASY_MACROS HAVE_LIBVULKAN)
 else()
-    message(STATUS "Disabling vulkan support")
+    message(FATAL_ERROR "Vulkan not found")
+endif()
+
+find_package(glfw3 CONFIG)
+if (glfw3_FOUND)
+    list(APPEND ASY_STATIC_LIBRARIES glfw)
+    list(APPEND ASY_MACROS HAVE_LIBGLFW)
+else()
+    message(FATAL_ERROR "glfw3 not found")
+endif()
+
+if (ENABLE_VK_VALIDATION_LAYERS)
+    list(APPEND ASY_MACROS ENABLE_VK_VALIDATION)
 endif()
 
 

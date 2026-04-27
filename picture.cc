@@ -17,6 +17,9 @@
 #include "drawsurface.h"
 #include "drawpath3.h"
 #include "seconds.h"
+#ifdef HAVE_RENDERER
+#include "glfw.h"
+#endif
 
 #if defined(_WIN32)
 #include <Windows.h>
@@ -59,7 +62,9 @@ texstream::~texstream() {
 
 namespace camp {
 
-AsyVkRender *vk = new AsyVkRender();
+#ifdef HAVE_RENDERER
+AsyRender* gl;
+#endif
 
 extern void draw();
 
@@ -1428,24 +1433,25 @@ void picture::render(double size2, const triple& Min, const triple& Max,
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
     if(remesh) (*p)->meshinit();
-
     (*p)->render(size2,Min,Max,perspective,remesh);
   }
 }
 
-AsyVkRender::VkrenderFunctionArgs com = {};
+AsyRender::RenderFunctionArgs args = {};
 
 extern bool allowRender;
 
 void glrenderWrapper()
 {
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
+  if (gl == nullptr)
+    return; // Renderer not yet initialised
 #ifdef HAVE_PTHREAD
-  vk->wait(vk->initSignal,vk->initLock);
-  vk->endwait(vk->initSignal,vk->initLock);
+  gl->wait(gl->initSignal,gl->initLock);
+  gl->endwait(gl->initSignal,gl->initLock);
 #endif
   if(allowRender)
-    vk->vkrender(com);
+    gl->render(args);
 #endif
 }
 
@@ -1455,12 +1461,16 @@ bool picture::shipout3(const string& prefix, const string& format,
                        const pair& margin, double *t, double *tup,
                        double *background,
                        size_t nlights, triple *lights, double *diffuse,
-                       double *specular, bool view)
+                       bool view)
 {
   if(getSetting<bool>("interrupt"))
     return true;
 
   if(width <= 0 || height <= 0) return false;
+
+#ifdef HAVE_RENDERER
+  initRenderer();
+#endif
 
   bool webgl=format == "html";
   bool v3d=format == "v3d";
@@ -1473,10 +1483,23 @@ bool picture::shipout3(const string& prefix, const string& format,
     camp::reportError("to support V3D rendering, please install glm header files, then ./configure; make");
 #endif
 
-#ifndef HAVE_VULKAN
-  if(!webgl)
-    camp::reportError("to support onscreen Vulkan rendering; please install the glfw, vulkan, and glslang development libraries, then ./configure; make");
+#ifndef HAVE_LIBOSMESA
+#ifndef HAVE_RENDERER
+  if(!webgl) {
+    string renderer;
+    string dependencies;
+    if(vulkan) {
+      renderLibrary="Vulkan";
+      dependencies="glfw, vulkan, and glslang";
+    } else {
+      renderLibrary="OpenGL";
+      dependencies="glfw and GL";
+    }
+    camp::reportError("to support onscreen "+renderLibrary+" rendering; please install the "+dependencies+" development libraries, then ./configure; make");
+  }
 #endif
+#endif
+
 
   picture *pic = new picture;
 
@@ -1510,7 +1533,11 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool View=settings::view() && view;
 #endif
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
+  bool offscreen=false;
+#ifdef HAVE_LIBOSMESA
+  offscreen=!vulkan;
+#endif
 #ifdef HAVE_PTHREAD
   bool animating=getSetting<bool>("animating");
   bool Wait=!interact::interactive || !View || animating;
@@ -1519,53 +1546,50 @@ bool picture::shipout3(const string& prefix, const string& format,
 
   bool format3d=webgl || v3d;
   if(!format3d) {
-#ifdef HAVE_VULKAN
-    if(vk->vkthread) {
+#ifdef HAVE_RENDERER
+    if(AsyRender::threads && !offscreen) {
 #ifdef HAVE_PTHREAD
-      if(vk->initialize) {
-        vk->initialize=!View || getSetting<bool>("offscreen");
-        com.prefix=prefix;
-        com.pic=pic;
-        com.format=outputformat;
-        com.width=width;
-        com.height=height;
-        com.angle=angle;
-        com.zoom=zoom;
-        com.m=m;
-        com.M=M;
-        com.shift=shift;
-        com.margin=margin;
-        com.t=t;
-        com.tup=tup;
-        com.background=background;
-        com.nlightsin=nlights;
-        com.lights=lights;
-        com.diffuse=diffuse;
-        com.specular=specular;
-        com.view=View;
+      if(!gl->initialized) {
+        gl->initialized=!View || offscreen;
+        args.prefix=prefix;
+        args.pic=pic;
+        args.format=outputformat;
+        args.width=width;
+        args.height=height;
+        args.angle=angle;
+        args.zoom=zoom;
+        args.m=m;
+        args.M=M;
+        args.shift=shift;
+        args.margin=margin;
+        args.t=t;
+        args.tup=tup;
+        args.background=background;
+        args.nlightsin=nlights;
+        args.lights=lights;
+        args.diffuse=diffuse;
+        args.view=View;
+        args.oldpid=oldpid;
         if(Wait)
-          pthread_mutex_lock(&vk->readyLock);
+          pthread_mutex_lock(&gl->readyLock);
         allowRender=true;
-        vk->wait(vk->initSignal,vk->initLock);
-        vk->endwait(vk->initSignal,vk->initLock);
+        gl->wait(gl->initSignal,gl->initLock);
+        gl->endwait(gl->initSignal,gl->initLock);
         static bool initialize=true;
         if(initialize) {
-          vk->wait(vk->initSignal,vk->initLock);
-          vk->endwait(vk->initSignal,vk->initLock);
+          gl->wait(gl->initSignal,gl->initLock);
+          gl->endwait(gl->initSignal,gl->initLock);
           initialize=false;
         }
-//#ifdef HAVE_VULKAN
-//        glfwPostEmptyEvent();
-//#endif
         if(Wait) {
-          pthread_cond_wait(&vk->readySignal,&vk->readyLock);
-          pthread_mutex_unlock(&vk->readyLock);
+          pthread_cond_wait(&gl->readySignal,&gl->readyLock);
+          pthread_mutex_unlock(&gl->readyLock);
         }
         return true;
       }
       if(Wait)
-        pthread_mutex_lock(&vk->readyLock);
-#ifdef HAVE_VULKAN
+        pthread_mutex_lock(&gl->readyLock);
+#ifdef HAVE_RENDERER
       glfwPostEmptyEvent();
 #endif
 #endif
@@ -1585,7 +1609,6 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
 
 #if HAVE_LIBGLM
-  AsyVkRender::VkrenderFunctionArgs args = {};
   args.prefix=prefix;
   args.pic=pic;
   args.format=outputformat;
@@ -1603,11 +1626,10 @@ bool picture::shipout3(const string& prefix, const string& format,
   args.nlightsin=nlights;
   args.lights=lights;
   args.diffuse=diffuse;
-  args.specular=specular;
   args.view=View;
   args.oldpid=oldpid;
 
-  vk->vkrender(args);
+  gl->render(args);
   if(format3d) {
     string name=buildname(prefix,format);
     abs3Doutfile *fileObj=nullptr;
@@ -1639,11 +1661,11 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(webgl && View)
       htmlView(name);
 
-#ifdef HAVE_GL
-    if(vk->format3dWait) {
-      vk->format3dWait=false;
+#ifdef HAVE_RENDERER
+    if(gl->format3dWait) {
+      gl->format3dWait=false;
 #ifdef HAVE_PTHREAD
-      endwait(vk->initSignal,vk->initLock);
+      gl->endwait(gl->initSignal,gl->initLock);
 #endif
     }
 #endif
@@ -1652,11 +1674,11 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
 #endif
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
-  if(vk->vkthread && Wait) {
-    pthread_cond_wait(&vk->readySignal,&vk->readyLock);
-    pthread_mutex_unlock(&vk->readyLock);
+  if(AsyRender::threads && !offscreen && Wait) {
+    pthread_cond_wait(&gl->readySignal,&gl->readyLock);
+    pthread_mutex_unlock(&gl->readyLock);
   }
   return true;
 #endif
@@ -1667,7 +1689,10 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 bool picture::shipout3(const string& prefix, const string format)
 {
-  camp::vk->redraw=false;
+#ifdef HAVE_RENDERER
+  initRenderer();
+#endif
+  gl->redraw=false;
   bounds3();
   bool status;
 

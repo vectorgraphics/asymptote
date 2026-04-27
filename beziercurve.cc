@@ -11,7 +11,7 @@
 
 namespace camp {
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 
 VertexBuffer pointData;       // pixels
 VertexBuffer lineData;        // material Bezier curves

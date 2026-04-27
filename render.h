@@ -16,6 +16,13 @@
 #include "material.h"
 #include "triple.h"
 
+constexpr size_t Nbuffer = 10000;  // Initial size of 2D dynamic buffers
+constexpr size_t nbuffer = 1000;   // Initial size of 0D & 1D dynamic buffers
+
+#ifdef HAVE_LIBVULKAN
+#include "vk.h"
+#endif
+
 namespace camp
 {
 
@@ -46,7 +53,7 @@ struct MaterialVertex
   glm::vec3 normal;
   glm::i32 material;
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_LIBVULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(MaterialVertex), vk::VertexInputRate::eVertex);
@@ -76,7 +83,7 @@ struct ColorVertex
   glm::i32 material;
   glm::vec4 color;
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_LIBVULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(ColorVertex), vk::VertexInputRate::eVertex);
@@ -107,7 +114,7 @@ struct PointVertex
   glm::f32 width;
   glm::i32 material;
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_LIBVULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(PointVertex), vk::VertexInputRate::eVertex);
@@ -140,6 +147,14 @@ struct VertexBuffer {
 
   int renderCount=0;  // Are all patches in this buffer fully rendered?
   bool copiedThisFrame=false;
+
+  VertexBuffer()
+  {
+    materialVertices.reserve(Nbuffer);
+    colorVertices.reserve(nbuffer);
+    pointVertices.reserve(nbuffer);
+    indices.reserve(Nbuffer);
+  }
 
   void clear()
   {
@@ -197,8 +212,10 @@ extern VertexBuffer transparentData; // transparent patches & triangles
 extern VertexBuffer pointData;       // pixels
 extern VertexBuffer lineData;        // material Bezier curves
 
-extern glm::dmat4 projViewMat;
-extern glm::dmat4 normMat;
+#ifdef HAVE_LIBGLM
+// Accessor functions for matrices (to avoid synchronization)
+const glm::dmat4& getProjViewMat();
+const glm::dmat3& getNormMat();
 
 inline triple billboardTransform(const triple& center, const triple& v)
 {
@@ -210,11 +227,13 @@ inline triple billboardTransform(const triple& center, const triple& v)
   double y = v.gety() - cy;
   double z = v.getz() - cz;
 
+  const glm::dmat3& normMat = getNormMat();
   const double* BBT = glm::value_ptr(normMat);
 
-  return triple(x * BBT[0] + y * BBT[4] + z * BBT[8] + cx,
-                x * BBT[1] + y * BBT[5] + z * BBT[9] + cy,
-                x * BBT[2] + y * BBT[6] + z * BBT[10] + cz);
+  return triple(x * BBT[0] + y * BBT[3] + z * BBT[6] + cx,
+                x * BBT[1] + y * BBT[4] + z * BBT[7] + cy,
+                x * BBT[2] + y * BBT[5] + z * BBT[8] + cz);
 }
+#endif
 
 } // namespace camp

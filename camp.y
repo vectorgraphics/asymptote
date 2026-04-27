@@ -21,7 +21,7 @@
 #endif
 
 #ifndef YYDEBUG
-#ifdef __APPLE__
+#if defined(__APPLE__) || !defined(HAVE_LIBVULKAN)
 #define YYDEBUG 1
 #else
 #define YYDEBUG 0

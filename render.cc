@@ -1,4 +1,4 @@
-// g++ -DOMIT_OPTIONAL render.cc bezierpatch.cc
+// g++ render.cc bezierpatch.cc
 
 #include <iostream>
 #include "rgba.h"
@@ -8,8 +8,11 @@ using namespace std;
 using namespace camp;
 
 namespace camp {
-glm::dmat4 projViewMat;
-glm::dmat4 normMat;
+const glm::dmat4& getProjViewMat()
+{
+  static glm::dmat4 dummy;
+  return dummy;
+}
 }
 
 int main()

@@ -1,7 +1,7 @@
 layout(binding=0) uniform UniformBufferObject {
     mat4 projViewMat;
     mat4 viewMat;
-    mat4 normMat;
+    mat3 normMat;
 } ubo;
 
 layout(location=0) in vec3 inPosition;
@@ -32,7 +32,7 @@ void main()
 #ifndef ORTHOGRAPHIC
   viewPosition=(ubo.viewMat*v).xyz;
 #endif
-  normal=normalize((vec4(inNormal, 1.0)*ubo.normMat).xyz);
+  normal=normalize(inNormal*ubo.normMat);
 #endif
 
 #ifdef MATERIAL

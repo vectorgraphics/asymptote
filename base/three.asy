@@ -434,19 +434,6 @@ projection TopView=orthographic(Z,up=Y,showtarget=true);
 
 currentprojection=perspective(5,4,2);
 
-projection projection()
-{
-  projection P;
-  real[] a=_projection();
-  if(a.length == 0 || a[10] == 0.0) return currentprojection;
-  int k=0;
-  return a[0] == 1 ?
-    orthographic((a[++k],a[++k],a[++k]),(a[++k],a[++k],a[++k]),
-                 (a[++k],a[++k],a[++k]),a[++k],(a[k += 2],a[++k])) :
-    perspective((a[++k],a[++k],a[++k]),(a[++k],a[++k],a[++k]),
-                (a[++k],a[++k],a[++k]),a[++k],a[++k],(a[++k],a[++k]));
-}
-
 // Map pair z to a triple by inverting the projection P onto the
 // plane perpendicular to normal and passing through point.
 triple invert(pair z, triple normal, triple point,
@@ -2920,8 +2907,7 @@ object embed(string prefix=outprefix(), string label=prefix,
              P.infinity ? 0 : 2aTan(Tan(0.5*P.angle)*P.zoom),
              P.zoom,m,M,P.viewportshift,S.viewportmargin,
              tinv*inv,inv*shift(0,0,zcenter),Light.background(),Light.position,
-             Light.diffuse,Light.specular,
-             view && !preview);
+             Light.diffuse,view && !preview);
     if(settings.v3d) {
       string content=prefix+".v3d";
       F.L=Embed(content,S.width,S.height);

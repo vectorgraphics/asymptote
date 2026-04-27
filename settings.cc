@@ -23,6 +23,7 @@
 #endif
 
 #include "common.h"
+#include "rendererloader.h"
 
 #if HAVE_GNU_GETOPT_H
 #include <getopt.h>
@@ -41,8 +42,6 @@
 #include "refaccess.h"
 #include "pipestream.h"
 #include "array.h"
-
-// #include "glrender.h"
 
 #ifdef HAVE_LIBCURSES
 extern "C" {
@@ -102,6 +101,9 @@ const bool havegl=false;
 #if !defined(_WIN32)
 mode_t mask;
 #endif
+
+// Flag set by --version option to exit after all options are parsed
+static bool showVersion=false;
 
 string systemDir=ASYMPTOTE_SYSDIR;
 string defaultPSdriver="ps2write";
@@ -1033,19 +1035,41 @@ struct versionOption : public option {
   versionOption(string name, char code, string desc)
     : option(name, code, noarg, desc, true) {}
 
-  bool disabled;
-
-  const void feature(const char *s, bool enabled) {
-    if(enabled ^ disabled)
-      cerr << s << endl;
+  bool getOption() {
+    showVersion = true;
+    return true;
   }
+};
 
-  void features(bool enabled) {
-    disabled=!enabled;
-    cerr << endl << (disabled ? "DIS" : "EN") << "ABLED OPTIONS:" << endl;
+void displayFeatures(bool enabled)
+{
+#ifdef _WIN32
+    // On Windows, Vulkan availability is determined at compile time.
+    // Runtime probing via GetProcAddress/tryLoadVulkan is unreliable
+    // when asy.exe is distributed to different machines.
+#else
+    static bool probed = false;
+    static bool vulkanAvailable = false;
+    if (!probed) {
+#ifdef HAVE_RENDERER
+        bool useVulkan = getSetting<bool>("vulkan");
+        vulkanAvailable = useVulkan && camp::tryLoadVulkan();
+#endif
+        probed = true;
+    }
+#endif
+
+    cerr << endl << (enabled ? "EN" : "DIS") << "ABLED OPTIONS:" << endl;
+
+    auto feature = [&](const char *s, bool cond) {
+        if(cond == enabled)
+            cerr << s << endl;
+    };
 
     bool glm=false;
-    bool gl=false;
+    bool havevulkan=false;
+    bool haveopengl=false;
+    bool ssbo=false;
     bool gsl=false;
     bool fftw3=false;
     bool eigen=false;
@@ -1062,8 +1086,25 @@ struct versionOption : public option {
     glm=true;
 #endif
 
-#ifdef HAVE_VULKAN
-    gl=true;
+#ifdef _WIN32
+#ifdef HAVE_LIBVULKAN
+    havevulkan = true;
+#endif
+#else
+#ifdef HAVE_RENDERER
+    if (vulkanAvailable)
+        havevulkan = true;
+    else {
+#ifdef HAVE_LIBGL
+        haveopengl = true;
+#endif
+    }
+#endif
+#endif
+
+#ifdef HAVE_SSBO
+    if (haveopengl)
+        ssbo=true;
 #endif
 
 #ifdef HAVE_LIBGSL
@@ -1104,17 +1145,19 @@ struct versionOption : public option {
     sigsegv=true;
 #endif
 
-#ifdef USEGC
-    usegc=true;
-#endif
-
 #ifdef HAVE_PTHREAD
     usethreads=true;
 #endif
 
     feature("V3D      3D vector graphics output",glm && xdr);
     feature("WebGL    3D HTML rendering",glm);
-    feature("Vulkan   3D Vulkan rendering",gl);
+#ifdef HAVE_LIBOSMESA
+    feature("OpenGL   3D OSMesa offscreen rendering",haveopengl);
+#else
+    feature("OpenGL   3D OpenGL rendering",haveopengl);
+#endif
+    feature("Vulkan   3D Vulkan rendering",havevulkan);
+    feature("SSBO     OpenGL shader storage buffer objects",ssbo);
     feature("GSL      GNU Scientific Library (special functions)",gsl);
     feature("FFTW3    Fast Fourier transforms",fftw3);
     feature("Eigen    Eigenvalue library",eigen);
@@ -1127,19 +1170,8 @@ struct versionOption : public option {
     feature("Sigsegv  Distinguish stack overflows from segmentation faults",
             sigsegv);
     feature("GC       Boehm garbage collector",usegc);
-    feature("threads  Render Vulkan in separate thread",usethreads);
-  }
-
-  bool getOption() {
-    version();
-    features(1);
-    features(0);
-    exit(0);
-
-    // Unreachable code.
-    return true;
-  }
-};
+    feature("threads  Render 3D scenes in a separate thread",usethreads);
+}
 
 struct divisorOption : public option {
   divisorOption(string name, char code, string argname, string desc)
@@ -1238,7 +1270,18 @@ void getOptions(int argc, char *argv[])
       syntax=true;
     }
 
+    if (showVersion) {
+      // Don't exit yet — continue parsing remaining options
+    }
+
     errno=0;
+  }
+
+  if (showVersion) {
+    version();
+    displayFeatures(true);
+    displayFeatures(false);
+    exit(0);
   }
 
   if (syntax)
@@ -1345,7 +1388,7 @@ void initSettings() {
   addOption(new boolSetting("vsync", 0,
                            "Vertically synchronize with monitor", false));
   addOption(new boolSetting("srgb", 0,
-                            "Output 3d renderer in sRGB space", false));
+                            "Render 3D images in sRGB space", false));
   addOption(new boolSetting("offscreen", 0,
                             "Use offscreen rendering", false));
   addOption(new IntSetting("device", 0, "n",
@@ -1353,6 +1396,8 @@ void initSettings() {
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
                             true));
+  addOption(new boolSetting("GPUindexing", 0,
+                            "Compute indexing partial sums on GPU", true));
   addOption(new boolSetting("GPUinterlock", 0,
                             "Use fragment shader interlock", true));
   addOption(new boolSetting("GPUcompress", 0,
@@ -1379,7 +1424,7 @@ void initSettings() {
   addOption(new pairSetting("maxtile", 0, "pair",
                             "Maximum rendering tile size",pair(1024,768)));
   addOption(new boolSetting("iconify", 0,
-                            "Iconify rendering window", false));
+                            "", false));
   addOption(new boolSetting("thick", 0,
                             "Render thick 3D lines", true));
   addOption(new boolSetting("thin", 0,
@@ -1388,6 +1433,8 @@ void initSettings() {
                             "3D labels always face viewer by default", true));
   addOption(new boolSetting("threads", 0,
                             "Use POSIX threads for 3D rendering", true));
+  addOption(new boolSetting("vulkan", 0,
+                            "Use Vulkan renderer if available", true));
   addOption(new boolSetting("fitscreen", 0,
                             "Fit rendered image to screen", true));
   addOption(new boolSetting("interactiveWrite", 0,

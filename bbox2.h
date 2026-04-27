@@ -5,12 +5,7 @@
 #include "pair.h"
 #include "triple.h"
 #include "glmCommon.h"
-
-#ifdef HAVE_VULKAN
-#include "vkrender.h"
-#else
 #include "render.h"
-#endif
 
 namespace camp {
 
@@ -55,13 +50,13 @@ public:
   }
 
   void Bounds(const triple& v) {
-    pair V=Transform2T(glm::value_ptr(projViewMat),v);
+    pair V=Transform2T(glm::value_ptr(getProjViewMat()),v);
     x=X=V.getx();
     y=Y=V.gety();
   }
 
   void bounds(const triple& v) {
-    pair V=Transform2T(glm::value_ptr(projViewMat),v);
+    pair V=Transform2T(glm::value_ptr(getProjViewMat()),v);
     double a=V.getx();
     double b=V.gety();
     if(a < x) x=a;

@@ -37,7 +37,7 @@ set(SHADERS
 # Compile each shader using glslangValidator
 foreach(SHADER ${SHADERS})
     get_filename_component(FILE_NAME ${SHADER} NAME)
-    
+
     # Put the .spv files into the bin folder
     set(SPIRV_BIN ${CMAKE_CURRENT_BINARY_DIR}/${FILE_NAME}.spv)
     set(SPIRV ${PROJECT_SOURCE_DIR}/bin/${FILE_NAME}.spv)

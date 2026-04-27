@@ -244,7 +244,7 @@ AC_ARG_WITH(vcpkg-target-triplet,
 if test "x$with_vcpkg" != "xno"; then
    VCPKG_INSTALL_ARGUMENTS="--triplet=$vcpkg_triplet "
    VCPKG_PKG_CONFIG_LOC="vcpkg_installed/$vcpkg_triplet/lib/pkgconfig"
-   INCL=$INCL"-Ivcpkg_installed/$vcpkg_triplet/include "
+   INCL=$INCL" -Ivcpkg_installed/$vcpkg_triplet/include"
    LIBS=$LIBS"-Lvcpkg_installed/$vcpkg_triplet/lib "
 
    VCPKG_LIBS_TO_USE_PKG_CONFIG=""
@@ -588,36 +588,39 @@ else
          HAVE_LIBGLM,1,
          DEFINE([the <glm/glm.hpp> header]))
       ],
-      AC_MSG_NOTICE([*** Could not find glm header files: will compile without WebGL or Vulkan support ***])
+      AC_MSG_NOTICE([*** Could not find glm header files: will compile without WebGL or OpenGL/Vulkan support ***])
    )
 fi
 
-# ----------- tinyexr
 TINYEXR_ROOT=tinyexr
-INCL=$INCL"-I$TINYEXR_ROOT "
+INCL=$INCL" -I$TINYEXR_ROOT"
 AC_SUBST(TINYEXR_ROOT)
 
-# ----------- vulkan
+# ------------------- Vulkan -----------------
+
 AC_ARG_ENABLE(vulkan,
 [AS_HELP_STRING(--enable-vulkan[[[=yes]]],enable Vulkan Library)])
 
 VMA_REPO_ROOT=VulkanMemoryAllocator
 VMA_IMPL_FILES=""
 if test "x$enable_vulkan" != "xno"; then
-INCL="-I$VMA_REPO_ROOT/include "$INCL"-Ithirdparty_impl/vk-mem-allocator_impl/include "
+INCL=" -I$VMA_REPO_ROOT/include "$INCL" -Ithirdparty_impl/vk-mem-allocator_impl/include "
 VMA_IMPL_FILES=$VMA_IMPL_FILES" vma_cxx vma_impl"
 
 if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
    ADD_VCPKG_FEATURE(vulkan)
    AC_DEFINE(HAVE_LIBVULKAN,1,[Vulkan is enabled])
    ADD_VCPKG_LIB_FOR_PKGCONFIG(glfw3)
-   LIBS=$LIBS"-lvulkan -lMachineIndependent -lOSDependent -lGenericCodeGen -lSPIRV -lglslang "
+   LIBS=$LIBS"-ldl "
+   LIBS=$LIBS"-lvulkan -lMachineIndependent -lOSDependent -lGenericCodeGen -lSPIRV -lglslang -ldl "
 else  # managed by the system
    AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
 
 case "$OSTYPE" in
      *)
-         AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
+	  AC_CHECK_LIB([glfw], [glfwShowWindow],,
+                      AC_MSG_NOTICE([*** Could not find libglfw: will compile without Vulkan support ***]))
+          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
           AC_CHECK_LIB([glfw], [glfwShowWindow],
           [
           AC_CHECK_LIB([vulkan], [vkCreateInstance],
@@ -631,7 +634,7 @@ case "$OSTYPE" in
                  VULKAN_LIBS="-lMachineIndependent -lOSDependent -lGenericCodeGen "
                ;;
           esac
-          LIBS=$LIBS"-lglfw -lvulkan "$VULKAN_LIBS"-lSPIRV "
+          LIBS=$LIBS"-lglfw -lvulkan "$VULKAN_LIBS"-lSPIRV -ldl "
           AC_CHECK_LIB([glslang],[glslang_initialize_process],
           [
           AC_DEFINE(HAVE_LIBVULKAN,1,
@@ -674,6 +677,81 @@ case "$OSTYPE" in
 esac
 AC_SUBST(BUNDLE_VULKAN)
 
+# ------------------- OpenGL (fallback) -----------------
+
+AC_ARG_ENABLE(gl,
+[AS_HELP_STRING(--enable-gl[[[=yes]]],enable OpenGL Library)])
+
+if test "x$with_vcpkg" != "xno"; then
+   AC_DEFINE(HAVE_SSBO,1)  # SSBO/Compute shader check should be done at runtime, not at compilation
+   AC_DEFINE(HAVE_COMPUTE_SHADER,1)
+else
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+      [#include <GL/gl.h>]
+      [#if !defined(GL_VERSION_4_3) && !defined(GL_ARB_shader_storage_buffer_object)]
+      [#error]
+      [#endif ]
+      )],
+      AC_DEFINE(HAVE_SSBO,1,DEFINE([GLSL shader storage buffer objects])))
+
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+      [#include <GL/gl.h>]
+      [#if !defined(GL_VERSION_4_3) && !defined(GL_ARB_compute_shader)]
+      [#error]
+      [#endif ]
+      )],
+      AC_DEFINE(HAVE_COMPUTE_SHADER,1,DEFINE([GLSL compute shaders])))
+fi
+
+# -------------- offscreen rendering
+
+AC_ARG_ENABLE(offscreen,
+[AS_HELP_STRING(--enable-offscreen[[[=no]]],use OSMesa library to implement offscreen rendering)])
+
+if test "x$enable_gl" != "xno"; then
+if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
+   ADD_VCPKG_FEATURE(opengl)
+   AC_DEFINE(HAVE_LIBGL,1,[libgl is enabled])
+   AC_DEFINE(HAVE_LIBGLFW,1,[GLFW library is available])
+   INCL=$INCL" -Ibackports/glew/include"
+   GLEW="glew.o "
+   ADD_VCPKG_LIB_FOR_PKGCONFIG(glfw3)
+   LIBS=$LIBS"-ldl "
+else  # managed by the system
+   AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
+
+case "$OSTYPE" in
+     darwin*)
+              AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
+              AC_CHECK_HEADER(OpenGL/gl.h,
+                             [AC_DEFINE(HAVE_LIBGL,1,
+                             DEFINE([<gl.h> header]))])
+              AC_CHECK_LIB([glfw], [glfwShowWindow],
+              [
+              AC_DEFINE(HAVE_LIBGLFW,1,DEFINE_LIB[GLFW])
+                           LIBS=$LIBS"-lglfw -framework OpenGL -framework Cocoa -ldl "
+                           INCL=$INCL" -Ibackports/glew/include"
+                           GLEW="glew.o "],
+                                 AC_MSG_NOTICE([*** Could not find GLFW: will compile without OpenGL support ***]))
+        ;;
+     *)
+         AC_CHECK_LIB([glfw], [glfwShowWindow],,
+                       AC_MSG_NOTICE([*** Could not find libglfw: will compile without OpenGL support ***]))
+         AC_CHECK_LIB([GL], [glDepthMask],
+                                 [AC_DEFINE(HAVE_LIBGL,1,
+                             DEFINE_LIB([GL]))
+                             LIBS=$LIBS"-lGL -ldl "
+                             GLEW="glew.o "
+                             INCL=$INCL" -Ibackports/glew/include"],
+                                   AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
+esac
+   if test "x$enable_offscreen" = "xyes"; then
+           AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
+                        AC_MSG_NOTICE([*** Could not find libOSMesa: will compile without offscreen rendering support ***]))
+   fi
+fi
+fi
+
 # ------------------- VCPKG INSTALL
 
 if test "x$with_vcpkg" != "xno"; then
@@ -682,7 +760,7 @@ $vcpkg_exec install $VCPKG_INSTALL_ARGUMENTS
 
 LIBS=$LIBS"$(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --libs $VCPKG_LIBS_TO_USE_PKG_CONFIG) "
 CFLAGS=$CFLAGS" $(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --cflags-only-other $VCPKG_LIBS_TO_USE_PKG_CONFIG)"
-INCL=$INCL"$(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --cflags-only-I $VCPKG_LIBS_TO_USE_PKG_CONFIG) "
+INCL=$INCL" $(PKG_CONFIG_PATH=$VCPKG_PKG_CONFIG_LOC pkg-config --cflags-only-I $VCPKG_LIBS_TO_USE_PKG_CONFIG)"
 fi
 
 # ----------------- xdr ------------------------
@@ -724,6 +802,7 @@ AC_SUBST(DEFS)
 AC_SUBST(OPTIONS)
 AC_SUBST(GLEW)
 AC_SUBST(VMA_IMPL_FILES)
+
 # we are on C++ >= 11, so unordered map is a guarantee
 AC_DEFINE(HAVE_UNORDERED_MAP,1,[Unordered map is present])
 

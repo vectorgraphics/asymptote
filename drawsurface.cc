@@ -7,17 +7,12 @@
 #include "drawsurface.h"
 #include "drawpath3.h"
 #include "arrayop.h"
-#include "picture.h"
 
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 
-#ifdef HAVE_LIBGLM
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#endif
+#include "glmCommon.h"
 
 using namespace prc;
 #include "material.h"
@@ -36,7 +31,7 @@ using settings::getSetting;
 
 void storecolor(float *colors, int i, const vm::array &pens, int j)
 {
-  pen p=vm::read<camp::pen>(pens,j);
+  pen p=vm::read<pen>(pens,j);
   p.torgb();
   colors[i]=p.red();
   colors[i+1]=p.green();
@@ -61,23 +56,18 @@ void setcolors(const RGBAColour& diffuse, const RGBAColour& emissive,
                       glm::vec4(specular.R,specular.G,specular.B,specular.A),
                       shininess,metallic,fresnel0);
 
-  auto p=vk->materialMap.find(m);
-  if(p != vk->materialMap.end()) materialIndex=p->second;
+  auto p=gl->materialMap.find(m);
+  if(p != gl->materialMap.end()) materialIndex=p->second;
   else {
-    materialIndex=vk->materials.size();
-    vk->materials.push_back(m);
-    vk->materialMap[m]=materialIndex;
+    materialIndex=gl->materials.size();
+    gl->materials.push_back(m);
+    gl->materialMap[m]=materialIndex;
     if(out)
       out->addMaterial(m);
   }
 }
 
 #endif
-
-void clearMaterials()
-{
-  vk->clearMaterials();
-}
 
 void drawBezierPatch::bounds(const double* t, bbox3& b)
 {
@@ -239,7 +229,7 @@ bool drawBezierPatch::write(abs3Doutfile *out)
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
     out->addStraightPatch(Controls,colors);
   } else {
-    double prerender=vk->getRenderResolution(Min);
+    double prerender=gl->getRenderResolution(Min);
     if(prerender) {
       float c[16];
       if(colors)
@@ -263,7 +253,7 @@ bool drawBezierPatch::write(abs3Doutfile *out)
 void drawBezierPatch::render(double size2, const triple& b, const triple& B,
                              double perspective, bool remesh)
 {
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
   if(invisible) return;
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
     diffuse.A < 1.0;
@@ -304,7 +294,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
 
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  if(vk->mode == DRAWMODE_OUTLINE) {
+  if(gl->mode == DRAWMODE_OUTLINE) {
     triple edge0[]={Controls[0],Controls[4],Controls[8],Controls[12]};
     C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[12],Controls[13],Controls[14],Controls[15]};
@@ -489,7 +479,7 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
     triple Controls[]={controls[0],controls[6],controls[9]};
     out->addStraightBezierTriangle(Controls,colors);
   } else {
-    double prerender=vk->getRenderResolution(Min);
+    double prerender=gl->getRenderResolution(Min);
     if(prerender) {
       float c[12];
       if(colors)
@@ -513,7 +503,7 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
 void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
                                 double perspective, bool remesh)
 {
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
   if(invisible) return;
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
     diffuse.A < 1.0;
@@ -553,7 +543,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
 
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  if(vk->mode == DRAWMODE_OUTLINE) {
+  if(gl->mode == DRAWMODE_OUTLINE) {
     triple edge0[]={Controls[0],Controls[1],Controls[3],Controls[6]};
     C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[6],Controls[7],Controls[8],Controls[9]};
@@ -655,7 +645,7 @@ void drawNurbs::ratio(const double *t, pair &b, double (*m)(double, double),
 
 void drawNurbs::displacement()
 {
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
   size_t n=nu*nv;
   size_t nuknots=udegree+nu+1;
   size_t nvknots=vdegree+nv+1;
@@ -991,7 +981,7 @@ void drawTriangles::render(double size2, const triple& b,
                            const triple& B, double perspective,
                            bool remesh)
 {
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
   if(invisible) return;
   transparent=diffuse.A < 1.0;
 

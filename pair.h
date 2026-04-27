@@ -164,9 +164,11 @@ public:
   friend pair unit(const pair& z)
   {
     double scale=z.length();
-    if(scale == 0.0) return z;
-    scale=1.0/scale;
-    return pair(z.x*scale,z.y*scale);
+    if(std::fpclassify(scale) == FP_NORMAL) {
+      scale=1.0/scale;
+      return pair(z.x*scale,z.y*scale);
+    } else
+      return z;
   }
 
   friend pair conj(const pair& z)

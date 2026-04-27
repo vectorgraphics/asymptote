@@ -1,6 +1,7 @@
 #include <limits>
 #include <chrono>
 #include <thread>
+#include <functional>
 
 #include "vkrender.h"
 #include "glfw.h"
@@ -37,18 +38,13 @@ using settings::getSetting;
 using settings::Setting;
 using namespace glm;
 
+
 static size_t timeout=10000000000;
 
 void exitHandler(int);
 void *postEmptyEvent(void *);
 
-void runtimeError(const std::string& s)
-{
-  cerr << "error: " << s << endl;
-  exit(-1);
-}
-
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 uint32_t apiVersion=VK_API_VERSION_1_4;
 
 std::vector<const char*> instanceExtensions
@@ -67,8 +63,21 @@ std::vector<const char*> instanceExtensions
 
 namespace camp
 {
-dmat4 projViewMat;
-dmat4 normMat;
+
+const glm::dmat4& getProjViewMat()
+{
+  return gl->projViewMat;
+}
+
+const glm::dmat4& getViewMat()
+{
+  return gl->viewMat;
+}
+
+const glm::dmat3& getNormMat()
+{
+  return gl->normMat;
+}
 
 const Int timePartialSumVerbosity=4;
 
@@ -88,7 +97,7 @@ std::vector<char> readFile(const std::string& filename)
   return buffer;
 }
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 SwapChainDetails::SwapChainDetails(
   vk::PhysicalDevice gpu,
   vk::SurfaceKHR surface) :
@@ -168,128 +177,144 @@ SwapChainDetails::chooseImageCount() const
   return imageCount;
 }
 
-void AsyVkRender::setDimensions(int width, int height, double x, double y)
-{
-  double aspect = ((double) width) / height;
-  double xshift = (x / (double) width + Shift.getx() * Xfactor) * Zoom;
-  double yshift = (y / (double) height + Shift.gety() * Yfactor) * Zoom;
-  double zoominv = 1.0 / Zoom;
-  if (orthographic) {
-    double xsize = Xmax - Xmin;
-    double ysize = Ymax - Ymin;
-    if (xsize < ysize * aspect) {
-      double r = 0.5 * ysize * aspect * zoominv;
-      double X0 = 2.0 * r * xshift;
-      double Y0 = ysize * zoominv * yshift;
-      xmin = -r - X0;
-      xmax = r - X0;
-      ymin = Ymin * zoominv - Y0;
-      ymax = Ymax * zoominv - Y0;
-    } else {
-      double r = 0.5 * xsize * zoominv / aspect;
-      double X0 = xsize * zoominv * xshift;
-      double Y0 = 2.0 * r * yshift;
-      xmin = Xmin * zoominv - X0;
-      xmax = Xmax * zoominv - X0;
-      ymin = -r - Y0;
-      ymax = r - Y0;
-    }
-  } else {
-    double r = H * zoominv;
-    double rAspect = r * aspect;
-    double X0 = 2.0 * rAspect * xshift;
-    double Y0 = 2.0 * r * yshift;
-    xmin = -rAspect - X0;
-    xmax = rAspect - X0;
-    ymin = -r - Y0;
-    ymax = r - Y0;
-  }
-}
-
 void AsyVkRender::setProjection()
 {
-  setDimensions(width, height, X, Y);
-
-  if(haveScene) {
-    if(orthographic) vk->ortho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
-    else vk->frustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
-  }
+  AsyRender::setProjection();
   newUniformBuffer = true;
 }
 
 void AsyVkRender::updateModelViewData()
 {
-  normMat = inverse(viewMat);
+  AsyRender::updateModelViewData();
+
   newUniformBuffer = true;
 }
 
-void AsyVkRender::update()
-{
-  capzoom();
-
-  double cz = 0.5 * (Zmin + Zmax);
-  viewMat = translate(translate(dmat4(1.0), dvec3(cx, cy, cz)) * rotateMat, dvec3(0, 0, -cz));
-
-  setProjection();
-  updateModelViewData();
-
-#ifdef HAVE_PTHREAD
-  if(View) {
-    pthread_t postThread;
-    if(pthread_create(&postThread,NULL,postEmptyEvent,NULL) == 0)
-      pthread_join(postThread,NULL);
-  }
-#endif
-  redraw=true;
-}
-
-#endif
-
-double AsyVkRender::getRenderResolution(triple Min) const
-{
-  double prerender = settings::getSetting<double>("prerender");
-
-  if (prerender <= 0.0)
-    return 0.0;
-
-  prerender = 1.0 / prerender;
-  double perspective = orthographic || Zmax == 0.0 ? 0.0 : 1.0 / Zmax;
-  double s = perspective ? Min.getz() * perspective : 1.0;
-  triple b(Xmin, Ymin, Zmin);
-  triple B(Xmax, Ymax, Zmax);
-  pair size3(s * (B.getx() - b.getx()), s * (B.gety() - b.gety()));
-  pair size2(width, height);
-  return prerender * size3.length() / size2.length();
-}
-
-#ifdef HAVE_VULKAN
+// update() now implemented in base class AsyRender::update()
 
 void AsyVkRender::initWindow()
 {
-  glfwInitWindow(this, width, height, title);
+  glfwWindow = static_cast<void*>(glfwCreateRenderWindow(Width, Height, title, this));
+}
+
+// RenderCallbacks interface implementation
+void AsyVkRender::onMouseButton(int button, int action, int mods)
+{
+    auto const currentAction = getGLFWAction(button, mods);
+
+    if (currentAction.empty())
+        return;
+
+    if (action == GLFW_PRESS) {
+        lastAction = currentAction;
+    } else if (action == GLFW_RELEASE) {
+        lastAction.clear();
+    }
+}
+
+void AsyVkRender::onFramebufferResize(int width, int height)
+{
+    if(width == 0 || height == 0)
+        return;
+
+    if(width == Width && height == Height)
+        return;
+
+    reshape(width, height);
+    update();
+    remesh = true;
+}
+
+void AsyVkRender::onScroll(double xoffset, double yoffset)
+{
+    auto zoomFactor = getSetting<double>("zoomfactor");
+
+    if(zoomFactor > 0.0) {
+        if (yoffset > 0)
+            Zoom *= zoomFactor;
+        else
+            Zoom /= zoomFactor;
+    }
+
+    update();
+}
+
+void AsyVkRender::onCursorPos(double xpos, double ypos)
+{
+    static double xprev = 0.0;
+    static double yprev = 0.0;
+
+    // Note: We can't easily check mouse button state here without GLFW call
+    // For now, assume we track this through lastAction changes
+
+    if (lastAction == "rotate") {
+
+        Arcball arcball(xprev * 2 / Width - 1, 1 - yprev * 2 / Height, xpos * 2 / Width - 1, 1 - ypos * 2 / Height);
+        triple axis = arcball.axis;
+        rotateMat = rotate(2 * arcball.angle / Zoom * ArcballFactor,
+                             dvec3(axis.getx(), axis.gety(), axis.getz())) * rotateMat;
+        update();
+    }
+    else if (lastAction == "shift") {
+
+        shift(xpos - xprev, ypos - yprev);
+        update();
+    }
+    else if (lastAction == "pan") {
+
+        if (orthographic)
+            shift(xpos - xprev, ypos - yprev);
+        else {
+            pan(xpos - xprev, ypos - yprev);
+        }
+        update();
+    }
+    else if (lastAction == "zoom") {
+
+        zoom(0.0, ypos - yprev);
+    }
+
+    xprev = xpos;
+    yprev = ypos;
+}
+
+void AsyVkRender::onKey(int key, int scancode, int action, int mods)
+{
+    AsyRender::onKey(key, scancode, action, mods);
+}
+
+void AsyVkRender::onWindowFocus(int focused)
+{
+    if (focused) {
+        // Window gained focus: might need to recreate swapchain
+        recreatePipeline = true;
+    }
+}
+
+void AsyVkRender::onClose()
+{
+    // Call base class close handler
+    AsyRender::onClose();
+
+    // Vulkan-specific: trigger exit with cleanup
+    exitHandler(0);
 }
 
 void AsyVkRender::updateHandler(int) {
-  if(vk->View && !interact::interactive) {
-    glfwHideWindow(vk->window);
-    if(!getSetting<bool>("fitscreen"))
-      vk->Fitscreen=0;
-  }
+  // Call base class implementation for common functionality
+  AsyRender::updateHandler();
 
-  if(vk->device)
-    vk->device->waitIdle();
-  vk->resize=true;
-  vk->redisplay=true;
-  vk->redraw=true;
-  vk->remesh=true;
-  vk->waitEvent=false;
-  vk->recreatePipeline=true;
+  // Vulkan-specific additions
+  if(device)
+    device->waitIdle();
+  recreatePipeline=true;
 }
 
 AsyVkRender::~AsyVkRender()
 {
-  if (this->View) {
-    glfwCleanupWindow(this);
+  if (View) {
+    ::glfwDestroyWindow(getGLFWWindow());
+    glfwWindow = nullptr;
   }
 
   glslang::FinalizeProcess();
@@ -297,47 +322,39 @@ AsyVkRender::~AsyVkRender()
 
 #endif
 
-bool ispow2(unsigned int n) {return n > 0 && !(n & (n - 1));}
-void checkpow2(unsigned int n, std::string s) {
-  if(!ispow2(n)) {
-    runtimeError(s+" must be a power of two");
-    exit(-1);
-  }
-}
-
-void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
+void AsyVkRender::render(RenderFunctionArgs const& args)
 {
 #if !defined(_WIN32)
-      setenv("XMODIFIERS","",true);
+  setenv("XMODIFIERS","",true);
 #endif
 
   bool v3d=args.format == "v3d";
   bool webgl=args.format == "html";
   bool format3d=webgl || v3d;
 
-  this->pic = args.pic;
-  this->Prefix=args.prefix;
-  this->Format = args.format;
-  this->remesh = true;
-  this->nlights = args.nlightsin;
-  this->Lights = args.lights;
-  this->LightsDiffuse = args.diffuse;
-  this->Oldpid = args.oldpid;
+  pic = args.pic;
+  Prefix=args.prefix;
+  Format = args.format;
+  remesh = true;
+  nlights = args.nlightsin;
+  Lights = args.lights;
+  LightsDiffuse = args.diffuse;
+  Oldpid = args.oldpid;
 
-  this->Angle = args.angle * radians;
-  this->lastzoom = 0;
-  this->Zoom0 = args.zoom;
-  this->Shift = args.shift / args.zoom;
-  this->Margin = args.margin;
+  Angle = args.angle * radians;
+  lastzoom = 0;
+  Zoom0 = std::fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
+  Shift = args.shift / args.zoom;
+  Margin = args.margin;
 
   for (int i = 0; i < 4; i++)
-    this->Background[i] = static_cast<float>(args.background[i]);
+    Background[i] = static_cast<float>(args.background[i]);
 
-  this->ViewExport=args.view;
+  ViewExport=args.view;
 
-  this->View = args.view && !settings::getSetting<bool>("offscreen");
+  View = args.view && !settings::getSetting<bool>("offscreen");
 
-  this->title = std::string(PACKAGE_NAME)+": "+ args.prefix.c_str();
+  title = std::string(PACKAGE_NAME)+": "+ args.prefix.c_str();
 
   Xmin = args.m.getx();
   Xmax = args.M.getx();
@@ -347,8 +364,8 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   Zmax = args.M.getz();
 
   haveScene=Xmin < Xmax && Ymin < Ymax && Zmin < Zmax;
-  orthographic = this->Angle == 0.0;
-  H = orthographic ? 0.0 : -tan(0.5 * this->Angle) * Zmax;
+  orthographic = Angle == 0.0;
+  H = orthographic ? 0.0 : -tan(0.5 * Angle) * Zmax;
   Xfactor = Yfactor = 1.0;
 
 #ifdef HAVE_PTHREAD
@@ -383,10 +400,10 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
     fullHeight=(int) ceil(expand*args.height);
 
     if(format3d) {
-      width=fullWidth;
-      height=fullHeight;
+      Width=fullWidth;
+      Height=fullHeight;
     } else {
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
       GLFWmonitor* monitor=NULL;
       glfwInit();
       monitor=glfwGetPrimaryMonitor();
@@ -400,16 +417,16 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
           screenHeight=fullHeight;
         }
 
-      width=min(fullWidth,screenWidth);
-      height=min(fullHeight,screenHeight);
+      Width=min(fullWidth,screenWidth);
+      Height=min(fullHeight,screenHeight);
 
-      if(width > height*Aspect)
-        width=min((int) (ceil(height*Aspect)),screenWidth);
+      if(Width > Height*Aspect)
+        Width=min((int) (ceil(Height*Aspect)),screenWidth);
       else
-        height=min((int) (ceil(width/Aspect)),screenHeight);
+        Height=min((int) (ceil(Width/Aspect)),screenHeight);
     }
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
     home(format3d);
 #endif
     if(format3d) {
@@ -418,32 +435,31 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
     }
     maxFragments=0;
 
-    ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(width,height);
-    Aspect=((double) width)/height;
+    ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
+    Aspect=((double) Width)/Height;
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
     setosize();
 #endif
   }
 
-#ifdef HAVE_VULKAN
-  havewindow=initialized && vkthread;
+#ifdef HAVE_RENDERER
+  havewindow=initialized && threads;
 
-  if(vkthread && format3d)
+  if(threads && format3d)
     format3dWait=true;
 
   clearMaterials();
-  this->shouldUpdateBuffers = true;
+  shouldUpdateBuffers = true;
   initialized=true;
 #endif
 
 #ifdef HAVE_PTHREAD
-  if(vkthread && initializedView) {
+  if(threads && initializedView) {
     if(View) {
-      // called from asymain thread, main thread handles vulkan rendering
+      // Called from asymain thread, main thread handles rendering
       hideWindow=false;
-      messageQueue.enqueue(updateRenderer);
-      clearBuffers();
+      messageQueue.enqueue(RendererMessage::updateRenderer);
     } else readyAfterExport=queueExport=true;
     return;
   }
@@ -457,7 +473,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   checkpow2(blockSize,"GPUblockSize");
   groupSize=localSize*blockSize;
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
   if(vkinitialize) {
     interlock=settings::getSetting<bool>("GPUinterlock");
     fxaa=settings::getSetting<bool>("fxaa");
@@ -467,12 +483,12 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
   }
 
   if(View) {
-    if(!window)
+    if(!glfwWindow)
       initWindow();
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
     fitscreen();
-    Aspect=((double) width)/height;
+    Aspect=((double) Width)/Height;
     setosize();
     initializedView=true;
   }
@@ -487,7 +503,7 @@ void AsyVkRender::vkrender(VkrenderFunctionArgs const& args)
 #endif
 }
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 void AsyVkRender::initVulkan()
 {
 #ifdef __APPLE__
@@ -540,6 +556,9 @@ void AsyVkRender::initVulkan()
   createDebugMessenger();
   if (View) createSurface();
   pickPhysicalDevice();
+
+  if(isNVIDIA30xx(physicalDevice.getProperties().deviceName))
+    interlock = false;
 
   fpu_trap(false); // Work around FE_INVALID.
 
@@ -870,7 +889,7 @@ void AsyVkRender::createDebugMessenger()
           },
           this
   );
-  this->debugUtilsMsg=
+  debugUtilsMsg=
           instance->createDebugUtilsMessengerEXTUnique(
           debugCreateInfo);
 #endif
@@ -880,7 +899,7 @@ void AsyVkRender::createSurface()
 {
 #if defined(_WIN32)
   vk::Win32SurfaceCreateInfoKHR createInfo = {};
-  createInfo.hwnd = glfwGetWin32Window(window);
+  createInfo.hwnd = glfwGetWin32Window(getGLFWWindow());
   createInfo.hinstance = GetModuleHandleA(nullptr);
 
   vk::SurfaceKHR tmpSurface;
@@ -894,7 +913,7 @@ void AsyVkRender::createSurface()
   surface=vk::UniqueSurfaceKHR(tmpSurface);
 #else
   VkSurfaceKHR surfaceTmp;
-  if (glfwCreateWindowSurface(*instance, window, nullptr, &surfaceTmp) != VK_SUCCESS)
+  if (glfwCreateWindowSurface(*instance, getGLFWWindow(), nullptr, &surfaceTmp) != VK_SUCCESS)
     runtimeError("failed to create window surface");
   surface=vk::UniqueSurfaceKHR(surfaceTmp, *instance);
 #endif
@@ -954,7 +973,7 @@ void AsyVkRender::pickPhysicalDevice()
       {
         size_t score = 0u;
 
-        if (!this->isDeviceSuitable(device))
+        if (!isDeviceSuitable(device))
           return score;
 
         auto const msaa = getMaxMSAASamples(device).second;
@@ -1373,7 +1392,7 @@ void AsyVkRender::createSwapChain()
 
   auto const swapDetails = SwapChainDetails(physicalDevice, *surface);
   auto && format = swapDetails.chooseSurfaceFormat();
-  auto && extent = swapDetails.chooseExtent(width,height);
+  auto && extent = swapDetails.chooseExtent(Width,Height);
 
   vk::ImageUsageFlags swapchainImgUsageFlags =
           vk::ImageUsageFlagBits::eColorAttachment
@@ -1431,7 +1450,7 @@ void AsyVkRender::createSwapChain()
 }
 
 void AsyVkRender::createOffscreenBuffers() {
-  backbufferExtent=vk::Extent2D(width, height);
+  backbufferExtent=vk::Extent2D(Width, Height);
 
   auto usageBits=vk::ImageUsageFlagBits::eColorAttachment |
     vk::ImageUsageFlagBits::eTransferSrc;
@@ -2761,7 +2780,7 @@ void AsyVkRender::createImmediateRenderTargets()
 
 void AsyVkRender::createDependentBuffers()
 {
-  render(); // Determine whether the scene is opaque.
+  prepareScene(); // Determine whether the scene is opaque.
   redisplay=true;
 
   if(Opaque == 1)
@@ -3536,21 +3555,6 @@ void AsyVkRender::createComputePipeline(
   std::vector<vk::DescriptorSetLayout> const& descSetLayout
 )
 {
-  auto const filename = SHADER_DIRECTORY + shaderFile + ".glsl";
-
-  std::vector<std::string> options;
-
-  modifyShaderOptions(options, PIPELINE_DONTCARE);
-
-  vk::UniqueShaderModule computeShaderModule = createShaderModule(EShLangCompute, filename, options);
-
-  auto computeShaderStageInfo = vk::PipelineShaderStageCreateInfo(
-    vk::PipelineShaderStageCreateFlags(),
-    vk::ShaderStageFlagBits::eCompute,
-    *computeShaderModule,
-    "main"
-  );
-
   auto miscConstant = vk::PushConstantRange(
     vk::ShaderStageFlagBits::eCompute,
     0,
@@ -3569,12 +3573,38 @@ void AsyVkRender::createComputePipeline(
 
   layout = device->createPipelineLayoutUnique(pipelineLayoutCI, nullptr);
 
-  auto computePipelineCI = vk::ComputePipelineCreateInfo();
+  createComputePipelineOnly(*layout, pipeline, shaderFile);
+}
 
-  computePipelineCI.layout = *layout;
+// Create a compute pipeline using an existing layout (does NOT create a new layout).
+// This is needed when multiple compute pipelines share the same VkPipelineLayout,
+// since createComputePipeline() would otherwise destroy and recreate the layout
+// on each call, leaving earlier pipelines referencing a destroyed object.
+void AsyVkRender::createComputePipelineOnly(
+  vk::PipelineLayout layout,
+  vk::UniquePipeline& pipeline,
+  std::string const& shaderFile
+)
+{
+  auto const filename = SHADER_DIRECTORY + shaderFile + ".glsl";
+
+  std::vector<std::string> options;
+  modifyShaderOptions(options, PIPELINE_DONTCARE);
+
+  vk::UniqueShaderModule computeShaderModule = createShaderModule(EShLangCompute, filename, options);
+
+  auto computeShaderStageInfo = vk::PipelineShaderStageCreateInfo(
+    vk::PipelineShaderStageCreateFlags(),
+    vk::ShaderStageFlagBits::eCompute,
+    *computeShaderModule,
+    "main"
+  );
+
+  auto computePipelineCI = vk::ComputePipelineCreateInfo();
+  computePipelineCI.layout = layout;
   computePipelineCI.stage = computeShaderStageInfo;
 
-auto result = device->createComputePipelineUnique(VK_NULL_HANDLE, computePipelineCI);
+  auto result = device->createComputePipelineUnique(VK_NULL_HANDLE, computePipelineCI);
   if (result.result != vk::Result::eSuccess)
     runtimeError("failed to create compute pipeline");
   else
@@ -3584,9 +3614,14 @@ auto result = device->createComputePipelineUnique(VK_NULL_HANDLE, computePipelin
 void AsyVkRender::createComputePipelines()
 {
   std::vector const computeDescSetLayoutVec { *computeDescriptorSetLayout };
+
+  // Create the shared pipeline layout only once, then create all three
+  // pipelines using it.  Previously each call to createComputePipeline()
+  // created a new layout and destroyed the old one, leaving sum1Pipeline
+  // and sum2Pipeline referencing a destroyed VkPipelineLayout.
   createComputePipeline(sumPipelineLayout, sum1Pipeline, "sum1", computeDescSetLayoutVec);
-  createComputePipeline(sumPipelineLayout, sum2Pipeline, "sum2", computeDescSetLayoutVec);
-  createComputePipeline(sumPipelineLayout, sum3Pipeline, "sum3", computeDescSetLayoutVec);
+  createComputePipelineOnly(*sumPipelineLayout, sum2Pipeline, "sum2");
+  createComputePipelineOnly(*sumPipelineLayout, sum3Pipeline, "sum3");
 
   if (fxaa)
   {
@@ -3629,9 +3664,13 @@ void AsyVkRender::updateUniformBuffer(uint32_t currentFrame)
 
   UniformBufferObject ubo{ };
 
-  ubo.projViewMat = projViewMat;
-  ubo.viewMat = viewMat;
-  ubo.normMat = normMat;
+  // Access matrices directly to avoid synchronization
+  ubo.projViewMat = mat4(getProjViewMat());
+  ubo.viewMat = mat4(viewMat);
+  // Fill normMat as 3 vec4 columns for std140 mat3 layout (48 bytes)
+  ubo.normMat[0] = vec4(normMat[0], 0.0f);
+  ubo.normMat[1] = vec4(normMat[1], 0.0f);
+  ubo.normMat[2] = vec4(normMat[2], 0.0f);
 
   memcpy(frameObjects[currentFrame].uboMappedMemory->getCopyPtr(), &ubo, sizeof(ubo));
 
@@ -3815,16 +3854,6 @@ void AsyVkRender::endFrame(int imageIndex)
 {
   endFrameRender();
   endFrameCommands();
-}
-
-void AsyVkRender::clearData()
-{
-  pointData.clear();
-  lineData.clear();
-  materialData.clear();
-  colorData.clear();
-  triangleData.clear();
-  transparentData.clear();
 }
 
 void AsyVkRender::drawPoints(FrameObject & object)
@@ -4509,289 +4538,35 @@ void AsyVkRender::drawFrame()
   currentFrame = (currentFrame + 1) % maxFramesInFlight;
 }
 
-void AsyVkRender::nextFrame()
+/**
+ * Show the window if hidden (GLFW-specific implementation).
+ */
+void AsyVkRender::showWindow()
 {
-#ifdef HAVE_PTHREAD
-  endwait(readySignal,readyLock);
-#endif
-  double delay=settings::getSetting<double>("framerate");
-  if(delay != 0.0) delay=1.0/delay;
-  double seconds=frameTimer.seconds(true);
-  delay -= seconds;
-  if(delay > 0) {
-    std::this_thread::sleep_for(std::chrono::duration<double>(delay));
-  }
+  GLFWwindow* win = getRenderWindow();
+  if(View && !hideWindow && !glfwGetWindowAttrib(win,GLFW_VISIBLE))
+    ::glfwShowWindow(win);
 }
 
-void AsyVkRender::clearBuffers()
+/**
+ * Swap front and back buffers (Vulkan-specific implementation).
+ */
+void AsyVkRender::swapBuffers()
 {
-  // Get the most recent frame that was started and wait for it
-  // to finish before clearing buffers
-  int previousFrameIndex = currentFrame - 1;
-
-  if (previousFrameIndex < 0) {
-    previousFrameIndex = maxFramesInFlight - 1;
-  }
-
-  (void) device->waitForFences(1, &*frameObjects[previousFrameIndex].inFlightFence, VK_TRUE, timeout);
-
-  for (int i = 0; i < maxFramesInFlight; i++) {
-    frameObjects[i].reset();
-  }
+  // Vulkan buffer swap is handled in drawFrame() via present
 }
 
-void AsyVkRender::render()
+GLFWwindow* AsyVkRender::getRenderWindow() const
 {
-
-#ifdef HAVE_PTHREAD
-  static bool first=true;
-  if(vkthread && first) {
-    wait(initSignal,initLock);
-    endwait(initSignal,initLock);
-    first=false;
-  }
-
-  if(format3dWait)
-    wait(initSignal,initLock);
-#endif
-
-  if(redraw) {
-    clearData();
-
-    if(remesh)
-      clearCenters();
-
-    triple m(xmin,ymin,Zmin);
-    triple M(xmax,ymax,Zmax);
-    double perspective=orthographic || Zmax == 0.0 ? 0.0 : 1.0/Zmax;
-
-    double size2=hypot(width,height);
-
-    pic->render(size2,m,M,perspective,remesh);
-    redraw=false;
-
-    if(mode != DRAWMODE_OUTLINE)
-      remesh=false;
-
-    Opaque=transparentData.indices.empty();
-  }
-}
-
-void AsyVkRender::display()
-{
-  render();
-
-  if(View && !hideWindow && !glfwGetWindowAttrib(window,GLFW_VISIBLE))
-    glfwShowWindow(window);
-
-  drawFrame();
-
-  bool fps=settings::verbose > 2;
-  if(fps) {
-    if(framecount < 20) // Measure steady-state framerate
-      fpsTimer.reset();
-    else {
-      double s=fpsTimer.seconds(true);
-      if(s > 0.0) {
-        double rate=1.0/s;
-        fpsStats.add(rate);
-        if(framecount % 20 == 0)
-          cout << "FPS=" << rate << "\t" << fpsStats.mean()
-               << " +/- " << fpsStats.stdev() << endl;
-      }
-    }
-    ++framecount;
-  }
-
-  if(!vkthread) {
-#if defined(_WIN32)
-// TODO: Check if we need a threadless-based vk renderer
-#else
-    if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
-      kill(Oldpid,SIGHUP);
-      Oldpid=0;
-    }
-#endif
-  }
-}
-
-void AsyVkRender::processMessages(VulkanRendererMessage const& msg)
-{
-  switch (msg)
-  {
-    case exportRender: {
-      if (readyForExport)
-      {
-        readyForExport=false;
-        exportHandler(0);
-      }
-    }
-      break;
-    case updateRenderer: {
-      updateHandler(0);
-    }
-      break;
-    default:
-      break;
-  }
-}
-
-void AsyVkRender::mainLoop()
-{
-  if(View) {
-    while(!glfwWindowShouldClose(window)) {
-      if(redraw || redisplay || queueExport)
-        {
-        redisplay=false;
-        waitEvent=true;
-        if(resize) {
-          fitscreen(!interact::interactive);
-          resize=false;
-        }
-        display();
-      }
-
-      auto const message=messageQueue.dequeue();
-      if(message.has_value())
-        processMessages(*message);
-
-      if(currentIdleFunc != nullptr) {
-        currentIdleFunc();
-        glfwPollEvents();
-      } else {
-        if(waitEvent)
-          glfwWaitEvents();
-        else
-          glfwPollEvents();
-      }
-    }
-  } else {
-    update();
-    display();
-    if(vkthread) {
-      if(havewindow) {
-#ifdef HAVE_PTHREAD
-        if(pthread_equal(pthread_self(),this->mainthread))
-          exportHandler();
-        else
-          messageQueue.enqueue(exportRender);
-#endif
-      } else {
-        initialized=true;
-        readyForExport=true;
-        exportHandler();
-      }
-    } else {
-      exportHandler();
-      quit();
-    }
-  }
-}
-
-void AsyVkRender::updateProjection()
-{
-  projViewMat=projMat*viewMat;
-}
-
-void AsyVkRender::frustum(double left, double right, double bottom,
-                          double top, double nearVal, double farVal)
-{
-  projMat = glm::frustum(left, right, bottom, top, nearVal, farVal);
-  updateProjection();
-}
-
-void AsyVkRender::ortho(double left, double right, double bottom,
-                        double top, double nearVal, double farVal)
-{
-  projMat = glm::ortho(left, right, bottom, top, nearVal, farVal);
-  updateProjection();
+  return static_cast<GLFWwindow*>(glfwWindow);
 }
 
 #endif
-
-void AsyVkRender::clearCenters()
-{
-  camp::drawElement::centers.clear();
-  camp::drawElement::centermap.clear();
-}
-
-void AsyVkRender::clearMaterials()
-{
-  materials.clear();
-  materialMap.clear();
-}
-
-#ifdef HAVE_VULKAN
-
-void AsyVkRender::expand()
-{
-  double resizeStep=settings::getSetting<double>("resizestep");
-  if(resizeStep > 0.0)
-    setsize((int) (width*resizeStep+0.5),(int) (height*resizeStep+0.5));
-}
-
-void AsyVkRender::shrink()
-{
-  double resizeStep=settings::getSetting<double>("resizestep");
-  if(resizeStep > 0.0)
-    setsize(max((int) (width/resizeStep+0.5),1),
-            max((int) (height/resizeStep+0.5),1));
-}
-
-projection AsyVkRender::camera(bool user)
-{
-  if(!device) return projection();
-
-  camp::Triple vCamera,vUp,vTarget;
-
-  double cz=0.5*(Zmin+Zmax);
-
-  double *Rotate=value_ptr(rotateMat);
-
-  if(user) {
-    double shift[]={0.0,0.0,0.0,0.0};
-    for(int i=0; i < 3; ++i) {
-      double sumCamera=0.0, sumTarget=0.0, sumUp=0.0;
-      int i4=4*i;
-      shift[3]=T[i4+2]*cz;
-      for(int j=0; j < 4; ++j) {
-        int j4=4*j;
-        double R0=Rotate[j4];
-        double R1=Rotate[j4+1];
-        double R2=Rotate[j4+2];
-        double R3=Rotate[j4+3];
-        double T4ij=T[i4+j]+shift[j]; // T -> T*shift(0,0,cz);
-        sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
-        sumUp += Tup[i4+j]*R1;
-        sumTarget += T4ij*(R3-cx*R0-cy*R1);
-      }
-      vCamera[i]=sumCamera;
-      vUp[i]=sumUp;
-      vTarget[i]=sumTarget;
-    }
-  } else {
-    for(int i=0; i < 3; ++i) {
-      int i4=4*i;
-      double R0=Rotate[i4];
-      double R1=Rotate[i4+1];
-      double R2=Rotate[i4+2];
-      double R3=Rotate[i4+3];
-      vCamera[i]=R3-cx*R0-cy*R1-cz*R2;
-      vUp[i]=R1;
-      vTarget[i]=R3-cx*R0-cy*R1;
-    }
-  }
-
-  return projection(orthographic,vCamera,vUp,vTarget,Zoom,
-                    2.0*atan(tan(0.5*Angle)/Zoom)/radians,
-                    pair(X/width+Shift.getx(),
-                         Y/height+Shift.gety()));
-}
 
 void AsyVkRender::exportHandler(int) {
 
-  vk->readyAfterExport=true;
-  vk->Export(0);
+  readyAfterExport=true;
+  Export(0);
 }
 
 void AsyVkRender::Export(int imageIndex) {
@@ -4892,6 +4667,9 @@ void AsyVkRender::Export(int imageIndex) {
   picture pic;
   double w=oWidth;
   double h=oHeight;
+  double Aspect=((double) Width)/Height;
+  if(w > h*Aspect) w=(int) (h*Aspect+0.5);
+  else h=(int) (w/Aspect+0.5);
 
   if(settings::verbose > 1)
     cout << "Exporting " << Prefix << " as " << fullWidth << "x"
@@ -4912,360 +4690,41 @@ void AsyVkRender::Export(int imageIndex) {
   redraw=true;
 
 #ifdef HAVE_PTHREAD
-  if(vkthread && readyAfterExport) {
+  if(threads && readyAfterExport) {
     readyAfterExport=false;
     endwait(readySignal,readyLock);
   }
 #endif
 }
 
-void AsyVkRender::quit()
+void AsyVkRender::finalizeProcess()
 {
-#ifdef HAVE_VULKAN
-  resize=false;
-  if(vkthread) {
-    redraw=false;
-    waitEvent=false;
-#ifdef HAVE_PTHREAD
-    if(!interact::interactive) {
-      idle();
-      endwait(readySignal,readyLock);
-    }
-
-#endif
-    if(View) {
-      glfwHideWindow(window);
-      hideWindow=true;
-    }
-  } else {
-    if(View) {
-       if(window) {
-        glfwDestroyWindow(window);
-        window=nullptr;
-      }
-      glfwTerminate();
-    }
-    glslang::FinalizeProcess();
-
-    exit(0);
-  }
+#ifdef HAVE_RENDERER
+  glslang::FinalizeProcess();
 #endif
 }
 
-#ifdef HAVE_VULKAN
+void AsyVkRender::reshape(int width, int height) {
+  // Base class handles dimension updates and projection
+  AsyRender::reshape(width, height);
 
-void AsyVkRender::idleFunc(std::function<void()> f)
-{
-  spinTimer.reset();
-  currentIdleFunc = f;
-}
-
-void AsyVkRender::idle()
-{
-  idleFunc(nullptr);
-  Xspin=Yspin=Zspin=false;
-}
-
-double AsyVkRender::spinStep()
-{
-  return settings::getSetting<double>("spinstep")*spinTimer.seconds(true);
-}
-
-void AsyVkRender::rotateX(double step)
-{
-  dmat4 tmpRot(1.0);
-  tmpRot=rotate(tmpRot,glm::radians(step),dvec3(1,0,0));
-  rotateMat=tmpRot*rotateMat;
-
-  update();
-}
-
-void AsyVkRender::rotateY(double step)
-{
-  dmat4 tmpRot(1.0);
-  tmpRot=rotate(tmpRot,glm::radians(step),dvec3(0,1,0));
-  rotateMat=tmpRot*rotateMat;
-
-  update();
-}
-
-void AsyVkRender::rotateZ(double step)
-{
-  dmat4 tmpRot(1.0);
-  tmpRot=rotate(tmpRot,glm::radians(step),dvec3(0,0,1));
-  rotateMat=tmpRot*rotateMat;
-
-  update();
-}
-
-void AsyVkRender::xspin()
-{
-  rotateX(spinStep());
-}
-
-void AsyVkRender::yspin()
-{
-  rotateY(spinStep());
-}
-
-void AsyVkRender::zspin()
-{
-  rotateZ(spinStep());
-}
-
-void AsyVkRender::spinx()
-{
-  if(Xspin)
-    idle();
-  else {
-    idleFunc([this](){xspin();});
-    Xspin=true;
-    Yspin=Zspin=false;
-  }
-}
-
-void AsyVkRender::spiny()
-{
-  if(Yspin)
-    idle();
-  else {
-    idleFunc([this](){yspin();});
-    Yspin=true;
-    Xspin=Zspin=false;
-  }
-}
-
-void AsyVkRender::spinz()
-{
-  if(Zspin)
-    idle();
-  else {
-    idleFunc([this](){zspin();});
-    Zspin=true;
-    Xspin=Yspin=false;
-  }
-}
-
-void AsyVkRender::showCamera()
-{
-  projection P=camera();
-  string projection=P.orthographic ? "orthographic(" : "perspective(";
-  string indent(2+projection.length(),' ');
-  cout << endl
-       << "currentprojection=" << endl << "  "
-       << projection << "camera=" << P.camera << "," << endl
-       << indent << "up=" << P.up << "," << endl
-       << indent << "target=" << P.target << "," << endl
-       << indent << "zoom=" << P.zoom;
-  if(!orthographic)
-    cout << "," << endl << indent << "angle=" << P.angle;
-  if(P.viewportshift != pair(0.0,0.0))
-    cout << "," << endl << indent << "viewportshift=" << P.viewportshift*Zoom;
-  if(!orthographic)
-    cout << "," << endl << indent << "autoadjust=false";
-  cout << ");" << endl;
-}
-
-void AsyVkRender::shift(double dx, double dy)
-{
-  double Zoominv=1.0/Zoom;
-
-  X += dx*Zoominv;
-  Y += -dy*Zoominv;
-  update();
-}
-
-void AsyVkRender::pan(double dx, double dy)
-{
-  if(orthographic)
-    shift(dx,dy);
-  else {
-    cx += dx * (xmax - xmin) / width;
-    cy -= dy * (ymax - ymin) / height;
-    update();
-  }
-}
-
-void AsyVkRender::capzoom()
-{
-  static double maxzoom=sqrt(DBL_MAX);
-  static double minzoom=1.0/maxzoom;
-  if(Zoom <= minzoom) Zoom=minzoom;
-  if(Zoom >= maxzoom) Zoom=maxzoom;
-
-  if(fabs(Zoom-lastzoom) > settings::getSetting<double>("zoomThreshold")) {
-    remesh=true;
-    lastzoom=Zoom;
-  }
-}
-
-void AsyVkRender::zoom(double dx, double dy)
-{
-  double zoomFactor=settings::getSetting<double>("zoomfactor");
-  if (zoomFactor > 0.0) {
-    double zoomStep=settings::getSetting<double>("zoomstep");
-    const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
-    double stepPower=zoomStep*dy;
-    if(fabs(stepPower) < limit) {
-      Zoom *= std::pow(zoomFactor,-stepPower);
-      update();
-    }
-  }
-}
-
-void AsyVkRender::capsize(int& width, int& height) {
-
-  if(width > screenWidth)
-    width=screenWidth;
-  if(height > screenHeight)
-    height=screenHeight;
-}
-
-void AsyVkRender::windowposition(int& x, int& y, int Width, int Height)
-{
-  if (width == -1) {
-    Width=width;
-  }
-  if (height == -1) {
-    Height=height;
-  }
-
-  pair z=settings::getSetting<pair>("position");
-  x=(int) z.getx();
-  y=(int) z.gety();
-  if(x < 0) {
-    x += screenWidth-width;
-    if(x < 0) x=0;
-  }
-  if(y < 0) {
-    y += screenHeight-height;
-    if(y < 0) y=0;
-  }
-}
-
-void AsyVkRender::setsize(int w, int h, bool reposition) {
-  int x,y;
-  capsize(w,h);
-
-  if (View) {
-    glfwSetWindowSize(window, w, h);
-
-    if (reposition) {
-      windowposition(x, y, w, h);
-      glfwSetWindowPos(window, x, y);
-    }
-  }
-
-  reshape0(w,h);
-  update();
-}
-
-void AsyVkRender::fullscreen(bool reposition)
-{
-  width=screenWidth;
-  height=screenHeight;
-  Xfactor=((double) screenHeight)/height;
-  Yfactor=((double) screenWidth)/width;
-  if(reposition)
-    glfwSetWindowPos(window, 0, 0);
-  setsize(width,height,reposition);
-}
-
-void AsyVkRender::reshape0(int Width, int Height) {
-  X=(X/width)*Width;
-  Y=(Y/height)*Height;
-
-  width=Width;
-  height=Height;
-
-  static int lastWidth=1;
-  static int lastHeight=1;
-  if(View && width*height > 1 &&
-     (width != lastWidth || height != lastHeight)) {
-
-    if(settings::verbose > 1)
-      cout << "Rendering " << stripDir(Prefix) << " as "
-           << width << "x" << height << " image" << endl;
-    lastWidth=width;
-    lastHeight=height;
-  }
-
-  setProjection();
-  framebufferResized=true;
-}
-
-void AsyVkRender::setosize() {
-  oldWidth=(int) ceil(oWidth);
-  oldHeight=(int) ceil(oHeight);
-}
-
-void AsyVkRender::fitscreen(bool reposition) {
-  switch(Fitscreen) {
-    case 0: // Original size
-    {
-      Xfactor=Yfactor=1.0;
-      double pixelRatio=settings::getSetting<double>("devicepixelratio");
-      setsize(oldWidth*pixelRatio,oldHeight*pixelRatio,reposition);
-      break;
-    }
-    case 1: // Fit to screen in one dimension
-    {
-      int w=screenWidth;
-      int h=screenHeight;
-      if(w > h*Aspect)
-        w=min((int) ceil(h*Aspect),w);
-      else
-        h=min((int) ceil(w/Aspect),h);
-
-      setsize(w,h,reposition);
-      break;
-    }
-    case 2: // Full screen
-    {
-      fullscreen(reposition);
-      break;
-    }
-  }
-}
-
-void AsyVkRender::toggleFitScreen() {
-  glfwHideWindow(window);
-  Fitscreen = (Fitscreen + 1) % 3;
-  fitscreen();
-}
-
-void AsyVkRender::home(bool webgl) {
-  if(!webgl)
-    idle();
-  X = Y = cx = cy = 0;
-  rotateMat = viewMat = dmat4(1.0);
-  lastzoom=Zoom=Zoom0;
-  framecount=0;
-
-  setProjection();
-  updateModelViewData();
+  // Vulkan-specific: flag for swapchain recreation
+  framebufferResized = true;
 }
 
 void AsyVkRender::cycleMode() {
-  if(device)
+  // Wait for GPU to finish (Vulkan-specific)
+  if (device) {
     device->waitIdle();
-  mode=DrawMode((mode + 1) % DRAWMODE_MAX);
-  remesh=true;
-  redraw=true;
-  newUniformBuffer=true;
+  }
 
-  if (mode == DRAWMODE_NORMAL) {
-    ibl=settings::getSetting<bool>("ibl");
-  }
-  if (mode == DRAWMODE_OUTLINE) {
-    ibl=false;
-  }
-  recreatePipeline=true;
+  // Use base class implementation for mode cycling
+  AsyRender::cycleMode();
+
+  // Vulkan-specific: update uniform buffer and pipeline flags
+  newUniformBuffer = true;
+  recreatePipeline = true;
 }
-
-#endif
-
-#endif
 
 } // namespace camp
 

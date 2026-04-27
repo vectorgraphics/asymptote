@@ -17,10 +17,11 @@
 #include "common.h"
 
 #include "vk.h"
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 #include <vma_cxx.h>
 
 #include <glslang/Public/ShaderLang.h>
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #endif
 
@@ -29,68 +30,18 @@
 #include "triple.h"
 #include "seconds.h"
 #include "statistics.h"
-#include "ThreadSafeQueue.h"
-#include "vkRenderMessages.h"
 
 #include "render.h"
+#include "renderBase.h"
+#include "glfw.h"
 
 namespace camp
 {
 class picture;
 
-#define EMPTY_VIEW 0, nullptr
-#define SINGLETON_VIEW(x) 1, &(x)
-#define VEC_VIEW(x) static_cast<uint32_t>((x).size()), (x).data()
-#define STD_ARR_VIEW(x) static_cast<uint32_t>((x).size()), (x).data()
-#define ARR_VIEW(x) static_cast<uint32_t>(sizeof(x) / sizeof((x)[0])), x
-#define RAW_VIEW(x) static_cast<uint32_t>(sizeof(x)), x
-#define ST_VIEW(s) static_cast<uint32_t>(sizeof(s)), &s
-
-template<class T>
-inline T ceilquotient(T a, T b)
-{
-  return (a + b - 1) / b;
-}
-
-inline void store(float* f, double* C)
-{
-  f[0] = C[0];
-  f[1] = C[1];
-  f[2] = C[2];
-}
-
-inline void store(float* control, const triple& v)
-{
-  control[0] = v.getx();
-  control[1] = v.gety();
-  control[2] = v.getz();
-}
-
-inline void store(float* control, const triple& v, double weight)
-{
-  control[0] = v.getx() * weight;
-  control[1] = v.gety() * weight;
-  control[2] = v.getz() * weight;
-  control[3] = weight;
-}
-
 std::vector<char> readFile(const std::string& filename);
 
-enum DrawMode: int
-{
-   DRAWMODE_NORMAL,
-   DRAWMODE_OUTLINE,
-   DRAWMODE_WIREFRAME,
-   DRAWMODE_MAX
-};
-
-struct Light
-{
-  glm::vec4 direction;
-  glm::vec4 color;
-};
-
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 struct SwapChainDetails {
   vk::SurfaceCapabilitiesKHR capabilities;
   std::vector<vk::SurfaceFormatKHR> formats;
@@ -118,9 +69,10 @@ struct QueueFamilyIndices {
 };
 
 struct UniformBufferObject {
-  glm::mat4 projViewMat { };
-  glm::mat4 viewMat { };
-  glm::mat4 normMat { };
+  glm::mat4 projViewMat;
+  glm::mat4 viewMat;
+  // GLSL mat3 in std140 = 3 columns of vec4 (48 bytes)
+  glm::vec4 normMat[3];
 };
 
 struct PushConstants
@@ -137,214 +89,64 @@ struct ComputePushConstants {
     uint32_t final;
 };
 
-struct Arcball {
-  double angle;
-  triple axis;
+extern glm::dmat4 projViewMat;  // Deprecated - use getProjViewMat() instead
+extern glm::dmat4 normMat;      // Deprecated - use getNormMat() instead
 
-  Arcball(double x0, double y0, double x, double y)
-  {
-    triple v0 = norm(x0, y0);
-    triple v1 = norm(x, y);
-    double Dot = dot(v0, v1);
-    angle = Dot > 1.0 ? 0.0 : Dot < -1.0 ? M_PI
-                                         : acos(Dot);
-    axis = unit(cross(v0, v1));
-  }
+// Accessor functions to avoid synchronization with vk instance
+const glm::dmat4& getProjViewMat();
+const glm::dmat3& getNormMat();
 
-  triple norm(double x, double y)
-  {
-    double norm = hypot(x, y);
-    if (norm > 1.0) {
-      double denom = 1.0 / norm;
-      x *= denom;
-      y *= denom;
-    }
-    return triple(x, y, sqrt(max(1.0 - x * x - y * y, 0.0)));
-  }
-};
-
-struct projection
-{
-public:
-  bool orthographic;
-  camp::triple camera;
-  camp::triple up;
-  camp::triple target;
-  double zoom;
-  double angle;
-  camp::pair viewportshift;
-
-  projection(bool orthographic=false, camp::triple camera=0.0,
-             camp::triple up=0.0, camp::triple target=0.0,
-             double zoom=0.0, double angle=0.0,
-             camp::pair viewportshift=0.0) :
-    orthographic(orthographic), camera(camera), up(up), target(target),
-    zoom(zoom), angle(angle), viewportshift(viewportshift) {}
-};
-
-#ifdef HAVE_VULKAN
-constexpr
-std::array<const char*, 4> deviceExtensions
-{
-  VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME,
-  VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
-  VK_KHR_MULTIVIEW_EXTENSION_NAME,
-  VK_KHR_MAINTENANCE2_EXTENSION_NAME
-};
-
-constexpr auto VB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer;
-constexpr auto IB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer;
-#endif
-
-extern glm::dmat4 projViewMat;
-extern glm::dmat4 normMat;
-
-class AsyVkRender
+class AsyVkRender : public AsyRender, public RenderCallbacks
 {
 public:
 
   AsyVkRender() = default;
   ~AsyVkRender();
 
-  /** Argument for AsyVkRender::vkrender function */
-  struct VkrenderFunctionArgs: public gc
-  {
-    string prefix;
-    picture const* pic;
-    string format;
-    double width;
-    double height;
-    double angle;
-    double zoom;
-    triple m;
-    triple M;
-    pair shift;
-    pair margin;
+  // Implementation of base class pure virtual (actual rendering implementation)
+  void render(RenderFunctionArgs const& args) override;
 
-    double* t;
-    double* tup;
-    double* background;
-
-    size_t nlightsin;
-
-    triple* lights;
-    double* diffuse;
-    double* specular;
-
-    bool view;
-    int oldpid=0;
-  };
-
-  void vkrender(VkrenderFunctionArgs const& args);
-
-  double getRenderResolution(triple Min) const;
+  // RenderCallbacks interface implementation (GLFW callbacks)
+  void onMouseButton(int button, int action, int mods) override;
+  void onFramebufferResize(int width, int height) override;
+  void onScroll(double xoffset, double yoffset) override;
+  void onCursorPos(double xpos, double ypos) override;
+  void onKey(int key, int scancode, int action, int mods) override;
+  void onWindowFocus(int focused) override;
+  void onClose() override;
 
   bool framebufferResized=false;
   bool recreatePipeline=false;
   bool recreateBlendPipeline=false;
   bool shouldUpdateBuffers=true;
   bool newUniformBuffer=true;
-  bool queueExport=false;
-  bool ibl=false;
+  // Note: ibl is now in base class AsyRender
   bool vkexit=false;
-  bool hideWindow=false;
-  bool haveScene;
 
-  bool vkthread=false;
-  bool initialize=true;
-  bool copied=false;
+  // Note: initialize and copied are now in base class as 'initialized' and 'copied'
 
   int maxFramesInFlight;
-  size_t framecount;
 
-  DrawMode mode = DRAWMODE_NORMAL;
-  std::string title = "";
-
-  /**
-   * @remark Main thread is the consumer, other thread is the sender of messages;
-   */
-   ThreadSafeQueue<VulkanRendererMessage> messageQueue;
-
-#ifdef HAVE_PTHREAD
-  pthread_t mainthread;
-
-  pthread_cond_t initSignal = PTHREAD_COND_INITIALIZER;
-  pthread_mutex_t initLock = PTHREAD_MUTEX_INITIALIZER;
-
-  pthread_cond_t readySignal = PTHREAD_COND_INITIALIZER;
-  pthread_mutex_t readyLock = PTHREAD_MUTEX_INITIALIZER;
-
-  void endwait(pthread_cond_t& signal, pthread_mutex_t& lock)
-  {
-    pthread_mutex_lock(&lock);
-    pthread_cond_signal(&signal);
-    pthread_mutex_unlock(&lock);
-  }
-  void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
-  {
-    pthread_mutex_lock(&lock);
-    pthread_cond_signal(&signal);
-    pthread_cond_wait(&signal,&lock);
-    pthread_mutex_unlock(&lock);
-  }
-#endif
-
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
   vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
 #endif
 
-  std::vector<Material> materials;
-  MaterialMap materialMap;
-
-  bool Opaque;
   std::uint32_t pixels;
-  bool orthographic;
-
-  glm::dmat4 rotateMat;
-  glm::dmat4 projMat;
-  glm::dmat4 viewMat;
-
-  double xmin, xmax;
-  double ymin, ymax;
-
-  double Xmin, Xmax;
-  double Ymin, Ymax;
-  double Zmin, Zmax;
-
-  int fullWidth, fullHeight;
-  double X,Y;
-  double Angle;
-  double Zoom;
-  double Zoom0;
-  pair Shift;
-  pair Margin;
-  double ArcballFactor;
-
-  camp::triple* Lights;
-  double* LightsDiffuse;
-  size_t nlights;
-  std::array<float, 4> Background;
 
   const double* dprojView;
   const double* dView;
-
-  double T[16];
-  double Tup[16];
-
-  void updateProjection();
-  void frustum(double left, double right, double bottom,
-               double top, double nearVal, double farVal);
-  void ortho(double left, double right, double bottom,
-             double top, double nearVal, double farVal);
-
-  void clearCenters();
-  void clearMaterials();
-
-  bool redraw=false;
-  bool redisplay=false;
-  bool resize=false;
 private:
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
+  static constexpr std::array<const char*, 4> deviceExtensions = {
+    VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME,
+    VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
+    VK_KHR_MULTIVIEW_EXTENSION_NAME,
+    VK_KHR_MAINTENANCE2_EXTENSION_NAME
+  };
+
+  static constexpr auto VB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer;
+  static constexpr auto IB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer;
+
   struct DeviceBuffer {
     vk::BufferUsageFlags usage;
     VkMemoryPropertyFlagBits properties;
@@ -362,42 +164,6 @@ private:
   };
 #endif
 
-  const double pi=acos(-1.0);
-  const double degrees=180.0/pi;
-  const double radians=1.0/degrees;
-
-  const picture* pic = nullptr;
-
-  double H;
-  double Xfactor, Yfactor;
-  double cx, cy;
-
-  int screenWidth, screenHeight;
-  int width, height;
-  int oldWidth,oldHeight;
-  double Aspect;
-  double oWidth, oHeight;
-  double lastzoom;
-  int Fitscreen=1;
-  int Oldpid;
-
-  utils::stopWatch spinTimer;
-  utils::stopWatch fpsTimer;
-  utils::stopWatch frameTimer;
-  utils::statistics fpsStats;
-  std::function<void()> currentIdleFunc = nullptr;
-  bool Xspin = false;
-  bool Yspin = false;
-  bool Zspin = false;
-  string Format;
-  bool View = false;
-  string Prefix;
-  bool ViewExport;
-  bool antialias = false;
-  bool readyAfterExport=false;
-
-  bool remesh=true;
-  bool interlock=false;
   bool GPUcompress=false;
   bool fxaa=false;
   bool srgb=false;
@@ -424,9 +190,8 @@ private:
 
   size_t nmaterials=1; // Number of materials currently allocated in memory
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_RENDERER
 
-  GLFWwindow* window=nullptr;
   vk::UniqueInstance instance;
 
   std::vector<const char*> validationLayers {};
@@ -670,28 +435,16 @@ private:
   uint32_t currentFrame = 0;
   vk::CommandBuffer currentCommandBuffer;
   std::vector<FrameObject> frameObjects;
-  std::string lastAction = "";
-
 #endif
 
-  void setDimensions(int Width, int Height, double X, double Y);
-  void updateModelViewData();
-  void setProjection();
-  void update();
+protected:
+  void updateModelViewData() override;
+  void setProjection() override;
 
-  static void updateHandler(int);
+public:
+  void updateHandler(int=0) override;
 
-  static std::string getAction(int button, int mod);
-
-#ifdef HAVE_VULKAN
-  static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-  static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
-  static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
-  static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
-  static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-  static void windowFocusCallback(GLFWwindow* window, int focused);
-  static void closeWindowHandler(GLFWwindow* window);
-
+#ifdef HAVE_RENDERER
   void initWindow();
   void initVulkan();
 
@@ -866,6 +619,11 @@ private:
     std::string const& shaderFile,
     std::vector<vk::DescriptorSetLayout> const& descSetLayout
   );
+  void createComputePipelineOnly(
+    vk::PipelineLayout layout,
+    vk::UniquePipeline & pipeline,
+    std::string const& shaderFile
+  );
   void createComputePipelines();
 
   void createAttachments();
@@ -887,32 +645,22 @@ private:
   void blendFrame(int imageIndex);
   void preDrawBuffers(FrameObject & object, int imageIndex);
   void drawBuffers(FrameObject & object, int imageIndex);
-  void drawFrame();
+  void drawFrame() override;
+  void swapBuffers() override;
+  void showWindow() override;
   void recreateSwapChain();
   void initializeSwapChainIfNeeded();
   vk::UniqueShaderModule createShaderModule(EShLanguage lang, std::string const & filename, std::vector<std::string> const & options);
 #endif
 
-  void nextFrame();
-  void clearBuffers();
-  void render();
-  void display();
-  void mainLoop();
+  GLFWwindow* getRenderWindow() const;
   void cleanup();
-  void processMessages(VulkanRendererMessage const& msg);
-
-  void idleFunc(std::function<void()> f);
-  void idle();
 
   // user controls
-  static void exportHandler(int=0);
-  void Export(int imageIndex);
-  bool readyForExport=false;
+  void exportHandler(int=0) override;
+  void Export(int imageIndex=0) override;
   bool readyForUpdate=false;
-  bool waitEvent=true;
-  bool initialized=false;
-  bool havewindow=false;
-  bool format3dWait=false;
+  // Note: initialized and format3dWait are now in base class AsyRender
 
   struct PipelineConfig {
     vk::PrimitiveTopology topology;
@@ -939,43 +687,18 @@ private:
     PipelineType end = PIPELINE_MAX
   );
 
-  void quit();
+  // Graphics library cleanup
+  void finalizeProcess() override;
 
-  double spinStep();
-  void rotateX(double step);
-  void rotateY(double step);
-  void rotateZ(double step);
-  void xspin();
-  void yspin();
-  void zspin();
-  void spinx();
-  void spiny();
-  void spinz();
+  /** Returns the GLFW window pointer (does the static_cast from void* once) */
+  GLFWwindow* getGLFWWindow() const { return static_cast<GLFWwindow*>(glfwWindow); }
 
-  void expand();
-  void shrink();
-  projection camera(bool user=true);
-  void showCamera();
-  void shift(double dx, double dy);
-  void pan(double dx, double dy);
-  void capzoom();
-  void zoom(double dx, double dy);
-  void capsize(int& w, int& h);
-  void windowposition(int& x, int& y, int width=-1, int height=-1);
-  void setsize(int w, int h, bool reposition=true);
-  void fullscreen(bool reposition=true);
-  void reshape0(int width, int height);
-  void setosize();
-  void fitscreen(bool reposition=true);
-  void toggleFitScreen();
-  void home(bool webgl=false);
-  void cycleMode();
+  // Vulkan-specific overrides that add to base class behavior
+  virtual void reshape(int width, int height) override;
+  virtual void cycleMode() override;
 
-  friend struct SwapChainDetails;
-  friend void glfwInitWindow(AsyVkRender*, int, int, const std::string&);
+  friend void glfwInitWindow(AsyRender*, int, int, const std::string&);
   friend void glfwCleanupWindow(AsyVkRender*);
 };
-
-extern AsyVkRender* vk;
 
 } // namespace camp
