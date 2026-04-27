@@ -1145,6 +1145,10 @@ void displayFeatures(bool enabled)
     sigsegv=true;
 #endif
 
+#ifdef USEGC
+    usegc=true;
+#endif
+
 #ifdef HAVE_PTHREAD
     usethreads=true;
 #endif
