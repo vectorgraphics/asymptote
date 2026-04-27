@@ -145,7 +145,7 @@ struct VertexBuffer {
   std::vector<PointVertex> pointVertices;
   std::vector<std::uint32_t> indices;
 
-  int renderCount=0;  // Are all patches in this buffer fully rendered?
+  int renderCount=0;  // Number of frames this data has been drawn on
   bool copiedThisFrame=false;
 
   VertexBuffer()

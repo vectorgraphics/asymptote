@@ -964,17 +964,22 @@ void AsyGLRender::setUniformsOpenGL(GLint shader)
   if(shader != lastshader) {
     glUseProgram(shader);
 
+    // Cache uniform locations when shader changes
+    projViewLoc = glGetUniformLocation(shader,"projViewMat");
+    viewMatLoc = glGetUniformLocation(shader,"viewMat");
+    normMatLoc = glGetUniformLocation(shader,"normMat");
+
     if(normal)
       glUniform1ui(glGetUniformLocation(shader,"width"),Width);
   }
 
-  glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
+  glUniformMatrix4fv(projViewLoc,1,GL_FALSE,
                      value_ptr(mat4(projViewMat)));
 
-  glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE,
+  glUniformMatrix4fv(viewMatLoc,1,GL_FALSE,
                      value_ptr(mat4(viewMat)));
   if(normal)
-    glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE,
+    glUniformMatrix3fv(normMatLoc,1,GL_FALSE,
                        value_ptr(mat3(normMat)));
 
   if(shader == countShader) {
@@ -1024,35 +1029,34 @@ void AsyGLRender::drawBuffer(VertexBuffer& data, GLint shader, bool color, unsig
   if(data.indices.empty()) return;
 
   // Check for OpenGL errors before drawing
-  GLenum err = glGetError();
-  if(err != GL_NO_ERROR && settings::verbose > 2) {
-    cerr << "drawBuffer: OpenGL error at start: " << err << endl;
-  }
 
+  if(settings::verbose > 2) {
+    GLenum err = glGetError();
+    if(err != GL_NO_ERROR) {
+     cerr << "drawBuffer: OpenGL error at start: " << err << endl;
+    }
+  }
   bool normal=shader != pixelShader;
 
-  // VAO is already bound in setBuffers()
+  // Determine whether we need to upload data to the GPU.
+  // Upload if: scene was remeshed, or buffer hasn't been rendered yet,
+  // and we haven't already copied this frame (after SSBO count pass).
+  bool copy = (remesh || data.renderCount == 0) && !copied;
 
-  GLuint vertexBuffer = 0;
-  glGenBuffers(1, &vertexBuffer);
-  glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+  // Get persistent GL buffer handles for this VertexBuffer instance
+  auto& glBuf = glBuffers[&data];
 
+  // Upload vertex data using persistent buffer
   if(color) {
-    glBufferData(GL_ARRAY_BUFFER, data.colorVertices.size() * sizeof(ColorVertex),
-                 data.colorVertices.data(), GL_DYNAMIC_DRAW);
+    registerBuffer(data.colorVertices, glBuf.vertexBuffer, copy, GL_ARRAY_BUFFER);
   } else if(normal) {
-    glBufferData(GL_ARRAY_BUFFER, data.materialVertices.size() * sizeof(MaterialVertex),
-                 data.materialVertices.data(), GL_DYNAMIC_DRAW);
+    registerBuffer(data.materialVertices, glBuf.vertexBuffer, copy, GL_ARRAY_BUFFER);
   } else {
-    glBufferData(GL_ARRAY_BUFFER, data.pointVertices.size() * sizeof(PointVertex),
-                 data.pointVertices.data(), GL_DYNAMIC_DRAW);
+    registerBuffer(data.pointVertices, glBuf.vertexBuffer, copy, GL_ARRAY_BUFFER);
   }
 
-  GLuint indexBuffer = 0;
-  glGenBuffers(1, &indexBuffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.indices.size() * sizeof(uint32_t),
-               data.indices.data(), GL_DYNAMIC_DRAW);
+  // Upload index data using persistent buffer
+  registerBuffer(data.indices, glBuf.indexBuffer, copy, GL_ELEMENT_ARRAY_BUFFER);
 
   setUniformsOpenGL(shader);
 
@@ -1106,13 +1110,6 @@ void AsyGLRender::drawBuffer(VertexBuffer& data, GLint shader, bool color, unsig
 
   fpu_trap(false); // Work around FE_INVALID
   glDrawElements(drawType, data.indices.size(), GL_UNSIGNED_INT, (void *) 0);
-
-  // Check for OpenGL errors after draw call
-  GLenum err2 = glGetError();
-  if(err2 != GL_NO_ERROR && settings::verbose > 1) {
-    cerr << "drawBuffer: OpenGL error after glDrawElements: " << err2 << endl;
-  }
-
   fpu_trap(settings::trap());
 
   // Disable attribute arrays but keep VAO bound for next draw call
@@ -1125,8 +1122,7 @@ void AsyGLRender::drawBuffer(VertexBuffer& data, GLint shader, bool color, unsig
   if(color)
     glDisableVertexAttribArray(colorAttrib);
 
-  glDeleteBuffers(1, &vertexBuffer);
-  glDeleteBuffers(1, &indexBuffer);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
@@ -1180,7 +1176,7 @@ void AsyGLRender::aBufferTransparency()
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDrawArrays(GL_TRIANGLES,0,3);
   fpu_trap(settings::trap());
-  // Don't clear transparentData - it needs to persist for subsequent frames
+  transparentData.clear();
   glEnable(GL_DEPTH_TEST);
 }
 
@@ -1196,28 +1192,21 @@ void AsyGLRender::drawTransparent()
     glDepthMask(GL_FALSE); // Don't write to depth buffer
     drawBuffer(transparentData,transparentShader,true,4);
     glDepthMask(GL_TRUE); // Write to depth buffer
-    // Don't clear transparentData - it needs to persist for subsequent frames
+    transparentData.clear();
   }
 }
 
 void AsyGLRender::drawBuffers()
 {
+  copied=false;
   Opaque=transparentData.indices.empty();
   bool transparent=!Opaque;
-
   if(ssbo) {
     if(transparent) {
       refreshBuffers();
-      // Reset copiedThisFrame after count pass so render pass can upload
-      pointData.copiedThisFrame = false;
-      lineData.copiedThisFrame = false;
-      materialData.copiedThisFrame = false;
-      colorData.copiedThisFrame = false;
-      triangleData.copiedThisFrame = false;
-      transparentData.copiedThisFrame = false;
-
       if(!interlock) {
         resizeFragmentBuffer();
+        copied=true;
       }
     }
   }
@@ -1229,6 +1218,8 @@ void AsyGLRender::drawBuffers()
   drawTriangle();
 
   if(transparent) {
+    if(ssbo)
+      copied=true;
     if(interlock) resizeFragmentBuffer();
     drawTransparent();
   }
@@ -1271,6 +1262,13 @@ AsyGLRender::~AsyGLRender()
   if(opaqueBuffer) glDeleteBuffers(1, &opaqueBuffer);
   if(opaqueDepthBuffer) glDeleteBuffers(1, &opaqueDepthBuffer);
   if(feedbackBuffer) glDeleteBuffers(1, &feedbackBuffer);
+
+  // Cleanup persistent vertex/index buffers from VertexBuffer instances
+  for (auto& [vb, glBuf] : glBuffers) {
+    if (glBuf.vertexBuffer) glDeleteBuffers(1, &glBuf.vertexBuffer);
+    if (glBuf.indexBuffer) glDeleteBuffers(1, &glBuf.indexBuffer);
+  }
+  glBuffers.clear();
 #endif
 }
 

@@ -7,6 +7,7 @@
 #define GLRENDER_H
 
 #include "common.h"
+#include <unordered_map>
 
 #ifdef HAVE_RENDERER
 
@@ -129,6 +130,7 @@ public:
   bool glupdate = false;
   bool glexit = false;
   bool shouldUpdateBuffers = true;
+  bool copied = false;   // Per-frame flag: set true after SSBO count pass to skip redundant uploads
 
   size_t Nlights = 1;
   size_t nmaterials = 0;
@@ -175,6 +177,16 @@ public:
 
   // Rendering state (ssbo, interlock, initSSBO now in base class)
   GLint lastshader = -1;
+
+  // Cached uniform locations (set when shader changes)
+  GLint projViewLoc = -1;
+  GLint viewMatLoc = -1;
+  GLint normMatLoc = -1;
+
+  // Persistent GL buffer handles per VertexBuffer instance.
+  // Stored here (not in VertexBuffer) to keep render.h library-agnostic.
+  struct GLBufferPair { GLuint vertexBuffer=0; GLuint indexBuffer=0; };
+  std::unordered_map<VertexBuffer*, GLBufferPair> glBuffers;
   GLuint fragments = 0;
   GLuint maxFragments = 0;
   GLuint maxSize = 1;

@@ -169,7 +169,7 @@ void AsyRender::prepareScene()
 #endif
 
   if(redraw) {
-    clearData();
+    clearData(); // TODO: remove this redundancy for OpenGL (soon Vulkan too)
 
     if(remesh)
       clearCenters();

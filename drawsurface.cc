@@ -272,6 +272,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
     S.data.clear();
     S.transparent=transparent;
     S.color=colors;
+    S.notRendered();
     return;
   }
 
@@ -522,6 +523,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
     S.data.clear();
     S.transparent=transparent;
     S.color=colors;
+    S.notRendered();
     return;
   }
 
@@ -998,6 +1000,7 @@ void drawTriangles::render(double size2, const triple& b,
     R.Onscreen=false;
     R.data.clear();
     R.transparent=transparent;
+    R.notRendered();
     return;
   }
 
