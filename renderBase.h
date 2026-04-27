@@ -129,7 +129,8 @@ struct Arcball {
     double Dot = dot(v0, v1);
     angle = Dot > 1.0 ? 0.0 : Dot < -1.0 ? M_PI
                                          : acos(Dot);
-    axis = unit(cross(v0, v1));
+    static triple Z(0.0, 0.0, 1.0);
+    axis = unit(cross(v0, v1), Z);
   }
 
   triple norm(double x, double y)

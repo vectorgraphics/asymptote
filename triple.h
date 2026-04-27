@@ -274,12 +274,14 @@ public:
     return angle(x,y,warn);
   }
 
-  friend triple unit(const triple& v)
+  friend triple unit(const triple& v, const triple& v0=triple(0.0,0.0,0.0))
   {
     double scale=v.length();
-    if(scale == 0.0) return v;
-    scale=1.0/scale;
-    return triple(v.x*scale,v.y*scale,v.z*scale);
+    if(std::fpclassify(scale) == FP_NORMAL) {
+      scale=1.0/scale;
+      return triple(v.x*scale,v.y*scale,v.z*scale);
+    } else
+      return v0;
   }
 
   friend double dot(const triple& u, const triple& v)

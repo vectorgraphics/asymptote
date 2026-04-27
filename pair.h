@@ -161,14 +161,14 @@ public:
     return z.angle(warn);
   }
 
-  friend pair unit(const pair& z)
+  friend pair unit(const pair& z, const pair& z0=pair(0.0,0.0))
   {
     double scale=z.length();
     if(std::fpclassify(scale) == FP_NORMAL) {
       scale=1.0/scale;
       return pair(z.x*scale,z.y*scale);
     } else
-      return z;
+      return z0;
   }
 
   friend pair conj(const pair& z)
