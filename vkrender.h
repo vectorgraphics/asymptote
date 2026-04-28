@@ -381,6 +381,7 @@ private:
     uint64_t computeTimelineValue = 0;
     vk::UniqueSemaphore imageAvailableSemaphore;
     vk::UniqueSemaphore inCountBufferCopy;
+    vk::UniqueSemaphore transferDoneSemaphore;
     vk::UniqueFence inFlightFence;
     vk::UniqueFence inComputeFence;
     vk::UniqueEvent compressionFinishedEvent;
@@ -394,6 +395,7 @@ private:
     vk::UniqueCommandBuffer computeCommandBuffer;
     vk::UniqueCommandBuffer partialSumsCommandBuffer;
     vk::UniqueCommandBuffer copyCountCommandBuffer;
+    bool transferHasPendingWork = false;
 
     vk::UniqueDescriptorSet descriptorSet;
 
@@ -546,6 +548,7 @@ public:
           VmaMemoryUsage const& memoryUsage=VMA_MEMORY_USAGE_AUTO,
           const char* bufferName = nullptr);
   void copyBufferToBuffer(const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize size);
+  static void recordBufferCopy(vk::CommandBuffer cmd, const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize size);
   void copyToBuffer(
           const vk::Buffer& buffer,
           const void* data,
@@ -634,7 +637,6 @@ public:
   void drawColors(FrameObject & object);
   void drawTriangles(FrameObject & object);
   void drawTransparent(FrameObject & object);
-  void clearData();
   void partialSums(FrameObject & object, bool timing=false);
   void resizeBlendShader(std::uint32_t maxDepth);
   void resizeFragmentBuffer(FrameObject & object);
@@ -643,6 +645,8 @@ public:
   void blendFrame(int imageIndex);
   void preDrawBuffers(FrameObject & object, int imageIndex);
   void drawBuffers(FrameObject & object, int imageIndex);
+  void beginTransferRecording(FrameObject & object);
+  void endAndSubmitTransfers(FrameObject & object, vk::Queue queue);
   void drawFrame() override;
   void swapBuffers() override;
   void showWindow() override;

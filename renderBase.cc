@@ -143,16 +143,6 @@ void AsyRender::clearMaterials()
   materialMap.clear();
 }
 
-void AsyRender::clearData()
-{
-  pointData.clear();
-  lineData.clear();
-  materialData.clear();
-  colorData.clear();
-  triangleData.clear();
-  transparentData.clear();
-}
-
 void AsyRender::prepareScene()
 {
 
@@ -169,10 +159,6 @@ void AsyRender::prepareScene()
 #endif
 
   if(redraw) {
-    if(vulkan)
-      clearData(); // TODO: remove this redundancy once Vulkan uses
-                   // persistent buffers
-
     if(remesh)
       clearCenters();
 

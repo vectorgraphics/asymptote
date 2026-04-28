@@ -1649,6 +1649,7 @@ void AsyVkRender::createSyncObjects()
   for (auto i = 0; i < maxFramesInFlight; i++) {
     frameObjects[i].imageAvailableSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].inCountBufferCopy = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
+    frameObjects[i].transferDoneSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].inFlightFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
     frameObjects[i].inComputeFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
     frameObjects[i].compressionFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
@@ -1660,12 +1661,7 @@ void AsyVkRender::createSyncObjects()
 }
 
 void AsyVkRender::waitForEvent(vk::Event event) {
-  vk::Result result;
-
-  do
-  {
-    result = device->getEventStatus(event);
-  } while(result != vk::Result::eEventSet);
+  while (device->getEventStatus(event) != vk::Result::eEventSet) {}
 }
 
 uint32_t AsyVkRender::selectMemory(const vk::MemoryRequirements memRequirements, const vk::MemoryPropertyFlags properties)
@@ -1720,6 +1716,38 @@ void AsyVkRender::copyBufferToBuffer(const vk::Buffer& srcBuffer, const vk::Buff
   vkutils::checkVkResult(device->waitForFences(
     1, &*fence, VK_TRUE, timeout
   ));
+}
+
+void AsyVkRender::recordBufferCopy(vk::CommandBuffer cmd, const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize size)
+{
+  auto copyRegion = vk::BufferCopy(0, 0, size);
+  cmd.copyBuffer(srcBuffer, dstBuffer, copyRegion);
+}
+
+void AsyVkRender::beginTransferRecording(FrameObject & object)
+{
+  object.transferHasPendingWork = false;
+  if (object.copyCountCommandBuffer) {
+    object.copyCountCommandBuffer->begin(vk::CommandBufferBeginInfo());
+  }
+}
+
+void AsyVkRender::endAndSubmitTransfers(FrameObject & object, vk::Queue queue)
+{
+  if (!object.copyCountCommandBuffer || !object.transferHasPendingWork)
+    return;
+
+  object.copyCountCommandBuffer->end();
+
+  // Signal the transfer-done semaphore so render can wait on it
+  std::vector<vk::Semaphore> signalSems = {*object.transferDoneSemaphore};
+  auto submitInfo = vk::SubmitInfo(0, nullptr, nullptr, 1, &*object.copyCountCommandBuffer,
+                                   1, signalSems.data());
+  vkutils::checkVkResult(queue.submit(1, &submitInfo, nullptr));
+
+  // Reset the command buffer for next use (it will be re-begun in beginTransferRecording)
+  object.transferHasPendingWork = false;
+  object.copyCountCommandBuffer->reset();
 }
 
 void AsyVkRender::copyToBuffer(
@@ -1977,7 +2005,25 @@ void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data,
   }
 
   if (data) {
+    // Copy data into the staging buffer on the CPU side
+    {
+      vma::cxx::MemoryMapperLock const stgBufMemPtr(buffer._stgBuffer);
+      memcpy(stgBufMemPtr.getCopyPtr(), data, size);
+    }
+    // Record the GPU copy command into the frame's transfer command buffer
+    // instead of submitting synchronously. The transfer will be submitted
+    // once before rendering begins.
+    auto& frame = frameObjects[currentFrame];
+    if (!frame.copyCountCommandBuffer) {
+      // Fallback: use synchronous copy if no transfer command buffer available
       copyToBuffer(buffer._buffer.getBuffer(), data, size, buffer._stgBuffer);
+    } else {
+      recordBufferCopy(*frame.copyCountCommandBuffer,
+                       buffer._stgBuffer.getBuffer(),
+                       buffer._buffer.getBuffer(),
+                       size);
+      frame.transferHasPendingWork = true;
+    }
   }
 }
 
@@ -3829,6 +3875,7 @@ void AsyVkRender::drawPoints(FrameObject & object)
              object.pointIndexBuffer,
              &pointData,
              *getPipelineType(pointPipelines));
+  pointData.clear();
 }
 
 void AsyVkRender::drawLines(FrameObject & object)
@@ -3837,6 +3884,7 @@ void AsyVkRender::drawLines(FrameObject & object)
              object.lineIndexBuffer,
              &lineData,
              *getPipelineType(linePipelines));
+  lineData.clear();
 }
 
 void AsyVkRender::drawMaterials(FrameObject & object)
@@ -3845,6 +3893,7 @@ void AsyVkRender::drawMaterials(FrameObject & object)
              object.materialIndexBuffer,
              &materialData,
              *getPipelineType(materialPipelines));
+  materialData.clear();
 }
 
 void AsyVkRender::drawColors(FrameObject & object)
@@ -3853,6 +3902,7 @@ void AsyVkRender::drawColors(FrameObject & object)
              object.colorIndexBuffer,
              &colorData,
              *getPipelineType(colorPipelines));
+  colorData.clear();
 }
 
 void AsyVkRender::drawTriangles(FrameObject & object)
@@ -3861,6 +3911,7 @@ void AsyVkRender::drawTriangles(FrameObject & object)
              object.triangleIndexBuffer,
              &triangleData,
              *getPipelineType(trianglePipelines));
+  triangleData.clear();
 }
 
 void AsyVkRender::drawTransparent(FrameObject & object)
@@ -3869,6 +3920,7 @@ void AsyVkRender::drawTransparent(FrameObject & object)
              object.transparentIndexBuffer,
              &transparentData,
              *getPipelineType(transparentPipelines));
+  transparentData.clear();
 }
 
 void AsyVkRender::partialSums(FrameObject & object, bool timing)
@@ -3967,7 +4019,12 @@ void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
 }
 
 void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
-  waitForEvent(*object.sumFinishedEvent);
+  // Wait on the fence from the count+compute submission instead of polling an event.
+  // The fence puts the OS thread to sleep (zero CPU waste), whereas waitForEvent()
+  // busy-waits in a tight loop.
+  vkutils::checkVkResult(device->waitForFences(
+    1, &*object.inComputeFence, VK_TRUE, timeout
+  ));
 
   // Ensure we have the latest data from GPU
   feedbackMappedPtr->invalidate();
@@ -4125,6 +4182,12 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   // It MUST be synchronized with a fence because the CPU needs to read back the results
   // in resizeFragmentBuffer before the main graphics pass can be recorded.
 
+  // Check if we have pending transfers before ending them
+  bool hasPendingTransfers = object.transferHasPendingWork;
+
+  // End and submit any pending buffer transfers before the count pass
+  endAndSubmitTransfers(object, transferQueue);
+
   // Use timeline semaphore for more efficient synchronization
   currentTimelineValue++;
   object.computeTimelineValue = currentTimelineValue;
@@ -4137,11 +4200,16 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   // Reset the fence before submission
   (void) device->resetFences(1, &*object.inComputeFence);
 
-  std::vector<vk::SemaphoreSubmitInfo> signalSemInfos = {
-    {*renderTimelineSemaphore, object.computeTimelineValue, vk::PipelineStageFlagBits2::eAllCommands}
-    };
+  // Wait for transfers to complete before executing count/compute passes
+  std::vector<vk::SemaphoreSubmitInfo> waitSemInfos;
+  if (hasPendingTransfers) {
+    waitSemInfos.push_back({*object.transferDoneSemaphore, 0, vk::PipelineStageFlagBits2::eAllCommands});
+  }
 
-  vk::SubmitInfo2 submitInfo2({}, {}, cmdBufferInfos, signalSemInfos);
+  std::vector<vk::SemaphoreSubmitInfo> signalSemInfos;
+  signalSemInfos.push_back({*renderTimelineSemaphore, object.computeTimelineValue, vk::PipelineStageFlagBits2::eAllCommands});
+
+  vk::SubmitInfo2 submitInfo2({}, waitSemInfos, cmdBufferInfos, signalSemInfos);
   vkutils::checkVkResult(renderQueue.submit2(1, &submitInfo2, *object.inComputeFence));
 
   if(settings::verbose >= timePartialSumVerbosity) {
@@ -4204,6 +4272,9 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
 
     object.countCommandBuffer->reset();
     object.computeCommandBuffer->reset();
+
+    // Begin recording buffer transfers for the count pass
+    beginTransferRecording(object);
 
     refreshBuffers(object, imageIndex);
     resizeFragmentBuffer(object);
@@ -4347,6 +4418,9 @@ void AsyVkRender::drawFrame()
     outOfMemory();
   }
 
+  // Begin recording buffer transfers for the main render pass
+  beginTransferRecording(frameObject);
+
   beginFrameCommands(getFrameCommandBuffer());
   drawBuffers(frameObject, imageIndex);
   if (fxaa) {
@@ -4384,6 +4458,10 @@ void AsyVkRender::drawFrame()
   }
   endFrameCommands();
 
+  // End and submit any pending buffer transfers before the main render pass
+  bool hasPendingTransfers = frameObject.transferHasPendingWork;
+  endAndSubmitTransfers(frameObject, transferQueue);
+
   std::vector<vk::Semaphore> waitSems;
   std::vector<uint64_t> waitSemaphoreValues;
   // For Vulkan 1.3+ style submission
@@ -4393,6 +4471,12 @@ void AsyVkRender::drawFrame()
   if (View) {
       waitSems.push_back(*frameObject.imageAvailableSemaphore);
       waitStages.push_back(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+  }
+
+  // Wait for buffer transfers to complete before rendering
+  if (hasPendingTransfers) {
+      waitSems.push_back(*frameObject.transferDoneSemaphore);
+      waitStages.push_back(vk::PipelineStageFlagBits::eAllCommands);
   }
 
   std::vector<vk::Semaphore> signalSems;

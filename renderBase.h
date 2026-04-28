@@ -409,7 +409,6 @@ public:
   // Clear functions (public for external access)
   void clearCenters();
   void clearMaterials();
-  void clearData();
   void prepareScene();
 
   // Camera and view manipulation
