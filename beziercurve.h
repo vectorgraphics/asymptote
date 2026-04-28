@@ -44,7 +44,7 @@ struct BezierCurve
   }
 
   void notRendered() {
-    lineData.renderCount=0;
+    lineData.rendered=false;
   }
 
   void queue(const triple *g, bool straight, double ratio) {
@@ -65,7 +65,7 @@ struct Pixel
   }
 
   void notRendered() {
-    pointData.renderCount=0;
+    pointData.rendered=false;
   }
 
   void queue(const triple& p, double width) {

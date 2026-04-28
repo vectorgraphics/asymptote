@@ -169,7 +169,9 @@ void AsyRender::prepareScene()
 #endif
 
   if(redraw) {
-    clearData(); // TODO: remove this redundancy for OpenGL (soon Vulkan too)
+    if(vulkan)
+      clearData(); // TODO: remove this redundancy once Vulkan uses
+                   // persistent buffers
 
     if(remesh)
       clearCenters();

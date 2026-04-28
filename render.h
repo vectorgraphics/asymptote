@@ -145,8 +145,8 @@ struct VertexBuffer {
   std::vector<PointVertex> pointVertices;
   std::vector<std::uint32_t> indices;
 
-  int renderCount=0;  // Number of frames this data has been drawn on
-  bool copiedThisFrame=false;
+  bool rendered=false;  // Has this buffer been subdivided/rendered?
+  bool copiedThisFrame=false;  // Vulkan: has data been uploaded to the current frame's GPU buffers?
 
   VertexBuffer()
   {

@@ -164,12 +164,12 @@ struct BezierPatch
 
   virtual void notRendered() {
     if(transparent)
-      transparentData.renderCount=0;
+      transparentData.rendered=false;
     else {
       if(color)
-        colorData.renderCount=0;
+        colorData.rendered=false;
       else
-        materialData.renderCount=0;
+        materialData.rendered=false;
     }
   }
 
@@ -240,9 +240,9 @@ public:
 
   void notRendered() {
     if(transparent)
-      transparentData.renderCount=0;
+      transparentData.rendered=false;
     else
-      triangleData.renderCount=0;
+      triangleData.rendered=false;
   }
 };
 

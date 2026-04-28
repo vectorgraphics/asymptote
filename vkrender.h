@@ -123,8 +123,6 @@ public:
   // Note: ibl is now in base class AsyRender
   bool vkexit=false;
 
-  // Note: initialize and copied are now in base class as 'initialized' and 'copied'
-
   int maxFramesInFlight;
 
 #ifdef HAVE_RENDERER
@@ -498,8 +496,7 @@ public:
    void drawBuffer(DeviceBuffer & vertexBuffer,
                   DeviceBuffer & indexBuffer,
                   VertexBuffer * data,
-                  vk::Pipeline pipeline,
-                  bool incrementRenderCount=true);
+                  vk::Pipeline pipeline);
   void postProcessImage(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex);
   void copyToSwapchainImg(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex);
   void endFrameRender();

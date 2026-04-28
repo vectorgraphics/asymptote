@@ -229,10 +229,10 @@ void AsyGLRender::setBuffers()
   glBindVertexArray(vao);
 
   // Buffers are pre-sized as needed, no explicit reserve calls needed
-  materialData.renderCount=0;
-  colorData.renderCount=0;
-  triangleData.renderCount=0;
-  transparentData.renderCount=0;
+  materialData.rendered=false;
+  colorData.rendered=false;
+  triangleData.rendered=false;
+  transparentData.rendered=false;
 
   // Create materials uniform buffer
   glGenBuffers(1, &materialsBuffer);
@@ -899,7 +899,7 @@ void AsyGLRender::refreshBuffers()
     g=ceilquotient(elements,groupSize);
     elements=groupSize*g;
 
-    if(settings::verbose > 3) {
+    if(settings::verbose > timePartialSumVerbosity) {
       static bool first=true;
       if(first) {
         partialSums();
@@ -1030,7 +1030,7 @@ void AsyGLRender::drawBuffer(VertexBuffer& data, GLint shader, bool color, unsig
 
   // Check for OpenGL errors before drawing
 
-  if(settings::verbose > 2) {
+  if(settings::verbose > 3) {
     GLenum err = glGetError();
     if(err != GL_NO_ERROR) {
      cerr << "drawBuffer: OpenGL error at start: " << err << endl;
@@ -1038,10 +1038,7 @@ void AsyGLRender::drawBuffer(VertexBuffer& data, GLint shader, bool color, unsig
   }
   bool normal=shader != pixelShader;
 
-  // Determine whether we need to upload data to the GPU.
-  // Upload if: scene was remeshed, or buffer hasn't been rendered yet,
-  // and we haven't already copied this frame (after SSBO count pass).
-  bool copy = (remesh || data.renderCount == 0) && !copied;
+  bool copy = (remesh || !data.rendered) && !copied;
 
   // Get persistent GL buffer handles for this VertexBuffer instance
   auto& glBuf = glBuffers[&data];
@@ -1060,7 +1057,7 @@ void AsyGLRender::drawBuffer(VertexBuffer& data, GLint shader, bool color, unsig
 
   setUniformsOpenGL(shader);
 
-  data.renderCount++;
+  data.rendered = true;
 
   // Position attribute (3 floats)
   if(color) {
@@ -1127,31 +1124,31 @@ void AsyGLRender::drawBuffer(VertexBuffer& data, GLint shader, bool color, unsig
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void AsyGLRender::drawMaterial0()
+void AsyGLRender::drawPoints()
 {
   drawBuffer(pointData,pixelShader,false,0);  // GL_POINTS
   pointData.clear();
 }
 
-void AsyGLRender::drawMaterial1()
+void AsyGLRender::drawLines()
 {
   drawBuffer(lineData,materialShader[Opaque],false,1);  // GL_LINES
   lineData.clear();
 }
 
-void AsyGLRender::drawMaterial()
+void AsyGLRender::drawMaterials()
 {
   drawBuffer(materialData,materialShader[Opaque]);  // default GL_TRIANGLES
   materialData.clear();
 }
 
-void AsyGLRender::drawColor()
+void AsyGLRender::drawColors()
 {
   drawBuffer(colorData,colorShader[Opaque],true);  // default GL_TRIANGLES
   colorData.clear();
 }
 
-void AsyGLRender::drawTriangle()
+void AsyGLRender::drawTriangles()
 {
   drawBuffer(triangleData,generalShader[Opaque],true);  // default GL_TRIANGLES
   triangleData.clear();
@@ -1188,7 +1185,7 @@ void AsyGLRender::drawTransparent()
     glEnable(GL_MULTISAMPLE);
   } else {
     sortTriangles();
-    transparentData.renderCount=0; // Force re-upload of sorted triangles to GPU
+    transparentData.rendered=false; // Force re-upload of sorted triangles to GPU
     glDepthMask(GL_FALSE); // Don't write to depth buffer
     drawBuffer(transparentData,transparentShader,true,4);
     glDepthMask(GL_TRUE); // Write to depth buffer
@@ -1199,6 +1196,7 @@ void AsyGLRender::drawTransparent()
 void AsyGLRender::drawBuffers()
 {
   copied=false;
+
   Opaque=transparentData.indices.empty();
   bool transparent=!Opaque;
   if(ssbo) {
@@ -1211,11 +1209,11 @@ void AsyGLRender::drawBuffers()
     }
   }
 
-  drawMaterial0();
-  drawMaterial1();
-  drawMaterial();
-  drawColor();
-  drawTriangle();
+  drawPoints();
+  drawLines();
+  drawMaterials();
+  drawColors();
+  drawTriangles();
 
   if(transparent) {
     if(ssbo)

@@ -124,6 +124,9 @@ enum DrawMode: int
 
 constexpr int NUM_DRAW_MODES = 3;
 
+// Verbosity threshold for timing partial sums (GPU indexing benchmarking)
+constexpr Int timePartialSumVerbosity = 4;
+
 struct Light
 {
   glm::vec4 direction;

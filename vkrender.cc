@@ -76,8 +76,6 @@ const glm::dmat3& getNormMat()
   return gl->normMat;
 }
 
-const Int timePartialSumVerbosity=4;
-
 std::vector<char> readFile(const std::string& filename)
 {
   std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -3772,14 +3770,12 @@ void AsyVkRender::resetFrameCopyData()
 void AsyVkRender::drawBuffer(DeviceBuffer & vertexBuffer,
                              DeviceBuffer & indexBuffer,
                              VertexBuffer * data,
-                             vk::Pipeline pipeline,
-                             bool incrementRenderCount) {
+                             vk::Pipeline pipeline) {
   if (data->indices.empty())
     return;
 
   auto const badBuffer = static_cast<void*>(vertexBuffer._buffer.getBuffer()) == nullptr;
-  auto const rendered = data->renderCount >= maxFramesInFlight;
-  auto const copy = (remesh || !rendered || badBuffer) && !copied && !data->copiedThisFrame;
+  auto const copy = (remesh || !data->rendered || badBuffer) && !copied && !data->copiedThisFrame;
 
   if (copy) {
 
@@ -3812,8 +3808,7 @@ void AsyVkRender::drawBuffer(DeviceBuffer & vertexBuffer,
   currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
   currentCommandBuffer.drawIndexed(indexBuffer.nobjects, 1, 0, 0, 0);
 
-  if(incrementRenderCount)
-    data->renderCount++;
+  data->rendered = true;
 }
 
 void AsyVkRender::endFrameRender()
@@ -4023,28 +4018,23 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     drawBuffer(object.pointVertexBuffer,
                object.pointIndexBuffer,
                &pointData,
-               *pointPipelines[PIPELINE_COUNT],
-               false);
+               *pointPipelines[PIPELINE_COUNT]);
     drawBuffer(object.lineVertexBuffer,
                object.lineIndexBuffer,
                &lineData,
-               *linePipelines[PIPELINE_COUNT],
-               false);
+               *linePipelines[PIPELINE_COUNT]);
     drawBuffer(object.materialVertexBuffer,
                object.materialIndexBuffer,
                &materialData,
-               *materialPipelines[PIPELINE_COUNT],
-               false);
+               *materialPipelines[PIPELINE_COUNT]);
     drawBuffer(object.colorVertexBuffer,
                object.colorIndexBuffer,
                &colorData,
-               *colorPipelines[PIPELINE_COUNT],
-               false);
+               *colorPipelines[PIPELINE_COUNT]);
     drawBuffer(object.triangleVertexBuffer,
                object.triangleIndexBuffer,
                &triangleData,
-               *trianglePipelines[PIPELINE_COUNT],
-               false);
+               *trianglePipelines[PIPELINE_COUNT]);
   }
 
   currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
@@ -4053,8 +4043,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   drawBuffer(object.transparentVertexBuffer,
              object.transparentIndexBuffer,
              &transparentData,
-             *transparentPipelines[PIPELINE_COUNT],
-             false);
+             *transparentPipelines[PIPELINE_COUNT]);
 
   currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
 

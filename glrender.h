@@ -240,11 +240,11 @@ public:
   void refreshBuffers();
   void setUniformsOpenGL(GLint shader);
   void drawBuffer(VertexBuffer& data, GLint shader, bool color=false, unsigned int drawType=4);
-  void drawMaterial0();
-  void drawMaterial1();
-  void drawMaterial();
-  void drawColor();
-  void drawTriangle();
+  void drawPoints();
+  void drawLines();
+  void drawMaterials();
+  void drawColors();
+  void drawTriangles();
   void aBufferTransparency();
   void drawTransparent();
   void drawBuffers();
