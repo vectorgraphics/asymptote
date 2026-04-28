@@ -149,6 +149,7 @@ private:
     vk::BufferUsageFlags usage;
     VkMemoryPropertyFlagBits properties;
     size_t nobjects;
+    vk::DeviceSize bufferSize = 0;
     vk::DeviceSize stgBufferSize = 0;
     vma::cxx::UniqueBuffer _buffer;
     vma::cxx::UniqueBuffer _stgBuffer;
@@ -158,6 +159,7 @@ private:
 
     void reset() {
       _buffer = vma::cxx::UniqueBuffer();
+      bufferSize = 0;
     }
   };
 #endif

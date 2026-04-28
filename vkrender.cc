@@ -1946,14 +1946,21 @@ void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data,
                                       vk::DeviceSize size, size_t nobjects)
 {
   // Vulkan doesn't allow a buffer to have a size of 0
-  vk::BufferCreateInfo(vk::BufferCreateFlags(), std::max(vk::DeviceSize(16), size), buffer.usage);
-  buffer._buffer = createBufferUnique(
+  size = std::max(vk::DeviceSize(16), size);
+
+  buffer.nobjects = nobjects;
+
+  // Reuse existing device buffer if it has sufficient size
+  if (buffer._buffer.getBuffer() == VK_NULL_HANDLE || buffer.bufferSize < size) {
+    buffer._buffer = createBufferUnique(
                           buffer.usage,
                           buffer.properties,
                           size
                           );
+    buffer.bufferSize = size;
+  }
 
-  buffer.nobjects = nobjects;
+  // Grow staging buffer if needed
   if (size > buffer.stgBufferSize) {
     // minimum array size of 16 bytes to avoid some Vulkan issues
     vk::DeviceSize newSize = 16;
