@@ -146,7 +146,6 @@ struct VertexBuffer {
   std::vector<std::uint32_t> indices;
 
   bool rendered=false;  // Has this buffer been subdivided/rendered?
-  bool copiedThisFrame=false;  // Vulkan: has data been uploaded to the current frame's GPU buffers?
 
   VertexBuffer()
   {

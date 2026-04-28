@@ -3757,16 +3757,6 @@ void AsyVkRender::beginGraphicsFrameRender(int imageIndex)
   currentCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 }
 
-void AsyVkRender::resetFrameCopyData()
-{
-  materialData.copiedThisFrame=false;
-  colorData.copiedThisFrame=false;
-  triangleData.copiedThisFrame=false;
-  transparentData.copiedThisFrame=false;
-  lineData.copiedThisFrame=false;
-  pointData.copiedThisFrame=false;
-}
-
 void AsyVkRender::drawBuffer(DeviceBuffer & vertexBuffer,
                              DeviceBuffer & indexBuffer,
                              VertexBuffer * data,
@@ -3775,7 +3765,7 @@ void AsyVkRender::drawBuffer(DeviceBuffer & vertexBuffer,
     return;
 
   auto const badBuffer = static_cast<void*>(vertexBuffer._buffer.getBuffer()) == nullptr;
-  auto const copy = (remesh || !data->rendered || badBuffer) && !copied && !data->copiedThisFrame;
+  auto const copy = (remesh || !data->rendered || badBuffer) && !copied;
 
   if (copy) {
 
@@ -3795,7 +3785,6 @@ void AsyVkRender::drawBuffer(DeviceBuffer & vertexBuffer,
       return;
 
     setDeviceBufferData(indexBuffer, data->indices.data(), data->indices.size() * sizeof(data->indices[0]), data->indices.size());
-    data->copiedThisFrame=true;
   }
 
   std::vector<vk::Buffer> vertexBuffers = {vertexBuffer._buffer.getBuffer()};
@@ -4344,7 +4333,6 @@ void AsyVkRender::drawFrame()
 
   updateUniformBuffer(currentFrame);
   updateBuffers();
-  resetFrameCopyData();
 
   try {
     preDrawBuffers(frameObject, imageIndex);

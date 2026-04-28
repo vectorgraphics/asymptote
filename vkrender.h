@@ -492,7 +492,6 @@ public:
   void beginFrameCommands(vk::CommandBuffer cmd);
   void beginCountFrameRender(int imageIndex);
   void beginGraphicsFrameRender(int imageIndex);
-  void resetFrameCopyData();
    void drawBuffer(DeviceBuffer & vertexBuffer,
                   DeviceBuffer & indexBuffer,
                   VertexBuffer * data,
