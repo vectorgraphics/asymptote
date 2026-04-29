@@ -393,6 +393,7 @@ private:
     vk::UniqueCommandBuffer computeCommandBuffer;
     vk::UniqueCommandBuffer partialSumsCommandBuffer;
     vk::UniqueCommandBuffer copyCountCommandBuffer;
+    vk::UniqueFence transferFence;
     bool transferHasPendingWork = false;
 
     vk::UniqueDescriptorSet descriptorSet;

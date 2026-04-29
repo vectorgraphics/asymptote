@@ -1728,26 +1728,42 @@ void AsyVkRender::beginTransferRecording(FrameObject & object)
 {
   object.transferHasPendingWork = false;
   if (object.copyCountCommandBuffer) {
+    // Wait for any prior GPU submission of this command buffer to complete,
+    // then reset both the fence and command buffer before re-recording.
+    if (object.transferFence) {
+      vkutils::checkVkResult(device->waitForFences(1, &*object.transferFence, VK_TRUE, timeout));
+      vkutils::checkVkResult(device->resetFences(1, &*object.transferFence));
+    }
+    object.copyCountCommandBuffer->reset();
     object.copyCountCommandBuffer->begin(vk::CommandBufferBeginInfo());
   }
 }
 
 void AsyVkRender::endAndSubmitTransfers(FrameObject & object, vk::Queue queue)
 {
-  if (!object.copyCountCommandBuffer || !object.transferHasPendingWork)
+  if (!object.copyCountCommandBuffer)
     return;
 
   object.copyCountCommandBuffer->end();
 
-  // Signal the transfer-done semaphore so render can wait on it
-  std::vector<vk::Semaphore> signalSems = {*object.transferDoneSemaphore};
-  auto submitInfo = vk::SubmitInfo(0, nullptr, nullptr, 1, &*object.copyCountCommandBuffer,
-                                   1, signalSems.data());
-  vkutils::checkVkResult(queue.submit(1, &submitInfo, nullptr));
+  // Only signal the transfer-done semaphore when there is actual transfer work.
+  // This prevents double-signaling (when called twice per frame in mixed scenes)
+  // which would leave residual signals causing incorrect synchronization on subsequent frames.
+  std::vector<vk::Semaphore> signalSems;
+  if (object.transferHasPendingWork)
+    signalSems.push_back(*object.transferDoneSemaphore);
 
-  // Reset the command buffer for next use (it will be re-begun in beginTransferRecording)
-  object.transferHasPendingWork = false;
-  object.copyCountCommandBuffer->reset();
+  auto submitInfo = vk::SubmitInfo(0, nullptr, nullptr, 1, &*object.copyCountCommandBuffer,
+                                   signalSems.size(), signalSems.data());
+
+  // Create a fence to track when this transfer submission completes.
+  // Created without eSignaled so the first submission is valid (unsignaled fence).
+  // The fence is always submitted (even with an empty command buffer) to ensure
+  // beginTransferRecording's waitForFences on the next frame doesn't timeout.
+  if (!object.transferFence)
+    object.transferFence = device->createFenceUnique(vk::FenceCreateInfo());
+
+  vkutils::checkVkResult(queue.submit(1, &submitInfo, *object.transferFence));
 }
 
 void AsyVkRender::copyToBuffer(
