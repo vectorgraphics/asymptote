@@ -228,7 +228,6 @@ void AsyGLRender::setBuffers()
   // Bind VAO once and leave it bound for all subsequent draw operations
   glBindVertexArray(vao);
 
-  // Buffers are pre-sized as needed, no explicit reserve calls needed
   materialData.renderCount=0;
   colorData.renderCount=0;
   triangleData.renderCount=0;
@@ -1176,7 +1175,6 @@ void AsyGLRender::aBufferTransparency()
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDrawArrays(GL_TRIANGLES,0,3);
   fpu_trap(settings::trap());
-  transparentData.clear();
   glEnable(GL_DEPTH_TEST);
 }
 
@@ -1188,13 +1186,12 @@ void AsyGLRender::drawTransparent()
     glEnable(GL_MULTISAMPLE);
   } else {
     sortTriangles();
-    transparentData.renderCount=0;
     glDepthMask(GL_FALSE); // Don't write to depth buffer
     drawBuffer(transparentData,transparentShader,true,4);
-    transparentData.renderCount++;
     glDepthMask(GL_TRUE); // Write to depth buffer
-    transparentData.clear();
   }
+  transparentData.renderCount++;
+  transparentData.clear();
 }
 
 void AsyGLRender::drawBuffers()
