@@ -1970,36 +1970,38 @@ void AsyVkRender::copyDataToImage(const void *data, vk::DeviceSize size,
   endSingleCommands(cmd);
 }
 
-void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data,
-                                      vk::DeviceSize size, size_t nobjects)
+void AsyVkRender::uploadPersistentBuffer(FrameBufferPair& bufpair, const void* data,
+                                          vk::DeviceSize size, size_t nobjects,
+                                          vk::BufferUsageFlags usage,
+                                          VkMemoryPropertyFlagBits properties,
+                                          bool isVertex)
 {
   // Vulkan doesn't allow a buffer to have a size of 0
   size = std::max(vk::DeviceSize(16), size);
 
-  buffer.nobjects = nobjects;
+  bufpair.nobjects = nobjects;
 
-  // Reuse existing device buffer if it has sufficient size
-  if (buffer._buffer.getBuffer() == VK_NULL_HANDLE || buffer.bufferSize < size) {
-    buffer._buffer = createBufferUnique(
-                          buffer.usage,
-                          buffer.properties,
-                          size
-                          );
-    buffer.bufferSize = size;
+  auto& dstBuffer = isVertex ? bufpair.vertexBuffer : bufpair.indexBuffer;
+  auto& dstSize = isVertex ? bufpair.vertexBufferSize : bufpair.indexBufferSize;
+  auto& stgBuffer = isVertex ? bufpair.vertexStagingBuffer : bufpair.indexStagingBuffer;
+  auto& stgSize = isVertex ? bufpair.vertexStgSize : bufpair.indexStgSize;
+
+  // Reuse existing persistent device buffer if it has sufficient size
+  if (dstBuffer.getBuffer() == VK_NULL_HANDLE || dstSize < size) {
+    dstBuffer = createBufferUnique(usage, properties, size);
+    dstSize = size;
   }
 
   // Grow staging buffer if needed
-  if (size > buffer.stgBufferSize) {
-    // minimum array size of 16 bytes to avoid some Vulkan issues
+  if (size > stgSize) {
     vk::DeviceSize newSize = 16;
     while (newSize < size) newSize *= 2;
-    buffer.stgBufferSize = newSize;
+    stgSize = newSize;
 
-    // check whether we need a staging buffer
-    buffer._stgBuffer = createBufferUnique(
+    stgBuffer = createBufferUnique(
       vk::BufferUsageFlagBits::eTransferSrc,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-      buffer.stgBufferSize,
+      stgSize,
       VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
       );
   }
@@ -2007,20 +2009,18 @@ void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data,
   if (data) {
     // Copy data into the staging buffer on the CPU side
     {
-      vma::cxx::MemoryMapperLock const stgBufMemPtr(buffer._stgBuffer);
+      vma::cxx::MemoryMapperLock const stgBufMemPtr(stgBuffer);
       memcpy(stgBufMemPtr.getCopyPtr(), data, size);
     }
     // Record the GPU copy command into the frame's transfer command buffer
-    // instead of submitting synchronously. The transfer will be submitted
-    // once before rendering begins.
     auto& frame = frameObjects[currentFrame];
     if (!frame.copyCountCommandBuffer) {
       // Fallback: use synchronous copy if no transfer command buffer available
-      copyToBuffer(buffer._buffer.getBuffer(), data, size, buffer._stgBuffer);
+      copyToBuffer(dstBuffer.getBuffer(), data, size, stgBuffer);
     } else {
       recordBufferCopy(*frame.copyCountCommandBuffer,
-                       buffer._stgBuffer.getBuffer(),
-                       buffer._buffer.getBuffer(),
+                       stgBuffer.getBuffer(),
+                       dstBuffer.getBuffer(),
                        size);
       frame.transferHasPendingWork = true;
     }
@@ -3810,45 +3810,51 @@ void AsyVkRender::beginGraphicsFrameRender(int imageIndex)
   currentCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 }
 
-void AsyVkRender::drawBuffer(DeviceBuffer & vertexBuffer,
-                             DeviceBuffer & indexBuffer,
-                             VertexBuffer * data,
-                             vk::Pipeline pipeline) {
+void AsyVkRender::drawBuffer(FrameBufferPair& bufpair, VertexBuffer * data, vk::Pipeline pipeline) {
   if (data->indices.empty())
     return;
 
-  auto const badBuffer = static_cast<void*>(vertexBuffer._buffer.getBuffer()) == nullptr;
+  auto const badBuffer = static_cast<void*>(bufpair.vertexBuffer.getBuffer()) == nullptr;
   auto const copy = (remesh || !data->rendered || badBuffer) && !copied;
 
   if (copy) {
 
     if (!data->materialVertices.empty())
     {
-      setDeviceBufferData(vertexBuffer, data->materialVertices.data(), data->materialVertices.size() * sizeof(camp::MaterialVertex));
+      uploadPersistentBuffer(bufpair, data->materialVertices.data(),
+                             data->materialVertices.size() * sizeof(camp::MaterialVertex),
+                             0, VB_USAGE_FLAGS, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, true);
     }
     else if (!data->colorVertices.empty())
     {
-      setDeviceBufferData(vertexBuffer, data->colorVertices.data(), data->colorVertices.size() * sizeof(camp::ColorVertex));
+      uploadPersistentBuffer(bufpair, data->colorVertices.data(),
+                             data->colorVertices.size() * sizeof(camp::ColorVertex),
+                             0, VB_USAGE_FLAGS, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, true);
     }
     else if(!data->pointVertices.empty())
     {
-      setDeviceBufferData(vertexBuffer, data->pointVertices.data(), data->pointVertices.size() * sizeof(camp::PointVertex));
+      uploadPersistentBuffer(bufpair, data->pointVertices.data(),
+                             data->pointVertices.size() * sizeof(camp::PointVertex),
+                             0, VB_USAGE_FLAGS, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, true);
     }
     else
       return;
 
-    setDeviceBufferData(indexBuffer, data->indices.data(), data->indices.size() * sizeof(data->indices[0]), data->indices.size());
+    uploadPersistentBuffer(bufpair, data->indices.data(),
+                           data->indices.size() * sizeof(data->indices[0]),
+                           data->indices.size(), IB_USAGE_FLAGS,
+                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, false);
   }
 
-  std::vector<vk::Buffer> vertexBuffers = {vertexBuffer._buffer.getBuffer()};
+  std::vector<vk::Buffer> vertexBuffers = {bufpair.vertexBuffer.getBuffer()};
   std::vector<vk::DeviceSize> vertexOffsets = {0};
   auto const pushConstants = buildPushConstants();
 
   currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
   currentCommandBuffer.bindVertexBuffers(0, vertexBuffers, vertexOffsets);
-  currentCommandBuffer.bindIndexBuffer(indexBuffer._buffer.getBuffer(), 0, vk::IndexType::eUint32);
+  currentCommandBuffer.bindIndexBuffer(bufpair.indexBuffer.getBuffer(), 0, vk::IndexType::eUint32);
   currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
-  currentCommandBuffer.drawIndexed(indexBuffer.nobjects, 1, 0, 0, 0);
+  currentCommandBuffer.drawIndexed(bufpair.nobjects, 1, 0, 0, 0);
 
   data->rendered = true;
 }
@@ -3871,55 +3877,37 @@ void AsyVkRender::endFrame(int imageIndex)
 
 void AsyVkRender::drawPoints(FrameObject & object)
 {
-  drawBuffer(object.pointVertexBuffer,
-             object.pointIndexBuffer,
-             &pointData,
-             *getPipelineType(pointPipelines));
+  drawBuffer(object.pointBuffers, &pointData, *getPipelineType(pointPipelines));
   pointData.clear();
 }
 
 void AsyVkRender::drawLines(FrameObject & object)
 {
-  drawBuffer(object.lineVertexBuffer,
-             object.lineIndexBuffer,
-             &lineData,
-             *getPipelineType(linePipelines));
+  drawBuffer(object.lineBuffers, &lineData, *getPipelineType(linePipelines));
   lineData.clear();
 }
 
 void AsyVkRender::drawMaterials(FrameObject & object)
 {
-  drawBuffer(object.materialVertexBuffer,
-             object.materialIndexBuffer,
-             &materialData,
-             *getPipelineType(materialPipelines));
+  drawBuffer(object.materialBuffers, &materialData, *getPipelineType(materialPipelines));
   materialData.clear();
 }
 
 void AsyVkRender::drawColors(FrameObject & object)
 {
-  drawBuffer(object.colorVertexBuffer,
-             object.colorIndexBuffer,
-             &colorData,
-             *getPipelineType(colorPipelines));
+  drawBuffer(object.colorBuffers, &colorData, *getPipelineType(colorPipelines));
   colorData.clear();
 }
 
 void AsyVkRender::drawTriangles(FrameObject & object)
 {
-  drawBuffer(object.triangleVertexBuffer,
-             object.triangleIndexBuffer,
-             &triangleData,
-             *getPipelineType(trianglePipelines));
+  drawBuffer(object.triangleBuffers, &triangleData, *getPipelineType(trianglePipelines));
   triangleData.clear();
 }
 
 void AsyVkRender::drawTransparent(FrameObject & object)
 {
-  drawBuffer(object.transparentVertexBuffer,
-             object.transparentIndexBuffer,
-             &transparentData,
-             *getPipelineType(transparentPipelines));
+  drawBuffer(object.transparentBuffers, &transparentData, *getPipelineType(transparentPipelines));
   transparentData.clear();
 }
 
@@ -4068,34 +4056,22 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *graphicsPipelineLayout, 0, 1, &*object.descriptorSet, 0, nullptr);
 
   if (!interlock) {
-    drawBuffer(object.pointVertexBuffer,
-               object.pointIndexBuffer,
-               &pointData,
+    drawBuffer(object.pointBuffers, &pointData,
                *pointPipelines[PIPELINE_COUNT]);
-    drawBuffer(object.lineVertexBuffer,
-               object.lineIndexBuffer,
-               &lineData,
+    drawBuffer(object.lineBuffers, &lineData,
                *linePipelines[PIPELINE_COUNT]);
-    drawBuffer(object.materialVertexBuffer,
-               object.materialIndexBuffer,
-               &materialData,
+    drawBuffer(object.materialBuffers, &materialData,
                *materialPipelines[PIPELINE_COUNT]);
-    drawBuffer(object.colorVertexBuffer,
-               object.colorIndexBuffer,
-               &colorData,
+    drawBuffer(object.colorBuffers, &colorData,
                *colorPipelines[PIPELINE_COUNT]);
-    drawBuffer(object.triangleVertexBuffer,
-               object.triangleIndexBuffer,
-               &triangleData,
+    drawBuffer(object.triangleBuffers, &triangleData,
                *trianglePipelines[PIPELINE_COUNT]);
   }
 
   currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
 
   // draw transparent
-  drawBuffer(object.transparentVertexBuffer,
-             object.transparentIndexBuffer,
-             &transparentData,
+  drawBuffer(object.transparentBuffers, &transparentData,
              *transparentPipelines[PIPELINE_COUNT]);
 
   currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
@@ -4278,6 +4254,8 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
 
     refreshBuffers(object, imageIndex);
     resizeFragmentBuffer(object);
+    if (!interlock)
+      copied=true;
   }
 }
 

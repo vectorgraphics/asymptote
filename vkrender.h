@@ -145,23 +145,21 @@ private:
   static constexpr auto VB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer;
   static constexpr auto IB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer;
 
-  struct DeviceBuffer {
-    vk::BufferUsageFlags usage;
-    VkMemoryPropertyFlagBits properties;
-    size_t nobjects;
-    vk::DeviceSize bufferSize = 0;
-    vk::DeviceSize stgBufferSize = 0;
-    vma::cxx::UniqueBuffer _buffer;
-    vma::cxx::UniqueBuffer _stgBuffer;
-
-    DeviceBuffer(vk::BufferUsageFlags usage, VkMemoryPropertyFlagBits properties=VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
-        : usage(usage), properties(properties) {}
-
-    void reset() {
-      _buffer = vma::cxx::UniqueBuffer();
-      bufferSize = 0;
-    }
+  // Per-frame persistent GPU buffer pair. Each frame has its own device buffers
+  // (to avoid races with multiple frames in flight), but they persist across
+  // frame cycles -- allocated once, reused with vkCmdCopyBuffer every upload.
+  struct FrameBufferPair {
+    vma::cxx::UniqueBuffer vertexBuffer;
+    vma::cxx::UniqueBuffer indexBuffer;
+    vma::cxx::UniqueBuffer vertexStagingBuffer;
+    vma::cxx::UniqueBuffer indexStagingBuffer;
+    vk::DeviceSize vertexBufferSize = 0;
+    vk::DeviceSize indexBufferSize = 0;
+    vk::DeviceSize vertexStgSize = 0;
+    vk::DeviceSize indexStgSize = 0;
+    size_t nobjects = 0;
   };
+
 #endif
 
   bool GPUcompress=false;
@@ -402,36 +400,17 @@ private:
     vma::cxx::UniqueBuffer uboBf;
     std::unique_ptr<vma::cxx::MemoryMapperLock> uboMappedMemory;
 
-    DeviceBuffer materialVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
-    DeviceBuffer materialIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
+    FrameBufferPair materialBuffers;
+    FrameBufferPair colorBuffers;
+    FrameBufferPair triangleBuffers;
+    FrameBufferPair transparentBuffers;
+    FrameBufferPair lineBuffers;
+    FrameBufferPair pointBuffers;
 
-    DeviceBuffer colorVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
-    DeviceBuffer colorIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
-
-    DeviceBuffer triangleVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
-    DeviceBuffer triangleIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
-
-    DeviceBuffer transparentVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
-    DeviceBuffer transparentIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
-
-    DeviceBuffer lineVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
-    DeviceBuffer lineIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
-
-    DeviceBuffer pointVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
-    DeviceBuffer pointIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
 #pragma region post-process compute stuff
     std::vector<vk::UniqueImage> resolvedColorImages;
     std::vector<vk::ImageView> resolveColorImgViews;
 #pragma endregion
-
-    void reset() {
-        materialVertexBuffer.reset();
-        colorVertexBuffer.reset();
-        triangleVertexBuffer.reset();
-        transparentVertexBuffer.reset();
-        lineVertexBuffer.reset();
-        pointVertexBuffer.reset();
-    }
   };
 
   uint32_t currentFrame = 0;
@@ -496,10 +475,7 @@ public:
   void beginFrameCommands(vk::CommandBuffer cmd);
   void beginCountFrameRender(int imageIndex);
   void beginGraphicsFrameRender(int imageIndex);
-   void drawBuffer(DeviceBuffer & vertexBuffer,
-                  DeviceBuffer & indexBuffer,
-                  VertexBuffer * data,
-                  vk::Pipeline pipeline);
+   void drawBuffer(FrameBufferPair& bufpair, VertexBuffer * data, vk::Pipeline pipeline);
   void postProcessImage(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex);
   void copyToSwapchainImg(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex);
   void endFrameRender();
@@ -577,7 +553,10 @@ public:
   void transitionImageLayout(vk::ImageLayout from, vk::ImageLayout to, vk::Image img);
   void copyDataToImage(const void *data, vk::DeviceSize size, vk::Image img,
                        std::uint32_t w, std::uint32_t h, vk::Offset3D const & offset={});
-  void setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size, size_t nobjects=0);
+  void uploadPersistentBuffer(FrameBufferPair& bufpair, const void* data,
+                              vk::DeviceSize size, size_t nobjects,
+                              vk::BufferUsageFlags usage, VkMemoryPropertyFlagBits properties,
+                              bool isVertex);
 
   void createDescriptorSetLayout();
   void createComputeDescriptorSetLayout();
