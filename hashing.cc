@@ -4,7 +4,7 @@
 #include <random>
 #include <vector>
 
-#include "wyhash.h"
+#include "wyhash/wyhash.h"
 
 namespace hashing {
 

@@ -198,9 +198,23 @@ endif()
 # README files
 install(
         FILES
-            ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE
-            ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.LESSER
             ${CMAKE_CURRENT_SOURCE_DIR}/README
             ${ASY_WIN_RESOURCE_DIR}/asy.ico
         ${ASY_NSIS_INSTALL_ARGUMENT}
 )
+
+# Third-party attribution summary
+install(
+        FILES
+            ${CMAKE_CURRENT_SOURCE_DIR}/LICENSES-THIRD-PARTY.md
+        ${ASY_NSIS_INSTALL_ARGUMENT}
+)
+
+# All license files (LICENSE, LICENSE.LESSER, and all third-party files) are
+# installed from the already-renamed build-tree copies produced by
+# copy-build-licenses.cmake.
+set(ASY_LICENSE_INSTALL_ARGS
+        COMPONENT ${ASY_PRE_NSIS_COMPONENT_NAME}
+        DESTINATION ${ASY_INSTALL_DIRECTORY}/licenses
+)
+include(cmake-scripts/install-third-party-licenses.cmake)

@@ -136,7 +136,7 @@ endif
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
 asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) \
-		@LSPLIB@ @GLEW@
+		@LSPLIB@ @GLEW@ copy-licenses
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
 $(XNAME): $(PYFILES)
@@ -272,7 +272,27 @@ asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy asy-list.py
 	done
 	$(PYTHON) ./asy-list.py --asy-list-file asy.list --revision $(revision) --output-file $@
 
-install-notexhash: asy-keywords.el install-asy install-man
+licensedir = $(DESTDIR)@licensedir@
+
+copy-licenses:
+	${INSTALL} -d doc/licenses
+	${INSTALL} -p -m 644 LICENSE doc/licenses/LICENSE
+	${INSTALL} -p -m 644 LICENSE.LESSER doc/licenses/LICENSE.LESSER
+	${INSTALL} -p -m 644 backports/span/LICENSE.txt doc/licenses/span-LICENSE.txt
+	${INSTALL} -p -m 644 backports/glew/LICENSE.txt doc/licenses/glew-LICENSE.txt
+	${INSTALL} -p -m 644 wyhash/UNLICENSE.txt doc/licenses/wyhash-UNLICENSE.txt
+	${INSTALL} -p -m 644 LspCpp/LICENSE doc/licenses/LspCpp-LICENSE.txt
+	${INSTALL} -p -m 644 libatomic_ops/LICENSE doc/licenses/libatomic_ops-LICENSE.txt
+	${INSTALL} -p -m 644 libatomic_ops/COPYING doc/licenses/libatomic_ops-COPYING.txt
+	${INSTALL} -p -m 644 tinyexr/LICENSE.txt doc/licenses/tinyexr-LICENSE.txt
+	${INSTALL} -p -m 644 gc/LICENSE.txt doc/licenses/gc-LICENSE.txt
+
+install-licenses: copy-licenses
+	${INSTALL} -d $(licensedir)
+	${INSTALL} -p -m 644 doc/licenses/* $(licensedir)
+	${INSTALL} -p -m 644 LICENSES-THIRD-PARTY.md $(docdir)
+
+install-notexhash: asy-keywords.el install-asy install-licenses install-man
 
 install: install-notexhash install-texhash
 
@@ -367,10 +387,18 @@ uninstall-man:
 # $(exampledir) and $(animationsdir) which are subdirectories of $(docdir).
 # Both must finish before we can rmdir $(docdir).
 uninstall-docdir: uninstall-man uninstall-asy
+	-cd $(licensedir) && rm -f LICENSE LICENSE.LESSER \
+		span-LICENSE.txt \
+		glew-LICENSE.txt wyhash-UNLICENSE.txt LspCpp-LICENSE.txt \
+		libatomic_ops-LICENSE.txt libatomic_ops-COPYING.txt \
+		tinyexr-LICENSE.txt gc-LICENSE.txt
+	-rmdir $(licensedir)
+	-cd $(docdir) && rm -f LICENSES-THIRD-PARTY.md
 	-rmdir $(docdir)
 
 clean:	FORCE
 	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
+	-rm -rf doc/licenses
 	-cd LspCpp && $(MAKE) distclean
 	-cd tinyexr && $(MAKE) clean
 	-cd doc && $(MAKE) clean
