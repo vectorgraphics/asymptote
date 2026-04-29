@@ -229,10 +229,10 @@ void AsyGLRender::setBuffers()
   glBindVertexArray(vao);
 
   // Buffers are pre-sized as needed, no explicit reserve calls needed
-  materialData.rendered=false;
-  colorData.rendered=false;
-  triangleData.rendered=false;
-  transparentData.rendered=false;
+  materialData.renderCount=0;
+  colorData.renderCount=0;
+  triangleData.renderCount=0;
+  transparentData.renderCount=0;
 
   // Create materials uniform buffer
   glGenBuffers(1, &materialsBuffer);
@@ -1038,7 +1038,7 @@ void AsyGLRender::drawBuffer(VertexBuffer& data, GLint shader, bool color, unsig
   }
   bool normal=shader != pixelShader;
 
-  bool copy = (remesh || !data.rendered) && !copied;
+  bool copy = (remesh || data.renderCount < 1) && !copied;
 
   // Get persistent GL buffer handles for this VertexBuffer instance
   auto& glBuf = glBuffers[&data];
@@ -1057,7 +1057,7 @@ void AsyGLRender::drawBuffer(VertexBuffer& data, GLint shader, bool color, unsig
 
   setUniformsOpenGL(shader);
 
-  data.rendered = true;
+  data.renderCount++;
 
   // Position attribute (3 floats)
   if(color) {
@@ -1185,7 +1185,7 @@ void AsyGLRender::drawTransparent()
     glEnable(GL_MULTISAMPLE);
   } else {
     sortTriangles();
-    transparentData.rendered=false; // Force re-upload of sorted triangles to GPU
+    transparentData.renderCount=0;
     glDepthMask(GL_FALSE); // Don't write to depth buffer
     drawBuffer(transparentData,transparentShader,true,4);
     glDepthMask(GL_TRUE); // Write to depth buffer

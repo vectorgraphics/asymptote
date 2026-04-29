@@ -3831,7 +3831,7 @@ void AsyVkRender::drawBuffer(FrameBufferPair& bufpair, VertexBuffer * data, vk::
     return;
 
   auto const badBuffer = static_cast<void*>(bufpair.vertexBuffer.getBuffer()) == nullptr;
-  auto const copy = (remesh || !data->rendered || badBuffer) && !copied;
+  auto const copy = (remesh || data->renderCount < maxFramesInFlight || badBuffer) && !copied;
 
   if (copy) {
 
@@ -3872,7 +3872,7 @@ void AsyVkRender::drawBuffer(FrameBufferPair& bufpair, VertexBuffer * data, vk::
   currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
   currentCommandBuffer.drawIndexed(bufpair.nobjects, 1, 0, 0, 0);
 
-  data->rendered = true;
+  data->renderCount++;
 }
 
 void AsyVkRender::endFrameRender()

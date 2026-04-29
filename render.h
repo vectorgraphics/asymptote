@@ -145,7 +145,7 @@ struct VertexBuffer {
   std::vector<PointVertex> pointVertices;
   std::vector<std::uint32_t> indices;
 
-  bool rendered=false;  // Has this buffer been subdivided/rendered?
+  int renderCount=0;  // Number of frames this data has been drawn on
 
   VertexBuffer()
   {
