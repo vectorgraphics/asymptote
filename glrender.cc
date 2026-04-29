@@ -1587,10 +1587,7 @@ void AsyGLRender::onScroll(double xoffset, double yoffset)
         if (yoffset > 0) Zoom *= zoomFactor;
         else Zoom /= zoomFactor;
     }
-    capzoom();
-    setProjection();
     update();
-    redraw = true;
 }
 
 void AsyGLRender::onCursorPos(double xpos, double ypos)
