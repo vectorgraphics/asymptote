@@ -3871,8 +3871,6 @@ void AsyVkRender::drawBuffer(FrameBufferPair& bufpair, VertexBuffer * data, vk::
   currentCommandBuffer.bindIndexBuffer(bufpair.indexBuffer.getBuffer(), 0, vk::IndexType::eUint32);
   currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
   currentCommandBuffer.drawIndexed(bufpair.nobjects, 1, 0, 0, 0);
-
-  data->renderCount++;
 }
 
 void AsyVkRender::endFrameRender()
@@ -3894,36 +3892,42 @@ void AsyVkRender::endFrame(int imageIndex)
 void AsyVkRender::drawPoints(FrameObject & object)
 {
   drawBuffer(object.pointBuffers, &pointData, *getPipelineType(pointPipelines));
+  pointData.renderCount++;
   pointData.clear();
 }
 
 void AsyVkRender::drawLines(FrameObject & object)
 {
   drawBuffer(object.lineBuffers, &lineData, *getPipelineType(linePipelines));
+  lineData.renderCount++;
   lineData.clear();
 }
 
 void AsyVkRender::drawMaterials(FrameObject & object)
 {
   drawBuffer(object.materialBuffers, &materialData, *getPipelineType(materialPipelines));
+  materialData.renderCount++;
   materialData.clear();
 }
 
 void AsyVkRender::drawColors(FrameObject & object)
 {
   drawBuffer(object.colorBuffers, &colorData, *getPipelineType(colorPipelines));
+  colorData.renderCount++;
   colorData.clear();
 }
 
 void AsyVkRender::drawTriangles(FrameObject & object)
 {
   drawBuffer(object.triangleBuffers, &triangleData, *getPipelineType(trianglePipelines));
+  triangleData.renderCount++;
   triangleData.clear();
 }
 
 void AsyVkRender::drawTransparent(FrameObject & object)
 {
   drawBuffer(object.transparentBuffers, &transparentData, *getPipelineType(transparentPipelines));
+  transparentData.renderCount++;
   transparentData.clear();
 }
 
