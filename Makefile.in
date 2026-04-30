@@ -49,6 +49,9 @@ TINYEXR_FILES = tinyexr_impl
 
 VMA_IMPL_FILES = @VMA_IMPL_FILES@
 
+# Vulkan renderer objects - built into a shared library, not linked into the main binary.
+VULKAN_OBJS = $(VMA_IMPL_FILES) vkrender vkdispatchstorage vkutils vulkanshim
+
 COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	env genv stm dec errormsg \
     callable name symbol entry exp newexp stack exithandlers camp.tab lex.yy \
@@ -58,7 +61,6 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	Delaunay predicates glrender glfw renderBase tr shaders jsfile v3dfile \
 	EXRFiles GLTextures lspserv symbolmaps win32helpers win32pipestream \
 	win32xdr xstream \
-	$(VMA_IMPL_FILES) vkrender vkdispatchstorage vkutils \
 	lspdec lspexp lspfundec lspstm \
 	hashing random rendererloader
 
@@ -139,8 +141,17 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ @GLEW@
-	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
+asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ @GLEW@ libasyvulkan.so
+	$(CXX) $(OPTS) -rdynamic -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
+
+# Build the Vulkan renderer as a shared library loaded at runtime via dlopen.
+VULKAN_PIC_OBJS = $(addprefix vkpic/,$(VULKAN_OBJS:=.o))
+libasyvulkan.so: $(VULKAN_PIC_OBJS)
+	$(CXX) $(OPTS) -shared -o $@ $^ @ASY_VULKAN_LIBS@ -lglfw -lGL
+
+vkpic/%.o: %.cc
+	@mkdir -p vkpic
+	$(CXX) $(OPTS) -fPIC -o $@ -c $<
 
 $(XNAME): $(PYFILES)
 	$(SILENT_MAKE)ln -sf GUI/xasy.py $(XNAME)

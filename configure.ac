@@ -623,10 +623,11 @@ if test "x$enable_vulkan" != "xno"; then
 INCL=" -I$VMA_REPO_ROOT/include "$INCL" -Ithirdparty_impl/vk-mem-allocator_impl/include "
 VMA_IMPL_FILES=$VMA_IMPL_FILES" vma_cxx vma_impl"
 
+ASY_VULKAN_LIBS=""
 if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
    ADD_VCPKG_FEATURE(vulkan)
    AC_DEFINE(HAVE_LIBVULKAN,1,[Vulkan is enabled])
-   LIBS=$LIBS"-lvulkan -lMachineIndependent -lOSDependent -lGenericCodeGen -lSPIRV -lglslang "
+   ASY_VULKAN_LIBS="-lvulkan -lMachineIndependent -lOSDependent -lGenericCodeGen -lSPIRV -lglslang"
 else  # managed by the system
    AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
 
@@ -644,24 +645,25 @@ case "$OSTYPE" in
                  VULKAN_LIBS="-lMachineIndependent -lOSDependent -lGenericCodeGen "
                ;;
           esac
-          LIBS=$LIBS"-lvulkan "$VULKAN_LIBS"-lSPIRV "
+          ASY_VULKAN_LIBS="-lvulkan $VULKAN_LIBS-lSPIRV"
           AC_CHECK_LIB([glslang],[glslang_initialize_process],
           [
           AC_DEFINE(HAVE_LIBVULKAN,1,
           DEFINE_LIB([vulkan]))
-          LIBS=$LIBS"-lglslang -lSPIRV-Tools-opt -lSPIRV-Tools "
+          ASY_VULKAN_LIBS="$ASY_VULKAN_LIBS -lglslang -lSPIRV-Tools-opt -lSPIRV-Tools"
           ],
 
           [
-          LIBS=$LIBS"-lOGLCompiler "
+          ASY_VULKAN_LIBS="$ASY_VULKAN_LIBS -lOGLCompiler"
           AC_CHECK_LIB([glslang],[glslang_finalize_process],
           [
           AC_DEFINE(HAVE_LIBVULKAN,1,
           DEFINE_LIB([vulkan]))
-          LIBS=$LIBS"-lglslang "
+          ASY_VULKAN_LIBS="$ASY_VULKAN_LIBS -lglslang"
           ],
           [
           AC_MSG_NOTICE([*** Could not find libglslang: will compile without Vulkan support ***])
+          ASY_VULKAN_LIBS=""
           LIBS=$LIBS_SAVE
           ]
           )
@@ -790,6 +792,7 @@ AC_SUBST(DEFS)
 AC_SUBST(OPTIONS)
 AC_SUBST(GLEW)
 AC_SUBST(VMA_IMPL_FILES)
+AC_SUBST(ASY_VULKAN_LIBS)
 
 # we are on C++ >= 11, so unordered map is a guarantee
 AC_DEFINE(HAVE_UNORDERED_MAP,1,[Unordered map is present])

@@ -61,21 +61,6 @@ std::vector<const char*> instanceExtensions
 namespace camp
 {
 
-const glm::dmat4& getProjViewMat()
-{
-  return gl->projViewMat;
-}
-
-const glm::dmat4& getViewMat()
-{
-  return gl->viewMat;
-}
-
-const glm::dmat3& getNormMat()
-{
-  return gl->normMat;
-}
-
 std::vector<char> readFile(const std::string& filename)
 {
   std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -515,7 +500,9 @@ void AsyVkRender::initVulkan()
   setenv("MVK_CONFIG_PERFORMANCE_TRACKING", "0", true);
 #endif
 
-  VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
+  // Vulkan dispatch loader is already initialized in rendererloader.cc
+  // via dlsym(RTLD_DEFAULT, "vkGetInstanceProcAddr"), so no need to
+  // reference the raw vkGetInstanceProcAddr symbol here (avoids -lvulkan).
 
   if (!glslang::InitializeProcess())
     runtimeError("failed to initialize glslang");

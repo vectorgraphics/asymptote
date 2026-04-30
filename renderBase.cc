@@ -11,6 +11,16 @@ struct GLFWwindow;
 #endif
 
 using settings::getSetting;
+
+namespace camp {
+
+// Matrix accessor functions - shared between GL and Vulkan renderers.
+const glm::dmat4& getProjViewMat() { return gl->projViewMat; }
+const glm::dmat4& getViewMat()     { return gl->viewMat; }
+const glm::dmat3& getNormMat()     { return gl->normMat; }
+
+} // namespace camp
+
 using namespace glm;
 
 // Forward declaration for pthread callback (defined in glfw.cc)

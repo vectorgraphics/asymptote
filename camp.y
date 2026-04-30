@@ -21,11 +21,7 @@
 #endif
 
 #ifndef YYDEBUG
-#if defined(__APPLE__) || !defined(HAVE_LIBVULKAN)
 #define YYDEBUG 1
-#else
-#define YYDEBUG 0
-#endif
 #endif
 
 // Used when a position needs to be determined and no token is
