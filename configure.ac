@@ -568,7 +568,6 @@ if test "x$with_vcpkg" != "xno"; then  # vcpkg
    ADD_VCPKG_LIB_FOR_PKGCONFIG(gsl)
 else
   PKG_CONFIG(CPPFLAGS,$CPPFLAGS,--cflags,gsl)
-  PKG_CONFIG(LDFLAGS,$LDFLAGS,--libs,gsl)
   AC_CHECK_HEADER(gsl/gsl_sf.h,
   CHECK_LIB_STATIC(gsl,gsl,gsl_sf_debye_6,HAVE_LIBGSL,
            AC_MSG_NOTICE([*** Could not find libgsl: will compile without optional special functions. ***])),
@@ -596,6 +595,23 @@ TINYEXR_ROOT=tinyexr
 INCL=$INCL" -I$TINYEXR_ROOT"
 AC_SUBST(TINYEXR_ROOT)
 
+# ------------------- GLFW -----------------
+
+if test "x$enable_vulkan" != "xno" -o "x$enable_gl" != "xno"; then
+if test "x$with_vcpkg" != "xno"; then
+   ADD_VCPKG_LIB_FOR_PKGCONFIG(glfw3)
+   case "$OSTYPE" in
+        darwin*) ;;
+        *) LIBS=$LIBS"-ldl " ;;
+   esac
+else
+   AC_CHECK_LIB([glfw], [glfwShowWindow],
+                [AC_DEFINE(HAVE_LIBGLFW,1,DEFINE_LIB([GLFW]))
+                 LIBS=$LIBS"-lglfw "],
+                AC_MSG_NOTICE([*** Could not find libglfw: will compile without Vulkan or OpenGL support ***]))
+fi
+fi
+
 # ------------------- Vulkan -----------------
 
 AC_ARG_ENABLE(vulkan,
@@ -610,19 +626,13 @@ VMA_IMPL_FILES=$VMA_IMPL_FILES" vma_cxx vma_impl"
 if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
    ADD_VCPKG_FEATURE(vulkan)
    AC_DEFINE(HAVE_LIBVULKAN,1,[Vulkan is enabled])
-   ADD_VCPKG_LIB_FOR_PKGCONFIG(glfw3)
-   LIBS=$LIBS"-ldl "
-   LIBS=$LIBS"-lvulkan -lMachineIndependent -lOSDependent -lGenericCodeGen -lSPIRV -lglslang -ldl "
+   LIBS=$LIBS"-lvulkan -lMachineIndependent -lOSDependent -lGenericCodeGen -lSPIRV -lglslang "
 else  # managed by the system
    AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
 
 case "$OSTYPE" in
      *)
-	  AC_CHECK_LIB([glfw], [glfwShowWindow],,
-                      AC_MSG_NOTICE([*** Could not find libglfw: will compile without Vulkan support ***]))
           AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
-          AC_CHECK_LIB([glfw], [glfwShowWindow],
-          [
           AC_CHECK_LIB([vulkan], [vkCreateInstance],
           [
           LIBS_SAVE=$LIBS
@@ -634,7 +644,7 @@ case "$OSTYPE" in
                  VULKAN_LIBS="-lMachineIndependent -lOSDependent -lGenericCodeGen "
                ;;
           esac
-          LIBS=$LIBS"-lglfw -lvulkan "$VULKAN_LIBS"-lSPIRV -ldl "
+          LIBS=$LIBS"-lvulkan "$VULKAN_LIBS"-lSPIRV "
           AC_CHECK_LIB([glslang],[glslang_initialize_process],
           [
           AC_DEFINE(HAVE_LIBVULKAN,1,
@@ -659,8 +669,6 @@ case "$OSTYPE" in
           )
           ],
           AC_MSG_NOTICE([*** Could not find libvulkan: will compile without Vulkan support ***]))
-          ],
-          AC_MSG_NOTICE([*** Could not find libglfw: will compile without Vulkan support ***]))
 esac
 fi
 fi
@@ -700,11 +708,8 @@ if test "x$enable_gl" != "xno"; then
 if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
    ADD_VCPKG_FEATURE(opengl)
    AC_DEFINE(HAVE_LIBGL,1,[libgl is enabled])
-   AC_DEFINE(HAVE_LIBGLFW,1,[GLFW library is available])
    INCL=$INCL" -Ibackports/glew/include"
    GLEW="glew.o "
-   ADD_VCPKG_LIB_FOR_PKGCONFIG(glfw3)
-   LIBS=$LIBS"-ldl "
 else  # managed by the system
    AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
 
@@ -713,22 +718,17 @@ case "$OSTYPE" in
               AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL,1,
-                             DEFINE([<gl.h> header]))])
-              AC_CHECK_LIB([glfw], [glfwShowWindow],
-              [
-              AC_DEFINE(HAVE_LIBGLFW,1,DEFINE_LIB[GLFW])
-                           LIBS=$LIBS"-lglfw -framework OpenGL -framework Cocoa -ldl "
-                           INCL=$INCL" -Ibackports/glew/include"
-                           GLEW="glew.o "],
-                                 AC_MSG_NOTICE([*** Could not find GLFW: will compile without OpenGL support ***]))
+                             DEFINE([<gl.h> header]))
+                              LIBS=$LIBS"-framework OpenGL -framework Cocoa "
+                              INCL=$INCL" -Ibackports/glew/include"
+                              GLEW="glew.o "],
+                                 AC_MSG_NOTICE([*** Could not find OpenGL: will compile without OpenGL support ***]))
         ;;
      *)
-         AC_CHECK_LIB([glfw], [glfwShowWindow],,
-                       AC_MSG_NOTICE([*** Could not find libglfw: will compile without OpenGL support ***]))
          AC_CHECK_LIB([GL], [glDepthMask],
                                  [AC_DEFINE(HAVE_LIBGL,1,
                              DEFINE_LIB([GL]))
-                             LIBS=$LIBS"-lGL -ldl "
+                             LIBS=$LIBS"-lGL "
                              GLEW="glew.o "
                              INCL=$INCL" -Ibackports/glew/include"],
                                    AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
