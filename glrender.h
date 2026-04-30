@@ -9,7 +9,7 @@
 #include "common.h"
 #include <unordered_map>
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
 
 #if defined(HAVE_LIBGL) || defined(HAVE_LIBOSMESA)
 #ifdef __APPLE__
@@ -45,7 +45,7 @@
 #include "glfw.h"
 #endif
 
-#else // !HAVE_RENDERER
+#else // !HAVE_GL
 typedef unsigned int GLuint;
 typedef int GLint;
 typedef float GLfloat;
@@ -88,7 +88,7 @@ const glm::dmat3& getNormMat();
 extern const double* dprojView;  // For drawelement.h Transform2T
 #endif
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
 extern GLuint vao;  // Vertex Array Object
 #endif
 
@@ -106,7 +106,7 @@ void clearCenters();
 
 #endif
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
 // OpenGL renderer class following Vulkan pattern
 class AsyGLRender : public AsyRender, public RenderCallbacks
 {
@@ -138,7 +138,7 @@ public:
 
 public:
   // OpenGL-specific members (following Vulkan pattern)
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
   // Shaders - made public for standalone function access during refactoring
   GLint pixelShader = 0;
   GLint materialShader[2] = {0, 0};
@@ -271,7 +271,7 @@ void ortho(double left, double right, double bottom,
 // No-SSBO fallback: sort transparent triangles by centroid depth
 void sortTriangles();
 
-#endif // HAVE_RENDERER
+#endif // HAVE_GL
 
 } // namespace camp
 

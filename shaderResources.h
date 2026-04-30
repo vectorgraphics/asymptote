@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
 #include <glslang/SPIRV/GlslangToSpv.h>
 
 inline TBuiltInResource getShaderResources()

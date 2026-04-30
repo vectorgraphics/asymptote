@@ -17,7 +17,7 @@
 #include "common.h"
 
 #include "vk.h"
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
 #include <vma_cxx.h>
 
 #include <glslang/Public/ShaderLang.h>
@@ -41,7 +41,7 @@ class picture;
 
 std::vector<char> readFile(const std::string& filename);
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
 struct SwapChainDetails {
   vk::SurfaceCapabilitiesKHR capabilities;
   std::vector<vk::SurfaceFormatKHR> formats;
@@ -58,6 +58,7 @@ struct SwapChainDetails {
 };
 #endif
 
+#ifdef HAVE_VULKAN
 struct QueueFamilyIndices {
   uint32_t transferQueueFamily;
   uint32_t renderQueueFamily;
@@ -125,7 +126,7 @@ public:
 
   int maxFramesInFlight;
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
   vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
 #endif
 
@@ -134,7 +135,7 @@ public:
   const double* dprojView;
   const double* dView;
 private:
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
   static constexpr std::array<const char*, 4> deviceExtensions = {
     VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME,
     VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
@@ -188,7 +189,7 @@ private:
 
   size_t nmaterials=1; // Number of materials currently allocated in memory
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
 
   vk::UniqueInstance instance;
 
@@ -426,7 +427,7 @@ protected:
 public:
   void updateHandler(int=0) override;
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
   void initWindow();
   void initVulkan();
 
@@ -682,5 +683,6 @@ public:
   friend void glfwInitWindow(AsyRender*, int, int, const std::string&);
   friend void glfwCleanupWindow(AsyVkRender*);
 };
+#endif // HAVE_VULKAN
 
 } // namespace camp

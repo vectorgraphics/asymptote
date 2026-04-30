@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
 
 #include "GL/glew.h"
 

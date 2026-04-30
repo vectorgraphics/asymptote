@@ -1051,7 +1051,7 @@ void displayFeatures(bool enabled)
     static bool probed = false;
     static bool vulkanAvailable = false;
     if (!probed) {
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
         bool useVulkan = getSetting<bool>("vulkan");
         vulkanAvailable = useVulkan && camp::tryLoadVulkan();
 #endif
@@ -1091,11 +1091,11 @@ void displayFeatures(bool enabled)
     havevulkan = true;
 #endif
 #else
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
     if (vulkanAvailable)
         havevulkan = true;
     else {
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
         haveopengl = true;
 #endif
     }

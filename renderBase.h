@@ -507,8 +507,12 @@ public:
 extern AsyRender* gl;  // Global renderer instance (type depends on build configuration)
 
 #ifdef HAVE_RENDERER
+#ifdef HAVE_GL
 class AsyGLRender;  // Forward declaration
+#endif
+#ifdef HAVE_VULKAN
 class AsyVkRender;   // Forward declaration (if Vulkan is available)
+#endif
 
 /**
  * Lazily initialise the global renderer (Vulkan or OpenGL) on first use.

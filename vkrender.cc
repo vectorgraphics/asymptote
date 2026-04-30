@@ -41,7 +41,7 @@ static size_t timeout=10000000000;
 void exitHandler(int);
 void *postEmptyEvent(void *);
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
 uint32_t apiVersion=VK_API_VERSION_1_4;
 
 std::vector<const char*> instanceExtensions
@@ -92,7 +92,7 @@ std::vector<char> readFile(const std::string& filename)
   return buffer;
 }
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
 SwapChainDetails::SwapChainDetails(
   vk::PhysicalDevice gpu,
   vk::SurfaceKHR surface) :
@@ -317,6 +317,7 @@ AsyVkRender::~AsyVkRender()
 
 #endif
 
+#ifdef HAVE_VULKAN
 void AsyVkRender::render(RenderFunctionArgs const& args)
 {
 #if !defined(_WIN32)
@@ -398,7 +399,7 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
       Width=fullWidth;
       Height=fullHeight;
     } else {
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
       GLFWmonitor* monitor=NULL;
       glfwInit();
       monitor=glfwGetPrimaryMonitor();
@@ -421,7 +422,7 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
         Height=min((int) (ceil(Width/Aspect)),screenHeight);
     }
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
     home(format3d);
 #endif
     if(format3d) {
@@ -433,12 +434,12 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
     Aspect=((double) Width)/Height;
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
     setosize();
 #endif
   }
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
   havewindow=initialized && threads;
 
   if(threads && format3d)
@@ -468,7 +469,7 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
   checkpow2(blockSize,"GPUblockSize");
   groupSize=localSize*blockSize;
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
   if(vkinitialize) {
     interlock=settings::getSetting<bool>("GPUinterlock");
     fxaa=settings::getSetting<bool>("fxaa");
@@ -498,7 +499,7 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
 #endif
 }
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
 void AsyVkRender::initVulkan()
 {
 #ifdef __APPLE__
@@ -4777,7 +4778,7 @@ void AsyVkRender::Export(int imageIndex) {
 
 void AsyVkRender::finalizeProcess()
 {
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
   glslang::FinalizeProcess();
 #endif
 }
@@ -4804,6 +4805,7 @@ void AsyVkRender::cycleMode() {
   recreatePipeline = true;
 }
 
+#endif // HAVE_VULKAN
 } // namespace camp
 
 #endif // HAVE_LIBGLM

@@ -26,7 +26,7 @@
 
 // Include OpenGL headers BEFORE anything that pulls in <windows.h>
 // (which defines GL types via <wingdi.h> on Windows)
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
 #include "glrender.h"
 #include "tr.h"
 #include "shaders.h"
@@ -36,7 +36,7 @@
 #ifdef HAVE_LIBGLFW
 #include <GLFW/glfw3.h>
 #endif // HAVE_LIBGLFW
-#endif // HAVE_RENDERER
+#endif // HAVE_GL
 
 #include "picture.h"
 #include "bezierpatch.h"
@@ -76,7 +76,7 @@ camp::GLTexture2<float,GL_FLOAT> iblbrdfTex;
 camp::GLTexture2<float,GL_FLOAT> irradianceTex;
 camp::GLTexture3<float,GL_FLOAT> reflTexturesTex;
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
 // GLFW window globals - kept in camp namespace for type compatibility
 #ifdef HAVE_LIBGLFW
 string Action;
@@ -454,7 +454,7 @@ void AsyGLRender::drawFrame()
   // Use member variables from AsyGLRender (following Vulkan pattern)
   if(xmin >= xmax || ymin >= ymax || Zmin >= Zmax) return;
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
   drawBuffers();
 #endif
 
@@ -685,7 +685,7 @@ bool NVIDIA()
   return string(GLSL_VERSION).find("NVIDIA") != string::npos;
 }
 
-#endif /* HAVE_RENDERER */
+#endif /* HAVE_GL */
 
 string getLightIndex(size_t const& index, string const& fieldName) {
   ostringstream buf;
@@ -1227,7 +1227,7 @@ void AsyGLRender::drawBuffers()
 
 AsyGLRender::~AsyGLRender()
 {
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
   if (this->View) {
     ::glfwDestroyWindow(getRenderWindow());
     glfwWindow = nullptr;
@@ -1387,7 +1387,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
       Width=fullWidth;
       Height=fullHeight;
     } else {
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
       GLFWmonitor* monitor=NULL;
       glfwInit();
       monitor=glfwGetPrimaryMonitor();
@@ -1411,7 +1411,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     }
 
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
     home(format3d);
 #endif
     if(format3d) {
@@ -1423,12 +1423,12 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
     Aspect=((double) Width)/Height;
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
     setosize();
 #endif
   }
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
   havewindow=initialized && threads;
 
   if(threads && format3d)
@@ -1534,7 +1534,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   View = false;
 #endif
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
   havewindow = initialized && threads;
 #endif
 
@@ -1643,7 +1643,7 @@ void AsyGLRender::showWindow()
  */
 void AsyGLRender::swapBuffers()
 {
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
   glfwSwapBuffers(getRenderWindow());
 #endif
 }
@@ -1665,7 +1665,7 @@ void AsyGLRender::update()
   capzoom();
 
   redraw=true;
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
   if(glfwWindow && View)
     ::glfwShowWindow(getRenderWindow());
 #endif
@@ -1674,7 +1674,7 @@ void AsyGLRender::update()
   AsyRender::update();
 }
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
 GLFWwindow* AsyGLRender::getRenderWindow() const
 {
   return static_cast<GLFWwindow*>(glfwWindow);
@@ -1693,7 +1693,7 @@ void AsyGLRender::reshape(int width, int height)
   AsyRender::reshape(width, height);
 
   // OpenGL-specific: update viewport and mark SSBO for reinitialization
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
   glViewport(0, 0, Width, Height);
   if(ssbo)
     initSSBO = true;
@@ -1704,4 +1704,4 @@ void AsyGLRender::reshape(int width, int height)
 
 #endif // HAVE_LIBGLM
 
-#endif // HAVE_RENDERER
+#endif // HAVE_GL
