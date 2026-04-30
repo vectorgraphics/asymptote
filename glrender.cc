@@ -872,7 +872,7 @@ void AsyGLRender::refreshBuffers()
   }
 
   if(!interlock) {
-    drawBuffer(lineData,countShader,false,4);
+    drawBuffer(lineData,countShader,false,1);
     drawBuffer(materialData,countShader,false,4);
     drawBuffer(colorData,countShader,true,4);
     drawBuffer(triangleData,countShader,true,4);
