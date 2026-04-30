@@ -1763,6 +1763,11 @@ void AsyVkRender::endAndSubmitTransfers(FrameObject & object, vk::Queue queue)
   if (!object.transferFence)
     object.transferFence = device->createFenceUnique(vk::FenceCreateInfo());
 
+  // Reset the fence before submission.  The fence is reused across frames and
+  // may have been signaled by a prior submit (e.g. the GPUcompress path in
+  // refreshBuffers submits and waits on the same fence earlier in the same frame).
+  vkutils::checkVkResult(device->resetFences(1, &*object.transferFence));
+
   vkutils::checkVkResult(queue.submit(1, &submitInfo, *object.transferFence));
 }
 
@@ -3658,6 +3663,13 @@ void AsyVkRender::createComputePipelines()
 {
   std::vector const computeDescSetLayoutVec { *computeDescriptorSetLayout };
 
+  // Destroy old pipelines before destroying the old layout, to prevent
+  // the validation layer from reporting "pipeline references deleted
+  // VkPipelineLayout" when recreating swap chain / pipelines.
+  sum1Pipeline.reset();
+  sum2Pipeline.reset();
+  sum3Pipeline.reset();
+
   // Create the shared pipeline layout only once, then create all three
   // pipelines using it.  Previously each call to createComputePipeline()
   // created a new layout and destroyed the old one, leaving sum1Pipeline
@@ -3668,8 +3680,10 @@ void AsyVkRender::createComputePipelines()
 
   if (fxaa)
   {
+    // Destroy old FXAA pipeline before recreating its layout.
+    postProcessPipeline.reset();
+
     std::vector const postProcessDescSetLayoutVec{*postProcessDescSetLayout};
-    // fxaa
     createComputePipeline(postProcessPipelineLayout, postProcessPipeline, "fxaa.cs", postProcessDescSetLayoutVec);
   }
 }
@@ -4105,6 +4119,27 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     currentCommandBuffer.setEvent(*object.compressionFinishedEvent, vk::PipelineStageFlagBits::eFragmentShader);
     endFrameCommands();
 
+    // Before submitting the count/compress pass, ensure any pending buffer
+    // transfers (vertex/index data uploads) have completed.  The count pass
+    // reads from those buffers, so they must be up to date.
+    if (object.transferHasPendingWork) {
+      object.copyCountCommandBuffer->end();
+
+      auto transferSubmitInfo = vk::SubmitInfo(0, nullptr, nullptr,
+        1, &*object.copyCountCommandBuffer, 0, nullptr);
+      if (!object.transferFence)
+        object.transferFence = device->createFenceUnique(vk::FenceCreateInfo());
+      vkutils::checkVkResult(device->resetFences(1, &*object.transferFence));
+      vkutils::checkVkResult(transferQueue.submit(1, &transferSubmitInfo, *object.transferFence));
+      vkutils::checkVkResult(device->waitForFences(
+        1, &*object.transferFence, VK_TRUE, timeout));
+
+      // Reset for reuse by the later endAndSubmitTransfers call.
+      object.copyCountCommandBuffer->reset();
+      object.copyCountCommandBuffer->begin(vk::CommandBufferBeginInfo());
+      object.transferHasPendingWork = false;
+    }
+
     // Create a fence for synchronization
     auto compressFence = device->createFenceUnique(vk::FenceCreateInfo());
 
@@ -4120,6 +4155,8 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
       1, &*compressFence, VK_TRUE, timeout
     ));
 
+    // Invalidate cached host-visible memory before reading GPU results.
+    elemBfMappedMem->invalidate();
     elements=p[0];
     p[0]=1;
   } else {
