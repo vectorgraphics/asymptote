@@ -62,10 +62,6 @@ texstream::~texstream() {
 
 namespace camp {
 
-#ifdef HAVE_RENDERER
-AsyRender* gl;
-#endif
-
 extern void draw();
 
 bool isIdTransform3(const double* t)

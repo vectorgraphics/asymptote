@@ -14,6 +14,10 @@ using settings::getSetting;
 
 namespace camp {
 
+#ifdef HAVE_RENDERER
+AsyRender* gl;
+#endif
+
 // Matrix accessor functions - shared between GL and Vulkan renderers.
 const glm::dmat4& getProjViewMat() { return gl->projViewMat; }
 const glm::dmat4& getViewMat()     { return gl->viewMat; }
