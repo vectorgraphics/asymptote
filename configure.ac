@@ -599,7 +599,10 @@ AC_SUBST(TINYEXR_ROOT)
 
 if test "x$enable_vulkan" != "xno" -o "x$enable_gl" != "xno"; then
 if test "x$with_vcpkg" != "xno"; then
-   ADD_VCPKG_LIB_FOR_PKGCONFIG(glfw3)
+   # Don't use pkg-config for glfw3; its .pc file may include vulkan as a dependency,
+   # but we load the Vulkan renderer dynamically at runtime via dlopen.
+   AC_DEFINE(HAVE_LIBGLFW,1,DEFINE_LIB([GLFW]))
+   LIBS=$LIBS"-lglfw "
    case "$OSTYPE" in
         darwin*) ;;
         *) LIBS=$LIBS"-ldl " ;;
