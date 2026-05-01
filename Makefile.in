@@ -12,7 +12,7 @@ GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@
-LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@
+LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS) @LSPLIBS@
 CXX_STANDARD = @CXX_STANDARD@
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 LSP_ROOT=@LSP_ROOT@
@@ -52,14 +52,17 @@ VMA_IMPL_FILES = @VMA_IMPL_FILES@
 # Vulkan renderer objects - built into a shared library, not linked into the main binary.
 VULKAN_OBJS = $(VMA_IMPL_FILES) vkrender vkdispatchstorage vkutils vulkanshim
 
+# OpenGL renderer objects - built into a shared library, not linked into the main binary.
+OPENGL_OBJS = glrender GLTextures openglshim shaders glew tr tr tr
+
 COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	env genv stm dec errormsg \
     callable name symbol entry exp newexp stack exithandlers camp.tab lex.yy \
 	access virtualfieldaccess absyn record interact fileio \
 	fftw++asy parallel simpson coder coenv impdatum locate asyparser program application \
 	varinit fundec refaccess envcompleter asyprocess constructor array memory \
-	Delaunay predicates glrender glfw renderBase tr shaders jsfile v3dfile \
-	EXRFiles GLTextures lspserv symbolmaps win32helpers win32pipestream \
+	Delaunay predicates glfw renderBase jsfile v3dfile \
+	EXRFiles lspserv symbolmaps win32helpers win32pipestream \
 	win32xdr xstream \
 	lspdec lspexp lspfundec lspstm \
 	hashing random rendererloader
@@ -141,7 +144,7 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ @GLEW@ libasyvulkan.so
+asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ libasyvulkan.so libasyopengl.so
 	$(CXX) $(OPTS) -rdynamic -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
 # Build the Vulkan renderer as a shared library loaded at runtime via dlopen.
@@ -152,6 +155,20 @@ libasyvulkan.so: $(VULKAN_PIC_OBJS)
 vkpic/%.o: %.cc
 	@mkdir -p vkpic
 	$(CXX) $(OPTS) -fPIC -o $@ -c $<
+
+# Build the OpenGL renderer as a shared library loaded at runtime via dlopen.
+OPENGL_PIC_OBJS = $(addprefix glpic/,$(OPENGL_OBJS:=.o))
+libasyopengl.so: $(OPENGL_PIC_OBJS)
+	$(CXX) $(OPTS) -shared -o $@ $^ @ASY_GL_LIBS@ -lglfw
+
+glpic/%.o: %.cc
+	@mkdir -p glpic
+	$(CXX) $(OPTS) -fPIC -o $@ -c $<
+
+# glew.c is a C file, needs special handling for the OpenGL shared library.
+glpic/glew.o: glew.c config.h
+	@mkdir -p glpic
+	$(CC) $(GLEWOPTS) -o $@ -c $<
 
 $(XNAME): $(PYFILES)
 	$(SILENT_MAKE)ln -sf GUI/xasy.py $(XNAME)
@@ -385,7 +402,8 @@ uninstall-docdir: uninstall-man uninstall-asy
 	-rmdir $(docdir)
 
 clean:	FORCE
-	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
+	-rm -f asy asymptote.so libasyvulkan.so libasyopengl.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
+	-rm -rf vkpic glpic
 	-cd LspCpp && $(MAKE) distclean
 	-cd tinyexr && $(MAKE) clean
 	-cd doc && $(MAKE) clean

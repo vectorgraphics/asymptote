@@ -1095,8 +1095,13 @@ void displayFeatures(bool enabled)
     if (vulkanAvailable)
         havevulkan = true;
     else {
+        // Probe for OpenGL shared library at runtime.
+        bool openglAvailable = camp::tryLoadOpenGL();
+        if (openglAvailable)
+            haveopengl = true;
 #ifdef HAVE_GL
-        haveopengl = true;
+        else
+            haveopengl = true;
 #endif
     }
 #endif

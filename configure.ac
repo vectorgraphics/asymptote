@@ -709,12 +709,15 @@ fi
 AC_ARG_ENABLE(offscreen,
 [AS_HELP_STRING(--enable-offscreen[[[=no]]],use OSMesa library to implement offscreen rendering)])
 
+ASY_GL_LIBS=""
+
 if test "x$enable_gl" != "xno"; then
 if test "x$with_vcpkg" != "xno"; then  # managed by vcpkg
    ADD_VCPKG_FEATURE(opengl)
    AC_DEFINE(HAVE_LIBGL,1,[libgl is enabled])
    INCL=$INCL" -Ibackports/glew/include"
    GLEW="glew.o "
+   ASY_GL_LIBS="-lGL "
 else  # managed by the system
    AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
 
@@ -724,19 +727,24 @@ case "$OSTYPE" in
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL,1,
                              DEFINE([<gl.h> header]))
-                              LIBS=$LIBS"-framework OpenGL -framework Cocoa "
+                              ASY_GL_LIBS="-framework OpenGL -framework Cocoa "
                               INCL=$INCL" -Ibackports/glew/include"
                               GLEW="glew.o "],
                                  AC_MSG_NOTICE([*** Could not find OpenGL: will compile without OpenGL support ***]))
         ;;
      *)
-         AC_CHECK_LIB([GL], [glDepthMask],
+         # Use AC_LINK_IFELSE instead of AC_CHECK_LIB to avoid adding -lGL to LIBS.
+         # The OpenGL library will only be linked into libasyopengl.so, not the main binary.
+         LIBS_SAVE=$LIBS
+         LIBS="$LIBS -lGL"
+         AC_LINK_IFELSE([AC_LANG_CALL([], [glDepthMask])],
                                  [AC_DEFINE(HAVE_LIBGL,1,
                              DEFINE_LIB([GL]))
-                             LIBS=$LIBS"-lGL "
+                             ASY_GL_LIBS="-lGL "
                              GLEW="glew.o "
                              INCL=$INCL" -Ibackports/glew/include"],
                                    AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
+         LIBS=$LIBS_SAVE
 esac
    if test "x$enable_offscreen" = "xyes"; then
            AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
@@ -796,6 +804,7 @@ AC_SUBST(OPTIONS)
 AC_SUBST(GLEW)
 AC_SUBST(VMA_IMPL_FILES)
 AC_SUBST(ASY_VULKAN_LIBS)
+AC_SUBST(ASY_GL_LIBS)
 
 # we are on C++ >= 11, so unordered map is a guarantee
 AC_DEFINE(HAVE_UNORDERED_MAP,1,[Unordered map is present])

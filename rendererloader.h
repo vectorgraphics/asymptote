@@ -8,9 +8,11 @@
 namespace camp {
 
 bool tryLoadVulkan();
+bool tryLoadOpenGL();
 void createRenderer();
 void initRenderer();
 void unloadVulkan();
+void unloadOpenGL();
 
 } // namespace camp
 
