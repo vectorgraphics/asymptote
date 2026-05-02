@@ -21,7 +21,7 @@
 #endif
 
 #ifndef YYDEBUG
-#if __WIN32
+#ifdef _WIN32
 #define YYDEBUG 0
 #else
 #define YYDEBUG 1
