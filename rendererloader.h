@@ -10,7 +10,7 @@ namespace camp {
 bool tryLoadVulkan();
 bool tryLoadOpenGL();
 void createRenderer();
-void initRenderer();
+void initRenderer(const char* format = nullptr);  // Format-aware initialization
 void unloadVulkan();
 void unloadOpenGL();
 
