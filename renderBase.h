@@ -22,6 +22,8 @@
 #include "common.h"
 #include "ThreadSafeQueue.h"
 
+#ifdef HAVE_LIBGLM
+
 #include "glmCommon.h"
 #include "material.h"
 #include "pen.h"
@@ -529,3 +531,4 @@ void initRenderer(const char* format);
 void mode();
 
 } // namespace camp
+#endif // HAVE_LIBGLM

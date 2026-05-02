@@ -9,6 +9,8 @@
 #include "common.h"
 #include "renderBase.h"
 
+#ifdef HAVE_LIBGLM
+
 namespace camp
 {
 
@@ -42,3 +44,5 @@ protected:
 };
 
 } // namespace camp
+
+#endif // HAVE_LIBGLM

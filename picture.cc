@@ -1433,6 +1433,7 @@ void picture::render(double size2, const triple& Min, const triple& Max,
   }
 }
 
+#ifdef HAVE_LIBGLM
 AsyRender::RenderFunctionArgs args = {};
 
 extern bool allowRender;
@@ -1450,6 +1451,7 @@ void glrenderWrapper()
     gl->render(args);
 #endif
 }
+#endif // HAVE_LIBGLM
 
 bool picture::shipout3(const string& prefix, const string& format,
                        double width, double height, double angle, double zoom,
@@ -1482,16 +1484,12 @@ bool picture::shipout3(const string& prefix, const string& format,
 #ifndef HAVE_LIBOSMESA
 #ifndef HAVE_RENDERER
   if(!webgl) {
-    string renderer;
-    string dependencies;
-    if(vulkan) {
-      renderLibrary="Vulkan";
-      dependencies="glfw, vulkan, and glslang";
-    } else {
-      renderLibrary="OpenGL";
-      dependencies="glfw and GL";
-    }
-    camp::reportError("to support onscreen "+renderLibrary+" rendering; please install the "+dependencies+" development libraries, then ./configure; make");
+#ifdef _WIN32
+    string extra="vulkan and glslang";
+#else
+    string extra="either vulkan and glslang or GL";
+#endif
+    camp::reportError("to support onscreen rendering, please install glfw and "+extra+" development libraries, then ./configure; make");
   }
 #endif
 #endif
@@ -1543,6 +1541,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool format3d=webgl || v3d;
   if(!format3d) {
 #ifdef HAVE_RENDERER
+#ifdef HAVE_LIBGLM
     if(AsyRender::threads && !offscreen) {
 #ifdef HAVE_PTHREAD
       if(!gl->initialized) {
@@ -1590,6 +1589,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 #endif
     } else {
+#endif
 #if !defined(_WIN32)
       int pid=fork();
       if(pid == -1)
@@ -1600,7 +1600,9 @@ bool picture::shipout3(const string& prefix, const string& format,
         return true;
       }
 #endif
+#ifdef HAVE_LIBGLM
     }
+#endif
 #endif
   }
 
@@ -1672,10 +1674,12 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
+#ifdef HAVE_LIBGLM
   if(AsyRender::threads && !offscreen && Wait) {
     pthread_cond_wait(&gl->readySignal,&gl->readyLock);
     pthread_mutex_unlock(&gl->readyLock);
   }
+#endif
   return true;
 #endif
 #endif

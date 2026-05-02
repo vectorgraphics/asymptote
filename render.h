@@ -23,6 +23,8 @@ constexpr size_t nbuffer = 1000;   // Initial size of 0D & 1D dynamic buffers
 #include "vk.h"
 #endif
 
+#ifdef HAVE_LIBGLM
+
 namespace camp
 {
 
@@ -211,7 +213,6 @@ extern VertexBuffer transparentData; // transparent patches & triangles
 extern VertexBuffer pointData;       // pixels
 extern VertexBuffer lineData;        // material Bezier curves
 
-#ifdef HAVE_LIBGLM
 // Accessor functions for matrices (to avoid synchronization)
 const glm::dmat4& getProjViewMat();
 const glm::dmat3& getNormMat();
@@ -233,6 +234,7 @@ inline triple billboardTransform(const triple& center, const triple& v)
                 x * BBT[1] + y * BBT[4] + z * BBT[7] + cy,
                 x * BBT[2] + y * BBT[5] + z * BBT[8] + cz);
 }
-#endif
+
 
 } // namespace camp
+#endif // HAVE_LIBGLM

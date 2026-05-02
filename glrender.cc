@@ -56,9 +56,10 @@ using settings::locateFile;
 using utils::stopWatch;
 
 using namespace settings;
-using namespace glm;
 
 #ifdef HAVE_GL
+
+using namespace glm;
 
 namespace camp {
 

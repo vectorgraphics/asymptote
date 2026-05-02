@@ -33,7 +33,6 @@
 
 using settings::getSetting;
 using settings::Setting;
-using namespace glm;
 
 
 static size_t timeout=10000000000;
@@ -57,6 +56,8 @@ std::vector<const char*> instanceExtensions
 #endif
 
 #ifdef HAVE_LIBGLM
+
+using namespace glm;
 
 namespace camp
 {

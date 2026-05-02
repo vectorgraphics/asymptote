@@ -3,6 +3,10 @@
  * Depth-based sorting of transparent triangles.
  *****/
 
+#include "common.h"
+
+#ifdef HAVE_LIBGLM
+
 #include <cstdlib>
 #include <vector>
 #include "rgba.h"
@@ -53,3 +57,5 @@ void sortTriangles()
 }
 
 } //namespace camp
+
+#endif // HAVE_LIBGLM

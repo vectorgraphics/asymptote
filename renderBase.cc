@@ -5,6 +5,8 @@
 #include "interact.h"
 #include "picture.h"
 
+#ifdef HAVE_LIBGLM
+
 #ifdef HAVE_RENDERER
 // Forward declaration for GLFWwindow to avoid including glfw3.h here
 struct GLFWwindow;
@@ -870,3 +872,5 @@ void AsyRender::mainLoop()
 }
 
 } // namespace camp
+
+#endif // HAVE_LIBGLM

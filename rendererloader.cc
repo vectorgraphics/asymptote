@@ -468,8 +468,6 @@ void initRenderer(const char* format)
 
 namespace camp {
 
-static bool initializedRenderer = false;
-
 bool tryLoadVulkan() { return false; }
 bool tryLoadOpenGL() { return false; }
 void unloadVulkan() {}

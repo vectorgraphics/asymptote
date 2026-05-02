@@ -1,14 +1,15 @@
 #pragma once
 
-#define HAVE_LIBGLM 1
-
 #include "pair.h"
 #include "triple.h"
+#ifdef HAVE_LIBGLM
 #include "glmCommon.h"
+#endif // HAVE_LIBGLM
 #include "render.h"
 
 namespace camp {
 
+#ifdef HAVE_LIBGLM
 class bbox2 {
 public:
   double x,y,X,Y;
@@ -65,5 +66,6 @@ public:
     else if(b > Y) Y=b;
   }
 };
+#endif // HAVE_LIBGLM
 
 }

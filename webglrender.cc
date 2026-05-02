@@ -4,13 +4,16 @@
  * Does not require Vulkan or OpenGL libraries.
  *****/
 
+#include "common.h"
+
+#ifdef HAVE_LIBGLM
+
 #include "webglrender.h"
 #include "settings.h"
 #include "picture.h"
 #include "interact.h"
 
 using settings::getSetting;
-using namespace glm;
 
 namespace camp
 {
@@ -127,3 +130,5 @@ void AsyWebGLRender::render(RenderFunctionArgs const& args)
 }
 
 } // namespace camp
+
+#endif // HAVE_LIBGLM

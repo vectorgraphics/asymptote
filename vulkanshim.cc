@@ -8,8 +8,10 @@
 #include <iostream>
 #include <stdexcept>
 
+#ifdef HAVE_LIBGLM
 #include "vk.h"
 #include "vkrender.h"
+#endif
 
 extern "C" {
 
@@ -21,6 +23,7 @@ extern "C" {
 void *createAsyVkRender()
 {
 #ifdef HAVE_LIBVULKAN
+#ifdef HAVE_LIBGLM
     try {
         // Initialize the Vulkan-Hpp dynamic dispatcher with global functions.
         // Since libasyvulkan.so links against -lvulkan, vkGetInstanceProcAddr
@@ -35,6 +38,9 @@ void *createAsyVkRender()
         std::cerr << "createAsyVkRender: unknown exception" << std::endl;
         return nullptr;
     }
+#else
+    return nullptr;
+#endif
 #else
     return nullptr;
 #endif
