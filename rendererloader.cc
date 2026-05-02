@@ -369,6 +369,10 @@ void createRenderer()
 
 #ifdef _WIN32
     // On Windows, Vulkan is statically linked into the binary.
+    // Initialize the Vulkan-Hpp dynamic dispatcher before creating the renderer,
+    // matching what createAsyVkRender() in vulkanshim.cc does on Unix.
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
+
     // Directly instantiate the Vulkan renderer (no OpenGL fallback available).
     gl = new camp::AsyVkRender();
 #ifdef HAVE_PTHREAD
