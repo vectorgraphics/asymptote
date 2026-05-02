@@ -1049,7 +1049,9 @@ void displayFeatures(bool enabled)
     // when asy.exe is distributed to different machines.
 #else
     static bool probed = false;
+#ifdef HAVE_VULKAN
     static bool vulkanAvailable = false;
+#endif
     if (!probed) {
 #ifdef HAVE_VULKAN
         bool useVulkan = getSetting<bool>("vulkan");
@@ -1099,10 +1101,6 @@ void displayFeatures(bool enabled)
         bool openglAvailable = camp::tryLoadOpenGL();
         if (openglAvailable)
             haveopengl = true;
-#ifdef HAVE_GL
-        else
-            haveopengl = true;
-#endif
     }
 #endif
 #endif

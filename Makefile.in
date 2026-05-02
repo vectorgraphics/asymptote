@@ -150,7 +150,7 @@ asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ libasyv
 # Build the Vulkan renderer as a shared library loaded at runtime via dlopen.
 VULKAN_PIC_OBJS = $(addprefix vkpic/,$(VULKAN_OBJS:=.o))
 libasyvulkan.so: $(VULKAN_PIC_OBJS)
-	$(CXX) $(OPTS) -shared -o $@ $^ @ASY_VULKAN_LIBS@ -lglfw -lGL
+	$(CXX) $(OPTS) -shared -o $@ $^ @ASY_VULKAN_LIBS@ -lglfw
 
 vkpic/%.o: %.cc
 	@mkdir -p vkpic

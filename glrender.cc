@@ -33,9 +33,7 @@
 #include "GLTextures.h"
 #include "EXRFiles.h"
 
-#ifdef HAVE_LIBGLFW
 #include <GLFW/glfw3.h>
-#endif // HAVE_LIBGLFW
 #endif // HAVE_GL
 
 #include "picture.h"
@@ -60,7 +58,7 @@ using utils::stopWatch;
 using namespace settings;
 using namespace glm;
 
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_GL
 
 namespace camp {
 
@@ -76,12 +74,8 @@ camp::GLTexture2<float,GL_FLOAT> iblbrdfTex;
 camp::GLTexture2<float,GL_FLOAT> irradianceTex;
 camp::GLTexture3<float,GL_FLOAT> reflTexturesTex;
 
-#ifdef HAVE_GL
 // GLFW window globals - kept in camp namespace for type compatibility
-#ifdef HAVE_LIBGLFW
 string Action;
-
-#endif
 
 using utils::statistics;
 statistics S;
@@ -454,9 +448,7 @@ void AsyGLRender::drawFrame()
   // Use member variables from AsyGLRender (following Vulkan pattern)
   if(xmin >= xmax || ymin >= ymax || Zmin >= Zmax) return;
 
-#ifdef HAVE_GL
   drawBuffers();
-#endif
 
   if(queueExport) {
     queueExport=false;
@@ -558,12 +550,9 @@ void AsyGLRender::Export(int)
   }
 
 #ifndef HAVE_LIBOSMESA
-#ifdef HAVE_LIBGLFW
   glfwPostEmptyEvent();
 #endif
-#endif
 
-#endif
   exporting=false;
   initSSBO=true;
 }
@@ -617,8 +606,6 @@ void AsyGLRender::cycleMode()
       break;
   }
 }
-
-#ifdef HAVE_LIBGLFW
 
 void init_osmesa()
 {
@@ -684,8 +671,6 @@ bool NVIDIA()
 #endif
   return string(GLSL_VERSION).find("NVIDIA") != string::npos;
 }
-
-#endif /* HAVE_GL */
 
 string getLightIndex(size_t const& index, string const& fieldName) {
   ostringstream buf;
@@ -1227,7 +1212,6 @@ void AsyGLRender::drawBuffers()
 
 AsyGLRender::~AsyGLRender()
 {
-#ifdef HAVE_GL
   if (this->View) {
     ::glfwDestroyWindow(getRenderWindow());
     glfwWindow = nullptr;
@@ -1268,7 +1252,6 @@ AsyGLRender::~AsyGLRender()
     if (glBuf.indexBuffer) glDeleteBuffers(1, &glBuf.indexBuffer);
   }
   glBuffers.clear();
-#endif
 }
 
 void AsyGLRender::render(RenderFunctionArgs const& args)
@@ -1387,16 +1370,13 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
       Width=fullWidth;
       Height=fullHeight;
     } else {
-#ifdef HAVE_GL
       GLFWmonitor* monitor=NULL;
       glfwInit();
       monitor=glfwGetPrimaryMonitor();
       if(monitor) {
         int mx, my;
         glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
-      } else
-#endif
-        {
+      } else {
           screenWidth=fullWidth;
           screenHeight=fullHeight;
         }
@@ -1410,10 +1390,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
         Height=min((int) (ceil(Width/Aspect)),screenHeight);
     }
 
-
-#ifdef HAVE_GL
     home(format3d);
-#endif
     if(format3d) {
       remesh=true;
       return;
@@ -1423,12 +1400,9 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
     Aspect=((double) Width)/Height;
 
-#ifdef HAVE_GL
     setosize();
-#endif
   }
 
-#ifdef HAVE_GL
   havewindow=initialized && threads;
 
   if(threads && format3d)
@@ -1437,7 +1411,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   clearMaterials();
   shouldUpdateBuffers=true;
   initialized=true;
-#endif
 
 #ifdef HAVE_PTHREAD
   if(threads && initializedView) {
@@ -1451,7 +1424,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 #endif
 
 // Create GLFW window BEFORE OpenGL initialization if not using OSMesa
-#ifdef HAVE_LIBGLFW
 #ifndef HAVE_LIBOSMESA
   if(!glfwWindow) {
     // For non-View rendering, hide the window during creation to prevent flash
@@ -1490,7 +1462,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
         cout << "Multisampling enabled with sample width " << samples << endl;
     }
   }
-#endif
 #endif
 
 #if defined(HAVE_COMPUTE_SHADER) && !defined(HAVE_LIBOSMESA)
@@ -1534,9 +1505,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   View = false;
 #endif
 
-#ifdef HAVE_GL
   havewindow = initialized && threads;
-#endif
 
   // Enter main loop or export
   if(View) {
@@ -1643,9 +1612,7 @@ void AsyGLRender::showWindow()
  */
 void AsyGLRender::swapBuffers()
 {
-#ifdef HAVE_GL
   glfwSwapBuffers(getRenderWindow());
-#endif
 }
 
 void frustum(GLdouble left, GLdouble right, GLdouble bottom,
@@ -1665,21 +1632,17 @@ void AsyGLRender::update()
   capzoom();
 
   redraw=true;
-#ifdef HAVE_GL
   if(glfwWindow && View)
     ::glfwShowWindow(getRenderWindow());
-#endif
 
   // Call base class update which has the correct view matrix computation (matching reference GLUT code)
   AsyRender::update();
 }
 
-#ifdef HAVE_GL
 GLFWwindow* AsyGLRender::getRenderWindow() const
 {
   return static_cast<GLFWwindow*>(glfwWindow);
 }
-#endif
 
 void AsyGLRender::exportHandler(int)
 {
@@ -1693,15 +1656,12 @@ void AsyGLRender::reshape(int width, int height)
   AsyRender::reshape(width, height);
 
   // OpenGL-specific: update viewport and mark SSBO for reinitialization
-#ifdef HAVE_GL
   glViewport(0, 0, Width, Height);
   if(ssbo)
     initSSBO = true;
-#endif
 }
+#endif
 
 } // namespace camp
-
-#endif // HAVE_LIBGLM
 
 #endif // HAVE_GL

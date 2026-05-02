@@ -352,15 +352,18 @@ void createRenderer()
         return;
     }
 
-    // Both renderers failed to load.
+    // Both renderers failed to load. Leave gl as nullptr; the error will be
+    // reported lazily in initRenderer() when 3D rendering is actually requested.
     vulkan = false;
-    camp::reportError("No 3D rendering library available");
 }
 
 void initRenderer()
 {
     if (initializedRenderer)
         return; // Already fully initialised
+
+    if (gl == nullptr)
+        camp::reportError("No 3D rendering library available");
 
     initializedRenderer = true;
 

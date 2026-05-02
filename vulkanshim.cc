@@ -5,6 +5,9 @@
  * alongside vkrender.o, vkutils.o, vkdispatchstorage.o, vma_cxx.o, vma_impl.o.
  */
 
+#include <iostream>
+#include <stdexcept>
+
 #include "vk.h"
 #include "vkrender.h"
 
@@ -17,6 +20,7 @@ extern "C" {
  */
 void *createAsyVkRender()
 {
+#ifdef HAVE_LIBVULKAN
     try {
         // Initialize the Vulkan-Hpp dynamic dispatcher with global functions.
         // Since libasyvulkan.so links against -lvulkan, vkGetInstanceProcAddr
@@ -24,9 +28,16 @@ void *createAsyVkRender()
         VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
         return new camp::AsyVkRender();
+    } catch (const std::exception &e) {
+        std::cerr << "createAsyVkRender exception: " << e.what() << std::endl;
+        return nullptr;
     } catch (...) {
+        std::cerr << "createAsyVkRender: unknown exception" << std::endl;
         return nullptr;
     }
+#else
+    return nullptr;
+#endif
 }
 
 } // extern "C"
