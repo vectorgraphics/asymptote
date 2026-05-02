@@ -1261,10 +1261,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 #endif
   lastshader = -1;
 
-  bool v3d=args.format == "v3d";
-  bool webgl=args.format == "html";
-  bool format3d=webgl || v3d;
-
   Prefix = args.prefix;
   pic = args.pic;
   Format = args.format;
@@ -1309,17 +1305,15 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   static bool initializedView=false;
 
 #ifdef HAVE_LIBOSMESA
-  if(!webgl) {
-    screenWidth=maxTileWidth;
-    screenHeight=maxTileHeight;
+  screenWidth=maxTileWidth;
+  screenHeight=maxTileHeight;
 
-    static bool osmesa_initialized=false;
-    if(!osmesa_initialized) {
-      osmesa_initialized=true;
-      fpu_trap(false); // Work around FE_INVALID.
-      init_osmesa();
-      fpu_trap(settings::trap());
-    }
+  static bool osmesa_initialized=false;
+  if(!osmesa_initialized) {
+    osmesa_initialized=true;
+    fpu_trap(false); // Work around FE_INVALID.
+    init_osmesa();
+    fpu_trap(settings::trap());
   }
 #else
   if(!initialized)
@@ -1335,15 +1329,11 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 
   if(!(initialized && interact::interactive)) {
     antialias=settings::getSetting<Int>("antialias") > 1;
-    double expand;
-    if(format3d)
-      expand=1.0;
-    else {
-      expand=settings::getSetting<double>("render");
-      if(expand < 0)
-        expand *= (Format.empty() || Format == "eps" || Format == "pdf")                 ? -2.0 : -1.0;
-      if(antialias) expand *= 2.0;
-    }
+
+    double expand=settings::getSetting<double>("render");
+    if(expand < 0)
+      expand *= (Format.empty() || Format == "eps" || Format == "pdf") ? -2.0 : -1.0;
+    if(antialias) expand *= 2.0;
 
     oWidth=args.width;
     oHeight=args.height;
@@ -1366,35 +1356,26 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     fullWidth=(int) ceil(expand*args.width);
     fullHeight=(int) ceil(expand*args.height);
 
-    if(format3d) {
-      Width=fullWidth;
-      Height=fullHeight;
+    GLFWmonitor* monitor=NULL;
+    glfwInit();
+    monitor=glfwGetPrimaryMonitor();
+    if(monitor) {
+      int mx, my;
+      glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
     } else {
-      GLFWmonitor* monitor=NULL;
-      glfwInit();
-      monitor=glfwGetPrimaryMonitor();
-      if(monitor) {
-        int mx, my;
-        glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
-      } else {
-          screenWidth=fullWidth;
-          screenHeight=fullHeight;
-        }
+        screenWidth=fullWidth;
+        screenHeight=fullHeight;
+      }
 
-      Width=min(fullWidth,screenWidth);
-      Height=min(fullHeight,screenHeight);
+    Width=min(fullWidth,screenWidth);
+    Height=min(fullHeight,screenHeight);
 
-      if(Width > Height*Aspect)
-        Width=min((int) (ceil(Height*Aspect)),screenWidth);
-      else
-        Height=min((int) (ceil(Width/Aspect)),screenHeight);
-    }
+    if(Width > Height*Aspect)
+      Width=min((int) (ceil(Height*Aspect)),screenWidth);
+    else
+      Height=min((int) (ceil(Width/Aspect)),screenHeight);
 
-    home(format3d);
-    if(format3d) {
-      remesh=true;
-      return;
-    }
+    home();
     maxFragments=0;
 
     ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
@@ -1404,9 +1385,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   }
 
   havewindow=initialized && threads;
-
-  if(threads && format3d)
-    format3dWait=true;
 
   clearMaterials();
   shouldUpdateBuffers=true;

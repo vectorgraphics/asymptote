@@ -65,7 +65,7 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	EXRFiles lspserv symbolmaps win32helpers win32pipestream \
 	win32xdr xstream \
 	lspdec lspexp lspfundec lspstm \
-	hashing random rendererloader
+	hashing random rendererloader webglrender
 
 FILES = $(COREFILES) main
 

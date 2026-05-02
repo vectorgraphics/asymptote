@@ -1465,7 +1465,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   if(width <= 0 || height <= 0) return false;
 
 #ifdef HAVE_RENDERER
-  initRenderer();
+  initRenderer(format.c_str());
 #endif
 
   bool webgl=format == "html";

@@ -8,11 +8,15 @@
  * All OpenGL-specific code lives in libasyopengl.so, loaded at runtime.
  *
  * On Windows, Vulkan is linked directly into the asy binary.
+ *
+ * For WebGL (html) and v3d output, AsyWebGLRender is used instead, which
+ * requires no GPU libraries - it only sets up state for client-side rendering.
  *****/
 
 #include "rendererloader.h"
 #include "camperror.h"
 #include "renderBase.h"
+#include "webglrender.h"
 
 #ifdef _WIN32
 #include "vkrender.h"
@@ -315,6 +319,37 @@ void unloadOpenGL()
 }
 
 /**
+ * Create a WebGL renderer for html/v3d output.
+ * This does NOT require Vulkan or OpenGL libraries - it only sets up state
+ * needed by jsfile.cc and v3dfile.cc to generate the output files.
+ *
+ * If a Vulkan/OpenGL renderer was already created (e.g., by createRenderer()),
+ * we replace the global pointer with AsyWebGLRender. The old renderer is NOT
+ * deleted to avoid triggering cleanup code (like glslang::FinalizeProcess())
+ * that can cause issues when called during program shutdown.
+ */
+static void createWebGLRenderer()
+{
+    // Replace the global pointer without deleting the old renderer.
+    // This avoids triggering Vulkan/OpenGL cleanup code that can cause
+    // assertion failures at program exit (e.g., glslang::FinalizeProcess()).
+    // The old renderer will be cleaned up when the process exits.
+    if (gl != nullptr) {
+        // Don't delete - just leak the old renderer (acceptable for short-lived processes)
+        gl = nullptr;
+    }
+
+    gl = new camp::AsyWebGLRender();
+
+#ifdef HAVE_PTHREAD
+    if (gl)
+        gl->mainthread = pthread_self();
+#endif
+
+    vulkan = false;  // WebGL renderer is not Vulkan
+}
+
+/**
  * Create the renderer object without performing any GPU/Vulkan probing.
  * Called from main.cc before starting threads so that gl is non-null and
  * the render thread can safely access gl->wait(...).
@@ -370,20 +405,53 @@ void createRenderer()
     vulkan = false;
 }
 
-void initRenderer()
+/**
+ * Initialise the renderer, optionally selecting based on output format.
+ *
+ * For WebGL (html) and v3d formats, creates AsyWebGLRender which requires
+ * no GPU libraries - it only sets up state for client-side rendering.
+ *
+ * @param format Output format string (e.g., "html", "v3d", or empty/NULL for default)
+ */
+void initRenderer(const char* format)
 {
-    if (initializedRenderer)
-        return; // Already fully initialised
+    // For WebGL and v3d output, use the lightweight AsyWebGLRender
+    // which doesn't require Vulkan or OpenGL libraries
+    bool isFormat3D = (format != nullptr &&
+                       (strcmp(format, "html") == 0 || strcmp(format, "v3d") == 0));
 
-    if (gl == nullptr)
+    // If we have a WebGL renderer but now need GPU rendering (or vice versa),
+    // reset and re-initialize with the appropriate renderer
+    if (initializedRenderer) {
+        bool currentIsWebGL = dynamic_cast<AsyWebGLRender*>(gl) != nullptr;
+        if (currentIsWebGL != isFormat3D) {
+            initializedRenderer = false;
+            // Clear the old renderer so a new one gets created below.
+            // We don't delete it to avoid triggering cleanup code
+            // (e.g., glslang::FinalizeProcess()) that can cause issues.
+            if (currentIsWebGL)
+                gl = nullptr;
+        }
+    }
+
+    if (initializedRenderer)
+        return; // Already fully initialised for this format type
+
+    if (isFormat3D) {
+        createWebGLRenderer();
+    }
+
+    if (gl == nullptr) {
+        // For non-format3d output, try Vulkan/OpenGL renderers
         camp::reportError("No 3D rendering library available");
+    }
 
     initializedRenderer = true;
 
-    // The vulkan flag is already set correctly by createRenderer().
-    // Just log at verbose level 3+ for confirmation.
     if (settings::verbose > 2) {
-        if (vulkan)
+        if (isFormat3D && format)
+            std::cout << "Using WebGL renderer for " << format << " output" << std::endl;
+        else if (vulkan)
             std::cout << "Using Vulkan renderer" << std::endl;
         else
             std::cout << "Using OpenGL renderer" << std::endl;
@@ -403,7 +471,7 @@ bool tryLoadOpenGL() { return false; }
 void unloadVulkan() {}
 void unloadOpenGL() {}
 void createRenderer() {}
-void initRenderer() {}
+void initRenderer(const char*) {}
 
 } // namespace camp
 
