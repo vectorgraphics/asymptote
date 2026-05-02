@@ -21,7 +21,11 @@
 #endif
 
 #ifndef YYDEBUG
+#if __WIN32
+#define YYDEBUG 0
+#else
 #define YYDEBUG 1
+#endif
 #endif
 
 // Used when a position needs to be determined and no token is
