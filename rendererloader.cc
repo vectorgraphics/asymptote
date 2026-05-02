@@ -1,15 +1,22 @@
 /*****
  * rendererloader.cc
- * Probe for Vulkan and OpenGL availability at runtime via dlopen.
+ * On Unix: Probe for Vulkan and OpenGL availability at runtime via dlopen.
+ * On Windows: Vulkan is statically linked; the renderer is directly instantiated.
  *
- * The main asy binary has zero link-time dependencies on Vulkan or OpenGL.
- * All Vulkan-specific code lives in libasyvulkan.so, loaded at runtime.
+ * The main asy binary has zero link-time dependencies on Vulkan or OpenGL
+ * on Unix. All Vulkan-specific code lives in libasyvulkan.so, loaded at runtime.
  * All OpenGL-specific code lives in libasyopengl.so, loaded at runtime.
+ *
+ * On Windows, Vulkan is linked directly into the asy binary.
  *****/
 
 #include "rendererloader.h"
 #include "camperror.h"
 #include "renderBase.h"
+
+#ifdef _WIN32
+#include "vkrender.h"
+#endif
 
 #ifdef HAVE_RENDERER
 
@@ -238,12 +245,8 @@ static bool tryLoadOpenGLLib()
 bool tryLoadVulkan()
 {
 #ifdef _WIN32
-    HMODULE h = LoadLibraryA("libasyvulkan.dll");
-    if (h) {
-        FreeLibrary(h);
-        return true;
-    }
-    return false;
+    // On Windows, Vulkan is statically linked; always available.
+    return true;
 #else
     // Try the same paths as tryLoadVulkanLib but without keeping the handle.
     std::vector<std::string> paths;
@@ -269,11 +272,7 @@ bool tryLoadVulkan()
 bool tryLoadOpenGL()
 {
 #ifdef _WIN32
-    HMODULE h = LoadLibraryA("libasyopengl.dll");
-    if (h) {
-        FreeLibrary(h);
-        return true;
-    }
+    // On Windows, OpenGL is not supported; only Vulkan is available.
     return false;
 #else
     std::vector<std::string> paths;
@@ -320,7 +319,8 @@ void unloadOpenGL()
  * Called from main.cc before starting threads so that gl is non-null and
  * the render thread can safely access gl->wait(...).
  *
- * Strategy: Try to load the requested renderer via dlopen.
+ * On Windows: Vulkan is statically linked; directly instantiate AsyVkRender.
+ * On Unix: Try to load the requested renderer via dlopen/LoadLibrary.
  * If the user requested Vulkan (-vulkan, which is the default), attempt
  * to load libasyvulkan.so first. If that fails or the user requested
  * OpenGL (-novulkan), load libasyopengl.so as a fallback.
@@ -332,6 +332,18 @@ void createRenderer()
 
     bool useVulkan = settings::getSetting<bool>("vulkan");
 
+#ifdef _WIN32
+    // On Windows, Vulkan is statically linked into the binary.
+    // Directly instantiate the Vulkan renderer (no OpenGL fallback available).
+    gl = new camp::AsyVkRender();
+#ifdef HAVE_PTHREAD
+    if (gl)
+        gl->mainthread = pthread_self();
+#endif
+    vulkan = true;
+    if (settings::verbose > 1)
+        std::cout << "Using Vulkan renderer" << std::endl;
+#else
     // If user wants Vulkan, try to load the shared library first.
     if (useVulkan) {
         if (tryLoadVulkanLib()) {
@@ -351,6 +363,7 @@ void createRenderer()
             std::cout << "Using OpenGL renderer" << std::endl;
         return;
     }
+#endif // _WIN32
 
     // Both renderers failed to load. Leave gl as nullptr; the error will be
     // reported lazily in initRenderer() when 3D rendering is actually requested.
