@@ -1,7 +1,10 @@
 /*****
  * rendererloader.cc
  * On Unix: Probe for Vulkan and OpenGL availability at runtime via dlopen.
- * On Windows: Vulkan is statically linked; the renderer is directly instantiated.
+ * On Windows: Vulkan is linked against vulkan-1.dll; the renderer is
+ *   directly instantiated.  If no hardware GPU is detected (e.g., pre-2012
+ *   hardware, VirtualBox VM), a llvmpipe fallback is activated by writing
+ *   an ICD manifest (lvp_icd.json) and loading vulkan_lvp.dll (Lavapipe).
  *
  * The main asy binary has zero link-time dependencies on Vulkan or OpenGL
  * on Unix. All Vulkan-specific code lives in libasyvulkan.so, loaded at runtime.
@@ -42,6 +45,9 @@ bool vulkan = false;
 #ifdef _WIN32
 #include <windows.h>
 #include <libloaderapi.h>
+// For llvmpipe fallback: we need raw Vulkan types to probe device availability.
+#define VK_NO_PROTOTYPES
+#include <vulkan/vulkan.h>
 #endif
 
 namespace camp {
@@ -52,6 +58,7 @@ static bool initializedRenderer = false;
 #ifdef _WIN32
 static HMODULE vulkanLibHandle = nullptr;
 static HMODULE glLibHandle = nullptr;
+static HMODULE lvpLibHandle = nullptr;
 #else
 static void *vulkanLibHandle = nullptr;
 static void *glLibHandle = nullptr;
@@ -304,6 +311,14 @@ void unloadVulkan()
 #endif
         vulkanLibHandle = nullptr;
     }
+
+    // Also unload the llvmpipe fallback DLL on Windows.
+#ifdef _WIN32
+    if (lvpLibHandle) {
+        FreeLibrary(lvpLibHandle);
+        lvpLibHandle = nullptr;
+    }
+#endif
 }
 
 void unloadOpenGL()
@@ -368,20 +383,128 @@ void createRenderer()
     bool useVulkan = settings::getSetting<bool>("vulkan");
 
 #ifdef _WIN32
-    // On Windows, Vulkan is statically linked into the binary.
-    // Initialize the Vulkan-Hpp dynamic dispatcher before creating the renderer,
-    // matching what createAsyVkRender() in vulkanshim.cc does on Unix.
+    // On Windows, Vulkan is linked against vulkan-1.dll.  Initialize the
+    // Vulkan-Hpp dynamic dispatcher before creating the renderer.
     VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
-    // Directly instantiate the Vulkan renderer (no OpenGL fallback available).
-    gl = new camp::AsyVkRender();
+    // Probe for a hardware GPU.  If none is available (e.g., pre-2012
+    // hardware, VirtualBox VM), fall back to llvmpipe via Lavapipe.
+    bool hasHardwareGPU = false;
+    try {
+        VkInstanceCreateInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+
+        VkInstance tmpInst;
+        if (vkCreateInstance(&info, nullptr, &tmpInst) == VK_SUCCESS) {
+            uint32_t devCount = 0;
+            vkEnumeratePhysicalDevices(tmpInst, &devCount, nullptr);
+            if (devCount > 0) {
+                std::vector<VkPhysicalDevice> devices(devCount);
+                vkEnumeratePhysicalDevices(tmpInst, &devCount, devices.data());
+                for (uint32_t i = 0; i < devCount; ++i) {
+                    VkPhysicalDeviceProperties props;
+                    vkGetPhysicalDeviceProperties(devices[i], &props);
+                    if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU ||
+                        props.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU ||
+                        props.deviceType == VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU) {
+                        hasHardwareGPU = true;
+                        break;
+                    }
+                }
+            }
+            vkDestroyInstance(tmpInst, nullptr);
+        }
+    } catch (...) {
+        // If probing fails for any reason, proceed without the check.
+    }
+
+    if (!hasHardwareGPU) {
+        // No hardware GPU found -- set up llvmpipe (Lavapipe) fallback.
+        // Strategy: write lvp_icd.json next to the executable and set
+        // VK_ICD_FILENAMES so the Vulkan loader picks it up on the next
+        // instance creation.
+
+        // 1) Determine the directory of our own executable.
+        std::string exeDir;
+        {
+            char buf[MAX_PATH];
+            DWORD len = GetModuleFileNameA(nullptr, buf, MAX_PATH);
+            if (len > 0 && len < MAX_PATH) {
+                std::string exePath(buf);
+                size_t slash = exePath.find_last_of("\\/");
+                if (slash != std::string::npos)
+                    exeDir = exePath.substr(0, slash + 1);
+            }
+        }
+
+        // 2) Write lvp_icd.json next to the executable.
+        std::string icdName = "lvp_icd.json";
+        std::string icdPath;
+        if (!exeDir.empty())
+            icdPath = exeDir + icdName;
+        else
+            icdPath = icdName;
+
+        {
+            std::ofstream ofs(icdPath.c_str(), std::ios::trunc);
+            if (ofs.is_open()) {
+                ofs << "{\n"
+                    << "    \"file_format_version\": \"1.0.0\",\n"
+                    << "    \"ICD\": {\n"
+                    << "        \"library_path\": \".\\\\vulkan_lvp.dll\",\n"
+                    << "        \"api_version\": \"1.3.0\"\n"
+                    << "    }\n"
+                    << "}\n";
+                if (settings::verbose > 1)
+                    std::cout << "Wrote Lavapipe ICD manifest: " << icdPath
+                              << std::endl;
+            }
+        }
+
+        // 3) Set VK_ICD_FILENAMES so the loader finds our manifest.
+        _putenv_s("VK_ICD_FILENAMES", icdPath.c_str());
+
+        // 4) Load vulkan_lvp.dll (the Lavapipe driver).
+        std::string lvpDllPath;
+        if (!exeDir.empty())
+            lvpDllPath = exeDir + "vulkan_lvp.dll";
+        else
+            lvpDllPath = "vulkan_lvp.dll";
+
+        lvpLibHandle = LoadLibraryA(lvpDllPath.c_str());
+        if (lvpLibHandle) {
+            if (settings::verbose > 1)
+                std::cout << "Loaded llvmpipe fallback: " << lvpDllPath
+                          << std::endl;
+        } else {
+            if (settings::verbose > 1)
+                std::cout << "Warning: failed to load " << lvpDllPath
+                          << "; proceeding without llvmpipe" << std::endl;
+        }
+
+        // 5) Re-initialize the Vulkan dispatcher so it picks up the new ICD.
+        VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
+    }
+
+    // Directly instantiate the Vulkan renderer.
+    try {
+        gl = new camp::AsyVkRender();
 #ifdef HAVE_PTHREAD
-    if (gl)
-        gl->mainthread = pthread_self();
+        if (gl)
+            gl->mainthread = pthread_self();
 #endif
-    vulkan = true;
-    if (settings::verbose > 1)
-        std::cout << "Using Vulkan renderer" << std::endl;
+        vulkan = true;
+        if (settings::verbose > 1)
+            std::cout << "Using Vulkan renderer" << std::endl;
+    } catch (const std::exception &e) {
+        // Vulkan renderer failed to initialize (e.g., no display, no GPU).
+        // Leave gl as nullptr so initRenderer() reports the error.
+        std::cerr << "Vulkan renderer initialization failed: " << e.what()
+                  << std::endl;
+    } catch (...) {
+        std::cerr << "Vulkan renderer initialization failed (unknown error)"
+                  << std::endl;
+    }
 #else
     // If user wants Vulkan, try to load the shared library first.
     if (useVulkan) {
@@ -404,9 +527,11 @@ void createRenderer()
     }
 #endif // _WIN32
 
-    // Both renderers failed to load. Leave gl as nullptr; the error will be
+    // On Unix: both renderers failed to load. Leave gl as nullptr; the error will be
     // reported lazily in initRenderer() when 3D rendering is actually requested.
+#ifndef _WIN32
     vulkan = false;
+#endif
 }
 
 /**
@@ -446,8 +571,7 @@ void initRenderer(const char* format)
     }
 
     if (gl == nullptr) {
-        // For non-format3d output, try Vulkan/OpenGL renderers
-        camp::reportError("No 3D rendering library available");
+        camp::reportError("No 3D rendering available");
     }
 
     initializedRenderer = true;
@@ -457,8 +581,16 @@ void initRenderer(const char* format)
             std::cout << "Using WebGL renderer for " << format << " output" << std::endl;
         else if (vulkan)
             std::cout << "Using Vulkan renderer" << std::endl;
+#ifdef _WIN32
+        else {
+            // Should not be reached: gl is non-null but vulkan is false.
+            // This indicates a programming error (e.g., vulkan flag was reset).
+            camp::reportError("No 3D rendering available");
+        }
+#else
         else
             std::cout << "Using OpenGL renderer" << std::endl;
+#endif
     }
 }
 

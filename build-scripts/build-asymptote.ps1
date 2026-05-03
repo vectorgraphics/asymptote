@@ -252,6 +252,16 @@ function buildAsy($preset, $cfgDir) {
     # ------------------------------------
     # build
     cmake --build $asymptoteRoot/$cfgDir --target asy-pre-nsis-targets -j
+
+    # Copy llvmpipe fallback DLL into the build output so that
+    # RUNTIME_DEPENDENCIES picks it up alongside every other DLL.
+    if ($env:ASYMPTOTE_BUILD_SHARED_DIRECTORY) {
+        $lvpDll = "$env:ASYMPTOTE_BUILD_SHARED_DIRECTORY/CTAN/dll/vulkan_lvp.dll"
+        if (Test-Path -PathType leaf $lvpDll) {
+            Copy-Item -Force $lvpDll "$asymptoteRoot/$cfgDir/"
+        }
+    }
+
     Pop-EnvironmentBlock  # ASY_VERSION_OVERRIDE, VCPKG_ROOT
     Pop-EnvironmentBlock  # Visual studio vars
     # install to pre-installation root

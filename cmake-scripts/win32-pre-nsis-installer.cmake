@@ -56,6 +56,13 @@ install(TARGETS asy
         ${ASY_NSIS_INSTALL_ARGUMENT}
 )
 
+# Lavapipe ICD manifest and DLL (from the shared DLL directory).
+if(WIN32 AND DEFINED ENV{ASYMPTOTE_BUILD_SHARED_DIRECTORY})
+    install(FILES "$ENV{ASYMPTOTE_BUILD_SHARED_DIRECTORY}/CTAN/dll/lvp_icd.json"
+            ${ASY_NSIS_INSTALL_ARGUMENT}
+    )
+endif()
+
 # <build-root>/base/*, <build-root>/examples -> <install-root>/
 install(
         DIRECTORY ${ASY_BUILD_BASE_DIR}/ ${CMAKE_CURRENT_SOURCE_DIR}/examples
