@@ -16,6 +16,7 @@ if (ENABLE_GC)
     set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "bdwgc shared libs flag")
     set(enable_cplusplus ON CACHE INTERNAL "bdwgc enable C++")
     set(without_libatomic_ops ON CACHE INTERNAL "bdwgc use libatomic ops")
+    set(enable_large_config ON CACHE INTERNAL "bdwgc large config")
     add_subdirectory(${BOEHM_GC_ROOT})
 
     set(CFLAG_EXTRA ${OLD_CFLAG_EXTRA})
