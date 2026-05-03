@@ -4221,6 +4221,12 @@ function webGLStart()
   home();
   requestAnimationFrame(animate);
 }
+
+function updateScene() {
+    remesh = true;
+    drawScene();
+}
+
 globalThis.window.webGLStart=webGLStart;
 globalThis.window.light=light;
 globalThis.window.material= material;
@@ -4240,3 +4246,4 @@ globalThis.window.initTransform=initTransform;
 globalThis.window.beginTransform=beginTransform;
 globalThis.window.endTransform=endTransform;
 globalThis.window.interp=interp;
+globalThis.window.updateScene=updateScene;
