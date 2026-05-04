@@ -11,7 +11,7 @@
 
 #ifdef HAVE_GL
 
-#if defined(HAVE_LIBGL) || defined(HAVE_LIBOSMESA)
+#ifdef HAVE_LIBGL
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
 #endif
@@ -22,18 +22,7 @@
 #else
 #include <GL/gl.h>
 #endif
-
-#ifdef HAVE_LIBOSMESA
-#ifndef APIENTRY
-#define APIENTRY
-#endif
-#ifndef GLAPI
-#define GLAPI
-#endif
-#define GLEW_OSMESA
-#include <GL/osmesa.h>
-#endif
-#endif // HAVE_LIBGL || HAVE_LIBOSMESA
+#endif // HAVE_LIBGL
 
 #include "glmCommon.h"
 #include <csignal>

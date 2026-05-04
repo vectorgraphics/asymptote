@@ -511,11 +511,6 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
    )],
    AC_DEFINE(HAVE_COMPUTE_SHADER,1,DEFINE([GLSL compute shaders])))
 
-# -------------- offscreen rendering
-
-AC_ARG_ENABLE(offscreen,
-[AS_HELP_STRING(--enable-offscreen[[[=no]]],use OSMesa library to implement offscreen rendering)])
-
 ASY_GL_LIBS=""
 
 if test "x$enable_gl" != "xno"; then
@@ -546,10 +541,6 @@ case "$OSTYPE" in
                                    AC_MSG_NOTICE([*** Could not find libGL: will compile without OpenGL support ***]))
          LIBS=$LIBS_SAVE
 esac
-   if test "x$enable_offscreen" = "xyes"; then
-           AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
-                        AC_MSG_NOTICE([*** Could not find libOSMesa: will compile without offscreen rendering support ***]))
-   fi
 fi
 
 # ----------------- xdr ------------------------

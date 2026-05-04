@@ -1158,11 +1158,7 @@ void displayFeatures(bool enabled)
 
     feature("V3D      3D vector graphics output",glm && xdr);
     feature("WebGL    3D HTML rendering",glm);
-#ifdef HAVE_LIBOSMESA
-    feature("OpenGL   3D OSMesa offscreen rendering",haveopengl);
-#else
     feature("OpenGL   3D OpenGL rendering",haveopengl);
-#endif
     feature("Vulkan   3D Vulkan rendering",havevulkan);
     feature("SSBO     OpenGL shader storage buffer objects",ssbo);
     feature("GSL      GNU Scientific Library (special functions)",gsl);

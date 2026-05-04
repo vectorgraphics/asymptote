@@ -140,11 +140,6 @@ void initIBL()
 
 void *glrenderWrapper(void *a);
 
-#ifdef HAVE_LIBOSMESA
-OSMesaContext ctx;
-unsigned char *osmesa_buffer;
-#endif
-
 void noShaders()
 {
   cerr << "GLSL shaders not found." << endl;
@@ -299,14 +294,10 @@ void AsyGLRender::initShaders()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
 
-#ifdef HAVE_LIBOSMESA
-  interlock=false;
-#else
   interlock=ssbo && getSetting<bool>("GPUinterlock");
 
   if(isNVIDIA30xx((const char*)glGetString(GL_RENDERER)))
     interlock = false;
-#endif
 
   if(!ssbo && settings::verbose > 2)
     cout << "No SSBO support; order-independent transparency unavailable"
@@ -550,16 +541,8 @@ void AsyGLRender::Export(int)
     endwait(readySignal,readyLock);
   }
 
-#ifndef HAVE_LIBOSMESA
-  glfwPostEmptyEvent();
-#endif
-
   exporting=false;
   initSSBO=true;
-}
-
-void nodisplay()
-{
 }
 
 // Return the greatest power of 2 less than or equal to n.
@@ -575,13 +558,7 @@ inline unsigned int floorpow2(unsigned int n)
 
 void quit()
 {
-#ifdef HAVE_LIBOSMESA
-  if(osmesa_buffer) delete[] osmesa_buffer;
-  if(ctx) OSMesaDestroyContext(ctx);
-  exit(0);
-#else
   gl->quit();
-#endif
 }
 
 void AsyGLRender::cycleMode()
@@ -606,60 +583,6 @@ void AsyGLRender::cycleMode()
       Nlights=1; // Force shader recompilation
       break;
   }
-}
-
-void init_osmesa()
-{
-#ifdef HAVE_LIBOSMESA
-  // create context and buffer
-  if(settings::verbose > 1)
-    cout << "Allocating osmesa_buffer of size " << gl->screenWidth << "x"
-         << gl->screenHeight << "x4x" << sizeof(GLubyte) << endl;
-  osmesa_buffer=new unsigned char[gl->screenWidth*gl->screenHeight*4*sizeof(GLubyte)];
-  if(!osmesa_buffer) {
-    cerr << "Cannot allocate image buffer." << endl;
-    exit(-1);
-  }
-
-  const int attribs[]={
-    OSMESA_FORMAT,OSMESA_RGBA,
-    OSMESA_DEPTH_BITS,16,
-    OSMESA_STENCIL_BITS,0,
-    OSMESA_ACCUM_BITS,0,
-    OSMESA_PROFILE,OSMESA_COMPAT_PROFILE,
-    OSMESA_CONTEXT_MAJOR_VERSION,4,
-    OSMESA_CONTEXT_MINOR_VERSION,3,
-    0,0
-  };
-
-  ctx=OSMesaCreateContextAttribs(attribs,NULL);
-  if(!ctx) {
-    ctx=OSMesaCreateContextExt(OSMESA_RGBA,16,0,0,NULL);
-    if(!ctx) {
-      cerr << "OSMesaCreateContextExt failed." << endl;
-      exit(-1);
-    }
-  }
-
-  if(!OSMesaMakeCurrent(ctx,osmesa_buffer,GL_UNSIGNED_BYTE,
-                        gl->screenWidth,gl->screenHeight )) {
-    cerr << "OSMesaMakeCurrent failed." << endl;
-    exit(-1);
-  }
-
-  int z=0, s=0, a=0;
-  glGetIntegerv(GL_DEPTH_BITS,&z);
-  glGetIntegerv(GL_STENCIL_BITS,&s);
-  glGetIntegerv(GL_ACCUM_RED_BITS,&a);
-  if(settings::verbose > 1)
-    cout << "Offscreen context settings: Depth=" << z << " Stencil=" << s
-         << " Accum=" << a << endl;
-
-  if(z <= 0) {
-    cerr << "Error initializing offscreen context: Depth=" << z << endl;
-    exit(-1);
-  }
-#endif // HAVE_LIBOSMESA
 }
 
 bool NVIDIA()
@@ -1274,23 +1197,10 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 
 #ifdef HAVE_PTHREAD
   static bool initializedView=false;
+#endif
 
-#ifdef HAVE_LIBOSMESA
-  screenWidth=maxTileWidth;
-  screenHeight=maxTileHeight;
-
-  static bool osmesa_initialized=false;
-  if(!osmesa_initialized) {
-    osmesa_initialized=true;
-    fpu_trap(false); // Work around FE_INVALID.
-    init_osmesa();
-    fpu_trap(settings::trap());
-  }
-#else
   if(!initialized)
     Fitscreen=1;
-#endif
-#endif
 
   if(!(initialized && interact::interactive)) {
     antialias=settings::getSetting<Int>("antialias") > 1;
@@ -1366,8 +1276,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   }
 #endif
 
-// Create GLFW window BEFORE OpenGL initialization if not using OSMesa
-#ifndef HAVE_LIBOSMESA
+// Create GLFW window BEFORE OpenGL initialization
   if(!glfwWindow) {
     // For non-View rendering, hide the window during creation to prevent flash
     if(!View)
@@ -1405,9 +1314,8 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
         cout << "Multisampling enabled with sample width " << samples << endl;
     }
   }
-#endif
 
-#if defined(HAVE_COMPUTE_SHADER) && !defined(HAVE_LIBOSMESA)
+#if defined(HAVE_COMPUTE_SHADER)
   GPUindexing=getSetting<bool>("GPUindexing");
   GPUcompress=getSetting<bool>("GPUcompress");
 #else
@@ -1427,7 +1335,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   glClearColor(args.background[0], args.background[1],
                args.background[2], args.background[3]);
 
-#ifndef HAVE_LIBOSMESA
   if(View) {
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
@@ -1436,7 +1343,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     setosize();
     initializedView = true;
   }
-#endif
 
   glEnable(GL_DEPTH_TEST);
 
@@ -1444,9 +1350,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   cycleMode();
 
   ViewExport = View;
-#ifdef HAVE_LIBOSMESA
-  View = false;
-#endif
+
 
   havewindow = initialized && threads;
 

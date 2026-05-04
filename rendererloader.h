@@ -3,7 +3,7 @@
 #include "common.h"
 
 #if !defined(FOR_SHARED) && defined(HAVE_LIBGLM) && \
-  defined(HAVE_LIBGLFW) && (defined(HAVE_LIBVULKAN) || defined(HAVE_LIBGL) || defined(HAVE_LIBOSMESA))
+  defined(HAVE_LIBGLFW) && (defined(HAVE_LIBVULKAN) || defined(HAVE_LIBGL))
 
 namespace camp {
 
