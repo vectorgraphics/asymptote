@@ -208,13 +208,14 @@ void AsyVkRender::onFramebufferResize(int width, int height)
 
 void AsyVkRender::onScroll(double xoffset, double yoffset)
 {
+    std::string action = getGLFWScrollAction(yoffset <= 0);
+
     auto zoomFactor = getSetting<double>("zoomfactor");
 
-    if(zoomFactor > 0.0) {
-        if (yoffset > 0)
-            Zoom *= zoomFactor;
-        else
-            Zoom /= zoomFactor;
+    if(action == "zoomin" || action.empty()) {
+        if(zoomFactor > 0.0) Zoom /= zoomFactor;
+    } else if(action == "zoomout") {
+        if(zoomFactor > 0.0) Zoom *= zoomFactor;
     }
 
     update();

@@ -56,6 +56,7 @@ RenderCallbacks* glfwGetCallbacks(GLFWwindow* window);
  * Shared utility for renderer callback implementations.
  */
 std::string getGLFWAction(int button, int mods);
+std::string getGLFWScrollAction(bool wheelUp);
 
 /**
  * Generic GLFW event loop for interactive rendering.

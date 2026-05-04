@@ -230,6 +230,29 @@ std::string getGLFWAction(int button, int mods)
   return getActionString(button, mods);
 }
 
+// Get action string for scroll wheel (button 3=wheel up, 4=wheel down)
+static std::string getScrollAction(bool wheelUp)
+{
+  size_t Button = wheelUp ? 3 : 4;
+  auto left = getSetting<vm::array *>("leftbutton");
+  auto middle = getSetting<vm::array *>("middlebutton");
+  auto right = getSetting<vm::array *>("rightbutton");
+  auto wheelup = getSetting<vm::array *>("wheelup");
+  auto wheeldown = getSetting<vm::array *>("wheeldown");
+  vm::array* buttonArray[] = {left, middle, right, wheelup, wheeldown};
+  auto a = buttonArray[Button];
+  size_t size = checkArray(a);
+
+  if (0 < size)
+    return read<std::string>(a, 0);
+  return "";
+}
+
+std::string getGLFWScrollAction(bool wheelUp)
+{
+  return getScrollAction(wheelUp);
+}
+
 void *postEmptyEvent(void *)
 {
   glfwPostEmptyEvent();
