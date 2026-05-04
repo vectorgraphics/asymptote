@@ -310,53 +310,13 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
   setenv("XMODIFIERS","",true);
 #endif
 
-  pic = args.pic;
-  Prefix=args.prefix;
-  Format = args.format;
-  remesh = true;
-  nlights = args.nlightsin;
-  Lights = args.lights;
-  LightsDiffuse = args.diffuse;
-  Oldpid = args.oldpid;
-
-  Angle = args.angle * radians;
-  lastzoom = 0;
-  Zoom0 = std::fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
-  Shift = args.shift / args.zoom;
-  Margin = args.margin;
-
-  for (int i = 0; i < 4; i++)
-    Background[i] = static_cast<float>(args.background[i]);
-
-  ViewExport=args.view;
-
-  View = args.view && !settings::getSetting<bool>("offscreen");
-
-  title = std::string(PACKAGE_NAME)+": "+ args.prefix.c_str();
-
-  Xmin = args.m.getx();
-  Xmax = args.M.getx();
-  Ymin = args.m.gety();
-  Ymax = args.M.gety();
-  Zmin = args.m.getz();
-  Zmax = args.M.getz();
-
-  haveScene=Xmin < Xmax && Ymin < Ymax && Zmin < Zmax;
-  orthographic = Angle == 0.0;
-  H = orthographic ? 0.0 : -tan(0.5 * Angle) * Zmax;
-  Xfactor = Yfactor = 1.0;
+  copyRenderArgs(args);
 
 #ifdef HAVE_PTHREAD
   static bool initializedView=false;
   if(vkinitialize)
     Fitscreen=1;
 #endif
-
-  for(int i=0; i < 16; ++i)
-    T[i]=args.t[i];
-
-  for(int i=0; i < 16; ++i)
-    Tup[i]=args.tup[i];
 
   if(!(initialized && interact::interactive)) {
     antialias=settings::getSetting<Int>("antialias") > 1;

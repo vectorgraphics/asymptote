@@ -232,6 +232,10 @@ public:
   /** Pure virtual function that derived classes must implement */
   virtual void render(RenderFunctionArgs const& args) = 0;
 
+  /** Copy common arguments from RenderFunctionArgs to member variables.
+   * Shared by all renderer implementations (Vulkan, OpenGL, WebGL). */
+  void copyRenderArgs(RenderFunctionArgs const& args);
+
   double getRenderResolution(triple Min) const;
 
   // Scene bounds

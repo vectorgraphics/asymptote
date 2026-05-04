@@ -24,51 +24,7 @@ void AsyWebGLRender::render(RenderFunctionArgs const& args)
   bool webgl = args.format == "html";
   bool format3d = webgl || v3d;
 
-  // Store picture and basic state
-  pic = args.pic;
-  Prefix = args.prefix;
-  Format = args.format;
-  remesh = true;
-  nlights = args.nlightsin;
-  Lights = args.lights;
-  LightsDiffuse = args.diffuse;
-  Oldpid = args.oldpid;
-
-  // Camera and view parameters
-  Angle = args.angle * radians;
-  lastzoom = 0;
-  Zoom0 = std::fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
-  Shift = args.shift / args.zoom;
-  Margin = args.margin;
-
-  // Background color
-  for (int i = 0; i < 4; i++)
-    Background[i] = static_cast<float>(args.background[i]);
-
-  ViewExport = args.view;
-  View = args.view && !settings::getSetting<bool>("offscreen");
-
-  title = std::string(PACKAGE_NAME) + ": " + args.prefix.c_str();
-
-  // Scene bounds
-  Xmin = args.m.getx();
-  Xmax = args.M.getx();
-  Ymin = args.m.gety();
-  Ymax = args.M.gety();
-  Zmin = args.m.getz();
-  Zmax = args.M.getz();
-
-  haveScene = Xmin < Xmax && Ymin < Ymax && Zmin < Zmax;
-  orthographic = Angle == 0.0;
-  H = orthographic ? 0.0 : -tan(0.5 * Angle) * Zmax;
-  Xfactor = Yfactor = 1.0;
-
-  // Transform matrices
-  for (int i = 0; i < 16; ++i)
-    T[i] = args.t[i];
-
-  for (int i = 0; i < 16; ++i)
-    Tup[i] = args.tup[i];
+  copyRenderArgs(args);
 
   if (!(initialized && interact::interactive)) {
     antialias = settings::getSetting<Int>("antialias") > 1;

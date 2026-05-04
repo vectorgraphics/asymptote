@@ -1262,39 +1262,9 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 #endif
   lastshader = -1;
 
-  Prefix = args.prefix;
-  pic = args.pic;
-  Format = args.format;
-  nlights = args.nlightsin;
-
-  Lights = args.lights;
-  LightsDiffuse = args.diffuse;
+  copyRenderArgs(args);
 
   nlights0 = nlights;  // Save original for mode restoration
-
-  View = args.view;
-  Angle = args.angle * ASY_RADIANS;
-  Zoom0 = std::fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
-  Shift = args.shift / Zoom0;
-  Margin = args.margin;
-
-  for(int i=0; i<4; ++i) {
-    Background[i] = static_cast<float>(args.background[i]);
-  }
-
-  // Use member variables from AsyRender base class (following Vulkan pattern)
-  Xmin = args.m.getx();
-  Xmax = args.M.getx();
-  Ymin = args.m.gety();
-  Ymax = args.M.gety();
-  Zmin = args.m.getz();
-  Zmax = args.M.getz();
-
-  haveScene = Xmin < Xmax && Ymin < Ymax && Zmin < Zmax;
-  orthographic = Angle == 0.0;
-  H = orthographic ? 0.0 : -tan(0.5 * Angle) * Zmax;
-
-  Xfactor = Yfactor = 1.0;
 
   pair maxtile=getSetting<pair>("maxtile");
   maxTileWidth=(int) maxtile.getx();
@@ -1321,12 +1291,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     Fitscreen=1;
 #endif
 #endif
-
-  for(int i=0; i < 16; ++i)
-    T[i]=args.t[i];
-
-  for(int i=0; i < 16; ++i)
-    Tup[i]=args.tup[i];
 
   if(!(initialized && interact::interactive)) {
     antialias=settings::getSetting<Int>("antialias") > 1;

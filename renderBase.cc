@@ -35,6 +35,58 @@ void *postEmptyEvent(void *);
 namespace camp
 {
 
+void AsyRender::copyRenderArgs(RenderFunctionArgs const& args)
+{
+  // Basic picture and format state
+  pic = args.pic;
+  Prefix = args.prefix;
+  Format = args.format;
+  remesh = true;
+
+  // Lighting
+  nlights = args.nlightsin;
+  Lights = args.lights;
+  LightsDiffuse = args.diffuse;
+  Oldpid = args.oldpid;
+
+  // Camera parameters
+  Angle = args.angle * radians;
+  lastzoom = 0;
+  Zoom0 = std::fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
+  Shift = args.shift / args.zoom;
+  Margin = args.margin;
+
+  // Background color
+  for (int i = 0; i < 4; i++)
+    Background[i] = static_cast<float>(args.background[i]);
+
+  // View settings
+  ViewExport = args.view;
+  View = args.view && !settings::getSetting<bool>("offscreen");
+
+  title = std::string(PACKAGE_NAME) + ": " + args.prefix.c_str();
+
+  // Scene bounds
+  Xmin = args.m.getx();
+  Xmax = args.M.getx();
+  Ymin = args.m.gety();
+  Ymax = args.M.gety();
+  Zmin = args.m.getz();
+  Zmax = args.M.getz();
+
+  haveScene = Xmin < Xmax && Ymin < Ymax && Zmin < Zmax;
+  orthographic = Angle == 0.0;
+  H = orthographic ? 0.0 : -tan(0.5 * Angle) * Zmax;
+  Xfactor = Yfactor = 1.0;
+
+  // Transform matrices
+  for (int i = 0; i < 16; ++i)
+    T[i] = args.t[i];
+
+  for (int i = 0; i < 16; ++i)
+    Tup[i] = args.tup[i];
+}
+
 double AsyRender::getRenderResolution(triple Min) const
 {
   double prerender = settings::getSetting<double>("prerender");
