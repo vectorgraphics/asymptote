@@ -436,7 +436,7 @@ public:
   void setosize();
   virtual void fitscreen(bool reposition=true);
   virtual void toggleFitScreen();
-  virtual void home(bool webgl=false);
+  virtual void home();
 
   // Mode cycling
   virtual void cycleMode();

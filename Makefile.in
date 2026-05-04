@@ -476,6 +476,28 @@ glew.o: glew.c config.h
 	${CC} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
+
+vkpic/%.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
+	@echo Creating $@; \
+	rm -f $@; \
+	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
+	sed 's,\($*\)\.o[ :]*,vkpic/\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+glpic/%.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
+	@echo Creating $@; \
+	rm -f $@; \
+	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
+	sed 's,\($*\)\.o[ :]*,glpic/\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+glpic/glew.d: glew.c
+	@echo Creating $@; \
+	rm -f $@; \
+	${CC} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
+	sed 's,\($*\)\.o[ :]*,glpic/\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
 # Compile for the shared library.  OpenGL must be disabled as it causes
 # crashes inside a shared library.
 %.pic.o: %.cc
@@ -493,7 +515,7 @@ base/%.asy: %.csv generate_enums.py $(GENERATEDENUMS:=.csv)
 	$(PYTHON) generate_enums.py -language python -o $@ -i $< -name $(notdir $*)
 
 ifeq (,$(findstring clean,${MAKECMDGOALS}))
--include $(FILES:=.d)
+-include $(FILES:=.d) $(VULKAN_PIC_OBJS:.o=.d) $(OPENGL_PIC_OBJS:.o=.d) glpic/glew.d
 endif
 
 FORCE:

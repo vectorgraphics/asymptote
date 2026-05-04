@@ -361,7 +361,9 @@ static void createWebGLRenderer()
         gl->mainthread = pthread_self();
 #endif
 
+#ifdef HAVE_RENDERER
     vulkan = false;  // WebGL renderer is not Vulkan
+#endif
 }
 
 /**
@@ -605,7 +607,31 @@ bool tryLoadOpenGL() { return false; }
 void unloadVulkan() {}
 void unloadOpenGL() {}
 void createRenderer() {}
-void initRenderer(const char*) {}
+
+/**
+ * Create a WebGL renderer for html/v3d output.
+ * This does NOT require Vulkan or OpenGL libraries - it only sets up state
+ * needed by jsfile.cc and v3dfile.cc to generate the output files.
+ */
+static void createWebGLRenderer()
+{
+    if (gl != nullptr)
+        gl = nullptr;
+
+    gl = new camp::AsyWebGLRender();
+}
+
+void initRenderer(const char* format)
+{
+    bool isFormat3D = (format != nullptr &&
+                       (strcmp(format, "html") == 0 || strcmp(format, "v3d") == 0));
+
+    if (isFormat3D) {
+        createWebGLRenderer();
+    }
+    // For non-format3d output without GPU libraries, picture.cc will report
+    // a more specific error message.
+}
 
 } // namespace camp
 

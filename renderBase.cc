@@ -16,14 +16,14 @@ using settings::getSetting;
 
 namespace camp {
 
-#ifdef HAVE_RENDERER
 AsyRender* gl;
-#endif
 
+#ifdef HAVE_RENDERER
 // Matrix accessor functions - shared between GL and Vulkan renderers.
 const glm::dmat4& getProjViewMat() { return gl->projViewMat; }
 const glm::dmat4& getViewMat()     { return gl->viewMat; }
 const glm::dmat3& getNormMat()     { return gl->normMat; }
+#endif
 
 } // namespace camp
 
@@ -505,10 +505,9 @@ void AsyRender::toggleFitScreen()
   fitscreen();
 }
 
-void AsyRender::home(bool webgl)
+void AsyRender::home()
 {
-  if(!webgl)
-    idle();
+  idle();
   X = Y = cx = cy = 0;
   rotateMat = viewMat = dmat4(1.0);
   lastzoom = Zoom = Zoom0;
