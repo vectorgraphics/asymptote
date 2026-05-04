@@ -2,7 +2,7 @@
 #include "vm.h"
 #include "array.h"
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_LIBGLFW
 
 #include "renderBase.h"
 #include "glfw.h"
@@ -253,12 +253,6 @@ std::string getGLFWScrollAction(bool wheelUp)
   return getScrollAction(wheelUp);
 }
 
-void *postEmptyEvent(void *)
-{
-  glfwPostEmptyEvent();
-  return NULL;
-}
-
 /**
  * Generic GLFW event loop for interactive rendering.
  * This is library-agnostic and can be used by both Vulkan and OpenGL renderers.
@@ -301,7 +295,6 @@ void glfwRunLoop(GLFWwindow* window,
 
 } // namespace camp
 
-// postEmptyEvent is defined outside the namespace for pthread callback compatibility
 void *postEmptyEvent(void *)
 {
   glfwPostEmptyEvent();

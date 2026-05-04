@@ -12,18 +12,17 @@
 #include <vector>
 #include <array>
 
-#include "glmCommon.h"
-
 #include "common.h"
 
-#include "vk.h"
 #ifdef HAVE_VULKAN
+
+#include "glmCommon.h"
+#include "vk.h"
 #include <vma_cxx.h>
 
 #include <glslang/Public/ShaderLang.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#endif
 
 #include "material.h"
 #include "pen.h"
@@ -37,11 +36,6 @@
 
 namespace camp
 {
-class picture;
-
-std::vector<char> readFile(const std::string& filename);
-
-#ifdef HAVE_VULKAN
 struct SwapChainDetails {
   vk::SurfaceCapabilitiesKHR capabilities;
   std::vector<vk::SurfaceFormatKHR> formats;
@@ -56,9 +50,7 @@ struct SwapChainDetails {
   vk::Extent2D chooseExtent(size_t width, size_t height) const;
   std::uint32_t chooseImageCount() const;
 };
-#endif
 
-#ifdef HAVE_VULKAN
 struct QueueFamilyIndices {
   uint32_t transferQueueFamily;
   uint32_t renderQueueFamily;
@@ -126,16 +118,13 @@ public:
 
   int maxFramesInFlight;
 
-#ifdef HAVE_VULKAN
   vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
-#endif
 
   std::uint32_t pixels;
 
   const double* dprojView;
   const double* dView;
 private:
-#ifdef HAVE_VULKAN
   static constexpr std::array<const char*, 4> deviceExtensions = {
     VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME,
     VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
@@ -160,8 +149,6 @@ private:
     vk::DeviceSize indexStgSize = 0;
     size_t nobjects = 0;
   };
-
-#endif
 
   bool GPUcompress=false;
   bool fxaa=false;
@@ -188,8 +175,6 @@ private:
   bool vkinitialize=true;
 
   size_t nmaterials=1; // Number of materials currently allocated in memory
-
-#ifdef HAVE_VULKAN
 
   vk::UniqueInstance instance;
 
@@ -418,7 +403,6 @@ private:
   uint32_t currentFrame = 0;
   vk::CommandBuffer currentCommandBuffer;
   std::vector<FrameObject> frameObjects;
-#endif
 
 protected:
   void updateModelViewData() override;
@@ -427,7 +411,6 @@ protected:
 public:
   void updateHandler(int=0) override;
 
-#ifdef HAVE_VULKAN
   void initWindow();
   void initVulkan();
 
@@ -633,7 +616,6 @@ public:
   void recreateSwapChain();
   void initializeSwapChainIfNeeded();
   vk::UniqueShaderModule createShaderModule(EShLanguage lang, std::string const & filename, std::vector<std::string> const & options);
-#endif
 
   GLFWwindow* getRenderWindow() const;
   void cleanup();
@@ -682,6 +664,7 @@ public:
   friend void glfwInitWindow(AsyRender*, int, int, const std::string&);
   friend void glfwCleanupWindow(AsyVkRender*);
 };
-#endif // HAVE_VULKAN
 
 } // namespace camp
+
+#endif // HAVE_VULKAN

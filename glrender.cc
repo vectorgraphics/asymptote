@@ -24,8 +24,6 @@
 #include "statistics.h"
 #include "exithandlers.h"
 
-// Include OpenGL headers BEFORE anything that pulls in <windows.h>
-// (which defines GL types via <wingdi.h> on Windows)
 #ifdef HAVE_GL
 #include "glrender.h"
 #include "tr.h"
@@ -34,7 +32,6 @@
 #include "EXRFiles.h"
 
 #include <GLFW/glfw3.h>
-#endif // HAVE_GL
 
 #include "picture.h"
 #include "bezierpatch.h"
@@ -46,19 +43,12 @@
 
 extern uint32_t CLZ(uint32_t a);
 
-// GPU settings - class members now, but kept as globals for shader compilation params
-bool GPUindexing = false;  // Disabled by default - compute shaders not needed for opaque rendering
-bool GPUcompress;
-
 const string SHADERS="shaders/GL/";
 
 using settings::locateFile;
 using utils::stopWatch;
 
 using namespace settings;
-
-#ifdef HAVE_GL
-
 using namespace glm;
 
 namespace camp {

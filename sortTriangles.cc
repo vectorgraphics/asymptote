@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-#ifdef HAVE_LIBGLM
+#ifdef HAVE_RENDERER
 
 #include <cstdlib>
 #include <vector>

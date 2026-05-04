@@ -2,9 +2,7 @@
 
 #include "pair.h"
 #include "triple.h"
-#ifdef HAVE_LIBGLM
 #include "glmCommon.h"
-#endif // HAVE_LIBGLM
 #include "render.h"
 
 namespace camp {
@@ -51,13 +49,21 @@ public:
   }
 
   void Bounds(const triple& v) {
+#ifdef HAVE_RENDERER
     pair V=Transform2T(glm::value_ptr(getProjViewMat()),v);
+#else
+    pair V(0,0);
+#endif
     x=X=V.getx();
     y=Y=V.gety();
   }
 
   void bounds(const triple& v) {
+#ifdef HAVE_RENDERER
     pair V=Transform2T(glm::value_ptr(getProjViewMat()),v);
+#else
+    pair V(0,0);
+#endif
     double a=V.getx();
     double b=V.gety();
     if(a < x) x=a;

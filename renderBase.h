@@ -293,14 +293,12 @@ public:
   // Child process ID for export (used by both OpenGL and Vulkan)
   int Oldpid = 0;
 
-#ifdef HAVE_RENDERER
   // GLFW window pointer (shared between Vulkan and OpenGL renderers)
   // Using void* to avoid requiring GLFW header in all files that include this
   void* glfwWindow = nullptr;
 
   /** Returns the GLFW window pointer as void*. Cast to appropriate type by caller. */
   void* getGLFWWindow() const { return glfwWindow; }
-#endif
 
   // Timer and statistics
   utils::stopWatch spinTimer;
@@ -535,8 +533,9 @@ class AsyWebGLRender;  // Forward declaration for WebGL/v3d output
  *
  * @param format Output format string (e.g., "html", "v3d", or nullptr for default)
  */
-void initRenderer(const char* format);
 #endif
+
+void initRenderer(const char* format);
 
 void mode();
 

@@ -1,4 +1,5 @@
 #include "renderBase.h"
+#include <GLFW/glfw3.h>
 #include "glfw.h"
 #include "settings.h"
 #include "drawelement.h"
@@ -28,9 +29,6 @@ const glm::dmat3& getNormMat()     { return gl->normMat; }
 } // namespace camp
 
 using namespace glm;
-
-// Forward declaration for pthread callback (defined in glfw.cc)
-void *postEmptyEvent(void *);
 
 // Forward declaration for exit handler (defined in exithandlers.h)
 void exitHandler(int);
@@ -796,19 +794,12 @@ void AsyRender::swapBuffers()
 /**
  * Show the window if hidden (GLFW-specific implementation).
  */
-#ifdef HAVE_RENDERER
 void AsyRender::showWindow()
 {
   GLFWwindow* win = static_cast<GLFWwindow*>(getGLFWWindow());
   if(View && !hideWindow && !glfwGetWindowAttrib(win, GLFW_VISIBLE))
     ::glfwShowWindow(win);
 }
-#else // !HAVE_RENDERER
-void AsyRender::showWindow()
-{
-  // Default: no-op when no renderer available
-}
-#endif // HAVE_RENDERER
 
 /**
  * Window close handler (library-agnostic).

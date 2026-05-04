@@ -1,9 +1,11 @@
 #pragma once
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_LIBGLFW
 
 #include <GLFW/glfw3.h>
 #include <string>
+
+void *postEmptyEvent(void *);
 
 namespace camp
 {

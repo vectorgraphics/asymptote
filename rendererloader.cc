@@ -25,10 +25,9 @@
 #include "vkrender.h"
 #endif
 
-#ifdef HAVE_RENDERER
-
-// Definition of the runtime-determined 'vulkan' flag declared in common.h.
 bool vulkan = false;
+
+#ifdef HAVE_RENDERER
 
 #ifndef _WIN32
 #include <dlfcn.h>

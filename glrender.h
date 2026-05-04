@@ -7,11 +7,14 @@
 #define GLRENDER_H
 
 #include "common.h"
-#include <unordered_map>
+#include "renderBase.h"
+#include "render.h"
 
 #ifdef HAVE_GL
 
-#ifdef HAVE_LIBGL
+#include <unordered_map>
+#include <csignal>
+
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
 #endif
@@ -22,70 +25,36 @@
 #else
 #include <GL/gl.h>
 #endif
-#endif // HAVE_LIBGL
 
 #include "glmCommon.h"
-#include <csignal>
 #include "triple.h"
 #include "pen.h"
 
-#ifdef HAVE_LIBGLFW
 #include <GLFW/glfw3.h>
 #include "glfw.h"
-#endif
 
-#else // !HAVE_GL
-typedef unsigned int GLuint;
-typedef int GLint;
-typedef float GLfloat;
-typedef double GLdouble;
-typedef unsigned char GLubyte;
-typedef unsigned int GLenum;
-#define GL_POINTS				0x0000
-#define GL_LINES				0x0001
-#define GL_TRIANGLES				0x0004
-#endif
-
-#ifdef HAVE_LIBGLM
 #include "material.h"
-#endif
-
-#include "renderBase.h"
-#include "render.h"
 
 namespace camp {
+
 class picture;
-}
-
-namespace camp {
 
 // Forward declarations for texture types (defined in GLTextures.h)
-#ifdef HAVE_LIBGLM
 template<typename T, GLuint GLDataType> class GLTexture2;
 template<typename T, GLuint GLDataType> class GLTexture3;
-#endif
 
 // Accessor functions for matrices (to avoid synchronization with gl instance)
-#ifdef HAVE_LIBGLM
 const glm::dmat4& getProjViewMat();
 const glm::dmat4& getViewMat();
 const glm::dmat3& getNormMat();
-#endif
 
 // Projection matrix pointer for shader compatibility (following Vulkan pattern)
-#ifdef HAVE_LIBGLM
 extern const double* dprojView;  // For drawelement.h Transform2T
-#endif
 
-#ifdef HAVE_GL
 extern GLuint vao;  // Vertex Array Object
-#endif
 
-#ifdef HAVE_LIBGLM
 extern size_t materialIndex;
 extern int MaterialIndex;
-
-
 
 // VertexBuffer and related types are defined in render.h
 // Globals: materialData, colorData, triangleData, transparentData, pointData, lineData
@@ -93,9 +62,6 @@ extern int MaterialIndex;
 void clearMaterials();
 void clearCenters();
 
-#endif
-
-#ifdef HAVE_GL
 // OpenGL renderer class following Vulkan pattern
 class AsyGLRender : public AsyRender, public RenderCallbacks
 {
@@ -114,6 +80,9 @@ public:
   void onWindowFocus(int focused) override;
   void onClose() override;
 
+  bool GPUindexing=false;
+  bool GPUcompress;
+
   // OpenGL-specific state (mirroring AsyVkRender pattern)
   bool outlinemode = false;
   bool glupdate = false;
@@ -127,7 +96,6 @@ public:
 
 public:
   // OpenGL-specific members (following Vulkan pattern)
-#ifdef HAVE_GL
   // Shaders - made public for standalone function access during refactoring
   GLint pixelShader = 0;
   GLint materialShader[2] = {0, 0};
@@ -204,7 +172,6 @@ public:
 
 public:
   GLFWwindow* getRenderWindow() const;
-#endif
 
 public:
   void update() override;
@@ -259,8 +226,8 @@ void ortho(double left, double right, double bottom,
 // No-SSBO fallback: sort transparent triangles by centroid depth
 void sortTriangles();
 
-#endif // HAVE_GL
-
 } // namespace camp
+
+#endif // HAVE_GL
 
 #endif  // GLRENDER_H
