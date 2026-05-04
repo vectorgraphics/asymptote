@@ -621,7 +621,7 @@ public:
   void cleanup();
 
   // user controls
-  void exportHandler(int=0) override;
+  void exportHandler(int) override;
   void Export(int imageIndex=0) override;
   bool readyForUpdate=false;
   // Note: initialized and format3dWait are now in base class AsyRender

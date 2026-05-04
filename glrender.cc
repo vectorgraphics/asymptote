@@ -1353,9 +1353,9 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     update();
     display();
     if(threads) {
-      exportHandler();
+      exportHandler(0);
     } else {
-      exportHandler();
+      exportHandler(0);
       quit();
     }
   }
@@ -1364,18 +1364,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 // RenderCallbacks interface implementation
 void AsyGLRender::onMouseButton(int button, int action, int mods)
 {
-    auto const currentActionStr = getGLFWAction(button, mods);
-    if (currentActionStr.empty()) return;
-    if (action == GLFW_PRESS) {
-        lastAction = currentActionStr;
-        // Capture initial position for movement tracking
-        double xpos, ypos;
-        glfwGetCursorPos(getRenderWindow(), &xpos, &ypos);
-        xprev = xpos;
-        yprev = ypos;
-    } else if (action == GLFW_RELEASE) {
-        lastAction.clear();
-    }
+    AsyRender::onMouseButton(button, action, mods);
 }
 
 void AsyGLRender::onFramebufferResize(int width, int height)
@@ -1390,25 +1379,7 @@ void AsyGLRender::onScroll(double xoffset, double yoffset)
 
 void AsyGLRender::onCursorPos(double xpos, double ypos)
 {
-    if (lastAction == "rotate") {
-        Arcball arcball(xprev * 2 / Width - 1, 1 - yprev * 2 / Height,
-                        xpos * 2 / Width - 1, 1 - ypos * 2 / Height);
-        triple axis = arcball.axis;
-        rotateMat = rotate(2 * arcball.angle / Zoom * ArcballFactor,
-                           dvec3(axis.getx(), axis.gety(), axis.getz())) * rotateMat;
-        update();
-    } else if (lastAction == "shift") {
-        shift(xpos - xprev, ypos - yprev);
-        update();
-    } else if (lastAction == "pan") {
-        if (orthographic) shift(xpos - xprev, ypos - yprev);
-        else pan(xpos - xprev, ypos - yprev);
-        update();
-    } else if (lastAction == "zoom") {
-        zoom(0.0, ypos - yprev);
-    }
-    xprev = xpos;
-    yprev = ypos;
+    AsyRender::onCursorPos(xpos, ypos);
 }
 
 void AsyGLRender::onKey(int key, int scancode, int action, int mods)
@@ -1463,7 +1434,7 @@ GLFWwindow* AsyGLRender::getRenderWindow() const
 void AsyGLRender::exportHandler(int)
 {
   readyAfterExport=true;
-  Export();
+  Export(0);
 }
 
 void AsyGLRender::reshape(int width, int height)

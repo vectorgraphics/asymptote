@@ -641,7 +641,9 @@ void AsyRender::shrink()
 
 void AsyRender::exportHandler(int)
 {
-  // Default implementation - derived classes should override
+#ifdef HAVE_RENDERER
+  readyAfterExport=true;
+#endif
 }
 
 /**
@@ -878,6 +880,49 @@ void AsyRender::onScroll(double xoffset, double yoffset)
     update();
 }
 
+void AsyRender::onMouseButton(int button, int action, int mods)
+{
+#ifdef HAVE_RENDERER
+    auto const currentActionStr = getGLFWAction(button, mods);
+    if (currentActionStr.empty()) return;
+    if (action == GLFW_PRESS) {
+        lastAction = currentActionStr;
+        // Capture initial position for movement tracking
+        double xpos, ypos;
+        glfwGetCursorPos(static_cast<GLFWwindow*>(getGLFWWindow()), &xpos, &ypos);
+        xprev = xpos;
+        yprev = ypos;
+    } else if (action == GLFW_RELEASE) {
+        lastAction.clear();
+    }
+#else
+    (void)button; (void)action; (void)mods;
+#endif
+}
+
+void AsyRender::onCursorPos(double xpos, double ypos)
+{
+    if (lastAction == "rotate") {
+        Arcball arcball(xprev * 2 / Width - 1, 1 - yprev * 2 / Height,
+                        xpos * 2 / Width - 1, 1 - ypos * 2 / Height);
+        triple axis = arcball.axis;
+        rotateMat = rotate(2 * arcball.angle / Zoom * ArcballFactor,
+                           dvec3(axis.getx(), axis.gety(), axis.getz())) * rotateMat;
+        update();
+    } else if (lastAction == "shift") {
+        shift(xpos - xprev, ypos - yprev);
+        update();
+    } else if (lastAction == "pan") {
+        if (orthographic) shift(xpos - xprev, ypos - yprev);
+        else pan(xpos - xprev, ypos - yprev);
+        update();
+    } else if (lastAction == "zoom") {
+        zoom(0.0, ypos - yprev);
+    }
+    xprev = xpos;
+    yprev = ypos;
+}
+
 void AsyRender::onFramebufferResize(int width, int height)
 {
   if(width == 0 || height == 0) return;
@@ -929,17 +974,17 @@ void AsyRender::mainLoop()
       if(havewindow) {
 #ifdef HAVE_PTHREAD
         if(pthread_equal(pthread_self(),this->mainthread))
-          exportHandler();
+          exportHandler(0);
         else
           messageQueue.enqueue(RendererMessage::exportRender);
 #endif
       } else {
         initialized=true;
         readyForExport=true;
-        exportHandler();
+        exportHandler(0);
       }
     } else {
-      exportHandler();
+      exportHandler(0);
       quit();
     }
   }

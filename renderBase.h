@@ -352,6 +352,8 @@ public:
   const picture* pic = nullptr;
 
   // Mouse/interaction state
+  double xprev = 0.0;
+  double yprev = 0.0;
   std::string lastAction = "";
 
   // Window title
@@ -460,7 +462,7 @@ public:
   virtual void shrink();
 
   virtual void updateHandler(int=0);
-  virtual void exportHandler(int=0) = 0;
+  virtual void exportHandler(int);
   virtual void Export(int imageIndex=0) = 0;
 
   // Message processing for inter-thread communication
@@ -487,6 +489,12 @@ public:
 
   // Scroll wheel handling (library-agnostic)
   virtual void onScroll(double xoffset, double yoffset);
+
+  // Mouse button handler (library-agnostic; uses getGLFWWindow() for glfwGetCursorPos)
+  virtual void onMouseButton(int button, int action, int mods);
+
+  // Cursor position handler (library-agnostic; uses member variables xprev/yprev)
+  virtual void onCursorPos(double xpos, double ypos);
 
   // Framebuffer resize handler (library-agnostic)
   virtual void onFramebufferResize(int width, int height);

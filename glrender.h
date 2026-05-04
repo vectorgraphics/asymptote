@@ -158,8 +158,6 @@ public:
   // IBL textures - kept as globals in glrender.cc where GLTextures.h is available
 
   // Mouse interaction state (lastangle now in base class for unified access)
-  double xprev = 0.0;
-  double yprev = 0.0;
   string currentAction = "";
 
   // Window state (readyAfterExport, format3dWait, queueExport, firstFit now in base class)
@@ -211,7 +209,7 @@ public:
   void resizeFragmentBuffer();
 
 protected:
-  void exportHandler(int = 0) override;
+  void exportHandler(int) override;
   virtual void reshape(int width, int height) override;
 };
 

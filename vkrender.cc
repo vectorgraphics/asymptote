@@ -175,16 +175,7 @@ void AsyVkRender::initWindow()
 // RenderCallbacks interface implementation
 void AsyVkRender::onMouseButton(int button, int action, int mods)
 {
-    auto const currentAction = getGLFWAction(button, mods);
-
-    if (currentAction.empty())
-        return;
-
-    if (action == GLFW_PRESS) {
-        lastAction = currentAction;
-    } else if (action == GLFW_RELEASE) {
-        lastAction.clear();
-    }
+    AsyRender::onMouseButton(button, action, mods);
 }
 
 void AsyVkRender::onFramebufferResize(int width, int height)
@@ -199,41 +190,7 @@ void AsyVkRender::onScroll(double xoffset, double yoffset)
 
 void AsyVkRender::onCursorPos(double xpos, double ypos)
 {
-    static double xprev = 0.0;
-    static double yprev = 0.0;
-
-    // Note: We can't easily check mouse button state here without GLFW call
-    // For now, assume we track this through lastAction changes
-
-    if (lastAction == "rotate") {
-
-        Arcball arcball(xprev * 2 / Width - 1, 1 - yprev * 2 / Height, xpos * 2 / Width - 1, 1 - ypos * 2 / Height);
-        triple axis = arcball.axis;
-        rotateMat = rotate(2 * arcball.angle / Zoom * ArcballFactor,
-                             dvec3(axis.getx(), axis.gety(), axis.getz())) * rotateMat;
-        update();
-    }
-    else if (lastAction == "shift") {
-
-        shift(xpos - xprev, ypos - yprev);
-        update();
-    }
-    else if (lastAction == "pan") {
-
-        if (orthographic)
-            shift(xpos - xprev, ypos - yprev);
-        else {
-            pan(xpos - xprev, ypos - yprev);
-        }
-        update();
-    }
-    else if (lastAction == "zoom") {
-
-        zoom(0.0, ypos - yprev);
-    }
-
-    xprev = xpos;
-    yprev = ypos;
+    AsyRender::onCursorPos(xpos, ypos);
 }
 
 void AsyVkRender::onKey(int key, int scancode, int action, int mods)
@@ -4518,7 +4475,6 @@ GLFWwindow* AsyVkRender::getRenderWindow() const
 }
 
 void AsyVkRender::exportHandler(int) {
-
   readyAfterExport=true;
   Export(0);
 }
