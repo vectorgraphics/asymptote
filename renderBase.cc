@@ -32,6 +32,9 @@ using namespace glm;
 // Forward declaration for pthread callback (defined in glfw.cc)
 void *postEmptyEvent(void *);
 
+// Forward declaration for exit handler (defined in exithandlers.h)
+void exitHandler(int);
+
 namespace camp
 {
 
@@ -791,17 +794,24 @@ void AsyRender::swapBuffers()
 }
 
 /**
- * Show the window if hidden (library-specific).
- * Default: no-op - override in derived classes.
+ * Show the window if hidden (GLFW-specific implementation).
  */
+#ifdef HAVE_RENDERER
 void AsyRender::showWindow()
 {
-  // Default: no-op - derived classes can override for specific behavior
+  GLFWwindow* win = static_cast<GLFWwindow*>(getGLFWWindow());
+  if(View && !hideWindow && !glfwGetWindowAttrib(win, GLFW_VISIBLE))
+    ::glfwShowWindow(win);
 }
+#else // !HAVE_RENDERER
+void AsyRender::showWindow()
+{
+  // Default: no-op when no renderer available
+}
+#endif // HAVE_RENDERER
 
 /**
  * Window close handler (library-agnostic).
- * Can be overridden by derived classes for renderer-specific cleanup.
  */
 void AsyRender::onClose()
 {
@@ -862,6 +872,28 @@ void AsyRender::onKey(int key, int scancode, int action, int mods)
             quit();
             break;
     }
+}
+
+void AsyRender::onScroll(double xoffset, double yoffset)
+{
+    std::string action = getGLFWScrollAction(yoffset <= 0);
+
+    auto zoomFactor = getSetting<double>("zoomfactor");
+    if(action == "zoomin" || action.empty()) {
+        if(zoomFactor > 0.0) Zoom /= zoomFactor;
+    } else if(action == "zoomout") {
+        if(zoomFactor > 0.0) Zoom *= zoomFactor;
+    }
+    update();
+}
+
+void AsyRender::onFramebufferResize(int width, int height)
+{
+  if(width == 0 || height == 0) return;
+  if(width == Width && height == Height) return;
+  reshape(width, height);
+  update();
+  remesh = true;
 }
 
 void AsyRender::mainLoop()

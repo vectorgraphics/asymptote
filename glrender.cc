@@ -1390,24 +1390,12 @@ void AsyGLRender::onMouseButton(int button, int action, int mods)
 
 void AsyGLRender::onFramebufferResize(int width, int height)
 {
-    if(width == 0 || height == 0) return;
-    if(width == Width && height == Height) return;
-    reshape(width, height);
-    update();
-    remesh = true;
+    AsyRender::onFramebufferResize(width, height);
 }
 
 void AsyGLRender::onScroll(double xoffset, double yoffset)
 {
-    std::string action = getGLFWScrollAction(yoffset <= 0);
-
-    auto zoomFactor = getSetting<double>("zoomfactor");
-    if(action == "zoomin" || action.empty()) {
-        if(zoomFactor > 0.0) Zoom /= zoomFactor;
-    } else if(action == "zoomout") {
-        if(zoomFactor > 0.0) Zoom *= zoomFactor;
-    }
-    update();
+    AsyRender::onScroll(xoffset, yoffset);
 }
 
 void AsyGLRender::onCursorPos(double xpos, double ypos)
@@ -1442,19 +1430,7 @@ void AsyGLRender::onWindowFocus(int focused) {}
 
 void AsyGLRender::onClose()
 {
-    AsyRender::onClose();
-    ::exitHandler(0);
-}
-
-/**
- * Show the window if hidden (GLFW-specific implementation).
- */
-void AsyGLRender::showWindow()
-{
-  GLFWwindow* win = getRenderWindow();
-
-  if(View && !hideWindow && !glfwGetWindowAttrib(win,GLFW_VISIBLE))
-    ::glfwShowWindow(win);
+    exitHandler(0);
 }
 
 /**

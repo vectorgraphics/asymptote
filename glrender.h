@@ -106,9 +106,9 @@ public:
   void render(RenderFunctionArgs const& args) override;
 
   // RenderCallbacks interface implementation (GLFW callbacks)
+  void onScroll(double xoffset, double yoffset) override;
   void onMouseButton(int button, int action, int mods) override;
   void onFramebufferResize(int width, int height) override;
-  void onScroll(double xoffset, double yoffset) override;
   void onCursorPos(double xpos, double ypos) override;
   void onKey(int key, int scancode, int action, int mods) override;
   void onWindowFocus(int focused) override;
@@ -223,7 +223,6 @@ public:
   // Rendering functions (virtual hooks for base class display())
   void drawFrame() override;
   void swapBuffers() override;
-  void showWindow() override;
 
   void Export(int imageIndex=0) override;
   void refreshBuffers();

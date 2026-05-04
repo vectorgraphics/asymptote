@@ -487,6 +487,12 @@ public:
   // Key handling (library-agnostic)
   virtual void onKey(int key, int scancode, int action, int mods);
 
+  // Scroll wheel handling (library-agnostic)
+  virtual void onScroll(double xoffset, double yoffset);
+
+  // Framebuffer resize handler (library-agnostic)
+  virtual void onFramebufferResize(int width, int height);
+
   // Main event loop (shared between OpenGL and Vulkan renderers)
   void mainLoop();
 
