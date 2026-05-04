@@ -8,6 +8,8 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "common.h"
+
 #ifdef HAVE_LIBGLM
 #include "vk.h"
 #include "vkrender.h"
