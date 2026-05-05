@@ -842,6 +842,7 @@ void AsyRender::onKey(int key, int scancode, int action, int mods)
             break;
         case 'E':
             queueExport = true;
+            redraw = true;
             break;
         case 'C':
             showCamera();
