@@ -31,15 +31,14 @@ bool vulkan = false;
 
 #ifndef _WIN32
 #include <dlfcn.h>
-#include <unistd.h>
 #endif
 #include <iostream>
 #include <pthread.h>
 #include <cstring>
 #include <string>
-#include <vector>
 
 #include "settings.h"    // for settings::verbose
+#include "locate.h"       // for settings::locateFile
 
 #ifdef _WIN32
 #include <windows.h>
@@ -64,29 +63,16 @@ static void *glLibHandle = nullptr;
 #endif
 
 /**
- * Resolve the path to a renderer shared library relative to the executable directory.
- * On Linux we read /proc/self/exe to find our own directory.
+ * Load a renderer shared library by searching the Asymptote path.
+ * Returns a valid handle on success, or nullptr on failure.
  */
 #ifndef _WIN32
-static std::string resolveRendererLibPath(const std::string &libName)
+static void *loadRendererLib(const char *libName)
 {
-    // Strategy 1: Same directory as the executable (via /proc/self/exe).
-    char exePath[4096];
-    ssize_t len = readlink("/proc/self/exe", exePath, sizeof(exePath) - 1);
-    if (len > 0) {
-        exePath[len] = '\0';
-        // Find last '/' to get directory.
-        char *lastSlash = strrchr(exePath, '/');
-        if (lastSlash) {
-            *(lastSlash + 1) = '\0'; // Truncate after the slash to keep just the directory.
-            std::string path = exePath;
-            path += libName;
-            return path;
-        }
-    }
+    mem::string locPath = settings::locateFile(libName, true, "");
+    std::string pathStr = mem::stdString(locPath);
 
-    // Strategy 2: Current working directory.
-    return "./" + libName;
+    return dlopen(pathStr.c_str(), RTLD_NOW | RTLD_LOCAL);
 }
 #endif
 
@@ -112,23 +98,10 @@ static bool tryLoadVulkanLib()
     CreateAsyVkRenderFn fn =
         reinterpret_cast<CreateAsyVkRenderFn>(GetProcAddress(vulkanLibHandle, "createAsyVkRender"));
 #else
-    // On Unix, try multiple paths.
-    std::vector<std::string> paths;
+    mem::string locPath = settings::locateFile("libasyvulkan.so", true, "");
+    std::string pathStr = mem::stdString(locPath);
 
-    // Path 1: Same directory as executable (via /proc/self/exe).
-    paths.push_back(resolveRendererLibPath("libasyvulkan.so"));
-
-    // Path 2: Just the library name (lets LD_LIBRARY_PATH / rpath do the work).
-    paths.push_back("libasyvulkan.so");
-
-    for (const auto &path : paths) {
-        vulkanLibHandle = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
-        if (vulkanLibHandle) {
-            if (settings::verbose > 2)
-                std::cout << "Loaded libasyvulkan.so from: " << path << std::endl;
-            break;
-        }
-    }
+    vulkanLibHandle = dlopen(pathStr.c_str(), RTLD_NOW | RTLD_LOCAL);
 
     if (!vulkanLibHandle) {
         if (settings::verbose > 1)
@@ -136,6 +109,9 @@ static bool tryLoadVulkanLib()
                       << dlerror() << "); falling back to OpenGL" << std::endl;
         return false;
     }
+
+    if (settings::verbose > 2)
+        std::cout << "Loaded libasyvulkan.so from: " << pathStr << std::endl;
 
     // Get the factory function.
     typedef void *(*CreateAsyVkRenderFn)();
@@ -190,23 +166,10 @@ static bool tryLoadOpenGLLib()
     CreateAsyGLRenderFn fn =
         reinterpret_cast<CreateAsyGLRenderFn>(GetProcAddress(glLibHandle, "createAsyGLRender"));
 #else
-    // On Unix, try multiple paths.
-    std::vector<std::string> paths;
+    mem::string locPath = settings::locateFile("libasyopengl.so", true, "");
+    std::string pathStr = mem::stdString(locPath);
 
-    // Path 1: Same directory as executable (via /proc/self/exe).
-    paths.push_back(resolveRendererLibPath("libasyopengl.so"));
-
-    // Path 2: Just the library name (lets LD_LIBRARY_PATH / rpath do the work).
-    paths.push_back("libasyopengl.so");
-
-    for (const auto &path : paths) {
-        glLibHandle = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
-        if (glLibHandle) {
-            if (settings::verbose > 2)
-                std::cout << "Loaded libasyopengl.so from: " << path << std::endl;
-            break;
-        }
-    }
+    glLibHandle = dlopen(pathStr.c_str(), RTLD_NOW | RTLD_LOCAL);
 
     if (!glLibHandle) {
         if (settings::verbose > 1)
@@ -214,6 +177,9 @@ static bool tryLoadOpenGLLib()
                       << dlerror() << ")" << std::endl;
         return false;
     }
+
+    if (settings::verbose > 2)
+        std::cout << "Loaded libasyopengl.so from: " << pathStr << std::endl;
 
     // Get the factory function.
     typedef void *(*CreateAsyGLRenderFn)();
@@ -258,17 +224,10 @@ bool tryLoadVulkan()
     // On Windows, Vulkan is statically linked; always available.
     return true;
 #else
-    // Try the same paths as tryLoadVulkanLib but without keeping the handle.
-    std::vector<std::string> paths;
-    paths.push_back(resolveRendererLibPath("libasyvulkan.so"));
-    paths.push_back("libasyvulkan.so");
-
-    for (const auto &path : paths) {
-        void *h = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
-        if (h) {
-            dlclose(h);
-            return true;
-        }
+    void *h = loadRendererLib("libasyvulkan.so");
+    if (h) {
+        dlclose(h);
+        return true;
     }
     return false;
 #endif
@@ -285,16 +244,10 @@ bool tryLoadOpenGL()
     // On Windows, OpenGL is not supported; only Vulkan is available.
     return false;
 #else
-    std::vector<std::string> paths;
-    paths.push_back(resolveRendererLibPath("libasyopengl.so"));
-    paths.push_back("libasyopengl.so");
-
-    for (const auto &path : paths) {
-        void *h = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
-        if (h) {
-            dlclose(h);
-            return true;
-        }
+    void *h = loadRendererLib("libasyopengl.so");
+    if (h) {
+        dlclose(h);
+        return true;
     }
     return false;
 #endif
@@ -510,9 +463,6 @@ void createRenderer()
     // If user wants Vulkan, try to load the shared library first.
     if (useVulkan) {
         if (tryLoadVulkanLib()) {
-            // Vulkan loaded successfully; gl is now AsyVkRender, vulkan=true.
-            if (settings::verbose > 1)
-                std::cout << "Using Vulkan renderer" << std::endl;
             return;
         }
         // Vulkan failed to load; fall through to try OpenGL.
@@ -522,8 +472,6 @@ void createRenderer()
 
     // Try to load the OpenGL renderer.
     if (tryLoadOpenGLLib()) {
-        if (settings::verbose > 1)
-            std::cout << "Using OpenGL renderer" << std::endl;
         return;
     }
 #endif // _WIN32

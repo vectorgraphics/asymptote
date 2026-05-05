@@ -88,6 +88,7 @@ CLEAN = camp.output base/version.asy doc/version.texi \
 		version.txt
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
 	asymptote.py reload.js nopapersize.ps
+SHIMLIBS = libasyvulkan.so libasyopengl.so
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
 DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
@@ -326,6 +327,7 @@ install-asy: asy sty $(PYFILES)
 	${INSTALL} -p -m 755 $(NAME) $(bindir)
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) \
 		asy-keywords.el $(asydir)
+	${INSTALL} -p -m 755 $(SHIMLIBS) $(asydir)
 	${INSTALL} -p -m 644 base/collections/*.asy $(asydir)/collections
 	${INSTALL} -p -m 644 base/shaders/*.glsl $(shaderdir)
 	${INSTALL} -p -m 644 base/shaders/GL/*.glsl $(shaderdir)/GL
@@ -384,7 +386,7 @@ uninstall-asy:
 	-rmdir $(webgldir)
 	-cd $(asydir)/collections && rm -f *.asy
 	-rmdir $(asydir)/collections
-	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA)
+	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA) $(SHIMLIBS)
 	-rmdir $(asydir)
 	-cd $(latexdir) && rm -f $(LATEXFILES)
 	-rmdir $(latexdir)
