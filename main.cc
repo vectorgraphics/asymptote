@@ -45,6 +45,13 @@ int _matherr(struct _exception *except)
 #endif
 
 #include "common.h"
+#include "rendererloader.h"
+#ifdef HAVE_LIBGL
+#include "glrender.h"
+#endif
+#ifdef HAVE_LIBVULKAN
+#include "vkrender.h"
+#endif
 
 #ifdef HAVE_LIBSIGSEGV
 #include <sigsegv.h>
@@ -63,7 +70,6 @@ int _matherr(struct _exception *except)
 #include "locate.h"
 #include "interact.h"
 #include "fileio.h"
-#include "stack.h"
 
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
@@ -73,15 +79,11 @@ int _matherr(struct _exception *except)
 #include <combaseapi.h>
 #endif
 
-#include "stack.h"
+#include "renderBase.h"
 
 using namespace settings;
 
 using interact::interactive;
-
-namespace gl {
-extern bool glexit;
-}
 
 namespace run {
 void purge();
@@ -105,8 +107,8 @@ int sigsegv_handler (void *, int emergency)
 {
   if(!emergency) return 0; // Really a stack overflow
   em.runtime(vm::getPos());
-#ifdef HAVE_GL
-  if(gl::glthread)
+#ifdef HAVE_RENDERER
+  if(camp::AsyRender::threads)
     cerr << "Stack overflow or segmentation fault: rerun with -nothreads"
          << endl;
   else
@@ -148,7 +150,10 @@ void *asymain(void *A)
 
 #if defined(_WIN32)
   // see https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecuteexa
-  CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+  if(!SUCCEEDED(
+       CoInitializeEx(nullptr,
+                      COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE)))
+    camp::reportError("CoInitializeEx Failed");
 #endif
 
   if(interactive) {
@@ -233,18 +238,6 @@ void *asymain(void *A)
     while(wait(&status) > 0);
   }
 #endif
-#ifdef HAVE_GL
-#ifdef HAVE_PTHREAD
-  if(gl::glthread) {
-#ifdef __MSDOS__ // Signals are unreliable in MSWindows
-    gl::glexit=true;
-#else
-    pthread_kill(gl::mainthread,SIGURG);
-    pthread_join(gl::mainthread,NULL);
-#endif
-  }
-#endif
-#endif
   exit(returnCode());
 }
 
@@ -262,60 +255,60 @@ int main(int argc, char *argv[])
     em.statusError();
   }
 
-  Args args(argc,argv);
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
+  // Create the renderer object early so that the render thread has a
+  // valid gl pointer to access (for gl->wait(...)).  The constructor is
+  // trivial (= default); no GPU/Vulkan initialisation occurs here.
+  // Actual runtime Vulkan probing and any renderer replacement happens
+  // lazily inside initRenderer() when shipout3 is first called.
 #if defined(__APPLE__) || defined(_WIN32)
-  bool usethreads=true;
+  camp::AsyRender::threads = getSetting<bool>("threads");
 #else
-  bool usethreads=view();
+  camp::AsyRender::threads = view() ? getSetting<bool>("threads") : false;
 #endif
-  gl::glthread=usethreads ? getSetting<bool>("threads") : false;
+
+  camp::createRenderer();
+#endif
+
+  fpu_trap(trap());
+  Args args(argc,argv);
+#ifdef HAVE_RENDERER
 #if HAVE_PTHREAD
-#ifndef HAVE_LIBOSMESA
-  if(gl::glthread) {
+  if(camp::AsyRender::threads) {
     pthread_t thread;
     try {
 #if defined(_WIN32)
-      auto asymainPtr = [](void* args) -> void*
-      {
+      auto asymainPtr = [](void* args) -> void* {
 #if defined(USEGC)
         GC_stack_base gsb {};
         GC_get_stack_base(&gsb);
         GC_register_my_thread(&gsb);
-#endif
+#endif // defined(USEGC)
         auto* ret = asymain(args);
 
 #if defined(USEGC)
         GC_unregister_my_thread();
-#endif
+#endif // defined(USEGC)
         return reinterpret_cast<void*>(ret);
       };
-#else
+#else // defined(_WIN32)
       auto* asymainPtr = asymain;
-#endif
+#endif // defined(_WIN32)
       if(pthread_create(&thread,NULL,asymainPtr,&args) == 0) {
-        gl::mainthread=pthread_self();
 #if !defined(_WIN32)
         sigset_t set;
         sigemptyset(&set);
         sigaddset(&set, SIGCHLD);
         pthread_sigmask(SIG_BLOCK, &set, NULL);
-#endif
-        for(;;) {
-#if !defined(_WIN32)
-          Signal(SIGURG,exitHandler);
-#endif
+#endif // !defined(_WIN32)
+        for (;;)
           camp::glrenderWrapper();
-          gl::initialize=true;
-        }
-      } else gl::glthread=false;
+      } else camp::AsyRender::threads=false;
     } catch(std::bad_alloc&) {
       outOfMemory();
     }
   }
-#endif
-#endif
-  gl::glthread=false;
-#endif
+#endif // HAVE_PTHREAD
+#endif // HAVE_RENDERER
   asymain(&args);
 }

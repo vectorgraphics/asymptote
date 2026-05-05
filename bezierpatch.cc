@@ -5,6 +5,7 @@
  * Render Bezier patches and triangles.
  *****/
 
+#include "rgba.h"
 #include "bezierpatch.h"
 #include "predicates.h"
 
@@ -13,12 +14,26 @@ namespace camp {
 using ::orient2d;
 using ::orient3d;
 
+const double third=1.0/3.0;
+
 #ifdef HAVE_LIBGLM
 
 int MaterialIndex;
+size_t materialIndex;
 bool colors;
 
+VertexBuffer materialData;
+VertexBuffer colorData;
+VertexBuffer triangleData;
+VertexBuffer transparentData;
+
 const double FillFactor=0.1;
+
+// Named constants for template parameters
+constexpr bool IsTransparent = true;
+constexpr bool IsOpaque = false;
+constexpr bool IsColor = true;
+constexpr bool IsMaterial = false;
 
 void BezierPatch::init(double res)
 {
@@ -27,20 +42,33 @@ void BezierPatch::init(double res)
   if(transparent) {
     Epsilon=0.0;
     MaterialIndex=color ? -1-materialIndex : 1+materialIndex;
-    pvertex=&vertexBuffer::tvertex;
   } else {
     Epsilon=FillFactor*res;
     MaterialIndex=materialIndex;
-    pvertex=&vertexBuffer::vertex;
   }
 }
 
-void BezierPatch::render(const triple *p, bool straight, GLfloat *c0)
+// Template helper for vertex addition - eliminates runtime branching on transparent/color
+// T = Transparent flag, C = Color flag (compile-time constants)
+template<bool T, bool C>
+uint32_t BezierPatch::addVertex(triple pos, triple norm, int matIdx, const float* col) {
+  if constexpr (C) {
+    return data.addVertex(ColorVertex{pos, norm, matIdx, glm::make_vec4(col)});
+  } else {
+    if constexpr (T) {
+      return data.addVertex(ColorVertex{pos, norm, matIdx});
+    } else {
+      return data.addVertex(MaterialVertex{pos, norm, matIdx});
+    }
+  }
+}
+
+void BezierPatch::render(const triple *p, bool straight, float *c0)
 {
   triple p0=p[0];
   epsilon=0;
   for(unsigned i=1; i < 16; ++i)
-    epsilon=max(epsilon,abs2(p[i]-p0));
+    epsilon=std::max(epsilon,abs2(p[i]-p0));
   epsilon *= DBL_EPSILON;
 
   triple p3=p[3];
@@ -71,32 +99,55 @@ void BezierPatch::render(const triple *p, bool straight, GLfloat *c0)
     if(abs2(n3) <= epsilon) n3=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
   }
 
-  GLuint i0,i1,i2,i3;
+  uint32_t i0,i1,i2,i3;
+
+  // Single runtime dispatch - after this, all recursive calls use template specialization
   if(color) {
-    GLfloat *c1=c0+4;
-    GLfloat *c2=c0+8;
-    GLfloat *c3=c0+12;
+    float *c1=c0+4;
+    float *c2=c0+8;
+    float *c3=c0+12;
 
-    i0=data.Vertex(p0,n0,c0);
-    i1=data.Vertex(p12,n1,c1);
-    i2=data.Vertex(p15,n2,c2);
-    i3=data.Vertex(p3,n3,c3);
+    if(transparent) {
+      i0=addVertex<IsTransparent,IsColor>(p0,n0,MaterialIndex,c0);
+      i1=addVertex<IsTransparent,IsColor>(p12,n1,MaterialIndex,c1);
+      i2=addVertex<IsTransparent,IsColor>(p15,n2,MaterialIndex,c2);
+      i3=addVertex<IsTransparent,IsColor>(p3,n3,MaterialIndex,c3);
+    } else {
+      i0=addVertex<IsOpaque,IsColor>(p0,n0,MaterialIndex,c0);
+      i1=addVertex<IsOpaque,IsColor>(p12,n1,MaterialIndex,c1);
+      i2=addVertex<IsOpaque,IsColor>(p15,n2,MaterialIndex,c2);
+      i3=addVertex<IsOpaque,IsColor>(p3,n3,MaterialIndex,c3);
+    }
 
-    if(!straight)
-      render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
-             c0,c1,c2,c3);
+    if(!straight) {
+      if(transparent)
+        render<IsTransparent,IsColor>(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false, c0,c1,c2,c3);
+      else
+        render<IsOpaque,IsColor>(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false, c0,c1,c2,c3);
+    }
   } else {
-    i0=(data.*pvertex)(p0,n0);
-    i1=(data.*pvertex)(p12,n1);
-    i2=(data.*pvertex)(p15,n2);
-    i3=(data.*pvertex)(p3,n3);
+    if(transparent) {
+      i0=addVertex<IsTransparent,IsMaterial>(p0,n0,MaterialIndex);
+      i1=addVertex<IsTransparent,IsMaterial>(p12,n1,MaterialIndex);
+      i2=addVertex<IsTransparent,IsMaterial>(p15,n2,MaterialIndex);
+      i3=addVertex<IsTransparent,IsMaterial>(p3,n3,MaterialIndex);
+    } else {
+      i0=addVertex<IsOpaque,IsMaterial>(p0,n0,MaterialIndex);
+      i1=addVertex<IsOpaque,IsMaterial>(p12,n1,MaterialIndex);
+      i2=addVertex<IsOpaque,IsMaterial>(p15,n2,MaterialIndex);
+      i3=addVertex<IsOpaque,IsMaterial>(p3,n3,MaterialIndex);
+    }
 
-    if(!straight)
-      render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false);
+    if(!straight) {
+      if(transparent)
+        render<IsTransparent,IsMaterial>(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false);
+      else
+        render<IsOpaque,IsMaterial>(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false);
+    }
   }
 
   if(straight) {
-    std::vector<GLuint> &q=data.indices;
+    std::vector<uint32_t> &q=data.indices;
     triple Pa[]={p0,p12,p15};
     if(!offscreen(3,Pa)) {
       q.push_back(i0);
@@ -117,16 +168,18 @@ void BezierPatch::render(const triple *p, bool straight, GLfloat *c0)
 // p is an array of 16 triples representing the control points.
 // Pi are the (possibly) adjusted vertices indexed by Ii.
 // The 'flati' are flatness flags for each boundary.
+// T = Transparent flag, C = Color flag (compile-time constants)
+template<bool T, bool C>
 void BezierPatch::render(const triple *p,
-                         GLuint I0, GLuint I1, GLuint I2, GLuint I3,
-                         triple P0, triple P1, triple P2, triple P3,
-                         bool flat0, bool flat1, bool flat2, bool flat3,
-                         GLfloat *C0, GLfloat *C1, GLfloat *C2, GLfloat *C3)
+                                 uint32_t I0, uint32_t I1, uint32_t I2, uint32_t I3,
+                                 triple P0, triple P1, triple P2, triple P3,
+                                 bool flat0, bool flat1, bool flat2, bool flat3,
+                                 float *C0, float *C1, float *C2, float *C3)
 {
   pair d=Distance(p);
   if(d.getx() < res2 && d.gety() < res2) { // Bezier patch is flat
     triple Pa[]={P0,P1,P2};
-    std::vector<GLuint> &q=data.indices;
+    std::vector<uint32_t> &q=data.indices;
     if(!offscreen(3,Pa)) {
       q.push_back(I0);
       q.push_back(I1);
@@ -240,24 +293,25 @@ void BezierPatch::render(const triple *p,
         } else m1=s1[0];
       }
 
-      if(color) {
-        GLfloat c0[4],c1[4];
+      // Template-based vertex addition - no runtime branching!
+      if constexpr (C) {
+        float c0[4],c1[4];
         for(size_t i=0; i < 4; ++i) {
           c0[i]=0.5*(C1[i]+C2[i]);
           c1[i]=0.5*(C3[i]+C0[i]);
         }
 
-        GLuint i0=data.Vertex(m0,n0,c0);
-        GLuint i1=data.Vertex(m1,n1,c1);
+        uint32_t i0=addVertex<T, C>(m0,n0,MaterialIndex,c0);
+        uint32_t i1=addVertex<T, C>(m1,n1,MaterialIndex,c1);
 
-        render(s0,I0,I1,i0,i1,P0,P1,m0,m1,flat0,flat1,false,flat3,C0,C1,c0,c1);
-        render(s1,i1,i0,I2,I3,m1,m0,P2,P3,false,flat1,flat2,flat3,c1,c0,C2,C3);
+        render<T,C>(s0,I0,I1,i0,i1,P0,P1,m0,m1,flat0,flat1,false,flat3,C0,C1,c0,c1);
+        render<T,C>(s1,i1,i0,I2,I3,m1,m0,P2,P3,false,flat1,flat2,flat3,c1,c0,C2,C3);
       } else {
-        GLuint i0=(data.*pvertex)(m0,n0);
-        GLuint i1=(data.*pvertex)(m1,n1);
+        uint32_t i0=addVertex<T, C>(m0,n0,MaterialIndex);
+        uint32_t i1=addVertex<T, C>(m1,n1,MaterialIndex);
 
-        render(s0,I0,I1,i0,i1,P0,P1,m0,m1,flat0,flat1,false,flat3);
-        render(s1,i1,i0,I2,I3,m1,m0,P2,P3,false,flat1,flat2,flat3);
+        render<T,C>(s0,I0,I1,i0,i1,P0,P1,m0,m1,flat0,flat1,false,flat3);
+        render<T,C>(s1,i1,i0,I2,I3,m1,m0,P2,P3,false,flat1,flat2,flat3);
       }
       return;
     }
@@ -332,24 +386,25 @@ void BezierPatch::render(const triple *p,
         } else m1=s1[3];
       }
 
-      if(color) {
-        GLfloat c0[4],c1[4];
+      // Template-based vertex addition - no runtime branching!
+      if constexpr (C) {
+        float c0[4],c1[4];
         for(size_t i=0; i < 4; ++i) {
           c0[i]=0.5*(C0[i]+C1[i]);
           c1[i]=0.5*(C2[i]+C3[i]);
         }
 
-        GLuint i0=data.Vertex(m0,n0,c0);
-        GLuint i1=data.Vertex(m1,n1,c1);
+        uint32_t i0=addVertex<T, C>(m0,n0,MaterialIndex,c0);
+        uint32_t i1=addVertex<T, C>(m1,n1,MaterialIndex,c1);
 
-        render(s0,I0,i0,i1,I3,P0,m0,m1,P3,flat0,false,flat2,flat3,C0,c0,c1,C3);
-        render(s1,i0,I1,I2,i1,m0,P1,P2,m1,flat0,flat1,flat2,false,c0,C1,C2,c1);
+        render<T,C>(s0,I0,i0,i1,I3,P0,m0,m1,P3,flat0,false,flat2,flat3,C0,c0,c1,C3);
+        render<T,C>(s1,i0,I1,I2,i1,m0,P1,P2,m1,flat0,flat1,flat2,false,c0,C1,C2,c1);
       } else {
-        GLuint i0=(data.*pvertex)(m0,n0);
-        GLuint i1=(data.*pvertex)(m1,n1);
+        uint32_t i0=addVertex<T, C>(m0,n0,MaterialIndex);
+        uint32_t i1=addVertex<T, C>(m1,n1,MaterialIndex);
 
-        render(s0,I0,i0,i1,I3,P0,m0,m1,P3,flat0,false,flat2,flat3);
-        render(s1,i0,I1,I2,i1,m0,P1,P2,m1,flat0,flat1,flat2,false);
+        render<T,C>(s0,I0,i0,i1,I3,P0,m0,m1,P3,flat0,false,flat2,flat3);
+        render<T,C>(s1,i0,I1,I2,i1,m0,P1,P2,m1,flat0,flat1,flat2,false);
       }
       return;
     }
@@ -466,8 +521,9 @@ void BezierPatch::render(const triple *p,
       } else m3=s3[0];
     }
 
-    if(color) {
-      GLfloat c0[4],c1[4],c2[4],c3[4],c4[4];
+    // Template-based vertex addition - no runtime branching!
+    if constexpr (C) {
+      float c0[4],c1[4],c2[4],c3[4],c4[4];
       for(size_t i=0; i < 4; ++i) {
         c0[i]=0.5*(C0[i]+C1[i]);
         c1[i]=0.5*(C1[i]+C2[i]);
@@ -476,37 +532,37 @@ void BezierPatch::render(const triple *p,
         c4[i]=0.5*(c0[i]+c2[i]);
       }
 
-      GLuint i0=data.Vertex(m0,n0,c0);
-      GLuint i1=data.Vertex(m1,n1,c1);
-      GLuint i2=data.Vertex(m2,n2,c2);
-      GLuint i3=data.Vertex(m3,n3,c3);
-      GLuint i4=data.Vertex(m4,n4,c4);
+      uint32_t i0=addVertex<T, C>(m0,n0,MaterialIndex,c0);
+      uint32_t i1=addVertex<T, C>(m1,n1,MaterialIndex,c1);
+      uint32_t i2=addVertex<T, C>(m2,n2,MaterialIndex,c2);
+      uint32_t i3=addVertex<T, C>(m3,n3,MaterialIndex,c3);
+      uint32_t i4=addVertex<T, C>(m4,n4,MaterialIndex,c4);
 
-      render(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,C0,c0,c4,c3);
-      render(s1,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false,c0,C1,c1,c4);
-      render(s2,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false,c4,c1,C2,c2);
-      render(s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3,c3,c4,c2,C3);
+      render<T,C>(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,C0,c0,c4,c3);
+      render<T,C>(s1,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false,c0,C1,c1,c4);
+      render<T,C>(s2,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false,c4,c1,C2,c2);
+      render<T,C>(s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3,c3,c4,c2,C3);
     } else {
-      GLuint i0=(data.*pvertex)(m0,n0);
-      GLuint i1=(data.*pvertex)(m1,n1);
-      GLuint i2=(data.*pvertex)(m2,n2);
-      GLuint i3=(data.*pvertex)(m3,n3);
-      GLuint i4=(data.*pvertex)(m4,n4);
+      uint32_t i0=addVertex<T, C>(m0,n0,MaterialIndex);
+      uint32_t i1=addVertex<T, C>(m1,n1,MaterialIndex);
+      uint32_t i2=addVertex<T, C>(m2,n2,MaterialIndex);
+      uint32_t i3=addVertex<T, C>(m3,n3,MaterialIndex);
+      uint32_t i4=addVertex<T, C>(m4,n4,MaterialIndex);
 
-      render(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3);
-      render(s1,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false);
-      render(s2,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false);
-      render(s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3);
+      render<T,C>(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3);
+      render<T,C>(s1,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false);
+      render<T,C>(s2,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false);
+      render<T,C>(s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3);
     }
   }
 }
 
-void BezierTriangle::render(const triple *p, bool straight, GLfloat *c0)
+void BezierTriangle::render(const triple *p, bool straight, float *c0)
 {
   triple p0=p[0];
   epsilon=0;
   for(int i=1; i < 10; ++i)
-    epsilon=max(epsilon,abs2(p[i]-p0));
+    epsilon=std::max(epsilon,abs2(p[i]-p0));
 
   epsilon *= DBL_EPSILON;
 
@@ -517,30 +573,52 @@ void BezierTriangle::render(const triple *p, bool straight, GLfloat *c0)
   triple n1=normal(p0,p[1],p[3],p6,p[7],p[8],p9);
   triple n2=normal(p6,p[7],p[8],p9,p[5],p[2],p0);
 
-  GLuint i0,i1,i2;
+  uint32_t i0,i1,i2;
+
+  // Single runtime dispatch - after this, all recursive calls use template specialization
   if(color) {
-    GLfloat *c1=c0+4;
-    GLfloat *c2=c0+8;
+    float *c1=c0+4;
+    float *c2=c0+8;
 
-    i0=data.Vertex(p0,n0,c0);
-    i1=data.Vertex(p6,n1,c1);
-    i2=data.Vertex(p9,n2,c2);
+    if(transparent) {
+      i0=addVertex<IsTransparent,IsColor>(p0,n0,MaterialIndex,c0);
+      i1=addVertex<IsTransparent,IsColor>(p6,n1,MaterialIndex,c1);
+      i2=addVertex<IsTransparent,IsColor>(p9,n2,MaterialIndex,c2);
+    } else {
+      i0=addVertex<IsOpaque,IsColor>(p0,n0,MaterialIndex,c0);
+      i1=addVertex<IsOpaque,IsColor>(p6,n1,MaterialIndex,c1);
+      i2=addVertex<IsOpaque,IsColor>(p9,n2,MaterialIndex,c2);
+    }
 
-    if(!straight)
-      render(p,i0,i1,i2,p0,p6,p9,false,false,false,c0,c1,c2);
+    if(!straight) {
+      if(transparent)
+        render<IsTransparent,IsColor>(p,i0,i1,i2,p0,p6,p9,false,false,false,c0,c1,c2);
+      else
+        render<IsOpaque,IsColor>(p,i0,i1,i2,p0,p6,p9,false,false,false,c0,c1,c2);
+    }
   } else {
-    i0=(data.*pvertex)(p0,n0);
-    i1=(data.*pvertex)(p6,n1);
-    i2=(data.*pvertex)(p9,n2);
+    if(transparent) {
+      i0=addVertex<IsTransparent,IsMaterial>(p0,n0,MaterialIndex);
+      i1=addVertex<IsTransparent,IsMaterial>(p6,n1,MaterialIndex);
+      i2=addVertex<IsTransparent,IsMaterial>(p9,n2,MaterialIndex);
+    } else {
+      i0=addVertex<IsOpaque,IsMaterial>(p0,n0,MaterialIndex);
+      i1=addVertex<IsOpaque,IsMaterial>(p6,n1,MaterialIndex);
+      i2=addVertex<IsOpaque,IsMaterial>(p9,n2,MaterialIndex);
+    }
 
-    if(!straight)
-      render(p,i0,i1,i2,p0,p6,p9,false,false,false);
+    if(!straight) {
+      if(transparent)
+        render<IsTransparent,IsMaterial>(p,i0,i1,i2,p0,p6,p9,false,false,false);
+      else
+        render<IsOpaque,IsMaterial>(p,i0,i1,i2,p0,p6,p9,false,false,false);
+    }
   }
 
   if(straight) {
     triple P[]={p0,p6,p9};
     if(!offscreen(3,P)) {
-      std::vector<GLuint> &q=data.indices;
+      std::vector<uint32_t> &q=data.indices;
       q.push_back(i0);
       q.push_back(i1);
       q.push_back(i2);
@@ -553,16 +631,17 @@ void BezierTriangle::render(const triple *p, bool straight, GLfloat *c0)
 // p is an array of 10 triples representing the control points.
 // Pi are the (possibly) adjusted vertices indexed by Ii.
 // The 'flati' are flatness flags for each boundary.
+template<bool T, bool C>
 void BezierTriangle::render(const triple *p,
-                            GLuint I0, GLuint I1, GLuint I2,
-                            triple P0, triple P1, triple P2,
-                            bool flat0, bool flat1, bool flat2,
-                            GLfloat *C0, GLfloat *C1, GLfloat *C2)
+                                            uint32_t I0, uint32_t I1, uint32_t I2,
+                                            triple P0, triple P1, triple P2,
+                                            bool flat0, bool flat1, bool flat2,
+                                            float *C0, float *C1, float *C2)
 {
   if(Distance(p) < res2) { // Bezier triangle is flat
     triple P[]={P0,P1,P2};
     if(!offscreen(3,P)) {
-      std::vector<GLuint> &q=data.indices;
+      std::vector<uint32_t> &q=data.indices;
       q.push_back(I0);
       q.push_back(I1);
       q.push_back(I2);
@@ -718,72 +797,33 @@ void BezierTriangle::render(const triple *p,
       } else m2=l300;
     }
 
-    if(color) {
-      GLfloat c0[4],c1[4],c2[4];
+    // Template-based vertex addition - no runtime branching!
+    if constexpr (C) {
+      float c0[4],c1[4],c2[4];
       for(int i=0; i < 4; ++i) {
         c0[i]=0.5*(C1[i]+C2[i]);
         c1[i]=0.5*(C2[i]+C0[i]);
         c2[i]=0.5*(C0[i]+C1[i]);
       }
 
-      GLuint i0=data.Vertex(m0,n0,c0);
-      GLuint i1=data.Vertex(m1,n1,c1);
-      GLuint i2=data.Vertex(m2,n2,c2);
+      uint32_t i0=addVertex<T, C>(m0,n0,MaterialIndex,c0);
+      uint32_t i1=addVertex<T, C>(m1,n1,MaterialIndex,c1);
+      uint32_t i2=addVertex<T, C>(m2,n2,MaterialIndex,c2);
 
-      render(l,I0,i2,i1,P0,m2,m1,false,flat1,flat2,C0,c2,c1);
-      render(r,i2,I1,i0,m2,P1,m0,flat0,false,flat2,c2,C1,c0);
-      render(u,i1,i0,I2,m1,m0,P2,flat0,flat1,false,c1,c0,C2);
-      render(c,i0,i1,i2,m0,m1,m2,false,false,false,c0,c1,c2);
+      render<T,C>(l,I0,i2,i1,P0,m2,m1,false,flat1,flat2,C0,c2,c1);
+      render<T,C>(r,i2,I1,i0,m2,P1,m0,flat0,false,flat2,c2,C1,c0);
+      render<T,C>(u,i1,i0,I2,m1,m0,P2,flat0,flat1,false,c1,c0,C2);
+      render<T,C>(c,i0,i1,i2,m0,m1,m2,false,false,false,c0,c1,c2);
     } else {
-      GLuint i0=(data.*pvertex)(m0,n0);
-      GLuint i1=(data.*pvertex)(m1,n1);
-      GLuint i2=(data.*pvertex)(m2,n2);
+      uint32_t i0=addVertex<T, C>(m0,n0,MaterialIndex);
+      uint32_t i1=addVertex<T, C>(m1,n1,MaterialIndex);
+      uint32_t i2=addVertex<T, C>(m2,n2,MaterialIndex);
 
-      render(l,I0,i2,i1,P0,m2,m1,false,flat1,flat2);
-      render(r,i2,I1,i0,m2,P1,m0,flat0,false,flat2);
-      render(u,i1,i0,I2,m1,m0,P2,flat0,flat1,false);
-      render(c,i0,i1,i2,m0,m1,m2,false,false,false);
+      render<T,C>(l,I0,i2,i1,P0,m2,m1,false,flat1,flat2);
+      render<T,C>(r,i2,I1,i0,m2,P1,m0,flat0,false,flat2);
+      render<T,C>(u,i1,i0,I2,m1,m0,P2,flat0,flat1,false);
+      render<T,C>(c,i0,i1,i2,m0,m1,m2,false,false,false);
     }
-  }
-}
-
-std::vector<GLfloat> zbuffer;
-
-void transform(const std::vector<VertexData>& b)
-{
-  unsigned n=b.size();
-  zbuffer.resize(n);
-
-  double Tz0=gl::dView[2];
-  double Tz1=gl::dView[6];
-  double Tz2=gl::dView[10];
-  for(unsigned i=0; i < n; ++i) {
-    const GLfloat *v=b[i].position;
-    zbuffer[i]=Tz0*v[0]+Tz1*v[1]+Tz2*v[2];
-  }
-}
-
-// Sort nonintersecting triangles by depth.
-int compare(const void *p, const void *P)
-{
-  unsigned Ia=((GLuint *) p)[0];
-  unsigned Ib=((GLuint *) p)[1];
-  unsigned Ic=((GLuint *) p)[2];
-
-  unsigned IA=((GLuint *) P)[0];
-  unsigned IB=((GLuint *) P)[1];
-  unsigned IC=((GLuint *) P)[2];
-
-  return zbuffer[Ia]+zbuffer[Ib]+zbuffer[Ic] <
-    zbuffer[IA]+zbuffer[IB]+zbuffer[IC] ? -1 : 1;
-}
-
-void sortTriangles()
-{
-  if(!transparentData.indices.empty()) {
-    transform(transparentData.Vertices);
-    qsort(&transparentData.indices[0],transparentData.indices.size()/3,
-          3*sizeof(GLuint),compare);
   }
 }
 
@@ -799,7 +839,7 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
   transparent=Transparent;
   notRendered();
 
-  data.Vertices.resize(nP);
+  data.colorVertices.resize(nP);
 
   MaterialIndex=nC ? -1-materialIndex : 1+materialIndex;
 
@@ -817,23 +857,23 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
       prc::RGBAColour C0=C[CI[0]];
       prc::RGBAColour C1=C[CI[1]];
       prc::RGBAColour C2=C[CI[2]];
-      GLfloat c0[]={(GLfloat) C0.R,(GLfloat) C0.G,(GLfloat) C0.B,
-                    (GLfloat) C0.A};
-      GLfloat c1[]={(GLfloat) C1.R,(GLfloat) C1.G,(GLfloat) C1.B,
-                    (GLfloat) C1.A};
-      GLfloat c2[]={(GLfloat) C2.R,(GLfloat) C2.G,(GLfloat) C2.B,
-                    (GLfloat) C2.A};
+      float c0[]={(float) C0.R,(float) C0.G,(float) C0.B,
+                    (float) C0.A};
+      float c1[]={(float) C1.R,(float) C1.G,(float) C1.B,
+                    (float) C1.A};
+      float c2[]={(float) C2.R,(float) C2.G,(float) C2.B,
+                    (float) C2.A};
       transparent |= c0[3]+c1[3]+c2[3] < 3.0;
-      data.Vertices[PI0]=VertexData(P0,N[NI[0]],c0);
-      data.Vertices[PI1]=VertexData(P1,N[NI[1]],c1);
-      data.Vertices[PI2]=VertexData(P2,N[NI[2]],c2);
+      data.colorVertices[PI0]=ColorVertex{P0,N[NI[0]],MaterialIndex,glm::make_vec4(c0)};
+      data.colorVertices[PI1]=ColorVertex{P1,N[NI[1]],MaterialIndex,glm::make_vec4(c1)};
+      data.colorVertices[PI2]=ColorVertex{P2,N[NI[2]],MaterialIndex,glm::make_vec4(c2)};
     } else {
-      data.Vertices[PI0]=VertexData(P0,N[NI[0]]);
-      data.Vertices[PI1]=VertexData(P1,N[NI[1]]);
-      data.Vertices[PI2]=VertexData(P2,N[NI[2]]);
+      data.colorVertices[PI0]=ColorVertex{P0,N[NI[0]],MaterialIndex};
+      data.colorVertices[PI1]=ColorVertex{P1,N[NI[1]],MaterialIndex};
+      data.colorVertices[PI2]=ColorVertex{P2,N[NI[2]],MaterialIndex};
     }
     triple Q[]={P0,P1,P2};
-    std::vector<GLuint> &q=data.indices;
+    std::vector<uint32_t> &q=data.indices;
     if(!offscreen(3,Q)) {
       q.push_back(PI0);
       q.push_back(PI1);

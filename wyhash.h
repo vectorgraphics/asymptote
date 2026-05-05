@@ -21,7 +21,7 @@
 #ifndef WYHASH_32BIT_MUM
 //0: normal version, slow on 32 bit systems
 //1: faster on 32 bit systems but produces different results, incompatible with wy2u0k function
-#define WYHASH_32BIT_MUM 0  
+#define WYHASH_32BIT_MUM 0
 #endif
 
 //includes
@@ -52,7 +52,7 @@ static inline void _wymum(uint64_t *A, uint64_t *B){
   *A=_wyrot(hl)^hh; *B=_wyrot(lh)^ll;
   #endif
 #elif defined(__SIZEOF_INT128__)
-  __uint128_t r=*A; r*=*B; 
+  __uint128_t r=*A; r*=*B;
   #if(WYHASH_CONDOM>1)
   *A^=(uint64_t)r; *B^=(uint64_t)(r>>64);
   #else
@@ -123,7 +123,7 @@ static inline uint64_t wyhash(const void *key, size_t len, uint64_t seed, const 
     else a=b=0;
   }
   else{
-    size_t i=len; 
+    size_t i=len;
     if(_unlikely_(i>=48)){
       uint64_t see1=seed, see2=seed;
       do{
@@ -174,7 +174,7 @@ static inline uint64_t wytrand(uint64_t *seed){
 static inline uint64_t wy2u0k(uint64_t r, uint64_t k){ _wymum(&r,&k); return k; }
 #endif
 
-// modified from https://github.com/going-digital/Prime64 
+// modified from https://github.com/going-digital/Prime64
 static	inline	unsigned long long	mul_mod(unsigned long long a, unsigned long long b, unsigned long long m) {
     unsigned long long r=0;
     while (b) {
@@ -244,7 +244,7 @@ static inline void make_secret(uint64_t seed, uint64_t *secret){
     do{
       ok=1; secret[i]=0;
       for(size_t j=0;j<64;j+=8) secret[i]|=((uint64_t)c[wyrand(&seed)%sizeof(c)])<<j;
-      if(secret[i]%2==0){ ok=0; continue; }      
+      if(secret[i]%2==0){ ok=0; continue; }
       for(size_t j=0;j<i;j++) {
 #if defined(__GNUC__) || defined(__INTEL_COMPILER) || defined(__clang__)
         if(__builtin_popcountll(secret[j]^secret[i])!=32){ ok=0; break; }

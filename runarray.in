@@ -30,7 +30,6 @@ callableReal* => realRealFunction()
 #include "triple.h"
 #include "path3.h"
 #include "Delaunay.h"
-#include "glrender.h"
 #include "hashing.h"
 
 #ifdef HAVE_LIBFFTW3
@@ -42,7 +41,14 @@ static const char *installFFTW=
 #endif
 
 #ifdef HAVE_EIGEN_DENSE
+#if __GNUC__ >= 15
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 #include <Eigen/Dense>
+#if __GNUC__ >= 15
+#pragma GCC diagnostic pop
+#endif
 typedef std::complex<double> Complex;
 static const char *square="matrix must be square";
 using Eigen::MatrixXd;
@@ -2246,36 +2252,4 @@ pair maxratio(triplearray2 *P, pair b)
          B(A,::max,yratio,b.gety(),fuzz,maxdepth));
   delete[] A;
   return b;
-}
-
-realarray *_projection()
-{
-#ifdef HAVE_GL
-  array *a=new array(14);
-  gl::projection P=gl::camera();
-  size_t k=0;
-  (*a)[k++]=P.orthographic ? 1.0 : 0.0;
-
-  triple camera=P.camera;
-  (*a)[k++]=camera.getx();
-  (*a)[k++]=camera.gety();
-  (*a)[k++]=camera.getz();
-
-  triple up=P.up;
-  (*a)[k++]=up.getx();
-  (*a)[k++]=up.gety();
-  (*a)[k++]=up.getz();
-
-  triple target=P.target;
-  (*a)[k++]=target.getx();
-  (*a)[k++]=target.gety();
-  (*a)[k++]=target.getz();
-
-  (*a)[k++]=P.zoom;
-  (*a)[k++]=P.angle;
-
-  (*a)[k++]=P.viewportshift.getx();
-  (*a)[k++]=P.viewportshift.gety();
-#endif
-  return new array(0);
 }

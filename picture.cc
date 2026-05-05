@@ -17,6 +17,9 @@
 #include "drawsurface.h"
 #include "drawpath3.h"
 #include "seconds.h"
+#ifdef HAVE_RENDERER
+#include "glfw.h"
+#endif
 
 #if defined(_WIN32)
 #include <Windows.h>
@@ -32,7 +35,6 @@ using std::ofstream;
 using vm::array;
 
 using namespace settings;
-using namespace gl;
 
 texstream::~texstream() {
   string texengine=getSetting<string>("tex");
@@ -1429,29 +1431,27 @@ void picture::render(double size2, const triple& Min, const triple& Max,
     if(remesh) (*p)->meshinit();
     (*p)->render(size2,Min,Max,perspective,remesh);
   }
-
-#ifdef HAVE_GL
-  drawBuffers();
-#endif
 }
 
-typedef gl::GLRenderArgs Communicate;
-
-Communicate com;
+#ifdef HAVE_LIBGLM
+AsyRender::RenderFunctionArgs args = {};
 
 extern bool allowRender;
 
 void glrenderWrapper()
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
+  if (gl == nullptr)
+    return; // Renderer not yet initialised
 #ifdef HAVE_PTHREAD
-  wait(initSignal,initLock);
-  endwait(initSignal,initLock);
+  gl->wait(gl->initSignal,gl->initLock);
+  gl->endwait(gl->initSignal,gl->initLock);
 #endif
   if(allowRender)
-    glrender(com);
+    gl->render(args);
 #endif
 }
+#endif // HAVE_LIBGLM
 
 bool picture::shipout3(const string& prefix, const string& format,
                        double width, double height, double angle, double zoom,
@@ -1459,12 +1459,16 @@ bool picture::shipout3(const string& prefix, const string& format,
                        const pair& margin, double *t, double *tup,
                        double *background,
                        size_t nlights, triple *lights, double *diffuse,
-                       double *specular, bool view)
+                       bool view)
 {
   if(getSetting<bool>("interrupt"))
     return true;
 
   if(width <= 0 || height <= 0) return false;
+
+#ifdef HAVE_LIBGLM
+  initRenderer(format.c_str());
+#endif
 
   bool webgl=format == "html";
   bool v3d=format == "v3d";
@@ -1478,9 +1482,15 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 
 #ifndef HAVE_LIBOSMESA
-#ifndef HAVE_GL
-  if(!webgl)
-    camp::reportError("to support onscreen OpenGL rendering; please install the glut library, then ./configure; make");
+#ifndef HAVE_RENDERER
+  if(!webgl) {
+#ifdef _WIN32
+    string extra="vulkan and glslang";
+#else
+    string extra="either vulkan and glslang or GL";
+#endif
+    camp::reportError("to support onscreen rendering, please install glfw and "+extra+" development libraries, then ./configure; make");
+  }
 #endif
 #endif
 
@@ -1517,10 +1527,10 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool View=settings::view() && view;
 #endif
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   bool offscreen=false;
 #ifdef HAVE_LIBOSMESA
-  offscreen=true;
+  offscreen=!vulkan;
 #endif
 #ifdef HAVE_PTHREAD
   bool animating=getSetting<bool>("animating");
@@ -1529,53 +1539,57 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 
   bool format3d=webgl || v3d;
-
   if(!format3d) {
-#ifdef HAVE_GL
-    if(glthread && !offscreen) {
+#ifdef HAVE_RENDERER
+#ifdef HAVE_LIBGLM
+    if(AsyRender::threads && !offscreen) {
 #ifdef HAVE_PTHREAD
-      if(gl::initialize) {
-        gl::initialize=false;
-        com.prefix=prefix;
-        com.pic=pic;
-        com.format=outputformat;
-        com.width=width;
-        com.height=height;
-        com.angle=angle;
-        com.zoom=zoom;
-        com.m=m;
-        com.M=M;
-        com.shift=shift;
-        com.margin=margin;
-        com.t=t;
-        com.tup=tup;
-        com.background=background;
-        com.nlights=nlights;
-        com.lights=lights;
-        com.diffuse=diffuse;
-        com.specular=specular;
-        com.view=View;
+      if(!gl->initialized) {
+        gl->initialized=!View || offscreen;
+        args.prefix=prefix;
+        args.pic=pic;
+        args.format=outputformat;
+        args.width=width;
+        args.height=height;
+        args.angle=angle;
+        args.zoom=zoom;
+        args.m=m;
+        args.M=M;
+        args.shift=shift;
+        args.margin=margin;
+        args.t=t;
+        args.tup=tup;
+        args.background=background;
+        args.nlightsin=nlights;
+        args.lights=lights;
+        args.diffuse=diffuse;
+        args.view=View;
+        args.oldpid=oldpid;
         if(Wait)
-          pthread_mutex_lock(&readyLock);
+          pthread_mutex_lock(&gl->readyLock);
         allowRender=true;
-        wait(initSignal,initLock);
-        endwait(initSignal,initLock);
+        gl->wait(gl->initSignal,gl->initLock);
+        gl->endwait(gl->initSignal,gl->initLock);
         static bool initialize=true;
         if(initialize) {
-          wait(initSignal,initLock);
-          endwait(initSignal,initLock);
+          gl->wait(gl->initSignal,gl->initLock);
+          gl->endwait(gl->initSignal,gl->initLock);
           initialize=false;
         }
         if(Wait) {
-          pthread_cond_wait(&readySignal,&readyLock);
-          pthread_mutex_unlock(&readyLock);
+          pthread_cond_wait(&gl->readySignal,&gl->readyLock);
+          pthread_mutex_unlock(&gl->readyLock);
         }
         return true;
       }
       if(Wait)
-        pthread_mutex_lock(&readyLock);
+        pthread_mutex_lock(&gl->readyLock);
+#ifdef HAVE_RENDERER
+      glfwPostEmptyEvent();
+#endif
 #endif
     } else {
+#endif
 #if !defined(_WIN32)
       int pid=fork();
       if(pid == -1)
@@ -1586,12 +1600,13 @@ bool picture::shipout3(const string& prefix, const string& format,
         return true;
       }
 #endif
+#ifdef HAVE_LIBGLM
     }
+#endif
 #endif
   }
 
 #if HAVE_LIBGLM
-  gl::GLRenderArgs args;
   args.prefix=prefix;
   args.pic=pic;
   args.format=outputformat;
@@ -1606,14 +1621,13 @@ bool picture::shipout3(const string& prefix, const string& format,
   args.t=t;
   args.tup=tup;
   args.background=background;
-  args.nlights=nlights;
+  args.nlightsin=nlights;
   args.lights=lights;
   args.diffuse=diffuse;
-  args.specular=specular;
   args.view=View;
+  args.oldpid=oldpid;
 
-  glrender(args,oldpid);
-
+  gl->render(args);
   if(format3d) {
     string name=buildname(prefix,format);
     abs3Doutfile *fileObj=nullptr;
@@ -1645,11 +1659,11 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(webgl && View)
       htmlView(name);
 
-#ifdef HAVE_GL
-    if(format3dWait) {
-      format3dWait=false;
+#ifdef HAVE_RENDERER
+    if(gl->format3dWait) {
+      gl->format3dWait=false;
 #ifdef HAVE_PTHREAD
-      endwait(initSignal,initLock);
+      gl->endwait(gl->initSignal,gl->initLock);
 #endif
     }
 #endif
@@ -1658,12 +1672,14 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
 #endif
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
-  if(glthread && !offscreen && Wait) {
-    pthread_cond_wait(&readySignal,&readyLock);
-    pthread_mutex_unlock(&readyLock);
+#ifdef HAVE_LIBGLM
+  if(AsyRender::threads && !offscreen && Wait) {
+    pthread_cond_wait(&gl->readySignal,&gl->readyLock);
+    pthread_mutex_unlock(&gl->readyLock);
   }
+#endif
   return true;
 #endif
 #endif

@@ -12,7 +12,7 @@ GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@
-LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@
+LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS) @LSPLIBS@
 CXX_STANDARD = @CXX_STANDARD@
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 LSP_ROOT=@LSP_ROOT@
@@ -24,16 +24,17 @@ BISON ?= bison
 
 # Libraries needed to make asymptote.so.
 # We have to remove OpenGL, threading, GC, etc from this.
-SHAREDLIBS = $(filter-out -lglut -GL -pthread $(GCLIBS), $(LIBS))
+SHAREDLIBS = $(filter-out -lglut -lglfw -framework GLFW -GL -pthread $(GCLIBS), $(LIBS))
 
 vpath %.cc prc
 vpath %.cc thirdparty_impl/tinyexr_impl/src
+vpath %.cc thirdparty_impl/vk-mem-allocator_impl/src
 vpath %.ui GUI/windows
 vpath %.py GUI
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill path3 drawpath3 drawsurface \
-       beziercurve bezierpatch pen pipestream
+       beziercurve bezierpatch sortTriangles pen pipestream
 
 RUNTIME_FILES = runtime runbacktrace runpicture runlabel runhistory runarray \
 	runfile runsystem runpair runtriple runpath runpath3d runstring \
@@ -46,17 +47,25 @@ PRC =  PRCbitStream oPRCFile PRCdouble writePRC
 
 TINYEXR_FILES = tinyexr_impl
 
+VMA_IMPL_FILES = @VMA_IMPL_FILES@
+
+# Vulkan renderer objects - built into a shared library, not linked into the main binary.
+VULKAN_OBJS = $(VMA_IMPL_FILES) vkrender vkdispatchstorage vkutils vulkanshim
+
+# OpenGL renderer objects - built into a shared library, not linked into the main binary.
+OPENGL_OBJS = glrender GLTextures openglshim shaders glew tr tr tr
+
 COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	env genv stm dec errormsg \
     callable name symbol entry exp newexp stack exithandlers camp.tab lex.yy \
 	access virtualfieldaccess absyn record interact fileio \
 	fftw++asy parallel simpson coder coenv impdatum locate asyparser program application \
 	varinit fundec refaccess envcompleter asyprocess constructor array memory \
-	Delaunay predicates glrender tr shaders jsfile v3dfile \
-	EXRFiles GLTextures lspserv symbolmaps win32helpers win32pipestream \
+	Delaunay predicates glfw renderBase jsfile v3dfile \
+	EXRFiles lspserv symbolmaps win32helpers win32pipestream \
 	win32xdr xstream \
 	lspdec lspexp lspfundec lspstm \
-	hashing random
+	hashing random rendererloader webglrender
 
 FILES = $(COREFILES) main
 
@@ -79,6 +88,7 @@ CLEAN = camp.output base/version.asy doc/version.texi \
 		version.txt
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
 	asymptote.py reload.js nopapersize.ps
+SHIMLIBS = libasyvulkan.so libasyopengl.so
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
 DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
@@ -90,8 +100,7 @@ DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -I.
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
-	-Iprc/include -I$(LSP_ROOT)/include
-GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
+	-Iprc/include -I$(LSP_ROOT)/include -I.
 
 # Options for compiling the object files for the shared library.
 # gc has to be configured with the option --disable-threads in order to make a
@@ -103,6 +112,7 @@ CXX = @CXX@
 CC = @CC@
 MAKEDEPEND = $(OPTS) -O0 -M -MG -DDEPEND
 LEX = @LEX@
+GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -135,9 +145,31 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) \
-		@LSPLIB@ @GLEW@
-	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
+asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ libasyvulkan.so libasyopengl.so
+	$(CXX) $(OPTS) -rdynamic -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
+
+# Build the Vulkan renderer as a shared library loaded at runtime via dlopen.
+VULKAN_PIC_OBJS = $(addprefix vkpic/,$(VULKAN_OBJS:=.o))
+libasyvulkan.so: $(VULKAN_PIC_OBJS)
+	$(CXX) $(OPTS) -shared -o $@ $^ @ASY_VULKAN_LIBS@ @GLFW_LIBS@
+
+vkpic/%.o: %.cc
+	@mkdir -p vkpic
+	$(CXX) $(OPTS) -fPIC -o $@ -c $<
+
+# Build the OpenGL renderer as a shared library loaded at runtime via dlopen.
+OPENGL_PIC_OBJS = $(addprefix glpic/,$(OPENGL_OBJS:=.o))
+libasyopengl.so: $(OPENGL_PIC_OBJS)
+	$(CXX) $(OPTS) -shared -o $@ $^ @ASY_GL_LIBS@ @GLFW_LIBS@
+
+glpic/%.o: %.cc
+	@mkdir -p glpic
+	$(CXX) $(OPTS) -fPIC -o $@ -c $<
+
+# glew.c is a C file, needs special handling for the OpenGL shared library.
+glpic/glew.o: glew.c config.h
+	@mkdir -p glpic
+	$(CC) $(GLEWOPTS) -o $@ -c $<
 
 $(XNAME): $(PYFILES)
 	$(SILENT_MAKE)ln -sf GUI/xasy.py $(XNAME)
@@ -286,7 +318,7 @@ install-texhash: install-asy
 install-asy: asy sty $(PYFILES)
 	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
 	${INSTALL} -d $(asydir)/collections
-	${INSTALL} -d $(shaderdir) $(webgldir) \
+	${INSTALL} -d $(shaderdir) $(shaderdir)/GL $(webgldir) \
 		$(GUIdir) $(GUIdir)/configs \
 		$(GUIdir)/res $(GUIdir)/res/icons \
 		$(GUIdir)/xasyicons $(GUIdir)/xasyqtui $(GUIdir)/xasyversion
@@ -295,8 +327,10 @@ install-asy: asy sty $(PYFILES)
 	${INSTALL} -p -m 755 $(NAME) $(bindir)
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) \
 		asy-keywords.el $(asydir)
+	${INSTALL} -p -m 755 $(SHIMLIBS) $(asydir)
 	${INSTALL} -p -m 644 base/collections/*.asy $(asydir)/collections
 	${INSTALL} -p -m 644 base/shaders/*.glsl $(shaderdir)
+	${INSTALL} -p -m 644 base/shaders/GL/*.glsl $(shaderdir)/GL
 	${INSTALL} -p -m 644 base/webgl/asygl.js \
 		$(webgldir)
 	${INSTALL} -p -m 644 GUI/*.py $(GUIdir)
@@ -352,7 +386,7 @@ uninstall-asy:
 	-rmdir $(webgldir)
 	-cd $(asydir)/collections && rm -f *.asy
 	-rmdir $(asydir)/collections
-	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA)
+	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA) $(SHIMLIBS)
 	-rmdir $(asydir)
 	-cd $(latexdir) && rm -f $(LATEXFILES)
 	-rmdir $(latexdir)
@@ -370,7 +404,8 @@ uninstall-docdir: uninstall-man uninstall-asy
 	-rmdir $(docdir)
 
 clean:	FORCE
-	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
+	-rm -f asy asymptote.so libasyvulkan.so libasyopengl.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
+	-rm -rf vkpic glpic
 	-cd LspCpp && $(MAKE) distclean
 	-cd tinyexr && $(MAKE) clean
 	-cd doc && $(MAKE) clean
@@ -443,6 +478,28 @@ glew.o: glew.c config.h
 	${CC} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
+
+vkpic/%.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
+	@echo Creating $@; \
+	rm -f $@; \
+	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
+	sed 's,\($*\)\.o[ :]*,vkpic/\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+glpic/%.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
+	@echo Creating $@; \
+	rm -f $@; \
+	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
+	sed 's,\($*\)\.o[ :]*,glpic/\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+glpic/glew.d: glew.c
+	@echo Creating $@; \
+	rm -f $@; \
+	${CC} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
+	sed 's,\($*\)\.o[ :]*,glpic/\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
 # Compile for the shared library.  OpenGL must be disabled as it causes
 # crashes inside a shared library.
 %.pic.o: %.cc
@@ -460,7 +517,7 @@ base/%.asy: %.csv generate_enums.py $(GENERATEDENUMS:=.csv)
 	$(PYTHON) generate_enums.py -language python -o $@ -i $< -name $(notdir $*)
 
 ifeq (,$(findstring clean,${MAKECMDGOALS}))
--include $(FILES:=.d)
+-include $(FILES:=.d) $(VULKAN_PIC_OBJS:.o=.d) $(OPENGL_PIC_OBJS:.o=.d) glpic/glew.d
 endif
 
 FORCE:

@@ -1,21 +1,19 @@
 layout(local_size_x=LOCALSIZE) in;
 
-const uint groupSize=LOCALSIZE*BLOCKSIZE;
-
-uniform uint elements;
-
-layout(binding=2, std430) buffer countBuffer
+layout(binding=0, std430) buffer countBuffer
 {
   uint maxSize;
   uint count[];
 };
 
-layout(binding=3, std430) buffer globalSumBuffer
+layout(binding=1, std430) buffer globalSumBuffer
 {
   uint globalSum[];
 };
 
 shared uint groupSum[LOCALSIZE];
+
+const uint groupSize=LOCALSIZE*BLOCKSIZE;
 
 void main()
 {

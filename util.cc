@@ -453,7 +453,7 @@ void execError(const char *command, const char *hint, const char *application)
 int System(const mem::vector<string> &command, int quiet, bool wait,
            const char *hint, const char *application, int *ppid)
 {
-#if _WIN32
+#ifdef _WIN32
     return SystemWin32(command, quiet, wait, hint, application, ppid);
 #else
   int status;

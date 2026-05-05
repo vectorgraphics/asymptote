@@ -44,7 +44,7 @@
 
 #include "common.h"
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 
 #include <assert.h>
 #include <math.h>
@@ -59,15 +59,15 @@
 #define DEFAULT_TILE_HEIGHT 256
 #define DEFAULT_TILE_BORDER 0
 
-namespace gl {
+namespace camp {
 void frustum(GLdouble left, GLdouble right, GLdouble bottom,
              GLdouble top, GLdouble nearVal, GLdouble farVal);
 void ortho(GLdouble left, GLdouble right, GLdouble bottom,
            GLdouble top, GLdouble nearVal, GLdouble farVal);
 }
 
-using gl::frustum;
-using gl::ortho;
+using camp::frustum;
+using camp::ortho;
 
 struct _TRctx {
   /* Final image parameters */
