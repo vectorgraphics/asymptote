@@ -426,12 +426,33 @@ AC_SUBST(TINYEXR_ROOT)
 
 # ------------------- GLFW -----------------
 
+GLFW_LIBS=""
 if test "x$enable_vulkan" != "xno" -o "x$enable_gl" != "xno"; then
-   AC_CHECK_LIB([glfw], [glfwShowWindow],
+   case "$OSTYPE" in
+        darwin*)
+             # On macOS, GLFW is distributed as a framework.
+             AC_MSG_CHECKING([for GLFW framework])
+             AC_LINK_IFELSE([AC_LANG_PROGRAM(
+                [#include <GLFW/glfw3.h>],
+                [glfwShowWindow(NULL)])],
                 [AC_DEFINE(HAVE_LIBGLFW,1,DEFINE_LIB([GLFW]))
-                 LIBS=$LIBS"-lglfw "],
-                AC_MSG_NOTICE([*** Could not find libglfw: will compile without Vulkan or OpenGL support ***]))
+                 GLFW_LIBS="-framework GLFW "
+                 LIBS=$LIBS"$GLFW_LIBS"
+                 AC_MSG_RESULT([yes])],
+                [AC_MSG_RESULT([no])
+                 AC_MSG_NOTICE([*** Could not find GLFW framework: will compile without Vulkan or OpenGL support ***])])
+             ;;
+        *)
+             AC_CHECK_LIB([glfw], [glfwShowWindow],
+                          [AC_DEFINE(HAVE_LIBGLFW,1,DEFINE_LIB([GLFW]))
+                           GLFW_LIBS="-lglfw "
+                           LIBS=$LIBS"$GLFW_LIBS"],
+                          AC_MSG_NOTICE([*** Could not find libglfw: will compile without Vulkan or OpenGL support ***]))
+             ;;
+   esac
 fi
+
+AC_SUBST(GLFW_LIBS)
 
 # ------------------- Vulkan -----------------
 
