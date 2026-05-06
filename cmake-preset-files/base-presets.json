@@ -93,13 +93,6 @@
       }
     },
     {
-      "name": "base/ctan",
-      "hidden": true,
-      "cacheVariables": {
-        "CTAN_BUILD": "true"
-      }
-    },
-    {
       "name": "base/compact-zero-mode",
       "hidden": true,
       "cacheVariables": {

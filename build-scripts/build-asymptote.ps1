@@ -302,9 +302,7 @@ else
 }
 
 # ------------------------------------------------------
-# building for CTAN
-
-buildAsy msvc/release/with-external-doc-files/with-ctan cmake-build-msvc/release
+# building for CTAN (asy-ctan.exe was built alongside asy.exe in a single CMake build)
 
 if ($env:ASYMPTOTE_BUILD_SHARED_DIRECTORY)
 {
@@ -321,7 +319,7 @@ New-Item -ItemType Directory -Path "$ctanOutputDir" -Force
 New-Item -ItemType Directory -Path "$ctanOutputDir/dll" -Force
 Get-ChildItem "$asymptoteRoot/cmake-install-w32-nsis-release/build-$Version/" `
     -Filter "*.dll" | Copy-Item -Force -Destination "$ctanOutputDir/dll"
-Copy-Item $asymptoteRoot/cmake-build-msvc/release/asy.exe -Force -Destination "$ctanOutputDir/asy.exe"
+Copy-Item $asymptoteRoot/cmake-build-msvc/release/asy-ctan.exe -Force -Destination "$ctanOutputDir/asy.exe"
 
 Pop-Location  # asymptote
 deactivate  # pyxasy build environment

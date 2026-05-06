@@ -12,7 +12,7 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 
 # helper target for files needed
-add_custom_target(asy-pre-nsis-targets DEPENDS asy asy-basefiles)
+add_custom_target(asy-pre-nsis-targets DEPENDS asy asy-ctan asy-basefiles)
 
 # check done, start configuration
 set(ASYMPTOTE_NSI_CONFIGURATION_DIR ${CMAKE_CURRENT_BINARY_DIR}/nsifiles)
