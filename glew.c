@@ -6,11 +6,7 @@
 
 #ifdef HAVE_LIBGL
 
-#ifndef GLEW_INCLUDE
-#include "GL/glew.h"
-#else
-#include GLEW_INCLUDE
-#endif
+#include "backports/glew/include/GL/glew.h"
 
 #ifdef HAVE_LIBOSMESA
 #define GLEW_OSMESA

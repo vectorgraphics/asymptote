@@ -7,6 +7,8 @@
 
 namespace camp {
 
+extern bool headlessRenderer;
+
 bool tryLoadVulkan();
 bool tryLoadOpenGL();
 void createRenderer();

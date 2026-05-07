@@ -5,6 +5,10 @@
  *   directly instantiated.  If no hardware GPU is detected (e.g., pre-2012
  *   hardware, VirtualBox VM), a llvmpipe fallback is activated by writing
  *   an ICD manifest (lvp_icd.json) and loading vulkan_lvp.dll (Lavapipe).
+ * On macOS (Intel x86_64): If Metal is unavailable (e.g., headless VM),
+ *   fall back to a shipped llvmpipe driver by locating libvulkan_lvp.dylib
+ *   via the Asymptote search path and writing an ICD manifest.
+ *   Apple Silicon (arm64) is not supported by llvmpipe; use SwiftShader instead.
  *
  * The main asy binary has zero link-time dependencies on Vulkan or OpenGL
  * on Unix. All Vulkan-specific code lives in libasyvulkan.so, loaded at runtime.
@@ -32,10 +36,11 @@ bool vulkan = false;
 #ifndef _WIN32
 #include <dlfcn.h>
 #endif
+#include <cstring>
 #include <iostream>
 #include <pthread.h>
-#include <cstring>
 #include <string>
+#include <unistd.h>
 
 #include "settings.h"    // for settings::verbose
 #include "locate.h"       // for settings::locateFile
@@ -48,8 +53,15 @@ bool vulkan = false;
 #include <vulkan/vulkan.h>
 #endif
 
+// For llvmpipe fallback on Intel Macs without Metal (e.g., headless VMs):
+// Detect Metal availability via dlopen/dlsym BEFORE any Vulkan calls,
+// since MoltenVK will fail with ErrorIncompatibleDriver if Metal is absent.
+// Standard C headers (<dlfcn.h>, <unistd.h>) are sufficient; no Mac-specific
+// frameworks needed beyond the runtime dlopen of Metal.framework itself.
+
 namespace camp {
 
+bool headlessRenderer = false;  // True when using software renderer without display (e.g., llvmpipe on macOS without Metal)
 static bool initializedRenderer = false;
 
 // Opaque handles to the loaded renderer shared libraries.
@@ -460,6 +472,65 @@ void createRenderer()
                   << std::endl;
     }
 #else
+#if defined(__APPLE__) && defined(__x86_64__)
+    // On Intel Macs, detect Metal availability BEFORE any Vulkan calls.
+    // MoltenVK's ICD is found by the Vulkan loader, but if Metal is not
+    // available (e.g., headless VM), vkCreateInstance fails with
+    // ErrorIncompatibleDriver before we can enumerate devices.
+    // Solution: probe Metal directly via dlopen/dlsym, and if unavailable,
+    // use a shipped llvmpipe driver found via the Asymptote search path.
+    {
+        // Step 1: Open Metal.framework
+        void *metalHandle = dlopen("/System/Library/Frameworks/Metal.framework/Metal",
+                                   RTLD_NOW | RTLD_LOCAL);
+
+        bool metalAvailable = false;
+        if (metalHandle) {
+            // Step 2: Resolve MTLCreateSystemDefaultDevice
+            typedef void *(*PFN_MTLCreateSystemDefaultDevice)();
+            PFN_MTLCreateSystemDefaultDevice createDevice =
+                reinterpret_cast<PFN_MTLCreateSystemDefaultDevice>(
+                    dlsym(metalHandle, "MTLCreateSystemDefaultDevice"));
+
+            if (createDevice) {
+                // Step 3: Call it - nil means Metal is not available
+                void *device = createDevice();
+                if (device != nullptr) {
+                    metalAvailable = true;
+                }
+            }
+            dlclose(metalHandle);
+        }
+
+        // Step 4: If Metal is NOT available and Vulkan was requested,
+        // use the shipped llvmpipe driver from the Asymptote search path.
+        if (!metalAvailable && useVulkan) {
+            // Locate the shipped llvmpipe ICD JSON via the Asymptote path.
+            mem::string icdJsonPath = settings::locateFile("lvp_icd.x86_64.json", true, "");
+            std::string icdJsonStr = mem::stdString(icdJsonPath);
+
+            if (!icdJsonStr.empty()) {
+                // Convert to absolute path (the Vulkan loader needs it).
+                char *absPath = realpath(icdJsonStr.c_str(), nullptr);
+                if (absPath != nullptr) {
+                    icdJsonStr = absPath;
+                    free(absPath);
+                }
+
+                setenv("VK_ICD_FILENAMES", icdJsonStr.c_str(), true);
+                headlessRenderer = true;
+
+                if (settings::verbose > 1)
+                    std::cout << "Metal unavailable on macOS Intel; "
+                              << "using llvmpipe fallback (" << icdJsonStr << ")" << std::endl;
+            } else {
+                if (settings::verbose > 1)
+                    std::cout << "Metal unavailable and llvmpipe ICD not found" << std::endl;
+            }
+        }
+    }
+#endif // __APPLE__ && __x86_64__
+
     // If user wants Vulkan, try to load the shared library first.
     if (useVulkan) {
         if (tryLoadVulkanLib()) {

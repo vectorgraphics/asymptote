@@ -512,12 +512,17 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
    AC_DEFINE(HAVE_COMPUTE_SHADER,1,DEFINE([GLSL compute shaders])))
 
 ASY_GL_LIBS=""
+SHIM_LDFLAGS=""
 
 if test "x$enable_gl" != "xno"; then
    AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
 
 case "$OSTYPE" in
      darwin*)
+              # On macOS 11+, -undefined dynamic_lookup is incompatible with
+              # chained fixups. Add -no_fixup_chains to use traditional fixups
+              # which work correctly with dynamic_lookup for dlopen'd libraries.
+              SHIM_LDFLAGS="-undefined dynamic_lookup -Wl,-no_fixup_chains"
               AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL,1,
@@ -583,6 +588,7 @@ AC_SUBST(GLEW)
 AC_SUBST(VMA_IMPL_FILES)
 AC_SUBST(ASY_VULKAN_LIBS)
 AC_SUBST(ASY_GL_LIBS)
+AC_SUBST(SHIM_LDFLAGS)
 
 # we are on C++ >= 11, so unordered map is a guarantee
 AC_DEFINE(HAVE_UNORDERED_MAP,1,[Unordered map is present])

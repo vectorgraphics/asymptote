@@ -11,6 +11,8 @@
 #include "EXRFiles.h"
 #include "fpu.h"
 
+#include "rendererloader.h"  // for headlessRenderer
+
 #include "vkutils.h"
 #include "ThreadSafeQueue.h"
 
@@ -259,6 +261,12 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
 
     fullWidth=(int) ceil(expand*args.width);
     fullHeight=(int) ceil(expand*args.height);
+
+    // On macOS with llvmpipe (no Metal), don't create a GLFW window -
+    // there's no display backend to present to. Use offscreen rendering.
+    if (headlessRenderer) {
+        View = false;
+    }
 
     GLFWmonitor* monitor=NULL;
     glfwInit();

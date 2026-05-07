@@ -89,6 +89,7 @@ CLEAN = camp.output base/version.asy doc/version.texi \
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
 	asymptote.py reload.js nopapersize.ps
 SHIMLIBS = libasyvulkan.so libasyopengl.so
+LLVMPIPE = lvp_icd.x86_64.json libvulkan_lvp.dylib
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
 DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
@@ -112,7 +113,7 @@ CXX = @CXX@
 CC = @CC@
 MAKEDEPEND = $(OPTS) -O0 -M -MG -DDEPEND
 LEX = @LEX@
-GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
+GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC -Ibackports/glew/include
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -151,7 +152,7 @@ asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ libasyv
 # Build the Vulkan renderer as a shared library loaded at runtime via dlopen.
 VULKAN_PIC_OBJS = $(addprefix vkpic/,$(VULKAN_OBJS:=.o))
 libasyvulkan.so: $(VULKAN_PIC_OBJS)
-	$(CXX) $(OPTS) -shared -o $@ $^ @ASY_VULKAN_LIBS@ -lglfw
+	$(CXX) $(OPTS) -shared -o $@ $^ $(filter -L%,$(LFLAGS)) @SHIM_LDFLAGS@ @ASY_VULKAN_LIBS@ -lglfw
 
 vkpic/%.o: %.cc
 	@mkdir -p vkpic
@@ -160,7 +161,7 @@ vkpic/%.o: %.cc
 # Build the OpenGL renderer as a shared library loaded at runtime via dlopen.
 OPENGL_PIC_OBJS = $(addprefix glpic/,$(OPENGL_OBJS:=.o))
 libasyopengl.so: $(OPENGL_PIC_OBJS)
-	$(CXX) $(OPTS) -shared -o $@ $^ @ASY_GL_LIBS@ -lglfw
+	$(CXX) $(OPTS) -shared -o $@ $^ $(filter -L%,$(LFLAGS)) @SHIM_LDFLAGS@ @ASY_GL_LIBS@ -lglfw
 
 glpic/%.o: %.cc
 	@mkdir -p glpic
@@ -328,6 +329,7 @@ install-asy: asy sty $(PYFILES)
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) \
 		asy-keywords.el $(asydir)
 	${INSTALL} -p -m 755 $(SHIMLIBS) $(asydir)
+	-${INSTALL} -p -m 644 $(addprefix base/,$(LLVMPIPE)) $(asydir)
 	${INSTALL} -p -m 644 base/collections/*.asy $(asydir)/collections
 	${INSTALL} -p -m 644 base/shaders/*.glsl $(shaderdir)
 	${INSTALL} -p -m 644 base/shaders/GL/*.glsl $(shaderdir)/GL
@@ -386,7 +388,7 @@ uninstall-asy:
 	-rmdir $(webgldir)
 	-cd $(asydir)/collections && rm -f *.asy
 	-rmdir $(asydir)/collections
-	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA) $(SHIMLIBS)
+	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA) $(SHIMLIBS) $(LLVMPIPE)
 	-rmdir $(asydir)
 	-cd $(latexdir) && rm -f $(LATEXFILES)
 	-rmdir $(latexdir)
