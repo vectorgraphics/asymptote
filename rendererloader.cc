@@ -148,7 +148,7 @@ static bool tryLoadVulkanLib()
 
 #ifdef HAVE_PTHREAD
     if (gl)
-        gl->mainthread = pthread_self();
+        gl->threadMgr.mainthread = pthread_self();
 #endif
 
     vulkan = true;
@@ -216,7 +216,7 @@ static bool tryLoadOpenGLLib()
 
 #ifdef HAVE_PTHREAD
     if (gl)
-        gl->mainthread = pthread_self();
+        gl->threadMgr.mainthread = pthread_self();
 #endif
 
     vulkan = false;
@@ -320,7 +320,7 @@ static void createWebGLRenderer()
 
 #ifdef HAVE_PTHREAD
     if (gl)
-        gl->mainthread = pthread_self();
+        gl->threadMgr.mainthread = pthread_self();
 #endif
 
 #ifdef HAVE_RENDERER
@@ -329,9 +329,12 @@ static void createWebGLRenderer()
 }
 
 /**
- * Create the renderer object without performing any GPU/Vulkan probing.
- * Called from main.cc before starting threads so that gl is non-null and
- * the render thread can safely access gl->wait(...).
+ * Create the renderer object by probing for Vulkan/OpenGL availability.
+ * Called lazily from initRenderer() when shipout3() first needs GPU rendering.
+ * On Unix this loads the appropriate shared library (libasyvulkan.so or
+ * libasyopengl.so) via dlopen.  The render thread's glrenderWrapper() is
+ * safe with a null gl pointer, so there is no need to pre-initialise the
+ * renderer in main().
  *
  * On Windows: Vulkan is statically linked; directly instantiate AsyVkRender.
  * On Unix: Try to load the requested renderer via dlopen/LoadLibrary.
@@ -455,7 +458,7 @@ void createRenderer()
         gl = new camp::AsyVkRender();
 #ifdef HAVE_PTHREAD
         if (gl)
-            gl->mainthread = pthread_self();
+            gl->threadMgr.mainthread = pthread_self();
 #endif
         vulkan = true;
         if (settings::verbose > 1)
@@ -558,6 +561,10 @@ void createRenderer()
  * For WebGL (html) and v3d formats, creates AsyWebGLRender which requires
  * no GPU libraries - it only sets up state for client-side rendering.
  *
+ * For all other formats, lazily calls createRenderer() to probe for Vulkan/
+ * OpenGL and instantiate the appropriate renderer.  This defers all GPU
+ * library loading until a shipout3() call actually requires rendering.
+ *
  * @param format Output format string (e.g., "html", "v3d", or empty/NULL for default)
  */
 void initRenderer(const char* format)
@@ -586,6 +593,10 @@ void initRenderer(const char* format)
 
     if (isFormat3D) {
         createWebGLRenderer();
+    } else if (gl == nullptr) {
+        // Lazy initialisation: probe for Vulkan/OpenGL only when GPU
+        // rendering is actually needed.
+        createRenderer();
     }
 
     if (gl == nullptr) {

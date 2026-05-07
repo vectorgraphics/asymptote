@@ -297,7 +297,7 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
     setosize();
   }
 
-  havewindow=initialized && threads;
+  havewindow = View && threads;
 
   clearMaterials();
   shouldUpdateBuffers = true;
@@ -308,7 +308,7 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
     if(View) {
       // Called from asymain thread, main thread handles rendering
       hideWindow=false;
-      messageQueue.enqueue(RendererMessage::updateRenderer);
+      threadMgr.messageQueue.enqueue(RendererMessage::updateRenderer);
     } else readyAfterExport=queueExport=true;
     return;
   }
@@ -4610,7 +4610,7 @@ void AsyVkRender::Export(int imageIndex) {
 #ifdef HAVE_PTHREAD
   if(threads && readyAfterExport) {
     readyAfterExport=false;
-    endwait(readySignal,readyLock);
+    threadMgr.endwait(threadMgr.readySignal,threadMgr.readyLock);
   }
 #endif
 }

@@ -56,10 +56,6 @@ namespace camp {
 // Note: getProjViewMat(), getViewMat(), and getNormMat() are defined in
 // vkrender.cc to avoid multiple definition errors when both renderers are compiled.
 
-static const double ASY_PI=acos(-1.0);
-static const double ASY_DEGREES=180.0/ASY_PI;
-static const double ASY_RADIANS=1.0/ASY_DEGREES;
-
 // IBL texture objects (defined in initIBL())
 camp::GLTexture2<float,GL_FLOAT> iblbrdfTex;
 camp::GLTexture2<float,GL_FLOAT> irradianceTex;
@@ -528,7 +524,7 @@ void AsyGLRender::Export(int)
 #ifdef HAVE_PTHREAD
   if(threads && readyAfterExport) {
     readyAfterExport=false;
-    endwait(readySignal,readyLock);
+    threadMgr.endwait(threadMgr.readySignal,threadMgr.readyLock);
   }
 
   exporting=false;
@@ -1249,7 +1245,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     setosize();
   }
 
-  havewindow=initialized && threads;
+  havewindow = View && threads;
 
   clearMaterials();
   shouldUpdateBuffers=true;
@@ -1260,7 +1256,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     if(View) {
       // Called from asymain thread, main thread handles rendering
       hideWindow=false;
-      messageQueue.enqueue(RendererMessage::updateRenderer);
+      threadMgr.messageQueue.enqueue(RendererMessage::updateRenderer);
     } else readyAfterExport=queueExport=true;
     return;
   }
@@ -1354,6 +1350,10 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     display();
     if(threads) {
       exportHandler(0);
+#ifdef HAVE_PTHREAD
+      if(!pthread_equal(pthread_self(), threadMgr.mainthread))
+        threadMgr.endwait(threadMgr.readySignal, threadMgr.readyLock);
+#endif
     } else {
       exportHandler(0);
       quit();

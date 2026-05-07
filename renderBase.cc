@@ -218,13 +218,13 @@ void AsyRender::prepareScene()
 #ifdef HAVE_PTHREAD
   static bool first=true;
   if(threads && first) {
-    wait(initSignal,initLock);
-    endwait(initSignal,initLock);
+    threadMgr.wait(threadMgr.initSignal,threadMgr.initLock);
+    threadMgr.endwait(threadMgr.initSignal,threadMgr.initLock);
     first=false;
   }
 
   if(format3dWait)
-    wait(initSignal,initLock);
+    threadMgr.wait(threadMgr.initSignal,threadMgr.initLock);
 #endif
 
   if(redraw) {
@@ -701,7 +701,7 @@ void AsyRender::quit()
 #ifdef HAVE_PTHREAD
     if (!interact::interactive) {
       idle();
-      endwait(readySignal, readyLock);
+      threadMgr.endwait(threadMgr.readySignal, threadMgr.readyLock);
     }
 #endif
 
@@ -957,7 +957,7 @@ void AsyRender::mainLoop()
 
       // processMessages: dequeue and process messages
       [this](){
-        auto const message=messageQueue.dequeue();
+        auto const message=threadMgr.messageQueue.dequeue();
         if(message.has_value())
           processMessages(*message);
       },
@@ -974,15 +974,21 @@ void AsyRender::mainLoop()
     if(threads) {
       if(havewindow) {
 #ifdef HAVE_PTHREAD
-        if(pthread_equal(pthread_self(),this->mainthread))
+        if(pthread_equal(pthread_self(),threadMgr.mainthread))
           exportHandler(0);
         else
-          messageQueue.enqueue(RendererMessage::exportRender);
+          threadMgr.messageQueue.enqueue(RendererMessage::exportRender);
 #endif
       } else {
         initialized=true;
         readyForExport=true;
         exportHandler(0);
+#ifdef HAVE_PTHREAD
+        // Notify main thread only when called from the render thread.
+        // When called directly from the main thread, there's nobody to wake.
+        if(!pthread_equal(pthread_self(), threadMgr.mainthread))
+          threadMgr.endwait(threadMgr.readySignal, threadMgr.readyLock);
+#endif
       }
     } else {
       exportHandler(0);

@@ -191,6 +191,65 @@ enum class RendererMessage
   updateRenderer  // Request to update renderer state
 };
 
+#ifdef HAVE_PTHREAD
+/**
+ * ThreadManager - Manages thread synchronization primitives.
+ *
+ * This class owns all pthread condition variables, mutexes, and the message
+ * queue used for inter-thread communication between the asymain thread and
+ * the render thread. It is independent of any specific rendering backend
+ * (OpenGL, Vulkan, etc.).
+ */
+class ThreadManager
+{
+public:
+  ThreadManager() = default;
+  ~ThreadManager() = default;
+
+  // Non-copyable, non-movable
+  ThreadManager(const ThreadManager&) = delete;
+  ThreadManager& operator=(const ThreadManager&) = delete;
+
+  /// Main thread identifier (set by the loader when threading is enabled)
+  pthread_t mainthread;
+
+  /// Initialization signaling: render thread waits for asymain to finish setup
+  pthread_cond_t initSignal = PTHREAD_COND_INITIALIZER;
+  pthread_mutex_t initLock = PTHREAD_MUTEX_INITIALIZER;
+
+  /// Export readiness signaling: asymain waits for render thread after export
+  pthread_cond_t readySignal = PTHREAD_COND_INITIALIZER;
+  pthread_mutex_t readyLock = PTHREAD_MUTEX_INITIALIZER;
+
+  /// Message queue for inter-thread communication (asymain -> render thread)
+  ThreadSafeQueue<RendererMessage> messageQueue;
+
+  /**
+   * Signal a condition variable and release its mutex.
+   * Used to notify another thread that an operation has completed.
+   */
+  void endwait(pthread_cond_t& signal, pthread_mutex_t& lock)
+  {
+    pthread_mutex_lock(&lock);
+    pthread_cond_signal(&signal);
+    pthread_mutex_unlock(&lock);
+  }
+
+  /**
+   * Signal a condition variable and then wait on it.
+   * Used for handshaking: signal the other thread, then block until
+   * the other thread signals back.
+   */
+  void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
+  {
+    pthread_mutex_lock(&lock);
+    pthread_cond_signal(&signal);
+    pthread_cond_wait(&signal, &lock);
+    pthread_mutex_unlock(&lock);
+  }
+};
+#endif // HAVE_PTHREAD
+
 /**
  * AsyRender - Library-agnostic base class for renderers.
  * Contains code that is independent of the underlying graphics API (Vulkan, OpenGL, etc.).
@@ -372,15 +431,8 @@ public:
   glm::dmat3 normMat;  // Double precision normal matrix for CPU calculations
 
 #ifdef HAVE_PTHREAD
-  // Pthread synchronization primitives (shared between renderers)
-  pthread_t mainthread;
-  pthread_cond_t initSignal = PTHREAD_COND_INITIALIZER;
-  pthread_mutex_t initLock = PTHREAD_MUTEX_INITIALIZER;
-  pthread_cond_t readySignal = PTHREAD_COND_INITIALIZER;
-  pthread_mutex_t readyLock = PTHREAD_MUTEX_INITIALIZER;
-
-  // Message queue for inter-thread communication (asymain -> render thread)
-  ThreadSafeQueue<RendererMessage> messageQueue;
+  // Thread synchronization manager (shared between renderers)
+  ThreadManager threadMgr;
 #endif
 
 protected:
@@ -503,19 +555,14 @@ public:
   void mainLoop();
 
 #ifdef HAVE_PTHREAD
-  // Pthread synchronization helpers
+  // Pthread synchronization helpers (forward to ThreadManager)
   void endwait(pthread_cond_t& signal, pthread_mutex_t& lock)
   {
-    pthread_mutex_lock(&lock);
-    pthread_cond_signal(&signal);
-    pthread_mutex_unlock(&lock);
+    threadMgr.endwait(signal, lock);
   }
   void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
   {
-    pthread_mutex_lock(&lock);
-    pthread_cond_signal(&signal);
-    pthread_cond_wait(&signal,&lock);
-    pthread_mutex_unlock(&lock);
+    threadMgr.wait(signal, lock);
   }
 #endif
 };

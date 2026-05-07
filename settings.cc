@@ -24,6 +24,9 @@
 
 #include "common.h"
 #include "rendererloader.h"
+#ifdef HAVE_RENDERER
+#include "renderBase.h"
+#endif
 
 #if HAVE_GNU_GETOPT_H
 #include <getopt.h>
@@ -1049,13 +1052,20 @@ void displayFeatures(bool enabled)
     // when asy.exe is distributed to different machines.
 #else
     static bool probed = false;
-#ifdef HAVE_VULKAN
-    static bool vulkanAvailable = false;
-#endif
     if (!probed) {
+#ifdef HAVE_RENDERER
+        // Actually construct the renderer so we can verify which backend
+        // is truly available (not just whether the .so loads).  We call
+        // createRenderer() directly rather than initRenderer() to avoid
+        // triggering a "No 3D rendering available" error when running
+        // headless (e.g., --version on a system without GPU).
+        camp::createRenderer();
+#else
 #ifdef HAVE_VULKAN
+        static bool vulkanAvailable = false;
         bool useVulkan = getSetting<bool>("vulkan");
         vulkanAvailable = useVulkan && camp::tryLoadVulkan();
+#endif
 #endif
         probed = true;
     }
@@ -1093,6 +1103,17 @@ void displayFeatures(bool enabled)
     havevulkan = true;
 #endif
 #else
+#ifdef HAVE_RENDERER
+    // The renderer was already constructed by createRenderer() above.
+    // camp::gl != nullptr means a backend was successfully loaded; vulkan
+    // indicates which one.
+    if (camp::gl != nullptr) {
+        if (vulkan)
+            havevulkan = true;
+        else
+            haveopengl = true;
+    }
+#else
 #ifdef HAVE_VULKAN
     if (vulkanAvailable)
         havevulkan = true;
@@ -1102,6 +1123,7 @@ void displayFeatures(bool enabled)
         if (openglAvailable)
             haveopengl = true;
     }
+#endif
 #endif
 #endif
 
@@ -1281,10 +1303,9 @@ void getOptions(int argc, char *argv[])
   }
 
   if (showVersion) {
-    version();
-    displayFeatures(true);
-    displayFeatures(false);
-    exit(0);
+    // Don't exit yet — continue parsing remaining options, then exit
+    // from setOptions() after setPath() has been called so that the
+    // renderer can locate its shared libraries.
   }
 
   if (syntax)
@@ -2057,6 +2078,13 @@ void setOptions(int argc, char *argv[])
   SetPageDimensions();
 
   setInteractive();
+
+  if (showVersion) {
+    version();
+    displayFeatures(true);
+    displayFeatures(false);
+    exit(0);
+  }
 }
 
 }

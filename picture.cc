@@ -19,6 +19,7 @@
 #include "seconds.h"
 #ifdef HAVE_RENDERER
 #include "glfw.h"
+#include "rendererloader.h"
 #endif
 
 #if defined(_WIN32)
@@ -1444,8 +1445,8 @@ void glrenderWrapper()
   if (gl == nullptr)
     return; // Renderer not yet initialised
 #ifdef HAVE_PTHREAD
-  gl->wait(gl->initSignal,gl->initLock);
-  gl->endwait(gl->initSignal,gl->initLock);
+  gl->threadMgr.wait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
+  gl->threadMgr.endwait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
 #endif
   if(allowRender)
     gl->render(args);
@@ -1544,48 +1545,68 @@ bool picture::shipout3(const string& prefix, const string& format,
 #ifdef HAVE_LIBGLM
     if(AsyRender::threads && !offscreen) {
 #ifdef HAVE_PTHREAD
+      // Set up args once; shared by all three code paths below.
+      args.prefix=prefix;
+      args.pic=pic;
+      args.format=outputformat;
+      args.width=width;
+      args.height=height;
+      args.angle=angle;
+      args.zoom=zoom;
+      args.m=m;
+      args.M=M;
+      args.shift=shift;
+      args.margin=margin;
+      args.t=t;
+      args.tup=tup;
+      args.background=background;
+      args.nlightsin=nlights;
+      args.lights=lights;
+      args.diffuse=diffuse;
+      args.view=View;
+      args.oldpid=oldpid;
+
       if(!gl->initialized) {
         gl->initialized=!View || offscreen;
-        args.prefix=prefix;
-        args.pic=pic;
-        args.format=outputformat;
-        args.width=width;
-        args.height=height;
-        args.angle=angle;
-        args.zoom=zoom;
-        args.m=m;
-        args.M=M;
-        args.shift=shift;
-        args.margin=margin;
-        args.t=t;
-        args.tup=tup;
-        args.background=background;
-        args.nlightsin=nlights;
-        args.lights=lights;
-        args.diffuse=diffuse;
-        args.view=View;
-        args.oldpid=oldpid;
         if(Wait)
-          pthread_mutex_lock(&gl->readyLock);
+          pthread_mutex_lock(&gl->threadMgr.readyLock);
         allowRender=true;
-        gl->wait(gl->initSignal,gl->initLock);
-        gl->endwait(gl->initSignal,gl->initLock);
+        gl->threadMgr.wait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
+        gl->threadMgr.endwait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
         static bool initialize=true;
         if(initialize) {
-          gl->wait(gl->initSignal,gl->initLock);
-          gl->endwait(gl->initSignal,gl->initLock);
+          gl->threadMgr.wait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
+          gl->threadMgr.endwait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
           initialize=false;
         }
         if(Wait) {
-          pthread_cond_wait(&gl->readySignal,&gl->readyLock);
-          pthread_mutex_unlock(&gl->readyLock);
+          pthread_cond_wait(&gl->threadMgr.readySignal,&gl->threadMgr.readyLock);
+          pthread_mutex_unlock(&gl->threadMgr.readyLock);
         }
         return true;
       }
       if(Wait)
-        pthread_mutex_lock(&gl->readyLock);
+        pthread_mutex_lock(&gl->threadMgr.readyLock);
 #ifdef HAVE_RENDERER
-      glfwPostEmptyEvent();
+      // glfwPostEmptyEvent() only works when the render thread is inside
+      // a GLFW event loop.  In headless mode (llvmpipe on macOS without
+      // Metal), the render thread is blocked on initSignal, so we must
+      // use the handshake instead.
+      if(camp::headlessRenderer) {
+        // Set up args for the render thread, then wake it via handshake.
+        allowRender=true;
+        gl->threadMgr.wait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
+        gl->threadMgr.endwait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
+        // The render thread has done the work.  Wait for completion
+        // and return -- don't fall through to gl->render() below.
+        if(Wait) {
+          pthread_cond_wait(&gl->threadMgr.readySignal,&gl->threadMgr.readyLock);
+          pthread_mutex_unlock(&gl->threadMgr.readyLock);
+        }
+        return true;
+      } else {
+        glfwPostEmptyEvent();
+      }
 #endif
 #endif
     } else {
@@ -1607,26 +1628,6 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
 
 #if HAVE_LIBGLM
-  args.prefix=prefix;
-  args.pic=pic;
-  args.format=outputformat;
-  args.width=width;
-  args.height=height;
-  args.angle=angle;
-  args.zoom=zoom;
-  args.m=m;
-  args.M=M;
-  args.shift=shift;
-  args.margin=margin;
-  args.t=t;
-  args.tup=tup;
-  args.background=background;
-  args.nlightsin=nlights;
-  args.lights=lights;
-  args.diffuse=diffuse;
-  args.view=View;
-  args.oldpid=oldpid;
-
   gl->render(args);
   if(format3d) {
     string name=buildname(prefix,format);
@@ -1663,7 +1664,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(gl->format3dWait) {
       gl->format3dWait=false;
 #ifdef HAVE_PTHREAD
-      gl->endwait(gl->initSignal,gl->initLock);
+      gl->threadMgr.endwait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
 #endif
     }
 #endif
@@ -1676,8 +1677,8 @@ bool picture::shipout3(const string& prefix, const string& format,
 #ifdef HAVE_PTHREAD
 #ifdef HAVE_LIBGLM
   if(AsyRender::threads && !offscreen && Wait) {
-    pthread_cond_wait(&gl->readySignal,&gl->readyLock);
-    pthread_mutex_unlock(&gl->readyLock);
+    pthread_cond_wait(&gl->threadMgr.readySignal,&gl->threadMgr.readyLock);
+    pthread_mutex_unlock(&gl->threadMgr.readyLock);
   }
 #endif
   return true;
