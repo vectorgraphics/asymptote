@@ -33,25 +33,23 @@ bool vulkan = false;
 
 #ifdef HAVE_RENDERER
 
-#ifndef _WIN32
-#include <dlfcn.h>
-#endif
-#include <cstring>
-#include <iostream>
-#include <pthread.h>
-#include <string>
-#include <unistd.h>
-
-#include "settings.h"    // for settings::verbose
-#include "locate.h"       // for settings::locateFile
-
 #ifdef _WIN32
 #include <windows.h>
 #include <libloaderapi.h>
 // For llvmpipe fallback: we need raw Vulkan types to probe device availability.
 #define VK_NO_PROTOTYPES
 #include <vulkan/vulkan.h>
+#else
+#include <dlfcn.h>
 #endif
+
+#include <cstring>
+#include <iostream>
+#include <pthread.h>
+#include <string>
+
+#include "settings.h"    // for settings::verbose
+#include "locate.h"       // for settings::locateFile
 
 // For llvmpipe fallback on Intel Macs without Metal (e.g., headless VMs):
 // Detect Metal availability via dlopen/dlsym BEFORE any Vulkan calls,
