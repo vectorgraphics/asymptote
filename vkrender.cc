@@ -3694,10 +3694,15 @@ void AsyVkRender::beginGraphicsFrameRender(int imageIndex)
 }
 
 void AsyVkRender::drawBuffer(FrameBufferPair& bufpair, VertexBuffer * data, vk::Pipeline pipeline) {
-  // Don't skip drawing just because CPU-side indices are empty - the GPU buffer
-  // may still have valid data from a previous frame (persistent per-frame buffers).
-  if (bufpair.nobjects == 0 && data->indices.empty())
+  // Follow the OpenGL model: use current CPU-side index count for drawing.
+  // When patches go offscreen, their vertices/indices are removed from the
+  // CPU-side VertexBuffer by notRendered() + clear(). The GPU buffer may
+  // still contain stale data from a previous frame, but we draw only as many
+  // indices as currently exist on the CPU, matching OpenGL behavior.
+  if (data->indices.empty()) {
+    bufpair.nobjects = 0;
     return;
+  }
 
   auto const badBuffer = static_cast<void*>(bufpair.vertexBuffer.getBuffer()) == nullptr;
   auto const copy = (remesh || data->renderCount < maxFramesInFlight || badBuffer) && !copied;
@@ -3739,7 +3744,9 @@ void AsyVkRender::drawBuffer(FrameBufferPair& bufpair, VertexBuffer * data, vk::
   currentCommandBuffer.bindVertexBuffers(0, vertexBuffers, vertexOffsets);
   currentCommandBuffer.bindIndexBuffer(bufpair.indexBuffer.getBuffer(), 0, vk::IndexType::eUint32);
   currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
-  currentCommandBuffer.drawIndexed(bufpair.nobjects, 1, 0, 0, 0);
+  // Use current CPU-side index count (like OpenGL's glDrawElements(drawType, data.indices.size(), ...))
+  // rather than the cached bufpair.nobjects which may be stale when copy==false.
+  currentCommandBuffer.drawIndexed(data->indices.size(), 1, 0, 0, 0);
 }
 
 void AsyVkRender::endFrameRender()
