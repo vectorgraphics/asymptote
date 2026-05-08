@@ -92,7 +92,7 @@ void binopArray2(vm::stack *s)
   array *a=pop<array*>(s);
   size_t size=checkArray(a);
   bool empty=true;
-  T m=0;
+  T m;
   for(size_t i=0; i < size; i++) {
     array *ai=read<array*>(a,i);
     size_t aisize=checkArray(ai);
@@ -105,8 +105,10 @@ void binopArray2(vm::stack *s)
         m=op<T>()(m,read<T>(ai,j));
     }
   }
-  if(empty) vm::error(arrayempty);
-  s->push(m);
+  if(!empty)
+    s->push(m);
+  else
+    vm::error(arrayempty);
 }
 
 template<class T, template <class S> class op>
@@ -115,7 +117,7 @@ void binopArray3(vm::stack *s)
   array *a=pop<array*>(s);
   size_t size=checkArray(a);
   bool empty=true;
-  T m=0;
+  T m;
   for(size_t i=0; i < size; i++) {
     array *ai=read<array*>(a,i);
     size_t aisize=checkArray(ai);
@@ -133,8 +135,10 @@ void binopArray3(vm::stack *s)
       }
     }
   }
-  if(empty) vm::error(arrayempty);
-  s->push(m);
+  if(!empty)
+    s->push(m);
+  else
+    vm::error(arrayempty);
 }
 
 template<class T, class U, template <class S> class op>
