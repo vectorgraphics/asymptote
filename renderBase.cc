@@ -212,6 +212,16 @@ void AsyRender::clearMaterials()
   materialMap.clear();
 }
 
+void AsyRender::clearData()
+{
+  pointData.clear();
+  lineData.clear();
+  materialData.clear();
+  colorData.clear();
+  triangleData.clear();
+  transparentData.clear();
+}
+
 void AsyRender::prepareScene()
 {
 
@@ -228,6 +238,7 @@ void AsyRender::prepareScene()
 #endif
 
   if(redraw) {
+    clearData();
     if(remesh)
       clearCenters();
 

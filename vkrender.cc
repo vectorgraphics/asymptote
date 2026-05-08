@@ -3694,7 +3694,9 @@ void AsyVkRender::beginGraphicsFrameRender(int imageIndex)
 }
 
 void AsyVkRender::drawBuffer(FrameBufferPair& bufpair, VertexBuffer * data, vk::Pipeline pipeline) {
-  if (data->indices.empty())
+  // Don't skip drawing just because CPU-side indices are empty - the GPU buffer
+  // may still have valid data from a previous frame (persistent per-frame buffers).
+  if (bufpair.nobjects == 0 && data->indices.empty())
     return;
 
   auto const badBuffer = static_cast<void*>(bufpair.vertexBuffer.getBuffer()) == nullptr;
@@ -3760,42 +3762,36 @@ void AsyVkRender::drawPoints(FrameObject & object)
 {
   drawBuffer(object.pointBuffers, &pointData, *getPipelineType(pointPipelines));
   pointData.renderCount++;
-  pointData.clear();
 }
 
 void AsyVkRender::drawLines(FrameObject & object)
 {
   drawBuffer(object.lineBuffers, &lineData, *getPipelineType(linePipelines));
   lineData.renderCount++;
-  lineData.clear();
 }
 
 void AsyVkRender::drawMaterials(FrameObject & object)
 {
   drawBuffer(object.materialBuffers, &materialData, *getPipelineType(materialPipelines));
   materialData.renderCount++;
-  materialData.clear();
 }
 
 void AsyVkRender::drawColors(FrameObject & object)
 {
   drawBuffer(object.colorBuffers, &colorData, *getPipelineType(colorPipelines));
   colorData.renderCount++;
-  colorData.clear();
 }
 
 void AsyVkRender::drawTriangles(FrameObject & object)
 {
   drawBuffer(object.triangleBuffers, &triangleData, *getPipelineType(trianglePipelines));
   triangleData.renderCount++;
-  triangleData.clear();
 }
 
 void AsyVkRender::drawTransparent(FrameObject & object)
 {
   drawBuffer(object.transparentBuffers, &transparentData, *getPipelineType(transparentPipelines));
   transparentData.renderCount++;
-  transparentData.clear();
 }
 
 void AsyVkRender::partialSums(FrameObject & object, bool timing)
