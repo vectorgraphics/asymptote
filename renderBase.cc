@@ -432,12 +432,27 @@ void AsyRender::setsize(int w, int h, bool reposition)
 #ifdef HAVE_RENDERER
   // Handle GLFW window operations (library-agnostic for Vulkan/OpenGL)
   if (View && glfwWindow != nullptr) {
-    ::glfwSetWindowSize(static_cast<GLFWwindow*>(glfwWindow), w, h);
+    GLFWwindow* win = static_cast<GLFWwindow*>(glfwWindow);
+
+    ::glfwSetWindowSize(win, w, h);
     if (reposition) {
       int x, y;
       windowposition(x, y, w, h);
-      ::glfwSetWindowPos(static_cast<GLFWwindow*>(glfwWindow), x, y);
+      ::glfwSetWindowPos(win, x, y);
     }
+
+    capsize(w, h);
+
+    float sx = 1.0f, sy = 1.0f;
+    ::glfwGetWindowContentScale(win, &sx, &sy);
+    if (sx > 0.0f && sy > 0.0f) {
+      w = (int) std::lround(w * sx);
+      h = (int) std::lround(h * sy);
+    }
+
+    reshape(w, h);
+    update();
+    return;
   }
 #endif
 
