@@ -25,6 +25,9 @@
 #include "renderBase.h"
 #include "webglrender.h"
 
+extern pthread_mutex_t main_wait_mutex;
+extern pthread_cond_t main_wait_cond;
+
 #ifdef _WIN32
 #include "vkrender.h"
 #endif
@@ -61,6 +64,15 @@ namespace camp {
 
 bool headlessRenderer = false;  // True when using software renderer without display (e.g., llvmpipe on macOS without Metal)
 static bool initializedRenderer = false;
+
+static void signalRendererReady()
+{
+#ifdef HAVE_PTHREAD
+    pthread_mutex_lock(&main_wait_mutex);
+    pthread_cond_broadcast(&main_wait_cond);
+    pthread_mutex_unlock(&main_wait_mutex);
+#endif
+}
 
 // Opaque handles to the loaded renderer shared libraries.
 #ifdef _WIN32
@@ -151,6 +163,7 @@ static bool tryLoadVulkanLib()
         gl->threadMgr.mainthread = pthread_self();
 #endif
 
+    signalRendererReady();
     vulkan = true;
     return true;
 }
@@ -219,6 +232,7 @@ static bool tryLoadOpenGLLib()
         gl->threadMgr.mainthread = pthread_self();
 #endif
 
+    signalRendererReady();
     vulkan = false;
     return true;
 }
@@ -323,6 +337,7 @@ static void createWebGLRenderer()
         gl->threadMgr.mainthread = pthread_self();
 #endif
 
+    signalRendererReady();
 #ifdef HAVE_RENDERER
     vulkan = false;  // WebGL renderer is not Vulkan
 #endif
@@ -460,6 +475,7 @@ void createRenderer()
         if (gl)
             gl->threadMgr.mainthread = pthread_self();
 #endif
+        signalRendererReady();
         vulkan = true;
         if (settings::verbose > 1)
             std::cout << "Using Vulkan renderer" << std::endl;
@@ -608,18 +624,6 @@ void initRenderer(const char* format)
     if (settings::verbose > 2) {
         if (isFormat3D && format)
             std::cout << "Using WebGL renderer for " << format << " output" << std::endl;
-        else if (vulkan)
-            std::cout << "Using Vulkan renderer" << std::endl;
-#ifdef _WIN32
-        else {
-            // Should not be reached: gl is non-null but vulkan is false.
-            // This indicates a programming error (e.g., vulkan flag was reset).
-            camp::reportError("No 3D rendering available");
-        }
-#else
-        else
-            std::cout << "Using OpenGL renderer" << std::endl;
-#endif
     }
 }
 
@@ -646,6 +650,7 @@ static void createWebGLRenderer()
         gl = nullptr;
 
     gl = new camp::AsyWebGLRender();
+    signalRendererReady();
 }
 
 void initRenderer(const char* format)

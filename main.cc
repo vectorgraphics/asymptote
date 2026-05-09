@@ -81,6 +81,9 @@ int _matherr(struct _exception *except)
 
 #include "renderBase.h"
 
+pthread_mutex_t main_wait_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t main_wait_cond = PTHREAD_COND_INITIALIZER;
+
 using namespace settings;
 
 using interact::interactive;
@@ -302,9 +305,17 @@ int main(int argc, char *argv[])
         sigaddset(&set, SIGCHLD);
         pthread_sigmask(SIG_BLOCK, &set, NULL);
 #endif // !defined(_WIN32)
-        for (;;)
+        for (;;) {
           camp::glrenderWrapper();
-      } else camp::AsyRender::threads=false;
+          if(camp::gl == nullptr) {
+            pthread_mutex_lock(&main_wait_mutex);
+            pthread_cond_wait(&main_wait_cond, &main_wait_mutex);
+            pthread_mutex_unlock(&main_wait_mutex);
+          }
+        }
+      } else {
+        camp::AsyRender::threads=false;
+      }
     } catch(std::bad_alloc&) {
       outOfMemory();
     }
