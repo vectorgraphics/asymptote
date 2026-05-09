@@ -482,14 +482,16 @@ glew.o: glew.c config.h
 	rm -f $@.$$$$
 
 vkpic/%.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
-	@echo Creating $@; \
+	@mkdir -p vkpic; \
+	echo Creating $@; \
 	rm -f $@; \
 	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
 	sed 's,\($*\)\.o[ :]*,vkpic/\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 glpic/%.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
-	@echo Creating $@; \
+	@mkdir -p glpic; \
+	echo Creating $@; \
 	rm -f $@; \
 	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
 	sed 's,\($*\)\.o[ :]*,glpic/\1.o $@ : ,g' < $@.$$$$ > $@; \
@@ -530,5 +532,4 @@ configure: configure.ac
 Makefile: Makefile.in config.status
 	./config.status
 
-config.status: configure
-	./config.status --recheck
+config.status:

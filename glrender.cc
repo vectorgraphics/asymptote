@@ -1282,9 +1282,15 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     glewExperimental = GL_TRUE;
     GLenum glewErr = glewInit();
     if(glewErr != GLEW_OK) {
-      cerr << "GLEW initialization error: " << glewGetErrorString(glewErr) << endl;
-      exit(-1);
+      const char *glVer = (const char *)glGetString(GL_VERSION);
+      if(glVer == NULL) {
+        cerr << "GLEW initialization error: " << glewGetErrorString(glewErr) << endl;
+        exit(-1);
+      }
     }
+
+    // Set swap interval based on vsync setting (0 = no vsync, 1 = vsync)
+    glfwRendererSwapInterval(getSetting<bool>("vsync") ? 1 : 0);
 
     const char *GLSL_VERSION=(const char *)glGetString(GL_SHADING_LANGUAGE_VERSION);
     if(GLSL_VERSION)

@@ -168,6 +168,14 @@ void glfwRendererSetWindowPos(GLFWwindow* window, int xpos, int ypos)
   }
 }
 
+/**
+ * Set the swap interval (vsync).  interval=0 disables vsync.
+ */
+void glfwRendererSwapInterval(int interval)
+{
+  glfwSwapInterval(interval);
+}
+
 RenderCallbacks* glfwGetCallbacks(GLFWwindow* window)
 {
   return static_cast<RenderCallbacks*>(glfwGetWindowUserPointer(window));
