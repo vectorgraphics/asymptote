@@ -267,8 +267,6 @@ int main(int argc, char *argv[])
   // llvmpipe software fallback) to avoid races on AsyRender::View.
 #if defined(__APPLE__)
   camp::AsyRender::threads = true;
-#elif defined(_WIN32)
-  camp::AsyRender::threads = getSetting<bool>("threads");
 #else
   camp::AsyRender::threads = view() ? getSetting<bool>("threads") : false;
 #endif

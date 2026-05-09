@@ -1540,32 +1540,32 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 
   bool format3d=webgl || v3d;
+#ifdef HAVE_LIBGLM
+  args.prefix=prefix;
+  args.pic=pic;
+  args.format=outputformat;
+  args.width=width;
+  args.height=height;
+  args.angle=angle;
+  args.zoom=zoom;
+  args.m=m;
+  args.M=M;
+  args.shift=shift;
+  args.margin=margin;
+  args.t=t;
+  args.tup=tup;
+  args.background=background;
+  args.nlightsin=nlights;
+  args.lights=lights;
+  args.diffuse=diffuse;
+  args.view=View;
+  args.oldpid=oldpid;
+#endif
   if(!format3d) {
 #ifdef HAVE_RENDERER
 #ifdef HAVE_LIBGLM
     if(AsyRender::threads && !offscreen) {
 #ifdef HAVE_PTHREAD
-      // Set up args once; shared by all three code paths below.
-      args.prefix=prefix;
-      args.pic=pic;
-      args.format=outputformat;
-      args.width=width;
-      args.height=height;
-      args.angle=angle;
-      args.zoom=zoom;
-      args.m=m;
-      args.M=M;
-      args.shift=shift;
-      args.margin=margin;
-      args.t=t;
-      args.tup=tup;
-      args.background=background;
-      args.nlightsin=nlights;
-      args.lights=lights;
-      args.diffuse=diffuse;
-      args.view=View;
-      args.oldpid=oldpid;
-
       if(!gl->initialized) {
         gl->initialized=!View || offscreen;
         if(Wait)
