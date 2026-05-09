@@ -521,13 +521,6 @@ void AsyRender::fitscreen(bool reposition)
 
 void AsyRender::toggleFitScreen()
 {
-#ifdef HAVE_RENDERER
-  // Hide window before changing size (library-agnostic for Vulkan/OpenGL)
-  if (glfwWindow != nullptr) {
-    ::glfwHideWindow(static_cast<GLFWwindow*>(glfwWindow));
-  }
-#endif
-
   Fitscreen = (Fitscreen + 1) % 3;
   fitscreen();
 }
