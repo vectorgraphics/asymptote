@@ -1315,8 +1315,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 
   // Enter main loop or export
   if(View) {
-    // Ensure initial render happens (matching reference pattern)
-    redraw = true;
     mainLoop();
   } else {
     update();
@@ -1390,12 +1388,7 @@ void ortho(GLdouble left, GLdouble right, GLdouble bottom,
 void AsyGLRender::update()
 {
   capzoom();
-
   redraw=true;
-  if(glfwWindow && View)
-    ::glfwShowWindow(getRenderWindow());
-
-  // Call base class update which has the correct view matrix computation (matching reference GLUT code)
   AsyRender::update();
 }
 

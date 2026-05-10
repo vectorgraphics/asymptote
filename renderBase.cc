@@ -803,11 +803,14 @@ void AsyRender::display()
 {
   prepareScene();
 
-  // Show window if needed (library-specific)
-  showWindow();
-
   // Draw the frame (renderer-specific)
   drawFrame();
+
+  // Swap buffers (library-specific)
+  swapBuffers();
+
+  // Show window after content is ready to avoid showing empty buffer
+  showWindow();
 
   // FPS tracking
   bool fps = settings::verbose > 2;
@@ -825,9 +828,6 @@ void AsyRender::display()
     }
     ++framecount;
   }
-
-  // Swap buffers (library-specific)
-  swapBuffers();
 
   // Process management (non-Windows)
   if(!threads) {
