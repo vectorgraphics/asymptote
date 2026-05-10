@@ -1191,62 +1191,30 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   if(!(initialized && interact::interactive)) {
     antialias=settings::getSetting<Int>("antialias") > 1;
 
-    double expand=settings::getSetting<double>("render");
-    if(expand < 0)
-      expand *= (Format.empty() || Format == "eps" || Format == "pdf") ? -2.0 : -1.0;
-    if(antialias) expand *= 2.0;
+    Aspect = args.width/args.height;
 
-    oWidth=args.width;
-    oHeight=args.height;
-    Aspect=args.width/args.height;
+    initDisplay(args.width, args.height);
 
     // Force a hard viewport limit to work around direct rendering bugs.
     // Alternatively, one can use -glOptions=-indirect (with a performance
     // penalty).
-    pair maxViewport = settings::getSetting<pair>("maxviewport");
-    int maxWidth = maxViewport.getx() > 0 ? (int)ceil(maxViewport.getx()) : screenWidth;
-    int maxHeight = maxViewport.gety() > 0 ? (int)ceil(maxViewport.gety()) : screenHeight;
-    if(maxWidth <= 0) maxWidth = max(maxHeight, 2);
-    if(maxHeight <= 0) maxHeight = max(maxWidth, 2);
+    {
+      pair maxViewport = settings::getSetting<pair>("maxviewport");
+      int maxWidth = maxViewport.getx() > 0 ? (int)ceil(maxViewport.getx()) : screenWidth;
+      int maxHeight = maxViewport.gety() > 0 ? (int)ceil(maxViewport.gety()) : screenHeight;
+      if(maxWidth <= 0) maxWidth = max(maxHeight, 2);
+      if(maxHeight <= 0) maxHeight = max(maxWidth, 2);
 
-    if(screenWidth <= 0) screenWidth=maxWidth;
-    else screenWidth=min(screenWidth,maxWidth);
-    if(screenHeight <= 0) screenHeight=maxHeight;
-    else screenHeight=min(screenHeight,maxHeight);
-
-    fullWidth=(int) ceil(expand*args.width);
-    fullHeight=(int) ceil(expand*args.height);
-
-    GLFWmonitor* monitor=NULL;
-    glfwInit();
-    monitor=glfwGetPrimaryMonitor();
-    if(monitor) {
-      int mx, my;
-      glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
-    } else {
-        screenWidth=fullWidth;
-        screenHeight=fullHeight;
-      }
-
-    Width=min(fullWidth,screenWidth);
-    Height=min(fullHeight,screenHeight);
-
-    if(Width > Height*Aspect)
-      Width=min((int) (ceil(Height*Aspect)),screenWidth);
-    else
-      Height=min((int) (ceil(Width/Aspect)),screenHeight);
-
-    home();
-    maxFragments=0;
-
-    ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
-    Aspect=((double) Width)/Height;
-
-    setosize();
+      if(screenWidth <= 0) screenWidth=maxWidth;
+      else screenWidth=min(screenWidth,maxWidth);
+      if(screenHeight <= 0) screenHeight=maxHeight;
+      else screenHeight=min(screenHeight,maxHeight);
+    }
   }
 
   havewindow = View && threads;
 
+  maxFragments = 0;
   clearMaterials();
   shouldUpdateBuffers=true;
   initialized=true;
@@ -1332,7 +1300,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
       Fitscreen=0;
     firstFit=true;
     fitscreen();
-    setosize();
     initializedView = true;
   }
 

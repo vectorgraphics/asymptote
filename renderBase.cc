@@ -381,6 +381,64 @@ void AsyRender::capsize(int& width, int& height)
     height = screenHeight;
 }
 
+void AsyRender::fitAspect(int& w, int& h)
+{
+  if(w > h * Aspect)
+    w = (int) std::ceil(h * Aspect);
+  else
+    h = (int) std::ceil(w / Aspect);
+}
+
+#ifdef HAVE_RENDERER
+void AsyRender::initDisplay(int contentWidth, int contentHeight)
+{
+  // Compute expand/fullWidth/fullHeight (unscaled content dimensions).
+  double expand = settings::getSetting<double>("render");
+  if (expand < 0)
+    expand *= (Format.empty() || Format == "eps" || Format == "pdf") ? -2.0 : -1.0;
+  if (antialias) expand *= 2.0;
+
+  fullWidth = (int) std::ceil(expand * contentWidth);
+  fullHeight = (int) std::ceil(expand * contentHeight);
+
+  oWidth = contentWidth;
+  oHeight = contentHeight;
+
+  GLFWmonitor* monitor = NULL;
+  glfwInit();
+
+  devicePixelRatio = settings::getSetting<double>("devicepixelratio");
+  monitor = glfwGetPrimaryMonitor();
+  if (monitor) {
+    int mx, my;
+    glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
+    if (devicePixelRatio <= 0.0) {
+      float sx = 1.0f, sy = 1.0f;
+      glfwGetMonitorContentScale(monitor, &sx, &sy);
+      devicePixelRatio = std::max(sx, sy);
+    }
+  } else {
+    screenWidth = fullWidth;
+    screenHeight = fullHeight;
+  }
+
+  oldWidth = (int) std::ceil(contentWidth * devicePixelRatio);
+  oldHeight = (int) std::ceil(contentHeight * devicePixelRatio);
+
+  int w = std::min(oldWidth, screenWidth);
+  int h = std::min(oldHeight, screenHeight);
+
+  fitAspect(w, h);
+
+  Width = w;
+  Height = h;
+
+  home();
+
+  ArcballFactor = 1 + 8.0 * hypot(Margin.getx(), Margin.gety()) / hypot(Width, Height);
+}
+#endif // HAVE_RENDERER
+
 void AsyRender::windowposition(int& x, int& y, int width, int height)
 {
   if (width == -1) {
@@ -403,24 +461,15 @@ void AsyRender::windowposition(int& x, int& y, int width, int height)
   }
 }
 
-void AsyRender::setosize()
-{
-  oldWidth = (int) ceil(oWidth);
-  oldHeight = (int) ceil(oHeight);
-}
-
 /**
  * Set window to fullscreen size.
  * Base implementation handles dimension calculation and GLFW window operations.
  */
 void AsyRender::fullscreen(bool reposition)
 {
-  Width = screenWidth;
-  Height = screenHeight;
-  Xfactor = ((double) screenHeight) / Height;
-  Yfactor = ((double) screenWidth) / Width;
-
-  setsize(Width, Height, reposition);
+  // screenWidth/screenHeight are already physical pixels — fullscreen fills them directly.
+  Xfactor = Yfactor = 1.0;
+  setsize(screenWidth, screenHeight, reposition);
 }
 
 /**
@@ -434,6 +483,10 @@ void AsyRender::setsize(int w, int h, bool reposition)
   if (View && glfwWindow != nullptr) {
     GLFWwindow* win = static_cast<GLFWwindow*>(glfwWindow);
 
+    // w,h are framebuffer dimensions. screenWidth/screenHeight are already
+    // in the same physical-pixel space, so cap directly.
+    capsize(w, h);
+
     ::glfwSetWindowSize(win, w, h);
     if (reposition) {
       int x, y;
@@ -441,16 +494,6 @@ void AsyRender::setsize(int w, int h, bool reposition)
       ::glfwSetWindowPos(win, x, y);
     }
 
-    capsize(w, h);
-
-    float sx = 1.0f, sy = 1.0f;
-    ::glfwGetWindowContentScale(win, &sx, &sy);
-    if (sx > 0.0f && sy > 0.0f) {
-      w = (int) std::lround(w * sx);
-      h = (int) std::lround(h * sy);
-    }
-
-    reshape(w, h);
     update();
     return;
   }
@@ -492,26 +535,21 @@ void AsyRender::reshape(int width, int height)
 void AsyRender::fitscreen(bool reposition)
 {
   switch(Fitscreen) {
-    case 0: // Original size
+    case 0: // Original size: use saved framebuffer dimensions
     {
       Xfactor = Yfactor = 1.0;
-      double pixelRatio = settings::getSetting<double>("devicepixelratio");
-      setsize(oldWidth*pixelRatio, oldHeight*pixelRatio, reposition);
+      setsize(oldWidth, oldHeight, reposition);
       break;
     }
-    case 1: // Fit to screen in one dimension
+    case 1: // Fit to screen: screenWidth/screenHeight already physical pixels
     {
       int w = screenWidth;
       int h = screenHeight;
-      if(w > h * Aspect)
-        w = min((int) ceil(h * Aspect), w);
-      else
-        h = min((int) ceil(w / Aspect), h);
-
+      fitAspect(w, h);
       setsize(w, h, reposition);
       break;
     }
-    case 2: // Full screen
+    case 2: // Full screen: fill physical screen directly
     {
       fullscreen(reposition);
       break;

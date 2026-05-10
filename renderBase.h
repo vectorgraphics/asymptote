@@ -339,6 +339,7 @@ public:
 
   // Window/viewport management
   int screenWidth, screenHeight;
+  double devicePixelRatio;
   int Width, Height;
   int oldWidth, oldHeight;
   double Aspect;
@@ -482,6 +483,9 @@ public:
 
   // Window size management
   void capsize(int& w, int& h);
+  /// Given max framebuffer dimensions, return the largest size that fits
+  /// while preserving the content Aspect ratio.
+  void fitAspect(int& w, int& h);
   void windowposition(int& x, int& y, int width=-1, int height=-1);
   virtual void setsize(int w, int h, bool reposition=true);
   virtual void fullscreen(bool reposition=true);
@@ -489,6 +493,8 @@ public:
   void setosize();
   virtual void fitscreen(bool reposition=true);
   virtual void toggleFitScreen();
+
+  void initDisplay(int contentW, int contentH);
   virtual void home();
 
   // Mode cycling

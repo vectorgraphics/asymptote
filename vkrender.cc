@@ -255,12 +255,7 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
       expand *= (Format.empty() || Format == "eps" || Format == "pdf") ? -2.0 : -1.0;
     if(antialias) expand *= 2.0;
 
-    oWidth=args.width;
-    oHeight=args.height;
-    Aspect=args.width/args.height;
-
-    fullWidth=(int) ceil(expand*args.width);
-    fullHeight=(int) ceil(expand*args.height);
+    Aspect = args.width/args.height;
 
     // On macOS with llvmpipe (no Metal), don't create a GLFW window -
     // there's no display backend to present to. Use offscreen rendering.
@@ -268,35 +263,10 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
         View = false;
     }
 
-    GLFWmonitor* monitor=NULL;
-    glfwInit();
-    monitor=glfwGetPrimaryMonitor();
-    if(monitor) {
-      int mx, my;
-      glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
-    } else
-      {
-        screenWidth=fullWidth;
-        screenHeight=fullHeight;
-      }
-
-    Width=min(fullWidth,screenWidth);
-    Height=min(fullHeight,screenHeight);
-
-    if(Width > Height*Aspect)
-      Width=min((int) (ceil(Height*Aspect)),screenWidth);
-    else
-      Height=min((int) (ceil(Width/Aspect)),screenHeight);
-
-    home();
-    maxFragments=0;
-
-    ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
-    Aspect=((double) Width)/Height;
-
-    setosize();
+    initDisplay(args.width, args.height);
   }
 
+  maxFragments = 0;
   havewindow = View && threads;
 
   clearMaterials();
@@ -336,8 +306,6 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
     fitscreen();
-    Aspect=((double) Width)/Height;
-    setosize();
     initializedView=true;
   }
 
@@ -4588,7 +4556,6 @@ void AsyVkRender::Export(int imageIndex) {
   picture pic;
   double w=oWidth;
   double h=oHeight;
-  double Aspect=((double) Width)/Height;
   if(w > h*Aspect) w=(int) (h*Aspect+0.5);
   else h=(int) (w/Aspect+0.5);
 
@@ -4624,10 +4591,7 @@ void AsyVkRender::finalizeProcess()
 }
 
 void AsyVkRender::reshape(int width, int height) {
-  // Base class handles dimension updates and projection
   AsyRender::reshape(width, height);
-
-  // Vulkan-specific: flag for swapchain recreation
   framebufferResized = true;
 }
 
