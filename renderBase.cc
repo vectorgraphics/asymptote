@@ -806,11 +806,11 @@ void AsyRender::display()
   // Draw the frame (renderer-specific)
   drawFrame();
 
+  // Show window after rendering but before swapping buffers
+  showWindow();
+
   // Swap buffers (library-specific)
   swapBuffers();
-
-  // Show window after content is ready to avoid showing empty buffer
-  showWindow();
 
   // FPS tracking
   bool fps = settings::verbose > 2;

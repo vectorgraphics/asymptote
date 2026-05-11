@@ -1315,6 +1315,9 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 
   // Enter main loop or export
   if(View) {
+    // Process pending resize events from fitscreen() before entering the main loop,
+    // so the framebuffer has reached its target size before the first frame renders.
+    glfwPollEvents();
     mainLoop();
   } else {
     update();
