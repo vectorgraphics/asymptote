@@ -517,8 +517,15 @@ void AsyGLRender::Export(int)
   } catch(std::bad_alloc&) {
     outOfMemory();
   }
+  // Restore viewport and redraw full scene so back buffer has correct content
+  // (matches Vulkan pattern which renders export to separate framebuffer)
+  glViewport(0, 0, Width, Height);
+  setProjection();
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   remesh=true;
-  update();
+  redraw=true;
+  prepareScene();
+  drawBuffers();
 
 
 #ifdef HAVE_PTHREAD
