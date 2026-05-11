@@ -15,6 +15,9 @@ struct GLFWwindow;
 
 using settings::getSetting;
 
+// Helper to avoid repeated static_cast<GLFWwindow*> from void*.
+static inline GLFWwindow* getWin(void* w) { return static_cast<GLFWwindow*>(w); }
+
 namespace camp {
 
 AsyRender* gl;
@@ -481,7 +484,7 @@ void AsyRender::setsize(int w, int h, bool reposition)
 #ifdef HAVE_RENDERER
   // Handle GLFW window operations (library-agnostic for Vulkan/OpenGL)
   if (View && glfwWindow != nullptr) {
-    GLFWwindow* win = static_cast<GLFWwindow*>(glfwWindow);
+    GLFWwindow* win = getWin(glfwWindow);
 
     // w,h are framebuffer dimensions. screenWidth/screenHeight are already
     // in the same physical-pixel space, so cap directly.
@@ -711,7 +714,7 @@ void AsyRender::updateHandler(int)
 {
 #ifdef HAVE_RENDERER
   if(View && !interact::interactive) {
-    ::glfwHideWindow(static_cast<GLFWwindow*>(getGLFWWindow()));
+    ::glfwHideWindow(getWin(getGLFWWindow()));
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
   }
@@ -764,7 +767,7 @@ void AsyRender::quit()
 
     // Hide window but don't destroy it (will be reused)
     if (View && glfwWindow) {
-      ::glfwHideWindow(static_cast<GLFWwindow*>(glfwWindow));
+      ::glfwHideWindow(getWin(glfwWindow));
       hideWindow = true;
     }
     // In threaded mode, don't call exit() - the main thread handles that
@@ -774,7 +777,7 @@ void AsyRender::quit()
 
     // Clean up and exit
     if (View && glfwWindow) {
-      ::glfwDestroyWindow(static_cast<GLFWwindow*>(glfwWindow));
+      ::glfwDestroyWindow(getWin(glfwWindow));
       glfwWindow = nullptr;
     }
 
@@ -855,7 +858,7 @@ void AsyRender::swapBuffers()
  */
 void AsyRender::showWindow()
 {
-  GLFWwindow* win = static_cast<GLFWwindow*>(getGLFWWindow());
+  GLFWwindow* win = getWin(getGLFWWindow());
   if(View && !hideWindow && !glfwGetWindowAttrib(win, GLFW_VISIBLE))
     ::glfwShowWindow(win);
 }
@@ -947,7 +950,7 @@ void AsyRender::onMouseButton(int button, int action, int mods)
         lastAction = currentActionStr;
         // Capture initial position for movement tracking
         double xpos, ypos;
-        glfwGetCursorPos(static_cast<GLFWwindow*>(getGLFWWindow()), &xpos, &ypos);
+        glfwGetCursorPos(getWin(getGLFWWindow()), &xpos, &ypos);
         xprev = xpos;
         yprev = ypos;
     } else if (action == GLFW_RELEASE) {
@@ -993,7 +996,7 @@ void AsyRender::onFramebufferResize(int width, int height)
 void AsyRender::mainLoop()
 {
   if(View) {
-    GLFWwindow* win = static_cast<GLFWwindow*>(getGLFWWindow());
+    GLFWwindow* win = getWin(getGLFWWindow());
     glfwRunLoop(win,
       // shouldContinue: continue while window is open
       [win](){ return !glfwWindowShouldClose(win); },
