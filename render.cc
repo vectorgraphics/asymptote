@@ -1,4 +1,6 @@
-// g++ render.cc bezierpatch.cc
+// g++ -DHAVE_LIBGLM render.cc bezierpatch.cc
+
+#ifdef HAVE_LIBGLM
 
 #include <iostream>
 #include "rgba.h"
@@ -49,3 +51,7 @@ int main()
 
   return 0;
 }
+
+#else
+#error "This file requires -DHAVE_LIBGLM"
+#endif
