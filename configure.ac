@@ -363,7 +363,7 @@ AC_ARG_ENABLE(static,
 AC_DEFUN([PKG_CONFIG],[
 ifdef(
    [PKG_CHECK_MODULES],
-   $1="$2 "$(pkg-config --silence-errors $3 $4 || echo),
+   $1="$2 "$(pkg-config --silence-errors $3 $4 2>/dev/null || echo),
    $1="$2 "
 )
 ])
