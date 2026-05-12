@@ -797,6 +797,9 @@ void AsyGLRender::refreshBuffers()
     elements=pixels;
 
   if(GPUindexing) {
+    // Ensure fragment shader writes to countBuffer are visible to compute shaders.
+    glMemoryBarrier(GL_FRAMEBUFFER_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+
     g=ceilquotient(elements,groupSize);
     elements=groupSize*g;
 
