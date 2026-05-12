@@ -11,7 +11,7 @@ if (MSVC)
 endif()
 
 # alot of asymptote sources use __MSDOS__ macro for checking windows
-list(APPEND ASY_MACROS WIN32_LEAN_AND_MEAN NOMINMAX __MSDOS__=1)
+list(APPEND ASY_MACROS WIN32_LEAN_AND_MEAN NOMINMAX __MSDOS__=1 HAVE_LIBTIRPC)
 
 
 # ASYMPTOTE_SYSDIR is always set globally for asycore and shared libraries.
