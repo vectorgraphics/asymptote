@@ -108,7 +108,6 @@ public:
   GLint compressShader = 0;
   GLint sum1Shader = 0;
   GLint sum2Shader = 0;
-  GLint sum2fastShader = 0;
   GLint sum3Shader = 0;
 
   // VAO and buffers - made public for standalone function access during refactoring

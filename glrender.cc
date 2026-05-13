@@ -136,10 +136,9 @@ void AsyGLRender::initComputeShaders()
 {
   string sum1=locateFile(SHADERS+"sum1.glsl");
   string sum2=locateFile(SHADERS+"sum2.glsl");
-  string sum2fast=locateFile(SHADERS+"sum2fast.glsl");
   string sum3=locateFile(SHADERS+"sum3.glsl");
 
-  if(sum1.empty() || sum2.empty() || sum2fast.empty() || sum3.empty())
+  if(sum1.empty() || sum2.empty() || sum3.empty())
     noShaders();
 
   std::vector<ShaderfileModePair> shaders(1);
@@ -164,10 +163,6 @@ void AsyGLRender::initComputeShaders()
     shaders[0]=ShaderfileModePair(sum2.c_str(),GL_COMPUTE_SHADER);
     sum2Shader=compileAndLinkShader(shaders,shaderParams,true,false,
                                           true);
-
-    shaders[0]=ShaderfileModePair(sum2fast.c_str(),GL_COMPUTE_SHADER);
-    sum2fastShader=compileAndLinkShader(shaders,shaderParams,true,false,
-                                              true);
 
     shaders[0]=ShaderfileModePair(sum3.c_str(),GL_COMPUTE_SHADER);
     sum3Shader=compileAndLinkShader(shaders,shaderParams,true,false,
@@ -366,7 +361,6 @@ void AsyGLRender::deleteComputeShaders()
 {
   glDeleteProgram(sum1Shader);
   glDeleteProgram(sum2Shader);
-  glDeleteProgram(sum2fastShader);
   glDeleteProgram(sum3Shader);
 }
 
@@ -645,13 +639,9 @@ void AsyGLRender::partialSums(bool readSize)
   glUseProgram(sum1Shader);
   glDispatchCompute(g,1,1);
 
-  if(elements <= groupSize*groupSize)
-    glUseProgram(sum2fastShader);
-  else {
-    glUseProgram(sum2Shader);
-    glUniform1ui(glGetUniformLocation(sum2Shader,"blockSize"),
-                 ceilquotient(g,localSize));
-  }
+  glUseProgram(sum2Shader);
+  glUniform1ui(glGetUniformLocation(sum2Shader,"blockSize"),
+               ceilquotient(g,localSize));
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDispatchCompute(1,1,1);
 
@@ -1153,7 +1143,6 @@ AsyGLRender::~AsyGLRender()
   glDeleteProgram(compressShader);
   glDeleteProgram(sum1Shader);
   glDeleteProgram(sum2Shader);
-  glDeleteProgram(sum2fastShader);
   glDeleteProgram(sum3Shader);
 
   if(vao) glDeleteVertexArrays(1, &vao);
