@@ -24,19 +24,14 @@
 #include "statistics.h"
 #include "exithandlers.h"
 
-// Include OpenGL headers BEFORE anything that pulls in <windows.h>
-// (which defines GL types via <wingdi.h> on Windows)
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
 #include "glrender.h"
 #include "tr.h"
 #include "shaders.h"
 #include "GLTextures.h"
 #include "EXRFiles.h"
 
-#ifdef HAVE_LIBGLFW
 #include <GLFW/glfw3.h>
-#endif // HAVE_LIBGLFW
-#endif // HAVE_RENDERER
 
 #include "picture.h"
 #include "bezierpatch.h"
@@ -48,10 +43,6 @@
 
 extern uint32_t CLZ(uint32_t a);
 
-// GPU settings - class members now, but kept as globals for shader compilation params
-bool GPUindexing = false;  // Disabled by default - compute shaders not needed for opaque rendering
-bool GPUcompress;
-
 const string SHADERS="shaders/GL/";
 
 using settings::locateFile;
@@ -60,28 +51,18 @@ using utils::stopWatch;
 using namespace settings;
 using namespace glm;
 
-#ifdef HAVE_LIBGLM
-
 namespace camp {
 
 // Note: getProjViewMat(), getViewMat(), and getNormMat() are defined in
 // vkrender.cc to avoid multiple definition errors when both renderers are compiled.
-
-static const double ASY_PI=acos(-1.0);
-static const double ASY_DEGREES=180.0/ASY_PI;
-static const double ASY_RADIANS=1.0/ASY_DEGREES;
 
 // IBL texture objects (defined in initIBL())
 camp::GLTexture2<float,GL_FLOAT> iblbrdfTex;
 camp::GLTexture2<float,GL_FLOAT> irradianceTex;
 camp::GLTexture3<float,GL_FLOAT> reflTexturesTex;
 
-#ifdef HAVE_RENDERER
 // GLFW window globals - kept in camp namespace for type compatibility
-#ifdef HAVE_LIBGLFW
 string Action;
-
-#endif
 
 using utils::statistics;
 statistics S;
@@ -145,11 +126,6 @@ void initIBL()
 
 void *glrenderWrapper(void *a);
 
-#ifdef HAVE_LIBOSMESA
-OSMesaContext ctx;
-unsigned char *osmesa_buffer;
-#endif
-
 void noShaders()
 {
   cerr << "GLSL shaders not found." << endl;
@@ -160,10 +136,9 @@ void AsyGLRender::initComputeShaders()
 {
   string sum1=locateFile(SHADERS+"sum1.glsl");
   string sum2=locateFile(SHADERS+"sum2.glsl");
-  string sum2fast=locateFile(SHADERS+"sum2fast.glsl");
   string sum3=locateFile(SHADERS+"sum3.glsl");
 
-  if(sum1.empty() || sum2.empty() || sum2fast.empty() || sum3.empty())
+  if(sum1.empty() || sum2.empty() || sum3.empty())
     noShaders();
 
   std::vector<ShaderfileModePair> shaders(1);
@@ -188,10 +163,6 @@ void AsyGLRender::initComputeShaders()
     shaders[0]=ShaderfileModePair(sum2.c_str(),GL_COMPUTE_SHADER);
     sum2Shader=compileAndLinkShader(shaders,shaderParams,true,false,
                                           true);
-
-    shaders[0]=ShaderfileModePair(sum2fast.c_str(),GL_COMPUTE_SHADER);
-    sum2fastShader=compileAndLinkShader(shaders,shaderParams,true,false,
-                                              true);
 
     shaders[0]=ShaderfileModePair(sum3.c_str(),GL_COMPUTE_SHADER);
     sum3Shader=compileAndLinkShader(shaders,shaderParams,true,false,
@@ -222,31 +193,12 @@ void AsyGLRender::initBlendShader()
   blendShader=compileAndLinkShader(shaders,shaderParams,ssbo);
 }
 
-// Return the smallest power of 2 greater than or equal to n.
-inline GLuint ceilpow2(GLuint n)
-{
-  --n;
-  n |= n >> 1;
-  n |= n >> 2;
-  n |= n >> 4;
-  n |= n >> 8;
-  n |= n >> 16;
-  return ++n;
-}
-
 void AsyGLRender::setBuffers()
 {
-  if(settings::verbose > 2) {
-    cerr << "setBuffers: Creating VAO, vao=" << vao << endl;
-  }
   glGenVertexArrays(1,&vao);
-  if(settings::verbose > 2) {
-    cerr << "setBuffers: VAO created, vao=" << vao << endl;
-  }
   // Bind VAO once and leave it bound for all subsequent draw operations
   glBindVertexArray(vao);
 
-  // Buffers are pre-sized as needed, no explicit reserve calls needed
   materialData.renderCount=0;
   colorData.renderCount=0;
   triangleData.renderCount=0;
@@ -270,10 +222,6 @@ void AsyGLRender::setBuffers()
   glGenBuffers(1, &opaqueBuffer);
   glGenBuffers(1, &opaqueDepthBuffer);
 #endif
-
-  if(settings::verbose > 2) {
-    cerr << "setBuffers: Done, vao=" << vao << endl;
-  }
 }
 
 void AsyGLRender::initShaders()
@@ -327,14 +275,10 @@ void AsyGLRender::initShaders()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
 
-#ifdef HAVE_LIBOSMESA
-  interlock=false;
-#else
   interlock=ssbo && getSetting<bool>("GPUinterlock");
 
   if(isNVIDIA30xx((const char*)glGetString(GL_RENDERER)))
     interlock = false;
-#endif
 
   if(!ssbo && settings::verbose > 2)
     cout << "No SSBO support; order-independent transparency unavailable"
@@ -417,7 +361,6 @@ void AsyGLRender::deleteComputeShaders()
 {
   glDeleteProgram(sum1Shader);
   glDeleteProgram(sum2Shader);
-  glDeleteProgram(sum2fastShader);
   glDeleteProgram(sum3Shader);
 }
 
@@ -452,9 +395,9 @@ void AsyGLRender::deleteShaders()
     glDeleteProgram(pixelShader);
 }
 
-void AsyGLRender::resizeBlendShader(GLuint maxsize)
+void AsyGLRender::resizeBlendShader(GLuint maxDepth)
 {
-  maxSize=ceilpow2(maxsize);
+  maxSize=ceilpow2(maxDepth);
   deleteBlendShader();
   initBlendShader();
 }
@@ -477,9 +420,7 @@ void AsyGLRender::drawFrame()
   // Use member variables from AsyGLRender (following Vulkan pattern)
   if(xmin >= xmax || ymin >= ymax || Zmin >= Zmax) return;
 
-#ifdef HAVE_RENDERER
   drawBuffers();
-#endif
 
   if(queueExport) {
     queueExport=false;
@@ -570,29 +511,25 @@ void AsyGLRender::Export(int)
   } catch(std::bad_alloc&) {
     outOfMemory();
   }
+  // Restore viewport and redraw full scene so back buffer has correct content
+  // (matches Vulkan pattern which renders export to separate framebuffer)
+  glViewport(0, 0, Width, Height);
+  setProjection();
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   remesh=true;
-  update();
+  redraw=true;
+  prepareScene();
+  drawBuffers();
 
 
 #ifdef HAVE_PTHREAD
   if(threads && readyAfterExport) {
     readyAfterExport=false;
-    endwait(readySignal,readyLock);
+    threadMgr.endwait(threadMgr.readySignal,threadMgr.readyLock);
   }
 
-#ifndef HAVE_LIBOSMESA
-#ifdef HAVE_LIBGLFW
-  glfwPostEmptyEvent();
-#endif
-#endif
-
-#endif
   exporting=false;
   initSSBO=true;
-}
-
-void nodisplay()
-{
 }
 
 // Return the greatest power of 2 less than or equal to n.
@@ -608,13 +545,7 @@ inline unsigned int floorpow2(unsigned int n)
 
 void quit()
 {
-#ifdef HAVE_LIBOSMESA
-  if(osmesa_buffer) delete[] osmesa_buffer;
-  if(ctx) OSMesaDestroyContext(ctx);
-  exit(0);
-#else
   gl->quit();
-#endif
 }
 
 void AsyGLRender::cycleMode()
@@ -641,62 +572,6 @@ void AsyGLRender::cycleMode()
   }
 }
 
-#ifdef HAVE_LIBGLFW
-
-void init_osmesa()
-{
-#ifdef HAVE_LIBOSMESA
-  // create context and buffer
-  if(settings::verbose > 1)
-    cout << "Allocating osmesa_buffer of size " << gl->screenWidth << "x"
-         << gl->screenHeight << "x4x" << sizeof(GLubyte) << endl;
-  osmesa_buffer=new unsigned char[gl->screenWidth*gl->screenHeight*4*sizeof(GLubyte)];
-  if(!osmesa_buffer) {
-    cerr << "Cannot allocate image buffer." << endl;
-    exit(-1);
-  }
-
-  const int attribs[]={
-    OSMESA_FORMAT,OSMESA_RGBA,
-    OSMESA_DEPTH_BITS,16,
-    OSMESA_STENCIL_BITS,0,
-    OSMESA_ACCUM_BITS,0,
-    OSMESA_PROFILE,OSMESA_COMPAT_PROFILE,
-    OSMESA_CONTEXT_MAJOR_VERSION,4,
-    OSMESA_CONTEXT_MINOR_VERSION,3,
-    0,0
-  };
-
-  ctx=OSMesaCreateContextAttribs(attribs,NULL);
-  if(!ctx) {
-    ctx=OSMesaCreateContextExt(OSMESA_RGBA,16,0,0,NULL);
-    if(!ctx) {
-      cerr << "OSMesaCreateContextExt failed." << endl;
-      exit(-1);
-    }
-  }
-
-  if(!OSMesaMakeCurrent(ctx,osmesa_buffer,GL_UNSIGNED_BYTE,
-                        gl->screenWidth,gl->screenHeight )) {
-    cerr << "OSMesaMakeCurrent failed." << endl;
-    exit(-1);
-  }
-
-  int z=0, s=0, a=0;
-  glGetIntegerv(GL_DEPTH_BITS,&z);
-  glGetIntegerv(GL_STENCIL_BITS,&s);
-  glGetIntegerv(GL_ACCUM_RED_BITS,&a);
-  if(settings::verbose > 1)
-    cout << "Offscreen context settings: Depth=" << z << " Stencil=" << s
-         << " Accum=" << a << endl;
-
-  if(z <= 0) {
-    cerr << "Error initializing offscreen context: Depth=" << z << endl;
-    exit(-1);
-  }
-#endif // HAVE_LIBOSMESA
-}
-
 bool NVIDIA()
 {
 #ifdef GL_SHADING_LANGUAGE_VERSION
@@ -707,8 +582,6 @@ bool NVIDIA()
 #endif
   return string(GLSL_VERSION).find("NVIDIA") != string::npos;
 }
-
-#endif /* HAVE_RENDERER */
 
 string getLightIndex(size_t const& index, string const& fieldName) {
   ostringstream buf;
@@ -766,13 +639,9 @@ void AsyGLRender::partialSums(bool readSize)
   glUseProgram(sum1Shader);
   glDispatchCompute(g,1,1);
 
-  if(elements <= groupSize*groupSize)
-    glUseProgram(sum2fastShader);
-  else {
-    glUseProgram(sum2Shader);
-    glUniform1ui(glGetUniformLocation(sum2Shader,"blockSize"),
-                 ceilquotient(g,localSize));
-  }
+  glUseProgram(sum2Shader);
+  glUniform1ui(glGetUniformLocation(sum2Shader,"blockSize"),
+               ceilquotient(g,localSize));
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDispatchCompute(1,1,1);
 
@@ -841,6 +710,8 @@ void AsyGLRender::refreshBuffers()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,offsetBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,(Pixels+2)*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
+                      GL_UNSIGNED_INT,&zero);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,offsetBuffer);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,countBuffer);
@@ -895,7 +766,7 @@ void AsyGLRender::refreshBuffers()
   }
 
   if(!interlock) {
-    drawBuffer(lineData,countShader,false,4);
+    drawBuffer(lineData,countShader,false,1);
     drawBuffer(materialData,countShader,false,4);
     drawBuffer(colorData,countShader,true,4);
     drawBuffer(triangleData,countShader,true,4);
@@ -918,10 +789,13 @@ void AsyGLRender::refreshBuffers()
     elements=pixels;
 
   if(GPUindexing) {
+    // Ensure fragment shader writes to countBuffer are visible to compute shaders.
+    glMemoryBarrier(GL_FRAMEBUFFER_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+
     g=ceilquotient(elements,groupSize);
     elements=groupSize*g;
 
-    if(settings::verbose > 3) {
+    if(settings::verbose > timePartialSumVerbosity) {
       static bool first=true;
       if(first) {
         partialSums();
@@ -947,7 +821,7 @@ void AsyGLRender::refreshBuffers()
     GLuint *p=(GLuint *) glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
                                           0,size+sizeof(GLuint),
                                               GL_MAP_READ_BIT);
-    GLuint maxsize=p[0];
+    GLuint maxDepth=p[0];
     GLuint *count=p+1;
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,offsetBuffer);
@@ -973,8 +847,8 @@ void AsyGLRender::refreshBuffers()
     } else
       clearCount();
 
-    if(maxsize > maxSize)
-      resizeBlendShader(maxsize);
+    if(maxDepth > maxSize)
+      resizeBlendShader(maxDepth);
   }
   lastshader=-1;
 }
@@ -983,28 +857,25 @@ void AsyGLRender::setUniformsOpenGL(GLint shader)
 {
   bool normal=shader != pixelShader;
 
-  // Check if shader is valid
-  if(shader == 0) {
-    if(settings::verbose > 2) {
-      cerr << "setUniforms: shader is 0!" << endl;
-    }
-    return;
-  }
-
   if(shader != lastshader) {
     glUseProgram(shader);
+
+    // Cache uniform locations when shader changes
+    projViewLoc = glGetUniformLocation(shader,"projViewMat");
+    viewMatLoc = glGetUniformLocation(shader,"viewMat");
+    normMatLoc = glGetUniformLocation(shader,"normMat");
 
     if(normal)
       glUniform1ui(glGetUniformLocation(shader,"width"),Width);
   }
 
-  glUniformMatrix4fv(glGetUniformLocation(shader,"projViewMat"),1,GL_FALSE,
+  glUniformMatrix4fv(projViewLoc,1,GL_FALSE,
                      value_ptr(mat4(projViewMat)));
 
-  glUniformMatrix4fv(glGetUniformLocation(shader,"viewMat"),1,GL_FALSE,
+  glUniformMatrix4fv(viewMatLoc,1,GL_FALSE,
                      value_ptr(mat4(viewMat)));
   if(normal)
-    glUniformMatrix3fv(glGetUniformLocation(shader,"normMat"),1,GL_FALSE,
+    glUniformMatrix3fv(normMatLoc,1,GL_FALSE,
                        value_ptr(mat3(normMat)));
 
   if(shader == countShader) {
@@ -1054,39 +925,33 @@ void AsyGLRender::drawBuffer(VertexBuffer& data, GLint shader, bool color, unsig
   if(data.indices.empty()) return;
 
   // Check for OpenGL errors before drawing
-  GLenum err = glGetError();
-  if(err != GL_NO_ERROR && settings::verbose > 2) {
-    cerr << "drawBuffer: OpenGL error at start: " << err << endl;
-  }
 
+  if(settings::verbose > 3) {
+    GLenum err = glGetError();
+    if(err != GL_NO_ERROR) {
+     cerr << "drawBuffer: OpenGL error at start: " << err << endl;
+    }
+  }
   bool normal=shader != pixelShader;
 
-  // VAO is already bound in setBuffers()
+  bool copy = (remesh || data.renderCount < 1) && !copied;
 
-  GLuint vertexBuffer = 0;
-  glGenBuffers(1, &vertexBuffer);
-  glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+  // Get persistent GL buffer handles for this VertexBuffer instance
+  auto& glBuf = glBuffers[&data];
 
+  // Upload vertex data using persistent buffer
   if(color) {
-    glBufferData(GL_ARRAY_BUFFER, data.colorVertices.size() * sizeof(ColorVertex),
-                 data.colorVertices.data(), GL_DYNAMIC_DRAW);
+    registerBuffer(data.colorVertices, glBuf.vertexBuffer, copy, GL_ARRAY_BUFFER);
   } else if(normal) {
-    glBufferData(GL_ARRAY_BUFFER, data.materialVertices.size() * sizeof(MaterialVertex),
-                 data.materialVertices.data(), GL_DYNAMIC_DRAW);
+    registerBuffer(data.materialVertices, glBuf.vertexBuffer, copy, GL_ARRAY_BUFFER);
   } else {
-    glBufferData(GL_ARRAY_BUFFER, data.pointVertices.size() * sizeof(PointVertex),
-                 data.pointVertices.data(), GL_DYNAMIC_DRAW);
+    registerBuffer(data.pointVertices, glBuf.vertexBuffer, copy, GL_ARRAY_BUFFER);
   }
 
-  GLuint indexBuffer = 0;
-  glGenBuffers(1, &indexBuffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.indices.size() * sizeof(uint32_t),
-               data.indices.data(), GL_DYNAMIC_DRAW);
+  // Upload index data using persistent buffer
+  registerBuffer(data.indices, glBuf.indexBuffer, copy, GL_ELEMENT_ARRAY_BUFFER);
 
   setUniformsOpenGL(shader);
-
-  data.renderCount++;
 
   // Position attribute (3 floats)
   if(color) {
@@ -1136,13 +1001,6 @@ void AsyGLRender::drawBuffer(VertexBuffer& data, GLint shader, bool color, unsig
 
   fpu_trap(false); // Work around FE_INVALID
   glDrawElements(drawType, data.indices.size(), GL_UNSIGNED_INT, (void *) 0);
-
-  // Check for OpenGL errors after draw call
-  GLenum err2 = glGetError();
-  if(err2 != GL_NO_ERROR && settings::verbose > 1) {
-    cerr << "drawBuffer: OpenGL error after glDrawElements: " << err2 << endl;
-  }
-
   fpu_trap(settings::trap());
 
   // Disable attribute arrays but keep VAO bound for next draw call
@@ -1155,39 +1013,43 @@ void AsyGLRender::drawBuffer(VertexBuffer& data, GLint shader, bool color, unsig
   if(color)
     glDisableVertexAttribArray(colorAttrib);
 
-  glDeleteBuffers(1, &vertexBuffer);
-  glDeleteBuffers(1, &indexBuffer);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void AsyGLRender::drawMaterial0()
+void AsyGLRender::drawPoints()
 {
   drawBuffer(pointData,pixelShader,false,0);  // GL_POINTS
+  pointData.renderCount++;
   pointData.clear();
 }
 
-void AsyGLRender::drawMaterial1()
+void AsyGLRender::drawLines()
 {
   drawBuffer(lineData,materialShader[Opaque],false,1);  // GL_LINES
+  lineData.renderCount++;
   lineData.clear();
 }
 
-void AsyGLRender::drawMaterial()
+void AsyGLRender::drawMaterials()
 {
   drawBuffer(materialData,materialShader[Opaque]);  // default GL_TRIANGLES
+  materialData.renderCount++;
   materialData.clear();
 }
 
-void AsyGLRender::drawColor()
+void AsyGLRender::drawColors()
 {
   drawBuffer(colorData,colorShader[Opaque],true);  // default GL_TRIANGLES
+  colorData.renderCount++;
   colorData.clear();
 }
 
-void AsyGLRender::drawTriangle()
+void AsyGLRender::drawTriangles()
 {
   drawBuffer(triangleData,generalShader[Opaque],true);  // default GL_TRIANGLES
+  triangleData.renderCount++;
   triangleData.clear();
 }
 
@@ -1210,7 +1072,6 @@ void AsyGLRender::aBufferTransparency()
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDrawArrays(GL_TRIANGLES,0,3);
   fpu_trap(settings::trap());
-  // Don't clear transparentData - it needs to persist for subsequent frames
   glEnable(GL_DEPTH_TEST);
 }
 
@@ -1222,43 +1083,39 @@ void AsyGLRender::drawTransparent()
     glEnable(GL_MULTISAMPLE);
   } else {
     sortTriangles();
-    transparentData.renderCount=0; // Force re-upload of sorted triangles to GPU
     glDepthMask(GL_FALSE); // Don't write to depth buffer
     drawBuffer(transparentData,transparentShader,true,4);
     glDepthMask(GL_TRUE); // Write to depth buffer
-    // Don't clear transparentData - it needs to persist for subsequent frames
   }
+  transparentData.renderCount++;
+  transparentData.clear();
 }
 
 void AsyGLRender::drawBuffers()
 {
+  copied=false;
+
   Opaque=transparentData.indices.empty();
   bool transparent=!Opaque;
-
   if(ssbo) {
     if(transparent) {
       refreshBuffers();
-      // Reset copiedThisFrame after count pass so render pass can upload
-      pointData.copiedThisFrame = false;
-      lineData.copiedThisFrame = false;
-      materialData.copiedThisFrame = false;
-      colorData.copiedThisFrame = false;
-      triangleData.copiedThisFrame = false;
-      transparentData.copiedThisFrame = false;
-
       if(!interlock) {
         resizeFragmentBuffer();
+        copied=true;
       }
     }
   }
 
-  drawMaterial0();
-  drawMaterial1();
-  drawMaterial();
-  drawColor();
-  drawTriangle();
+  drawPoints();
+  drawLines();
+  drawMaterials();
+  drawColors();
+  drawTriangles();
 
   if(transparent) {
+    if(ssbo)
+      copied=true;
     if(interlock) resizeFragmentBuffer();
     drawTransparent();
   }
@@ -1267,7 +1124,6 @@ void AsyGLRender::drawBuffers()
 
 AsyGLRender::~AsyGLRender()
 {
-#ifdef HAVE_RENDERER
   if (this->View) {
     ::glfwDestroyWindow(getRenderWindow());
     glfwWindow = nullptr;
@@ -1287,7 +1143,6 @@ AsyGLRender::~AsyGLRender()
   glDeleteProgram(compressShader);
   glDeleteProgram(sum1Shader);
   glDeleteProgram(sum2Shader);
-  glDeleteProgram(sum2fastShader);
   glDeleteProgram(sum3Shader);
 
   if(vao) glDeleteVertexArrays(1, &vao);
@@ -1301,7 +1156,13 @@ AsyGLRender::~AsyGLRender()
   if(opaqueBuffer) glDeleteBuffers(1, &opaqueBuffer);
   if(opaqueDepthBuffer) glDeleteBuffers(1, &opaqueDepthBuffer);
   if(feedbackBuffer) glDeleteBuffers(1, &feedbackBuffer);
-#endif
+
+  // Cleanup persistent vertex/index buffers from VertexBuffer instances
+  for (auto& [vb, glBuf] : glBuffers) {
+    if (glBuf.vertexBuffer) glDeleteBuffers(1, &glBuf.vertexBuffer);
+    if (glBuf.indexBuffer) glDeleteBuffers(1, &glBuf.indexBuffer);
+  }
+  glBuffers.clear();
 }
 
 void AsyGLRender::render(RenderFunctionArgs const& args)
@@ -1311,43 +1172,9 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 #endif
   lastshader = -1;
 
-  bool v3d=args.format == "v3d";
-  bool webgl=args.format == "html";
-  bool format3d=webgl || v3d;
-
-  Prefix = args.prefix;
-  pic = args.pic;
-  Format = args.format;
-  nlights = args.nlightsin;
-
-  Lights = args.lights;
-  LightsDiffuse = args.diffuse;
+  copyRenderArgs(args);
 
   nlights0 = nlights;  // Save original for mode restoration
-
-  View = args.view;
-  Angle = args.angle * ASY_RADIANS;
-  Zoom0 = std::fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
-  Shift = args.shift / Zoom0;
-  Margin = args.margin;
-
-  for(int i=0; i<4; ++i) {
-    Background[i] = static_cast<float>(args.background[i]);
-  }
-
-  // Use member variables from AsyRender base class (following Vulkan pattern)
-  Xmin = args.m.getx();
-  Xmax = args.M.getx();
-  Ymin = args.m.gety();
-  Ymax = args.M.gety();
-  Zmin = args.m.getz();
-  Zmax = args.M.getz();
-
-  haveScene = Xmin < Xmax && Ymin < Ymax && Zmin < Zmax;
-  orthographic = Angle == 0.0;
-  H = orthographic ? 0.0 : -tan(0.5 * Angle) * Zmax;
-
-  Xfactor = Yfactor = 1.0;
 
   pair maxtile=getSetting<pair>("maxtile");
   maxTileWidth=(int) maxtile.getx();
@@ -1357,135 +1184,54 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 
 #ifdef HAVE_PTHREAD
   static bool initializedView=false;
+#endif
 
-#ifdef HAVE_LIBOSMESA
-  if(!webgl) {
-    screenWidth=maxTileWidth;
-    screenHeight=maxTileHeight;
-
-    static bool osmesa_initialized=false;
-    if(!osmesa_initialized) {
-      osmesa_initialized=true;
-      fpu_trap(false); // Work around FE_INVALID.
-      init_osmesa();
-      fpu_trap(settings::trap());
-    }
-  }
-#else
   if(!initialized)
     Fitscreen=1;
-#endif
-#endif
-
-  for(int i=0; i < 16; ++i)
-    T[i]=args.t[i];
-
-  for(int i=0; i < 16; ++i)
-    Tup[i]=args.tup[i];
 
   if(!(initialized && interact::interactive)) {
     antialias=settings::getSetting<Int>("antialias") > 1;
-    double expand;
-    if(format3d)
-      expand=1.0;
-    else {
-      expand=settings::getSetting<double>("render");
-      if(expand < 0)
-        expand *= (Format.empty() || Format == "eps" || Format == "pdf")                 ? -2.0 : -1.0;
-      if(antialias) expand *= 2.0;
-    }
 
-    oWidth=args.width;
-    oHeight=args.height;
-    Aspect=args.width/args.height;
+    Aspect = args.width/args.height;
+
+    initDisplay(args.width, args.height);
 
     // Force a hard viewport limit to work around direct rendering bugs.
     // Alternatively, one can use -glOptions=-indirect (with a performance
     // penalty).
-    pair maxViewport = settings::getSetting<pair>("maxviewport");
-    int maxWidth = maxViewport.getx() > 0 ? (int)ceil(maxViewport.getx()) : screenWidth;
-    int maxHeight = maxViewport.gety() > 0 ? (int)ceil(maxViewport.gety()) : screenHeight;
-    if(maxWidth <= 0) maxWidth = max(maxHeight, 2);
-    if(maxHeight <= 0) maxHeight = max(maxWidth, 2);
+    {
+      pair maxViewport = settings::getSetting<pair>("maxviewport");
+      int maxWidth = maxViewport.getx() > 0 ? (int)ceil(maxViewport.getx()) : screenWidth;
+      int maxHeight = maxViewport.gety() > 0 ? (int)ceil(maxViewport.gety()) : screenHeight;
+      if(maxWidth <= 0) maxWidth = max(maxHeight, 2);
+      if(maxHeight <= 0) maxHeight = max(maxWidth, 2);
 
-    if(screenWidth <= 0) screenWidth=maxWidth;
-    else screenWidth=min(screenWidth,maxWidth);
-    if(screenHeight <= 0) screenHeight=maxHeight;
-    else screenHeight=min(screenHeight,maxHeight);
-
-    fullWidth=(int) ceil(expand*args.width);
-    fullHeight=(int) ceil(expand*args.height);
-
-    if(format3d) {
-      Width=fullWidth;
-      Height=fullHeight;
-    } else {
-#ifdef HAVE_RENDERER
-      GLFWmonitor* monitor=NULL;
-      glfwInit();
-      monitor=glfwGetPrimaryMonitor();
-      if(monitor) {
-        int mx, my;
-        glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
-      } else
-#endif
-        {
-          screenWidth=fullWidth;
-          screenHeight=fullHeight;
-        }
-
-      Width=min(fullWidth,screenWidth);
-      Height=min(fullHeight,screenHeight);
-
-      if(Width > Height*Aspect)
-        Width=min((int) (ceil(Height*Aspect)),screenWidth);
-      else
-        Height=min((int) (ceil(Width/Aspect)),screenHeight);
+      if(screenWidth <= 0) screenWidth=maxWidth;
+      else screenWidth=min(screenWidth,maxWidth);
+      if(screenHeight <= 0) screenHeight=maxHeight;
+      else screenHeight=min(screenHeight,maxHeight);
     }
-
-
-#ifdef HAVE_RENDERER
-    home(format3d);
-#endif
-    if(format3d) {
-      remesh=true;
-      return;
-    }
-    maxFragments=0;
-
-    ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
-    Aspect=((double) Width)/Height;
-
-#ifdef HAVE_RENDERER
-    setosize();
-#endif
   }
 
-#ifdef HAVE_RENDERER
-  havewindow=initialized && threads;
+  havewindow = View && threads;
 
-  if(threads && format3d)
-    format3dWait=true;
-
+  maxFragments = 0;
   clearMaterials();
   shouldUpdateBuffers=true;
   initialized=true;
-#endif
 
 #ifdef HAVE_PTHREAD
   if(threads && initializedView) {
     if(View) {
       // Called from asymain thread, main thread handles rendering
       hideWindow=false;
-      messageQueue.enqueue(RendererMessage::updateRenderer);
+      threadMgr.messageQueue.enqueue(RendererMessage::updateRenderer);
     } else readyAfterExport=queueExport=true;
     return;
   }
 #endif
 
-// Create GLFW window BEFORE OpenGL initialization if not using OSMesa
-#ifdef HAVE_LIBGLFW
-#ifndef HAVE_LIBOSMESA
+// Create GLFW window BEFORE OpenGL initialization
   if(!glfwWindow) {
     // For non-View rendering, hide the window during creation to prevent flash
     if(!View)
@@ -1505,26 +1251,32 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     glewExperimental = GL_TRUE;
     GLenum glewErr = glewInit();
     if(glewErr != GLEW_OK) {
-      cerr << "GLEW initialization error: " << glewGetErrorString(glewErr) << endl;
-      exit(-1);
+      const char *glVer = (const char *)glGetString(GL_VERSION);
+      if(glVer == NULL) {
+        cerr << "GLEW initialization error: " << glewGetErrorString(glewErr) << endl;
+        exit(-1);
+      }
     }
 
-    // Set GLSL version immediately after GLEW init (matching reference pattern)
+    // Set swap interval based on vsync setting (0 = no vsync, 1 = vsync)
+    glfwRendererSwapInterval(getSetting<bool>("vsync") ? 1 : 0);
+
     const char *GLSL_VERSION=(const char *)glGetString(GL_SHADING_LANGUAGE_VERSION);
     if(GLSL_VERSION)
       GLSLversion=(int) (100*atof(GLSL_VERSION)+0.5);
     if(settings::verbose > 2)
       cout << "GLSL version " << GLSL_VERSION << " (GLSLversion=" << GLSLversion << ")" << endl;
 
-    if(settings::verbose > 2) {
-      cerr << "Created window and initialized GLEW: " << Width << "x" << Height
-           << " glfwWindow=" << glfwWindow << endl;
+    // Check multisampling
+    {
+      int samples = 0;
+      glGetIntegerv(GL_SAMPLES, &samples);
+      if(settings::verbose > 1 && samples > 1)
+        cout << "Multisampling enabled with sample width " << samples << endl;
     }
   }
-#endif
-#endif
 
-#if defined(HAVE_COMPUTE_SHADER) && !defined(HAVE_LIBOSMESA)
+#if defined(HAVE_COMPUTE_SHADER)
   GPUindexing=getSetting<bool>("GPUindexing");
   GPUcompress=getSetting<bool>("GPUcompress");
 #else
@@ -1541,46 +1293,16 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     groupSize = localSize * blockSize;
   }
 
-  // Initialize OpenGL if needed
-  if(!initialized) {
-    initialized = true;
-
-    const char* GLSL_VERSION = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
-    if(GLSL_VERSION) {
-      GLSLversion = (int)(100 * atof(GLSL_VERSION) + 0.5);
-      if(GLSLversion < 130) {
-        cerr << "Unsupported GLSL version: " << GLSL_VERSION << endl;
-        exit(-1);
-      }
-    }
-
-    // Check multisampling
-    int samples = 0;
-    glGetIntegerv(GL_SAMPLES, &samples);
-    if(settings::verbose > 1 && samples > 1) {
-      cout << "Multisampling enabled with sample width " << samples << endl;
-    }
-
-    ibl = settings::getSetting<bool>("ibl");
-    initShaders();
-
-  }
-
-
-
   glClearColor(args.background[0], args.background[1],
                args.background[2], args.background[3]);
 
-#ifndef HAVE_LIBOSMESA
   if(View) {
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
     firstFit=true;
     fitscreen();
-    setosize();
     initializedView = true;
   }
-#endif
 
   glEnable(GL_DEPTH_TEST);
 
@@ -1588,26 +1310,27 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   cycleMode();
 
   ViewExport = View;
-#ifdef HAVE_LIBOSMESA
-  View = false;
-#endif
 
-#ifdef HAVE_RENDERER
+
   havewindow = initialized && threads;
-#endif
 
   // Enter main loop or export
   if(View) {
-    // Ensure initial render happens (matching reference pattern)
-    redraw = true;
+    // Process pending resize events from fitscreen() before entering the main loop,
+    // so the framebuffer has reached its target size before the first frame renders.
+    glfwPollEvents();
     mainLoop();
   } else {
     update();
     display();
     if(threads) {
-      exportHandler();
+      exportHandler(0);
+#ifdef HAVE_PTHREAD
+      if(!pthread_equal(pthread_self(), threadMgr.mainthread))
+        threadMgr.endwait(threadMgr.readySignal, threadMgr.readyLock);
+#endif
     } else {
-      exportHandler();
+      exportHandler(0);
       quit();
     }
   }
@@ -1616,63 +1339,22 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 // RenderCallbacks interface implementation
 void AsyGLRender::onMouseButton(int button, int action, int mods)
 {
-    auto const currentActionStr = getGLFWAction(button, mods);
-    if (currentActionStr.empty()) return;
-    if (action == GLFW_PRESS) {
-        lastAction = currentActionStr;
-        // Capture initial position for movement tracking
-        double xpos, ypos;
-        glfwGetCursorPos(getRenderWindow(), &xpos, &ypos);
-        xprev = xpos;
-        yprev = ypos;
-    } else if (action == GLFW_RELEASE) {
-        lastAction.clear();
-    }
+    AsyRender::onMouseButton(button, action, mods);
 }
 
 void AsyGLRender::onFramebufferResize(int width, int height)
 {
-    if(width == 0 || height == 0) return;
-    if(width == Width && height == Height) return;
-    reshape(width, height);
-    update();
-    remesh = true;
+    AsyRender::onFramebufferResize(width, height);
 }
 
 void AsyGLRender::onScroll(double xoffset, double yoffset)
 {
-    auto zoomFactor = getSetting<double>("zoomfactor");
-    if(zoomFactor > 0.0) {
-        if (yoffset > 0) Zoom *= zoomFactor;
-        else Zoom /= zoomFactor;
-    }
-    capzoom();
-    setProjection();
-    update();
-    redraw = true;
+    AsyRender::onScroll(xoffset, yoffset);
 }
 
 void AsyGLRender::onCursorPos(double xpos, double ypos)
 {
-    if (lastAction == "rotate") {
-        Arcball arcball(xprev * 2 / Width - 1, 1 - yprev * 2 / Height,
-                        xpos * 2 / Width - 1, 1 - ypos * 2 / Height);
-        triple axis = arcball.axis;
-        rotateMat = rotate(2 * arcball.angle / Zoom * ArcballFactor,
-                           dvec3(axis.getx(), axis.gety(), axis.getz())) * rotateMat;
-        update();
-    } else if (lastAction == "shift") {
-        shift(xpos - xprev, ypos - yprev);
-        update();
-    } else if (lastAction == "pan") {
-        if (orthographic) shift(xpos - xprev, ypos - yprev);
-        else pan(xpos - xprev, ypos - yprev);
-        update();
-    } else if (lastAction == "zoom") {
-        zoom(0.0, ypos - yprev);
-    }
-    xprev = xpos;
-    yprev = ypos;
+    AsyRender::onCursorPos(xpos, ypos);
 }
 
 void AsyGLRender::onKey(int key, int scancode, int action, int mods)
@@ -1684,19 +1366,7 @@ void AsyGLRender::onWindowFocus(int focused) {}
 
 void AsyGLRender::onClose()
 {
-    AsyRender::onClose();
-    ::exitHandler(0);
-}
-
-/**
- * Show the window if hidden (GLFW-specific implementation).
- */
-void AsyGLRender::showWindow()
-{
-  GLFWwindow* win = getRenderWindow();
-
-  if(View && !hideWindow && !glfwGetWindowAttrib(win,GLFW_VISIBLE))
-    ::glfwShowWindow(win);
+    exitHandler(0);
 }
 
 /**
@@ -1704,9 +1374,7 @@ void AsyGLRender::showWindow()
  */
 void AsyGLRender::swapBuffers()
 {
-#ifdef HAVE_RENDERER
   glfwSwapBuffers(getRenderWindow());
-#endif
 }
 
 void frustum(GLdouble left, GLdouble right, GLdouble bottom,
@@ -1724,28 +1392,19 @@ void ortho(GLdouble left, GLdouble right, GLdouble bottom,
 void AsyGLRender::update()
 {
   capzoom();
-
   redraw=true;
-#ifdef HAVE_RENDERER
-  if(glfwWindow && View)
-    ::glfwShowWindow(getRenderWindow());
-#endif
-
-  // Call base class update which has the correct view matrix computation (matching reference GLUT code)
   AsyRender::update();
 }
 
-#ifdef HAVE_RENDERER
 GLFWwindow* AsyGLRender::getRenderWindow() const
 {
   return static_cast<GLFWwindow*>(glfwWindow);
 }
-#endif
 
 void AsyGLRender::exportHandler(int)
 {
   readyAfterExport=true;
-  Export();
+  Export(0);
 }
 
 void AsyGLRender::reshape(int width, int height)
@@ -1754,15 +1413,12 @@ void AsyGLRender::reshape(int width, int height)
   AsyRender::reshape(width, height);
 
   // OpenGL-specific: update viewport and mark SSBO for reinitialization
-#ifdef HAVE_RENDERER
   glViewport(0, 0, Width, Height);
   if(ssbo)
     initSSBO = true;
-#endif
 }
+#endif
 
 } // namespace camp
 
-#endif // HAVE_LIBGLM
-
-#endif // HAVE_RENDERER
+#endif // HAVE_GL

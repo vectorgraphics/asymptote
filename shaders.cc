@@ -4,6 +4,7 @@
 #include "common.h"
 
 #ifdef HAVE_RENDERER
+#ifdef HAVE_GL
 
 #include <fstream>
 #include <sstream>
@@ -127,4 +128,5 @@ GLuint createShaderFile(std::string file, int shaderType,
   return createShader(shaderSrc.str(),shaderType,file,ssbo,interlock,compute,
                       test);
 }
-#endif
+#endif // HAVE_GL
+#endif // HAVE_RENDERER

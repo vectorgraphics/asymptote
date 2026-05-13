@@ -3,14 +3,18 @@
 #include "common.h"
 
 #if !defined(FOR_SHARED) && defined(HAVE_LIBGLM) && \
-  defined(HAVE_LIBGLFW) && (defined(HAVE_LIBVULKAN) || defined(HAVE_LIBGL) || defined(HAVE_LIBOSMESA))
+  defined(HAVE_LIBGLFW) && (defined(HAVE_LIBVULKAN) || defined(HAVE_LIBGL))
 
 namespace camp {
 
+extern bool headlessRenderer;
+
 bool tryLoadVulkan();
+bool tryLoadOpenGL();
 void createRenderer();
-void initRenderer();
+void initRenderer(const char* format = nullptr);  // Format-aware initialization
 void unloadVulkan();
+void unloadOpenGL();
 
 } // namespace camp
 

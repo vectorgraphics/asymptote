@@ -14,6 +14,8 @@ namespace camp {
 using ::orient2d;
 using ::orient3d;
 
+const double third=1.0/3.0;
+
 #ifdef HAVE_LIBGLM
 
 int MaterialIndex;
@@ -26,7 +28,6 @@ VertexBuffer triangleData;
 VertexBuffer transparentData;
 
 const double FillFactor=0.1;
-const double third=1.0/3.0;
 
 // Named constants for template parameters
 constexpr bool IsTransparent = true;

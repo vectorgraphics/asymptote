@@ -4,7 +4,7 @@
 
 #include "GLTextures.h"
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
 
 namespace camp
 {

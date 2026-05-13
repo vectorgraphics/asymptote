@@ -18,6 +18,7 @@ extern int GLSLversion;
 
 typedef std::pair<std::string, int> ShaderfileModePair;
 
+#ifdef HAVE_GL
 GLuint compileAndLinkShader(
   std::vector<ShaderfileModePair> const& shaders,
   std::vector<std::string> const& defineflags, bool ssbo=true,
@@ -29,5 +30,6 @@ GLuint createShaderFile(std::string file, int shaderType,
 
 enum attrib {positionAttrib=0,normalAttrib,materialAttrib,colorAttrib,
              widthAttrib};
+#endif
 
 #endif

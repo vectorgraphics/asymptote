@@ -12,18 +12,17 @@
 #include <vector>
 #include <array>
 
-#include "glmCommon.h"
-
 #include "common.h"
 
+#ifdef HAVE_VULKAN
+
+#include "glmCommon.h"
 #include "vk.h"
-#ifdef HAVE_RENDERER
 #include <vma_cxx.h>
 
 #include <glslang/Public/ShaderLang.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#endif
 
 #include "material.h"
 #include "pen.h"
@@ -37,11 +36,6 @@
 
 namespace camp
 {
-class picture;
-
-std::vector<char> readFile(const std::string& filename);
-
-#ifdef HAVE_RENDERER
 struct SwapChainDetails {
   vk::SurfaceCapabilitiesKHR capabilities;
   std::vector<vk::SurfaceFormatKHR> formats;
@@ -56,7 +50,6 @@ struct SwapChainDetails {
   vk::Extent2D chooseExtent(size_t width, size_t height) const;
   std::uint32_t chooseImageCount() const;
 };
-#endif
 
 struct QueueFamilyIndices {
   uint32_t transferQueueFamily;
@@ -107,9 +100,9 @@ public:
   void render(RenderFunctionArgs const& args) override;
 
   // RenderCallbacks interface implementation (GLFW callbacks)
+  void onScroll(double xoffset, double yoffset) override;
   void onMouseButton(int button, int action, int mods) override;
   void onFramebufferResize(int width, int height) override;
-  void onScroll(double xoffset, double yoffset) override;
   void onCursorPos(double xpos, double ypos) override;
   void onKey(int key, int scancode, int action, int mods) override;
   void onWindowFocus(int focused) override;
@@ -123,20 +116,15 @@ public:
   // Note: ibl is now in base class AsyRender
   bool vkexit=false;
 
-  // Note: initialize and copied are now in base class as 'initialized' and 'copied'
-
   int maxFramesInFlight;
 
-#ifdef HAVE_RENDERER
   vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
-#endif
 
   std::uint32_t pixels;
 
   const double* dprojView;
   const double* dView;
 private:
-#ifdef HAVE_RENDERER
   static constexpr std::array<const char*, 4> deviceExtensions = {
     VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME,
     VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
@@ -147,22 +135,20 @@ private:
   static constexpr auto VB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer;
   static constexpr auto IB_USAGE_FLAGS = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer;
 
-  struct DeviceBuffer {
-    vk::BufferUsageFlags usage;
-    VkMemoryPropertyFlagBits properties;
-    size_t nobjects;
-    vk::DeviceSize stgBufferSize = 0;
-    vma::cxx::UniqueBuffer _buffer;
-    vma::cxx::UniqueBuffer _stgBuffer;
-
-    DeviceBuffer(vk::BufferUsageFlags usage, VkMemoryPropertyFlagBits properties=VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
-        : usage(usage), properties(properties) {}
-
-    void reset() {
-      _buffer = vma::cxx::UniqueBuffer();
-    }
+  // Per-frame persistent GPU buffer pair. Each frame has its own device buffers
+  // (to avoid races with multiple frames in flight), but they persist across
+  // frame cycles -- allocated once, reused with vkCmdCopyBuffer every upload.
+  struct FrameBufferPair {
+    vma::cxx::UniqueBuffer vertexBuffer;
+    vma::cxx::UniqueBuffer indexBuffer;
+    vma::cxx::UniqueBuffer vertexStagingBuffer;
+    vma::cxx::UniqueBuffer indexStagingBuffer;
+    vk::DeviceSize vertexBufferSize = 0;
+    vk::DeviceSize indexBufferSize = 0;
+    vk::DeviceSize vertexStgSize = 0;
+    vk::DeviceSize indexStgSize = 0;
+    size_t nobjects = 0;
   };
-#endif
 
   bool GPUcompress=false;
   bool fxaa=false;
@@ -189,8 +175,6 @@ private:
   bool vkinitialize=true;
 
   size_t nmaterials=1; // Number of materials currently allocated in memory
-
-#ifdef HAVE_RENDERER
 
   vk::UniqueInstance instance;
 
@@ -381,6 +365,7 @@ private:
     uint64_t computeTimelineValue = 0;
     vk::UniqueSemaphore imageAvailableSemaphore;
     vk::UniqueSemaphore inCountBufferCopy;
+    vk::UniqueSemaphore transferDoneSemaphore;
     vk::UniqueFence inFlightFence;
     vk::UniqueFence inComputeFence;
     vk::UniqueEvent compressionFinishedEvent;
@@ -394,48 +379,30 @@ private:
     vk::UniqueCommandBuffer computeCommandBuffer;
     vk::UniqueCommandBuffer partialSumsCommandBuffer;
     vk::UniqueCommandBuffer copyCountCommandBuffer;
+    vk::UniqueFence transferFence;
+    bool transferHasPendingWork = false;
 
     vk::UniqueDescriptorSet descriptorSet;
 
     vma::cxx::UniqueBuffer uboBf;
     std::unique_ptr<vma::cxx::MemoryMapperLock> uboMappedMemory;
 
-    DeviceBuffer materialVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
-    DeviceBuffer materialIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
+    FrameBufferPair materialBuffers;
+    FrameBufferPair colorBuffers;
+    FrameBufferPair triangleBuffers;
+    FrameBufferPair transparentBuffers;
+    FrameBufferPair lineBuffers;
+    FrameBufferPair pointBuffers;
 
-    DeviceBuffer colorVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
-    DeviceBuffer colorIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
-
-    DeviceBuffer triangleVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
-    DeviceBuffer triangleIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
-
-    DeviceBuffer transparentVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
-    DeviceBuffer transparentIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
-
-    DeviceBuffer lineVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
-    DeviceBuffer lineIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
-
-    DeviceBuffer pointVertexBuffer = DeviceBuffer(VB_USAGE_FLAGS);
-    DeviceBuffer pointIndexBuffer = DeviceBuffer(IB_USAGE_FLAGS);
 #pragma region post-process compute stuff
     std::vector<vk::UniqueImage> resolvedColorImages;
     std::vector<vk::ImageView> resolveColorImgViews;
 #pragma endregion
-
-    void reset() {
-        materialVertexBuffer.reset();
-        colorVertexBuffer.reset();
-        triangleVertexBuffer.reset();
-        transparentVertexBuffer.reset();
-        lineVertexBuffer.reset();
-        pointVertexBuffer.reset();
-    }
   };
 
   uint32_t currentFrame = 0;
   vk::CommandBuffer currentCommandBuffer;
   std::vector<FrameObject> frameObjects;
-#endif
 
 protected:
   void updateModelViewData() override;
@@ -444,7 +411,6 @@ protected:
 public:
   void updateHandler(int=0) override;
 
-#ifdef HAVE_RENDERER
   void initWindow();
   void initVulkan();
 
@@ -494,12 +460,7 @@ public:
   void beginFrameCommands(vk::CommandBuffer cmd);
   void beginCountFrameRender(int imageIndex);
   void beginGraphicsFrameRender(int imageIndex);
-  void resetFrameCopyData();
-   void drawBuffer(DeviceBuffer & vertexBuffer,
-                  DeviceBuffer & indexBuffer,
-                  VertexBuffer * data,
-                  vk::Pipeline pipeline,
-                  bool incrementRenderCount=true);
+   void drawBuffer(FrameBufferPair& bufpair, VertexBuffer * data, vk::Pipeline pipeline);
   void postProcessImage(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex);
   void copyToSwapchainImg(vk::CommandBuffer& cmdBuffer, uint32_t const& frameIndex);
   void endFrameRender();
@@ -548,6 +509,7 @@ public:
           VmaMemoryUsage const& memoryUsage=VMA_MEMORY_USAGE_AUTO,
           const char* bufferName = nullptr);
   void copyBufferToBuffer(const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize size);
+  static void recordBufferCopy(vk::CommandBuffer cmd, const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize size);
   void copyToBuffer(
           const vk::Buffer& buffer,
           const void* data,
@@ -576,7 +538,10 @@ public:
   void transitionImageLayout(vk::ImageLayout from, vk::ImageLayout to, vk::Image img);
   void copyDataToImage(const void *data, vk::DeviceSize size, vk::Image img,
                        std::uint32_t w, std::uint32_t h, vk::Offset3D const & offset={});
-  void setDeviceBufferData(DeviceBuffer& buffer, const void* data, vk::DeviceSize size, size_t nobjects=0);
+  void uploadPersistentBuffer(FrameBufferPair& bufpair, const void* data,
+                              vk::DeviceSize size, size_t nobjects,
+                              vk::BufferUsageFlags usage, VkMemoryPropertyFlagBits properties,
+                              bool isVertex);
 
   void createDescriptorSetLayout();
   void createComputeDescriptorSetLayout();
@@ -636,7 +601,6 @@ public:
   void drawColors(FrameObject & object);
   void drawTriangles(FrameObject & object);
   void drawTransparent(FrameObject & object);
-  void clearData();
   void partialSums(FrameObject & object, bool timing=false);
   void resizeBlendShader(std::uint32_t maxDepth);
   void resizeFragmentBuffer(FrameObject & object);
@@ -645,19 +609,19 @@ public:
   void blendFrame(int imageIndex);
   void preDrawBuffers(FrameObject & object, int imageIndex);
   void drawBuffers(FrameObject & object, int imageIndex);
+  void beginTransferRecording(FrameObject & object);
+  void endAndSubmitTransfers(FrameObject & object, vk::Queue queue);
   void drawFrame() override;
   void swapBuffers() override;
-  void showWindow() override;
   void recreateSwapChain();
   void initializeSwapChainIfNeeded();
   vk::UniqueShaderModule createShaderModule(EShLanguage lang, std::string const & filename, std::vector<std::string> const & options);
-#endif
 
   GLFWwindow* getRenderWindow() const;
   void cleanup();
 
   // user controls
-  void exportHandler(int=0) override;
+  void exportHandler(int) override;
   void Export(int imageIndex=0) override;
   bool readyForUpdate=false;
   // Note: initialized and format3dWait are now in base class AsyRender
@@ -702,3 +666,5 @@ public:
 };
 
 } // namespace camp
+
+#endif // HAVE_VULKAN

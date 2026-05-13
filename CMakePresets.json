@@ -71,13 +71,6 @@
         "ENABLE_DOCGEN": "false",
         "ENABLE_MISCFILES_GEN": "false"
       }
-    },
-    {
-      "name": "msvc/release/with-external-doc-files/with-ctan",
-      "inherits": [
-        "msvc/release/with-external-doc-files",
-        "base/ctan"
-      ]
     }
   ],
   "buildPresets": [

@@ -7,10 +7,14 @@
 #define GLRENDER_H
 
 #include "common.h"
+#include "renderBase.h"
+#include "render.h"
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GL
 
-#if defined(HAVE_LIBGL) || defined(HAVE_LIBOSMESA)
+#include <unordered_map>
+#include <csignal>
+
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
 #endif
@@ -22,80 +26,35 @@
 #include <GL/gl.h>
 #endif
 
-#ifdef HAVE_LIBOSMESA
-#ifndef APIENTRY
-#define APIENTRY
-#endif
-#ifndef GLAPI
-#define GLAPI
-#endif
-#define GLEW_OSMESA
-#include <GL/osmesa.h>
-#endif
-#endif // HAVE_LIBGL || HAVE_LIBOSMESA
-
 #include "glmCommon.h"
-#include <csignal>
 #include "triple.h"
 #include "pen.h"
 
-#ifdef HAVE_LIBGLFW
 #include <GLFW/glfw3.h>
 #include "glfw.h"
-#endif
 
-#else // !HAVE_RENDERER
-typedef unsigned int GLuint;
-typedef int GLint;
-typedef float GLfloat;
-typedef double GLdouble;
-typedef unsigned char GLubyte;
-typedef unsigned int GLenum;
-#define GL_POINTS				0x0000
-#define GL_LINES				0x0001
-#define GL_TRIANGLES				0x0004
-#endif
-
-#ifdef HAVE_LIBGLM
 #include "material.h"
-#endif
-
-#include "renderBase.h"
-#include "render.h"
 
 namespace camp {
+
 class picture;
-}
-
-namespace camp {
 
 // Forward declarations for texture types (defined in GLTextures.h)
-#ifdef HAVE_LIBGLM
 template<typename T, GLuint GLDataType> class GLTexture2;
 template<typename T, GLuint GLDataType> class GLTexture3;
-#endif
 
 // Accessor functions for matrices (to avoid synchronization with gl instance)
-#ifdef HAVE_LIBGLM
 const glm::dmat4& getProjViewMat();
 const glm::dmat4& getViewMat();
 const glm::dmat3& getNormMat();
-#endif
 
 // Projection matrix pointer for shader compatibility (following Vulkan pattern)
-#ifdef HAVE_LIBGLM
 extern const double* dprojView;  // For drawelement.h Transform2T
-#endif
 
-#ifdef HAVE_RENDERER
 extern GLuint vao;  // Vertex Array Object
-#endif
 
-#ifdef HAVE_LIBGLM
 extern size_t materialIndex;
 extern int MaterialIndex;
-
-
 
 // VertexBuffer and related types are defined in render.h
 // Globals: materialData, colorData, triangleData, transparentData, pointData, lineData
@@ -103,9 +62,6 @@ extern int MaterialIndex;
 void clearMaterials();
 void clearCenters();
 
-#endif
-
-#ifdef HAVE_RENDERER
 // OpenGL renderer class following Vulkan pattern
 class AsyGLRender : public AsyRender, public RenderCallbacks
 {
@@ -116,30 +72,30 @@ public:
   void render(RenderFunctionArgs const& args) override;
 
   // RenderCallbacks interface implementation (GLFW callbacks)
+  void onScroll(double xoffset, double yoffset) override;
   void onMouseButton(int button, int action, int mods) override;
   void onFramebufferResize(int width, int height) override;
-  void onScroll(double xoffset, double yoffset) override;
   void onCursorPos(double xpos, double ypos) override;
   void onKey(int key, int scancode, int action, int mods) override;
   void onWindowFocus(int focused) override;
   void onClose() override;
 
+  bool GPUindexing=false;
+  bool GPUcompress;
+
   // OpenGL-specific state (mirroring AsyVkRender pattern)
-  // Note: initialized, copied, Iconify are now in base class AsyRender for unified access
   bool outlinemode = false;
   bool glupdate = false;
   bool glexit = false;
   bool shouldUpdateBuffers = true;
+  bool copied = false;   // Per-frame flag: set true after SSBO count pass to skip redundant uploads
 
-  // Lighting (OpenGL-specific, public for jsfile/v3dfile access)
-  // Note: Lights and LightsDiffuse are now in base class AsyRender for unified access
   size_t Nlights = 1;
   size_t nmaterials = 0;
   size_t nlights0 = 0;  // Saved original number of lights for mode restoration
 
 public:
   // OpenGL-specific members (following Vulkan pattern)
-#ifdef HAVE_RENDERER
   // Shaders - made public for standalone function access during refactoring
   GLint pixelShader = 0;
   GLint materialShader[2] = {0, 0};
@@ -152,7 +108,6 @@ public:
   GLint compressShader = 0;
   GLint sum1Shader = 0;
   GLint sum2Shader = 0;
-  GLint sum2fastShader = 0;
   GLint sum3Shader = 0;
 
   // VAO and buffers - made public for standalone function access during refactoring
@@ -178,6 +133,16 @@ public:
 
   // Rendering state (ssbo, interlock, initSSBO now in base class)
   GLint lastshader = -1;
+
+  // Cached uniform locations (set when shader changes)
+  GLint projViewLoc = -1;
+  GLint viewMatLoc = -1;
+  GLint normMatLoc = -1;
+
+  // Persistent GL buffer handles per VertexBuffer instance.
+  // Stored here (not in VertexBuffer) to keep render.h library-agnostic.
+  struct GLBufferPair { GLuint vertexBuffer=0; GLuint indexBuffer=0; };
+  std::unordered_map<VertexBuffer*, GLBufferPair> glBuffers;
   GLuint fragments = 0;
   GLuint maxFragments = 0;
   GLuint maxSize = 1;
@@ -192,8 +157,6 @@ public:
   // IBL textures - kept as globals in glrender.cc where GLTextures.h is available
 
   // Mouse interaction state (lastangle now in base class for unified access)
-  double xprev = 0.0;
-  double yprev = 0.0;
   string currentAction = "";
 
   // Window state (readyAfterExport, format3dWait, queueExport, firstFit now in base class)
@@ -206,7 +169,6 @@ public:
 
 public:
   GLFWwindow* getRenderWindow() const;
-#endif
 
 public:
   void update() override;
@@ -220,22 +182,21 @@ public:
   void deleteComputeShaders();
   void deleteBlendShader();
   void deleteShaders();
-  void resizeBlendShader(GLuint maxsize);
+  void resizeBlendShader(GLuint maxDepth);
 
   // Rendering functions (virtual hooks for base class display())
   void drawFrame() override;
   void swapBuffers() override;
-  void showWindow() override;
 
   void Export(int imageIndex=0) override;
   void refreshBuffers();
   void setUniformsOpenGL(GLint shader);
   void drawBuffer(VertexBuffer& data, GLint shader, bool color=false, unsigned int drawType=4);
-  void drawMaterial0();
-  void drawMaterial1();
-  void drawMaterial();
-  void drawColor();
-  void drawTriangle();
+  void drawPoints();
+  void drawLines();
+  void drawMaterials();
+  void drawColors();
+  void drawTriangles();
   void aBufferTransparency();
   void drawTransparent();
   void drawBuffers();
@@ -247,7 +208,7 @@ public:
   void resizeFragmentBuffer();
 
 protected:
-  void exportHandler(int = 0) override;
+  void exportHandler(int) override;
   virtual void reshape(int width, int height) override;
 };
 
@@ -262,8 +223,8 @@ void ortho(double left, double right, double bottom,
 // No-SSBO fallback: sort transparent triangles by centroid depth
 void sortTriangles();
 
-#endif // HAVE_RENDERER
-
 } // namespace camp
+
+#endif // HAVE_GL
 
 #endif  // GLRENDER_H

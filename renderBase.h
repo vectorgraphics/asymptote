@@ -22,6 +22,8 @@
 #include "common.h"
 #include "ThreadSafeQueue.h"
 
+#ifdef HAVE_LIBGLM
+
 #include "glmCommon.h"
 #include "material.h"
 #include "pen.h"
@@ -44,17 +46,29 @@ class drawElement;
 #define RAW_VIEW(x) static_cast<uint32_t>(sizeof(x)), x
 #define ST_VIEW(s) static_cast<uint32_t>(sizeof(s)), &s
 
+// Runtime error handling (used by both OpenGL and Vulkan)
+inline void runtimeError(const std::string& s)
+{
+  cerr << "error: " << s << endl;
+  exit(-1);
+}
+
 template<class T>
 inline T ceilquotient(T a, T b)
 {
   return (a + b - 1) / b;
 }
 
-// Runtime error handling (used by both OpenGL and Vulkan)
-inline void runtimeError(const std::string& s)
+// Return the smallest power of 2 greater than or equal to n.
+inline unsigned int ceilpow2(unsigned int n)
 {
-  cerr << "error: " << s << endl;
-  exit(-1);
+  --n;
+  n |= n >> 1;
+  n |= n >> 2;
+  n |= n >> 4;
+  n |= n >> 8;
+  n |= n >> 16;
+  return ++n;
 }
 
 // Utility functions for power-of-two checks (used by both OpenGL and Vulkan)
@@ -112,6 +126,9 @@ enum DrawMode: int
 
 constexpr int NUM_DRAW_MODES = 3;
 
+// Verbosity threshold for timing partial sums (GPU indexing benchmarking)
+constexpr Int timePartialSumVerbosity = 4;
+
 struct Light
 {
   glm::vec4 direction;
@@ -129,7 +146,8 @@ struct Arcball {
     double Dot = dot(v0, v1);
     angle = Dot > 1.0 ? 0.0 : Dot < -1.0 ? M_PI
                                          : acos(Dot);
-    axis = unit(cross(v0, v1));
+    static triple Z(0.0, 0.0, 1.0);
+    axis = unit(cross(v0, v1), Z);
   }
 
   triple norm(double x, double y)
@@ -173,6 +191,65 @@ enum class RendererMessage
   updateRenderer  // Request to update renderer state
 };
 
+#ifdef HAVE_PTHREAD
+/**
+ * ThreadManager - Manages thread synchronization primitives.
+ *
+ * This class owns all pthread condition variables, mutexes, and the message
+ * queue used for inter-thread communication between the asymain thread and
+ * the render thread. It is independent of any specific rendering backend
+ * (OpenGL, Vulkan, etc.).
+ */
+class ThreadManager
+{
+public:
+  ThreadManager() = default;
+  ~ThreadManager() = default;
+
+  // Non-copyable, non-movable
+  ThreadManager(const ThreadManager&) = delete;
+  ThreadManager& operator=(const ThreadManager&) = delete;
+
+  /// Main thread identifier (set by the loader when threading is enabled)
+  pthread_t mainthread;
+
+  /// Initialization signaling: render thread waits for asymain to finish setup
+  pthread_cond_t initSignal = PTHREAD_COND_INITIALIZER;
+  pthread_mutex_t initLock = PTHREAD_MUTEX_INITIALIZER;
+
+  /// Export readiness signaling: asymain waits for render thread after export
+  pthread_cond_t readySignal = PTHREAD_COND_INITIALIZER;
+  pthread_mutex_t readyLock = PTHREAD_MUTEX_INITIALIZER;
+
+  /// Message queue for inter-thread communication (asymain -> render thread)
+  ThreadSafeQueue<RendererMessage> messageQueue;
+
+  /**
+   * Signal a condition variable and release its mutex.
+   * Used to notify another thread that an operation has completed.
+   */
+  void endwait(pthread_cond_t& signal, pthread_mutex_t& lock)
+  {
+    pthread_mutex_lock(&lock);
+    pthread_cond_signal(&signal);
+    pthread_mutex_unlock(&lock);
+  }
+
+  /**
+   * Signal a condition variable and then wait on it.
+   * Used for handshaking: signal the other thread, then block until
+   * the other thread signals back.
+   */
+  void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
+  {
+    pthread_mutex_lock(&lock);
+    pthread_cond_signal(&signal);
+    pthread_cond_wait(&signal, &lock);
+    pthread_mutex_unlock(&lock);
+  }
+};
+#endif // HAVE_PTHREAD
+
 /**
  * AsyRender - Library-agnostic base class for renderers.
  * Contains code that is independent of the underlying graphics API (Vulkan, OpenGL, etc.).
@@ -213,6 +290,10 @@ public:
 
   /** Pure virtual function that derived classes must implement */
   virtual void render(RenderFunctionArgs const& args) = 0;
+
+  /** Copy common arguments from RenderFunctionArgs to member variables.
+   * Shared by all renderer implementations (Vulkan, OpenGL, WebGL). */
+  void copyRenderArgs(RenderFunctionArgs const& args);
 
   double getRenderResolution(triple Min) const;
 
@@ -258,6 +339,7 @@ public:
 
   // Window/viewport management
   int screenWidth, screenHeight;
+  double devicePixelRatio;
   int Width, Height;
   int oldWidth, oldHeight;
   double Aspect;
@@ -271,14 +353,12 @@ public:
   // Child process ID for export (used by both OpenGL and Vulkan)
   int Oldpid = 0;
 
-#ifdef HAVE_RENDERER
   // GLFW window pointer (shared between Vulkan and OpenGL renderers)
   // Using void* to avoid requiring GLFW header in all files that include this
   void* glfwWindow = nullptr;
 
   /** Returns the GLFW window pointer as void*. Cast to appropriate type by caller. */
   void* getGLFWWindow() const { return glfwWindow; }
-#endif
 
   // Timer and statistics
   utils::stopWatch spinTimer;
@@ -332,6 +412,8 @@ public:
   const picture* pic = nullptr;
 
   // Mouse/interaction state
+  double xprev = 0.0;
+  double yprev = 0.0;
   std::string lastAction = "";
 
   // Window title
@@ -350,15 +432,8 @@ public:
   glm::dmat3 normMat;  // Double precision normal matrix for CPU calculations
 
 #ifdef HAVE_PTHREAD
-  // Pthread synchronization primitives (shared between renderers)
-  pthread_t mainthread;
-  pthread_cond_t initSignal = PTHREAD_COND_INITIALIZER;
-  pthread_mutex_t initLock = PTHREAD_MUTEX_INITIALIZER;
-  pthread_cond_t readySignal = PTHREAD_COND_INITIALIZER;
-  pthread_mutex_t readyLock = PTHREAD_MUTEX_INITIALIZER;
-
-  // Message queue for inter-thread communication (asymain -> render thread)
-  ThreadSafeQueue<RendererMessage> messageQueue;
+  // Thread synchronization manager (shared between renderers)
+  ThreadManager threadMgr;
 #endif
 
 protected:
@@ -408,6 +483,9 @@ public:
 
   // Window size management
   void capsize(int& w, int& h);
+  /// Given max framebuffer dimensions, return the largest size that fits
+  /// while preserving the content Aspect ratio.
+  void fitAspect(int& w, int& h);
   void windowposition(int& x, int& y, int width=-1, int height=-1);
   virtual void setsize(int w, int h, bool reposition=true);
   virtual void fullscreen(bool reposition=true);
@@ -415,7 +493,9 @@ public:
   void setosize();
   virtual void fitscreen(bool reposition=true);
   virtual void toggleFitScreen();
-  virtual void home(bool webgl=false);
+
+  void initDisplay(int contentW, int contentH);
+  virtual void home();
 
   // Mode cycling
   virtual void cycleMode();
@@ -441,7 +521,7 @@ public:
   virtual void shrink();
 
   virtual void updateHandler(int=0);
-  virtual void exportHandler(int=0) = 0;
+  virtual void exportHandler(int);
   virtual void Export(int imageIndex=0) = 0;
 
   // Message processing for inter-thread communication
@@ -466,23 +546,30 @@ public:
   // Key handling (library-agnostic)
   virtual void onKey(int key, int scancode, int action, int mods);
 
+  // Scroll wheel handling (library-agnostic)
+  virtual void onScroll(double xoffset, double yoffset);
+
+  // Mouse button handler (library-agnostic; uses getGLFWWindow() for glfwGetCursorPos)
+  virtual void onMouseButton(int button, int action, int mods);
+
+  // Cursor position handler (library-agnostic; uses member variables xprev/yprev)
+  virtual void onCursorPos(double xpos, double ypos);
+
+  // Framebuffer resize handler (library-agnostic)
+  virtual void onFramebufferResize(int width, int height);
+
   // Main event loop (shared between OpenGL and Vulkan renderers)
   void mainLoop();
 
 #ifdef HAVE_PTHREAD
-  // Pthread synchronization helpers
+  // Pthread synchronization helpers (forward to ThreadManager)
   void endwait(pthread_cond_t& signal, pthread_mutex_t& lock)
   {
-    pthread_mutex_lock(&lock);
-    pthread_cond_signal(&signal);
-    pthread_mutex_unlock(&lock);
+    threadMgr.endwait(signal, lock);
   }
   void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
   {
-    pthread_mutex_lock(&lock);
-    pthread_cond_signal(&signal);
-    pthread_cond_wait(&signal,&lock);
-    pthread_mutex_unlock(&lock);
+    threadMgr.wait(signal, lock);
   }
 #endif
 };
@@ -492,18 +579,27 @@ public:
 extern AsyRender* gl;  // Global renderer instance (type depends on build configuration)
 
 #ifdef HAVE_RENDERER
+#ifdef HAVE_GL
 class AsyGLRender;  // Forward declaration
+#endif
+#ifdef HAVE_VULKAN
 class AsyVkRender;   // Forward declaration (if Vulkan is available)
+#endif
+class AsyWebGLRender;  // Forward declaration for WebGL/v3d output
 
 /**
- * Lazily initialise the global renderer (Vulkan or OpenGL) on first use.
+ * Lazily initialise the global renderer (Vulkan, OpenGL, or WebGL) on first use.
  * This defers all graphics-library loading until a shipout3 call actually
  * requires rendering, allowing headless modes like "-l" to run without
  * needing any GPU / display at all.
+ *
+ * @param format Output format string (e.g., "html", "v3d", or nullptr for default)
  */
-void initRenderer();
 #endif
+
+void initRenderer(const char* format);
 
 void mode();
 
 } // namespace camp
+#endif // HAVE_LIBGLM

@@ -81,6 +81,9 @@ int _matherr(struct _exception *except)
 
 #include "renderBase.h"
 
+pthread_mutex_t main_wait_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t main_wait_cond = PTHREAD_COND_INITIALIZER;
+
 using namespace settings;
 
 using interact::interactive;
@@ -256,18 +259,17 @@ int main(int argc, char *argv[])
   }
 
 #ifdef HAVE_RENDERER
-  // Create the renderer object early so that the render thread has a
-  // valid gl pointer to access (for gl->wait(...)).  The constructor is
-  // trivial (= default); no GPU/Vulkan initialisation occurs here.
-  // Actual runtime Vulkan probing and any renderer replacement happens
-  // lazily inside initRenderer() when shipout3 is first called.
-#if defined(__APPLE__) || defined(_WIN32)
-  camp::AsyRender::threads = getSetting<bool>("threads");
+  // Determine whether threading is needed.  On Unix, we only enable the
+  // render thread when a windowed View is requested; the renderer itself
+  // (Vulkan/OpenGL library loading) is deferred until initRenderer() is
+  // called from shipout3().
+  // On macOS, threads are always required for rendering (even with
+  // llvmpipe software fallback) to avoid races on AsyRender::View.
+#if defined(__APPLE__)
+  camp::AsyRender::threads = true;
 #else
   camp::AsyRender::threads = view() ? getSetting<bool>("threads") : false;
 #endif
-
-  camp::createRenderer();
 #endif
 
   fpu_trap(trap());
@@ -301,9 +303,17 @@ int main(int argc, char *argv[])
         sigaddset(&set, SIGCHLD);
         pthread_sigmask(SIG_BLOCK, &set, NULL);
 #endif // !defined(_WIN32)
-        for (;;)
+        for (;;) {
           camp::glrenderWrapper();
-      } else camp::AsyRender::threads=false;
+          if(camp::gl == nullptr) {
+            pthread_mutex_lock(&main_wait_mutex);
+            pthread_cond_wait(&main_wait_cond, &main_wait_mutex);
+            pthread_mutex_unlock(&main_wait_mutex);
+          }
+        }
+      } else {
+        camp::AsyRender::threads=false;
+      }
     } catch(std::bad_alloc&) {
       outOfMemory();
     }

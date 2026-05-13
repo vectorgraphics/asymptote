@@ -21,10 +21,10 @@
 #endif
 
 #ifndef YYDEBUG
-#if defined(__APPLE__) || !defined(HAVE_LIBVULKAN)
-#define YYDEBUG 1
-#else
+#ifdef _WIN32
 #define YYDEBUG 0
+#else
+#define YYDEBUG 1
 #endif
 #endif
 

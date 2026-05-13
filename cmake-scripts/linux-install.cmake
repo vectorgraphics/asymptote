@@ -7,10 +7,6 @@ if (NOT LINUX)
     endif()
 endif()
 
-if (CTAN_BUILD)
-    message(FATAL_ERROR "system install is not supported for CTAN builds.")
-endif()
-
 # Requires gnu-install-macros to be ran already
 
 

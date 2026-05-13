@@ -72,6 +72,7 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
   if(offscreen) { // Fully offscreen
     R.Onscreen=false;
     R.data.clear();
+    R.notRendered();
     return;
   }
 

@@ -73,6 +73,9 @@ https://github.com/xiaozhuai/readline-win32
 zlib1:
 https://github.com/madler/zlib/releases/tag/v1.3.1
 
+vulkan_lvp.dll:
+https://github.com/mmozeiko/build-mesa/releases/download/26.0.6/mesa-lavapipe-x64-26.0.6.7z
+
 ========================================================================
 
 Source for various icons is available under the MIT license from

@@ -11,6 +11,8 @@
 #include "EXRFiles.h"
 #include "fpu.h"
 
+#include "rendererloader.h"  // for headlessRenderer
+
 #include "vkutils.h"
 #include "ThreadSafeQueue.h"
 
@@ -36,15 +38,12 @@
 
 using settings::getSetting;
 using settings::Setting;
-using namespace glm;
 
-
-static size_t timeout=10000000000;
+constexpr size_t timeout=10000000000;
 
 void exitHandler(int);
-void *postEmptyEvent(void *);
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_VULKAN
 uint32_t apiVersion=VK_API_VERSION_1_4;
 
 std::vector<const char*> instanceExtensions
@@ -57,29 +56,11 @@ std::vector<const char*> instanceExtensions
 #endif
 
 };
-#endif
 
-#ifdef HAVE_LIBGLM
+using namespace glm;
 
 namespace camp
 {
-
-const glm::dmat4& getProjViewMat()
-{
-  return gl->projViewMat;
-}
-
-const glm::dmat4& getViewMat()
-{
-  return gl->viewMat;
-}
-
-const glm::dmat3& getNormMat()
-{
-  return gl->normMat;
-}
-
-const Int timePartialSumVerbosity=4;
 
 std::vector<char> readFile(const std::string& filename)
 {
@@ -97,7 +78,6 @@ std::vector<char> readFile(const std::string& filename)
   return buffer;
 }
 
-#ifdef HAVE_RENDERER
 SwapChainDetails::SwapChainDetails(
   vk::PhysicalDevice gpu,
   vk::SurfaceKHR surface) :
@@ -200,82 +180,22 @@ void AsyVkRender::initWindow()
 // RenderCallbacks interface implementation
 void AsyVkRender::onMouseButton(int button, int action, int mods)
 {
-    auto const currentAction = getGLFWAction(button, mods);
-
-    if (currentAction.empty())
-        return;
-
-    if (action == GLFW_PRESS) {
-        lastAction = currentAction;
-    } else if (action == GLFW_RELEASE) {
-        lastAction.clear();
-    }
+    AsyRender::onMouseButton(button, action, mods);
 }
 
 void AsyVkRender::onFramebufferResize(int width, int height)
 {
-    if(width == 0 || height == 0)
-        return;
-
-    if(width == Width && height == Height)
-        return;
-
-    reshape(width, height);
-    update();
-    remesh = true;
+    AsyRender::onFramebufferResize(width, height);
 }
 
 void AsyVkRender::onScroll(double xoffset, double yoffset)
 {
-    auto zoomFactor = getSetting<double>("zoomfactor");
-
-    if(zoomFactor > 0.0) {
-        if (yoffset > 0)
-            Zoom *= zoomFactor;
-        else
-            Zoom /= zoomFactor;
-    }
-
-    update();
+    AsyRender::onScroll(xoffset, yoffset);
 }
 
 void AsyVkRender::onCursorPos(double xpos, double ypos)
 {
-    static double xprev = 0.0;
-    static double yprev = 0.0;
-
-    // Note: We can't easily check mouse button state here without GLFW call
-    // For now, assume we track this through lastAction changes
-
-    if (lastAction == "rotate") {
-
-        Arcball arcball(xprev * 2 / Width - 1, 1 - yprev * 2 / Height, xpos * 2 / Width - 1, 1 - ypos * 2 / Height);
-        triple axis = arcball.axis;
-        rotateMat = rotate(2 * arcball.angle / Zoom * ArcballFactor,
-                             dvec3(axis.getx(), axis.gety(), axis.getz())) * rotateMat;
-        update();
-    }
-    else if (lastAction == "shift") {
-
-        shift(xpos - xprev, ypos - yprev);
-        update();
-    }
-    else if (lastAction == "pan") {
-
-        if (orthographic)
-            shift(xpos - xprev, ypos - yprev);
-        else {
-            pan(xpos - xprev, ypos - yprev);
-        }
-        update();
-    }
-    else if (lastAction == "zoom") {
-
-        zoom(0.0, ypos - yprev);
-    }
-
-    xprev = xpos;
-    yprev = ypos;
+    AsyRender::onCursorPos(xpos, ypos);
 }
 
 void AsyVkRender::onKey(int key, int scancode, int action, int mods)
@@ -293,10 +213,6 @@ void AsyVkRender::onWindowFocus(int focused)
 
 void AsyVkRender::onClose()
 {
-    // Call base class close handler
-    AsyRender::onClose();
-
-    // Vulkan-specific: trigger exit with cleanup
     exitHandler(0);
 }
 
@@ -320,53 +236,13 @@ AsyVkRender::~AsyVkRender()
   glslang::FinalizeProcess();
 }
 
-#endif
-
 void AsyVkRender::render(RenderFunctionArgs const& args)
 {
 #if !defined(_WIN32)
   setenv("XMODIFIERS","",true);
 #endif
 
-  bool v3d=args.format == "v3d";
-  bool webgl=args.format == "html";
-  bool format3d=webgl || v3d;
-
-  pic = args.pic;
-  Prefix=args.prefix;
-  Format = args.format;
-  remesh = true;
-  nlights = args.nlightsin;
-  Lights = args.lights;
-  LightsDiffuse = args.diffuse;
-  Oldpid = args.oldpid;
-
-  Angle = args.angle * radians;
-  lastzoom = 0;
-  Zoom0 = std::fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
-  Shift = args.shift / args.zoom;
-  Margin = args.margin;
-
-  for (int i = 0; i < 4; i++)
-    Background[i] = static_cast<float>(args.background[i]);
-
-  ViewExport=args.view;
-
-  View = args.view && !settings::getSetting<bool>("offscreen");
-
-  title = std::string(PACKAGE_NAME)+": "+ args.prefix.c_str();
-
-  Xmin = args.m.getx();
-  Xmax = args.M.getx();
-  Ymin = args.m.gety();
-  Ymax = args.M.gety();
-  Zmin = args.m.getz();
-  Zmax = args.M.getz();
-
-  haveScene=Xmin < Xmax && Ymin < Ymax && Zmin < Zmax;
-  orthographic = Angle == 0.0;
-  H = orthographic ? 0.0 : -tan(0.5 * Angle) * Zmax;
-  Xfactor = Yfactor = 1.0;
+  copyRenderArgs(args);
 
 #ifdef HAVE_PTHREAD
   static bool initializedView=false;
@@ -374,92 +250,38 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
     Fitscreen=1;
 #endif
 
-  for(int i=0; i < 16; ++i)
-    T[i]=args.t[i];
-
-  for(int i=0; i < 16; ++i)
-    Tup[i]=args.tup[i];
-
   if(!(initialized && interact::interactive)) {
     antialias=settings::getSetting<Int>("antialias") > 1;
-    double expand;
-    if(format3d)
-      expand=1.0;
-    else {
-      expand=settings::getSetting<double>("render");
-      if(expand < 0)
-        expand *= (Format.empty() || Format == "eps" || Format == "pdf")                 ? -2.0 : -1.0;
-      if(antialias) expand *= 2.0;
+
+    double expand=settings::getSetting<double>("render");
+    if(expand < 0)
+      expand *= (Format.empty() || Format == "eps" || Format == "pdf") ? -2.0 : -1.0;
+    if(antialias) expand *= 2.0;
+
+    Aspect = args.width/args.height;
+
+    // On macOS with llvmpipe (no Metal), don't create a GLFW window -
+    // there's no display backend to present to. Use offscreen rendering.
+    if (headlessRenderer) {
+        View = false;
     }
 
-    oWidth=args.width;
-    oHeight=args.height;
-    Aspect=args.width/args.height;
-
-    fullWidth=(int) ceil(expand*args.width);
-    fullHeight=(int) ceil(expand*args.height);
-
-    if(format3d) {
-      Width=fullWidth;
-      Height=fullHeight;
-    } else {
-#ifdef HAVE_RENDERER
-      GLFWmonitor* monitor=NULL;
-      glfwInit();
-      monitor=glfwGetPrimaryMonitor();
-      if(monitor) {
-        int mx, my;
-        glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
-      } else
-#endif
-        {
-          screenWidth=fullWidth;
-          screenHeight=fullHeight;
-        }
-
-      Width=min(fullWidth,screenWidth);
-      Height=min(fullHeight,screenHeight);
-
-      if(Width > Height*Aspect)
-        Width=min((int) (ceil(Height*Aspect)),screenWidth);
-      else
-        Height=min((int) (ceil(Width/Aspect)),screenHeight);
-    }
-
-#ifdef HAVE_RENDERER
-    home(format3d);
-#endif
-    if(format3d) {
-      remesh=true;
-      return;
-    }
-    maxFragments=0;
-
-    ArcballFactor=1+8.0*hypot(Margin.getx(),Margin.gety())/hypot(Width,Height);
-    Aspect=((double) Width)/Height;
-
-#ifdef HAVE_RENDERER
-    setosize();
-#endif
+    initDisplay(args.width, args.height);
   }
 
-#ifdef HAVE_RENDERER
-  havewindow=initialized && threads;
-
-  if(threads && format3d)
-    format3dWait=true;
+  maxFragments = 0;
+  havewindow = View && threads;
 
   clearMaterials();
   shouldUpdateBuffers = true;
   initialized=true;
-#endif
 
 #ifdef HAVE_PTHREAD
   if(threads && initializedView) {
     if(View) {
       // Called from asymain thread, main thread handles rendering
       hideWindow=false;
-      messageQueue.enqueue(RendererMessage::updateRenderer);
+      threadMgr.messageQueue.enqueue(RendererMessage::updateRenderer);
     } else readyAfterExport=queueExport=true;
     return;
   }
@@ -473,7 +295,6 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
   checkpow2(blockSize,"GPUblockSize");
   groupSize=localSize*blockSize;
 
-#ifdef HAVE_RENDERER
   if(vkinitialize) {
     interlock=settings::getSetting<bool>("GPUinterlock");
     fxaa=settings::getSetting<bool>("fxaa");
@@ -488,8 +309,6 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
     fitscreen();
-    Aspect=((double) Width)/Height;
-    setosize();
     initializedView=true;
   }
 
@@ -500,10 +319,8 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
 
   readyForUpdate=true;
   mainLoop();
-#endif
 }
 
-#ifdef HAVE_RENDERER
 void AsyVkRender::initVulkan()
 {
 #ifdef __APPLE__
@@ -540,7 +357,9 @@ void AsyVkRender::initVulkan()
   setenv("MVK_CONFIG_PERFORMANCE_TRACKING", "0", true);
 #endif
 
-  VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
+  // Vulkan dispatch loader is already initialized in rendererloader.cc
+  // via dlsym(RTLD_DEFAULT, "vkGetInstanceProcAddr"), so no need to
+  // reference the raw vkGetInstanceProcAddr symbol here (avoids -lvulkan).
 
   if (!glslang::InitializeProcess())
     runtimeError("failed to initialize glslang");
@@ -1675,6 +1494,7 @@ void AsyVkRender::createSyncObjects()
   for (auto i = 0; i < maxFramesInFlight; i++) {
     frameObjects[i].imageAvailableSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].inCountBufferCopy = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
+    frameObjects[i].transferDoneSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
     frameObjects[i].inFlightFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
     frameObjects[i].inComputeFence = device->createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
     frameObjects[i].compressionFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
@@ -1686,12 +1506,7 @@ void AsyVkRender::createSyncObjects()
 }
 
 void AsyVkRender::waitForEvent(vk::Event event) {
-  vk::Result result;
-
-  do
-  {
-    result = device->getEventStatus(event);
-  } while(result != vk::Result::eEventSet);
+  while (device->getEventStatus(event) != vk::Result::eEventSet) {}
 }
 
 uint32_t AsyVkRender::selectMemory(const vk::MemoryRequirements memRequirements, const vk::MemoryPropertyFlags properties)
@@ -1746,6 +1561,59 @@ void AsyVkRender::copyBufferToBuffer(const vk::Buffer& srcBuffer, const vk::Buff
   vkutils::checkVkResult(device->waitForFences(
     1, &*fence, VK_TRUE, timeout
   ));
+}
+
+void AsyVkRender::recordBufferCopy(vk::CommandBuffer cmd, const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize size)
+{
+  auto copyRegion = vk::BufferCopy(0, 0, size);
+  cmd.copyBuffer(srcBuffer, dstBuffer, copyRegion);
+}
+
+void AsyVkRender::beginTransferRecording(FrameObject & object)
+{
+  object.transferHasPendingWork = false;
+  if (object.copyCountCommandBuffer) {
+    // Wait for any prior GPU submission of this command buffer to complete,
+    // then reset both the fence and command buffer before re-recording.
+    if (object.transferFence) {
+      vkutils::checkVkResult(device->waitForFences(1, &*object.transferFence, VK_TRUE, timeout));
+      vkutils::checkVkResult(device->resetFences(1, &*object.transferFence));
+    }
+    object.copyCountCommandBuffer->reset();
+    object.copyCountCommandBuffer->begin(vk::CommandBufferBeginInfo());
+  }
+}
+
+void AsyVkRender::endAndSubmitTransfers(FrameObject & object, vk::Queue queue)
+{
+  if (!object.copyCountCommandBuffer)
+    return;
+
+  object.copyCountCommandBuffer->end();
+
+  // Only signal the transfer-done semaphore when there is actual transfer work.
+  // This prevents double-signaling (when called twice per frame in mixed scenes)
+  // which would leave residual signals causing incorrect synchronization on subsequent frames.
+  std::vector<vk::Semaphore> signalSems;
+  if (object.transferHasPendingWork)
+    signalSems.push_back(*object.transferDoneSemaphore);
+
+  auto submitInfo = vk::SubmitInfo(0, nullptr, nullptr, 1, &*object.copyCountCommandBuffer,
+                                   signalSems.size(), signalSems.data());
+
+  // Create a fence to track when this transfer submission completes.
+  // Created without eSignaled so the first submission is valid (unsignaled fence).
+  // The fence is always submitted (even with an empty command buffer) to ensure
+  // beginTransferRecording's waitForFences on the next frame doesn't timeout.
+  if (!object.transferFence)
+    object.transferFence = device->createFenceUnique(vk::FenceCreateInfo());
+
+  // Reset the fence before submission.  The fence is reused across frames and
+  // may have been signaled by a prior submit (e.g. the GPUcompress path in
+  // refreshBuffers submits and waits on the same fence earlier in the same frame).
+  vkutils::checkVkResult(device->resetFences(1, &*object.transferFence));
+
+  vkutils::checkVkResult(queue.submit(1, &submitInfo, *object.transferFence));
 }
 
 void AsyVkRender::copyToBuffer(
@@ -1968,35 +1836,60 @@ void AsyVkRender::copyDataToImage(const void *data, vk::DeviceSize size,
   endSingleCommands(cmd);
 }
 
-void AsyVkRender::setDeviceBufferData(DeviceBuffer& buffer, const void* data,
-                                      vk::DeviceSize size, size_t nobjects)
+void AsyVkRender::uploadPersistentBuffer(FrameBufferPair& bufpair, const void* data,
+                                          vk::DeviceSize size, size_t nobjects,
+                                          vk::BufferUsageFlags usage,
+                                          VkMemoryPropertyFlagBits properties,
+                                          bool isVertex)
 {
   // Vulkan doesn't allow a buffer to have a size of 0
-  vk::BufferCreateInfo(vk::BufferCreateFlags(), std::max(vk::DeviceSize(16), size), buffer.usage);
-  buffer._buffer = createBufferUnique(
-                          buffer.usage,
-                          buffer.properties,
-                          size
-                          );
+  size = std::max(vk::DeviceSize(16), size);
 
-  buffer.nobjects = nobjects;
-  if (size > buffer.stgBufferSize) {
-    // minimum array size of 16 bytes to avoid some Vulkan issues
+  bufpair.nobjects = nobjects;
+
+  auto& dstBuffer = isVertex ? bufpair.vertexBuffer : bufpair.indexBuffer;
+  auto& dstSize = isVertex ? bufpair.vertexBufferSize : bufpair.indexBufferSize;
+  auto& stgBuffer = isVertex ? bufpair.vertexStagingBuffer : bufpair.indexStagingBuffer;
+  auto& stgSize = isVertex ? bufpair.vertexStgSize : bufpair.indexStgSize;
+
+  // Reuse existing persistent device buffer if it has sufficient size
+  if (dstBuffer.getBuffer() == VK_NULL_HANDLE || dstSize < size) {
+    dstBuffer = createBufferUnique(usage, properties, size);
+    dstSize = size;
+  }
+
+  // Grow staging buffer if needed
+  if (size > stgSize) {
     vk::DeviceSize newSize = 16;
     while (newSize < size) newSize *= 2;
-    buffer.stgBufferSize = newSize;
+    stgSize = newSize;
 
-    // check whether we need a staging buffer
-    buffer._stgBuffer = createBufferUnique(
+    stgBuffer = createBufferUnique(
       vk::BufferUsageFlagBits::eTransferSrc,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-      buffer.stgBufferSize,
+      stgSize,
       VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
       );
   }
 
   if (data) {
-      copyToBuffer(buffer._buffer.getBuffer(), data, size, buffer._stgBuffer);
+    // Copy data into the staging buffer on the CPU side
+    {
+      vma::cxx::MemoryMapperLock const stgBufMemPtr(stgBuffer);
+      memcpy(stgBufMemPtr.getCopyPtr(), data, size);
+    }
+    // Record the GPU copy command into the frame's transfer command buffer
+    auto& frame = frameObjects[currentFrame];
+    if (!frame.copyCountCommandBuffer) {
+      // Fallback: use synchronous copy if no transfer command buffer available
+      copyToBuffer(dstBuffer.getBuffer(), data, size, stgBuffer);
+    } else {
+      recordBufferCopy(*frame.copyCountCommandBuffer,
+                       stgBuffer.getBuffer(),
+                       dstBuffer.getBuffer(),
+                       size);
+      frame.transferHasPendingWork = true;
+    }
   }
 }
 
@@ -3615,6 +3508,13 @@ void AsyVkRender::createComputePipelines()
 {
   std::vector const computeDescSetLayoutVec { *computeDescriptorSetLayout };
 
+  // Destroy old pipelines before destroying the old layout, to prevent
+  // the validation layer from reporting "pipeline references deleted
+  // VkPipelineLayout" when recreating swap chain / pipelines.
+  sum1Pipeline.reset();
+  sum2Pipeline.reset();
+  sum3Pipeline.reset();
+
   // Create the shared pipeline layout only once, then create all three
   // pipelines using it.  Previously each call to createComputePipeline()
   // created a new layout and destroyed the old one, leaving sum1Pipeline
@@ -3625,8 +3525,10 @@ void AsyVkRender::createComputePipelines()
 
   if (fxaa)
   {
+    // Destroy old FXAA pipeline before recreating its layout.
+    postProcessPipeline.reset();
+
     std::vector const postProcessDescSetLayoutVec{*postProcessDescSetLayout};
-    // fxaa
     createComputePipeline(postProcessPipelineLayout, postProcessPipeline, "fxaa.cs", postProcessDescSetLayoutVec);
   }
 }
@@ -3783,61 +3685,60 @@ void AsyVkRender::beginGraphicsFrameRender(int imageIndex)
   currentCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 }
 
-void AsyVkRender::resetFrameCopyData()
-{
-  materialData.copiedThisFrame=false;
-  colorData.copiedThisFrame=false;
-  triangleData.copiedThisFrame=false;
-  transparentData.copiedThisFrame=false;
-  lineData.copiedThisFrame=false;
-  pointData.copiedThisFrame=false;
-}
-
-void AsyVkRender::drawBuffer(DeviceBuffer & vertexBuffer,
-                             DeviceBuffer & indexBuffer,
-                             VertexBuffer * data,
-                             vk::Pipeline pipeline,
-                             bool incrementRenderCount) {
-  if (data->indices.empty())
+void AsyVkRender::drawBuffer(FrameBufferPair& bufpair, VertexBuffer * data, vk::Pipeline pipeline) {
+  // Follow the OpenGL model: use current CPU-side index count for drawing.
+  // When patches go offscreen, their vertices/indices are removed from the
+  // CPU-side VertexBuffer by notRendered() + clear(). The GPU buffer may
+  // still contain stale data from a previous frame, but we draw only as many
+  // indices as currently exist on the CPU, matching OpenGL behavior.
+  if (data->indices.empty()) {
+    bufpair.nobjects = 0;
     return;
+  }
 
-  auto const badBuffer = static_cast<void*>(vertexBuffer._buffer.getBuffer()) == nullptr;
-  auto const rendered = data->renderCount >= maxFramesInFlight;
-  auto const copy = (remesh || !rendered || badBuffer) && !copied && !data->copiedThisFrame;
+  auto const badBuffer = static_cast<void*>(bufpair.vertexBuffer.getBuffer()) == nullptr;
+  auto const copy = (remesh || data->renderCount < maxFramesInFlight || badBuffer) && !copied;
 
   if (copy) {
 
     if (!data->materialVertices.empty())
     {
-      setDeviceBufferData(vertexBuffer, data->materialVertices.data(), data->materialVertices.size() * sizeof(camp::MaterialVertex));
+      uploadPersistentBuffer(bufpair, data->materialVertices.data(),
+                             data->materialVertices.size() * sizeof(camp::MaterialVertex),
+                             0, VB_USAGE_FLAGS, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, true);
     }
     else if (!data->colorVertices.empty())
     {
-      setDeviceBufferData(vertexBuffer, data->colorVertices.data(), data->colorVertices.size() * sizeof(camp::ColorVertex));
+      uploadPersistentBuffer(bufpair, data->colorVertices.data(),
+                             data->colorVertices.size() * sizeof(camp::ColorVertex),
+                             0, VB_USAGE_FLAGS, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, true);
     }
     else if(!data->pointVertices.empty())
     {
-      setDeviceBufferData(vertexBuffer, data->pointVertices.data(), data->pointVertices.size() * sizeof(camp::PointVertex));
+      uploadPersistentBuffer(bufpair, data->pointVertices.data(),
+                             data->pointVertices.size() * sizeof(camp::PointVertex),
+                             0, VB_USAGE_FLAGS, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, true);
     }
     else
       return;
 
-    setDeviceBufferData(indexBuffer, data->indices.data(), data->indices.size() * sizeof(data->indices[0]), data->indices.size());
-    data->copiedThisFrame=true;
+    uploadPersistentBuffer(bufpair, data->indices.data(),
+                           data->indices.size() * sizeof(data->indices[0]),
+                           data->indices.size(), IB_USAGE_FLAGS,
+                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, false);
   }
 
-  std::vector<vk::Buffer> vertexBuffers = {vertexBuffer._buffer.getBuffer()};
+  std::vector<vk::Buffer> vertexBuffers = {bufpair.vertexBuffer.getBuffer()};
   std::vector<vk::DeviceSize> vertexOffsets = {0};
   auto const pushConstants = buildPushConstants();
 
   currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
   currentCommandBuffer.bindVertexBuffers(0, vertexBuffers, vertexOffsets);
-  currentCommandBuffer.bindIndexBuffer(indexBuffer._buffer.getBuffer(), 0, vk::IndexType::eUint32);
+  currentCommandBuffer.bindIndexBuffer(bufpair.indexBuffer.getBuffer(), 0, vk::IndexType::eUint32);
   currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
-  currentCommandBuffer.drawIndexed(indexBuffer.nobjects, 1, 0, 0, 0);
-
-  if(incrementRenderCount)
-    data->renderCount++;
+  // Use current CPU-side index count (like OpenGL's glDrawElements(drawType, data.indices.size(), ...))
+  // rather than the cached bufpair.nobjects which may be stale when copy==false.
+  currentCommandBuffer.drawIndexed(data->indices.size(), 1, 0, 0, 0);
 }
 
 void AsyVkRender::endFrameRender()
@@ -3858,50 +3759,38 @@ void AsyVkRender::endFrame(int imageIndex)
 
 void AsyVkRender::drawPoints(FrameObject & object)
 {
-  drawBuffer(object.pointVertexBuffer,
-             object.pointIndexBuffer,
-             &pointData,
-             *getPipelineType(pointPipelines));
+  drawBuffer(object.pointBuffers, &pointData, *getPipelineType(pointPipelines));
+  pointData.renderCount++;
 }
 
 void AsyVkRender::drawLines(FrameObject & object)
 {
-  drawBuffer(object.lineVertexBuffer,
-             object.lineIndexBuffer,
-             &lineData,
-             *getPipelineType(linePipelines));
+  drawBuffer(object.lineBuffers, &lineData, *getPipelineType(linePipelines));
+  lineData.renderCount++;
 }
 
 void AsyVkRender::drawMaterials(FrameObject & object)
 {
-  drawBuffer(object.materialVertexBuffer,
-             object.materialIndexBuffer,
-             &materialData,
-             *getPipelineType(materialPipelines));
+  drawBuffer(object.materialBuffers, &materialData, *getPipelineType(materialPipelines));
+  materialData.renderCount++;
 }
 
 void AsyVkRender::drawColors(FrameObject & object)
 {
-  drawBuffer(object.colorVertexBuffer,
-             object.colorIndexBuffer,
-             &colorData,
-             *getPipelineType(colorPipelines));
+  drawBuffer(object.colorBuffers, &colorData, *getPipelineType(colorPipelines));
+  colorData.renderCount++;
 }
 
 void AsyVkRender::drawTriangles(FrameObject & object)
 {
-  drawBuffer(object.triangleVertexBuffer,
-             object.triangleIndexBuffer,
-             &triangleData,
-             *getPipelineType(trianglePipelines));
+  drawBuffer(object.triangleBuffers, &triangleData, *getPipelineType(trianglePipelines));
+  triangleData.renderCount++;
 }
 
 void AsyVkRender::drawTransparent(FrameObject & object)
 {
-  drawBuffer(object.transparentVertexBuffer,
-             object.transparentIndexBuffer,
-             &transparentData,
-             *getPipelineType(transparentPipelines));
+  drawBuffer(object.transparentBuffers, &transparentData, *getPipelineType(transparentPipelines));
+  transparentData.renderCount++;
 }
 
 void AsyVkRender::partialSums(FrameObject & object, bool timing)
@@ -3995,13 +3884,17 @@ void AsyVkRender::partialSums(FrameObject & object, bool timing)
 
 void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
 
-  maxSize=maxDepth;
-
+  maxSize=ceilpow2(maxDepth);
   recreateBlendPipeline=true;
 }
 
 void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
-  waitForEvent(*object.sumFinishedEvent);
+  // Wait on the fence from the count+compute submission instead of polling an event.
+  // The fence puts the OS thread to sleep (zero CPU waste), whereas waitForEvent()
+  // busy-waits in a tight loop.
+  vkutils::checkVkResult(device->waitForFences(
+    1, &*object.inComputeFence, VK_TRUE, timeout
+  ));
 
   // Ensure we have the latest data from GPU
   feedbackMappedPtr->invalidate();
@@ -4045,41 +3938,23 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   currentCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *graphicsPipelineLayout, 0, 1, &*object.descriptorSet, 0, nullptr);
 
   if (!interlock) {
-    drawBuffer(object.pointVertexBuffer,
-               object.pointIndexBuffer,
-               &pointData,
-               *pointPipelines[PIPELINE_COUNT],
-               false);
-    drawBuffer(object.lineVertexBuffer,
-               object.lineIndexBuffer,
-               &lineData,
-               *linePipelines[PIPELINE_COUNT],
-               false);
-    drawBuffer(object.materialVertexBuffer,
-               object.materialIndexBuffer,
-               &materialData,
-               *materialPipelines[PIPELINE_COUNT],
-               false);
-    drawBuffer(object.colorVertexBuffer,
-               object.colorIndexBuffer,
-               &colorData,
-               *colorPipelines[PIPELINE_COUNT],
-               false);
-    drawBuffer(object.triangleVertexBuffer,
-               object.triangleIndexBuffer,
-               &triangleData,
-               *trianglePipelines[PIPELINE_COUNT],
-               false);
+    drawBuffer(object.pointBuffers, &pointData,
+               *pointPipelines[PIPELINE_COUNT]);
+    drawBuffer(object.lineBuffers, &lineData,
+               *linePipelines[PIPELINE_COUNT]);
+    drawBuffer(object.materialBuffers, &materialData,
+               *materialPipelines[PIPELINE_COUNT]);
+    drawBuffer(object.colorBuffers, &colorData,
+               *colorPipelines[PIPELINE_COUNT]);
+    drawBuffer(object.triangleBuffers, &triangleData,
+               *trianglePipelines[PIPELINE_COUNT]);
   }
 
   currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
 
   // draw transparent
-  drawBuffer(object.transparentVertexBuffer,
-             object.transparentIndexBuffer,
-             &transparentData,
-             *transparentPipelines[PIPELINE_COUNT],
-             false);
+  drawBuffer(object.transparentBuffers, &transparentData,
+             *transparentPipelines[PIPELINE_COUNT]);
 
   currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
 
@@ -4091,6 +3966,27 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
     endFrameRender();
     currentCommandBuffer.setEvent(*object.compressionFinishedEvent, vk::PipelineStageFlagBits::eFragmentShader);
     endFrameCommands();
+
+    // Before submitting the count/compress pass, ensure any pending buffer
+    // transfers (vertex/index data uploads) have completed.  The count pass
+    // reads from those buffers, so they must be up to date.
+    if (object.transferHasPendingWork) {
+      object.copyCountCommandBuffer->end();
+
+      auto transferSubmitInfo = vk::SubmitInfo(0, nullptr, nullptr,
+        1, &*object.copyCountCommandBuffer, 0, nullptr);
+      if (!object.transferFence)
+        object.transferFence = device->createFenceUnique(vk::FenceCreateInfo());
+      vkutils::checkVkResult(device->resetFences(1, &*object.transferFence));
+      vkutils::checkVkResult(transferQueue.submit(1, &transferSubmitInfo, *object.transferFence));
+      vkutils::checkVkResult(device->waitForFences(
+        1, &*object.transferFence, VK_TRUE, timeout));
+
+      // Reset for reuse by the later endAndSubmitTransfers call.
+      object.copyCountCommandBuffer->reset();
+      object.copyCountCommandBuffer->begin(vk::CommandBufferBeginInfo());
+      object.transferHasPendingWork = false;
+    }
 
     // Create a fence for synchronization
     auto compressFence = device->createFenceUnique(vk::FenceCreateInfo());
@@ -4107,6 +4003,8 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
       1, &*compressFence, VK_TRUE, timeout
     ));
 
+    // Invalidate cached host-visible memory before reading GPU results.
+    elemBfMappedMem->invalidate();
     elements=p[0];
     p[0]=1;
   } else {
@@ -4165,6 +4063,12 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   // It MUST be synchronized with a fence because the CPU needs to read back the results
   // in resizeFragmentBuffer before the main graphics pass can be recorded.
 
+  // Check if we have pending transfers before ending them
+  bool hasPendingTransfers = object.transferHasPendingWork;
+
+  // End and submit any pending buffer transfers before the count pass
+  endAndSubmitTransfers(object, transferQueue);
+
   // Use timeline semaphore for more efficient synchronization
   currentTimelineValue++;
   object.computeTimelineValue = currentTimelineValue;
@@ -4177,11 +4081,16 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
   // Reset the fence before submission
   (void) device->resetFences(1, &*object.inComputeFence);
 
-  std::vector<vk::SemaphoreSubmitInfo> signalSemInfos = {
-    {*renderTimelineSemaphore, object.computeTimelineValue, vk::PipelineStageFlagBits2::eAllCommands}
-    };
+  // Wait for transfers to complete before executing count/compute passes
+  std::vector<vk::SemaphoreSubmitInfo> waitSemInfos;
+  if (hasPendingTransfers) {
+    waitSemInfos.push_back({*object.transferDoneSemaphore, 0, vk::PipelineStageFlagBits2::eAllCommands});
+  }
 
-  vk::SubmitInfo2 submitInfo2({}, {}, cmdBufferInfos, signalSemInfos);
+  std::vector<vk::SemaphoreSubmitInfo> signalSemInfos;
+  signalSemInfos.push_back({*renderTimelineSemaphore, object.computeTimelineValue, vk::PipelineStageFlagBits2::eAllCommands});
+
+  vk::SubmitInfo2 submitInfo2({}, waitSemInfos, cmdBufferInfos, signalSemInfos);
   vkutils::checkVkResult(renderQueue.submit2(1, &submitInfo2, *object.inComputeFence));
 
   if(settings::verbose >= timePartialSumVerbosity) {
@@ -4245,8 +4154,13 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
     object.countCommandBuffer->reset();
     object.computeCommandBuffer->reset();
 
+    // Begin recording buffer transfers for the count pass
+    beginTransferRecording(object);
+
     refreshBuffers(object, imageIndex);
     resizeFragmentBuffer(object);
+    if (!interlock)
+      copied=true;
   }
 }
 
@@ -4380,13 +4294,15 @@ void AsyVkRender::drawFrame()
 
   updateUniformBuffer(currentFrame);
   updateBuffers();
-  resetFrameCopyData();
 
   try {
     preDrawBuffers(frameObject, imageIndex);
   } catch (const vk::OutOfDeviceMemoryError& e) {
     outOfMemory();
   }
+
+  // Begin recording buffer transfers for the main render pass
+  beginTransferRecording(frameObject);
 
   beginFrameCommands(getFrameCommandBuffer());
   drawBuffers(frameObject, imageIndex);
@@ -4425,6 +4341,10 @@ void AsyVkRender::drawFrame()
   }
   endFrameCommands();
 
+  // End and submit any pending buffer transfers before the main render pass
+  bool hasPendingTransfers = frameObject.transferHasPendingWork;
+  endAndSubmitTransfers(frameObject, transferQueue);
+
   std::vector<vk::Semaphore> waitSems;
   std::vector<uint64_t> waitSemaphoreValues;
   // For Vulkan 1.3+ style submission
@@ -4434,6 +4354,12 @@ void AsyVkRender::drawFrame()
   if (View) {
       waitSems.push_back(*frameObject.imageAvailableSemaphore);
       waitStages.push_back(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+  }
+
+  // Wait for buffer transfers to complete before rendering
+  if (hasPendingTransfers) {
+      waitSems.push_back(*frameObject.transferDoneSemaphore);
+      waitStages.push_back(vk::PipelineStageFlagBits::eAllCommands);
   }
 
   std::vector<vk::Semaphore> signalSems;
@@ -4539,16 +4465,6 @@ void AsyVkRender::drawFrame()
 }
 
 /**
- * Show the window if hidden (GLFW-specific implementation).
- */
-void AsyVkRender::showWindow()
-{
-  GLFWwindow* win = getRenderWindow();
-  if(View && !hideWindow && !glfwGetWindowAttrib(win,GLFW_VISIBLE))
-    ::glfwShowWindow(win);
-}
-
-/**
  * Swap front and back buffers (Vulkan-specific implementation).
  */
 void AsyVkRender::swapBuffers()
@@ -4561,10 +4477,7 @@ GLFWwindow* AsyVkRender::getRenderWindow() const
   return static_cast<GLFWwindow*>(glfwWindow);
 }
 
-#endif
-
 void AsyVkRender::exportHandler(int) {
-
   readyAfterExport=true;
   Export(0);
 }
@@ -4667,7 +4580,7 @@ void AsyVkRender::Export(int imageIndex) {
   picture pic;
   double w=oWidth;
   double h=oHeight;
-  double Aspect=((double) Width)/Height;
+  double Aspect=((double) backbufferExtent.width)/backbufferExtent.height;
   if(w > h*Aspect) w=(int) (h*Aspect+0.5);
   else h=(int) (w/Aspect+0.5);
 
@@ -4692,23 +4605,18 @@ void AsyVkRender::Export(int imageIndex) {
 #ifdef HAVE_PTHREAD
   if(threads && readyAfterExport) {
     readyAfterExport=false;
-    endwait(readySignal,readyLock);
+    threadMgr.endwait(threadMgr.readySignal,threadMgr.readyLock);
   }
 #endif
 }
 
 void AsyVkRender::finalizeProcess()
 {
-#ifdef HAVE_RENDERER
   glslang::FinalizeProcess();
-#endif
 }
 
 void AsyVkRender::reshape(int width, int height) {
-  // Base class handles dimension updates and projection
   AsyRender::reshape(width, height);
-
-  // Vulkan-specific: flag for swapchain recreation
   framebufferResized = true;
 }
 
@@ -4728,4 +4636,4 @@ void AsyVkRender::cycleMode() {
 
 } // namespace camp
 
-#endif // HAVE_LIBGLM
+#endif // HAVE_VULKAN

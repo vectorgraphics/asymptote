@@ -1,9 +1,11 @@
 #pragma once
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_LIBGLFW
 
 #include <GLFW/glfw3.h>
 #include <string>
+
+void *postEmptyEvent(void *);
 
 namespace camp
 {
@@ -56,6 +58,7 @@ RenderCallbacks* glfwGetCallbacks(GLFWwindow* window);
  * Shared utility for renderer callback implementations.
  */
 std::string getGLFWAction(int button, int mods);
+std::string getGLFWScrollAction(bool wheelUp);
 
 /**
  * Generic GLFW event loop for interactive rendering.
@@ -94,6 +97,11 @@ void glfwRendererShowWindow(GLFWwindow* window);
  * Set window position (wrapper to avoid namespace conflicts).
  */
 void glfwRendererSetWindowPos(GLFWwindow* window, int xpos, int ypos);
+
+/**
+ * Set the swap interval (vsync).  interval=0 disables vsync.
+ */
+void glfwRendererSwapInterval(int interval);
 
 } // namespace camp
 

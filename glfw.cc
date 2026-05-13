@@ -2,7 +2,7 @@
 #include "vm.h"
 #include "array.h"
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_LIBGLFW
 
 #include "renderBase.h"
 #include "glfw.h"
@@ -75,6 +75,16 @@ GLFWwindow* glfwCreateRenderWindow(int width, int height, const std::string& tit
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+#ifdef __APPLE__
+    // On macOS, OpenGL 3.2+ requires core profile and forward-compat hints.
+    // Without these, glfwCreateWindow returns NULL on Intel Macs with
+    // AMD/Intel integrated graphics
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+#endif
+    Int multisample = getSetting<Int>("multisample");
+    if (multisample > 1)
+      glfwWindowHint(GLFW_SAMPLES, multisample);
   }
   glfwWindowHint(GLFW_FOCUSED, GLFW_FALSE);
   glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE);
@@ -158,6 +168,14 @@ void glfwRendererSetWindowPos(GLFWwindow* window, int xpos, int ypos)
   }
 }
 
+/**
+ * Set the swap interval (vsync).  interval=0 disables vsync.
+ */
+void glfwRendererSwapInterval(int interval)
+{
+  glfwSwapInterval(interval);
+}
+
 RenderCallbacks* glfwGetCallbacks(GLFWwindow* window)
 {
   return static_cast<RenderCallbacks*>(glfwGetWindowUserPointer(window));
@@ -220,10 +238,27 @@ std::string getGLFWAction(int button, int mods)
   return getActionString(button, mods);
 }
 
-void *postEmptyEvent(void *)
+// Get action string for scroll wheel (button 3=wheel up, 4=wheel down)
+static std::string getScrollAction(bool wheelUp)
 {
-  glfwPostEmptyEvent();
-  return NULL;
+  size_t Button = wheelUp ? 3 : 4;
+  auto left = getSetting<vm::array *>("leftbutton");
+  auto middle = getSetting<vm::array *>("middlebutton");
+  auto right = getSetting<vm::array *>("rightbutton");
+  auto wheelup = getSetting<vm::array *>("wheelup");
+  auto wheeldown = getSetting<vm::array *>("wheeldown");
+  vm::array* buttonArray[] = {left, middle, right, wheelup, wheeldown};
+  auto a = buttonArray[Button];
+  size_t size = checkArray(a);
+
+  if (0 < size)
+    return read<std::string>(a, 0);
+  return "";
+}
+
+std::string getGLFWScrollAction(bool wheelUp)
+{
+  return getScrollAction(wheelUp);
 }
 
 /**
@@ -268,7 +303,6 @@ void glfwRunLoop(GLFWwindow* window,
 
 } // namespace camp
 
-// postEmptyEvent is defined outside the namespace for pthread callback compatibility
 void *postEmptyEvent(void *)
 {
   glfwPostEmptyEvent();

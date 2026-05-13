@@ -24,6 +24,9 @@
 
 #include "common.h"
 #include "rendererloader.h"
+#ifdef HAVE_RENDERER
+#include "renderBase.h"
+#endif
 
 #if HAVE_GNU_GETOPT_H
 #include <getopt.h>
@@ -1049,11 +1052,20 @@ void displayFeatures(bool enabled)
     // when asy.exe is distributed to different machines.
 #else
     static bool probed = false;
-    static bool vulkanAvailable = false;
     if (!probed) {
 #ifdef HAVE_RENDERER
+        // Actually construct the renderer so we can verify which backend
+        // is truly available (not just whether the .so loads).  We call
+        // createRenderer() directly rather than initRenderer() to avoid
+        // triggering a "No 3D rendering available" error when running
+        // headless (e.g., --version on a system without GPU).
+        camp::createRenderer();
+#else
+#ifdef HAVE_VULKAN
+        static bool vulkanAvailable = false;
         bool useVulkan = getSetting<bool>("vulkan");
         vulkanAvailable = useVulkan && camp::tryLoadVulkan();
+#endif
 #endif
         probed = true;
     }
@@ -1092,13 +1104,26 @@ void displayFeatures(bool enabled)
 #endif
 #else
 #ifdef HAVE_RENDERER
+    // The renderer was already constructed by createRenderer() above.
+    // camp::gl != nullptr means a backend was successfully loaded; vulkan
+    // indicates which one.
+    if (camp::gl != nullptr) {
+        if (vulkan)
+            havevulkan = true;
+        else
+            haveopengl = true;
+    }
+#else
+#ifdef HAVE_VULKAN
     if (vulkanAvailable)
         havevulkan = true;
     else {
-#ifdef HAVE_LIBGL
-        haveopengl = true;
-#endif
+        // Probe for OpenGL shared library at runtime.
+        bool openglAvailable = camp::tryLoadOpenGL();
+        if (openglAvailable)
+            haveopengl = true;
     }
+#endif
 #endif
 #endif
 
@@ -1145,17 +1170,17 @@ void displayFeatures(bool enabled)
     sigsegv=true;
 #endif
 
+#ifdef USEGC
+    usegc=true;
+#endif
+
 #ifdef HAVE_PTHREAD
     usethreads=true;
 #endif
 
     feature("V3D      3D vector graphics output",glm && xdr);
     feature("WebGL    3D HTML rendering",glm);
-#ifdef HAVE_LIBOSMESA
-    feature("OpenGL   3D OSMesa offscreen rendering",haveopengl);
-#else
     feature("OpenGL   3D OpenGL rendering",haveopengl);
-#endif
     feature("Vulkan   3D Vulkan rendering",havevulkan);
     feature("SSBO     OpenGL shader storage buffer objects",ssbo);
     feature("GSL      GNU Scientific Library (special functions)",gsl);
@@ -1278,10 +1303,9 @@ void getOptions(int argc, char *argv[])
   }
 
   if (showVersion) {
-    version();
-    displayFeatures(true);
-    displayFeatures(false);
-    exit(0);
+    // Don't exit yet — continue parsing remaining options, then exit
+    // from setOptions() after setPath() has been called so that the
+    // renderer can locate its shared libraries.
   }
 
   if (syntax)
@@ -1378,7 +1402,7 @@ void initSettings() {
   addOption(new realSetting("render", 0, "n",
                             "Render 3D graphics using n pixels per bp (-1=auto)",
                             havegl ? -1.0 : 0.0));
-  addOption(new realSetting("devicepixelratio", 0, "n", "Ratio of physical to logical pixels", 1.0));
+  addOption(new realSetting("devicepixelratio", 0, "n", "Ratio of physical to logical pixels", 0.0));
   addOption(new IntSetting("antialias", 0, "n",
                            "Antialiasing width for rasterized output", 2));
   addOption(new IntSetting("multisample", 0, "n",
@@ -1408,7 +1432,7 @@ void initSettings() {
   addOption(new IntSetting("GPUblockSize", 0, "n",
                            "Compute shader block size", 8));
   addOption(new IntSetting("maxFramesInFlight", 0, "n",
-                           "Maximum frames queued to the GPU", 6));
+                           "Maximum frames queued to the GPU", 3));
 
   addOption(new pairSetting("position", 0, "pair",
                             "Initial 3D rendering screen position"));
@@ -2054,6 +2078,13 @@ void setOptions(int argc, char *argv[])
   SetPageDimensions();
 
   setInteractive();
+
+  if (showVersion) {
+    version();
+    displayFeatures(true);
+    displayFeatures(false);
+    exit(0);
+  }
 }
 
 }

@@ -1,9 +1,12 @@
 #include "renderBase.h"
+#include <GLFW/glfw3.h>
 #include "glfw.h"
 #include "settings.h"
 #include "drawelement.h"
 #include "interact.h"
 #include "picture.h"
+
+#ifdef HAVE_LIBGLM
 
 #ifdef HAVE_RENDERER
 // Forward declaration for GLFWwindow to avoid including glfw3.h here
@@ -11,13 +14,82 @@ struct GLFWwindow;
 #endif
 
 using settings::getSetting;
+
+// Helper to avoid repeated static_cast<GLFWwindow*> from void*.
+static inline GLFWwindow* getWin(void* w) { return static_cast<GLFWwindow*>(w); }
+
+namespace camp {
+
+AsyRender* gl;
+
+#ifdef HAVE_RENDERER
+// Matrix accessor functions - shared between GL and Vulkan renderers.
+const glm::dmat4& getProjViewMat() { return gl->projViewMat; }
+const glm::dmat4& getViewMat()     { return gl->viewMat; }
+const glm::dmat3& getNormMat()     { return gl->normMat; }
+#endif
+
+} // namespace camp
+
 using namespace glm;
 
-// Forward declaration for pthread callback (defined in glfw.cc)
-void *postEmptyEvent(void *);
+// Forward declaration for exit handler (defined in exithandlers.h)
+void exitHandler(int);
 
 namespace camp
 {
+
+void AsyRender::copyRenderArgs(RenderFunctionArgs const& args)
+{
+  // Basic picture and format state
+  pic = args.pic;
+  Prefix = args.prefix;
+  Format = args.format;
+  remesh = true;
+
+  // Lighting
+  nlights = args.nlightsin;
+  Lights = args.lights;
+  LightsDiffuse = args.diffuse;
+  Oldpid = args.oldpid;
+
+  // Camera parameters
+  Angle = args.angle * radians;
+  lastzoom = 0;
+  Zoom0 = std::fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
+  Shift = args.shift / args.zoom;
+  Margin = args.margin;
+
+  // Background color
+  for (int i = 0; i < 4; i++)
+    Background[i] = static_cast<float>(args.background[i]);
+
+  // View settings
+  ViewExport = args.view;
+  View = args.view && !settings::getSetting<bool>("offscreen");
+
+  title = std::string(PACKAGE_NAME) + ": " + args.prefix.c_str();
+
+  // Scene bounds
+  Xmin = args.m.getx();
+  Xmax = args.M.getx();
+  Ymin = args.m.gety();
+  Ymax = args.M.gety();
+  Zmin = args.m.getz();
+  Zmax = args.M.getz();
+
+  haveScene = Xmin < Xmax && Ymin < Ymax && Zmin < Zmax;
+  orthographic = Angle == 0.0;
+  H = orthographic ? 0.0 : -tan(0.5 * Angle) * Zmax;
+  Xfactor = Yfactor = 1.0;
+
+  // Transform matrices
+  for (int i = 0; i < 16; ++i)
+    T[i] = args.t[i];
+
+  for (int i = 0; i < 16; ++i)
+    Tup[i] = args.tup[i];
+}
 
 double AsyRender::getRenderResolution(triple Min) const
 {
@@ -159,18 +231,17 @@ void AsyRender::prepareScene()
 #ifdef HAVE_PTHREAD
   static bool first=true;
   if(threads && first) {
-    wait(initSignal,initLock);
-    endwait(initSignal,initLock);
+    threadMgr.wait(threadMgr.initSignal,threadMgr.initLock);
+    threadMgr.endwait(threadMgr.initSignal,threadMgr.initLock);
     first=false;
   }
 
   if(format3dWait)
-    wait(initSignal,initLock);
+    threadMgr.wait(threadMgr.initSignal,threadMgr.initLock);
 #endif
 
   if(redraw) {
     clearData();
-
     if(remesh)
       clearCenters();
 
@@ -313,6 +384,64 @@ void AsyRender::capsize(int& width, int& height)
     height = screenHeight;
 }
 
+void AsyRender::fitAspect(int& w, int& h)
+{
+  if(w > h * Aspect)
+    w = (int) std::ceil(h * Aspect);
+  else
+    h = (int) std::ceil(w / Aspect);
+}
+
+#ifdef HAVE_RENDERER
+void AsyRender::initDisplay(int contentWidth, int contentHeight)
+{
+  // Compute expand/fullWidth/fullHeight (unscaled content dimensions).
+  double expand = settings::getSetting<double>("render");
+  if (expand < 0)
+    expand *= (Format.empty() || Format == "eps" || Format == "pdf") ? -2.0 : -1.0;
+  if (antialias) expand *= 2.0;
+
+  fullWidth = (int) std::ceil(expand * contentWidth);
+  fullHeight = (int) std::ceil(expand * contentHeight);
+
+  oWidth = contentWidth;
+  oHeight = contentHeight;
+
+  GLFWmonitor* monitor = NULL;
+  glfwInit();
+
+  devicePixelRatio = settings::getSetting<double>("devicepixelratio");
+  monitor = glfwGetPrimaryMonitor();
+  if (monitor) {
+    int mx, my;
+    glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
+    if (devicePixelRatio <= 0.0) {
+      float sx = 1.0f, sy = 1.0f;
+      glfwGetMonitorContentScale(monitor, &sx, &sy);
+      devicePixelRatio = std::max(sx, sy);
+    }
+  } else {
+    screenWidth = fullWidth;
+    screenHeight = fullHeight;
+  }
+
+  oldWidth = (int) std::ceil(contentWidth * devicePixelRatio);
+  oldHeight = (int) std::ceil(contentHeight * devicePixelRatio);
+
+  int w = std::min(oldWidth, screenWidth);
+  int h = std::min(oldHeight, screenHeight);
+
+  fitAspect(w, h);
+
+  Width = w;
+  Height = h;
+
+  home();
+
+  ArcballFactor = 1 + 8.0 * hypot(Margin.getx(), Margin.gety()) / hypot(Width, Height);
+}
+#endif // HAVE_RENDERER
+
 void AsyRender::windowposition(int& x, int& y, int width, int height)
 {
   if (width == -1) {
@@ -335,24 +464,15 @@ void AsyRender::windowposition(int& x, int& y, int width, int height)
   }
 }
 
-void AsyRender::setosize()
-{
-  oldWidth = (int) ceil(oWidth);
-  oldHeight = (int) ceil(oHeight);
-}
-
 /**
  * Set window to fullscreen size.
  * Base implementation handles dimension calculation and GLFW window operations.
  */
 void AsyRender::fullscreen(bool reposition)
 {
-  Width = screenWidth;
-  Height = screenHeight;
-  Xfactor = ((double) screenHeight) / Height;
-  Yfactor = ((double) screenWidth) / Width;
-
-  setsize(Width, Height, reposition);
+  // screenWidth/screenHeight are already physical pixels — fullscreen fills them directly.
+  Xfactor = Yfactor = 1.0;
+  setsize(screenWidth, screenHeight, reposition);
 }
 
 /**
@@ -364,12 +484,21 @@ void AsyRender::setsize(int w, int h, bool reposition)
 #ifdef HAVE_RENDERER
   // Handle GLFW window operations (library-agnostic for Vulkan/OpenGL)
   if (View && glfwWindow != nullptr) {
-    ::glfwSetWindowSize(static_cast<GLFWwindow*>(glfwWindow), w, h);
+    GLFWwindow* win = getWin(glfwWindow);
+
+    // w,h are framebuffer dimensions. screenWidth/screenHeight are already
+    // in the same physical-pixel space, so cap directly.
+    capsize(w, h);
+
+    ::glfwSetWindowSize(win, w, h);
     if (reposition) {
       int x, y;
       windowposition(x, y, w, h);
-      ::glfwSetWindowPos(static_cast<GLFWwindow*>(glfwWindow), x, y);
+      ::glfwSetWindowPos(win, x, y);
     }
+
+    update();
+    return;
   }
 #endif
 
@@ -409,26 +538,21 @@ void AsyRender::reshape(int width, int height)
 void AsyRender::fitscreen(bool reposition)
 {
   switch(Fitscreen) {
-    case 0: // Original size
+    case 0: // Original size: use saved framebuffer dimensions
     {
       Xfactor = Yfactor = 1.0;
-      double pixelRatio = settings::getSetting<double>("devicepixelratio");
-      setsize(oldWidth*pixelRatio, oldHeight*pixelRatio, reposition);
+      setsize(oldWidth, oldHeight, reposition);
       break;
     }
-    case 1: // Fit to screen in one dimension
+    case 1: // Fit to screen: screenWidth/screenHeight already physical pixels
     {
       int w = screenWidth;
       int h = screenHeight;
-      if(w > h * Aspect)
-        w = min((int) ceil(h * Aspect), w);
-      else
-        h = min((int) ceil(w / Aspect), h);
-
+      fitAspect(w, h);
       setsize(w, h, reposition);
       break;
     }
-    case 2: // Full screen
+    case 2: // Full screen: fill physical screen directly
     {
       fullscreen(reposition);
       break;
@@ -438,21 +562,13 @@ void AsyRender::fitscreen(bool reposition)
 
 void AsyRender::toggleFitScreen()
 {
-#ifdef HAVE_RENDERER
-  // Hide window before changing size (library-agnostic for Vulkan/OpenGL)
-  if (glfwWindow != nullptr) {
-    ::glfwHideWindow(static_cast<GLFWwindow*>(glfwWindow));
-  }
-#endif
-
   Fitscreen = (Fitscreen + 1) % 3;
   fitscreen();
 }
 
-void AsyRender::home(bool webgl)
+void AsyRender::home()
 {
-  if(!webgl)
-    idle();
+  idle();
   X = Y = cx = cy = 0;
   rotateMat = viewMat = dmat4(1.0);
   lastzoom = Zoom = Zoom0;
@@ -585,7 +701,9 @@ void AsyRender::shrink()
 
 void AsyRender::exportHandler(int)
 {
-  // Default implementation - derived classes should override
+#ifdef HAVE_RENDERER
+  readyAfterExport=true;
+#endif
 }
 
 /**
@@ -596,7 +714,7 @@ void AsyRender::updateHandler(int)
 {
 #ifdef HAVE_RENDERER
   if(View && !interact::interactive) {
-    ::glfwHideWindow(static_cast<GLFWwindow*>(getGLFWWindow()));
+    ::glfwHideWindow(getWin(getGLFWWindow()));
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
   }
@@ -643,13 +761,13 @@ void AsyRender::quit()
 #ifdef HAVE_PTHREAD
     if (!interact::interactive) {
       idle();
-      endwait(readySignal, readyLock);
+      threadMgr.endwait(threadMgr.readySignal, threadMgr.readyLock);
     }
 #endif
 
     // Hide window but don't destroy it (will be reused)
     if (View && glfwWindow) {
-      ::glfwHideWindow(static_cast<GLFWwindow*>(glfwWindow));
+      ::glfwHideWindow(getWin(glfwWindow));
       hideWindow = true;
     }
     // In threaded mode, don't call exit() - the main thread handles that
@@ -659,7 +777,7 @@ void AsyRender::quit()
 
     // Clean up and exit
     if (View && glfwWindow) {
-      ::glfwDestroyWindow(static_cast<GLFWwindow*>(glfwWindow));
+      ::glfwDestroyWindow(getWin(glfwWindow));
       glfwWindow = nullptr;
     }
 
@@ -736,17 +854,17 @@ void AsyRender::swapBuffers()
 }
 
 /**
- * Show the window if hidden (library-specific).
- * Default: no-op - override in derived classes.
+ * Show the window if hidden (GLFW-specific implementation).
  */
 void AsyRender::showWindow()
 {
-  // Default: no-op - derived classes can override for specific behavior
+  GLFWwindow* win = getWin(getGLFWWindow());
+  if(View && !hideWindow && !glfwGetWindowAttrib(win, GLFW_VISIBLE))
+    ::glfwShowWindow(win);
 }
 
 /**
  * Window close handler (library-agnostic).
- * Can be overridden by derived classes for renderer-specific cleanup.
  */
 void AsyRender::onClose()
 {
@@ -784,6 +902,7 @@ void AsyRender::onKey(int key, int scancode, int action, int mods)
             break;
         case 'E':
             queueExport = true;
+            redraw = true;
             break;
         case 'C':
             showCamera();
@@ -809,10 +928,75 @@ void AsyRender::onKey(int key, int scancode, int action, int mods)
     }
 }
 
+void AsyRender::onScroll(double xoffset, double yoffset)
+{
+    std::string action = getGLFWScrollAction(yoffset <= 0);
+
+    auto zoomFactor = getSetting<double>("zoomfactor");
+    if(action == "zoomin" || action.empty()) {
+        if(zoomFactor > 0.0) Zoom /= zoomFactor;
+    } else if(action == "zoomout") {
+        if(zoomFactor > 0.0) Zoom *= zoomFactor;
+    }
+    update();
+}
+
+void AsyRender::onMouseButton(int button, int action, int mods)
+{
+#ifdef HAVE_RENDERER
+    auto const currentActionStr = getGLFWAction(button, mods);
+    if (currentActionStr.empty()) return;
+    if (action == GLFW_PRESS) {
+        lastAction = currentActionStr;
+        // Capture initial position for movement tracking
+        double xpos, ypos;
+        glfwGetCursorPos(getWin(getGLFWWindow()), &xpos, &ypos);
+        xprev = xpos;
+        yprev = ypos;
+    } else if (action == GLFW_RELEASE) {
+        lastAction.clear();
+    }
+#else
+    (void)button; (void)action; (void)mods;
+#endif
+}
+
+void AsyRender::onCursorPos(double xpos, double ypos)
+{
+    if (lastAction == "rotate") {
+        Arcball arcball(xprev * 2 / Width - 1, 1 - yprev * 2 / Height,
+                        xpos * 2 / Width - 1, 1 - ypos * 2 / Height);
+        triple axis = arcball.axis;
+        rotateMat = rotate(2 * arcball.angle / Zoom * ArcballFactor,
+                           dvec3(axis.getx(), axis.gety(), axis.getz())) * rotateMat;
+        update();
+    } else if (lastAction == "shift") {
+        shift(xpos - xprev, ypos - yprev);
+        update();
+    } else if (lastAction == "pan") {
+        if (orthographic) shift(xpos - xprev, ypos - yprev);
+        else pan(xpos - xprev, ypos - yprev);
+        update();
+    } else if (lastAction == "zoom") {
+        zoom(0.0, ypos - yprev);
+    }
+    xprev = xpos;
+    yprev = ypos;
+}
+
+void AsyRender::onFramebufferResize(int width, int height)
+{
+  if(width == 0 || height == 0) return;
+  if(width == Width && height == Height) return;
+  reshape(width, height);
+  update();
+  remesh = true;
+}
+
 void AsyRender::mainLoop()
 {
   if(View) {
-    GLFWwindow* win = static_cast<GLFWwindow*>(getGLFWWindow());
+    GLFWwindow* win = getWin(getGLFWWindow());
     glfwRunLoop(win,
       // shouldContinue: continue while window is open
       [win](){ return !glfwWindowShouldClose(win); },
@@ -833,7 +1017,7 @@ void AsyRender::mainLoop()
 
       // processMessages: dequeue and process messages
       [this](){
-        auto const message=messageQueue.dequeue();
+        auto const message=threadMgr.messageQueue.dequeue();
         if(message.has_value())
           processMessages(*message);
       },
@@ -850,21 +1034,29 @@ void AsyRender::mainLoop()
     if(threads) {
       if(havewindow) {
 #ifdef HAVE_PTHREAD
-        if(pthread_equal(pthread_self(),this->mainthread))
-          exportHandler();
+        if(pthread_equal(pthread_self(),threadMgr.mainthread))
+          exportHandler(0);
         else
-          messageQueue.enqueue(RendererMessage::exportRender);
+          threadMgr.messageQueue.enqueue(RendererMessage::exportRender);
 #endif
       } else {
         initialized=true;
         readyForExport=true;
-        exportHandler();
+        exportHandler(0);
+#ifdef HAVE_PTHREAD
+        // Notify main thread only when called from the render thread.
+        // When called directly from the main thread, there's nobody to wake.
+        if(!pthread_equal(pthread_self(), threadMgr.mainthread))
+          threadMgr.endwait(threadMgr.readySignal, threadMgr.readyLock);
+#endif
       }
     } else {
-      exportHandler();
+      exportHandler(0);
       quit();
     }
   }
 }
 
 } // namespace camp
+
+#endif // HAVE_LIBGLM

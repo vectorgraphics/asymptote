@@ -1,7 +1,5 @@
 #pragma once
 
-#define HAVE_LIBGLM 1
-
 #include "pair.h"
 #include "triple.h"
 #include "glmCommon.h"
@@ -9,6 +7,7 @@
 
 namespace camp {
 
+#ifdef HAVE_LIBGLM
 class bbox2 {
 public:
   double x,y,X,Y;
@@ -50,13 +49,21 @@ public:
   }
 
   void Bounds(const triple& v) {
+#ifdef HAVE_RENDERER
     pair V=Transform2T(glm::value_ptr(getProjViewMat()),v);
+#else
+    pair V(0,0);
+#endif
     x=X=V.getx();
     y=Y=V.gety();
   }
 
   void bounds(const triple& v) {
+#ifdef HAVE_RENDERER
     pair V=Transform2T(glm::value_ptr(getProjViewMat()),v);
+#else
+    pair V(0,0);
+#endif
     double a=V.getx();
     double b=V.gety();
     if(a < x) x=a;
@@ -65,5 +72,6 @@ public:
     else if(b > Y) Y=b;
   }
 };
+#endif // HAVE_LIBGLM
 
 }
