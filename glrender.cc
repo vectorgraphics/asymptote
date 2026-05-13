@@ -720,6 +720,8 @@ void AsyGLRender::refreshBuffers()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,offsetBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,(Pixels+2)*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
+                      GL_UNSIGNED_INT,&zero);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,offsetBuffer);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,countBuffer);
