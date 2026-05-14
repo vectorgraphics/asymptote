@@ -18,7 +18,7 @@ void main()
 
   uint dataOffset=blockSize*id;
   uint sum=0u;
-  for(uint i=0; i < blockSize; ++i) {
+  for(uint i=0u; i < blockSize; ++i) {
     localSum[i]=sum;
     sum += globalSum[dataOffset+i];
   }

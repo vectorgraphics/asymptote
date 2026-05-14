@@ -94,16 +94,16 @@ void main()
 
   // Sort the fragments with respect to descending depth
   if(n <= ARRAYSIZE) {
-    if(n == 1)
+    if(n == 1u)
       outColor=blend(outColor,fragment[listIndex+k]);
-    else if(n > 0) {
+    else if(n > 0u) {
       struct element {
         uint index;
         float depth;
       };
 
       element E[ARRAYSIZE];
-      E[0]=element(k,depth[listIndex+k]);
+      E[0u]=element(k,depth[listIndex+k]);
       uint i=1u;
       while(++k < size) {
         float d=depth[listIndex+k];

@@ -29,7 +29,7 @@ void main()
   groupSum[id]=sum;
   barrier();
 
-  for(uint s=LOCALSIZE/2; s > 0u; s >>= 1u) {
+  for(uint s=LOCALSIZE/2u; s > 0u; s >>= 1u) {
     if(id < s)
       groupSum[id] += groupSum[id+s];
     barrier();

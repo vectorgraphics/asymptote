@@ -72,7 +72,7 @@ void main()
       groupSum[(i*LOCALSIZE+id)/BLOCKSIZE]+groupOffset;
 
   uint diff=final-dataOffset;
-  if(diff < groupSize && diff % LOCALSIZE == 0) {
+  if(diff < groupSize && diff % LOCALSIZE == 0u) {
     size=maxDepth;
     maxDepth=0u;
     fragments=offset[final+1u]=offset[final];
