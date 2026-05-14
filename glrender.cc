@@ -87,7 +87,6 @@ GLint zeroShader;
 GLint compressShader;
 GLint sum1Shader;
 GLint sum2Shader;
-GLint sum2fastShader;
 GLint sum3Shader;
 
 GLuint fragments;
@@ -557,10 +556,9 @@ void initComputeShaders()
 {
   string sum1=locateFile("shaders/sum1.glsl");
   string sum2=locateFile("shaders/sum2.glsl");
-  string sum2fast=locateFile("shaders/sum2fast.glsl");
   string sum3=locateFile("shaders/sum3.glsl");
 
-  if(sum1.empty() || sum2.empty() || sum2fast.empty() || sum3.empty())
+  if(sum1.empty() || sum2.empty() || sum3.empty())
     noShaders();
 
   std::vector<ShaderfileModePair> shaders(1);
@@ -585,10 +583,6 @@ void initComputeShaders()
     shaders[0]=ShaderfileModePair(sum2.c_str(),GL_COMPUTE_SHADER);
     camp::sum2Shader=compileAndLinkShader(shaders,shaderParams,true,false,
                                           true);
-
-    shaders[0]=ShaderfileModePair(sum2fast.c_str(),GL_COMPUTE_SHADER);
-    camp::sum2fastShader=compileAndLinkShader(shaders,shaderParams,true,false,
-                                              true);
 
     shaders[0]=ShaderfileModePair(sum3.c_str(),GL_COMPUTE_SHADER);
     camp::sum3Shader=compileAndLinkShader(shaders,shaderParams,true,false,
@@ -759,7 +753,6 @@ void deleteComputeShaders()
 {
   glDeleteProgram(camp::sum1Shader);
   glDeleteProgram(camp::sum2Shader);
-  glDeleteProgram(camp::sum2fastShader);
   glDeleteProgram(camp::sum3Shader);
 }
 
@@ -2327,13 +2320,9 @@ void partialSums(bool readSize=false)
   glUseProgram(sum1Shader);
   glDispatchCompute(gl::g,1,1);
 
-  if(gl::elements <= gl::groupSize*gl::groupSize)
-    glUseProgram(sum2fastShader);
-  else {
-    glUseProgram(sum2Shader);
-    glUniform1ui(glGetUniformLocation(sum2Shader,"blockSize"),
-                 gl::ceilquotient(gl::g,gl::localSize));
-  }
+  glUseProgram(sum2Shader);
+  glUniform1ui(glGetUniformLocation(sum2Shader,"blockSize"),
+               gl::ceilquotient(gl::g,gl::localSize));
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDispatchCompute(1,1,1);
 
