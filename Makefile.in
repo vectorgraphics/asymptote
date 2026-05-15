@@ -53,7 +53,7 @@ VMA_IMPL_FILES = @VMA_IMPL_FILES@
 VULKAN_OBJS = $(VMA_IMPL_FILES) vkrender vkdispatchstorage vkutils vulkanshim
 
 # OpenGL renderer objects - built into a shared library, not linked into the main binary.
-OPENGL_OBJS = glrender GLTextures openglshim shaders glew tr tr tr
+OPENGL_PIC_OBJS = glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o tr.pic.o glew.pic.o
 
 COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	env genv stm dec errormsg \
@@ -150,26 +150,24 @@ asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ $(SHIML
 	$(CXX) $(OPTS) -rdynamic -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
 # Build the Vulkan renderer as a shared library loaded at runtime via dlopen.
-VULKAN_PIC_OBJS = $(addprefix vkpic/,$(VULKAN_OBJS:=.o))
+VULKAN_PIC_OBJS = $(VULKAN_OBJS:=.pic.o)
 libasyvulkan.so: $(VULKAN_PIC_OBJS)
 	$(CXX) $(OPTS) -shared -o $@ $^ $(filter -L%,$(LFLAGS)) @SHIM_LDFLAGS@ @ASY_VULKAN_LIBS@ -lglfw
 
-vkpic/%.o: %.cc
-	@mkdir -p vkpic
-	$(CXX) $(OPTS) -fPIC -o $@ -c $<
-
 # Build the OpenGL renderer as a shared library loaded at runtime via dlopen.
-OPENGL_PIC_OBJS = $(addprefix glpic/,$(OPENGL_OBJS:=.o))
 libasyopengl.so: $(OPENGL_PIC_OBJS)
 	$(CXX) $(OPTS) -shared -o $@ $^ $(filter -L%,$(LFLAGS)) @SHIM_LDFLAGS@ @ASY_GL_LIBS@ -lglfw
 
-glpic/%.o: %.cc
-	@mkdir -p glpic
+# Shared library objects need -fPIC but must not define FOR_SHARED,
+# since common.h uses !defined(FOR_SHARED) to enable HAVE_VULKAN/HAVE_GL.
+$(VULKAN_PIC_OBJS): %.pic.o: %.cc
+	$(CXX) $(OPTS) -fPIC -o $@ -c $<
+
+glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o tr.pic.o: %.pic.o: %.cc
 	$(CXX) $(OPTS) -fPIC -o $@ -c $<
 
 # glew.c is a C file, needs special handling for the OpenGL shared library.
-glpic/glew.o: glew.c config.h
-	@mkdir -p glpic
+glew.pic.o: glew.c config.h
 	$(CC) $(GLEWOPTS) -o $@ -c $<
 
 $(XNAME): $(PYFILES)
@@ -407,7 +405,6 @@ uninstall-docdir: uninstall-man uninstall-asy
 
 clean:	FORCE
 	-rm -f asy asymptote.so libasyvulkan.so libasyopengl.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
-	-rm -rf vkpic glpic
 	-cd LspCpp && $(MAKE) distclean
 	-cd tinyexr && $(MAKE) clean
 	-cd doc && $(MAKE) clean
@@ -481,30 +478,6 @@ glew.o: glew.c config.h
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-vkpic/%.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
-	@mkdir -p vkpic; \
-	echo Creating $@; \
-	rm -f $@; \
-	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
-	sed 's,\($*\)\.o[ :]*,vkpic/\1.o $@ : ,g' < $@.$$$$ > $@; \
-	rm -f $@.$$$$
-
-glpic/%.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
-	@mkdir -p glpic; \
-	echo Creating $@; \
-	rm -f $@; \
-	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
-	sed 's,\($*\)\.o[ :]*,glpic/\1.o $@ : ,g' < $@.$$$$ > $@; \
-	rm -f $@.$$$$
-
-glpic/glew.d: glew.c
-	@mkdir -p glpic; \
-	echo Creating $@; \
-	rm -f $@; \
-	${CC} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
-	sed 's,\($*\)\.o[ :]*,glpic/\1.o $@ : ,g' < $@.$$$$ > $@; \
-	rm -f $@.$$$$
-
 # Compile for the shared library.  OpenGL must be disabled as it causes
 # crashes inside a shared library.
 %.pic.o: %.cc
@@ -530,7 +503,7 @@ base/%.asy: %.csv generate_enums.py $(GENERATEDENUMS:=.csv)
 	$(PYTHON) generate_enums.py -language python -o $@ -i $< -name $(notdir $*)
 
 ifeq (,$(findstring clean,${MAKECMDGOALS}))
--include $(FILES:=.d) $(VULKAN_PIC_OBJS:.o=.d) $(OPENGL_PIC_OBJS:.o=.d) glpic/glew.d
+-include $(FILES:=.d) $(VULKAN_PIC_OBJS:.pic.o=.d) $(OPENGL_PIC_OBJS:.pic.o=.d)
 endif
 
 FORCE:
