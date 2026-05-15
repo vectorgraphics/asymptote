@@ -20,6 +20,7 @@ if (ENABLE_GC)
     if (NOT WIN32)
         set(enable_throw_bad_alloc_library OFF CACHE INTERNAL "bdwgc gctba library (Windows-only in asymptote)")
     endif()
+    set(enable_large_config ON CACHE INTERNAL "bdwgc large config")
     add_subdirectory(${BOEHM_GC_ROOT})
 
     set(CFLAG_EXTRA ${OLD_CFLAG_EXTRA})
