@@ -88,7 +88,7 @@ CLEAN = camp.output base/version.asy doc/version.texi \
 		version.txt
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
 	asymptote.py reload.js nopapersize.ps
-SHIMLIBS = libasyvulkan.so libasyopengl.so
+SHIMLIBS = @SHIMLIBS@
 LLVMPIPE = lvp_icd.x86_64.json libvulkan_lvp.dylib
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
 DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
@@ -111,7 +111,7 @@ SHAREDOPTS = $(filter-out -DUSEGC, $(OPTS)) -fPIC -DFOR_SHARED
 
 CXX = @CXX@
 CC = @CC@
-MAKEDEPEND = $(OPTS) -O0 -M -MG -DDEPEND
+MAKEDEPEND = $(OPTS) -O0 -M -MG -MP -DDEPEND
 LEX = @LEX@
 GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC -Ibackports/glew/include
 
@@ -146,7 +146,7 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ libasyvulkan.so libasyopengl.so
+asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ $(SHIMLIBS)
 	$(CXX) $(OPTS) -rdynamic -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 
 # Build the Vulkan renderer as a shared library loaded at runtime via dlopen.
@@ -498,7 +498,8 @@ glpic/%.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
 	rm -f $@.$$$$
 
 glpic/glew.d: glew.c
-	@echo Creating $@; \
+	@mkdir -p glpic; \
+	echo Creating $@; \
 	rm -f $@; \
 	${CC} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
 	sed 's,\($*\)\.o[ :]*,glpic/\1.o $@ : ,g' < $@.$$$$ > $@; \
@@ -510,6 +511,14 @@ glpic/glew.d: glew.c
 	$(CXX) $(SHAREDOPTS) -o $@ -c $<
 
 # Generate V3D headers
+
+# Mark the generated headers as SECONDARY so GNU make does not treat them as
+# intermediate files and delete them between phases. Without this, the headers
+# (which are produced by the %.h pattern rule below) are removed after the
+# initial dep-file generation, which forces all .d files to be rebuilt on the
+# next make pass, which in turn re-triggers the Makefile restart logic and
+# loops forever.
+.SECONDARY: $(GENERATEDENUMS:=.h)
 
 %.h: %.csv generate_enums.py $(GENERATEDENUMS:=.csv)
 	$(PYTHON) generate_enums.py -language cxx -o $@ -i $< -name $(notdir $*) -xopt namespace=camp

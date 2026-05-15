@@ -1,5 +1,4 @@
 #include "renderBase.h"
-#include <GLFW/glfw3.h>
 #include "glfw.h"
 #include "settings.h"
 #include "drawelement.h"
@@ -8,7 +7,7 @@
 
 #ifdef HAVE_LIBGLM
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GLFW
 // Forward declaration for GLFWwindow to avoid including glfw3.h here
 struct GLFWwindow;
 #endif
