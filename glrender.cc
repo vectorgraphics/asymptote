@@ -527,6 +527,7 @@ void AsyGLRender::Export(int)
     readyAfterExport=false;
     threadMgr.endwait(threadMgr.readySignal,threadMgr.readyLock);
   }
+#endif
 
   exporting=false;
   initSSBO=true;
@@ -1301,7 +1302,9 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
       Fitscreen=0;
     firstFit=true;
     fitscreen();
+#ifdef HAVE_PTHREAD
     initializedView = true;
+#endif
   }
 
   glEnable(GL_DEPTH_TEST);
@@ -1417,7 +1420,6 @@ void AsyGLRender::reshape(int width, int height)
   if(ssbo)
     initSSBO = true;
 }
-#endif
 
 } // namespace camp
 

@@ -306,7 +306,9 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
     fitscreen();
+#ifdef HAVE_PTHREAD
     initializedView=true;
+#endif
   }
 
   if(vkinitialize) {

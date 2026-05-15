@@ -1015,11 +1015,15 @@ void AsyRender::mainLoop()
       },
 
       // processMessages: dequeue and process messages
+#ifdef HAVE_PTHREAD
       [this](){
         auto const message=threadMgr.messageQueue.dequeue();
         if(message.has_value())
           processMessages(*message);
       },
+#else
+      [](){},
+#endif
 
       // getIdleFunc: return current idle function (or nullptr)
       [this](){ return currentIdleFunc; },
