@@ -1,5 +1,4 @@
 #include "renderBase.h"
-#include <GLFW/glfw3.h>
 #include "glfw.h"
 #include "settings.h"
 #include "drawelement.h"
@@ -7,6 +6,10 @@
 #include "picture.h"
 
 #ifdef HAVE_LIBGLM
+// Forward declaration; glfw3.h is included transitively via glfw.h when
+// HAVE_LIBGLFW is set. When GL/GLFW are disabled, an opaque forward
+// declaration is enough for the static_cast in getWin() below.
+struct GLFWwindow;
 
 #ifdef HAVE_RENDERER
 // Forward declaration for GLFWwindow to avoid including glfw3.h here

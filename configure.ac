@@ -410,7 +410,11 @@ if test "x$enable_gsl" != "xno"; then
 fi
 
 # ----------- glm
-# glm is header only and is already on the include path
+# glm is header only and is already on the include path.
+# Only define HAVE_LIBGLM when a GPU renderer (GL or Vulkan) is enabled,
+# since the code regions guarded by HAVE_LIBGLM also reference symbols
+# from HAVE_LIBGLFW / HAVE_PTHREAD, which are only available in that case.
+if test "x$enable_vulkan" != "xno" -o "x$enable_gl" != "xno"; then
 AC_CHECK_HEADER(
    glm/glm.hpp,
    [AC_DEFINE(
@@ -419,6 +423,7 @@ AC_CHECK_HEADER(
    ],
    AC_MSG_NOTICE([*** Could not find glm header files: will compile without WebGL or OpenGL/Vulkan support ***])
 )
+fi
 
 TINYEXR_ROOT=tinyexr
 INCL=$INCL" -I$TINYEXR_ROOT"
@@ -601,6 +606,18 @@ AC_SUBST(VMA_IMPL_FILES)
 AC_SUBST(ASY_VULKAN_LIBS)
 AC_SUBST(ASY_GL_LIBS)
 AC_SUBST(SHIM_LDFLAGS)
+
+# Determine which shim shared libraries (loaded via dlopen at runtime) to
+# build and link the asy binary against. Empty when both renderers are
+# disabled so the main binary does not depend on libglfw, libGL, or libvulkan.
+SHIMLIBS=""
+if test "x$enable_vulkan" != "xno"; then
+    SHIMLIBS="$SHIMLIBS libasyvulkan.so"
+fi
+if test "x$enable_gl" != "xno"; then
+    SHIMLIBS="$SHIMLIBS libasyopengl.so"
+fi
+AC_SUBST(SHIMLIBS)
 
 # we are on C++ >= 11, so unordered map is a guarantee
 AC_DEFINE(HAVE_UNORDERED_MAP,1,[Unordered map is present])

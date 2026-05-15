@@ -633,6 +633,15 @@ void initRenderer(const char* format)
 
 namespace camp {
 
+[[maybe_unused]] static void signalRendererReady()
+{
+#ifdef HAVE_PTHREAD
+    pthread_mutex_lock(&main_wait_mutex);
+    pthread_cond_broadcast(&main_wait_cond);
+    pthread_mutex_unlock(&main_wait_mutex);
+#endif
+}
+
 bool tryLoadVulkan() { return false; }
 bool tryLoadOpenGL() { return false; }
 void unloadVulkan() {}
@@ -644,6 +653,7 @@ void createRenderer() {}
  * This does NOT require Vulkan or OpenGL libraries - it only sets up state
  * needed by jsfile.cc and v3dfile.cc to generate the output files.
  */
+#ifdef HAVE_LIBGLM
 static void createWebGLRenderer()
 {
     if (gl != nullptr)
@@ -652,15 +662,20 @@ static void createWebGLRenderer()
     gl = new camp::AsyWebGLRender();
     signalRendererReady();
 }
+#endif
 
 void initRenderer(const char* format)
 {
     bool isFormat3D = (format != nullptr &&
                        (strcmp(format, "html") == 0 || strcmp(format, "v3d") == 0));
 
+#ifdef HAVE_LIBGLM
     if (isFormat3D) {
         createWebGLRenderer();
     }
+#else
+    (void)isFormat3D;
+#endif
     // For non-format3d output without GPU libraries, picture.cc will report
     // a more specific error message.
 }
