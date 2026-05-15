@@ -20,6 +20,9 @@
 #define isatty _isatty
 #else
 #include <unistd.h>
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
 #endif
 
 #include "common.h"
@@ -108,7 +111,48 @@ mode_t mask;
 // Flag set by --version option to exit after all options are parsed
 static bool showVersion=false;
 
-string systemDir=ASYMPTOTE_SYSDIR;
+#if !defined(_WIN32)
+// Returns the share/asymptote directory relative to the running executable,
+// or an empty string if it cannot be determined.
+static string execRelSysdir() {
+  char buf[4096];
+#ifdef __APPLE__
+  uint32_t size = (uint32_t)sizeof(buf);
+  if (_NSGetExecutablePath(buf, &size) != 0)
+    return "";
+#else
+  // Linux: read /proc/self/exe
+  ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+  if (len < 0)
+    return "";
+  buf[len] = '\0';
+#endif
+  string exe(buf);
+  // Strip the executable filename to get the bin directory.
+  size_t slash = exe.rfind('/');
+  if (slash == string::npos)
+    return "";
+  // Strip the bin directory to get the installation prefix.
+  size_t slash2 = exe.substr(0, slash).rfind('/');
+  if (slash2 == string::npos)
+    return "";
+  return exe.substr(0, slash2) + "/share/asymptote";
+}
+#endif // !_WIN32
+
+// Use the compiled-in sysdir if it exists on disk; otherwise fall back to a
+// path relative to the running executable so that a staged installation works
+// when moved to a different location.
+static string initSysdir() {
+  const char *compiled = ASYMPTOTE_SYSDIR;
+#if !defined(_WIN32)
+  if (!compiled || !compiled[0] || access(compiled, F_OK) != 0)
+    return execRelSysdir();
+#endif
+  return compiled ? compiled : "";
+}
+
+string systemDir=initSysdir();
 string defaultPSdriver="ps2write";
 string defaultEPSdriver="eps2write";
 string defaultPNGdriver="png16malpha"; // pngalpha has issues at high resolutions

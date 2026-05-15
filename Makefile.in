@@ -6,6 +6,10 @@ ARCH = unix
 POLL = poll
 BUNDLE_VULKAN = @BUNDLE_VULKAN@
 CODESIGN_IDENTITY ?= -
+MACOS_UNIVERSAL = @MACOS_UNIVERSAL@
+MACOS_MIN_VERSION = @MACOS_MIN_VERSION@
+MACOS_ARCH_FLAGS = @MACOS_ARCH_FLAGS@
+MACOS_DEPLOYMENT_FLAGS = @MACOS_DEPLOYMENT_FLAGS@
 
 ASYGLVERSION = @ASYGLVERSION@
 GC = gc
@@ -103,7 +107,12 @@ DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -I.
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
-	-Iprc/include -I$(LSP_ROOT)/include -I.
+	-Iprc/include -I$(LSP_ROOT)/include -I. \
+	$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)
+
+# Multi-arch flags are incompatible with -E (preprocess-only) and -M (deps).
+# Strip them for any pass that runs the preprocessor without compiling.
+PREPROC_OPTS = $(filter-out $(MACOS_ARCH_FLAGS),$(OPTS))
 
 # Options for compiling the object files for the shared library.
 # gc has to be configured with the option --disable-threads in order to make a
@@ -113,9 +122,10 @@ SHAREDOPTS = $(filter-out -DUSEGC, $(OPTS)) -fPIC -DFOR_SHARED
 
 CXX = @CXX@
 CC = @CC@
-MAKEDEPEND = $(OPTS) -O0 -M -MG -MP -DDEPEND
+MAKEDEPEND = $(PREPROC_OPTS) -O0 -M -MG -MP -DDEPEND
 LEX = @LEX@
-GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC -Ibackports/glew/include
+GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC -Ibackports/glew/include \
+	$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -153,13 +163,41 @@ asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ $(SHIML
 ifeq ($(BUNDLE_VULKAN),yes)
 	@echo "Bundling Vulkan libraries for macOS..."
 	@mkdir -p lib
-	@vulkan_libs="$$(otool -L $(NAME) | awk '{ print $$1 }' | grep -E 'lib(glfw|vulkan|SPIRV|glslang)[^/]')"; \
-	moltenvk_dir="$$(echo "$$vulkan_libs" | grep libvulkan | head -1 | xargs dirname 2>/dev/null)"; \
+	@set -eu; \
+	all_bins="$(NAME)"; \
+	for s in libasyvulkan.so libasyopengl.so; do \
+		[ -f "$$s" ] && all_bins="$$all_bins $$s" || true; \
+	done; \
+	rpaths="$$(otool -l $(NAME) | awk '/LC_RPATH/{f=1} f && /[[:space:]]path /{print $$2; f=0}' | sort -u)"; \
+	rpath_refs="$$(otool -L $$all_bins 2>/dev/null | awk '{print $$1}' \
+		| grep -E '^@rpath/lib(glfw|vulkan|SPIRV|glslang)' | sort -u || true)"; \
+	abs_refs="$$(otool -L $$all_bins 2>/dev/null | awk '{print $$1}' \
+		| grep -E '^/.*/lib(glfw|vulkan|SPIRV|glslang)' | sort -u || true)"; \
+	vulkan_libs="$$abs_refs"; \
+	for ref in $$rpath_refs; do \
+		libname="$${ref#@rpath/}"; \
+		for rpath in $$rpaths; do \
+			if [ -f "$$rpath/$$libname" ]; then \
+				vulkan_libs="$$vulkan_libs $$rpath/$$libname"; \
+				break; \
+			fi; \
+		done; \
+	done; \
+	vulkan_libs="$$(echo "$$vulkan_libs" | tr ' ' '\n' | sort -u | grep -v '^$$' || true)"; \
+	if [ -z "$$vulkan_libs" ]; then \
+		echo "ERROR: Could not locate Vulkan-related dynamic libraries referenced by $(NAME)."; \
+		echo "Fix: ensure Vulkan/GLFW are installed and linked, then run 'make clean && make asy'."; \
+		exit 1; \
+	fi; \
+	moltenvk_dir="$$(echo "$$vulkan_libs" | grep libvulkan | head -1 | xargs dirname 2>/dev/null || true)"; \
 	for lib in $$vulkan_libs; do \
 		libname=$$(basename "$$lib"); \
 		cp "$$lib" lib/"$$libname"; \
 		chmod u+w lib/"$$libname"; \
-		install_name_tool -change "$$lib" "@executable_path/lib/$$libname" $(NAME); \
+		for bin in $$all_bins; do \
+			install_name_tool -change "@rpath/$$libname" "@executable_path/lib/$$libname" "$$bin" 2>/dev/null || true; \
+			install_name_tool -change "$$lib" "@executable_path/lib/$$libname" "$$bin" 2>/dev/null || true; \
+		done; \
 	done; \
 	if [ -n "$$moltenvk_dir" ] && [ -f "$$moltenvk_dir/libMoltenVK.dylib" ]; then \
 		cp "$$moltenvk_dir/libMoltenVK.dylib" lib/; \
@@ -171,15 +209,18 @@ ifeq ($(BUNDLE_VULKAN),yes)
 		else \
 			printf '{\n    "file_format_version": "1.0.0",\n    "ICD": {\n        "library_path": "./libMoltenVK.dylib",\n        "api_version": "1.0.0"\n    }\n}\n' > lib/MoltenVK_icd.json; \
 		fi; \
+	else \
+		echo "ERROR: libMoltenVK.dylib was not found next to libvulkan."; \
+		echo "Fix: ensure Vulkan SDK with MoltenVK is installed, then rebuild."; \
+		exit 1; \
 	fi; \
 	for bundled in lib/*.dylib; do \
 		bname=$$(basename "$$bundled"); \
 		install_name_tool -id "@executable_path/lib/$$bname" "$$bundled" 2>/dev/null || true; \
-		for ref in $$vulkan_libs; do \
-			refname=$$(basename "$$ref"); \
-			if [ -f "lib/$$refname" ]; then \
-				install_name_tool -change "$$ref" "@executable_path/lib/$$refname" "$$bundled" 2>/dev/null || true; \
-			fi; \
+		for lib in $$vulkan_libs; do \
+			libname=$$(basename "$$lib"); \
+			install_name_tool -change "@rpath/$$libname" "@executable_path/lib/$$libname" "$$bundled" 2>/dev/null || true; \
+			install_name_tool -change "$$lib" "@executable_path/lib/$$libname" "$$bundled" 2>/dev/null || true; \
 		done; \
 	done
 	@for bundled in lib/*.dylib; do \
@@ -187,6 +228,86 @@ ifeq ($(BUNDLE_VULKAN),yes)
 	done
 	@codesign --sign "$(CODESIGN_IDENTITY)" --force $(NAME) 2>/dev/null || true
 endif
+
+portability-check-macos:
+	@if [ "$$(uname -s)" != "Darwin" ]; then \
+		echo "Skipping portability checks: host is not macOS."; \
+		exit 0; \
+	fi
+	@if ! command -v lipo >/dev/null 2>&1 || ! command -v otool >/dev/null 2>&1; then \
+		echo "ERROR: lipo and/or otool not found."; \
+		echo "Fix: install Apple command line tools with: xcode-select --install"; \
+		exit 1; \
+	fi
+	@set -eu; \
+	min_required="$(MACOS_MIN_VERSION)"; \
+	if [ -z "$$min_required" ]; then \
+		min_required="12.0"; \
+	fi; \
+	to_int() { \
+		echo "$$1" | awk -F. '{a=$$1+0; b=($$2==""?0:$$2+0); c=($$3==""?0:$$3+0); printf("%d%03d%03d\n",a,b,c)}'; \
+	}; \
+	check_binary() { \
+		f="$$1"; \
+		if [ ! -f "$$f" ]; then \
+			echo "ERROR: Required output '$$f' was not found."; \
+			echo "Fix: build it first, then re-run: make asy"; \
+			exit 1; \
+		fi; \
+		archs="$$(lipo -archs "$$f" 2>/dev/null || true)"; \
+		if [ "$(MACOS_UNIVERSAL)" = "yes" ]; then \
+			for required in x86_64 arm64; do \
+				if ! echo " $$archs " | grep -q " $$required "; then \
+					echo "ERROR: $$f is missing architecture '$$required' (found: $$archs)."; \
+					echo "Fix: ensure all dependencies are universal and configure with --enable-macos-universal (default), then rebuild from clean."; \
+					exit 1; \
+				fi; \
+			done; \
+		fi; \
+		minos="$$(otool -l "$$f" | awk 'BEGIN{want=0; legacy=0} $$1=="cmd" && $$2=="LC_BUILD_VERSION" {want=1; next} want && $$1=="minos" {print $$2; exit} $$1=="cmd" && $$2=="LC_VERSION_MIN_MACOSX" {legacy=1; next} legacy && $$1=="version" {print $$2; exit}')"; \
+		if [ -z "$$minos" ]; then \
+			echo "ERROR: Could not determine minimum macOS version for $$f."; \
+			echo "Fix: build with Apple's linker tools and retry."; \
+			exit 1; \
+		fi; \
+		if [ "$$(to_int "$$minos")" -gt "$$(to_int "$$min_required")" ]; then \
+			echo "ERROR: $$f requires macOS $$minos, which is newer than target $$min_required."; \
+			echo "Fix: reconfigure with --with-macos-min-version=$$min_required (or older), then run 'make clean && make asy'."; \
+			exit 1; \
+		fi; \
+		own_id="$$(otool -D "$$f" 2>/dev/null | awk 'NR==2{print $$1}' || true)"; \
+		bad_refs="$$(otool -L "$$f" | awk -v own="$$own_id" '/^\t/{if (own != "" && $$1 == own) next; print $$1}' | \
+			grep -Ev '^(@executable_path/lib/|@loader_path/|/usr/lib/|/System/Library/)' || true)"; \
+		if [ -n "$$bad_refs" ]; then \
+			echo "ERROR: $$f contains non-portable library references:"; \
+			echo "$$bad_refs"; \
+			echo "Every linked library must be one of:"; \
+			echo "  - a macOS system library  (/usr/lib/ or /System/Library/)"; \
+			echo "  - a bundled dylib          (@executable_path/lib/)"; \
+			echo "  - a co-located dylib       (@loader_path/)"; \
+			echo "Fix options:"; \
+			echo "  - @rpath refs: ensure the bundle-vulkan step rewrote all Vulkan/GLFW"; \
+			echo "    references to @executable_path/lib/, then rebuild."; \
+			echo "  - /opt/homebrew, /opt/local, /usr/local, /Users/ absolute paths:"; \
+			echo "    link against system SDK versions, or build the library as a universal"; \
+			echo "    dylib, copy it into ./lib/, and add it to SHIMLIBS in Makefile.in."; \
+			exit 1; \
+		fi; \
+	}; \
+	files="$(NAME) libasyvulkan.so libasyopengl.so"; \
+	if [ "$(BUNDLE_VULKAN)" = "yes" ]; then \
+		if ls lib/*.dylib >/dev/null 2>&1; then \
+			for f in lib/*.dylib; do files="$$files $$f"; done; \
+		else \
+			echo "ERROR: BUNDLE_VULKAN=yes but no bundled dylibs were found in ./lib."; \
+			echo "Fix: verify Vulkan SDK/MoltenVK installation and rerun 'make clean && make asy'."; \
+			exit 1; \
+		fi; \
+	fi; \
+	for f in $$files; do \
+		check_binary "$$f"; \
+	done; \
+	echo "macOS portability checks passed for $(NAME), renderer shims, and bundled dylibs."
 
 # Build the Vulkan renderer as a shared library loaded at runtime via dlopen.
 VULKAN_PIC_OBJS = $(addprefix vkpic/,$(VULKAN_OBJS:=.o))
@@ -251,8 +372,8 @@ all:	asy sty man faq asy-keywords.el
 
 $(GCLIB):
 	cd $(GC) && ln -sf ../libatomic_ops . && \
-		./configure CC="$(CC)" CXX="$(CXX)" $(GCOPTIONS)
-	$(MAKE) -C $(GC) check
+		./configure CC="$(CC)" CXX="$(CXX)" CFLAGS="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)" CXXFLAGS="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)" $(GCOPTIONS)
+	$(MAKE) -C $(GC) check CFLAGS_EXTRA="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)"
 
 sty: doc/version.texi
 	cd doc && $(MAKE) asy-latex.pdf
@@ -281,7 +402,7 @@ $(RUNTIME_FILES:=.cc): %.cc: runtime.py opsymbols.h runtimebase.in %.in
 GEN_PREPROCESSED_DEPFILE_BASE_ARGS = \
     $(PYTHON) gen_preprocessed_depfile.py \
 	--cxx-compiler="$(CXX)" \
-	--additional-raw-arguments="$(OPTS)" \
+	--additional-raw-arguments="$(PREPROC_OPTS)" \
 	--cxx-standard=$(subst gnu,,$(subst c++,,$(CXX_STANDARD)))
 
 $(SYMBOL_FILES:=.raw.i): %.raw.i: %.cc gen_preprocessed_depfile.py
@@ -483,6 +604,7 @@ cleaner: FORCE cleaner0
 
 cleanest: FORCE
 	-rm -rf GUI/xasyicons GUI/xasyqtui GUI/xasyversion
+	-$(MAKE) cleaner0
 	-cd $(GC) && rm -rf ltmain.sh missing \
 		test-driver configure m4/l*.m4
 	-cd libatomic_ops && rm -rf ltmain.sh missing \
@@ -490,7 +612,6 @@ cleanest: FORCE
 	-cd GUI && $(PYTHON) buildtool.py clean
 	-rm -rf $(DIST)
 	-rm -rf vcpkg_installed
-	-$(MAKE) cleaner0
 	-cd doc && $(MAKE) cleanest
 	-cd tests && $(MAKE) cleanest
 	-rm -f configure config.h.in
@@ -581,6 +702,8 @@ ifeq (,$(findstring clean,${MAKECMDGOALS}))
 endif
 
 FORCE:
+
+.PHONY: portability-check-macos
 
 configure: configure.ac
 	autoheader && autoconf

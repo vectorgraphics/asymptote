@@ -14,6 +14,39 @@ AH_TOP([#pragma once])
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
+MACOS_UNIVERSAL=no
+MACOS_MIN_VERSION=
+IS_DARWIN=no
+case "$host_os" in
+    darwin*)
+      IS_DARWIN=yes
+         MACOS_UNIVERSAL=yes
+         MACOS_MIN_VERSION=12.0
+    ;;
+esac
+
+AC_ARG_ENABLE(macos-universal,
+[AS_HELP_STRING(--enable-macos-universal[[[=yes]]],build universal (x86_64+arm64) binaries on macOS)],
+[ if test "x$IS_DARWIN" != "xyes"; then
+      AC_MSG_WARN([--enable-macos-universal is ignored on non-macOS hosts])
+   else
+      if test "x$enableval" = "xno" ; then
+         MACOS_UNIVERSAL=no
+      else
+         MACOS_UNIVERSAL=yes
+      fi
+   fi
+])
+
+AC_ARG_WITH(macos-min-version,
+[AS_HELP_STRING(--with-macos-min-version=VERSION,minimum macOS deployment target (default: 12.0 on macOS))],
+[ if test "x$IS_DARWIN" != "xyes"; then
+      AC_MSG_WARN([--with-macos-min-version is ignored on non-macOS hosts])
+   else
+      MACOS_MIN_VERSION=$withval
+   fi
+])
+
 test "$prefix" = NONE && prefix=/usr/local
 Datadir=$datadir
 test "$Datadir" = '${datarootdir}' && Datadir=$datarootdir
@@ -27,6 +60,27 @@ cxxstd="c++17"
 CXXFLAGS=$CXXFLAGS" -std=$cxxstd"
 
 test "$CFLAGS" || CFLAGS="-g -O3"
+
+# macOS portability flags are applied only during the actual build, NOT during
+# configure feature-detection tests. Injecting -arch into CFLAGS at configure
+# time would cause AC_CHECK_LIB tests to require universal libraries, which
+# breaks detection of arm64-only or x86_64-only SDK installations.
+#
+# Instead we emit MACOS_ARCH_FLAGS and MACOS_DEPLOYMENT_FLAGS as standalone
+# Makefile variables that are appended to OPTS and the linker invocations.
+MACOS_ARCH_FLAGS=
+MACOS_DEPLOYMENT_FLAGS=
+if test "x$IS_DARWIN" = "xyes"; then
+   if test "x$MACOS_UNIVERSAL" = "xyes"; then
+      MACOS_ARCH_FLAGS="-arch x86_64 -arch arm64"
+      AC_MSG_NOTICE([macOS universal build enabled (x86_64 and arm64)])
+   fi
+
+   if test "x$MACOS_MIN_VERSION" != "x"; then
+      MACOS_DEPLOYMENT_FLAGS="-mmacosx-version-min=$MACOS_MIN_VERSION"
+      AC_MSG_NOTICE([macOS deployment target set to $MACOS_MIN_VERSION])
+   fi
+fi
 
 AC_C_BIGENDIAN(
    [AC_DEFINE(WORDS_BIGENDIAN,1,[Build is big endian])],
@@ -100,6 +154,15 @@ sysdir=$Datadir/asymptote
 AC_ARG_ENABLE(texlive-build,
 [AS_HELP_STRING(--enable-texlive-build,
 automatically determine sysdir from kpsewhich)],
+[ if test "x$enableval" = "xyes" ; then
+    sysdir=""
+  fi
+])
+
+AC_ARG_ENABLE(relocatable,
+[AS_HELP_STRING(--enable-relocatable,
+leave ASYMPTOTE_SYSDIR empty so the binary finds its data directory
+relative to its own location at runtime (for portable/staged installs))],
 [ if test "x$enableval" = "xyes" ; then
     sysdir=""
   fi
@@ -495,11 +558,15 @@ case "$OSTYPE" in
 esac
 fi
 
-# Check if Vulkan libraries should be bundled (macOS only)
+# Check if Vulkan libraries should be bundled (macOS only).
+# Use $host_os (from AC_CANONICAL_HOST) rather than $OSTYPE, which is a
+# bash-ism that may be empty when configure runs as /bin/sh.
+# Check ASY_VULKAN_LIBS rather than $LIBS: CHECK_LIB_STATIC appends -lvulkan
+# to $LDFLAGS, not $LIBS, so $LIBS never contains -lvulkan.
 BUNDLE_VULKAN=no
-case "$OSTYPE" in
+case "$host_os" in
     darwin*)
-        if echo "$LIBS" | grep -q "\-lvulkan"; then
+        if test "x$ASY_VULKAN_LIBS" != "x"; then
             BUNDLE_VULKAN=yes
             AC_MSG_NOTICE([Will bundle Vulkan libraries for macOS distribution])
         fi
@@ -606,6 +673,10 @@ AC_SUBST(VMA_IMPL_FILES)
 AC_SUBST(ASY_VULKAN_LIBS)
 AC_SUBST(ASY_GL_LIBS)
 AC_SUBST(SHIM_LDFLAGS)
+AC_SUBST(MACOS_UNIVERSAL)
+AC_SUBST(MACOS_MIN_VERSION)
+AC_SUBST(MACOS_ARCH_FLAGS)
+AC_SUBST(MACOS_DEPLOYMENT_FLAGS)
 
 # Determine which shim shared libraries (loaded via dlopen at runtime) to
 # build and link the asy binary against. Empty when both renderers are
