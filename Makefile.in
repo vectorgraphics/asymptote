@@ -434,6 +434,7 @@ cleaner: FORCE cleaner0
 
 cleanest: FORCE
 	-rm -rf GUI/xasyicons GUI/xasyqtui GUI/xasyversion
+	-$(MAKE) cleaner0
 	-cd $(GC) && rm -rf ltmain.sh missing \
 		test-driver configure m4/l*.m4
 	-cd libatomic_ops && rm -rf ltmain.sh missing \
@@ -441,7 +442,6 @@ cleanest: FORCE
 	-cd GUI && $(PYTHON) buildtool.py clean
 	-rm -rf $(DIST)
 	-rm -rf vcpkg_installed
-	-$(MAKE) cleaner0
 	-cd doc && $(MAKE) cleanest
 	-cd tests && $(MAKE) cleanest
 	-rm -f configure config.h.in
