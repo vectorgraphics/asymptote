@@ -3,11 +3,8 @@
 if (UNIX)
     include(GNUInstallDirs)
 
-if (CTAN_BUILD)
-    set(ASYMPTOTE_SYSDIR_VALUE "")
-else()
+    # ASYMPTOTE_SYSDIR is always set globally for asycore and shared libraries.
     set(ASYMPTOTE_SYSDIR_VALUE ${CMAKE_INSTALL_FULL_DATADIR}/asymptote)
-endif()
 
     set(ASYMPTOTE_DOCDIR_VALUE ${CMAKE_INSTALL_FULL_DATADIR}/doc/asymptote)
 

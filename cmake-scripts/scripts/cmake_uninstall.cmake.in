@@ -1,0 +1,34 @@
+# Template file (cmake_uninstall.cmake.in) maintained in cmake-scripts/scripts/.
+# During cmake configuration, configure_file() substitutes @-variables to produce
+# cmake_uninstall.cmake in the build directory.  Do not edit the generated file.
+#
+# Removes only files explicitly listed in install_manifest.txt (the same set of
+# files that "cmake --install" created).  Directories are intentionally left
+# intact so that uninstalling from a shared prefix (e.g. /usr/local) cannot
+# accidentally delete directories that contain files from other packages.
+
+if(NOT EXISTS "@CMAKE_BINARY_DIR@/install_manifest.txt")
+    message(FATAL_ERROR "Cannot find install manifest: @CMAKE_BINARY_DIR@/install_manifest.txt")
+endif()
+
+file(READ "@CMAKE_BINARY_DIR@/install_manifest.txt" files)
+string(REGEX REPLACE "\n" ";" files "${files}")
+
+foreach(file ${files})
+    # Normalize path: resolve any embedded ./ or .. components so that
+    # paths like /prefix/./include/... compare and print cleanly.
+    get_filename_component(file "${file}" ABSOLUTE)
+    message(STATUS "Uninstalling: ${file}")
+    if(IS_SYMLINK "${file}" OR EXISTS "${file}")
+        execute_process(
+            COMMAND "@CMAKE_COMMAND@" -E remove "${file}"
+            OUTPUT_VARIABLE rm_out
+            RESULT_VARIABLE rm_retval
+        )
+        if(NOT "${rm_retval}" STREQUAL "0")
+            message(FATAL_ERROR "Problem removing ${file}: ${rm_out}")
+        endif()
+    else()
+        message(STATUS "File does not exist, skipping: ${file}")
+    endif()
+endforeach()

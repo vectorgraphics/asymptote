@@ -7,10 +7,6 @@ if (NOT LINUX)
     endif()
 endif()
 
-if (CTAN_BUILD)
-    message(FATAL_ERROR "system install is not supported for CTAN builds.")
-endif()
-
 # Requires gnu-install-macros to be ran already
 
 
@@ -139,4 +135,17 @@ if (ENABLE_DOCGEN)
             PERMISSIONS ${PERMISSION_644_LIST}
     )
 endif()
+#endregion
+
+#region uninstall target
+configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake-scripts/scripts/cmake_uninstall.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+        @ONLY
+)
+
+add_custom_target(uninstall
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+        COMMENT "Uninstalling files from install_manifest.txt"
+)
 #endregion

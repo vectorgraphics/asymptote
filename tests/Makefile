@@ -2,11 +2,15 @@
 
 TESTDIRS = $(wildcard */)
 
-test: $(TESTDIRS)
+test: $(TESTDIRS) test_collections_errors
 
 $(TESTDIRS)::
 	@echo
 	../asy -dir ../base $@*.asy
+
+test_collections_errors:
+	@echo
+	python3 test_collections_errors.py
 
 $(EXTRADIRS)::
 	@echo

@@ -6,7 +6,6 @@
 
 #include "common.h"
 
-
 namespace camp
 {
 class IEXRFile
@@ -30,4 +29,4 @@ private:
   int width=0, height=0;
 };
 
-} // namespace gl;
+} // namespace camp;

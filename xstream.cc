@@ -1,13 +1,12 @@
 #include <cassert>
-#include "xstream.h"
 
 #if defined(HAVE_CONFIG_H)
 #include "config.h"
-#else
-#define HAVE_LIBTIRPC 1
 #endif
 
 #if defined(HAVE_LIBTIRPC)
+
+#include "xstream.h"
 
 namespace xdr
 {
