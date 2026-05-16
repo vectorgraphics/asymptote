@@ -4,7 +4,9 @@ if (UNIX)
     include(GNUInstallDirs)
 
     # ASYMPTOTE_SYSDIR is always set globally for asycore and shared libraries.
-    set(ASYMPTOTE_SYSDIR_VALUE ${CMAKE_INSTALL_FULL_DATADIR}/asymptote)
+    set(ASYMPTOTE_SYSDIR_VALUE ${CMAKE_INSTALL_FULL_DATADIR}/asymptote CACHE PATH
+        "Path baked into the asy binary as the system base dir (ASYMPTOTE_SYSDIR). \
+Override for out-of-install-tree builds, e.g. in the sandbox preset.")
 
     set(ASYMPTOTE_DOCDIR_VALUE ${CMAKE_INSTALL_FULL_DATADIR}/doc/asymptote)
 
@@ -15,12 +17,10 @@ if (UNIX)
     # (so cmake --install --prefix works), absolute otherwise (for distro overrides).
     cmake_path(IS_PREFIX CMAKE_INSTALL_PREFIX "${ASY_LICENSEDIR}" NORMALIZE _asy_licensedir_under_prefix)
     if(_asy_licensedir_under_prefix)
-        file(RELATIVE_PATH _asy_licensedir_install_dest "${CMAKE_INSTALL_PREFIX}" "${ASY_LICENSEDIR}")
+        file(RELATIVE_PATH ASY_LICENSEDIR_INSTALL_DEST "${CMAKE_INSTALL_PREFIX}" "${ASY_LICENSEDIR}")
     else()
-        set(_asy_licensedir_install_dest "${ASY_LICENSEDIR}")
+        set(ASY_LICENSEDIR_INSTALL_DEST "${ASY_LICENSEDIR}")
     endif()
-    set(ASY_LICENSEDIR_INSTALL_DEST "${_asy_licensedir_install_dest}" CACHE STRING
-        "Install DESTINATION for license files (relative = respects CMAKE_INSTALL_PREFIX)")
 
     list(APPEND ASY_MACROS
             ASYMPTOTE_SYSDIR="${ASYMPTOTE_SYSDIR_VALUE}"

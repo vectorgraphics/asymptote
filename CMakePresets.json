@@ -46,7 +46,10 @@
         "base/release",
         "base/sandbox-features-disabled",
         "base/allow_version_override_from_env"
-      ]
+      ],
+      "cacheVariables": {
+        "ASYMPTOTE_SYSDIR_VALUE": "${sourceDir}/cmake-build-linux/sandbox/base"
+      }
     },
     {
       "name": "msvc/release",

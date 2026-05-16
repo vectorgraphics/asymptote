@@ -115,6 +115,7 @@ install(
 # following CMAKE_INSTALL_DOCDIR conventions. Distribution packagers (Fedora,
 # Debian, etc.) may override the install location via the ASY_LICENSEDIR
 # cache variable (set in cmake-scripts/gnu-install-macros.cmake).
+# ASY_LICENSEDIR_INSTALL_DEST is derived automatically from ASY_LICENSEDIR.
 set(ASY_DOCDIR_INSTALL_DIR ${CMAKE_INSTALL_DOCDIR})
 set(ASY_LICENSES_INSTALL_DIR ${ASY_LICENSEDIR_INSTALL_DEST})
 

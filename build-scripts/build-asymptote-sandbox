@@ -17,4 +17,4 @@ set -e
 cd "$(dirname "$0")/.."
 
 cmake --preset linux/sandbox "$@"
-cmake --build --preset linux/sandbox --target asy
+cmake --build --preset linux/sandbox --target asy-with-basefiles

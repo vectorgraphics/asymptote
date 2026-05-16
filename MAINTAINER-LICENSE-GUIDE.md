@@ -40,18 +40,15 @@ The default is `$docdir/licenses` (typically
 
 ### CMake
 ```sh
-cmake -DASY_LICENSEDIR=/usr/share/licenses/asymptote \
-      -DASY_LICENSEDIR_INSTALL_DEST=/usr/share/licenses/asymptote ...
+cmake -DASY_LICENSEDIR=/usr/share/licenses/asymptote ...
 ```
-`ASY_LICENSEDIR` is the **compile-time** absolute path baked into the binary
-(where the binary searches for license files at runtime).
-`ASY_LICENSEDIR_INSTALL_DEST` is the CMake `install()` **destination** for the
-license files. By default it is derived from `ASY_LICENSEDIR` as a path
-relative to `CMAKE_INSTALL_PREFIX` so that `cmake --install --prefix` works
-correctly. When `ASY_LICENSEDIR` falls outside `CMAKE_INSTALL_PREFIX`,
-`ASY_LICENSEDIR_INSTALL_DEST` defaults to the same absolute path.
+`ASY_LICENSEDIR` is the absolute path baked into the binary at compile time
+(where the binary searches for license files at runtime) and also determines
+the `install()` destination. When it falls under `CMAKE_INSTALL_PREFIX`, the
+destination is automatically made relative so that `cmake --install --prefix`
+works correctly.
 
-The default for both is `${CMAKE_INSTALL_FULL_DATADIR}/doc/asymptote/licenses`.
+The default is `${CMAKE_INSTALL_FULL_DATADIR}/doc/asymptote/licenses`.
 
 ### Common distro paths
 | Distribution | Typical path |
