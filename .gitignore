@@ -75,6 +75,8 @@ history
 /v3dheadertypes.py
 /v3dtypes.py
 /doc/licenses/
+libasyopengl.so
+libasyvulkan.so
 
 ### TeX-related
 ## Core latex/pdflatex auxiliary files:
