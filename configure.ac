@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ([2.71])
-AC_INIT([Asymptote],[3.11git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_INIT([Asymptote],[3.12git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -473,11 +473,7 @@ if test "x$enable_gsl" != "xno"; then
 fi
 
 # ----------- glm
-# glm is header only and is already on the include path.
-# Only define HAVE_LIBGLM when a GPU renderer (GL or Vulkan) is enabled,
-# since the code regions guarded by HAVE_LIBGLM also reference symbols
-# from HAVE_LIBGLFW / HAVE_PTHREAD, which are only available in that case.
-if test "x$enable_vulkan" != "xno" -o "x$enable_gl" != "xno"; then
+# glm is header only and is already on the include path
 AC_CHECK_HEADER(
    glm/glm.hpp,
    [AC_DEFINE(
@@ -486,7 +482,6 @@ AC_CHECK_HEADER(
    ],
    AC_MSG_NOTICE([*** Could not find glm header files: will compile without WebGL or OpenGL/Vulkan support ***])
 )
-fi
 
 TINYEXR_ROOT=tinyexr
 INCL=$INCL" -I$TINYEXR_ROOT"

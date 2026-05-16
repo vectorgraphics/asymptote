@@ -22,29 +22,9 @@
 #include "common.h"
 #include "ThreadSafeQueue.h"
 
-#ifdef HAVE_LIBGLM
-
-#include "glmCommon.h"
-#include "material.h"
-#include "pen.h"
-#include "triple.h"
-#include "seconds.h"
-#include "statistics.h"
-#include "render.h"
-
-namespace camp
-{
-
-class picture;
-class drawElement;
-
-#define EMPTY_VIEW 0, nullptr
-#define SINGLETON_VIEW(x) 1, &(x)
-#define VEC_VIEW(x) static_cast<uint32_t>((x).size()), (x).data()
-#define STD_ARR_VIEW(x) static_cast<uint32_t>((x).size()), (x).data()
-#define ARR_VIEW(x) static_cast<uint32_t>(sizeof(x) / sizeof((x)[0])), x
-#define RAW_VIEW(x) static_cast<uint32_t>(sizeof(x)), x
-#define ST_VIEW(s) static_cast<uint32_t>(sizeof(s)), &s
+// GLM-independent utility functions (available even when HAVE_LIBGLM is undefined)
+// These are used by both OpenGL and Vulkan renderers but don't depend on GLM.
+namespace camp {
 
 // Runtime error handling (used by both OpenGL and Vulkan)
 inline void runtimeError(const std::string& s)
@@ -94,6 +74,32 @@ inline bool isNVIDIA30xx(const char* deviceStr)
           s.find("RTX30") != string::npos ||
           s.find("GA10") != string::npos);
 }
+
+} // namespace camp
+
+#ifdef HAVE_LIBGLM
+
+#include "glmCommon.h"
+#include "material.h"
+#include "pen.h"
+#include "triple.h"
+#include "seconds.h"
+#include "statistics.h"
+#include "render.h"
+
+namespace camp
+{
+
+class picture;
+class drawElement;
+
+#define EMPTY_VIEW 0, nullptr
+#define SINGLETON_VIEW(x) 1, &(x)
+#define VEC_VIEW(x) static_cast<uint32_t>((x).size()), (x).data()
+#define STD_ARR_VIEW(x) static_cast<uint32_t>((x).size()), (x).data()
+#define ARR_VIEW(x) static_cast<uint32_t>(sizeof(x) / sizeof((x)[0])), x
+#define RAW_VIEW(x) static_cast<uint32_t>(sizeof(x)), x
+#define ST_VIEW(s) static_cast<uint32_t>(sizeof(s)), &s
 
 inline void store(float* f, double* C)
 {

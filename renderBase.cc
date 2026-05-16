@@ -6,20 +6,18 @@
 #include "picture.h"
 
 #ifdef HAVE_LIBGLM
-// Forward declaration; glfw3.h is included transitively via glfw.h when
-// HAVE_LIBGLFW is set. When GL/GLFW are disabled, an opaque forward
-// declaration is enough for the static_cast in getWin() below.
-struct GLFWwindow;
 
-#ifdef HAVE_RENDERER
+#ifdef HAVE_GLFW
 // Forward declaration for GLFWwindow to avoid including glfw3.h here
 struct GLFWwindow;
 #endif
 
 using settings::getSetting;
 
+#ifdef HAVE_LIBGLFW
 // Helper to avoid repeated static_cast<GLFWwindow*> from void*.
 static inline GLFWwindow* getWin(void* w) { return static_cast<GLFWwindow*>(w); }
+#endif
 
 namespace camp {
 
@@ -181,8 +179,10 @@ void AsyRender::update()
 #ifdef HAVE_PTHREAD
   if(View) {
     pthread_t postThread;
+#ifdef HAVE_LIBGLFW
     if(pthread_create(&postThread,NULL,postEmptyEvent,NULL) == 0)
       pthread_join(postThread,NULL);
+#endif
   }
 #endif
 }
@@ -220,12 +220,14 @@ void AsyRender::clearMaterials()
 
 void AsyRender::clearData()
 {
+#ifdef HAVE_RENDERER
   pointData.clear();
   lineData.clear();
   materialData.clear();
   colorData.clear();
   triangleData.clear();
   transparentData.clear();
+#endif
 }
 
 void AsyRender::prepareScene()
@@ -260,7 +262,9 @@ void AsyRender::prepareScene()
     if(mode != DRAWMODE_OUTLINE)
       remesh=false;
 
+#ifdef HAVE_RENDERER
     Opaque=transparentData.indices.empty();
+#endif
   }
 }
 
@@ -856,6 +860,7 @@ void AsyRender::swapBuffers()
   // Default: no-op - derived classes must override
 }
 
+#ifdef HAVE_LIBGLFW
 /**
  * Show the window if hidden (GLFW-specific implementation).
  */
@@ -865,6 +870,10 @@ void AsyRender::showWindow()
   if(View && !hideWindow && !glfwGetWindowAttrib(win, GLFW_VISIBLE))
     ::glfwShowWindow(win);
 }
+#else
+// Stub for when GLFW is unavailable (satisfies vtable)
+void AsyRender::showWindow() {}
+#endif
 
 /**
  * Window close handler (library-agnostic).
@@ -874,6 +883,7 @@ void AsyRender::onClose()
   // Default: no-op - derived classes can override for specific behavior
 }
 
+#ifdef HAVE_LIBGLFW
 void AsyRender::onKey(int key, int scancode, int action, int mods)
 {
     if (action != GLFW_PRESS)
@@ -963,6 +973,12 @@ void AsyRender::onMouseButton(int button, int action, int mods)
     (void)button; (void)action; (void)mods;
 #endif
 }
+#else // !HAVE_LIBGLFW
+// Stubs for when GLFW is unavailable (satisfy vtable)
+void AsyRender::onKey(int, int, int, int) {}
+void AsyRender::onScroll(double, double) {}
+void AsyRender::onMouseButton(int, int, int) {}
+#endif // HAVE_LIBGLFW
 
 void AsyRender::onCursorPos(double xpos, double ypos)
 {
@@ -996,6 +1012,7 @@ void AsyRender::onFramebufferResize(int width, int height)
   remesh = true;
 }
 
+#ifdef HAVE_LIBGLFW
 void AsyRender::mainLoop()
 {
   if(View) {
@@ -1019,11 +1036,15 @@ void AsyRender::mainLoop()
       },
 
       // processMessages: dequeue and process messages
+#ifdef HAVE_PTHREAD
       [this](){
         auto const message=threadMgr.messageQueue.dequeue();
         if(message.has_value())
           processMessages(*message);
       },
+#else
+      [](){},
+#endif
 
       // getIdleFunc: return current idle function (or nullptr)
       [this](){ return currentIdleFunc; },
@@ -1059,6 +1080,10 @@ void AsyRender::mainLoop()
     }
   }
 }
+#else // !HAVE_LIBGLFW
+// Stub for when GLFW is unavailable (satisfies vtable)
+void AsyRender::mainLoop() {}
+#endif // HAVE_LIBGLFW
 
 } // namespace camp
 

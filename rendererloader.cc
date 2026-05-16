@@ -692,15 +692,13 @@ static void createWebGLRenderer()
 
 void initRenderer(const char* format)
 {
+#ifdef HAVE_LIBGLM
     bool isFormat3D = (format != nullptr &&
                        (strcmp(format, "html") == 0 || strcmp(format, "v3d") == 0));
 
-#ifdef HAVE_LIBGLM
     if (isFormat3D) {
         createWebGLRenderer();
     }
-#else
-    (void)isFormat3D;
 #endif
     // For non-format3d output without GPU libraries, picture.cc will report
     // a more specific error message.

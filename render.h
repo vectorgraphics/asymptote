@@ -19,7 +19,7 @@
 constexpr size_t Nbuffer = 10000;  // Initial size of 2D dynamic buffers
 constexpr size_t nbuffer = 1000;   // Initial size of 0D & 1D dynamic buffers
 
-#ifdef HAVE_LIBVULKAN
+#ifdef HAVE_VULKAN
 #include "vk.h"
 #endif
 
@@ -55,7 +55,7 @@ struct MaterialVertex
   glm::vec3 normal;
   glm::i32 material;
 
-#ifdef HAVE_LIBVULKAN
+#ifdef HAVE_VULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(MaterialVertex), vk::VertexInputRate::eVertex);
@@ -85,7 +85,7 @@ struct ColorVertex
   glm::i32 material;
   glm::vec4 color;
 
-#ifdef HAVE_LIBVULKAN
+#ifdef HAVE_VULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(ColorVertex), vk::VertexInputRate::eVertex);
@@ -116,7 +116,7 @@ struct PointVertex
   glm::f32 width;
   glm::i32 material;
 
-#ifdef HAVE_LIBVULKAN
+#ifdef HAVE_VULKAN
   static vk::VertexInputBindingDescription getBindingDescription()
   {
     return vk::VertexInputBindingDescription(0, sizeof(PointVertex), vk::VertexInputRate::eVertex);

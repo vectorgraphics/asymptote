@@ -7,7 +7,9 @@
 #ifdef HAVE_LIBGL
 
 #include "backports/glew/include/GL/glew.h"
+#ifndef __APPLE__
 #include "backports/glew/include/GL/glxew.h"
+#endif
 
 #ifdef HAVE_LIBOSMESA
 #define GLEW_OSMESA
