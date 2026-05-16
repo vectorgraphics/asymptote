@@ -151,6 +151,12 @@ AC_SUBST(docdir)
 
 sysdir=$Datadir/asymptote
 
+DEFS=""
+OPTIONS="-D_FILE_OFFSET_BITS=64 "
+INCL=""
+LIBS=""
+CPPFLAGS=$CPPFLAGS" -I. "
+
 AC_ARG_ENABLE(texlive-build,
 [AS_HELP_STRING(--enable-texlive-build,
 automatically determine sysdir from kpsewhich)],
@@ -162,9 +168,9 @@ automatically determine sysdir from kpsewhich)],
 AC_ARG_ENABLE(relocatable,
 [AS_HELP_STRING(--enable-relocatable,
 leave ASYMPTOTE_SYSDIR empty so the binary finds its data directory
-relative to its own location at runtime (for portable/staged installs))],
+relative to its own location at runtime (for portable/staged macOS installs))],
 [ if test "x$enableval" = "xyes" ; then
-    sysdir=""
+    OPTIONS=$OPTIONS"-DIS_RELOCATABLE "
   fi
 ])
 
@@ -213,12 +219,6 @@ Define to 1 if you have the `$1` library (-l$1).
 ])
 
 ASYGLVERSION=1.03
-
-DEFS=""
-OPTIONS="-D_FILE_OFFSET_BITS=64 "
-INCL=""
-LIBS=""
-CPPFLAGS=$CPPFLAGS" -I. "
 
 # Checks for libraries.
 #AC_SEARCH_LIBS([lgamma],[m c],,

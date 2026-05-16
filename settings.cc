@@ -111,22 +111,15 @@ mode_t mask;
 // Flag set by --version option to exit after all options are parsed
 static bool showVersion=false;
 
-#if !defined(_WIN32)
-// Returns the share/asymptote directory relative to the running executable,
-// or an empty string if it cannot be determined.
-static string execRelSysdir() {
+// Use the compiled-in sysdir if it exists on disk; otherwise fall back to a
+// path relative to the running executable so that a staged installation works
+// when moved to a different location.
+static string initSysdir() {
+#if defined(__APPLE__) && defined(IS_RELOCATABLE)
   char buf[4096];
-#ifdef __APPLE__
   uint32_t size = (uint32_t)sizeof(buf);
   if (_NSGetExecutablePath(buf, &size) != 0)
     return "";
-#else
-  // Linux: read /proc/self/exe
-  ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
-  if (len < 0)
-    return "";
-  buf[len] = '\0';
-#endif
   string exe(buf);
   // Strip the executable filename to get the bin directory.
   size_t slash = exe.rfind('/');
@@ -137,19 +130,8 @@ static string execRelSysdir() {
   if (slash2 == string::npos)
     return "";
   return exe.substr(0, slash2) + "/share/asymptote";
-}
-#endif // !_WIN32
-
-// Use the compiled-in sysdir if it exists on disk; otherwise fall back to a
-// path relative to the running executable so that a staged installation works
-// when moved to a different location.
-static string initSysdir() {
-  const char *compiled = ASYMPTOTE_SYSDIR;
-#if !defined(_WIN32)
-  if (!compiled || !compiled[0] || access(compiled, F_OK) != 0)
-    return execRelSysdir();
 #endif
-  return compiled ? compiled : "";
+  return ASYMPTOTE_SYSDIR;
 }
 
 string systemDir=initSysdir();
