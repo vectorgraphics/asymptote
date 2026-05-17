@@ -57,7 +57,7 @@ OPENGL_PIC_OBJS = glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o
 
 COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	env genv stm dec errormsg \
-    callable name symbol entry exp newexp stack exithandlers camp.tab lex.yy \
+    callable name symbol entry exp newexp builtin_handlers stack exithandlers camp.tab lex.yy \
 	access virtualfieldaccess absyn record interact fileio \
 	fftw++asy parallel simpson coder coenv impdatum locate asyparser program application \
 	varinit fundec refaccess envcompleter asyprocess constructor array memory \
