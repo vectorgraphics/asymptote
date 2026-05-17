@@ -795,6 +795,12 @@ public:
   types::ty *transAlias(coenv &e);
   types::ty *getAliasType(coenv &e);
 
+  // Custom handlers for the global record `==` / `!=` builtins.  A single
+  // pair of handlers is shared between the two operators; the handler
+  // inspects the callee name to select the appropriate runtime opcode.
+  types::ty *transRecordEq(coenv &e);
+  types::ty *getRecordEqType(coenv &e);
+
 private:
   void reportNonFunction();
 

@@ -666,25 +666,21 @@ void addArrayOps(venv &ve, types::array *t)
   }
 }
 
-void addRecordOps(record* r)
-{
-  assert(r);
-  trans::venv &ve = r->e.ve;
-  auto addOp= [&ve, r](vm::bltin f, ty* result, symbol name, auto&&... formals) {
-    varEntry* fVar=
-            addFunc(ve, f, result, name, std::forward<formal>(formals)...);
-    r->autounravelRegistry.registerAutoUnravel(name, fVar, AutounravelPriority::OFFER);
-  };
-  // operator==
-  addOp(run::boolMemEq, primBoolean(), SYM_EQ, formal(r, SYM(a)),
-        formal(r, SYM(b)));
-  // operator!=
-  addOp(run::boolMemNeq, primBoolean(), SYM_NEQ, formal(r, SYM(a)),
-        formal(r, SYM(b)));
-}
-
 void addOperators(venv &ve)
 {
+  // Global open-signature `==` / `!=`.  When neither operand has a
+  // concrete equality in scope these resolve to the open signature; a
+  // custom call-site handler then enforces record reference-equality
+  // semantics.  Replaces the legacy per-record `addRecordOps` machinery.
+  addOpenBuiltinFunc(ve, run::boolMemEq,
+                     {&absyntax::callExp::transRecordEq,
+                      &absyntax::callExp::getRecordEqType},
+                     primBoolean(), SYM_EQ);
+  addOpenBuiltinFunc(ve, run::boolMemNeq,
+                     {&absyntax::callExp::transRecordEq,
+                      &absyntax::callExp::getRecordEqType},
+                     primBoolean(), SYM_NEQ);
+
   addSimpleOperator(ve,binaryOp<string,plus>,primString(),SYM_PLUS);
 
   addBooleanOps<bool,And>(ve,primBoolean(),SYM_AMPERSAND,booleanArray());
@@ -763,7 +759,6 @@ dummyRecord *createDummyRecord(venv &ve, symbol name)
   dummyRecord *r=new dummyRecord(name);
   vm::vmFrame *f = make_dummyframe(name);
   addConstant(ve, f, r, name);
-  addRecordOps(r);
   return r;
 }
 

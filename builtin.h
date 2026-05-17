@@ -47,7 +47,6 @@ void addOpenBuiltinFunc(venv &ve, vm::bltin runtimeFn,
 
 // Adds standard functions for a newly added types.
 void addArrayOps(venv &ve, types::array *t);
-void addRecordOps(types::record *r);
 
 #ifdef HAVE_LIBGSL
 types::record *getGSLModule();

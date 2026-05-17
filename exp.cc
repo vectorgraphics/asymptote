@@ -1294,6 +1294,120 @@ types::ty *callExp::transAlias(coenv &e)
   return primBoolean();
 }
 
+namespace {
+
+// Find a unique record type that occurs in both `lt` and `rt` (each of which
+// may be a concrete type or an overloaded set).  Returns null on no match or
+// ambiguous match.
+record *commonRecordType(ty *lt, ty *rt)
+{
+  overloaded ltFlat, rtFlat, common;
+  ltFlat.add(lt);
+  rtFlat.add(rt);
+  for (ty *lty : ltFlat.sub) {
+    if (lty->kind != ty_record) continue;
+    for (ty *rty : rtFlat.sub) {
+      if (rty->kind != ty_record) continue;
+      if (equivalent(lty, rty))
+        common.addDistinct(lty);
+    }
+  }
+  ty *resolved = common.simplify();
+  if (!resolved || resolved->kind != ty_record) return nullptr;
+  return dynamic_cast<record *>(resolved);
+}
+
+// Find the unique record type referenced by `t` (which may be overloaded).
+// Returns null if none, or more than one, record type is present.
+record *uniqueRecordType(ty *t)
+{
+  overloaded flat;
+  flat.add(t);
+  record *found = nullptr;
+  for (ty *sub : flat.sub) {
+    if (sub->kind != ty_record) continue;
+    record *r = dynamic_cast<record *>(sub);
+    if (!r) continue;
+    if (found && !equivalent(found, r)) return nullptr;
+    found = r;
+  }
+  return found;
+}
+
+// Validate that the operand expressions of a `==`/`!=` call resolve to a
+// common record type, with null allowed on at most one side.  Returns the
+// target record type on success, or null on failure (without emitting a
+// diagnostic, so the caller can decide whether and how to report the error).
+record *resolveRecordEqTarget(exp *left, exp *right, coenv &e)
+{
+  types::ty *lt = left->getType(e);
+  types::ty *rt = right->getType(e);
+
+  if (lt->kind == ty_error || rt->kind == ty_error) return nullptr;
+
+  if (lt->kind == ty_null && rt->kind == ty_null) return nullptr;
+  if (lt->kind == ty_null) return uniqueRecordType(rt);
+  if (rt->kind == ty_null) return uniqueRecordType(lt);
+  return commonRecordType(lt, rt);
+}
+
+} // namespace
+
+types::ty *callExp::getRecordEqType(coenv &e)
+{
+  // Return primBoolean() only when the operands can actually be reduced to a
+  // record comparison; otherwise return ty_error so that equalityExp::trans
+  // can fall through to its function-equality special case (and so that any
+  // other "no matching == for these types" diagnostic propagates correctly).
+  if (args->rest.val || args->size() != 2) return primError();
+  return resolveRecordEqTarget((*args)[0].val, (*args)[1].val, e)
+         ? primBoolean() : primError();
+}
+
+types::ty *callExp::transRecordEq(coenv &e)
+{
+  // Invoked when `==` or `!=` resolves to the open-signature builtin (i.e.
+  // when no concrete equality is in scope for the operand types).  Apply
+  // record reference-equality semantics, allowing null on at most one side.
+  cachedApp = 0;
+  cachedVarEntry = 0;
+
+  symbol op = callee->getName();
+  bool isEq = (op == SYM_EQ);
+  assert(isEq || op == SYM_NEQ);
+
+  if (args->rest.val || args->size() != 2) {
+    em.error(getPos());
+    em << "'" << op << "' takes exactly two operands";
+    return primError();
+  }
+
+  exp *left = (*args)[0].val;
+  exp *right = (*args)[1].val;
+
+  // Surface argument errors first.
+  types::ty *lt = left->getType(e);
+  types::ty *rt = right->getType(e);
+  if (lt->kind == ty_error || rt->kind == ty_error) {
+    reportArgErrors(e);
+    return primError();
+  }
+
+  record *target = resolveRecordEqTarget(left, right, e);
+  if (!target) {
+    em.error(getPos());
+    em << "no matching '" << op << "' for these operand types";
+    return primError();
+  }
+
+  // Emit the comparison.
+  left->transToType(e, target);
+  right->transToType(e, target);
+  e.c.encode(inst::builtin, isEq ? run::boolMemEq : run::boolMemNeq);
+
+  return primBoolean();
+}
+
 types::ty *callExp::trans(coenv &e)
 {
   // Resolve the callee if not already cached.
