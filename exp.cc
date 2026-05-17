@@ -1213,7 +1213,7 @@ types::ty *callExp::transAlias(coenv &e)
   } else {
     // Both non-null: find the intersection of concrete types from lt and rt.
     // This handles overloaded variable names (same name, multiple types in
-    // scope) — e.g., alias(c, f) where c is overloaded{B, real(real)} and
+    // scope) --- e.g., alias(c, f) where c is overloaded{B, real(real)} and
     // f is real(real) resolves unambiguously to real(real).
     overloaded ltFlat, rtFlat, common;
     ltFlat.add(lt);  // flattens overloaded; no-op for concrete types

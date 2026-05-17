@@ -477,7 +477,8 @@ void AsyRender::windowposition(int& x, int& y, int width, int height)
  */
 void AsyRender::fullscreen(bool reposition)
 {
-  // screenWidth/screenHeight are already physical pixels — fullscreen fills them directly.
+  // screenWidth/screenHeight are already physical pixels --- fullscreen fills
+  // them directly.
   Xfactor = Yfactor = 1.0;
   setsize(screenWidth, screenHeight, reposition);
 }
