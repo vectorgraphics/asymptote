@@ -774,12 +774,28 @@ private:
   void reportMismatch(types::function *ft,
                       types::signature *source);
 
-  bool isAliasCall() const;
   bool resolvedToOpenSignature() const;
   types::ty *getTypeRegular(coenv &e);
-  types::ty *getAliasType(coenv &e);
-  types::ty *transAlias(coenv &e);
 
+public:
+  // Handlers for a builtin whose call-site translation and type inference are
+  // performed by custom code (rather than by emitting a bltin access on a
+  // concrete signature).  Both fields may be null if the default behaviour is
+  // desired.  `trans` is invoked from callExp::trans after argument resolution
+  // has determined that the call resolves to an open-signature function whose
+  // name matches an entry in the side table; it is responsible for emitting
+  // the runtime call.  `getType` is invoked from callExp::getType in the same
+  // situation and returns the inferred result type of the call.
+  struct CustomHandlers {
+    types::ty *(callExp::*trans)(coenv&) = nullptr;
+    types::ty *(callExp::*getType)(coenv&) = nullptr;
+  };
+
+  // Custom handlers for the `alias` builtin.
+  types::ty *transAlias(coenv &e);
+  types::ty *getAliasType(coenv &e);
+
+private:
   void reportNonFunction();
 
   // Caches either the application object used to apply the function to the
@@ -902,6 +918,24 @@ public:
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
+
+// Register custom translation / type-inference handlers for a callable whose
+// name matches `name` and which resolves to an open signature.  The handlers
+// are consulted only after argument resolution has selected an open-signature
+// function with that name, so the table is irrelevant for the overwhelming
+// majority of calls (which resolve to concrete signatures).
+// Asserts that `name` is not already registered.
+//
+// Note: the table is keyed by symbol rather than by varEntry* because the
+// overload resolver (`application::match`) discards varEntry information
+// while it works on `function*` types.  Gating on resolvedToOpenSignature()
+// makes the symbol-keyed lookup equivalent to a varEntry-keyed lookup for
+// the intended use case --- each registered name corresponds to a single
+// open-signature builtin.
+void registerCustomHandlers(symbol name, callExp::CustomHandlers h);
+
+// Returns null if no handlers are registered for `name`.
+const callExp::CustomHandlers *lookupCustomHandlers(symbol name);
 
 class nullaryExp : public callExp {
 public:

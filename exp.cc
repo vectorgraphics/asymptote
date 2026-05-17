@@ -933,8 +933,6 @@ bool hasNamedParameters(signature *sig) {
 
 namespace {
 
-const symbol SYM_ALIAS = symbol::trans("alias");
-
 bltin aliasCompareBuiltin(ty *target)
 {
   switch (target->kind) {
@@ -1007,9 +1005,47 @@ void callExp::reportNonFunction() {
     em << "called expression is not a function";
 }
 
-bool callExp::isAliasCall() const
+namespace {
+
+// Symbol-keyed side table of custom call-site handlers.  See the comment on
+// registerCustomHandlers() in exp.h.
+struct symbolHash {
+  size_t operator()(symbol s) const { return s.hash(); }
+};
+struct symbolEq {
+  bool operator()(symbol s, symbol t) const { return s == t; }
+};
+using HandlerMap =
+  mem::unordered_map<symbol, callExp::CustomHandlers, symbolHash, symbolEq>;
+
+HandlerMap &customHandlersTable()
 {
-  return callee->getName() == SYM_ALIAS;
+  static HandlerMap table;
+  return table;
+}
+
+} // namespace
+
+void registerCustomHandlers(symbol name, callExp::CustomHandlers h)
+{
+  // Idempotent: base_venv() may run more than once over the lifetime of the
+  // process (e.g. once for the per-process genv and once for runtime
+  // initialization).  Subsequent calls must register the same handlers.
+  HandlerMap &table = customHandlersTable();
+  auto it = table.find(name);
+  if (it != table.end()) {
+    assert(it->second.trans == h.trans && it->second.getType == h.getType);
+    return;
+  }
+  table[name] = h;
+}
+
+const callExp::CustomHandlers *lookupCustomHandlers(symbol name)
+{
+  if (!name) return nullptr;
+  HandlerMap &table = customHandlersTable();
+  auto it = table.find(name);
+  return it == table.end() ? nullptr : &it->second;
 }
 
 bool callExp::resolvedToOpenSignature() const
@@ -1155,14 +1191,11 @@ types::ty *callExp::getTypeRegular(coenv &e)
   return cacheAppOrVarEntry(e, true);
 }
 
-types::ty *callExp::getAliasType(coenv &e)
+types::ty *callExp::getAliasType(coenv &)
 {
-  types::ty *t = getTypeRegular(e);
-  assert(t);
-
-  if (t->kind != ty_error && !resolvedToOpenSignature())
-    return t;
-
+  // Invoked from callExp::getType only after open-signature resolution has
+  // already been confirmed by the dispatch wrapper, so we simply return the
+  // alias result type.
   return primBoolean();
 }
 
@@ -1267,10 +1300,16 @@ types::ty *callExp::trans(coenv &e)
   if (cachedVarEntry == 0 && cachedApp == 0)
     cacheAppOrVarEntry(e, false);
 
-  // If this is an alias call that resolved to the open-signature builtin,
-  // apply the strict same-type nullable semantics.
-  if (isAliasCall() && resolvedToOpenSignature())
-    return transAlias(e);
+  // If the call resolved to an open-signature builtin with a registered
+  // custom-translation handler, dispatch to that handler.  The side-table
+  // lookup is gated on resolvedToOpenSignature() so the common case
+  // (concrete-signature resolution) pays nothing.
+  if (resolvedToOpenSignature()) {
+    if (const CustomHandlers *h = lookupCustomHandlers(callee->getName())) {
+      if (h->trans)
+        return (this->*(h->trans))(e);
+    }
+  }
 
   if (cachedVarEntry)
     return transPerfectMatch(e);
@@ -1303,8 +1342,18 @@ types::ty *callExp::trans(coenv &e)
 
 types::ty *callExp::getType(coenv &e)
 {
-  if (isAliasCall())
-    return getAliasType(e);
+  // Check whether the name has a registered custom handler.  We perform the
+  // regular resolution first to determine whether the call actually resolved
+  // to an open signature (the case in which the custom handler applies).
+  symbol name = callee->getName();
+  const CustomHandlers *h = lookupCustomHandlers(name);
+  if (h && h->getType) {
+    types::ty *t = getTypeRegular(e);
+    assert(t);
+    if (t->kind != ty_error && !resolvedToOpenSignature())
+      return t;
+    return (this->*(h->getType))(e);
+  }
 
   return getTypeRegular(e);
 }

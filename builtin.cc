@@ -188,6 +188,14 @@ void addOpenFunc(venv &ve, bltin f, ty *result, symbol name)
   ve.enter(name, ent);
 }
 
+void addOpenBuiltinFunc(venv &ve, bltin runtimeFn,
+                        absyntax::callExp::CustomHandlers handlers,
+                        ty *result, symbol name)
+{
+  addOpenFunc(ve, runtimeFn, result, name);
+  absyntax::registerCustomHandlers(name, handlers);
+}
+
 
 // Add a rest function with zero or more default/explicit arguments.
 void addRestFunc(venv &ve, bltin f, ty *result, symbol name, formal frest,
@@ -887,7 +895,10 @@ void base_venv(venv &ve)
   addOpenFunc(ve, openFunc, primInt(), SYM(openFunc));
 #endif
 
-  addOpenFunc(ve, run::boolMemEq, primBoolean(), SYM(alias));
+  addOpenBuiltinFunc(ve, run::boolMemEq,
+                     {&absyntax::callExp::transAlias,
+                      &absyntax::callExp::getAliasType},
+                     primBoolean(), SYM(alias));
   addOpenFunc(ve, printBytecode, primVoid(), SYM(printBytecode));
 
   gen_runtime_venv(ve);
