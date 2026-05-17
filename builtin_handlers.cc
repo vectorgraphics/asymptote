@@ -18,6 +18,9 @@
 #include "application.h"
 #include "inst.h"
 #include "opsymbols.h"
+#include "access.h"
+#include "callable.h"
+#include "stack.h"
 
 namespace absyntax {
 
@@ -50,6 +53,40 @@ bltin aliasNullBuiltin(ty *target)
       return run::boolMemEqNull;
   }
 }
+
+// Tests whether `target` has the function signature `bool(R, R)` with R a
+// concrete record type and no defaults / rest / open formals.  Returns the
+// record type on success, nullptr otherwise.
+record *recordEqTarget(ty *target)
+{
+  function *ft = dynamic_cast<function *>(target);
+  if (!ft) return nullptr;
+  if (!equivalent(ft->getResult(), primBoolean())) return nullptr;
+  signature *sig = ft->getSignature();
+  if (!sig || sig->isOpen || sig->hasRest()) return nullptr;
+  if (sig->getNumFormals() != 2) return nullptr;
+  types::ty *t0 = sig->getFormal(0).t;
+  types::ty *t1 = sig->getFormal(1).t;
+  if (!t0 || t0->kind != ty_record) return nullptr;
+  if (!equivalent(t0, t1)) return nullptr;
+  return dynamic_cast<record *>(t0);
+}
+
+} // namespace
+
+trans::access *specializeRecordEq(ty *target)
+{
+  if (!recordEqTarget(target)) return nullptr;
+  return new trans::callableAccess(new vm::bfunc(run::boolMemEq));
+}
+
+trans::access *specializeRecordNeq(ty *target)
+{
+  if (!recordEqTarget(target)) return nullptr;
+  return new trans::callableAccess(new vm::bfunc(run::boolMemNeq));
+}
+
+namespace {
 
 // Symbol-keyed side table of custom call-site handlers.  See the comment on
 // registerCustomHandlers() in exp.h.

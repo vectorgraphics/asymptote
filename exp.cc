@@ -69,6 +69,11 @@ void exp::transToType(coenv &e, types::ty *target)
 
   types::ty *source = e.e.castSource(target, ct, symbol::castsym);
   if (source==0) {
+    // Last resort: subclasses may know how to specialize themselves to the
+    // target (e.g. nameExp pointing at an open-signature builtin with a
+    // `specialize` hook in its CustomHandlers).
+    if (target->kind != ty_error && tryAlternateTransToType(e, target))
+      return;
     if (target->kind != ty_error) {
       types::ty *sources=cgetType(e);
       em.error(getPos());
@@ -192,6 +197,20 @@ void nameExp::prettyprint(ostream &out, Int indent)
 
   value->prettyprint(out, indent+1);
 }
+
+bool nameExp::tryAlternateTransToType(coenv &e, types::ty *target)
+{
+  symbol id = value->getName();
+  if (!id) return false;
+  const callExp::CustomHandlers *h = lookupCustomHandlers(id);
+  if (!h || !h->specialize) return false;
+  trans::access *a = h->specialize(target);
+  if (!a) return false;
+  a->encode(trans::READ, getPos(), e.c);
+  ct = 0;
+  return true;
+}
+
 exp *nameExp::evaluate(coenv &e, types::ty *target) {
   // Names have no side effects unless an implicit cast is needed.
   if (equivalent(target, cgetType(e))) {

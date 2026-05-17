@@ -674,11 +674,13 @@ void addOperators(venv &ve)
   // semantics.  Replaces the legacy per-record `addRecordOps` machinery.
   addOpenBuiltinFunc(ve, run::boolMemEq,
                      {&absyntax::callExp::transRecordEq,
-                      &absyntax::callExp::getRecordEqType},
+                      &absyntax::callExp::getRecordEqType,
+                      &absyntax::specializeRecordEq},
                      primBoolean(), SYM_EQ);
   addOpenBuiltinFunc(ve, run::boolMemNeq,
                      {&absyntax::callExp::transRecordEq,
-                      &absyntax::callExp::getRecordEqType},
+                      &absyntax::callExp::getRecordEqType,
+                      &absyntax::specializeRecordNeq},
                      primBoolean(), SYM_NEQ);
 
   addSimpleOperator(ve,binaryOp<string,plus>,primString(),SYM_PLUS);
