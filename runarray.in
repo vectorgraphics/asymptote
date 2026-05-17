@@ -902,12 +902,12 @@ callable* :arrayDelete(array *a)
   return new thunk(new bfunc(arrayDeleteHelper),a);
 }
 
-bool :boolArrayEq(array *a, array *b)
+bool :arrayAlias(array *a, array *b)
 {
   return a==b;
 }
 
-bool :boolArrayEqNull(array *a)
+bool :arrayAliasNull(array *a)
 {
   return a==nullptr;
 }

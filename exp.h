@@ -777,7 +777,6 @@ private:
   bool isAliasCall() const;
   bool resolvedToOpenSignature() const;
   types::ty *getTypeRegular(coenv &e);
-  types::ty *transRegular(coenv &e);
   types::ty *getAliasType(coenv &e);
   types::ty *transAlias(coenv &e);
 

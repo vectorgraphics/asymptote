@@ -934,98 +934,12 @@ bool hasNamedParameters(signature *sig) {
 namespace {
 
 const symbol SYM_ALIAS = symbol::trans("alias");
-const symbol SYM_A = symbol::trans("a");
-const symbol SYM_B = symbol::trans("b");
-
-bool isConcreteAliasTarget(ty *target)
-{
-  return target &&
-    target->kind != ty_error &&
-    target->kind != ty_null &&
-    target->isReference() &&
-    !target->isOverloaded();
-}
-
-void addAliasTarget(overloaded *targets, ty *target)
-{
-  if (isConcreteAliasTarget(target))
-    targets->addDistinct(target, true);
-}
-
-void collectAliasCastTargets(ty *casts, ty *source, overloaded *targets)
-{
-  if (!casts)
-    return;
-
-  if (overloaded *o = dynamic_cast<overloaded *>(casts)) {
-    for (ty_iterator i = o->begin(); i != o->end(); ++i)
-      collectAliasCastTargets(*i, source, targets);
-    return;
-  }
-
-  function *ft = dynamic_cast<function *>(casts);
-  if (!ft)
-    return;
-
-  const signature *sig = ft->getSignature();
-  if (!sig || sig->isOpen || sig->hasRest() || sig->formals.size() != 1)
-    return;
-
-  if (equivalent(sig->getFormal(0).t, source))
-    addAliasTarget(targets, ft->getResult());
-}
-
-overloaded *collectAliasTargets(env &e, ty *source)
-{
-  overloaded *targets = new overloaded;
-
-  if (!source || source->kind == ty_error || source->kind == ty_null)
-    return targets;
-
-  if (overloaded *o = dynamic_cast<overloaded *>(source)) {
-    for (ty_iterator i = o->begin(); i != o->end(); ++i) {
-      overloaded *subTargets = collectAliasTargets(e, *i);
-      for (ty_iterator j = subTargets->begin(); j != subTargets->end(); ++j)
-        targets->addDistinct(*j);
-    }
-    return targets;
-  }
-
-  addAliasTarget(targets, source);
-  collectAliasCastTargets(e.varGetType(symbol::castsym), source, targets);
-
-  return targets;
-}
-
-overloaded *intersectAliasTargets(overloaded *left, overloaded *right)
-{
-  overloaded *common = new overloaded;
-
-  for (ty_iterator i = left->begin(); i != left->end(); ++i)
-    for (ty_iterator j = right->begin(); j != right->end(); ++j)
-      if (equivalent(*i, *j))
-        common->addDistinct(*i);
-
-  return common;
-}
-
-overloaded *buildAliasCandidates(overloaded *targets)
-{
-  overloaded *candidates = new overloaded;
-
-  for (ty_iterator i = targets->begin(); i != targets->end(); ++i)
-    candidates->addDistinct(
-      new function(primBoolean(), formal(*i, SYM_A), formal(*i, SYM_B))
-    );
-
-  return candidates;
-}
 
 bltin aliasCompareBuiltin(ty *target)
 {
   switch (target->kind) {
     case ty_array:
-      return run::boolArrayEq;
+      return run::arrayAlias;
     case ty_function:
       return run::boolFuncEq;
     default:
@@ -1037,7 +951,7 @@ bltin aliasNullBuiltin(ty *target)
 {
   switch (target->kind) {
     case ty_array:
-      return run::boolArrayEqNull;
+      return run::arrayAliasNull;
     case ty_function:
       return run::boolFuncEqNull;
     default:
@@ -1227,39 +1141,7 @@ types::ty *callExp::transPerfectMatch(coenv &e) {
   return ct ? ct : dynamic_cast<function *>(ve->getType())->getResult();
 }
 
-types::ty *callExp::transRegular(coenv &e)
-{
-  if (cachedVarEntry == 0 && cachedApp == 0)
-    cacheAppOrVarEntry(e, false);
 
-  if (cachedVarEntry)
-    return transPerfectMatch(e);
-
-  // The cached data is no longer needed after translation, so let it be
-  // garbage collected.
-  application *a = cachedApp;
-  cachedApp=0;
-
-  if (!a) {
-    reportArgErrors(e);
-    return primError();
-  }
-
-  // To simulate left-to-right order of evaluation, produce the
-  // side-effects for the callee.
-  assert(a);
-  function *t=a->getType();
-  assert(t);
-  exp *temp=callee->evaluate(e, t);
-
-  // Let the application handle the argument translation.
-  a->transArgs(e);
-
-  // Translate the call.
-  temp->transCall(e, t);
-
-  return t->result;
-}
 
 types::ty *callExp::getTypeRegular(coenv &e)
 {
@@ -1286,21 +1168,10 @@ types::ty *callExp::getAliasType(coenv &e)
 
 types::ty *callExp::transAlias(coenv &e)
 {
-  types::ty *t = getTypeRegular(e);
-  assert(t);
-
-  if (t->kind != ty_error && !resolvedToOpenSignature())
-    return transRegular(e);
-
+  // Called only when the alias builtin (OPEN signature) has been resolved.
+  // Apply strict same-type, nullable semantics.
   cachedApp = 0;
   cachedVarEntry = 0;
-
-  bool searchable;
-  signature *source = argTypes(e, &searchable);
-  if (!source) {
-    reportArgErrors(e);
-    return primError();
-  }
 
   if (args->rest.val || args->size() != 2) {
     em.error(getPos());
@@ -1319,60 +1190,115 @@ types::ty *callExp::transAlias(coenv &e)
   }
 
   if (lt->kind == ty_null && rt->kind == ty_null) {
-    e.c.encode(inst::constpush, (item)true);
-    return primBoolean();
-  }
-
-  overloaded *leftTargets = lt->kind == ty_null ? nullptr : collectAliasTargets(e.e, lt);
-  overloaded *rightTargets = rt->kind == ty_null ? nullptr : collectAliasTargets(e.e, rt);
-
-  overloaded *commonTargets = nullptr;
-  if (lt->kind == ty_null)
-    commonTargets = rightTargets;
-  else if (rt->kind == ty_null)
-    commonTargets = leftTargets;
-  else
-    commonTargets = intersectAliasTargets(leftTargets, rightTargets);
-
-  if (!commonTargets || commonTargets->sub.empty()) {
     em.error(getPos());
-    em << "alias arguments must be nullable or implicitly castable to a common nullable type";
+    em << "alias is not defined when both arguments are null literals";
     return primError();
   }
 
-  overloaded *candidates = buildAliasCandidates(commonTargets);
-  application *app = resolve(e, candidates, source, false);
-  if (!app)
+  ty *target;
+  if (lt->kind == ty_null) {
+    target = rt;
+    if (target->isOverloaded()) {
+      em.error(getPos());
+      em << "alias: argument type is ambiguous";
+      return primError();
+    }
+  } else if (rt->kind == ty_null) {
+    target = lt;
+    if (target->isOverloaded()) {
+      em.error(getPos());
+      em << "alias: argument type is ambiguous";
+      return primError();
+    }
+  } else {
+    // Both non-null: find the intersection of concrete types from lt and rt.
+    // This handles overloaded variable names (same name, multiple types in
+    // scope) — e.g., alias(c, f) where c is overloaded{B, real(real)} and
+    // f is real(real) resolves unambiguously to real(real).
+    overloaded ltFlat, rtFlat, common;
+    ltFlat.add(lt);  // flattens overloaded; no-op for concrete types
+    rtFlat.add(rt);
+    for (ty *lty : ltFlat.sub)
+      for (ty *rty : rtFlat.sub)
+        if (equivalent(lty, rty))
+          common.addDistinct(lty);
+
+    ty *resolved = common.simplify();
+    if (!resolved) {
+      em.error(getPos());
+      em << "alias requires both arguments to have the same type";
+      return primError();
+    }
+    if (resolved->kind == ty_overloaded) {
+      em.error(getPos());
+      em << "alias: argument type is ambiguous";
+      return primError();
+    }
+    target = resolved;
+  }
+
+  if (!target->isReference() || target->kind == ty_null) {
+    em.error(getPos());
+    em << "alias requires arguments of a nullable type";
     return primError();
+  }
 
-  function *targetFunction = app->getType();
-  ty *target = targetFunction->getSignature()->getFormal(0).t;
-
+  // Emit the comparison.  Use transToType to handle overloaded variable
+  // types (where the same name is in scope multiple times); the type
+  // equivalence check above already guarantees no actual cast occurs.
   if (lt->kind == ty_null) {
     right->transToType(e, target);
     e.c.encode(inst::builtin, aliasNullBuiltin(target));
-    return primBoolean();
-  }
-
-  if (rt->kind == ty_null) {
+  } else if (rt->kind == ty_null) {
     left->transToType(e, target);
     e.c.encode(inst::builtin, aliasNullBuiltin(target));
-    return primBoolean();
+  } else {
+    left->transToType(e, target);
+    right->transToType(e, target);
+    e.c.encode(inst::builtin, aliasCompareBuiltin(target));
   }
-
-  left->transToType(e, target);
-  right->transToType(e, target);
-  e.c.encode(inst::builtin, aliasCompareBuiltin(target));
 
   return primBoolean();
 }
 
 types::ty *callExp::trans(coenv &e)
 {
-  if (isAliasCall())
+  // Resolve the callee if not already cached.
+  if (cachedVarEntry == 0 && cachedApp == 0)
+    cacheAppOrVarEntry(e, false);
+
+  // If this is an alias call that resolved to the open-signature builtin,
+  // apply the strict same-type nullable semantics.
+  if (isAliasCall() && resolvedToOpenSignature())
     return transAlias(e);
 
-  return transRegular(e);
+  if (cachedVarEntry)
+    return transPerfectMatch(e);
+
+  // The cached data is no longer needed after translation, so let it be
+  // garbage collected.
+  application *a = cachedApp;
+  cachedApp = 0;
+
+  if (!a) {
+    reportArgErrors(e);
+    return primError();
+  }
+
+  // To simulate left-to-right order of evaluation, produce the
+  // side-effects for the callee.
+  assert(a);
+  function *t = a->getType();
+  assert(t);
+  exp *temp = callee->evaluate(e, t);
+
+  // Let the application handle the argument translation.
+  a->transArgs(e);
+
+  // Translate the call.
+  temp->transCall(e, t);
+
+  return t->result;
 }
 
 types::ty *callExp::getType(coenv &e)
