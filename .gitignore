@@ -138,6 +138,29 @@ _ig_*/*
 .vscode
 .fleet
 .cache/jb
+
+### Python tooling
+venv/
+.hypothesis/
+
+### Shared libraries (built by Makefile.in)
+/libasyopengl.so
+/libasyvulkan.so
+
+### LspCpp in-source CMake build artifacts (Makefile.in: cmake -B$(LSP_ROOT) -S$(LSP_ROOT))
+LspCpp/Makefile
+LspCpp/third_party/ixwebsocket/Makefile
+LspCpp/third_party/ixwebsocket/ixwebsocket-config.cmake
+LspCpp/third_party/ixwebsocket/ixwebsocket.pc
+LspCpp/third_party/uri/Makefile
+LspCpp/third_party/uri/src/Makefile
+
+### Copilot agent working directory
+.copilot_workspace/
+
+### Temporary build/dev artifacts
+tmp/
+
 ### Translation binary files
 *.mo
 
