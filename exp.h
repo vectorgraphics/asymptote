@@ -84,7 +84,7 @@ public:
   // an alternate translation (e.g. specializing an open-signature builtin
   // read as a function value).  Returns true if it produced output, in which
   // case transToType returns successfully without reporting an error.
-  virtual bool tryAlternateTransToType(coenv &, types::ty *) { return false; }
+  virtual bool trySpecializeToType(coenv &, types::ty *) { return false; }
 
   // Translates the expression and returns the resultant type.
   // For some expressions, this will be ambiguous and return an error.
@@ -271,7 +271,7 @@ public:
   // `bool eq(R, R) = operator==;` after `operator==` migrated to a single
   // global open-signature builtin.  Defined in exp.cc since it uses the
   // full definitions of coenv and trans::access.
-  bool tryAlternateTransToType(coenv &e, types::ty *target) override;
+  bool trySpecializeToType(coenv &e, types::ty *target) override;
 
   types::ty *trans(coenv &e) override {
     types::ty *t=cgetType(e);
