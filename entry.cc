@@ -736,7 +736,8 @@ varEntry *venv::lookBySignature(symbol name, signature *sig) {
   return ve;
 }
 
-void venv::add(venv& source, varEntry *qualifier, coder &c)
+void venv::add(venv& source, varEntry *qualifier, coder &c,
+               AutoUnravelRegistry *destRegistry)
 {
   const bool isAutoUnravel = c.isAutoUnravel();
   for (const cell& p : source.core) {
@@ -750,8 +751,8 @@ void venv::add(venv& source, varEntry *qualifier, coder &c)
       }
       varEntry *qve=qualifyVarEntry(qualifier, v);
       enter(p.name, qve);
-      if (isAutoUnravel) {
-        registerAutoUnravel(p.name, qve);
+      if (isAutoUnravel && destRegistry) {
+        destRegistry->registerAutoUnravel(p.name, qve);
       }
     }
   }
@@ -853,8 +854,8 @@ void venv::completions(mem::list<symbol >& l, string start)
       l.push_back(N->first);
 }
 
-void venv::registerAutoUnravel(symbol name, varEntry *v,
-                               AutounravelPriority priority)
+void AutoUnravelRegistry::registerAutoUnravel(symbol name, varEntry *v,
+                                              AutounravelPriority priority)
 {
   mem::pair<symbol, ty*> p = {name, v->getType()};
   if (nonShadowableAutoUnravels.find(p) != nonShadowableAutoUnravels.end()) {

@@ -1,5 +1,21 @@
 cmake_minimum_required(VERSION 3.27)
 
+if (NOT CMAKE_HOST_SYSTEM_PROCESSOR)
+    if (WIN32)
+        if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+            set(CMAKE_HOST_SYSTEM_PROCESSOR "x86_64")
+        else()
+            set(CMAKE_HOST_SYSTEM_PROCESSOR "i386")
+        endif()
+    else()
+        execute_process(COMMAND uname -m OUTPUT_VARIABLE CMAKE_HOST_SYSTEM_PROCESSOR OUTPUT_STRIP_TRAILING_WHITESPACE)
+    endif()
+endif()
+message(STATUS "Host processor: ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+if (NOT CMAKE_SYSTEM_PROCESSOR)
+    set(CMAKE_SYSTEM_PROCESSOR ${CMAKE_HOST_SYSTEM_PROCESSOR})
+endif()
+
 include(cmake-scripts/common.cmake)
 include(asy-pkg-version-suffix.cmake OPTIONAL RESULT_VARIABLE ASY_ADDR_VERSION_SUFFIX_FILE)
 include(cmake-scripts/options.cmake)
@@ -22,7 +38,6 @@ build_files_to_src(CORE_BUILD_FILES CORE_SOURCE_FILES)
 include(cmake-scripts/subrepo-projects.cmake)
 include(cmake-scripts/external-libs.cmake)
 include(cmake-scripts/thirdparty-impl.cmake)
-include(cmake-scripts/backport-libs.cmake)
 
 # PRC
 add_subdirectory(prc/)
@@ -58,13 +73,24 @@ target_link_libraries(asycore PUBLIC ${ASY_STATIC_LIBRARIES})
 target_compile_definitions(asycore PUBLIC ${ASY_MACROS})
 target_compile_options(asycore PUBLIC ${ASY_COMPILE_OPTS})
 
-# asy executable
+# CTAN variant of settings.cc: compiled separately with ASYMPTOTE_SYSDIR=""
+# and CTAN_BUILD defined.  The normal asy.exe uses the settings.cc already
+# compiled into asycore (with ASYMPTOTE_SYSDIR="NUL" on Windows).
+add_library(settings_obj_ctan OBJECT ${ASY_SRC_DIR}/settings.cc)
+target_link_libraries(settings_obj_ctan PRIVATE asycore)
+target_compile_definitions(settings_obj_ctan PRIVATE ASYMPTOTE_SYSDIR="" CTAN_BUILD)
+target_compile_options(settings_obj_ctan PRIVATE ${ASY_COMPILE_OPTS})
 
+# asy executable (normal installer build, uses settings from asycore)
 add_executable(
         asy ${ASY_SRC_DIR}/main.cc ${ASY_WIN_RC_FILE}
 )
 
 target_link_libraries(asy PUBLIC asycore)
+
+# asy-ctan executable (CTAN/TexLive build with ASYMPTOTE_SYSDIR="")
+add_executable(asy-ctan ${ASY_SRC_DIR}/main.cc ${ASY_WIN_RC_FILE} $<TARGET_OBJECTS:settings_obj_ctan>)
+target_link_libraries(asy-ctan PUBLIC asycore)
 
 # base files
 include(cmake-scripts/asy-base-files.cmake)
@@ -100,7 +126,5 @@ if (WIN32)
     include(cmake-scripts/win32-pre-nsis-installer.cmake)
 else()
     # on unix systems
-    if (NOT CTAN_BUILD)
-        include(cmake-scripts/linux-install.cmake)
-    endif()
+    include(cmake-scripts/linux-install.cmake)
 endif()

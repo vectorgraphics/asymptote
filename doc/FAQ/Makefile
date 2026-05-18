@@ -20,7 +20,8 @@ maintainer-clean: FORCE cleanest
 
 install-all: install
 
-install: faq install-prebuilt
+install: faq
+	$(MAKE) install-prebuilt
 	${INSTALL} -d -m 755 $(docdir) $(docdir)/asy-faq.html
 	${INSTALL} -p -m 644 asy-faq.ascii $(docdir)
 	${INSTALL} -p -m 644 asy-faq.html/* $(docdir)/asy-faq.html

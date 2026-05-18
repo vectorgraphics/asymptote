@@ -369,6 +369,27 @@ enum class AutounravelPriority {
   FORCE,
 };
 
+// Stores the list of variables that should be automatically unraveled whenever
+// the containing record becomes available as a type.  Belongs to a record, not
+// to any other scope.
+class AutoUnravelRegistry {
+  mem::list<mem::pair<symbol, varEntry *>> autoUnravels;
+  mem::unordered_map<mem::pair<symbol, ty*>,
+                     std::nullptr_t,
+                     SigHash,
+                     SigEquiv> nonShadowableAutoUnravels;
+public:
+  void registerAutoUnravel(
+    symbol name,
+    varEntry *v,
+    AutounravelPriority priority=AutounravelPriority::FORCE
+  );
+
+  const mem::list<mem::pair<symbol, varEntry *>>& getAutoUnravels() const {
+    return autoUnravels;
+  }
+};
+
 // venv implemented with a hash table.
 class venv {
   // A hash table used to quickly look up a variable once its name and type are
@@ -386,14 +407,6 @@ class venv {
   };
   typedef mem::stack<addition> addstack;
   addstack additions;
-
-  // A list of variables that need to be unraveled whenever the containing
-  // record (if any) becomes available.
-  mem::list<mem::pair<symbol, varEntry *>> autoUnravels;
-  mem::unordered_map<mem::pair<symbol, ty*>,
-                     std::nullptr_t,
-                     SigHash,
-                     SigEquiv> nonShadowableAutoUnravels;
 
   // A scope can be recorded by the size of the addition stack at the time the
   // scope began.
@@ -473,8 +486,10 @@ public:
   // Add the entries in one environment to another, if qualifier is
   // non-null, it is a record and entries of the source environment are its
   // fields.  The coder is necessary to check which variables are accessible and
-  // should be added.
-  void add(venv& source, varEntry *qualifier, coder &c);
+  // should be added.  If destRegistry is non-null and c.isAutoUnravel(), newly
+  // added entries are registered in destRegistry as autounravel entries.
+  void add(venv& source, varEntry *qualifier, coder &c,
+           AutoUnravelRegistry *destRegistry=nullptr);
 
   // Add all unshadowed variables from source of the name src as variables
   // named dest.  Returns true if at least one was added.
@@ -516,16 +531,6 @@ public:
 
   // Adds to l, all names prefixed by start.
   void completions(mem::list<symbol>& l, string start);
-
-  void registerAutoUnravel(
-    symbol name,
-    varEntry *v,
-    AutounravelPriority priority=AutounravelPriority::FORCE
-  );
-
-  const mem::list<mem::pair<symbol, varEntry *>>& getAutoUnravels() {
-    return autoUnravels;
-  }
 };
 
 } // namespace trans

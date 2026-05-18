@@ -20,3 +20,15 @@ set_property(
         APPEND
         PROPERTY ADDITIONAL_CLEAN_FILES ${ASY_ASYLANG_TEST_SCRATCH_DIR}
 )
+
+add_test(
+        NAME bundled.asy.collections_errors
+        COMMAND ${PY3_INTERPRETER} ${ASY_ASYLANG_TEST_ROOT}/test_collections_errors.py
+            --asy $<TARGET_FILE:asy>
+            --asy-base-dir=${ASY_BUILD_BASE_DIR}
+        WORKING_DIRECTORY ${ASY_ASYLANG_TEST_ROOT}
+)
+set_property(
+        TEST bundled.asy.collections_errors
+        PROPERTY LABELS asy-check-tests
+)

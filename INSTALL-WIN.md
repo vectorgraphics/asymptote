@@ -172,7 +172,7 @@ python.exe -m virtualenv asyguibuild
 
 cd <asymptote-repo>/GUI
 pip install -r requirements.txt
-pip install -r requirements.dev.txt
+pip install -r requirements-dev.txt
 ```
 
 However, against our recommendations, the dependencies can be also installed into the system interpreter.

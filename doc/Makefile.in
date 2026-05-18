@@ -30,7 +30,7 @@ doc:	$(DOCFILES) asy.1 faq
 manpage: $(MANFILES)
 
 man:	$(DOCFILES) manpage
-	cd png && $(MAKE) asymptote.info
+	# cd png && $(MAKE) asymptote.info
 
 faq:
 	cd FAQ && $(MAKE) faq
@@ -50,7 +50,7 @@ latexusage.pdf: latexusage.tex asymptote.sty
 	pdflatex latexusage
 
 options: ../settings.cc
-	$(ASY) -h 2>&1 | grep -iv Asymptote > options
+	$(ASY) -h 2>&1 | tail -n +3 > options
 
 asy.1: options asy.1.begin asy.1.end
 	cat options | grep \^- | \
