@@ -20,16 +20,13 @@ IS_DARWIN=no
 case "$host_os" in
     darwin*)
       IS_DARWIN=yes
-         MACOS_UNIVERSAL=yes
-         MACOS_MIN_VERSION=12.0
+      MACOS_MIN_VERSION=12.0
     ;;
 esac
 
 AC_ARG_ENABLE(macos-universal,
 [AS_HELP_STRING(--enable-macos-universal[[[=yes]]],build universal (x86_64+arm64) binaries on macOS)],
-[ if test "x$IS_DARWIN" != "xyes"; then
-      AC_MSG_WARN([--enable-macos-universal is ignored on non-macOS hosts])
-   else
+[ if test "x$IS_DARWIN" = "xyes"; then
       if test "x$enableval" = "xno" ; then
          MACOS_UNIVERSAL=no
       else
@@ -40,12 +37,20 @@ AC_ARG_ENABLE(macos-universal,
 
 AC_ARG_WITH(macos-min-version,
 [AS_HELP_STRING(--with-macos-min-version=VERSION,minimum macOS deployment target (default: 12.0 on macOS))],
-[ if test "x$IS_DARWIN" != "xyes"; then
-      AC_MSG_WARN([--with-macos-min-version is ignored on non-macOS hosts])
-   else
+[ if test "x$IS_DARWIN" = "xyes"; then
       MACOS_MIN_VERSION=$withval
    fi
 ])
+
+AC_ARG_ENABLE(macos-bundling,
+[AS_HELP_STRING(--enable-macos-bundling[[[=yes]]],bundle macOS-specific libraries (e.g., Vulkan) for distribution)],
+[ if test "x$IS_DARWIN" = "xyes"; then
+      MACOS_BUNDLING=$enableval
+   fi
+])
+
+# Default macOS bundling to disabled unless explicitly enabled via --enable-macos-bundling
+MACOS_BUNDLING=${MACOS_BUNDLING:-no}
 
 test "$prefix" = NONE && prefix=/usr/local
 Datadir=$datadir
@@ -553,6 +558,7 @@ esac
 fi
 
 # Check if Vulkan libraries should be bundled (macOS only).
+# Bundling requires --enable-macos-bundling AND Vulkan libraries to be present.
 # Use $host_os (from AC_CANONICAL_HOST) rather than $OSTYPE, which is a
 # bash-ism that may be empty when configure runs as /bin/sh.
 # Check ASY_VULKAN_LIBS rather than $LIBS: CHECK_LIB_STATIC appends -lvulkan
@@ -560,7 +566,7 @@ fi
 BUNDLE_VULKAN=no
 case "$host_os" in
     darwin*)
-        if test "x$ASY_VULKAN_LIBS" != "x"; then
+        if test "x$MACOS_BUNDLING" = "xyes" -a "x$ASY_VULKAN_LIBS" != "x"; then
             BUNDLE_VULKAN=yes
             AC_MSG_NOTICE([Will bundle Vulkan libraries for macOS distribution])
         fi
@@ -671,6 +677,7 @@ AC_SUBST(MACOS_UNIVERSAL)
 AC_SUBST(MACOS_MIN_VERSION)
 AC_SUBST(MACOS_ARCH_FLAGS)
 AC_SUBST(MACOS_DEPLOYMENT_FLAGS)
+AC_SUBST(MACOS_BUNDLING)
 
 # Determine which shim shared libraries (loaded via dlopen at runtime) to
 # build and link the asy binary against. Empty when both renderers are
