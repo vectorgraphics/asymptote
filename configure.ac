@@ -15,6 +15,7 @@ AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
 MACOS_UNIVERSAL=no
+MACOS_BUNDLING=no
 MACOS_MIN_VERSION=
 IS_DARWIN=no
 case "$host_os" in
@@ -25,7 +26,7 @@ case "$host_os" in
 esac
 
 AC_ARG_ENABLE(macos-universal,
-[AS_HELP_STRING(--enable-macos-universal[[[=yes]]],build universal (x86_64+arm64) binaries on macOS)],
+[AS_HELP_STRING(--enable-macos-universal[[[=no]]],build universal (x86_64+arm64) binaries on macOS)],
 [ if test "x$IS_DARWIN" = "xyes"; then
       if test "x$enableval" = "xno" ; then
          MACOS_UNIVERSAL=no
@@ -43,14 +44,11 @@ AC_ARG_WITH(macos-min-version,
 ])
 
 AC_ARG_ENABLE(macos-bundling,
-[AS_HELP_STRING(--enable-macos-bundling[[[=yes]]],bundle macOS-specific libraries (e.g., Vulkan) for distribution)],
+[AS_HELP_STRING(--enable-macos-bundling[[[=no]]],bundle macOS-specific libraries (e.g., Vulkan) for distribution)],
 [ if test "x$IS_DARWIN" = "xyes"; then
       MACOS_BUNDLING=$enableval
    fi
 ])
-
-# Default macOS bundling to disabled unless explicitly enabled via --enable-macos-bundling
-MACOS_BUNDLING=${MACOS_BUNDLING:-no}
 
 test "$prefix" = NONE && prefix=/usr/local
 Datadir=$datadir
@@ -677,7 +675,6 @@ AC_SUBST(MACOS_UNIVERSAL)
 AC_SUBST(MACOS_MIN_VERSION)
 AC_SUBST(MACOS_ARCH_FLAGS)
 AC_SUBST(MACOS_DEPLOYMENT_FLAGS)
-AC_SUBST(MACOS_BUNDLING)
 
 # Determine which shim shared libraries (loaded via dlopen at runtime) to
 # build and link the asy binary against. Empty when both renderers are
