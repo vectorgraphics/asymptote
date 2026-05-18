@@ -1692,7 +1692,7 @@ surface surface(picture pic=currentpicture, triple[][] f, bool[][] cond={},
               Scale(pic,fp[j]),
               Scale(pic,fp[j+1]),
               Scale(pic,fi[j+1])},
-              colors=vertexPens == null ? new pen[] : new pen[] {
+              colors=alias(vertexPens, null) ? new pen[] : new pen[] {
                 vertexPens[i][j],
                 vertexPens[i+1][j],
                 vertexPens[i+1][j+1],
@@ -2028,12 +2028,12 @@ surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
     real x=pic.scale.x.Tinv(interp(a.x,b.x,i*du));
     bool[] activei=all ? null : active[i];
     triple[] vi=v[i];
-    pen[] vertexPensi=vertexPens == null ? null : vertexPens[i];
+    pen[] vertexPensi=(alias(vertexPens, null) ? null : vertexPens[i]);
     for(int j=0; j <= nv; ++j) {
       pair z=(x,pic.scale.y.Tinv(interp(a.y,b.y,j*dv)));
       if(all || (activei[j]=cond(z))) {
         vi[j]=f(z);
-        if(vertexPensi != null) vertexPensi[j]=paramPen(z);
+        if(!alias(vertexPensi, null)) vertexPensi[j]=paramPen(z);
       }
     }
   }
@@ -2044,7 +2044,8 @@ surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
 // and interpolated with usplinetype and vsplinetype.
 surface surface(picture pic=currentpicture, triple f(pair z),
                 real[] u, real[] v, splinetype[] usplinetype,
-                splinetype[] vsplinetype=Spline, bool cond(pair z)=null)
+                splinetype[] vsplinetype=Spline, bool cond(pair z)=null,
+                pen paramPen(pair z)=null)
 {
   int nu=u.length-1;
   int nv=v.length-1;
@@ -2057,7 +2058,11 @@ surface surface(picture pic=currentpicture, triple f(pair z),
   bool[][] active;
   bool all=cond == null;
   if(!all) active=new bool[u.length][v.length];
-
+  pen[][] vertexPens=(paramPen == null ? null : new pen[u.length][v.length]);
+  // Problem: does active[i][j] indicate that a vertex is active, or an edge, or
+  // an entire patch? It is initialized like the last, populated like the first,
+  // and the bispline function seems to treat it like the second.
+  // TODO: Fix the situation with active.
   for(int i=0; i <= nu; ++i) {
     real ui=u[i];
     real[] fxi=fx[i];
@@ -2071,6 +2076,7 @@ surface surface(picture pic=currentpicture, triple f(pair z),
       fxi[j]=f.x;
       fyi[j]=f.y;
       fzi[j]=f.z;
+      if(!alias(vertexPens, null)) vertexPens[i][j]=paramPen(z);
     }
   }
 
@@ -2101,21 +2107,39 @@ surface surface(picture pic=currentpicture, triple f(pair z),
     }
   }
 
-  for(int k=0; k < sx.length; ++k) {
-    triple[][] Q=new triple[4][];
-    real[][] Px=sx[k];
-    real[][] Py=sy[k];
-    real[][] Pz=sz[k];
-    for(int i=0; i < 4 ; ++i) {
-      real[] Pxi=Px[i];
-      real[] Pyi=Py[i];
-      real[] Pzi=Pz[i];
-      Q[i]=new triple[] {(Pxi[0],Pyi[0],Pzi[0]),
-                         (Pxi[1],Pyi[1],Pzi[1]),
-                         (Pxi[2],Pyi[2],Pzi[2]),
-                         (Pxi[3],Pyi[3],Pzi[3])};
+  // TODO: Fix the indexing with k and the situation with active.
+  // (The k indexing may be off when cond is not null.)
+  {
+    int k=0;
+    for(int si=0; si < nu; ++si) {
+      bool[] ai=all ? null : active[si];
+      bool[] aip=all ? null : active[si+1];
+      for(int sj=0; sj < nv; ++sj) {
+        if(all || (ai[sj] && ai[sj+1] && aip[sj] && aip[sj+1])) {
+          triple[][] Q=new triple[4][];
+          real[][] Px=sx[k];
+          real[][] Py=sy[k];
+          real[][] Pz=sz[k];
+          for(int i=0; i < 4 ; ++i) {
+            real[] Pxi=Px[i];
+            real[] Pyi=Py[i];
+            real[] Pzi=Pz[i];
+            Q[i]=new triple[] {(Pxi[0],Pyi[0],Pzi[0]),
+                               (Pxi[1],Pyi[1],Pzi[1]),
+                               (Pxi[2],Pyi[2],Pzi[2]),
+                               (Pxi[3],Pyi[3],Pzi[3])};
+          }
+          s.s[k]=patch(Q,
+                       colors=(alias(vertexPens, null) ? new pen[] : new pen[] {
+                         vertexPens[si][sj],
+                         vertexPens[si+1][sj],
+                         vertexPens[si+1][sj+1],
+                         vertexPens[si][sj+1]
+                       }));
+          ++k;
+        }
+      }
     }
-    s.s[k]=patch(Q);
   }
 
   if(usplinetype[0] == periodic && usplinetype[1] == periodic &&
@@ -2132,11 +2156,11 @@ surface surface(picture pic=currentpicture, triple f(pair z),
 surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
                 int nu=nmesh, int nv=nu,
                 splinetype[] usplinetype, splinetype[] vsplinetype=Spline,
-                bool cond(pair z)=null)
+                bool cond(pair z)=null, pen paramPen(pair z)=null)
 {
   real[] x=uniform(pic.scale.x.T,pic.scale.x.Tinv,a.x,b.x,nu);
   real[] y=uniform(pic.scale.y.T,pic.scale.y.Tinv,a.y,b.y,nv);
-  return surface(pic,f,x,y,usplinetype,vsplinetype,cond);
+  return surface(pic,f,x,y,usplinetype,vsplinetype,cond,paramPen);
 }
 
 // return the surface described by a real function f over box(a,b),
