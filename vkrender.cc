@@ -317,6 +317,15 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
   }
 
   readyForUpdate=true;
+  if(threads && !mainLoopRunning) {
+    // Called from asymain thread during the initial handshake.
+    // Do NOT enter mainLoop() -- glrenderWrapper will start it.
+    resize = true;
+    redraw = true;
+    redisplay = true;
+    remesh = true;
+    return;
+  }
   mainLoop();
 }
 

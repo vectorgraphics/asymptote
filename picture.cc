@@ -1450,6 +1450,15 @@ void glrenderWrapper()
 #endif
   if(allowRender)
     gl->render(args);
+
+  // After the initial render call returns (which does setup but doesn't
+  // enter mainLoop() in threaded mode), start the main event loop.
+#ifdef HAVE_PTHREAD
+  if(AsyRender::threads && gl->View && !gl->mainLoopRunning) {
+    gl->mainLoopRunning = true;
+    gl->mainLoop();
+  }
+#endif
 #endif
 }
 #endif // HAVE_LIBGLM

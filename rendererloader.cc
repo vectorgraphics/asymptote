@@ -27,6 +27,7 @@
 
 extern pthread_mutex_t main_wait_mutex;
 extern pthread_cond_t main_wait_cond;
+extern pthread_t glrenderThreadId;  // Thread running glrenderWrapper() (set in main.cc)
 
 #ifdef _WIN32
 #include "vkrender.h"
@@ -160,7 +161,7 @@ static bool tryLoadVulkanLib()
 
 #ifdef HAVE_PTHREAD
     if (gl)
-        gl->threadMgr.mainthread = pthread_self();
+        gl->threadMgr.mainthread = glrenderThreadId;
 #endif
 
     signalRendererReady();
@@ -229,7 +230,7 @@ static bool tryLoadOpenGLLib()
 
 #ifdef HAVE_PTHREAD
     if (gl)
-        gl->threadMgr.mainthread = pthread_self();
+        gl->threadMgr.mainthread = glrenderThreadId;
 #endif
 
     signalRendererReady();
@@ -334,7 +335,7 @@ static void createWebGLRenderer()
 
 #ifdef HAVE_PTHREAD
     if (gl)
-        gl->threadMgr.mainthread = pthread_self();
+        gl->threadMgr.mainthread = glrenderThreadId;
 #endif
 
     signalRendererReady();
@@ -473,7 +474,7 @@ void createRenderer()
         gl = new camp::AsyVkRender();
 #ifdef HAVE_PTHREAD
         if (gl)
-            gl->threadMgr.mainthread = pthread_self();
+            gl->threadMgr.mainthread = glrenderThreadId;
 #endif
         signalRendererReady();
         vulkan = true;

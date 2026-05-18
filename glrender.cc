@@ -1294,8 +1294,8 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     groupSize = localSize * blockSize;
   }
 
-  glClearColor(args.background[0], args.background[1],
-               args.background[2], args.background[3]);
+  glClearColor(Background[0], Background[1],
+               Background[2], Background[3]);
 
   if(View) {
     if(!getSetting<bool>("fitscreen"))
@@ -1322,6 +1322,16 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     // Process pending resize events from fitscreen() before entering the main loop,
     // so the framebuffer has reached its target size before the first frame renders.
     glfwPollEvents();
+    if(threads && !mainLoopRunning) {
+      // Called from asymain thread during the initial handshake.
+      // Do NOT enter mainLoop() here -- the glrenderWrapper thread will
+      // start it after the handshake completes.  Just mark that setup is done.
+      resize = true;
+      redraw = true;
+      redisplay = true;
+      remesh = true;
+      return;
+    }
     mainLoop();
   } else {
     update();
