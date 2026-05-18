@@ -28,6 +28,7 @@
 # sure to build a universal binary (see instructions above).
 # If you have multiple versions of the Vulkan SDK installed, make sure to use
 # the same version for both the include and lib paths.
+# NOTE: This is usually in a directory called "VulkanSDK", not "vulkan_sdk".
 VULKAN_LIB_DIR="${HOME}/vulkan_sdk/1.4.350.0/macOS/lib"
 VULKAN_INCLUDE_DIR="${HOME}/vulkan_sdk/1.4.350.0/macOS/include"
 GLFW_LIB_DIR="${HOME}/glfw/build/src"
@@ -45,6 +46,9 @@ export PKG_CONFIG_LIBDIR=""
 ./configure CC=clang CXX=clang++ \
    CPPFLAGS="-I${VULKAN_INCLUDE_DIR} -I${GLFW_INCLUDE_DIR}" \
    LDFLAGS="-L${VULKAN_LIB_DIR} -L${GLFW_LIB_DIR} -Wl,-rpath,${VULKAN_LIB_DIR} -Wl,-rpath,${GLFW_LIB_DIR}" \
+   --enable-macos-universal \
+   --enable-macos-bundling \
+   --enable-relocatable \
    --disable-lsp \
    --disable-readline \
    --disable-fftw \
@@ -53,7 +57,6 @@ export PKG_CONFIG_LIBDIR=""
    --disable-curl \
    --disable-xdr \
    --disable-eigen \
-   --enable-relocatable \
    --prefix=${HOME}/asy_vulkan/tmp/staging \
    --with-latex=${HOME}/asy_vulkan/tmp/staging/texmf/tex/latex \
    --with-context=${HOME}/asy_vulkan/tmp/staging/texmf/tex/context

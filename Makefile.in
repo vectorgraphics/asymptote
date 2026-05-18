@@ -564,6 +564,16 @@ check-all: asy FORCE
 glew.o: glew.c config.h
 	$(CC) $(GLEWOPTS) -o $@ -c $<
 
+# glew.c needs its own .d rule because MAKEDEPEND contains -std=c++17 (via
+# PREPROC_OPTS), which clang rejects for C files.  Use GLEWOPTS instead, and
+# strip MACOS_ARCH_FLAGS since clang rejects multiple -arch with -M.
+glew.d: glew.c config.h
+	@echo Creating $@; \
+	rm -f $@; \
+	$(CC) $(filter-out $(MACOS_ARCH_FLAGS),$(GLEWOPTS)) -O0 -M -MG -MP -DDEPEND $< > $@.$$$$ 2>/dev/null && \
+	sed 's,\(glew\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
 .SUFFIXES: .c .cc .o .d .ui .py
 %.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.cc)
 	$(CXX) $(OPTS) -o $@ -c $<
