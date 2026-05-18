@@ -789,7 +789,9 @@ private string nullsurface="null surface";
 
 struct surface {
   patch[] s;
-  int index[][];// Position of patch corresponding to major U,V parameter in s.
+  // Position of patch corresponding to major U,V parameter in s;
+  // -1 if there is no such patch.
+  int index[][];
   bool vcyclic;
   transform3 T=identity4;
 

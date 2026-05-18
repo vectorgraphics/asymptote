@@ -2059,10 +2059,6 @@ surface surface(picture pic=currentpicture, triple f(pair z),
   bool all=cond == null;
   if(!all) active=new bool[u.length][v.length];
   pen[][] vertexPens=(paramPen == null ? null : new pen[u.length][v.length]);
-  // Problem: does active[i][j] indicate that a vertex is active, or an edge, or
-  // an entire patch? It is initialized like the last, populated like the first,
-  // and the bispline function seems to treat it like the second.
-  // TODO: Fix the situation with active.
   for(int i=0; i <= nu; ++i) {
     real ui=u[i];
     real[] fxi=fx[i];
@@ -2099,46 +2095,47 @@ surface surface(picture pic=currentpicture, triple f(pair z),
   surface s=surface(sx.length);
   s.index=new int[nu][nv];
   int k=0;
+  bool[] activeip =(all || active.length == 0) ? null : active[0];
   for(int i=0; i < nu; ++i) {
     int[] indexi=s.index[i];
+    bool[] activei=activeip;
+    if (!all) {
+      activeip = active[i+1];
+    }
     for(int j=0; j < nv; ++j) {
-      indexi[j]=k;
-      ++k;
+      if (all || (activei[j] && activei[j+1] && activeip[j] && activeip[j+1])) {
+        indexi[j]=k;
+        ++k;
+      } else {
+        indexi[j]=-1;
+      }
     }
   }
 
-  // TODO: Fix the indexing with k and the situation with active.
-  // (The k indexing may be off when cond is not null.)
-  {
-    int k=0;
-    for(int si=0; si < nu; ++si) {
-      bool[] ai=all ? null : active[si];
-      bool[] aip=all ? null : active[si+1];
-      for(int sj=0; sj < nv; ++sj) {
-        if(all || (ai[sj] && ai[sj+1] && aip[sj] && aip[sj+1])) {
-          triple[][] Q=new triple[4][];
-          real[][] Px=sx[k];
-          real[][] Py=sy[k];
-          real[][] Pz=sz[k];
-          for(int i=0; i < 4 ; ++i) {
-            real[] Pxi=Px[i];
-            real[] Pyi=Py[i];
-            real[] Pzi=Pz[i];
-            Q[i]=new triple[] {(Pxi[0],Pyi[0],Pzi[0]),
-                               (Pxi[1],Pyi[1],Pzi[1]),
-                               (Pxi[2],Pyi[2],Pzi[2]),
-                               (Pxi[3],Pyi[3],Pzi[3])};
-          }
-          s.s[k]=patch(Q,
-                       colors=(alias(vertexPens, null) ? new pen[] : new pen[] {
-                         vertexPens[si][sj],
-                         vertexPens[si+1][sj],
-                         vertexPens[si+1][sj+1],
-                         vertexPens[si][sj+1]
-                       }));
-          ++k;
-        }
+  for (int i=0; i < nu; ++i) {
+    for (int j=0; j < nv; ++j) {
+      int k=s.index[i][j];
+      if (k == -1) continue;
+      triple[][] Q=new triple[4][];
+      real[][] Px=sx[k];
+      real[][] Py=sy[k];
+      real[][] Pz=sz[k];
+      for(int ii=0; ii < 4 ; ++ii) {
+        real[] Pxi=Px[ii];
+        real[] Pyi=Py[ii];
+        real[] Pzi=Pz[ii];
+        Q[ii]=new triple[] {(Pxi[0],Pyi[0],Pzi[0]),
+                            (Pxi[1],Pyi[1],Pzi[1]),
+                            (Pxi[2],Pyi[2], Pyi[2]),
+                            (Pxi[3],Pyi[3],Pzi[3])};
       }
+      pen[] colors=alias(vertexPens, null) ? new pen[] : new pen[] {
+        vertexPens[i][j],
+        vertexPens[i+1][j],
+        vertexPens[i+1][j+1],
+        vertexPens[i][j+1]
+      };
+      s.s[k]=patch(Q,colors=colors);
     }
   }
 
