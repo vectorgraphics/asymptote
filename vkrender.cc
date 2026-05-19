@@ -3,6 +3,10 @@
 #include <thread>
 #include <functional>
 
+#ifndef _WIN32
+#include <dlfcn.h>
+#endif
+
 #include "vkrender.h"
 #include "glfw.h"
 #include "shaderResources.h"
@@ -637,6 +641,18 @@ void AsyVkRender::createInstance()
     VEC_VIEW(validationLayers),
     VEC_VIEW(all_extensions)
   );
+#ifdef VALIDATION
+#ifndef _WIN32
+  // Preload the validation layer into global scope so its function pointer
+  // chain works correctly even though libasyvulkan.so was loaded with RTLD_LOCAL.
+  void *layerHandle = dlopen("libVkLayer_khronos_validation.so", RTLD_GLOBAL | RTLD_NOW);
+  if (!layerHandle) {
+    std::cerr << "Warning: failed to preload validation layer: "
+              << dlerror() << std::endl;
+  }
+#endif
+#endif
+
   instance = vk::createInstanceUnique(instanceCI);
   VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
 }

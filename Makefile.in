@@ -157,6 +157,17 @@ libasyvulkan.so: $(VULKAN_PIC_OBJS)
 libasyopengl.so: $(OPENGL_PIC_OBJS)
 	$(CXX) $(OPTS) -shared -o $@ $^ $(filter -L%,$(LFLAGS)) @SHIM_LDFLAGS@ @ASY_GL_LIBS@ -lglfw
 
+# Rebuild vkrender.pic.o with validation layer support, then finish the build.
+.PHONY: validation novalidation
+validation:
+	$(CXX) $(OPTS) -DENABLE_VK_VALIDATION -fPIC -o vkrender.pic.o -c vkrender.cc
+	$(MAKE) asy
+
+# Rebuild vkrender.pic.o without validation layer support, then finish the build.
+novalidation:
+	$(CXX) $(OPTS) -fPIC -o vkrender.pic.o -c vkrender.cc
+	$(MAKE) asy
+
 # Shared library objects need -fPIC but must not define FOR_SHARED,
 # since common.h uses !defined(FOR_SHARED) to enable HAVE_VULKAN/HAVE_GL.
 $(VULKAN_PIC_OBJS): %.pic.o: %.cc
