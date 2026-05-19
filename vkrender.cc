@@ -224,7 +224,7 @@ void AsyVkRender::updateHandler(int) {
   // Vulkan-specific additions
   if(device)
     device->waitIdle();
-  recreatePipeline=true;
+  framebufferResized=true;
 }
 
 AsyVkRender::~AsyVkRender()
