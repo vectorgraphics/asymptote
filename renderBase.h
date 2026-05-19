@@ -392,10 +392,6 @@ public:
   // Window state (used by mainLoop)
   bool havewindow = false;
 
-  // True once the glrenderWrapper thread has entered mainLoop().
-  // Prevents render() from entering mainLoop() during the initial handshake.
-  bool mainLoopRunning = false;
-
   // Initialization state (used by both OpenGL and Vulkan)
   bool initialized = false;
   bool copied = false;

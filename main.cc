@@ -83,7 +83,6 @@ int _matherr(struct _exception *except)
 
 pthread_mutex_t main_wait_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t main_wait_cond = PTHREAD_COND_INITIALIZER;
-pthread_t glrenderThreadId;  // Thread running glrenderWrapper()
 
 using namespace settings;
 
@@ -242,17 +241,6 @@ void *asymain(void *A)
     while(wait(&status) > 0);
   }
 #endif
-#ifdef HAVE_RENDERER
-#if HAVE_PTHREAD
-  // Cancel the render thread before exiting.
-  // The main thread runs glrenderWrapper() in an infinite loop;
-  // we need to stop it before exit() so cleanup runs properly.
-  if(camp::AsyRender::threads) {
-    pthread_cancel(glrenderThreadId);
-    pthread_join(glrenderThreadId, NULL);
-  }
-#endif
-#endif
   exit(returnCode());
 }
 
@@ -263,7 +251,6 @@ int main(int argc, char *argv[])
   unsetenv("GSL_RNG_TYPE");
 #endif
   setsignal(signalHandler);
-  glrenderThreadId = pthread_self();  // Record the main thread ID for renderer
 
   try {
     setOptions(argc,argv);

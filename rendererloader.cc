@@ -27,7 +27,6 @@
 
 extern pthread_mutex_t main_wait_mutex;
 extern pthread_cond_t main_wait_cond;
-extern pthread_t glrenderThreadId;  // Thread running glrenderWrapper() (set in main.cc)
 
 #ifdef _WIN32
 #include "vkrender.h"
@@ -161,7 +160,7 @@ static bool tryLoadVulkanLib()
 
 #ifdef HAVE_PTHREAD
     if (gl)
-        gl->threadMgr.mainthread = glrenderThreadId;
+        gl->threadMgr.mainthread = pthread_self();
 #endif
 
     signalRendererReady();
@@ -230,7 +229,7 @@ static bool tryLoadOpenGLLib()
 
 #ifdef HAVE_PTHREAD
     if (gl)
-        gl->threadMgr.mainthread = glrenderThreadId;
+        gl->threadMgr.mainthread = pthread_self();
 #endif
 
     signalRendererReady();
@@ -335,7 +334,7 @@ static void createWebGLRenderer()
 
 #ifdef HAVE_PTHREAD
     if (gl)
-        gl->threadMgr.mainthread = glrenderThreadId;
+        gl->threadMgr.mainthread = pthread_self();
 #endif
 
     signalRendererReady();
@@ -474,7 +473,7 @@ void createRenderer()
         gl = new camp::AsyVkRender();
 #ifdef HAVE_PTHREAD
         if (gl)
-            gl->threadMgr.mainthread = glrenderThreadId;
+            gl->threadMgr.mainthread = pthread_self();
 #endif
         signalRendererReady();
         vulkan = true;
@@ -615,8 +614,8 @@ void initRenderer(const char* format)
         // rendering is actually needed.
 #ifdef HAVE_PTHREAD
         // In threaded mode, delegate renderer creation to the glrenderWrapper
-        // thread (the OS main thread) to avoid valgrind deadlocks caused by
-        // dlopen from a secondary thread.  Use the global wait mutex/cond
+        // thread (the OS main thread) to avoid a race condition caused by
+        // dlopen from a secondary thread.
         // since gl is still nullptr and we can't use gl->threadMgr yet.
         if(AsyRender::threads) {
             pthread_mutex_lock(&main_wait_mutex);

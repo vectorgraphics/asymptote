@@ -1447,8 +1447,8 @@ void glrenderWrapper()
 #ifdef HAVE_RENDERER
   if (gl == nullptr) {
     // Renderer not yet initialised.  In threaded mode, the asymain thread
-    // may have woken us to create the renderer (to avoid dlopen from a
-    // non-main thread, which hangs under valgrind).
+    // may have woken us to create the renderer (to avoid a race condition
+    // caused by dlopen from a non-main thread).
 #ifdef HAVE_PTHREAD
     if(AsyRender::threads) {
       createRenderer();
@@ -1468,17 +1468,6 @@ void glrenderWrapper()
 #endif
   if(allowRender)
     gl->render(args);
-
-  // After the initial render call returns (which does setup but doesn't
-  // enter mainLoop() in threaded mode), start the main event loop.
-#ifdef HAVE_PTHREAD
-  if(AsyRender::threads && gl->View && !gl->mainLoopRunning) {
-    gl->mainLoopRunning = true;
-    gl->redraw = true;  // Ensure initial frame is displayed
-    gl->waitEvent = false;  // Don't block before first frame
-    gl->mainLoop();
-  }
-#endif
 #endif
 }
 #endif // HAVE_LIBGLM

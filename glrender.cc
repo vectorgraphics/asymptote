@@ -1322,16 +1322,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     // Process pending resize events from fitscreen() before entering the main loop,
     // so the framebuffer has reached its target size before the first frame renders.
     glfwPollEvents();
-    if(threads && !mainLoopRunning) {
-      // Called from asymain thread during the initial handshake.
-      // Do NOT enter mainLoop() here -- the glrenderWrapper thread will
-      // start it after the handshake completes.  Just mark that setup is done.
-      resize = true;
-      redraw = true;
-      redisplay = true;
-      remesh = true;
-      return;
-    }
     mainLoop();
   } else {
     update();
