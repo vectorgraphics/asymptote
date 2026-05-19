@@ -1495,7 +1495,6 @@ void AsyVkRender::createSyncObjects()
     frameObjects[i].sumFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
     frameObjects[i].startTimedSumsEvent = device->createEventUnique(vk::EventCreateInfo());
     frameObjects[i].timedSumsFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
-    frameObjects[i].renderFinishedSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
   }
 }
 
@@ -4359,8 +4358,10 @@ void AsyVkRender::drawFrame()
   std::vector<vk::Semaphore> signalSems;
 
   if (View) {
-      signalSemInfos.push_back({*frameObject.renderFinishedSemaphore, 0, vk::PipelineStageFlagBits2::eAllCommands});
-      signalSems.push_back(*frameObject.renderFinishedSemaphore);
+      if (imageIndex >= renderFinishedSemaphore.size())
+          renderFinishedSemaphore.push_back(device->createSemaphoreUnique(vk::SemaphoreCreateInfo()));
+      signalSemInfos.push_back({*renderFinishedSemaphore[imageIndex], 0, vk::PipelineStageFlagBits2::eAllCommands});
+      signalSems.push_back(*renderFinishedSemaphore[imageIndex]);
   }
 
   vk::SubmitInfo submitInfo;
@@ -4411,7 +4412,7 @@ void AsyVkRender::drawFrame()
   if (View) {
     // The presentation engine only needs to wait on the binary semaphore.
     std::vector<vk::Semaphore> presentWaitSemaphores;
-    presentWaitSemaphores.push_back(*frameObject.renderFinishedSemaphore);
+    presentWaitSemaphores.push_back(*renderFinishedSemaphore[imageIndex]);
 
     try {
       auto presentInfo = vk::PresentInfoKHR(VEC_VIEW(presentWaitSemaphores), 1, &*swapChain, &imageIndex);
