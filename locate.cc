@@ -62,6 +62,8 @@ string join(string dir, string file, bool full)
 string locateFile(string id, bool full, string suffix)
 {
   if(id.empty()) return "";
+  // Reject path traversal sequences to prevent directory traversal attacks
+  if(id.find("..") != string::npos) return string();
   file_list_t filenames = mungeFileName(id,suffix);
   for (auto const& leaf : filenames) {
     if (leaf[0] == '/') { // FIXME: Add windows path check
