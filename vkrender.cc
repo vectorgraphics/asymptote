@@ -4258,6 +4258,13 @@ void AsyVkRender::drawFrame()
     initializeSwapChainIfNeeded();
   }
 
+  // Detect srgb setting changes and recreate pipelines accordingly
+  bool newSrgb = settings::getSetting<bool>("srgb");
+  if (newSrgb != srgb) {
+    srgb = newSrgb;
+    recreatePipeline = true;
+  }
+
   if (recreatePipeline)
   {
     device->waitIdle();
