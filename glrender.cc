@@ -1262,6 +1262,9 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     // Set swap interval based on vsync setting (0 = no vsync, 1 = vsync)
     glfwRendererSwapInterval(getSetting<bool>("vsync") ? 1 : 0);
 
+    if(getSetting<bool>("srgb"))
+      glEnable(GL_FRAMEBUFFER_SRGB);
+
     const char *GLSL_VERSION=(const char *)glGetString(GL_SHADING_LANGUAGE_VERSION);
     if(GLSL_VERSION)
       GLSLversion=(int) (100*atof(GLSL_VERSION)+0.5);
@@ -1285,7 +1288,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   GPUcompress=false;
 #endif
 
-  // Initialize GPU compute parameters (must be done before any call to initShaders())
+  // Initialize GPU compute parameters
   if(GPUindexing) {
     localSize = settings::getSetting<Int>("GPUlocalSize");
     checkpow2(localSize,"GPUlocalSize");

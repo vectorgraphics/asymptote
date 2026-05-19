@@ -85,6 +85,7 @@ GLFWwindow* glfwCreateRenderWindow(int width, int height, const std::string& tit
     Int multisample = getSetting<Int>("multisample");
     if (multisample > 1)
       glfwWindowHint(GLFW_SAMPLES, multisample);
+    glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
   }
   glfwWindowHint(GLFW_FOCUSED, GLFW_FALSE);
   glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE);
