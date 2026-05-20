@@ -152,6 +152,17 @@ alternate documentation installation directory)],
                      ])
 AC_SUBST(docdir)
 
+licensedir=$docdir/licenses
+
+AC_ARG_WITH(licensedir,
+        [AS_HELP_STRING(--with-licensedir=PATH,
+alternate license files installation directory)],
+                     [if test "x$withval" != "x" ; then
+                        licensedir=$withval
+                      fi
+                     ])
+AC_SUBST(licensedir)
+
 sysdir=$Datadir/asymptote
 
 DEFS=""
@@ -181,6 +192,8 @@ AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$sysdir",
         [System directory for global .asy files])
 AC_DEFINE_UNQUOTED(ASYMPTOTE_DOCDIR,"$docdir",
         [Directory for documentation])
+AC_DEFINE_UNQUOTED(ASYMPTOTE_LICENSEDIR,"$licensedir",
+        [Directory for license files])
 
 AC_CONFIG_SRCDIR([absyn.cc])
 

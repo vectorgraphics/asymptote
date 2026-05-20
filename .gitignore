@@ -6,6 +6,7 @@
 
 ### python files
 __pycache__
+/venv/
 
 ### Compressed packages and Garbage Collector
 *.tar.gz
@@ -34,6 +35,10 @@ history
 /Makefile
 /doc/Makefile
 /doc/png/Makefile
+/LspCpp/Makefile
+LspCpp/third_party/ixwebsocket/Makefile
+LspCpp/third_party/uri/Makefile
+LspCpp/third_party/uri/src/Makefile
 /doc/FAQ/asy-faq.*
 !/doc/FAQ/asy-faq.bfnn
 *.png
@@ -73,6 +78,9 @@ history
 /base/webgl/asygl.js
 /v3dheadertypes.py
 /v3dtypes.py
+/doc/licenses/
+libasyopengl.so
+libasyvulkan.so
 
 ### TeX-related
 ## Core latex/pdflatex auxiliary files:
