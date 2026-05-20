@@ -24,8 +24,6 @@ const double Fuzz4=Fuzz2*Fuzz2;
 const double BigFuzz=10.0*Fuzz2;
 const double fuzzFactor=100.0;
 
-const double third=1.0/3.0;
-
 path nullpath;
 
 const char *nopoints="nullpath has no points";
@@ -802,11 +800,13 @@ void intersections(std::vector<double>& T, const path& g, const pair& z,
   }
 }
 
-inline bool online(const pair&p, const pair& q, const pair& z, double fuzz)
+inline bool online(const pair& p, const pair& q, const pair& z, double fuzz)
 {
-  if(p == q) return (z-p).abs2() <= fuzz*fuzz;
-  return abs((z.getx()-p.getx())*(q.gety()-p.gety())-
-             (q.getx()-p.getx())*(z.gety()-p.gety())) <= fuzz;
+  double norm=max(max(p.abs2(),q.abs2()),z.abs2());
+  if(p == q) return (z-p).abs2() <= fuzz*fuzz*norm;
+  pair v=q-p;
+  double cross=(z.getx()-p.getx())*v.gety()-v.getx()*(z.gety()-p.gety());
+  return cross*cross <= fuzz*fuzz*v.abs2()*norm;
 }
 
 // Return all intersection times of path g with the (infinite)
@@ -826,6 +826,7 @@ void lineintersections(std::vector<double>& T, const path& g,
   double dx=q.getx()-p.getx();
   double dy=q.gety()-p.gety();
   double det=p.gety()*q.getx()-p.getx()*q.gety();
+  double norm=max(p.abs2(),q.abs2());
   for(Int i=0; i < n; ++i) {
     pair z0=g.point(i);
     pair c0=g.postcontrol(i);
@@ -840,7 +841,7 @@ void lineintersections(std::vector<double>& T, const path& g,
     double d=dy*z0.getx()-dx*z0.gety()+det;
     std::vector<double> r;
     if(max(max(max(a*a,b*b),c*c),d*d) >
-       Fuzz4*max(max(max(z0.abs2(),z1.abs2()),c0.abs2()),c1.abs2()))
+       Fuzz4*max(norm,max(z0.abs2(),max(z1.abs2(),max(c0.abs2(),c1.abs2())))))
       roots(r,a,b,c,d);
     else r.push_back(0.0);
     if(endpoints) {

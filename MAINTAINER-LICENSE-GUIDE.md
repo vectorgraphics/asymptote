@@ -1,64 +1,107 @@
-# Asymptote Licensing Structure - Maintainer Reference
+# Asymptote Licensing — Maintainer Reference
 
 ## Overview
 
-**Primary**: Asymptote is LGPL v3+. **Third-party components**: Each licensed separately.
-- **span.hpp** — Boost 1.0 | **wyhash.h** — The Unlicense (Public Domain) | **gc/** — Custom permissive | **LspCpp/** — MIT
-- **backports/glew/** — BSD 3-Clause | **tinyexr/** — BSD 3-Clause
+Asymptote is **LGPL v3+**. It incorporates seven third-party components,
+each licensed separately. See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md)
+for the canonical component table.
 
-See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) for complete component details.
+Full copyright notices and license texts for every component are available via
+`asy --licenses=full`, which reads the license files from the `licenses/`
+directory at runtime.
 
-## Core License Rules
+## License File Locations
 
-| License | Scope | Key Constraint |
-|---------|-------|-----------------|
-| LGPL v3+ | All .cc/.h files (except third-party) | Default for new files |
-| Boost 1.0 | span.hpp only | ⚠️ Cannot be relicensed |
-| The Unlicense | wyhash.h | Public domain; compatible with everything |
-| MIT | LspCpp/ | Include copyright notice |
-| BSD 3-Clause | backports/glew/, tinyexr/ | Include copyright notice |
-| Custom Permissive | gc/ | See gc/alloc.c for terms |
+The Asymptote license files (`LICENSE`, `LICENSE.LESSER`) and all third-party
+component license files live in a single `licenses/` directory (with
+component-prefixed names to avoid collisions).
+The canonical mapping (source path → installed name) lives in
+[cmake-scripts/copy-build-licenses.cmake](cmake-scripts/copy-build-licenses.cmake).
 
-## Essential Files
+The same files are also listed in the `copy-licenses` / `uninstall-docdir`
+targets of [Makefile.in](Makefile.in).
 
-| File | Purpose |
-|------|---------|
-| LICENSE / LICENSE.LESSER | LGPL text |
-| LICENSE-BOOST.txt | Boost 1.0 text |
-| LICENSES-THIRD-PARTY.md | Component catalog |
-| DISTRIBUTION-LICENSE-NOTICE.md | Distribution guidance |
+At build time (`make asy` or CMake build), all license files are copied into
+`doc/licenses/` in the build tree so that a locally built `asy` binary can
+find them without being installed.
 
-## Maintenance Checklist
+## Configuring the License Installation Directory
 
-### Adding New Files
-- Use LGPL v3+ header (see example below)
-- Include copyright year/authors
-- Do NOT modify span.hpp unless absolutely necessary
+By default, license files are installed to `$(docdir)/licenses`
+(`${CMAKE_INSTALL_DOCDIR}/licenses` on Linux/CMake). Many distributions
+have their own preferred location. This can be overridden:
 
-### Modifying span.hpp
-⚠️ **Cannot be relicensed**. If modifying:
-1. Retain Martin Moene copyright (2018-2021)
-2. Document all changes clearly
-3. Distribute under Boost license
-4. Update version number if warranted
+### Autoconf
+```sh
+./configure --with-licensedir=/usr/share/licenses/asymptote
+```
+The default is `$docdir/licenses` (typically
+`/usr/share/doc/asymptote/licenses`).
 
-### Updating Third-Party Components
-Retain original license for: wyhash.h, gc/, LspCpp/, backports/glew/, tinyexr/
-_Note: wyhash.h is public domain, but retain the original header comment crediting Wang Yi._
+### CMake
+```sh
+cmake -DASY_LICENSEDIR=/usr/share/licenses/asymptote ...
+```
+`ASY_LICENSEDIR` is the absolute path baked into the binary at compile time
+(where the binary searches for license files at runtime) and also determines
+the `install()` destination. When it falls under `CMAKE_INSTALL_PREFIX`, the
+destination is automatically made relative so that `cmake --install --prefix`
+works correctly.
 
-When adding, removing, or updating third-party components, also update the
-`licensesOption` output in `settings.cc` (printed by `asy --licenses`).
+The default is `${CMAKE_INSTALL_FULL_DATADIR}/doc/asymptote/licenses`.
 
-### Distributing Asymptote
-✓ Include: LICENSE, LICENSE.LESSER, LICENSE-BOOST.txt, README, LICENSES-THIRD-PARTY.md
-✓ Follow: DISTRIBUTION-LICENSE-NOTICE.md for your scenario (binary/TeXLive/package manager)
-✓ Binaries: Ensure users can access license texts (also available via `asy --licenses`)
+### Common distro paths
+| Distribution | Typical path |
+|---|---|
+| Fedora / RHEL | `/usr/share/licenses/asymptote` |
+| Debian / Ubuntu | `/usr/share/doc/asymptote/licenses` (default) |
+| Arch Linux | `/usr/share/licenses/asymptote` |
+| macOS (Homebrew) | `$(brew --prefix)/share/doc/asymptote/licenses` |
+| macOS (MacPorts) | `/opt/local/share/doc/asymptote/licenses` |
 
-### Contributing
-- All contributions: compatible with LGPL v3+
-- span.hpp modifications: Boost license terms apply
-- Third-party modifications: retain original license terms
-- Adding new components: must be compatible or documented; update LICENSES-THIRD-PARTY.md
+## Adding or Updating Third-Party Components
+
+When adding, removing, or updating a third-party component:
+1. Update [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) (the component table).
+2. Update the `licensesSummary` constant and the `printLicensesFull()` function
+   in [settings.cc](settings.cc) — add/remove the hardcoded section header and
+   the `requireFile()` call for the new component.
+3. Update [cmake-scripts/copy-build-licenses.cmake](cmake-scripts/copy-build-licenses.cmake).
+4. Update [Makefile.in](Makefile.in) — `copy-licenses` and `uninstall-docdir`.
+5. Retain the component's original license file and headers unchanged.
+
+_Note: wyhash/ is public domain, but retain the original header comment crediting Wang Yi._
+
+## Adding New Asymptote Source Files
+
+- Use the LGPL v3+ header template below.
+- Include copyright year and authors.
+
+## Modifying backports/span/span.hpp
+
+⚠️ **Cannot be relicensed.** If modifying:
+1. Retain Martin Moene copyright (2018-2021).
+2. Document all changes clearly.
+3. Distribute under the Boost license.
+
+## Distributing Asymptote
+
+### Source distributions
+Include all components unchanged with their license files. No additional
+action is required beyond what the repository already contains.
+
+### Binary distributions
+Include the `licenses/` folder alongside the binary, plus
+`LICENSES-THIRD-PARTY.md`. The `licenses/` folder contains `LICENSE`,
+`LICENSE.LESSER`, and all third-party license files. The `asy --licenses=full`
+command reads from this folder and is suitable for auditing and convenience
+but is not a substitute for distributing the actual `licenses/` folder.
+
+### OS package managers (apt, yum, brew, macports)
+- SPDX license metadata: `LGPL-3.0-or-later AND Unlicense AND MIT AND Boost-1.0 AND BSD-3-Clause AND GPL-2.0-only`
+- Place license files using the distro-standard location (see
+  "Configuring the License Installation Directory" above).
+- SPEC/control file should list all applicable licenses.
 
 ## LGPL Header Template
 
@@ -74,21 +117,8 @@ When adding, removing, or updating third-party components, also update the
  */
 ```
 
-## Quick Scenarios
-
-| Question | Answer |
-|----------|--------|
-| Can I modify Asymptote? | Yes, under LGPL v3+. If modifying span.hpp: Boost license applies. |
-| What if no licenses in distribution? | Violations of LGPL/GPL. Report to maintainers. |
-| TeXLive distribution? | Follow DISTRIBUTION-LICENSE-NOTICE.md. |
-| What about span.hpp license compliance? | span.hpp header has been updated to reference local LICENSE-BOOST.txt (not external LICENSE.txt) and use HTTPS. Original copyright (Martin Moene, 2018-2021) retained. |
-
 ## Reference Links
 
 - LGPL/GPL: https://www.gnu.org/licenses/
 - Boost License: https://www.boost.org/LICENSE_1_0.txt
-- span-lite: https://github.com/martinmoene/span-lite
 - Asymptote: https://github.com/vectorgraphics/asymptote
-
----
-*Asymptote v2.0+*

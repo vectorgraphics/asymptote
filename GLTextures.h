@@ -10,7 +10,9 @@
 
 #include "GL/glew.h"
 
-namespace gl
+#include "glmCommon.h"
+
+namespace camp
 {
 struct GLTexturesFmt
 {
@@ -128,6 +130,6 @@ public:
   }
 };
 
-} // namespace gl
+} // namespace camp
 
 #endif

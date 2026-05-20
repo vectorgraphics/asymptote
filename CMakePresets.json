@@ -37,6 +37,21 @@
       ]
     },
     {
+      "name": "linux/sandbox",
+      "displayName": "[linux-x86/64] Sandbox (no network, system deps only)",
+      "binaryDir": "${sourceDir}/cmake-build-linux/sandbox",
+      "inherits": [
+        "base",
+        "base/linux-only",
+        "base/release",
+        "base/sandbox-features-disabled",
+        "base/allow_version_override_from_env"
+      ],
+      "cacheVariables": {
+        "ASYMPTOTE_SYSDIR_VALUE": "${sourceDir}/cmake-build-linux/sandbox/base"
+      }
+    },
+    {
       "name": "msvc/release",
       "displayName": "[MSVC-x86/64] Release",
       "binaryDir": "${sourceDir}/cmake-build-msvc/release",
@@ -71,13 +86,6 @@
         "ENABLE_DOCGEN": "false",
         "ENABLE_MISCFILES_GEN": "false"
       }
-    },
-    {
-      "name": "msvc/release/with-external-doc-files/with-ctan",
-      "inherits": [
-        "msvc/release/with-external-doc-files",
-        "base/ctan"
-      ]
     }
   ],
   "buildPresets": [
@@ -107,6 +115,14 @@
     {
       "name": "linux/release/ci/with-ccache/compact-zero",
       "configurePreset": "linux/release/ci/with-ccache/compact-zero",
+      "inherits": [
+        "build-base/linux-only"
+      ]
+    },
+    {
+      "name": "linux/sandbox",
+      "displayName": "[linux-x86/64] Sandbox",
+      "configurePreset": "linux/sandbox",
       "inherits": [
         "build-base/linux-only"
       ]
