@@ -638,7 +638,19 @@ void initRenderer(const char* format)
     } else if (gl == nullptr) {
         // Lazy initialisation: probe for Vulkan/OpenGL only when GPU
         // rendering is actually needed.
-        createRenderer();
+#ifdef HAVE_PTHREAD
+        // In threaded mode, delegate renderer creation to the glrenderWrapper
+        // thread (the OS main thread) to avoid a race condition caused by
+        // dlopen from a secondary thread.
+        // since gl is still nullptr and we can't use gl->threadMgr yet.
+        if(AsyRender::threads) {
+            pthread_mutex_lock(&main_wait_mutex);
+            pthread_cond_signal(&main_wait_cond);  // Wake glrenderWrapper
+            pthread_cond_wait(&main_wait_cond, &main_wait_mutex);  // Wait for done
+            pthread_mutex_unlock(&main_wait_mutex);
+        } else
+#endif
+            createRenderer();
     }
 
     if (gl == nullptr) {

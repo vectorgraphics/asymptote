@@ -477,9 +477,9 @@ void AsyRender::windowposition(int& x, int& y, int width, int height)
  */
 void AsyRender::fullscreen(bool reposition)
 {
-  // screenWidth/screenHeight are already physical pixels — fullscreen fills them directly.
   Xfactor = Yfactor = 1.0;
   setsize(screenWidth, screenHeight, reposition);
+  reshape(screenWidth, screenHeight);
 }
 
 /**
@@ -488,6 +488,7 @@ void AsyRender::fullscreen(bool reposition)
  */
 void AsyRender::setsize(int w, int h, bool reposition)
 {
+  capsize(w, h);
 #ifdef HAVE_RENDERER
   // Handle GLFW window operations (library-agnostic for Vulkan/OpenGL)
   if (View && glfwWindow != nullptr) {
@@ -495,7 +496,6 @@ void AsyRender::setsize(int w, int h, bool reposition)
 
     // w,h are framebuffer dimensions. screenWidth/screenHeight are already
     // in the same physical-pixel space, so cap directly.
-    capsize(w, h);
 
     ::glfwSetWindowSize(win, w, h);
     if (reposition) {
@@ -503,14 +503,8 @@ void AsyRender::setsize(int w, int h, bool reposition)
       windowposition(x, y, w, h);
       ::glfwSetWindowPos(win, x, y);
     }
-
-    update();
-    return;
   }
 #endif
-
-  capsize(w, h);
-  reshape(w, h);
   update();
 }
 
@@ -557,6 +551,7 @@ void AsyRender::fitscreen(bool reposition)
       int h = screenHeight;
       fitAspect(w, h);
       setsize(w, h, reposition);
+      reshape(w,h);
       break;
     }
     case 2: // Full screen: fill physical screen directly

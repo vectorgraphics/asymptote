@@ -95,7 +95,6 @@ CLEAN = camp.output base/version.asy doc/version.texi \
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
 	asymptote.py reload.js nopapersize.ps
 SHIMLIBS = @SHIMLIBS@
-LLVMPIPE = lvp_icd.x86_64.json libvulkan_lvp.dylib
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
 DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
@@ -252,6 +251,17 @@ libasyvulkan.so: $(VULKAN_PIC_OBJS)
 # Build the OpenGL renderer as a shared library loaded at runtime via dlopen.
 libasyopengl.so: $(OPENGL_PIC_OBJS)
 	$(CXX) $(OPTS) -shared -o $@ $^ $(filter -L%,$(LFLAGS)) @SHIM_LDFLAGS@ @ASY_GL_LIBS@ -lglfw
+
+# Rebuild vkrender.pic.o with validation layer support, then finish the build.
+.PHONY: validation novalidation
+validation:
+	$(CXX) $(OPTS) -DENABLE_VK_VALIDATION -fPIC -o vkrender.pic.o -c vkrender.cc
+	$(MAKE) asy
+
+# Rebuild vkrender.pic.o without validation layer support, then finish the build.
+novalidation:
+	$(CXX) $(OPTS) -fPIC -o vkrender.pic.o -c vkrender.cc
+	$(MAKE) asy
 
 # Shared library objects need -fPIC but must not define FOR_SHARED,
 # since common.h uses !defined(FOR_SHARED) to enable HAVE_VULKAN/HAVE_GL.
@@ -428,7 +438,6 @@ endif
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) \
 		asy-keywords.el $(asydir)
 	${INSTALL} -p -m 755 $(SHIMLIBS) $(asydir)
-	-${INSTALL} -p -m 644 $(addprefix base/,$(LLVMPIPE)) $(asydir)
 	${INSTALL} -p -m 644 base/collections/*.asy $(asydir)/collections
 	${INSTALL} -p -m 644 base/shaders/*.glsl $(shaderdir)
 	${INSTALL} -p -m 644 base/shaders/GL/*.glsl $(shaderdir)/GL
@@ -487,7 +496,7 @@ uninstall-asy:
 	-rmdir $(webgldir)
 	-cd $(asydir)/collections && rm -f *.asy
 	-rmdir $(asydir)/collections
-	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA) $(SHIMLIBS) $(LLVMPIPE)
+	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA) $(SHIMLIBS)
 	-rmdir $(asydir)
 	-cd $(latexdir) && rm -f $(LATEXFILES)
 	-rmdir $(latexdir)

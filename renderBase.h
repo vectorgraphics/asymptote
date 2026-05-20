@@ -194,7 +194,8 @@ public:
 enum class RendererMessage
 {
   exportRender,   // Request to export/render a frame
-  updateRenderer  // Request to update renderer state
+  updateRenderer, // Request to update renderer state
+  createRenderer  // Request the render thread to load and create the renderer
 };
 
 #ifdef HAVE_PTHREAD
@@ -229,6 +230,10 @@ public:
 
   /// Message queue for inter-thread communication (asymain -> render thread)
   ThreadSafeQueue<RendererMessage> messageQueue;
+
+  /// Signaling for renderer creation: asymain waits for render thread to finish creating
+  pthread_cond_t createdSignal = PTHREAD_COND_INITIALIZER;
+  pthread_mutex_t createdLock = PTHREAD_MUTEX_INITIALIZER;
 
   /**
    * Signal a condition variable and release its mutex.
@@ -407,7 +412,6 @@ public:
 
   // Window visibility
   bool hideWindow=false;
-
   // Spin state
   std::function<void()> currentIdleFunc = nullptr;
   bool Xspin = false;
