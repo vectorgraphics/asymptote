@@ -410,6 +410,12 @@ void AsyGLRender::drawFrame()
     initShaders();
   }
 
+  // Apply srgb setting each frame so changes take effect dynamically
+  if(getSetting<bool>("srgb"))
+    glEnable(GL_FRAMEBUFFER_SRGB);
+  else
+    glDisable(GL_FRAMEBUFFER_SRGB);
+
   // Set viewport before clearing (in case it wasn't set)
   // Skip during export - trBeginTile handles viewport for tiling
   if(!exporting)
@@ -1285,7 +1291,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   GPUcompress=false;
 #endif
 
-  // Initialize GPU compute parameters (must be done before any call to initShaders())
+  // Initialize GPU compute parameters
   if(GPUindexing) {
     localSize = settings::getSetting<Int>("GPUlocalSize");
     checkpow2(localSize,"GPUlocalSize");
@@ -1294,8 +1300,8 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     groupSize = localSize * blockSize;
   }
 
-  glClearColor(args.background[0], args.background[1],
-               args.background[2], args.background[3]);
+  glClearColor(Background[0], Background[1],
+               Background[2], Background[3]);
 
   if(View) {
     if(!getSetting<bool>("fitscreen"))

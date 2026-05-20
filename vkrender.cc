@@ -3,6 +3,10 @@
 #include <thread>
 #include <functional>
 
+#ifndef _WIN32
+#include <dlfcn.h>
+#endif
+
 #include "vkrender.h"
 #include "glfw.h"
 #include "shaderResources.h"
@@ -220,7 +224,7 @@ void AsyVkRender::updateHandler(int) {
   // Vulkan-specific additions
   if(device)
     device->waitIdle();
-  recreatePipeline=true;
+  framebufferResized=true;
 }
 
 AsyVkRender::~AsyVkRender()
@@ -637,6 +641,18 @@ void AsyVkRender::createInstance()
     VEC_VIEW(validationLayers),
     VEC_VIEW(all_extensions)
   );
+#ifdef VALIDATION
+#ifndef _WIN32
+  // Preload the validation layer into global scope so its function pointer
+  // chain works correctly even though libasyvulkan.so was loaded with RTLD_LOCAL.
+  void *layerHandle = dlopen("libVkLayer_khronos_validation.so", RTLD_GLOBAL | RTLD_NOW);
+  if (!layerHandle) {
+    std::cerr << "Warning: failed to preload validation layer: "
+              << dlerror() << std::endl;
+  }
+#endif
+#endif
+
   instance = vk::createInstanceUnique(instanceCI);
   VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
 }
@@ -1479,7 +1495,6 @@ void AsyVkRender::createSyncObjects()
     frameObjects[i].sumFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
     frameObjects[i].startTimedSumsEvent = device->createEventUnique(vk::EventCreateInfo());
     frameObjects[i].timedSumsFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
-    frameObjects[i].renderFinishedSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
   }
 }
 
@@ -4243,6 +4258,13 @@ void AsyVkRender::drawFrame()
     initializeSwapChainIfNeeded();
   }
 
+  // Detect srgb setting changes and recreate pipelines accordingly
+  bool newSrgb = settings::getSetting<bool>("srgb");
+  if (newSrgb != srgb) {
+    srgb = newSrgb;
+    recreatePipeline = true;
+  }
+
   if (recreatePipeline)
   {
     device->waitIdle();
@@ -4343,8 +4365,10 @@ void AsyVkRender::drawFrame()
   std::vector<vk::Semaphore> signalSems;
 
   if (View) {
-      signalSemInfos.push_back({*frameObject.renderFinishedSemaphore, 0, vk::PipelineStageFlagBits2::eAllCommands});
-      signalSems.push_back(*frameObject.renderFinishedSemaphore);
+      if (imageIndex >= renderFinishedSemaphore.size())
+          renderFinishedSemaphore.push_back(device->createSemaphoreUnique(vk::SemaphoreCreateInfo()));
+      signalSemInfos.push_back({*renderFinishedSemaphore[imageIndex], 0, vk::PipelineStageFlagBits2::eAllCommands});
+      signalSems.push_back(*renderFinishedSemaphore[imageIndex]);
   }
 
   vk::SubmitInfo submitInfo;
@@ -4395,7 +4419,7 @@ void AsyVkRender::drawFrame()
   if (View) {
     // The presentation engine only needs to wait on the binary semaphore.
     std::vector<vk::Semaphore> presentWaitSemaphores;
-    presentWaitSemaphores.push_back(*frameObject.renderFinishedSemaphore);
+    presentWaitSemaphores.push_back(*renderFinishedSemaphore[imageIndex]);
 
     try {
       auto presentInfo = vk::PresentInfoKHR(VEC_VIEW(presentWaitSemaphores), 1, &*swapChain, &imageIndex);
