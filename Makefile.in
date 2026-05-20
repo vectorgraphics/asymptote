@@ -4,6 +4,12 @@ SILENT_MAKE = @
 
 ARCH = unix
 POLL = poll
+BUNDLE_VULKAN = @BUNDLE_VULKAN@
+CODESIGN_IDENTITY ?= -
+MACOS_UNIVERSAL = @MACOS_UNIVERSAL@
+MACOS_MIN_VERSION = @MACOS_MIN_VERSION@
+MACOS_ARCH_FLAGS = @MACOS_ARCH_FLAGS@
+MACOS_DEPLOYMENT_FLAGS = @MACOS_DEPLOYMENT_FLAGS@
 
 ASYGLVERSION = @ASYGLVERSION@
 GC = gc
@@ -100,7 +106,12 @@ DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -I.
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
-	-Iprc/include -I$(LSP_ROOT)/include -I.
+	-Iprc/include -I$(LSP_ROOT)/include -I. \
+	$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)
+
+# Multi-arch flags are incompatible with -E (preprocess-only) and -M (deps).
+# Strip them for any pass that runs the preprocessor without compiling.
+PREPROC_OPTS = $(filter-out $(MACOS_ARCH_FLAGS),$(OPTS))
 
 # Options for compiling the object files for the shared library.
 # gc has to be configured with the option --disable-threads in order to make a
@@ -110,9 +121,10 @@ SHAREDOPTS = $(filter-out -DUSEGC, $(OPTS)) -fPIC -DFOR_SHARED
 
 CXX = @CXX@
 CC = @CC@
-MAKEDEPEND = $(OPTS) -O0 -M -MG -MP -DDEPEND
+MAKEDEPEND = $(PREPROC_OPTS) -O0 -M -MG -MP -DDEPEND
 LEX = @LEX@
-GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC -Ibackports/glew/include
+GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC -Ibackports/glew/include \
+	$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -147,6 +159,89 @@ export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
 asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ $(SHIMLIBS)
 	$(CXX) $(OPTS) -rdynamic -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
+ifeq ($(BUNDLE_VULKAN),yes)
+	@sh build-scripts/bundle-vulkan-macos.sh $(NAME) "$(CODESIGN_IDENTITY)"
+endif
+
+portability-check-macos:
+	@if [ "$$(uname -s)" != "Darwin" ]; then \
+		echo "Skipping portability checks: host is not macOS."; \
+		exit 0; \
+	fi
+	@if ! command -v lipo >/dev/null 2>&1 || ! command -v otool >/dev/null 2>&1; then \
+		echo "ERROR: lipo and/or otool not found."; \
+		echo "Fix: install Apple command line tools with: xcode-select --install"; \
+		exit 1; \
+	fi
+	@set -eu; \
+	min_required="$(MACOS_MIN_VERSION)"; \
+	if [ -z "$$min_required" ]; then \
+		min_required="12.0"; \
+	fi; \
+	to_int() { \
+		echo "$$1" | awk -F. '{a=$$1+0; b=($$2==""?0:$$2+0); c=($$3==""?0:$$3+0); printf("%d%03d%03d\n",a,b,c)}'; \
+	}; \
+	check_binary() { \
+		f="$$1"; \
+		if [ ! -f "$$f" ]; then \
+			echo "ERROR: Required output '$$f' was not found."; \
+			echo "Fix: build it first, then re-run: make asy"; \
+			exit 1; \
+		fi; \
+		archs="$$(lipo -archs "$$f" 2>/dev/null || true)"; \
+		if [ "$(MACOS_UNIVERSAL)" = "yes" ]; then \
+			for required in x86_64 arm64; do \
+				if ! echo " $$archs " | grep -q " $$required "; then \
+					echo "ERROR: $$f is missing architecture '$$required' (found: $$archs)."; \
+					echo "Fix: ensure all dependencies are universal and configure with --enable-macos-universal (default), then rebuild from clean."; \
+					exit 1; \
+				fi; \
+			done; \
+		fi; \
+		minos="$$(otool -l "$$f" | awk 'BEGIN{want=0; legacy=0} $$1=="cmd" && $$2=="LC_BUILD_VERSION" {want=1; next} want && $$1=="minos" {print $$2; exit} $$1=="cmd" && $$2=="LC_VERSION_MIN_MACOSX" {legacy=1; next} legacy && $$1=="version" {print $$2; exit}')"; \
+		if [ -z "$$minos" ]; then \
+			echo "ERROR: Could not determine minimum macOS version for $$f."; \
+			echo "Fix: build with Apple's linker tools and retry."; \
+			exit 1; \
+		fi; \
+		if [ "$$(to_int "$$minos")" -gt "$$(to_int "$$min_required")" ]; then \
+			echo "ERROR: $$f requires macOS $$minos, which is newer than target $$min_required."; \
+			echo "Fix: reconfigure with --with-macos-min-version=$$min_required (or older), then run 'make clean && make asy'."; \
+			exit 1; \
+		fi; \
+		own_id="$$(otool -D "$$f" 2>/dev/null | awk 'NR==2{print $$1}' || true)"; \
+		bad_refs="$$(otool -L "$$f" | awk -v own="$$own_id" '/^\t/{if (own != "" && $$1 == own) next; print $$1}' | \
+			grep -Ev '^(@executable_path/lib/|@loader_path/|/usr/lib/|/System/Library/)' || true)"; \
+		if [ -n "$$bad_refs" ]; then \
+			echo "ERROR: $$f contains non-portable library references:"; \
+			echo "$$bad_refs"; \
+			echo "Every linked library must be one of:"; \
+			echo "  - a macOS system library  (/usr/lib/ or /System/Library/)"; \
+			echo "  - a bundled dylib          (@executable_path/lib/)"; \
+			echo "  - a co-located dylib       (@loader_path/)"; \
+			echo "Fix options:"; \
+			echo "  - @rpath refs: ensure the bundle-vulkan step rewrote all Vulkan/GLFW"; \
+			echo "    references to @executable_path/lib/, then rebuild."; \
+			echo "  - /opt/homebrew, /opt/local, /usr/local, /Users/ absolute paths:"; \
+			echo "    link against system SDK versions, or build the library as a universal"; \
+			echo "    dylib, copy it into ./lib/, and add it to SHIMLIBS in Makefile.in."; \
+			exit 1; \
+		fi; \
+	}; \
+	files="$(NAME) libasyvulkan.so libasyopengl.so"; \
+	if [ "$(BUNDLE_VULKAN)" = "yes" ]; then \
+		if ls lib/*.dylib >/dev/null 2>&1; then \
+			for f in lib/*.dylib; do files="$$files $$f"; done; \
+		else \
+			echo "ERROR: BUNDLE_VULKAN=yes but no bundled dylibs were found in ./lib."; \
+			echo "Fix: verify Vulkan SDK/MoltenVK installation and rerun 'make clean && make asy'."; \
+			exit 1; \
+		fi; \
+	fi; \
+	for f in $$files; do \
+		check_binary "$$f"; \
+	done; \
+	echo "macOS portability checks passed for $(NAME), renderer shims, and bundled dylibs."
 
 # Build the Vulkan renderer as a shared library loaded at runtime via dlopen.
 VULKAN_PIC_OBJS = $(VULKAN_OBJS:=.pic.o)
@@ -220,8 +315,8 @@ all:	asy sty man faq asy-keywords.el
 
 $(GCLIB):
 	cd $(GC) && ln -sf ../libatomic_ops . && \
-		./configure CC="$(CC)" CXX="$(CXX)" $(GCOPTIONS)
-	$(MAKE) -C $(GC) check
+		./configure CC="$(CC)" CXX="$(CXX)" CFLAGS="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)" CXXFLAGS="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)" $(GCOPTIONS)
+	$(MAKE) -C $(GC) check CFLAGS_EXTRA="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)"
 
 sty: doc/version.texi
 	cd doc && $(MAKE) asy-latex.pdf
@@ -250,7 +345,7 @@ $(RUNTIME_FILES:=.cc): %.cc: runtime.py opsymbols.h runtimebase.in %.in
 GEN_PREPROCESSED_DEPFILE_BASE_ARGS = \
     $(PYTHON) gen_preprocessed_depfile.py \
 	--cxx-compiler="$(CXX)" \
-	--additional-raw-arguments="$(OPTS)" \
+	--additional-raw-arguments="$(PREPROC_OPTS)" \
 	--cxx-standard=$(subst gnu,,$(subst c++,,$(CXX_STANDARD)))
 
 $(SYMBOL_FILES:=.raw.i): %.raw.i: %.cc gen_preprocessed_depfile.py
@@ -354,6 +449,12 @@ install-asy: asy sty $(PYFILES)
 	-${INSTALL} -d $(latexdir)
 	-${INSTALL} -d $(contextdir)
 	${INSTALL} -p -m 755 $(NAME) $(bindir)
+ifeq ($(BUNDLE_VULKAN),yes)
+	-if [ -d lib ]; then \
+		${INSTALL} -d $(bindir)/lib; \
+		${INSTALL} -p -m 644 lib/*.dylib lib/*.json $(bindir)/lib; \
+	fi
+endif
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) \
 		asy-keywords.el $(asydir)
 	${INSTALL} -p -m 755 $(SHIMLIBS) $(asydir)
@@ -442,6 +543,7 @@ uninstall-docdir: uninstall-man uninstall-asy
 clean:	FORCE
 	-rm -f asy asymptote.so libasyvulkan.so libasyopengl.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
 	-rm -rf doc/licenses
+	-rm -rf lib
 	-cd LspCpp && $(MAKE) distclean
 	-cd tinyexr && $(MAKE) clean
 	-cd doc && $(MAKE) clean
@@ -499,6 +601,16 @@ check-all: asy FORCE
 glew.o: glew.c config.h
 	$(CC) $(GLEWOPTS) -o $@ -c $<
 
+# glew.c needs its own .d rule because MAKEDEPEND contains -std=c++17 (via
+# PREPROC_OPTS), which clang rejects for C files.  Use GLEWOPTS instead, and
+# strip MACOS_ARCH_FLAGS since clang rejects multiple -arch with -M.
+glew.d: glew.c config.h
+	@echo Creating $@; \
+	rm -f $@; \
+	$(CC) $(filter-out $(MACOS_ARCH_FLAGS),$(GLEWOPTS)) -O0 -M -MG -MP -DDEPEND $< > $@.$$$$ 2>/dev/null && \
+	sed 's,\(glew\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
 .SUFFIXES: .c .cc .o .d .ui .py
 %.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.cc)
 	$(CXX) $(OPTS) -o $@ -c $<
@@ -544,6 +656,8 @@ ifeq (,$(findstring clean,${MAKECMDGOALS}))
 endif
 
 FORCE:
+
+.PHONY: portability-check-macos
 
 configure: configure.ac
 	autoheader && autoconf
