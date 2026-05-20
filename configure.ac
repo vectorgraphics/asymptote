@@ -161,7 +161,7 @@ LIBS=""
 CPPFLAGS=$CPPFLAGS" -I. "
 
 AC_ARG_ENABLE(texlive-build,
-[AS_HELP_STRING(--enable-texlive-build,
+[AS_HELP_STRING(--enable-texlive-build[[[=no]]],
 automatically determine sysdir from kpsewhich)],
 [ if test "x$enableval" = "xyes" ; then
     sysdir=""
@@ -169,7 +169,7 @@ automatically determine sysdir from kpsewhich)],
 ])
 
 AC_ARG_ENABLE(relocatable,
-[AS_HELP_STRING(--enable-relocatable,
+[AS_HELP_STRING(--enable-relocatable[[[=no]]],
 leave ASYMPTOTE_SYSDIR empty so the binary finds its data directory
 relative to its own location at runtime (for portable/staged macOS installs))],
 [ if test "x$enableval" = "xyes" ; then
@@ -396,7 +396,7 @@ else
 fi
 
 AC_ARG_ENABLE(gc-debug,
-[AS_HELP_STRING(--enable-gc-debug,enable (slow) garbage collector debugging)],
+[AS_HELP_STRING(--enable-gc-debug[[[=no]]],enable (slow) garbage collector debugging)],
 [ if test "x$enable_gc" != "xno" ; then
     if test "x$enableval" = "xyes" ; then
       AC_DEFINE(GC_DEBUG,1,[GC Debug is enabled])
@@ -407,7 +407,7 @@ AC_ARG_ENABLE(gc-debug,
 ])
 
 AC_ARG_ENABLE(gc-full-debug,
-[AS_HELP_STRING(--enable-gc-full-debug,enable (very slow) garbage collector backtrace)],
+[AS_HELP_STRING(--enable-gc-full-debug[[[=no]]],enable (very slow) garbage collector backtrace)],
 [ if test "x$enable_gc" != "xno" ; then
     if test "x$enableval" = "xyes" ; then
       AC_DEFINE(GC_DEBUG,1,[GC Debug is enabled])
