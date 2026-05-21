@@ -14,10 +14,6 @@ struct GLFWwindow;
 
 using settings::getSetting;
 
-#ifdef HAVE_LIBGLFW
-// Helper to convert void* getGLFWWindow() result to GLFWwindow*.
-static inline GLFWwindow* getWin(void* w) { return static_cast<GLFWwindow*>(w); }
-#endif
 
 namespace camp {
 
