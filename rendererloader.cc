@@ -54,6 +54,16 @@ bool vulkan = false;
 #include "settings.h"    // for settings::verbose
 #include "locate.h"       // for settings::locateFile
 
+#ifdef __APPLE__
+// GLFW_INCLUDE_VULKAN causes glfw3.h to include <vulkan/vulkan.h>.
+// VK_NO_PROTOTYPES suppresses function declarations so the main binary
+// keeps zero link-time Vulkan dependencies; we only need the typedefs
+// (e.g., PFN_vkGetInstanceProcAddr) and the glfwInitVulkanLoader declaration.
+#define VK_NO_PROTOTYPES
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+#endif // __APPLE__
+
 // For llvmpipe fallback on Intel Macs without Metal (e.g., headless VMs):
 // Detect Metal availability via dlopen/dlsym BEFORE any Vulkan calls,
 // since MoltenVK will fail with ErrorIncompatibleDriver if Metal is absent.
@@ -551,6 +561,22 @@ void createRenderer()
     // If user wants Vulkan, try to load the shared library first.
     if (useVulkan) {
         if (tryLoadVulkanLib()) {
+#ifdef __APPLE__
+            // GLFW lazily calls dlopen("libvulkan.1.dylib") inside
+            // glfwCreateWindowSurface to get vkGetInstanceProcAddr.
+            // In a portable/staged build the bundled Vulkan loader's
+            // install name is "@executable_path/lib/libvulkan.1.dylib",
+            // so that bare-name dlopen fails on a machine without the SDK.
+            // Fix: hand GLFW the function pointer from our already-loaded
+            // Vulkan loader so it never needs to dlopen it itself.
+            {
+                PFN_vkGetInstanceProcAddr pfn =
+                    (PFN_vkGetInstanceProcAddr)dlsym(
+                        vulkanLibHandle, "vkGetInstanceProcAddr");
+                if (pfn)
+                    glfwInitVulkanLoader(pfn);
+            }
+#endif // __APPLE__
             return;
         }
         // Vulkan failed to load; fall through to try OpenGL.
@@ -612,7 +638,19 @@ void initRenderer(const char* format)
     } else if (gl == nullptr) {
         // Lazy initialisation: probe for Vulkan/OpenGL only when GPU
         // rendering is actually needed.
-        createRenderer();
+#ifdef HAVE_PTHREAD
+        // In threaded mode, delegate renderer creation to the glrenderWrapper
+        // thread (the OS main thread) to avoid a race condition caused by
+        // dlopen from a secondary thread.
+        // since gl is still nullptr and we can't use gl->threadMgr yet.
+        if(AsyRender::threads) {
+            pthread_mutex_lock(&main_wait_mutex);
+            pthread_cond_signal(&main_wait_cond);  // Wake glrenderWrapper
+            pthread_cond_wait(&main_wait_cond, &main_wait_mutex);  // Wait for done
+            pthread_mutex_unlock(&main_wait_mutex);
+        } else
+#endif
+            createRenderer();
     }
 
     if (gl == nullptr) {

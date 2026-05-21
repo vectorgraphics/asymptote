@@ -1,0 +1,52 @@
+The Asymptote distribution ships a precompiled llvmpipe Vulkan driver
+(libvulkan_lvp.dylib) and an ICD manifest (lvp_icd.x86_64.json) for
+macOS running on Intel hardware. These are installed alongside the
+other Asymptote files in the Asymptote search path. When Metal is
+unavailable (e.g., headless VM), the renderer loader automatically
+detects this and uses the shipped llvmpipe driver via VK_ICD_FILENAMES.
+
+sudo port install meson ninja llvm-19 py312-mako py312-packaging xorg-libxshmfence
+sudo ln -s /opt/local/bin/llvm-config-mp-19 /opt/local/bin/llvm-config
+
+git clone https://gitlab.freedesktop.org/mesa/mesa.git
+cd mesa
+
+mkdir build && cd build
+python3 -m venv venv
+source venv/bin/activate
+pip3 install mako packaging PyYAML
+meson setup .. \
+  --prefix=/opt/local \
+  --pkg-config-path=/opt/local/lib/pkgconfig:/opt/local/share/pkgconfig \
+  -Dgallium-drivers=llvmpipe \
+  -Dvulkan-drivers=swrast \
+  -Dglx=disabled \
+  -Degl=disabled \
+  -Dgles1=disabled \
+  -Dgles2=disabled \
+  -Dllvm=enabled \
+  -Dbuildtype=release
+
+ninja
+sudo ninja install
+
+cd ~/asymptote
+cp /opt/local/lib/libvulkan_lvp.dylib base
+cp /opt/local/share/vulkan/icd.d/lvp_icd.x86_64.json base
+install_name_tool -change @rpath/libLLVM.dylib \
+  /opt/local/libexec/llvm-19/lib/libLLVM.dylib \
+  base/libvulkan_lvp.dylib
+sed -i '' 's|/opt/local/lib/libvulkan_lvp.dylib|./libvulkan_lvp.dylib|' base/lvp_icd.x86_64.json
+
+Runtime dependencies on the target Mac (must be installed via MacPorts):
+
+  llvm-19          libLLVM.dylib (JIT compilation)
+  spirv-tools      libSPIRV-Tools.dylib (shader compilation)
+  xorg-libxcb      libxcb, libxcb-xfixes, libxcb-randr, libxcb-shm
+  xorg-libX11      libX11-xcb
+  zstd             libzstd.1.dylib
+  expat            libexpat.1.dylib
+  zlib             libz.1.dylib (usually pre-installed)
+
+These are the same libraries needed to build Mesa, so if you built llvmpipe
+from source they should already be present.

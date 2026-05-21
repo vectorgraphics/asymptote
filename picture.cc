@@ -37,6 +37,9 @@ using vm::array;
 
 using namespace settings;
 
+extern pthread_mutex_t main_wait_mutex;
+extern pthread_cond_t main_wait_cond;
+
 texstream::~texstream() {
   string texengine=getSetting<string>("tex");
   bool context=settings::context(texengine);
@@ -1442,8 +1445,23 @@ extern bool allowRender;
 void glrenderWrapper()
 {
 #ifdef HAVE_RENDERER
-  if (gl == nullptr)
-    return; // Renderer not yet initialised
+  if (gl == nullptr) {
+    // Renderer not yet initialised.  In threaded mode, the asymain thread
+    // may have woken us to create the renderer (to avoid a race condition
+    // caused by dlopen from a non-main thread).
+#ifdef HAVE_PTHREAD
+    if(AsyRender::threads) {
+      createRenderer();
+      if(camp::gl != nullptr) {
+        // Signal asymain that the renderer is ready.
+        pthread_mutex_lock(&main_wait_mutex);
+        pthread_cond_signal(&main_wait_cond);
+        pthread_mutex_unlock(&main_wait_mutex);
+      }
+    }
+#endif
+    return;
+  }
 #ifdef HAVE_PTHREAD
   gl->threadMgr.wait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
   gl->threadMgr.endwait(gl->threadMgr.initSignal,gl->threadMgr.initLock);

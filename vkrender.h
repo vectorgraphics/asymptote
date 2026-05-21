@@ -372,7 +372,6 @@ private:
     vk::UniqueEvent sumFinishedEvent;
     vk::UniqueEvent startTimedSumsEvent;
     vk::UniqueEvent timedSumsFinishedEvent;
-    vk::UniqueSemaphore renderFinishedSemaphore;
 
     vk::UniqueCommandBuffer commandBuffer;
     vk::UniqueCommandBuffer countCommandBuffer;
