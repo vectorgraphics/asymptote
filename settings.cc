@@ -1432,7 +1432,7 @@ struct licensesOption : public option {
     o.val=0;
   }
 
-  bool getOption() {
+  bool getOption() override {
     version();
     if (optarg && string(optarg) == "full") {
       bool success = printLicensesFull(cerr);
