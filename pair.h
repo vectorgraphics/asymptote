@@ -161,12 +161,14 @@ public:
     return z.angle(warn);
   }
 
-  friend pair unit(const pair& z)
+  friend pair unit(const pair& z, const pair& z0)
   {
     double scale=z.length();
-    if(scale == 0.0) return z;
-    scale=1.0/scale;
-    return pair(z.x*scale,z.y*scale);
+    if(std::fpclassify(scale) == FP_NORMAL) {
+      scale=1.0/scale;
+      return pair(z.x*scale,z.y*scale);
+    } else
+      return z0;
   }
 
   friend pair conj(const pair& z)
@@ -245,6 +247,9 @@ public:
 
   friend class box;
 };
+
+// Default-argument wrapper for MSVC ADL compatibility.
+inline pair unit(const pair& z, const pair& z0 = pair(0.0, 0.0));
 
 // Calculates exp(i * theta), useful for unit vectors.
 inline pair expi(double theta)

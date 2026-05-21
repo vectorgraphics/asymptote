@@ -1,3 +1,4 @@
+#include <sys/types.h>
 #include <cstring>
 #include <sstream>
 
@@ -9,15 +10,12 @@ using namespace utils;
 namespace fftwpp {
 
 const double fftw::twopi=2.0*acos(-1.0);
-bool fftw::wiser=false;
 
 // User settings:
 size_t fftw::effort=FFTW_MEASURE;
 string wisdomName="wisdom3.txt";
 ostringstream wisdomTemp;
 size_t fftw::maxthreads=1;
-
-char *epiphany=NULL;
 
 fftw_plan (*fftw::planner)(fftw *f, Complex *in, Complex *out)=Planner;
 
@@ -29,11 +27,11 @@ Mfft1d::Table Mfft1d::threadtable;
 Mrcfft1d::Table Mrcfft1d::threadtable;
 Mcrfft1d::Table Mcrfft1d::threadtable;
 
-static bool Wise=false;
+static size_t lastWisdomLength=0;
 
 void loadWisdom()
 {
-  if(!Wise) {
+  if(lastWisdomLength == 0) {
     wisdomTemp << wisdomName << "_" << getpid();
     ifstream ifWisdom;
     ifWisdom.open(wisdomName);
@@ -42,33 +40,22 @@ void loadWisdom()
     ifWisdom.close();
     const string& s=wisdom.str();
     fftw_import_wisdom_from_string(s.c_str());
-    Wise=true;
-  }
-}
-
-void recall() {
-  if(epiphany) {
-    fftw_import_wisdom_from_string(epiphany);
-    fftw_free(epiphany);
-    epiphany=NULL;
+    lastWisdomLength=s.size();
   }
 }
 
 void saveWisdom()
 {
-  if(fftw::wiser) {
-    fftw_forget_wisdom();
-    Wise=false;
-    loadWisdom();
-    recall();
-    char *wisdom=fftw_export_wisdom_to_string();
+  char *wisdom=fftw_export_wisdom_to_string();
+  size_t len=strlen(wisdom);
+  if(len > lastWisdomLength) {
     ofstream ofWisdom;
     ofWisdom.open(wisdomTemp.str().c_str());
     ofWisdom << wisdom;
     fftw_free(wisdom);
     ofWisdom.close();
     renameOverwrite(wisdomTemp.str().c_str(),wisdomName.c_str());
-    fftw::wiser=false;
+    lastWisdomLength=len;
   }
 }
 
@@ -79,19 +66,8 @@ fftw_plan Planner(fftw *F, Complex *in, Complex *out)
   fftw_plan plan=F->Plan(in,out);
   fftw::effort &= ~FFTW_WISDOM_ONLY;
   if(!plan) {
-    char *experience=fftw_export_wisdom_to_string();
-    fftw_forget_wisdom();
     plan=F->Plan(in,out);
-    recall();
-    epiphany=fftw_export_wisdom_to_string();
-    fftw_import_wisdom_from_string(experience);
-    fftw_free(experience);
-    static bool first=true;
-    if(first) {
-      atexit(saveWisdom);
-      first=false;
-    }
-    fftw::wiser=true;
+    saveWisdom();
   }
   return plan;
 }

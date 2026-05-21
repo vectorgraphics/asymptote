@@ -42,9 +42,13 @@
 #include "LibLsp/lsp/lsp_completion.h"
 #include "LibLsp/lsp/utils.h"
 #include "LibLsp/lsp/client/registerCapability.h"
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/uuid_generators.hpp>
+
+#include <array>
+#include <cstdint>
+#include <iomanip>
+#include <iostream>
+#include <random>
+#include <sstream>
 // namespace
 
 lsTextDocumentIdentifier lsVersionedTextDocumentIdentifier::AsTextDocumentIdentifier() const
@@ -1148,11 +1152,44 @@ bool Directory::operator!=(Directory const& rhs) const
     return path != rhs.path;
 }
 
+// Generates a random UUID (version 4) as a string without using any static variables
+std::string generate_uuid_v4() {
+    // Create a PRNG on each call (no static variables)
+    std::random_device rd;
+    std::mt19937_64 gen(rd());
+    std::uniform_int_distribution<uint64_t> dist;
+
+    // Generate 16 bytes of randomness in two 64-bit chunks
+    uint64_t part1 = dist(gen);
+    uint64_t part2 = dist(gen);
+    std::array<uint8_t, 16> bytes;
+    for (int i = 0; i < 8; ++i) {
+        bytes[i]     = static_cast<uint8_t>(part1 >> (8 * (7 - i)));
+        bytes[8 + i] = static_cast<uint8_t>(part2 >> (8 * (7 - i)));
+    }
+
+    // Set version (4) and variant (RFC 4122)
+    bytes[6] = (bytes[6] & 0x0F) | 0x40;  // version: 0100xxxx
+    bytes[8] = (bytes[8] & 0x3F) | 0x80;  // variant: 10xxxxxx
+
+    // Convert to hex string with hyphens (8-4-4-4-12)
+    std::ostringstream ss;
+    ss << std::hex << std::setfill('0');
+    int groups[] = {4, 2, 2, 2, 6};
+    int idx = 0;
+    for (int g = 0; g < 5; ++g) {
+        for (int i = 0; i < groups[g]; ++i) {
+            ss << std::setw(2) << static_cast<int>(bytes[idx++]);
+        }
+        if (g < 4) ss << '-';
+    }
+    return ss.str();
+}
+
 Registration Registration::Create(std::string const& method)
 {
     Registration reg;
     reg.method = method;
-    boost::uuids::uuid const a_uuid = boost::uuids::random_generator()();
-    reg.id = to_string(a_uuid);
+    reg.id = generate_uuid_v4();
     return reg;
 }

@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/chriskohlhoff/asio.git
+	branch = master
+	commit = c46d3c2b5b7ae44a609ec92a17903758ceda2ce4
+	parent = 30341353c4f474591df4cb2408de484f663ea50d
+	method = merge
+	cmdver = 0.4.9

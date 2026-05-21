@@ -5,16 +5,8 @@
   "version": "0.0-snapshot",
   "dependencies": [
     "rapidjson",
-    "boost-asio",
-    "boost-beast",
-    "boost-date-time",
-    "boost-chrono",
-    "boost-filesystem",
-    "boost-system",
-    "boost-uuid",
-    "boost-thread",
-    "boost-process",
-    "boost-program-options"
+    "asio",
+    "ixwebsocket"
   ],
   "features": {
     "bdwgc": {

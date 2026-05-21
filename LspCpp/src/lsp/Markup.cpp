@@ -9,12 +9,12 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstdint>
 #include <cstddef>
 #include <iterator>
 #include <memory>
 #include <string>
 #include <vector>
-#include <boost/algorithm/string.hpp>
 
 namespace lsp
 {
@@ -772,7 +772,21 @@ void SplitString(
     std::string const& Source, std::vector<std::string_ref>& OutFragments, std::string Delimiters = " \t\n\v\f\r"
 )
 {
-    boost::split(OutFragments, Source, boost::is_any_of(Delimiters));
+    std::size_t start = Source.find_first_not_of(Delimiters, 0);
+    while (start != std::string::npos)
+    {
+        // find the end of this token
+        std::size_t end = Source.find_first_of(Delimiters, start);
+
+        // compute length (if no more delimiters, consume to end of string)
+        std::size_t length = (end == std::string::npos) ? (Source.size() - start) : (end - start);
+
+        // emplace a non‑owning reference into the original buffer
+        OutFragments.emplace_back(Source.data() + start, length);
+
+        // advance to the start of the next token
+        start = Source.find_first_not_of(Delimiters, end);
+    }
 }
 
 // Trims the input and concatenates whitespace blocks into a single ` `.

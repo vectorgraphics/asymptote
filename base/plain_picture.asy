@@ -1657,6 +1657,13 @@ void tex(picture pic=currentpicture, string s)
     },true);
 }
 
+void javascript(picture pic=currentpicture, string s)
+{
+  pic.add(new void(frame f, transform3, picture pic, projection) {
+      javascript(f,s);
+    },true);
+}
+
 void tex(picture pic=currentpicture, string s, pair min, pair max)
 {
   frame g;

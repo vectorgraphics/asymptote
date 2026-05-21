@@ -4,6 +4,12 @@ SILENT_MAKE = @
 
 ARCH = unix
 POLL = poll
+BUNDLE_VULKAN = @BUNDLE_VULKAN@
+CODESIGN_IDENTITY ?= -
+MACOS_UNIVERSAL = @MACOS_UNIVERSAL@
+MACOS_MIN_VERSION = @MACOS_MIN_VERSION@
+MACOS_ARCH_FLAGS = @MACOS_ARCH_FLAGS@
+MACOS_DEPLOYMENT_FLAGS = @MACOS_DEPLOYMENT_FLAGS@
 
 ASYGLVERSION = @ASYGLVERSION@
 GC = gc
@@ -12,7 +18,7 @@ GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@
-LIBS = $(LFLAGS) @PTHREAD_LIBS@ @GLEW@ @LIBS@ $(GCLIBS) @LSPLIBS@
+LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS) @LSPLIBS@
 CXX_STANDARD = @CXX_STANDARD@
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 LSP_ROOT=@LSP_ROOT@
@@ -24,16 +30,17 @@ BISON ?= bison
 
 # Libraries needed to make asymptote.so.
 # We have to remove OpenGL, threading, GC, etc from this.
-SHAREDLIBS = $(filter-out -lglut -GL -pthread $(GCLIBS), $(LIBS))
+SHAREDLIBS = $(filter-out -lglut -lglfw -GL -pthread $(GCLIBS), $(LIBS))
 
 vpath %.cc prc
 vpath %.cc thirdparty_impl/tinyexr_impl/src
+vpath %.cc thirdparty_impl/vk-mem-allocator_impl/src
 vpath %.ui GUI/windows
 vpath %.py GUI
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill path3 drawpath3 drawsurface \
-       beziercurve bezierpatch pen pipestream
+       beziercurve bezierpatch sortTriangles pen pipestream
 
 RUNTIME_FILES = runtime runbacktrace runpicture runlabel runhistory runarray \
 	runfile runsystem runpair runtriple runpath runpath3d runstring \
@@ -46,16 +53,25 @@ PRC =  PRCbitStream oPRCFile PRCdouble writePRC
 
 TINYEXR_FILES = tinyexr_impl
 
+VMA_IMPL_FILES = @VMA_IMPL_FILES@
+
+# Vulkan renderer objects - built into a shared library, not linked into the main binary.
+VULKAN_OBJS = $(VMA_IMPL_FILES) vkrender vkdispatchstorage vkutils vulkanshim
+
+# OpenGL renderer objects - built into a shared library, not linked into the main binary.
+OPENGL_PIC_OBJS = glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o tr.pic.o glew.pic.o
+
 COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	env genv stm dec errormsg \
     callable name symbol entry exp newexp stack exithandlers camp.tab lex.yy \
 	access virtualfieldaccess absyn record interact fileio \
 	fftw++asy parallel simpson coder coenv impdatum locate asyparser program application \
 	varinit fundec refaccess envcompleter asyprocess constructor array memory \
-	Delaunay predicates glrender tr shaders jsfile v3dfile \
-	EXRFiles GLTextures lspserv symbolmaps win32helpers win32pipestream \
+	Delaunay predicates glfw renderBase jsfile v3dfile \
+	EXRFiles lspserv symbolmaps win32helpers win32pipestream \
 	win32xdr xstream \
-	lspdec lspexp lspfundec lspstm
+	lspdec lspexp lspfundec lspstm \
+	hashing random rendererloader webglrender
 
 FILES = $(COREFILES) main
 
@@ -78,6 +94,7 @@ CLEAN = camp.output base/version.asy doc/version.texi \
 		version.txt
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
 	asymptote.py reload.js nopapersize.ps
+SHIMLIBS = @SHIMLIBS@
 EXEXTRA = piicon.png 100d.pdb1 *.views *.dat *.bib
 DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
@@ -87,10 +104,14 @@ ASY = ./asy -dir base -config "" -render=0
 
 DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -I.
 CFLAGS = @CFLAGS@
-OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
+OPTS = $(sort $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
-	-Iprc/include -I$(LSP_ROOT)/include
-GLEWOPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC
+	-Iprc/include -I$(LSP_ROOT)/include -I. \
+	$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS))
+
+# Multi-arch flags are incompatible with -E (preprocess-only) and -M (deps).
+# Strip them for any pass that runs the preprocessor without compiling.
+PREPROC_OPTS = $(filter-out $(MACOS_ARCH_FLAGS),$(OPTS))
 
 # Options for compiling the object files for the shared library.
 # gc has to be configured with the option --disable-threads in order to make a
@@ -100,8 +121,10 @@ SHAREDOPTS = $(filter-out -DUSEGC, $(OPTS)) -fPIC -DFOR_SHARED
 
 CXX = @CXX@
 CC = @CC@
-MAKEDEPEND = $(OPTS) -O0 -M -MG -DDEPEND
+MAKEDEPEND = $(PREPROC_OPTS) -O0 -M -MG -MP -DDEPEND
 LEX = @LEX@
+GLEWOPTS = $(sort $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC -Ibackports/glew/include \
+	$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS))
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -123,17 +146,134 @@ INSTALL = @INSTALL@
 REVISION = "const char *REVISION="
 last = $(shell head -1 revision.cc | sed -e 's/.*\"\(.*\)\";/\1/')
 usinggit = $(shell if test -d ".git"; then echo yes; fi)
+revision = ""
 ifeq ($(usinggit),yes)
 	revision = $(shell LC_ALL="C" git describe --long | \
 	sed -e 's/git-\([0-9]*\)-g.*/-\1/' | sed -e 's/-0-g.*//')
-else
+endif
+ifeq ($(revision),"")
 	revision = @VERSION@
 endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o @LSPLIB@ @GLEW@
-	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
+asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ $(SHIMLIBS)
+	$(CXX) $(OPTS) -rdynamic -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
+ifeq ($(BUNDLE_VULKAN),yes)
+	@sh build-scripts/bundle-vulkan-macos.sh $(NAME) "$(CODESIGN_IDENTITY)"
+endif
+
+portability-check-macos:
+	@if [ "$$(uname -s)" != "Darwin" ]; then \
+		echo "Skipping portability checks: host is not macOS."; \
+		exit 0; \
+	fi
+	@if ! command -v lipo >/dev/null 2>&1 || ! command -v otool >/dev/null 2>&1; then \
+		echo "ERROR: lipo and/or otool not found."; \
+		echo "Fix: install Apple command line tools with: xcode-select --install"; \
+		exit 1; \
+	fi
+	@set -eu; \
+	min_required="$(MACOS_MIN_VERSION)"; \
+	if [ -z "$$min_required" ]; then \
+		min_required="12.0"; \
+	fi; \
+	to_int() { \
+		echo "$$1" | awk -F. '{a=$$1+0; b=($$2==""?0:$$2+0); c=($$3==""?0:$$3+0); printf("%d%03d%03d\n",a,b,c)}'; \
+	}; \
+	check_binary() { \
+		f="$$1"; \
+		if [ ! -f "$$f" ]; then \
+			echo "ERROR: Required output '$$f' was not found."; \
+			echo "Fix: build it first, then re-run: make asy"; \
+			exit 1; \
+		fi; \
+		archs="$$(lipo -archs "$$f" 2>/dev/null || true)"; \
+		if [ "$(MACOS_UNIVERSAL)" = "yes" ]; then \
+			for required in x86_64 arm64; do \
+				if ! echo " $$archs " | grep -q " $$required "; then \
+					echo "ERROR: $$f is missing architecture '$$required' (found: $$archs)."; \
+					echo "Fix: ensure all dependencies are universal and configure with --enable-macos-universal (default), then rebuild from clean."; \
+					exit 1; \
+				fi; \
+			done; \
+		fi; \
+		minos="$$(otool -l "$$f" | awk 'BEGIN{want=0; legacy=0} $$1=="cmd" && $$2=="LC_BUILD_VERSION" {want=1; next} want && $$1=="minos" {print $$2; exit} $$1=="cmd" && $$2=="LC_VERSION_MIN_MACOSX" {legacy=1; next} legacy && $$1=="version" {print $$2; exit}')"; \
+		if [ -z "$$minos" ]; then \
+			echo "ERROR: Could not determine minimum macOS version for $$f."; \
+			echo "Fix: build with Apple's linker tools and retry."; \
+			exit 1; \
+		fi; \
+		if [ "$$(to_int "$$minos")" -gt "$$(to_int "$$min_required")" ]; then \
+			echo "ERROR: $$f requires macOS $$minos, which is newer than target $$min_required."; \
+			echo "Fix: reconfigure with --with-macos-min-version=$$min_required (or older), then run 'make clean && make asy'."; \
+			exit 1; \
+		fi; \
+		own_id="$$(otool -D "$$f" 2>/dev/null | awk 'NR==2{print $$1}' || true)"; \
+		bad_refs="$$(otool -L "$$f" | awk -v own="$$own_id" '/^\t/{if (own != "" && $$1 == own) next; print $$1}' | \
+			grep -Ev '^(@executable_path/lib/|@loader_path/|/usr/lib/|/System/Library/)' || true)"; \
+		if [ -n "$$bad_refs" ]; then \
+			echo "ERROR: $$f contains non-portable library references:"; \
+			echo "$$bad_refs"; \
+			echo "Every linked library must be one of:"; \
+			echo "  - a macOS system library  (/usr/lib/ or /System/Library/)"; \
+			echo "  - a bundled dylib          (@executable_path/lib/)"; \
+			echo "  - a co-located dylib       (@loader_path/)"; \
+			echo "Fix options:"; \
+			echo "  - @rpath refs: ensure the bundle-vulkan step rewrote all Vulkan/GLFW"; \
+			echo "    references to @executable_path/lib/, then rebuild."; \
+			echo "  - /opt/homebrew, /opt/local, /usr/local, /Users/ absolute paths:"; \
+			echo "    link against system SDK versions, or build the library as a universal"; \
+			echo "    dylib, copy it into ./lib/, and add it to SHIMLIBS in Makefile.in."; \
+			exit 1; \
+		fi; \
+	}; \
+	files="$(NAME) libasyvulkan.so libasyopengl.so"; \
+	if [ "$(BUNDLE_VULKAN)" = "yes" ]; then \
+		if ls lib/*.dylib >/dev/null 2>&1; then \
+			for f in lib/*.dylib; do files="$$files $$f"; done; \
+		else \
+			echo "ERROR: BUNDLE_VULKAN=yes but no bundled dylibs were found in ./lib."; \
+			echo "Fix: verify Vulkan SDK/MoltenVK installation and rerun 'make clean && make asy'."; \
+			exit 1; \
+		fi; \
+	fi; \
+	for f in $$files; do \
+		check_binary "$$f"; \
+	done; \
+	echo "macOS portability checks passed for $(NAME), renderer shims, and bundled dylibs."
+
+# Build the Vulkan renderer as a shared library loaded at runtime via dlopen.
+VULKAN_PIC_OBJS = $(VULKAN_OBJS:=.pic.o)
+libasyvulkan.so: $(VULKAN_PIC_OBJS)
+	$(CXX) $(OPTS) -shared -o $@ $^ $(filter -L%,$(LFLAGS)) @SHIM_LDFLAGS@ @ASY_VULKAN_LIBS@ -lglfw
+
+# Build the OpenGL renderer as a shared library loaded at runtime via dlopen.
+libasyopengl.so: $(OPENGL_PIC_OBJS)
+	$(CXX) $(OPTS) -shared -o $@ $^ $(filter -L%,$(LFLAGS)) @SHIM_LDFLAGS@ @ASY_GL_LIBS@ -lglfw
+
+# Rebuild vkrender.pic.o with validation layer support, then finish the build.
+.PHONY: validation novalidation
+validation:
+	$(CXX) $(OPTS) -DENABLE_VK_VALIDATION -fPIC -o vkrender.pic.o -c vkrender.cc
+	$(MAKE) asy
+
+# Rebuild vkrender.pic.o without validation layer support, then finish the build.
+novalidation:
+	$(CXX) $(OPTS) -fPIC -o vkrender.pic.o -c vkrender.cc
+	$(MAKE) asy
+
+# Shared library objects need -fPIC but must not define FOR_SHARED,
+# since common.h uses !defined(FOR_SHARED) to enable HAVE_VULKAN/HAVE_GL.
+$(VULKAN_PIC_OBJS): %.pic.o: %.cc
+	$(CXX) $(OPTS) -fPIC -o $@ -c $<
+
+glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o tr.pic.o: %.pic.o: %.cc
+	$(CXX) $(OPTS) -fPIC -o $@ -c $<
+
+# glew.c is a C file, needs special handling for the OpenGL shared library.
+glew.pic.o: glew.c config.h
+	$(CC) $(GLEWOPTS) -o $@ -c $<
 
 $(XNAME): $(PYFILES)
 	$(SILENT_MAKE)ln -sf GUI/xasy.py $(XNAME)
@@ -175,8 +315,8 @@ all:	asy sty man faq asy-keywords.el
 
 $(GCLIB):
 	cd $(GC) && ln -sf ../libatomic_ops . && \
-		./configure CC="$(CC)" CXX="$(CXX)" $(GCOPTIONS)
-	$(MAKE) -C $(GC) check
+		./configure CC="$(CC)" CXX="$(CXX)" CFLAGS="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)" CXXFLAGS="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)" $(GCOPTIONS)
+	$(MAKE) -C $(GC) check CFLAGS_EXTRA="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)"
 
 sty: doc/version.texi
 	cd doc && $(MAKE) asy-latex.pdf
@@ -205,7 +345,7 @@ $(RUNTIME_FILES:=.cc): %.cc: runtime.py opsymbols.h runtimebase.in %.in
 GEN_PREPROCESSED_DEPFILE_BASE_ARGS = \
     $(PYTHON) gen_preprocessed_depfile.py \
 	--cxx-compiler="$(CXX)" \
-	--additional-raw-arguments="$(OPTS)" \
+	--additional-raw-arguments="$(PREPROC_OPTS)" \
 	--cxx-standard=$(subst gnu,,$(subst c++,,$(CXX_STANDARD)))
 
 $(SYMBOL_FILES:=.raw.i): %.raw.i: %.cc gen_preprocessed_depfile.py
@@ -266,10 +406,29 @@ asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy asy-list.py
 	  grep -v ^plain.asy$ | grep -v ^plain_ | grep -v ^three_ | \
 	  xargs ../$(ASY) -l >> ../asy.list; \
 	done
-	revision=`cat version.txt`
 	$(PYTHON) ./asy-list.py --asy-list-file asy.list --revision $(revision) --output-file $@
 
-install-notexhash: asy-keywords.el install-asy install-man
+licensedir = $(DESTDIR)@licensedir@
+
+copy-licenses:
+	${INSTALL} -d doc/licenses
+	${INSTALL} -p -m 644 LICENSE doc/licenses/LICENSE
+	${INSTALL} -p -m 644 LICENSE.LESSER doc/licenses/LICENSE.LESSER
+	${INSTALL} -p -m 644 backports/span/LICENSE.txt doc/licenses/span-LICENSE.txt
+	${INSTALL} -p -m 644 backports/glew/LICENSE.txt doc/licenses/glew-LICENSE.txt
+	${INSTALL} -p -m 644 wyhash/UNLICENSE.txt doc/licenses/wyhash-UNLICENSE.txt
+	${INSTALL} -p -m 644 LspCpp/LICENSE doc/licenses/LspCpp-LICENSE.txt
+	${INSTALL} -p -m 644 libatomic_ops/LICENSE doc/licenses/libatomic_ops-LICENSE.txt
+	${INSTALL} -p -m 644 libatomic_ops/COPYING doc/licenses/libatomic_ops-COPYING.txt
+	${INSTALL} -p -m 644 tinyexr/LICENSE.txt doc/licenses/tinyexr-LICENSE.txt
+	${INSTALL} -p -m 644 gc/LICENSE.txt doc/licenses/gc-LICENSE.txt
+
+install-licenses: copy-licenses
+	${INSTALL} -d $(licensedir)
+	${INSTALL} -p -m 644 doc/licenses/* $(licensedir)
+	${INSTALL} -p -m 644 LICENSES-THIRD-PARTY.md $(docdir)
+
+install-notexhash: asy-keywords.el install-asy install-licenses install-man
 
 install: install-notexhash install-texhash
 
@@ -282,16 +441,26 @@ install-texhash: install-asy
 
 install-asy: asy sty $(PYFILES)
 	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
-	${INSTALL} -d $(shaderdir) $(webgldir) \
+	${INSTALL} -d $(asydir)/collections
+	${INSTALL} -d $(shaderdir) $(shaderdir)/GL $(webgldir) \
 		$(GUIdir) $(GUIdir)/configs \
 		$(GUIdir)/res $(GUIdir)/res/icons \
 		$(GUIdir)/xasyicons $(GUIdir)/xasyqtui $(GUIdir)/xasyversion
 	-${INSTALL} -d $(latexdir)
 	-${INSTALL} -d $(contextdir)
 	${INSTALL} -p -m 755 $(NAME) $(bindir)
+ifeq ($(BUNDLE_VULKAN),yes)
+	-if [ -d lib ]; then \
+		${INSTALL} -d $(bindir)/lib; \
+		${INSTALL} -p -m 644 lib/*.dylib lib/*.json $(bindir)/lib; \
+	fi
+endif
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) \
 		asy-keywords.el $(asydir)
+	${INSTALL} -p -m 755 $(SHIMLIBS) $(asydir)
+	${INSTALL} -p -m 644 base/collections/*.asy $(asydir)/collections
 	${INSTALL} -p -m 644 base/shaders/*.glsl $(shaderdir)
+	${INSTALL} -p -m 644 base/shaders/GL/*.glsl $(shaderdir)/GL
 	${INSTALL} -p -m 644 base/webgl/asygl.js \
 		$(webgldir)
 	${INSTALL} -p -m 644 GUI/*.py $(GUIdir)
@@ -345,7 +514,9 @@ uninstall-asy:
 	-rmdir $(shaderdir)
 	-cd $(webgldir) && rm -f *.html *.js
 	-rmdir $(webgldir)
-	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA)
+	-cd $(asydir)/collections && rm -f *.asy
+	-rmdir $(asydir)/collections
+	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA) $(SHIMLIBS)
 	-rmdir $(asydir)
 	-cd $(latexdir) && rm -f $(LATEXFILES)
 	-rmdir $(latexdir)
@@ -356,47 +527,66 @@ uninstall-asy:
 uninstall-man:
 	cd doc && $(MAKE) uninstall
 
-uninstall-docdir:
+# uninstall-man removes files from $(docdir) itself; uninstall-asy removes
+# $(exampledir) and $(animationsdir) which are subdirectories of $(docdir).
+# Both must finish before we can rmdir $(docdir).
+uninstall-docdir: uninstall-man uninstall-asy
+	-cd $(licensedir) && rm -f LICENSE LICENSE.LESSER \
+		span-LICENSE.txt \
+		glew-LICENSE.txt wyhash-UNLICENSE.txt LspCpp-LICENSE.txt \
+		libatomic_ops-LICENSE.txt libatomic_ops-COPYING.txt \
+		tinyexr-LICENSE.txt gc-LICENSE.txt
+	-rmdir $(licensedir)
+	-cd $(docdir) && rm -f LICENSES-THIRD-PARTY.md
 	-rmdir $(docdir)
 
 clean:	FORCE
-	-rm -f asy asymptote.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
+	-rm -f asy asymptote.so libasyvulkan.so libasyopengl.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
+	-rm -rf doc/licenses
+	-rm -rf lib
 	-cd LspCpp && $(MAKE) distclean
-	-cd LspCpp && rm -rf liblspcpp.a Makefile CMakeFiles third_party/uri/src/CMakeFiles
 	-cd tinyexr && $(MAKE) clean
+	-cd doc && $(MAKE) clean
+	-cd tests && $(MAKE) clean
 
 gc-clean: FORCE clean
 	-$(MAKE) -C $(GC) clean
 
-cleaner: FORCE clean
+cleaner0: FORCE clean
 	-rm -rf __pycache__
 	-rm -rf GUI/__pycache__
 	-rm -rf GUI/configs/__pycache__
-	-rm -rf GUI/xasyicons GUI/xasyqtui GUI/xasyversion
+	-rm -f GUI/{xasyversion,xasyicons,xasyqtui}/__init__.py
 	-$(MAKE) -C $(GC) distclean
 	-$(MAKE) -C libatomic_ops distclean
-	-cd $(GC) && rm -rf libatomic_ops .deps cord/.deps \
+	-cd $(GC) && rm -rf libatomic_ops autom4te.cache .deps cord/.deps \
 		cord/tests/.deps extra/.deps tests/.deps
 
-	-rm -f Makefile config.h config.log config.status \
-		errors.temp
-	-rm -rf LspCpp/CMakeCache.txt
-	cd doc && $(MAKE) clean
-	cd tests && $(MAKE) distclean
+	-cd libatomic_ops && rm -rf autom4te.cache
+	-rm -f config.h config.log config.status
+	-rm -rf autom4te.cache LspCpp/CMakeCache.txt
+	-rm -f Makefile
+
+cleaner: FORCE cleaner0
+	-cd tests && $(MAKE) cleaner
+	-cd doc && $(MAKE) cleaner
+
+cleanest: FORCE
+	-rm -rf GUI/xasyicons GUI/xasyqtui GUI/xasyversion
+	-$(MAKE) cleaner0
+	-cd $(GC) && rm -rf ltmain.sh missing \
+		test-driver configure m4/l*.m4
+	-cd libatomic_ops && rm -rf ltmain.sh missing \
+		test-driver configure m4/l*.m4
+	-cd GUI && $(PYTHON) buildtool.py clean
+	-rm -rf $(DIST)
+	-rm -rf vcpkg_installed
+	-cd doc && $(MAKE) cleanest
+	-cd tests && $(MAKE) cleanest
+	-rm -f configure config.h.in
 
 distclean: FORCE cleaner
-	cd doc && $(MAKE) distclean
-
-cleanest: FORCE maintainer-clean
-maintainer-clean: FORCE distclean
-	-rm -f configure config.h.in
-	-cd $(GC) && rm -rf ltmain.sh missing \
-		test-driver configure autom4te.cache m4/l*.m4
-	-cd libatomic_ops && rm -rf ltmain.sh missing \
-		test-driver configure autom4te.cache m4/l*.m4
-	-cd GUI && $(PYTHON) buildtool.py clean
-	-rm -rf autom4te.cache $(DIST)
-	-rm -rf vcpkg_installed
+maintainer-clean: FORCE cleanest
 
 test: asy FORCE
 	./wce
@@ -410,6 +600,16 @@ check-all: asy FORCE
 
 glew.o: glew.c config.h
 	$(CC) $(GLEWOPTS) -o $@ -c $<
+
+# glew.c needs its own .d rule because MAKEDEPEND contains -std=c++17 (via
+# PREPROC_OPTS), which clang rejects for C files.  Use GLEWOPTS instead, and
+# strip MACOS_ARCH_FLAGS since clang rejects multiple -arch with -M.
+glew.d: glew.c config.h
+	@echo Creating $@; \
+	rm -f $@; \
+	$(CC) $(filter-out $(MACOS_ARCH_FLAGS),$(GLEWOPTS)) -O0 -M -MG -MP -DDEPEND $< > $@.$$$$ 2>/dev/null && \
+	sed 's,\(glew\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
 
 .SUFFIXES: .c .cc .o .d .ui .py
 %.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.cc)
@@ -426,12 +626,21 @@ glew.o: glew.c config.h
 	${CC} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
+
 # Compile for the shared library.  OpenGL must be disabled as it causes
 # crashes inside a shared library.
 %.pic.o: %.cc
 	$(CXX) $(SHAREDOPTS) -o $@ -c $<
 
 # Generate V3D headers
+
+# Mark the generated headers as SECONDARY so GNU make does not treat them as
+# intermediate files and delete them between phases. Without this, the headers
+# (which are produced by the %.h pattern rule below) are removed after the
+# initial dep-file generation, which forces all .d files to be rebuilt on the
+# next make pass, which in turn re-triggers the Makefile restart logic and
+# loops forever.
+.SECONDARY: $(GENERATEDENUMS:=.h)
 
 %.h: %.csv generate_enums.py $(GENERATEDENUMS:=.csv)
 	$(PYTHON) generate_enums.py -language cxx -o $@ -i $< -name $(notdir $*) -xopt namespace=camp
@@ -443,10 +652,12 @@ base/%.asy: %.csv generate_enums.py $(GENERATEDENUMS:=.csv)
 	$(PYTHON) generate_enums.py -language python -o $@ -i $< -name $(notdir $*)
 
 ifeq (,$(findstring clean,${MAKECMDGOALS}))
--include $(FILES:=.d)
+-include $(FILES:=.d) $(VULKAN_PIC_OBJS:.pic.o=.d) $(OPENGL_PIC_OBJS:.pic.o=.d)
 endif
 
 FORCE:
+
+.PHONY: portability-check-macos
 
 configure: configure.ac
 	autoheader && autoconf
@@ -454,5 +665,4 @@ configure: configure.ac
 Makefile: Makefile.in config.status
 	./config.status
 
-config.status: configure
-	./config.status --recheck
+config.status:

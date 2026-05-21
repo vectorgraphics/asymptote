@@ -12,6 +12,9 @@ namespace camp {
 
 class jsfile : public abs3Doutfile {
   jsofstream out;
+  bool finished;
+  string fileName;
+  bool transformInitialized;
 
 public:
   jsfile();
@@ -86,9 +89,10 @@ protected:
   void addSphere(const triple& center, double radius, bool half=false,
                  const double& polar=0.0, const double& azimuth=0.0);
 
-private:
-  bool finished;
-  string fileName;
+  void write(const string& s) override;
+  void write(double x) override;
+
+  void initTransform() override;
 };
 
 } //namespace camp

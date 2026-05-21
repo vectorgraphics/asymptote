@@ -1,8 +1,16 @@
 #ifndef __TOGL_SHADERSPROC
 #define __TOGL_SHADERSPROC
 
+#include "common.h"
+
+#if defined(HAVE_LIBGLM) && (defined(HAVE_LIBGL) || defined(HAVE_LIBOSMESA))
 #define GLEW_NO_GLU
 #include <GL/glew.h>
+#endif
+
+#ifdef HAVE_LIBGLM
+#include "glmCommon.h"
+#endif
 
 #include <string>
 
@@ -10,6 +18,7 @@ extern int GLSLversion;
 
 typedef std::pair<std::string, int> ShaderfileModePair;
 
+#ifdef HAVE_GL
 GLuint compileAndLinkShader(
   std::vector<ShaderfileModePair> const& shaders,
   std::vector<std::string> const& defineflags, bool ssbo=true,
@@ -21,5 +30,6 @@ GLuint createShaderFile(std::string file, int shaderType,
 
 enum attrib {positionAttrib=0,normalAttrib,materialAttrib,colorAttrib,
              widthAttrib};
+#endif
 
 #endif

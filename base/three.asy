@@ -434,19 +434,6 @@ projection TopView=orthographic(Z,up=Y,showtarget=true);
 
 currentprojection=perspective(5,4,2);
 
-projection projection()
-{
-  projection P;
-  real[] a=_projection();
-  if(a.length == 0 || a[10] == 0.0) return currentprojection;
-  int k=0;
-  return a[0] == 1 ?
-    orthographic((a[++k],a[++k],a[++k]),(a[++k],a[++k],a[++k]),
-                 (a[++k],a[++k],a[++k]),a[++k],(a[k += 2],a[++k])) :
-    perspective((a[++k],a[++k],a[++k]),(a[++k],a[++k],a[++k]),
-                (a[++k],a[++k],a[++k]),a[++k],a[++k],(a[++k],a[++k]));
-}
-
 // Map pair z to a triple by inverting the projection P onto the
 // plane perpendicular to normal and passing through point.
 triple invert(pair z, triple normal, triple point,
@@ -2128,7 +2115,8 @@ void draw(frame f, path3 g, material p=currentpen, light light=nolight,
 
 void begingroup3(frame f, string name="", render render=defaultrender)
 {
-  _begingroup3(f,name,render.compression,render.granularity,render.closed,
+  _begingroup3(f,name,
+               render.compression,render.granularity,render.closed,
                render.tessellate,render.merge == false,
                render.merge == true,render.interaction.center,render.interaction.type);
 }
@@ -2149,6 +2137,27 @@ void endgroup3(picture pic=currentpicture)
   pic.add(new void(frame f, transform3, picture pic, projection) {
       if(is3D())
         endgroup3(f);
+      if(pic != null)
+        endgroup(pic);
+    },true);
+}
+
+void beginTransform(picture pic=currentpicture, string geometry="",
+                    string color="", real duration)
+{
+  pic.add(new void(frame f, transform3, picture pic, projection) {
+      if(is3D())
+        beginTransform(f,geometry,color,duration);
+      if(pic != null)
+        begingroup(pic);
+    },true);
+}
+
+void endTransform(picture pic=currentpicture)
+{
+  pic.add(new void(frame f, transform3, picture pic, projection) {
+      if(is3D())
+        endTransform(f);
       if(pic != null)
         endgroup(pic);
     },true);
@@ -2893,15 +2902,12 @@ object embed(string prefix=outprefix(), string label=prefix,
     if(primitive())
       format=settings.v3d ? "v3d" : settings.outformat;
 
-    transform3 s=inv*shift(0,0,zcenter);
-
     shipout3(prefix,f,preview ? nativeformat() : format,
              S.width-defaultrender.margin,S.height-defaultrender.margin,
              P.infinity ? 0 : 2aTan(Tan(0.5*P.angle)*P.zoom),
              P.zoom,m,M,P.viewportshift,S.viewportmargin,
-             tinv*s,s,Light.background(),Light.position,
-             Light.diffuse,Light.specular,
-             view && !preview);
+             tinv*inv,inv*shift(0,0,zcenter),Light.background(),Light.position,
+             Light.diffuse,view && !preview);
     if(settings.v3d) {
       string content=prefix+".v3d";
       F.L=Embed(content,S.width,S.height);

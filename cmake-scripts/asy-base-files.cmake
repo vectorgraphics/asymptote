@@ -5,6 +5,11 @@ set(ASY_SOURCE_BASE_SHADER_DIR ${ASY_SOURCE_BASE_DIR}/shaders)
 file(GLOB ASY_STATIC_BASE_FILES RELATIVE ${ASY_SOURCE_BASE_DIR} CONFIGURE_DEPENDS ${ASY_SOURCE_BASE_DIR}/*.asy)
 file(GLOB ASY_STATIC_SHADER_FILES RELATIVE ${ASY_SOURCE_BASE_DIR} CONFIGURE_DEPENDS ${ASY_SOURCE_BASE_SHADER_DIR}/*.glsl)
 
+set(ASY_STATIC_BASE_COLLECTIONS_FILES
+    btree btreegeneral btreemap enumerate genericpair hashmap hashset iter map
+    queue set sortedset splaytree wraparray wrapper zip zip2
+)
+
 set(OTHER_STATIC_BASE_FILES nopapersize.ps)
 
 # base dir
@@ -37,6 +42,11 @@ foreach(ASY_STATIC_BASE_FILE ${ASY_STATIC_BASE_FILES})
     copy_base_file(${ASY_STATIC_BASE_FILE})
 endforeach ()
 
+file(MAKE_DIRECTORY ${ASY_BUILD_BASE_DIR}/collections)
+foreach (ASY_COLLECTION_BASE_FILE ${ASY_STATIC_BASE_COLLECTIONS_FILES})
+    copy_base_file(collections/${ASY_COLLECTION_BASE_FILE}.asy)
+endforeach()
+
 foreach(OTHER_STATIC_BASE_FILE ${OTHER_STATIC_BASE_FILES})
     copy_base_file(${OTHER_STATIC_BASE_FILE})
 endforeach ()
@@ -63,4 +73,19 @@ endforeach ()
 
 # asygl
 file(MAKE_DIRECTORY ${ASY_BUILD_BASE_DIR}/webgl)
-copy_base_file_with_custom_output_name(webgl/asygl-${ASY_GL_VERSION}.js webgl/asygl.js)
+
+set(ASYGL_OUTPUT_LOCATION_BASE webgl/asygl.js)
+if(USE_PREBUILT_WEBGL_LIB)
+    copy_base_file_with_custom_output_name(webgl/asygl-${ASY_GL_VERSION}.js ${ASYGL_OUTPUT_LOCATION_BASE})
+else()
+    set(ASYGL_OUTPUT ${ASY_BUILD_BASE_DIR}/${ASYGL_OUTPUT_LOCATION_BASE})
+    add_custom_command(
+            COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_CURRENT_SOURCE_DIR}/webgl/dist/gl.js
+            ${ASYGL_OUTPUT}
+            OUTPUT ${ASYGL_OUTPUT}
+            MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/webgl/dist/gl.js
+    )
+
+    list(APPEND ASY_OUTPUT_BASE_FILES ${ASYGL_OUTPUT})
+endif()

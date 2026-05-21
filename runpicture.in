@@ -96,7 +96,7 @@ transform getTransform(xmap_t &xmap, picture::nodelist::iterator p)
 }
 
 
-function *transformFunction()
+function *jsTransform()
 {
   return new function(primTransform());
 }
@@ -307,6 +307,17 @@ void endgroup3(picture *f)
   f->append(new drawEnd3());
 }
 
+void beginTransform(picture *f, string geometry=emptystring,
+                    string color=emptystring, real duration)
+{
+  f->append(new drawBeginTransform(geometry,color,duration));
+}
+
+void endTransform(picture *f)
+{
+  f->append(new drawEndTransform());
+}
+
 void add(picture *dest, picture *src)
 {
   dest->add(*src);
@@ -325,6 +336,11 @@ void postscript(picture *f, string s)
 void tex(picture *f, string s)
 {
   f->append(new drawVerbatim(TeX,s));
+}
+
+void javascript(picture *f, string s)
+{
+  f->append(new drawVerbatim(JavaScript,s));
 }
 
 void postscript(picture *f, string s, pair min, pair max)
@@ -472,23 +488,21 @@ void shipout3(string prefix, picture *f, string format=emptystring,
               triple m, triple M, pair shift, pair margin, realarray2 *t,
               realarray2 *tup,
               realarray *background, triplearray *lights, realarray2 *diffuse,
-              realarray2 *specular, bool view=true)
+              bool view=true)
 {
   size_t n=checkArrays(lights,diffuse);
-  checkEqual(n,checkArray(specular));
 
-  real *T,*Tup,*Background,*Diffuse,*Specular;
+  real *T,*Tup,*Background,*Diffuse;
   triple *Lights;
 
   copyArray2C(T,t,true,4);
   copyArray2C(Tup,tup,true,4);
   copyArrayC(Background,background);
-  copyArrayC(Lights,lights);
+  copyArrayC(Lights,lights,0,UseGC);
   copyArray2C(Diffuse,diffuse,false,4,UseGC);
-  copyArray2C(Specular,specular,false,4,UseGC);
 
   f->shipout3(prefix,format,width,height,angle,zoom,m,M,shift,margin,T,Tup,
-              Background,n,Lights,Diffuse,Specular,view);
+              Background,n,Lights,Diffuse,view);
 
   delete[] Background;
   delete[] T;
