@@ -505,6 +505,7 @@ public:
   virtual void toggleFitScreen();
 
   void initDisplay(int contentW, int contentH);
+  void setOpaque();
   virtual void home();
 
   // Mode cycling
