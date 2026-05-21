@@ -21,8 +21,6 @@
 #include <vma_cxx.h>
 
 #include <glslang/Public/ShaderLang.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
 
 #include "material.h"
 #include "pen.h"
@@ -32,7 +30,6 @@
 
 #include "render.h"
 #include "renderBase.h"
-#include "glfw.h"
 
 namespace camp
 {
@@ -646,8 +643,8 @@ public:
   // Graphics library cleanup
   void finalizeProcess() override;
 
-  /** Returns the GLFW window pointer (does the static_cast from void* once) */
-  GLFWwindow* getGLFWWindow() const { return static_cast<GLFWwindow*>(glfwWindow); }
+  /** Returns the GLFW window pointer */
+  GLFWwindow* getGLFWWindow() const { return glfwWindow; }
 
   // Vulkan-specific overrides that add to base class behavior
   virtual void reshape(int width, int height) override;
