@@ -87,9 +87,6 @@ public:
 private:
   bool GPUindexing=false;
   bool GPUcompress;
-  bool outlinemode = false;
-  bool glupdate = false;
-  bool glexit = false;
   bool shouldUpdateBuffers = true;
   bool copied = false;
   size_t Nlights = 1;
@@ -127,7 +124,6 @@ private:
   // Framebuffers/textures (for export)
   GLuint pixels = 0;
   GLuint elements = 0;
-  GLuint lastpixels = 0;
   int maxTileWidth = 1024;
   int maxTileHeight = 768;
 
@@ -154,8 +150,6 @@ private:
   // Interaction state
   string currentAction = "";
   bool exporting = false;
-  int oldWidth = 0;
-  int oldHeight = 0;
   utils::stopWatch spinTimer;
 
   // Shader and buffer management
