@@ -263,7 +263,7 @@ void AsyVkRender::updateModelViewData()
 
 void AsyVkRender::initWindow()
 {
-  glfwWindow = static_cast<void*>(glfwCreateRenderWindow(Width, Height, title, this));
+  glfwWindow = glfwCreateRenderWindow(Width, Height, title, this);
 }
 
 // RenderCallbacks interface implementation
@@ -4585,7 +4585,7 @@ void AsyVkRender::swapBuffers()
 
 GLFWwindow* AsyVkRender::getRenderWindow() const
 {
-  return static_cast<GLFWwindow*>(glfwWindow);
+  return glfwWindow;
 }
 
 void AsyVkRender::exportHandler(int) {

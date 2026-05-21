@@ -22,6 +22,13 @@
 #include "common.h"
 #include "ThreadSafeQueue.h"
 
+#ifdef HAVE_LIBGLFW
+#ifndef GLFW_INCLUDE_NONE
+#define GLFW_INCLUDE_NONE
+#endif
+#include "glfw.h"
+#endif
+
 // GLM-independent utility functions (available even when HAVE_LIBGLM is undefined)
 // These are used by both OpenGL and Vulkan renderers but don't depend on GLM.
 namespace camp {
@@ -365,10 +372,13 @@ public:
   int Oldpid = 0;
 
   // GLFW window pointer (shared between Vulkan and OpenGL renderers)
-  // Using void* to avoid requiring GLFW header in all files that include this
+#ifdef HAVE_LIBGLFW
+  GLFWwindow* glfwWindow = nullptr;
+#else
   void* glfwWindow = nullptr;
+#endif
 
-  /** Returns the GLFW window pointer as void*. Cast to appropriate type by caller. */
+  /** Returns the GLFW window pointer. Cast to GLFWwindow* when HAVE_LIBGLFW is defined. */
   void* getGLFWWindow() const { return glfwWindow; }
 
   // Timer and statistics

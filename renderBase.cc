@@ -15,7 +15,7 @@ struct GLFWwindow;
 using settings::getSetting;
 
 #ifdef HAVE_LIBGLFW
-// Helper to avoid repeated static_cast<GLFWwindow*> from void*.
+// Helper to convert void* getGLFWWindow() result to GLFWwindow*.
 static inline GLFWwindow* getWin(void* w) { return static_cast<GLFWwindow*>(w); }
 #endif
 
@@ -697,7 +697,7 @@ void AsyRender::swapBuffers()
  */
 void AsyRender::showWindow()
 {
-  GLFWwindow* win = getWin(getGLFWWindow());
+  GLFWwindow* win = glfwWindow;
   if(View && !hideWindow && !glfwGetWindowAttrib(win, GLFW_VISIBLE))
     ::glfwShowWindow(win);
 }
@@ -828,7 +828,7 @@ void AsyRender::onFramebufferResize(int width, int height)
 void AsyRender::mainLoop()
 {
   if(View) {
-    GLFWwindow* win = getWin(getGLFWWindow());
+    GLFWwindow* win = glfwWindow;
     glfwRunLoop(win,
       // shouldContinue: continue while window is open
       [win](){ return !glfwWindowShouldClose(win); },
@@ -973,7 +973,7 @@ void AsyRender::setsize(int w, int h, bool reposition)
 {
   capsize(w, h);
   if (View && glfwWindow != nullptr) {
-    GLFWwindow* win = getWin(glfwWindow);
+    GLFWwindow* win = glfwWindow;
     ::glfwSetWindowSize(win, w, h);
     if (reposition) {
       int x, y;
@@ -992,7 +992,7 @@ void AsyRender::exportHandler(int)
 void AsyRender::updateHandler(int)
 {
   if (View && !interact::interactive) {
-    ::glfwHideWindow(getWin(getGLFWWindow()));
+    ::glfwHideWindow(glfwWindow);
     if (!getSetting<bool>("fitscreen"))
       Fitscreen = 0;
   }
@@ -1017,13 +1017,13 @@ void AsyRender::quit()
     }
 #endif
     if (View && glfwWindow) {
-      ::glfwHideWindow(getWin(glfwWindow));
+      ::glfwHideWindow(glfwWindow);
       hideWindow = true;
     }
   } else {
     finalizeProcess();
     if (View && glfwWindow) {
-      ::glfwDestroyWindow(getWin(glfwWindow));
+      ::glfwDestroyWindow(glfwWindow);
       glfwWindow = nullptr;
     }
     glfwTerminate();
@@ -1038,7 +1038,7 @@ void AsyRender::onMouseButton(int button, int action, int mods)
     if (action == GLFW_PRESS) {
         lastAction = currentActionStr;
         double xpos, ypos;
-        glfwGetCursorPos(getWin(getGLFWWindow()), &xpos, &ypos);
+        glfwGetCursorPos(glfwWindow, &xpos, &ypos);
         xprev = xpos;
         yprev = ypos;
     } else if (action == GLFW_RELEASE) {

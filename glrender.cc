@@ -1249,7 +1249,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
       cerr << "Failed to create GLFW window" << endl;
       exit(-1);
     }
-    glfwWindow = static_cast<void*>(newWindow);
+    glfwWindow = newWindow;
 
     // Make context current before GLEW initialization (matching reference pattern)
     glfwMakeContextCurrent(newWindow);
@@ -1407,7 +1407,7 @@ void AsyGLRender::update()
 
 GLFWwindow* AsyGLRender::getRenderWindow() const
 {
-  return static_cast<GLFWwindow*>(glfwWindow);
+  return glfwWindow;
 }
 
 void AsyGLRender::exportHandler(int)
