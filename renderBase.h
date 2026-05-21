@@ -441,6 +441,13 @@ public:
   // Normal matrices for shader transformations
   glm::dmat3 normMat;  // Double precision normal matrix for CPU calculations
 
+  /// Accessor for combined projection*view matrix (member version of getProjViewMat())
+  const glm::dmat4& getProjViewMat() const { return projViewMat; }
+  /// Accessor for view matrix (member version of getViewMat())
+  const glm::dmat4& getViewMat() const     { return viewMat; }
+  /// Accessor for normal matrix (member version of getNormMat())
+  const glm::dmat3& getNormMat() const     { return normMat; }
+
 #ifdef HAVE_PTHREAD
   // Thread synchronization manager (shared between renderers)
   ThreadManager threadMgr;

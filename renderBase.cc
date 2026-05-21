@@ -906,9 +906,10 @@ void AsyRender::mainLoop() {}
 // =========================================================================
 
 // Matrix accessor functions - shared between GL and Vulkan renderers.
-const glm::dmat4& getProjViewMat() { return gl->projViewMat; }
-const glm::dmat4& getViewMat()     { return gl->viewMat; }
-const glm::dmat3& getNormMat()     { return gl->normMat; }
+// These delegate to the corresponding AsyRender member functions.
+const glm::dmat4& getProjViewMat() { return gl->getProjViewMat(); }
+const glm::dmat4& getViewMat()     { return gl->getViewMat(); }
+const glm::dmat3& getNormMat()     { return gl->getNormMat(); }
 
 void AsyRender::initDisplay(int contentWidth, int contentHeight)
 {

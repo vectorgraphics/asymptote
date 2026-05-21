@@ -82,13 +82,6 @@ struct ComputePushConstants {
     uint32_t final;
 };
 
-extern glm::dmat4 projViewMat;  // Deprecated - use getProjViewMat() instead
-extern glm::dmat4 normMat;      // Deprecated - use getNormMat() instead
-
-// Accessor functions to avoid synchronization with vk instance
-const glm::dmat4& getProjViewMat();
-const glm::dmat3& getNormMat();
-
 class AsyVkRender : public AsyRender, public RenderCallbacks
 {
 public:

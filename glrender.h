@@ -43,11 +43,6 @@ class picture;
 template<typename T, GLuint GLDataType> class GLTexture2;
 template<typename T, GLuint GLDataType> class GLTexture3;
 
-// Accessor functions for matrices (to avoid synchronization with gl instance)
-const glm::dmat4& getProjViewMat();
-const glm::dmat4& getViewMat();
-const glm::dmat3& getNormMat();
-
 // Projection matrix pointer for shader compatibility (following Vulkan pattern)
 extern const double* dprojView;  // For drawelement.h Transform2T
 
