@@ -21,8 +21,6 @@
 #include <vma_cxx.h>
 
 #include <glslang/Public/ShaderLang.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
 
 #include "material.h"
 #include "pen.h"
@@ -32,7 +30,6 @@
 
 #include "render.h"
 #include "renderBase.h"
-#include "glfw.h"
 
 namespace camp
 {
@@ -82,13 +79,6 @@ struct ComputePushConstants {
     uint32_t final;
 };
 
-extern glm::dmat4 projViewMat;  // Deprecated - use getProjViewMat() instead
-extern glm::dmat4 normMat;      // Deprecated - use getNormMat() instead
-
-// Accessor functions to avoid synchronization with vk instance
-const glm::dmat4& getProjViewMat();
-const glm::dmat3& getNormMat();
-
 class AsyVkRender : public AsyRender, public RenderCallbacks
 {
 public:
@@ -108,23 +98,31 @@ public:
   void onWindowFocus(int focused) override;
   void onClose() override;
 
+  // Virtual overrides called by base class
+  void updateHandler(int=0) override;
+  void drawFrame() override;
+  void swapBuffers() override;
+  void Export(int imageIndex=0) override;
+  void finalizeProcess() override;
+
+  GLFWwindow* getRenderWindow() const;
+  GLFWwindow* getGLFWWindow() const { return glfwWindow; }
+
+private:
   bool framebufferResized=false;
   bool recreatePipeline=false;
   bool recreateBlendPipeline=false;
   bool shouldUpdateBuffers=true;
   bool newUniformBuffer=true;
-  // Note: ibl is now in base class AsyRender
   bool vkexit=false;
+  bool readyForUpdate=false;
 
   int maxFramesInFlight;
-
   vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
-
   std::uint32_t pixels;
-
   const double* dprojView;
   const double* dView;
-private:
+
   static constexpr std::array<const char*, 4> deviceExtensions = {
     VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME,
     VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
@@ -406,10 +404,11 @@ private:
 protected:
   void updateModelViewData() override;
   void setProjection() override;
+  void exportHandler(int) override;
+  virtual void reshape(int width, int height) override;
+  virtual void cycleMode() override;
 
-public:
-  void updateHandler(int=0) override;
-
+private:
   void initWindow();
   void initVulkan();
 
@@ -610,20 +609,11 @@ public:
   void drawBuffers(FrameObject & object, int imageIndex);
   void beginTransferRecording(FrameObject & object);
   void endAndSubmitTransfers(FrameObject & object, vk::Queue queue);
-  void drawFrame() override;
-  void swapBuffers() override;
   void recreateSwapChain();
   void initializeSwapChainIfNeeded();
   vk::UniqueShaderModule createShaderModule(EShLanguage lang, std::string const & filename, std::vector<std::string> const & options);
 
-  GLFWwindow* getRenderWindow() const;
   void cleanup();
-
-  // user controls
-  void exportHandler(int) override;
-  void Export(int imageIndex=0) override;
-  bool readyForUpdate=false;
-  // Note: initialized and format3dWait are now in base class AsyRender
 
   struct PipelineConfig {
     vk::PrimitiveTopology topology;
@@ -649,19 +639,6 @@ public:
     PipelineType start = PIPELINE_OPAQUE,
     PipelineType end = PIPELINE_MAX
   );
-
-  // Graphics library cleanup
-  void finalizeProcess() override;
-
-  /** Returns the GLFW window pointer (does the static_cast from void* once) */
-  GLFWwindow* getGLFWWindow() const { return static_cast<GLFWwindow*>(glfwWindow); }
-
-  // Vulkan-specific overrides that add to base class behavior
-  virtual void reshape(int width, int height) override;
-  virtual void cycleMode() override;
-
-  friend void glfwInitWindow(AsyRender*, int, int, const std::string&);
-  friend void glfwCleanupWindow(AsyVkRender*);
 };
 
 } // namespace camp

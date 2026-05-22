@@ -22,6 +22,16 @@
 
 #include "rendererloader.h"
 #include "camperror.h"
+
+#ifdef __APPLE__
+// Include glfw3.h with Vulkan support BEFORE renderBase.h, which includes
+// it with GLFW_INCLUDE_NONE.  This ensures we get both the Vulkan types
+// (PFN_vkGetInstanceProcAddr) and the glfwInitVulkanLoader declaration.
+#define VK_NO_PROTOTYPES
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+#endif
+
 #include "renderBase.h"
 #include "webglrender.h"
 
@@ -53,22 +63,6 @@ bool vulkan = false;
 
 #include "settings.h"    // for settings::verbose
 #include "locate.h"       // for settings::locateFile
-
-#ifdef __APPLE__
-// GLFW_INCLUDE_VULKAN causes glfw3.h to include <vulkan/vulkan.h>.
-// VK_NO_PROTOTYPES suppresses function declarations so the main binary
-// keeps zero link-time Vulkan dependencies; we only need the typedefs
-// (e.g., PFN_vkGetInstanceProcAddr) and the glfwInitVulkanLoader declaration.
-#define VK_NO_PROTOTYPES
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-#endif // __APPLE__
-
-// For llvmpipe fallback on Intel Macs without Metal (e.g., headless VMs):
-// Detect Metal availability via dlopen/dlsym BEFORE any Vulkan calls,
-// since MoltenVK will fail with ErrorIncompatibleDriver if Metal is absent.
-// Standard C headers (<dlfcn.h>, <unistd.h>) are sufficient; no Mac-specific
-// frameworks needed beyond the runtime dlopen of Metal.framework itself.
 
 namespace camp {
 

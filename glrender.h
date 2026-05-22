@@ -43,11 +43,6 @@ class picture;
 template<typename T, GLuint GLDataType> class GLTexture2;
 template<typename T, GLuint GLDataType> class GLTexture3;
 
-// Accessor functions for matrices (to avoid synchronization with gl instance)
-const glm::dmat4& getProjViewMat();
-const glm::dmat4& getViewMat();
-const glm::dmat3& getNormMat();
-
 // Projection matrix pointer for shader compatibility (following Vulkan pattern)
 extern const double* dprojView;  // For drawelement.h Transform2T
 
@@ -80,23 +75,25 @@ public:
   void onWindowFocus(int focused) override;
   void onClose() override;
 
+  // Virtual overrides called by base class
+  void update() override;
+  void cycleMode() override;
+  void drawFrame() override;
+  void swapBuffers() override;
+  void Export(int imageIndex=0) override;
+
+  GLFWwindow* getRenderWindow() const;
+
+private:
   bool GPUindexing=false;
   bool GPUcompress;
-
-  // OpenGL-specific state (mirroring AsyVkRender pattern)
-  bool outlinemode = false;
-  bool glupdate = false;
-  bool glexit = false;
   bool shouldUpdateBuffers = true;
-  bool copied = false;   // Per-frame flag: set true after SSBO count pass to skip redundant uploads
-
+  bool copied = false;
   size_t Nlights = 1;
   size_t nmaterials = 0;
-  size_t nlights0 = 0;  // Saved original number of lights for mode restoration
+  size_t nlights0 = 0;
 
-public:
-  // OpenGL-specific members (following Vulkan pattern)
-  // Shaders - made public for standalone function access during refactoring
+  // Shaders
   GLint pixelShader = 0;
   GLint materialShader[2] = {0, 0};
   GLint colorShader[2] = {0, 0};
@@ -110,9 +107,9 @@ public:
   GLint sum2Shader = 0;
   GLint sum3Shader = 0;
 
-  // VAO and buffers - made public for standalone function access during refactoring
+  // VAO and buffers
   GLuint vao = 0;
-  GLuint materialsBuffer = 0;  // Uniform buffer for materials
+  GLuint materialsBuffer = 0;
   GLuint offsetBuffer = 0;
   GLuint indexBuffer = 0;
   GLuint elementsBuffer = 0;
@@ -127,20 +124,16 @@ public:
   // Framebuffers/textures (for export)
   GLuint pixels = 0;
   GLuint elements = 0;
-  GLuint lastpixels = 0;
   int maxTileWidth = 1024;
   int maxTileHeight = 768;
 
-  // Rendering state (ssbo, interlock, initSSBO now in base class)
+  // Rendering state
   GLint lastshader = -1;
-
-  // Cached uniform locations (set when shader changes)
   GLint projViewLoc = -1;
   GLint viewMatLoc = -1;
   GLint normMatLoc = -1;
 
-  // Persistent GL buffer handles per VertexBuffer instance.
-  // Stored here (not in VertexBuffer) to keep render.h library-agnostic.
+  // Persistent GL buffer handles per VertexBuffer instance
   struct GLBufferPair { GLuint vertexBuffer=0; GLuint indexBuffer=0; };
   std::unordered_map<VertexBuffer*, GLBufferPair> glBuffers;
   GLuint fragments = 0;
@@ -154,27 +147,12 @@ public:
   GLuint blockSize = 0;
   GLuint groupSize = 0;
 
-  // IBL textures - kept as globals in glrender.cc where GLTextures.h is available
-
-  // Mouse interaction state (lastangle now in base class for unified access)
+  // Interaction state
   string currentAction = "";
-
-  // Window state (readyAfterExport, format3dWait, queueExport, firstFit now in base class)
   bool exporting = false;
-  int oldWidth = 0;
-  int oldHeight = 0;
-
-  // Spin state (Xspin, Yspin, Zspin now in base class)
   utils::stopWatch spinTimer;
 
-public:
-  GLFWwindow* getRenderWindow() const;
-
-public:
-  void update() override;
-  void cycleMode() override;
-
-  // Shader and buffer management functions
+  // Shader and buffer management
   void initComputeShaders();
   void initBlendShader();
   void setBuffers();
@@ -184,11 +162,7 @@ public:
   void deleteShaders();
   void resizeBlendShader(GLuint maxDepth);
 
-  // Rendering functions (virtual hooks for base class display())
-  void drawFrame() override;
-  void swapBuffers() override;
-
-  void Export(int imageIndex=0) override;
+  // Rendering functions
   void refreshBuffers();
   void setUniformsOpenGL(GLint shader);
   void drawBuffer(VertexBuffer& data, GLint shader, bool color=false, unsigned int drawType=4);

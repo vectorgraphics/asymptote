@@ -43,7 +43,7 @@
 using settings::getSetting;
 using settings::Setting;
 
-constexpr size_t timeout=10000000000;
+constexpr size_t timeout=1000000000;
 
 void exitHandler(int);
 
@@ -65,6 +65,91 @@ using namespace glm;
 
 namespace camp
 {
+
+// Vertex input description helpers (extracted from render.h vertex structs
+// to keep render.h free of Vulkan API dependencies)
+inline vk::VertexInputBindingDescription materialVertexBinding()
+{
+  return vk::VertexInputBindingDescription(0, sizeof(MaterialVertex), vk::VertexInputRate::eVertex);
+}
+
+inline std::vector<vk::VertexInputAttributeDescription> materialVertexAttributes(bool count = false)
+{
+  std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
+  attributeDescriptions.push_back(
+      vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, position)));
+
+  if (!count) {
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(NORMAL_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, normal)));
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(MaterialVertex, material)));
+  }
+  return attributeDescriptions;
+}
+
+inline vk::VertexInputBindingDescription colorVertexBinding()
+{
+  return vk::VertexInputBindingDescription(0, sizeof(ColorVertex), vk::VertexInputRate::eVertex);
+}
+
+inline std::vector<vk::VertexInputAttributeDescription> colorVertexAttributes(bool count = false)
+{
+  std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
+  attributeDescriptions.push_back(
+      vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, position)));
+
+  if (!count) {
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(NORMAL_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, normal)));
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(ColorVertex, material)));
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(COLOR_LOCATION, 0, vk::Format::eR32G32B32A32Sfloat, offsetof(ColorVertex, color)));
+  }
+  return attributeDescriptions;
+}
+
+inline vk::VertexInputBindingDescription pointVertexBinding()
+{
+  return vk::VertexInputBindingDescription(0, sizeof(PointVertex), vk::VertexInputRate::eVertex);
+}
+
+inline std::vector<vk::VertexInputAttributeDescription> pointVertexAttributes(bool count = false)
+{
+  std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
+  attributeDescriptions.push_back(
+      vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(PointVertex, position)));
+
+  // Always include width for points
+  attributeDescriptions.push_back(
+      vk::VertexInputAttributeDescription(WIDTH_LOCATION, 0, vk::Format::eR32Sfloat, offsetof(PointVertex, width)));
+
+  if (!count) {
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(PointVertex, material)));
+  }
+  return attributeDescriptions;
+}
+
+// Vertex input trait specializations: map a vertex struct type to its
+// Vulkan binding/attribute description free functions.
+template<typename V> struct VertexInputTraits;
+
+template<> struct VertexInputTraits<MaterialVertex> {
+  static vk::VertexInputBindingDescription binding() { return materialVertexBinding(); }
+  static std::vector<vk::VertexInputAttributeDescription> attributes(bool count) { return materialVertexAttributes(count); }
+};
+
+template<> struct VertexInputTraits<ColorVertex> {
+  static vk::VertexInputBindingDescription binding() { return colorVertexBinding(); }
+  static std::vector<vk::VertexInputAttributeDescription> attributes(bool count) { return colorVertexAttributes(count); }
+};
+
+template<> struct VertexInputTraits<PointVertex> {
+  static vk::VertexInputBindingDescription binding() { return pointVertexBinding(); }
+  static std::vector<vk::VertexInputAttributeDescription> attributes(bool count) { return pointVertexAttributes(count); }
+};
 
 std::vector<char> readFile(const std::string& filename)
 {
@@ -178,7 +263,7 @@ void AsyVkRender::updateModelViewData()
 
 void AsyVkRender::initWindow()
 {
-  glfwWindow = static_cast<void*>(glfwCreateRenderWindow(Width, Height, title, this));
+  glfwWindow = glfwCreateRenderWindow(Width, Height, title, this);
 }
 
 // RenderCallbacks interface implementation
@@ -3189,8 +3274,8 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
     vertexInputCI = vk::PipelineVertexInputStateCreateInfo();
   } else {
     // For all other shaders, get the binding description and attribute descriptions
-    bindingDescription = V::getBindingDescription();
-    attributeDescriptions = V::getAttributeDescriptions(type == PIPELINE_COUNT);
+    bindingDescription = VertexInputTraits<V>::binding();
+    attributeDescriptions = VertexInputTraits<V>::attributes(type == PIPELINE_COUNT);
 
     vertexInputCI = vk::PipelineVertexInputStateCreateInfo(
       vk::PipelineVertexInputStateCreateFlags(),
@@ -4500,7 +4585,7 @@ void AsyVkRender::swapBuffers()
 
 GLFWwindow* AsyVkRender::getRenderWindow() const
 {
-  return static_cast<GLFWwindow*>(glfwWindow);
+  return glfwWindow;
 }
 
 void AsyVkRender::exportHandler(int) {
