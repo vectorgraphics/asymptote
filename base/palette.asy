@@ -1,4 +1,5 @@
 private import graph;
+private from math access leastsquares;
 
 private transform swap=(0,0,0,1,1,0);
 
@@ -272,6 +273,98 @@ spatialPen palette(real f(triple), real Min, real Max, pen[] palette)
   if(palette.length == 0) return new pen(triple, int, int) {return nullpen;};
   real step=Max == Min ? 0.0 : (palette.length-1)/(Max-Min);
   return new pen(triple v, int, int) {return palette[round((f(v)-Min)*step)];};
+}
+
+// Fits a trilinear interpolant to the data (one for each color channel).
+spatialPen fitColors(triple[] coords, pen[] colors)
+{
+  int n=coords.length;
+  assert(n == colors.length,
+         "coords and colors arrays must have the same length");
+  assert(n > 0, "fitColors requires at least one data point");
+
+  // Center and scale the coordinates by a single scalar.
+  triple center=(0,0,0);
+  for(int i=0; i < n; ++i) center += coords[i];
+  center /= n;
+  real scale=0;
+  triple[] c=coords - center;
+  for(int i=0; i < n; ++i) {
+    scale=max(scale,length(c[i]));
+  }
+  if(scale == 0) scale=1;
+  c /= scale;
+
+  // Normalize all pens to the colorspace of the first one.
+  string cs=colorspace(colors[0]);
+  pen[] pens=new pen[n];
+  for(int i=0; i < n; ++i) {
+    pen p=colors[i];
+    if(colorspace(p) != cs) {
+      if(cs == "rgb") p=rgb(p);
+      else if(cs == "cmyk") p=cmyk(p);
+      else if(cs == "gray") p=gray(p);
+      else abort("fitColors: unsupported colorspace "+cs);
+    }
+    pens[i]=p;
+  }
+
+  // Extract color channels.
+  real[] first=colors(pens[0]);
+  int nch=first.length;
+  real[][] channel=new real[nch][n];
+  for(int k=0; k < nch; ++k) channel[k][0]=first[k];
+  for(int i=1; i < n; ++i) {
+    real[] cc=colors(pens[i]);
+    for(int k=0; k < nch; ++k) channel[k][i]=cc[k];
+  }
+
+  // Build the design matrix with rows {1,x,y,z,xy,xz,yz,xyz} plus
+  // a small ridge penalty to handle underdetermined systems.
+  int nfeat=8;
+  int rows=n+nfeat;
+  real[][] A=new real[rows][nfeat];
+  for(int i=0; i < n; ++i) {
+    real x=c[i].x, y=c[i].y, z=c[i].z;
+    A[i]=new real[] {1,x,y,z,x*y,x*z,y*z,x*y*z};
+  }
+  real penalty=sqrt(0.001);
+  for(int k=0; k < nfeat; ++k) {
+    real[] row=new real[nfeat];
+    for(int j=0; j < nfeat; ++j) row[j]=0;
+    row[k]=penalty;
+    A[n+k]=row;
+  }
+
+  real[][] coeffs=new real[nch][];
+  for(int k=0; k < nch; ++k) {
+    real[] b=new real[rows];
+    for(int i=0; i < n; ++i) b[i]=channel[k][i];
+    for(int j=0; j < nfeat; ++j) b[n+j]=0;
+    coeffs[k]=leastsquares(A,b);
+  }
+
+  pen makepen(real[] vals) {
+    if(cs == "gray") return gray(vals[0]);
+    if(cs == "rgb") return rgb(vals[0],vals[1],vals[2]);
+    if(cs == "cmyk") return cmyk(vals[0],vals[1],vals[2],vals[3]);
+    return nullpen;
+  }
+
+  real invscale=1/scale;
+  return new pen(triple v, int, int) {
+    triple q=(v-center)*invscale;
+    real x=q.x, y=q.y, z=q.z;
+    real[] feats={1,x,y,z,x*y,x*z,y*z,x*y*z};
+    real[] vals=new real[nch];
+    for(int k=0; k < nch; ++k) {
+      real[] ck=coeffs[k];
+      real s=0;
+      for(int j=0; j < nfeat; ++j) s += ck[j]*feats[j];
+      vals[k]=min(max(s,0.0),1.0);
+    }
+    return makepen(vals);
+  };
 }
 
 // Construct a pen[][] array from f using the specified palette.
