@@ -319,14 +319,14 @@ spatialPen fitColors(triple[] coords, pen[] colors)
     for(int k=0; k < nch; ++k) channel[k][i]=cc[k];
   }
 
-  // Build the design matrix with rows {1,x,y,z,xy,xz,yz,xyz} plus
+  // Build the design matrix with rows {1,x,y,z,xy,xz,yz,x^2,y^2,z^2} plus
   // a small ridge penalty to handle underdetermined systems.
-  int nfeat=8;
+  int nfeat=10;
   int rows=n+nfeat;
   real[][] A=new real[rows][nfeat];
   for(int i=0; i < n; ++i) {
     real x=c[i].x, y=c[i].y, z=c[i].z;
-    A[i]=new real[] {1,x,y,z,x*y,x*z,y*z,x*y*z};
+    A[i]=new real[] {1,x,y,z,x*y,x*z,y*z,x^2,y^2,z^2};
   }
   real penalty=sqrt(0.001);
   for(int k=0; k < nfeat; ++k) {
@@ -355,7 +355,7 @@ spatialPen fitColors(triple[] coords, pen[] colors)
   return new pen(triple v, int, int) {
     triple q=(v-center)*invscale;
     real x=q.x, y=q.y, z=q.z;
-    real[] feats={1,x,y,z,x*y,x*z,y*z,x*y*z};
+    real[] feats={1,x,y,z,x*y,x*z,y*z,x^2,y^2,z^2};
     real[] vals=new real[nch];
     for(int k=0; k < nch; ++k) {
       real[] ck=coeffs[k];
