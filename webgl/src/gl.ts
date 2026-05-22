@@ -156,7 +156,7 @@ let roughnessStepCount=8;
 
 class Material {
 
-  constructor(public diffuse,public emissive, public specular, public shininess,public metallic,public fresnel0) {
+  constructor(public diffuse,public emissive, public specular, public shininess,public metallic,public fresnel0,public nolight=false) {
   }
 
   setUniform(program,index) {
@@ -168,7 +168,7 @@ class Material {
     gl.uniform4fv(getLoc("specular"),new Float32Array(this.specular));
 
     gl.uniform4f(getLoc("parameters"),this.shininess,this.metallic,
-                 this.fresnel0,0);
+                 this.fresnel0,this.nolight);
   }
 }
 
@@ -3685,10 +3685,10 @@ function light(direction,color)
   Lights.push(new Light(direction,color));
 }
 
-function material(diffuse,emissive,specular,shininess,metallic,fresnel0)
+function material(diffuse,emissive,specular,shininess,metallic,fresnel0,nolight=false)
 {
   Materials.push(new Material(diffuse,emissive,specular,shininess,metallic,
-                              fresnel0));
+                              fresnel0,nolight));
 }
 
 function patch(controlpoints,CenterIndex,MaterialIndex,color)

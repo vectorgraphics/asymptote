@@ -159,21 +159,31 @@ void main(void)
   if(MaterialIndex >= 0)
     diffuse=m.diffuse;
   else {
-    diffuse=Color;
+    bool nolight = (m.parameters[3] > 0.5);
+    if(nolight) {
+      emissive += Color;
+      diffuse = m.diffuse;
+    } else {
+      diffuse=Color;
 #if nlights == 0
-    emissive += Color;
+      emissive += Color;
 #endif
+    }
   }
 #else
   m=Materials[MaterialIndex];
   emissive=m.emissive;
 #ifdef COLOR
-  diffuse=Color;
-#if nlights == 0
+  bool nolight = (m.parameters[3] > 0.5);
+  if(nolight) {
     emissive += Color;
+    diffuse = m.diffuse;
+  } else {
+    diffuse=Color;
+#if nlights == 0
+      emissive += Color;
 #endif
-#else
-  diffuse=m.diffuse;
+  }
 #endif // COLOR
 #endif // TRANSPARENT
   specular=m.specular.rgb;

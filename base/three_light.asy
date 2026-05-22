@@ -4,26 +4,30 @@ struct material {
   real shininess;
   real metallic;
   real fresnel0; // Reflectance rate at a perfect normal angle.
+  bool nolight;  // When true, vertex colors should be treated as emissive (unlit)
 
   void operator init(pen diffusepen=black,
                      pen emissivepen=black, pen specularpen=mediumgray,
                      real opacity=opacity(diffusepen),
                      real shininess=defaultshininess,
                      real metallic=defaultmetallic,
-                     real fresnel0=defaultfresnel0) {
+                     real fresnel0=defaultfresnel0,
+                     bool nolight=false) {
 
     p=new pen[] {diffusepen,emissivepen,specularpen};
     this.opacity=opacity;
     this.shininess=shininess;
     this.metallic=metallic;
     this.fresnel0=fresnel0;
+    this.nolight=nolight;
   }
-  void operator init(material m) {
+  void operator init(material m, bool nolight=false) {
     p=copy(m.p);
     opacity=m.opacity;
     shininess=m.shininess;
     metallic=m.metallic;
     fresnel0=m.fresnel0;
+    this.nolight=nolight;
   }
   pen diffuse() {return p[0];}
   pen emissive() {return p[1];}
@@ -82,7 +86,7 @@ pen operator ecast(material m)
 
 material emissive(material m, bool colors=false)
 {
- return material(black+opacity(m.opacity),colors ? m.emissive() : m.diffuse()+m.emissive(),black,m.opacity,1);
+  return material(black+opacity(m.opacity),colors ? m.emissive() : m.diffuse()+m.emissive(),black,m.opacity,1,true);
 }
 
 pen color(triple normal, material m, light light, transform3 T=light.T) {

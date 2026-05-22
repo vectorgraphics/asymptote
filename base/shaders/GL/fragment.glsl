@@ -214,19 +214,33 @@ void main()
   if(materialIndex >= 0)
     diffuse=m.diffuse;
   else {
-    diffuse=Color;
+    // Vertex colors: nolight flag in parameters.w
+    bool nolight = (m.parameters[3] > 0.5);
+    if(nolight) {
+      emissive += Color;
+      diffuse = m.diffuse;
+    } else {
+      diffuse=Color;
 #if Nlights == 0
-    emissive += Color;
+      emissive += Color;
 #endif
+    }
   }
 #else
   m=Materials[materialIndex];
   emissive=m.emissive;
 #ifdef COLOR
-  diffuse=Color;
+  // Vertex colors: nolight flag in parameters.w
+  bool nolight = (m.parameters[3] > 0.5);
+  if(nolight) {
+    emissive += Color;
+    diffuse = m.diffuse;
+  } else {
+    diffuse=Color;
 #if Nlights == 0
-  emissive += Color;
+    emissive += Color;
 #endif
+  }
 #else
   diffuse=m.diffuse;
 #endif

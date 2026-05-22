@@ -34,8 +34,8 @@ inline bool operator < (const glm::vec4& m1, const glm::vec4& m2) {
 }
 
 inline glm::vec4 GLparameters(float shininess, float metallic,
-                              float fresnel0) {
-  return glm::vec4(shininess,metallic,fresnel0,0.0);
+                              float fresnel0, int nolight=0) {
+  return glm::vec4(shininess,metallic,fresnel0,nolight);
 }
 
 struct Material {
@@ -45,9 +45,9 @@ public:
   Material() {}
 
   Material(const glm::vec4& diffuse, const glm::vec4& emissive,
-           const glm::vec4& specular, double shininess, double metallic, double fresnel0) :
+           const glm::vec4& specular, double shininess, double metallic, double fresnel0, int nolight=0) :
     diffuse(diffuse), emissive(emissive), specular(specular),
-    parameters(GLparameters(shininess,metallic,fresnel0)) {}
+    parameters(GLparameters(shininess,metallic,fresnel0,nolight)) {}
 
   Material(Material const& m):
     diffuse(m.diffuse), emissive(m.emissive),
@@ -91,7 +91,8 @@ public:
         << "specular=" << m.specular << "," << newl
         << "shininess=" << m.parameters[0] << "," << newl
         << "metallic=" << m.parameters[1] << "," << newl
-        << "fresnel0=" << m.parameters[2] << newl;
+        << "fresnel0=" << m.parameters[2] << "," << newl
+        << "nolight=" << m.parameters[3] << newl;
     return out;
   }
 
@@ -101,7 +102,8 @@ public:
         << m.specular << "," << newl
         << m.parameters[0] << "," << newl
         << m.parameters[1] << "," << newl
-        << m.parameters[2];
+        << m.parameters[2] << "," << newl
+        << m.parameters[3];
     return out;
   }
 };
