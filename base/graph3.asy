@@ -2126,7 +2126,7 @@ surface surface(picture pic=currentpicture, triple f(pair z),
         real[] Pzi=Pz[ii];
         Q[ii]=new triple[] {(Pxi[0],Pyi[0],Pzi[0]),
                             (Pxi[1],Pyi[1],Pzi[1]),
-                            (Pxi[2],Pyi[2], Pyi[2]),
+                            (Pxi[2],Pyi[2],Pzi[2]),
                             (Pxi[3],Pyi[3],Pzi[3])};
       }
       pen[] colors=alias(vertexPens, null) ? new pen[] : new pen[] {
