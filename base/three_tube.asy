@@ -107,7 +107,7 @@ drawfcn drawTube(triple[] g, real w, triple min, triple max) {
     {
       material m=material(m[0],light);
       drawTube(f,t*g,w,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
-               t*min,t*max,m.opacity == 1);
+               t*min,t*max,m.opacity == 1,m.nolight);
     };
 }
 
