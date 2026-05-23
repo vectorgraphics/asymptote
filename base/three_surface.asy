@@ -1474,8 +1474,8 @@ void draw3D(frame f, patch s, material m,
 
  (s.triangular ? drawbeziertriangle : draw)
     (f,s.P,render.interaction.center,straight,m.p,m.opacity,m.shininess,
-     m.metallic,m.fresnel0,s.colors,render.interaction.type,digits,
-     primitive,m.nolight);
+     m.metallic,m.fresnel0,m.lightOn,s.colors,render.interaction.type,digits,
+     primitive);
 }
 
 void _draw(frame f, path3 g, triple center=O, material m,
@@ -1546,8 +1546,8 @@ void draw(frame f, triple[] v, int[][] vi,
   }
 
   draw(f,v,vi,render.interaction.center,n,ni,
-       m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,p,pi,
-       render.interaction.type,m.nolight);
+       m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,m.lightOn,p,pi,
+       render.interaction.type);
 }
 
 // Draw a triangle group on a picture.
@@ -2351,7 +2351,7 @@ unitsphere.primitive=primitive(
   {
    material m=material(m[0],light);
    drawSphere(f,t,half=false,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
-             render.sphere,m.nolight);
+             m.lightOn,render.sphere);
   },new bool(transform3 t) {
     return unscaled(t,X,Y) && unscaled(t,Y,Z);
   });
@@ -2362,7 +2362,7 @@ unithemisphere.primitive=primitive(
   {
    material m=material(m[0],light);
    drawSphere(f,t,half=true,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
-             render.sphere,m.nolight);
+             m.lightOn,render.sphere);
   },new bool(transform3 t) {
     return unscaled(t,X,Y) && unscaled(t,Y,Z);
   });
@@ -2400,7 +2400,7 @@ drawfcn unitcylinderDraw(bool core) {
   {
    material m=material(m[0],light);
    drawCylinder(f,t,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
-                m.opacity == 1 ? core : false,m.nolight);
+                m.lightOn,m.opacity == 1 ? core : false);
   };
 }
 
@@ -2424,7 +2424,7 @@ unitdisk.primitive=primitive(
            light light=currentlight, render render=defaultrender)
   {
    material m=material(m[0],light);
-   drawDisk(f,t,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,m.nolight);
+   drawDisk(f,t,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,m.lightOn);
   },
   new bool(transform3 t) {
     return unscaled(t,X,Y);
@@ -2685,7 +2685,7 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
           begingroup3(f,name == "" ? "surface" : name,render);
         triple[][] P=t*P;
         draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,m.metallic,
-             m.fresnel0,colors,m.nolight);
+             m.fresnel0,m.lightOn,colors);
         if(group)
           endgroup3(f);
         if(pic != null)

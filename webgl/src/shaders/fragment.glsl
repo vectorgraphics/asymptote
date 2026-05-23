@@ -29,7 +29,7 @@ in vec4 Color;
 #else
 IN vec4 diffuse;
 IN vec3 specular;
-IN float roughness,metallic,fresnel0;
+IN float roughness,metallic,fresnel0,lightOn;
 IN vec4 emissive;
 #endif
 
@@ -153,39 +153,37 @@ void main(void)
 #ifdef WEBGL2
 #ifdef NORMAL
   Material m;
-#ifdef TRANSPARENT
+#ifdef GENERAL
   m=Materials[abs(MaterialIndex)-1];
   emissive=m.emissive;
   if(MaterialIndex >= 0)
     diffuse=m.diffuse;
   else {
-    bool nolight = (m.parameters[3] > 0.5);
-    if(nolight) {
-      emissive += Color;
-      diffuse = m.diffuse;
-    } else {
+    if (m.parameters[3] != 0) {
       diffuse=Color;
 #if nlights == 0
       emissive += Color;
 #endif
+    } else {
+      emissive += Color;
+      diffuse = m.diffuse;
     }
   }
 #else
   m=Materials[MaterialIndex];
   emissive=m.emissive;
 #ifdef COLOR
-  bool nolight = (m.parameters[3] > 0.5);
-  if(nolight) {
-    emissive += Color;
-    diffuse = m.diffuse;
-  } else {
+  if (lightOn != 0) {
     diffuse=Color;
 #if nlights == 0
       emissive += Color;
 #endif
+  } else {
+    emissive += Color;
+    diffuse = m.diffuse;
   }
 #endif // COLOR
-#endif // TRANSPARENT
+#endif // GENERAL
   specular=m.specular.rgb;
   vec4 parameters=m.parameters;
   roughness=1.0-parameters[0];
