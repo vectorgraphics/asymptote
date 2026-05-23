@@ -188,7 +188,7 @@ using mem::string;
 %type <tp> typeparam
 %type <tps> typeparamlist
 
-/* There are four shift/reduce conflicts:
+/* There are six shift/reduce conflicts:
  *   the dangling ELSE in IF (exp) IF (exp) stm ELSE stm
  *   new ID
  *   the argument id=exp is taken as an argument instead of an assignExp
