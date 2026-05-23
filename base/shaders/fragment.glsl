@@ -242,16 +242,13 @@ void main() {
   mat = materials[abs(materialIndex) - 1];
 
   if (materialIndex < 0) {
-    // Vertex colors: nolight flag in parameters.w
-    bool nolight = (mat.parameters[3] > 0.5);
-    if(nolight) {
-      mat.emissive += inColor;
-    } else {
+    if (mat.parameters[3] != 0) {
       mat.diffuse = inColor;
 #ifdef NOLIGHTS
       mat.emissive += inColor;
 #endif /*NOLIGHTS*/
-    }
+    } else
+      mat.emissive += inColor;
   }
 
 #else
@@ -259,13 +256,13 @@ void main() {
   mat = materials[materialIndex];
 
 #ifdef COLOR
-  // Vertex colors: nolight sets both diffuse AND specular to black
-  bool nolight = all(equal(mat.diffuse.rgb, vec3(0.0))) && all(equal(mat.specular.rgb, vec3(0.0)));
-  if(nolight) {
-    mat.emissive += inColor;
-  } else {
+  if (mat.parameters[3] != 0) {
     mat.diffuse = inColor;
-  }
+#ifdef NOLIGHTS
+    mat.emissive += inColor;
+#endif /*NOLIGHTS*/
+  } else
+    mat.emissive += inColor;
 #endif /*COLOR*/
 #endif /*GENERAL*/
 
