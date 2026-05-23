@@ -7,12 +7,7 @@
 #include "drawpath3.h"
 #include "drawsurface.h"
 #include "material.h"
-
-#ifdef HAVE_LIBGLM
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#endif
+#include "glmCommon.h"
 
 namespace camp {
 
@@ -62,18 +57,15 @@ bool drawPath3::write(abs3Doutfile *out)
 void drawPath3::render(double size2, const triple& b, const triple& B,
                        double perspective, bool remesh)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   if(invisible) return;
 
   setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
 
-  setMaterial(material1Data,drawMaterial1);
-
   bool offscreen;
   if(billboard) {
     drawElement::centerIndex=centerIndex;
-    BB.init(center);
-    offscreen=bbox2(Min,Max,BB).offscreen();
+    offscreen=bbox2(Min,Max,center).offscreen();
   } else
     offscreen=bbox2(Min,Max).offscreen();
 
@@ -91,7 +83,7 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
   if(billboard) {
     Controls=Controls0;
     for(size_t i=0; i < 4; i++)
-      Controls[i]=BB.transform(controls[i]);
+      Controls[i]=billboardTransform(center,controls[i]);
   } else {
     Controls=controls;
     if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render
@@ -185,11 +177,11 @@ void drawNurbsPath3::ratio(const double* t, pair &b, double (*m)(double, double)
 
 void drawNurbsPath3::displacement()
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   size_t nknots=degree+n+1;
   if(Controls == NULL) {
-    Controls=new(UseGC)  GLfloat[(weights ? 4 : 3)*n];
-    Knots=new(UseGC) GLfloat[nknots];
+    Controls=new(UseGC)  float[(weights ? 4 : 3)*n];
+    Knots=new(UseGC) float[nknots];
   }
   if(weights)
     for(size_t i=0; i < n; ++i)
@@ -206,7 +198,7 @@ void drawNurbsPath3::displacement()
 void drawNurbsPath3::render(double, const triple&, const triple&,
                             double, bool remesh)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   if(invisible) return;
 
 // TODO: implement NURBS renderer
@@ -240,13 +232,11 @@ bool drawPixel::write(abs3Doutfile *out)
 void drawPixel::render(double size2, const triple& b, const triple& B,
                        double perspective, bool remesh)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   if(invisible) return;
 
   RGBAColour Black(0.0,0.0,0.0,color.A);
   setcolors(color,color,Black,1.0,0.0,0.04);
-
-  setMaterial(material0Data,drawMaterial0);
 
   if(bbox2(Min,Max).offscreen()) { // Fully offscreen
     R.data.clear();

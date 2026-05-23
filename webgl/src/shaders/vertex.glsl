@@ -74,19 +74,31 @@ void main(void)
   if(materialIndex >= 0.0)
     diffuse=m.diffuse;
   else {
-    diffuse=color;
+    bool nolight = (m.parameters[3] > 0.5);
+    if(nolight) {
+      emissive += color;
+      diffuse = m.diffuse;
+    } else {
+      diffuse=color;
 #if nlights == 0
-    emissive += color;
+      emissive += color;
 #endif
+    }
   }
 #else
   m=Materials[int(materialIndex)];
   emissive=m.emissive;
 #ifdef COLOR
-  diffuse=color;
-#if nlights == 0
+  bool nolight = (m.parameters[3] > 0.5);
+  if(nolight) {
     emissive += color;
+    diffuse = m.diffuse;
+  } else {
+    diffuse=color;
+#if nlights == 0
+      emissive += color;
 #endif
+  }
 #else
   diffuse=m.diffuse;
 #endif // COLOR

@@ -12,11 +12,7 @@
 #include <iomanip>
 #include <fstream>
 
-#ifdef HAVE_LIBGLM
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#endif
+#include "glmCommon.h"
 
 using namespace prc;
 #include "material.h"
@@ -33,9 +29,9 @@ using settings::getSetting;
 
 #ifdef HAVE_LIBGLM
 
-void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
+void storecolor(float *colors, int i, const vm::array &pens, int j)
 {
-  pen p=vm::read<camp::pen>(pens,j);
+  pen p=vm::read<pen>(pens,j);
   p.torgb();
   colors[i]=p.red();
   colors[i+1]=p.green();
@@ -43,7 +39,7 @@ void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
   colors[i+3]=p.opacity();
 }
 
-void storecolor(GLfloat *colors, int i, const RGBAColour& p)
+void storecolor(float *colors, int i, const RGBAColour& p)
 {
   colors[i]=p.R;
   colors[i+1]=p.G;
@@ -53,21 +49,20 @@ void storecolor(GLfloat *colors, int i, const RGBAColour& p)
 
 void setcolors(const RGBAColour& diffuse, const RGBAColour& emissive,
                const RGBAColour& specular, double shininess,
-               double metallic, double fresnel0, abs3Doutfile *out)
+               double metallic, double fresnel0, abs3Doutfile *out,
+               bool nolight)
 {
   Material m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
                       glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
                       glm::vec4(specular.R,specular.G,specular.B,specular.A),
-                      shininess,metallic,fresnel0);
+                      shininess,metallic,fresnel0,nolight);
 
-  auto p=materialMap.find(m);
-  if(p != materialMap.end()) materialIndex=p->second;
+  auto p=gl->materialMap.find(m);
+  if(p != gl->materialMap.end()) materialIndex=p->second;
   else {
-    materialIndex=materials.size();
-    if(materialIndex >= nmaterials)
-      nmaterials=min(Maxmaterials,2*nmaterials);
-    materials.push_back(m);
-    materialMap[m]=materialIndex;
+    materialIndex=gl->materials.size();
+    gl->materials.push_back(m);
+    gl->materialMap[m]=materialIndex;
     if(out)
       out->addMaterial(m);
   }
@@ -222,7 +217,7 @@ bool drawBezierPatch::write(abs3Doutfile *out)
   if(invisible || primitive)
     return true;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out,nolight);
   out->setKEY(KEY);
 
   if(billboard) {
@@ -235,9 +230,9 @@ bool drawBezierPatch::write(abs3Doutfile *out)
     triple Controls[]={controls[0],controls[12],controls[15],controls[3]};
     out->addStraightPatch(Controls,colors);
   } else {
-    double prerender=renderResolution();
+    double prerender=gl->getRenderResolution(Min);
     if(prerender) {
-      GLfloat c[16];
+      float c[16];
       if(colors)
         for(size_t i=0; i < 4; ++i)
           storecolor(c,4*i,colors[i]);
@@ -259,27 +254,17 @@ bool drawBezierPatch::write(abs3Doutfile *out)
 void drawBezierPatch::render(double size2, const triple& b, const triple& B,
                              double perspective, bool remesh)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   if(invisible) return;
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
     diffuse.A < 1.0;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
-
-  if(transparent)
-    setMaterial(transparentData,drawTransparent);
-  else {
-    if(colors)
-      setMaterial(colorData,drawColor);
-    else
-      setMaterial(materialData,drawMaterial);
-  }
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,NULL,nolight);
 
   bool offscreen;
   if(billboard) {
     drawElement::centerIndex=centerIndex;
-    BB.init(center);
-    offscreen=bbox2(Min,Max,BB).offscreen();
+    offscreen=bbox2(Min,Max,center).offscreen();
   } else
     offscreen=bbox2(Min,Max).offscreen();
 
@@ -297,7 +282,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   if(billboard) {
     Controls=Controls0;
     for(size_t i=0; i < 16; i++) {
-      Controls[i]=BB.transform(controls[i]);
+      Controls[i]=billboardTransform(center,controls[i]);
     }
   } else {
     Controls=controls;
@@ -311,8 +296,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
 
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  if(gl::outlinemode) {
-    setMaterial(material1Data,drawMaterial);
+  if(gl->mode == DRAWMODE_OUTLINE) {
     triple edge0[]={Controls[0],Controls[4],Controls[8],Controls[12]};
     C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[12],Controls[13],Controls[14],Controls[15]};
@@ -322,7 +306,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
     triple edge3[]={Controls[3],Controls[2],Controls[1],Controls[0]};
     C.queue(edge3,straight,size3.length()/size2);
   } else {
-    GLfloat c[16];
+    float c[16];
     if(colors)
       for(size_t i=0; i < 4; ++i)
         storecolor(c,4*i,colors[i]);
@@ -484,7 +468,7 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
   if(invisible || primitive)
     return true;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out,nolight);
   out->setKEY(KEY);
 
   if(billboard) {
@@ -497,9 +481,9 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
     triple Controls[]={controls[0],controls[6],controls[9]};
     out->addStraightBezierTriangle(Controls,colors);
   } else {
-    double prerender=renderResolution();
+    double prerender=gl->getRenderResolution(Min);
     if(prerender) {
-      GLfloat c[12];
+      float c[12];
       if(colors)
         for(size_t i=0; i < 3; ++i)
           storecolor(c,4*i,colors[i]);
@@ -521,27 +505,17 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
 void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
                                 double perspective, bool remesh)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   if(invisible) return;
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
     diffuse.A < 1.0;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
-
-  if(transparent)
-    setMaterial(transparentData,drawTransparent);
-  else {
-    if(colors)
-      setMaterial(colorData,drawColor);
-    else
-      setMaterial(materialData,drawMaterial);
-  }
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,NULL,nolight);
 
   bool offscreen;
   if(billboard) {
     drawElement::centerIndex=centerIndex;
-    BB.init(center);
-    offscreen=bbox2(Min,Max,BB).offscreen();
+    offscreen=bbox2(Min,Max,center).offscreen();
   } else
     offscreen=bbox2(Min,Max).offscreen();
 
@@ -559,7 +533,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
   if(billboard) {
     Controls=Controls0;
     for(size_t i=0; i < 10; i++)
-      Controls[i]=BB.transform(controls[i]);
+      Controls[i]=billboardTransform(center,controls[i]);
   } else {
     if(!remesh && S.Onscreen) { // Fully onscreen; no need to re-render
       S.append();
@@ -572,8 +546,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
 
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  if(gl::outlinemode) {
-    setMaterial(material1Data,drawMaterial);
+  if(gl->mode == DRAWMODE_OUTLINE) {
     triple edge0[]={Controls[0],Controls[1],Controls[3],Controls[6]};
     C.queue(edge0,straight,size3.length()/size2);
     triple edge1[]={Controls[6],Controls[7],Controls[8],Controls[9]};
@@ -581,7 +554,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
     triple edge2[]={Controls[9],Controls[5],Controls[2],Controls[0]};
     C.queue(edge2,straight,size3.length()/size2);
   } else {
-    GLfloat c[12];
+    float c[12];
     if(colors)
       for(size_t i=0; i < 3; ++i)
         storecolor(c,4*i,colors[i]);
@@ -675,15 +648,15 @@ void drawNurbs::ratio(const double *t, pair &b, double (*m)(double, double),
 
 void drawNurbs::displacement()
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   size_t n=nu*nv;
   size_t nuknots=udegree+nu+1;
   size_t nvknots=vdegree+nv+1;
 
   if(Controls == NULL) {
-    Controls=new(UseGC)  GLfloat[(weights ? 4 : 3)*n];
-    uKnots=new(UseGC) GLfloat[nuknots];
-    vKnots=new(UseGC) GLfloat[nvknots];
+    Controls=new(UseGC)  float[(weights ? 4 : 3)*n];
+    uKnots=new(UseGC) float[nuknots];
+    vKnots=new(UseGC) float[nvknots];
   }
 
   if(weights)
@@ -801,7 +774,7 @@ bool drawSphere::write(abs3Doutfile *out)
 
   drawElement::centerIndex=0;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out,nolight);
   out->setKEY(KEY);
 
   triple O,E;
@@ -840,7 +813,7 @@ bool drawCylinder::write(abs3Doutfile *out)
 
   drawElement::centerIndex=0;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out,nolight);
   out->setKEY(KEY);
 
   triple E,H,O;
@@ -879,7 +852,7 @@ bool drawDisk::write(abs3Doutfile *out)
 
   drawElement::centerIndex=0;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out,nolight);
   out->setKEY(KEY);
 
   triple E,H,O;
@@ -904,7 +877,7 @@ bool drawTube::write(abs3Doutfile *out)
 
   drawElement::centerIndex=0;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out,nolight);
   out->setKEY(KEY);
 
   bbox3 b;
@@ -1000,7 +973,7 @@ bool drawTriangles::write(abs3Doutfile *out)
     drawElement::centerIndex=centerIndex;
   } else drawElement::centerIndex=0;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out,nolight);
   out->setKEY(KEY);
   out->addTriangles(nP,P,nN,N,nC,C,nI,PI,NI,CI);
 #endif
@@ -1011,22 +984,16 @@ void drawTriangles::render(double size2, const triple& b,
                            const triple& B, double perspective,
                            bool remesh)
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   if(invisible) return;
   transparent=diffuse.A < 1.0;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
-
-  if(transparent)
-    setMaterial(transparentData,drawTransparent);
-  else
-    setMaterial(triangleData,drawTriangle);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,NULL,nolight);
 
   bool offscreen;
   if(billboard) {
     drawElement::centerIndex=centerIndex;
-    BB.init(center);
-    offscreen=bbox2(Min,Max,BB).offscreen();
+    offscreen=bbox2(Min,Max,center).offscreen();
   } else
     offscreen=bbox2(Min,Max).offscreen();
 
@@ -1042,7 +1009,7 @@ void drawTriangles::render(double size2, const triple& b,
   if(billboard) {
     P0=new triple [nP];
     for(size_t i=0; i < nP; i++)
-      P0[i]=BB.transform(P[i]);
+      P0[i]=billboardTransform(center,P[i]);
   } else {
     if(!remesh && R.Onscreen) { // Fully onscreen; no need to re-render
       R.append();
