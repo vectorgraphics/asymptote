@@ -965,6 +965,16 @@ void AsyRender::clearData()
   transparentData.clear();
 }
 
+void AsyRender::setOpaque()
+{
+  Opaque = transparentData.indices.empty();
+}
+
+void AsyRender::exportHandler(int)
+{
+  readyAfterExport = true;
+}
+
 void AsyRender::setsize(int w, int h, bool reposition)
 {
   capsize(w, h);
@@ -978,11 +988,6 @@ void AsyRender::setsize(int w, int h, bool reposition)
     }
   }
   update();
-}
-
-void AsyRender::exportHandler(int)
-{
-  readyAfterExport = true;
 }
 
 void AsyRender::updateHandler(int)
@@ -1042,10 +1047,14 @@ void AsyRender::onMouseButton(int button, int action, int mods)
     }
 }
 
-void AsyRender::setOpaque()
-{
-  Opaque = transparentData.indices.empty();
-}
+#else // !HAVE_RENDERER
+// Stubs for when GLFW/Vulkan/GL are unavailable (satisfy vtable and link).
+void AsyRender::clearData() {}
+void AsyRender::setOpaque() {}
+void AsyRender::exportHandler(int) { readyAfterExport = true; }
+void AsyRender::setsize(int, int, bool) {}
+void AsyRender::updateHandler(int) {}
+void AsyRender::quit() { exit(0); }
 
 #endif // HAVE_RENDERER
 
