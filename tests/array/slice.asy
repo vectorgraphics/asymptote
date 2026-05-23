@@ -230,3 +230,29 @@ assert(all(z[1:2] == new pair[] {(3,4)}));
 
 
 EndTest();
+
+StartTest("multislice");
+
+int[][][][][][][] x = new int[2][2][2][2][2][2][2];
+for (int i0=0; i0<2; ++i0)
+  for (int i1=0; i1<2; ++i1)
+    for (int i2=0; i2<2; ++i2)
+      for (int i3=0; i3<2; ++i3)
+        for (int i4=0; i4<2; ++i4)
+          for (int i5=0; i5<2; ++i5)
+            for (int i6=0; i6<2; ++i6)
+              x[i0][i1][i2][i3][i4][i5][i6] = i0+i1+i2+i3+i4+i5+i6;
+
+int[][][][][][][] y = x[1:][1:][1:][1:][1:][1:][1:];
+assert(y.length == 1);
+assert(y[0].length == 1);
+assert(y[0][0].length == 1);
+assert(y[0][0][0].length == 1);
+assert(y[0][0][0][0].length == 1);
+assert(y[0][0][0][0][0].length == 1);
+assert(y[0][0][0][0][0][0].length == 1);
+assert(y[0][0][0][0][0][0][0] == 7);
+y[0][0][0][0][0][0][0] = 77;
+assert(x[1][1][1][1][1][1][1] == 7);  // Check that y is a copy, not a view.
+
+EndTest();
