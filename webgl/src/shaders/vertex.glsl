@@ -25,7 +25,7 @@ OUT vec4 Color;
 #else
 OUT vec4 diffuse;
 OUT vec3 specular;
-OUT float roughness,metallic,fresnel0;
+OUT float roughness,metallic,fresnel0,lightOn;
 OUT vec4 emissive;
 
 struct Material {
@@ -68,46 +68,45 @@ void main(void)
 #else
 #ifdef NORMAL
   Material m;
-#ifdef TRANSPARENT
+#ifdef GENERAL
   m=Materials[int(abs(materialIndex))-1];
   emissive=m.emissive;
   if(materialIndex >= 0.0)
     diffuse=m.diffuse;
   else {
-    bool nolight = (m.parameters[3] > 0.5);
-    if(nolight) {
-      emissive += color;
-      diffuse = m.diffuse;
-    } else {
+    if (m.parameters[3] != 0.0) {
       diffuse=color;
 #if nlights == 0
       emissive += color;
 #endif
+    } else {
+      emissive += color;
+      diffuse = m.diffuse;
     }
   }
 #else
   m=Materials[int(materialIndex)];
   emissive=m.emissive;
 #ifdef COLOR
-  bool nolight = (m.parameters[3] > 0.5);
-  if(nolight) {
-    emissive += color;
-    diffuse = m.diffuse;
-  } else {
+  if (m.parameters[3] != 0.0) {
     diffuse=color;
 #if nlights == 0
       emissive += color;
 #endif
+  } else {
+    emissive += color;
+    diffuse = m.diffuse;
   }
 #else
   diffuse=m.diffuse;
 #endif // COLOR
-#endif // TRANSPARENT
+#endif // GENERAL
   specular=m.specular.rgb;
   vec4 parameters=m.parameters;
   roughness=1.0-parameters[0];
   metallic=parameters[1];
   fresnel0=parameters[2];
+  lightOn=parameters[3];
 #else
   emissive=Materials[int(materialIndex)].emissive;
 #endif // NORMAL

@@ -29,7 +29,7 @@ in vec4 Color;
 #else
 IN vec4 diffuse;
 IN vec3 specular;
-IN float roughness,metallic,fresnel0;
+IN float roughness,metallic,fresnel0,lightOn;
 IN vec4 emissive;
 #endif
 
@@ -173,7 +173,7 @@ void main(void)
   m=Materials[MaterialIndex];
   emissive=m.emissive;
 #ifdef COLOR
-  if (m.parameters[3] != 0) {
+  if (lightOn != 0) {
     diffuse=Color;
 #if nlights == 0
       emissive += Color;
