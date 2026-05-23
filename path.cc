@@ -606,7 +606,8 @@ double path::cubiclength(Int i, double goal) const
   double L;
   if(straight(i)) {
     L=(z1-z0).length();
-    return (goal < 0 || goal >= L) ? L : -goal/L;
+    if(goal < 0 || L == 0 || goal >= L) return L;
+    return -goal/L;
   }
 
   double integral=arcLength(z0,postcontrol(i),precontrol(i+1),z1);
