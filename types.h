@@ -202,7 +202,7 @@ public:
     return false;
   }
 
-  ty *virtualFieldGetType(symbol ) override;
+  ty *virtualFieldGetType(symbol) override;
   trans::varEntry *virtualField(symbol, signature *) override;
 
   bool equiv(const ty *other) const override

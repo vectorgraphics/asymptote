@@ -355,9 +355,6 @@ types::ty *subscriptExp::getType(coenv &e)
       default:
         return primError();
     }
-    if (t->kind != ty_record) {
-      return primError();
-    }
   }
 
   array *a = getArrayType(e);
