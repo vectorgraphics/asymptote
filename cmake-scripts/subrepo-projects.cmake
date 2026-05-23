@@ -4,16 +4,6 @@ set(LSP_REPO_ROOT ${ASY_SUBREPO_CLONE_ROOT}/LspCpp)
 set(TINYEXR_SUBREPO_ROOT ${ASY_SUBREPO_CLONE_ROOT}/tinyexr)
 set(BOEHM_GC_ROOT ${ASY_SUBREPO_CLONE_ROOT}/gc)
 set(LIBATOMIC_OPS_ROOT ${ASY_SUBREPO_CLONE_ROOT}/libatomic_ops)
-set(HIGHWAYHASH_ROOT ${ASY_SUBREPO_CLONE_ROOT}/highwayhash)
-
-# highwayhash
-set(OLD_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
-set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "highwayhash shared libs flag")
-add_subdirectory(${HIGHWAYHASH_ROOT})
-unset(BUILD_SHARED_LIBS CACHE)
-set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED_LIBS})
-list(APPEND ASY_STATIC_LIBARIES highwayhash)
-
 # boehm gc
 if (ENABLE_GC)
     set(enable_gpl OFF CACHE INTERNAL "libatomicops gpl libs option")
@@ -26,13 +16,18 @@ if (ENABLE_GC)
     set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "bdwgc shared libs flag")
     set(enable_cplusplus ON CACHE INTERNAL "bdwgc enable C++")
     set(without_libatomic_ops ON CACHE INTERNAL "bdwgc use libatomic ops")
+    set(build_cord OFF CACHE INTERNAL "bdwgc cord library (not used by asymptote)")
+    if (NOT WIN32)
+        set(enable_throw_bad_alloc_library OFF CACHE INTERNAL "bdwgc gctba library (Windows-only in asymptote)")
+    endif()
+    set(enable_large_config ON CACHE INTERNAL "bdwgc large config")
     add_subdirectory(${BOEHM_GC_ROOT})
 
     set(CFLAG_EXTRA ${OLD_CFLAG_EXTRA})
     unset(BUILD_SHARED_LIBS CACHE)
     set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED_LIBS})
 
-    list(APPEND ASY_STATIC_LIBARIES gc gccpp atomic_ops)
+    list(APPEND ASY_STATIC_LIBRARIES gc gccpp atomic_ops)
 
     if (WIN32)
         list(APPEND ASY_MACROS GC_NOT_DLL)
@@ -45,18 +40,26 @@ if (ENABLE_GC)
     # files are provided in include/gc/gc.h (and other files). Hence we append "/gc" to the include directories.
 
     if (WIN32)
-        list(APPEND ASY_STATIC_LIBARIES gctba)
+        list(APPEND ASY_STATIC_LIBRARIES gctba)
     endif()
     list(APPEND ASY_MACROS USEGC)
+    # Propagate GC_ATOMIC_UNCOLLECTABLE to match how gc/CMakeLists.txt compiles the library
+    # (gc enables this by default via enable_atomic_uncollectable option), preventing ODR violations
+    # when LTO is active.
+    if (enable_atomic_uncollectable)
+        list(APPEND ASY_MACROS GC_ATOMIC_UNCOLLECTABLE)
+    endif()
 else()
     message(STATUS "Disabling gc support")
 endif()
 
 if (ENABLE_LSP)
     message(STATUS "LSP Enabled.")
-    # disable New Boost version warning
-    set(Boost_NO_WARN_NEW_VERSIONS 1)
     set(USE_SYSTEM_RAPIDJSON ON CACHE INTERNAL "Use system rapidjson")
+    set(USE_EXTERNAL_IXWEBSOCKET ON CACHE INTERNAL "Use (vcpkg) ixwebsocket")
+    set(USE_EXTERNAL_ASIO ON CACHE INTERNAL "Use (vcpkg) asio")
+    set(LSPCPP_STANDALONE_ASIO ON CACHE INTERNAL "Use asio instead of boost::beast")
+
     set(LSPCPP_USE_CPP17 ON CACHE INTERNAL "C++17 mode")
     # For transitive URI dependency
     set(Uri_BUILD_DOCS OFF CACHE INTERNAL "build docs for uri")
@@ -74,7 +77,7 @@ if (ENABLE_LSP)
 
     add_subdirectory(${LSP_REPO_ROOT})
 
-    list(APPEND ASY_STATIC_LIBARIES lspcpp)
+    list(APPEND ASY_STATIC_LIBRARIES lspcpp)
     list(APPEND ASY_MACROS HAVE_LSP=1)
 else()
     # only include lsp libraries

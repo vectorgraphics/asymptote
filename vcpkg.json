@@ -1,12 +1,15 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-
-  "builtin-baseline": "5e5d0e1cd7785623065e77eff011afdeec1a3574",
+  "builtin-baseline": "f33cc491c85a7d643c5ab6da1667c1458e6d7abf",
   "name": "asymptote",
   "version": "0.0-snapshot",
   "dependencies": [
     "zlib",
     "glm",
+    "vulkan",
+    "vulkan-sdk-components",
+    "glfw3",
+    "glslang",
     {
       "name": "getopt-win32",
       "platform": "windows"
@@ -15,7 +18,9 @@
   "features": {
     "threading": {
       "description": "Enable threading support",
-      "dependencies": ["pthreads"]
+      "dependencies": [
+        "pthreads"
+      ]
     },
     "readline": {
       "description": "Enable readline support",
@@ -33,41 +38,34 @@
     },
     "curl": {
       "description": "Enable curl support",
-      "dependencies": ["curl"]
+      "dependencies": [
+        "curl"
+      ]
     },
     "eigen3": {
       "description": "eigen3 support",
-      "dependencies": ["eigen3"]
+      "dependencies": [
+        "eigen3"
+      ]
     },
     "gsl": {
       "description": "GSL support",
-      "dependencies": ["gsl"]
+      "dependencies": [
+        "gsl"
+      ]
     },
     "fftw3": {
       "description": "fftw3 support",
-      "dependencies": ["fftw3"]
-    },
-    "opengl": {
-      "description": "OpenGL Support",
       "dependencies": [
-        "opengl",
-        "freeglut"
+        "fftw3"
       ]
     },
     "lsp": {
       "description": "Language Server Protocol Support",
       "dependencies": [
         "rapidjson",
-        "boost-asio",
-        "boost-beast",
-        "boost-date-time",
-        "boost-chrono",
-        "boost-filesystem",
-        "boost-system",
-        "boost-uuid",
-        "boost-thread",
-        "boost-process",
-        "boost-program-options"
+        "asio",
+        "ixwebsocket"
       ]
     }
   }

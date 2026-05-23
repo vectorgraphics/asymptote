@@ -11,21 +11,12 @@ if (MSVC)
 endif()
 
 # alot of asymptote sources use __MSDOS__ macro for checking windows
-list(APPEND ASY_MACROS WIN32_LEAN_AND_MEAN NOMINMAX __MSDOS__=1)
+list(APPEND ASY_MACROS WIN32_LEAN_AND_MEAN NOMINMAX __MSDOS__=1 HAVE_LIBTIRPC)
 
 
-# set ASYMPTOTE_SYSDIR to empty string
-if (CTAN_BUILD)
-    list(APPEND ASY_MACROS ASYMPTOTE_SYSDIR="")
-else()
-    # because of how ASYMPTOTE_SYSDIR is calculated on windows,
-    # this value is replaced by the what is in the registry when we launch
-    # asymptote, given if ASYMPTOTE_SYSDIR is not empty
-    # (empty indicates a CTAN build which uses kpsewhich for determining path)
-
-    # hence, we can leave this value to anything non-empty.
-    list(APPEND ASY_MACROS ASYMPTOTE_SYSDIR="NUL")
-endif()
+# ASYMPTOTE_SYSDIR is always set globally for asycore and shared libraries.
+# The CTAN override (ASYMPTOTE_SYSDIR="") is applied per-target on settings_obj_ctan.
+list(APPEND ASY_MACROS ASYMPTOTE_SYSDIR="NUL")
 
 
 set(BUILD_SHARED_LIBS OFF)
@@ -88,7 +79,7 @@ endif()
 
 
 # additional win32 api libraries
-list(APPEND ASY_STATIC_LIBARIES Shlwapi Shell32 Ws2_32)
+list(APPEND ASY_STATIC_LIBRARIES Shlwapi Shell32 Ws2_32)
 
 # RC file
 set(ASY_WIN_RESOURCE_DIR ${ASY_RESOURCE_DIR}/windows)

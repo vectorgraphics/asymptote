@@ -23,9 +23,6 @@ Make sure flex and bison is available in path, if not, install them manually fir
 sudo pacman -S flex bison
 ```
 
-For OpenGL, make sure all relevant dependencies for freeglut is installed. The relevant dependencies
-should be shown during vcpkg install
-
 ## Using CMake
 
 ### Quick start (Linux)
@@ -106,7 +103,7 @@ suffix is "+debug" for debug builds, or an empty string for all other builds, in
 
 ## Testing
 
-Asymptote unit testing is integerated into CMake's `CTest` framework.
+Asymptote unit testing is integrated into CMake's `CTest` framework.
 All Asymptote `.asy` based tests are named `asy.<test dirname>.<test file name>`
 excluding `*.asy` extension.
 
@@ -115,4 +112,3 @@ These tests can be run by CTest. For example, after building on linux/release,
 ```bash
 ctest --test-dir cmake-build-linux/release/ -R "asy.types.*"
 ```
-

@@ -6,7 +6,7 @@ from collections.enumerate(T=string) access
     Iterable_Pair_int_T as Iterable_Pair_int_string,
     Iterable_T as Iterable_string;
 
-from collections.iter(T=string) access Iterable;
+from collections.iter(T=string) access range;
 
 string[] strings = {'a', 'b', 'c'};
 
@@ -14,7 +14,7 @@ string[] strings = {'a', 'b', 'c'};
   // enumerate over iterable
   bool[] triggered = array(strings.length, false);
 
-  for (var is : enumerate(Iterable(strings))) {
+  for (var is : enumerate(range(strings))) {
     int i = is.k;
     string s = is.v;
     assert(s == strings[i]);

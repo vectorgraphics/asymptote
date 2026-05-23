@@ -219,7 +219,7 @@ if (0 -eq $Version.Length) {
 # build GUI
 & $pyXasyActivateScript
 Push-Location $asymptoteRoot/GUI
-& python -m pip install -r requirements.txt -r requirements.dev.txt
+& python -m pip install -r requirements.txt
 & python buildtool.py build --version-override=$Version
 Pop-Location
 
@@ -252,6 +252,16 @@ function buildAsy($preset, $cfgDir) {
     # ------------------------------------
     # build
     cmake --build $asymptoteRoot/$cfgDir --target asy-pre-nsis-targets -j
+
+    # Copy llvmpipe fallback DLL into the build output so that
+    # RUNTIME_DEPENDENCIES picks it up alongside every other DLL.
+    if ($env:ASYMPTOTE_BUILD_SHARED_DIRECTORY) {
+        $lvpDll = "$env:ASYMPTOTE_BUILD_SHARED_DIRECTORY/CTAN/dll/vulkan_lvp.dll"
+        if (Test-Path -PathType leaf $lvpDll) {
+            Copy-Item -Force $lvpDll "$asymptoteRoot/$cfgDir/"
+        }
+    }
+
     Pop-EnvironmentBlock  # ASY_VERSION_OVERRIDE, VCPKG_ROOT
     Pop-EnvironmentBlock  # Visual studio vars
     # install to pre-installation root
@@ -259,7 +269,7 @@ function buildAsy($preset, $cfgDir) {
 
 buildAsy msvc/release/with-external-doc-files cmake-build-msvc/release
 cmake --install $asymptoteRoot/cmake-build-msvc/release --component asy-pre-nsis
-
+copy $asymptoteRoot/cmake-build-msvc/release/base/version.asy base
 # ------------------------------------------------------
 # Generate NSIS installer file
 & $asymptoteRoot/cmake-install-w32-nsis-release/build-asy-installer.ps1 "$makeNsisLoc"
@@ -292,9 +302,7 @@ else
 }
 
 # ------------------------------------------------------
-# building for CTAN
-
-buildAsy msvc/release/with-external-doc-files/with-ctan cmake-build-msvc/release
+# building for CTAN (asy-ctan.exe was built alongside asy.exe in a single CMake build)
 
 if ($env:ASYMPTOTE_BUILD_SHARED_DIRECTORY)
 {
@@ -311,7 +319,7 @@ New-Item -ItemType Directory -Path "$ctanOutputDir" -Force
 New-Item -ItemType Directory -Path "$ctanOutputDir/dll" -Force
 Get-ChildItem "$asymptoteRoot/cmake-install-w32-nsis-release/build-$Version/" `
     -Filter "*.dll" | Copy-Item -Force -Destination "$ctanOutputDir/dll"
-Copy-Item $asymptoteRoot/cmake-build-msvc/release/asy.exe -Force -Destination "$ctanOutputDir/asy.exe"
+Copy-Item $asymptoteRoot/cmake-build-msvc/release/asy-ctan.exe -Force -Destination "$ctanOutputDir/asy.exe"
 
 Pop-Location  # asymptote
 deactivate  # pyxasy build environment

@@ -19,20 +19,39 @@
  *
  *************/
 
-#ifdef __CYGWIN__
-#define _POSIX_C_SOURCE 200809L
-#endif
-
 #include <iostream>
 #include <cstdlib>
 #include <cerrno>
 #include <sys/types.h>
 
-#if !defined(_WIN32)
+#if defined(_WIN32)
+#include <signal.h>
+
+int _matherr(struct _exception *except)
+{
+  unsigned int cw = 0;
+  _controlfp_s(&cw, 0, 0);
+
+  if((except->type == _SING     && !(cw & _EM_ZERODIVIDE)) ||
+     (except->type == _DOMAIN   && !(cw & _EM_INVALID))    ||
+     (except->type == _OVERFLOW && !(cw & _EM_OVERFLOW))) {
+    std::cerr << "Floating exception" << std::endl;
+    raise(SIGFPE);
+  }
+  return 0;
+}
+#else
 #include <sys/wait.h>
 #endif
 
 #include "common.h"
+#include "rendererloader.h"
+#ifdef HAVE_LIBGL
+#include "glrender.h"
+#endif
+#ifdef HAVE_LIBVULKAN
+#include "vkrender.h"
+#endif
 
 #ifdef HAVE_LIBSIGSEGV
 #include <sigsegv.h>
@@ -51,7 +70,6 @@
 #include "locate.h"
 #include "interact.h"
 #include "fileio.h"
-#include "stack.h"
 
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
@@ -61,15 +79,14 @@
 #include <combaseapi.h>
 #endif
 
-#include "stack.h"
+#include "renderBase.h"
+
+pthread_mutex_t main_wait_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t main_wait_cond = PTHREAD_COND_INITIALIZER;
 
 using namespace settings;
 
 using interact::interactive;
-
-namespace gl {
-extern bool glexit;
-}
 
 namespace run {
 void purge();
@@ -93,8 +110,8 @@ int sigsegv_handler (void *, int emergency)
 {
   if(!emergency) return 0; // Really a stack overflow
   em.runtime(vm::getPos());
-#ifdef HAVE_GL
-  if(gl::glthread)
+#ifdef HAVE_RENDERER
+  if(camp::AsyRender::threads)
     cerr << "Stack overflow or segmentation fault: rerun with -nothreads"
          << endl;
   else
@@ -136,7 +153,10 @@ void *asymain(void *A)
 
 #if defined(_WIN32)
   // see https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecuteexa
-  CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+  if(!SUCCEEDED(
+       CoInitializeEx(nullptr,
+                      COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE)))
+    camp::reportError("CoInitializeEx Failed");
 #endif
 
   if(interactive) {
@@ -215,25 +235,11 @@ void *asymain(void *A)
   vm::dumpProfile();
 #endif
 
+#if !defined(_WIN32)
   if(getSetting<bool>("wait")) {
-#if defined(_WIN32)
-#pragma message("TODO: wait option not implement yet")
-#else
     int status;
     while(wait(&status) > 0);
-#endif
   }
-#ifdef HAVE_GL
-#ifdef HAVE_PTHREAD
-  if(gl::glthread) {
-#ifdef __MSDOS__ // Signals are unreliable in MSWindows
-    gl::glexit=true;
-#else
-    pthread_kill(gl::mainthread,SIGURG);
-    pthread_join(gl::mainthread,NULL);
-#endif
-  }
-#endif
 #endif
   exit(returnCode());
 }
@@ -241,13 +247,8 @@ void *asymain(void *A)
 int main(int argc, char *argv[])
 {
 #ifdef HAVE_LIBGSL
-#if defined(_WIN32)
-  _putenv("GSL_RNG_SEED=");
-  _putenv("GSL_RNG_TYPE=");
-#else
   unsetenv("GSL_RNG_SEED");
   unsetenv("GSL_RNG_TYPE");
-#endif
 #endif
   setsignal(signalHandler);
 
@@ -257,65 +258,67 @@ int main(int argc, char *argv[])
     em.statusError();
   }
 
-  Args args(argc,argv);
-#ifdef HAVE_GL
-#if defined(__APPLE__) || defined(_WIN32)
-
-#if defined(_WIN32)
-#pragma message("TODO: Check if (1) we need detach-based gl renderer")
-#endif
-
-  bool usethreads=true;
+#ifdef HAVE_RENDERER
+  // Determine whether threading is needed.  On Unix, we only enable the
+  // render thread when a windowed View is requested; the renderer itself
+  // (Vulkan/OpenGL library loading) is deferred until initRenderer() is
+  // called from shipout3().
+  // On macOS, threads are always required for rendering (even with
+  // llvmpipe software fallback) to avoid races on AsyRender::View.
+#if defined(__APPLE__)
+  camp::AsyRender::threads = true;
 #else
-  bool usethreads=view();
+  camp::AsyRender::threads = view() ? getSetting<bool>("threads") : false;
 #endif
-  gl::glthread=usethreads ? getSetting<bool>("threads") : false;
+#endif
+
+  fpu_trap(trap());
+  Args args(argc,argv);
+#ifdef HAVE_RENDERER
 #if HAVE_PTHREAD
-#ifndef HAVE_LIBOSMESA
-  if(gl::glthread) {
+  if(camp::AsyRender::threads) {
     pthread_t thread;
     try {
 #if defined(_WIN32)
-      auto asymainPtr = [](void* args) -> void*
-      {
+      auto asymainPtr = [](void* args) -> void* {
 #if defined(USEGC)
         GC_stack_base gsb {};
         GC_get_stack_base(&gsb);
         GC_register_my_thread(&gsb);
-#endif
+#endif // defined(USEGC)
         auto* ret = asymain(args);
 
 #if defined(USEGC)
         GC_unregister_my_thread();
-#endif
+#endif // defined(USEGC)
         return reinterpret_cast<void*>(ret);
       };
-#else
+#else // defined(_WIN32)
       auto* asymainPtr = asymain;
-#endif
+#endif // defined(_WIN32)
       if(pthread_create(&thread,NULL,asymainPtr,&args) == 0) {
-        gl::mainthread=pthread_self();
 #if !defined(_WIN32)
         sigset_t set;
         sigemptyset(&set);
         sigaddset(&set, SIGCHLD);
         pthread_sigmask(SIG_BLOCK, &set, NULL);
-#endif
-        for(;;) {
-#if !defined(_WIN32)
-          Signal(SIGURG,exitHandler);
-#endif
+#endif // !defined(_WIN32)
+        for (;;) {
           camp::glrenderWrapper();
-          gl::initialize=true;
+          if(camp::gl == nullptr) {
+            pthread_mutex_lock(&main_wait_mutex);
+            pthread_cond_wait(&main_wait_cond, &main_wait_mutex);
+            pthread_mutex_unlock(&main_wait_mutex);
+          }
         }
-      } else gl::glthread=false;
+      } else {
+        camp::AsyRender::threads=false;
+      }
     } catch(std::bad_alloc&) {
       outOfMemory();
     }
   }
-#endif
-#endif
-  gl::glthread=false;
-#endif
+#endif // HAVE_PTHREAD
+#endif // HAVE_RENDERER
   asymain(&args);
 }

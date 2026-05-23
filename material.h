@@ -1,15 +1,14 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-#ifdef HAVE_LIBGLM
-
 #include <iostream>
 #include <fstream>
 
 #include "common.h"
+#include "glmCommon.h"
 #include "triple.h"
 
-#include <glm/glm.hpp>
+#ifdef HAVE_LIBGLM
 
 namespace glm {
 
@@ -35,8 +34,8 @@ inline bool operator < (const glm::vec4& m1, const glm::vec4& m2) {
 }
 
 inline glm::vec4 GLparameters(float shininess, float metallic,
-                              float fresnel0) {
-  return glm::vec4(shininess,metallic,fresnel0,0.0);
+                              float fresnel0, bool lightOn) {
+  return glm::vec4(shininess,metallic,fresnel0,lightOn);
 }
 
 struct Material {
@@ -46,14 +45,21 @@ public:
   Material() {}
 
   Material(const glm::vec4& diffuse, const glm::vec4& emissive,
-           const glm::vec4& specular, double shininess, double metallic, double fresnel0) :
+           const glm::vec4& specular, double shininess, double metallic, double fresnel0, bool lightOn) :
     diffuse(diffuse), emissive(emissive), specular(specular),
-    parameters(GLparameters(shininess,metallic,fresnel0)) {}
+    parameters(GLparameters(shininess,metallic,fresnel0,lightOn)) {}
 
   Material(Material const& m):
     diffuse(m.diffuse), emissive(m.emissive),
     specular(m.specular), parameters(m.parameters) {}
   ~Material() {}
+
+  std::size_t hash() const {
+
+    return ((std::hash<glm::vec4>()(diffuse) ^ (std::hash<glm::vec4>()(emissive) << 1) >> 1)
+            ^ (std::hash<glm::vec4>()(specular) << 1) >> 1)
+            ^ (std::hash<glm::vec4>()(parameters) << 1);
+  }
 
   Material& operator=(Material const& m)
   {
@@ -62,6 +68,11 @@ public:
     specular=m.specular;
     parameters=m.parameters;
     return *this;
+  }
+
+  friend bool operator == (const Material& m1, const Material& m2) {
+
+    return m1.hash() == m2.hash();
   }
 
   friend bool operator < (const Material& m1, const Material& m2) {
@@ -80,7 +91,8 @@ public:
         << "specular=" << m.specular << "," << newl
         << "shininess=" << m.parameters[0] << "," << newl
         << "metallic=" << m.parameters[1] << "," << newl
-        << "fresnel0=" << m.parameters[2] << newl;
+        << "fresnel0=" << m.parameters[2] << "," << newl
+        << "lightOn=" << m.parameters[3] << newl;
     return out;
   }
 
@@ -90,14 +102,22 @@ public:
         << m.specular << "," << newl
         << m.parameters[0] << "," << newl
         << m.parameters[1] << "," << newl
-        << m.parameters[2];
+        << m.parameters[2] << "," << newl
+        << m.parameters[3];
     return out;
   }
 };
+}
 
-extern size_t Nmaterials; // Number of materials compiled in shader
-extern size_t nmaterials; // Current size of materials buffer
-extern size_t Maxmaterials; // Maxinum size of materials buffer
+namespace std
+{
+  template<>
+  struct hash<const camp::Material> {
+
+    size_t operator()(const camp::Material& m) const {
+      return m.hash();
+    }
+  };
 }
 
 #endif

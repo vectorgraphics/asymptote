@@ -1,24 +1,29 @@
 .NOTPARALLEL:
 
-TESTDIRS = string arith frames types imp array pic gs io template datastructures
+TESTDIRS = $(wildcard */)
 
-EXTRADIRS = gsl output
-
-test: $(TESTDIRS)
-
-all: $(TESTDIRS) $(EXTRADIRS)
+test: $(TESTDIRS) test_collections_errors
 
 $(TESTDIRS)::
 	@echo
-	../asy -dir ../base $@/*.asy
+	../asy -dir ../base $@*.asy
+
+test_collections_errors:
+	@echo
+	python3 test_collections_errors.py
 
 $(EXTRADIRS)::
 	@echo
-	../asy -dir ../base $@/*.asy
+	../asy -dir ../base $@*.asy
 
 clean:  FORCE
 	rm -f *.eps
 
-distclean: FORCE clean
+cleaner: FORCE clean
+
+cleanest: FORCE cleaner
+
+distclean: FORCE cleaner
+maintainer-clean: FORCE cleanest
 
 FORCE:

@@ -15,10 +15,10 @@ Intarray*  => IntArray()
 #include <ctime>
 #include <chrono>
 #include <algorithm>
-#include <random>
 
 #include "array.h"
 #include "hashing.h"
+#include "random.h"
 
 using namespace camp;
 using namespace vm;
@@ -133,7 +133,7 @@ Int length(string *s)
 Int :stringHashHelper(string s)
 {
   span<const char> sSpan = {s.data(), s.length()};
-  return hashing::hashSpan(s);
+  return hashing::hashSpan(sSpan);
 }
 
 callable* :stringHash(string s)
@@ -428,19 +428,7 @@ Int ascii(string s)
 Int hash(string s)
 {
   span<const char> sSpan = {s.data(), s.length()};
-  return hashing::hashSpan(s);
-}
-
-Intarray* fingerprint2024(string s)
-{
-  span<const char> sSpan = {s.data(), s.length()};
-  std::array<uint64_t, 4> result = hashing::fingerprint(s);
-  array *retv = new array(8);
-  for (int i = 0; i < 4; ++i) {
-    (*retv)[i] = static_cast<Int>(result[i] & ((UINT64_C(1) << 32) - 1));
-    (*retv)[i + 4] = static_cast<Int>(result[i] >> 32);
-  }
-  return retv;
+  return hashing::hashSpan(sSpan);
 }
 
 string string(Int x)
@@ -505,4 +493,21 @@ Int seconds(string t=emptystring, string format=emptystring)
   }
 
   return static_cast<Int>(std::mktime(&tmObj));
+}
+
+string randString(Int len, string *chars) {
+  string result(len, ' ');
+  const string *charsConst = chars;
+  static const string *alphabet = new string(
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+
+  if (charsConst == nullptr || charsConst->size() == 0) {
+    charsConst = alphabet;
+  }
+  Int maxIndex = charsConst->size() - 1;
+  for (Int i = 0; i < len; ++i) {
+    char toAdd = (*charsConst)[camp::randInt(0, maxIndex)];
+    result[i] = toAdd;
+  }
+  return result;
 }

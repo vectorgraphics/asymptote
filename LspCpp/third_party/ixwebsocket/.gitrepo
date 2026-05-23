@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/machinezone/IXWebSocket.git
+	branch = master
+	commit = 150e3d83b5f6a2a47f456b79330a9afe87cd379c
+	parent = 6734e3fb3ec9c42054257f96c0a0d05d88c3e768
+	method = merge
+	cmdver = 0.4.9

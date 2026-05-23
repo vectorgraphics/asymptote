@@ -129,7 +129,7 @@ public:
         };
         Client() :remote_end_point_(protocol_json_handler, endpoint, _log)
         {
-                tcp::endpoint end_point( address::from_string(_address), 9333);
+                tcp::endpoint end_point( make_address(_address), 9333);
 
                 socket_ = std::make_shared<tcp::iostream>();
                 socket_->connect(end_point);

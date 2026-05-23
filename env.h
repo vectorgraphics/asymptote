@@ -133,11 +133,13 @@ public:
     ve.enter(name, desc);
   }
 
-  // Add another environment, say from a record.
-  void add(protoenv &source, varEntry *qualifier, coder &c)
+  // Add another environment, say from a record.  If destRegistry is non-null
+  // and c.isAutoUnravel(), newly added variables are also registered there.
+  void add(protoenv &source, varEntry *qualifier, coder &c,
+           AutoUnravelRegistry *destRegistry=nullptr)
   {
     te.add(source.te, qualifier, c);
-    ve.add(source.ve, qualifier, c);
+    ve.add(source.ve, qualifier, c, destRegistry);
   }
 
   struct Added : public gc {

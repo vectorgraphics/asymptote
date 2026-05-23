@@ -1,0 +1,8 @@
+errortests/autounravel.asy: 4.5: too many static modifiers
+errortests/autounravel.asy: 7.5: too many autounravel modifiers
+errortests/autounravel.asy: 8.5: too many autounravel modifiers
+errortests/autounravel.asy: 9.5: too many static modifiers
+errortests/autounravel.asy: 10.17: types cannot be autounraveled
+errortests/autounravel.asy: 14.3: top-level fields cannot be autounraveled
+errortests/autounravel.asy: 19.21: cannot shadow autounravel qaz
+errortests/autounravel.asy: 27.22: cannot shadow autounravel alias

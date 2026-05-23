@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 from xasyversion.version import VERSION as xasyVersion
-import PyQt5.QtCore as QtCore
+import PySide6.QtCore as QtCore
 # Add arguments here.
 
 

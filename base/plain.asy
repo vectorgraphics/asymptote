@@ -159,6 +159,35 @@ int[] sequence(int n, int m, int skip)
   return n+skip*sequence((m-n)#skip+1);
 }
 
+from collections.iter(T=int) access
+    Iter_T as Iter_int,
+    Iterable_T as Iterable_int,
+    Iterable;
+
+Iterable_int range(int n, int m, int skip=1) {
+  Iterable_int result;
+  result.operator iter = new Iter_int() {
+    int index = n;
+    Iter_int retv;
+    unravel retv;
+    advance = new void() { index += skip; };
+    get = new int() { return index; };
+    if (skip > 0) {
+      valid = new bool() { return index <= m; };
+    } else if (skip < 0) {
+      valid = new bool() { return index >= m; };
+    } else {
+      valid = new bool() { return false; };
+    }
+    return retv;
+  };
+  return result;
+}
+
+Iterable_int range(int n) {
+  return range(0,n-1);
+}
+
 int[] reverse(int n) {return sequence(new int(int x){return n-1-x;},n);}
 bool[] reverse(bool[] a) {return a[reverse(a.length)];}
 int[] reverse(int[] a) {return a[reverse(a.length)];}

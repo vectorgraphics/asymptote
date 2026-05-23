@@ -38,14 +38,15 @@ build_files_to_src(CORE_BUILD_FILES CORE_SOURCE_FILES)
 include(cmake-scripts/subrepo-projects.cmake)
 include(cmake-scripts/external-libs.cmake)
 include(cmake-scripts/thirdparty-impl.cmake)
-include(cmake-scripts/backport-libs.cmake)
 
 # PRC
 add_subdirectory(prc/)
-list(APPEND ASY_STATIC_LIBARIES PRC)
+list(APPEND ASY_STATIC_LIBRARIES PRC)
 
 get_target_property(prc_incl_dir PRC INCLUDE_DIRECTORIES)
 list(APPEND ASYMPTOTE_INCLUDES $<TARGET_PROPERTY:PRC,INCLUDE_DIRECTORIES>)
+
+list(APPEND ASYMPTOTE_INCLUDES "LspCpp/include")
 
 include(cmake-scripts/gnu-install-macros.cmake)
 include(cmake-scripts/asy-macro.cmake)
@@ -68,24 +69,39 @@ add_library(
 
 target_include_directories(asycore PUBLIC ${ASYMPTOTE_INCLUDES})
 add_dependencies(asycore asy_gen_headers)
-target_link_libraries(asycore PUBLIC ${ASY_STATIC_LIBARIES})
+target_link_libraries(asycore PUBLIC ${ASY_STATIC_LIBRARIES})
 target_compile_definitions(asycore PUBLIC ${ASY_MACROS})
 target_compile_options(asycore PUBLIC ${ASY_COMPILE_OPTS})
 
-# asy executable
+# CTAN variant of settings.cc: compiled separately with ASYMPTOTE_SYSDIR=""
+# and CTAN_BUILD defined.  The normal asy.exe uses the settings.cc already
+# compiled into asycore (with ASYMPTOTE_SYSDIR="NUL" on Windows).
+add_library(settings_obj_ctan OBJECT ${ASY_SRC_DIR}/settings.cc)
+target_link_libraries(settings_obj_ctan PRIVATE asycore)
+target_compile_definitions(settings_obj_ctan PRIVATE ASYMPTOTE_SYSDIR="" CTAN_BUILD)
+target_compile_options(settings_obj_ctan PRIVATE ${ASY_COMPILE_OPTS})
 
+# asy executable (normal installer build, uses settings from asycore)
 add_executable(
         asy ${ASY_SRC_DIR}/main.cc ${ASY_WIN_RC_FILE}
 )
 
 target_link_libraries(asy PUBLIC asycore)
 
+# asy-ctan executable (CTAN/TexLive build with ASYMPTOTE_SYSDIR="")
+add_executable(asy-ctan ${ASY_SRC_DIR}/main.cc ${ASY_WIN_RC_FILE} $<TARGET_OBJECTS:settings_obj_ctan>)
+target_link_libraries(asy-ctan PUBLIC asycore)
+
 # base files
 include(cmake-scripts/asy-base-files.cmake)
 
 # asy + base files
 add_custom_target(asy-basefiles DEPENDS ${ASY_OUTPUT_BASE_FILES})
-add_custom_target(asy-with-basefiles ALL DEPENDS asy asy-basefiles)
+
+# license files in build tree (for running asy locally without installing)
+include(cmake-scripts/copy-build-licenses.cmake)
+
+add_custom_target(asy-with-basefiles ALL DEPENDS asy asy-basefiles asy-licenses)
 
 # asy misc files
 if (ENABLE_MISCFILES_GEN)
@@ -114,7 +130,5 @@ if (WIN32)
     include(cmake-scripts/win32-pre-nsis-installer.cmake)
 else()
     # on unix systems
-    if (NOT CTAN_BUILD)
-        include(cmake-scripts/linux-install.cmake)
-    endif()
+    include(cmake-scripts/linux-install.cmake)
 endif()

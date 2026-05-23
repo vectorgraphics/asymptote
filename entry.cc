@@ -66,6 +66,13 @@ bool entry::checkPerm(action act, coder &c) {
 void entry::reportPerm(action act, position pos, coder &c) {
   for (mem::list<pr>::iterator p=perms.begin(); p != perms.end(); ++p)
     p->report(act, pos, c);
+
+}
+
+void entry::listPerm() {
+  mem::string permissionName[]={"restricted","public","private"};
+  for (mem::list<pr>::iterator p=perms.begin(); p != perms.end(); ++p)
+    cout << permissionName[(*p).perm] << " ";
 }
 
 
@@ -729,7 +736,8 @@ varEntry *venv::lookBySignature(symbol name, signature *sig) {
   return ve;
 }
 
-void venv::add(venv& source, varEntry *qualifier, coder &c)
+void venv::add(venv& source, varEntry *qualifier, coder &c,
+               AutoUnravelRegistry *destRegistry)
 {
   const bool isAutoUnravel = c.isAutoUnravel();
   for (const cell& p : source.core) {
@@ -743,8 +751,8 @@ void venv::add(venv& source, varEntry *qualifier, coder &c)
       }
       varEntry *qve=qualifyVarEntry(qualifier, v);
       enter(p.name, qve);
-      if (isAutoUnravel) {
-        registerAutoUnravel(p.name, qve);
+      if (isAutoUnravel && destRegistry) {
+        destRegistry->registerAutoUnravel(p.name, qve);
       }
     }
   }
@@ -807,12 +815,15 @@ void listValue(symbol name, varEntry *v, record *module)
 {
   if (!module || v->whereDefined() == module)
     {
-      if (settings::getSetting<bool>("where"))
-        cout << v->getPos();
+      bool where=settings::getSetting<bool>("where");
+      if (where)
+        cout << v->getPos() << endl;
 
+      v->listPerm();
       v->getType()->printVar(cout, name);
 
-      cout << ";\n";
+      cout << ";" << endl;
+      if(where) cout << endl;
     }
 }
 
@@ -843,8 +854,8 @@ void venv::completions(mem::list<symbol >& l, string start)
       l.push_back(N->first);
 }
 
-void venv::registerAutoUnravel(symbol name, varEntry *v,
-                               AutounravelPriority priority)
+void AutoUnravelRegistry::registerAutoUnravel(symbol name, varEntry *v,
+                                              AutounravelPriority priority)
 {
   mem::pair<symbol, ty*> p = {name, v->getType()};
   if (nonShadowableAutoUnravels.find(p) != nonShadowableAutoUnravels.end()) {

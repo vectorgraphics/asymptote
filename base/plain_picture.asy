@@ -713,7 +713,7 @@ struct picture { // <<<1
              triple m, triple M) {
     frame f;
     for(node3 n : nodes3) {
-      xasyKEY(nodes3[0].key);
+      xasyKEY(settings.xasy ? nodes3[0].key : n.key);
       n.d(f,t,T0,pic,P,m,M);
     }
     return f;
@@ -1654,6 +1654,13 @@ void tex(picture pic=currentpicture, string s)
   size(g);
   pic.add(new void(frame f, transform) {
       tex(f,s);
+    },true);
+}
+
+void javascript(picture pic=currentpicture, string s)
+{
+  pic.add(new void(frame f, transform3, picture pic, projection) {
+      javascript(f,s);
     },true);
 }
 

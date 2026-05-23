@@ -1,0 +1,9 @@
+errortests/statements.asy: 6.24: function must return a value
+errortests/statements.asy: 12.11: type 'int' is not a structure
+errortests/statements.asy: 21.3: allocation of struct 'b' is not in a valid scope
+errortests/statements.asy: 31.3: break statement outside of a loop
+errortests/statements.asy: 35.3: continue statement outside of a loop
+errortests/statements.asy: 40.5: function cannot return a value
+errortests/statements.asy: 46.5: function must return a value
+errortests/statements.asy: 53.11: function must return a value
+errortests/statements.asy: 56.11: function must return a value

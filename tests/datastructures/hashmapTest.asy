@@ -122,7 +122,7 @@ actions[ActionEnum.FIND_DELETE] = new void(int maxItem ...Map_int_real[] maps) {
   if (size == 0)
     return;
   int index = rand() % size;
-  wrapped_int key = ((wrapped_int[])referenceMap)[index];
+  wrapped_int key = (referenceMap.keys())[index];
   for (Map_int_real map : maps) {
     assert(map.contains(key));
     map.delete(key);
@@ -162,8 +162,8 @@ int chooseAction(real[] probs) {
 } 
 
 bool intsEqual(int, int) = operator ==;
-Map_int_real naiveMap = NaiveMap_int_real(nan, isnan);
-Map_int_real hashMap = HashMap_int_real(nan, isnan);
+Map_int_real naiveMap = NaiveMap_int_real(nullValue=nan, isNullValue=isnan);
+Map_int_real hashMap = HashMap_int_real(nullValue=nan, isNullValue=isnan);
 // Map_int_real smallintMap = makeMapSmallint(nan, isnan);
 
 from collections.zip(T=int) access zip;
@@ -240,7 +240,7 @@ for (int i = 0; i < n; ++i) {
   }
   if (keyDifferenceFound) {
     assert(false, 'Naive vs hash: \n'
-                  + differences((wrapped_int[])naiveMap, (wrapped_int[])hashMap)
+                  + differences(naiveMap.keys(), hashMap.keys())
           );
   }
   if (valueDifferenceFound) {

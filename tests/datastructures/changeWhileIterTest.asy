@@ -5,7 +5,7 @@ StartTest('Change collections.map values while iterating');
   from collections.map(K=string, V=int) access
       Map_K_V as Map_string_int,
       NaiveMap_K_V as NaiveMap_string_int;
-  Map_string_int map = NaiveMap_string_int(0);
+  Map_string_int map = NaiveMap_string_int(nullValue=0);
   map['a'] = 1;
   map['b'] = 2;
   map['c'] = 3;
@@ -46,7 +46,7 @@ StartTest('Change collections.hashmap values while iterating');
   // using ktype = wrapped_string;
   from collections.hashmap(K=ktype, V=int) access
       HashMap_K_V as HashMap_string_int;
-  var map = HashMap_string_int(0);
+  var map = HashMap_string_int(nullValue=0);
   map['a'] = 1;
   map['b'] = 2;
   map['c'] = 3;
