@@ -2287,6 +2287,8 @@ character strings in ANSI @code{C}:
 The implicit initializer for strings is the empty string @code{""}.
 Strings may be concatenated with the @code{+} operator.
 
+@cindex @code{[]} @subentry @code{string.operator []}
+@cindex @code{operator []} @subentry @code{string.operator []}
 A single-character substring of a string @code{s} can be accessed with
 @code{s[pos]} for an integer index @code{pos} in the range @code{[-n, n-1]},
 where @code{n} is the length of the string @code{s}. Negative indices count
@@ -4901,8 +4903,8 @@ provide this notation for a user-defined structure. Similarly, the notation
 @code{a[i]=b} is equivalent to @code{a.operator[=](i,b)} (except that the former
 always returns @code{b}).
 
-@cindex @code{operator []}
-@subentry @code{string}
+@cindex @code{operator []} @subentry @code{string.operator []}
+@cindex @code{[]} @subentry @code{string.operator []}
 The builtin type @code{string} has a virtual member function
 @code{string operator[](int pos)}. No primitive type has a virtual member
 function @code{operator [=]}, since primitive types are immutable.
