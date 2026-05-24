@@ -10,6 +10,8 @@
 
 #include "webglrender.h"
 
+using namespace glm;
+
 namespace camp
 {
 
@@ -19,6 +21,21 @@ void AsyWebGLRender::render(RenderFunctionArgs const& args)
 
   fullWidth = (int)ceil(args.width);
   fullHeight = (int)ceil(args.height);
+
+  Width = fullWidth;
+  Height = fullHeight;
+
+  // Initialize camera state so that getProjViewMat() returns a valid matrix.
+  // This is needed for bbox2::Bounds which uses Transform2T(getProjViewMat(), v).
+  X = Y = cx = cy = 0;
+  rotateMat = dmat4(1.0);
+  Zoom = Zoom0;
+
+  double cz = 0.5 * (Zmin + Zmax);
+  viewMat = translate(translate(dmat4(1.0), dvec3(cx, cy, cz)) * rotateMat, dvec3(0, 0, -cz));
+
+  setProjection();
+  updateModelViewData();
 }
 
 } // namespace camp
