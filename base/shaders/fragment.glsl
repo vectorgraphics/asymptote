@@ -69,18 +69,28 @@ layout(binding=9, std430) buffer indexBuffer
 #define INDEX(pixel) pixel
 #endif
 
-#ifdef COLOR
-layout(location = 3) in vec4 inColor;
-#endif
-
 #ifdef NORMAL
 layout(location = 1) in vec3 viewPosition;
 layout(location = 2) in vec3 norm;
+layout(location = 5) in vec4 diffuse;
+layout(location = 6) in vec3 specular;
+layout(location = 7) in vec3 params; // roughness, metallic, fresnel0
+layout(location = 8) in vec4 emissive;
 #endif
+
+// PBR material parameters (used by BRDF functions)
+vec3 Diffuse;
+vec3 Specular;
+float Metallic;
+float Fresnel0;
+float Roughness2;
+float Roughness;
 
 layout(location = 0) in vec3 position;
 
+#ifdef MATERIAL
 layout(location = 4) flat in int materialIndex;
+#endif
 
 layout(push_constant) uniform PushConstants
 {
@@ -97,12 +107,6 @@ layout(location = 0) out vec4 outColor;
 #endif
 
 vec3 Emissive;
-vec3 Diffuse;
-vec3 Specular;
-float Metallic;
-float Fresnel0;
-float Roughness2;
-float Roughness;
 
 vec3 normal;
 
@@ -236,45 +240,14 @@ void main() {
 
   uint nlights = push.constants[0];
 
-  Material mat;
-
-#ifdef GENERAL
-  mat = materials[abs(materialIndex) - 1];
-
-  if (materialIndex < 0) {
-    if (mat.parameters[3] != 0) {
-      mat.diffuse = inColor;
-#ifdef NOLIGHTS
-      mat.emissive += inColor;
-#endif /*NOLIGHTS*/
-    } else
-      mat.emissive += inColor;
-  }
-
-#else
-
-  mat = materials[materialIndex];
-
-#ifdef COLOR
-  if (mat.parameters[3] != 0) {
-    mat.diffuse = inColor;
-#ifdef NOLIGHTS
-    mat.emissive += inColor;
-#endif /*NOLIGHTS*/
-  } else
-    mat.emissive += inColor;
-#endif /*COLOR*/
-#endif /*GENERAL*/
-
-  outColor = mat.emissive;
-
 #ifdef NORMAL
+  outColor = emissive;
 
-  Diffuse = mat.diffuse.rgb;
-  Specular = mat.specular.rgb;
-  Roughness = 1.f - mat.parameters[0];
-  Metallic = mat.parameters[1];
-  Fresnel0 = mat.parameters[2];
+  Diffuse = diffuse.rgb;
+  Specular = specular.rgb;
+  Roughness = params.x;
+  Metallic = params.y;
+  Fresnel0 = params.z;
   Roughness2 = Roughness * Roughness;
 
 #ifdef ORTHOGRAPHIC
@@ -298,8 +271,11 @@ void main() {
       outColor += vec4(BRDF(viewDirection, light.direction.xyz) * radiance, 0.0);
   }
 
-  outColor = vec4(outColor.rgb, mat.diffuse.a);
+  outColor = vec4(outColor.rgb, diffuse.a);
 #endif /*USE_IBL*/
+#else
+  Material mat = materials[materialIndex];
+  outColor = mat.emissive;
 #endif /*NORMAL*/
 
   // for reasons, the swapchain/FXAA shader expects a "perceptual" color,

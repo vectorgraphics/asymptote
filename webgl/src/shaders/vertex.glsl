@@ -21,11 +21,24 @@ flat out int MaterialIndex;
 #ifdef COLOR
 OUT vec4 Color;
 #endif
+#ifdef NORMAL
+OUT vec4 diffuse;
+OUT vec3 specular;
+OUT float roughness,metallic,fresnel0;
+OUT vec4 emissive;
+
+struct Material {
+  vec4 diffuse,emissive,specular;
+  vec4 parameters;
+};
+
+uniform Material Materials[Nmaterials];
+#endif
 
 #else
 OUT vec4 diffuse;
 OUT vec3 specular;
-OUT float roughness,metallic,fresnel0,lightOn;
+OUT float roughness,metallic,fresnel0;
 OUT vec4 emissive;
 
 struct Material {
@@ -62,6 +75,49 @@ void main(void)
 
 #ifdef WEBGL2
   MaterialIndex=int(materialIndex);
+#ifdef NORMAL
+  Material m;
+#ifdef GENERAL
+  m=Materials[abs(int(materialIndex))-1];
+  emissive=m.emissive;
+  if(materialIndex >= 0.0)
+    diffuse=m.diffuse;
+  else {
+    if (m.parameters[3] != 0.0) {
+      diffuse=color;
+#if nlights == 0
+      emissive += color;
+#endif
+    } else {
+      emissive += color;
+      diffuse = m.diffuse;
+    }
+  }
+#else
+  m=Materials[int(materialIndex)];
+  emissive=m.emissive;
+#ifdef COLOR
+  if (m.parameters[3] != 0.0) {
+    diffuse=color;
+#if nlights == 0
+      emissive += color;
+#endif
+  } else {
+    emissive += color;
+    diffuse = m.diffuse;
+  }
+#else
+  diffuse=m.diffuse;
+#endif // COLOR
+#endif // GENERAL
+  specular=m.specular.rgb;
+  vec4 parameters=m.parameters;
+  roughness=1.0-parameters[0];
+  metallic=parameters[1];
+  fresnel0=parameters[2];
+#else
+  emissive=Materials[int(materialIndex)].emissive;
+#endif // NORMAL
 #ifdef COLOR
   Color=color;
 #endif
@@ -106,7 +162,6 @@ void main(void)
   roughness=1.0-parameters[0];
   metallic=parameters[1];
   fresnel0=parameters[2];
-  lightOn=parameters[3];
 #else
   emissive=Materials[int(materialIndex)].emissive;
 #endif // NORMAL
