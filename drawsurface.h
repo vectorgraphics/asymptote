@@ -752,7 +752,7 @@ public:
                 double opacity,
                 double shininess,
                 double metallic,
-                double fresnel0, Interaction interaction,
+                double fresnel0, bool lightOn, Interaction interaction,
                 bool invisible,
                 const triple& Min, const triple& Max) :
     drawBaseTriangles(vb,center,interaction,isColor,Min,Max),
@@ -761,7 +761,7 @@ public:
     Ci(isColor ? Ni : 0),
     diffuse(diffuse), emissive(emissive), specular(specular),
     opacity(opacity), shininess(shininess),
-    metallic(metallic), fresnel0(fresnel0), invisible(invisible) {
+    metallic(metallic), fresnel0(fresnel0), lightOn(lightOn), invisible(invisible) {
     if(isColor) {
       C=new(UseGC) prc::RGBAColour[nC];
       for(size_t i=0; i < nC; ++i) {

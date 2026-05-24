@@ -238,7 +238,7 @@ bool drawBezierPatch::write(abs3Doutfile *out)
       S.init(prerender,colors ? c : NULL);
       S.render(controls,straight,c);
       drawTriangles dt(S.data,center,colors,diffuse,emissive,specular,opacity,
-                       shininess,metallic,fresnel0,interaction,invisible,
+                       shininess,metallic,fresnel0,lightOn,interaction,invisible,
                        Min,Max);
       dt.write(out);
     } else
@@ -489,7 +489,7 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
       S.init(prerender,colors ? c : NULL);
       S.render(controls,straight,c);
       drawTriangles dt(S.data,center,colors,diffuse,emissive,specular,opacity,
-                       shininess,metallic,fresnel0,interaction,invisible,
+                       shininess,metallic,fresnel0,lightOn,interaction,invisible,
                        Min,Max);
       dt.write(out);
     } else
