@@ -458,11 +458,22 @@ void slice::trans(coenv &e)
 }
 
 
+void sliceListEntry::prettyprint(ostream &out, Int indent)
+{
+  if (isSlice()) {
+    slc->prettyprint(out, indent);
+  } else {
+    prettyindent(out, indent);
+    out << "subscript indexer\n";
+    sub->prettyprint(out, indent + 1);
+  }
+}
+
 void sliceList::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "sliceList", indent, getPos());
-  for (slice *s : slices)
-    s->prettyprint(out, indent+1);
+  for (auto &entry : entries)
+    entry.prettyprint(out, indent+1);
 }
 
 void sliceExp::prettyprint(ostream &out, Int indent)
@@ -472,49 +483,95 @@ void sliceExp::prettyprint(ostream &out, Int indent)
   index->prettyprint(out, indent+1);
 }
 
-types::ty *sliceList::trans(coenv &e, types::array *a)
+types::ty *sliceList::resultType(types::array *a)
 {
-  size_t n = slices.size();
-  assert(n >= 1);
-
-  if (n == 1) {
-    slice *s = slices.front();
-    s->trans(e);
-    e.c.encode(inst::builtin, s->getRight() ? run::arraySliceRead :
-               run::arraySliceReadToEnd);
-    return a;
-  }
-
-  // Multi-dimensional slice.  Verify that the array is deep enough.
-  types::ty *cell = a->celltype;
-  for (size_t i = 1; i < n; ++i) {
-    if (!cell || cell->kind != types::ty_array) {
+  // Walk down the array's celltype chain by one level per indexer.  Track
+  // how many indexers are slices (each slice contributes one array level
+  // to the result; subscripts collapse their level away).
+  types::ty *t = a;
+  size_t sliceCount = 0;
+  for (auto &entry : entries) {
+    if (!t || t->kind != types::ty_array) {
       em.error(getPos());
       em << "too many slice dimensions for array";
       return primError();
     }
-    cell = static_cast<types::array*>(cell)->celltype;
+    if (entry.isSlice()) ++sliceCount;
+    t = static_cast<types::array*>(t)->celltype;
+  }
+  // Wrap the innermost type in (sliceCount) array layers.
+  assert(sliceCount >= 1);  // grammar guarantees at least one slice
+  for (size_t i = 0; i < sliceCount; ++i) {
+    t = new types::array(t);
+  }
+  return t;
+}
+
+types::ty *sliceList::trans(coenv &e, types::array *a)
+{
+  size_t n = entries.size();
+  assert(n >= 1);
+
+  // Compute (and validate) the result type up front.
+  types::ty *resultTy = resultType(a);
+  if (resultTy->kind == types::ty_error)
+    return resultTy;
+
+  // Fast path: a single slice and no subscripts.
+  if (n == 1) {
+    assert(entries.front().isSlice());
+    slice *s = entries.front().getSlice();
+    s->trans(e);
+    e.c.encode(inst::builtin, s->getRight() ? run::arraySliceRead :
+               run::arraySliceReadToEnd);
+    return resultTy;
   }
 
-  // The array is already on the stack (pushed by the caller).
-  // Push (left, right, hasRight) for each slice, then the count n.
-  for (slice *s : slices) {
-    if (s->getLeft())
-      s->getLeft()->transToType(e, types::primInt());
-    else
-      e.c.encode(inst::intpush, (Int)0);
-    if (s->getRight()) {
-      s->getRight()->transToType(e, types::primInt());
-      e.c.encode(inst::constpush, (item)true);
+  // General path: the array is already on the stack (pushed by the caller).
+  // Push (isSlice, left, right, hasRight) for each indexer, then the count n.
+  // For a slice, left/right are the slice bounds and hasRight indicates
+  // whether the right bound was explicitly given.  For a subscript,
+  // isSlice=false, left holds the subscript index, and right/hasRight are
+  // unused (encoded as 0/false).
+  for (auto &entry : entries) {
+    if (entry.isSlice()) {
+      slice *s = entry.getSlice();
+      e.c.encode(inst::constpush, (item)true);  // isSlice
+      if (s->getLeft())
+        s->getLeft()->transToType(e, types::primInt());
+      else
+        e.c.encode(inst::intpush, (Int)0);
+      if (s->getRight()) {
+        s->getRight()->transToType(e, types::primInt());
+        e.c.encode(inst::constpush, (item)true);
+      } else {
+        e.c.encode(inst::intpush, (Int)0);
+        e.c.encode(inst::constpush, (item)false);
+      }
     } else {
-      e.c.encode(inst::intpush, (Int)0);
-      e.c.encode(inst::constpush, (item)false);
+      exp *sub = entry.getSubscript();
+      e.c.encode(inst::constpush, (item)false);  // isSlice
+      sub->transToType(e, types::primInt());     // index value as `left`
+      e.c.encode(inst::intpush, (Int)0);         // unused `right`
+      e.c.encode(inst::constpush, (item)false);  // unused hasRight
     }
   }
   e.c.encode(inst::intpush, (Int)n);
-  e.c.encode(inst::builtin, run::arrayMultiSliceRead);
+  e.c.encode(inst::builtin, run::arrayMultiIndexRead);
 
-  return a;
+  return resultTy;
+}
+
+sliceList *sliceList::evaluate(coenv &e)
+{
+  sliceList *result = new sliceList(getPos());
+  for (auto &entry : entries) {
+    if (entry.isSlice())
+      result->add(entry.getSlice()->evaluate(e));
+    else
+      result->addSubscript(entry.getSubscript()->evaluate(e, types::primInt()));
+  }
+  return result;
 }
 
 types::ty *sliceExp::trans(coenv &e)
@@ -529,7 +586,7 @@ types::ty *sliceExp::trans(coenv &e)
 types::ty *sliceExp::getType(coenv &e)
 {
   array *a = getArrayType(e);
-  return a ? a : primError();
+  return a ? index->resultType(a) : primError();
 }
 
 void sliceExp::transWrite(coenv &e, types::ty *t, exp *value)
@@ -545,7 +602,10 @@ void sliceExp::transWrite(coenv &e, types::ty *t, exp *value)
     return;
   assert(equivalent(a, t));
 
-  slice *s = *index->begin();
+  // By the grammar, a size-1 sliceList contains a single slice (never a
+  // bare subscript).
+  assert(index->begin()->isSlice());
+  slice *s = index->begin()->getSlice();
   s->trans(e);
 
   value->transToType(e, t);

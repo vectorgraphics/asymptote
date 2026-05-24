@@ -60,3 +60,23 @@
   int[][] a = new int[2][2];
   a[:][:] = 0;
 }
+{
+  // intermixed indexers: too many slice/subscript dimensions for the array.
+  int[] a = new int[] {0,1,2};
+  a[:][0];
+}
+{
+  // intermixed indexers: subscript after slice must have type int.
+  int[][] a = new int[2][2];
+  a[:]["bad"];
+}
+{
+  // intermixed indexers: too many dimensions after slice+subscript chain.
+  int[][] a = new int[2][2];
+  a[:][0][:];
+}
+{
+  // cannot assign through a multi-dimensional slice that mixes subscripts.
+  int[][][] a = new int[2][2][2];
+  a[:][0][:] = new int[0][0];
+}

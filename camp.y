@@ -504,6 +504,8 @@ slicelist:
   '[' slice ']'    { $$ = new sliceList($1); $$->add($2); }
 | slicelist '[' slice ']'
                    { $$ = $1; $$->add($3); }
+| slicelist '[' exp ']'
+                   { $$ = $1; $$->addSubscript($3); }
 ;
 
 value:

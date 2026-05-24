@@ -8,3 +8,7 @@ errortests/slices.asy: 46.9: cannot cast 'string' to 'int'
 errortests/slices.asy: 51.4: too many slice dimensions for array
 errortests/slices.asy: 56.4: cannot write to a multi-dimensional slice
 errortests/slices.asy: 61.11: cannot convert 'int' to 'int[][]' in assignment
+errortests/slices.asy: 66.4: too many slice dimensions for array
+errortests/slices.asy: 71.8: cannot cast 'string' to 'int'
+errortests/slices.asy: 76.4: too many slice dimensions for array
+errortests/slices.asy: 81.4: cannot write to a multi-dimensional slice

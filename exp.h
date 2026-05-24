@@ -451,41 +451,63 @@ public:
   }
 };
 
+// An individual indexer in a sliceList.  Holds either a slice (e.g. `[:]`,
+// `[a:b]`) or a subscript expression (e.g. `[i]`).  A slicelist contains at
+// least one slice (the first indexer must be a slice by the grammar);
+// subsequent indexers may be either slices or subscripts and each consumes
+// one further axis of the array being indexed.
+class sliceListEntry {
+  slice *slc;       // non-null iff this entry is a slice
+  exp *sub;         // non-null iff this entry is a subscript
+
+public:
+  sliceListEntry(slice *s) : slc(s), sub(nullptr) {}
+  sliceListEntry(exp *e) : slc(nullptr), sub(e) {}
+
+  bool isSlice() const { return slc != nullptr; }
+  slice *getSlice() const { return slc; }
+  exp *getSubscript() const { return sub; }
+
+  void prettyprint(ostream &out, Int indent);
+};
+
 class sliceList : public absyn {
-  mem::vector<slice *> slices;
+  mem::vector<sliceListEntry> entries;
 
 public:
   sliceList(position pos)
     : absyn(pos) {}
 
   void add(slice *s) {
-    slices.push_back(s);
+    entries.emplace_back(s);
+  }
+
+  void addSubscript(exp *e) {
+    entries.emplace_back(e);
   }
 
   void prettyprint(ostream &out, Int indent);
 
   size_t size() {
-    return slices.size();
+    return entries.size();
   }
 
-  auto begin() { return slices.begin(); }
-  auto end() { return slices.end(); }
+  auto begin() { return entries.begin(); }
+  auto end() { return entries.end(); }
+
+  // Compute the resulting type when the slicelist is applied to an array
+  // of static type a, without emitting any code.  Returns primError() and
+  // reports an error if the slicelist is deeper than the array's static
+  // dimensions.
+  types::ty *resultType(types::array *a);
 
   // Assuming the array of type a has already been pushed on the stack,
-  // translates code that consumes that array and pushes the sliced result.
-  // Reports a compile error and returns primError() if the slice list is
-  // deeper than the array.  Otherwise returns a (the result has the same
-  // static type as the array being sliced).
+  // translates code that consumes that array and pushes the result of the
+  // multi-indexer read.  Reports a compile error and returns primError() if
+  // the slicelist is deeper than the array.
   types::ty *trans(coenv &e, types::array *a);
 
-  sliceList *evaluate(coenv &e) {
-    sliceList *result = new sliceList(getPos());
-    for (slice *s : slices) {
-      result->add(s->evaluate(e));
-    }
-    return result;
-  }
-
+  sliceList *evaluate(coenv &e);
 };
 
 
