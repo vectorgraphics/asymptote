@@ -458,11 +458,63 @@ void slice::trans(coenv &e)
 }
 
 
+void sliceList::prettyprint(ostream &out, Int indent)
+{
+  prettyname(out, "sliceList", indent, getPos());
+  for (slice *s : slices)
+    s->prettyprint(out, indent+1);
+}
+
 void sliceExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "sliceExp", indent, getPos());
   object->prettyprint(out, indent+1);
   index->prettyprint(out, indent+1);
+}
+
+types::ty *sliceList::trans(coenv &e, types::array *a)
+{
+  size_t n = slices.size();
+  assert(n >= 1);
+
+  if (n == 1) {
+    slice *s = slices.front();
+    s->trans(e);
+    e.c.encode(inst::builtin, s->getRight() ? run::arraySliceRead :
+               run::arraySliceReadToEnd);
+    return a;
+  }
+
+  // Multi-dimensional slice.  Verify that the array is deep enough.
+  types::ty *cell = a->celltype;
+  for (size_t i = 1; i < n; ++i) {
+    if (!cell || cell->kind != types::ty_array) {
+      em.error(getPos());
+      em << "too many slice dimensions for array";
+      return primError();
+    }
+    cell = static_cast<types::array*>(cell)->celltype;
+  }
+
+  // The array is already on the stack (pushed by the caller).
+  // Push (left, right, hasRight) for each slice, then the count n.
+  for (slice *s : slices) {
+    if (s->getLeft())
+      s->getLeft()->transToType(e, types::primInt());
+    else
+      e.c.encode(inst::intpush, (Int)0);
+    if (s->getRight()) {
+      s->getRight()->transToType(e, types::primInt());
+      e.c.encode(inst::constpush, (item)true);
+    } else {
+      e.c.encode(inst::intpush, (Int)0);
+      e.c.encode(inst::constpush, (item)false);
+    }
+  }
+  e.c.encode(inst::intpush, (Int)n);
+  e.c.encode(inst::builtin, run::arrayMultiSliceRead);
+
+  return a;
 }
 
 types::ty *sliceExp::trans(coenv &e)
@@ -471,12 +523,7 @@ types::ty *sliceExp::trans(coenv &e)
   if (!a)
     return primError();
 
-  index->trans(e);
-
-  e.c.encode(inst::builtin, index->getRight() ? run::arraySliceRead :
-             run::arraySliceReadToEnd);
-
-  return a;
+  return index->trans(e, a);
 }
 
 types::ty *sliceExp::getType(coenv &e)
@@ -487,16 +534,23 @@ types::ty *sliceExp::getType(coenv &e)
 
 void sliceExp::transWrite(coenv &e, types::ty *t, exp *value)
 {
+  if (index->size() > 1) {
+    em.error(getPos());
+    em << "cannot write to a multi-dimensional slice";
+    return;
+  }
+
   array *a = transArray(e);
   if (!a)
     return;
   assert(equivalent(a, t));
 
-  index->trans(e);
+  slice *s = *index->begin();
+  s->trans(e);
 
   value->transToType(e, t);
 
-  e.c.encode(inst::builtin, index->getRight() ? run::arraySliceWrite :
+  e.c.encode(inst::builtin, s->getRight() ? run::arraySliceWrite :
              run::arraySliceWriteToEnd);
 }
 

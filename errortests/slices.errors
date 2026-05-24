@@ -1,0 +1,10 @@
+errortests/slices.asy: 11.3: expression is not an array
+errortests/slices.asy: 16.5: cannot cast 'string' to 'int'
+errortests/slices.asy: 21.6: cannot cast 'string' to 'int'
+errortests/slices.asy: 26.8: cannot convert 'int' to 'int[]' in assignment
+errortests/slices.asy: 31.8: cannot convert 'string[]' to 'int[]' in assignment
+errortests/slices.asy: 41.4: too many slice dimensions for array
+errortests/slices.asy: 46.9: cannot cast 'string' to 'int'
+errortests/slices.asy: 51.4: too many slice dimensions for array
+errortests/slices.asy: 56.4: cannot write to a multi-dimensional slice
+errortests/slices.asy: 61.11: cannot convert 'int' to 'int[][]' in assignment

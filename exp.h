@@ -471,6 +471,13 @@ public:
   auto begin() { return slices.begin(); }
   auto end() { return slices.end(); }
 
+  // Assuming the array of type a has already been pushed on the stack,
+  // translates code that consumes that array and pushes the sliced result.
+  // Reports a compile error and returns primError() if the slice list is
+  // deeper than the array.  Otherwise returns a (the result has the same
+  // static type as the array being sliced).
+  types::ty *trans(coenv &e, types::array *a);
+
   sliceList *evaluate(coenv &e) {
     sliceList *result = new sliceList(getPos());
     for (slice *s : slices) {
