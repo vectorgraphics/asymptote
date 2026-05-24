@@ -685,10 +685,10 @@ class AsyGLRender;  // Forward declaration
 #ifdef HAVE_VULKAN
 class AsyVkRender;   // Forward declaration (if Vulkan is available)
 #endif
-class AsyWebGLRender;  // Forward declaration for WebGL/v3d output
+class NoRender;  // Forward declaration for WebGL/v3d output
 
 /**
- * Lazily initialise the global renderer (Vulkan, OpenGL, or WebGL) on first use.
+ * Lazily initialise the global renderer (Vulkan, OpenGL, or NoRender) on first use.
  * This defers all graphics-library loading until a shipout3 call actually
  * requires rendering, allowing headless modes like "-l" to run without
  * needing any GPU / display at all.

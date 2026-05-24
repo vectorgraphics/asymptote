@@ -1,5 +1,5 @@
 /*****
- * webglrender.cc
+ * norender.cc
  * Lightweight renderer for WebGL (html) and v3d output.
  * Does not require Vulkan or OpenGL libraries.
  *****/
@@ -8,14 +8,14 @@
 
 #ifdef HAVE_LIBGLM
 
-#include "webglrender.h"
+#include "norender.h"
 
 using namespace glm;
 
 namespace camp
 {
 
-void AsyWebGLRender::render(RenderFunctionArgs const& args)
+void NoRender::render(RenderFunctionArgs const& args)
 {
   copyRenderArgs(args);
 
