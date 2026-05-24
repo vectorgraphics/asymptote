@@ -34,8 +34,8 @@ inline bool operator < (const glm::vec4& m1, const glm::vec4& m2) {
 }
 
 inline glm::vec4 GLparameters(float shininess, float metallic,
-                              float fresnel0, int nolight=0) {
-  return glm::vec4(shininess,metallic,fresnel0,nolight);
+                              float fresnel0, bool lightOn) {
+  return glm::vec4(shininess,metallic,fresnel0,lightOn);
 }
 
 struct Material {
@@ -45,9 +45,9 @@ public:
   Material() {}
 
   Material(const glm::vec4& diffuse, const glm::vec4& emissive,
-           const glm::vec4& specular, double shininess, double metallic, double fresnel0, int nolight=0) :
+           const glm::vec4& specular, double shininess, double metallic, double fresnel0, bool lightOn) :
     diffuse(diffuse), emissive(emissive), specular(specular),
-    parameters(GLparameters(shininess,metallic,fresnel0,nolight)) {}
+    parameters(GLparameters(shininess,metallic,fresnel0,lightOn)) {}
 
   Material(Material const& m):
     diffuse(m.diffuse), emissive(m.emissive),
@@ -92,7 +92,7 @@ public:
         << "shininess=" << m.parameters[0] << "," << newl
         << "metallic=" << m.parameters[1] << "," << newl
         << "fresnel0=" << m.parameters[2] << "," << newl
-        << "nolight=" << m.parameters[3] << newl;
+        << "lightOn=" << m.parameters[3] << newl;
     return out;
   }
 

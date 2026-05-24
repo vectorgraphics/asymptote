@@ -42,7 +42,7 @@ bool drawPath3::write(abs3Doutfile *out)
     drawElement::centerIndex=centerIndex;
   } else drawElement::centerIndex=0;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,true,out);
   out->setKEY(KEY);
 
   if(straight)
@@ -60,7 +60,7 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
 #ifdef HAVE_RENDERER
   if(invisible) return;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,true);
 
   bool offscreen;
   if(billboard) {
@@ -222,7 +222,7 @@ bool drawPixel::write(abs3Doutfile *out)
     return true;
 
   RGBAColour Black(0.0,0.0,0.0,color.A);
-  setcolors(color,color,Black,1.0,0.0,0.04,out);
+  setcolors(color,color,Black,1.0,0.0,0.04,true,out);
   out->setKEY(KEY);
   out->addPixel(v,width);
 #endif
@@ -236,7 +236,7 @@ void drawPixel::render(double size2, const triple& b, const triple& B,
   if(invisible) return;
 
   RGBAColour Black(0.0,0.0,0.0,color.A);
-  setcolors(color,color,Black,1.0,0.0,0.04);
+  setcolors(color,color,Black,1.0,0.0,0.04,true);
 
   if(bbox2(Min,Max).offscreen()) { // Fully offscreen
     R.data.clear();
