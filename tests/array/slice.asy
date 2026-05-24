@@ -436,6 +436,44 @@ StartTest("multislice");
   // -1 mod 3 = 2.
   int[] z = x[:][-1];
   assert(all(z == new int[] {3,6}));
+
+  // Inner slices also use cyclic indexing.
+  int[][] w = x[:][1:4];
+  assert(w.length == 2);
+  assert(w[0].length == 3);
+  assert(w[1].length == 3);
+  assert(all(w[0] == new int[] {2,3,1}));
+  assert(all(w[1] == new int[] {5,6,4}));
+}
+
+{
+  // Cyclic middle array: subscript uses cyclic indexing on the middle axis.
+  int[][][] x = {
+                  {{1,2,3},{4,5,6}},
+                  {{7,8,9},{10,11,12}}
+                };
+  x[0].cyclic = true;
+  x[1].cyclic = true;
+  
+  int[][] y = x[:][-1][:];
+  assert(y.length == 2);
+  assert(y[0].length == 3);
+  assert(y[1].length == 3);
+  assert(all(y[0] == new int[] {4,5,6}));
+  assert(all(y[1] == new int[] {10,11,12}));
+
+  // Check that the middle slice is cyclic even when the outer array is not.
+  x.cyclic = false;
+  int[][][] z = x[:][1:4][:];
+  assert(z.length == 2);
+  assert(z[0].length == 3);
+  assert(z[1].length == 3);
+  assert(all(z[0][0] == new int[] {4,5,6}));
+  assert(all(z[0][1] == new int[] {1,2,3}));
+  assert(all(z[0][2] == new int[] {4,5,6}));
+  assert(all(z[1][0] == new int[] {10,11,12}));
+  assert(all(z[1][1] == new int[] {7,8,9}));
+  assert(all(z[1][2] == new int[] {10,11,12}));
 }
 
 {
