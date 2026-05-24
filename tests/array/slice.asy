@@ -268,8 +268,7 @@ StartTest("multislice");
 // Comprehensive tests for intermixed slice + subscript indexers.
 // Each indexer in a [..]-chain that begins with a slice consumes one axis of
 // the source array.  Slices preserve that axis; subscripts collapse it.
-// Slicing yields copy semantics throughout, unless the chain beginning with
-// the slice has length 1.
+// Slicing yields copy semantics throughout.
 
 {
   // Basic 2D: slice then subscript over each column.
@@ -481,15 +480,6 @@ StartTest("multislice");
   int[][] x = {{1,2,3},{4,5,6}};
   int[] y = (x[:])[1];
   assert(all(y == new int[] {4,5,6}));
-}
-
-{
-  // The original 2D test the user wrote, kept for regression.
-  int[][] x = {{1,2,3},{4,5,6}};
-  int[] y = x[:][1];
-  assert(all(y == new int[] {2,5}));
-  y[0] = 77;
-  assert(x[0][1] == 2);
 }
 
 EndTest();
