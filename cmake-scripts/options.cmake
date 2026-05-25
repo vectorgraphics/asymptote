@@ -80,6 +80,13 @@ option(ENABLE_THREADING "enable threading support" true)
 option(ENABLE_GSL "Enable GSL support" true)
 option(ENABLE_EIGEN3 "Enable eigen3 support" true)
 option(ENABLE_FFTW3 "Enable fftw3 support" true)
+option(
+        ENABLE_VULKAN
+        "Enable Vulkan rendering support. When disabled, neither Vulkan, glslang, glfw3,
+nor VulkanMemoryAllocator are required, and the resulting asy binary has no Vulkan renderer.
+This option is intended primarily for environments where Vulkan/glslang/glfw3 cannot be provided
+(e.g. constrained CI sandboxes); production builds should leave this enabled."
+        true)
 
 if (CMAKE_BUILD_TYPE IN_LIST cmake_release_build_types)
     set(default_vk_validation_opt false)

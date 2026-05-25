@@ -20,12 +20,20 @@ uniform MaterialBuffer {
 flat in int materialIndex;
 out vec4 outColor;
 
-// PBR material parameters
-vec3 Diffuse; // Diffuse for nonmetals, reflectance for metals.
-vec3 Specular; // Specular tint for nonmetals
-float Metallic; // Metallic/Nonmetals parameter
-float Fresnel0; // Fresnel at zero for nonmetals
-float Roughness2; // roughness squared, for smoothing
+#ifdef NORMAL
+// PBR material parameters (received from vertex shader)
+in vec4 diffuse;
+in vec3 specular;
+in float Roughness2_in,Roughness_in,Metallic_in,Fresnel0_in;
+in vec4 emissive;
+#endif
+
+// PBR material parameters (used by BRDF functions)
+vec3 Diffuse;
+vec3 Specular;
+float Metallic;
+float Fresnel0;
+float Roughness2;
 float Roughness;
 
 #ifdef HAVE_SSBO
@@ -198,48 +206,15 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
 #endif
 
-#ifdef COLOR
-in vec4 Color;
-#endif
-
 void main()
 {
-  vec4 diffuse;
-  vec4 emissive;
-
-  Material m;
-#ifdef GENERAL
-  m=Materials[abs(materialIndex)-1];
-  emissive=m.emissive;
-  if(materialIndex >= 0)
-    diffuse=m.diffuse;
-  else {
-    diffuse=Color;
-#if Nlights == 0
-    emissive += Color;
-#endif
-  }
-#else
-  m=Materials[materialIndex];
-  emissive=m.emissive;
-#ifdef COLOR
-  diffuse=Color;
-#if Nlights == 0
-  emissive += Color;
-#endif
-#else
-  diffuse=m.diffuse;
-#endif
-#endif
-
 #if defined(NORMAL) && Nlights > 0
-  Specular=m.specular.rgb;
-  vec4 parameters=m.parameters;
-  Roughness=1.0-parameters[0];
-  Roughness2=Roughness*Roughness;
-  Metallic=parameters[1];
-  Fresnel0=parameters[2];
   Diffuse=diffuse.rgb;
+  Specular=specular.rgb;
+  Roughness=Roughness_in;
+  Roughness2=Roughness2_in;
+  Metallic=Metallic_in;
+  Fresnel0=Fresnel0_in;
 
   // Given a point x and direction \omega,
   // L_i=\int_{\Omega}f(x,\omega_i,\omega) L(x,\omega_i)(\hat{n}\cdot \omega_i)
@@ -269,7 +244,12 @@ void main()
 #endif
   outColor=vec4(color,diffuse.a);
 #else
+#ifdef NORMAL
   outColor=emissive;
+#else
+  Material m=Materials[materialIndex];
+  outColor=m.emissive;
+#endif
 #endif
 
 #ifndef WIDTH

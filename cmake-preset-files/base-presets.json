@@ -98,6 +98,19 @@
       "cacheVariables": {
         "ENABLE_COMPACT_ZERO_BUILD": "true"
       }
+    },
+    {
+      "name": "base/sandbox-features-disabled",
+      "hidden": true,
+      "cacheVariables": {
+        "ENABLE_VULKAN": "false",
+        "ENABLE_FFTW3": "false",
+        "ENABLE_EIGEN3": "false",
+        "ENABLE_LSP": "false",
+        "ENABLE_ASY_CXXTEST": "false",
+        "ENABLE_DOCGEN": "false",
+        "ENABLE_MISCFILES_GEN": "false"
+      }
     }
   ],
   "buildPresets": [

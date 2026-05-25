@@ -659,11 +659,11 @@ void _draw(picture *f, path3 g, triple center=Zero, penarray *p,
 // Bezier patch
 void draw(picture *f, triplearray2 *P, triple center, bool straight,
           penarray *p, real opacity, real shininess, real metallic,
-          real fresnel0, penarray *colors, Int interaction, Int digits,
+          real fresnel0, bool lightOn, penarray *colors, Int interaction, Int digits,
           bool primitive=false)
 {
   f->append(new drawBezierPatch(*P,center,straight,*p,opacity,shininess,
-                                metallic,fresnel0,*colors,
+                                metallic,fresnel0,lightOn,*colors,
                                 (Interaction) intcast(interaction),
                                 digits,primitive));
 }
@@ -672,11 +672,11 @@ void draw(picture *f, triplearray2 *P, triple center, bool straight,
 void drawbeziertriangle(picture *f, triplearray2 *P, triple center,
                         bool straight, penarray *p, real opacity,
                         real shininess, real metallic, real fresnel0,
-                        penarray *colors, Int interaction, Int digits,
+                        bool lightOn, penarray *colors, Int interaction, Int digits,
                         bool primitive=false)
 {
   f->append(new drawBezierTriangle(*P,center,straight,*p,opacity,shininess,
-                                   metallic,fresnel0,*colors,
+                                   metallic,fresnel0,lightOn,*colors,
                                    (Interaction) intcast(interaction),
                                    digits,primitive));
 }
@@ -691,43 +691,44 @@ void draw(picture *f, triplearray *P, realarray *knot,
 // General NURBS surface
 void draw(picture *f, triplearray2 *P, realarray *uknot, realarray *vknot,
           realarray2 *weights=emptyarray, penarray *p, real opacity,
-          real shininess,real metallic, real fresnel0, penarray *colors)
+          real shininess,real metallic, real fresnel0, bool lightOn,
+          penarray *colors)
 {
   f->append(new drawNurbs(*P,uknot,vknot,weights,*p,opacity,shininess,
-                          metallic,fresnel0,*colors));
+                          metallic,fresnel0,lightOn,*colors,""));
 }
 
 // Sphere primitive
 void drawSphere(picture *f, realarray2 *t, bool half=false, penarray *p,
                 real opacity, real shininess, real metallic, real fresnel0,
-                Int type)
+                bool lightOn, Int type)
 {
   f->append(new drawSphere(*t,half,*p,opacity,shininess,metallic,fresnel0,
-                           intcast(type)));
+                           lightOn,intcast(type)));
 }
 
 // Cylinder primitive
 void drawCylinder(picture *f, realarray2 *t, penarray *p, real opacity,
                   real shininess, real metallic, real fresnel0,
-                  bool core=false)
+                  bool lightOn, bool core=false)
 {
-  f->append(new drawCylinder(*t,*p,opacity,shininess,metallic,fresnel0,core));
+  f->append(new drawCylinder(*t,*p,opacity,shininess,metallic,fresnel0,lightOn,core));
 }
 
 // Disk primitive
 void drawDisk(picture *f, realarray2 *t, penarray *p, real opacity,
-              real shininess, real metallic, real fresnel0)
+              real shininess, real metallic, real fresnel0, bool lightOn)
 {
-  f->append(new drawDisk(*t,*p,opacity,shininess,metallic,fresnel0));
+  f->append(new drawDisk(*t,*p,opacity,shininess,metallic,fresnel0,lightOn));
 }
 
 // Tube primitive
 void drawTube(picture *f, triplearray *g, real width, penarray *p,
               real opacity, real shininess, real metallic, real fresnel0,
-              triple min, triple max, bool core=false)
+              bool lightOn, triple min, triple max, bool core=false)
 {
   f->append(new drawTube(*g,width,*p,opacity,shininess,metallic,fresnel0,
-                         min,max,core));
+                         lightOn,min,max,core));
 }
 
 // Draw pixel
@@ -740,11 +741,11 @@ void drawpixel(picture *f, triple v, pen p, real width=1.0)
 void draw(picture *f, triplearray *v, Intarray2 *vi, triple center=Zero,
           triplearray *n, Intarray2 *ni,
           penarray *p, real opacity, real shininess,
-          real metallic, real fresnel0,
+          real metallic, real fresnel0, bool lightOn,
           penarray *c=emptyarray, Intarray2 *ci=emptyarray, Int interaction)
 {
   f->append(new drawTriangles(*v,*vi,center,*n,*ni,*p,opacity,shininess,
-                              metallic,fresnel0,*c,*ci,
+                              metallic,fresnel0,lightOn,*c,*ci,
                               (Interaction) intcast(interaction)));
 }
 

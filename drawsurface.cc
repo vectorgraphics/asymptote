@@ -49,12 +49,12 @@ void storecolor(float *colors, int i, const RGBAColour& p)
 
 void setcolors(const RGBAColour& diffuse, const RGBAColour& emissive,
                const RGBAColour& specular, double shininess,
-               double metallic, double fresnel0, abs3Doutfile *out)
+               double metallic, double fresnel0, bool lightOn, abs3Doutfile *out)
 {
   Material m=Material(glm::vec4(diffuse.R,diffuse.G,diffuse.B,diffuse.A),
                       glm::vec4(emissive.R,emissive.G,emissive.B,emissive.A),
                       glm::vec4(specular.R,specular.G,specular.B,specular.A),
-                      shininess,metallic,fresnel0);
+                      shininess,metallic,fresnel0,lightOn);
 
   auto p=gl->materialMap.find(m);
   if(p != gl->materialMap.end()) materialIndex=p->second;
@@ -216,7 +216,7 @@ bool drawBezierPatch::write(abs3Doutfile *out)
   if(invisible || primitive)
     return true;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,lightOn,out);
   out->setKEY(KEY);
 
   if(billboard) {
@@ -238,7 +238,7 @@ bool drawBezierPatch::write(abs3Doutfile *out)
       S.init(prerender,colors ? c : NULL);
       S.render(controls,straight,c);
       drawTriangles dt(S.data,center,colors,diffuse,emissive,specular,opacity,
-                       shininess,metallic,fresnel0,interaction,invisible,
+                       shininess,metallic,fresnel0,lightOn,interaction,invisible,
                        Min,Max);
       dt.write(out);
     } else
@@ -258,7 +258,7 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
     diffuse.A < 1.0;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,lightOn,NULL);
 
   bool offscreen;
   if(billboard) {
@@ -467,7 +467,7 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
   if(invisible || primitive)
     return true;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,lightOn,out);
   out->setKEY(KEY);
 
   if(billboard) {
@@ -489,7 +489,7 @@ bool drawBezierTriangle::write(abs3Doutfile *out)
       S.init(prerender,colors ? c : NULL);
       S.render(controls,straight,c);
       drawTriangles dt(S.data,center,colors,diffuse,emissive,specular,opacity,
-                       shininess,metallic,fresnel0,interaction,invisible,
+                       shininess,metallic,fresnel0,lightOn,interaction,invisible,
                        Min,Max);
       dt.write(out);
     } else
@@ -509,7 +509,7 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
   transparent=colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
     diffuse.A < 1.0;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,lightOn,NULL);
 
   bool offscreen;
   if(billboard) {
@@ -773,7 +773,7 @@ bool drawSphere::write(abs3Doutfile *out)
 
   drawElement::centerIndex=0;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,lightOn,out);
   out->setKEY(KEY);
 
   triple O,E;
@@ -812,7 +812,7 @@ bool drawCylinder::write(abs3Doutfile *out)
 
   drawElement::centerIndex=0;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,lightOn,out);
   out->setKEY(KEY);
 
   triple E,H,O;
@@ -851,7 +851,7 @@ bool drawDisk::write(abs3Doutfile *out)
 
   drawElement::centerIndex=0;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,lightOn,out);
   out->setKEY(KEY);
 
   triple E,H,O;
@@ -876,7 +876,7 @@ bool drawTube::write(abs3Doutfile *out)
 
   drawElement::centerIndex=0;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,lightOn,out);
   out->setKEY(KEY);
 
   bbox3 b;
@@ -972,7 +972,7 @@ bool drawTriangles::write(abs3Doutfile *out)
     drawElement::centerIndex=centerIndex;
   } else drawElement::centerIndex=0;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,out);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,lightOn,out);
   out->setKEY(KEY);
   out->addTriangles(nP,P,nN,N,nC,C,nI,PI,NI,CI);
 #endif
@@ -987,7 +987,7 @@ void drawTriangles::render(double size2, const triple& b,
   if(invisible) return;
   transparent=diffuse.A < 1.0;
 
-  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0);
+  setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,lightOn,NULL);
 
   bool offscreen;
   if(billboard) {

@@ -19,9 +19,7 @@
 constexpr size_t Nbuffer = 10000;  // Initial size of 2D dynamic buffers
 constexpr size_t nbuffer = 1000;   // Initial size of 0D & 1D dynamic buffers
 
-#ifdef HAVE_VULKAN
-#include "vk.h"
-#endif
+
 
 #ifdef HAVE_LIBGLM
 
@@ -54,28 +52,6 @@ struct MaterialVertex
   glm::vec3 position;
   glm::vec3 normal;
   glm::i32 material;
-
-#ifdef HAVE_VULKAN
-  static vk::VertexInputBindingDescription getBindingDescription()
-  {
-    return vk::VertexInputBindingDescription(0, sizeof(MaterialVertex), vk::VertexInputRate::eVertex);
-  }
-
-  static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions(bool count = false)
-  {
-    std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
-    attributeDescriptions.push_back(
-            vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, position)));
-
-    if (!count) {
-      attributeDescriptions.push_back(
-            vk::VertexInputAttributeDescription(NORMAL_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, normal)));
-      attributeDescriptions.push_back(
-            vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(MaterialVertex, material)));
-    }
-    return attributeDescriptions;
-  }
-#endif
 };
 
 struct ColorVertex
@@ -84,30 +60,6 @@ struct ColorVertex
   glm::vec3 normal;
   glm::i32 material;
   glm::vec4 color;
-
-#ifdef HAVE_VULKAN
-  static vk::VertexInputBindingDescription getBindingDescription()
-  {
-    return vk::VertexInputBindingDescription(0, sizeof(ColorVertex), vk::VertexInputRate::eVertex);
-  }
-
-  static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions(bool count = false)
-  {
-    std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
-    attributeDescriptions.push_back(
-            vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, position)));
-
-    if (!count) {
-      attributeDescriptions.push_back(
-            vk::VertexInputAttributeDescription(NORMAL_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, normal)));
-      attributeDescriptions.push_back(
-            vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(ColorVertex, material)));
-      attributeDescriptions.push_back(
-            vk::VertexInputAttributeDescription(COLOR_LOCATION, 0, vk::Format::eR32G32B32A32Sfloat, offsetof(ColorVertex, color)));
-    }
-    return attributeDescriptions;
-  }
-#endif
 };
 
 struct PointVertex
@@ -115,30 +67,6 @@ struct PointVertex
   glm::vec3 position;
   glm::f32 width;
   glm::i32 material;
-
-#ifdef HAVE_VULKAN
-  static vk::VertexInputBindingDescription getBindingDescription()
-  {
-    return vk::VertexInputBindingDescription(0, sizeof(PointVertex), vk::VertexInputRate::eVertex);
-  }
-
-  static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions(bool count = false)
-  {
-    std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
-    attributeDescriptions.push_back(
-            vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(PointVertex, position)));
-
-    // Always include width for points
-    attributeDescriptions.push_back(
-            vk::VertexInputAttributeDescription(WIDTH_LOCATION, 0, vk::Format::eR32Sfloat, offsetof(PointVertex, width)));
-
-    if (!count) {
-      attributeDescriptions.push_back(
-            vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(PointVertex, material)));
-    }
-    return attributeDescriptions;
-  }
-#endif
 };
 
 struct VertexBuffer {

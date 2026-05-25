@@ -22,6 +22,13 @@
 #include "common.h"
 #include "ThreadSafeQueue.h"
 
+#ifdef HAVE_LIBGLFW
+#ifndef GLFW_INCLUDE_NONE
+#define GLFW_INCLUDE_NONE
+#endif
+#include "glfw.h"
+#endif
+
 // GLM-independent utility functions (available even when HAVE_LIBGLM is undefined)
 // These are used by both OpenGL and Vulkan renderers but don't depend on GLM.
 namespace camp {
@@ -194,7 +201,8 @@ public:
 enum class RendererMessage
 {
   exportRender,   // Request to export/render a frame
-  updateRenderer  // Request to update renderer state
+  updateRenderer, // Request to update renderer state
+  createRenderer  // Request the render thread to load and create the renderer
 };
 
 #ifdef HAVE_PTHREAD
@@ -229,6 +237,10 @@ public:
 
   /// Message queue for inter-thread communication (asymain -> render thread)
   ThreadSafeQueue<RendererMessage> messageQueue;
+
+  /// Signaling for renderer creation: asymain waits for render thread to finish creating
+  pthread_cond_t createdSignal = PTHREAD_COND_INITIALIZER;
+  pthread_mutex_t createdLock = PTHREAD_MUTEX_INITIALIZER;
 
   /**
    * Signal a condition variable and release its mutex.
@@ -294,7 +306,10 @@ public:
     int oldpid=0;
   };
 
-  /** Pure virtual function that derived classes must implement */
+  /** Entry point for rendering. Called by the asymain thread to process
+   * a render request. Derived classes must initialize their backend, copy
+   * arguments via copyRenderArgs(), and either enter mainLoop() for interactive
+   * viewing or produce output for export. */
   virtual void render(RenderFunctionArgs const& args) = 0;
 
   /** Copy common arguments from RenderFunctionArgs to member variables.
@@ -360,10 +375,13 @@ public:
   int Oldpid = 0;
 
   // GLFW window pointer (shared between Vulkan and OpenGL renderers)
-  // Using void* to avoid requiring GLFW header in all files that include this
+#ifdef HAVE_LIBGLFW
+  GLFWwindow* glfwWindow = nullptr;
+#else
   void* glfwWindow = nullptr;
+#endif
 
-  /** Returns the GLFW window pointer as void*. Cast to appropriate type by caller. */
+  /** Returns the GLFW window pointer. Cast to GLFWwindow* when HAVE_LIBGLFW is defined. */
   void* getGLFWWindow() const { return glfwWindow; }
 
   // Timer and statistics
@@ -407,7 +425,6 @@ public:
 
   // Window visibility
   bool hideWindow=false;
-
   // Spin state
   std::function<void()> currentIdleFunc = nullptr;
   bool Xspin = false;
@@ -437,6 +454,13 @@ public:
   // Normal matrices for shader transformations
   glm::dmat3 normMat;  // Double precision normal matrix for CPU calculations
 
+  /// Accessor for combined projection*view matrix (member version of getProjViewMat())
+  const glm::dmat4& getProjViewMat() const { return projViewMat; }
+  /// Accessor for view matrix (member version of getViewMat())
+  const glm::dmat4& getViewMat() const     { return viewMat; }
+  /// Accessor for normal matrix (member version of getNormMat())
+  const glm::dmat3& getNormMat() const     { return normMat; }
+
 #ifdef HAVE_PTHREAD
   // Thread synchronization manager (shared between renderers)
   ThreadManager threadMgr;
@@ -454,22 +478,39 @@ public:
   string Prefix;
 
 protected:
-  // Virtual functions for derived classes to override (not pure - have default implementations)
+  /** Set viewport dimensions and content offset. Called during initialization
+   * and after resize. Derived classes may override to adjust backend-specific
+   * state (e.g., Vulkan swapchain extents). */
   virtual void setDimensions(int Width, int Height, double X, double Y);
+
+  /** Update model-view uniform data for the current camera state.
+   * Called before drawing when matrices have changed. */
   virtual void updateModelViewData();
 
 public:
+  /** Compute and set the projection matrix from current orthographic/perspective
+   * state, aspect ratio, and zoom. Derived classes may override to upload the
+   * resulting matrix to a GPU uniform buffer. */
   virtual void setProjection();
 
-  // Update projection and view matrices
+  /** Update all transformation matrices (view, projection, combined proj*view).
+   * Called each frame before drawing. Vulkan overrides to also set a dirty flag
+   * for uniform buffer upload. */
   virtual void update();
 
-  // Projection matrix functions
-  void updateProjection();
+  /** Set the projection matrix to a perspective frustum.
+   * Derived classes may override for backend-specific handling. */
   virtual void frustum(double left, double right, double bottom,
                        double top, double nearVal, double farVal);
+
+  /** Set the projection matrix to an orthographic frustum.
+   * Derived classes may override for backend-specific handling. */
   virtual void ortho(double left, double right, double bottom,
                      double top, double nearVal, double farVal);
+
+  /** Recompute the projection matrix and notify derived classes to upload.
+   * Called after setProjection() or when viewport changes. */
+  void updateProjection();
 
   // Clear functions (public for external access)
   void clearCenters();
@@ -493,17 +534,32 @@ public:
   /// while preserving the content Aspect ratio.
   void fitAspect(int& w, int& h);
   void windowposition(int& x, int& y, int width=-1, int height=-1);
+  /** Set the window size and optionally reposition. Derived classes may override
+   * to update backend-specific resources (e.g., Vulkan swapchain recreation). */
   virtual void setsize(int w, int h, bool reposition=true);
+
+  /** Toggle fullscreen mode. Derived classes may override for platform-specific
+   * window management. */
   virtual void fullscreen(bool reposition=true);
+
+  /** Handle framebuffer reshape. Called when the window is resized.
+   * Derived classes may override to update viewport or swapchain state. */
   virtual void reshape(int width, int height);
   void setosize();
+  /** Fit the window to screen dimensions, preserving aspect ratio.
+   * Derived classes may override for backend-specific behavior. */
   virtual void fitscreen(bool reposition=true);
+
+  /** Toggle fit-screen mode on/off. */
   virtual void toggleFitScreen();
 
   void initDisplay(int contentW, int contentH);
+  void setOpaque();
+  /** Reset the camera to its default home position. */
   virtual void home();
 
-  // Mode cycling
+  /** Cycle through draw modes (normal, outline, wireframe).
+   * Derived classes may override to rebuild pipelines or shaders. */
   virtual void cycleMode();
 
   // Spin controls
@@ -523,45 +579,83 @@ public:
   void idle();
 
   // Window management (library-agnostic parts)
+  /** Expand the window by increasing its dimensions. */
   virtual void expand();
+
+  /** Shrink the window by decreasing its dimensions. */
   virtual void shrink();
 
+  /** Handle an update request from the asymain thread.
+   * Derived classes may override to refresh backend state (e.g., rebuild shaders). */
   virtual void updateHandler(int=0);
+
+  /** Handle an export request. The base class sets readyAfterExport;
+   * derived classes override to perform backend-specific export setup. */
   virtual void exportHandler(int);
+
+  /** Export the current frame to an image or file. Pure virtual -- each
+   * backend must implement its own pixel readback and encoding. */
   virtual void Export(int imageIndex=0) = 0;
 
   // Message processing for inter-thread communication
   void processMessages(RendererMessage const& msg);
 
-  // Display/render the current frame (library-agnostic implementation in base class)
+  /** Main display loop body. Calls prepareScene(), showWindow(), drawFrame(),
+   * and swapBuffers() in sequence, with FPS tracking and message processing.
+   * Derived classes typically do not override this; instead they override the
+   * individual virtual hooks called by this method. */
   virtual void display();
 
-  // Virtual hooks for library-specific operations (override in derived classes)
+  /** Swap front and back buffers. Called by display() after drawFrame().
+   * For Vulkan, presentation is handled inside drawFrame() via presentKHR,
+   * so the default implementation is a no-op. OpenGL overrides to call
+   * glfwSwapBuffers. */
   virtual void swapBuffers();
+
+  /** Show the render window if it is hidden. Called by display() before
+   * drawFrame(). Derived classes implement using GLFW show/hide calls. */
   virtual void showWindow();
+
+  /** Render a single frame. Called by display() after prepareScene() and
+   * showWindow(). The viewport is already set, scene data (materials,
+   * triangles, etc.) is populated, and Width/Height reflect the current
+   * framebuffer dimensions. Pure virtual -- each backend must implement. */
   virtual void drawFrame() = 0;
 
+  /** Request termination of the render loop. */
   virtual void quit();
 
-  // Window close handler (library-agnostic)
+  /** Handle window close request. Called by the GLFW close callback.
+   * Derived classes may override for backend-specific cleanup. */
   virtual void onClose();
 
-  // Finalize graphics library resources (virtual for renderer-specific cleanup)
+  /** Release all graphics library resources (buffers, shaders, pipelines).
+   * Called during shutdown. Derived classes must implement backend-specific
+   * resource destruction. */
   virtual void finalizeProcess();
 
-  // Key handling (library-agnostic)
+  /** Handle key press/release events. Called by GLFW keyboard callback.
+   * The base class implements shared key bindings (quit, fullscreen, mode
+   * cycling, spin). Derived classes may override for additional handling. */
   virtual void onKey(int key, int scancode, int action, int mods);
 
-  // Scroll wheel handling (library-agnostic)
+  /** Handle scroll wheel events. Called by GLFW scroll callback.
+   * The base class maps scroll to zoom. Derived classes may override. */
   virtual void onScroll(double xoffset, double yoffset);
 
-  // Mouse button handler (library-agnostic; uses getGLFWWindow() for glfwGetCursorPos)
+  /** Handle mouse button press/release. Called by GLFW mouse button callback.
+   * The base class tracks click position and action for pan/rotate.
+   * Derived classes may override (e.g., Vulkan adds focus loss handling). */
   virtual void onMouseButton(int button, int action, int mods);
 
-  // Cursor position handler (library-agnostic; uses member variables xprev/yprev)
+  /** Handle cursor position changes. Called by GLFW cursor pos callback.
+   * The base class computes delta from previous position for pan/rotate.
+   * Derived classes may override for additional tracking. */
   virtual void onCursorPos(double xpos, double ypos);
 
-  // Framebuffer resize handler (library-agnostic)
+  /** Handle framebuffer resize. Called by GLFW framebuffer resize callback.
+   * Derived classes typically override to update viewport and recreate
+   * backend-specific resources (e.g., Vulkan swapchain/images). */
   virtual void onFramebufferResize(int width, int height);
 
   // Main event loop (shared between OpenGL and Vulkan renderers)
@@ -591,10 +685,10 @@ class AsyGLRender;  // Forward declaration
 #ifdef HAVE_VULKAN
 class AsyVkRender;   // Forward declaration (if Vulkan is available)
 #endif
-class AsyWebGLRender;  // Forward declaration for WebGL/v3d output
+class NoRender;  // Forward declaration for WebGL/v3d output
 
 /**
- * Lazily initialise the global renderer (Vulkan, OpenGL, or WebGL) on first use.
+ * Lazily initialise the global renderer (Vulkan, OpenGL, or NoRender) on first use.
  * This defers all graphics-library loading until a shipout3 call actually
  * requires rendering, allowing headless modes like "-l" to run without
  * needing any GPU / display at all.

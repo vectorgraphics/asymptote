@@ -3,6 +3,10 @@
 #include <thread>
 #include <functional>
 
+#ifndef _WIN32
+#include <dlfcn.h>
+#endif
+
 #include "vkrender.h"
 #include "glfw.h"
 #include "shaderResources.h"
@@ -31,12 +35,15 @@
 #include <vulkan/vulkan_win32.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
+#elif defined(__APPLE__)
+#include <mach-o/dyld.h>
+#include <sys/stat.h>
 #endif
 
 using settings::getSetting;
 using settings::Setting;
 
-constexpr size_t timeout=10000000000;
+constexpr size_t timeout=1000000000;
 
 void exitHandler(int);
 
@@ -58,6 +65,91 @@ using namespace glm;
 
 namespace camp
 {
+
+// Vertex input description helpers (extracted from render.h vertex structs
+// to keep render.h free of Vulkan API dependencies)
+inline vk::VertexInputBindingDescription materialVertexBinding()
+{
+  return vk::VertexInputBindingDescription(0, sizeof(MaterialVertex), vk::VertexInputRate::eVertex);
+}
+
+inline std::vector<vk::VertexInputAttributeDescription> materialVertexAttributes(bool count = false)
+{
+  std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
+  attributeDescriptions.push_back(
+      vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, position)));
+
+  if (!count) {
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(NORMAL_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, normal)));
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(MaterialVertex, material)));
+  }
+  return attributeDescriptions;
+}
+
+inline vk::VertexInputBindingDescription colorVertexBinding()
+{
+  return vk::VertexInputBindingDescription(0, sizeof(ColorVertex), vk::VertexInputRate::eVertex);
+}
+
+inline std::vector<vk::VertexInputAttributeDescription> colorVertexAttributes(bool count = false)
+{
+  std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
+  attributeDescriptions.push_back(
+      vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, position)));
+
+  if (!count) {
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(NORMAL_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, normal)));
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(ColorVertex, material)));
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(COLOR_LOCATION, 0, vk::Format::eR32G32B32A32Sfloat, offsetof(ColorVertex, color)));
+  }
+  return attributeDescriptions;
+}
+
+inline vk::VertexInputBindingDescription pointVertexBinding()
+{
+  return vk::VertexInputBindingDescription(0, sizeof(PointVertex), vk::VertexInputRate::eVertex);
+}
+
+inline std::vector<vk::VertexInputAttributeDescription> pointVertexAttributes(bool count = false)
+{
+  std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
+  attributeDescriptions.push_back(
+      vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(PointVertex, position)));
+
+  // Always include width for points
+  attributeDescriptions.push_back(
+      vk::VertexInputAttributeDescription(WIDTH_LOCATION, 0, vk::Format::eR32Sfloat, offsetof(PointVertex, width)));
+
+  if (!count) {
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(PointVertex, material)));
+  }
+  return attributeDescriptions;
+}
+
+// Vertex input trait specializations: map a vertex struct type to its
+// Vulkan binding/attribute description free functions.
+template<typename V> struct VertexInputTraits;
+
+template<> struct VertexInputTraits<MaterialVertex> {
+  static vk::VertexInputBindingDescription binding() { return materialVertexBinding(); }
+  static std::vector<vk::VertexInputAttributeDescription> attributes(bool count) { return materialVertexAttributes(count); }
+};
+
+template<> struct VertexInputTraits<ColorVertex> {
+  static vk::VertexInputBindingDescription binding() { return colorVertexBinding(); }
+  static std::vector<vk::VertexInputAttributeDescription> attributes(bool count) { return colorVertexAttributes(count); }
+};
+
+template<> struct VertexInputTraits<PointVertex> {
+  static vk::VertexInputBindingDescription binding() { return pointVertexBinding(); }
+  static std::vector<vk::VertexInputAttributeDescription> attributes(bool count) { return pointVertexAttributes(count); }
+};
 
 std::vector<char> readFile(const std::string& filename)
 {
@@ -171,7 +263,7 @@ void AsyVkRender::updateModelViewData()
 
 void AsyVkRender::initWindow()
 {
-  glfwWindow = static_cast<void*>(glfwCreateRenderWindow(Width, Height, title, this));
+  glfwWindow = glfwCreateRenderWindow(Width, Height, title, this);
 }
 
 // RenderCallbacks interface implementation
@@ -220,7 +312,7 @@ void AsyVkRender::updateHandler(int) {
   // Vulkan-specific additions
   if(device)
     device->waitIdle();
-  recreatePipeline=true;
+  framebufferResized=true;
 }
 
 AsyVkRender::~AsyVkRender()
@@ -323,6 +415,27 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
 void AsyVkRender::initVulkan()
 {
 #ifdef __APPLE__
+  // Point the Vulkan loader to the bundled MoltenVK ICD if available
+  {
+    char exePath[PATH_MAX];
+    uint32_t size = sizeof(exePath);
+    if (_NSGetExecutablePath(exePath, &size) == 0) {
+      char realPath[PATH_MAX];
+      if (realpath(exePath, realPath)) {
+        std::string exeDir(realPath);
+        size_t lastSlash = exeDir.rfind('/');
+        if (lastSlash != std::string::npos)
+          exeDir = exeDir.substr(0, lastSlash);
+        std::string icdPath = exeDir + "/lib/MoltenVK_icd.json";
+        struct stat st;
+        if (stat(icdPath.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
+          setenv("VK_ICD_FILENAMES", icdPath.c_str(), 0);
+          setenv("VK_DRIVER_FILES", icdPath.c_str(), 0);
+        }
+      }
+    }
+  }
+
   setenv("MVK_CONFIG_LOG_LEVEL","1",false);
 
   // Use smallest memory footprint during command buffer encoding
@@ -637,6 +750,18 @@ void AsyVkRender::createInstance()
     VEC_VIEW(validationLayers),
     VEC_VIEW(all_extensions)
   );
+#ifdef VALIDATION
+#ifndef _WIN32
+  // Preload the validation layer into global scope so its function pointer
+  // chain works correctly even though libasyvulkan.so was loaded with RTLD_LOCAL.
+  void *layerHandle = dlopen("libVkLayer_khronos_validation.so", RTLD_GLOBAL | RTLD_NOW);
+  if (!layerHandle) {
+    std::cerr << "Warning: failed to preload validation layer: "
+              << dlerror() << std::endl;
+  }
+#endif
+#endif
+
   instance = vk::createInstanceUnique(instanceCI);
   VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
 }
@@ -1479,7 +1604,6 @@ void AsyVkRender::createSyncObjects()
     frameObjects[i].sumFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
     frameObjects[i].startTimedSumsEvent = device->createEventUnique(vk::EventCreateInfo());
     frameObjects[i].timedSumsFinishedEvent = device->createEventUnique(vk::EventCreateInfo());
-    frameObjects[i].renderFinishedSemaphore = device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
   }
 }
 
@@ -3150,8 +3274,8 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
     vertexInputCI = vk::PipelineVertexInputStateCreateInfo();
   } else {
     // For all other shaders, get the binding description and attribute descriptions
-    bindingDescription = V::getBindingDescription();
-    attributeDescriptions = V::getAttributeDescriptions(type == PIPELINE_COUNT);
+    bindingDescription = VertexInputTraits<V>::binding();
+    attributeDescriptions = VertexInputTraits<V>::attributes(type == PIPELINE_COUNT);
 
     vertexInputCI = vk::PipelineVertexInputStateCreateInfo(
       vk::PipelineVertexInputStateCreateFlags(),
@@ -4243,6 +4367,13 @@ void AsyVkRender::drawFrame()
     initializeSwapChainIfNeeded();
   }
 
+  // Detect srgb setting changes and recreate pipelines accordingly
+  bool newSrgb = settings::getSetting<bool>("srgb");
+  if (newSrgb != srgb) {
+    srgb = newSrgb;
+    recreatePipeline = true;
+  }
+
   if (recreatePipeline)
   {
     device->waitIdle();
@@ -4343,8 +4474,10 @@ void AsyVkRender::drawFrame()
   std::vector<vk::Semaphore> signalSems;
 
   if (View) {
-      signalSemInfos.push_back({*frameObject.renderFinishedSemaphore, 0, vk::PipelineStageFlagBits2::eAllCommands});
-      signalSems.push_back(*frameObject.renderFinishedSemaphore);
+      if (imageIndex >= renderFinishedSemaphore.size())
+          renderFinishedSemaphore.push_back(device->createSemaphoreUnique(vk::SemaphoreCreateInfo()));
+      signalSemInfos.push_back({*renderFinishedSemaphore[imageIndex], 0, vk::PipelineStageFlagBits2::eAllCommands});
+      signalSems.push_back(*renderFinishedSemaphore[imageIndex]);
   }
 
   vk::SubmitInfo submitInfo;
@@ -4395,7 +4528,7 @@ void AsyVkRender::drawFrame()
   if (View) {
     // The presentation engine only needs to wait on the binary semaphore.
     std::vector<vk::Semaphore> presentWaitSemaphores;
-    presentWaitSemaphores.push_back(*frameObject.renderFinishedSemaphore);
+    presentWaitSemaphores.push_back(*renderFinishedSemaphore[imageIndex]);
 
     try {
       auto presentInfo = vk::PresentInfoKHR(VEC_VIEW(presentWaitSemaphores), 1, &*swapChain, &imageIndex);
@@ -4452,7 +4585,7 @@ void AsyVkRender::swapBuffers()
 
 GLFWwindow* AsyVkRender::getRenderWindow() const
 {
-  return static_cast<GLFWwindow*>(glfwWindow);
+  return glfwWindow;
 }
 
 void AsyVkRender::exportHandler(int) {

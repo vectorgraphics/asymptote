@@ -151,7 +151,7 @@ void v3dfile::addMaterial(Material const& mat)
   addvec4(mat.specular);
   glm::vec4 vec=mat.parameters;
   getXDRFile() << static_cast<float>(vec.x) << static_cast<float>(vec.y)
-               << static_cast<float>(vec.z);
+               << static_cast<float>(vec.z) << static_cast<float>(vec.w);
 }
 
 void v3dfile::addCenterIndexMat()

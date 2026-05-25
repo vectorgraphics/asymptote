@@ -14,6 +14,42 @@ AH_TOP([#pragma once])
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
+MACOS_UNIVERSAL=no
+MACOS_BUNDLING=no
+MACOS_MIN_VERSION=
+IS_DARWIN=no
+case "$host_os" in
+    darwin*)
+      IS_DARWIN=yes
+      MACOS_MIN_VERSION=12.0
+    ;;
+esac
+
+AC_ARG_ENABLE(macos-universal,
+[AS_HELP_STRING(--enable-macos-universal[[[=no]]],build universal (x86_64+arm64) binaries on macOS)],
+[ if test "x$IS_DARWIN" = "xyes"; then
+      if test "x$enableval" = "xno" ; then
+         MACOS_UNIVERSAL=no
+      else
+         MACOS_UNIVERSAL=yes
+      fi
+   fi
+])
+
+AC_ARG_WITH(macos-min-version,
+[AS_HELP_STRING(--with-macos-min-version=VERSION,minimum macOS deployment target (default: 12.0 on macOS))],
+[ if test "x$IS_DARWIN" = "xyes"; then
+      MACOS_MIN_VERSION=$withval
+   fi
+])
+
+AC_ARG_ENABLE(macos-bundling,
+[AS_HELP_STRING(--enable-macos-bundling[[[=no]]],bundle macOS-specific libraries (e.g., Vulkan) for distribution)],
+[ if test "x$IS_DARWIN" = "xyes"; then
+      MACOS_BUNDLING=$enableval
+   fi
+])
+
 test "$prefix" = NONE && prefix=/usr/local
 Datadir=$datadir
 test "$Datadir" = '${datarootdir}' && Datadir=$datarootdir
@@ -27,6 +63,27 @@ cxxstd="c++17"
 CXXFLAGS=$CXXFLAGS" -std=$cxxstd"
 
 test "$CFLAGS" || CFLAGS="-g -O3"
+
+# macOS portability flags are applied only during the actual build, NOT during
+# configure feature-detection tests. Injecting -arch into CFLAGS at configure
+# time would cause AC_CHECK_LIB tests to require universal libraries, which
+# breaks detection of arm64-only or x86_64-only SDK installations.
+#
+# Instead we emit MACOS_ARCH_FLAGS and MACOS_DEPLOYMENT_FLAGS as standalone
+# Makefile variables that are appended to OPTS and the linker invocations.
+MACOS_ARCH_FLAGS=
+MACOS_DEPLOYMENT_FLAGS=
+if test "x$IS_DARWIN" = "xyes"; then
+   if test "x$MACOS_UNIVERSAL" = "xyes"; then
+      MACOS_ARCH_FLAGS="-arch x86_64 -arch arm64"
+      AC_MSG_NOTICE([macOS universal build enabled (x86_64 and arm64)])
+   fi
+
+   if test "x$MACOS_MIN_VERSION" != "x"; then
+      MACOS_DEPLOYMENT_FLAGS="-mmacosx-version-min=$MACOS_MIN_VERSION"
+      AC_MSG_NOTICE([macOS deployment target set to $MACOS_MIN_VERSION])
+   fi
+fi
 
 AC_C_BIGENDIAN(
    [AC_DEFINE(WORDS_BIGENDIAN,1,[Build is big endian])],
@@ -95,13 +152,39 @@ alternate documentation installation directory)],
                      ])
 AC_SUBST(docdir)
 
+licensedir=$docdir/licenses
+
+AC_ARG_WITH(licensedir,
+        [AS_HELP_STRING(--with-licensedir=PATH,
+alternate license files installation directory)],
+                     [if test "x$withval" != "x" ; then
+                        licensedir=$withval
+                      fi
+                     ])
+AC_SUBST(licensedir)
+
 sysdir=$Datadir/asymptote
 
+DEFS=""
+OPTIONS="-D_FILE_OFFSET_BITS=64 "
+INCL=""
+LIBS=""
+CPPFLAGS=$CPPFLAGS" -I. "
+
 AC_ARG_ENABLE(texlive-build,
-[AS_HELP_STRING(--enable-texlive-build,
+[AS_HELP_STRING(--enable-texlive-build[[[=no]]],
 automatically determine sysdir from kpsewhich)],
 [ if test "x$enableval" = "xyes" ; then
     sysdir=""
+  fi
+])
+
+AC_ARG_ENABLE(relocatable,
+[AS_HELP_STRING(--enable-relocatable[[[=no]]],
+leave ASYMPTOTE_SYSDIR empty so the binary finds its data directory
+relative to its own location at runtime (for portable/staged macOS installs))],
+[ if test "x$enableval" = "xyes" ; then
+    OPTIONS=$OPTIONS"-DIS_RELOCATABLE "
   fi
 ])
 
@@ -109,6 +192,8 @@ AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$sysdir",
         [System directory for global .asy files])
 AC_DEFINE_UNQUOTED(ASYMPTOTE_DOCDIR,"$docdir",
         [Directory for documentation])
+AC_DEFINE_UNQUOTED(ASYMPTOTE_LICENSEDIR,"$licensedir",
+        [Directory for license files])
 
 AC_CONFIG_SRCDIR([absyn.cc])
 
@@ -150,12 +235,6 @@ Define to 1 if you have the `$1` library (-l$1).
 ])
 
 ASYGLVERSION=1.03
-
-DEFS=""
-OPTIONS="-D_FILE_OFFSET_BITS=64 "
-INCL=""
-LIBS=""
-CPPFLAGS=$CPPFLAGS" -I. "
 
 # Checks for libraries.
 #AC_SEARCH_LIBS([lgamma],[m c],,
@@ -330,7 +409,7 @@ else
 fi
 
 AC_ARG_ENABLE(gc-debug,
-[AS_HELP_STRING(--enable-gc-debug,enable (slow) garbage collector debugging)],
+[AS_HELP_STRING(--enable-gc-debug[[[=no]]],enable (slow) garbage collector debugging)],
 [ if test "x$enable_gc" != "xno" ; then
     if test "x$enableval" = "xyes" ; then
       AC_DEFINE(GC_DEBUG,1,[GC Debug is enabled])
@@ -341,7 +420,7 @@ AC_ARG_ENABLE(gc-debug,
 ])
 
 AC_ARG_ENABLE(gc-full-debug,
-[AS_HELP_STRING(--enable-gc-full-debug,enable (very slow) garbage collector backtrace)],
+[AS_HELP_STRING(--enable-gc-full-debug[[[=no]]],enable (very slow) garbage collector backtrace)],
 [ if test "x$enable_gc" != "xno" ; then
     if test "x$enableval" = "xyes" ; then
       AC_DEFINE(GC_DEBUG,1,[GC Debug is enabled])
@@ -489,6 +568,23 @@ case "$OSTYPE" in
 esac
 fi
 
+# Check if Vulkan libraries should be bundled (macOS only).
+# Bundling requires --enable-macos-bundling AND Vulkan libraries to be present.
+# Use $host_os (from AC_CANONICAL_HOST) rather than $OSTYPE, which is a
+# bash-ism that may be empty when configure runs as /bin/sh.
+# Check ASY_VULKAN_LIBS rather than $LIBS: CHECK_LIB_STATIC appends -lvulkan
+# to $LDFLAGS, not $LIBS, so $LIBS never contains -lvulkan.
+BUNDLE_VULKAN=no
+case "$host_os" in
+    darwin*)
+        if test "x$MACOS_BUNDLING" = "xyes" -a "x$ASY_VULKAN_LIBS" != "x"; then
+            BUNDLE_VULKAN=yes
+            AC_MSG_NOTICE([Will bundle Vulkan libraries for macOS distribution])
+        fi
+    ;;
+esac
+AC_SUBST(BUNDLE_VULKAN)
+
 # ------------------- OpenGL (fallback) -----------------
 
 AC_ARG_ENABLE(gl,
@@ -588,6 +684,10 @@ AC_SUBST(VMA_IMPL_FILES)
 AC_SUBST(ASY_VULKAN_LIBS)
 AC_SUBST(ASY_GL_LIBS)
 AC_SUBST(SHIM_LDFLAGS)
+AC_SUBST(MACOS_UNIVERSAL)
+AC_SUBST(MACOS_MIN_VERSION)
+AC_SUBST(MACOS_ARCH_FLAGS)
+AC_SUBST(MACOS_DEPLOYMENT_FLAGS)
 
 # Determine which shim shared libraries (loaded via dlopen at runtime) to
 # build and link the asy binary against. Empty when both renderers are
