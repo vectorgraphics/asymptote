@@ -21,6 +21,12 @@ struct interrupted : std::exception {};   // Exception to interrupt execution.
 struct quit : std::exception {};          // Exception to quit current operation.
 struct EofException : std::exception {};           // Exception to exit interactive mode.
 
+// Strips the directory prefix and the '.asy' suffix from a filename,
+// returning just the module name. Assumes '/' as the directory separator.
+namespace errormsg {
+string moduleNameFromPath(const string& filename);
+} // namespace errormsg
+
 // Registry that interns filenames so that positions can reference them by
 // a small (16-bit) index instead of carrying a fileinfo pointer. This keeps
 // the position struct compact (one 64-bit word) which improves cache
@@ -61,18 +67,7 @@ public:
   // The filename without the directory and without the '.asy' suffix.
   // Note that this assumes name are separated by a forward slash.
   string moduleName() const {
-    size_t start = filename.rfind('/');
-    if (start == filename.npos)
-      start = 0;
-    else
-      // Step over slash.
-      ++start;
-
-    size_t end = filename.rfind(".asy");
-    if (end != filename.size() - 4)
-      end = filename.size();
-
-    return filename.substr(start, end-start);
+    return errormsg::moduleNameFromPath(filename);
   }
 
   // Specifies a newline symbol at the character position given.
@@ -177,17 +172,8 @@ public:
   void printTerse(ostream& out) const
   {
     if (fileIndex_) {
-      // Compute the module name from the interned filename.
       const string& fname = positionFileRegistry::getFilename(fileIndex_);
-      size_t start = fname.rfind('/');
-      if (start == fname.npos)
-        start = 0;
-      else
-        ++start;
-      size_t end = fname.rfind(".asy");
-      if (end != fname.size() - 4)
-        end = fname.size();
-      out << fname.substr(start, end-start) << ":" << line_;
+      out << errormsg::moduleNameFromPath(fname) << ":" << line_;
     }
   }
 };

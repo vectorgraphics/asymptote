@@ -60,6 +60,23 @@ const string& positionFileRegistry::getFilename(uint16_t index)
   return names[index];
 }
 
+namespace errormsg {
+string moduleNameFromPath(const string& filename) {
+  size_t start = filename.rfind('/');
+  if (start == filename.npos)
+    start = 0;
+  else
+    // Step over slash.
+    ++start;
+
+  size_t end = filename.rfind(".asy");
+  if (end != filename.size() - 4)
+    end = filename.size();
+
+  return filename.substr(start, end-start);
+}
+} // namespace errormsg
+
 using camp::newl;
 
 ostream& operator<< (ostream& out, const position& pos)
