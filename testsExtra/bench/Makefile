@@ -21,7 +21,7 @@
 BENCH               ?= map.asy
 BENCH_OPTS          ?= maxOperations=500000
 ASY_ROOT            ?= ../..
-CFLAGS              ?= -g -O2
+CFLAGS              ?= -g -O3
 CALLGRIND_EXTRA_OPTS ?=
 ANNOTATE_OPTS       ?= --auto=yes --threshold=99.5
 
