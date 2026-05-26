@@ -1805,17 +1805,9 @@ void initSettings() {
   addSecureSetting(new boolrefSetting("globalread", 0,
                                       "Allow read from other directory",
                                       &globalRead, true));
-#ifdef HAVE_LIBCURL
-  struct curlOption : public option {
-    curlOption() : option("curlAfterRead", 0, noarg,
-                          "Allow libcurl after reading files via input()", true) {}
-    bool getOption() {
-      curlOverride=true;
-      return true;
-    }
-  };
-  addOption(new curlOption());
-#endif
+  addSecureSetting(new boolrefSetting("curlAfterRead", 0,
+                                      "Allow libcurl after reading local files via input()",
+                                      &curlOverride, false));
   addSecureSetting(new stringSetting("outname", 'o', "name",
                                      "Alternative output directory/file prefix"));
   addOption(new stringOption("cd", 0, "directory", "Set current directory",
