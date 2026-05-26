@@ -12,6 +12,7 @@
 #include "errormsg.h"
 #include "interact.h"
 #include "fileio.h"
+#include "hashing.h"
 
 errorstream em;
 
@@ -21,6 +22,11 @@ static nullPosInitializer nullPosInit;
 bool errorstream::interrupt=false;
 
 namespace {
+struct memStringHash {
+  size_t operator()(const string& s) const {
+    return hashing::hashSpan(s);
+  }
+};
 // Storage for the filename registry. Index 0 is reserved for the empty
 // string and corresponds to "no file" (i.e. nullPos).
 mem::vector<string>& registryFilenames() {
@@ -31,8 +37,8 @@ mem::vector<string>& registryFilenames() {
   }();
   return v;
 }
-mem::unordered_map<string, uint16_t>& registryIndex() {
-  static mem::unordered_map<string, uint16_t> m;
+mem::unordered_map<string, uint16_t, memStringHash>& registryIndex() {
+  static mem::unordered_map<string, uint16_t, memStringHash> m;
   return m;
 }
 } // namespace
