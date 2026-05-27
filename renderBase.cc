@@ -101,6 +101,10 @@ double AsyRender::getRenderResolution(triple Min) const
 // Default implementations for virtual methods that can have generic behavior
 void AsyRender::setDimensions(int Width, int Height, double X, double Y)
 {
+  // Guard against zero dimensions to prevent division by zero (SIGFPE).
+  if(Width <= 0) Width = 1;
+  if(Height <= 0) Height = 1;
+
   double aspect = ((double) Width) / Height;
   double xshift = (X / (double) Width + Shift.getx() * Xfactor) * Zoom;
   double yshift = (Y / (double) Height + Shift.gety() * Yfactor) * Zoom;
@@ -949,6 +953,11 @@ void AsyRender::initDisplay(int contentWidth, int contentHeight)
 
   Width = w;
   Height = h;
+
+  // Guard against zero dimensions (e.g., headless rendering with no monitor)
+  // to avoid division by zero in setDimensions() and ArcballFactor computation.
+  if(Width <= 0) Width = 1;
+  if(Height <= 0) Height = 1;
 
   home();
 
