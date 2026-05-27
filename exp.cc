@@ -671,7 +671,7 @@ types::ty *scaleExp::trans(coenv &e)
 
   if (!right->scalable()) {
     em.error(right->getPos());
-    em << "implicit scaling not allowed; use explicit * operator";
+    em << "implicit scaling not allowed here; use explicit * operator";
   }
 
   // Defer to the binaryExp for multiplication.
