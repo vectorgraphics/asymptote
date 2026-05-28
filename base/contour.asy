@@ -4,6 +4,16 @@ import graph_settings;
 
 real eps=10000*realEpsilon;
 
+private real maxNorm(pair p) {return max(abs(p.x),abs(p.y));}
+
+// Scale-relative test for coincidence of two pair endpoints. Using a purely
+// absolute eps here causes contour() to fragment a single contour into many
+// pieces when the input coordinates are large (round-off in interp() then
+// exceeds eps).
+private bool close(pair p, pair q) {
+  return maxNorm(p-q) < eps*max(1,maxNorm(p),maxNorm(q));
+}
+
 //                         1
 //             6 +-------------------+ 5
 //               | \               / |
@@ -144,26 +154,26 @@ private void collect(pair[][][] points, real[] c)
       for(int j=i+1; j < gdscnt.length; ++j) {
         pair[] gjg=gdscnt[j];
         int Lj=gjg.length;
-        if(abs(gig[0]-gjg[0]) < eps) {
+        if(close(gig[0],gjg[0])) {
           gdscnt[j]=gjg[reverseF(Lj)];
           gdscnt[j].append(gig);
           gdscnt.delete(i);
           --i;
           break;
-        } else if(abs(gig[0]-gjg[Lj-1]) < eps) {
+        } else if(close(gig[0],gjg[Lj-1])) {
           gig.delete(0);
           gdscnt[j].append(gig);
           gdscnt.delete(i);
           --i;
           break;
-        } else if(abs(gig[Li-1]-gjg[0]) < eps) {
+        } else if(close(gig[Li-1],gjg[0])) {
           gjg.delete(0);
           gig.append(gjg);
           gdscnt[j]=gig;
           gdscnt.delete(i);
           --i;
           break;
-        } else if(abs(gig[Li-1]-gjg[Lj-1]) < eps) {
+        } else if(close(gig[Li-1],gjg[Lj-1])) {
           gig.append(gjg[reverseL(Lj)]);
           gdscnt[j]=gig;
           gdscnt.delete(i);
@@ -188,7 +198,7 @@ private guide[][] connect(picture pic, pair[][][] points, real[] c,
       pair[] pts=pointscnt[i];
       guide gd;
       if(pts.length > 0) {
-        if(pts.length > 1 && abs(pts[0]-pts[pts.length-1]) < eps) {
+        if(pts.length > 1 && close(pts[0],pts[pts.length-1])) {
           guide[] g=sequence(new guide(int i) {
               return (pic.scale.x.T(pts[i].x), pic.scale.y.T(pts[i].y));
             },pts.length-1);
@@ -340,13 +350,13 @@ guide[][] contour(picture pic=currentpicture, pair[][] z, real[][] f,
             for(int l=0; l < segmentsIJ.length; ++l) {
               segment D=segmentsIJ[l];
               if(!D.active) continue;
-              if(abs(D.a-g[g.length-1]) < eps) {
+              if(close(D.a,g[g.length-1])) {
                 g.push(D.b);
                 segmentsIJ[l].active=false;
                 if(D.edge >= 0 && !first) return D.edge;
                 first=false;
                 l=-1;
-              } else if(abs(D.b-g[g.length-1]) < eps) {
+              } else if(close(D.b,g[g.length-1])) {
                 g.push(D.a);
                 segmentsIJ[l].active=false;
                 if(D.edge >= 0 && !first) return D.edge;
@@ -364,13 +374,13 @@ guide[][] contour(picture pic=currentpicture, pair[][] z, real[][] f,
             for(int l=0; l < segmentsIJ.length; ++l) {
               segment D=segmentsIJ[l];
               if(!D.active) continue;
-              if(abs(D.a-g[0]) < eps) {
+              if(close(D.a,g[0])) {
                 g.insert(0,D.b);
                 segmentsIJ[l].active=false;
                 if(D.edge >= 0 && !first) return D.edge;
                 first=false;
                 l=-1;
-              } else if(abs(D.b-g[0]) < eps) {
+              } else if(close(D.b,g[0])) {
                 g.insert(0,D.a);
                 segmentsIJ[l].active=false;
                 if(D.edge >= 0 && !first) return D.edge;
@@ -626,16 +636,16 @@ private void addseg(pair[][] gds, segment seg)
   // search for a path to extend
   for(int i=0; i < gds.length; ++i) {
     pair[] gd=gds[i];
-    if(abs(gd[0]-seg.b) < eps) {
+    if(close(gd[0],seg.b)) {
       gd.insert(0,seg.a);
       return;
-    } else if(abs(gd[gd.length-1]-seg.b) < eps) {
+    } else if(close(gd[gd.length-1],seg.b)) {
       gd.push(seg.a);
       return;
-    } else if(abs(gd[0]-seg.a) < eps) {
+    } else if(close(gd[0],seg.a)) {
       gd.insert(0,seg.b);
       return;
-    } else if(abs(gd[gd.length-1]-seg.a) < eps) {
+    } else if(close(gd[gd.length-1],seg.a)) {
       gd.push(seg.b);
       return;
     }
