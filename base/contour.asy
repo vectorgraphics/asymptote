@@ -285,21 +285,30 @@ guide[][] contour(picture pic=currentpicture, pair[][] z, real[][] f,
 
         // go through the triangles
 
-        void addseg(segment seg) {
-          if(seg.active) {
-            seg.c=cnt;
-            segmentsij.push(seg);
+        // tri is the triangle index 0..3 (right, top, left, bottom edge of
+        // the rectangular cell).  case1 segments with edge code 9 lie along
+        // the corresponding rectangle edge and would otherwise also be
+        // emitted by the neighbouring cell that shares that edge.  Skip the
+        // left/bottom copy when an interior neighbour exists so each shared
+        // edge contributes exactly one segment.
+        void addseg(segment seg, int tri) {
+          if(!seg.active) return;
+          if(seg.edge == 9) {
+            if(tri == 2 && i > 0) return;    // left edge: owned by (i-1,j)
+            if(tri == 3 && j > 0) return;    // bottom edge: owned by (i,j-1)
           }
+          seg.c=cnt;
+          segmentsij.push(seg);
         }
         real vertdat4=fmm-C;
         addseg(checktriangle(bright,tright,middle,
-                             vertdat1,vertdat3,vertdat4,0));
+                             vertdat1,vertdat3,vertdat4,0),0);
         addseg(checktriangle(tright,tleft,middle,
-                             vertdat3,vertdat2,vertdat4,1));
+                             vertdat3,vertdat2,vertdat4,1),1);
         addseg(checktriangle(tleft,bleft,middle,
-                             vertdat2,vertdat0,vertdat4,2));
+                             vertdat2,vertdat0,vertdat4,2),2);
         addseg(checktriangle(bleft,bright,middle,
-                             vertdat0,vertdat1,vertdat4,3));
+                             vertdat0,vertdat1,vertdat4,3),3);
         return 0;
       }
 
