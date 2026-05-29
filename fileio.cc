@@ -121,12 +121,15 @@ void ifile::open()
     if(mode & std::ios::in) {
 #ifdef HAVE_LIBCURL
       if(parser::isURL(name)) {
+        if(!settings::curlEnabled())
+          camp::reportError("libcurl disabled after reading files via input(); override with -curlAfterRead (or better: read online content before local files)");
         parser::readURL(buf,name);
         stream=&buf;
       } else
 #endif
       {
         name=locatefile(inpath(name));
+        settings::readAnyFile=true;
         stream=fstream=new std::fstream(name.c_str(),mode);
       }
     }

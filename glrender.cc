@@ -226,6 +226,7 @@ void AsyGLRender::setBuffers()
 
 void AsyGLRender::initShaders()
 {
+  fpu_trap(false); // Work around FE_INVALID in Mesa/libgallium during shader compilation
   Nlights = nlights == 0 ? 0 : std::max(Nlights, nlights);
   nmaterials = materials.size();
 
@@ -355,6 +356,7 @@ void AsyGLRender::initShaders()
 
   if(vao == 0)
     setBuffers();
+  fpu_trap(settings::trap());
 }
 
 void AsyGLRender::deleteComputeShaders()
@@ -1244,6 +1246,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     if(!View)
       glfwWindowHint(GLFW_VISIBLE, 0);
 
+    fpu_trap(false); // Work around FE_INVALID in Mesa/libgallium during GL initialization
     GLFWwindow* newWindow = glfwCreateRenderWindow(Width, Height, title.empty() ? Prefix.c_str() : title.c_str(), this);
     if(newWindow == nullptr) {
       cerr << "Failed to create GLFW window" << endl;
@@ -1281,6 +1284,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
       if(settings::verbose > 1 && samples > 1)
         cout << "Multisampling enabled with sample width " << samples << endl;
     }
+    fpu_trap(settings::trap());
   }
 
 #if defined(HAVE_COMPUTE_SHADER)

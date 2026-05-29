@@ -59,7 +59,7 @@ public:
 
   // Checks if the expression can be used as the right side of a scale
   // expression.  ie. 3sin(x)
-  // If a "non-scalable" expression is scaled a warning is issued.
+  // If a "non-scalable" expression is scaled an error is reported.
   virtual bool scalable() { return true; }
 
   // Specifies if the value of the expression should be written to interactive

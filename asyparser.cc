@@ -113,8 +113,11 @@ absyntax::file *parseFile(const string& filename,
                           const char *nameOfAction)
 {
 #ifdef HAVE_LIBCURL
-  if(isURL(filename))
+  if(isURL(filename)) {
+    if(!settings::curlEnabled())
+      error(filename);
     return parseURL(filename,nameOfAction);
+  }
 #endif
 
   if(filename == "-")
