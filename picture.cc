@@ -1582,7 +1582,6 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(AsyRender::threads && !offscreen) {
 #ifdef HAVE_PTHREAD
       if(!gl->initialized) {
-        gl->initialized=!View || offscreen;
         if(Wait)
           pthread_mutex_lock(&gl->threadMgr.readyLock);
         allowRender=true;
