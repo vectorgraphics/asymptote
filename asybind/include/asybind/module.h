@@ -34,6 +34,13 @@ inline const asybind_host_api_v1*& current_api() {
   return p;
 }
 
+/* Per-process current module handle. See `any.h` for details; declared
+ * here so module_handle's ctor can set it without depending on Any. */
+inline asybind_module_ptr& current_module() {
+  static asybind_module_ptr m = nullptr;
+  return m;
+}
+
 /* Per-thunk-invocation current stack pointer. Set by the SDK's thunk
  * wrappers before calling the user body so that helpers such as
  * `callable<...>::operator()` and `ay::raise` can reach the host stack
@@ -264,6 +271,7 @@ public:
                 const asybind_host_api_v1* api)
     : m_(m), api_(api) {
     detail::current_api() = api;
+    detail::current_module() = m;
   }
 
   template <class F>
@@ -303,9 +311,43 @@ public:
   asybind_module_ptr           handle() const { return m_; }
   const asybind_host_api_v1*   api()    const { return api_; }
 
+  /* === Parameterized modules (Phase 3) ============================= *
+   *
+   * In the minimal Phase-3 SDK, `type_param("T")` is a documentation
+   * hook: it records the type parameter name but otherwise returns an
+   * opaque proxy. The asy-side type of T is reachable through
+   * `caster<Any>::spec()`, which queries the host via
+   * `get_resolved_type(module, 0)`.
+   *
+   * Calling `type_param` outside of a templated populate body is
+   * harmless — it merely returns a proxy whose `asy_type()` will yield
+   * the void spec if no resolution is active.
+   */
+  class type_param_proxy {
+   public:
+    explicit type_param_proxy(int idx) : idx_(idx) {}
+    asybind_type_spec asy_type() const {
+      return detail::current_api()->get_resolved_type(
+          detail::current_module(), idx_);
+    }
+   private:
+    int idx_;
+  };
+
+  type_param_proxy type_param(const char* /*name*/) {
+    /* Phase 3 minimal: only a single type parameter is supported, and
+     * the SDK trusts that the plugin's static type_param_names array
+     * (built by ASY_TEMPLATED_MODULE) lists the same names in the same
+     * order as the type_param() calls. Multi-parameter support would
+     * cross-check `name` against the descriptor here. */
+    int idx = next_param_idx_++;
+    return type_param_proxy(idx);
+  }
+
 private:
   asybind_module_ptr           m_;
   const asybind_host_api_v1*   api_;
+  int                          next_param_idx_ = 0;
 };
 
 }  /* namespace detail */
@@ -351,7 +393,36 @@ using module_ = detail::module_handle;
       ASYBIND_ABI_VERSION,                                              \
       ASYBIND_ASY_VERSION_STRING,                                       \
       #NAME,                                                            \
-      &asybind_populate_##NAME                                          \
+      &asybind_populate_##NAME,                                         \
+      /*n_type_params=*/0,                                              \
+      /*type_param_names=*/nullptr                                      \
+    };                                                                  \
+    return &desc;                                                       \
+  }                                                                     \
+  static void asybind_user_populate_##NAME(::asy::module_& MVAR)
+
+/* Phase 3: parameterized module entry point. Currently supports a
+ * single type parameter named by TPARAM (a C string literal). The
+ * plugin's populate body should call `m.type_param(TPARAM)` once. */
+#define ASY_TEMPLATED_MODULE(NAME, MVAR, TPARAM)                        \
+  static void asybind_user_populate_##NAME(::asy::module_& MVAR);       \
+  static void asybind_populate_##NAME(asybind_module_ptr __m,           \
+                                      const asybind_host_api_v1* __api)\
+  {                                                                     \
+    ::asy::module_ MVAR(__m, __api);                                    \
+    asybind_user_populate_##NAME(MVAR);                                 \
+  }                                                                     \
+  extern "C" ASY_EXPORT                                                 \
+  const asybind_module_descriptor* asybind_init_v1(void)                \
+  {                                                                     \
+    static const char* const tparam_names[] = { TPARAM };               \
+    static const asybind_module_descriptor desc = {                     \
+      ASYBIND_ABI_VERSION,                                              \
+      ASYBIND_ASY_VERSION_STRING,                                       \
+      #NAME,                                                            \
+      &asybind_populate_##NAME,                                         \
+      /*n_type_params=*/1,                                              \
+      tparam_names                                                      \
     };                                                                  \
     return &desc;                                                       \
   }                                                                     \

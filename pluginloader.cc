@@ -31,13 +31,16 @@
 #include "callable.h"
 #include "virtualfieldaccess.h"
 #include "coder.h"
+#include "dec.h"
 
 #include "asybind/abi.h"
 
 #include <array>
 #include <atomic>
 #include <cstring>
+#include <unordered_map>
 #include <utility>
+#include <vector>
 
 #ifdef PACKAGE_VERSION
 #define ASYBIND_HOST_VERSION_STRING PACKAGE_VERSION
@@ -203,14 +206,34 @@ public:
 
 ty* spec_to_type(const asybind_type_spec& spec) {
   switch (spec.tag) {
-    case ASYBIND_VOID:     return primVoid();
-    case ASYBIND_INT:      return primInt();
-    case ASYBIND_REAL:     return primReal();
-    case ASYBIND_BOOL:     return primBoolean();
-    case ASYBIND_STRING:   return primString();
-    case ASYBIND_USERPTR:  return reinterpret_cast<pluginRecord*>(spec.cls);
-    case ASYBIND_FUNCTION: return reinterpret_cast<function*>(spec.fnty);
-    default:               return nullptr;
+    case ASYBIND_VOID:      return primVoid();
+    case ASYBIND_INT:       return primInt();
+    case ASYBIND_REAL:      return primReal();
+    case ASYBIND_BOOL:      return primBoolean();
+    case ASYBIND_STRING:    return primString();
+    case ASYBIND_USERPTR:   return reinterpret_cast<pluginRecord*>(spec.cls);
+    case ASYBIND_FUNCTION:  return reinterpret_cast<function*>(spec.fnty);
+    case ASYBIND_OPAQUE_TY: return reinterpret_cast<ty*>(spec.cls);
+    default:                return nullptr;
+  }
+}
+
+asybind_type_spec type_to_spec(ty* t) {
+  if (!t) return { ASYBIND_VOID, nullptr, nullptr };
+  switch (t->kind) {
+    case ty_void:    return { ASYBIND_VOID,   nullptr, nullptr };
+    case ty_Int:     return { ASYBIND_INT,    nullptr, nullptr };
+    case ty_real:    return { ASYBIND_REAL,   nullptr, nullptr };
+    case ty_boolean: return { ASYBIND_BOOL,   nullptr, nullptr };
+    case ty_string:  return { ASYBIND_STRING, nullptr, nullptr };
+    case ty_function:
+      return { ASYBIND_FUNCTION, nullptr,
+               reinterpret_cast<asybind_funty_ptr>(t) };
+    default:
+      /* Records, arrays, overloaded, etc.: hand back as opaque ty*.
+       * The SDK treats this as the asy-side type of an `ay::Any`. */
+      return { ASYBIND_OPAQUE_TY,
+               reinterpret_cast<asybind_class_ptr>(t), nullptr };
   }
 }
 
@@ -564,6 +587,51 @@ void host_push_result(asybind_stack_ptr s, asybind_class_ptr /*result_cls*/,
   as_stack(s)->push<PluginInstance*>(reinterpret_cast<PluginInstance*>(r));
 }
 
+// =====================================================================
+//  Phase 3: parameterized modules + ay::Any marshalling.
+//
+//  The host keeps a side-table mapping record* -> vector of resolved
+//  type specs, populated by tryLoadTemplatedPlugin before invoking the
+//  plugin's populate body. The SDK's `m.type_param("T")` reaches into
+//  this table via `get_resolved_type`.
+//
+//  Any values are marshalled as GC-allocated copies of vm::item so that
+//  the dynamic type tag of the underlying value survives a C++ round
+//  trip; this is the same trick used by result_getter_value.
+// =====================================================================
+
+struct TemplatedModuleInfo {
+  std::vector<asybind_type_spec> resolved;
+};
+std::unordered_map<types::record*, TemplatedModuleInfo>& g_templated() {
+  static std::unordered_map<types::record*, TemplatedModuleInfo> m;
+  return m;
+}
+
+asybind_type_spec host_get_resolved_type(asybind_module_ptr module, int i) {
+  auto* rec = reinterpret_cast<types::record*>(module);
+  auto it = g_templated().find(rec);
+  if (it == g_templated().end()) {
+    return { ASYBIND_VOID, nullptr, nullptr };
+  }
+  if (i < 0 || static_cast<size_t>(i) >= it->second.resolved.size()) {
+    return { ASYBIND_VOID, nullptr, nullptr };
+  }
+  return it->second.resolved[i];
+}
+
+asybind_any_ptr host_pop_any(asybind_stack_ptr s) {
+  vm::item* it = static_cast<vm::item*>(GC_MALLOC(sizeof(vm::item)));
+  new (it) vm::item();
+  *it = as_stack(s)->pop();
+  return reinterpret_cast<asybind_any_ptr>(it);
+}
+
+void host_push_any(asybind_stack_ptr s, asybind_any_ptr a) {
+  vm::item* it = reinterpret_cast<vm::item*>(a);
+  as_stack(s)->push(*it);
+}
+
 const asybind_host_api_v1 g_host_api = {
   &host_push_int,
   &host_push_real,
@@ -587,6 +655,9 @@ const asybind_host_api_v1 g_host_api = {
   &host_invoke_callable,
   &host_result_class,
   &host_push_result,
+  &host_get_resolved_type,
+  &host_pop_any,
+  &host_push_any,
 };
 
 // =====================================================================
@@ -645,9 +716,17 @@ bool dl_open(DlHandle& out, const string& path, string& err) {
 //  Public entry point.
 // =====================================================================
 
-types::record* tryLoadPlugin(sym::symbol id, mem::string filename) {
+namespace {
+
+// Open, validate, and return the plugin's module descriptor. Returns
+// nullptr on any failure (and emits a diagnostic for failures *other*
+// than "no such file"). On success the DlHandle is leaked — plugins are
+// intentionally never unloaded.
+const asybind_module_descriptor* open_and_validate(
+    const string& filename, string* out_path) {
   string path = locate_plugin(filename);
   if (path.empty()) return nullptr;
+  if (out_path) *out_path = path;
 
   DlHandle dl;
   string err;
@@ -685,22 +764,92 @@ types::record* tryLoadPlugin(sym::symbol id, mem::string filename) {
     em.sync(true);
     return nullptr;
   }
+  return desc;
+}
 
+record* make_plugin_record(sym::symbol id) {
   record* rec = new record(id, new frame(id, 0, 0));
-
   // Trivial init lambda (see Phase 0 notes): without this the VM
   // dereferences a null `program*` and crashes.
   vm::lambda* initLambda = rec->getInit();
   initLambda->code = new vm::program();
-  {
-    vm::inst i;
-    i.op = vm::inst::ret;
-    i.pos = nullPos;
-    initLambda->code->encode(i);
+  vm::inst i;
+  i.op = vm::inst::ret;
+  i.pos = nullPos;
+  initLambda->code->encode(i);
+  return rec;
+}
+
+}  // anonymous namespace
+
+types::record* tryLoadPlugin(sym::symbol id, mem::string filename) {
+  const asybind_module_descriptor* desc =
+      open_and_validate(filename, /*out_path=*/nullptr);
+  if (!desc) return nullptr;
+
+  if (desc->n_type_params > 0) {
+    em.sync();
+    em << "error: plugin '" << desc->module_name
+       << "' is parameterized; import it with template arguments\n";
+    em.sync(true);
+    return nullptr;
   }
 
-  desc->populate(reinterpret_cast<asybind_module_ptr>(rec),
-                 &g_host_api);
+  record* rec = make_plugin_record(id);
+  desc->populate(reinterpret_cast<asybind_module_ptr>(rec), &g_host_api);
+  if (em.errors()) return nullptr;
+  return rec;
+}
+
+types::record* tryLoadTemplatedPlugin(
+    sym::symbol id, mem::string filename,
+    mem::vector<absyntax::namedTy*>* args) {
+  string path;
+  const asybind_module_descriptor* desc = open_and_validate(filename, &path);
+  if (!desc) return nullptr;
+
+  if (desc->n_type_params == 0) {
+    em.sync();
+    em << "error: plugin '" << path
+       << "' is not parameterized but was imported with template "
+          "arguments\n";
+    em.sync(true);
+    return nullptr;
+  }
+  if (static_cast<size_t>(desc->n_type_params) != args->size()) {
+    em.sync();
+    em << "error: plugin '" << path << "' expects "
+       << desc->n_type_params << " type parameter(s) but got "
+       << args->size() << "\n";
+    em.sync(true);
+    return nullptr;
+  }
+
+  // Resolve and (positionally + by name) bind type parameters.
+  TemplatedModuleInfo info;
+  info.resolved.reserve(desc->n_type_params);
+  for (int i = 0; i < desc->n_type_params; ++i) {
+    absyntax::namedTy* arg = (*args)[i];
+    const char* expected = desc->type_param_names[i];
+    string got = static_cast<string>(arg->dest);
+    if (got != expected) {
+      em.sync();
+      em << "error: plugin '" << path
+         << "' expects parameter " << i << " named '" << expected
+         << "' but got '" << got << "'\n";
+      em.sync(true);
+      return nullptr;
+    }
+    info.resolved.push_back(type_to_spec(arg->t));
+  }
+
+  record* rec = make_plugin_record(id);
+  g_templated()[rec] = std::move(info);
+  desc->populate(reinterpret_cast<asybind_module_ptr>(rec), &g_host_api);
+  // Intentionally keep the entry: subsequent calls into the SDK that
+  // hold on to specs (e.g. function-type caches inside the SDK) may
+  // re-query get_resolved_type lazily. Memory: bounded by the number of
+  // distinct instantiations, which is also bounded by the imap cache.
 
   if (em.errors()) return nullptr;
   return rec;

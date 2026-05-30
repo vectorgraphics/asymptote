@@ -19,6 +19,7 @@
 #include "symbol.h"
 
 namespace types { class record; }
+namespace absyntax { class namedTy; }
 
 namespace asybind {
 
@@ -27,6 +28,13 @@ namespace asybind {
  * loading failure (ABI mismatch, missing entry point, dlopen error for
  * a file that *was* found) a diagnostic is emitted via `em`. */
 types::record* tryLoadPlugin(sym::symbol id, mem::string filename);
+
+/* Phase 3: parameterized-module load. Returns nullptr if no shared
+ * library matches `filename` or if the located plugin is not declared
+ * as templated. */
+types::record* tryLoadTemplatedPlugin(
+    sym::symbol id, mem::string filename,
+    mem::vector<absyntax::namedTy*>* args);
 
 }  // namespace asybind
 

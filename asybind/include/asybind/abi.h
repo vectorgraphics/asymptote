@@ -22,7 +22,7 @@
 #include <stddef.h>
 
 /* Bump on any incompatible change to host_api_v1 or module_descriptor. */
-#define ASYBIND_ABI_VERSION 3u
+#define ASYBIND_ABI_VERSION 4u
 
 #if defined(_WIN32) || defined(__CYGWIN__)
 #  define ASY_EXPORT __declspec(dllexport)
@@ -40,6 +40,7 @@ typedef struct asybind_module_opaque*   asybind_module_ptr;
 typedef struct asybind_class_opaque*    asybind_class_ptr;
 typedef struct asybind_callable_opaque* asybind_callable_ptr;
 typedef struct asybind_funty_opaque*    asybind_funty_ptr;
+typedef struct asybind_any_opaque*      asybind_any_ptr;
 
 /* Type tags. ASYBIND_USERPTR denotes an opaque pointer to a C++-backed
  * class instance; the accompanying `cls` field of `asybind_type_spec`
@@ -47,13 +48,18 @@ typedef struct asybind_funty_opaque*    asybind_funty_ptr;
  * value; the accompanying `fnty` field identifies the asy types::function*
  * (produced by `make_function_type`). */
 enum asybind_type_tag {
-  ASYBIND_VOID     = 0,
-  ASYBIND_INT      = 1,
-  ASYBIND_REAL     = 2,
-  ASYBIND_BOOL     = 3,
-  ASYBIND_STRING   = 4,
-  ASYBIND_USERPTR  = 5,
-  ASYBIND_FUNCTION = 6
+  ASYBIND_VOID      = 0,
+  ASYBIND_INT       = 1,
+  ASYBIND_REAL      = 2,
+  ASYBIND_BOOL      = 3,
+  ASYBIND_STRING    = 4,
+  ASYBIND_USERPTR   = 5,
+  ASYBIND_FUNCTION  = 6,
+  /* ASYBIND_OPAQUE_TY: a host-owned types::ty* (e.g. an asy struct that
+   * isn't backed by a plugin class). `cls` holds the raw pointer. Used
+   * by the host to report the resolution of a type parameter when the
+   * resolved type is a record the plugin doesn't own. */
+  ASYBIND_OPAQUE_TY = 7
 };
 
 /* A full type description used in function signatures.
@@ -139,6 +145,21 @@ struct asybind_host_api_v1 {
   void (*push_result)(asybind_stack_ptr stack,
                       asybind_class_ptr result_cls,
                       int found);
+
+  /* === Parameterized modules + Any (Phase 3) ======================= */
+
+  /* Return the type spec for the i-th type parameter of `module` (in
+   * declaration order, matching the `type_param_names` array on the
+   * module descriptor). Valid only during a templated populate call.
+   * If `module` is not a templated instantiation, returns
+   * {ASYBIND_VOID, nullptr, nullptr}. */
+  asybind_type_spec (*get_resolved_type)(asybind_module_ptr module, int i);
+
+  /* Marshal `ay::Any` values. The stored value is a GC-allocated copy
+   * of the underlying vm::item, preserving its dynamic type tag so that
+   * round-tripping an Any through C++ does not lose information. */
+  asybind_any_ptr (*pop_any) (asybind_stack_ptr);
+  void            (*push_any)(asybind_stack_ptr, asybind_any_ptr);
 };
 
 struct asybind_module_descriptor {
@@ -147,6 +168,13 @@ struct asybind_module_descriptor {
   const char*  module_name;
   void (*populate)(asybind_module_ptr module,
                    const struct asybind_host_api_v1* api);
+
+  /* Phase 3: parameterized modules. `n_type_params` is 0 for ordinary
+   * (non-templated) modules. For a templated module the host calls
+   * `populate` once per requested instantiation, after binding the
+   * resolved types so that `get_resolved_type` returns them. */
+  int                 n_type_params;
+  const char* const*  type_param_names;
 };
 
 #ifdef __cplusplus

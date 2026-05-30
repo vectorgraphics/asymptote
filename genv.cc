@@ -209,7 +209,14 @@ record *genv::getTemplatedModule(
   if (r)
     return r;
   else {
-    r=loadTemplatedModule(index, filename, args);
+    // Try a C++ plugin (parameterized) first if no .asy source exists
+    // under this name.
+    bool asyFound = !settings::locateFile(filename).empty();
+    if (!asyFound) {
+      r = asybind::tryLoadTemplatedPlugin(index, filename, args);
+    }
+    if (!r)
+      r = loadTemplatedModule(index, filename, args);
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.
     if (!interact::interactive || !em.errors()) {
