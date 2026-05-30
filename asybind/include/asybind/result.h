@@ -37,14 +37,16 @@ namespace detail {
 
 template <class T>
 struct caster<result<T>> {
+  /* No SDK-side cache: across multiple templated-module instantiations
+   * the same `result<T>` C++ type can correspond to distinct asy
+   * record types (e.g. `result<Any>` where the underlying T resolves
+   * differently per instantiation). The host already deduplicates
+   * `result_class` calls keyed on the element spec, so the per-call
+   * cost is one hash lookup. */
   static asybind_class_ptr handle() {
-    static asybind_class_ptr h = nullptr;
-    if (!h) {
-      const asybind_host_api_v1* api = current_api();
-      asybind_type_spec elem = caster<std::decay_t<T>>::spec();
-      h = api->result_class(elem);
-    }
-    return h;
+    const asybind_host_api_v1* api = current_api();
+    asybind_type_spec elem = caster<std::decay_t<T>>::spec();
+    return api->result_class(elem);
   }
 
   static asybind_type_spec spec() {

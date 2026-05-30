@@ -22,7 +22,7 @@
 #include <stddef.h>
 
 /* Bump on any incompatible change to host_api_v1 or module_descriptor. */
-#define ASYBIND_ABI_VERSION 4u
+#define ASYBIND_ABI_VERSION 5u
 
 #if defined(_WIN32) || defined(__CYGWIN__)
 #  define ASY_EXPORT __declspec(dllexport)
@@ -160,6 +160,12 @@ struct asybind_host_api_v1 {
    * round-tripping an Any through C++ does not lose information. */
   asybind_any_ptr (*pop_any) (asybind_stack_ptr);
   void            (*push_any)(asybind_stack_ptr, asybind_any_ptr);
+
+  /* === Misc runtime helpers (Phase 4) ============================ */
+  /* Uniform integer in [lo, hi] from asy's seeded PRNG. */
+  long long (*rand_int) (long long lo, long long hi);
+  /* Uniform real in [0, 1] from asy's seeded PRNG. */
+  double    (*rand_real)(void);
 };
 
 struct asybind_module_descriptor {

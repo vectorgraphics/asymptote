@@ -32,6 +32,7 @@
 #include "virtualfieldaccess.h"
 #include "coder.h"
 #include "dec.h"
+#include "random.h"
 
 #include "asybind/abi.h"
 
@@ -462,6 +463,9 @@ asybind_funty_ptr host_make_function_type(asybind_type_spec restype,
 
 asybind_callable_ptr host_pop_callable(asybind_stack_ptr s) {
   vm::callable* c = vm::pop<vm::callable*>(as_stack(s));
+  /* Normalize asy's `null function` sentinel to a real nullptr so that
+   * SDK-side `if (callable)` checks behave as plugin authors expect. */
+  if (c == vm::nullfunc::instance()) c = nullptr;
   return reinterpret_cast<asybind_callable_ptr>(c);
 }
 
@@ -632,6 +636,14 @@ void host_push_any(asybind_stack_ptr s, asybind_any_ptr a) {
   as_stack(s)->push(*it);
 }
 
+long long host_rand_int(long long lo, long long hi) {
+  return static_cast<long long>(camp::randInt(lo, hi));
+}
+
+double host_rand_real() {
+  return camp::unitrand();
+}
+
 const asybind_host_api_v1 g_host_api = {
   &host_push_int,
   &host_push_real,
@@ -658,6 +670,8 @@ const asybind_host_api_v1 g_host_api = {
   &host_get_resolved_type,
   &host_pop_any,
   &host_push_any,
+  &host_rand_int,
+  &host_rand_real,
 };
 
 // =====================================================================

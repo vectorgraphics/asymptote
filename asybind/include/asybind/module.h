@@ -370,7 +370,30 @@ using module_ = detail::module_handle;
   raise(msg.c_str());
 }
 
+/* GC-allocate a T via the host's GC and placement-construct it in place.
+ * Returned pointers are kept alive by GC roots reachable from asy and/or
+ * from other GC-allocated objects. NOTE: no finalizer is registered, so
+ * non-trivially-destructible T's destructor will not run; only use for
+ * trivially-destructible (or carefully-managed) types. */
+template <class T, class... Args>
+inline T* gc_new(Args&&... args) {
+  void* mem = detail::current_api()->alloc_obj(sizeof(T));
+  return new (mem) T(std::forward<Args>(args)...);
+}
+
+/* asy's seeded PRNG (uniform integer in [lo,hi]). */
+inline long long rand(long long lo, long long hi) {
+  return detail::current_api()->rand_int(lo, hi);
+}
+
+/* asy's seeded PRNG (uniform real in [0,1]). */
+inline double randReal() {
+  return detail::current_api()->rand_real();
+}
+
 }  /* namespace asy */
+
+namespace ay = asy;
 
 /* === Plugin entry-point macro ======================================== */
 
