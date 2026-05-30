@@ -29,7 +29,7 @@ namespace detail {
 template <class T> struct caster;
 
 template <> struct caster<int> {
-  static constexpr int tag = ASYBIND_INT;
+  static asybind_type_spec spec() { return { ASYBIND_INT, nullptr }; }
   static int from_stack(asybind_stack_ptr s,
                         const asybind_host_api_v1* api) {
     return static_cast<int>(api->pop_int(s));
@@ -41,7 +41,7 @@ template <> struct caster<int> {
 };
 
 template <> struct caster<long long> {
-  static constexpr int tag = ASYBIND_INT;
+  static asybind_type_spec spec() { return { ASYBIND_INT, nullptr }; }
   static long long from_stack(asybind_stack_ptr s,
                               const asybind_host_api_v1* api) {
     return api->pop_int(s);
@@ -53,7 +53,7 @@ template <> struct caster<long long> {
 };
 
 template <> struct caster<double> {
-  static constexpr int tag = ASYBIND_REAL;
+  static asybind_type_spec spec() { return { ASYBIND_REAL, nullptr }; }
   static double from_stack(asybind_stack_ptr s,
                            const asybind_host_api_v1* api) {
     return api->pop_real(s);
@@ -65,7 +65,7 @@ template <> struct caster<double> {
 };
 
 template <> struct caster<bool> {
-  static constexpr int tag = ASYBIND_BOOL;
+  static asybind_type_spec spec() { return { ASYBIND_BOOL, nullptr }; }
   static bool from_stack(asybind_stack_ptr s,
                          const asybind_host_api_v1* api) {
     return api->pop_bool(s) != 0;
@@ -77,7 +77,7 @@ template <> struct caster<bool> {
 };
 
 template <> struct caster<std::string> {
-  static constexpr int tag = ASYBIND_STRING;
+  static asybind_type_spec spec() { return { ASYBIND_STRING, nullptr }; }
   static std::string from_stack(asybind_stack_ptr s,
                                 const asybind_host_api_v1* api) {
     const char* data = nullptr;
@@ -89,6 +89,36 @@ template <> struct caster<std::string> {
                        const asybind_host_api_v1* api,
                        const std::string& v) {
     api->push_string(s, v.data(), v.size());
+  }
+};
+
+/* === User-defined class types ======================================== *
+ *
+ * `caster<T*>` works for any C++ type T that has been registered with
+ * `asy::class_<T>(m, "Name")`. The class_<T> constructor stashes the
+ * host's class handle into the per-T `class_info<T>::handle()` slot;
+ * thereafter caster<T*> consults that slot.
+ */
+template <class T>
+struct class_info {
+  static asybind_class_ptr& handle() {
+    static asybind_class_ptr h = nullptr;
+    return h;
+  }
+};
+
+template <class T>
+struct caster<T*> {
+  static asybind_type_spec spec() {
+    return { ASYBIND_USERPTR, class_info<T>::handle() };
+  }
+  static T* from_stack(asybind_stack_ptr s,
+                       const asybind_host_api_v1* api) {
+    return static_cast<T*>(api->pop_obj(s));
+  }
+  static void to_stack(asybind_stack_ptr s,
+                       const asybind_host_api_v1* api, T* v) {
+    api->push_obj(s, static_cast<void*>(v));
   }
 };
 
@@ -117,20 +147,26 @@ struct fn_traits<R(C::*)(A...)> {
 template <class F>
 struct fn_traits : fn_traits<decltype(&std::decay_t<F>::operator())> {};
 
-/* === Argument tag arrays ============================================== */
+/* === Argument spec arrays ============================================ */
 
-template <class Tuple> struct tag_array;
+template <class Tuple> struct spec_array;
 template <class... A>
-struct tag_array<std::tuple<A...>> {
+struct spec_array<std::tuple<A...>> {
   static constexpr int N = sizeof...(A);
-  /* Returns a pointer to a static array of N type-tags, or nullptr when
-   * N == 0. */
-  static const int* values() {
+  /* Build a fresh array on each call: spec() may depend on the runtime
+   * value of class_info<T>::handle(), which is populated during plugin
+   * setup. Plugins typically call this once per registration, so the
+   * cost is negligible. */
+  static const asybind_type_spec* values(asybind_type_spec* storage) {
     if constexpr (N == 0) {
+      (void)storage;
       return nullptr;
     } else {
-      static const int tags[N] = { caster<std::decay_t<A>>::tag... };
-      return tags;
+      asybind_type_spec specs[N] = {
+        caster<std::decay_t<A>>::spec()...
+      };
+      for (std::size_t i = 0; i < N; ++i) storage[i] = specs[i];
+      return storage;
     }
   }
 };
@@ -184,6 +220,16 @@ struct fn_holder {
   }
 };
 
+/* Convert `caster<T>` to a type_spec, treating `void` as ASYBIND_VOID. */
+template <class T, class = void>
+struct caster_or_void {
+  static asybind_type_spec spec() { return caster<T>::spec(); }
+};
+template <class T>
+struct caster_or_void<T, std::enable_if_t<std::is_void_v<T>>> {
+  static asybind_type_spec spec() { return { ASYBIND_VOID, nullptr }; }
+};
+
 /* === module_ — author-facing module handle =========================== */
 
 class module_handle {
@@ -195,16 +241,12 @@ public:
   template <class F>
   module_handle& def(const char* name, F&& f) {
     using Decayed = std::decay_t<F>;
-    static_assert(std::is_convertible_v<Decayed, Decayed>,
-                  "asybind: callable must be a function pointer or a "
-                  "captureless lambda in Phase 0.");
     using Traits = fn_traits<Decayed>;
     using Args   = typename Traits::args;
     using Res    = typename Traits::result;
 
     /* Store the callable in a per-(F,name) static slot so the C-linkage
      * thunk can find it without captures. */
-    using Tag = std::integral_constant<const char*, nullptr>;
     static Decayed slot{std::forward<F>(f)};
 
     asybind_thunk_t thunk = +[](asybind_stack_ptr s,
@@ -221,20 +263,18 @@ public:
     };
 
     constexpr int N = static_cast<int>(std::tuple_size<Args>::value);
-    int restag = caster_or_void<Res>::tag;
-    const int* argtags = tag_array<Args>::values();
-    api_->add_func(m_, name, thunk, restag, N, argtags);
+    asybind_type_spec restype = caster_or_void<Res>::spec();
+    asybind_type_spec storage[(N > 0 ? N : 1)] = {};
+    const asybind_type_spec* argspecs =
+        spec_array<Args>::values(storage);
+    api_->add_func(m_, name, thunk, restype, N, argspecs);
     return *this;
   }
 
-private:
-  template <class T, class = void>
-  struct caster_or_void { static constexpr int tag = caster<T>::tag; };
-  template <class T>
-  struct caster_or_void<T, std::enable_if_t<std::is_void_v<T>>> {
-    static constexpr int tag = ASYBIND_VOID;
-  };
+  asybind_module_ptr           handle() const { return m_; }
+  const asybind_host_api_v1*   api()    const { return api_; }
 
+private:
   asybind_module_ptr           m_;
   const asybind_host_api_v1*   api_;
 };

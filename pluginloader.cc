@@ -1,6 +1,17 @@
 /*****
  * pluginloader.cc
- * Loader for C++ plugin modules (asybind) — Phase 0.
+ * Loader for C++ plugin modules (asybind) — Phase 1.
+ *
+ * Phase 1 adds class support on top of the Phase 0 free-function loader:
+ *   - create_class:        create an asy-side `record` type representing a
+ *                          C++ class, registered in the module's type env.
+ *   - add_method:          register a method on the class as a
+ *                          virtualFieldAccess (getter + caller); the
+ *                          getter materialises a bound callable for
+ *                          method-as-value use (`f = obj.m;`).
+ *   - add_readonly_field:  register a virtual readonly field on the class.
+ *   - alloc_obj/push_obj/pop_obj: marshal opaque GC pointers across the
+ *                          ABI for class instances.
  *****/
 
 #include "pluginloader.h"
@@ -19,6 +30,9 @@
 #include "memory.h"
 #include "inst.h"
 #include "program.h"
+#include "callable.h"
+#include "virtualfieldaccess.h"
+#include "coder.h"
 
 #include "asybind/abi.h"
 
@@ -43,14 +57,12 @@ using namespace types;
 
 namespace asybind {
 
-// =====================================================================
-//  Slot registry: each registered plugin function is assigned a unique
-//  static wrapper bltin (a void(*)(vm::stack*) function pointer) drawn
-//  from a fixed-size pool. The wrapper looks up the plugin's thunk in
-//  `g_slots` and forwards the call along with the global host-API table.
-// =====================================================================
-
 namespace {
+
+// =====================================================================
+//  Slot registry for plugin thunks. Each registered plugin function is
+//  assigned a unique static wrapper bltin drawn from a fixed-size pool.
+// =====================================================================
 
 constexpr int kMaxPluginFns = 1024;
 
@@ -61,7 +73,6 @@ struct PluginSlot {
 std::array<PluginSlot, kMaxPluginFns> g_slots{};
 std::atomic<int> g_nextSlot{0};
 
-// Forward decl for the API table; defined below.
 extern const asybind_host_api_v1 g_host_api;
 
 template <int N>
@@ -93,22 +104,119 @@ vm::bltin allocate_bltin_for(asybind_thunk_t thunk) {
 }
 
 // =====================================================================
-//  Tag-to-type translation.
+//  Method-getter pool. Each method registered via add_method needs a
+//  separate small bltin that pops the receiver and pushes a thunk-bound
+//  callable so that `f = obj.method;` produces a usable function value.
 // =====================================================================
 
-ty* tag_to_type(int tag) {
-  switch (tag) {
-    case ASYBIND_VOID:   return primVoid();
-    case ASYBIND_INT:    return primInt();
-    case ASYBIND_REAL:   return primReal();
-    case ASYBIND_BOOL:   return primBoolean();
-    case ASYBIND_STRING: return primString();
-    default:             return nullptr;
+constexpr int kMaxMethodGetters = 1024;
+
+struct GetterSlot {
+  vm::bltin caller = nullptr;
+};
+
+std::array<GetterSlot, kMaxMethodGetters> g_getter_slots{};
+std::atomic<int> g_nextGetter{0};
+
+// Marker type so opaque plugin-instance pointers travel through vm::item
+// with a stable type tag, regardless of the underlying C++ class.
+struct PluginInstance {};
+
+template <int N>
+void method_getter_wrapper(vm::stack* s) {
+  PluginInstance* recv = vm::pop<PluginInstance*>(s);
+  vm::bltin caller = g_getter_slots[N].caller;
+  s->push<vm::callable*>(
+      new vm::thunk(new vm::bfunc(caller),
+                    vm::item(recv)));
+}
+
+template <int... Is>
+constexpr std::array<vm::bltin, sizeof...(Is)>
+make_getter_wrappers(std::integer_sequence<int, Is...>) {
+  return { &method_getter_wrapper<Is>... };
+}
+
+const auto g_getter_wrappers =
+    make_getter_wrappers(std::make_integer_sequence<int, kMaxMethodGetters>{});
+
+vm::bltin allocate_getter_bltin(vm::bltin caller) {
+  int slot = g_nextGetter.fetch_add(1);
+  if (slot >= kMaxMethodGetters) {
+    em.compiler(nullPos);
+    em << "asybind: exceeded method-getter pool (limit "
+       << kMaxMethodGetters << ")";
+    em.sync(true);
+    return nullptr;
+  }
+  g_getter_slots[slot].caller = caller;
+  return g_getter_wrappers[slot];
+}
+
+// =====================================================================
+//  pluginRecord: a record subclass that exposes its venv via the
+//  virtualField path. The asy compiler treats virtual fields by pushing
+//  the receiver onto the stack and then encoding the access, which is
+//  exactly what our bltins expect. Without this override, asy would
+//  treat field accesses as record-frame field loads and consume the
+//  receiver via inst::pop, leaving nothing for the bltin.
+// =====================================================================
+
+class pluginRecord : public record {
+public:
+  explicit pluginRecord(symbol name)
+    : record(name, new frame(name, 0, 0))
+  {
+    // Trivial init lambda so `Type t;` (which would emit
+    // makefunc(init)+popcall) doesn't crash. The recommended
+    // construction syntax is `T t = T();` (the explicit constructor
+    // registered separately by the plugin).
+    vm::lambda* initLambda = getInit();
+    initLambda->code = new vm::program();
+    vm::inst i;
+    i.op = vm::inst::ret;
+    i.pos = nullPos;
+    initLambda->code->encode(i);
+
+    trans::coder c(nullPos, this, 0);
+    c.closeRecord();
+  }
+
+  trans::varEntry* virtualField(symbol id, signature* sig) override {
+    // Prefer a type-based lookup so that field access (sig == null) and
+    // unambiguous method names both resolve cleanly. Fall back to a
+    // signature-based lookup for overloaded methods.
+    ty* t = e.varGetType(id);
+    if (t && t->kind != ty_overloaded)
+      return e.ve.lookByType(id, t);
+    if (sig)
+      return e.ve.lookBySignature(id, sig);
+    return nullptr;
+  }
+
+  ty* virtualFieldGetType(symbol id) override {
+    return e.varGetType(id);
+  }
+};
+
+// =====================================================================
+//  Type-spec translation.
+// =====================================================================
+
+ty* spec_to_type(const asybind_type_spec& spec) {
+  switch (spec.tag) {
+    case ASYBIND_VOID:    return primVoid();
+    case ASYBIND_INT:     return primInt();
+    case ASYBIND_REAL:    return primReal();
+    case ASYBIND_BOOL:    return primBoolean();
+    case ASYBIND_STRING:  return primString();
+    case ASYBIND_USERPTR: return reinterpret_cast<pluginRecord*>(spec.cls);
+    default:              return nullptr;
   }
 }
 
 // =====================================================================
-//  Host-API implementation (called from inside plugin thunks).
+//  Host-API implementation.
 // =====================================================================
 
 vm::stack* as_stack(asybind_stack_ptr p) {
@@ -125,8 +233,6 @@ void host_push_bool(asybind_stack_ptr s, int v) {
   as_stack(s)->push<bool>(v != 0);
 }
 void host_push_string(asybind_stack_ptr s, const char* data, size_t len) {
-  // mem::string is GC-allocated; push by value to trigger item's
-  // copy-into-GC constructor.
   mem::string gcstr(data, len);
   as_stack(s)->push<mem::string>(gcstr);
 }
@@ -141,7 +247,6 @@ int host_pop_bool(asybind_stack_ptr s) {
   return vm::pop<bool>(as_stack(s)) ? 1 : 0;
 }
 void host_pop_string(asybind_stack_ptr s, const char** out, size_t* outlen) {
-  // Strings travel on the stack as mem::string* (per runstring.cc).
   mem::string* str = vm::pop<mem::string*>(as_stack(s));
   *out    = str->data();
   *outlen = str->size();
@@ -156,12 +261,14 @@ void host_raise(const char* msg) {
 
 void host_add_func(asybind_module_ptr module, const char* name,
                    asybind_thunk_t thunk,
-                   int restype, int nargs, const int* argtypes) {
+                   asybind_type_spec restype,
+                   int nargs, const asybind_type_spec* argtypes) {
   auto* rec = reinterpret_cast<record*>(module);
-  ty* result = tag_to_type(restype);
+
+  ty* result = spec_to_type(restype);
   if (!result) {
     em.compiler(nullPos);
-    em << "asybind: invalid result type tag " << restype
+    em << "asybind: invalid result type tag " << restype.tag
        << " for function '" << name << "'";
     em.sync(true);
     return;
@@ -170,11 +277,10 @@ void host_add_func(asybind_module_ptr module, const char* name,
   vm::bltin wrapper = allocate_bltin_for(thunk);
   if (!wrapper) return;
 
-  // Build formals (up to 8 supported in Phase 0; matches plugin SDK limits).
   if (nargs > 8) {
     em.compiler(nullPos);
     em << "asybind: function '" << name << "' has " << nargs
-       << " arguments; Phase 0 supports at most 8";
+       << " arguments; Phase 1 supports at most 8";
     em.sync(true);
     return;
   }
@@ -184,8 +290,8 @@ void host_add_func(asybind_module_ptr module, const char* name,
     trans::noformal, trans::noformal, trans::noformal, trans::noformal,
   };
   for (int i = 0; i < nargs; ++i) {
-    ty* t = tag_to_type(argtypes[i]);
-    if (!t || argtypes[i] == ASYBIND_VOID) {
+    ty* t = spec_to_type(argtypes[i]);
+    if (!t || argtypes[i].tag == ASYBIND_VOID) {
       em.compiler(nullPos);
       em << "asybind: invalid argument type tag for '" << name << "'";
       em.sync(true);
@@ -196,6 +302,108 @@ void host_add_func(asybind_module_ptr module, const char* name,
 
   trans::addFunc(rec->e.ve, wrapper, result, symbol::trans(name),
                  f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7]);
+}
+
+asybind_class_ptr host_create_class(asybind_module_ptr module,
+                                    const char* name) {
+  auto* rec = reinterpret_cast<record*>(module);
+  sym::symbol id = symbol::trans(name);
+  auto* cls = new pluginRecord(id);
+
+  // Register the class as a type in the module's type env so asy code
+  // can name it.
+  rec->e.addType(id,
+                 new trans::tyEntry(cls, /*v=*/nullptr,
+                                    /*where=*/rec, nullPos));
+  return reinterpret_cast<asybind_class_ptr>(cls);
+}
+
+// Build an asy types::function from spec arrays (used by add_method to
+// build the method's UNBOUND function type).
+function* build_function_type(const asybind_type_spec& restype,
+                              int nargs,
+                              const asybind_type_spec* argtypes,
+                              const char* what) {
+  ty* result = spec_to_type(restype);
+  if (!result) {
+    em.compiler(nullPos);
+    em << "asybind: invalid result type tag " << restype.tag
+       << " for " << what;
+    em.sync(true);
+    return nullptr;
+  }
+  function* fn = new function(result);
+  for (int i = 0; i < nargs; ++i) {
+    ty* t = spec_to_type(argtypes[i]);
+    if (!t || argtypes[i].tag == ASYBIND_VOID) {
+      em.compiler(nullPos);
+      em << "asybind: invalid argument type tag for " << what;
+      em.sync(true);
+      return nullptr;
+    }
+    fn->add(formal(t, symbol::nullsym, /*defval=*/false, /*Explicit=*/false));
+  }
+  return fn;
+}
+
+void host_add_method(asybind_class_ptr cls, const char* name,
+                     asybind_thunk_t thunk,
+                     asybind_type_spec restype,
+                     int nargs, const asybind_type_spec* argtypes) {
+  auto* rec = reinterpret_cast<pluginRecord*>(cls);
+
+  // The caller bltin pops the receiver and then the args (last-first).
+  vm::bltin caller = allocate_bltin_for(thunk);
+  if (!caller) return;
+
+  // The getter bltin pops the receiver and pushes a callable bound to
+  // it; this is what gives us `f = obj.method;`.
+  vm::bltin getter = allocate_getter_bltin(caller);
+  if (!getter) return;
+
+  function* fnTy = build_function_type(restype, nargs, argtypes, name);
+  if (!fnTy) return;
+
+  auto* access = new trans::virtualFieldAccess(getter, /*setter=*/0, caller);
+  rec->e.addVar(symbol::trans(name),
+                new trans::varEntry(fnTy, access, trans::PUBLIC,
+                                    rec, rec, nullPos));
+}
+
+void host_add_readonly_field(asybind_class_ptr cls, const char* name,
+                             asybind_thunk_t getter_thunk,
+                             asybind_type_spec type) {
+  auto* rec = reinterpret_cast<pluginRecord*>(cls);
+
+  vm::bltin getter = allocate_bltin_for(getter_thunk);
+  if (!getter) return;
+
+  ty* fieldTy = spec_to_type(type);
+  if (!fieldTy) {
+    em.compiler(nullPos);
+    em << "asybind: invalid type for readonly field '" << name << "'";
+    em.sync(true);
+    return;
+  }
+
+  auto* access = new trans::virtualFieldAccess(getter);
+  rec->e.addVar(symbol::trans(name),
+                new trans::varEntry(fieldTy, access, trans::PUBLIC,
+                                    rec, rec, nullPos));
+}
+
+void* host_alloc_obj(size_t size) {
+  // GC-allocated, conservatively scanned (objects may hold pointers to
+  // other GC values).
+  return GC_MALLOC(size);
+}
+
+void host_push_obj(asybind_stack_ptr s, void* obj) {
+  as_stack(s)->push<PluginInstance*>(static_cast<PluginInstance*>(obj));
+}
+
+void* host_pop_obj(asybind_stack_ptr s) {
+  return static_cast<void*>(vm::pop<PluginInstance*>(as_stack(s)));
 }
 
 const asybind_host_api_v1 g_host_api = {
@@ -209,10 +417,16 @@ const asybind_host_api_v1 g_host_api = {
   &host_pop_string,
   &host_raise,
   &host_add_func,
+  &host_create_class,
+  &host_add_method,
+  &host_add_readonly_field,
+  &host_alloc_obj,
+  &host_push_obj,
+  &host_pop_obj,
 };
 
 // =====================================================================
-//  Filename resolution.
+//  Filename resolution and dl wrapper.
 // =====================================================================
 
 string platform_lib_name(const string& base) {
@@ -226,28 +440,20 @@ string platform_lib_name(const string& base) {
 }
 
 string locate_plugin(const string& filename) {
-  // mungeFileName in locate.cc already strips/adds a suffix; pass the
-  // platform-specific filename and the empty suffix to avoid double-
-  // appending ".asy".
   string libname = platform_lib_name(filename);
-  string found = settings::locateFile(libname, /*full=*/true, /*suffix=*/"");
-  return found;
+  return settings::locateFile(libname, /*full=*/true, /*suffix=*/"");
 }
-
-// =====================================================================
-//  dlopen / LoadLibrary wrapper.
-// =====================================================================
 
 struct DlHandle {
 #if defined(_WIN32)
   HMODULE h = nullptr;
-  ~DlHandle() = default;  // intentionally leak: see header
+  ~DlHandle() = default;
   void* sym(const char* name) {
     return h ? reinterpret_cast<void*>(GetProcAddress(h, name)) : nullptr;
   }
 #else
   void* h = nullptr;
-  ~DlHandle() = default;  // intentionally leak
+  ~DlHandle() = default;
   void* sym(const char* name) {
     return h ? dlsym(h, name) : nullptr;
   }
@@ -316,15 +522,10 @@ types::record* tryLoadPlugin(sym::symbol id, mem::string filename) {
     return nullptr;
   }
 
-  // Construct a fresh record to receive the plugin's bindings. Use the
-  // same shape as a parsed .asy module (record + frame).
   record* rec = new record(id, new frame(id, 0, 0));
 
-  // The record constructor allocates an empty vm::lambda but leaves its
-  // `code` pointer null. The runtime executes the module initializer
-  // when the module is first accessed, so we give it a trivial program
-  // that simply returns. Without this the VM dereferences a null
-  // `program*` and crashes.
+  // Trivial init lambda (see Phase 0 notes): without this the VM
+  // dereferences a null `program*` and crashes.
   vm::lambda* initLambda = rec->getInit();
   initLambda->code = new vm::program();
   {
@@ -334,7 +535,6 @@ types::record* tryLoadPlugin(sym::symbol id, mem::string filename) {
     initLambda->code->encode(i);
   }
 
-  // Run populate. Cast our record* into the opaque module handle.
   desc->populate(reinterpret_cast<asybind_module_ptr>(rec),
                  &g_host_api);
 

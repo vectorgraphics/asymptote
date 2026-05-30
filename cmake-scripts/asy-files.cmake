@@ -1,4 +1,4 @@
-set(ASYMPTOTE_INCLUDES ${ASY_INCLUDE_DIR})
+set(ASYMPTOTE_INCLUDES ${ASY_INCLUDE_DIR} ${ASY_INCLUDE_DIR}/asybind/include)
 set(CAMP_BUILD_FILES
         camperror path drawpath drawlabel picture psfile texfile util settings
         guide flatguide knot drawfill path3 drawpath3 drawsurface

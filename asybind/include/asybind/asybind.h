@@ -7,5 +7,6 @@
 
 #include "abi.h"
 #include "module.h"
+#include "class.h"
 
 #endif
