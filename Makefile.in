@@ -157,11 +157,23 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ $(SHIMLIBS)
+# C++ asybind plugin sources shipped under base/.  Each .cc is built into a
+# sibling lib<name>.so loaded at runtime via `from <name> access ...`.
+BASE_PLUGIN_CC_FILES = $(wildcard base/collections/*.cc)
+BASE_PLUGIN_SO_FILES = $(foreach f,$(BASE_PLUGIN_CC_FILES),\
+	$(dir $(f))lib$(notdir $(basename $(f))).so)
+
+asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ $(SHIMLIBS) $(BASE_PLUGIN_SO_FILES)
 	$(CXX) $(OPTS) -rdynamic -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 ifeq ($(BUNDLE_VULKAN),yes)
 	@sh build-scripts/bundle-vulkan-macos.sh $(NAME) "$(CODESIGN_IDENTITY)"
 endif
+
+# Pattern rule for base/collections/lib%.so : base/collections/%.cc.
+# The plugin only needs the asybind SDK headers; it is loaded at runtime by asy.
+base/collections/lib%.so: base/collections/%.cc
+	$(CXX) -std=$(CXX_STANDARD) -fPIC -shared -O2 -g \
+		-Iasybind/include -o $@ $<
 
 portability-check-macos:
 	@if [ "$$(uname -s)" != "Darwin" ]; then \
@@ -459,6 +471,9 @@ endif
 		asy-keywords.el $(asydir)
 	${INSTALL} -p -m 755 $(SHIMLIBS) $(asydir)
 	${INSTALL} -p -m 644 base/collections/*.asy $(asydir)/collections
+	@if ls base/collections/*.so >/dev/null 2>&1; then \
+		${INSTALL} -p -m 755 base/collections/*.so $(asydir)/collections; \
+	fi
 	${INSTALL} -p -m 644 base/shaders/*.glsl $(shaderdir)
 	${INSTALL} -p -m 644 base/shaders/GL/*.glsl $(shaderdir)/GL
 	${INSTALL} -p -m 644 base/webgl/asygl.js \
@@ -542,6 +557,7 @@ uninstall-docdir: uninstall-man uninstall-asy
 
 clean:	FORCE
 	-rm -f asy asymptote.so libasyvulkan.so libasyopengl.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
+	-rm -f $(BASE_PLUGIN_SO_FILES)
 	-rm -rf doc/licenses
 	-rm -rf lib
 	-cd LspCpp && $(MAKE) distclean

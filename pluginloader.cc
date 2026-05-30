@@ -604,11 +604,11 @@ void host_push_result(asybind_stack_ptr s, asybind_class_ptr /*result_cls*/,
 //  trip; this is the same trick used by result_getter_value.
 // =====================================================================
 
-struct TemplatedModuleInfo {
-  std::vector<asybind_type_spec> resolved;
+struct TemplatedModuleInfo : public gc {
+  mem::vector<asybind_type_spec> resolved;
 };
-std::unordered_map<types::record*, TemplatedModuleInfo>& g_templated() {
-  static std::unordered_map<types::record*, TemplatedModuleInfo> m;
+mem::unordered_map<types::record*, TemplatedModuleInfo>& g_templated() {
+  static mem::unordered_map<types::record*, TemplatedModuleInfo> m;
   return m;
 }
 

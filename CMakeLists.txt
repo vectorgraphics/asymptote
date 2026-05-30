@@ -95,8 +95,14 @@ target_link_libraries(asy-ctan PUBLIC asycore)
 # base files
 include(cmake-scripts/asy-base-files.cmake)
 
+# C++ asybind plugins shipped under base/collections/
+include(cmake-scripts/asy-base-cpp-plugins.cmake)
+
 # asy + base files
 add_custom_target(asy-basefiles DEPENDS ${ASY_OUTPUT_BASE_FILES})
+if (ASY_BASE_CPP_PLUGIN_TARGETS)
+    add_dependencies(asy-basefiles ${ASY_BASE_CPP_PLUGIN_TARGETS})
+endif()
 
 # license files in build tree (for running asy locally without installing)
 include(cmake-scripts/copy-build-licenses.cmake)

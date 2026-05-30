@@ -47,12 +47,26 @@ install(
 )
 
 # base/* -> <sysdir>/
+# .so files (asybind cpp plugins under collections/) are excluded here so we
+# can install them with executable permissions via install(TARGETS).
 install(
         DIRECTORY ${ASY_BUILD_BASE_DIR}/
         DESTINATION ${ASY_INSTALL_SYSDIR_VALUE}
         COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
         FILE_PERMISSIONS ${PERMISSION_644_LIST}
+        PATTERN "*.so" EXCLUDE
 )
+
+# C++ asybind base plugins -> <sysdir>/collections/
+if (ASY_BASE_CPP_PLUGIN_TARGETS)
+    install(
+            TARGETS ${ASY_BASE_CPP_PLUGIN_TARGETS}
+            LIBRARY
+                DESTINATION ${ASY_INSTALL_SYSDIR_VALUE}/collections
+                COMPONENT   ${ASY_BASE_INSTALL_COMPONENT}
+                PERMISSIONS ${PERMISSION_755_LIST}
+    )
+endif()
 
 # extra base files -> <sysdir>/
 install(
