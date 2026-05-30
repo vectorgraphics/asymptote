@@ -78,6 +78,7 @@
 #include "locate.h"
 #include "interact.h"
 #include "builtin.h"
+#include "pluginloader.h"
 
 #if !defined(_WIN32)
 #include <unistd.h>
@@ -169,7 +170,15 @@ record *genv::getModule(symbol id, string filename) {
   if (r)
     return r;
   else {
-    r=loadModule(id, filename);
+    // If no .asy source exists for this name, try a C++ plugin
+    // (asybind) before falling through to loadModule (which would
+    // then error out on the missing .asy file).
+    bool asyFound = !settings::locateFile(filename).empty();
+    if (!asyFound) {
+      r = asybind::tryLoadPlugin(id, filename);
+    }
+    if (!r)
+      r = loadModule(id, filename);
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.
     if (!interact::interactive || !em.errors()) {

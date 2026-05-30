@@ -71,7 +71,7 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	EXRFiles lspserv symbolmaps win32helpers win32pipestream \
 	win32xdr xstream \
 	lspdec lspexp lspfundec lspstm \
-	hashing random rendererloader norender
+	hashing random rendererloader norender pluginloader
 
 FILES = $(COREFILES) main
 
@@ -106,7 +106,7 @@ DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -I.
 CFLAGS = @CFLAGS@
 OPTS = $(sort $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
-	-Iprc/include -I$(LSP_ROOT)/include -I. \
+	-Iprc/include -I$(LSP_ROOT)/include -Iasybind/include -I. \
 	$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS))
 
 # Multi-arch flags are incompatible with -E (preprocess-only) and -M (deps).
