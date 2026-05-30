@@ -57,8 +57,8 @@ struct HashSet_T {
     return HashSet_T(nullT, equiv, isNullT).super;
   };
 
-  super.size     = new int() { return core.size(); };
-  super.contains = new bool(T item) { return core.contains(item); };
+  super.size     = core.size;
+  super.contains = core.contains;
 
   super.get = new T(T item) {
     var result = core.lookup(item);
@@ -70,13 +70,13 @@ struct HashSet_T {
   super.operator iter = new Iter_T() {
     Cursor_T cur = core.beginCursor();
     Iter_T result = new Iter_T;
-    result.valid = new bool() { return cur.valid(); };
-    result.get = new T() { return (T)cur.get(); };
-    result.advance = new void() { cur.advance(); };
+    result.valid = cur.valid;
+    result.get = cur.get;
+    result.advance = cur.advance;
     return result;
   };
 
-  super.add = new bool(T item) { return core.add(item); };
+  super.add = core.add;
 
   super.push = new T(T item) {
     var result = core.push(item);
@@ -93,7 +93,7 @@ struct HashSet_T {
     return nullT;
   };
 
-  super.delete = new bool(T item) { return core.deleteItem(item); };
+  super.delete = core.deleteItem;
 
   super.getRandom = new T() {
     var result = core.getRandom();
