@@ -24,12 +24,38 @@ namespace asy {
 
 namespace detail {
 
+/* Per-process current host API. Set when a module_handle is constructed
+ * (i.e. on entry into the user's populate body). Allows casters whose
+ * `spec()` needs to call into the host (e.g. callable<...> needing
+ * make_function_type, result<T> needing result_class) to access the API
+ * without threading it through every caster signature. */
+inline const asybind_host_api_v1*& current_api() {
+  static const asybind_host_api_v1* p = nullptr;
+  return p;
+}
+
+/* Per-thunk-invocation current stack pointer. Set by the SDK's thunk
+ * wrappers before calling the user body so that helpers such as
+ * `callable<...>::operator()` and `ay::raise` can reach the host stack
+ * without each user function having to thread it through. */
+inline asybind_stack_ptr& current_stack() {
+  static thread_local asybind_stack_ptr s = nullptr;
+  return s;
+}
+
+/* RAII helper: scope the current stack to a thunk invocation. */
+struct stack_scope {
+  asybind_stack_ptr prev;
+  stack_scope(asybind_stack_ptr s) : prev(current_stack()) { current_stack() = s; }
+  ~stack_scope() { current_stack() = prev; }
+};
+
 /* === Per-type marshalling ============================================ */
 
 template <class T> struct caster;
 
 template <> struct caster<int> {
-  static asybind_type_spec spec() { return { ASYBIND_INT, nullptr }; }
+  static asybind_type_spec spec() { return { ASYBIND_INT, nullptr, nullptr }; }
   static int from_stack(asybind_stack_ptr s,
                         const asybind_host_api_v1* api) {
     return static_cast<int>(api->pop_int(s));
@@ -41,7 +67,7 @@ template <> struct caster<int> {
 };
 
 template <> struct caster<long long> {
-  static asybind_type_spec spec() { return { ASYBIND_INT, nullptr }; }
+  static asybind_type_spec spec() { return { ASYBIND_INT, nullptr, nullptr }; }
   static long long from_stack(asybind_stack_ptr s,
                               const asybind_host_api_v1* api) {
     return api->pop_int(s);
@@ -53,7 +79,7 @@ template <> struct caster<long long> {
 };
 
 template <> struct caster<double> {
-  static asybind_type_spec spec() { return { ASYBIND_REAL, nullptr }; }
+  static asybind_type_spec spec() { return { ASYBIND_REAL, nullptr, nullptr }; }
   static double from_stack(asybind_stack_ptr s,
                            const asybind_host_api_v1* api) {
     return api->pop_real(s);
@@ -65,7 +91,7 @@ template <> struct caster<double> {
 };
 
 template <> struct caster<bool> {
-  static asybind_type_spec spec() { return { ASYBIND_BOOL, nullptr }; }
+  static asybind_type_spec spec() { return { ASYBIND_BOOL, nullptr, nullptr }; }
   static bool from_stack(asybind_stack_ptr s,
                          const asybind_host_api_v1* api) {
     return api->pop_bool(s) != 0;
@@ -77,7 +103,7 @@ template <> struct caster<bool> {
 };
 
 template <> struct caster<std::string> {
-  static asybind_type_spec spec() { return { ASYBIND_STRING, nullptr }; }
+  static asybind_type_spec spec() { return { ASYBIND_STRING, nullptr, nullptr }; }
   static std::string from_stack(asybind_stack_ptr s,
                                 const asybind_host_api_v1* api) {
     const char* data = nullptr;
@@ -110,7 +136,7 @@ struct class_info {
 template <class T>
 struct caster<T*> {
   static asybind_type_spec spec() {
-    return { ASYBIND_USERPTR, class_info<T>::handle() };
+    return { ASYBIND_USERPTR, class_info<T>::handle(), nullptr };
   }
   static T* from_stack(asybind_stack_ptr s,
                        const asybind_host_api_v1* api) {
@@ -227,7 +253,7 @@ struct caster_or_void {
 };
 template <class T>
 struct caster_or_void<T, std::enable_if_t<std::is_void_v<T>>> {
-  static asybind_type_spec spec() { return { ASYBIND_VOID, nullptr }; }
+  static asybind_type_spec spec() { return { ASYBIND_VOID, nullptr, nullptr }; }
 };
 
 /* === module_ — author-facing module handle =========================== */
@@ -236,7 +262,9 @@ class module_handle {
 public:
   module_handle(asybind_module_ptr m,
                 const asybind_host_api_v1* api)
-    : m_(m), api_(api) {}
+    : m_(m), api_(api) {
+    detail::current_api() = api;
+  }
 
   template <class F>
   module_handle& def(const char* name, F&& f) {
@@ -251,6 +279,7 @@ public:
 
     asybind_thunk_t thunk = +[](asybind_stack_ptr s,
                                 const asybind_host_api_v1* api) {
+      detail::stack_scope ss(s);
       constexpr std::size_t N = std::tuple_size<Args>::value;
       if constexpr (N == 0) {
         invoke_zero(slot, s, api);
@@ -287,6 +316,16 @@ using module_ = detail::module_handle;
                                const char* msg) {
   api->raise(msg);
   std::abort();  /* unreachable; raise() does not return. */
+}
+
+/* Convenience overload using the current host API (set when the module's
+ * populate body runs). */
+[[noreturn]] inline void raise(const char* msg) {
+  detail::current_api()->raise(msg);
+  std::abort();
+}
+[[noreturn]] inline void raise(const std::string& msg) {
+  raise(msg.c_str());
 }
 
 }  /* namespace asy */

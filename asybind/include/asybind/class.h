@@ -94,6 +94,7 @@ void invoke_method(C* self, asybind_stack_ptr s,
 template <auto MFn>
 void method_thunk(asybind_stack_ptr s,
                   const asybind_host_api_v1* api) {
+  stack_scope ss(s);
   using Traits = mfn_traits<decltype(MFn)>;
   using C      = typename Traits::class_type;
   using R      = typename Traits::result;
@@ -119,6 +120,7 @@ void method_thunk(asybind_stack_ptr s,
 template <auto PMD>
 void readonly_field_thunk(asybind_stack_ptr s,
                           const asybind_host_api_v1* api) {
+  stack_scope ss(s);
   using Traits = pmd_traits<decltype(PMD)>;
   using C      = typename Traits::class_type;
   using F      = typename Traits::field_type;
@@ -143,11 +145,12 @@ public:
   class_& def(init<>) {
     asybind_thunk_t thunk = +[](asybind_stack_ptr s,
                                 const asybind_host_api_v1* api) {
+      detail::stack_scope ss(s);
       void* mem = api->alloc_obj(sizeof(T));
       ::new (mem) T();
       api->push_obj(s, mem);
     };
-    asybind_type_spec restype{ ASYBIND_USERPTR, handle_ };
+    asybind_type_spec restype{ ASYBIND_USERPTR, handle_, nullptr };
     m_.api()->add_func(m_.handle(), name_, thunk, restype,
                        /*nargs=*/0, /*argtypes=*/nullptr);
     return *this;

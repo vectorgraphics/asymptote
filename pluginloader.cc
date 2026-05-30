@@ -1,17 +1,15 @@
 /*****
  * pluginloader.cc
- * Loader for C++ plugin modules (asybind) — Phase 1.
+ * Loader for C++ plugin modules (asybind) — Phase 2.
  *
- * Phase 1 adds class support on top of the Phase 0 free-function loader:
- *   - create_class:        create an asy-side `record` type representing a
- *                          C++ class, registered in the module's type env.
- *   - add_method:          register a method on the class as a
- *                          virtualFieldAccess (getter + caller); the
- *                          getter materialises a bound callable for
- *                          method-as-value use (`f = obj.m;`).
- *   - add_readonly_field:  register a virtual readonly field on the class.
- *   - alloc_obj/push_obj/pop_obj: marshal opaque GC pointers across the
- *                          ABI for class instances.
+ * Phase 2 adds, on top of Phase 1:
+ *   - make_function_type:  cache and return a types::function* for use as
+ *                          an asy function type in signatures.
+ *   - push_callable/pop_callable/invoke_callable: marshal and invoke
+ *                          asy callables (vm::callable*) from C++.
+ *   - result_class:        synthesize (and cache) a `result_T` record
+ *                          carrying readonly `bool found` and `T value`.
+ *   - push_result:         construct and push a `result_T` instance.
  *****/
 
 #include "pluginloader.h"
@@ -205,13 +203,14 @@ public:
 
 ty* spec_to_type(const asybind_type_spec& spec) {
   switch (spec.tag) {
-    case ASYBIND_VOID:    return primVoid();
-    case ASYBIND_INT:     return primInt();
-    case ASYBIND_REAL:    return primReal();
-    case ASYBIND_BOOL:    return primBoolean();
-    case ASYBIND_STRING:  return primString();
-    case ASYBIND_USERPTR: return reinterpret_cast<pluginRecord*>(spec.cls);
-    default:              return nullptr;
+    case ASYBIND_VOID:     return primVoid();
+    case ASYBIND_INT:      return primInt();
+    case ASYBIND_REAL:     return primReal();
+    case ASYBIND_BOOL:     return primBoolean();
+    case ASYBIND_STRING:   return primString();
+    case ASYBIND_USERPTR:  return reinterpret_cast<pluginRecord*>(spec.cls);
+    case ASYBIND_FUNCTION: return reinterpret_cast<function*>(spec.fnty);
+    default:               return nullptr;
   }
 }
 
@@ -406,6 +405,165 @@ void* host_pop_obj(asybind_stack_ptr s) {
   return static_cast<void*>(vm::pop<PluginInstance*>(as_stack(s)));
 }
 
+// =====================================================================
+//  Phase 2: function-type cache.
+//
+//  We dedupe function types by structural equivalence so that the asy
+//  type-comparison machinery (e.g. checking that a callable argument
+//  matches a registered formal) sees the same `function*` instance for
+//  repeated registrations of the same signature.
+// =====================================================================
+
+struct FuncTyCacheEntry {
+  function* fn;
+};
+mem::list<FuncTyCacheEntry> g_funcTyCache;
+
+asybind_funty_ptr host_make_function_type(asybind_type_spec restype,
+                                          int nargs,
+                                          const asybind_type_spec* argtypes) {
+  function* fn = build_function_type(restype, nargs, argtypes,
+                                     "callable type");
+  if (!fn) return nullptr;
+  // Dedupe via structural equivalence.
+  for (auto& e : g_funcTyCache) {
+    if (equivalent(e.fn, fn)) return reinterpret_cast<asybind_funty_ptr>(e.fn);
+  }
+  g_funcTyCache.push_back({fn});
+  return reinterpret_cast<asybind_funty_ptr>(fn);
+}
+
+// =====================================================================
+//  Phase 2: asy callable marshalling and dispatch.
+// =====================================================================
+
+asybind_callable_ptr host_pop_callable(asybind_stack_ptr s) {
+  vm::callable* c = vm::pop<vm::callable*>(as_stack(s));
+  return reinterpret_cast<asybind_callable_ptr>(c);
+}
+
+void host_push_callable(asybind_stack_ptr s, asybind_callable_ptr c) {
+  as_stack(s)->push<vm::callable*>(reinterpret_cast<vm::callable*>(c));
+}
+
+void host_invoke_callable(asybind_stack_ptr s, asybind_callable_ptr c) {
+  reinterpret_cast<vm::callable*>(c)->call(as_stack(s));
+}
+
+// =====================================================================
+//  Phase 2: result<T> synthesis.
+//
+//  A result_class is a pluginRecord with two readonly virtual fields:
+//    bool found;
+//    T    value;
+//  Each instance is a small GC-allocated `ResultInstance` carrying the
+//  found flag and a vm::item holding the value (preserving its dynamic
+//  type tag, so that re-pushing it during a field read yields a stack
+//  item that the asy compiler will accept at the field's declared type).
+// =====================================================================
+
+struct ResultInstance {
+  bool       found;
+  vm::item   value;
+};
+
+// Each result class gets two dedicated getter bltins that close over the
+// known field offset. To avoid per-class static thunk slots we just use
+// `g_slots` (the regular plugin-thunk pool) for getters that don't need
+// any per-instance state beyond the receiver: we generate one C++ stub
+// per (class, field) and store it in the pool.
+
+void result_getter_found(asybind_stack_ptr s,
+                         const asybind_host_api_v1* api) {
+  ResultInstance* r = static_cast<ResultInstance*>(api->pop_obj(s));
+  api->push_bool(s, r->found ? 1 : 0);
+}
+
+void result_getter_value(asybind_stack_ptr s,
+                         const asybind_host_api_v1* api) {
+  ResultInstance* r = static_cast<ResultInstance*>(api->pop_obj(s));
+  // Re-push the stored vm::item with its original type tag intact. If
+  // !found the stored item is default-constructed; the asy side must
+  // check `found` before reading `value`.
+  as_stack(s)->push(r->value);
+}
+
+// Cache key for result classes: composite of element spec fields.
+struct ResultCacheKey {
+  int tag;
+  void* cls_or_fnty;  // class_ptr for USERPTR, fnty for FUNCTION, else null
+  bool operator==(const ResultCacheKey& o) const {
+    return tag == o.tag && cls_or_fnty == o.cls_or_fnty;
+  }
+};
+
+struct ResultCacheEntry {
+  ResultCacheKey key;
+  asybind_class_ptr cls;
+};
+mem::list<ResultCacheEntry> g_resultCache;
+
+asybind_class_ptr host_result_class(asybind_type_spec elem) {
+  void* extra = nullptr;
+  if (elem.tag == ASYBIND_USERPTR)       extra = elem.cls;
+  else if (elem.tag == ASYBIND_FUNCTION) extra = elem.fnty;
+  ResultCacheKey key{elem.tag, extra};
+  for (auto& e : g_resultCache) {
+    if (e.key == key) return e.cls;
+  }
+
+  ty* elemTy = spec_to_type(elem);
+  if (!elemTy || elem.tag == ASYBIND_VOID) {
+    em.compiler(nullPos);
+    em << "asybind: invalid element type for result_class";
+    em.sync(true);
+    return nullptr;
+  }
+
+  // Use a synthetic, stable name. The name is not really observable to
+  // asy code (result types are typically used via `var r = f(...)` and
+  // accessed by field), but it shows up in error messages.
+  static int seq = 0;
+  std::string nameStd = "result_" + std::to_string(++seq);
+  sym::symbol id = symbol::trans(nameStd.c_str());
+  auto* cls = new pluginRecord(id);
+
+  // Register `bool found` and `T value` as readonly virtual fields.
+  {
+    vm::bltin getter = allocate_bltin_for(&result_getter_found);
+    auto* access = new trans::virtualFieldAccess(getter);
+    cls->e.addVar(symbol::trans("found"),
+                  new trans::varEntry(primBoolean(), access, trans::PUBLIC,
+                                      cls, cls, nullPos));
+  }
+  {
+    vm::bltin getter = allocate_bltin_for(&result_getter_value);
+    auto* access = new trans::virtualFieldAccess(getter);
+    cls->e.addVar(symbol::trans("value"),
+                  new trans::varEntry(elemTy, access, trans::PUBLIC,
+                                      cls, cls, nullPos));
+  }
+
+  auto handle = reinterpret_cast<asybind_class_ptr>(cls);
+  g_resultCache.push_back({key, handle});
+  return handle;
+}
+
+void host_push_result(asybind_stack_ptr s, asybind_class_ptr /*result_cls*/,
+                      int found) {
+  ResultInstance* r =
+      static_cast<ResultInstance*>(GC_MALLOC(sizeof(ResultInstance)));
+  new (r) ResultInstance{};
+  r->found = (found != 0);
+  if (found) {
+    // Pop the value off the top, preserving its dynamic type tag.
+    r->value = as_stack(s)->pop();
+  }
+  // Reuse the same opaque-pointer tagging as class instances so the asy
+  // compiler's USERPTR path works uniformly.
+  as_stack(s)->push<PluginInstance*>(reinterpret_cast<PluginInstance*>(r));
+}
+
 const asybind_host_api_v1 g_host_api = {
   &host_push_int,
   &host_push_real,
@@ -423,6 +581,12 @@ const asybind_host_api_v1 g_host_api = {
   &host_alloc_obj,
   &host_push_obj,
   &host_pop_obj,
+  &host_make_function_type,
+  &host_pop_callable,
+  &host_push_callable,
+  &host_invoke_callable,
+  &host_result_class,
+  &host_push_result,
 };
 
 // =====================================================================

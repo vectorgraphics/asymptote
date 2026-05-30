@@ -8,5 +8,7 @@
 #include "abi.h"
 #include "module.h"
 #include "class.h"
+#include "callable.h"
+#include "result.h"
 
 #endif
