@@ -678,13 +678,19 @@ const asybind_host_api_v1 g_host_api = {
 //  Filename resolution and dl wrapper.
 // =====================================================================
 
-string platform_lib_name(const string& base) {
+string platform_lib_name(const string& path) {
+  /* Split the (possibly nested) module path into directory + basename,
+   * so that for `from a.b.c access ...` we produce
+   * `a/b/libc.so` rather than `liba/b/c.so`. */
+  size_t slash = path.find_last_of('/');
+  string dir = (slash == string::npos) ? "" : path.substr(0, slash + 1);
+  string base = (slash == string::npos) ? path : path.substr(slash + 1);
 #if defined(_WIN32)
-  return base + ".dll";
+  return dir + base + ".dll";
 #elif defined(__APPLE__)
-  return "lib" + base + ".dylib";
+  return dir + "lib" + base + ".dylib";
 #else
-  return "lib" + base + ".so";
+  return dir + "lib" + base + ".so";
 #endif
 }
 
@@ -787,9 +793,21 @@ record* make_plugin_record(sym::symbol id) {
   // dereferences a null `program*` and crashes.
   vm::lambda* initLambda = rec->getInit();
   initLambda->code = new vm::program();
+  // Set framesize to match the record's frame so the VM allocates enough
+  // stack slots when entering the init.  Without this, framesize defaults
+  // to 0 and the DOESNT_NEED_CLOSURE branch of runWithOrWithoutClosure
+  // mis-sizes the activation record, eventually causing a stack underflow.
+  initLambda->framesize = rec->getLevel()->size();
+  // Force NEEDS_CLOSURE by emitting pushclosure: the init must leave the
+  // record's vmFrame on the stack as its return value so stack::loadModule
+  // can store it in the instMap.  pushclosure also disqualifies the body
+  // from the DOESNT_NEED_CLOSURE optimization, which would otherwise
+  // mishandle the empty body (no frame allocated, top-of-stack bogus).
   vm::inst i;
-  i.op = vm::inst::ret;
+  i.op = vm::inst::pushclosure;
   i.pos = nullPos;
+  initLambda->code->encode(i);
+  i.op = vm::inst::ret;
   initLambda->code->encode(i);
   return rec;
 }

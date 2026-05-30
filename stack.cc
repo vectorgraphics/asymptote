@@ -387,11 +387,12 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 #endif
 
           case inst::ret: {
-            if (vars == 0)
+            if (vars == 0) {
               // Delete the frame from the stack.
               // TODO: Optimize for common cases.
               theStack.erase(theStack.begin() + frameStart,
                              theStack.begin() + frameStart + frameSize);
+            }
             return;
           }
 
@@ -437,7 +438,8 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
             vars_t frame = pop<vars_t>();
             if (!frame)
               error(dereferenceNullPointer);
-            push(FRAMEVAR(frame, get<Int>(i)));
+            item& v = FRAMEVAR(frame, get<Int>(i));
+            push(v);
             break;
           }
 
