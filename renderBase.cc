@@ -101,6 +101,10 @@ double AsyRender::getRenderResolution(triple Min) const
 // Default implementations for virtual methods that can have generic behavior
 void AsyRender::setDimensions(int Width, int Height, double X, double Y)
 {
+  // Guard against zero dimensions to prevent division by zero (SIGFPE).
+  if(Width <= 0) Width = 1;
+  if(Height <= 0) Height = 1;
+
   double aspect = ((double) Width) / Height;
   double xshift = (X / (double) Width + Shift.getx() * Xfactor) * Zoom;
   double yshift = (Y / (double) Height + Shift.gety() * Yfactor) * Zoom;
@@ -947,8 +951,22 @@ void AsyRender::initDisplay(int contentWidth, int contentHeight)
 
   fitAspect(w, h);
 
-  Width = w;
-  Height = h;
+  if(View) {
+    Width = w;
+    Height = h;
+  } else {
+    // For offscreen rendering, use the expanded dimensions.
+    // OpenGL uses fullWidth/fullHeight in its Export() tiling loop; Vulkan needs
+    // Width/Height to reflect the expanded size so createOffscreenBuffers() allocates
+    // frames at the correct resolution.
+    Width = fullWidth;
+    Height = fullHeight;
+  }
+
+  // Guard against zero dimensions (e.g., headless rendering with no monitor)
+  // to avoid division by zero in setDimensions() and ArcballFactor computation.
+  if(Width <= 0) Width = 1;
+  if(Height <= 0) Height = 1;
 
   home();
 

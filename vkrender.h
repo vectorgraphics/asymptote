@@ -171,6 +171,7 @@ private:
   std::uint32_t maxSize=1;
   bool resetDepth=false;
   bool vkinitialize=true;
+  uint64_t vkTimeout; // Vulkan wait timeout in nanoseconds; set per-device in pickPhysicalDevice
 
   size_t nmaterials=1; // Number of materials currently allocated in memory
 

