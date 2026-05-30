@@ -951,8 +951,17 @@ void AsyRender::initDisplay(int contentWidth, int contentHeight)
 
   fitAspect(w, h);
 
-  Width = w;
-  Height = h;
+  if(View) {
+    Width = w;
+    Height = h;
+  } else {
+    // For offscreen rendering, use the expanded dimensions.
+    // OpenGL uses fullWidth/fullHeight in its Export() tiling loop; Vulkan needs
+    // Width/Height to reflect the expanded size so createOffscreenBuffers() allocates
+    // frames at the correct resolution.
+    Width = fullWidth;
+    Height = fullHeight;
+  }
 
   // Guard against zero dimensions (e.g., headless rendering with no monitor)
   // to avoid division by zero in setDimensions() and ArcballFactor computation.

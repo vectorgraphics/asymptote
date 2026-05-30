@@ -340,11 +340,6 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
   if(!(initialized && interact::interactive)) {
     antialias=settings::getSetting<Int>("antialias") > 1;
 
-    double expand=settings::getSetting<double>("render");
-    if(expand < 0)
-      expand *= (Format.empty() || Format == "eps" || Format == "pdf") ? -2.0 : -1.0;
-    if(antialias) expand *= 2.0;
-
     Aspect = args.width/args.height;
 
     // On macOS with llvmpipe (no Metal), don't create a GLFW window -
@@ -4705,8 +4700,8 @@ void AsyVkRender::Export(int imageIndex) {
   else h=(int) (w/Aspect+0.5);
 
   if(settings::verbose > 1)
-    cout << "Exporting " << Prefix << " as " << fullWidth << "x"
-         << fullHeight << " image" << endl;
+    cout << "Exporting " << Prefix << " as " << backbufferExtent.width << "x"
+         << backbufferExtent.height << " image" << endl;
 
   auto * const Image=new camp::drawRawImage(fmt,
                                             backbufferExtent.width,

@@ -38,7 +38,7 @@ extern bool safe;
 bool globalread();
 bool globalwrite();
 
-extern bool readAnyFile;
+extern bool haveReadFile;
 bool curlEnabled();
 
 extern const string suffix;
