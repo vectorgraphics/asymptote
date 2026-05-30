@@ -590,13 +590,13 @@ maintainer-clean: FORCE cleanest
 
 test: asy FORCE
 	./wce
-	$(MAKE) -C tests
+	$(MAKE) -C tests CXX="$(CXX)" CXX_STANDARD="$(CXX_STANDARD)" ASYBIND_INCLUDE="-I$(CURDIR)/asybind/include"
 
 check: test
 
 check-all: asy FORCE
 	./wce
-	$(MAKE) -C tests all
+	$(MAKE) -C tests all CXX="$(CXX)" CXX_STANDARD="$(CXX_STANDARD)" ASYBIND_INCLUDE="-I$(CURDIR)/asybind/include"
 
 glew.o: glew.c config.h
 	$(CC) $(GLEWOPTS) -o $@ -c $<
