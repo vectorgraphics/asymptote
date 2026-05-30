@@ -8,25 +8,8 @@
 #include <asybind/asybind.h>
 
 #include <cstdint>
-#include <cstring>
-#include <vector>
 
 namespace {
-
-// Allocate a zero-filled array via asy's GC so that the contents are
-// scanned conservatively and any HashEntry* stored inside remains
-// reachable.  Using std::vector here is unsafe: its backing buffer
-// lives in the system heap and is invisible to the GC, so entries can
-// be collected while still "in use", producing crashes in unrelated
-// code after a later allocation.
-template <class T>
-T* gc_array(size_t n) {
-    if (n == 0) return nullptr;
-    void* mem = ay::detail::current_api()->alloc_obj(n * sizeof(T));
-    if (!mem) ay::raise("hashset_core: gc_array allocation failed");
-    std::memset(mem, 0, n * sizeof(T));
-    return static_cast<T*>(mem);
-}
 
 struct HashEntry {
     ay::Any  item;
@@ -57,10 +40,10 @@ struct HashSetCore_T {
     ay::callable<bool(ay::Any, ay::Any)>   equivFn;
     ay::callable<bool(ay::Any)>            isNullTFn;   // may be null
 
-    // GC-allocated bucket array (an asy::vector<...> equivalent that the
-    // GC can scan).  Holds n_buckets HashEntry* slots.
-    HashEntry** buckets   = nullptr;
-    int       n_buckets   = 0;
+    // GC-tracked bucket array.  `ay::mem::vector` allocates its
+    // backing buffer on asy's scanned GC heap, so any non-null
+    // HashEntry* stored inside is kept reachable.
+    ay::mem::vector<HashEntry*> buckets;
     int       size_      = 0;
     int       zombies    = 0;
     int       numChanges = 0;
@@ -84,10 +67,11 @@ struct HashSetCore_T {
 
     void changeCapacity() {
         ++numChanges;
-        const int n = n_buckets;
+        const int n = static_cast<int>(buckets.size());
         const int newCap = (zombies > size_) ? n : 2 * n;
         zombies = 0;
-        HashEntry** next = gc_array<HashEntry*>(newCap);
+        ay::mem::vector<HashEntry*> next(static_cast<std::size_t>(newCap),
+                                         nullptr);
         for (HashEntry* cur = oldest; cur; cur = cur->newer) {
             const int start = bucketIndex(cur->hash, newCap);
             bool placed = false;
@@ -104,15 +88,14 @@ struct HashSetCore_T {
                 ay::raise("No space in hash table; "
                           "is the linked list circular?");
         }
-        buckets = next;
-        n_buckets = newCap;
+        buckets = std::move(next);
     }
 
     // Returns the bucket index in [0, n) of either the existing entry
     // matching `item`, or the first empty slot encountered.
     // Returns -1 if all n probes saw zombie/non-matching entries.
     int find(ay::Any item, long long hash) {
-        const int n = n_buckets;
+        const int n = static_cast<int>(buckets.size());
         const int start = bucketIndex(hash, n);
         for (int i = 0; i < n; ++i) {
             int idx = start + i;
@@ -143,8 +126,7 @@ struct HashSetCore_T {
         equivFn   = equivFn_;
         isNullTFn = isNullTFn_;
         if (initialCapacity < 1) initialCapacity = 1;
-        buckets = gc_array<HashEntry*>(initialCapacity);
-        n_buckets = initialCapacity;
+        buckets.assign(static_cast<std::size_t>(initialCapacity), nullptr);
         size_ = 0;
         zombies = 0;
         numChanges = 0;
@@ -152,7 +134,7 @@ struct HashSetCore_T {
     }
 
     int  size()        const { return size_; }
-    int  capacity()    const { return n_buckets; }
+    int  capacity()    const { return static_cast<int>(buckets.size()); }
     int  numChangesV() const { return numChanges; }
     bool hasNullT()    const { return static_cast<bool>(isNullTFn); }
 
