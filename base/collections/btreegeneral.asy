@@ -89,14 +89,14 @@ struct BTreeSet_T {
   super.atOrAfter = new T(T x) {
     var r = core.atOrAfter(x);
     if (r.found) return (T)r.value;
-    assert(isNullT != null, 'No element atOrAfter item to return');
+    assert(isNullT != null, 'No element after item to return');
     return nullT;
   };
 
   super.atOrBefore = new T(T x) {
     var r = core.atOrBefore(x);
     if (r.found) return (T)r.value;
-    assert(isNullT != null, 'No element atOrBefore item to return');
+    assert(isNullT != null, 'No element before item to return');
     return nullT;
   };
 

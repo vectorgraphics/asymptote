@@ -248,7 +248,7 @@ def run_tests(runner: TestRunner) -> None:
           h["new_key"] = 99;
         }
         """,
-        r"assert FAILED: Concurrent modification",
+        r"runtime: Concurrent modification",
     )
 
     runner.check(
@@ -307,7 +307,7 @@ def run_tests(runner: TestRunner) -> None:
           h["new_key"] = 99;
         }
         """,
-        r"assert FAILED: Concurrent modification",
+        r"runtime: Concurrent modification",
     )
 
     # -----------------------------------------------------------------------
@@ -366,7 +366,7 @@ def run_tests(runner: TestRunner) -> None:
           s.add(99);
         }
         """,
-        r"assert FAILED: Concurrent modification",
+        r"runtime: Concurrent modification",
     )
 
     # -----------------------------------------------------------------------
@@ -499,7 +499,7 @@ def run_tests(runner: TestRunner) -> None:
           bs.add(99);
         }
         """,
-        r"assert FAILED: Concurrent modification",
+        r"runtime: Concurrent modification",
     )
 
     end_groups()
