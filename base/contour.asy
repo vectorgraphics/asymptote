@@ -352,13 +352,13 @@ guide[][] contour(picture pic=currentpicture, pair[][] z, real[][] f,
         }
         real vertdat4=fmm-C;
         addseg(checktriangle(bright,tright,middle,
-                             vertdat1,vertdat3,vertdat4,0),0,close.rangeTol));
+                             vertdat1,vertdat3,vertdat4,0,close.rangeTol),0);
         addseg(checktriangle(tright,tleft,middle,
-                             vertdat3,vertdat2,vertdat4,1),1,close.rangeTol));
+                             vertdat3,vertdat2,vertdat4,1,close.rangeTol),1);
         addseg(checktriangle(tleft,bleft,middle,
-                             vertdat2,vertdat0,vertdat4,2),2,close.rangeTol));
+                             vertdat2,vertdat0,vertdat4,2,close.rangeTol),2);
         addseg(checktriangle(bleft,bright,middle,
-                             vertdat0,vertdat1,vertdat4,3),3,close.rangeTol));
+                             vertdat0,vertdat1,vertdat4,3,close.rangeTol),3);
         return 0;
       }
 
