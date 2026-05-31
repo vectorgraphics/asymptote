@@ -640,21 +640,17 @@ abstract class Geometry {
   }
 
   T(v) {
-    // First, apply the transform to the center point to get its transformed position
-    let centerTrans = this.transform ? this.transform([this.c])[0] : this.c;
+    // Apply the transform to the center point to get its transformed position
+    let centerTrans=this.transform ? this.transform([this.c])[0] : this.c;
 
     // Calculate the offset of the original vertex relative to the original center (this.c)
-    let dx = v[0] - this.c[0];
-    let dy = v[1] - this.c[1];
-    let dz = v[2] - this.c[2];
+    let x=v[0]-this.c[0];
+    let y=v[1]-this.c[1];
+    let z=v[2]-this.c[2];
 
-    // Apply the Billboard transformation (normMat) to the offset,
-    // and add the result to the transformed center point position
-    return [
-        dx * normMat[0] + dy * normMat[3] + dz * normMat[6] + centerTrans[0],
-        dx * normMat[1] + dy * normMat[4] + dz * normMat[7] + centerTrans[1],
-        dx * normMat[2] + dy * normMat[5] + dz * normMat[8] + centerTrans[2]
-    ];
+    return [x*normMat[0]+y*normMat[3]+z*normMat[6]+centerTrans[0],
+            x*normMat[1]+y*normMat[4]+z*normMat[7]+centerTrans[1],
+            x*normMat[2]+y*normMat[5]+z*normMat[8]+centerTrans[2]];
   }
 
   Tcorners(m,M) {
@@ -710,25 +706,13 @@ abstract class Geometry {
       v=corners(this.Min,this.Max);
     else {
       this.c=W.Centers[this.CenterIndex-1];
-      v=this.Tcorners(this.Min,this.Max);
+      v=this.transform ? p : this.Tcorners(this.Min,this.Max);
     }
 
-    // In render() method around line 716
-    if(this.CenterIndex != 0 && this.transform) {
-      // For billboards with transforms, check offscreen using actual transformed points
-      let transformedPoints = this.controlpoints.map(point => this.T(point));
-      if(this.offscreen(transformedPoints)) {
-        this.data.clear();
-        this.notRendered();
-        return;
-      }
-    } else {
-      // Regular offscreen check for non-billboards
-      if(this.offscreen(v)) {
-        this.data.clear();
-        this.notRendered();
-        return;
-      }
+    if(this.offscreen(v)) { // Fully offscreen
+      this.data.clear();
+      this.notRendered();
+      return;
     }
 
     let P;
@@ -3547,8 +3531,8 @@ function animatedGeometry(){
 
   return function(controlpoints: vec3[]): vec3[] {
     let cp=toUser(controlpoints);
-    // Process stack in reverse order - inner transforms first
-    for(let i = stack.length - 1; i >= 0; i--) {
+    // Process stack in reverse order: inner transforms first
+    for(let i=stack.length-1; i >= 0; i--) {
       const {geometryTransform,durationInv} = stack[i];
       const t=min(playbackTime*durationInv,1.0);
       cp=transformCP(cp,t,geometryTransform);
@@ -3563,8 +3547,8 @@ function animatedColor() {
 
   return function(color,p) {
     let P=toUser([p[0],p[12],p[15],p[3]]);
-    // Process stack in reverse order - inner transforms first
-    for(let i = stack.length - 1; i >= 0; i--) {
+    // Process stack in reverse order: inner transforms first
+    for(let i=stack.length-1; i >= 0; i--) {
       const {colorTransform,durationInv} = stack[i];
       const t=min(playbackTime*durationInv,1.0);
       color=transformColor(
@@ -4223,7 +4207,7 @@ function webGLStart()
 }
 
 function updateScene() {
-    remesh = true;
+    remesh=true;
     drawScene();
 }
 
