@@ -1245,6 +1245,12 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     // For non-View rendering, hide the window during creation to prevent flash
     if(!View)
       glfwWindowHint(GLFW_VISIBLE, 0);
+    else {
+      // Enable multisampling only for visible windows (matches reference GLUT behavior)
+      Int multisample = getSetting<Int>("multisample");
+      if(multisample > 1)
+        glfwWindowHint(GLFW_SAMPLES, multisample);
+    }
 
     fpu_trap(false); // Work around FE_INVALID in Mesa/libgallium during GL initialization
     GLFWwindow* newWindow = glfwCreateRenderWindow(Width, Height, title.empty() ? Prefix.c_str() : title.c_str(), this);

