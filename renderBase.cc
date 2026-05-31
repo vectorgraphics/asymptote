@@ -447,6 +447,7 @@ void AsyRender::reshape(int width, int height)
 
 void AsyRender::fitscreen(bool reposition)
 {
+  remesh = true;
   switch(Fitscreen) {
     case 0: // Original size: use saved framebuffer dimensions
     {
@@ -487,6 +488,7 @@ void AsyRender::home()
   lastzoom = Zoom = Zoom0;
   framecount = 0;
 
+  remesh = true;
   setProjection();
   updateModelViewData();
 }
