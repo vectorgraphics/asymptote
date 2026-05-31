@@ -156,7 +156,7 @@ let roughnessStepCount=8;
 
 class Material {
 
-  constructor(public diffuse,public emissive, public specular, public shininess,public metallic,public fresnel0) {
+  constructor(public diffuse,public emissive, public specular, public shininess,public metallic,public fresnel0,public lightOn=true) {
   }
 
   setUniform(program,index) {
@@ -168,7 +168,7 @@ class Material {
     gl.uniform4fv(getLoc("specular"),new Float32Array(this.specular));
 
     gl.uniform4f(getLoc("parameters"),this.shininess,this.metallic,
-                 this.fresnel0,0);
+                 this.fresnel0,this.lightOn);
   }
 }
 
@@ -196,7 +196,7 @@ function initShaders(ibl=false)
   const pixelOpt=["WIDTH"];
   const materialOpt=["NORMAL"];
   const colorOpt=["NORMAL","COLOR"];
-  const transparentOpt=["NORMAL","COLOR","TRANSPARENT"];
+  const transparentOpt=["NORMAL","COLOR","GENERAL"];
 
   if(ibl) {
     materialOpt.push('USE_IBL');
@@ -3707,10 +3707,10 @@ function light(direction,color)
   Lights.push(new Light(direction,color));
 }
 
-function material(diffuse,emissive,specular,shininess,metallic,fresnel0)
+function material(diffuse,emissive,specular,shininess,metallic,fresnel0,lightOn)
 {
   Materials.push(new Material(diffuse,emissive,specular,shininess,metallic,
-                              fresnel0));
+                              fresnel0,lightOn));
 }
 
 function patch(controlpoints,CenterIndex,MaterialIndex,color)

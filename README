@@ -73,6 +73,9 @@ https://github.com/xiaozhuai/readline-win32
 zlib1:
 https://github.com/madler/zlib/releases/tag/v1.3.1
 
+vulkan_lvp.dll:
+https://github.com/mmozeiko/build-mesa/releases/download/26.0.6/mesa-lavapipe-x64-26.0.6.7z
+
 ========================================================================
 
 Source for various icons is available under the MIT license from
@@ -82,3 +85,13 @@ under the CC-BY-SA 4.0 license:
 http://www.entypo.com/
 and under a CC license:
 http://www.zondicons.com/zondicons.zip
+
+========================================================================
+
+THIRD-PARTY COMPONENTS
+
+Asymptote includes several third-party libraries (span-lite, wyhash,
+Boehm GC, LspCpp, libatomic_ops, GLEW, TinyEXR), each with their own
+license terms.  See LICENSES-THIRD-PARTY.md for the component list, or
+run asy --licenses=full to print the full license texts from the installed
+licenses/ directory.
