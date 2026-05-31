@@ -18,6 +18,41 @@ triple coons3(path3 external) {
     (point(external,0)+point(external,1)+point(external,2))/6;
 }
 
+// Describes the patch (and edge thereof) that adjoins a particular edge of
+// a particular patch in a surface. See surface.neighbors.
+struct edgeInfo {
+  int patch=-1;        // index into surface.s; -1 if no adjoining patch
+  int edge=-1;         // edge index on the adjoining patch (0..3 or 0..2)
+  bool reversed=false; // true iff the two edges traverse the shared
+                       // segment in opposite directions
+  
+  void operator init(int patch, int edge, bool reversed) {
+    this.patch=patch;
+    this.edge=edge;
+    this.reversed=reversed;
+  }
+  void operator init(edgeInfo e) {
+    this.patch=e.patch;
+    this.edge=e.edge;
+    this.reversed=e.reversed;
+  }
+}
+
+// Deep-copy an edgeInfo[][] (so callers can mutate without aliasing).
+edgeInfo[][] copyNeighbors(edgeInfo[][] src) {
+  edgeInfo[][] dst=new edgeInfo[src.length][];
+  for(int i=0; i < src.length; ++i) {
+    edgeInfo[] srci=src[i];
+    edgeInfo[] dsti=new edgeInfo[srci.length];
+    for(int j=0; j < srci.length; ++j) {
+      edgeInfo e=srci[j];
+      dsti[j]=edgeInfo(e);
+    }
+    dst[i]=dsti;
+  }
+  return dst;
+}
+
 struct patch {
   triple[][] P;
   pen[] colors;     // Optionally specify corner colors.
@@ -767,6 +802,13 @@ struct surface {
   primitive primitive=null;
   bool PRCprimitive=true; // True unless no PRC primitive is available.
 
+  // Adjacency information.  If neighbors.length > 0, it has length s.length
+  // and neighbors[k][e] describes the patch (if any) sharing edge e of
+  // patch s[k], where e is the integer start time of that edge in the
+  // patch's external() (or externaltriangular()) path.  An empty
+  // neighbors array means adjacency has not been computed.
+  edgeInfo[][] neighbors;
+
   bool empty() {
     return s.length == 0;
   }
@@ -785,6 +827,7 @@ struct surface {
       this.s[i]=patch(s.s[i]);
     this.index=copy(s.index);
     this.vcyclic=s.vcyclic;
+    this.neighbors=copyNeighbors(s.neighbors);
   }
 
   void operator init(triple[][][] P, pen[][] colors=new pen[][],
@@ -853,6 +896,53 @@ struct surface {
   bool vcyclic()
   {
     return vcyclic;
+  }
+
+  // Populate `neighbors` using the u/v grid encoded in `index`, assuming
+  // each grid cell holds a 4-sided patch whose corners P[0][0], P[3][0],
+  // P[3][3], P[0][3] correspond to grid points (i,j), (i+1,j), (i+1,j+1),
+  // (i,j+1) respectively.  If `active` is non-empty, active[i][j]
+  // indicates whether grid cell (i,j) actually contains a patch (used
+  // when `cond` filtering left holes in the grid).  Honors ucyclic() and
+  // vcyclic() to wrap around at the grid boundaries.
+  void buildGridNeighbors(bool[][] active=new bool[][]) {
+    neighbors=new edgeInfo[s.length][];
+    for(int k=0; k < s.length; ++k)
+      neighbors[k]=new edgeInfo[] {new edgeInfo,new edgeInfo,
+                                   new edgeInfo,new edgeInfo};
+    if(index.length == 0) return;
+    int nU=index.length;
+    int nV=index[0].length;
+    bool allActive=active.length == 0;
+    bool uc=ucyclic();
+    bool vc=vcyclic();
+    bool act(int i, int j) {
+      if(i < 0 || i >= nU || j < 0 || j >= nV) return false;
+      return allActive || active[i][j];
+    }
+    for(int i=0; i < nU; ++i) {
+      int[] indexi=index[i];
+      for(int j=0; j < nV; ++j) {
+        if(!act(i,j)) continue;
+        int k=indexi[j];
+        // edge 0: (i,j)->(i+1,j); neighbor at (i,j-1) edge 2
+        int jm=j == 0 ? (vc ? nV-1 : -1) : j-1;
+        if(act(i,jm))
+          neighbors[k][0]=edgeInfo(index[i][jm],2,true);
+        // edge 1: (i+1,j)->(i+1,j+1); neighbor at (i+1,j) edge 3
+        int ip=i == nU-1 ? (uc ? 0 : -1) : i+1;
+        if(act(ip,j))
+          neighbors[k][1]=edgeInfo(index[ip][j],3,true);
+        // edge 2: (i+1,j+1)->(i,j+1); neighbor at (i,j+1) edge 0
+        int jp=j == nV-1 ? (vc ? 0 : -1) : j+1;
+        if(act(i,jp))
+          neighbors[k][2]=edgeInfo(index[i][jp],0,true);
+        // edge 3: (i,j+1)->(i,j); neighbor at (i-1,j) edge 1
+        int im=i == 0 ? (uc ? nU-1 : -1) : i-1;
+        if(act(im,j))
+          neighbors[k][3]=edgeInfo(index[im][j],1,true);
+      }
+    }
   }
 
   path3 uequals(real u) {
@@ -1040,6 +1130,7 @@ struct surface {
       ucyclic((angle2-angle1) % 360 == 0);
       vcyclic(cyclic(g));
     }
+    buildGridNeighbors();
   }
 
   void push(patch s) {
@@ -1051,8 +1142,26 @@ struct surface {
   }
 
   void operator init(... surface[] s) {
+    bool allHave=true;
     for(surface S : s)
+      if(S.s.length > 0 && S.neighbors.length == 0) { allHave=false; break; }
+    for(surface S : s) {
+      int offset=this.s.length;
       this.s.append(S.s);
+      if(allHave) {
+        for(int i=0; i < S.neighbors.length; ++i) {
+          edgeInfo[] Si=S.neighbors[i];
+          edgeInfo[] Ti=new edgeInfo[Si.length];
+          for(int j=0; j < Si.length; ++j) {
+            edgeInfo e=Si[j];
+            Ti[j]=e.patch < 0 ? edgeInfo(-1,e.edge,e.reversed)
+                              : edgeInfo(e.patch+offset,e.edge,e.reversed);
+          }
+          this.neighbors.push(Ti);
+        }
+      }
+    }
+    if(!allHave) this.neighbors=new edgeInfo[][];
   }
 }
 
@@ -1067,6 +1176,7 @@ surface operator * (transform3 t, surface s)
   S.T=t*s.T;
   S.primitive=s.primitive;
   S.PRCprimitive=s.PRCprimitive;
+  S.neighbors=copyNeighbors(s.neighbors);
 
   return S;
 }

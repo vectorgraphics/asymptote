@@ -1700,6 +1700,7 @@ surface surface(picture pic=currentpicture, triple[][] f, bool[][] cond={})
   if(count == nx*ny) {
     if(uperiodic(f)) s.ucyclic(true);
     if(vperiodic(f)) s.vcyclic(true);
+    s.buildGridNeighbors();
   }
 
   return s;
@@ -1782,6 +1783,8 @@ surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
       }
     }
   }
+
+  if(all) s.buildGridNeighbors();
 
   return s;
 }
@@ -1945,6 +1948,7 @@ surface surface(picture pic=currentpicture, real[][] f, real[] x, real[] y,
   surface s=bispline(f,p,q,r,x,y,cond);
   if(xsplinetype == periodic) s.ucyclic(true);
   if(ysplinetype == periodic) s.vcyclic(true);
+  if(cond.length == 0) s.buildGridNeighbors();
   return s;
 }
 
@@ -2110,6 +2114,8 @@ surface surface(picture pic=currentpicture, triple f(pair z),
 
   if(vsplinetype[0] == periodic && vsplinetype[1] == periodic &&
      vsplinetype[1] == periodic) s.vcyclic(true);
+
+  if(all) s.buildGridNeighbors();
 
   return s;
 }
