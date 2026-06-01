@@ -314,7 +314,8 @@ $(LSP_ROOT)/liblspcpp.a:
 all:	asy sty man faq asy-keywords.el
 
 $(GCLIB):
-	cd $(GC) && ln -sf ../libatomic_ops . && \
+	-cd $(GC) && ln -sf ../libatomic_ops libatomic_ops
+	cd $(GC) && \
 		./configure CC="$(CC)" CXX="$(CXX)" CFLAGS="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)" CXXFLAGS="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)" $(GCOPTIONS)
 	$(MAKE) -C $(GC) check CFLAGS_EXTRA="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)"
 
