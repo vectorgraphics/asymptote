@@ -28,13 +28,14 @@ if(landscape) {
 texpreamble("\paperwidth="+string(pagewidth)+"bp");
 texpreamble("\paperheight"+string(pageheight)+"bp");
 
+real whr = pagewidth/pageheight;
 size(pagewidth,pageheight,IgnoreAspect);
 picture background;
 
 real minipagemargin=1inch;
 real minipagewidth=pagewidth-2minipagemargin;
 
-transform tinv=inverse(fixedscaling((-1,-1),(1,1),currentpen));
+transform tinv=inverse(fixedscaling((-whr,-1),(whr,1),currentpen));
 
 pen itempen=fontsize(24pt);
 pen codepen=fontsize(20pt);
@@ -137,7 +138,7 @@ void reversevideo()
 {
   backgroundcolor=black;
   foregroundcolor=white;
-  fill(background,box((-1,-1),(1,1)),backgroundcolor);
+  fill(background,box((-whr,-1),(whr,1)),backgroundcolor);
   setpens(mediumred,paleblue,mediumblue);
   // Work around pdflatex bug, in which white is mapped to black!
   figuremattpen=pdf() ? cmyk(0,0,0,1/255) : white;
@@ -213,7 +214,7 @@ void newslide(bool stepping=true)
 
 bool checkposition()
 {
-  if(abs(currentposition.x) > 1 || abs(currentposition.y) > 1) {
+  if(abs(currentposition.x) > whr || abs(currentposition.y) > 1) {
     newslide();
     return false;
   }
@@ -286,7 +287,7 @@ void remark(bool center=false, string s, pair align=0, pen p=itempen,
   pair m=tinv*min(f);
   pair M=tinv*min(f);
 
-  if(abs(offset.x+M.x) > 1)
+  if(abs(offset.x+M.x) > whr)
     warning("slidetoowide","slide too wide on page "+(string) page+':\n'+
             (string) s);
 
