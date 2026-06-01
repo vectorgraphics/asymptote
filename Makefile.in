@@ -611,7 +611,7 @@ glew.d: glew.c config.h
 	@echo Creating $@; \
 	rm -f $@; \
 	$(CC) $(filter-out $(MACOS_ARCH_FLAGS),$(GLEWOPTS)) -O0 -M -MG -MP -DDEPEND $< > $@.$$$$ 2>/dev/null && \
-	sed 's,\(glew\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	sed 's,\(glew\)\.o[ :]*,\1.o : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 .SUFFIXES: .c .cc .o .d .ui .py
@@ -621,13 +621,13 @@ glew.d: glew.c config.h
 	@echo Creating $@; \
 	rm -f $@; \
 	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
-	sed 's,\($*\)\.o[ :]*,\1.o \1.pic.o $@ : ,g' < $@.$$$$ > $@; \
+	sed 's,\($*\)\.o[ :]*,\1.o \1.pic.o : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 %.d: %.c
 	@echo Creating $@; \
 	rm -f $@; \
 	${CC} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	sed 's,\($*\)\.o[ :]*,\1.o : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 # Compile for the shared library.  OpenGL must be disabled as it causes
