@@ -272,7 +272,7 @@ public:
  * AsyRender - Library-agnostic base class for renderers.
  * Contains code that is independent of the underlying graphics API (Vulkan, OpenGL, etc.).
  */
-class AsyRender
+class AsyRender: public gc
 {
 public:
   AsyRender() = default;
