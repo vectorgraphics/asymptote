@@ -525,8 +525,23 @@ VMA_IMPL_FILES=$VMA_IMPL_FILES" vma_cxx vma_impl"
 ASY_VULKAN_LIBS=""
 AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
 
+dnl Check for vulkan/vulkan.hpp and VK_API_VERSION_1_4 using a C++ compile test.
+dnl On some distros (e.g., Ubuntu with LunarG libvulkan-dev) the C++ header
+dnl may be missing, or the headers may be too old to support Vulkan 1.4.
+AC_LANG_PUSH([C++])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([[#include <vulkan/vulkan.hpp>]],
+                   [[(void)(uintptr_t)VK_API_VERSION_1_4;]])],
+  [have_vulkan_hpp=yes],
+  [have_vulkan_hpp=no]
+)
+AC_LANG_POP([C++])
+
 case "$OSTYPE" in
      *)
+          if test "x$have_vulkan_hpp" != "xyes"; then
+            AC_MSG_NOTICE([*** Could not find vulkan/vulkan.hpp with VK_API_VERSION_1_4: will compile without Vulkan support ***])
+          else
           AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
           AC_CHECK_LIB([vulkan], [vkCreateInstance],
           [
@@ -540,31 +555,39 @@ case "$OSTYPE" in
                ;;
           esac
           ASY_VULKAN_LIBS="-lvulkan $VULKAN_LIBS-lSPIRV"
-          AC_CHECK_LIB([glslang],[glslang_initialize_process],
-          [
-          AC_DEFINE(HAVE_LIBVULKAN,1,
-          DEFINE_LIB([vulkan]))
-          ASY_VULKAN_LIBS="$ASY_VULKAN_LIBS -lglslang -lSPIRV-Tools-opt -lSPIRV-Tools"
-          ],
-
-          [
-          ASY_VULKAN_LIBS="$ASY_VULKAN_LIBS -lOGLCompiler"
-          AC_CHECK_LIB([glslang],[glslang_finalize_process],
-          [
-          AC_DEFINE(HAVE_LIBVULKAN,1,
-          DEFINE_LIB([vulkan]))
-          ASY_VULKAN_LIBS="$ASY_VULKAN_LIBS -lglslang"
-          ],
-          [
-          AC_MSG_NOTICE([*** Could not find libglslang: will compile without Vulkan support ***])
-          ASY_VULKAN_LIBS=""
+          dnl On some distros (e.g., Ubuntu) libglslang.a is a thin C wrapper and
+          dnl the actual C++ implementation is in companion libraries. Try -lglslang
+          dnl alone first; if that fails, try with companions.
+          ASY_GLSLANG_LIBS=""
+          LIBS_SAVE=$LIBS
+          LIBS="$LIBS -lglslang"
+          AC_LINK_IFELSE(
+            [AC_LANG_CALL([], [glslang_initialize_process])],
+            [ASY_GLSLANG_LIBS="-lglslang"],
+            []
+          )
+          dnl If -lglslang alone didn't work, try with companion libraries
+          if test "x$ASY_GLSLANG_LIBS" = "x"; then
+            LIBS="$LIBS_SAVE -lglslang $VULKAN_LIBS -lOGLCompiler"
+            AC_LINK_IFELSE(
+              [AC_LANG_CALL([], [glslang_initialize_process])],
+              [ASY_GLSLANG_LIBS="-lglslang $VULKAN_LIBS -lOGLCompiler"],
+              []
+            )
+          fi
           LIBS=$LIBS_SAVE
-          ]
-          )
-          ]
-          )
+          if test "x$ASY_GLSLANG_LIBS" != "x"; then
+            AC_DEFINE(HAVE_LIBVULKAN,1,
+            DEFINE_LIB([vulkan]))
+            ASY_VULKAN_LIBS="$ASY_VULKAN_LIBS $ASY_GLSLANG_LIBS -lSPIRV-Tools-opt -lSPIRV-Tools"
+          else
+            AC_MSG_NOTICE([*** Could not find libglslang: will compile without Vulkan support ***])
+            ASY_VULKAN_LIBS=""
+            LIBS=$LIBS_SAVE
+          fi
           ],
           AC_MSG_NOTICE([*** Could not find libvulkan: will compile without Vulkan support ***]))
+          fi
 esac
 fi
 

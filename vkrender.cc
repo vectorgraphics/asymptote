@@ -506,7 +506,8 @@ void AsyVkRender::initVulkan()
   createGraphicsPipelines();
 
   createComputePipelines(); // gpu indexing + post processing
-  fpu_trap(settings::trap()); // Work around FE_INVALID.
+
+  fpu_trap(settings::trap());
 
   createAttachments();
   createFramebuffers();
@@ -517,6 +518,7 @@ void AsyVkRender::recreateSwapChain()
 {
   device->waitIdle();
 
+  fpu_trap(false); // Work around FE_INVALID
   try {
     // Reset timeline semaphore values to avoid timeout issues
     currentTimelineValue = 0;
@@ -571,6 +573,7 @@ void AsyVkRender::recreateSwapChain()
     outOfMemory();
   }
 
+  fpu_trap(settings::trap());
   redisplay=true;
   waitEvent=false;
 }
@@ -3467,6 +3470,7 @@ void AsyVkRender::createPipelineSet(
 
 void AsyVkRender::createGraphicsPipelines()
 {
+  fpu_trap(false); // Work around FE_INVALID
   auto const drawMode =
     (mode == DRAWMODE_WIREFRAME || mode == DRAWMODE_OUTLINE)
     ? vk::PolygonMode::eLine
@@ -3526,6 +3530,7 @@ void AsyVkRender::createGraphicsPipelines()
   createGraphicsPipeline<ColorVertex>(PIPELINE_COMPRESS, compressPipeline, compressConfig);
 
   createBlendPipeline();
+  fpu_trap(settings::trap());
 }
 
 void AsyVkRender::setupPostProcessingComputeParameters()

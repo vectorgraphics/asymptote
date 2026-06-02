@@ -10,6 +10,7 @@ MACOS_UNIVERSAL = @MACOS_UNIVERSAL@
 MACOS_MIN_VERSION = @MACOS_MIN_VERSION@
 MACOS_ARCH_FLAGS = @MACOS_ARCH_FLAGS@
 MACOS_DEPLOYMENT_FLAGS = @MACOS_DEPLOYMENT_FLAGS@
+MACOS_CFLAGS = $(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)
 
 ASYGLVERSION = @ASYGLVERSION@
 GC = gc
@@ -107,7 +108,7 @@ CFLAGS = @CFLAGS@
 OPTS = $(sort $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
 	-Iprc/include -I$(LSP_ROOT)/include -I. \
-	$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS))
+	$(MACOS_CFLAGS))
 
 # Multi-arch flags are incompatible with -E (preprocess-only) and -M (deps).
 # Strip them for any pass that runs the preprocessor without compiling.
@@ -124,7 +125,7 @@ CC = @CC@
 MAKEDEPEND = $(PREPROC_OPTS) -O0 -M -MG -MP -DDEPEND
 LEX = @LEX@
 GLEWOPTS = $(sort $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC -Ibackports/glew/include \
-	$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS))
+	$(MACOS_CFLAGS))
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -314,9 +315,11 @@ $(LSP_ROOT)/liblspcpp.a:
 all:	asy sty man faq asy-keywords.el
 
 $(GCLIB):
-	cd $(GC) && ln -sf ../libatomic_ops . && \
-		./configure CC="$(CC)" CXX="$(CXX)" CFLAGS="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)" CXXFLAGS="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)" $(GCOPTIONS)
-	$(MAKE) -C $(GC) check CFLAGS_EXTRA="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)"
+	-cd $(GC) && ln -sf ../libatomic_ops libatomic_ops
+	cd $(GC) && \
+		./configure CC="$(CC)" CXX="$(CXX)" CFLAGS="$(MACOS_CFLAGS) $(CFLAGS)" CXXFLAGS="$(MACOS_CFLAGS) $(CXXFLAGS)" $(GCOPTIONS)
+	$(MAKE) -C $(GC) all CFLAGS_EXTRA="$(MACOS_CFLAGS)"
+	$(MAKE) -C $(GC) check CFLAGS_EXTRA="$(MACOS_CFLAGS)"
 
 sty: doc/version.texi
 	cd doc && $(MAKE) asy-latex.pdf
@@ -608,7 +611,7 @@ glew.d: glew.c config.h
 	@echo Creating $@; \
 	rm -f $@; \
 	$(CC) $(filter-out $(MACOS_ARCH_FLAGS),$(GLEWOPTS)) -O0 -M -MG -MP -DDEPEND $< > $@.$$$$ 2>/dev/null && \
-	sed 's,\(glew\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	sed 's,\(glew\)\.o[ :]*,\1.o : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 .SUFFIXES: .c .cc .o .d .ui .py
@@ -618,13 +621,13 @@ glew.d: glew.c config.h
 	@echo Creating $@; \
 	rm -f $@; \
 	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
-	sed 's,\($*\)\.o[ :]*,\1.o \1.pic.o $@ : ,g' < $@.$$$$ > $@; \
+	sed 's,\($*\)\.o[ :]*,\1.o \1.pic.o : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 %.d: %.c
 	@echo Creating $@; \
 	rm -f $@; \
 	${CC} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	sed 's,\($*\)\.o[ :]*,\1.o : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 # Compile for the shared library.  OpenGL must be disabled as it causes

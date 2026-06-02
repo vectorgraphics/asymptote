@@ -106,9 +106,10 @@ void AsyRender::setDimensions(int Width, int Height, double X, double Y)
   if(Height <= 0) Height = 1;
 
   double aspect = ((double) Width) / Height;
-  double xshift = (X / (double) Width + Shift.getx() * Xfactor) * Zoom;
-  double yshift = (Y / (double) Height + Shift.gety() * Yfactor) * Zoom;
-  double zoominv = 1.0 / Zoom;
+  double zoom = Zoom * zoomFactor;
+  double xshift = (X / (double) Width + Shift.getx() * Xfactor) * zoom;
+  double yshift = (Y / (double) Height + Shift.gety() * Yfactor) * zoom;
+  double zoominv = 1.0 / zoom;
   if (orthographic) {
     double xsize = Xmax - Xmin;
     double ysize = Ymax - Ymin;
@@ -408,6 +409,10 @@ void AsyRender::windowposition(int& x, int& y, int width, int height)
 void AsyRender::fullscreen(bool reposition)
 {
   Xfactor = Yfactor = 1.0;
+  if (screenWidth < screenHeight * Aspect)
+    zoomFactor = (double)screenWidth / (screenHeight * Aspect);
+  else
+    zoomFactor = 1.0;
   setsize(screenWidth, screenHeight, reposition);
   reshape(screenWidth, screenHeight);
 }
@@ -442,15 +447,18 @@ void AsyRender::reshape(int width, int height)
 
 void AsyRender::fitscreen(bool reposition)
 {
+  remesh = true;
   switch(Fitscreen) {
     case 0: // Original size: use saved framebuffer dimensions
     {
       Xfactor = Yfactor = 1.0;
+      zoomFactor = 1.0;
       setsize(oldWidth, oldHeight, reposition);
       break;
     }
     case 1: // Fit to screen: screenWidth/screenHeight already physical pixels
     {
+      zoomFactor = 1.0;
       int w = screenWidth;
       int h = screenHeight;
       fitAspect(w, h);
@@ -480,6 +488,7 @@ void AsyRender::home()
   lastzoom = Zoom = Zoom0;
   framecount = 0;
 
+  remesh = true;
   setProjection();
   updateModelViewData();
 }
