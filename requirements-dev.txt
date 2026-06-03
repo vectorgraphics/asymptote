@@ -1,3 +1,10 @@
 black~=26.3.1
 isort~=5.13.2
 pylint~=3.3.1
+
+# Build-time dependency of the `libsystemd` vcpkg port: its meson build
+# generates code with jinja2, running against whichever python3 is on PATH
+# (the auto-activated ~/.venv/asymptote venv inside the dev container). Without
+# it, `cmake --preset linux/release` fails configuring libsystemd with
+# "python3 is missing modules: jinja2".
+jinja2~=3.1.6
