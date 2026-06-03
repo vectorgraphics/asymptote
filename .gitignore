@@ -55,6 +55,7 @@ LspCpp/third_party/uri/src/Makefile
 /asy.list
 /autom4te.cache/
 /builtin.symbols.h
+/bundled-licenses.inc
 /camp.output
 /camp.tab.cc
 /camp.tab.h
@@ -240,6 +241,7 @@ CMakeUserPresets.json
 
 # ignore directory
 idir
+local/
 
 # windows-specific ignore
 *.aps
