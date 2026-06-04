@@ -46,6 +46,12 @@
 #include "pipestream.h"
 #include "array.h"
 
+#ifdef ASY_BUNDLED_DYLIBS
+#include <sstream>
+#include <dirent.h>
+#include <fnmatch.h>
+#endif
+
 #ifdef HAVE_LIBCURSES
 extern "C" {
 
@@ -1261,7 +1267,12 @@ static const char *const licensesSummary =
   "  GLEW              BSD 3-Clause License\n"
   "                    https://glew.sourceforge.net/" "\n"
   "  TinyEXR           BSD 3-Clause License\n"
-  "                    Syoyo Fujita -- https://github.com/syoyo/tinyexr" "\n"
+  "                    Syoyo Fujita -- https://github.com/syoyo/tinyexr" "\n";
+
+// Trailing lines of the --licenses summary, printed after the optional
+// bundled-dylib section (see printBundledSummary) so that section appears
+// within the third-party list rather than after the closing pointers.
+static const char *const licensesSummaryTail =
   "\n"
   "Use --licenses=full for complete copyright notices and license texts.\n"
   "Source: https://github.com/vectorgraphics/asymptote/\n";
@@ -1291,6 +1302,77 @@ static bool printLicenseFile(const string& path, ostream& out) {
   out << f.rdbuf();
   return true;
 }
+
+#ifdef ASY_BUNDLED_DYLIBS
+// Registry of dynamic libraries optionally bundled into ./lib on macOS,
+// generated from build-scripts/bundled-dylib-licenses.tsv. Defines
+// bundledLicenses[] (struct bundledLicense { summary, spdx, dylibGlobs,
+// filename, url }).
+#include "bundled-licenses.inc"
+
+// Directory holding the bundled dynamic libraries at runtime: ./lib next to
+// the executable (the macOS bundler rewrites install names to
+// @executable_path/lib, and the bundling build implies --enable-relocatable).
+static string resolveBundledLibDir() {
+  if (argv0)
+    return stripFile(string(argv0)) + "lib";
+  return "lib";
+}
+
+// True if any file in the bundled lib dir matches one of the space-separated
+// fnmatch patterns in globs. If matched is non-null, the first matching
+// filename is stored there (used to name the offending dylib in warnings).
+static bool dylibPresent(const char *globs, string *matched=nullptr) {
+  DIR *d = opendir(resolveBundledLibDir().c_str());
+  if (!d) return false;
+  bool found = false;
+  struct dirent *e;
+  while (!found && (e = readdir(d)) != nullptr) {
+    std::istringstream gs(globs);
+    string g;
+    while (gs >> g) {
+      if (fnmatch(g.c_str(), e->d_name, 0) == 0) {
+        if (matched) *matched = e->d_name;
+        found = true;
+        break;
+      }
+    }
+  }
+  closedir(d);
+  return found;
+}
+
+// True if the named license file exists in the resolved license directory.
+static bool licensePresent(const string& ldir, const char *filename) {
+  struct stat st;
+  string path = ldir + dirsep + filename;
+  return stat(path.c_str(), &st) == 0;
+}
+
+// Append the bundled-dylib lines to the short --licenses summary. Only entries
+// whose library is actually shipped (or whose license file lingers) appear;
+// a shipped-but-unlicensed library is flagged [LICENSE MISSING].
+static void printBundledSummary(ostream& out, const string& ldir) {
+  bool any = false;
+  for (const bundledLicense& b : bundledLicenses) {
+    bool dylib = dylibPresent(b.dylibGlobs);
+    bool lic = licensePresent(ldir, b.filename);
+    if (!dylib && !lic)
+      continue;
+    if (!any) {
+      out << "\n"
+             "Bundled dynamic libraries (this macOS build):\n"
+             "\n";
+      any = true;
+    }
+    out << "  " << std::left << std::setw(18) << b.summary << b.spdx;
+    if (dylib && !lic)
+      out << "  [LICENSE MISSING]";
+    out << "\n"
+        << "                    " << b.url << "\n";
+  }
+}
+#endif // ASY_BUNDLED_DYLIBS
 
 // Print the full license text, reading from license files at runtime.
 // Returns true if all files were found and printed, false otherwise.
@@ -1430,6 +1512,42 @@ static bool printLicensesFull(ostream& out) {
   requireFile("tinyexr-LICENSE.txt",
     "TinyEXR -- BSD 3-Clause License -- https://github.com/syoyo/tinyexr");
 
+#ifdef ASY_BUNDLED_DYLIBS
+  // Dynamic libraries optionally bundled into ./lib by the macOS bundling
+  // build. Driven by the registry in build-scripts/bundled-dylib-licenses.tsv.
+  for (const bundledLicense& b : bundledLicenses) {
+    string matched;
+    bool dylib = dylibPresent(b.dylibGlobs, &matched);
+    bool lic = licensePresent(ldir, b.filename);
+    if (!dylib && !lic)
+      continue;  // library not shipped in this build: skip silently.
+
+    out <<
+      "\n"
+      "------------------------------------------------------------------------\n"
+      << b.summary << " -- " << b.spdx << "\n" <<
+      "------------------------------------------------------------------------\n";
+
+    if (lic) {
+      // Normal case (or harmless stale license with the dylib absent).
+      printLicenseFile(ldir + dirsep + b.filename, out);
+    } else {
+      // Dylib shipped but its license is missing: a redistribution violation.
+      out <<
+        "*** WARNING: the dynamic library " << matched << " is bundled with\n"
+        "*** this copy of asy, but its license file doc" << dirsep << "licenses"
+          << dirsep << b.filename << "\n" <<
+        "*** is missing. This binary is being distributed in violation of the\n"
+        "*** library's redistribution terms. Please report this to whoever\n"
+        "*** built or packaged asy. Upstream license text:\n"
+        "***   " << b.url << "\n";
+      cerr << argv0 << ": bundled dylib " << matched
+           << " is missing its license file " << b.filename << "\n";
+      ++missing;
+    }
+  }
+#endif // ASY_BUNDLED_DYLIBS
+
   return missing == 0;
 }
 
@@ -1452,6 +1570,10 @@ struct licensesOption : public option {
       exit(success ? 0 : 1);
     } else {
       cerr << licensesSummary;
+#ifdef ASY_BUNDLED_DYLIBS
+      printBundledSummary(cerr, resolveLicenseDir());
+#endif
+      cerr << licensesSummaryTail;
     }
     exit(0);
 

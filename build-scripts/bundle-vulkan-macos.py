@@ -83,6 +83,14 @@ def main(argv):
     rpath_refs = library_refs(all_bins, rpath_re)
     abs_refs = library_refs(all_bins, abs_re)
 
+    # References already pointing into the bundle: present when the script is
+    # re-run on a binary that was bundled on a previous pass and not relinked
+    # since. Their presence (with no fresh refs to copy) means "already
+    # bundled", so the script can re-fix install names / re-sign idempotently
+    # instead of failing to locate the now-internal libraries.
+    exe_re = re.compile(r"@executable_path/lib/lib(glfw|vulkan|SPIRV|glslang)")
+    already_bundled = bool(library_refs(all_bins, exe_re))
+
     # Resolve @rpath references to absolute paths via the recorded rpaths.
     vulkan_libs = set(abs_refs)
     for ref in rpath_refs:
@@ -95,11 +103,15 @@ def main(argv):
 
     vulkan_libs = sorted(p for p in vulkan_libs if p)
 
-    if not vulkan_libs:
+    if not vulkan_libs and not already_bundled:
         die("ERROR: Could not locate Vulkan-related dynamic libraries "
             "referenced by {}.".format(name),
             "Fix: ensure Vulkan/GLFW are installed and linked, then run "
             "'make clean && make asy'.")
+
+    if not vulkan_libs:
+        print("Binaries already reference @executable_path/lib; refreshing "
+              "the existing bundle's install names and signatures.")
 
     moltenvk_dir = None
     for lib in vulkan_libs:
@@ -148,6 +160,10 @@ def main(argv):
                         '        "api_version": "1.0.0"\n'
                         '    }\n'
                         '}\n')
+    elif os.path.isfile(os.path.join("lib", "libMoltenVK.dylib")):
+        # Already bundled on a previous run (no fresh libvulkan to locate it
+        # next to); keep the existing copy and its ICD JSON.
+        pass
     else:
         die("ERROR: libMoltenVK.dylib was not found next to libvulkan.",
             "Fix: ensure Vulkan SDK with MoltenVK is installed, then rebuild.")

@@ -5,6 +5,7 @@ SILENT_MAKE = @
 ARCH = unix
 POLL = poll
 BUNDLE_VULKAN = @BUNDLE_VULKAN@
+BUNDLED_DYLIBS_LICENSES = @BUNDLED_DYLIBS_LICENSES@
 CODESIGN_IDENTITY ?= -
 MACOS_UNIVERSAL = @MACOS_UNIVERSAL@
 MACOS_MIN_VERSION = @MACOS_MIN_VERSION@
@@ -165,7 +166,20 @@ export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ $(SHIMLIBS)
 	$(CXX) $(OPTS) -rdynamic -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 ifeq ($(BUNDLE_VULKAN),yes)
-	@sh build-scripts/bundle-vulkan-macos.sh $(NAME) "$(CODESIGN_IDENTITY)"
+	@$(PYTHON) build-scripts/bundle-vulkan-macos.py $(NAME) "$(CODESIGN_IDENTITY)"
+endif
+ifeq ($(BUNDLED_DYLIBS_LICENSES),yes)
+	@$(PYTHON) build-scripts/stage-bundled-licenses.py \
+		lib doc/licenses build-scripts/bundled-dylib-licenses.tsv
+endif
+
+ifeq ($(BUNDLED_DYLIBS_LICENSES),yes)
+# settings.cc #includes this (only under -DASY_BUNDLED_DYLIBS) for the bundled
+# section of --licenses; both are generated from the one registry TSV.
+settings.o: bundled-licenses.inc
+bundled-licenses.inc: build-scripts/bundled-dylib-licenses.tsv \
+		build-scripts/generate-bundled-licenses-inc.py
+	@$(PYTHON) build-scripts/generate-bundled-licenses-inc.py $< $@
 endif
 
 portability-check-macos:
@@ -461,17 +475,17 @@ uninstall-man:
 # $(exampledir) and $(animationsdir) which are subdirectories of $(docdir).
 # Both must finish before we can rmdir $(docdir).
 uninstall-docdir: uninstall-man uninstall-asy
-	-cd $(licensedir) && rm -f LICENSE LICENSE.LESSER \
-		span-LICENSE.txt \
-		glew-LICENSE.txt wyhash-UNLICENSE.txt LspCpp-LICENSE.txt \
-		libatomic_ops-LICENSE.txt libatomic_ops-COPYING.txt \
-		tinyexr-LICENSE.txt gc-LICENSE.txt
+	# Remove every staged license (base set plus any bundled-dylib extras)
+	# rather than a hard-coded filename list, so optionally-bundled licenses
+	# are cleaned up too.
+	-cd $(licensedir) && rm -f *
 	-rmdir $(licensedir)
 	-cd $(docdir) && rm -f LICENSES-THIRD-PARTY.md
 	-rmdir $(docdir)
 
 clean:	FORCE
 	-rm -f asy asymptote.so libasyvulkan.so libasyopengl.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
+	-rm -f bundled-licenses.inc
 	-rm -rf doc/licenses
 	-rm -rf lib
 	-cd LspCpp && $(MAKE) distclean

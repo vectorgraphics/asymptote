@@ -72,6 +72,49 @@ When adding, removing, or updating a third-party component:
 
 _Note: wyhash/ is public domain, but retain the original header comment crediting Wang Yi._
 
+## Bundled macOS dylibs
+
+The macOS bundling build (`--enable-macos-bundling`, which derives
+`BUNDLE_VULKAN=yes`) copies the Vulkan/GLFW runtime libraries into
+`./lib/*.dylib` via
+[build-scripts/bundle-vulkan-macos.py](build-scripts/bundle-vulkan-macos.py),
+making the binary self-contained. Those libraries carry their own
+redistribution terms, handled separately from the seven always-present
+components above.
+
+**Single source of truth:** the registry
+[build-scripts/bundled-dylib-licenses.tsv](build-scripts/bundled-dylib-licenses.tsv).
+Its license texts are vendored in-repo under
+[licenses/bundled/](licenses/bundled/) (the LunarG SDK ships no usable
+per-component texts — see that directory's `README.md`). The registry drives
+three consumers automatically:
+
+- **Build-time staging** —
+  [build-scripts/stage-bundled-licenses.py](build-scripts/stage-bundled-licenses.py)
+  inspects the dylibs actually present in `./lib` and copies the matching
+  vendored texts into `doc/licenses/` (only when `BUNDLED_DYLIBS_LICENSES=yes`,
+  which defaults to following `BUNDLE_VULKAN`).
+- **Runtime `--licenses[=full]`** —
+  [build-scripts/generate-bundled-licenses-inc.py](build-scripts/generate-bundled-licenses-inc.py)
+  turns the registry into `bundled-licenses.inc`, which `settings.cc` walks
+  inside `#ifdef ASY_BUNDLED_DYLIBS`. At runtime each entry is shown only if
+  its dylib is actually present in `./lib`; a shipped dylib whose license file
+  is missing prints a conspicuous warning and makes `--licenses=full` exit 1.
+- **This document** (the SPDX expression and the table in
+  `LICENSES-THIRD-PARTY.md`).
+
+**To add a new optionally-bundled library:** add one row to the registry TSV
+(key(s), summary name, SPDX, dylib glob(s), in-repo source license file(s),
+installed name(s), upstream URL), commit the corresponding text under
+`licenses/bundled/`, and add a row to the "Optionally bundled on macOS" table
+in [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md). No C++ or Makefile edits
+are needed — staging, the runtime list, and the warning logic all read the
+registry. Run `python3 build-scripts/test-bundled-licenses.py` to check the
+key-derivation rule and staging behavior.
+
+**SPDX:** redistributors of the bundled-dylib build must use the extended
+expression documented under "OS package managers" above.
+
 ## Adding New Asymptote Source Files
 
 - Use the LGPL v3+ header template below.
@@ -102,6 +145,21 @@ but is not a substitute for distributing the actual `licenses/` folder.
 - Place license files using the distro-standard location (see
   "Configuring the License Installation Directory" above).
 - SPEC/control file should list all applicable licenses.
+
+**macOS bundled-dylib build:** a build produced with
+`--enable-macos-bundling` (e.g. a notarized `.dmg`, or a Homebrew bottle
+that ships `lib/*.dylib`) additionally redistributes the Vulkan/GLFW
+runtime libraries. Such artifacts must use the extended expression:
+
+```
+LGPL-3.0-or-later AND Unlicense AND MIT AND Boost-1.0 AND BSD-3-Clause AND GPL-2.0-only AND Apache-2.0 AND Zlib
+```
+
+(`Apache-2.0` covers Vulkan-Loader, MoltenVK, and glslang's Apache portions;
+`Zlib` covers GLFW. glslang's composite license also contains BSD/MIT and a
+Bison-exception GPL section that imposes no copyleft on the combined work —
+see [licenses/bundled/README.md](licenses/bundled/README.md).) See "Bundled
+macOS dylibs" below.
 
 ## LGPL Header Template
 

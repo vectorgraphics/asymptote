@@ -1,0 +1,23 @@
+# Asymptote bundled-dylib license registry -- single source of truth.
+# Tab-separated. Lines beginning with # and blank lines are ignored.
+# Within a field, ":" separates list items.
+#
+# Columns (in order):
+#   keys             dylib-derived keys for this library. Derive a key from a
+#                    dylib filename by stripping the leading "lib", the trailing
+#                    version, and ".dylib", then lowercasing
+#                    (libMoltenVK.dylib->moltenvk, libvulkan.1.4.350.dylib->vulkan,
+#                    libSPIRV.16.dylib->spirv). A library that ships as several
+#                    dylibs lists all their keys (e.g. glslang also ships libSPIRV).
+#   summary_name     short name shown by `asy --licenses`
+#   spdx             SPDX-style expression (summary; the file is authoritative)
+#   dylib_globs      glob(s) used at runtime to detect the library in ./lib
+#   source_files     in-repo source license file(s) (repo-relative)
+#   installed_names  destination name(s) under doc/licenses/
+#   upstream_url     upstream project URL (used in warnings and docs)
+#
+# keys	summary_name	spdx	dylib_globs	source_files	installed_names	upstream_url
+glfw	GLFW	Zlib	libglfw*.dylib	licenses/bundled/glfw-LICENSE.md	glfw-LICENSE.md	https://github.com/glfw/glfw
+vulkan	Vulkan-Loader	Apache-2.0	libvulkan*.dylib	licenses/bundled/vulkan-LICENSE.txt	vulkan-LICENSE.txt	https://github.com/KhronosGroup/Vulkan-Loader
+glslang:spirv:spvremapper:machineindependent:osdependent:oglcompiler:hlsl	glslang	BSD-3-Clause AND BSD-2-Clause AND MIT AND Apache-2.0 AND GPL-3.0-or-later WITH Bison-exception-2.2	libglslang*.dylib:libSPIRV*.dylib:libSPVRemapper*.dylib:libMachineIndependent*.dylib:libOSDependent*.dylib:libOGLCompiler*.dylib:libHLSL*.dylib	licenses/bundled/glslang-LICENSE.txt	glslang-LICENSE.txt	https://github.com/KhronosGroup/glslang
+moltenvk	MoltenVK	Apache-2.0	libMoltenVK*.dylib	licenses/bundled/moltenvk-LICENSE.txt	moltenvk-LICENSE.txt	https://github.com/KhronosGroup/MoltenVK

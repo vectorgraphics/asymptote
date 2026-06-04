@@ -95,3 +95,9 @@ Boehm GC, LspCpp, libatomic_ops, GLEW, TinyEXR), each with their own
 license terms.  See LICENSES-THIRD-PARTY.md for the component list, or
 run asy --licenses=full to print the full license texts from the installed
 licenses/ directory.
+
+Some macOS builds also ship the Vulkan/GLFW runtime libraries (Vulkan-Loader,
+MoltenVK, glslang, GLFW) alongside the binary, with their licenses included.
+asy --licenses reports which extras a given binary bundles.
+asy --licenses=full checks this dynamically and can be more accurate, although
+its output is so verbose that may not be useful.

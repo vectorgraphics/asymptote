@@ -608,6 +608,23 @@ case "$host_os" in
 esac
 AC_SUBST(BUNDLE_VULKAN)
 
+# Stage the vendored license texts for the dylibs bundled by
+# --enable-macos-bundling.  Licenses must ship exactly when (and only when) the
+# dylibs do, so this defaults to "auto" = follow BUNDLE_VULKAN;
+# --disable-bundled-dylibs-licenses is an escape hatch.  When enabled, compile
+# with -DASY_BUNDLED_DYLIBS so the runtime --licenses output gains the bundled
+# section (see settings.cc and build-scripts/bundled-dylib-licenses.tsv).
+AC_ARG_ENABLE(bundled-dylibs-licenses,
+[AS_HELP_STRING(--enable-bundled-dylibs-licenses[[[=auto]]],
+stage license files for the dylibs bundled by --enable-macos-bundling
+(default: auto = follow whether Vulkan libraries are bundled))],
+[], [enable_bundled_dylibs_licenses=auto])
+AS_IF([test "x$enable_bundled_dylibs_licenses" = "xauto"],
+  [enable_bundled_dylibs_licenses=$BUNDLE_VULKAN])
+AS_IF([test "x$enable_bundled_dylibs_licenses" = "xyes"],
+  [OPTIONS=$OPTIONS"-DASY_BUNDLED_DYLIBS "])
+AC_SUBST([BUNDLED_DYLIBS_LICENSES], [$enable_bundled_dylibs_licenses])
+
 # ------------------- OpenGL (fallback) -----------------
 
 AC_ARG_ENABLE(gl,
