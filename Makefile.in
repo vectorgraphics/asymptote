@@ -561,6 +561,15 @@ clean:	FORCE
 	-rm -rf doc/licenses
 	-rm -rf lib
 	-cd LspCpp && $(MAKE) distclean
+	# The cmake-generated distclean above is a no-op when LspCpp has no build
+	# tree (e.g. when prebuilt *.a files were copied in from another machine);
+	# it depends on cmake_check_build_system, which needs CMakeCache.txt.
+	# Remove the build outputs and cmake state directly so the next build
+	# reconfigures and recompiles LspCpp from scratch against the current
+	# toolchain and glibc, rather than linking stale archives.
+	-find $(LSP_ROOT) -name '*.a' -type f -delete
+	-find $(LSP_ROOT) -name CMakeFiles -type d -prune -exec rm -rf {} +
+	-find $(LSP_ROOT) -name CMakeCache.txt -delete
 	-cd tinyexr && $(MAKE) clean
 	-cd doc && $(MAKE) clean
 	-cd tests && $(MAKE) clean
@@ -624,23 +633,32 @@ glew.d: glew.c config.h
 	@echo Creating $@; \
 	rm -f $@; \
 	$(CC) $(filter-out $(MACOS_ARCH_FLAGS),$(GLEWOPTS)) -O0 -M -MG -MP -DDEPEND $< > $@.$$$$ 2>/dev/null && \
-	sed 's,\(glew\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	sed 's,\(glew\)\.o[ :]*,\1.o : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 .SUFFIXES: .c .cc .o .d .ui .py
 %.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.cc)
 	$(CXX) $(OPTS) -o $@ -c $<
+# Do NOT add the .d file itself ($@) to the generated target list.  MAKEDEPEND
+# uses -MG -MP: missing headers (e.g. <vulkan/vulkan.hpp> when the Vulkan SDK is
+# not installed) are emitted by -MG as nonexistent relative paths, each given an
+# empty rule by -MP.  GNU make treats a no-recipe rule for a nonexistent file as
+# "updated on every run", so any target depending on it is always out of date.
+# Listing the .d among its own targets would therefore make the .d perpetually
+# stale, forcing a rebuild + Makefile restart on every pass -> infinite loop.
+# -MP already keeps the .o build working when a header vanishes, so the .d
+# self-reference is redundant; omitting it breaks the loop.
 %.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
 	@echo Creating $@; \
 	rm -f $@; \
 	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
-	sed 's,\($*\)\.o[ :]*,\1.o \1.pic.o $@ : ,g' < $@.$$$$ > $@; \
+	sed 's,\($*\)\.o[ :]*,\1.o \1.pic.o : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 %.d: %.c
 	@echo Creating $@; \
 	rm -f $@; \
 	${CC} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	sed 's,\($*\)\.o[ :]*,\1.o : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 # Compile for the shared library.  OpenGL must be disabled as it causes

@@ -6,8 +6,8 @@ c.reset(
   new bool(int x) { return false; },     // isNullTFn that always returns false
   16);
 
-write('cap=', c.capacity());
-write('cont=', c.contains(3));
-write('add=', c.add_item(3));
-write('cont=', c.contains(3));
-write('size=', c.size());
+assert(c.capacity() == 16);
+assert(!c.contains(3));
+assert(c.add(3));
+assert(c.contains(3));
+assert(c.size() == 1);

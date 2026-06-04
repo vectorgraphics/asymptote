@@ -8,26 +8,24 @@
 // Verified externally with T=int and T=string instantiations.
 #include <asybind/asybind.h>
 
-namespace ay = asy;
-
 ASY_TEMPLATED_MODULE(phase3, m, "T") {
     auto T = m.type_param("T");
     (void)T;  // Phase 3 minimal: type_param's only role is documentation.
 
     struct Box {
-        ay::Any value;
-        void set(ay::Any v) { value = v; }
-        ay::Any get() const { return value; }
+        asy::Any value;
+        void set(asy::Any v) { value = v; }
+        asy::Any get() const { return value; }
     };
 
-    ay::class_<Box>(m, "Box")
-        .def(ay::init<>())
+    asy::class_<Box>(m, "Box")
+        .def(asy::init<>())
         .def<&Box::set>("set")
         .def<&Box::get>("get");
 
-    m.def("id", [](ay::Any x) { return x; });
+    m.def("id", [](asy::Any x) { return x; });
 
-    m.def("apply", [](ay::callable<ay::Any(ay::Any)> f, ay::Any x) {
+    m.def("apply", [](asy::callable<asy::Any(asy::Any)> f, asy::Any x) {
         return f(x);
     });
 }

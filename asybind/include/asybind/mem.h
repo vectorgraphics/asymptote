@@ -9,20 +9,20 @@
  * header packages it as a standard C++ Allocator and provides the
  * usual STL container aliases parameterised by it.  In particular:
  *
- *     ay::mem::vector<T>
- *     ay::mem::list<T>
- *     ay::mem::deque<T>
- *     ay::mem::string
- *     ay::mem::map<K, V>
- *     ay::mem::set<K>
- *     ay::mem::unordered_map<K, V>
- *     ay::mem::unordered_set<K>
+ *     asy::mem::vector<T>
+ *     asy::mem::list<T>
+ *     asy::mem::deque<T>
+ *     asy::mem::string
+ *     asy::mem::map<K, V>
+ *     asy::mem::set<K>
+ *     asy::mem::unordered_map<K, V>
+ *     asy::mem::unordered_set<K>
  *
  * are very nearly drop-in replacements for their std:: counterparts.
  *
  * Usage notes:
  *   * Containers placed as members of objects allocated via
- *     `ay::gc_new<T>` are fully GC-tracked: the enclosing object lives
+ *     `asy::gc_new<T>` are fully GC-tracked: the enclosing object lives
  *     in GC memory, its allocator-backed buffers live in GC memory, and
  *     the conservative scan finds every pointer kept inside either.
  *   * The allocator is stateless and always-equal, so containers can
@@ -33,7 +33,7 @@
  *     rest of the asybind SDK.
  *
  * This header intentionally keeps its dependencies to the C++ standard
- * library plus asybind/module.h (for `current_api()` and `ay::raise`).
+ * library plus asybind/module.h (for `current_api()` and `asy::raise`).
  *****/
 
 #ifndef ASYBIND_MEM_H

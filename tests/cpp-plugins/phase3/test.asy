@@ -7,18 +7,18 @@ from phase3(T=int) access Box as BoxI, id as idI, apply as applyI;
 
 BoxI bi = BoxI();
 bi.set(42);
-write(bi.get());                                       // 42
-write(idI(7));                                         // 7
-write(applyI(new int(int x) { return x + 1; }, 10));   // 11
+assert(bi.get() == 42);
+assert(idI(7) == 7);
+assert(applyI(new int(int x) { return x + 1; }, 10) == 11);
 
 // --- T = string --------------------------------------------------------
 from phase3(T=string) access Box as BoxS, id as idS, apply as applyS;
 
 BoxS bs = BoxS();
 bs.set('hello');
-write(bs.get());                                                 // hello
-write(idS('world'));                                             // world
-write(applyS(new string(string s) { return s + '!'; }, 'phase3'));// phase3!
+assert(bs.get() == 'hello');
+assert(idS('world') == 'world');
+assert(applyS(new string(string s) { return s + '!'; }, 'phase3') == 'phase3!');
 
 // --- Caching: re-importing T=int must not re-instantiate the module. --
 // (If caching were broken we'd get a fresh Box class and the bltins of
@@ -27,4 +27,4 @@ write(applyS(new string(string s) { return s + '!'; }, 'phase3'));// phase3!
 // works without re-running populate and yields the same observable
 // behaviour.)
 from phase3(T=int) access id as idI2;
-write(idI2(99));                                       // 99
+assert(idI2(99) == 99);

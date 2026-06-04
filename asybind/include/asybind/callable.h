@@ -12,12 +12,12 @@
  *
  * Invocation pushes each argument through the matching `caster<>::to_stack`,
  * asks the host to dispatch the callable, then pops the result through
- * `caster<R>::from_stack`. Errors (via `ay::raise`) propagate as the
+ * `caster<R>::from_stack`. Errors (via `asy::raise`) propagate as the
  * host's normal interrupted-execution unwind.
  *
  * Memory model: the SDK assumes that any C++ object holding a
  * `callable<...>` member is itself allocated in GC memory (via
- * `class_<T>::def(init<>())` or `ay::gc_new<T>()`); Boehm GC's
+ * `class_<T>::def(init<>())` or `asy::gc_new<T>()`); Boehm GC's
  * conservative scan then keeps the captured `vm::callable*` alive.
  * Holding a `callable<...>` on the C library stack for the lifetime of
  * a single thunk invocation is also safe — the asy stack frame above

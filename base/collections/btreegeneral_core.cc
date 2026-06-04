@@ -34,8 +34,8 @@ namespace {
 constexpr int kMaxDepth = 64;
 
 struct BTreeNode {
-    ay::mem::vector<ay::Any>     pivots;
-    ay::mem::vector<BTreeNode*>  children;  // empty for a leaf
+    asy::mem::vector<asy::Any>     pivots;
+    asy::mem::vector<BTreeNode*>  children;  // empty for a leaf
     bool isLeaf() const { return children.empty(); }
 };
 
@@ -54,14 +54,14 @@ struct Cursor {
 
     void   check() const;
     bool   valid()   const;
-    ay::Any get()    const;
+    asy::Any get()    const;
     void   advance();
 
     // Push (node, 0) and descend through children[0] until we hit a leaf.
     void descend_left(BTreeNode* n) {
         while (true) {
             if (depth >= kMaxDepth)
-                ay::raise("btree_core: cursor stack overflow");
+                asy::raise("btree_core: cursor stack overflow");
             path[depth] = n;
             idx [depth] = 0;
             ++depth;
@@ -72,8 +72,8 @@ struct Cursor {
 };
 
 struct BTreeSetCore_T {
-    ay::callable<bool(ay::Any, ay::Any)> ltFn;
-    ay::callable<bool(ay::Any)>          isNullTFn;  // may be null
+    asy::callable<bool(asy::Any, asy::Any)> ltFn;
+    asy::callable<bool(asy::Any)>          isNullTFn;  // may be null
 
     BTreeNode* root = nullptr;
     int size_      = 0;
@@ -81,14 +81,14 @@ struct BTreeSetCore_T {
     int maxPivots  = 128;
     int minPivots  = 64;
 
-    bool isNullTItem(ay::Any item) const {
+    bool isNullTItem(asy::Any item) const {
         return isNullTFn && isNullTFn(item);
     }
 
     // Binary search on pivots: returns the largest i with pivots[i] <= x,
     // or -1 if pivots[0] > x.  Calls ltFn O(log size) times.
     // Equivalent to asy's `search(pivots, x, lt)`.
-    int search_pivots(BTreeNode* n, ay::Any x) {
+    int search_pivots(BTreeNode* n, asy::Any x) {
         const int sz = static_cast<int>(n->pivots.size());
         if (sz == 0 || ltFn(x, n->pivots[0])) return -1;
         int u = sz - 1;
@@ -104,15 +104,15 @@ struct BTreeSetCore_T {
         return l;
     }
 
-    void reset(ay::callable<bool(ay::Any, ay::Any)> ltFn_,
-               ay::callable<bool(ay::Any)>          isNullTFn_,
+    void reset(asy::callable<bool(asy::Any, asy::Any)> ltFn_,
+               asy::callable<bool(asy::Any)>          isNullTFn_,
                long long maxPivots_) {
         ltFn      = ltFn_;
         isNullTFn = isNullTFn_;
         if (maxPivots_ < 2) maxPivots_ = 2;
         maxPivots = static_cast<int>(maxPivots_);
         minPivots = maxPivots / 2;
-        root      = ay::gc_new<BTreeNode>();
+        root      = asy::gc_new<BTreeNode>();
         size_     = 0;
         numChanges = 0;
     }
@@ -123,7 +123,7 @@ struct BTreeSetCore_T {
 
     // --------- read-only path-free queries (closest to Node::*) ---------
 
-    bool contains(ay::Any x) {
+    bool contains(asy::Any x) {
         BTreeNode* node = root;
         while (true) {
             int i = search_pivots(node, x);
@@ -133,7 +133,7 @@ struct BTreeSetCore_T {
         }
     }
 
-    ay::result<ay::Any> lookup(ay::Any x) {
+    asy::result<asy::Any> lookup(asy::Any x) {
         BTreeNode* node = root;
         while (true) {
             int i = search_pivots(node, x);
@@ -144,14 +144,14 @@ struct BTreeSetCore_T {
         }
     }
 
-    ay::result<ay::Any> minOpt() {
+    asy::result<asy::Any> minOpt() {
         if (size_ == 0) return {};
         BTreeNode* n = root;
         while (!n->isLeaf()) n = n->children[0];
         return { true, n->pivots[0] };
     }
 
-    ay::result<ay::Any> maxOpt() {
+    asy::result<asy::Any> maxOpt() {
         if (size_ == 0) return {};
         BTreeNode* n = root;
         while (!n->isLeaf()) n = n->children.back();
@@ -163,9 +163,9 @@ struct BTreeSetCore_T {
     // for callers without nullT.
 
     // Returns { true, y } where y = min { z | z >= x }, or {} if none.
-    ay::result<ay::Any> atOrAfter(ay::Any x) {
+    asy::result<asy::Any> atOrAfter(asy::Any x) {
         BTreeNode* node = root;
-        ay::result<ay::Any> best;  // best.found = false
+        asy::result<asy::Any> best;  // best.found = false
         while (true) {
             int i = search_pivots(node, x);
             // pivots[i] <= x, but maybe pivots[i] == x:
@@ -180,9 +180,9 @@ struct BTreeSetCore_T {
         }
     }
 
-    ay::result<ay::Any> after(ay::Any x) {
+    asy::result<asy::Any> after(asy::Any x) {
         BTreeNode* node = root;
-        ay::result<ay::Any> best;
+        asy::result<asy::Any> best;
         while (true) {
             int i = search_pivots(node, x) + 1;
             // pivots[i] > x  or  i == pivots.size()
@@ -193,9 +193,9 @@ struct BTreeSetCore_T {
         }
     }
 
-    ay::result<ay::Any> atOrBefore(ay::Any x) {
+    asy::result<asy::Any> atOrBefore(asy::Any x) {
         BTreeNode* node = root;
-        ay::result<ay::Any> best;
+        asy::result<asy::Any> best;
         while (true) {
             int i = search_pivots(node, x);
             // pivots[i] <= x  or  i == -1
@@ -206,9 +206,9 @@ struct BTreeSetCore_T {
         }
     }
 
-    ay::result<ay::Any> before(ay::Any x) {
+    asy::result<asy::Any> before(asy::Any x) {
         BTreeNode* node = root;
-        ay::result<ay::Any> best;
+        asy::result<asy::Any> best;
         while (true) {
             int i = search_pivots(node, x);
             if (i >= 0 && !ltFn(node->pivots[i], x)) --i;
@@ -226,7 +226,7 @@ struct BTreeSetCore_T {
     // chosen child index at each step on `indices`.  Returns true iff
     // an exact match was found (in which case the top of stack/indices
     // identifies (node, pivot_index) holding the match).
-    bool locate(ay::Any x,
+    bool locate(asy::Any x,
                 BTreeNode** stack, int* indices, int& depth) {
         BTreeNode* node = root;
         while (true) {
@@ -275,7 +275,7 @@ struct BTreeSetCore_T {
     // Inserts `item` at (stack[depth-1], indices[depth-1]) and
     // performs splits up the tree as needed.  Consumes (partially)
     // `stack` and `indices`.
-    void forceAdd(ay::Any item,
+    void forceAdd(asy::Any item,
                   BTreeNode** stack, int* indices, int depth) {
         --depth;
         int i = indices[depth];
@@ -285,10 +285,10 @@ struct BTreeSetCore_T {
         while (static_cast<int>(node->pivots.size()) > maxPivots) {
             const int plen = static_cast<int>(node->pivots.size());
             const int mid  = plen / 2;
-            ay::Any pivot  = node->pivots[mid];
+            asy::Any pivot  = node->pivots[mid];
 
-            BTreeNode* left  = ay::gc_new<BTreeNode>();
-            BTreeNode* right = ay::gc_new<BTreeNode>();
+            BTreeNode* left  = asy::gc_new<BTreeNode>();
+            BTreeNode* right = asy::gc_new<BTreeNode>();
             left ->pivots.assign(node->pivots.begin(),
                                  node->pivots.begin() + mid);
             right->pivots.assign(node->pivots.begin() + mid + 1,
@@ -302,7 +302,7 @@ struct BTreeSetCore_T {
 
             if (depth == 0) {
                 // Replace root with a new internal node.
-                root = ay::gc_new<BTreeNode>();
+                root = asy::gc_new<BTreeNode>();
                 root->pivots.push_back(pivot);
                 root->children.push_back(left);
                 root->children.push_back(right);
@@ -371,8 +371,8 @@ struct BTreeSetCore_T {
             if (parentIndex < static_cast<int>(parent->pivots.size())) {
                 right = parent->children[parentIndex + 1];
                 if (static_cast<int>(right->pivots.size()) > minPivots) {
-                    ay::Any oldPivot = parent->pivots[parentIndex];
-                    ay::Any newPivot = right->pivots.front();
+                    asy::Any oldPivot = parent->pivots[parentIndex];
+                    asy::Any newPivot = right->pivots.front();
                     parent->pivots[parentIndex] = newPivot;
                     right->pivots.erase(right->pivots.begin());
                     node->pivots.push_back(oldPivot);
@@ -386,8 +386,8 @@ struct BTreeSetCore_T {
             if (parentIndex > 0) {
                 left = parent->children[parentIndex - 1];
                 if (static_cast<int>(left->pivots.size()) > minPivots) {
-                    ay::Any oldPivot = parent->pivots[parentIndex - 1];
-                    ay::Any newPivot = left->pivots.back();
+                    asy::Any oldPivot = parent->pivots[parentIndex - 1];
+                    asy::Any newPivot = left->pivots.back();
                     left->pivots.pop_back();
                     parent->pivots[parentIndex - 1] = newPivot;
                     node->pivots.insert(node->pivots.begin(), oldPivot);
@@ -423,7 +423,7 @@ struct BTreeSetCore_T {
         }
     }
 
-    bool add(ay::Any item) {
+    bool add(asy::Any item) {
         if (isNullTItem(item)) return false;
         BTreeNode* stack[kMaxDepth];
         int        indices[kMaxDepth];
@@ -433,7 +433,7 @@ struct BTreeSetCore_T {
         return true;
     }
 
-    ay::result<ay::Any> push(ay::Any item) {
+    asy::result<asy::Any> push(asy::Any item) {
         if (isNullTItem(item)) return {};
         BTreeNode* stack[kMaxDepth];
         int        indices[kMaxDepth];
@@ -441,7 +441,7 @@ struct BTreeSetCore_T {
         if (locate(item, stack, indices, depth)) {
             int i = indices[depth - 1];
             BTreeNode* node = stack[depth - 1];
-            ay::Any result = node->pivots[i];
+            asy::Any result = node->pivots[i];
             node->pivots[i] = item;
             return { true, result };
         }
@@ -449,19 +449,19 @@ struct BTreeSetCore_T {
         return {};
     }
 
-    ay::result<ay::Any> extract(ay::Any item) {
+    asy::result<asy::Any> extract(asy::Any item) {
         BTreeNode* stack[kMaxDepth];
         int        indices[kMaxDepth];
         int        depth = 0;
         if (!locate(item, stack, indices, depth)) return {};
         BTreeNode* node = stack[depth - 1];
         int i = indices[depth - 1];
-        ay::Any result = node->pivots[i];
+        asy::Any result = node->pivots[i];
         deletePath(stack, indices, depth);
         return { true, result };
     }
 
-    bool deleteItem(ay::Any item) {
+    bool deleteItem(asy::Any item) {
         BTreeNode* stack[kMaxDepth];
         int        indices[kMaxDepth];
         int        depth = 0;
@@ -470,30 +470,30 @@ struct BTreeSetCore_T {
         return true;
     }
 
-    ay::result<ay::Any> popMin() {
+    asy::result<asy::Any> popMin() {
         if (size_ == 0) return {};
         BTreeNode* stack[kMaxDepth];
         int        indices[kMaxDepth];
         int        depth = 0;
         locateMin(stack, indices, depth);
-        ay::Any result = stack[depth - 1]->pivots[indices[depth - 1]];
+        asy::Any result = stack[depth - 1]->pivots[indices[depth - 1]];
         deletePath(stack, indices, depth);
         return { true, result };
     }
 
-    ay::result<ay::Any> popMax() {
+    asy::result<asy::Any> popMax() {
         if (size_ == 0) return {};
         BTreeNode* stack[kMaxDepth];
         int        indices[kMaxDepth];
         int        depth = 0;
         locateMax(stack, indices, depth);
-        ay::Any result = stack[depth - 1]->pivots[indices[depth - 1]];
+        asy::Any result = stack[depth - 1]->pivots[indices[depth - 1]];
         deletePath(stack, indices, depth);
         return { true, result };
     }
 
     Cursor* beginCursor() {
-        Cursor* c = ay::gc_new<Cursor>();
+        Cursor* c = asy::gc_new<Cursor>();
         c->owner = this;
         c->expectedChanges = numChanges;
         c->depth = 0;
@@ -504,20 +504,20 @@ struct BTreeSetCore_T {
 
 inline void Cursor::check() const {
     if (owner->numChanges != expectedChanges)
-        ay::raise("Concurrent modification");
+        asy::raise("Concurrent modification");
 }
 inline bool Cursor::valid() const {
     check();
     return depth > 0;
 }
-inline ay::Any Cursor::get() const {
+inline asy::Any Cursor::get() const {
     check();
-    if (depth == 0) ay::raise("Invalid iterator");
+    if (depth == 0) asy::raise("Invalid iterator");
     return path[depth - 1]->pivots[idx[depth - 1]];
 }
 inline void Cursor::advance() {
     check();
-    if (depth == 0) ay::raise("Invalid iterator");
+    if (depth == 0) asy::raise("Invalid iterator");
 
     BTreeNode* top = path[depth - 1];
     if (top->isLeaf()) {
@@ -549,10 +549,10 @@ inline void Cursor::advance() {
 ASY_TEMPLATED_MODULE(btreegeneral_core, m, "T") {
     (void)m.type_param("T");
 
-    ay::class_<BTreeSetCore_T> core(m, "BTreeSetCore_T");
-    ay::class_<Cursor>         cursor(m, "Cursor_T");
+    asy::class_<BTreeSetCore_T> core(m, "BTreeSetCore_T");
+    asy::class_<Cursor>         cursor(m, "Cursor_T");
 
-    core.def(ay::init<>());
+    core.def(asy::init<>());
     core.def<&BTreeSetCore_T::reset>       ("reset");
     core.def<&BTreeSetCore_T::size>        ("size");
     core.def<&BTreeSetCore_T::numChangesV> ("numChanges");

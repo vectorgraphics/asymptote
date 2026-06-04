@@ -155,7 +155,7 @@ struct asybind_host_api_v1 {
    * {ASYBIND_VOID, nullptr, nullptr}. */
   asybind_type_spec (*get_resolved_type)(asybind_module_ptr module, int i);
 
-  /* Marshal `ay::Any` values. The stored value is a GC-allocated copy
+  /* Marshal `asy::Any` values. The stored value is a GC-allocated copy
    * of the underlying vm::item, preserving its dynamic type tag so that
    * round-tripping an Any through C++ does not lose information. */
   asybind_any_ptr (*pop_any) (asybind_stack_ptr);

@@ -2,6 +2,6 @@
 // exported functions are callable from asy.
 from hello access hello, greet, sum;
 
-write(hello());
-write(greet("world"));
-write(sum(40, 2));
+assert(hello() == 'hi');
+assert(greet('world') == 'hello, world');
+assert(sum(40, 2) == 42);

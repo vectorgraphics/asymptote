@@ -232,7 +232,7 @@ asybind_type_spec type_to_spec(ty* t) {
                reinterpret_cast<asybind_funty_ptr>(t) };
     default:
       /* Records, arrays, overloaded, etc.: hand back as opaque ty*.
-       * The SDK treats this as the asy-side type of an `ay::Any`. */
+       * The SDK treats this as the asy-side type of an `asy::Any`. */
       return { ASYBIND_OPAQUE_TY,
                reinterpret_cast<asybind_class_ptr>(t), nullptr };
   }
@@ -518,9 +518,16 @@ void result_getter_value(asybind_stack_ptr s,
 // Cache key for result classes: composite of element spec fields.
 struct ResultCacheKey {
   int tag;
-  void* cls_or_fnty;  // class_ptr for USERPTR, fnty for FUNCTION, else null
+  // Identifies the element type beyond its tag:
+  //   USERPTR    -> cls   (the plugin class_ptr)
+  //   FUNCTION   -> fnty  (the asy function type)
+  //   OPAQUE_TY  -> cls   (the host types::ty*, e.g. a plain asy record)
+  // Without the OPAQUE_TY pointer, every record/array-typed result<Any>
+  // would collide on {OPAQUE_TY, null}, so the first instantiation's
+  // value-field type would leak into all later ones.
+  void* extra;
   bool operator==(const ResultCacheKey& o) const {
-    return tag == o.tag && cls_or_fnty == o.cls_or_fnty;
+    return tag == o.tag && extra == o.extra;
   }
 };
 
@@ -532,7 +539,8 @@ mem::list<ResultCacheEntry> g_resultCache;
 
 asybind_class_ptr host_result_class(asybind_type_spec elem) {
   void* extra = nullptr;
-  if (elem.tag == ASYBIND_USERPTR)       extra = elem.cls;
+  if (elem.tag == ASYBIND_USERPTR ||
+      elem.tag == ASYBIND_OPAQUE_TY)     extra = elem.cls;
   else if (elem.tag == ASYBIND_FUNCTION) extra = elem.fnty;
   ResultCacheKey key{elem.tag, extra};
   for (auto& e : g_resultCache) {
@@ -592,7 +600,7 @@ void host_push_result(asybind_stack_ptr s, asybind_class_ptr /*result_cls*/,
 }
 
 // =====================================================================
-//  Phase 3: parameterized modules + ay::Any marshalling.
+//  Phase 3: parameterized modules + asy::Any marshalling.
 //
 //  The host keeps a side-table mapping record* -> vector of resolved
 //  type specs, populated by tryLoadTemplatedPlugin before invoking the

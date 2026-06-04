@@ -9,16 +9,15 @@ c.reset(
   16
 );
 
-write('size=', c.size());                   // 0
-write('cap=',  c.capacity());                // 16
-write('add 3:',  c.add_item(3));                  // true
-write('add 1:',  c.add_item(1));                  // true
-write('add 3:',  c.add_item(3));                  // false
-write('size=', c.size());                    // 2
-write('cont 3:', c.contains(3));             // true
-write('cont 7:', c.contains(7));             // false
+assert(c.size() == 0);
+assert(c.capacity() == 16);
+assert(c.add(3));            // newly inserted
+assert(c.add(1));            // newly inserted
+assert(!c.add(3));           // duplicate
+assert(c.size() == 2);
+assert(c.contains(3));
+assert(!c.contains(7));
 
 var r = c.lookup(3);
-write('lookup 3 found:', r.found, 'value:', (int)r.value);  // true 3
-
-write('done');
+assert(r.found);
+assert((int)r.value == 3);

@@ -57,5 +57,3 @@ for (int rep = 0; rep < 20; ++rep) {
 assert(v.size() == 999, 'VecBag survived GC pressure');
 assert(im.get(4242) == 4242 * 4242, 'IntMap survived GC pressure');
 assert(sm.get('beta') == 22, 'StringMap survived GC pressure');
-
-write('memcontainers: PASSED');

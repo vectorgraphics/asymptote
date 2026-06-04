@@ -13,7 +13,7 @@
 namespace {
 
 struct HashEntry {
-    ay::Any  item;
+    asy::Any  item;
     int      hash  = -1;
     HashEntry* newer = nullptr;
     HashEntry* older = nullptr;
@@ -28,16 +28,16 @@ struct Cursor {
 
     void check() const;
     bool   valid()   const;
-    ay::Any get()    const;
+    asy::Any get()    const;
     void   advance();
 };
 
 struct HashSetCore_T {
     // Callbacks installed at construction; held as ay::callable so the
     // GC can reach the asy-side closures from `this`.
-    ay::callable<int(ay::Any)>             hashFn;
-    ay::callable<bool(ay::Any, ay::Any)>   equivFn;
-    ay::callable<bool(ay::Any)>            isNullTFn;   // may be null
+    asy::callable<int(asy::Any)>             hashFn;
+    asy::callable<bool(asy::Any, asy::Any)>   equivFn;
+    asy::callable<bool(asy::Any)>            isNullTFn;   // may be null
 
     std::vector<HashEntry*> buckets;
     int       size_      = 0;
@@ -53,7 +53,7 @@ struct HashSetCore_T {
         return buckets[j];
     }
 
-    bool isNullTItem(ay::Any item) const {
+    bool isNullTItem(asy::Any item) const {
         return isNullTFn && isNullTFn(item);
     }
 
@@ -77,13 +77,13 @@ struct HashSetCore_T {
                 }
             }
             if (!placed)
-                ay::raise("No space in hash table; "
+                asy::raise("No space in hash table; "
                           "is the linked list circular?");
         }
         buckets = std::move(next);
     }
 
-    int find(ay::Any item, int hash) {
+    int find(asy::Any item, int hash) {
         const int n = static_cast<int>(buckets.size());
         for (int i = hash - n; i < hash; ++i) {
             HashEntry* e = bucketAt(i);
@@ -104,9 +104,9 @@ struct HashSetCore_T {
         --size_;
     }
 
-    void reset(ay::callable<int(ay::Any)> hashFn_,
-               ay::callable<bool(ay::Any, ay::Any)> equivFn_,
-               ay::callable<bool(ay::Any)> isNullTFn_,
+    void reset(asy::callable<int(asy::Any)> hashFn_,
+               asy::callable<bool(asy::Any, asy::Any)> equivFn_,
+               asy::callable<bool(asy::Any)> isNullTFn_,
                int initialCapacity) {
         hashFn    = hashFn_;
         equivFn   = equivFn_;
@@ -124,7 +124,7 @@ struct HashSetCore_T {
     int  numChangesV() const { return numChanges; }
     bool hasNullT()    const { return static_cast<bool>(isNullTFn); }
 
-    bool contains(ay::Any item) {
+    bool contains(asy::Any item) {
         if (isNullTItem(item)) return false;
         const int n = capacity();
         const int bucket = hashFn(item);
@@ -136,7 +136,7 @@ struct HashSetCore_T {
         return false;
     }
 
-    ay::result<ay::Any> lookup(ay::Any item) {
+    asy::result<asy::Any> lookup(asy::Any item) {
         if (isNullTItem(item)) return {};
         const int n = capacity();
         const int bucket = hashFn(item);
@@ -149,7 +149,7 @@ struct HashSetCore_T {
         return {};
     }
 
-    bool add(ay::Any item) {
+    bool add(asy::Any item) {
         if (isNullTItem(item)) return false;
         int cap = capacity();
         if (2 * (size_ + zombies) >= cap) {
@@ -163,13 +163,13 @@ struct HashSetCore_T {
             changeCapacity();
             cap = capacity();
             index = find(item, bucket);
-            if (index == -1) ay::raise("No space in hash table");
+            if (index == -1) asy::raise("No space in hash table");
         }
         HashEntry*& slot = bucketAt(index);
         if (slot) return false;
 
         ++numChanges;
-        HashEntry* entry = ay::gc_new<HashEntry>();
+        HashEntry* entry = asy::gc_new<HashEntry>();
         entry->item  = item;
         entry->hash  = bucket;
         entry->older = newest;
@@ -181,7 +181,7 @@ struct HashSetCore_T {
         return true;
     }
 
-    ay::result<ay::Any> push(ay::Any item) {
+    asy::result<asy::Any> push(asy::Any item) {
         if (isNullTItem(item)) return {};
         int cap = capacity();
         if (2 * (size_ + zombies) >= cap) {
@@ -192,16 +192,16 @@ struct HashSetCore_T {
         if (index == -1) {
             changeCapacity();
             index = find(item, bucket);
-            if (index == -1) ay::raise("No space in hash table");
+            if (index == -1) asy::raise("No space in hash table");
         }
         HashEntry*& slot = bucketAt(index);
         if (slot) {
-            ay::Any old = slot->item;
+            asy::Any old = slot->item;
             slot->item = item;
             return { true, old };
         }
         ++numChanges;
-        HashEntry* entry = ay::gc_new<HashEntry>();
+        HashEntry* entry = asy::gc_new<HashEntry>();
         entry->item  = item;
         entry->hash  = bucket;
         entry->older = newest;
@@ -213,49 +213,49 @@ struct HashSetCore_T {
         return {};
     }
 
-    ay::result<ay::Any> extract(ay::Any item) {
+    asy::result<asy::Any> extract(asy::Any item) {
         if (isNullTItem(item)) return {};
         int index = find(item, hashFn(item));
         if (index == -1)
-            ay::raise("Overcrowded hash table");
+            asy::raise("Overcrowded hash table");
         HashEntry* entry = bucketAt(index);
         if (!entry) return {};
-        ay::Any old = entry->item;
+        asy::Any old = entry->item;
         makeZombie(entry);
         return { true, old };
     }
 
-    bool deleteItem(ay::Any item) {
+    bool deleteItem(asy::Any item) {
         if (isNullTItem(item)) return false;
         int index = find(item, hashFn(item));
         if (index == -1)
-            ay::raise("Overcrowded hash table");
+            asy::raise("Overcrowded hash table");
         HashEntry* entry = bucketAt(index);
         if (!entry) return false;
         makeZombie(entry);
         return true;
     }
 
-    ay::result<ay::Any> getRandom() {
+    asy::result<asy::Any> getRandom() {
         if (size_ == 0) return {};
         const int n = capacity();
         if (size_ > 0 && size_ / 2 > n / size_) {
-            int idx = static_cast<int>(ay::rand(0, size_ - 1));
+            int idx = static_cast<int>(asy::rand(0, size_ - 1));
             for (HashEntry* cur = oldest; cur; cur = cur->newer) {
                 if (idx == 0) return { true, cur->item };
                 --idx;
             }
-            ay::raise("Unreachable code");
+            asy::raise("Unreachable code");
         }
         for (;;) {
-            int i = static_cast<int>(ay::rand(0, n - 1));
+            int i = static_cast<int>(asy::rand(0, n - 1));
             HashEntry* e = buckets[i];
             if (e && e->hash != -1) return { true, e->item };
         }
     }
 
     Cursor* beginCursor() {
-        Cursor* c = ay::gc_new<Cursor>();
+        Cursor* c = asy::gc_new<Cursor>();
         c->owner = this;
         c->current = this->oldest;
         c->expectedChanges = this->numChanges;
@@ -265,20 +265,20 @@ struct HashSetCore_T {
 
 inline void Cursor::check() const {
     if (owner->numChanges != expectedChanges)
-        ay::raise("Concurrent modification");
+        asy::raise("Concurrent modification");
 }
 inline bool Cursor::valid() const {
     check();
     return current != nullptr;
 }
-inline ay::Any Cursor::get() const {
+inline asy::Any Cursor::get() const {
     check();
-    if (!current) ay::raise("Invalid iterator");
+    if (!current) asy::raise("Invalid iterator");
     return current->item;
 }
 inline void Cursor::advance() {
     check();
-    if (!current) ay::raise("Invalid iterator");
+    if (!current) asy::raise("Invalid iterator");
     current = current->newer;
 }
 
@@ -289,10 +289,10 @@ ASY_TEMPLATED_MODULE(hashset_core, m, "T") {
     // wrapper supplies hash/equiv as ordinary asy callables.
     (void)m.type_param("T");
 
-    ay::class_<HashSetCore_T> core(m, "HashSetCore_T");
-    ay::class_<Cursor> cursor(m, "Cursor_T");
+    asy::class_<HashSetCore_T> core(m, "HashSetCore_T");
+    asy::class_<Cursor> cursor(m, "Cursor_T");
 
-    core.def(ay::init<>());
+    core.def(asy::init<>());
     core.def<&HashSetCore_T::reset>     ("reset");
     core.def<&HashSetCore_T::size>      ("size");
     core.def<&HashSetCore_T::capacity>  ("capacity");

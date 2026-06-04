@@ -8,7 +8,5 @@ c.reset(
   16
 );
 
-write('cap=', c.capacity());
-
-bool r1 = c.add_item(3);
-write('r1=', r1);
+assert(c.capacity() == 16);
+assert(c.add(3));

@@ -504,10 +504,15 @@ AC_SUBST(TINYEXR_ROOT)
 
 # ------------------- GLFW -----------------
 
+# Both renderer shim libraries (libasyvulkan.so, libasyopengl.so) link against
+# GLFW.  Track whether it is actually present; if not, neither renderer can be
+# built regardless of --enable-vulkan/--enable-gl.
+have_glfw=no
 if test "x$enable_vulkan" != "xno" -o "x$enable_gl" != "xno"; then
    AC_CHECK_LIB([glfw], [glfwShowWindow],
                 [AC_DEFINE(HAVE_LIBGLFW,1,DEFINE_LIB([GLFW]))
-                 LIBS=$LIBS"-lglfw "],
+                 LIBS=$LIBS"-lglfw "
+                 have_glfw=yes],
                 AC_MSG_NOTICE([*** Could not find libglfw: will compile without Vulkan or OpenGL support ***]))
 fi
 
@@ -518,13 +523,22 @@ AC_ARG_ENABLE(vulkan,
 
 VMA_REPO_ROOT=VulkanMemoryAllocator
 VMA_IMPL_FILES=""
+# vulkan_available is set to "yes" only once the full Vulkan toolchain (headers
+# plus libraries) has been found.  VMA_IMPL_FILES and libasyvulkan.so are gated
+# on it so that a partial/missing Vulkan SDK degrades gracefully instead of
+# breaking the build.
+vulkan_available=no
 if test "x$enable_vulkan" != "xno"; then
-INCL=" -I$VMA_REPO_ROOT/include "$INCL" -Ithirdparty_impl/vk-mem-allocator_impl/include "
-VMA_IMPL_FILES=$VMA_IMPL_FILES" vma_cxx vma_impl"
-
 ASY_VULKAN_LIBS=""
 AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
 
+# The Vulkan renderer sources need the Vulkan SDK headers: vma_cxx pulls in the
+# C++ bindings header <vulkan/vulkan.hpp>, which in turn includes
+# <vulkan/vulkan.h>.  Skip the renderer entirely if they are absent, otherwise
+# the libasyvulkan.so build fails with "file not found".
+AC_CHECK_HEADER([vulkan/vulkan.hpp],[have_vulkan_headers=yes],[have_vulkan_headers=no])
+
+if test "x$have_vulkan_headers" = "xyes"; then
 case "$OSTYPE" in
      *)
           AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
@@ -544,6 +558,7 @@ case "$OSTYPE" in
           [
           AC_DEFINE(HAVE_LIBVULKAN,1,
           DEFINE_LIB([vulkan]))
+          vulkan_available=yes
           ASY_VULKAN_LIBS="$ASY_VULKAN_LIBS -lglslang -lSPIRV-Tools-opt -lSPIRV-Tools"
           ],
 
@@ -553,6 +568,7 @@ case "$OSTYPE" in
           [
           AC_DEFINE(HAVE_LIBVULKAN,1,
           DEFINE_LIB([vulkan]))
+          vulkan_available=yes
           ASY_VULKAN_LIBS="$ASY_VULKAN_LIBS -lglslang"
           ],
           [
@@ -566,6 +582,16 @@ case "$OSTYPE" in
           ],
           AC_MSG_NOTICE([*** Could not find libvulkan: will compile without Vulkan support ***]))
 esac
+else
+AC_MSG_NOTICE([*** Could not find <vulkan/vulkan.hpp>: will compile without Vulkan support ***])
+fi
+
+# Only compile the VMA sources when the renderer will actually be built, i.e.
+# the Vulkan toolchain is present and GLFW (which libasyvulkan.so links) exists.
+if test "x$vulkan_available" = "xyes" -a "x$have_glfw" = "xyes"; then
+INCL=" -I$VMA_REPO_ROOT/include "$INCL" -Ithirdparty_impl/vk-mem-allocator_impl/include "
+VMA_IMPL_FILES=" vma_cxx vma_impl"
+fi
 fi
 
 # Check if Vulkan libraries should be bundled (macOS only).
@@ -608,6 +634,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 
 ASY_GL_LIBS=""
 SHIM_LDFLAGS=""
+have_gl=no
 
 if test "x$enable_gl" != "xno"; then
    AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
@@ -622,6 +649,7 @@ case "$OSTYPE" in
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL,1,
                              DEFINE([<gl.h> header]))
+                              have_gl=yes
                               ASY_GL_LIBS="-framework OpenGL -framework Cocoa "
                               INCL=$INCL" -Ibackports/glew/include"
                               GLEW="glew.o "],
@@ -635,6 +663,7 @@ case "$OSTYPE" in
          AC_LINK_IFELSE([AC_LANG_CALL([], [glDepthMask])],
                                  [AC_DEFINE(HAVE_LIBGL,1,
                              DEFINE_LIB([GL]))
+                             have_gl=yes
                              ASY_GL_LIBS="-lGL "
                              GLEW="glew.o "
                              INCL=$INCL" -Ibackports/glew/include"],
@@ -692,11 +721,18 @@ AC_SUBST(MACOS_DEPLOYMENT_FLAGS)
 # Determine which shim shared libraries (loaded via dlopen at runtime) to
 # build and link the asy binary against. Empty when both renderers are
 # disabled so the main binary does not depend on libglfw, libGL, or libvulkan.
+# A renderer is built only when it was requested AND its dependencies were
+# actually found: both shims link GLFW, the Vulkan shim additionally needs the
+# Vulkan toolchain, and the OpenGL shim needs libGL.  Without these gates the
+# build would attempt (and fail) to compile/link renderers whose libraries or
+# headers are missing.
 SHIMLIBS=""
-if test "x$enable_vulkan" != "xno"; then
+if test "x$enable_vulkan" != "xno" -a "x$have_glfw" = "xyes" \
+        -a "x$vulkan_available" = "xyes"; then
     SHIMLIBS="$SHIMLIBS libasyvulkan.so"
 fi
-if test "x$enable_gl" != "xno"; then
+if test "x$enable_gl" != "xno" -a "x$have_glfw" = "xyes" \
+        -a "x$have_gl" = "xyes"; then
     SHIMLIBS="$SHIMLIBS libasyopengl.so"
 fi
 AC_SUBST(SHIMLIBS)

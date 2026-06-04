@@ -3,6 +3,7 @@
 
 import glob
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -77,6 +78,14 @@ def run_deconstruct_test():
     """Run the deconstruct test."""
     sys.stdout.write("Testing deconstruct...")
     sys.stdout.flush()
+
+    # deconstruct() shells out to dvisvgm to produce the SVG pieces. Skip rather
+    # than fail when dvisvgm is unavailable, so the suite still passes on minimal
+    # environments without it (the devcontainer installs it for full coverage).
+    dvisvgm = os.environ.get("ASYMPTOTE_DVISVGM") or "dvisvgm"
+    if shutil.which(dvisvgm) is None:
+        print(" SKIPPED (dvisvgm not found).")
+        return True
 
     expected_file = os.path.join(SCRIPT_DIR, "deconstruct")
     result = subprocess.run(

@@ -2,9 +2,9 @@
 access "box" as b;
 
 b.Box box = b.Box();
-write(box.value);            // expect 42
-write(box.size());           // expect 42
+assert(box.value == 42, 'Box.value');
+assert(box.size() == 42, 'Box.size()');
 
 // Method-as-value: the design-doc form `Set_T.size = box.size;`
 int f() = box.size;
-write(f());                  // expect 42
+assert(f() == 42, 'Box.size as a value');
