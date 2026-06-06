@@ -6,7 +6,9 @@ if (UNIX)
     # ASYMPTOTE_SYSDIR is always set globally for asycore and shared libraries.
     set(ASYMPTOTE_SYSDIR_VALUE ${CMAKE_INSTALL_FULL_DATADIR}/asymptote CACHE PATH
         "Path baked into the asy binary as the system base dir (ASYMPTOTE_SYSDIR). \
-Override for out-of-install-tree builds, e.g. in the sandbox preset.")
+Override only for builds that are run in-place from a fixed, non-install \
+location; the shipped presets (release and sandbox alike) leave it at the \
+install datadir so an in-place run that cannot find base/ fails consistently.")
 
     set(ASYMPTOTE_DOCDIR_VALUE ${CMAKE_INSTALL_FULL_DATADIR}/doc/asymptote)
 

@@ -108,25 +108,56 @@ mode_t mask;
 // Flag set by --version option to exit after all options are parsed
 static bool showVersion=false;
 
-// Use the compiled-in sysdir if it exists on disk; otherwise fall back to a
-// path relative to the running executable so that a staged installation works
-// when moved to a different location.
-static string initSysdir() {
-#if defined(__APPLE__) && defined(IS_RELOCATABLE)
+#ifdef IS_RELOCATABLE
+// Absolute path of the running executable, or "" if it cannot be determined.
+static string getExecutablePath() {
+#if defined(_WIN32)
+  char buf[MAX_PATH];
+  DWORD len=GetModuleFileNameA(nullptr,buf,sizeof(buf));
+  if(len == 0 || len == sizeof(buf))
+    return "";
+  return string(buf,len);
+#elif defined(__APPLE__)
   char buf[4096];
-  uint32_t size = (uint32_t)sizeof(buf);
-  if (_NSGetExecutablePath(buf, &size) != 0)
+  uint32_t size=(uint32_t) sizeof(buf);
+  if(_NSGetExecutablePath(buf,&size) != 0)
     return "";
-  string exe(buf);
-  // Strip the executable filename to get the bin directory.
-  size_t slash = exe.rfind('/');
-  if (slash == string::npos)
+  return string(buf);
+#else
+  char buf[4096];
+  ssize_t len=readlink("/proc/self/exe",buf,sizeof(buf)-1);
+  if(len <= 0)
     return "";
-  // Strip the bin directory to get the installation prefix.
-  size_t slash2 = exe.substr(0, slash).rfind('/');
-  if (slash2 == string::npos)
-    return "";
-  return exe.substr(0, slash2) + "/share/asymptote";
+  return string(buf,len);
+#endif
+}
+#endif
+
+// Determine the system base directory. Normally this is the compiled-in
+// ASYMPTOTE_SYSDIR. For a relocatable binary (IS_RELOCATABLE), when that path
+// does not exist on disk -- e.g. the binary is run in place from its build
+// tree, or from a staged/relocated install -- locate base/ relative to the
+// running executable instead, so it can find its data directory without -dir.
+static string initSysdir() {
+#ifdef IS_RELOCATABLE
+  string sysdir=ASYMPTOTE_SYSDIR;
+  if(!sysdir.empty() && fileExists(sysdir))
+    return sysdir;
+  string exe=getExecutablePath();
+  if(!exe.empty()) {
+    size_t slash=exe.find_last_of("/\\");
+    if(slash != string::npos) {
+      string bindir=exe.substr(0,slash);
+      // Build tree: base/ sits next to the executable.
+      string buildBase=bindir+"/base";
+      if(fileExists(buildBase))
+        return buildBase;
+      // Install tree: <prefix>/bin/asy with data in <prefix>/share/asymptote.
+      size_t slash2=bindir.find_last_of("/\\");
+      if(slash2 != string::npos)
+        return bindir.substr(0,slash2)+"/share/asymptote";
+    }
+  }
 #endif
   return ASYMPTOTE_SYSDIR;
 }
