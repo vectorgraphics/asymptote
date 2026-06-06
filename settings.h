@@ -38,6 +38,9 @@ extern bool safe;
 bool globalread();
 bool globalwrite();
 
+extern bool haveReadFile;
+bool curlEnabled();
+
 extern const string suffix;
 extern const string guisuffix;
 extern const string standardprefix;

@@ -1493,11 +1493,8 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool v3d=format == "v3d";
 
 #ifndef HAVE_LIBGLM
-  if(webgl)
-    camp::reportError("to support WebGL rendering, please install glm header files, then ./configure; make");
-
-  if(v3d)
-    camp::reportError("to support V3D rendering, please install glm header files, then ./configure; make");
+  if(webgl || v3d)
+    camp::reportError("to support html and v3d rendering, please install glm header files, then ./configure; make");
 #endif
 
 #ifndef HAVE_LIBOSMESA
@@ -1585,7 +1582,6 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(AsyRender::threads && !offscreen) {
 #ifdef HAVE_PTHREAD
       if(!gl->initialized) {
-        gl->initialized=!View || offscreen;
         if(Wait)
           pthread_mutex_lock(&gl->threadMgr.readyLock);
         allowRender=true;

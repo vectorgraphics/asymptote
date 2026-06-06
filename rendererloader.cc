@@ -16,14 +16,24 @@
  *
  * On Windows, Vulkan is linked directly into the asy binary.
  *
- * For WebGL (html) and v3d output, AsyWebGLRender is used instead, which
+ * For WebGL (html) and v3d output, NoRender is used instead, which
  * requires no GPU libraries - it only sets up state for client-side rendering.
  *****/
 
 #include "rendererloader.h"
 #include "camperror.h"
+
+#ifdef __APPLE__
+// Include glfw3.h with Vulkan support BEFORE renderBase.h, which includes
+// it with GLFW_INCLUDE_NONE.  This ensures we get both the Vulkan types
+// (PFN_vkGetInstanceProcAddr) and the glfwInitVulkanLoader declaration.
+#define VK_NO_PROTOTYPES
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+#endif
+
 #include "renderBase.h"
-#include "webglrender.h"
+#include "norender.h"
 
 extern pthread_mutex_t main_wait_mutex;
 extern pthread_cond_t main_wait_cond;
@@ -53,22 +63,6 @@ bool vulkan = false;
 
 #include "settings.h"    // for settings::verbose
 #include "locate.h"       // for settings::locateFile
-
-#ifdef __APPLE__
-// GLFW_INCLUDE_VULKAN causes glfw3.h to include <vulkan/vulkan.h>.
-// VK_NO_PROTOTYPES suppresses function declarations so the main binary
-// keeps zero link-time Vulkan dependencies; we only need the typedefs
-// (e.g., PFN_vkGetInstanceProcAddr) and the glfwInitVulkanLoader declaration.
-#define VK_NO_PROTOTYPES
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-#endif // __APPLE__
-
-// For llvmpipe fallback on Intel Macs without Metal (e.g., headless VMs):
-// Detect Metal availability via dlopen/dlsym BEFORE any Vulkan calls,
-// since MoltenVK will fail with ErrorIncompatibleDriver if Metal is absent.
-// Standard C headers (<dlfcn.h>, <unistd.h>) are sufficient; no Mac-specific
-// frameworks needed beyond the runtime dlopen of Metal.framework itself.
 
 namespace camp {
 
@@ -320,16 +314,16 @@ void unloadOpenGL()
 }
 
 /**
- * Create a WebGL renderer for html/v3d output.
+ * Create a NoRender instance for html/v3d output.
  * This does NOT require Vulkan or OpenGL libraries - it only sets up state
  * needed by jsfile.cc and v3dfile.cc to generate the output files.
  *
  * If a Vulkan/OpenGL renderer was already created (e.g., by createRenderer()),
- * we replace the global pointer with AsyWebGLRender. The old renderer is NOT
+ * we replace the global pointer with NoRender. The old renderer is NOT
  * deleted to avoid triggering cleanup code (like glslang::FinalizeProcess())
  * that can cause issues when called during program shutdown.
  */
-static void createWebGLRenderer()
+static void createNoRenderer()
 {
     // Replace the global pointer without deleting the old renderer.
     // This avoids triggering Vulkan/OpenGL cleanup code that can cause
@@ -340,7 +334,7 @@ static void createWebGLRenderer()
         gl = nullptr;
     }
 
-    gl = new camp::AsyWebGLRender();
+    gl = new camp::NoRender();
 
 #ifdef HAVE_PTHREAD
     if (gl)
@@ -349,7 +343,7 @@ static void createWebGLRenderer()
 
     signalRendererReady();
 #ifdef HAVE_RENDERER
-    vulkan = false;  // WebGL renderer is not Vulkan
+    vulkan = false;  // NoRender is not Vulkan
 #endif
 }
 
@@ -600,7 +594,7 @@ void createRenderer()
 /**
  * Initialise the renderer, optionally selecting based on output format.
  *
- * For WebGL (html) and v3d formats, creates AsyWebGLRender which requires
+ * For WebGL (html) and v3d formats, creates NoRender which requires
  * no GPU libraries - it only sets up state for client-side rendering.
  *
  * For all other formats, lazily calls createRenderer() to probe for Vulkan/
@@ -611,21 +605,21 @@ void createRenderer()
  */
 void initRenderer(const char* format)
 {
-    // For WebGL and v3d output, use the lightweight AsyWebGLRender
+    // For WebGL and v3d output, use the lightweight NoRender
     // which doesn't require Vulkan or OpenGL libraries
     bool isFormat3D = (format != nullptr &&
                        (strcmp(format, "html") == 0 || strcmp(format, "v3d") == 0));
 
-    // If we have a WebGL renderer but now need GPU rendering (or vice versa),
+    // If we have a NoRender but now need GPU rendering (or vice versa),
     // reset and re-initialize with the appropriate renderer
     if (initializedRenderer) {
-        bool currentIsWebGL = dynamic_cast<AsyWebGLRender*>(gl) != nullptr;
-        if (currentIsWebGL != isFormat3D) {
+        bool currentIsNoRender = dynamic_cast<NoRender*>(gl) != nullptr;
+        if (currentIsNoRender != isFormat3D) {
             initializedRenderer = false;
             // Clear the old renderer so a new one gets created below.
             // We don't delete it to avoid triggering cleanup code
             // (e.g., glslang::FinalizeProcess()) that can cause issues.
-            if (currentIsWebGL)
+            if (currentIsNoRender)
                 gl = nullptr;
         }
     }
@@ -634,7 +628,7 @@ void initRenderer(const char* format)
         return; // Already fully initialised for this format type
 
     if (isFormat3D) {
-        createWebGLRenderer();
+        createNoRenderer();
     } else if (gl == nullptr) {
         // Lazy initialisation: probe for Vulkan/OpenGL only when GPU
         // rendering is actually needed.
@@ -659,10 +653,6 @@ void initRenderer(const char* format)
 
     initializedRenderer = true;
 
-    if (settings::verbose > 2) {
-        if (isFormat3D && format)
-            std::cout << "Using WebGL renderer for " << format << " output" << std::endl;
-    }
 }
 
 } // namespace camp
@@ -687,17 +677,17 @@ void unloadOpenGL() {}
 void createRenderer() {}
 
 /**
- * Create a WebGL renderer for html/v3d output.
+ * Create a NoRender instance for html/v3d output.
  * This does NOT require Vulkan or OpenGL libraries - it only sets up state
  * needed by jsfile.cc and v3dfile.cc to generate the output files.
  */
 #ifdef HAVE_LIBGLM
-static void createWebGLRenderer()
+static void createNoRenderer()
 {
     if (gl != nullptr)
         gl = nullptr;
 
-    gl = new camp::AsyWebGLRender();
+    gl = new camp::NoRender();
     signalRendererReady();
 }
 #endif
@@ -709,7 +699,7 @@ void initRenderer(const char* format)
                        (strcmp(format, "html") == 0 || strcmp(format, "v3d") == 0));
 
     if (isFormat3D) {
-        createWebGLRenderer();
+        createNoRenderer();
     }
 #endif
     // For non-format3d output without GPU libraries, picture.cc will report

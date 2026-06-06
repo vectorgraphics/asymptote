@@ -16,7 +16,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--asy-list-file", type=str, required=True, help="Path to the asy list file"
 )
-parser.add_argument("--revision", type=str, required=True, help="Revision identifier")
+parser.add_argument(
+    "--revision", type=str, default="", help="Revision identifier"
+)
 parser.add_argument(
     "--output-file", type=str, required=True, help="Path to output file"
 )

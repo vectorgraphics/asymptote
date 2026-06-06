@@ -43,8 +43,6 @@
 using settings::getSetting;
 using settings::Setting;
 
-constexpr size_t timeout=10000000000;
-
 void exitHandler(int);
 
 #ifdef HAVE_VULKAN
@@ -65,6 +63,91 @@ using namespace glm;
 
 namespace camp
 {
+
+// Vertex input description helpers (extracted from render.h vertex structs
+// to keep render.h free of Vulkan API dependencies)
+inline vk::VertexInputBindingDescription materialVertexBinding()
+{
+  return vk::VertexInputBindingDescription(0, sizeof(MaterialVertex), vk::VertexInputRate::eVertex);
+}
+
+inline std::vector<vk::VertexInputAttributeDescription> materialVertexAttributes(bool count = false)
+{
+  std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
+  attributeDescriptions.push_back(
+      vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, position)));
+
+  if (!count) {
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(NORMAL_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(MaterialVertex, normal)));
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(MaterialVertex, material)));
+  }
+  return attributeDescriptions;
+}
+
+inline vk::VertexInputBindingDescription colorVertexBinding()
+{
+  return vk::VertexInputBindingDescription(0, sizeof(ColorVertex), vk::VertexInputRate::eVertex);
+}
+
+inline std::vector<vk::VertexInputAttributeDescription> colorVertexAttributes(bool count = false)
+{
+  std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
+  attributeDescriptions.push_back(
+      vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, position)));
+
+  if (!count) {
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(NORMAL_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(ColorVertex, normal)));
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(ColorVertex, material)));
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(COLOR_LOCATION, 0, vk::Format::eR32G32B32A32Sfloat, offsetof(ColorVertex, color)));
+  }
+  return attributeDescriptions;
+}
+
+inline vk::VertexInputBindingDescription pointVertexBinding()
+{
+  return vk::VertexInputBindingDescription(0, sizeof(PointVertex), vk::VertexInputRate::eVertex);
+}
+
+inline std::vector<vk::VertexInputAttributeDescription> pointVertexAttributes(bool count = false)
+{
+  std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
+  attributeDescriptions.push_back(
+      vk::VertexInputAttributeDescription(POSITION_LOCATION, 0, vk::Format::eR32G32B32Sfloat, offsetof(PointVertex, position)));
+
+  // Always include width for points
+  attributeDescriptions.push_back(
+      vk::VertexInputAttributeDescription(WIDTH_LOCATION, 0, vk::Format::eR32Sfloat, offsetof(PointVertex, width)));
+
+  if (!count) {
+    attributeDescriptions.push_back(
+        vk::VertexInputAttributeDescription(MATERIAL_LOCATION, 0, vk::Format::eR32Sint, offsetof(PointVertex, material)));
+  }
+  return attributeDescriptions;
+}
+
+// Vertex input trait specializations: map a vertex struct type to its
+// Vulkan binding/attribute description free functions.
+template<typename V> struct VertexInputTraits;
+
+template<> struct VertexInputTraits<MaterialVertex> {
+  static vk::VertexInputBindingDescription binding() { return materialVertexBinding(); }
+  static std::vector<vk::VertexInputAttributeDescription> attributes(bool count) { return materialVertexAttributes(count); }
+};
+
+template<> struct VertexInputTraits<ColorVertex> {
+  static vk::VertexInputBindingDescription binding() { return colorVertexBinding(); }
+  static std::vector<vk::VertexInputAttributeDescription> attributes(bool count) { return colorVertexAttributes(count); }
+};
+
+template<> struct VertexInputTraits<PointVertex> {
+  static vk::VertexInputBindingDescription binding() { return pointVertexBinding(); }
+  static std::vector<vk::VertexInputAttributeDescription> attributes(bool count) { return pointVertexAttributes(count); }
+};
 
 std::vector<char> readFile(const std::string& filename)
 {
@@ -178,7 +261,7 @@ void AsyVkRender::updateModelViewData()
 
 void AsyVkRender::initWindow()
 {
-  glfwWindow = static_cast<void*>(glfwCreateRenderWindow(Width, Height, title, this));
+  glfwWindow = glfwCreateRenderWindow(Width, Height, title, this);
 }
 
 // RenderCallbacks interface implementation
@@ -256,11 +339,6 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
 
   if(!(initialized && interact::interactive)) {
     antialias=settings::getSetting<Int>("antialias") > 1;
-
-    double expand=settings::getSetting<double>("render");
-    if(expand < 0)
-      expand *= (Format.empty() || Format == "eps" || Format == "pdf") ? -2.0 : -1.0;
-    if(antialias) expand *= 2.0;
 
     Aspect = args.width/args.height;
 
@@ -428,7 +506,8 @@ void AsyVkRender::initVulkan()
   createGraphicsPipelines();
 
   createComputePipelines(); // gpu indexing + post processing
-  fpu_trap(settings::trap()); // Work around FE_INVALID.
+
+  fpu_trap(settings::trap());
 
   createAttachments();
   createFramebuffers();
@@ -439,6 +518,7 @@ void AsyVkRender::recreateSwapChain()
 {
   device->waitIdle();
 
+  fpu_trap(false); // Work around FE_INVALID
   try {
     // Reset timeline semaphore values to avoid timeout issues
     currentTimelineValue = 0;
@@ -493,6 +573,7 @@ void AsyVkRender::recreateSwapChain()
     outOfMemory();
   }
 
+  fpu_trap(settings::trap());
   redisplay=true;
   waitEvent=false;
 }
@@ -873,6 +954,17 @@ void AsyVkRender::pickPhysicalDevice()
   if(settings::verbose > 1)
     cout << "Using device " << physicalDevice.getProperties().deviceName
          << endl;
+
+  // Software renderers (llvmpipe, vulkan-software) JIT-compile shaders to native
+  // code on first use, causing cold-start delays of several seconds.  Use a
+  // longer Vulkan wait timeout for those devices so the first frame doesn't
+  // trigger a spurious VK_TIMEOUT error.  Hardware GPUs get a shorter timeout
+  // so that genuine hangs are detected promptly.
+  if (physicalDevice.getProperties().deviceType == vk::PhysicalDeviceType::eCpu) {
+    vkTimeout = 30'000'000'000ULL; // 30 seconds for software renderers
+  } else {
+    vkTimeout = 1'000'000'000ULL;  // 1 second for hardware GPUs
+  }
 
   std::uint32_t nSamples;
 
@@ -1576,7 +1668,7 @@ void AsyVkRender::copyBufferToBuffer(const vk::Buffer& srcBuffer, const vk::Buff
   if (submitResult != vk::Result::eSuccess)
     runtimeError("failed to submit command buffer");
   vkutils::checkVkResult(device->waitForFences(
-    1, &*fence, VK_TRUE, timeout
+    1, &*fence, VK_TRUE, vkTimeout
   ));
 }
 
@@ -1593,7 +1685,7 @@ void AsyVkRender::beginTransferRecording(FrameObject & object)
     // Wait for any prior GPU submission of this command buffer to complete,
     // then reset both the fence and command buffer before re-recording.
     if (object.transferFence) {
-      vkutils::checkVkResult(device->waitForFences(1, &*object.transferFence, VK_TRUE, timeout));
+      vkutils::checkVkResult(device->waitForFences(1, &*object.transferFence, VK_TRUE, vkTimeout));
       vkutils::checkVkResult(device->resetFences(1, &*object.transferFence));
     }
     object.copyCountCommandBuffer->reset();
@@ -3189,8 +3281,8 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
     vertexInputCI = vk::PipelineVertexInputStateCreateInfo();
   } else {
     // For all other shaders, get the binding description and attribute descriptions
-    bindingDescription = V::getBindingDescription();
-    attributeDescriptions = V::getAttributeDescriptions(type == PIPELINE_COUNT);
+    bindingDescription = VertexInputTraits<V>::binding();
+    attributeDescriptions = VertexInputTraits<V>::attributes(type == PIPELINE_COUNT);
 
     vertexInputCI = vk::PipelineVertexInputStateCreateInfo(
       vk::PipelineVertexInputStateCreateFlags(),
@@ -3378,6 +3470,7 @@ void AsyVkRender::createPipelineSet(
 
 void AsyVkRender::createGraphicsPipelines()
 {
+  fpu_trap(false); // Work around FE_INVALID
   auto const drawMode =
     (mode == DRAWMODE_WIREFRAME || mode == DRAWMODE_OUTLINE)
     ? vk::PolygonMode::eLine
@@ -3437,6 +3530,7 @@ void AsyVkRender::createGraphicsPipelines()
   createGraphicsPipeline<ColorVertex>(PIPELINE_COMPRESS, compressPipeline, compressConfig);
 
   createBlendPipeline();
+  fpu_trap(settings::trap());
 }
 
 void AsyVkRender::setupPostProcessingComputeParameters()
@@ -3910,7 +4004,7 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
   // The fence puts the OS thread to sleep (zero CPU waste), whereas waitForEvent()
   // busy-waits in a tight loop.
   vkutils::checkVkResult(device->waitForFences(
-    1, &*object.inComputeFence, VK_TRUE, timeout
+    1, &*object.inComputeFence, VK_TRUE, vkTimeout
   ));
 
   // Ensure we have the latest data from GPU
@@ -3997,7 +4091,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
       vkutils::checkVkResult(device->resetFences(1, &*object.transferFence));
       vkutils::checkVkResult(transferQueue.submit(1, &transferSubmitInfo, *object.transferFence));
       vkutils::checkVkResult(device->waitForFences(
-        1, &*object.transferFence, VK_TRUE, timeout));
+        1, &*object.transferFence, VK_TRUE, vkTimeout));
 
       // Reset for reuse by the later endAndSubmitTransfers call.
       object.copyCountCommandBuffer->reset();
@@ -4017,7 +4111,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
     // Wait for the fence with a reasonable timeout
     vkutils::checkVkResult(device->waitForFences(
-      1, &*compressFence, VK_TRUE, timeout
+      1, &*compressFence, VK_TRUE, vkTimeout
     ));
 
     // Invalidate cached host-visible memory before reading GPU results.
@@ -4159,7 +4253,7 @@ void AsyVkRender::preDrawBuffers(FrameObject & object, int imageIndex)
     // Avoid blocking CPU wait when possible
     if (object.computeTimelineValue > 0) {
       // Use timeline semaphore for more efficient synchronization
-      waitForTimelineSemaphore(*renderTimelineSemaphore, object.computeTimelineValue, timeout);
+      waitForTimelineSemaphore(*renderTimelineSemaphore, object.computeTimelineValue, vkTimeout);
     }
 
     vkutils::checkVkResult(device->resetFences(
@@ -4275,7 +4369,7 @@ void AsyVkRender::drawFrame()
   // Wait only if we are about to reuse a frame that is still in use by the GPU.
   // We check if the timeline value for this specific frame has been reached.
   if (frameObject.timelineValue > 0) {
-    waitForTimelineSemaphore(*renderTimelineSemaphore, frameObject.timelineValue, timeout);
+    waitForTimelineSemaphore(*renderTimelineSemaphore, frameObject.timelineValue, vkTimeout);
   }
 
   if (View && !swapChain) {
@@ -4298,7 +4392,7 @@ void AsyVkRender::drawFrame()
 
   uint32_t imageIndex = 0;
   if (View) {
-    auto const result = device->acquireNextImageKHR(*swapChain, timeout, *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
+    auto const result = device->acquireNextImageKHR(*swapChain, vkTimeout, *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
       framebufferResized = false;
       recreateSwapChain();
@@ -4500,7 +4594,7 @@ void AsyVkRender::swapBuffers()
 
 GLFWwindow* AsyVkRender::getRenderWindow() const
 {
-  return static_cast<GLFWwindow*>(glfwWindow);
+  return glfwWindow;
 }
 
 void AsyVkRender::exportHandler(int) {
@@ -4588,7 +4682,7 @@ void AsyVkRender::Export(int imageIndex) {
     runtimeError("failed to submit draw command buffer");
 
   vkutils::checkVkResult(device->waitForFences(
-    1, &*exportFence, VK_TRUE, timeout
+    1, &*exportFence, VK_TRUE, vkTimeout
   ));
 
   vma::cxx::MemoryMapperLock mappedMemory(exportBuf);
@@ -4611,8 +4705,8 @@ void AsyVkRender::Export(int imageIndex) {
   else h=(int) (w/Aspect+0.5);
 
   if(settings::verbose > 1)
-    cout << "Exporting " << Prefix << " as " << fullWidth << "x"
-         << fullHeight << " image" << endl;
+    cout << "Exporting " << Prefix << " as " << backbufferExtent.width << "x"
+         << backbufferExtent.height << " image" << endl;
 
   auto * const Image=new camp::drawRawImage(fmt,
                                             backbufferExtent.width,
