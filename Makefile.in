@@ -514,6 +514,8 @@ uninstall-asy:
 	-rmdir $(GUIdir)/res/icons
 	-rmdir $(GUIdir)/res
 	-rmdir $(GUIdir)
+	-cd $(shaderdir)/GL && rm -f *.glsl
+	-rmdir $(shaderdir)/GL
 	-cd $(shaderdir) && rm -f *.glsl
 	-rmdir $(shaderdir)
 	-cd $(webgldir) && rm -f *.html *.js
