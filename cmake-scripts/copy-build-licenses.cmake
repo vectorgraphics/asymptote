@@ -31,8 +31,6 @@ asy_copy_build_license(backports/span/LICENSE.txt   span-LICENSE.txt)
 asy_copy_build_license(backports/glew/LICENSE.txt   glew-LICENSE.txt)
 asy_copy_build_license(wyhash/UNLICENSE.txt         wyhash-UNLICENSE.txt)
 asy_copy_build_license(LspCpp/LICENSE               LspCpp-LICENSE.txt)
-asy_copy_build_license(libatomic_ops/LICENSE        libatomic_ops-LICENSE.txt)
-asy_copy_build_license(libatomic_ops/COPYING        libatomic_ops-COPYING.txt)
 asy_copy_build_license(tinyexr/LICENSE.txt          tinyexr-LICENSE.txt)
 asy_copy_build_license(gc/LICENSE.txt               gc-LICENSE.txt)
 
