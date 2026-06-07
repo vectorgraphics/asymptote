@@ -1176,6 +1176,8 @@ void AsyVkRender::createLogicalDevice()
   deviceFeatures.fillModeNonSolid = true;
   // Needed for some Mac machines.
   deviceFeatures.fragmentStoresAndAtomics = true;
+  // Storage buffers (e.g., MaterialBuffer) are read in the vertex stage.
+  deviceFeatures.vertexPipelineStoresAndAtomics = true;
 //  deviceFeatures.shaderStorageImageWriteWithoutFormat=true;
 //  deviceFeatures.shaderStorageImageReadWithoutFormat=true;
 
