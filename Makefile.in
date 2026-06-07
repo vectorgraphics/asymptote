@@ -105,10 +105,11 @@ ASY = ./asy -dir base -config "" -render=0
 
 DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -I.
 CFLAGS = @CFLAGS@
-OPTS = $(sort $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
+CPPFLAGS = $(shell echo '@CPPFLAGS@' | awk -f dedup.awk)
+OPTS = $(DEFS) $(CPPFLAGS) @CXXFLAGS@ $(CFLAGS) \
 	-Ibackports/optional/include \
 	-Iprc/include -I$(LSP_ROOT)/include -I. \
-	$(MACOS_CFLAGS))
+	$(MACOS_CFLAGS)
 
 # Multi-arch flags are incompatible with -E (preprocess-only) and -M (deps).
 # Strip them for any pass that runs the preprocessor without compiling.
@@ -124,8 +125,8 @@ CXX = @CXX@
 CC = @CC@
 MAKEDEPEND = $(PREPROC_OPTS) -O0 -M -MG -MP -DDEPEND
 LEX = @LEX@
-GLEWOPTS = $(sort $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC -Ibackports/glew/include \
-	$(MACOS_CFLAGS))
+GLEWOPTS = $(DEFS) $(CPPFLAGS) $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC -Ibackports/glew/include \
+	$(MACOS_CFLAGS)
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
