@@ -22,9 +22,6 @@
 #define isatty _isatty
 #else
 #include <unistd.h>
-#ifdef __APPLE__
-#include <mach-o/dyld.h>
-#endif
 #endif
 
 #include "common.h"
@@ -108,29 +105,7 @@ mode_t mask;
 // Flag set by --version option to exit after all options are parsed
 static bool showVersion=false;
 
-// Use the compiled-in sysdir if it exists on disk; otherwise fall back to a
-// path relative to the running executable so that a staged installation works
-// when moved to a different location.
-static string initSysdir() {
-#if defined(__APPLE__) && defined(IS_RELOCATABLE)
-  char buf[4096];
-  uint32_t size = (uint32_t)sizeof(buf);
-  if (_NSGetExecutablePath(buf, &size) != 0)
-    return "";
-  string exe(buf);
-  // Strip the executable filename to get the bin directory.
-  size_t slash = exe.rfind('/');
-  if (slash == string::npos)
-    return "";
-  // Strip the bin directory to get the installation prefix.
-  size_t slash2 = exe.substr(0, slash).rfind('/');
-  if (slash2 == string::npos)
-    return "";
-  return exe.substr(0, slash2) + "/share/asymptote";
-#endif
-  return ASYMPTOTE_SYSDIR;
-}
-
+// systemDir is initialized by initSysdir() (declared in locate.h).
 string systemDir=initSysdir();
 string defaultPSdriver="ps2write";
 string defaultEPSdriver="eps2write";
