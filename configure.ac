@@ -7,6 +7,7 @@ AC_INIT([Asymptote],[3.13git],[https://github.com/vectorgraphics/asymptote/issue
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
+m4_include([ax_gcc_x86_cpu_supports.m4])
 m4_include([pkg.m4])
 
 AH_TOP([#pragma once])
