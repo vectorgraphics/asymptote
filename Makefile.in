@@ -150,7 +150,7 @@ last = $(shell head -1 revision.cc | sed -e 's/.*\"\(.*\)\";/\1/')
 usinggit = $(shell if test -d ".git"; then echo yes; fi)
 revision = ""
 ifeq ($(usinggit),yes)
-	revision = $(shell LC_ALL="C" git describe --long | \
+	revision = $(shell LC_ALL="C" git describe --long 2>/dev/null | \
 	sed -e 's/git-\([0-9]*\)-g.*/-\1/' | sed -e 's/-0-g.*//')
 endif
 ifeq ($(revision),)
