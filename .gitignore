@@ -319,3 +319,19 @@ tests/xdata
 # node modules
 node_modules
 webgl/dist
+
+# local hidden config files
+.bash_profile
+.bashrc
+.idea
+.profile
+.ripgreprc
+.zprofile
+.zshrc
+
+# AI related files
+.claude
+.copilot_workspace
+.github/copilot-instructions.md
+.github/prompts/
+.mcp.json

@@ -866,7 +866,9 @@ bool picture::postprocess(const string& prename, const string& outname,
       } else
         status=pdftoeps(prename,outname);
     } else {
-      double render=fabs(getSetting<double>("render"));
+      double render = settings::getSetting<double>("render");
+      if (render < 0) // For backwards compatibility
+        render *= -2.0;
       if(render == 0) render=1.0;
       double res=render*72.0;
       Int antialias=getSetting<Int>("antialias");
@@ -887,8 +889,9 @@ bool picture::postprocess(const string& prename, const string& outname,
         cmd.push_back(prename);
         status=System(cmd,0,true,"gs","Ghostscript");
       } else if(!svg && !xasy) {
-        double expand=antialias;
-        if(expand < 2.0) expand=1.0;
+        double expand=1.0;
+        if(antialias > 0)
+          expand=antialias;
         res *= expand;
         string s=getSetting<string>("convert");
         cmd.push_back(s);
@@ -1582,7 +1585,6 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(AsyRender::threads && !offscreen) {
 #ifdef HAVE_PTHREAD
       if(!gl->initialized) {
-        gl->initialized=!View || offscreen;
         if(Wait)
           pthread_mutex_lock(&gl->threadMgr.readyLock);
         allowRender=true;

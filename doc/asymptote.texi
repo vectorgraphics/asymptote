@@ -9503,9 +9503,7 @@ that can be viewed offline.
 @cindex @code{black stripes}
 @item Render the scene to a specified rasterized format @code{outformat}
 at the resolution of @code{n} pixels per @code{bp}, as specified by the
-setting @code{render=n}. A negative value of @code{n} is interpreted
-as @code{|2n|} for @acronym{EPS} and @acronym{PDF} formats and
-@code{|n|} for other formats. The default value of @code{render} is -1.
+setting @code{render=n}. The default value of @code{render} is 2.
 By default, the scene is internally rendered at twice the specified
 resolution; this can be disabled by setting @code{antialias=1}.
 High resolution rendering is done by tiling the image. If your

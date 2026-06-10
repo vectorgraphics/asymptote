@@ -272,7 +272,7 @@ public:
  * AsyRender - Library-agnostic base class for renderers.
  * Contains code that is independent of the underlying graphics API (Vulkan, OpenGL, etc.).
  */
-class AsyRender
+class AsyRender: public gc
 {
 public:
   AsyRender() = default;
@@ -367,6 +367,7 @@ public:
   double oWidth, oHeight;
   double lastzoom;
   int Fitscreen=1;
+  double zoomFactor = 1.0;  // Extra multiplicative zoom factor for fullscreen aspect compensation
 
   bool readyForExport=false;
   bool readyAfterExport=false;

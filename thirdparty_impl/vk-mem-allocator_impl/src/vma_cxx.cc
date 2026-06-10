@@ -30,7 +30,7 @@ UniqueAllocator::~UniqueAllocator()
 }
 
 UniqueAllocator::UniqueAllocator(UniqueAllocator&& other) noexcept
-  : _allocator(std::exchange(other._allocator, VK_NULL_HANDLE))
+  : _allocator(std::exchange(other._allocator, nullptr))
 {
 }
 
@@ -105,9 +105,9 @@ UniqueBuffer::~UniqueBuffer()
   }
 }
 UniqueBuffer::UniqueBuffer(UniqueBuffer&& other) noexcept
-    : _allocator(std::exchange(other._allocator, VK_NULL_HANDLE)),
+    : _allocator(std::exchange(other._allocator, nullptr)),
       _buffer(std::exchange(other._buffer, VK_NULL_HANDLE)),
-      _allocation(std::exchange(other._allocation, VK_NULL_HANDLE))
+      _allocation(std::exchange(other._allocation, nullptr))
 {
 
 }
@@ -163,8 +163,8 @@ UniqueImage::~UniqueImage()
   }
 }
 UniqueImage::UniqueImage(UniqueImage&& other) noexcept
-    : _allocator(std::exchange(other._allocator, VK_NULL_HANDLE)), _image(std::exchange(other._image, VK_NULL_HANDLE)),
-      _allocation(std::exchange(other._allocation, VK_NULL_HANDLE))
+    : _allocator(std::exchange(other._allocator, nullptr)), _image(std::exchange(other._image, VK_NULL_HANDLE)),
+      _allocation(std::exchange(other._allocation, nullptr))
 {
 
 }

@@ -340,11 +340,6 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
   if(!(initialized && interact::interactive)) {
     antialias=settings::getSetting<Int>("antialias") > 1;
 
-    double expand=settings::getSetting<double>("render");
-    if(expand < 0)
-      expand *= (Format.empty() || Format == "eps" || Format == "pdf") ? -2.0 : -1.0;
-    if(antialias) expand *= 2.0;
-
     Aspect = args.width/args.height;
 
     // On macOS with llvmpipe (no Metal), don't create a GLFW window -
@@ -511,7 +506,8 @@ void AsyVkRender::initVulkan()
   createGraphicsPipelines();
 
   createComputePipelines(); // gpu indexing + post processing
-  fpu_trap(settings::trap()); // Work around FE_INVALID.
+
+  fpu_trap(settings::trap());
 
   createAttachments();
   createFramebuffers();
@@ -522,6 +518,7 @@ void AsyVkRender::recreateSwapChain()
 {
   device->waitIdle();
 
+  fpu_trap(false); // Work around FE_INVALID
   try {
     // Reset timeline semaphore values to avoid timeout issues
     currentTimelineValue = 0;
@@ -576,6 +573,7 @@ void AsyVkRender::recreateSwapChain()
     outOfMemory();
   }
 
+  fpu_trap(settings::trap());
   redisplay=true;
   waitEvent=false;
 }
@@ -1178,6 +1176,8 @@ void AsyVkRender::createLogicalDevice()
   deviceFeatures.fillModeNonSolid = true;
   // Needed for some Mac machines.
   deviceFeatures.fragmentStoresAndAtomics = true;
+  // Storage buffers (e.g., MaterialBuffer) are read in the vertex stage.
+  deviceFeatures.vertexPipelineStoresAndAtomics = true;
 //  deviceFeatures.shaderStorageImageWriteWithoutFormat=true;
 //  deviceFeatures.shaderStorageImageReadWithoutFormat=true;
 
@@ -3472,6 +3472,7 @@ void AsyVkRender::createPipelineSet(
 
 void AsyVkRender::createGraphicsPipelines()
 {
+  fpu_trap(false); // Work around FE_INVALID
   auto const drawMode =
     (mode == DRAWMODE_WIREFRAME || mode == DRAWMODE_OUTLINE)
     ? vk::PolygonMode::eLine
@@ -3531,6 +3532,7 @@ void AsyVkRender::createGraphicsPipelines()
   createGraphicsPipeline<ColorVertex>(PIPELINE_COMPRESS, compressPipeline, compressConfig);
 
   createBlendPipeline();
+  fpu_trap(settings::trap());
 }
 
 void AsyVkRender::setupPostProcessingComputeParameters()
@@ -4705,8 +4707,8 @@ void AsyVkRender::Export(int imageIndex) {
   else h=(int) (w/Aspect+0.5);
 
   if(settings::verbose > 1)
-    cout << "Exporting " << Prefix << " as " << fullWidth << "x"
-         << fullHeight << " image" << endl;
+    cout << "Exporting " << Prefix << " as " << backbufferExtent.width << "x"
+         << backbufferExtent.height << " image" << endl;
 
   auto * const Image=new camp::drawRawImage(fmt,
                                             backbufferExtent.width,
