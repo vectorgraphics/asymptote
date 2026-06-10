@@ -907,6 +907,11 @@ bool :arrayAlias(array *a, array *b)
   return a==b;
 }
 
+bool :arrayAliasNull(array *a)
+{
+  return a==nullptr;
+}
+
 // Return array formed by indexing array a with elements of integer array b
 array* :arrayIntArray(array *a, array *b)
 {

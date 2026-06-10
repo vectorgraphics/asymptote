@@ -30,7 +30,6 @@ import TestLib;
   }
   A a;
   a.B b;
-  from a unravel operator==;
   assert(b == b);
   EndTest();
 }
