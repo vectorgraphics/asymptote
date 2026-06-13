@@ -50,14 +50,14 @@ void iopipestream::open(const mem::vector<string> &command, const char *hint,
     ostringstream buf;
     buf << "in pipe failed: ";
     for(size_t i=0; i < command.size(); ++i) buf << command[i];
-    camp::reportError(buf);
+    camp::reportError(buf.str()+": system pipe creation failed; check system resource limits (ulimit -n) and available memory");
   }
 
   if(pipe(out) == -1) {
     ostringstream buf;
     buf << "out pipe failed: ";
     for(size_t i=0; i < command.size(); ++i) buf << command[i];
-    camp::reportError(buf);
+    camp::reportError(buf.str()+": system pipe creation failed; check system resource limits (ulimit -n) and available memory");
   }
   cout.flush(); // Flush stdout to avoid duplicate output.
 
@@ -65,7 +65,7 @@ void iopipestream::open(const mem::vector<string> &command, const char *hint,
     ostringstream buf;
     buf << "fork failed: ";
     for(size_t i=0; i < command.size(); ++i) buf << command[i];
-    camp::reportError(buf);
+    camp::reportError(buf.str()+": fork failed; check system process limits (ulimit -u) and available memory; try reducing concurrent tasks");
   }
 
   if(pid == 0) {
@@ -137,7 +137,7 @@ ssize_t iopipestream::readbuffer()
       else {
         ostringstream buf;
         buf << "read from pipe failed: errno=" << errno;
-        camp::reportError(buf);
+        camp::reportError(buf.str()+": the external command may have crashed or been terminated; check the command syntax and availability");
       }
       nc=0;
     }
@@ -188,7 +188,7 @@ void iopipestream::wait(const char *prompt)
 
   do {
     readbuffer();
-    if(*buffer == 0) camp::reportError(sbuffer);
+    if(*buffer == 0) camp::reportError(sbuffer+"\npipe read returned empty - the external command may have terminated without producing expected output; check the command syntax and that it is installed");
     sbuffer.append(buffer);
 
     if(tailequals(sbuffer.c_str(),sbuffer.size(),prompt,plen)) break;
@@ -204,14 +204,14 @@ int iopipestream::wait()
       if (errno != EINTR) {
         ostringstream buf;
         buf << "Process " << pid << " failed";
-        camp::reportError(buf);
+        camp::reportError(buf.str()+": the process may have been terminated by a signal; check that the command is correct and all dependencies are installed");
       }
     } else {
       if(WIFEXITED(status)) return WEXITSTATUS(status);
       else {
         ostringstream buf;
         buf << "Process " << pid << " exited abnormally";
-        camp::reportError(buf);
+        camp::reportError(buf.str()+": the process may have crashed or been terminated; check that the command and all its dependencies are available");
       }
     }
   }
@@ -222,7 +222,7 @@ void iopipestream::Write(const string &s)
   ssize_t size=s.length();
   if(settings::verbose > 2) cerr << s;
   if(write(in[1],s.c_str(),size) != size) {
-    camp::reportFatal("write to pipe failed");
+    camp::reportFatal("write to pipe failed - the external program may have terminated or closed its input unexpectedly");
   }
 }
 
