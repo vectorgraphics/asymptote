@@ -127,10 +127,12 @@ public:
   typedef std::pair<size_t, size_t> posInFile;
   typedef std::pair<std::string, posInFile> filePos;
 
+#ifdef HAVE_LSP
   explicit operator AsymptoteLsp::filePos()
   {
     return std::make_pair((std::string) file->name().c_str(),LineColumn());
   }
+#endif
 
   void print(ostream& out) const
   {
