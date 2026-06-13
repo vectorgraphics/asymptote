@@ -44,8 +44,8 @@ ostream& operator<< (ostream& out, const position& pos)
     out << "^" << endl;
   }
 
-  out << filename << ": ";
-  out << pos.line << "." << pos.column;
+  out << filename << ":";
+  out << pos.line << ":" << pos.column;
 
   if(settings::xasy) {
     camp::openpipeout();
@@ -95,7 +95,7 @@ void errorstream::error(position pos)
 {
   if (mode == ErrorMode::SUPPRESS)
     return;
-  message(pos,"");
+  message(pos,"error: ");
   anyErrors = true;
 }
 
