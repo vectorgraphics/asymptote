@@ -158,7 +158,7 @@ Requires CUDA installed and a CUDA-compatible NVIDIA Graphics card"
 option(
     ENABLE_LSP
     "Enable Language Server Protocol support."
-    true
+    false
 )
 
 # documentation

@@ -8,8 +8,10 @@
 #include "common.h"
 #include "makeUnique.h"
 
+#ifdef HAVE_LSP
 #include "LibLsp/lsp/lsPosition.h"
 #include "LibLsp/lsp/textDocument/documentColor.h"
+#endif
 
 namespace AsymptoteLsp
 {
@@ -98,6 +100,7 @@ namespace AsymptoteLsp
   typedef std::tuple<SymbolLit, posInFile, posInFile> fullSymPosRangeInFile;
 
 
+#ifdef HAVE_LSP
   // NOTE: lsPosition is zero-indexed, while all Asymptote positions (incl this struct) is 1-indexed.
   inline posInFile fromLsPosition(lsPosition const& inPos)
   {
@@ -108,6 +111,7 @@ namespace AsymptoteLsp
   {
     return lsPosition(inPos.first - 1, inPos.second - 1);
   }
+#endif
 
   inline bool posLt(posInFile const& p1, posInFile const& p2)
   {
@@ -258,6 +262,7 @@ namespace AsymptoteLsp
       return RGBAColor(red,green,blue,getAlpha());
     }
 
+#ifdef HAVE_LSP
     explicit operator TextDocument::Color() const
     {
       TextDocument::Color col;
@@ -268,6 +273,7 @@ namespace AsymptoteLsp
       col.alpha=std::get<3>(c);
       return col;
     }
+#endif
 
     [[nodiscard]]
     virtual unique_ptr<SymColorInfo> clone() const = 0;

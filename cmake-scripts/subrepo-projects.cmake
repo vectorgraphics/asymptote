@@ -82,5 +82,4 @@ if (ENABLE_LSP)
 else()
     # only include lsp libraries
     message(STATUS "LSP Disabled. Will not have language server protocol support.")
-    list(APPEND ASYMPTOTE_INCLUDES ${LSP_REPO_ROOT}/include)
 endif()

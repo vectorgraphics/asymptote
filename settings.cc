@@ -1254,8 +1254,6 @@ static const char *const licensesSummary =
   "                    Wang Yi -- https://github.com/wangyi-fudan/wyhash" "\n"
   "  Boehm GC          Custom permissive license\n"
   "                    https://www.hboehm.info/gc/" "\n"
-  "  LspCpp            MIT License\n"
-  "                    https://github.com/kuafuwang/LspCpp" "\n"
   "  libatomic_ops     MIT (core) / GPL-2.0 (extensions)\n"
   "                    https://github.com/ivmai/libatomic_ops" "\n"
   "  GLEW              BSD 3-Clause License\n"
@@ -1383,15 +1381,6 @@ static bool printLicensesFull(ostream& out) {
     "------------------------------------------------------------------------\n";
   requireFile("gc-LICENSE.txt",
     "Boehm GC -- Custom permissive license -- https://www.hboehm.info/gc/");
-
-  out <<
-    "\n"
-    "------------------------------------------------------------------------\n"
-    "LspCpp -- MIT License\n"
-    "kuafuwang <https://github.com/kuafuwang/LspCpp>\n"
-    "------------------------------------------------------------------------\n";
-  requireFile("LspCpp-LICENSE.txt",
-    "LspCpp -- MIT License -- https://github.com/kuafuwang/LspCpp");
 
   out <<
     "\n"
