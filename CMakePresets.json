@@ -37,6 +37,17 @@
       ]
     },
     {
+      "name": "linux/release/ci/with-ccache/docker",
+      "displayName": "[linux-x86/64] Release + ccache + docker pre-built vcpkg",
+      "binaryDir": "${sourceDir}/cmake-build-linux/release",
+      "inherits": [
+        "linux/release/ci/with-ccache"
+      ],
+      "cacheVariables": {
+        "VCPKG_INSTALLED_DIR": "/opt/vcpkg-deps"
+      }
+    },
+    {
       "name": "linux/sandbox",
       "displayName": "[linux-x86/64] Sandbox (no network, system deps only)",
       "binaryDir": "${sourceDir}/cmake-build-linux/sandbox",
@@ -115,6 +126,13 @@
     {
       "name": "linux/release/ci/with-ccache/compact-zero",
       "configurePreset": "linux/release/ci/with-ccache/compact-zero",
+      "inherits": [
+        "build-base/linux-only"
+      ]
+    },
+    {
+      "name": "linux/release/ci/with-ccache/docker",
+      "configurePreset": "linux/release/ci/with-ccache/docker",
       "inherits": [
         "build-base/linux-only"
       ]
