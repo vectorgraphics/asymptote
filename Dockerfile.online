@@ -1,0 +1,66 @@
+# One-click Asymptote online development environment
+# Web-based VS Code + AsyLsp extension + asy runtime + examples
+#
+# Build (from repository root):
+#   docker build -t asy-online -f asymptote/Dockerfile.online asymptote/
+#
+# Run:
+#   docker run --rm -p 8080:8080 asy-online
+#   Then open http://localhost:8080 in your browser.
+#
+# Prerequisites:
+#   cmake-build-linux/release/asy and base/ must already exist
+#   (build them first with Dockerfile.dev).
+
+FROM ubuntu:22.04
+
+ARG http_proxy
+ARG https_proxy
+
+# ── 1. Runtime deps + code-server + extension (single RUN) ──────────
+RUN sed -i \
+      -e 's|http://archive.ubuntu.com/ubuntu/|http://mirrors.aliyun.com/ubuntu/|g' \
+      -e 's|http://security.ubuntu.com/ubuntu/|http://mirrors.aliyun.com/ubuntu/|g' \
+      /etc/apt/sources.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+       libxinerama1 libxcursor1 libglu1-mesa libwayland-client0 \
+       libtirpc3 libstdc++6 libgcc-s1 zlib1g \
+       ghostscript \
+       dvisvgm \
+       texlive-base \
+       texlive-latex-base \
+       texlive-latex-extra \
+       texlive-plain-generic \
+       texinfo \
+       curl ca-certificates \
+    && curl -fsSL https://github.com/coder/code-server/releases/download/v4.123.0/code-server_4.123.0_amd64.deb \
+         -o /tmp/code-server.deb \
+    && dpkg -i /tmp/code-server.deb \
+    && curl -fsSL --compressed "https://marketplace.visualstudio.com/_apis/public/gallery/publishers/asy/vsextensions/asymptote-lsp/latest/vspackage" \
+         -o /tmp/asymptote-lsp.vsix \
+    && code-server --install-extension /tmp/asymptote-lsp.vsix \
+    && apt-get purge -y curl && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* /tmp/code-server.deb /tmp/asymptote-lsp.vsix \
+    && rm -rf /usr/lib/code-server/lib/vscode/extensions/copilot \
+              /usr/lib/code-server/lib/vscode/extensions/mermaid-markdown-features \
+    && find /root/.local/share/code-server/extensions -name "*.d.ts" -delete \
+    && find /root/.local/share/code-server/extensions -name "*.map"  -delete
+
+# ── 2. Asy binary + base files ──────────────────────────────────────
+COPY cmake-build-linux/release/asy /usr/local/bin/asy
+COPY cmake-build-linux/release/base /usr/local/share/asymptote/
+
+ENV ASYMPTOTE_SYSDIR=/usr/local/share/asymptote
+
+# ── 3. Examples + configure ─────────────────────────────────────────
+COPY examples/ /home/coder/workspace/examples/
+
+RUN mkdir -p /home/coder/.local/share/code-server/User \
+    && printf '{\n  "asymptote.asyPath": "/usr/local/bin/asy",\n  "asymptote.compile.autoCompile": true,\n  "asymptote.compile.openPreview": true,\n  "asymptote.compile.outputFormat": "svg",\n  "asymptote.compile.extraArgs": ["-pngdriver=pngalpha"],\n  "files.autoSave": "afterDelay"\n}\n' \
+         > /home/coder/.local/share/code-server/User/settings.json
+
+WORKDIR /home/coder/workspace
+
+EXPOSE 8080
+ENTRYPOINT ["code-server", "--bind-addr", "0.0.0.0:8080", "--auth", "none", "/home/coder/workspace"]
