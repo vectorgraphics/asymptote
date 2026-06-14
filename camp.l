@@ -168,6 +168,7 @@ void reportEOF() {
   assert(isEof);
   error();
   em << eofMessage;
+  em << "\n  Check for missing closing braces, unmatched quotes, or unterminated comments.";
   em.sync(true);
 }
 
@@ -386,14 +387,14 @@ explicit           {adjust(); return EXPLICIT; }
   adjust(); yylval.e= new intExp(here(), lexical::cast<Int>(yytext));
   } catch (lexical::bad_cast&) {
     error();
-    em << "invalid integer";
+    em << "invalid integer - asymptote integers are decimal (e.g. 42) or hexadecimal (0xFF); check for trailing characters";
     yylval.e= new intExp(here(), 0);
   } return LIT;
 ([0-9]*\.[0-9]+)|([0-9]+\.[0-9]*)|([0-9]*\.*[0-9]+e[-+]*[0-9]+)|([0-9]+\.[0-9]*e[-+]*[0-9]+)  try {
   adjust(); yylval.e= new realExp(here(), lexical::cast<double>(yytext));
   } catch (lexical::bad_cast&) {
     error();
-    em << "invalid real";
+    em << "invalid real number - valid formats: 3.14, 1e-10, .5; check for trailing characters";
     yylval.e= new realExp(here(), 0);
   } return LIT;
 true               {
@@ -443,7 +444,7 @@ operator           {adjust(); BEGIN opname; }
 
 .                  {adjust();
                     error();
-                    em << "invalid token";
+                    em << "invalid token - check for stray characters, Unicode quotes, or non-ASCII symbols";
                     if (isgraph(yytext[0]))
                       em << " '" << yytext[0] << "'";
                    }

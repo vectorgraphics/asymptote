@@ -60,7 +60,7 @@ void file::dimension(Int Nx, Int Ny, Int Nz)
 {
   if(Nx < -2 || Ny < -2 || Nz < -2) {
     ostringstream buf;
-    buf << "Invalid array dimensions: " << Nx << ", " << Ny << ", " << Nz;
+    buf << "Invalid array dimensions: " << Nx << ", " << Ny << ", " << Nz << " - dimensions must be non-negative; use -2 for auto-detect, -1 for unbounded, or 0 for empty";
     reportError(buf);
   }
 
@@ -80,7 +80,7 @@ void file::Check()
 {
   if(error()) {
     ostringstream buf;
-    buf << "Cannot open file \"" << name << "\"";
+    buf << "Cannot open file \"" << name << "\" - check that the file exists, the path is correct, and you have read permission";
     reportError(buf);
   }
 }
@@ -113,7 +113,7 @@ void ifile::open()
 {
   if(standard) {
     if(mode & std::ios::binary)
-      reportError("Cannot open standard input in binary mode");
+      reportError("Cannot open standard input in binary mode - read from a file instead of stdin for binary data, or use a pipe");
     stream=&cin;
   } else {
     if(mode & std::ios::out)
@@ -123,9 +123,9 @@ void ifile::open()
       if(parser::isURL(name)) {
         if(!settings::curlEnabled())
           camp::reportError(
-            "libcurl disabled after reading files via input(): "
-            "read online content before local files or "
-            "override with the unsafe option -curlAfterRead");
+            "libcurl disabled after reading files via input() - "
+            "read online content (URLs) before local files, or "
+            "override with the command-line option -curlAfterRead");
         parser::readURL(buf,name);
         stream=&buf;
       } else
@@ -354,7 +354,7 @@ void ofile::open()
 {
   if(standard) {
     if(mode & std::ios::binary)
-      reportError("Cannot open standard output in binary mode");
+      reportError("Cannot open standard output in binary mode - binary output to stdout is not supported; write to a file instead");
     stream=&cout;
   } else {
     name=outpath(name);
@@ -406,7 +406,7 @@ bool ofile::enabled()
 void opipe::write(const string& val) {
   if (fprintf(pipeout,"%s",val.c_str()) < 0)
   {
-    reportError("Write failed to pipe");
+    reportError("Write failed to pipe - the external program may have terminated unexpectedly or closed its input");
   }
 }
 
@@ -416,7 +416,7 @@ void opipe::flush()
   {
     if (fflush(pipeout) == EOF)
     {
-      reportError("Flushing pipe failed");
+      reportError("Flushing pipe failed - the external program may have terminated unexpectedly");
     }
   }
 }

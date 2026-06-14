@@ -912,6 +912,15 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
     if(!tainted) {
       em.error(pos);
       em << "could not load module '" << filename << "'";
+      em << "\n  Searched in:";
+      for (auto const& p : settings::searchPath)
+        em << "\n    " << p;
+      string sysdir=settings::getSetting<string>("sysdir");
+      em << "\n\n  The module '" << filename << ".asy' was not found in any search path.";
+      em << "\n  If you built asy from source, set ASYMPTOTE_DIR to the directory";
+      em << "\n  containing the base files (e.g. export ASYMPTOTE_DIR=/path/to/build/base).";
+      em << "\n  Or create config.asy with: import settings; dir=\"path/to/base\";";
+      em << "\n  If you installed from a package, ensure asy was installed correctly.";
       em.sync(true);
     }
     return 0;
@@ -992,6 +1001,15 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
+    em << "\n  Searched in:";
+    for (auto const& p : settings::searchPath)
+      em << "\n    " << p;
+    string sysdir=settings::getSetting<string>("sysdir");
+    em << "\n\n  The module '" << moduleName << ".asy' was not found in any search path.";
+    em << "\n  If you built asy from source, set ASYMPTOTE_DIR to the directory";
+    em << "\n  containing the base files (e.g. export ASYMPTOTE_DIR=/path/to/build/base).";
+    em << "\n  Or create config.asy with: import settings; dir=\"path/to/base\";";
+    em << "\n  If you installed from a package, ensure asy was installed correctly.";
     em.sync(true);
     return nullptr;
   }

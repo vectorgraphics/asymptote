@@ -32,9 +32,9 @@ void checkColorSpace(ColorSpace colorspace)
   switch(colorspace) {
     case DEFCOLOR:
     case INVISIBLE:
-      reportError("Cannot shade with invisible pen");
+      reportError("Cannot shade with invisible pen - check that the pen has a visible color (not invisible); use an explicit pen assignment like pen p=red");
     case PATTERN:
-      reportError("Cannot shade with pattern");
+      reportError("Cannot shade with pattern - pattern fills are not supported for shaded surfaces; use a solid color pen instead");
       break;
     default:
       break;
@@ -49,11 +49,11 @@ psfile::psfile(const string& filename, bool pdfformat)
   else out=new ofstream(filename.c_str());
   out->setf(std::ios::boolalpha);
   if(!out || !*out)
-    reportError("Cannot write to "+filename);
+    reportError("Cannot write to "+filename+": check directory permissions and disk space");
 }
 
-static const char *inconsistent="inconsistent colorspaces";
-static const char *rectangular="matrix is not rectangular";
+static const char *inconsistent="inconsistent colorspaces - ensure all pens used in the same shading operation have the same color space (e.g. all RGB or all CMYK)";
+static const char *rectangular="matrix is not rectangular - the image pixel array must be N x M (all rows must have the same length)";
 
 void psfile::writefromRGB(unsigned char r, unsigned char g, unsigned char b,
                           ColorSpace colorspace, size_t ncomponents)
@@ -110,7 +110,7 @@ void psfile::writeCompressed(const unsigned char *a, size_t size)
   Bytef *compressed=new Bytef[compressedSize];
 
   if(compress(compressed,&compressedSize,a,size) != Z_OK)
-    reportError("image compression failed");
+    reportError("image compression failed - the image data may be corrupted or too large; try reducing the image size or converting to a simpler format");
 
   encode85 e(out);
   for(size_t i=0; i < compressedSize; ++i)
@@ -129,7 +129,7 @@ void psfile::close()
 #endif
       if(!out->good())
         // Don't call reportError since this may be called on handled_error.
-        reportFatal("Cannot write to "+filename);
+        reportFatal("Cannot write to "+filename+": check directory permissions and disk space");
       delete out;
       out=NULL;
     }
@@ -460,7 +460,7 @@ void psfile::tensorshade(const pen& pentype, const array& pens,
 
   array *p0=read<array *>(pens,0);
   if(checkArray(p0) != 4)
-    reportError("4 pens required");
+    reportError("4 pens required for tensor patch shading - each patch needs exactly 4 vertex pens; see the documentation on tensorshade()");
   setfirstopacity(*p0);
 
   ColorSpace colorspace=maxcolorspace2(pens);
@@ -477,7 +477,7 @@ void psfile::tensorshade(const pen& pentype, const array& pens,
     write(0);
     path g=read<path>(boundaries,i);
     if(!(g.cyclic() && g.size() == 4))
-      reportError("specify cyclic path of length 4");
+      reportError("specify cyclic path of length 4 for tensor patch shading - use 'cycle' at the end of your path; each patch boundary must have exactly 4 nodes and be cyclic");
     for(Int j=4; j > 0; --j) {
       write(g.point(j));
       write(g.precontrol(j));
@@ -494,7 +494,7 @@ void psfile::tensorshade(const pen& pentype, const array& pens,
     } else {
       array *zi=read<array *>(z,i);
       if(checkArray(zi) != 4)
-        reportError("specify 4 internal control points for each path");
+        reportError("specify 4 internal control points for each path in tensor patch shading - provide a pair[][] array with 4 control points per patch; or leave z empty for automatic Coons shading");
       write(read<pair>(zi,0));
       write(read<pair>(zi,3));
       write(read<pair>(zi,2));
@@ -503,7 +503,7 @@ void psfile::tensorshade(const pen& pentype, const array& pens,
 
     array *pi=read<array *>(pens,i);
     if(checkArray(pi) != 4)
-      reportError("specify 4 pens for each path");
+      reportError("specify 4 pens for each path in tensor patch shading - each patch in the pen[][] array must contain exactly 4 pens");
     vertexpen(pi,0,colorspace);
     vertexpen(pi,3,colorspace);
     vertexpen(pi,2,colorspace);
