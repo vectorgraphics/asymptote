@@ -945,6 +945,96 @@ struct surface {
     }
   }
 
+  // Populate `neighbors` directly from the patch geometry in `s`, using no
+  // information beyond the patches themselves (in particular, `index` need
+  // not be set).  Two patch edges are recognized as the same shared seam
+  // when their four Bezier control points coincide to within `fuzz` (a
+  // relative tolerance, scaled by the surface's size as in
+  // uperiodic/vperiodic); the resulting edgeInfo.reversed flag is true
+  // exactly when the adjoining patch traverses the seam in the opposite
+  // direction, the orientation-consistent case.  Matching on all four
+  // control points (rather than just the endpoints) keeps distinct edges
+  // apart even when their endpoints coincide -- in particular a
+  // nondegenerate loop edge, whose first and last control points are equal
+  // but whose interior control points are not, is still paired with the
+  // correct partner.  Each edge is matched to at most one partner (the
+  // first found); an unmatched edge keeps its default edgeInfo, i.e. a -1
+  // patch index marking a surface boundary.
+  //
+  // This routine is deliberately simple and correspondingly slow: it
+  // compares every patch edge against every other, an O(E^2) scan in the
+  // total number of edges E.  When the connectivity is known as the surface
+  // is assembled -- e.g. from a u/v grid -- recording `neighbors` in the
+  // constructor (see buildGridNeighbors) is far cheaper and should be
+  // preferred; buildNeighborsSlow is a fallback for surfaces built with no
+  // such bookkeeping.
+  void buildNeighborsSlow(real fuzz=sqrtEpsilon) {
+    // The four Bezier control points of each patch edge, in patch-edge
+    // order: ctrl[k][e] = {start, postcontrol, precontrol, end} of edge e
+    // of patch k, where edge e starts at corner e.  Also the (initially
+    // empty) edgeInfo rows.
+    triple[][][] ctrl=new triple[s.length][][];
+    neighbors=new edgeInfo[s.length][];
+    real size=0;
+    for(int k : s.keys) {
+      path3 ext=s[k].external();
+      int n=length(ext);
+      triple[][] ek=new triple[n][];
+      edgeInfo[] row=new edgeInfo[n];
+      for(int e : range(n)) {
+        ek[e]=new triple[] {point(ext,e),postcontrol(ext,e),
+                            precontrol(ext,e+1),point(ext,e+1)};
+        for(triple g : ek[e]) size=max(size,abs(g));
+        row[e]=new edgeInfo;
+      }
+      ctrl[k]=ek;
+      neighbors[k]=row;
+    }
+    real epsilon=fuzz*size;
+    bool near(triple a, triple b) {return abs(a-b) <= epsilon;}
+
+    // An edge is degenerate (and has no partner) only if all four of its
+    // control points collapse to a single point; a loop edge does not.
+    bool degenerate(triple[] g) {
+      return near(g[0],g[1]) && near(g[0],g[2]) && near(g[0],g[3]);
+    }
+    // Whether two edges trace the same Bezier curve in the same direction.
+    bool sameEdge(triple[] g, triple[] h) {
+      return near(g[0],h[0]) && near(g[1],h[1]) &&
+             near(g[2],h[2]) && near(g[3],h[3]);
+    }
+
+    for(int k : s.keys) {
+      triple[][] ek=ctrl[k];
+      for(int e : ek.keys) {
+        if(neighbors[k][e].patch >= 0) continue; // already matched
+        triple[] g=ek[e];
+        if(degenerate(g)) continue;
+        triple[] grev={g[3],g[2],g[1],g[0]};
+        bool found=false;
+        for(int l : s.keys) {
+          if(l == k) continue;
+          triple[][] el=ctrl[l];
+          for(int m : el.keys) {
+            if(neighbors[l][m].patch >= 0) continue;
+            triple[] h=el[m];
+            if(sameEdge(grev,h)) {  // opposite traversal
+              neighbors[k][e]=edgeInfo(l,m,true);
+              neighbors[l][m]=edgeInfo(k,e,true);
+              found=true; break;
+            }
+            if(sameEdge(g,h)) {     // same traversal
+              neighbors[k][e]=edgeInfo(l,m,false);
+              neighbors[l][m]=edgeInfo(k,e,false);
+              found=true; break;
+            }
+          }
+          if(found) break;
+        }
+      }
+    }
+  }
+
   path3 uequals(real u) {
     if(index.length == 0) return nullpath3;
     int U=floor(u);
