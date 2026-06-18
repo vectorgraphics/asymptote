@@ -9183,7 +9183,8 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 
 @end verbatim
 The parameters @code{nu} and @code{nv} specify the number of subdivisions
-for drawing optional mesh lines for each Bezier patch. The optional
+for drawing optional mesh lines for each Bezier patch (these
+parameters are ignored for Bezier triangles). The optional
 @code{name} parameter is used as a prefix for naming the surface
 patches in the @acronym{PRC} model tree.
 Here material is a structure defined in @code{three_light.asy}:
