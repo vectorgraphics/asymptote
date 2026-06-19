@@ -640,15 +640,17 @@ abstract class Geometry {
   }
 
   T(v) {
-    let c0=this.c[0];
-    let c1=this.c[1];
-    let c2=this.c[2];
-    let x=v[0]-c0;
-    let y=v[1]-c1;
-    let z=v[2]-c2;
-    return [x*normMat[0]+y*normMat[3]+z*normMat[6]+c0,
-            x*normMat[1]+y*normMat[4]+z*normMat[7]+c1,
-            x*normMat[2]+y*normMat[5]+z*normMat[8]+c2];
+    // Apply the transform to the center point to get its transformed position
+    let centerTrans=this.transform ? this.transform([this.c])[0] : this.c;
+
+    // Calculate the offset of the original vertex relative to the original center (this.c)
+    let x=v[0]-this.c[0];
+    let y=v[1]-this.c[1];
+    let z=v[2]-this.c[2];
+
+    return [x*normMat[0]+y*normMat[3]+z*normMat[6]+centerTrans[0],
+            x*normMat[1]+y*normMat[4]+z*normMat[7]+centerTrans[1],
+            x*normMat[2]+y*normMat[5]+z*normMat[8]+centerTrans[2]];
   }
 
   Tcorners(m,M) {
@@ -704,7 +706,7 @@ abstract class Geometry {
       v=corners(this.Min,this.Max);
     else {
       this.c=W.Centers[this.CenterIndex-1];
-      v=this.Tcorners(this.Min,this.Max);
+      v=this.transform ? p : this.Tcorners(this.Min,this.Max);
     }
 
     if(this.offscreen(v)) { // Fully offscreen
@@ -722,10 +724,10 @@ abstract class Geometry {
       }
       P=p;
     } else { // Transform billboard labels
-      let n=p.length;
+      let n=this.controlpoints.length;
       P=Array(n);
       for(let i=0; i < n; ++i)
-        P[i]=this.T(p[i]);
+        P[i]=this.T(this.controlpoints[i]);
     }
 
     let s=W.orthographic ? 1 : this.Min[2]/W.maxBound[2];
@@ -3529,7 +3531,9 @@ function animatedGeometry(){
 
   return function(controlpoints: vec3[]): vec3[] {
     let cp=toUser(controlpoints);
-    for(const {geometryTransform,durationInv} of stack) {
+    // Process stack in reverse order: inner transforms first
+    for(let i=stack.length-1; i >= 0; i--) {
+      const {geometryTransform,durationInv} = stack[i];
       const t=min(playbackTime*durationInv,1.0);
       cp=transformCP(cp,t,geometryTransform);
     }
@@ -3543,7 +3547,9 @@ function animatedColor() {
 
   return function(color,p) {
     let P=toUser([p[0],p[12],p[15],p[3]]);
-    for(const {colorTransform,durationInv} of stack) {
+    // Process stack in reverse order: inner transforms first
+    for(let i=stack.length-1; i >= 0; i--) {
+      const {colorTransform,durationInv} = stack[i];
       const t=min(playbackTime*durationInv,1.0);
       color=transformColor(
             [[P[0],color[0]],
@@ -4199,6 +4205,12 @@ function webGLStart()
   home();
   requestAnimationFrame(animate);
 }
+
+function updateScene() {
+    remesh=true;
+    drawScene();
+}
+
 globalThis.window.webGLStart=webGLStart;
 globalThis.window.light=light;
 globalThis.window.material= material;
@@ -4218,3 +4230,4 @@ globalThis.window.initTransform=initTransform;
 globalThis.window.beginTransform=beginTransform;
 globalThis.window.endTransform=endTransform;
 globalThis.window.interp=interp;
+globalThis.window.updateScene=updateScene;

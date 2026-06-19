@@ -498,9 +498,10 @@ struct v3dfile
     static bool processed;
     if(processed) return;
 
-    while (!eof(xdrfile))
+    while (true)
       {
         int ty=getType();
+        if(eof(xdrfile)) break;
         if(ty == v3dtypes.header)
           {
             hasCameraInfo=true;
@@ -584,7 +585,7 @@ struct v3dfile
           }
         else
           {
-            //  abort("Unknown type:"+string(ty));
+            abort("Unknown type:"+string(ty));
           }
       }
     processed=true;

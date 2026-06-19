@@ -1,5 +1,5 @@
 /*****
- * webglrender.h
+ * norender.h
  * Lightweight renderer for WebGL (html) and v3d output.
  * Does not require Vulkan or OpenGL libraries.
  *****/
@@ -15,7 +15,7 @@ namespace camp
 {
 
 /**
- * AsyWebGLRender - A minimal renderer for WebGL/v3d export.
+ * NoRender - A minimal renderer for WebGL/v3d export.
  *
  * This class handles the initial setup phase for WebGL (html) and v3d output
  * formats. It sets up dimensions, camera parameters, lighting, and other state
@@ -25,16 +25,16 @@ namespace camp
  * libraries (Vulkan, OpenGL, GLFW). It simply configures the base class state
  * and returns early, as the actual rendering is done client-side by JavaScript.
  */
-class AsyWebGLRender : public AsyRender
+class NoRender : public AsyRender
 {
 public:
-  AsyWebGLRender() = default;
-  ~AsyWebGLRender() override = default;
+  NoRender() = default;
+  ~NoRender() override = default;
 
   // Implementation of base class pure virtual function
   void render(RenderFunctionArgs const& args) override;
 
-  // Pure virtual implementations (no-op for WebGL renderer)
+  // Pure virtual implementations (no-op for NoRender)
   void drawFrame() override {}
   void exportHandler(int = 0) override {}
   void Export(int imageIndex = 0) override {}

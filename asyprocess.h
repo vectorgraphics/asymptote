@@ -136,7 +136,7 @@ enum transMode {
 
 // Abstract base class for the core object being run in line-at-a-time mode, it
 // may be a block of code, file, or interactive prompt.
-struct icore {
+struct icore: public gc {
   virtual ~icore() {}
   virtual void doParse() = 0;
   virtual void doList() = 0;

@@ -171,6 +171,7 @@ private:
   std::uint32_t maxSize=1;
   bool resetDepth=false;
   bool vkinitialize=true;
+  uint64_t vkTimeout; // Vulkan wait timeout in nanoseconds; set per-device in pickPhysicalDevice
 
   size_t nmaterials=1; // Number of materials currently allocated in memory
 
@@ -200,14 +201,13 @@ private:
   std::vector<vk::Image> backbufferImages;
   std::vector<vk::UniqueImageView> backbufferImageViews;
 
-#pragma region intermediate frame buffers
+// Intermediate frame buffers
   std::vector<vma::cxx::UniqueImage> immediateRenderTargetImgs;
   std::vector<vk::UniqueImageView> immRenderTargetViews;
   std::vector<vk::UniqueSampler> immRenderTargetSampler;
 
   std::vector<vma::cxx::UniqueImage> prePresentationImages;
   std::vector<vk::UniqueImageView> prePresentationImgViews;
-#pragma endregion
   std::vector<vk::UniqueFramebuffer> depthFramebuffers;
   std::vector<vk::UniqueFramebuffer> opaqueGraphicsFramebuffers;
   std::vector<vk::UniqueFramebuffer> graphicsFramebuffers;
@@ -335,7 +335,7 @@ private:
   vk::UniqueImageView reflectionView;
   vk::UniqueSampler reflectionSampler;
 
-#pragma region post-process compute stuff
+// Post-process compute stuff
   vk::Extent2D postProcessThreadGroupCount;
 
   vk::UniquePipeline postProcessPipeline;
@@ -348,7 +348,6 @@ private:
 
   std::vector<vk::UniqueSemaphore> renderFinishedSemaphore;
 
-#pragma endregion
   struct FrameObject {
     enum CommandBuffers {
       CMD_DEFAULT,
@@ -391,10 +390,9 @@ private:
     FrameBufferPair lineBuffers;
     FrameBufferPair pointBuffers;
 
-#pragma region post-process compute stuff
+    // Post-process compute stuff
     std::vector<vk::UniqueImage> resolvedColorImages;
     std::vector<vk::ImageView> resolveColorImgViews;
-#pragma endregion
   };
 
   uint32_t currentFrame = 0;

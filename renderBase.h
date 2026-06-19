@@ -272,7 +272,7 @@ public:
  * AsyRender - Library-agnostic base class for renderers.
  * Contains code that is independent of the underlying graphics API (Vulkan, OpenGL, etc.).
  */
-class AsyRender
+class AsyRender: public gc
 {
 public:
   AsyRender() = default;
@@ -367,6 +367,7 @@ public:
   double oWidth, oHeight;
   double lastzoom;
   int Fitscreen=1;
+  double zoomFactor = 1.0;  // Extra multiplicative zoom factor for fullscreen aspect compensation
 
   bool readyForExport=false;
   bool readyAfterExport=false;
@@ -685,10 +686,10 @@ class AsyGLRender;  // Forward declaration
 #ifdef HAVE_VULKAN
 class AsyVkRender;   // Forward declaration (if Vulkan is available)
 #endif
-class AsyWebGLRender;  // Forward declaration for WebGL/v3d output
+class NoRender;  // Forward declaration for WebGL/v3d output
 
 /**
- * Lazily initialise the global renderer (Vulkan, OpenGL, or WebGL) on first use.
+ * Lazily initialise the global renderer (Vulkan, OpenGL, or NoRender) on first use.
  * This defers all graphics-library loading until a shipout3 call actually
  * requires rendering, allowing headless modes like "-l" to run without
  * needing any GPU / display at all.
