@@ -275,7 +275,7 @@ spatialPen palette(real f(triple), real Min, real Max, pen[] palette)
   return new pen(triple v, int, int) {return palette[round((f(v)-Min)*step)];};
 }
 
-// Fits a trilinear interpolant to the data (one for each color channel).
+// Fits a quadratic interpolant to the data (one for each color channel).
 spatialPen fitColors(triple[] coords, pen[] colors)
 {
   int n=coords.length;
