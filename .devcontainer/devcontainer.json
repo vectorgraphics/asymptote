@@ -1,0 +1,92 @@
+{
+  "name": "Asymptote (CMake + vcpkg)",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      // Bakes the LaTeX/Ghostscript docgen toolchain into the image (adds
+      // several GB, but is cached in the local image and not re-downloaded on
+      // rebuilds). Set to "false" for a leaner compiler-only image.
+      "INSTALL_DOC_DEPS": "true"
+    }
+  },
+
+  // Optional hardening escape hatch, OFF by default. Driven by the *host* env
+  // var ASY_DEVCONTAINER_SECURITY_OPT (read when the container is created, from
+  // the environment that launches VS Code / the Dev Containers CLI). When it is
+  // unset this expands to "--security-opt no-new-privileges=false", which is
+  // already the default on both Docker and Podman -- i.e. a no-op, safe for
+  // everyone.
+  //
+  // Set it only if you run a bubblewrap (bwrap) sandbox INSIDE the container
+  // -- e.g. Claude Code -- on rootless Podman:
+  //
+  //     ASY_DEVCONTAINER_SECURITY_OPT=unmask=/proc/*
+  //
+  // Rootless Podman masks paths under /proc (/proc/sys, /proc/kcore, ...) with
+  // read-only / tmpfs overmounts. The kernel requires a "fully visible" procfs
+  // before it will allow a nested `mount -t proc` in a new PID namespace, so
+  // those masks make bwrap fail with "Can't mount proc on /newroot/proc:
+  // Operation not permitted". unmask=/proc/* drops the masks (no full
+  // --privileged needed) and restores the nested mount.
+  //
+  // Docker has no unmask=; its nearest equivalent is systempaths=unconfined
+  // (broader -- unmasks all of /proc and /sys). See README ("Nested sandboxes").
+  "runArgs": ["--security-opt", "${localEnv:ASY_DEVCONTAINER_SECURITY_OPT:no-new-privileges=false}"],
+
+  // vcpkg lives at /usr/local/vcpkg in the base image; the CMake presets read
+  // $env{VCPKG_ROOT} to locate the toolchain file, so make it explicit.
+  "containerEnv": {
+    "VCPKG_ROOT": "/usr/local/vcpkg",
+    // Point Claude Code at the persistent ~/.claude volume (see mounts below).
+    // This also relocates the top-level config file to
+    // $CLAUDE_CONFIG_DIR/.claude.json (instead of ~/.claude.json), so the
+    // login/auth lands *inside* the volume and survives rebuilds too.
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
+  },
+
+  // Set the TZ environment variable whenever connecting to the container.
+  "remoteEnv": {
+    "TZ": "America/Los_Angeles"
+  },
+
+  // Persist vcpkg's binary cache and ccache across container rebuilds so that
+  // re-provisioning does not recompile the whole dependency set every time.
+  "mounts": [
+    "source=asymptote-vcpkg-cache,target=/home/vscode/.cache/vcpkg,type=volume",
+    "source=asymptote-ccache,target=/home/vscode/.ccache,type=volume",
+    // Persist Claude Code's config dir (memories, settings, login) across
+    // rebuilds. A fresh volume is empty; post-create.sh seeds it once from the
+    // gitignored snapshot in .devcontainer/local/claude-config-seed/.
+    "source=asymptote-claude-config,target=/home/vscode/.claude,type=volume"
+  ],
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cpptools-extension-pack",
+        "ms-vscode.cmake-tools",
+        "ms-python.python",
+        "supakornras.asymptote"
+      ],
+      "settings": {
+        "cmake.useCMakePresets": "always",
+        // Use the container-owned virtualenv built by post-create.sh (kept out
+        // of the bind-mounted workspace so it never clashes with the host's
+        // ./venv). VS Code activates it automatically in integrated terminals.
+        "python.defaultInterpreterPath": "/home/vscode/.venv/asymptote/bin/python",
+        "python.terminal.activateEnvironment": true
+      }
+    }
+  },
+
+  "remoteUser": "vscode",
+
+  // One-time provisioning: fix cache-volume ownership, fetch the pinned vcpkg
+  // baseline, and build the Python developer virtualenv. See post-create.sh.
+  // Personal setup (e.g. installing Claude Code) lives in the gitignored
+  // .devcontainer/local/*.sh hooks that post-create.sh runs last.
+  // (No automatic CMake configure here: the first `cmake --preset
+  // linux/release` will populate the vcpkg cache, which can take a while.)
+  "postCreateCommand": "bash .devcontainer/post-create.sh"
+}
