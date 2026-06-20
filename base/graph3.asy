@@ -1693,7 +1693,8 @@ surface surface(picture pic=currentpicture, triple[][] f, bool[][] cond={})
               Scale(pic,fi[j+1])});
         indexi[j]=k;
         ++k;
-      }
+      } else
+        indexi[j]=-1;
     }
   }
 
@@ -1779,7 +1780,8 @@ surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
           copy=false);
         indexi[j]=k;
         ++k;
-      }
+      } else
+        indexi[j]=-1;
     }
   }
 
@@ -2013,6 +2015,8 @@ surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
 
   triple[][] v=new triple[nu+1][nv+1];
 
+  pair aParam=a;
+  pair bParam=b;
   pair a=Scale(pic,a);
   pair b=Scale(pic,b);
   for(int i=0; i <= nu; ++i) {
@@ -2024,7 +2028,10 @@ surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
       if(all || (activei[j]=cond(z))) vi[j]=f(z);
     }
   }
-  return surface(pic,v,active);
+  surface s=surface(pic,v,active);
+  s.aParamCoords=aParam;
+  s.bParamCoords=bParam;
+  return s;
 }
 
 // return the surface described by a parametric function f evaluated at u and v
@@ -2123,6 +2130,9 @@ surface surface(picture pic=currentpicture, triple f(pair z),
 
   if(vsplinetype[0] == periodic && vsplinetype[1] == periodic &&
      vsplinetype[1] == periodic) s.vcyclic(true);
+
+  s.aParamCoords=(u[0],v[0]);
+  s.bParamCoords=(u[u.length-1],v[v.length-1]);
 
   return s;
 }

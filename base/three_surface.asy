@@ -772,6 +772,7 @@ struct primitive {
   }
 }
 
+// first integer: index of patch in surface.s; second integer: index of corner in patch
 using spatialPen=pen(triple, int, int);
 
 spatialPen cornerPen(pen[][] p) {
@@ -785,6 +786,9 @@ spatialPen cornerPen(...pen[] p) {
   return cornerPen(new pen[][] {p});
 }
 
+// integers: the u, v indices of the patch using surface.index
+using paramPen=pen(pair, int, int);
+
 private string nullsurface="null surface";
 
 struct surface {
@@ -794,6 +798,9 @@ struct surface {
   int index[][];
   bool vcyclic;
   transform3 T=identity4;
+  // u, v coords in the parameter space originally used to construct the patch (if applicable);
+  // should be non-nan only if index is nonempty.
+  pair aParamCoords=(nan,nan),bParamCoords=(nan,nan);
 
   primitive primitive=null;
   bool PRCprimitive=true; // True unless no PRC primitive is available.
@@ -816,6 +823,8 @@ struct surface {
       this.s[i]=patch(s.s[i]);
     this.index=copy(s.index);
     this.vcyclic=s.vcyclic;
+    this.aParamCoords=s.aParamCoords;
+    this.bParamCoords=s.bParamCoords;
   }
 
   void operator init(triple[][][] P, pen[][] colors=new pen[][],
@@ -909,18 +918,92 @@ struct surface {
     return sequence(new triple(int i) {return s[i].cornermean();},s.length);
   }
 
+  // Locate the patch covering surface coordinates (u,v), preferring cell (U,V).
+  // If (U,V) has no patch but (u,v) lies on a cell boundary shared with a
+  // neighboring non-missing patch, that neighbor is used instead (a point on a
+  // shared boundary belongs to either patch). Returns {patch index, cell u,
+  // cell v}, or an empty array if no non-missing patch contains (u,v).
+  int[] locatePatch(real u, real v, int U, int V) {
+    int nU=index.length;
+    int nV=index[0].length;
+    // Candidate cells: (U,V) itself, plus a lower/upper neighbor along each axis
+    // when (u,v) lies exactly on the corresponding cell edge.
+    int[] Us={U};
+    if(u == U) Us.push(U-1);
+    if(u == U+1) Us.push(U+1);
+    int[] Vs={V};
+    if(v == V) Vs.push(V-1);
+    if(v == V+1) Vs.push(V+1);
+    for(int iu : Us) {
+      if(iu < 0 || iu >= nU) continue;
+      for(int iv : Vs) {
+        if(iv < 0 || iv >= nV) continue;
+        if(index[iu][iv] >= 0)
+          return new int[] {index[iu][iv],iu,iv};
+      }
+    }
+    return new int[] {};
+  }
+
   triple point(real u, real v) {
     int U=floor(u);
     int V=floor(v);
-    int index=index.length == 0 ? U+V : index[U][V];
-    return s[index].point(u-U,v-V);
+    if(index.length == 0)
+      return s[U+V].point(u-U,v-V);
+    // On the upper boundary u==index.length or v==index[0].length, evaluate the
+    // boundary of the last patch instead of running off the grid.
+    if(U == index.length) U=index.length-1;
+    if(V == index[0].length) V=index[0].length-1;
+    int i=index[U][V];
+    if(i >= 0) {
+      return s[i].point(u-U,v-V);
+    } else {
+      int[] p=locatePatch(u,v,U,V);
+      if(p.length == 0)
+        abort("no patch at surface coordinates ("+(string) u+","+(string) v+")");
+      return s[p[0]].point(u-p[1],v-p[2]);
+    }
+  }
+
+  // Evaluate the surface at the parametrization coordinates (u,v), where (u,v)
+  // ranges over the box with corners aParamCoords and bParamCoords.
+  triple paramPoint(real u, real v) {
+    int nU=index.length;
+    int nV=index[0].length;
+    real su=nU*(u-aParamCoords.x)/(bParamCoords.x-aParamCoords.x);
+    real sv=nV*(v-aParamCoords.y)/(bParamCoords.y-aParamCoords.y);
+    int U=min(floor(su),nU-1);
+    int V=min(floor(sv),nV-1);
+    int i=index[U][V];
+    if(i >= 0) {
+      return s[i].point(su-U,sv-V);
+    } else {
+      int[] p=locatePatch(su,sv,U,V);
+      if(p.length == 0)
+        abort("no patch at parametrization coordinates ("+(string) u+","+
+              (string) v+")");
+      return s[p[0]].point(su-p[1],sv-p[2]);
+    }
   }
 
   triple normal(real u, real v) {
     int U=floor(u);
     int V=floor(v);
-    int index=index.length == 0 ? U+V : index[U][V];
-    return s[index].normal(u-U,v-V);
+    if(index.length == 0)
+      return s[U+V].normal(u-U,v-V);
+    // On the upper boundary u==index.length or v==index[0].length, evaluate the
+    // boundary of the last patch instead of running off the grid.
+    if(U == index.length) U=index.length-1;
+    if(V == index[0].length) V=index[0].length-1;
+    int i=index[U][V];
+    if(i >= 0) {
+      return s[i].normal(u-U,v-V);
+    } else {
+      int[] p=locatePatch(u,v,U,V);
+      if(p.length == 0)
+        abort("no patch at surface coordinates ("+(string) u+","+(string) v+")");
+      return s[p[0]].normal(u-p[1],v-p[2]);
+    }
   }
 
   void ucyclic(bool f)
@@ -1130,6 +1213,10 @@ struct surface {
       ucyclic((angle2-angle1) % 360 == 0);
       vcyclic(cyclic(g));
     }
+    // The rotation (u) parameter is measured in radians; the longitudinal (v)
+    // parameter is the node index along g.
+    aParamCoords=(radians(angle1),0);
+    bParamCoords=(radians(angle2),L);
   }
 
   void push(patch s) {
@@ -1154,6 +1241,8 @@ surface operator * (transform3 t, surface s)
     S.s[i]=t*s.s[i];
   S.index=copy(s.index);
   S.vcyclic=(bool) s.vcyclic;
+  S.aParamCoords=s.aParamCoords;
+  S.bParamCoords=s.bParamCoords;
   S.T=t*s.T;
   S.primitive=s.primitive;
   S.PRCprimitive=s.PRCprimitive;
