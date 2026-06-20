@@ -308,6 +308,7 @@ webgl/dist
 
 # AI related files
 .claude
+CLAUDE.md
 .copilot_workspace
 .github/copilot-instructions.md
 .github/prompts/
