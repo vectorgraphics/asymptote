@@ -798,9 +798,12 @@ struct surface {
   int index[][];
   bool vcyclic;
   transform3 T=identity4;
-  // u, v coords in the parameter space originally used to construct the patch (if applicable);
-  // should be non-nan only if index is nonempty.
-  pair aParamCoords=(nan,nan),bParamCoords=(nan,nan);
+  // Affine map from the parametric coordinates originally used to construct the
+  // patch to surface coordinates (the (u,v) domain of point()/normal(), which
+  // ranges over the box with corners (0,0) and (index.length,index[0].length)).
+  // Defaults to the identity, i.e. parametric coordinates coincide with surface
+  // coordinates.
+  transform paramToSurface=identity;
 
   primitive primitive=null;
   bool PRCprimitive=true; // True unless no PRC primitive is available.
@@ -823,8 +826,7 @@ struct surface {
       this.s[i]=patch(s.s[i]);
     this.index=copy(s.index);
     this.vcyclic=s.vcyclic;
-    this.aParamCoords=s.aParamCoords;
-    this.bParamCoords=s.bParamCoords;
+    this.paramToSurface=s.paramToSurface;
   }
 
   void operator init(triple[][][] P, pen[][] colors=new pen[][],
@@ -965,13 +967,14 @@ struct surface {
     }
   }
 
-  // Evaluate the surface at the parametrization coordinates (u,v), where (u,v)
-  // ranges over the box with corners aParamCoords and bParamCoords.
+  // Evaluate the surface at the parametrization coordinates (u,v), mapped to
+  // surface coordinates by paramToSurface.
   triple paramPoint(real u, real v) {
     int nU=index.length;
     int nV=index[0].length;
-    real su=nU*(u-aParamCoords.x)/(bParamCoords.x-aParamCoords.x);
-    real sv=nV*(v-aParamCoords.y)/(bParamCoords.y-aParamCoords.y);
+    pair sc=paramToSurface*(u,v);
+    real su=sc.x;
+    real sv=sc.y;
     int U=min(floor(su),nU-1);
     int V=min(floor(sv),nV-1);
     int i=index[U][V];
@@ -1215,8 +1218,10 @@ struct surface {
     }
     // The rotation (u) parameter is measured in radians; the longitudinal (v)
     // parameter is the node index along g.
-    aParamCoords=(radians(angle1),0);
-    bParamCoords=(radians(angle2),L);
+    pair aParam=(radians(angle1),0);
+    pair bParam=(radians(angle2),L);
+    paramToSurface=xscale(n/(bParam.x-aParam.x))*yscale(L/(bParam.y-aParam.y))*
+      shift(-aParam);
   }
 
   void push(patch s) {
@@ -1241,8 +1246,7 @@ surface operator * (transform3 t, surface s)
     S.s[i]=t*s.s[i];
   S.index=copy(s.index);
   S.vcyclic=(bool) s.vcyclic;
-  S.aParamCoords=s.aParamCoords;
-  S.bParamCoords=s.bParamCoords;
+  S.paramToSurface=s.paramToSurface;
   S.T=t*s.T;
   S.primitive=s.primitive;
   S.PRCprimitive=s.PRCprimitive;

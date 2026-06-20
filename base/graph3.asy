@@ -2029,8 +2029,8 @@ surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
     }
   }
   surface s=surface(pic,v,active);
-  s.aParamCoords=aParam;
-  s.bParamCoords=bParam;
+  s.paramToSurface=xscale(nu/(bParam.x-aParam.x))*yscale(nv/(bParam.y-aParam.y))*
+    shift(-aParam);
   return s;
 }
 
@@ -2131,8 +2131,10 @@ surface surface(picture pic=currentpicture, triple f(pair z),
   if(vsplinetype[0] == periodic && vsplinetype[1] == periodic &&
      vsplinetype[1] == periodic) s.vcyclic(true);
 
-  s.aParamCoords=(u[0],v[0]);
-  s.bParamCoords=(u[u.length-1],v[v.length-1]);
+  pair aParam=(u[0],v[0]);
+  pair bParam=(u[u.length-1],v[v.length-1]);
+  s.paramToSurface=xscale(nu/(bParam.x-aParam.x))*yscale(nv/(bParam.y-aParam.y))*
+    shift(-aParam);
 
   return s;
 }
