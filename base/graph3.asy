@@ -1650,8 +1650,7 @@ bool vperiodic(triple[][] a) {
 }
 
 // return the surface described by a matrix f
-surface surface(picture pic=currentpicture, triple[][] f, bool[][] cond={},
-                pen[][] vertexPens=null)
+surface surface(picture pic=currentpicture, triple[][] f, bool[][] cond={})
 {
   if(!rectangular(f)) abort("matrix is not rectangular");
 
@@ -1688,16 +1687,10 @@ surface surface(picture pic=currentpicture, triple[][] f, bool[][] cond={},
     for(int j=0; j < ny; ++j) {
       if(all || (condi[j] && condi[j+1] && condp[j] && condp[j+1])) {
         s.s[k]=patch(new triple[] {
-              Scale(pic,fi[j]),
+            Scale(pic,fi[j]),
               Scale(pic,fp[j]),
               Scale(pic,fp[j+1]),
-              Scale(pic,fi[j+1])},
-              colors=alias(vertexPens, null) ? new pen[] : new pen[] {
-                vertexPens[i][j],
-                vertexPens[i+1][j],
-                vertexPens[i+1][j+1],
-                vertexPens[i][j+1]
-              });
+              Scale(pic,fi[j+1])});
         indexi[j]=k;
         ++k;
       }
@@ -2005,8 +1998,7 @@ surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
 // return the surface described by a parametric function f over box(a,b),
 // interpolated linearly.
 surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
-                int nu=nmesh, int nv=nu, bool cond(pair z)=null,
-                pen paramPen(pair z)=null)
+                int nu=nmesh, int nv=nu, bool cond(pair z)=null)
 {
   if(nu <= 0 || nv <= 0) return nullsurface;
 
@@ -2020,7 +2012,6 @@ surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
   pair dz=(du,dv);
 
   triple[][] v=new triple[nu+1][nv+1];
-  pen[][] vertexPens=(paramPen == null ? null : new pen[nu+1][nv+1]);
 
   pair a=Scale(pic,a);
   pair b=Scale(pic,b);
@@ -2028,24 +2019,19 @@ surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
     real x=pic.scale.x.Tinv(interp(a.x,b.x,i*du));
     bool[] activei=all ? null : active[i];
     triple[] vi=v[i];
-    pen[] vertexPensi=(alias(vertexPens, null) ? null : vertexPens[i]);
     for(int j=0; j <= nv; ++j) {
       pair z=(x,pic.scale.y.Tinv(interp(a.y,b.y,j*dv)));
-      if(all || (activei[j]=cond(z))) {
-        vi[j]=f(z);
-        if(!alias(vertexPensi, null)) vertexPensi[j]=paramPen(z);
-      }
+      if(all || (activei[j]=cond(z))) vi[j]=f(z);
     }
   }
-  return surface(pic,v,active,vertexPens);
+  return surface(pic,v,active);
 }
 
 // return the surface described by a parametric function f evaluated at u and v
 // and interpolated with usplinetype and vsplinetype.
 surface surface(picture pic=currentpicture, triple f(pair z),
                 real[] u, real[] v, splinetype[] usplinetype,
-                splinetype[] vsplinetype=Spline, bool cond(pair z)=null,
-                pen paramPen(pair z)=null)
+                splinetype[] vsplinetype=Spline, bool cond(pair z)=null)
 {
   int nu=u.length-1;
   int nv=v.length-1;
@@ -2058,7 +2044,7 @@ surface surface(picture pic=currentpicture, triple f(pair z),
   bool[][] active;
   bool all=cond == null;
   if(!all) active=new bool[u.length][v.length];
-  pen[][] vertexPens=(paramPen == null ? null : new pen[u.length][v.length]);
+
   for(int i=0; i <= nu; ++i) {
     real ui=u[i];
     real[] fxi=fx[i];
@@ -2072,7 +2058,6 @@ surface surface(picture pic=currentpicture, triple f(pair z),
       fxi[j]=f.x;
       fyi[j]=f.y;
       fzi[j]=f.z;
-      if(!alias(vertexPens, null)) vertexPens[i][j]=paramPen(z);
     }
   }
 
@@ -2129,13 +2114,7 @@ surface surface(picture pic=currentpicture, triple f(pair z),
                             (Pxi[2],Pyi[2],Pzi[2]),
                             (Pxi[3],Pyi[3],Pzi[3])};
       }
-      pen[] colors=alias(vertexPens, null) ? new pen[] : new pen[] {
-        vertexPens[i][j],
-        vertexPens[i+1][j],
-        vertexPens[i+1][j+1],
-        vertexPens[i][j+1]
-      };
-      s.s[k]=patch(Q,colors=colors);
+      s.s[k]=patch(Q);
     }
   }
 
@@ -2153,11 +2132,11 @@ surface surface(picture pic=currentpicture, triple f(pair z),
 surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
                 int nu=nmesh, int nv=nu,
                 splinetype[] usplinetype, splinetype[] vsplinetype=Spline,
-                bool cond(pair z)=null, pen paramPen(pair z)=null)
+                bool cond(pair z)=null)
 {
   real[] x=uniform(pic.scale.x.T,pic.scale.x.Tinv,a.x,b.x,nu);
   real[] y=uniform(pic.scale.y.T,pic.scale.y.Tinv,a.y,b.y,nv);
-  return surface(pic,f,x,y,usplinetype,vsplinetype,cond,paramPen);
+  return surface(pic,f,x,y,usplinetype,vsplinetype,cond);
 }
 
 // return the surface described by a real function f over box(a,b),
