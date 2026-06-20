@@ -936,10 +936,12 @@ struct surface {
     int[] Vs={V};
     if(v == V) Vs.push(V-1);
     if(v == V+1) Vs.push(V+1);
+    // A cyclic axis has no out-of-range cells: index wraps, and returning the
+    // wrapped cell base (iu/iv) keeps the fractional offset u-iu, v-iv correct.
     for(int iu : Us) {
-      if(iu < 0 || iu >= nU) continue;
+      if((iu < 0 || iu >= nU) && !index.cyclic) continue;
       for(int iv : Vs) {
-        if(iv < 0 || iv >= nV) continue;
+        if((iv < 0 || iv >= nV) && !vcyclic) continue;
         if(index[iu][iv] >= 0)
           return new int[] {index[iu][iv],iu,iv};
       }
@@ -952,10 +954,12 @@ struct surface {
     int V=floor(v);
     if(index.length == 0)
       return s[U+V].point(u-U,v-V);
-    // On the upper boundary u==index.length or v==index[0].length, evaluate the
-    // boundary of the last patch instead of running off the grid.
-    if(U == index.length) U=index.length-1;
-    if(V == index[0].length) V=index[0].length-1;
+    // On a non-cyclic upper boundary u==index.length or v==index[0].length,
+    // evaluate the boundary of the last patch instead of running off the grid.
+    // When cyclic, index is a cyclic array, so index[U][V] (and the fractional
+    // offset u-U, v-V) wraps this and any other out-of-range cell automatically.
+    if(U == index.length && !index.cyclic) U=index.length-1;
+    if(V == index[0].length && !vcyclic) V=index[0].length-1;
     int i=index[U][V];
     if(i >= 0) {
       return s[i].point(u-U,v-V);
@@ -968,25 +972,10 @@ struct surface {
   }
 
   // Evaluate the surface at the parametrization coordinates (u,v), mapped to
-  // surface coordinates by paramToSurface.
+  // surface coordinates by paramToSurface. Delegates to point().
   triple paramPoint(real u, real v) {
-    int nU=index.length;
-    int nV=index[0].length;
     pair sc=paramToSurface*(u,v);
-    real su=sc.x;
-    real sv=sc.y;
-    int U=min(floor(su),nU-1);
-    int V=min(floor(sv),nV-1);
-    int i=index[U][V];
-    if(i >= 0) {
-      return s[i].point(su-U,sv-V);
-    } else {
-      int[] p=locatePatch(su,sv,U,V);
-      if(p.length == 0)
-        abort("no patch at parametrization coordinates ("+(string) u+","+
-              (string) v+")");
-      return s[p[0]].point(su-p[1],sv-p[2]);
-    }
+    return point(sc.x,sc.y);
   }
 
   triple normal(real u, real v) {
@@ -994,10 +983,12 @@ struct surface {
     int V=floor(v);
     if(index.length == 0)
       return s[U+V].normal(u-U,v-V);
-    // On the upper boundary u==index.length or v==index[0].length, evaluate the
-    // boundary of the last patch instead of running off the grid.
-    if(U == index.length) U=index.length-1;
-    if(V == index[0].length) V=index[0].length-1;
+    // On a non-cyclic upper boundary u==index.length or v==index[0].length,
+    // evaluate the boundary of the last patch instead of running off the grid.
+    // When cyclic, index is a cyclic array, so index[U][V] (and the fractional
+    // offset u-U, v-V) wraps this and any other out-of-range cell automatically.
+    if(U == index.length && !index.cyclic) U=index.length-1;
+    if(V == index[0].length && !vcyclic) V=index[0].length-1;
     int i=index[U][V];
     if(i >= 0) {
       return s[i].normal(u-U,v-V);
