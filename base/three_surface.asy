@@ -1954,8 +1954,36 @@ void drawTessellation(picture pic=currentpicture, surface s,
   }
 }
 
+// Color each indexed patch of the draw-time surface copy S using parampen,
+// evaluated at the parametric coordinates of the patch corners. The integer
+// arguments passed to parampen are the patch's u, v indices in S.index. This is
+// a drawing helper: colors are written only into the copy made for drawing,
+// never into a user's surface. Callers must ensure S.index is populated.
+private void colorParam(surface S, paramPen parampen) {
+  transform surfaceToParam=inverse(S.paramToSurface);
+  int nU=S.index.length;
+  int nV=S.index[0].length;
+  for(int U=0; U < nU; ++U) {
+    for(int V=0; V < nV; ++V) {
+      int i=S.index[U][V];
+      if(i < 0) continue;
+      pen p00=parampen(surfaceToParam*(U,V),U,V);
+      pen p10=parampen(surfaceToParam*(U+1,V),U,V);
+      pen p11=parampen(surfaceToParam*(U+1,V+1),U,V);
+      patch si=S.s[i];
+      if (si.triangular) {
+        si.colors = new pen[] {p00,p10,p11};
+        continue;
+      }
+      pen p01=parampen(surfaceToParam*(U,V+1),U,V);
+      si.colors=new pen[] {p00,p10,p11,p01};
+    }
+  }
+}
+
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens, pen spatialpen(triple, int, int)=null,
+          pen parampen(pair, int, int)=null,
           light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
 {
@@ -1966,13 +1994,19 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
+      // Color the patches before drawing so both the 3D render and the
+      // 2D-projection (vector output) path below pick up the result. The param
+      // pen takes precedence over the spatial pen, but is ignored unless the
+      // surface has a populated index grid.
+      if(parampen != null && s.index.length > 0)
+        colorParam(S,parampen);
+      else if(spatialpen != null)
+        for(int i=0; i < s.s.length; ++i)
+          S.s[i].colors=s.s[i].map(spatialpen,i);
+
       if(is3D()) {
         render Render=render(render,interaction(render.interaction,
                                                 t*render.interaction.center));
-        if(spatialpen != null)
-          for(int i=0; i < s.s.length; ++i)
-            S.s[i].colors=s.s[i].map(spatialpen,i);
-
         draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight,name,Render);
       }
       if(pic != null) {
@@ -2008,18 +2042,26 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
-          material surfacepen=currentpen, pen meshpen=nullpen, pen spatialpen(triple, int, int)=null,
+          material surfacepen=currentpen, pen meshpen=nullpen,
+          pen spatialpen(triple, int, int)=null,
+          pen parampen(pair, int, int)=null,
           light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
 {
   if(render.tessellate && s.index.length > 0 && settings.render != 0) {
+    // Color a copy of the surface so the tessellation picks up the param pen.
+    if(parampen != null) {
+      s=surface(s);
+      colorParam(s,parampen);
+    }
     drawTessellation(pic,s,surfacepen,meshpen,light,meshlight,name,render);
   } else {
     material[] surfacepen={surfacepen};
     surfacepen.cyclic=true;
     pen[] meshpen={meshpen};
     meshpen.cyclic=true;
-    draw(pic,s,nu,nv,surfacepen,meshpen,spatialpen,light,meshlight,name,render);
+    draw(pic,s,nu,nv,surfacepen,meshpen,spatialpen,parampen,light,meshlight,name,
+         render);
   }
 }
 
