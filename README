@@ -41,11 +41,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ========================================================================
 
-Note that the MSWindows executable version of Asymptote can only be
-released under the GNU General Public License (GPL) as it is linked against
-the GNU Scientific Library, GNU Readline library, and other GPL
-libraries. Source code for the various dll libraries that ship with this
-version of Asymptote ships is available as follows.
+Note that the MSWindows executable of Asymptote available on
+https://asymptote.sourceforge.io and https://ctan.org
+can only be released under the GNU General Public License (GPL) as it
+ships with the GNU Scientific Library, GNU Readline library,
+and other GPL libraries. Source code for the various dll libraries
+that ship with this version of Asymptote is available as follows.
 
 fftw3:
 https://www.fftw.org/fftw-3.3.10.tar.gz
@@ -72,6 +73,9 @@ https://github.com/xiaozhuai/readline-win32
 zlib1:
 https://github.com/madler/zlib/releases/tag/v1.3.1
 
+vulkan_lvp.dll:
+https://github.com/mmozeiko/build-mesa/releases/download/26.0.6/mesa-lavapipe-x64-26.0.6.7z
+
 ========================================================================
 
 Source for various icons is available under the MIT license from
@@ -81,3 +85,13 @@ under the CC-BY-SA 4.0 license:
 http://www.entypo.com/
 and under a CC license:
 http://www.zondicons.com/zondicons.zip
+
+========================================================================
+
+THIRD-PARTY COMPONENTS
+
+Asymptote includes several third-party libraries (span-lite, wyhash,
+Boehm GC, LspCpp, libatomic_ops, GLEW, TinyEXR), each with their own
+license terms.  See LICENSES-THIRD-PARTY.md for the component list, or
+run asy --licenses=full to print the full license texts from the installed
+licenses/ directory.

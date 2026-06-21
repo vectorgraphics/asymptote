@@ -15,6 +15,8 @@
 #include <cmath>
 #include <cstring>
 
+#include "glmCommon.h"
+
 #include "common.h"
 #include "angle.h"
 #include "pair.h"
@@ -46,6 +48,10 @@ public:
   triple() : x(0.0), y(0.0), z(0.0) {}
   triple(double x, double y=0.0, double z=0.0) : x(x), y(y), z(z) {}
   triple(const Triple& v) : x(v[0]), y(v[1]), z(v[2]) {}
+#ifdef HAVE_LIBGLM
+  triple(const glm::vec3& v) : x(v.x), y(v.y), z(v.z) {}
+  triple(const glm::dvec3& v) : x(v.x), y(v.y), z(v.z) {}
+#endif // HAVE_LIBGLM
 
   virtual ~triple() {}
 
@@ -94,6 +100,10 @@ public:
   {
     return 3;
   }
+#ifdef HAVE_LIBGLM
+  operator glm::vec3() const { return glm::vec3(x, y, z); }
+  operator glm::dvec3() const { return glm::dvec3(x, y, z); }
+#endif // HAVE_LIBGLM
 
   // transform by row-major matrix
   friend triple operator* (const double* t, const triple& v) {
@@ -308,12 +318,14 @@ public:
     return angle(x,y,warn);
   }
 
-  friend triple unit(const triple& v)
+  friend triple unit(const triple& v, const triple& v0)
   {
     double scale=v.length();
-    if(scale == 0.0) return v;
-    scale=1.0/scale;
-    return triple(v.x*scale,v.y*scale,v.z*scale);
+    if(std::fpclassify(scale) == FP_NORMAL) {
+      scale=1.0/scale;
+      return triple(v.x*scale,v.y*scale,v.z*scale);
+    } else
+      return v0;
   }
 
   friend double dot(const triple& u, const triple& v)
@@ -382,6 +394,9 @@ public:
 #endif
 
 };
+
+// Default-argument wrapper for MSVC ADL compatibility.
+inline triple unit(const triple& v, const triple& v0 = triple(0.0, 0.0, 0.0));
 
 triple expi(double theta, double phi);
 

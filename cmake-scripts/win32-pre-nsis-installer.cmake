@@ -12,7 +12,7 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 
 # helper target for files needed
-add_custom_target(asy-pre-nsis-targets DEPENDS asy asy-basefiles)
+add_custom_target(asy-pre-nsis-targets DEPENDS asy asy-ctan asy-basefiles asy-licenses)
 
 # check done, start configuration
 set(ASYMPTOTE_NSI_CONFIGURATION_DIR ${CMAKE_CURRENT_BINARY_DIR}/nsifiles)
@@ -55,6 +55,13 @@ install(TARGETS asy
         POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
         ${ASY_NSIS_INSTALL_ARGUMENT}
 )
+
+# Lavapipe ICD manifest and DLL (from the shared DLL directory).
+if(WIN32 AND DEFINED ENV{ASYMPTOTE_BUILD_SHARED_DIRECTORY})
+    install(FILES "$ENV{ASYMPTOTE_BUILD_SHARED_DIRECTORY}/CTAN/dll/lvp_icd.json"
+            ${ASY_NSIS_INSTALL_ARGUMENT}
+    )
+endif()
 
 # <build-root>/base/*, <build-root>/examples -> <install-root>/
 install(
@@ -198,9 +205,23 @@ endif()
 # README files
 install(
         FILES
-            ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE
-            ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.LESSER
             ${CMAKE_CURRENT_SOURCE_DIR}/README
             ${ASY_WIN_RESOURCE_DIR}/asy.ico
         ${ASY_NSIS_INSTALL_ARGUMENT}
 )
+
+# Third-party attribution summary
+install(
+        FILES
+            ${CMAKE_CURRENT_SOURCE_DIR}/LICENSES-THIRD-PARTY.md
+        ${ASY_NSIS_INSTALL_ARGUMENT}
+)
+
+# All license files (LICENSE, LICENSE.LESSER, and all third-party files) are
+# installed from the already-renamed build-tree copies produced by
+# copy-build-licenses.cmake.
+set(ASY_LICENSE_INSTALL_ARGS
+        COMPONENT ${ASY_PRE_NSIS_COMPONENT_NAME}
+        DESTINATION ${ASY_INSTALL_DIRECTORY}/licenses
+)
+include(cmake-scripts/install-third-party-licenses.cmake)

@@ -10,6 +10,13 @@ out vec4 outValue;
 #ifdef WEBGL2
 flat in int MaterialIndex;
 
+#ifdef NORMAL
+IN vec4 diffuse;
+IN vec3 specular;
+IN float roughness,metallic,fresnel0;
+IN vec4 emissive;
+#else
+
 struct Material {
   vec4 diffuse,emissive,specular;
   vec4 parameters;
@@ -17,13 +24,7 @@ struct Material {
 
 uniform Material Materials[Nmaterials];
 
-vec4 diffuse;
-vec3 specular;
-float roughness,metallic,fresnel0;
 vec4 emissive;
-
-#ifdef COLOR
-in vec4 Color;
 #endif
 
 #else
@@ -150,42 +151,6 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
 void main(void)
 {
-#ifdef WEBGL2
-#ifdef NORMAL
-  Material m;
-#ifdef TRANSPARENT
-  m=Materials[abs(MaterialIndex)-1];
-  emissive=m.emissive;
-  if(MaterialIndex >= 0)
-    diffuse=m.diffuse;
-  else {
-    diffuse=Color;
-#if nlights == 0
-    emissive += Color;
-#endif
-  }
-#else
-  m=Materials[MaterialIndex];
-  emissive=m.emissive;
-#ifdef COLOR
-  diffuse=Color;
-#if nlights == 0
-    emissive += Color;
-#endif
-#else
-  diffuse=m.diffuse;
-#endif // COLOR
-#endif // TRANSPARENT
-  specular=m.specular.rgb;
-  vec4 parameters=m.parameters;
-  roughness=1.0-parameters[0];
-  metallic=parameters[1];
-  fresnel0=parameters[2];
-#else
-  emissive=Materials[MaterialIndex].emissive;
-#endif // NORMAL
-#endif // WEBGL2
-
 #if defined(NORMAL) && nlights > 0
   normal=normalize(Normal);
   normal=gl_FrontFacing ? normal : -normal;
@@ -207,6 +172,11 @@ vec3 color;
 #endif
   OUTVALUE=vec4(color,diffuse.a);
 #else
+#ifdef WEBGL2
+#ifndef NORMAL
+  emissive=Materials[MaterialIndex].emissive;
+#endif
+#endif
   OUTVALUE=emissive;
 #endif
 }

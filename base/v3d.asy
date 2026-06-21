@@ -244,16 +244,18 @@ struct v3dfile
     pen emissivePen=rgba(xdrfile);
     pen specularPen=rgba(xdrfile);
 
-    xdrfile.dimension(3);
+    bool v2=version >= 2;
+    xdrfile.dimension(v2 ? 4 : 3);
     real[] params=xdrfile;
     real shininess=params[0];
     real metallic=params[1];
     real F0=params[2];
+    bool lightOn=v2 ? params[3] != 0 : true;
 
     xdrfile.singlereal(singleprecision);
 
     return material(diffusePen,emissivePen,specularPen,1,shininess,
-                    metallic,F0);
+                    metallic,F0,lightOn);
   }
 
   triple[][] readRawPatchData() {
@@ -496,9 +498,10 @@ struct v3dfile
     static bool processed;
     if(processed) return;
 
-    while (!eof(xdrfile))
+    while (true)
       {
         int ty=getType();
+        if(eof(xdrfile)) break;
         if(ty == v3dtypes.header)
           {
             hasCameraInfo=true;
@@ -582,7 +585,7 @@ struct v3dfile
           }
         else
           {
-            //  abort("Unknown type:"+string(ty));
+            abort("Unknown type:"+string(ty));
           }
       }
     processed=true;
