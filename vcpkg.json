@@ -6,16 +6,21 @@
   "dependencies": [
     "zlib",
     "glm",
-    "vulkan",
-    "vulkan-sdk-components",
-    "glfw3",
-    "glslang",
     {
       "name": "getopt-win32",
       "platform": "windows"
     }
   ],
   "features": {
+    "vulkan": {
+      "description": "Enable vulkan support",
+      "dependencies": [
+        "vulkan",
+        "vulkan-sdk-components",
+        "glslang",
+        "glfw3"
+      ]
+    },
     "threading": {
       "description": "Enable threading support",
       "dependencies": [
