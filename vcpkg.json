@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-  "builtin-baseline": "f33cc491c85a7d643c5ab6da1667c1458e6d7abf",
+  "builtin-baseline": "2979dbff1b38167a2a0d2b47b7c549c61273eabf",
   "name": "asymptote",
   "version": "0.0-snapshot",
   "dependencies": [
