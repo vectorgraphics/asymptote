@@ -25,8 +25,17 @@ Asymptote with the CMake + vcpkg toolchain. It mirrors the Linux CI environment
   [`vcpkg.json`](../vcpkg.json) (it is owned by root but the build runs as
   `vscode`; without this, baseline resolution fails with a `git show
   versions/baseline.json` error).
+- **CPU rendering** (`Dockerfile` + `devcontainer.json`): Mesa's software
+  rasterizers are installed and forced on so the Vulkan/OpenGL renderers can
+  produce rasterized images without a GPU — `mesa-vulkan-drivers` (lavapipe) for
+  Vulkan, `libgl1-mesa-dri` (llvmpipe) for OpenGL, plus `xvfb` for the X display
+  the GL path needs. See [CPU rendering](#cpu-rendering-llvmpipe--lavapipe).
 - **Documentation toolchain:** LaTeX + Ghostscript + texinfo are baked into the
-  image (on by default) so the `docgen` target works out of the box.
+  image (on by default) so the `docgen` target works out of the box. Ubuntu
+  22.04's stock Ghostscript (9.55) is too old for asy's default `png16malpha`
+  PNG device, so the `Dockerfile` also builds a current Ghostscript from source
+  and installs it ahead of the apt one on `PATH` (see [CPU
+  rendering](#cpu-rendering-llvmpipe--lavapipe)).
 - **vcpkg dependencies** are declared in the top-level [`vcpkg.json`](../vcpkg.json)
   and are resolved automatically by CMake during configure.
 - **Python developer virtualenv** (`post-create.sh`): a venv is created at
@@ -78,6 +87,117 @@ cmake --build --preset linux/release --target docgen
 If you want a leaner image without these (they add several GB), set the
 `INSTALL_DOC_DEPS` build arg to `"false"` in
 [`devcontainer.json`](./devcontainer.json) and rebuild the container.
+
+## CPU rendering (llvmpipe / lavapipe)
+
+The container has no GPU, but it can still exercise the Vulkan and OpenGL
+renderers via Mesa's software rasterizers and write the result to a rasterized
+file (PNG, etc.). This is for *testing* the renderers — producing and inspecting
+images — not for interactive viewing.
+
+What's set up for you (see [`Dockerfile`](./Dockerfile) and
+[`devcontainer.json`](./devcontainer.json)):
+
+- **lavapipe** (`mesa-vulkan-drivers`) — Mesa's software Vulkan driver.
+  `VK_ICD_FILENAMES` is pinned to its ICD
+  (`/usr/share/vulkan/icd.d/lvp_icd.x86_64.json`) so device selection is
+  deterministic.
+- **llvmpipe** (`libgl1-mesa-dri`) — Mesa's software OpenGL rasterizer, forced
+  on with `LIBGL_ALWAYS_SOFTWARE=true` and `GALLIUM_DRIVER=llvmpipe`.
+- **xvfb** — a virtual X server, because asy's OpenGL renderer always opens a
+  (hidden) GLFW window and so needs a display. Vulkan export renders to
+  offscreen buffers and needs no display.
+
+These renderers are only present in builds configured with them. The full
+`linux/release` vcpkg build builds the **Vulkan** renderer (`libasyvulkan.so`,
+dlopened at runtime); the OpenGL renderer (`libasyopengl.so`) is built only by
+the autotools (`./configure && make`) build. The no-network `linux/sandbox`
+preset builds neither.
+
+```bash
+# Vulkan -> PNG (no display needed): renders via lavapipe.
+# Run from any directory OTHER than the workspace root (see the note below),
+# and point -dir at the build's base/ so the dlopened libasyvulkan.so is found.
+cd /tmp
+~/.local/asy-build/release/asy -dir ~/.local/asy-build/release/base \
+    -f png -render=4 -o teapot.png \
+    /workspaces/asymptote/ex/teapot
+
+# OpenGL -> PNG: wrap in xvfb-run so the GL renderer has an X display.
+# (Requires an autotools build that produced libasyopengl.so.)
+xvfb-run -a ./asy -dir ./base -novulkan -f png -render=4 -o out.png myscene.asy
+
+# Diagnostics:
+vulkaninfo 2>/dev/null | grep -m1 deviceName     # -> llvmpipe (LLVM ...)
+xvfb-run -a glxinfo | grep -E 'OpenGL renderer'  # -> llvmpipe
+```
+
+Verified working: the teapot above renders on `Device 0: llvmpipe` and writes a
+valid RGBA PNG.
+
+**Harmless `XDG_RUNTIME_DIR` warning.** On a Vulkan render you may see, once or
+twice on stderr:
+
+    error: XDG_RUNTIME_DIR not set in the environment.
+
+Despite the `error:` prefix this is **not** an asy error and **not** fatal — the
+render still succeeds and the PNG is written. The message comes from
+`libwayland`: Mesa's Vulkan WSI probes for a Wayland session during instance
+creation by calling `wl_display_connect()`, and libwayland prints this when
+`XDG_RUNTIME_DIR` is unset (any Vulkan program does it here — e.g. `vulkaninfo`
+prints the same). This container therefore sets `XDG_RUNTIME_DIR` (in
+[`devcontainer.json`](./devcontainer.json), with the directory created by
+[`post-create.sh`](./post-create.sh)), which silences it; the line above only
+appears if you unset that variable or run in an environment that lacks it (in
+which case `export XDG_RUNTIME_DIR=/tmp/runtime-vscode` makes it go away). It is
+safe to ignore.
+
+**Gotcha — Vulkan render hangs forever (the `device_select` layer).** Mesa ships
+an implicit Vulkan layer, `VK_LAYER_MESA_device_select`, that during
+`vkEnumeratePhysicalDevices()` connects to the X server named by `DISPLAY` (VS
+Code sets `DISPLAY=:0`) to learn which GPU drives the display so it can rank
+devices. This container has no working X server — only a stale
+`/tmp/.X11-unix/X0` socket with nothing behind it — so the layer's
+`xcb_wait_for_reply()` blocks in `poll()` and the render hangs indefinitely
+(intermittently, depending on the socket's state). A backtrace of the stuck
+process shows `xcb_wait_for_reply` → `libVkLayer_MESA_device_select.so` →
+`vkEnumeratePhysicalDevices` → `AsyVkRender::pickPhysicalDevice`.
+[`devcontainer.json`](./devcontainer.json) disables the layer with
+`VK_LOADER_LAYERS_DISABLE=VK_LAYER_MESA_device_select` (it has nothing to select
+anyway — `VK_ICD_FILENAMES` pins the single lavapipe device). If you hit this in
+an environment without that variable, `export
+VK_LOADER_LAYERS_DISABLE=VK_LAYER_MESA_device_select` (or `unset DISPLAY`) before
+rendering.
+
+**Gotcha — stale workspace renderer libs / current directory.** asy locates the
+renderer library through its search path, which is tried in order: the *current
+directory* first, then `-dir`, then the system dir. An autotools `make` in the
+workspace leaves `libasyvulkan.so` / `libasyopengl.so` in the repo root; built
+on the host they are usually incompatible with the container
+(`GLIBCXX_… not found`). Running the container's `asy` *from the workspace root*
+picks up those stale copies first and fails to render. Avoid this by running
+from another directory (as above), or remove the host-built
+`/workspaces/asymptote/libasy*.so`. The relocatable build installs its own
+`libasyvulkan.so` into `~/.local/asy-build/release/base/`, so `-dir <that base>`
+finds the correct one from any non-workspace directory.
+
+**PNG driver.** asy defaults to the Ghostscript `png16malpha` device, which
+Ubuntu 22.04's stock Ghostscript (9.55) does not provide (`Unknown device:
+png16malpha` → `shipout failed`). The `Dockerfile` builds a current Ghostscript
+from source and puts it ahead of the apt one on `PATH`, so the default driver
+works and no `-pngdriver` override is needed. (This newer `gs` is part of the
+doc toolchain, so it is present only when `INSTALL_DOC_DEPS=true`, the default;
+without it the image has no `gs` at all and PNG export is unavailable. If you
+ever do hit a `png16malpha` error, fall back with `-pngdriver pngalpha` or
+`settings.pngdriver="pngalpha";`.)
+
+**Note (Vulkan version).** asy requests Vulkan 1.4
+(`apiVersion=VK_API_VERSION_1_4` in `vkrender.cc`, VMA configured for 1.4) while
+Ubuntu 22.04's lavapipe advertises 1.3. In practice this works — the loader
+tolerates an application requesting a higher API version than the device — and
+rendering succeeds on lavapipe. If a future change makes asy hard-require 1.4
+device features, install modern Mesa from the `kisak-mesa` PPA (the Linux
+analogue of building Mesa from source as `doc/lavapipe.txt` does on macOS).
 
 ## Using this without VS Code
 

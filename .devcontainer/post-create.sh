@@ -32,6 +32,21 @@ if [ -n "$VCPKG_BASELINE" ] \
 fi
 
 # ---------------------------------------------------------------------------
+# Runtime dir for the (absent) Wayland session.
+#
+# devcontainer.json sets XDG_RUNTIME_DIR=/tmp/runtime-vscode to silence the
+# spurious "XDG_RUNTIME_DIR not set in the environment." that Mesa's Vulkan WSI
+# triggers via libwayland on every render. Create the directory it points at
+# with the mode 0700 the XDG spec mandates so it is a valid runtime dir for
+# anything that actually uses it. Skip if XDG_RUNTIME_DIR is unset (nothing to
+# create).
+# ---------------------------------------------------------------------------
+if [ -n "${XDG_RUNTIME_DIR:-}" ]; then
+    mkdir -p "$XDG_RUNTIME_DIR"
+    chmod 700 "$XDG_RUNTIME_DIR"
+fi
+
+# ---------------------------------------------------------------------------
 # Python developer virtualenv.
 #
 # Deliberately created OUTSIDE the bind-mounted workspace: the repo's own
@@ -48,8 +63,10 @@ fi
 "$VENV_DIR/bin/pip" install -r requirements-dev.txt
 
 # Auto-activate the venv in interactive bash shells (terminals opened in the
-# container). VS Code also activates it automatically for tasks/debugging via
-# python.terminal.activateEnvironment.
+# container). This is the sole activation path: the VS Code Python extension's
+# own terminal activation (python.terminal.activateEnvironment) is disabled in
+# devcontainer.json because it injects asynchronously and sends a Ctrl-C first,
+# which can interrupt a long-running command in the terminal.
 ACTIVATE_LINE="source \"$VENV_DIR/bin/activate\""
 if ! grep -qsF "$ACTIVATE_LINE" "$HOME/.bashrc"; then
     {
