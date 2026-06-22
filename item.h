@@ -48,7 +48,32 @@ inline Int valueFromBool(bool b) {
 
 extern const item Default;
 
-class item : public IAsyItem, public gc {
+class item : public gc, public IAsyItem {
+public:
+  ~item() override= default;
+  
+  item(item const& other)
+    : i(other.i)
+  {
+    // here, item is vfptr + data contents of item, so
+    // make sure they are the same
+    // sufficient to copy the number as i
+    static_assert(sizeof(void*)+sizeof(Int) == sizeof(item));
+  }
+  item& operator=(item const& other)
+  {
+    i= other.i;
+    return *this;
+  }
+  
+  item(item&& other) noexcept : i(other.i) { }
+  
+  item& operator=(item&& other) noexcept
+  {
+    i= std::exchange(other.i, 0);
+    return *this;
+  }
+  
 private:
 
 #if !COMPACT
