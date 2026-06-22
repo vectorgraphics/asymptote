@@ -414,22 +414,26 @@ asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy asy-list.py
 
 licensedir = $(DESTDIR)@licensedir@
 
-copy-licenses:
-	${INSTALL} -d doc/licenses
-	${INSTALL} -p -m 644 LICENSE doc/licenses/LICENSE
-	${INSTALL} -p -m 644 LICENSE.LESSER doc/licenses/LICENSE.LESSER
-	${INSTALL} -p -m 644 backports/span/LICENSE.txt doc/licenses/span-LICENSE.txt
-	${INSTALL} -p -m 644 backports/glew/LICENSE.txt doc/licenses/glew-LICENSE.txt
-	${INSTALL} -p -m 644 wyhash/UNLICENSE.txt doc/licenses/wyhash-UNLICENSE.txt
-	${INSTALL} -p -m 644 LspCpp/LICENSE doc/licenses/LspCpp-LICENSE.txt
+# Install all license files into directory $(1).
+define install-license-files
+	${INSTALL} -d $(1)
+	${INSTALL} -p -m 644 LICENSE $(1)/LICENSE
+	${INSTALL} -p -m 644 LICENSE.LESSER $(1)/LICENSE.LESSER
+	${INSTALL} -p -m 644 backports/span/LICENSE.txt $(1)/span-LICENSE.txt
+	${INSTALL} -p -m 644 backports/glew/LICENSE.txt $(1)/glew-LICENSE.txt
+	${INSTALL} -p -m 644 wyhash/UNLICENSE.txt $(1)/wyhash-UNLICENSE.txt
+	${INSTALL} -p -m 644 LspCpp/LICENSE $(1)/LspCpp-LICENSE.txt
 	${INSTALL} -p -m 644 libatomic_ops/LICENSE doc/licenses/libatomic_ops-LICENSE.txt
 	${INSTALL} -p -m 644 libatomic_ops/COPYING doc/licenses/libatomic_ops-COPYING.txt
-	${INSTALL} -p -m 644 tinyexr/LICENSE.txt doc/licenses/tinyexr-LICENSE.txt
-	${INSTALL} -p -m 644 gc/LICENSE.txt doc/licenses/gc-LICENSE.txt
+	${INSTALL} -p -m 644 tinyexr/LICENSE.txt $(1)/tinyexr-LICENSE.txt
+	${INSTALL} -p -m 644 gc/LICENSE.txt $(1)/gc-LICENSE.txt
+endef
 
-install-licenses: copy-licenses
-	${INSTALL} -d $(licensedir)
-	${INSTALL} -p -m 644 doc/licenses/* $(licensedir)
+copy-licenses:
+	$(call install-license-files,doc/licenses)
+
+install-licenses:
+	$(call install-license-files,$(licensedir))
 	${INSTALL} -p -m 644 LICENSES-THIRD-PARTY.md $(docdir)
 
 install-notexhash: asy-keywords.el install-asy install-licenses install-man
@@ -514,6 +518,8 @@ uninstall-asy:
 	-rmdir $(GUIdir)/res/icons
 	-rmdir $(GUIdir)/res
 	-rmdir $(GUIdir)
+	-cd $(shaderdir)/GL && rm -f *.glsl
+	-rmdir $(shaderdir)/GL
 	-cd $(shaderdir) && rm -f *.glsl
 	-rmdir $(shaderdir)
 	-cd $(webgldir) && rm -f *.html *.js
