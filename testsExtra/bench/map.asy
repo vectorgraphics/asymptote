@@ -1,3 +1,5 @@
+int maxOperations = (int)1e7;
+usersetting();  // to override maxOperations: asy -u 'maxOperations=50000' map.asy
 //from collections.repset(T=int) access RepSet_T as RepSet_int;
 //from collections.hashrepset(T=int) access HashRepSet_T as HashRepSet_int;
 //from collections.btreegeneral(T=int) access BTreeRepSet_T as BTreeRepSet_int;
@@ -52,7 +54,7 @@ names.push('BTreeMap');
 //names.push('BTreeMap (8 pivots max)');
 
 // Run a benchmark
-for (int operations = 5000; operations <= 1e7; operations *= 10) {
+for (int operations = 5000; operations <= maxOperations; operations *= 10) {
   for (var labeledMap : zip(sets, names)) {
     cputime time = benchmark(labeledMap.k, operations);
     write(labeledMap.v + ': user time for ' + (string)operations + ' operations: ', suffix=flush);
