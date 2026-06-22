@@ -96,6 +96,14 @@ public:
           bool isStraight
   ) override;
 
+  [[nodiscard]]
+  bool isGcSupported() const override;
+  bool getGcStackBase(void* stackBase) override;
+  [[nodiscard]]
+  size_t getGcStackBaseSize() const override;
+  bool registerThreadWithGc(void* stackBase) const override;
+  void unregisterThreadWithGc() const override;
+
 protected:
   template<typename TImpl, typename TInterface, typename... TCreationArgs>
   static TInterface* createNewItemGeneric(TCreationArgs&&... args)

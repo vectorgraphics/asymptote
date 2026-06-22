@@ -239,6 +239,51 @@ IAsySolvedKnot* AsyContextImpl::createSolvedKnot3D(
   return retSolvedKnot;
 }
 
+bool AsyContextImpl::isGcSupported() const
+{
+#if defined(USEGC) && defined(HAVE_PTHREAD)
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool AsyContextImpl::getGcStackBase(void* stackBase)
+{
+#if defined(USEGC) && defined(HAVE_PTHREAD)
+  auto* stackBaseCasted= static_cast<GC_stack_base*>(stackBase);
+  auto const result= GC_get_stack_base(stackBaseCasted);
+  return result == GC_SUCCESS;
+#else
+  return false;
+#endif
+}
+
+size_t AsyContextImpl::getGcStackBaseSize() const
+{
+#if defined(USEGC) && defined(HAVE_PTHREAD)
+  return sizeof(GC_stack_base);
+#else
+  return 0;
+#endif
+}
+bool AsyContextImpl::registerThreadWithGc(void* stackBase) const
+{
+#if defined(USEGC) && defined(HAVE_PTHREAD)
+  auto* stackBaseCasted= static_cast<GC_stack_base const*>(stackBase);
+  auto const ret = GC_register_my_thread(stackBaseCasted);
+  return ret == GC_SUCCESS || ret == GC_DUPLICATE;
+#else
+  return false;
+#endif
+}
+void AsyContextImpl::unregisterThreadWithGc() const
+{
+#if defined(USEGC) && defined(HAVE_PTHREAD)
+  GC_unregister_my_thread();
+#endif
+}
+
 AsyStackContextImpl::AsyStackContextImpl(vm::stack* inStack) : stack(inStack) {}
 void AsyStackContextImpl::callVoid(
         IAsyCallable* callable, size_t const numArgs, IAsyItem const** ptrArgs
