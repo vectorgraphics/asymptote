@@ -4528,8 +4528,8 @@ structure.  Trying to use a field of a null reference will cause an error.
 @cindex alias
 @cindex @code{==}
 @cindex @code{!=}
-The function @code{bool alias(T,T)} checks to see if two structure references
-refer to the same instance of the structure (or both to @code{null}).
+The function @code{bool alias(T,T)} checks to see if two nullable values of
+the same type refer to the same instance of that type (or both to @code{null}).
 In the example at the beginning of this section, @code{alias(foo,bar)}
 would return true, but @code{alias(foo,new T)} would return false, as @code{new
 T} creates a new instance of the structure @code{T}.  The boolean operators
@@ -5689,8 +5689,8 @@ This declares @code{a} to be @code{real} and implicitly declares @code{A} to
 be of type @code{real[]}.
 
 In the following list of built-in array functions, @code{T} represents a
-generic type. Note that the internal functions @code{alias}, @code{array},
-@code{copy}, @code{concat}, @code{sequence}, @code{map}, and
+generic type. Note that the internal functions @code{array}, @code{copy},
+@code{concat}, @code{sequence}, @code{map}, and
 @code{transpose}, which depend on type @code{T[]}, are defined only after the
 first declaration of a variable of type @code{T[]}.
 
@@ -6968,13 +6968,12 @@ This approach is necessary if we are redefining the @code{==}
 operator. Two @code{Person}s are equal if they have the same first name,
 last name, and age.
 
-The default @code{==} operator for user-defined structs considers two objects
-equal if they are the same object, meaning that changes to one will be reflected
-in the other. A hash method that plays well with the default @code{==}
-operator must remain the
-same even if the fields change. In this case, we can add a never-changing
-@code{id} field
-that uniquely identifies a @code{Person} object, and use that for hashing: 
+By contrast, the default @code{==} operator for structs considers two objects
+equal if they are the same object, meaning that changes to one will be
+reflected in the other. A hash method that plays well with this operator must
+remain the same even if the fields change. In this case, we can add a
+never-changing @code{id} field that uniquely identifies a @code{Person} object,
+and use that for hashing: 
 
 @verbatim
 struct Person {
