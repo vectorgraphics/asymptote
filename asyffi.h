@@ -336,6 +336,51 @@ public:
           IAsyTuple const* pre, IAsyTuple const* point, IAsyTuple const* post,
           bool isStraight
   )= 0;
+
+  // GC functions
+  /**
+   * Returns true if the garbage collector is supported in this build of
+   * Asymptote, false otherwise
+   */
+  [[nodiscard]]
+  virtual bool isGcSupported() const= 0;
+
+  /**
+   * Returns the size of gc stack base in bytes.
+   *
+   * @remark This is used to allocate
+   * memory for registering a new thread with Asymptote's garbage collector.
+   * Moreover, if GC is not supported, this function returns 0.
+   */
+  [[nodiscard]]
+  virtual size_t getGcStackBaseSize() const= 0;
+  
+  /** 
+   * Gets stack base for the thread that calls this function.
+   * 
+   * @param stackBase pointer to a memory block with size obtained from
+   * {@link getGcStackBaseSize} function call.
+   * @return true if successful, false otherwise
+   * @remark If one is creating a new thread, be sure to call this function
+   * from the same thread that is going to be used, and not from the main thread.
+   * If GC is not supported, this function's behavior is undefined.
+   */
+  virtual bool getGcStackBase(void* stackBase)= 0;
+  
+  /**
+   * Register the calling thread with the garbage collector. This will allow the calling thread
+   * to perform memory-related operations.
+   * @param stackBase pointer to an initialized stack base (after calling {@link getGcStackBase})
+   * @return true if successful or if the thread is already registered, false otherwise.
+   * @remark If GC is not supported, this function's behavior is undefined.
+   */
+  virtual bool registerThreadWithGc(void* stackBase) const= 0;
+
+  /**
+   * Unregister the calling thread from the garbage collector system.
+   * @remark If GC is not supported, this function's behavior is undefined.
+   */
+  virtual void unregisterThreadWithGc() const= 0;
 };
 
 // question: will we ever exceed 256 primitive types?
