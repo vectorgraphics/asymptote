@@ -63,16 +63,12 @@ endif()
 if (ENABLE_READLINE)
 # curses
     if (UNIX)
-        # we know ncurses work on unix systems, however
-        # not always supported on windows (esp. msvc)
-        set(CURSES_NEED_NCURSES TRUE)
+        # we are enforcing ncursesw as a requirement since vcpkg
+        # no longer packs ncurses without unicode
+        pkg_check_modules(ncursesw IMPORTED_TARGET ncursesw)
 
-        find_package(Curses)
-        if (Curses_FOUND)
-            list(APPEND ASYMPTOTE_INCLUDES ${CURSES_INCLUDE_DIRS})
-            list(APPEND ASY_COMPILE_OPTS ${CURSES_CFLAGS})
-            list(APPEND ASY_STATIC_LIBRARIES ${CURSES_LIBRARIES})
-
+        if (ncursesw_FOUND)
+            list(APPEND ASY_STATIC_LIBRARIES PkgConfig::ncursesw)
             list(APPEND ASY_MACROS HAVE_NCURSESW_CURSES_H HAVE_LIBCURSES)
         else()
             message(FATAL_ERROR "curses not found; will compile without curses")
