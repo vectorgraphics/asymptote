@@ -354,24 +354,26 @@ public:
    */
   [[nodiscard]]
   virtual size_t getGcStackBaseSize() const= 0;
-  
-  /** 
+
+  /**
    * Gets stack base for the thread that calls this function.
-   * 
+   *
    * @param stackBase pointer to a memory block with size obtained from
    * {@link getGcStackBaseSize} function call.
    * @return true if successful, false otherwise
    * @remark If one is creating a new thread, be sure to call this function
-   * from the same thread that is going to be used, and not from the main thread.
-   * If GC is not supported, this function's behavior is undefined.
+   * from the same thread that is going to be used, and not from the main
+   * thread. If GC is not supported, this function's behavior is undefined.
    */
   virtual bool getGcStackBase(void* stackBase)= 0;
-  
+
   /**
-   * Register the calling thread with the garbage collector. This will allow the calling thread
-   * to perform memory-related operations.
-   * @param stackBase pointer to an initialized stack base (after calling {@link getGcStackBase})
-   * @return true if successful or if the thread is already registered, false otherwise.
+   * Register the calling thread with the garbage collector. This will allow the
+   * calling thread to perform memory-related operations.
+   * @param stackBase pointer to an initialized stack base (after calling {@link
+   * getGcStackBase})
+   * @return true if successful or if the thread is already registered, false
+   * otherwise.
    * @remark If GC is not supported, this function's behavior is undefined.
    */
   virtual bool registerThreadWithGc(void* stackBase) const= 0;
@@ -833,8 +835,8 @@ public:
 
 /**
  * Function type for foreign function.
- * Function will pass (context, args, returnItem). If the function is
- * registered as void, returnItem will be set as nullptr
+ * Function will pass (context, stackContext, args, returnItem). If the function
+ * is registered as void, returnItem will be set as nullptr
  */
 typedef void (*LNK_CALL TAsyForeignFunction)(
         IAsyContext*, IAsyStackContext*, IAsyArgs*, IAsyItem*
