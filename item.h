@@ -12,6 +12,7 @@
 #include "asyffi.h"
 #include <cfloat>
 #include <cmath>
+#include <utility>
 
 #if COMPACT
 #include <cassert>
@@ -51,7 +52,7 @@ extern const item Default;
 class item : public gc, public IAsyItem {
 public:
   ~item() override= default;
-  
+
   item(item const& other)
     : i(other.i)
   {
@@ -65,15 +66,15 @@ public:
     i= other.i;
     return *this;
   }
-  
+
   item(item&& other) noexcept : i(other.i) { }
-  
+
   item& operator=(item&& other) noexcept
   {
     i= std::exchange(other.i, 0);
     return *this;
   }
-  
+
 private:
 
 #if !COMPACT
