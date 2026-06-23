@@ -25,7 +25,6 @@ DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 LSP_ROOT=@LSP_ROOT@
 
 CMAKE ?= cmake
-PERL ?= perl
 PYTHON ?= python3
 BISON ?= bison
 
