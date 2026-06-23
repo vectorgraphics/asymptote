@@ -916,3 +916,6 @@ typedef void (*LNK_CALL TAsyRegisterDynlibFn)(IAsyContext*, IAsyFfiRegisterer*);
  */
 #define STD_CONTAINER_SIZE_AND_DATA(container)                                 \
   container.size(), container.data()
+
+/** Shorthand for 0, nullptr */
+#define EMPTY_STD_CONTAINER_SIZE_AND_DATA 0, nullptr
