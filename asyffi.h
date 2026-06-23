@@ -640,7 +640,7 @@ struct FnArgMetadata;
 
 struct ArrayTypeMetadata {
   /** The type of the item that the array is storing. Cannot be ArrayType */
-  TypeInfo* typeOfItem;
+  TypeInfo const* typeOfItem;
 
   /** Dimensions of the array. Must be greater than zero. */
   size_t dimension;
