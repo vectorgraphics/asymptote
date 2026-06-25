@@ -836,7 +836,7 @@ by the example {functionshading.asy}.
 If you want to produce PostScript output, an approximate solution for now
 would be to superimpose a fine grid and specify colors to 
 \courier{latticeshade\} that depend on position as a single pen[][]
-lattice. Alternatively, it may be more efficient to use \courier{tensorshade}.
+lattice. Alternatively, it may be more efficient to use \courier{tensorshade\}.
 
 \question 27jun:nonexplicitfun Is there a way to draw a function that is not explicitly given, such as (y - 2)^2 = x - 1 ?
 
@@ -880,7 +880,7 @@ yaxis(LeftRight,RightTicks);
 
 The palette color space corresponds to a range of values specified by the
 argument range, which can be \courier{Full\}, \courier{Automatic\} or an
-explicit range \courier{Range(pair min, pair max)\}. Here \courier{Full}
+explicit range \courier{Range(pair min, pair max)\}. Here \courier{Full\}
 specifies a range varying from the minimum to maximum values of the
 function over the sampling interval, while \courier{Automatic\} selects
 "nice" limits.

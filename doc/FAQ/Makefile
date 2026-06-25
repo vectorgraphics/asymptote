@@ -1,14 +1,26 @@
-BFNNCONV = bfnnconv.pl m-ascii.pl m-html.pl m-info.pl m-lout.pl m-post.pl
+# Python interpreter; overridden by the calling Makefile/CMake via $(PYTHON).
+PYTHON ?= python3
 
-all: faq
+BFNNCONV = bfnnconv.py
 
+all: faq texi
+
+# Run twice: the first pass writes asy-faq.xrefdb, the second resolves the
+# cross references against it (\qref / \index).
 faq: $(BFNNCONV) asy-faq.bfnn
-	mkdir -p asy-faq.html
-	perl bfnnconv.pl asy-faq.bfnn
-	perl bfnnconv.pl asy-faq.bfnn
+	$(PYTHON) bfnnconv.py asy-faq.bfnn
+	$(PYTHON) bfnnconv.py asy-faq.bfnn
+
+texi: asy-faq.texi
+
+# The texi backend isn't part of the default ascii/info/html order, so select
+# it explicitly with -only.  Run twice for the same cross-reference reason.
+asy-faq.texi: $(BFNNCONV) asy-faq.bfnn
+	$(PYTHON) bfnnconv.py -only texi asy-faq.bfnn
+	$(PYTHON) bfnnconv.py -only texi asy-faq.bfnn
 
 clean: FORCE
-	-rm -f *~ core a.out *.lout *.ps *.ascii *.xrefdb *.post
+	-rm -f *~ core a.out *.lout *.ps *.ascii *.texi *.xrefdb *.post
 	-rm -rf *.html
 
 cleaner: FORCE clean

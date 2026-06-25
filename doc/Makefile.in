@@ -11,8 +11,9 @@ datarootdir = @datarootdir@
 INSTALL = @INSTALL@
 TEXI2DVI = @TEXI2DVI@
 PERL5LIB = ./
+PYTHON ?= python3
 
-export docdir infodir INSTALL PERL5LIB
+export docdir infodir INSTALL PERL5LIB PYTHON
 
 all:    doc
 

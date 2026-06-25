@@ -156,7 +156,7 @@ ifeq ($(revision),)
 	revision = @VERSION@
 endif
 
-export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
+export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI PYTHON
 
 asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ $(SHIMLIBS)
 	$(CXX) $(OPTS) -rdynamic -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
