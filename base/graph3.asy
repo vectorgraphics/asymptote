@@ -2131,10 +2131,9 @@ surface surface(picture pic=currentpicture, triple f(pair z),
   if(vsplinetype[0] == periodic && vsplinetype[1] == periodic &&
      vsplinetype[1] == periodic) s.vcyclic(true);
 
-  pair aParam=(u[0],v[0]);
-  pair bParam=(u[u.length-1],v[v.length-1]);
-  s.paramToSurface=xscale(nu/(bParam.x-aParam.x))*yscale(nv/(bParam.y-aParam.y))*
-    shift(-aParam);
+  // paramToSurface is left at the default (identity): u and v may be spaced
+  // non-uniformly, so the map from parametric to surface coordinates is not
+  // affine in general. Callers that lay out a uniform grid set it themselves.
 
   return s;
 }
@@ -2148,7 +2147,11 @@ surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
 {
   real[] x=uniform(pic.scale.x.T,pic.scale.x.Tinv,a.x,b.x,nu);
   real[] y=uniform(pic.scale.y.T,pic.scale.y.Tinv,a.y,b.y,nv);
-  return surface(pic,f,x,y,usplinetype,vsplinetype,cond);
+  surface s=surface(pic,f,x,y,usplinetype,vsplinetype,cond);
+  // The grid is uniform over box(a,b), so parametric coordinates map affinely
+  // to surface coordinates.
+  s.paramToSurface=xscale(nu/(b.x-a.x))*yscale(nv/(b.y-a.y))*shift(-a);
+  return s;
 }
 
 // return the surface described by a real function f over box(a,b),
