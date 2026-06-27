@@ -1693,8 +1693,7 @@ surface surface(picture pic=currentpicture, triple[][] f, bool[][] cond={})
               Scale(pic,fi[j+1])});
         indexi[j]=k;
         ++k;
-      } else
-        indexi[j]=-1;
+      }
     }
   }
 
@@ -1780,8 +1779,7 @@ surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
           copy=false);
         indexi[j]=k;
         ++k;
-      } else
-        indexi[j]=-1;
+      }
     }
   }
 
@@ -2098,16 +2096,14 @@ surface surface(picture pic=currentpicture, triple f(pair z),
       if (all || (activei[j] && activei[j+1] && activeip[j] && activeip[j+1])) {
         indexi[j]=k;
         ++k;
-      } else {
-        indexi[j]=-1;
       }
     }
   }
 
   for (int i=0; i < nu; ++i) {
     for (int j=0; j < nv; ++j) {
+      if (!s.index[i].initialized(j)) continue;
       int k=s.index[i][j];
-      if (k == -1) continue;
       triple[][] Q=new triple[4][];
       real[][] Px=sx[k];
       real[][] Py=sy[k];

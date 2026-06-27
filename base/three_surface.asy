@@ -796,7 +796,7 @@ private string nullsurface="null surface";
 struct surface {
   patch[] s;
   // Position of patch corresponding to major U,V parameter in s;
-  // -1 if there is no such patch.
+  // left uninitialized if there is no such patch.
   int index[][];
   bool vcyclic;
   transform3 T=identity4;
@@ -944,7 +944,7 @@ struct surface {
       if((iu < 0 || iu >= nU) && !index.cyclic) continue;
       for(int iv : Vs) {
         if((iv < 0 || iv >= nV) && !vcyclic) continue;
-        if(index[iu][iv] >= 0)
+        if(index[iu].initialized(iv))
           return new int[] {index[iu][iv],iu,iv};
       }
     }
@@ -962,8 +962,8 @@ struct surface {
     // fractional offset u-U, v-V) wraps out-of-range cells automatically.
     if(U == index.length && !index.cyclic) U=index.length-1;
     if(V == index[0].length && !vcyclic) V=index[0].length-1;
-    int i=index[U][V];
-    if(i >= 0) {
+    if(index[U].initialized(V)) {
+      int i=index[U][V];
       return s[i].point(u-U,v-V);
     } else {
       int[] p=locatePatch(u,v,U,V);
@@ -992,8 +992,8 @@ struct surface {
     // fractional offset u-U, v-V) wraps out-of-range cells automatically.
     if(U == index.length && !index.cyclic) U=index.length-1;
     if(V == index[0].length && !vcyclic) V=index[0].length-1;
-    int i=index[U][V];
-    if(i >= 0) {
+    if(index[U].initialized(V)) {
+      int i=index[U][V];
       return s[i].normal(u-U,v-V);
     } else {
       int[] p=locatePatch(u,v,U,V);
@@ -1969,8 +1969,8 @@ private void colorParam(surface S, paramPen parampen) {
   int nV=S.index[0].length;
   for(int U=0; U < nU; ++U) {
     for(int V=0; V < nV; ++V) {
+      if(!S.index[U].initialized(V)) continue;
       int i=S.index[U][V];
-      if(i < 0) continue;
       pen p00=parampen(surfaceToParam*(U,V),U,V);
       pen p10=parampen(surfaceToParam*(U+1,V),U,V);
       pen p11=parampen(surfaceToParam*(U+1,V+1),U,V);
