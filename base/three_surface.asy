@@ -800,11 +800,16 @@ struct surface {
   int index[][];
   bool vcyclic;
   transform3 T=identity4;
-  // Affine map from the parametric coordinates originally used to construct the
-  // patch to surface coordinates (the (u,v) domain of point()/normal(), which
-  // ranges over the box with corners (0,0) and (index.length,index[0].length)).
-  // Defaults to the identity, i.e. parametric coordinates coincide with surface
-  // coordinates.
+  // For a parametrically constructed surface, the affine map from the original
+  // parametrization coordinates to surface coordinates. Surface coordinates are
+  // scaled so that each patch is a unit square; the grid spans [0,U]x[0,V],
+  // where U=index.length and V=index[0].length. The construction corners a and
+  // b map to (0,0) and (U,V) respectively, so the map reflects an axis whenever
+  // a exceeds b along it. Lets surface operations work in either coordinate
+  // system. Defaults to the identity for non-parametric surfaces.
+  //
+  // WARNING: implementation detail; may be removed or have its type or
+  // semantics changed in a future release. Do not rely on it.
   transform paramToSurface=identity;
 
   primitive primitive=null;
