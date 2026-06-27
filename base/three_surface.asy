@@ -802,11 +802,11 @@ struct surface {
   transform3 T=identity4;
   // For a parametrically constructed surface, the affine map from the original
   // parametrization coordinates to surface coordinates. Surface coordinates are
-  // scaled so that each patch is a unit square; the grid spans [0,U]x[0,V],
-  // where U=index.length and V=index[0].length. The construction corners a and
-  // b map to (0,0) and (U,V) respectively, so the map reflects an axis whenever
-  // a exceeds b along it. Lets surface operations work in either coordinate
-  // system. Defaults to the identity for non-parametric surfaces.
+  // scaled so that each patch is a unit square; the grid spans [0,nu]x[0,nv],
+  // where nu=index.length and nv=index[0].length. The construction corners a
+  // and b map to (0,0) and (nu,nv) respectively, so the map reflects an axis
+  // whenever a exceeds b along it. Lets surface operations work in either
+  // coordinate system. Defaults to the identity for non-parametric surfaces.
   //
   // WARNING: implementation detail; may be removed or have its type or
   // semantics changed in a future release. Do not rely on it.
