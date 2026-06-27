@@ -65,7 +65,8 @@ struct patch {
   }
 
   pen[] map(pen f(triple, int, int), int i) {
-    return new pen[] {f(P[0][0],i,0),f(P[3][0],i,1),f(P[3][3],i,2),f(P[0][3],i,3)};
+    return new pen[] {f(P[0][0],i,0),f(P[3][0],i,1),
+                      f(P[3][3],i,2),f(P[0][3],i,3)};
   }
 
   real[] maptriangular(real f(triple)) {
@@ -772,7 +773,8 @@ struct primitive {
   }
 }
 
-// first integer: index of patch in surface.s; second integer: index of corner in patch
+// first integer: index of patch in surface.s;
+// second integer: index of corner in patch
 using spatialPen=pen(triple, int, int);
 
 spatialPen cornerPen(pen[][] p) {
@@ -928,8 +930,8 @@ struct surface {
   int[] locatePatch(real u, real v, int U, int V) {
     int nU=index.length;
     int nV=index[0].length;
-    // Candidate cells: (U,V) itself, plus a lower/upper neighbor along each axis
-    // when (u,v) lies exactly on the corresponding cell edge.
+    // Candidate cells: (U,V) itself, plus a lower/upper neighbor
+    // along each axis when (u,v) lies exactly on the corresponding cell edge.
     int[] Us={U};
     if(u == U) Us.push(U-1);
     if(u == U+1) Us.push(U+1);
@@ -956,8 +958,8 @@ struct surface {
       return s[U+V].point(u-U,v-V);
     // On a non-cyclic upper boundary u==index.length or v==index[0].length,
     // evaluate the boundary of the last patch instead of running off the grid.
-    // When cyclic, index is a cyclic array, so index[U][V] (and the fractional
-    // offset u-U, v-V) wraps this and any other out-of-range cell automatically.
+    // When cyclic, index is a cyclic array, so index[U][V] (and the
+    // fractional offset u-U, v-V) wraps out-of-range cells automatically.
     if(U == index.length && !index.cyclic) U=index.length-1;
     if(V == index[0].length && !vcyclic) V=index[0].length-1;
     int i=index[U][V];
@@ -966,7 +968,8 @@ struct surface {
     } else {
       int[] p=locatePatch(u,v,U,V);
       if(p.length == 0)
-        abort("no patch at surface coordinates ("+(string) u+","+(string) v+")");
+        abort("no patch at surface coordinates (" +
+              (string) u + "," + (string) v + ")");
       return s[p[0]].point(u-p[1],v-p[2]);
     }
   }
@@ -985,8 +988,8 @@ struct surface {
       return s[U+V].normal(u-U,v-V);
     // On a non-cyclic upper boundary u==index.length or v==index[0].length,
     // evaluate the boundary of the last patch instead of running off the grid.
-    // When cyclic, index is a cyclic array, so index[U][V] (and the fractional
-    // offset u-U, v-V) wraps this and any other out-of-range cell automatically.
+    // When cyclic, index is a cyclic array, so index[U][V] (and the
+    // fractional offset u-U, v-V) wraps out-of-range cells automatically.
     if(U == index.length && !index.cyclic) U=index.length-1;
     if(V == index[0].length && !vcyclic) V=index[0].length-1;
     int i=index[U][V];
@@ -995,7 +998,8 @@ struct surface {
     } else {
       int[] p=locatePatch(u,v,U,V);
       if(p.length == 0)
-        abort("no patch at surface coordinates ("+(string) u+","+(string) v+")");
+        abort("no patch at surface coordinates (" +
+              (string) u + "," + (string) v + ")");
       return s[p[0]].normal(u-p[1],v-p[2]);
     }
   }
@@ -1982,7 +1986,8 @@ private void colorParam(surface S, paramPen parampen) {
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
-          material[] surfacepen, pen[] meshpen=nullpens, pen spatialpen(triple, int, int)=null,
+          material[] surfacepen, pen[] meshpen=nullpens,
+          pen spatialpen(triple, int, int)=null,
           pen parampen(pair, int, int)=null,
           light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
@@ -2060,7 +2065,8 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
     surfacepen.cyclic=true;
     pen[] meshpen={meshpen};
     meshpen.cyclic=true;
-    draw(pic,s,nu,nv,surfacepen,meshpen,spatialpen,parampen,light,meshlight,name,
+    draw(pic,s,nu,nv,surfacepen,meshpen,
+         spatialpen,parampen,light,meshlight,name,
          render);
   }
 }

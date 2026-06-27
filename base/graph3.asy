@@ -2029,8 +2029,8 @@ surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
     }
   }
   surface s=surface(pic,v,active);
-  s.paramToSurface=xscale(nu/(bParam.x-aParam.x))*yscale(nv/(bParam.y-aParam.y))*
-    shift(-aParam);
+  s.paramToSurface=xscale(nu/(bParam.x-aParam.x))*
+    yscale(nv/(bParam.y-aParam.y))*shift(-aParam);
   return s;
 }
 
