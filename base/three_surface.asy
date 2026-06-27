@@ -927,7 +927,7 @@ struct surface {
   // neighboring non-missing patch, that neighbor is used instead (a point on a
   // shared boundary belongs to either patch). Returns {patch index, cell u,
   // cell v}, or an empty array if no non-missing patch contains (u,v).
-  int[] locatePatch(real u, real v, int U, int V) {
+  private int[] locatePatch(real u, real v, int U, int V) {
     int nU=index.length;
     int nV=index[0].length;
     // Candidate cells: (U,V) itself, plus a lower/upper neighbor
