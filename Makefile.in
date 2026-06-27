@@ -307,7 +307,7 @@ doc/version.texi: version.txt
 asymptote.so: $(COREFILES:=.pic.o) glew.o
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
-$(LSP_ROOT)/liblspcpp.a:
+$(LSP_ROOT)/build/liblspcpp.a:
 	$(CMAKE) -B$(LSP_ROOT)/build -S$(LSP_ROOT) -DCMAKE_CXX_FLAGS=\
 	"-fPIE @OPTIONS@ @LSP_CXX_BUILD_FLAGS@" \
 	@LSP_CMAKE_OPTIONS@
