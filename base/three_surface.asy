@@ -1018,6 +1018,11 @@ struct surface {
     return s[q.index].normal(q.u,q.v);
   }
 
+  triple paramNormal(real u, real v) {
+    pair sc=paramToSurface*(u,v);
+    return normal(sc.x,sc.y);
+  }
+
   void ucyclic(bool f)
   {
     index.cyclic=f;
