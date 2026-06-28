@@ -968,27 +968,42 @@ struct surface {
     return null;
   }
 
-  triple point(real u, real v) {
+  // A patch in s[] together with the local coordinates at which to evaluate it.
+  private static struct patchAt {
+    int index;  // index into s
+    real u, v;  // local coordinates within s[index]
+    void operator init(int index, real u, real v) {
+      this.index=index;
+      this.u=u;
+      this.v=v;
+    }
+  }
+
+  // Resolve surface coordinates (u,v) to the patch covering them and the
+  // local coordinates at which that patch should be evaluated.
+  private patchAt locate(real u, real v) {
     int U=floor(u);
     int V=floor(v);
     if(index.length == 0)
-      return s[U+V].point(u-U,v-V);
+      return patchAt(U+V,u-U,v-V);
     // On a non-cyclic upper boundary u==index.length or v==index[0].length,
     // evaluate the boundary of the last patch instead of running off the grid.
     // When cyclic, index is a cyclic array, so index[U][V] (and the
     // fractional offset u-U, v-V) wraps out-of-range cells automatically.
     if(U == index.length && !index.cyclic) U=index.length-1;
     if(V == index[0].length && !vcyclic) V=index[0].length-1;
-    if(index[U].initialized(V)) {
-      int i=index[U][V];
-      return s[i].point(u-U,v-V);
-    } else {
-      intPair p=locatePatch(u,v,U,V);
-      if(p == null)
-        abort("no patch at surface coordinates (" +
-              (string) u + "," + (string) v + ")");
-      return s[p.index()].point(u-p.U,v-p.V);
-    }
+    if(index[U].initialized(V))
+      return patchAt(index[U][V],u-U,v-V);
+    intPair p=locatePatch(u,v,U,V);
+    if(p == null)
+      abort("no patch at surface coordinates (" +
+            (string) u + "," + (string) v + ")");
+    return patchAt(p.index(),u-p.U,v-p.V);
+  }
+
+  triple point(real u, real v) {
+    patchAt q=locate(u,v);
+    return s[q.index].point(q.u,q.v);
   }
 
   // Evaluate the surface at the parametrization coordinates (u,v), mapped to
@@ -999,26 +1014,8 @@ struct surface {
   }
 
   triple normal(real u, real v) {
-    int U=floor(u);
-    int V=floor(v);
-    if(index.length == 0)
-      return s[U+V].normal(u-U,v-V);
-    // On a non-cyclic upper boundary u==index.length or v==index[0].length,
-    // evaluate the boundary of the last patch instead of running off the grid.
-    // When cyclic, index is a cyclic array, so index[U][V] (and the
-    // fractional offset u-U, v-V) wraps out-of-range cells automatically.
-    if(U == index.length && !index.cyclic) U=index.length-1;
-    if(V == index[0].length && !vcyclic) V=index[0].length-1;
-    if(index[U].initialized(V)) {
-      int i=index[U][V];
-      return s[i].normal(u-U,v-V);
-    } else {
-      intPair p=locatePatch(u,v,U,V);
-      if(p == null)
-        abort("no patch at surface coordinates (" +
-              (string) u + "," + (string) v + ")");
-      return s[p.index()].normal(u-p.U,v-p.V);
-    }
+    patchAt q=locate(u,v);
+    return s[q.index].normal(q.u,q.v);
   }
 
   void ucyclic(bool f)
