@@ -40,11 +40,32 @@ bool allowRender=false;
 struct historyState {
   bool store;
   HISTORY_STATE state;
+  historyState() : store(false), state() {}
 };
 
 typedef mem::map<const string, historyState> historyMap_t;
 historyMap_t historyMap;
 static HISTORY_STATE history_save;
+
+// Deep-copy entries so each saved state owns independent memory.
+// This prevents use-after-free when readline frees the previous
+// entries array during history_set_history_state.
+static void deep_copy_entries(HISTORY_STATE *dest)
+{
+  if(dest->length == 0 || !dest->entries) { dest->entries = NULL; return; }
+  HIST_ENTRY **ne = new HIST_ENTRY *[dest->length];
+  for(int i = 0; i < dest->length; ++i) {
+    HIST_ENTRY *e = dest->entries[i];
+    if(e) {
+      HIST_ENTRY *n = new HIST_ENTRY;
+      n->line = e->line ? strdup(e->line) : NULL;
+      n->data = e->data;
+      ne[i] = n;
+    } else
+      ne[i] = NULL;
+  }
+  dest->entries = ne;
+}
 
 // Store a deep copy of the current readline history in dest.
 void store_history(HISTORY_STATE *dest)
@@ -52,9 +73,33 @@ void store_history(HISTORY_STATE *dest)
   HISTORY_STATE *src=history_get_history_state();
   if(src) {
     *dest=*src;
-    for(Int i=0; i < src->length; ++i)
-      dest->entries[i]=src->entries[i];
+    deep_copy_entries(dest);
     free(src);
+  }
+}
+
+// Set the global history to use entries from a saved state,
+// without calling history_set_history_state (which would free
+// our GC-allocated entries with readline's own free).
+static void set_history(const HISTORY_STATE &state)
+{
+  clear_history();
+  for(int i = 0; i < state.length; ++i) {
+    HIST_ENTRY *e = state.entries[i];
+    if(e && e->line) add_history(e->line);
+  }
+}
+
+// Write the last nlines entries of a saved history state to filename.
+static void write_history_from_state(const HISTORY_STATE &state,
+                                     const string &filename, int nlines)
+{
+  if(state.entries == NULL || state.length == 0) return;
+  int start = Max(0, (int)state.length - nlines);
+  std::ofstream fout(filename.c_str(), std::ios::trunc);
+  for(int i = start; i < (int)state.length; ++i) {
+    if(state.entries[i] && state.entries[i]->line)
+      fout << state.entries[i]->line << "\n";
   }
 }
 
@@ -95,14 +140,10 @@ void cleanup()
   int nlines=intcast(getSetting<Int>("historylines"));
   for(historyMap_t::iterator h=historyMap.begin(); h != historyMap.end();
       ++h) {
-    history_set_history_state(&h->second.state);
-    if(h->second.store) {
-      stifle_history(nlines);
-      write_history(historyfilename(h->first).c_str());
-      unstifle_history();
-    }
+    if(h->second.store)
+      write_history_from_state(h->second.state,
+                               historyfilename(h->first), nlines);
   }
-  history_set_history_state(&history_save);
 #endif
 #ifdef HAVE_LIBGSL
   trans::GSLrngFree();
@@ -129,7 +170,7 @@ stringarray* history(string name, Int n=1)
 
   store_history(&history_save);
   HISTORY_STATE& history=historyMap[name].state;
-  history_set_history_state(&history);
+  set_history(history);
 
   if(newhistory)
     read_history(filename.c_str());
@@ -137,7 +178,7 @@ stringarray* history(string name, Int n=1)
   array *a=get_history(n);
 
   store_history(&history);
-  history_set_history_state(&history_save);
+  set_history(history_save);
 
   return a;
 #else
@@ -175,7 +216,7 @@ string readline(string prompt=emptystring, string name=emptystring,
   bool newhistory=historyMap.find(name) == historyMap.end();
   historyState& h=historyMap[name];
   HISTORY_STATE& history=h.state;
-  history_set_history_state(&history);
+  set_history(history);
 
   if(newhistory)
     read_history(historyfilename(name).c_str());
@@ -196,7 +237,7 @@ string readline(string prompt=emptystring, string name=emptystring,
 
   if(!line) cout << endl;
 
-  history_set_history_state(&history_save);
+  set_history(history_save);
 
   return line ? string(line) : emptystring;
 #else
@@ -218,7 +259,7 @@ void saveline(string name, string value, bool store=true)
   historyState& h=historyMap[name];
   h.store=store;
   HISTORY_STATE& history=h.state;
-  history_set_history_state(&history);
+  set_history(history);
 
   if(newhistory)
     read_history(historyfilename(name).c_str());
@@ -232,7 +273,7 @@ void saveline(string name, string value, bool store=true)
   }
 
   store_history(&history);
-  history_set_history_state(&history_save);
+  set_history(history_save);
 #else
   unused(&store);
 #endif
