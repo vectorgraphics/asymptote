@@ -383,6 +383,18 @@ public:
    * @remark If GC is not supported, this function's behavior is undefined.
    */
   virtual void unregisterThreadWithGc() const= 0;
+  
+  // frame functions
+  
+  [[nodiscard]]
+  /**
+   * Whether the Asymptote build is of simple frame variant.
+   * 
+   * In a simple frame build, records are passed as an {@link IAsyItem} pointing to an
+   * array of variables, whereas in a non-simple frame build (which is the case for
+   * a standard Asymptote build), records are passed as {@link IAsyVarFrame}
+   */
+  virtual bool isSimpleFrameBuild() const= 0;
 };
 
 // question: will we ever exceed 256 primitive types?

@@ -283,6 +283,14 @@ void AsyContextImpl::unregisterThreadWithGc() const
   GC_unregister_my_thread();
 #endif
 }
+bool AsyContextImpl::isSimpleFrameBuild() const
+{
+#ifdef SIMPLE_FRAME
+  return true;
+#else
+  return false;
+#endif
+}
 
 AsyStackContextImpl::AsyStackContextImpl(vm::stack* inStack) : stack(inStack) {}
 void AsyStackContextImpl::callVoid(

@@ -104,6 +104,9 @@ public:
   bool registerThreadWithGc(void* stackBase) const override;
   void unregisterThreadWithGc() const override;
 
+  [[nodiscard]]
+  bool isSimpleFrameBuild() const override;
+
 protected:
   template<typename TImpl, typename TInterface, typename... TCreationArgs>
   static TInterface* createNewItemGeneric(TCreationArgs&&... args)
