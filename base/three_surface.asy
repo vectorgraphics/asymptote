@@ -935,7 +935,7 @@ struct surface {
   private int[] locatePatch(real u, real v, int U, int V) {
     int nU=index.length;
     int nV=index[0].length;
-    // Candidate cells: (U,V) itself, plus a lower/upper neighbor
+    // Candidate cells: (U,V) itself, plus a lower or upper neighbor
     // along each axis when (u,v) lies exactly on the corresponding cell edge.
     int[] Us={U};
     if(u == U) Us.push(U-1);
@@ -944,7 +944,7 @@ struct surface {
     if(v == V) Vs.push(V-1);
     if(v == V+1) Vs.push(V+1);
     // A cyclic axis has no out-of-range cells: index wraps, and returning the
-    // wrapped cell base (iu/iv) keeps the fractional offset u-iu, v-iv correct.
+    // wrapped cell base (iu,iv) keeps the fractional offset u-iu, v-iv correct.
     for(int iu : Us) {
       if((iu < 0 || iu >= nU) && !index.cyclic) continue;
       for(int iv : Vs) {
