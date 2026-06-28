@@ -73,6 +73,41 @@ VCPKG_ROOT entry, or by PowerShell,
 
 Otherwise, you can also set VCPKG_ROOT for everyone on your machine.
 
+### Troubleshooting: vcpkg baseline / version errors during configure
+
+If `cmake --preset ...` fails during "Running vcpkg install", it usually means your
+local vcpkg checkout is older than the `builtin-baseline` commit pinned in `vcpkg.json`.
+This shows up in one of two forms:
+
+```
+error: while checking out baseline from commit '<hash>', failed to `git show` versions/baseline.json.
+This may be fixed by fetching commits with `git fetch`.
+fatal: path 'versions/baseline.json' exists on disk, but not in '<hash>'
+```
+
+(the baseline commit itself is missing locally), or
+
+```
+error: no version database entry for <port> at <version>.
+note: updating vcpkg by rerunning bootstrap-vcpkg may resolve this failure.
+```
+
+(the commit is present but vcpkg's on-disk version database is older than the version the
+baseline requires).
+
+Both are fixed by updating your vcpkg clone to a commit at or newer than the baseline,
+then re-bootstrapping. Use the **explicit path** to your clone, not `$env:VCPKG_ROOT`
+(see the note under "Environment set up" — inside the VS Developer PowerShell that variable
+points at Visual Studio's bundled vcpkg, which is not a git repository):
+
+```powershell
+git -C C:\path\to\your\vcpkg pull
+& "C:\path\to\your\vcpkg\bootstrap-vcpkg.bat"
+```
+
+Then re-run the `cmake --preset ...` command. This can recur whenever the pinned
+baseline is bumped to a commit newer than your last pull.
+
 ## Using CMake
 
 ### Installing GCC-compatible C++ compiler
@@ -113,6 +148,15 @@ $vsInfo = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
 ```
 
 This prompt should put you in to 64-bit Visual Studio Developer PowerShell.
+
+> **Note on `VCPKG_ROOT` inside the VS Developer PowerShell.**
+> The Visual Studio Developer PowerShell sets `VCPKG_ROOT` to Visual Studio's own
+> bundled vcpkg (e.g. `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\vcpkg`),
+> overriding any user- or machine-scope `VCPKG_ROOT` for the duration of that shell.
+> That bundled copy is a stripped-down snapshot with no `.git` and no `bootstrap-vcpkg.bat`,
+> so commands like `git -C $env:VCPKG_ROOT pull` or `& "$env:VCPKG_ROOT\bootstrap-vcpkg.bat"`
+> will fail there. When maintaining your own vcpkg clone (fetch, pull, bootstrap),
+> use its explicit path rather than `$env:VCPKG_ROOT`.
 
 #### Configuring build files
 

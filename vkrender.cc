@@ -861,10 +861,15 @@ void AsyVkRender::pickPhysicalDevice()
 {
   bool remote=false;
 
+#ifndef _WIN32
+  // DISPLAY-based remote-session detection is an X11 concept; on native
+  // Windows it is meaningless (and a stray DISPLAY value would spuriously
+  // force software rendering), so skip it there.
   if(View) {
     char *display=getenv("DISPLAY");
     remote=display ? string(display).find(":") != 0 : false;
   }
+#endif
 
   Int device=getSetting<Int>("device");
 
