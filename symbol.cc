@@ -107,6 +107,27 @@ uint hash(const char *s, size_t len)
     return h;
   h += D*s[4];
   return h+len;
+  
+  /**
+   * For developers, here is an equivalent code in python in case a manual hash computation is needed
+   * for debugging
+
+def hash(s: str) -> int:
+  h = ord(s[0])
+  if len(s) == 2:
+    return h
+  h += 25191 * ord(s[1])
+  if len(s) == 3:
+    return h;
+  h += 16342 * ord(s[2])
+  if len(s) == 4:
+    return h;
+  h += 1746 * ord(s[3])
+  if len(s) == 5:
+    return h;
+  return h + (18326 * ord(s[4])) + len(s)
+
+   */
 }
 
 /* Under normal circumstances, the initial table should be large enough for
