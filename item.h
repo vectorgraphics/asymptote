@@ -290,7 +290,7 @@ private:
 // In the simple implementation, a frame is just an array of items.
 typedef item vmFrame;
 #else
-class vmFrame : public gc {
+class vmFrame : public gc, public IAsyVarFrame {
 #ifdef DEBUG_FRAME
   string name;
   size_t parentIndex;
@@ -320,14 +320,34 @@ public:
   item operator[] (size_t n) const
   { return vars[n]; }
 
-  size_t size()
+  size_t size() const
   { return vars.size(); }
 
+  IAsyItem* getItem(const size_t& index) override
+  {
+    auto* ptr= vars.data() + index;
+    return ptr;
+  }
+    
+  [[nodiscard]]
+  IAsyItem const* getItemConst(size_t const& index) const override
+  {
+    auto const* ptr = vars.data() + index;
+    return ptr;
+  }
+  
+  [[nodiscard]]
+  size_t getSize() const override
+  {
+    return vars.size();
+  }
+  
   // Extends vars to ensure it has a place for any variable indexed up to n.
-  void extend(size_t n) {
+  void extend(size_t const& n) final {
     if(vars.size() < n)
       vars.resize(n);
   }
+  
 };
 #endif
 

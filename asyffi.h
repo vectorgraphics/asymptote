@@ -827,7 +827,7 @@ public:
    */
   [[nodiscard]]
   virtual double getIndexedValue(size_t const& index) const= 0;
-
+  
   /**
    * Set value.
    * @param index In the case of a pair or triple,
@@ -898,6 +898,46 @@ public:
           char const* name, TAsyForeignFunction fn,
           Asy::FunctionTypeMetadata const& fnTypeInfo
   )= 0;
+};
+
+/**
+ * Interface for Asymptote variable frames, which are how
+ * Asymptote internally stores its structs. Variables are accessible as
+ * an array where each element is the struct's variables (or functions).
+ * This virtual array stores the variables in the order they are defined in the
+ * original struct.
+ * 
+ * @remark For plugin developers & Asymptote users, be careful that the changing
+ * the order of variables in the struct changes their order here. This can break
+ * compatibility of external code.
+ */
+class IAsyVarFrame
+{
+public:
+  virtual ~IAsyVarFrame()= default;
+  
+  /**
+   * Gets an item from the array. This value of this item is modifiable (e.g.
+   * if the item contains a pointer, one may change the pointer's value).
+   *    
+   * @remark For setting items, use this function to get the item and change
+   * the item's values.
+   */
+  virtual IAsyItem* getItem(size_t const& index)= 0;
+  
+  /** Gets an item from the array. The item here is not modifiable. */
+  [[nodiscard]]
+  virtual IAsyItem const* getItemConst(size_t const& index) const= 0;
+  
+  /** Gets size of the variable frame (i.e. the number of elements in a struct) */
+  [[nodiscard]]
+  virtual size_t getSize() const= 0;
+  
+  /**
+   * Extends the variable frame to fit n elements. This function is inert
+   * if the variable frame already holds more n elements or more.
+   */
+  virtual void extend(size_t const& n)= 0;
 };
 
 typedef void (*LNK_CALL TAsyRegisterDynlibFn)(IAsyContext*, IAsyFfiRegisterer*);
