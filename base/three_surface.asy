@@ -927,12 +927,24 @@ struct surface {
     return sequence(new triple(int i) {return s[i].cornermean();},s.length);
   }
 
+  private struct intPair {
+    int U, V;
+    void operator init(int U, int V) {
+      this.U=U;
+      this.V=V;
+    }
+    int index() {
+      return index[U][V];
+    }
+  }
+
   // Locate the patch covering surface coordinates (u,v), preferring cell (U,V).
   // If (U,V) has no patch but (u,v) lies on a cell boundary shared with a
   // neighboring non-missing patch, that neighbor is used instead (a point on a
-  // shared boundary belongs to either patch). Returns {patch index, cell u,
-  // cell v}, or an empty array if no non-missing patch contains (u,v).
-  private int[] locatePatch(real u, real v, int U, int V) {
+  // shared boundary belongs to either patch). Returns the cell (iu,iv) of the
+  // covering patch, or null if no non-missing patch contains (u,v). The patch
+  // index is the returned intPair's index().
+  private intPair locatePatch(real u, real v, int U, int V) {
     int nU=index.length;
     int nV=index[0].length;
     // Candidate cells: (U,V) itself, plus a lower or upper neighbor
@@ -950,10 +962,10 @@ struct surface {
       for(int iv : Vs) {
         if((iv < 0 || iv >= nV) && !vcyclic) continue;
         if(index[iu].initialized(iv))
-          return new int[] {index[iu][iv],iu,iv};
+          return intPair(iu,iv);
       }
     }
-    return new int[] {};
+    return null;
   }
 
   triple point(real u, real v) {
@@ -971,11 +983,11 @@ struct surface {
       int i=index[U][V];
       return s[i].point(u-U,v-V);
     } else {
-      int[] p=locatePatch(u,v,U,V);
-      if(p.length == 0)
+      intPair p=locatePatch(u,v,U,V);
+      if(p == null)
         abort("no patch at surface coordinates (" +
               (string) u + "," + (string) v + ")");
-      return s[p[0]].point(u-p[1],v-p[2]);
+      return s[p.index()].point(u-p.U,v-p.V);
     }
   }
 
@@ -1001,11 +1013,11 @@ struct surface {
       int i=index[U][V];
       return s[i].normal(u-U,v-V);
     } else {
-      int[] p=locatePatch(u,v,U,V);
-      if(p.length == 0)
+      intPair p=locatePatch(u,v,U,V);
+      if(p == null)
         abort("no patch at surface coordinates (" +
               (string) u + "," + (string) v + ")");
-      return s[p[0]].normal(u-p[1],v-p[2]);
+      return s[p.index()].normal(u-p.U,v-p.V);
     }
   }
 
