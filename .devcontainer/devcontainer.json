@@ -41,7 +41,44 @@
     // This also relocates the top-level config file to
     // $CLAUDE_CONFIG_DIR/.claude.json (instead of ~/.claude.json), so the
     // login/auth lands *inside* the volume and survives rebuilds too.
-    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
+
+    // CPU-based ("software") rendering for the Vulkan/OpenGL renderers, so they
+    // can rasterize images on a machine with no GPU. The drivers themselves are
+    // installed in the Dockerfile (mesa-vulkan-drivers = lavapipe for Vulkan,
+    // libgl1-mesa-dri = llvmpipe for OpenGL).
+    //
+    // OpenGL: force Mesa to use the llvmpipe software rasterizer instead of
+    // probing for (absent) hardware. Note that asy's OpenGL renderer still
+    // needs an X display -- run it under `xvfb-run -a` (xvfb is installed).
+    "LIBGL_ALWAYS_SOFTWARE": "true",
+    "GALLIUM_DRIVER": "llvmpipe",
+    // Vulkan: pin the loader to lavapipe's ICD so device selection is
+    // deterministic (mesa-vulkan-drivers also installs the radv/anv ICDs, which
+    // enumerate zero devices here). Vulkan export needs no display.
+    "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/lvp_icd.x86_64.json",
+    // There is no Wayland session in this container, but Mesa's Vulkan WSI (and
+    // the VK_LAYER_MESA_device_select layer) still probe for one during instance
+    // creation by calling wl_display_connect(). With XDG_RUNTIME_DIR unset,
+    // libwayland prints a spurious, scary-looking
+    //   error: XDG_RUNTIME_DIR not set in the environment.
+    // to stderr on every Vulkan render (it is harmless -- offscreen export does
+    // not need a display and succeeds anyway). Pointing XDG_RUNTIME_DIR at a
+    // directory silences it; post-create.sh creates this one with mode 0700 so
+    // it is also a valid runtime dir for anything that genuinely uses it.
+    "XDG_RUNTIME_DIR": "/tmp/runtime-vscode",
+    // Disable Mesa's implicit "device select" Vulkan layer. During
+    // vkEnumeratePhysicalDevices() it connects to the X server named by DISPLAY
+    // (set to :0 here, e.g. by VS Code) to find which GPU drives the display so
+    // it can rank devices. This container has no working X server -- only a
+    // stale /tmp/.X11-unix/X0 socket with nothing behind it -- so the layer's
+    // xcb_wait_for_reply() blocks forever in poll() and a Vulkan render hangs
+    // (intermittently, depending on the socket's state). With VK_ICD_FILENAMES
+    // pinned to the single lavapipe device above there is nothing to select, so
+    // the layer is pure liability; the Vulkan loader honours this filter and
+    // force-disables it. (We leave DISPLAY alone so X forwarding still works for
+    // anyone who does have a host X server / GUI apps.)
+    "VK_LOADER_LAYERS_DISABLE": "VK_LAYER_MESA_device_select"
   },
 
   // Set the TZ environment variable whenever connecting to the container.
@@ -73,9 +110,12 @@
         "cmake.useCMakePresets": "always",
         // Use the container-owned virtualenv built by post-create.sh (kept out
         // of the bind-mounted workspace so it never clashes with the host's
-        // ./venv). VS Code activates it automatically in integrated terminals.
+        // ./venv). The venv is activated synchronously by ~/.bashrc (see
+        // post-create.sh), so the extension's own activation is disabled: it
+        // injects asynchronously and prefixes a Ctrl-C to clear the line, which
+        // can interrupt a long-running command (e.g. a build) in the terminal.
         "python.defaultInterpreterPath": "/home/vscode/.venv/asymptote/bin/python",
-        "python.terminal.activateEnvironment": true
+        "python.terminal.activateEnvironment": false
       }
     }
   },
