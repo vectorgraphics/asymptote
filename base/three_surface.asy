@@ -1962,8 +1962,16 @@ void drawTessellation(picture pic=currentpicture, surface s,
                       light light=currentlight, light meshlight=nolight,
                       string name="", render render=defaultrender)
 {
-  pic.add(new void(frame f, transform3 t, picture, projection) {
-      drawTessellation(f,t*s,surfacepen,meshpen,light,meshlight,name,render);
+  pic.add(new void(frame f, transform3 t, picture pic, projection P) {
+      surface S=t*s;
+      drawTessellation(f,S,surfacepen,meshpen,light,meshlight,name,render);
+      if(pic != null) {
+        // Register the projected extent so the tessellated surface contributes
+        // to the 2D sizing of the picture; without this a picture containing
+        // only tessellated surfaces has unbounded x/y scaling.
+        pic.addPoint(min(S,P));
+        pic.addPoint(max(S,P));
+      }
     },true);
 
   pic.addPoint(min(s));
