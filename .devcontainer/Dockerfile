@@ -87,6 +87,33 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
         libglfw3-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# CPU-based ("software") rendering, so the Vulkan/OpenGL renderers can produce
+# rasterized images (PNG, etc.) in a container with no GPU and no real display.
+#
+#   - mesa-vulkan-drivers: ships lavapipe, Mesa's software Vulkan driver
+#     (libvulkan_lvp.so) plus its ICD manifest
+#     /usr/share/vulkan/icd.d/lvp_icd.x86_64.json. The Vulkan loader (installed
+#     above with the LunarG SDK) picks it up; containerEnv pins VK_ICD_FILENAMES
+#     to it so device selection is deterministic. NOTE: Ubuntu 22.04's lavapipe
+#     advertises Vulkan 1.3, while asy's renderer requests 1.4 (vkrender.cc);
+#     the Vulkan export path may therefore need asy's required version relaxed.
+#   - libgl1-mesa-dri: Mesa's DRI modules, including swrast/llvmpipe -- the
+#     software OpenGL rasterizer. Already pulled in transitively by the base
+#     image, but named explicitly so it cannot silently drop out. Forced on via
+#     LIBGL_ALWAYS_SOFTWARE / GALLIUM_DRIVER in devcontainer.json.
+#   - xvfb: a virtual (headless) X server. asy's OpenGL renderer always creates
+#     a GLFW window, which needs an X display even when hidden, so headless GL
+#     export is run as `xvfb-run -a asy ...`. (Vulkan export renders to
+#     offscreen buffers and needs no display.)
+#   - mesa-utils: glxinfo / eglinfo, for diagnosing which GL renderer is active.
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get install -y --no-install-recommends \
+        mesa-vulkan-drivers \
+        libgl1-mesa-dri \
+        xvfb \
+        mesa-utils \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 # Mark the pre-installed vcpkg clone as a safe git directory. The base image's
 # vcpkg lives at /usr/local/vcpkg owned by root:vcpkg; the build runs as the
 # `vscode` user (a member of the vcpkg group, so it can write), but git refuses
@@ -125,4 +152,41 @@ RUN if [ "${INSTALL_DOC_DEPS}" = "true" ]; then \
             ghostscript \
             dvisvgm \
         && apt-get clean && rm -rf /var/lib/apt/lists/*; \
+    fi
+
+# Newer Ghostscript built from source, shadowing the stock apt one on PATH.
+#
+# asy defaults its PNG output to Ghostscript's `png16malpha` device
+# (settings.pngdriver), but Ubuntu 22.04 ships Ghostscript 9.55, which predates
+# that device -- so PNG export fails with "Unknown device: png16malpha ->
+# shipout failed" unless you override `-pngdriver pngalpha`. We therefore build
+# a current Ghostscript from the pinned upstream source release and install it
+# into /usr/local (which precedes /usr/bin on PATH, like the pip CMake above),
+# so plain `gs` is the new version and the default png16malpha driver works.
+#
+# The apt `ghostscript` above is kept on purpose: it pulls in libgs (used by
+# dvisvgm) and the shared Resource/font tree. This build only replaces the `gs`
+# *binary* asy invokes; its own resources install under
+# /usr/local/share/ghostscript. Upstream publishes no generic Linux x86_64
+# binary (only a snap), hence the from-source build. Pinned + checksum-verified
+# for reproducibility; its own cached layer so it is not rebuilt on unrelated
+# changes. configure disables X/CUPS/GTK/tesseract (none needed here); it still
+# links the image's system fontconfig/freetype for font resolution.
+ARG GHOSTSCRIPT_VERSION=10.07.1
+ARG GHOSTSCRIPT_RELEASE=gs10071
+ARG GHOSTSCRIPT_SHA256=2fc74362f9be6fae1b0a65d38fdcfd4f0b518cc3b07c5581fb661eb4d2e15251
+RUN if [ "${INSTALL_DOC_DEPS}" = "true" ]; then \
+        cd /tmp \
+        && wget -q -O ghostscript.tar.gz \
+            "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/${GHOSTSCRIPT_RELEASE}/ghostscript-${GHOSTSCRIPT_VERSION}.tar.gz" \
+        && echo "${GHOSTSCRIPT_SHA256}  ghostscript.tar.gz" | sha256sum -c - \
+        && tar -xzf ghostscript.tar.gz \
+        && cd "ghostscript-${GHOSTSCRIPT_VERSION}" \
+        && ./configure --prefix=/usr/local --without-x --disable-cups \
+            --disable-gtk --without-tesseract \
+        && make -j"$(nproc)" \
+        && make install \
+        && cd /tmp \
+        && rm -rf "ghostscript-${GHOSTSCRIPT_VERSION}" ghostscript.tar.gz \
+        && gs --version; \
     fi
