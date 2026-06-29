@@ -1,6 +1,11 @@
 # default behavior for all files
 * text=auto
 
+# Shell scripts must keep LF endings: they are executed under /bin/sh in the
+# Linux devcontainer, where a trailing CR makes bash misread e.g.
+# `set -euo pipefail` as the invalid option `pipefail\r`.
+*.sh text eol=lf
+
 config.sub text eol=lf
 config.guess text eol=lf
 *.in text eol=lf
