@@ -9,7 +9,8 @@ namespace camp
 IAsyContext* getAsyContext();
 }
 
-record* loadDynLib(string const& key, string const& fileName);
+record*
+loadDynLib(string const& key, string const& fileName, trans::genv* genv);
 
 string tryGetDllPath(string const& libName);
 

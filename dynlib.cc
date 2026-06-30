@@ -4,6 +4,7 @@
 #include "dlmanager.h"
 #include "locate.h"
 #include "stack.h"
+#include "genv.h"
 
 namespace camp
 {
@@ -15,13 +16,13 @@ AsyContextImpl asyContext;
 IAsyContext* getAsyContext() { return &asyContext; }
 }// namespace camp
 
-record* loadDynLib(string const& key, string const& fileName)
+record* loadDynLib(string const& key, string const& fileName, trans::genv* genv)
 {
   camp::LoadedDynLib const* lib=
           camp::getDynlibManager()->loadLib(key, fileName);
   string const registerName= string("registerPlugin_") + key;
 
-  camp::AsyFfiRegistererImpl registerer(key);
+  camp::AsyFfiRegistererImpl registerer(key, genv);
   auto const registerFunction=
           lib->getSymAddress<TAsyRegisterDynlibFn>(registerName.c_str());
   registerFunction(camp::getAsyContext(), &registerer);

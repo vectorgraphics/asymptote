@@ -3,6 +3,7 @@
 #include "asyffi.h"
 #include "common.h"
 #include "record.h"
+#include "genv.h"
 
 #include <type_traits>
 
@@ -153,12 +154,13 @@ private:
 class AsyFfiRegistererImpl : public IAsyFfiRegisterer
 {
 public:
-  AsyFfiRegistererImpl(string const& dynlibName);
+  AsyFfiRegistererImpl(string const& dynlibName, trans::genv* genv);
   void registerFunction(
           char const* name, TAsyForeignFunction fn,
           Asy::FunctionTypeMetadata const& fnTypeInfo
   ) override;
 
+  IAsyGlobalEnvironment* getGlobalEnvironment() override;
   /**
    * @remark Note that this pointer can be safely used outside the scope of
    * this class instance because it is created using gc
@@ -170,6 +172,7 @@ private:
   string libName;
 
 public:
+  trans::genv* globalEnv;
   symbol sym;
   // recordVar /must/ come after sym declaration
 

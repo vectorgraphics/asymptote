@@ -271,7 +271,7 @@ bool AsyContextImpl::registerThreadWithGc(void* stackBase) const
 {
 #if defined(USEGC) && defined(HAVE_PTHREAD)
   auto* stackBaseCasted= static_cast<GC_stack_base const*>(stackBase);
-  auto const ret = GC_register_my_thread(stackBaseCasted);
+  auto const ret= GC_register_my_thread(stackBaseCasted);
   return ret == GC_SUCCESS || ret == GC_DUPLICATE;
 #else
   return false;
@@ -380,8 +380,11 @@ trans::access* AsyStackContextImpl::getVariableAccess(
   return entry->getLocation();
 }
 
-AsyFfiRegistererImpl::AsyFfiRegistererImpl(string const& dynlibName)
-    : libName(dynlibName), sym(symbol::literalTrans(dynlibName)),
+AsyFfiRegistererImpl::AsyFfiRegistererImpl(
+        string const& dynlibName, trans::genv* genv
+)
+    : libName(dynlibName), globalEnv(genv),
+      sym(symbol::literalTrans(dynlibName)),
       recordVar(new types::dummyRecord(sym))
 {}
 
@@ -397,6 +400,11 @@ void AsyFfiRegistererImpl::registerFunction(
   types::function* functionSig= createFunctionTypeFromMetadata(fnMetadataPtr);
   recordVar->add(name, functionSig, fn);
 }
+IAsyGlobalEnvironment* AsyFfiRegistererImpl::getGlobalEnvironment()
+{
+  return globalEnv;
+}
+
 record* AsyFfiRegistererImpl::getRecord() const { return recordVar; }
 
 types::function* createFunctionTypeFromMetadata(
@@ -435,6 +443,9 @@ ty* asyTypesEnumToTy(Asy::TypeInfo const& asyType)
       return processArrayTypesInfoToTy(asyType.extraData.arrayTypeInfo);
     case BaseTypes::FunctionType:
       return createFunctionTypeFromMetadata(asyType.extraData.functionTypeInfo);
+    case BaseTypes::Record:
+      // technically, this is a hack.
+      return static_cast<record*>(asyType.extraData.recordPtr);
     default:
       reportError("Invalid argument type");
       return nullptr;
