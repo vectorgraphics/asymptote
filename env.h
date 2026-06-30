@@ -9,8 +9,9 @@
 #ifndef ENV_H
 #define ENV_H
 
-#include "errormsg.h"
+#include "asyffi.h"
 #include "entry.h"
+#include "errormsg.h"
 #include "types.h"
 #include "util.h"
 
@@ -35,7 +36,7 @@ class coenv;
 // Keeps track of the name bindings of variables and types.  This is used for
 // the fields of a record, whereas the derived class env is used for
 // unqualified names in translation.
-class protoenv {
+class protoenv : public IAsyProtoEnvironment {
 //protected:
 public:
   // These tables keep track of type and variable definitions.
@@ -73,8 +74,22 @@ public:
 
   ty *lookupType(symbol s)
   {
-    tyEntry *ent=lookupTyEntry(s);
-    return ent ? ent->t : 0;
+    tyEntry const* ent=lookupTyEntry(s);
+    return ent ? ent->t : nullptr;
+  }
+
+  void* getType(const char* typeName) override
+  {
+    return lookupType(symbol::literalTrans(string(typeName)));
+  }
+  IAsyRecord* getTypeAsRecord(const char* typeName) override
+  {
+    auto* tyPtr = static_cast<ty*>(getType(typeName));
+    if (tyPtr->kind == types::ty_record) {
+      return dynamic_cast<IAsyRecord*>(tyPtr);
+    }
+    
+    return nullptr;
   }
 
   varEntry *lookupVarByType(symbol name, ty *t)
