@@ -25,7 +25,7 @@ using trans::AutoUnravelRegistry;
 
 namespace types {
 
-class record : public ty {
+class record : public ty, public IAsyRecord {
   // The base name of this type.
   symbol name;
 
@@ -55,7 +55,10 @@ public:
   record(symbol name, frame *level);
   ~record();
 
-  symbol getName()
+  IAsyProtoEnvironment* getProtoEnvironment() override;
+  IAsyProtoEnvironment* getPostDefinitionProtoEnvironment() override;
+
+  symbol getName() const
   {
     return name;
   }

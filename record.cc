@@ -29,6 +29,14 @@ record::record(symbol name, frame *level)
 
 record::~record()
 {}
+IAsyProtoEnvironment* record::getProtoEnvironment()
+{
+  return &e;
+}
+IAsyProtoEnvironment* record::getPostDefinitionProtoEnvironment()
+{
+  return &postdefenv;
+}
 
 record *record::newRecord(symbol id, bool statically)
 {
