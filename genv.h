@@ -22,13 +22,14 @@
 #include "absyn.h"
 #include "access.h"
 #include "stack.h"
+#include "asyffi.h"
 
 using types::record;
 using vm::lambda;
 
 namespace trans {
 
-class genv : public gc {
+class genv : public gc, public IAsyGlobalEnvironment {
   // The initializer functions for imports, indexed by filename.
   typedef mem::map<symbol,record *> importMap;
   importMap imap;
@@ -63,6 +64,11 @@ public:
   // Uses the filename->record map to build a filename->initializer map to be
   // used at runtime.
   vm::stack::importInitMap *getInitMap();
+  
+  // exposing API functions
+  IAsyRecord*
+  loadFileModule(const char* moduleName, const char* fileName) override;
+  IAsyRecord* loadExistingModule(const char* id) override;
 };
 
 } // namespace trans

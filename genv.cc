@@ -135,7 +135,8 @@ record *genv::loadModule(symbol id, string filename) {
   if (!dllPath.empty()) {
     inTranslation.push_front(filename);
     em.sync();
-    record* r = loadDynLib(filename, dllPath);
+    // specifically, filename here is used as key
+    record* r = loadDynLib(filename, dllPath, this);  // NOLINT(readability-suspicious-call-argument)
     inTranslation.remove(filename);
     return r;
   }
@@ -244,6 +245,18 @@ importInitMap *genv::getInitMap()
   };
 
   return new initMap(*this);
+}
+IAsyRecord*
+genv::loadFileModule(const char* moduleName, const char* fileName)
+{
+  auto const moduleSym= symbol::literalTrans(moduleName);
+  auto const fileSym=
+          fileName == nullptr ? moduleSym : symbol::literalTrans(fileName);
+  return getModule(moduleSym, fileSym);
+}
+IAsyRecord* genv::loadExistingModule(const char* id)
+{
+  return getLoadedModule(symbol::literalTrans(id));
 }
 
 } // namespace trans
