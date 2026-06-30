@@ -1883,58 +1883,72 @@ void drawTessellation(frame f, surface s,
   int nV=s.index[0].length;
   if(nV == 0) return;
 
-  int N=(nU+1)*(nV+1);
-  triple[] v=new triple[N];
-  triple[] n=new triple[N];
-
   bool colors=s.s[0].colors.length > 0;
+
+  // Build the triangle mesh by welding the patch corners that meet at a shared
+  // grid point only when they also agree on both normal and color. Corners that
+  // disagree are emitted as separate vertices, so the vertex-sharing
+  // optimization is applied exactly where it is faithful: it never smooths
+  // shading across a crease (normals differ) nor smears a flat or otherwise
+  // discontinuous parampen across a patch seam (colors differ).
+  triple[] v;
+  triple[] n;
   pen[] p;
-  if(colors)
-    p=new pen[N];
 
-  int index(int i,int j) {return (nV+1)*i+j;}
+  // For each grid point (nU+1 by nV+1), the indices of the vertices already
+  // emitted there -- usually one, more where corners disagree.
+  int gridV=nV+1;
+  int[][] variant=new int[(nU+1)*gridV][];
 
-  int k=0;
+  // Corner normals are "equal" when nearly parallel (the threshold is on
+  // 1-cos, i.e. about 0.08 degrees); colors when their rgba components nearly
+  // match. A smooth surface's shared corners agree to rounding and weld; a
+  // crease or a flat checkerboard differs outright and splits. Each emitted
+  // vertex caches its rgba components so the comparison allocates only once per
+  // corner rather than once per candidate.
+  real normalTol=1e-6;
+  real colorTol=1e-4;
+  real[][] vcolor;
+  bool sameColor(real[] a, real[] b) {
+    return abs(a[0]-b[0]) < colorTol && abs(a[1]-b[1]) < colorTol &&
+           abs(a[2]-b[2]) < colorTol && abs(a[3]-b[3]) < colorTol;
+  }
+
+  // Return the index of a vertex at grid point (i,j) carrying normal nrm (and
+  // color col, when colored), reusing an existing one if it matches.
+  int vertex(int i, int j, triple pos, triple nrm, pen col) {
+    int g=gridV*i+j;
+    real[] rc=colors ? rgba(col) : null;
+    for(int idx : variant[g]) {
+      if(dot(n[idx],nrm) > 1-normalTol && (!colors || sameColor(vcolor[idx],rc)))
+        return idx;
+    }
+    int idx=v.length;
+    v.push(pos);
+    n.push(nrm);
+    if(colors) {
+      p.push(col);
+      vcolor.push(rc);
+    }
+    variant[g].push(idx);
+    return idx;
+  }
+
+  int[][] vi=new int[2*nU*nV][];
+  int t=-1;  // Always used as ++t.
   for(int U=0; U < nU; ++U) {
     for(int V=0; V < nV; ++V) {
       patch q=s.s[s.index[U][V]];
-      v[k]=q.P[0][0];
-      n[k]=unit(q.normal00());
-      if(colors)
-        p[k]=q.colors[0];
-      ++k;
-    }
-    patch q=s.s[s.index[U][nV-1]];
-    v[k]=q.P[0][3];
-    n[k]=unit(q.normal01());
-    if(colors)
-      p[k]=q.colors[3];
-    ++k;
-  }
-
-  for(int V=0; V < nV; ++V) {
-    patch q=s.s[s.index[nU-1][V]];
-    v[k]=q.P[3][0];
-    n[k]=unit(q.normal10());
-    if(colors)
-      p[k]=q.colors[1];
-    ++k;
-  }
-  patch q=s.s[s.index[nU-1][nV-1]];
-  v[k]=q.P[3][3];
-  n[k]=unit(q.normal11());
-  if(colors)
-    p[k]=q.colors[2];
-  ++k;
-
-  int[][] vi=new int[nU*nV][];
-  int k=0;
-  for(int i=0; i < nU; ++i) {
-    for(int j=0; j < nV; ++j) {
-      vi[k]=new int[] {index(i,j),index(i+1,j),index(i+1,j+1)};
-      ++k;
-      vi[k]=new int[] {index(i,j),index(i+1,j+1),index(i,j+1)};
-      ++k;
+      pen c0, c1, c2, c3;
+      if(colors) {
+        c0=q.colors[0]; c1=q.colors[1]; c2=q.colors[2]; c3=q.colors[3];
+      }
+      int a=vertex(U,  V,  q.P[0][0],unit(q.normal00()),c0);
+      int b=vertex(U+1,V,  q.P[3][0],unit(q.normal10()),c1);
+      int c=vertex(U+1,V+1,q.P[3][3],unit(q.normal11()),c2);
+      int d=vertex(U,  V+1,q.P[0][3],unit(q.normal01()),c3);
+      vi[++t]=new int[] {a,b,c};
+      vi[++t]=new int[] {a,c,d};
     }
   }
 
