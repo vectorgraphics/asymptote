@@ -49,7 +49,7 @@ inline Int valueFromBool(bool b) {
 
 extern const item Default;
 
-class item : public gc, public IAsyItem {
+class item final : public gc, public IAsyItem {
 public:
   ~item() override= default;
 
