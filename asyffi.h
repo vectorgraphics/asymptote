@@ -166,6 +166,7 @@ class IAsyCurlSpecifier;
 class IAsyPath;
 class IAsySolvedKnot;
 class IAsyPath3;
+class IAsyRecord;
 
 class IAsyContext
 {
@@ -383,16 +384,17 @@ public:
    * @remark If GC is not supported, this function's behavior is undefined.
    */
   virtual void unregisterThreadWithGc() const= 0;
-  
+
   // frame functions
-  
+
   [[nodiscard]]
   /**
    * Whether the Asymptote build is of simple frame variant.
-   * 
-   * In a simple frame build, records are passed as an {@link IAsyItem} pointing to an
-   * array of variables, whereas in a non-simple frame build (which is the case for
-   * a standard Asymptote build), records are passed as {@link IAsyVarFrame}
+   *
+   * In a simple frame build, records are passed as an {@link IAsyItem} pointing
+   * to an array of variables, whereas in a non-simple frame build (which is the
+   * case for a standard Asymptote build), records are passed as {@link
+   * IAsyVarFrame}
    */
   virtual bool isSimpleFrameBuild() const= 0;
 };
@@ -701,6 +703,9 @@ struct TypeInfo {
 
     /** This is required for function types */
     FunctionTypePtrRetMetadata functionTypeInfo;
+
+    /** This is required for records */
+    IAsyRecord* recordPtr;
   } extraData;
 };
 
@@ -827,7 +832,7 @@ public:
    */
   [[nodiscard]]
   virtual double getIndexedValue(size_t const& index) const= 0;
-  
+
   /**
    * Set value.
    * @param index In the case of a pair or triple,
@@ -889,6 +894,24 @@ public:
   virtual void apply(IAsyTuple* in, IAsyTuple* out)= 0;
 };
 
+/** Interface for Asymptote global environment which manages module imports */
+class IAsyGlobalEnvironment
+{
+public:
+  virtual ~IAsyGlobalEnvironment()= default;
+
+  /**
+   * Get a file module as record. If this module has already been loaded,
+   * returns the existing module, otherwise loads the module from fileName
+   */
+  virtual IAsyRecord*
+  loadFileModule(const char* moduleName, const char* fileName)= 0;
+
+  /** Returns an existing module. If the module is not already loaded,
+   * its behavior is undefined. */
+  virtual IAsyRecord* loadExistingModule(const char* id)= 0;
+};
+
 class IAsyFfiRegisterer
 {
 public:
@@ -898,6 +921,9 @@ public:
           char const* name, TAsyForeignFunction fn,
           Asy::FunctionTypeMetadata const& fnTypeInfo
   )= 0;
+
+  /** @return Asymptote global module import manager */
+  virtual IAsyGlobalEnvironment* getGlobalEnvironment()= 0;
 };
 
 /**
@@ -906,7 +932,7 @@ public:
  * an array where each element is the struct's variables (or functions).
  * This virtual array stores the variables in the order they are defined in the
  * original struct.
- * 
+ *
  * @remark For plugin developers & Asymptote users, be careful that the changing
  * the order of variables in the struct changes their order here. This can break
  * compatibility of external code.
@@ -915,29 +941,72 @@ class IAsyVarFrame
 {
 public:
   virtual ~IAsyVarFrame()= default;
-  
+
   /**
    * Gets an item from the array. This value of this item is modifiable (e.g.
    * if the item contains a pointer, one may change the pointer's value).
-   *    
+   *
    * @remark For setting items, use this function to get the item and change
    * the item's values.
    */
   virtual IAsyItem* getItem(size_t const& index)= 0;
-  
+
   /** Gets an item from the array. The item here is not modifiable. */
   [[nodiscard]]
   virtual IAsyItem const* getItemConst(size_t const& index) const= 0;
-  
-  /** Gets size of the variable frame (i.e. the number of elements in a struct) */
+
+  /** Gets size of the variable frame (i.e. the number of elements in a struct)
+   */
   [[nodiscard]]
   virtual size_t getSize() const= 0;
-  
+
   /**
    * Extends the variable frame to fit n elements. This function is inert
    * if the variable frame already holds more n elements or more.
    */
   virtual void extend(size_t const& n)= 0;
+};
+
+/**
+ * Interface for Proto-Environment.
+ * This is where Asymptote stores type definitions and variable names.
+ *
+ */
+class IAsyProtoEnvironment
+{
+public:
+  virtual ~IAsyProtoEnvironment()= default;
+
+  /** Return the type associated with the typename.
+   * If the type does not exist, returns a null pointer. */
+  virtual void* getType(char const* typeName)= 0;
+
+  /** Return the type as record.
+   * If the type does not exist or exists but is not a record (struct) type,
+   * this function returns a nullptr. */
+  virtual IAsyRecord* getTypeAsRecord(char const* typeName)= 0;
+};
+
+/**
+ * Interface for Asymptote records. Records are how Asymptote stores internal
+ * imported files, code blocks and struct definitions. Note that IAsyRecord do
+ * not store individual instances of structs, but rather definitions (e.g. which
+ * fields are present, which code should get executed).
+ *
+ * To access a data of a struct instance, use {@link IAsyVarFrame}.
+ */
+class IAsyRecord
+{
+public:
+  virtual ~IAsyRecord()= default;
+
+  /** Return the proto-environment (type & variable records) associated with
+   * this struct/code block */
+  virtual IAsyProtoEnvironment* getProtoEnvironment()= 0;
+
+  /** Return the post-definition proto-environment (type & variable records)
+   * associated with this struct/code block */
+  virtual IAsyProtoEnvironment* getPostDefinitionProtoEnvironment()= 0;
 };
 
 typedef void (*LNK_CALL TAsyRegisterDynlibFn)(IAsyContext*, IAsyFfiRegisterer*);
