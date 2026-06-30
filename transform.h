@@ -30,8 +30,6 @@ public:
   transform()
     : x(0.0), y(0.0), xx(1.0), xy(0.0), yx(0.0), yy(1.0) {}
 
-  ~transform() override {}
-
   transform(double x, double y,
             double xx, double xy,
             double yx, double yy)
