@@ -1,20 +1,5 @@
 cmake_minimum_required(VERSION 3.27)
 
-if (NOT CMAKE_HOST_SYSTEM_PROCESSOR)
-    if (WIN32)
-        if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-            set(CMAKE_HOST_SYSTEM_PROCESSOR "x86_64")
-        else()
-            set(CMAKE_HOST_SYSTEM_PROCESSOR "i386")
-        endif()
-    else()
-        execute_process(COMMAND uname -m OUTPUT_VARIABLE CMAKE_HOST_SYSTEM_PROCESSOR OUTPUT_STRIP_TRAILING_WHITESPACE)
-    endif()
-endif()
-message(STATUS "Host processor: ${CMAKE_HOST_SYSTEM_PROCESSOR}")
-if (NOT CMAKE_SYSTEM_PROCESSOR)
-    set(CMAKE_SYSTEM_PROCESSOR ${CMAKE_HOST_SYSTEM_PROCESSOR})
-endif()
 
 include(cmake-scripts/common.cmake)
 include(asy-pkg-version-suffix.cmake OPTIONAL RESULT_VARIABLE ASY_ADDR_VERSION_SUFFIX_FILE)
@@ -23,6 +8,8 @@ include(pkg-info.cmake)
 include(cmake-scripts/vcpkg-features.cmake)
 
 project(${ASY_PACKAGE_NAME})
+
+include(cmake-scripts/check-host-processor-vars.cmake)
 
 include(cmake-scripts/compiler-config.cmake)
 include(cmake-scripts/basic-parameters.cmake)
