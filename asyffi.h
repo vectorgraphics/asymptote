@@ -942,12 +942,17 @@ class IAsyVarFrame
 public:
   virtual ~IAsyVarFrame()= default;
 
+  // TODO: Ask John about index 0 and whether we should clarify what it stores
+  //       I, Jamie, unfortunately do not know what index 0 stores.
   /**
    * Gets an item from the array. This value of this item is modifiable (e.g.
    * if the item contains a pointer, one may change the pointer's value).
    *
    * @remark For setting items, use this function to get the item and change
    * the item's values.
+   *
+   * @remark The first field of the struct is stored at index 1,
+   * while index 0 is used for internal storage.
    */
   virtual IAsyItem* getItem(size_t const& index)= 0;
 
