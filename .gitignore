@@ -35,6 +35,7 @@ history
 /Makefile
 /doc/Makefile
 /doc/png/Makefile
+/doc/FAQ/Makefile
 /LspCpp/Makefile
 LspCpp/third_party/ixwebsocket/Makefile
 LspCpp/third_party/uri/Makefile

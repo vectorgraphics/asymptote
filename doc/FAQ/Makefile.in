@@ -1,4 +1,9 @@
-TEXI2ANY = texi2any
+TEXI2ANY = @TEXI2ANY@
+
+docdir = $(DESTDIR)@docdir@
+infodir = $(DESTDIR)@infodir@
+datarootdir = @datarootdir@
+INSTALL = @INSTALL@
 
 all: faq
 
@@ -10,6 +15,7 @@ clean: FORCE
 	-rm -rf asy-faq.html
 
 cleaner: FORCE clean
+	-rm -f Makefile
 cleanest: FORCE cleaner
 	-rm -f *.info
 
@@ -40,3 +46,7 @@ uninstall-all:
 	-rm -f $(infodir)/asy-faq.info
 
 FORCE:
+
+Makefile: Makefile.in
+	cd ../..; ./config.status
+

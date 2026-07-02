@@ -7,6 +7,7 @@ docdir = $(DESTDIR)@docdir@
 infodir = $(DESTDIR)@infodir@
 datarootdir = @datarootdir@
 INSTALL = @INSTALL@
+TEXI2ANY = @TEXI2ANY@
 
 all:	html info
 
@@ -18,13 +19,13 @@ latexusage.png: ../latexusage.pdf
            -sOutputFile=latexusage.png ../latexusage.pdf
 
 index.html: $(SOURCE) $(ASYFILES:.asy=.png) latexusage.png
-	makeinfo --html ../asymptote -o .
+	$(TEXI2ANY) --html ../asymptote -o .
 
 asymptote.info: $(SOURCE)
-	makeinfo --no-warn --no-split ../asymptote
+	$(TEXI2ANY) --no-warn --no-split ../asymptote
 
 info:	$(SOURCE) $(ASYFILES:.asy=.png) latexusage.png
-	makeinfo --no-split ../asymptote
+	$(TEXI2ANY) --no-split ../asymptote
 
 ../options:
 	cd .. && $(MAKE) options

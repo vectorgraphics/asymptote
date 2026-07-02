@@ -127,10 +127,10 @@ else
 fi
 ])
 
-AC_CHECK_PROGS(TEXI2DVI,[texi2dvi],
-[@echo \*\*\*\*\*\*\*\*\*\* Please install texi2dvi or put https://asymptote.sourceforge.io/asymptote.pdf in the doc directory: cannot execute texi2dvi])
+AC_CHECK_PROGS(TEXI2ANY,[texi2any makeinfo texi2dvi],
+[@echo \*\*\*\*\*\*\*\*\*\* Please install texinfo package (texi2any)])
 
-AC_SUBST(TEXI2DVI)
+AC_SUBST(TEXI2ANY)
 
 latexdir=$latexdir/asymptote
 contextdir=$contextdir/asymptote
@@ -746,6 +746,6 @@ AC_FUNC_FSEEKO
 AC_CHECK_FUNCS(strptime)
 AC_CHECK_FUNCS(strnlen)
 
-AC_CONFIG_FILES([Makefile doc/Makefile doc/png/Makefile])
+AC_CONFIG_FILES([Makefile doc/Makefile doc/png/Makefile doc/FAQ/Makefile])
 AC_CONFIG_HEADERS([config.h])
 AC_OUTPUT
