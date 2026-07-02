@@ -392,7 +392,7 @@ camp.tab.h: camp.tab.cc
 lex.yy.cc: camp.l
 	$(LEX) -d -olex.yy.cc camp.l
 
-lex.yy.d: $(GCLIB) lex.yy.cc camp.tab.h
+lex.yy.d: lex.yy.cc camp.tab.h
 
 keywords.h: camp.l keywords.py asyprocess.cc
 	$(PYTHON) ./keywords.py --camplfile $< --output $@ --process-file asyprocess.cc
@@ -618,7 +618,7 @@ glew.d: glew.c config.h
 .SUFFIXES: .c .cc .o .d .ui .py
 %.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.cc)
 	$(CXX) $(OPTS) -o $@ -c $<
-%.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
+%.d: %.cc $(GENERATEDENUMS:=.h)
 	@echo Creating $@; \
 	rm -f $@; \
 	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
