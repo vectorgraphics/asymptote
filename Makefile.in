@@ -149,7 +149,7 @@ last = $(shell head -1 revision.cc | sed -e 's/.*\"\(.*\)\";/\1/')
 usinggit = $(shell if test -d ".git"; then echo yes; fi)
 revision = ""
 ifeq ($(usinggit),yes)
-	revision = $(shell LC_ALL="C" git describe --long | \
+	revision = $(shell LC_ALL="C" git describe --long 2>/dev/null | \
 	sed -e 's/git-\([0-9]*\)-g.*/-\1/' | sed -e 's/-0-g.*//')
 endif
 ifeq ($(revision),)
@@ -306,11 +306,11 @@ doc/version.texi: version.txt
 asymptote.so: $(COREFILES:=.pic.o) glew.o
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
-$(LSP_ROOT)/liblspcpp.a:
-	$(CMAKE) -B$(LSP_ROOT) -S$(LSP_ROOT) -DCMAKE_CXX_FLAGS=\
+$(LSP_ROOT)/liblspcpp.a: $(GCLIB)
+	$(CMAKE) -B$(LSP_ROOT)/build -S$(LSP_ROOT) -DCMAKE_CXX_FLAGS=\
 	"-fPIE @OPTIONS@ @LSP_CXX_BUILD_FLAGS@" \
 	@LSP_CMAKE_OPTIONS@
-	$(MAKE) -C $(LSP_ROOT)
+	$(MAKE) -C $(LSP_ROOT)/build
 
 all:	asy sty man faq asy-keywords.el
 
@@ -391,7 +391,7 @@ camp.tab.h: camp.tab.cc
 lex.yy.cc: camp.l
 	$(LEX) -d -olex.yy.cc camp.l
 
-lex.yy.d: $(GCLIB) lex.yy.cc camp.tab.h
+lex.yy.d: lex.yy.cc camp.tab.h
 
 keywords.h: camp.l keywords.py asyprocess.cc
 	$(PYTHON) ./keywords.py --camplfile $< --output $@ --process-file asyprocess.cc
@@ -547,7 +547,7 @@ clean:	FORCE
 	-rm -f asy asymptote.so libasyvulkan.so libasyopengl.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
 	-rm -rf doc/licenses
 	-rm -rf lib
-	-cd LspCpp && $(MAKE) distclean
+	-rm -rf LspCpp/build
 	-cd tinyexr && $(MAKE) clean
 	-cd doc && $(MAKE) clean
 	-cd tests && $(MAKE) clean
@@ -567,7 +567,7 @@ cleaner0: FORCE clean
 
 	-cd libatomic_ops && rm -rf autom4te.cache
 	-rm -f config.h config.log config.status
-	-rm -rf autom4te.cache LspCpp/CMakeCache.txt
+	-rm -rf autom4te.cache LspCpp/CMakeCache.txt LspCpp/build
 	-rm -f Makefile
 
 cleaner: FORCE cleaner0
@@ -617,7 +617,7 @@ glew.d: glew.c config.h
 .SUFFIXES: .c .cc .o .d .ui .py
 %.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.cc)
 	$(CXX) $(OPTS) -o $@ -c $<
-%.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
+%.d: %.cc $(GENERATEDENUMS:=.h)
 	@echo Creating $@; \
 	rm -f $@; \
 	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \

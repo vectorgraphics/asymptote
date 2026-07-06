@@ -35,12 +35,12 @@ history
 /Makefile
 /doc/Makefile
 /doc/png/Makefile
+/doc/FAQ/Makefile
 /LspCpp/Makefile
 LspCpp/third_party/ixwebsocket/Makefile
 LspCpp/third_party/uri/Makefile
 LspCpp/third_party/uri/src/Makefile
-/doc/FAQ/asy-faq.*
-!/doc/FAQ/asy-faq.bfnn
+/doc/FAQ/asy-faq.html
 *.png
 *.gif
 *.pnm

@@ -9,7 +9,7 @@ docdir = $(DESTDIR)@docdir@
 infodir = $(DESTDIR)@infodir@
 datarootdir = @datarootdir@
 INSTALL = @INSTALL@
-TEXI2DVI = @TEXI2DVI@
+TEXI2ANY = @TEXI2ANY@
 PERL5LIB = ./
 PYTHON ?= python3
 
@@ -60,11 +60,11 @@ asy.1: options asy.1.begin asy.1.end
 
 asymptote.dvi: $(SOURCE) $(ASYFILES:.asy=.eps) latexusage.pdf
 	ln -sf asymptote.texi asymptote_.texi
-	-$(TEXI2DVI) asymptote_.texi
+	-$(TEXI2ANY) --dvi asymptote_.texi
 	mv asymptote_.dvi asymptote.dvi
 
 asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf) latexusage.pdf
-	-$(TEXI2DVI) --pdf asymptote.texi
+	-$(TEXI2ANY) --pdf asymptote.texi
 
 CAD.pdf: CAD.tex CAD1.eps
 	pdflatex CAD

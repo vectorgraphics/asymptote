@@ -1,0 +1,52 @@
+TEXI2ANY = @TEXI2ANY@
+
+docdir = $(DESTDIR)@docdir@
+infodir = $(DESTDIR)@infodir@
+datarootdir = @datarootdir@
+INSTALL = @INSTALL@
+
+BFNNCONV = bfnnconv.py
+
+faq: asy-faq.texi asy-faq.css
+	$(TEXI2ANY) --html --no-split --css-include=asy-faq.css -o asy-faq.html asy-faq.texi
+
+clean: FORCE
+	-rm -f *~ core a.out *.lout *.ps *.ascii *.xrefdb *.post
+	-rm -rf asy-faq.html
+
+cleaner: FORCE clean
+	-rm -f Makefile
+cleanest: FORCE cleaner
+	-rm -f *.info
+
+distclean: FORCE cleaner
+maintainer-clean: FORCE cleanest
+
+install-all: install
+
+install: faq
+	$(MAKE) install-prebuilt
+	${INSTALL} -d -m 755 $(docdir)
+	${INSTALL} -p -m 644 asy-faq.html $(docdir)
+
+install-prebuilt:
+	${INSTALL} -d -m 755 $(infodir)
+	${INSTALL} -p -m 644 asy-faq.info $(infodir)
+	-if test -z "$(DESTDIR)"; then \
+		install-info --infodir=$(infodir) asy-faq.info; \
+	fi
+
+install-info: faq install-prebuilt
+
+uninstall: uninstall-all
+
+uninstall-all:
+	-cd $(docdir) && rm -f asy-faq.html
+	-install-info --remove --infodir=$(infodir) asy-faq.info
+	-rm -f $(infodir)/asy-faq.info
+
+FORCE:
+
+Makefile: Makefile.in
+	cd ../..; ./config.status
+
