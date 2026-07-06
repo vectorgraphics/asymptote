@@ -28,10 +28,20 @@ runs:
       uses: actions/cache@v4
       with:
         path: /home/runner/.cache/vcpkg/archives
-        key: ${{ runner.os }}-vcpkg-cache
+        # Key on the manifest so new/changed dependencies get re-cached; the
+        # restore-keys prefix falls back to the most recent compatible cache.
+        key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+        restore-keys: |
+          ${{ runner.os }}-vcpkg-
     - name: Cache ccache
       id: cache-ccache
       uses: actions/cache@v4
       with:
         path: /home/runner/.ccache
-        key: ${{ runner.os }}-ccache-cache
+        # A rolling key (unique per run) forces a cache miss so the freshly
+        # populated ccache is always saved; restore-keys restores the newest
+        # prior cache. A constant key would only ever save on the first run,
+        # leaving the compile cache frozen and increasingly stale.
+        key: ${{ runner.os }}-ccache-${{ github.run_id }}
+        restore-keys: |
+          ${{ runner.os }}-ccache-

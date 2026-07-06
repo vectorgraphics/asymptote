@@ -12,7 +12,11 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~\AppData\Local\vcpkg\archives
-        key: ${{ runner.os }}-vcpkg-cache
+        # Key on the manifest so new/changed dependencies get re-cached; the
+        # restore-keys prefix falls back to the most recent compatible cache.
+        key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+        restore-keys: |
+          ${{ runner.os }}-vcpkg-
 
     - name: Create vcpkg overlay for getopt-win32
       shell: pwsh
