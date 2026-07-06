@@ -38,10 +38,16 @@ runs:
       uses: actions/cache@v4
       with:
         path: /home/runner/.ccache
-        # A rolling key (unique per run) forces a cache miss so the freshly
-        # populated ccache is always saved; restore-keys restores the newest
-        # prior cache. A constant key would only ever save on the first run,
-        # leaving the compile cache frozen and increasingly stale.
-        key: ${{ runner.os }}-ccache-${{ github.run_id }}
+        # The key must be unique per run *and* per job. github.run_id forces a
+        # cache miss each run so the freshly populated ccache is always saved
+        # (a constant key would only ever save on the first run, leaving the
+        # cache frozen). github.job keeps jobs from colliding: this composite
+        # action runs in several Linux jobs sharing one run_id, and an earlier
+        # job (e.g. configure) finishing first would otherwise claim the key and
+        # make the main build job's post-step skip saving its richer cache.
+        # restore-keys first prefers this job's own lineage, then any Linux
+        # ccache, so a new job/first run still warms from an existing cache.
+        key: ${{ runner.os }}-ccache-${{ github.job }}-${{ github.run_id }}
         restore-keys: |
+          ${{ runner.os }}-ccache-${{ github.job }}-
           ${{ runner.os }}-ccache-
