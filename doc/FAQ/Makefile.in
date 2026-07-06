@@ -5,7 +5,7 @@ infodir = $(DESTDIR)@infodir@
 datarootdir = @datarootdir@
 INSTALL = @INSTALL@
 
-BFNNCONV = bfnnconv.py
+all: faq
 
 faq: asy-faq.texi asy-faq.css
 	$(TEXI2ANY) --html --no-split --css-include=asy-faq.css -o asy-faq.html asy-faq.texi
