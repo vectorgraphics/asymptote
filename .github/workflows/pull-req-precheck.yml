@@ -1,4 +1,4 @@
-name: pull-request-precheck
+name: ci-build-test-package
 
 on:
   pull_request:
