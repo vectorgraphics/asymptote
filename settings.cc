@@ -1662,8 +1662,8 @@ void initSettings() {
   addOption(new stringSetting("imageDir", 0,"str","Environment image library directory","ibl"));
   addOption(new stringSetting("imageURL", 0,"str","Environment image library URL","https://vectorgraphics.gitlab.io/asymptote/ibl"));
   addOption(new realSetting("render", 0, "n",
-                            "Render 3D graphics using n pixels per bp (-1=auto)",
-                            havegl ? -1.0 : 0.0));
+                            "Render 3D graphics using n pixels per bp",
+                            havegl ? 2.0 : 0.0));
   addOption(new realSetting("devicepixelratio", 0, "n", "Ratio of physical to logical pixels", 0.0));
   addOption(new IntSetting("antialias", 0, "n",
                            "Antialiasing width for rasterized output", 2));

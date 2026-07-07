@@ -26,7 +26,7 @@ layout(location=0) out vec3 position;
 #ifdef NORMAL
 layout(location=5) out vec4 diffuse;
 layout(location=6) out vec3 specular;
-layout(location=7) out vec3 params; // roughness, metallic, fresnel0
+layout(location=7) out vec3 params; // roughness, metallic, fresnel0, lightOn
 layout(location=8) out vec4 emissive;
 
 struct Material

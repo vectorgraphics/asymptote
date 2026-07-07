@@ -1,17 +1,21 @@
-BFNNCONV = bfnnconv.pl m-ascii.pl m-html.pl m-info.pl m-lout.pl m-post.pl
+TEXI2ANY = @TEXI2ANY@
+
+docdir = $(DESTDIR)@docdir@
+infodir = $(DESTDIR)@infodir@
+datarootdir = @datarootdir@
+INSTALL = @INSTALL@
 
 all: faq
 
-faq: $(BFNNCONV) asy-faq.bfnn
-	mkdir -p asy-faq.html
-	perl bfnnconv.pl asy-faq.bfnn
-	perl bfnnconv.pl asy-faq.bfnn
+faq: asy-faq.texi asy-faq.css
+	$(TEXI2ANY) --html --no-split --css-include=asy-faq.css -o asy-faq.html asy-faq.texi
 
 clean: FORCE
 	-rm -f *~ core a.out *.lout *.ps *.ascii *.xrefdb *.post
-	-rm -rf *.html
+	-rm -rf asy-faq.html
 
 cleaner: FORCE clean
+	-rm -f Makefile
 cleanest: FORCE cleaner
 	-rm -f *.info
 
@@ -22,9 +26,8 @@ install-all: install
 
 install: faq
 	$(MAKE) install-prebuilt
-	${INSTALL} -d -m 755 $(docdir) $(docdir)/asy-faq.html
-	${INSTALL} -p -m 644 asy-faq.ascii $(docdir)
-	${INSTALL} -p -m 644 asy-faq.html/* $(docdir)/asy-faq.html
+	${INSTALL} -d -m 755 $(docdir)
+	${INSTALL} -p -m 644 asy-faq.html $(docdir)
 
 install-prebuilt:
 	${INSTALL} -d -m 755 $(infodir)
@@ -38,9 +41,12 @@ install-info: faq install-prebuilt
 uninstall: uninstall-all
 
 uninstall-all:
-	-cd $(docdir)/asy-faq.html && rm -rf *.html
-	-cd $(docdir) && rmdir asy-faq.html && rm asy-faq.ascii
+	-cd $(docdir) && rm -f asy-faq.html
 	-install-info --remove --infodir=$(infodir) asy-faq.info
 	-rm -f $(infodir)/asy-faq.info
 
 FORCE:
+
+Makefile: Makefile.in
+	cd ../..; ./config.status
+
