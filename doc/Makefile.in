@@ -70,7 +70,7 @@ asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf) latexusage.pdf
 
 asymptote.info: $(SOURCE) $(ASYFILES:.asy=.pdf) latexusage.pdf
 	@if test "$(TEXI2ANY)" != ""; then \
-	  $(TEXI2ANY) --no-split --info asymptote.texi; \
+	  $(TEXI2ANY) --no-warn --no-split --info asymptote.texi; \
 	fi
 
 CAD.pdf: CAD.tex CAD1.eps
