@@ -1,5 +1,15 @@
 name: initialize-env
 description: Initialize environment
+inputs:
+  cache-key-suffix:
+    description: >-
+      Extra token folded into the cache keys so parallel matrix legs (e.g.
+      with-gc / without-gc) get distinct keys. All matrix variations of a job
+      share the same github.job, so without this the first leg to finish claims
+      the key and the others skip saving their differently-compiled caches.
+      Pass the matrix value (e.g. ${{ matrix.with_gc }}) from the caller.
+    required: false
+    default: ""
 runs:
   using: 'composite'
   steps:
@@ -11,7 +21,13 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~\AppData\Local\vcpkg\archives
-        key: ${{ runner.os }}-vcpkg-cache
+        # Key on the manifest so changed dependencies get re-cached; the suffix
+        # separates matrix legs (the bdwgc feature changes the installed dep
+        # set). restore-keys falls back within the leg, then to any cache.
+        key: ${{ runner.os }}-vcpkg-${{ inputs.cache-key-suffix }}-${{ hashFiles('vcpkg.json') }}
+        restore-keys: |
+          ${{ runner.os }}-vcpkg-${{ inputs.cache-key-suffix }}-
+          ${{ runner.os }}-vcpkg-
     - name: Set environment variables
       shell: pwsh
       run: |
