@@ -4,7 +4,7 @@
   "description": "Node.js dependencies for ixwebsocket WebSocket tests",
   "private": true,
   "dependencies": {
-    "ws": "^8.20.1"
+    "ws": "^8.21.0"
   }
 }
 
