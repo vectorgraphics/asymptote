@@ -127,8 +127,11 @@ else
 fi
 ])
 
-AC_CHECK_PROGS(TEXI2ANY,[texi2any makeinfo texi2dvi],
-[@echo \*\*\*\*\*\*\*\*\*\* Please install texinfo package (texi2any)])
+AC_CHECK_PROGS(TEXI2ANY,[texi2any makeinfo])
+if test -z "$TEXI2ANY"; then
+  AC_MSG_NOTICE([*** Could not find texi2any: will compile \
+without documentation support ***])
+fi
 
 AC_SUBST(TEXI2ANY)
 

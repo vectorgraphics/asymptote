@@ -59,11 +59,15 @@ asy.1: options asy.1.begin asy.1.end
 
 asymptote.dvi: $(SOURCE) $(ASYFILES:.asy=.eps) latexusage.pdf
 	ln -sf asymptote.texi asymptote_.texi
-	-$(TEXI2ANY) --dvi asymptote_.texi
+	@if test "$(TEXI2ANY)" != ""; then \
+	  $(TEXI2ANY) --dvi asymptote_.texi; \
+	fi
 	mv asymptote_.dvi asymptote.dvi
 
 asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf) latexusage.pdf
-	-$(TEXI2ANY) --pdf asymptote.texi
+	@if test "$(TEXI2ANY)" != ""; then \
+	  $(TEXI2ANY) --pdf asymptote.texi; \
+	fi
 
 CAD.pdf: CAD.tex CAD1.eps
 	pdflatex CAD

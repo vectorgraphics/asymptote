@@ -8,7 +8,9 @@ INSTALL = @INSTALL@
 all: faq
 
 faq: asy-faq.texi asy-faq.css
-	$(TEXI2ANY) --html --no-split --css-include=asy-faq.css -o asy-faq.html asy-faq.texi
+	@if test "$(TEXI2ANY)" != ""; then \
+	  $(TEXI2ANY) --html --no-split --css-include=asy-faq.css -o asy-faq.html asy-faq.texi; \
+	fi
 
 clean: FORCE
 	-rm -f *~ core a.out *.lout *.ps *.ascii *.xrefdb *.post
