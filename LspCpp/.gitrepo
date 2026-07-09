@@ -6,7 +6,7 @@
 [subrepo]
 	remote = git@github.com:vectorgraphics/LspCpp
 	branch = master
-	commit = 116f7de34aca1933e14fcd61b59e5cea21339e8e
-	parent = 5f9fd8934f79414f40e044a6997f9409e08e2baf
+	commit = 9703bf03d00938c0286f3fa239d3588997693205
+	parent = d5138ed7163cc7cb7fa7506f7dee632e004e2290
 	method = merge
 	cmdver = 0.4.9
