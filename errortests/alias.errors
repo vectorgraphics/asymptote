@@ -6,3 +6,4 @@ errortests/alias.asy: 39.8: alias requires both arguments to have the same type
 errortests/alias.asy: 50.8: alias: argument type is ambiguous
 errortests/alias.asy: 60.8: alias: argument type is ambiguous
 errortests/alias.asy: 61.8: alias: argument type is ambiguous
+errortests/alias.asy: 69.17: no matching variable 'undefinedThing'

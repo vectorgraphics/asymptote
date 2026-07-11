@@ -1195,9 +1195,16 @@ types::ty *callExp::getType(coenv &e)
   if (h && h->getType) {
     types::ty *t = getTypeRegular(e);
     assert(t);
-    if (t->kind != ty_error && !resolvedToOpenSignature())
-      return t;
-    return (this->*(h->getType))(e);
+    // Dispatch to the custom handler only when the call actually resolved to
+    // the open-signature builtin (mirroring the gating in trans()).  If regular
+    // resolution produced a concrete match or an error, return it as-is;
+    // otherwise a handler such as getAliasType (which returns primBoolean()
+    // unconditionally) would mask the underlying error with a bogus type.  The
+    // error check comes first so the anti-masking guard holds even if a failed
+    // resolution ever stops implying !resolvedToOpenSignature().
+    if (t->kind != ty_error && resolvedToOpenSignature())
+      return (this->*(h->getType))(e);
+    return t;
   }
 
   return getTypeRegular(e);

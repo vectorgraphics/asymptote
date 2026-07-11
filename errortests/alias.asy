@@ -60,3 +60,11 @@
   alias(f, null);  // error: ambiguous
   alias(null, f);  // error: ambiguous
 }
+{
+  // An erroring argument must surface the underlying error, not be masked by
+  // the alias custom-handler type.  callExp::getType() (used here because the
+  // result is consumed in a typed context) must not dispatch to getAliasType
+  // --- which returns bool unconditionally --- when regular resolution failed.
+  // Regression: a bug here reported a bogus "cannot cast 'bool' to 'int'".
+  int i = alias(undefinedThing, 3);  // error: undefinedThing is undefined
+}
