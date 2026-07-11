@@ -953,7 +953,9 @@ public:
 // are consulted only after argument resolution has selected an open-signature
 // function with that name, so the table is irrelevant for the overwhelming
 // majority of calls (which resolve to concrete signatures).
-// Asserts that `name` is not already registered.
+// Idempotent: re-registering `name` is allowed only if the handlers are
+// identical (asserted); registering different handlers for the same name is a
+// programming error.
 //
 // Note: the table is keyed by symbol rather than by varEntry* because the
 // overload resolver (`application::match`) discards varEntry information
