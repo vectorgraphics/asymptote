@@ -291,6 +291,18 @@ bool AsyContextImpl::isSimpleFrameBuild() const
   return false;
 #endif
 }
+void AsyContextImpl::reportError(const char* message)
+{
+  camp::reportError(message);
+}
+void AsyContextImpl::reportWarning(const char* message)
+{
+  camp::reportWarning(message);
+}
+void AsyContextImpl::reportFatal(const char* message)
+{
+  camp::reportFatal(message);
+}
 
 AsyStackContextImpl::AsyStackContextImpl(vm::stack* inStack) : stack(inStack) {}
 void AsyStackContextImpl::callVoid(

@@ -108,6 +108,10 @@ public:
   [[nodiscard]]
   bool isSimpleFrameBuild() const override;
 
+  void reportError(const char* message) override;
+  void reportWarning(const char* message) override;
+  void reportFatal(const char* message) override;
+
 protected:
   template<typename TImpl, typename TInterface, typename... TCreationArgs>
   static TInterface* createNewItemGeneric(TCreationArgs&&... args)
