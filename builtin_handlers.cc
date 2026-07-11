@@ -55,8 +55,12 @@ bltin aliasNullBuiltin(ty *target)
 }
 
 // If `target` is the function signature `bool(T, T)` with a single common
-// operand type T and no defaults / rest / open formals, return T; otherwise
-// return nullptr.  Shared by the record `==`/`!=` and `alias` specialize hooks.
+// operand type T and no rest or open formals, return T; otherwise return
+// nullptr.  Defaults on the formals are intentionally not rejected: like any
+// function value assigned to a defaulted signature, the resulting comparison
+// works when called with both arguments (defaults don't carry through a
+// function-typed variable in Asymptote).  Shared by the record `==`/`!=` and
+// `alias` specialize hooks.
 types::ty *binaryBoolOperandType(ty *target)
 {
   function *ft = dynamic_cast<function *>(target);
