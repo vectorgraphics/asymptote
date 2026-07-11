@@ -170,7 +170,8 @@ void registerCustomHandlers(symbol name, callExp::CustomHandlers h)
   HandlerMap &table = customHandlersTable();
   auto it = table.find(name);
   if (it != table.end()) {
-    assert(it->second.trans == h.trans && it->second.getType == h.getType);
+    assert(it->second.trans == h.trans && it->second.getType == h.getType &&
+           it->second.specialize == h.specialize);
     return;
   }
   table[name] = h;
