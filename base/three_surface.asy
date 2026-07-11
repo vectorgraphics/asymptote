@@ -1631,18 +1631,22 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
         int k=round(a[1]);
         patch S=s.s[k];
         pen meshpen=meshpen[k];
-        if(!invisible(meshpen) && !S.triangular) {
+        if(!invisible(meshpen)) {
+          meshpen=modifiers+meshpen;
           if(group)
             begingroup3(f,meshname(name),render);
-          meshpen=modifiers+meshpen;
-          real step=nu == 0 ? 0 : 1/nu;
-          for(int i=0; i <= nu; ++i)
-            draw(f,S.uequals(i*step),meshpen,meshlight,partname(i,render),
-                 render);
-          step=nv == 0 ? 0 : 1/nv;
-          for(int j=0; j <= nv; ++j)
-            draw(f,S.vequals(j*step),meshpen,meshlight,partname(j,render),
-                 render);
+          if(S.triangular)
+            draw(f,S.external(),meshpen,meshlight,partname(0,render),render);
+          else {
+            real step=nu == 0 ? 0 : 1/nu;
+            for(int i=0; i <= nu; ++i)
+              draw(f,S.uequals(i*step),meshpen,meshlight,partname(i,render),
+                   render);
+            step=nv == 0 ? 0 : 1/nv;
+            for(int j=0; j <= nv; ++j)
+              draw(f,S.vequals(j*step),meshpen,meshlight,partname(j,render),
+                   render);
+          }
           if(group)
             endgroup3(f);
         }
@@ -1831,14 +1835,18 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   for(int k=0; k < s.s.length; ++k) {
     patch S=s.s[k];
     pen meshpen=meshpen[k];
-    if(!invisible(meshpen) && !S.triangular) {
+    if(!invisible(meshpen)) {
       meshpen=modifiers+meshpen;
-      real step=nu == 0 ? 0 : 1/nu;
-      for(int i=0; i <= nu; ++i)
-        addPath(pic,s.s[k].uequals(i*step),meshpen);
-      step=nv == 0 ? 0 : 1/nv;
-      for(int j=0; j <= nv; ++j)
-        addPath(pic,s.s[k].vequals(j*step),meshpen);
+      if(S.triangular)
+        addPath(pic,s.s[k].external(),meshpen);
+      else {
+        real step=nu == 0 ? 0 : 1/nu;
+        for(int i=0; i <= nu; ++i)
+          addPath(pic,s.s[k].uequals(i*step),meshpen);
+        step=nv == 0 ? 0 : 1/nv;
+        for(int j=0; j <= nv; ++j)
+          addPath(pic,s.s[k].vequals(j*step),meshpen);
+      }
     }
   }
 }
