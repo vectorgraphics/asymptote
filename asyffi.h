@@ -1056,12 +1056,3 @@ typedef void (*LNK_CALL TAsyRegisterDynlibFn)(IAsyContext*, IAsyFfiRegisterer*);
  * Shorthand for "functionName", &functionName for registering functions
  */
 #define ASYFFI_FN_NAME_AND_ADDR(functionName) #functionName, &(functionName)
-
-/**
- * Shorthand for container.size(), container.data()
- */
-#define STD_CONTAINER_SIZE_AND_DATA(container)                                 \
-  container.size(), container.data()
-
-/** Shorthand for 0, nullptr */
-#define EMPTY_STD_CONTAINER_SIZE_AND_DATA 0, nullptr
