@@ -974,6 +974,10 @@ const callExp::CustomHandlers *lookupCustomHandlers(symbol name);
 trans::access *specializeRecordEq(types::ty *target);
 trans::access *specializeRecordNeq(types::ty *target);
 
+// `specialize` callback for `alias`, so that `bool eq(T, T) = alias;` works
+// for any nullable type T (records, arrays, and function types).
+trans::access *specializeAlias(types::ty *target);
+
 class nullaryExp : public callExp {
 public:
   nullaryExp(position pos, symbol op)

@@ -54,10 +54,10 @@ bltin aliasNullBuiltin(ty *target)
   }
 }
 
-// Tests whether `target` has the function signature `bool(R, R)` with R a
-// concrete record type and no defaults / rest / open formals.  Returns the
-// record type on success, nullptr otherwise.
-record *recordEqTarget(ty *target)
+// If `target` is the function signature `bool(T, T)` with a single common
+// operand type T and no defaults / rest / open formals, return T; otherwise
+// return nullptr.  Shared by the record `==`/`!=` and `alias` specialize hooks.
+types::ty *binaryBoolOperandType(ty *target)
 {
   function *ft = dynamic_cast<function *>(target);
   if (!ft) return nullptr;
@@ -67,9 +67,17 @@ record *recordEqTarget(ty *target)
   if (sig->getNumFormals() != 2) return nullptr;
   types::ty *t0 = sig->getFormal(0).t;
   types::ty *t1 = sig->getFormal(1).t;
-  if (!t0 || t0->kind != ty_record) return nullptr;
-  if (!equivalent(t0, t1)) return nullptr;
-  return dynamic_cast<record *>(t0);
+  if (!t0 || !t1 || !equivalent(t0, t1)) return nullptr;
+  return t0;
+}
+
+// Tests whether `target` has the function signature `bool(R, R)` with R a
+// concrete record type.  Returns the record type on success, nullptr otherwise.
+record *recordEqTarget(ty *target)
+{
+  types::ty *t = binaryBoolOperandType(target);
+  if (!t || t->kind != ty_record) return nullptr;
+  return dynamic_cast<record *>(t);
 }
 
 } // namespace
@@ -84,6 +92,16 @@ trans::access *specializeRecordNeq(ty *target)
 {
   if (!recordEqTarget(target)) return nullptr;
   return new trans::callableAccess(new vm::bfunc(run::boolMemNeq));
+}
+
+trans::access *specializeAlias(ty *target)
+{
+  // `alias` may be coerced to `bool(T, T)` for any nullable (reference) type T
+  // --- records, arrays, and function types --- with the runtime comparison
+  // selected the same way as at a direct call site.
+  types::ty *t = binaryBoolOperandType(target);
+  if (!t || !t->isReference() || t->kind == ty_null) return nullptr;
+  return new trans::callableAccess(new vm::bfunc(aliasCompareBuiltin(t)));
 }
 
 namespace {

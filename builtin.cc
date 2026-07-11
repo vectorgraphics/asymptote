@@ -894,7 +894,8 @@ void base_venv(venv &ve)
 
   addOpenBuiltinFunc(ve, run::boolMemEq,
                      {&absyntax::callExp::transAlias,
-                      &absyntax::callExp::getAliasType},
+                      &absyntax::callExp::getAliasType,
+                      &absyntax::specializeAlias},
                      primBoolean(), SYM(alias));
   addOpenFunc(ve, printBytecode, primVoid(), SYM(printBytecode));
 
