@@ -4536,6 +4536,11 @@ T} creates a new instance of the structure @code{T}.  The boolean operators
 @code{==} and @code{!=} are by default equivalent to @code{alias} and
 @code{!alias} respectively, but may be overwritten for a particular type
 (for example, to do a deep comparison).
+Because the default @code{==} and @code{!=} (like @code{alias}) require both
+operands to have the same type, no implicit casting is performed to reconcile
+differing operand types: comparing values of two different structure types is
+an error, even if a cast between them exists, unless a matching
+@code{operator ==} has been declared.
 
 Here is a simple example that illustrates the use of structures:
 @verbatim
