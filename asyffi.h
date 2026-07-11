@@ -415,6 +415,27 @@ public:
    * IAsyVarFrame}
    */
   virtual bool isSimpleFrameBuild() const= 0;
+
+  // warnings and errors
+
+  /**
+   * Throws an error with given message.
+   * @remark This function throws C++ exceptions. Therefore,
+   * do not use this in any functions marked "noexcept"
+   */
+  virtual void reportError(char const* message)= 0;
+
+  /**
+   * Throws a warning with given message.
+   */
+  virtual void reportWarning(char const* message)= 0;
+
+  /**
+   * Throws a fatal error with given message.
+   * @remark This function throws C++ exceptions. Therefore,
+   * do not use this in any functions marked "noexcept"
+   */
+  virtual void reportFatal(char const* message)= 0;
 };
 
 // question: will we ever exceed 256 primitive types?
