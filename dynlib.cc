@@ -22,7 +22,7 @@ record* loadDynLib(string const& key, string const& fileName, trans::genv* genv)
           camp::getDynlibManager()->loadLib(key, fileName);
   string const registerName= string("registerPlugin_") + key;
 
-  camp::AsyFfiRegistererImpl registerer(key, genv);
+  camp::AsyFfiRegistererImpl registerer(key, genv, camp::getAsyContext());
   auto const registerFunction=
           lib->getSymAddress<TAsyRegisterDynlibFn>(registerName.c_str());
   registerFunction(camp::getAsyContext(), &registerer);

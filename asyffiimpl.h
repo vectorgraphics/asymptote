@@ -158,7 +158,7 @@ private:
 class AsyFfiRegistererImpl : public IAsyFfiRegisterer
 {
 public:
-  AsyFfiRegistererImpl(string const& dynlibName, trans::genv* genv);
+  AsyFfiRegistererImpl(string const& dynlibName, trans::genv* genv, IAsyContext* context);
   void registerFunction(
           char const* name, TAsyForeignFunction fn,
           Asy::FunctionTypeMetadata const& fnTypeInfo
@@ -172,8 +172,11 @@ public:
   [[nodiscard]]
   record* getRecord() const;
 
+  IAsyContext* getContext() override;
+
 private:
   string libName;
+  IAsyContext* contextPtr;
 
 public:
   trans::genv* globalEnv;

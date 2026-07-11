@@ -960,6 +960,8 @@ public:
           char const* name, TAsyForeignFunction fn,
           Asy::FunctionTypeMetadata const& fnTypeInfo
   )= 0;
+  
+  virtual IAsyContext* getContext()= 0;
 
   /** @return Asymptote global module import manager */
   virtual IAsyGlobalEnvironment* getGlobalEnvironment()= 0;

@@ -393,9 +393,9 @@ trans::access* AsyStackContextImpl::getVariableAccess(
 }
 
 AsyFfiRegistererImpl::AsyFfiRegistererImpl(
-        string const& dynlibName, trans::genv* genv
+        string const& dynlibName, trans::genv* genv, IAsyContext* context
 )
-    : libName(dynlibName), globalEnv(genv),
+    : libName(dynlibName), contextPtr(context), globalEnv(genv),
       sym(symbol::literalTrans(dynlibName)),
       recordVar(new types::dummyRecord(sym))
 {}
@@ -418,6 +418,7 @@ IAsyGlobalEnvironment* AsyFfiRegistererImpl::getGlobalEnvironment()
 }
 
 record* AsyFfiRegistererImpl::getRecord() const { return recordVar; }
+IAsyContext* AsyFfiRegistererImpl::getContext() { return contextPtr; }
 
 types::function* createFunctionTypeFromMetadata(
         Asy::FunctionTypePtrRetMetadata const& fnTypeInfo
