@@ -594,6 +594,50 @@ enum class PenLineJoin : uint8_t
   Bevel
 };
 
+struct PenTransparencyInfo {
+  char const* blendType;
+  double opacity;
+};
+
+struct PenLineType {
+  /** Number of pattern entries that patternPtr array points to */
+  size_t patternCount;
+
+  /** Pointer to array of postscript pattern entries */
+  double* patternPtr;
+  
+  /** Offset in the pattern to start drawing */
+  double offset;
+  /** Whether to scale the line type values by pen width */
+  bool scale;
+  /** Whether to adjust the line type values to fit an arclength */
+  bool adjust;
+};
+
+struct PenColor
+{
+  union
+  {
+    double red;
+    double cyan;
+  };
+  union
+  {
+    double green;
+    double magenta;
+  };
+  union
+  {
+    double blue;
+    double yellow;
+  };
+  union
+  {
+    double grey;
+    double k;
+  };
+};
+
 }// namespace Asy
 
 class IAsyTensionSpecifier

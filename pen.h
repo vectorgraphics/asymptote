@@ -33,6 +33,8 @@ public:
   LineType(vm::array pattern, double offset, bool scale, bool adjust) :
     pattern(pattern), offset(offset), scale(scale), adjust(adjust),
     isdefault(false) {}
+  
+  LineType(Asy::PenLineType const& lineTypeInfo);
 
   void Scale(double factor) {
     size_t n=pattern.size();
@@ -133,6 +135,8 @@ public:
 
   Transparency() :
     blend("Compatible"), opacity(1.0), isdefault(true) {}
+  
+  Transparency(Asy::PenTransparencyInfo const& transparencyInfo);
 
   Transparency(const string& blend, double opacity) :
     blend(blend), opacity(opacity), isdefault(false) {}

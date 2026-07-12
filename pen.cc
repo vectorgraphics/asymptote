@@ -18,6 +18,17 @@ const Int DEFCAP=-1;
 const Int DEFJOIN=-1;
 const double DEFMITER=0;
 const transform nullTransform=transform(0.0,0.0,0.0,0.0,0.0,0.0);
+LineType::LineType(Asy::PenLineType const& lineTypeInfo)
+  : pattern(lineTypeInfo.patternCount),
+offset(lineTypeInfo.offset),
+scale(lineTypeInfo.scale),
+adjust(lineTypeInfo.adjust),
+isdefault(false)
+{
+  for (size_t i=0; i < lineTypeInfo.patternCount; ++i) {
+    pattern[i]=*(lineTypeInfo.patternPtr + i);
+  }
+}
 
 const char* PSCap[]={"butt","round","square"};
 const char* Cap[]={"square","round","extended"};
@@ -49,6 +60,9 @@ void* pen::getFontName() const
 {
   return new (UseGC) string(Font());
 }
+Transparency::Transparency(Asy::PenTransparencyInfo const& transparencyInfo)
+    : blend(transparencyInfo.blendType), opacity(transparencyInfo.opacity), isdefault(false)
+{}
 
 Asy::PenColorSpace pen::getColorSpace() const
 {
