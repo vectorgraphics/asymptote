@@ -50,7 +50,7 @@
 #  endif
 
 #else
-#  error Right now, FFI is only supported for MSWindows and Linux systems
+#  error Right now, FFI is only supported for MSWindows, Linux, and macOS
 #endif
 
 /**
