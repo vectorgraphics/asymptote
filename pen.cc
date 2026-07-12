@@ -63,6 +63,8 @@ void* pen::getFontName() const
 Transparency::Transparency(Asy::PenTransparencyInfo const& transparencyInfo)
     : blend(transparencyInfo.blendType), opacity(transparencyInfo.opacity), isdefault(false)
 {}
+double pen::getFontSize() const { return size(); }
+double pen::getLineSkip() const { return Lineskip(); }
 
 Asy::PenColorSpace pen::getColorSpace() const
 {

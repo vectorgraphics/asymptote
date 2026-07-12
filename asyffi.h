@@ -824,6 +824,12 @@ public:
   virtual void setFontName(char const* newFont)= 0;
 
   [[nodiscard]]
+  virtual double getFontSize() const= 0;
+
+  [[nodiscard]]
+  virtual double getLineSkip() const= 0;
+
+  [[nodiscard]]
   virtual Asy::PenColorSpace getColorSpace() const= 0;
   virtual bool tryPromoteColorSpace(Asy::PenColorSpace newColorSpace)= 0;
 

@@ -978,6 +978,11 @@ public:
   void* getFontName() const override;
 
   [[nodiscard]]
+  double getFontSize() const override;
+  [[nodiscard]]
+  double getLineSkip() const override;
+
+  [[nodiscard]]
   Asy::PenColorSpace getColorSpace() const override;
   bool tryPromoteColorSpace(Asy::PenColorSpace newColorSpace) override;
   [[nodiscard]]
