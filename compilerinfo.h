@@ -30,7 +30,7 @@ std::string const ARCH_STRING= "Unknown architecture";
 
 #  if defined(__clang__)// for clang
 std::string const ASY_COMPILER_INFO=
-        "clang " + __clang_version__ + " (" + ARCH_STRING + ")";
+        std::string("clang ") + __clang_version__ + " (" + ARCH_STRING + ")";
 #  else                 // for gcc
 std::string const ASY_COMPILER_INFO= "GCC " + std::to_string(__GNUC__) + "." +
                                      std::to_string(__GNUC_MINOR__) + "." +

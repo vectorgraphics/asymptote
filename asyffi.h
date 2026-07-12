@@ -36,21 +36,19 @@
 #    define LNK_CALL
 #  endif
 
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
 #  include <cstddef>
 #  define ASY_FFI_EXPORT [[gnu::visibility("default")]]
 
-// like the case for windows. LNK_CALL is not used for 64-bit systems
-#  ifndef __LP64__
+// like the case for windows. LNK_CALL is not used for 64-bit systems.
+// On Apple (both arm64 and x86_64) the ABI is LP64, so LNK_CALL is empty
+// there as well; __cdecl is only meaningful on 32-bit x86.
+#  if !defined(__LP64__) && defined(__i386__)
 #    define LNK_CALL __attribute__((__cdecl__))
 #  else
 #    define LNK_CALL
 #  endif
 
-#elif defined(__APPLE__)
-
-#  error FFI is not yet implementy for MacOS. \
-  Additionally, work has to be done for ARM vs x86 systems.
 #else
 #  error Right now, FFI is only supported for MSWindows and Linux systems
 #endif
