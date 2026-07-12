@@ -673,7 +673,7 @@ public:
   virtual bool isEmpty() const= 0;
 };
 
-class IAsyBbox3 : public IAsyBbox
+class IAsyBbox3 : public virtual IAsyBbox
 {
 public:
   ~IAsyBbox3() override= default;
