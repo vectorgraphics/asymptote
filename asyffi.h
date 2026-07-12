@@ -518,6 +518,82 @@ enum class BaseTypes : uint8_t
   FunctionType,
 };
 
+/** Pen overwrite types */
+enum class PenOverwrites : int8_t
+{
+  Default= -1,
+  Allow,
+  Suppress,
+  SuppressQuiet,
+  Move,
+  MoveQuiet
+};
+
+/** How the pen should fill covered areas. Corresponds to PostScript fill rules
+ */
+enum class PenFillRule : int8_t
+{
+  Default= -1,
+
+  /** Corresponds to standard postscript fill */
+  ZeroWinding,
+
+  /** Corresponds to eofill rule */
+  EvenOdd
+};
+
+/** How the pen handles base alignment */
+enum class PenBaseLine : int8_t
+{
+  Default= -1,
+
+  NoBaseAlign,
+
+  BaseAlign
+};
+
+/** Determines the color space for a pen */
+enum class PenColorSpace : uint8_t
+{
+  Default= 0,
+
+  /** Pen will not be visible */
+  Invisible,
+
+  /** Grayscale drawing*/
+  Grayscale,
+
+  /** Red/Green/Blue space. Best for displaying content on screen */
+  Rgb,
+
+  /** Cyan/Magenta/Yellow/Black space. Best for content that is on print */
+  Cmyk,
+
+  /** Pen draws/fills with a specific pattern */
+  Pattern
+};
+
+/**
+ * Determines how pen terminates the lines.
+ * This corresponds to Postscript line caps
+ */
+enum class PenLineCap : uint8_t
+{
+  Square= 0,
+  Round,
+  Extended
+};
+
+/** Determine how the pen joins lines.
+ * This corresponds to Postscript join styles
+ */
+enum class PenLineJoin : uint8_t
+{
+  Miter= 0,
+  Round,
+  Bevel
+};
+
 }// namespace Asy
 
 class IAsyTensionSpecifier
@@ -958,7 +1034,7 @@ public:
           char const* name, TAsyForeignFunction fn,
           Asy::FunctionTypeMetadata const& fnTypeInfo
   )= 0;
-  
+
   virtual IAsyContext* getContext()= 0;
 
   /** @return Asymptote global module import manager */

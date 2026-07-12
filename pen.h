@@ -69,6 +69,11 @@ extern const Int nCap;
 extern const char* Join[];
 extern const Int nJoin;
 
+// important: Make sure base types & values match the equivalent enums in
+// asyffi.h.
+// TODO: We probably should retire these enums and use the ones in asyffi.h
+//       as replacements.
+
 enum overwrite_t: int8_t {DEFWRITE=-1,ALLOW,SUPPRESS,SUPPRESSQUIET,MOVE,MOVEQUIET};
 extern const char* OverwriteTag[];
 extern const Int nOverwrite;
