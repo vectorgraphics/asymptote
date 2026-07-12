@@ -69,25 +69,25 @@ extern const Int nCap;
 extern const char* Join[];
 extern const Int nJoin;
 
-enum overwrite_t {DEFWRITE=-1,ALLOW,SUPPRESS,SUPPRESSQUIET,MOVE,MOVEQUIET};
+enum overwrite_t: int8_t {DEFWRITE=-1,ALLOW,SUPPRESS,SUPPRESSQUIET,MOVE,MOVEQUIET};
 extern const char* OverwriteTag[];
 extern const Int nOverwrite;
 
-enum FillRule {DEFFILL=-1,ZEROWINDING,EVENODD};
+enum FillRule : int8_t {DEFFILL=-1,ZEROWINDING,EVENODD};
 extern const char* FillRuleTag[];
 extern const Int nFill;
 
-enum BaseLine {DEFBASE=-1,NOBASEALIGN,BASEALIGN};
+enum BaseLine: int8_t {DEFBASE=-1,NOBASEALIGN,BASEALIGN};
 extern const char* BaseLineTag[];
 extern const Int nBaseLine;
 
-enum ColorSpace {DEFCOLOR=0,INVISIBLE,GRAYSCALE,RGB,CMYK,PATTERN};
+enum ColorSpace: uint8_t {DEFCOLOR=0,INVISIBLE,GRAYSCALE,RGB,CMYK,PATTERN};
 extern const size_t ColorComponents[];
 extern const char* ColorDeviceSuffix[];
 extern const unsigned nColorSpace;
 
-enum LineCap {SquareCap,RoundCap,ExtendedCap};
-enum LineJoin {MiterJoin,RoundJoin,BevelJoin};
+enum LineCap: uint8_t {SquareCap = 0,RoundCap,ExtendedCap};
+enum LineJoin: uint8_t {MiterJoin = 0,RoundJoin,BevelJoin};
 
 inline bool operator == (const vm::array& a, const vm::array& b)
 {
