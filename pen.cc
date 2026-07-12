@@ -51,6 +51,14 @@ const char* BlendMode[]={"Compatible","Normal","Multiply","Screen",
                          "Lighten","Difference","Exclusion",
                          "Hue","Saturation","Color","Luminosity"};
 const Int nBlendMode=sizeof(BlendMode)/sizeof(char*);
+void pen::setColor(Asy::PenColorSpace newColorSpace, Asy::PenColor newColor)
+{
+  color= static_cast<ColorSpace>(static_cast<uint8_t>(newColorSpace));
+  r= newColor.red;
+  g = newColor.green;
+  b = newColor.blue;
+  grey=newColor.grey;
+}
 double pen::getLineWidth() const
 {
   return width();

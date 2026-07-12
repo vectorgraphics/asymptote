@@ -912,6 +912,8 @@ public:
   /** Creates a new pen that has its colors multiplied by factor */
   [[nodiscard]]
   virtual IAsyPen* multiplyColor(double factor) const= 0;
+  
+  virtual void setColor(Asy::PenColorSpace newColorSpace, Asy::PenColor newColor)= 0;
 };
 
 namespace Asy

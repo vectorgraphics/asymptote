@@ -937,6 +937,9 @@ public:
     return t.isNull() ? defaultpen().t : t;
   }
 
+  void
+  setColor(Asy::PenColorSpace newColorSpace, Asy::PenColor newColor) override;
+
   // The bounds of the circle or ellipse the pen describes.
   bbox bounds() const
   {
