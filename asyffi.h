@@ -442,7 +442,7 @@ namespace Asy
 {
 
 /** Types of Asymptote */
-enum BaseTypes : uint8_t
+enum class BaseTypes : uint8_t
 {
   /** Corresponds to void.
    * If used as function return type, will not return any value */
