@@ -184,6 +184,21 @@ class IAsySolvedKnot;
 class IAsyPath3;
 class IAsyRecord;
 
+class IAsyPen;
+
+namespace Asy
+{
+enum class PenOverwrites : int8_t;
+enum class PenLineJoin : uint8_t;
+enum class PenLineCap : uint8_t;
+enum class PenBaseLine : int8_t;
+enum class PenFillRule : int8_t;
+enum class PenColorSpace : uint8_t;
+struct PenLineType;
+struct PenTransparencyInfo;
+struct PenColor;
+}
+
 class IAsyContext
 {
 public:
@@ -434,6 +449,19 @@ public:
    * do not use this in any functions marked "noexcept"
    */
   virtual void reportFatal(char const* message)= 0;
+  
+  // pen creation functions 
+  
+  virtual IAsyPen* createNewPen(
+          const Asy::PenLineType* lineType, double lineWidth,
+          IAsyPath const* path, char const* font, double fontSize,
+          double lineSkip, Asy::PenColorSpace colorSpace, Asy::PenColor color,
+          char const* pattern, Asy::PenFillRule fillRule,
+          Asy::PenTransparencyInfo const* transparency,
+          Asy::PenBaseLine baseLine, Asy::PenLineCap lineCap,
+          Asy::PenLineJoin lineJoin, double miterLimit,
+          Asy::PenOverwrites overwriteType, IAsyTransform const* transform
+  )= 0;
 };
 
 // question: will we ever exceed 256 primitive types?

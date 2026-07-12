@@ -112,6 +112,17 @@ public:
   void reportWarning(const char* message) override;
   void reportFatal(const char* message) override;
 
+  IAsyPen* createNewPen(
+          const Asy::PenLineType* lineType, double lineWidth,
+          IAsyPath const* pathValue, const char* font, double fontSize,
+          double lineSkip, Asy::PenColorSpace colorSpace, Asy::PenColor color,
+          const char* pattern, Asy::PenFillRule fillRule,
+          Asy::PenTransparencyInfo const* transparency,
+          Asy::PenBaseLine baseLine, Asy::PenLineCap lineCap,
+          Asy::PenLineJoin lineJoin, double miterLimit,
+          Asy::PenOverwrites overwriteType, IAsyTransform const* transformValue
+  ) override;
+
 protected:
   template<typename TImpl, typename TInterface, typename... TCreationArgs>
   static TInterface* createNewItemGeneric(TCreationArgs&&... args)

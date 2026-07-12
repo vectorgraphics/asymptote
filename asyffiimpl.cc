@@ -303,6 +303,45 @@ void AsyContextImpl::reportFatal(const char* message)
 {
   camp::reportFatal(message);
 }
+IAsyPen* AsyContextImpl::createNewPen(
+        const Asy::PenLineType* lineType, double const lineWidth,
+        IAsyPath const* pathValue, const char* font, double const fontSize,
+        double const lineSkip, Asy::PenColorSpace const colorSpace,
+        Asy::PenColor const color, const char* pattern,
+        Asy::PenFillRule const fillRule,
+        Asy::PenTransparencyInfo const* transparency, Asy::PenBaseLine baseLine,
+        Asy::PenLineCap const lineCap, Asy::PenLineJoin const lineJoin,
+        double const miterLimit, Asy::PenOverwrites const overwriteType,
+        IAsyTransform const* transformValue
+)
+{
+  auto const convertedColorSpace=
+          static_cast<ColorSpace>(static_cast<uint8_t>(colorSpace));
+  auto const convertedFillRule=
+          static_cast<FillRule>(static_cast<int8_t>(fillRule));
+  auto const convertedBaseLine=
+          static_cast<BaseLine>(static_cast<int8_t>(baseLine));
+  auto const convertedOverwrite=
+          static_cast<overwrite_t>(static_cast<int8_t>(overwriteType));
+
+  auto const* castedPathPtr= dynamic_cast<path const*>(pathValue);
+  auto const* castedTransformPtr=
+          dynamic_cast<transform const*>(transformValue);
+
+  return new pen(
+          lineType == nullptr ? LineType() : LineType(*lineType), lineWidth,
+          castedPathPtr == nullptr ? nullpath : *castedPathPtr,
+          font == nullptr ? "" : font, fontSize, lineSkip, convertedColorSpace,
+          color.red, color.green, color.blue, color.grey,
+          pattern == nullptr ? DEFPAT : string(pattern), convertedFillRule,
+          convertedBaseLine,
+          transparency == nullptr ? Transparency()
+                                  : Transparency(*transparency),
+          static_cast<int8_t>(lineCap), static_cast<int8_t>(lineJoin),
+          miterLimit, convertedOverwrite,
+          castedTransformPtr == nullptr ? nullTransform : *castedTransformPtr
+  );
+}
 
 AsyStackContextImpl::AsyStackContextImpl(vm::stack* inStack) : stack(inStack) {}
 void AsyStackContextImpl::callVoid(
