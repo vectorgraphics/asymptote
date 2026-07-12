@@ -10,6 +10,7 @@
 #include <iomanip>
 
 #include "transform.h"
+#include "asyffi.h"
 #include "settings.h"
 #include "bbox.h"
 #include "common.h"
@@ -161,7 +162,7 @@ inline double byteinv(unsigned char i)
 class pen;
 pen& defaultpen();
 
-class pen : public gc {
+class pen : public gc, public IAsyPen {
   LineType line;
 
   // Width of line, in PS units.
@@ -966,6 +967,48 @@ public:
 
     return b;
   }
+
+  [[nodiscard]]
+  double getLineWidth() const override;
+  [[nodiscard]]
+  void* getFontName() const override;
+
+  [[nodiscard]]
+  Asy::PenColorSpace getColorSpace() const override;
+  bool tryPromoteColorSpace(Asy::PenColorSpace newColorSpace) override;
+  [[nodiscard]]
+  double getRedOrCyan() const override;
+  [[nodiscard]]
+  double getGreenOrMagenta() const override;
+  [[nodiscard]]
+  double getBlueOrYellow() const override;
+  [[nodiscard]]
+  double getGreyOrKValue() const override;
+  [[nodiscard]]
+  const char* getPatternName() const override;
+  [[nodiscard]]
+  Asy::PenFillRule getFillRule() const override;
+  [[nodiscard]]
+  Asy::PenBaseLine getBaseLine() const override;
+  [[nodiscard]]
+  int64_t getLineCap() const override;
+  [[nodiscard]]
+  int64_t getLineJoin() const override;
+  [[nodiscard]]
+  double getMiterLimit() const override;
+  [[nodiscard]]
+  Asy::PenOverwrites getOverwriteValue() const override;
+  [[nodiscard]]
+  const IAsyTransform* getTransformValue() const override;
+
+  IAsyPen* composeWithAnotherPen(const IAsyPen* other) const override;
+  
+  [[nodiscard]]
+  IAsyPen* multiplyColor(double factor) const override;
+
+  void setFontName(const char* newFont) override;
+  void tryConvertToGreyscale() override;
+  void setFillRule(Asy::PenFillRule fillRule) override;
 
   friend pen transformed(const transform& t, const pen& p) {
     pen ret = p;

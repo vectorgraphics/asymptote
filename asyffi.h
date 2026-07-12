@@ -761,6 +761,81 @@ public:
   virtual double getFar()= 0;
 };
 
+class IAsyPen
+{
+public:
+  virtual ~IAsyPen()= default;
+
+  [[nodiscard]]
+  virtual double getLineWidth() const= 0;
+
+  /**
+   * @return A new string copy of pen's font
+   * @remark If the font is not explicitly specified, it returns the default
+   * font being used
+   */
+  [[nodiscard]]
+  virtual void* getFontName() const= 0;
+
+  virtual void setFontName(char const* newFont)= 0;
+
+  [[nodiscard]]
+  virtual Asy::PenColorSpace getColorSpace() const= 0;
+  virtual bool tryPromoteColorSpace(Asy::PenColorSpace newColorSpace)= 0;
+
+  [[nodiscard]]
+  virtual double getRedOrCyan() const= 0;
+
+  [[nodiscard]]
+  virtual double getGreenOrMagenta() const= 0;
+
+  [[nodiscard]]
+  virtual double getBlueOrYellow() const= 0;
+
+  [[nodiscard]]
+  virtual double getGreyOrKValue() const= 0;
+
+  virtual void tryConvertToGreyscale()= 0;
+
+  [[nodiscard]]
+  virtual char const* getPatternName() const= 0;
+
+  [[nodiscard]]
+  virtual Asy::PenFillRule getFillRule() const= 0;
+
+  virtual void setFillRule(Asy::PenFillRule fillRule)= 0;
+
+  [[nodiscard]]
+  virtual Asy::PenBaseLine getBaseLine() const= 0;
+
+  [[nodiscard]]
+  virtual int64_t getLineCap() const= 0;
+
+  [[nodiscard]]
+  virtual int64_t getLineJoin() const= 0;
+
+  [[nodiscard]]
+  virtual double getMiterLimit() const= 0;
+
+  [[nodiscard]]
+  virtual Asy::PenOverwrites getOverwriteValue() const= 0;
+
+  /**
+   * If the pen's transform is null, this function returns the default transform
+   * value.
+   * @remark This transform is a copy of the pen's transform.
+   */
+  [[nodiscard]]
+  virtual IAsyTransform const* getTransformValue() const= 0;
+
+  /** Creates a new pen copy that is this pen composed with another pen */
+  virtual IAsyPen* composeWithAnotherPen(IAsyPen const* other) const= 0;
+
+  /** Creates a new pen that has its colors multiplied by factor */
+  [[nodiscard]]
+  virtual IAsyPen* multiplyColor(double factor) const= 0;
+};
+
 namespace Asy
 {
 

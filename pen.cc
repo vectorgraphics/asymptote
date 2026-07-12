@@ -40,6 +40,101 @@ const char* BlendMode[]={"Compatible","Normal","Multiply","Screen",
                          "Lighten","Difference","Exclusion",
                          "Hue","Saturation","Color","Luminosity"};
 const Int nBlendMode=sizeof(BlendMode)/sizeof(char*);
+double pen::getLineWidth() const
+{
+  return width();
+}
+
+void* pen::getFontName() const
+{
+  return new (UseGC) string(Font());
+}
+
+Asy::PenColorSpace pen::getColorSpace() const
+{
+  auto underlyingValue = static_cast<uint8_t>(colorspace());
+  return static_cast<Asy::PenColorSpace>(underlyingValue);
+  
+}
+bool pen::tryPromoteColorSpace(Asy::PenColorSpace newColorSpace)
+{
+  auto underlyingValue= static_cast<uint8_t>(newColorSpace);
+  return promote(static_cast<ColorSpace>(underlyingValue));
+}
+double pen::getRedOrCyan() const
+{
+  return red();
+}
+
+double pen::getGreenOrMagenta() const
+{
+  return green();
+}
+double pen::getBlueOrYellow() const
+{
+  return blue();
+}
+double pen::getGreyOrKValue() const
+{
+  return gray();
+}
+const char* pen::getPatternName() const
+{
+  return pattern.empty() ? nullptr : pattern.c_str();
+}
+Asy::PenFillRule pen::getFillRule() const
+{
+  auto underlyingValue= static_cast<int8_t>(Fillrule());
+  return static_cast<Asy::PenFillRule>(underlyingValue);
+}
+
+Asy::PenBaseLine pen::getBaseLine() const
+{
+  auto underlyingValue= static_cast<int8_t>(Baseline());
+  return static_cast<Asy::PenBaseLine>(underlyingValue);
+}
+int64_t pen::getLineCap() const
+{
+  return cap();
+}
+int64_t pen::getLineJoin() const
+{
+  return join();
+}
+double pen::getMiterLimit() const
+{
+  return miter();
+}
+Asy::PenOverwrites pen::getOverwriteValue() const
+{
+  auto underlyingValue= static_cast<int8_t>(Overwrite());
+  return static_cast<Asy::PenOverwrites>(underlyingValue);
+}
+const IAsyTransform* pen::getTransformValue() const
+{
+  return new transform(getTransform());
+}
+IAsyPen* pen::composeWithAnotherPen(const IAsyPen* other) const
+{
+  auto const* castedPen = static_cast<pen const*>(other);
+  return new pen(*this + *castedPen);
+}
+IAsyPen* pen::multiplyColor(double const factor) const
+{
+  return new pen(factor * (*this));
+}
+void pen::setFontName(const char* newFont)
+{
+  font = newFont == nullptr ? "" : string(newFont);
+}
+void pen::tryConvertToGreyscale() {
+  togrey();
+}
+void pen::setFillRule(Asy::PenFillRule fillRule)
+{
+  auto underlyingValue= static_cast<int8_t>(fillRule);
+  fillrule = static_cast<FillRule>(underlyingValue);
+}
 
 pen drawElement::lastpen;
 
