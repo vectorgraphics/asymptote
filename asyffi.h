@@ -189,8 +189,8 @@ class IAsyPen;
 namespace Asy
 {
 enum class PenOverwrites : int8_t;
-enum class PenLineJoin : uint8_t;
-enum class PenLineCap : uint8_t;
+enum class PenLineJoin : int8_t;
+enum class PenLineCap : int8_t;
 enum class PenBaseLine : int8_t;
 enum class PenFillRule : int8_t;
 enum class PenColorSpace : uint8_t;
@@ -605,9 +605,10 @@ enum class PenColorSpace : uint8_t
  * Determines how pen terminates the lines.
  * This corresponds to Postscript line caps
  */
-enum class PenLineCap : uint8_t
+enum class PenLineCap : int8_t
 {
-  Square= 0,
+  Default = -1,
+  Square,
   Round,
   Extended
 };
@@ -615,9 +616,10 @@ enum class PenLineCap : uint8_t
 /** Determine how the pen joins lines.
  * This corresponds to Postscript join styles
  */
-enum class PenLineJoin : uint8_t
+enum class PenLineJoin : int8_t
 {
-  Miter= 0,
+  Default = -1,
+  Miter,
   Round,
   Bevel
 };
@@ -887,10 +889,10 @@ public:
   virtual Asy::PenBaseLine getBaseLine() const= 0;
 
   [[nodiscard]]
-  virtual int64_t getLineCap() const= 0;
+  virtual Asy::PenLineCap getLineCap() const= 0;
 
   [[nodiscard]]
-  virtual int64_t getLineJoin() const= 0;
+  virtual Asy::PenLineJoin getLineJoin() const= 0;
 
   [[nodiscard]]
   virtual double getMiterLimit() const= 0;

@@ -117,13 +117,13 @@ Asy::PenBaseLine pen::getBaseLine() const
   auto underlyingValue= static_cast<int8_t>(Baseline());
   return static_cast<Asy::PenBaseLine>(underlyingValue);
 }
-int64_t pen::getLineCap() const
+Asy::PenLineCap pen::getLineCap() const
 {
-  return cap();
+  return static_cast<Asy::PenLineCap>(static_cast<int8_t>(cap()));
 }
-int64_t pen::getLineJoin() const
+Asy::PenLineJoin pen::getLineJoin() const
 {
-  return join();
+  return static_cast<Asy::PenLineJoin>(static_cast<int8_t>(join()));
 }
 double pen::getMiterLimit() const
 {

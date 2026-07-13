@@ -94,8 +94,8 @@ extern const size_t ColorComponents[];
 extern const char* ColorDeviceSuffix[];
 extern const unsigned nColorSpace;
 
-enum LineCap: uint8_t {SquareCap = 0,RoundCap,ExtendedCap};
-enum LineJoin: uint8_t {MiterJoin = 0,RoundJoin,BevelJoin};
+enum LineCap: int8_t {DefaultCap = -1, SquareCap = 0,RoundCap,ExtendedCap};
+enum LineJoin: int8_t {DefaultJoin = -1, MiterJoin = 0,RoundJoin,BevelJoin};
 
 inline bool operator == (const vm::array& a, const vm::array& b)
 {
@@ -1003,9 +1003,9 @@ public:
   [[nodiscard]]
   Asy::PenBaseLine getBaseLine() const override;
   [[nodiscard]]
-  int64_t getLineCap() const override;
+  Asy::PenLineCap getLineCap() const override;
   [[nodiscard]]
-  int64_t getLineJoin() const override;
+  Asy::PenLineJoin getLineJoin() const override;
   [[nodiscard]]
   double getMiterLimit() const override;
   [[nodiscard]]
