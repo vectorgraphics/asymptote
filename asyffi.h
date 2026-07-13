@@ -1134,7 +1134,7 @@ typedef void (*LNK_CALL TAsyForeignFunction)(
  * (x, y, xx, xy, yx, yy) where the R^2 transform function T is defined as
  * (u, v) -> (x + xx*u + xy*v, y + yx*u + yy*v)
  */
-class IAsyTransform : public IAsyTuple
+class IAsyTransform : public virtual IAsyTuple
 {
 public:
   ~IAsyTransform() override= default;
