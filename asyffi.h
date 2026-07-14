@@ -835,6 +835,8 @@ public:
   virtual double getFar()= 0;
 };
 
+constexpr double ASY_PEN_DEFAULT_WIDTH = -1;
+
 class IAsyPen
 {
 public:
