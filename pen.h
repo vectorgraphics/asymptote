@@ -8,6 +8,7 @@
 #define PEN_H
 
 #include <iomanip>
+#include <limits>
 
 #include "transform.h"
 #include "asyffi.h"
@@ -433,7 +434,9 @@ public:
     overwrite(DEFWRITE), t(nullTransform) {}
 
   double width() const {
-    return linewidth == DEFWIDTH ? defaultpen().linewidth : linewidth;
+    // negative line widths aren't really meaningful, hence
+    // we assume any negative line width is the default one
+    return linewidth < 0 ? defaultpen().linewidth : linewidth;
   }
 
   path Path() const {
@@ -441,7 +444,8 @@ public:
   }
 
   double size() const {
-    return fontsize == 0.0 ? defaultpen().fontsize : fontsize;
+    // negative font sizes does not have a meaning
+    return fontsize < std::numeric_limits<double>::epsilon() ? defaultpen().fontsize : fontsize;
   }
 
   string Font() const {
