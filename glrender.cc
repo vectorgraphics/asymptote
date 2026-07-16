@@ -128,7 +128,8 @@ void *glrenderWrapper(void *a);
 
 void noShaders()
 {
-  cerr << "GLSL shaders not found." << endl;
+  cerr << "GLSL shaders not found. Check that ASYMPTOTE_DIR is set correctly and the shaders/GL/ directory exists." << endl;
+  cerr << "Reinstall asymptote or set ASYMPTOTE_DIR to point to the base directory containing shaders/GL/." << endl;
   exit(-1);
 }
 
@@ -1249,7 +1250,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     fpu_trap(false); // Work around FE_INVALID in Mesa/libgallium during GL initialization
     GLFWwindow* newWindow = glfwCreateRenderWindow(Width, Height, title.empty() ? Prefix.c_str() : title.c_str(), this);
     if(newWindow == nullptr) {
-      cerr << "Failed to create GLFW window" << endl;
+      cerr << "Failed to create GLFW window - check that a display server (X11/Wayland) is running, $DISPLAY is set, and GPU drivers are installed" << endl;
       exit(-1);
     }
     glfwWindow = newWindow;
@@ -1264,6 +1265,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
       const char *glVer = (const char *)glGetString(GL_VERSION);
       if(glVer == NULL) {
         cerr << "GLEW initialization error: " << glewGetErrorString(glewErr) << endl;
+        cerr << "Check that OpenGL 4.1 or later GPU drivers are installed and the GLFW library is properly linked." << endl;
         exit(-1);
       }
     }

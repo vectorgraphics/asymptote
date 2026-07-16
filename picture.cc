@@ -375,7 +375,7 @@ void texinit()
   const char *cname=logname.c_str();
   ofstream writeable(cname);
   if(!writeable)
-    reportError("Cannot write to "+logname);
+    reportError("Cannot write to "+logname+": check directory permissions and disk space");
   else
     writeable.close();
   unlink(cname);
@@ -821,7 +821,7 @@ void htmlView(string name)
       w32::reportAndFailWithLastError( "Cannot open browser for viewing");
     }
 #else
-    reportError("No browser specified; please specify your browser in htmlviewer");
+    reportError("No browser to view HTML output. Set your browser in config.asy:\n  import settings; htmlviewer=\"google-chrome\";\nOr set the environment variable ASYMPTOTE_HTMLVIEWER.\nOr use the command line option -htmlviewer=\"BROWSER\".");
 #endif
   }
   else
@@ -853,7 +853,7 @@ bool picture::postprocess(const string& prename, const string& outname,
       if(pdftex) {
         status=renameOverwrite(prename.c_str(),outname.c_str());
         if(status != 0)
-          reportError("Cannot rename "+prename+" to "+outname);
+          reportError("Cannot rename "+prename+" to "+outname+": check directory permissions and that the source file exists");
       } else status=epstopdf(prename,outname);
     } else if(epsformat) {
       if(svg) {
@@ -1413,7 +1413,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     }
   }
 
-  if(!status) reportError("shipout failed");
+  if(!status) reportError("shipout failed - ensure LaTeX and Ghostscript are installed, or try -tex none -f eps");
 
   if(!texengineSave.empty()) Setting("tex")=texengineSave;
 
@@ -1631,7 +1631,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 #if !defined(_WIN32)
       int pid=fork();
       if(pid == -1)
-        camp::reportError("Cannot fork process");
+        camp::reportError("Cannot fork process - check system resource limits (ulimit -u)");
       if(pid != 0)  {
         oldpid=pid;
         waitpid(pid,NULL,interact::interactive && View ? WNOHANG : 0);

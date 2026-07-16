@@ -443,7 +443,29 @@ void execError(const char *command, const char *hint, const char *application)
          << application << "." << endl << endl
          << "Alternatively, set the environment variable ASYMPTOTE_" << s
          << endl << "or use the command line option -" << hint
-         << "=\"LOCATION\". For further details, see" << endl
+         << "=\"LOCATION\"." << endl << endl;
+    // Add actionable installation guidance for common tools.
+    if (string(hint) == "texpath") {
+      cerr << "If you do not need LaTeX typesetting, use 'asy -tex none'." << endl;
+      cerr << "To install LaTeX:" << endl;
+      cerr << "  Debian/Ubuntu: sudo apt install texlive-latex-base" << endl;
+      cerr << "  Fedora:        sudo dnf install texlive-latex" << endl;
+      cerr << "  macOS:         Install MacTeX from https://tug.org/mactex/" << endl;
+    } else if (string(hint) == "gs") {
+      cerr << "Ghostscript is required to convert EPS to PDF/PNG and to process labels." << endl;
+      cerr << "To install Ghostscript:" << endl;
+      cerr << "  Debian/Ubuntu: sudo apt install ghostscript" << endl;
+      cerr << "  Fedora:        sudo dnf install ghostscript" << endl;
+      cerr << "  macOS:         brew install ghostscript" << endl;
+      cerr << "Without Ghostscript you can still output EPS format (use -f eps)." << endl;
+    } else if (string(hint) == "psviewer") {
+      cerr << "To view PostScript output, install a PS viewer like evince or gv." << endl;
+    } else if (string(hint) == "pdfviewer") {
+      cerr << "To view PDF output, install a PDF viewer or set pdfviewer in config.asy." << endl;
+    } else if (string(hint) == "htmlviewer") {
+      cerr << "To view HTML/WebGL output, install a browser or set htmlviewer in config.asy." << endl;
+    }
+    cerr << "For further details, see" << endl
          << "https://asymptote.sourceforge.io/doc/Configuring.html" << endl
          << "https://asymptote.sourceforge.io/doc/Search-paths.html" << endl;
   }
