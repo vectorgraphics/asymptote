@@ -38,6 +38,8 @@ struct CameraInformation
 
   light light;
 
+  string imagePath;
+
   void setCameraInfo()
   {
     size(canvasWidth,canvasHeight);
@@ -226,6 +228,18 @@ struct v3dfile
             triple position=xdrfile;
             ci.light.position.push(position);
             ci.light.diffuse.push(rgba(readColorData(1,false)[0]));
+          }
+        else if (headerKey==v3dheadertypes.imagePath)
+          {
+            xdrfile.word(true);
+            ci.imagePath=xdrfile;
+            xdrfile.word(false);
+            string c;
+            int n=length(ci.imagePath);
+            int words=(n+3)#4;
+            int bytes=4*words;
+            for(int i=n; i < bytes; ++i)
+              c=getc(xdrfile);
           }
         else
           {
@@ -506,6 +520,13 @@ struct v3dfile
           {
             hasCameraInfo=true;
             info=processHeader();
+            if(info.imagePath != "")
+              {
+                settings.ibl=true;
+                int lastSlash=rfind(info.imagePath,'/');
+                settings.image=substr(info.imagePath,lastSlash+1);
+                settings.imageDir=substr(info.imagePath,0,lastSlash);
+              }
           }
         else if(ty == v3dtypes.material)
           {

@@ -70,6 +70,15 @@ void v3dfile::addHeaders()
                          v3dheadertypes::shiftWaitTime, getSetting<double>("shiftWaitTime")));
   headers.emplace_back(make_unique<DoubleHeader>(
                          v3dheadertypes::vibrateTime, getSetting<double>("vibrateTime")));
+  bool ibl = getSetting<bool>("ibl");
+  if (ibl) {
+    string const& imageDir = getSetting<string>("imageDir");
+    string const& image = getSetting<string>("image");
+    if (!image.empty()) {
+      headers.emplace_back(make_unique<StringHeader>(
+                             v3dheadertypes::imagePath, std::string(imageDir) + "/" + std::string(image)));
+    }
+  }
 
   getXDRFile() << (uint32_t) headers.size();
   for(const auto& header : headers) {
