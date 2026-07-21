@@ -1,7 +1,8 @@
 import graph3;
 import solids;
 
-settings.outformat="html";
+if(settings.outformat == "")
+  settings.outformat="html";
 
 size(20cm);
 
@@ -26,6 +27,8 @@ currentlight = light(
 real L1_Len = 2;
 real L2_Len = 2;
 real L3_Len = 2;
+
+bool staticImage = (settings.outformat != "html");
 
 // =========================================================
 // JAVASCRIPT BRIDGE (Modified for Individual Sliders)
@@ -311,38 +314,61 @@ joint_r1_f(L0);
 attach_coordinates(L0*shift(0,0,2), 1.5, "1");
 
 // ===============================
-// Recursive Animation Block
+// Shared arm-drawing code
+// Lbase is the input transform; returns output transform for chaining.
+// joint1 returns L1_c, joint2 returns L2_b, joint3 returns nothing.
 // ===============================
-beginTransform("function(x,t){ return J1(x,t); }", 1);
-    transform3 L1_a = joint_r1_m(identity(4), 0);
+transform3 drawJoint1(transform3 Lbase) {
+    transform3 L1_a = joint_r1_m(Lbase, 0);
     attach_coordinates(L1_a*shift(0,0,2)*rotate(90,X), 1.3, "2");
-
     transform3 L1_b = L1_a * shift(0,0,L1_Len) * rotate(180, Z);
     draw(L1_a*O--L1_b*O, linewidth(2));
-
     transform3 L1_c = L1_b * rotate(-90, X);
     joint_r2_f(L1_c);
-    transform3 L1 = L1_c;
+    return L1_c;
+}
 
+transform3 drawJoint2(transform3 Lbase) {
+    transform3 L2_a = joint_r2_m(Lbase, 0);
+    attach_coordinates(L2_a*rotate(-90,Z), 1, "3");
+    transform3 L2_b = L2_a*shift(0,0,L2_Len);
+    draw(L2_a*(0,0,0.4)--L2_b*O, linewidth(2));
+    joint_r1_f(L2_b);
+    return L2_b;
+}
+
+void drawJoint3(transform3 Lbase) {
+    transform3 L3_a = joint_r1_m(Lbase, 0);
+    transform3 L3_b = L3_a*shift(0,0,L3_Len);
+    draw(L3_a*O--L3_b*O, linewidth(2));
+    draw_gripper_simple(L3_b);
+    attach_coordinates(L3_b*rotate(-90,Z), 0.5, "4");
+}
+
+// ===============================
+// HTML mode: nested beginTransform blocks with JS animation
+// Geometry is at identity; JS applies the transforms.
+// ===============================
+if(!staticImage) {
+beginTransform("function(x,t){ return J1(x,t); }", 1);
+    transform3 L1 = drawJoint1(identity(4));
     beginTransform("function(x,t){ return J2(x,t); }", 1);
-        transform3 L2_a = joint_r2_m(identity(4), 0);
-        attach_coordinates(L2_a*rotate(-90,Z), 1, "3");
-
-        transform3 L2_b = L2_a*shift(0,0,L2_Len);
-        draw(L2_a*(0,0,0.4)--L2_b*O, linewidth(2));
-        joint_r1_f(L2_b);
-        transform3 L2 = L2_b;
-
+        transform3 L2 = drawJoint2(identity(4));
         beginTransform("function(x,t){ return J3(x,t); }", 1);
-            transform3 L3_a = joint_r1_m(identity(4), 0);
-            transform3 L3_b = L3_a*shift(0,0,L3_Len);
-            draw(L3_a*O--L3_b*O, linewidth(2));
-            draw_gripper_simple(L3_b);
-            attach_coordinates(L3_b*rotate(-90,Z), 0.5, "4");
+            drawJoint3(identity(4));
         endTransform();
     endTransform();
 endTransform();
-
 exportToJS("L0_OFFSET", L0);
 exportToJS("L1_OFFSET", L1);
 exportToJS("L2_OFFSET", L2);
+} // end !staticImage
+
+// ===============================
+// PDF mode: static geometry with pre-computed transforms
+// ===============================
+if(staticImage) {
+    transform3 L1 = drawJoint1(L0);
+    transform3 L2 = drawJoint2(L1);
+    drawJoint3(L2);
+}
