@@ -2,8 +2,8 @@
 
 from xasyqtui.widg_editBezier import Ui_Form
 
-import PyQt5.QtWidgets as QtWidgets
-import PyQt5.QtCore as QtCore
+import PySide6.QtWidgets as QtWidgets
+import PySide6.QtCore as QtCore
 
 class LockMode:
     noLock = 0
@@ -37,11 +37,11 @@ class Widg_editBezier(QtWidgets.QWidget):
     def lockMode(self) -> int:
         return self.ui.cmbLockMode.currentIndex()
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.Slot(int)
     def cmbLockIndexChange(self, index: int):
         self.info['editBezierlockMode'] = index
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.Slot(int)
     def chkRecomputeChanged(self, checked: int):
         isChecked = (checked == 2)
         for obj in self.disableOnAutoRecompute:

@@ -31,17 +31,17 @@ void formal::prettyprint(ostream &out, Int indent)
   if (defval) defval->prettyprint(out, indent+1);
 }
 
-types::formal formal::trans(coenv &e, bool encodeDefVal, bool tacit) {
-  return types::formal(getType(e,tacit),
+types::formal formal::trans(coenv &e, bool encodeDefVal) {
+  return types::formal(getType(e),
                        getName(),
                        encodeDefVal ? (bool) getDefaultValue() : 0,
                        getExplicit());
 }
 
-types::ty *formal::getType(coenv &e, bool tacit) {
-  types::ty *bt = base->trans(e, tacit);
-  types::ty *t = start ? start->getType(bt, e, tacit) : bt;
-  if (t->kind == ty_void && !tacit) {
+types::ty *formal::getType(coenv &e) {
+  types::ty *bt = base->trans(e);
+  types::ty *t = start ? start->getType(bt, e) : bt;
+  if (t->kind == ty_void && !em.isSuppressed()) {
     em.error(getPos());
     em << "cannot declare parameters of type void";
     return primError();
@@ -53,7 +53,14 @@ types::ty *formal::getType(coenv &e, bool tacit) {
 void formal::addOps(coenv &e, record *r) {
   base->addOps(e, r);
   if (start)
-    start->addOps(base->trans(e, true), e, r);
+  {
+    types::ty *bt;
+    { // Suppress errors while probing the base type.
+      auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+      bt = base->trans(e);
+    }
+    start->addOps(bt, e, r);
+  }
 }
 
 void formals::prettyprint(ostream &out, Int indent)
@@ -65,11 +72,11 @@ void formals::prettyprint(ostream &out, Int indent)
 }
 
 void formals::addToSignature(signature& sig,
-                             coenv &e, bool encodeDefVal, bool tacit)
+                             coenv &e, bool encodeDefVal)
 {
   for (list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p) {
     formal& f=**p;
-    types::formal tf = f.trans(e, encodeDefVal, tacit);
+    types::formal tf = f.trans(e, encodeDefVal);
 
     if (f.isKeywordOnly())
       sig.addKeywordOnly(tf);
@@ -78,21 +85,21 @@ void formals::addToSignature(signature& sig,
   }
 
   if (rest) {
-    if (!tacit && rest->getDefaultValue()) {
+    if (rest->getDefaultValue()) {
       em.error(rest->getPos());
       em << "rest parameters cannot have default values";
     }
-    sig.addRest(rest->trans(e, encodeDefVal, tacit));
+    sig.addRest(rest->trans(e, encodeDefVal));
   }
 }
 
 // Returns the types of each parameter as a signature.
 // encodeDefVal means that it will also encode information regarding
 // the default values into the signature
-signature *formals::getSignature(coenv &e, bool encodeDefVal, bool tacit)
+signature *formals::getSignature(coenv &e, bool encodeDefVal)
 {
   signature *sig = new signature;
-  addToSignature(*sig,e,encodeDefVal,tacit);
+  addToSignature(*sig,e,encodeDefVal);
   return sig;
 }
 
@@ -100,11 +107,10 @@ signature *formals::getSignature(coenv &e, bool encodeDefVal, bool tacit)
 // Returns the corresponding function type, assuming it has a return
 // value of types::ty *result.
 function *formals::getType(types::ty *result, coenv &e,
-                           bool encodeDefVal,
-                           bool tacit)
+                           bool encodeDefVal)
 {
   function *ft = new function(result);
-  addToSignature(ft->sig,e,encodeDefVal,tacit);
+  addToSignature(ft->sig,e,encodeDefVal);
   return ft;
 }
 
@@ -175,9 +181,12 @@ void formal::transAsVar(coenv &e, Int index) {
     trans::access *a = e.c.accessFormal(index);
     assert(a);
 
-    // Suppress error messages because they will already be reported
-    // when the formals are translated to yield the type earlier.
-    types::ty *t = getType(e, true);
+    types::ty *t;
+    { // Suppress error messages because they will already be reported
+      // when the formals are translated to yield the type earlier.
+      auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+      t = getType(e);
+    }
     varEntry *v = new varEntry(t, a, 0, getPos());
 
     // Translate the default argument before adding the formal to the
@@ -212,16 +221,16 @@ void fundef::prettyprint(ostream &out, Int indent)
   body->prettyprint(out, indent+1);
 }
 
-function *fundef::transType(coenv &e, bool tacit) {
+function *fundef::transType(coenv &e) {
   bool encodeDefVal=true;
-  return params->getType(result->trans(e, tacit), e, encodeDefVal, tacit);
+  return params->getType(result->trans(e), e, encodeDefVal);
 }
 
-function *fundef::transTypeAndAddOps(coenv &e, record *r, bool tacit) {
+function *fundef::transTypeAndAddOps(coenv &e, record *r) {
   result->addOps(e,r);
   params->addOps(e,r);
 
-  function *ft=transType(e, tacit);
+  function *ft=transType(e);
   // No function ops to add.
 
   return ft;
@@ -284,7 +293,7 @@ types::ty *fundef::trans(coenv &e) {
   //   new guide[] (guide f(int)) {
   //     return sequence(f, 10);
   //   };
-  function *ft=transTypeAndAddOps(e, (record *)0, false);
+  function *ft=transTypeAndAddOps(e, (record *)0);
   assert(ft);
 
   baseTrans(e, ft);
@@ -307,7 +316,7 @@ void fundec::trans(coenv &e)
 
 void fundec::transAsField(coenv &e, record *r)
 {
-  function *ft = fun.transTypeAndAddOps(e, r, false);
+  function *ft = fun.transTypeAndAddOps(e, r);
   assert(ft);
 
   createVar(getPos(), e, r, id, ft, fun.makeVarInit(ft));

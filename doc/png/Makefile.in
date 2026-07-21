@@ -7,6 +7,7 @@ docdir = $(DESTDIR)@docdir@
 infodir = $(DESTDIR)@infodir@
 datarootdir = @datarootdir@
 INSTALL = @INSTALL@
+TEXI2ANY = @TEXI2ANY@
 
 all:	html info
 
@@ -18,13 +19,13 @@ latexusage.png: ../latexusage.pdf
            -sOutputFile=latexusage.png ../latexusage.pdf
 
 index.html: $(SOURCE) $(ASYFILES:.asy=.png) latexusage.png
-	makeinfo --html ../asymptote -o .
+	$(TEXI2ANY) --html ../asymptote -o .
 
 asymptote.info: $(SOURCE)
-	makeinfo --no-warn --no-split ../asymptote
+	$(TEXI2ANY) --no-warn --no-split ../asymptote
 
 info:	$(SOURCE) $(ASYFILES:.asy=.png) latexusage.png
-	makeinfo --no-split ../asymptote
+	$(TEXI2ANY) --no-split ../asymptote
 
 ../options:
 	cd .. && $(MAKE) options
@@ -32,22 +33,31 @@ info:	$(SOURCE) $(ASYFILES:.asy=.png) latexusage.png
 html:	index.html
 
 clean: FORCE
-	-rm -f *.png *.html asymptote.info* texput.aux texput.log
+	-rm -f *.html texput.aux texput.log
 
-distclean: FORCE clean
+cleaner: FORCE clean
 	-rm -f Makefile
 
-install: asymptote.info
-	${INSTALL} -d -m 755 $(infodir)/asymptote
-	${INSTALL} -p -m 644 asymptote.info $(infodir)/asymptote
-	-if test -z "$(DESTDIR)"; then \
-		install-info --infodir=$(infodir) asymptote.info; \
+cleanest: FORCE
+	-rm -f *.png asymptote.info
+	-$(MAKE) cleaner
+
+distclean: FORCE cleaner
+maintainer-clean: FORCE cleanest
+
+install:
+	@if test -f ../asymptote.info; then \
+	  ${INSTALL} -d -m 755 $(infodir)/asymptote; \
+	  ${INSTALL} -p -m 644 ../asymptote.info $(infodir)/asymptote; \
+	  if test -z "$(DESTDIR)"; then \
+	    install-info --infodir=$(infodir) ../asymptote.info; \
+	  fi; \
 	fi
 
 install-all: all install
 	${INSTALL} -p -m 644 *.png $(infodir)/asymptote
 
-uninstall: 
+uninstall:
 	-install-info --remove --infodir=$(infodir) asymptote.info
 	-cd $(infodir)/asymptote && rm -f asymptote.info *.png
 	-rmdir $(infodir)/asymptote

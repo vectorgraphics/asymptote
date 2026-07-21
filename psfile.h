@@ -94,7 +94,7 @@ public:
   }
 };
 
-class psfile {
+class psfile: public gc {
 protected:
   mem::stack<pen> pens;
 

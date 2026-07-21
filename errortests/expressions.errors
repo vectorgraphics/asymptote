@@ -1,0 +1,19 @@
+errortests/expressions.asy: 6.3: expression cannot be used as an address
+errortests/expressions.asy: 11.3: use of variable 'f' is ambiguous
+errortests/expressions.asy: 13.4: use of variable 'm.f' is ambiguous
+errortests/expressions.asy: 19.11: array initializer used for non-array
+errortests/expressions.asy: 20.12: array initializer used for non-array
+errortests/expressions.asy: 25.4: no matching variable 'f.m'
+errortests/expressions.asy: 30.4: no matching variable 'x.m'
+errortests/expressions.asy: 38.12: no matching field of name 'z' in 'point'
+errortests/expressions.asy: 46.4: no matching variable 'p.z'
+errortests/expressions.asy: 54.4: use of variable 'p.f' is ambiguous
+errortests/expressions.asy: 62.4: no matching variable 'p.z'
+errortests/expressions.asy: 73.4: no matching function 'f()'
+errortests/expressions.asy: 74.4: no matching function 'f(string)'
+errortests/expressions.asy: 82.4: cannot call 'void f(int)' without parameters
+errortests/expressions.asy: 90.7: no matching function 'operator +(point)'
+errortests/expressions.asy: 95.10: types in conditional expression do not match
+errortests/expressions.asy: 100.10: type of conditional expression is ambiguous
+errortests/expressions.asy: 105.5: cannot convert 'int()' to 'int' in assignment
+errortests/expressions.asy: 110.5: assignment is ambiguous

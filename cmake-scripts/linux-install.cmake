@@ -7,10 +7,6 @@ if (NOT LINUX)
     endif()
 endif()
 
-if (CTAN_BUILD)
-    message(FATAL_ERROR "system install is not supported for CTAN builds.")
-endif()
-
 # Requires gnu-install-macros to be ran already
 
 
@@ -67,6 +63,16 @@ install(
 )
 #endregion
 
+#region renderer shared libraries
+# Build and install the runtime-dlopened renderer shared libraries
+# (libasyvulkan.so). On Unix the main asy binary loads these via dlopen at
+# runtime (rendererloader.cc); without this include the library is never built
+# and 3D rendering fails with "No 3D rendering available". Included here, after
+# ASY_INSTALL_SYSDIR_VALUE / ASY_BASE_INSTALL_COMPONENT are defined, as the
+# header of renderer-shared-libs.cmake documents.
+include(cmake-scripts/renderer-shared-libs.cmake)
+#endregion
+
 #region example files
 set(ASYMPTOTE_EXAMPLESDIR_VALUE ${ASY_INSTALL_SYSDIR_VALUE}/examples)
 
@@ -114,6 +120,35 @@ install(
 )
 #endregion
 
+#region license files
+# License and attribution files go under share/doc/asymptote/licenses/
+# following CMAKE_INSTALL_DOCDIR conventions. Distribution packagers (Fedora,
+# Debian, etc.) may override the install location via the ASY_LICENSEDIR
+# cache variable (set in cmake-scripts/gnu-install-macros.cmake).
+# ASY_LICENSEDIR_INSTALL_DEST is derived automatically from ASY_LICENSEDIR.
+set(ASY_DOCDIR_INSTALL_DIR ${CMAKE_INSTALL_DOCDIR})
+set(ASY_LICENSES_INSTALL_DIR ${ASY_LICENSEDIR_INSTALL_DEST})
+
+install(
+        FILES
+            ${CMAKE_CURRENT_SOURCE_DIR}/README
+            ${CMAKE_CURRENT_SOURCE_DIR}/LICENSES-THIRD-PARTY.md
+        DESTINATION ${ASY_DOCDIR_INSTALL_DIR}
+        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
+        PERMISSIONS ${PERMISSION_644_LIST}
+)
+
+# All license files (LICENSE, LICENSE.LESSER, and all third-party files) are
+# installed from the already-renamed build-tree copies produced by
+# copy-build-licenses.cmake.
+set(ASY_LICENSE_INSTALL_ARGS
+        DESTINATION ${ASY_LICENSES_INSTALL_DIR}
+        COMPONENT ${ASY_BASE_INSTALL_COMPONENT}
+        PERMISSIONS ${PERMISSION_644_LIST}
+)
+include(cmake-scripts/install-third-party-licenses.cmake)
+#endregion
+
 #region documentation files
 if (ENABLE_DOCGEN)
     set(ASY_DOCS_INSTALL_COMPONENT asy-docs)
@@ -139,4 +174,17 @@ if (ENABLE_DOCGEN)
             PERMISSIONS ${PERMISSION_644_LIST}
     )
 endif()
+#endregion
+
+#region uninstall target
+configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake-scripts/scripts/cmake_uninstall.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+        @ONLY
+)
+
+add_custom_target(uninstall
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+        COMMENT "Uninstalling files from install_manifest.txt"
+)
 #endregion

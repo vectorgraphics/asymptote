@@ -6,12 +6,8 @@
 
 #ifdef HAVE_GL
 
-namespace gl
+namespace camp
 {
-
-#ifdef __CYGWIN__
-#define glDeleteTextures glDeleteTexturesEXT  // Missing in 32-bit CYGWIN
-#endif
 
 AGLTexture::~AGLTexture()
 {
@@ -43,6 +39,6 @@ void AGLTexture::setActive() const
   glActiveTexture(GL_TEXTURE0+textureNumber);
 }
 
-} // namespace gl
+} // namespace camp
 
 #endif

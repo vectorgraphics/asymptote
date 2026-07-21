@@ -20,6 +20,14 @@
 #define __attribute__(x)
 #endif
 
+#ifndef YYDEBUG
+#ifdef _WIN32
+#define YYDEBUG 0
+#else
+#define YYDEBUG 1
+#endif
+#endif
+
 // Used when a position needs to be determined and no token is
 // available.  Defined in camp.l.
 position lexerPos();
@@ -174,7 +182,7 @@ using mem::string;
 %type  <s>   stm stmexp blockstm
 %type  <run> forinit
 %type  <sel> forupdate stmexplist
-%type  <boo> explicitornot
+%type  <boo> explicitornot optionalcomma
 %type <tp> typeparam
 %type <tps> typeparamlist
 
@@ -277,6 +285,11 @@ dec:
                    { $$ = new fromaccessdec($1, $2.sym, $7, $4); }
 ;
 
+optionalcomma:
+  ','              { $$ = true; }
+|                  { $$ = false; }
+;
+
 // List mapping dec to dec as in "Key=string, Value=int"
 decdec:
     ID ASSIGN type
@@ -317,13 +330,17 @@ idpairlist:
 ;
 
 strid:
-  ID               { $$ = $1; }
+  name             { $$.pos = $1->getPos();
+                     $$.sym = $1->asPath(); }
 | STRING           { $$.pos = $1->getPos();
                      $$.sym = symbol::literalTrans($1->getString()); }
 ;
 
 stridpair:
-  ID               { $$ = new idpair($1.pos, $1.sym); }
+  name             { $$ = new idpair($1->getPos(),
+                                     $1->asPath(),
+                                     symbol::trans("as"),
+                                     $1->getName()); }
 /* strid 'as' ID */
 | strid ID ID      { $$ = new idpair($1.pos, $1.sym, $2.sym , $3.sym); }
 ;
@@ -421,8 +438,8 @@ formals:
 | ELLIPSIS formal  { $$ = new formals($1); $$->addRest($2); }
 | formals ',' formal
                    { $$ = $1; $$->add($3); }
-| formals ELLIPSIS formal
-                   { $$ = $1; $$->addRest($3); }
+| formals optionalcomma ELLIPSIS formal
+                   { $$ = $1; $$->addRest($4); }
 ;
 
 explicitornot:
@@ -515,8 +532,8 @@ arglist:
                    { $$ = new arglist(); $$->addRest($2); }
 | arglist ',' argument
                    { $$ = $1; $$->add($3); }
-| arglist ELLIPSIS argument
-                   { $$ = $1; $$->addRest($3); }
+| arglist optionalcomma ELLIPSIS argument
+                   { $$ = $1; $$->addRest($4); }
 ;
 
 /* A list of two or more expressions, separated by commas. */

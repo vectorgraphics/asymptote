@@ -21,6 +21,7 @@ using trans::frame;
 using trans::protoenv;
 using trans::varEntry;
 using trans::tyEntry;
+using trans::AutoUnravelRegistry;
 
 namespace types {
 
@@ -35,6 +36,9 @@ class record : public ty {
   // The runtime representation of the record used by the virtual machine.
   vm::lambda *init;
 
+  ty *kType = nullptr;
+  ty *vType = nullptr;
+
 public:
   // The name bindings for fields of the record.
   protoenv e;
@@ -43,6 +47,10 @@ public:
   // after translation of the record is completed.  Constructors implicitly
   // defined by "operator init" are stored here.
   protoenv postdefenv;
+
+  // Registry of autounravel entries for this record.  Populated during
+  // translation; read by addNameOps when the record is used as a type.
+  AutoUnravelRegistry autounravelRegistry;
 
   record(symbol name, frame *level);
   ~record();
@@ -56,18 +64,18 @@ public:
     return getName(); // May change in the future.
   }
 
-  bool isReference() {
+  bool isReference() override {
     return true;
   }
 
-  size_t hash() const {
+  size_t hash() const override{
     // Use the pointer, as two records are equivalent only if they are the
     // same object.
     return (size_t)this;
   }
 
   // Initialize to null by default.
-  trans::access *initializer();
+  trans::access *initializer() override;
 
   frame *getLevel(bool statically = false)
   {
@@ -95,7 +103,21 @@ public:
   // Create a statically enclosed record from this record.
   record *newRecord(symbol id, bool statically);
 
-  void print(ostream& out) const
+  // Sets the keytype and valuetype based on operator[] and operator[=].
+  void computeKVTypes(const position& pos);
+  // Returns the key type of the record, or primError() if it cannot be
+  // determined. May be called before computeKVTypes, in which case it will
+  // compute the key type on demand but will not set the kType field, so that if
+  // operator[] is defined later, the correct key type will be returned.
+  ty* keyType() override;
+  // Returns the value type of the record, or primError() if it cannot be
+  // determined. May be called before computeKVTypes, in which case it will
+  // compute the value type on demand but will not set the vType field, so that
+  // if operator[] or operator[=] is defined later, the correct value type will
+  // be returned.
+  ty *valType();
+
+  void print(ostream& out) const override
   {
     out << name;
   }

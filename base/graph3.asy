@@ -1213,12 +1213,13 @@ void axes3(picture pic=currentpicture,
            bool extend=false,
            triple min=(-infinity,-infinity,-infinity),
            triple max=(infinity,infinity,infinity),
-           pen p=currentpen, arrowbar3 arrow=None, margin3 margin=NoMargin3,
+           pen p=currentpen, pen py=p, pen pz=p,
+           arrowbar3 arrow=None, margin3 margin=NoMargin3,
            projection P=currentprojection)
 {
   xaxis3(pic,xlabel,YZZero(extend),min.x,max.x,p,arrow,margin,P);
-  yaxis3(pic,ylabel,XZZero(extend),min.y,max.y,p,arrow,margin,P);
-  zaxis3(pic,zlabel,XYZero(extend),min.z,max.z,p,arrow,margin,P);
+  yaxis3(pic,ylabel,XZZero(extend),min.y,max.y,py,arrow,margin,P);
+  zaxis3(pic,zlabel,XYZero(extend),min.z,max.z,pz,arrow,margin,P);
 }
 
 triple Scale(picture pic=currentpicture, triple v)
@@ -2300,7 +2301,8 @@ guide3 polargraph(real r(real,real), real theta(real), real phi(real),
     },0,1,n);
 }
 
-// True arc
+// return a true arc centered at c from triple v1 to v2
+// (assuming |v2-c|=|v1-c|).
 path3 Arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW,
           int n=nCircle)
 {

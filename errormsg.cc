@@ -29,7 +29,8 @@ ostream& operator<< (ostream& out, const position& pos)
 
   string filename=pos.file->name();
 
-  if(filename != "-" && !settings::getSetting<bool>("quiet")) {
+  if(filename != "-" && !(settings::getSetting<bool>("quiet") ||
+                          settings::getSetting<bool>("where"))) {
     std::ifstream fin(filename.c_str());
     string s;
     size_t count=pos.line;
@@ -63,6 +64,8 @@ void errorstream::clear()
 
 void errorstream::message(position pos, const string& s)
 {
+  if (mode == ErrorMode::SUPPRESS)
+    return;
   if (floating) out << endl;
   out << pos << ": " << s;
   floating = true;
@@ -70,6 +73,7 @@ void errorstream::message(position pos, const string& s)
 
 void errorstream::compiler(position pos)
 {
+  mode = ErrorMode::FORCE;
   message(pos,"Compiler bug; report to https://github.com/vectorgraphics/asymptote/issues:\n");
   anyErrors = true;
 }
@@ -81,36 +85,47 @@ void errorstream::compiler()
 
 void errorstream::runtime(position pos)
 {
+  if (mode == ErrorMode::SUPPRESS)
+    return;
   message(pos,"runtime: ");
   anyErrors = true;
 }
 
 void errorstream::error(position pos)
 {
+  if (mode == ErrorMode::SUPPRESS)
+    return;
   message(pos,"");
   anyErrors = true;
 }
 
 void errorstream::warning(position pos, string s)
 {
+  if (mode == ErrorMode::SUPPRESS)
+    return;
   message(pos,"warning ["+s+"]: ");
   anyWarnings = true;
 }
 
 void errorstream::warning(position pos)
 {
+  if (mode == ErrorMode::SUPPRESS)
+    return;
   message(pos,"warning: ");
   anyWarnings = true;
 }
 
 void errorstream::fatal(position pos)
 {
+  mode = ErrorMode::FORCE;
   message(pos,"abort: ");
   anyErrors = true;
 }
 
 void errorstream::trace(position pos)
 {
+  if (mode == ErrorMode::SUPPRESS)
+    return;
   static position lastpos;
   if(!pos || (pos.match(lastpos.filename()) && pos.match(lastpos.Line())))
     return;

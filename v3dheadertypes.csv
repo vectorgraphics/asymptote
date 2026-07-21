@@ -17,3 +17,4 @@ zoomStep,16,REAL          # Zoom power step
 shiftHoldDistance,17,REAL # Shift-mode maximum hold distance (pixels)
 shiftWaitTime,18,REAL     # Shift-mode hold time (milliseconds)
 vibrateTime,19,REAL       # Shift-mode vibrate time (milliseconds)
+imagePath,20,STRING         # IBL image path: imageDir/image

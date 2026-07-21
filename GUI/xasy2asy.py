@@ -9,17 +9,14 @@
 #
 ###########################################################################
 
-import PyQt5.QtWidgets as QtWidgets
-import PyQt5.QtGui as QtGui
-import PyQt5.QtCore as QtCore
-import PyQt5.QtSvg as QtSvg
+import PySide6.QtGui as QtGui
+import PySide6.QtCore as QtCore
+import PySide6.QtSvg as QtSvg
 
 import numpy as numpy
 
 import sys
 import os
-import signal
-import threading
 import string
 import subprocess
 import tempfile
@@ -106,10 +103,7 @@ class AsymptoteEngine:
         if xa.getArgs().render:
             renderDensity=xa.getArgs().render
         else:
-            try:
-                renderDensity = xo.BasicConfigs.defaultOpt['renderDensity']
-            except:
-                renderDensity = 2
+            renderDensity = xo.BasicConfigs.defaultOpt.get('renderDensity', 2)
         renderDensity=max(renderDensity,1)
 
         self.args=addrArgs + [
@@ -885,9 +879,9 @@ class asyImage:
 
     """
 
-    def __init__(self, image, format, bbox, transfKey=None, keyIndex=0):
+    def __init__(self, image, file_format, bbox, transfKey=None, keyIndex=0):
         self.image = image
-        self.format = format
+        self.file_format = file_format
         self.bbox = bbox
         self.IDTag = None
         self.key = transfKey
@@ -996,6 +990,7 @@ class xasyItem(QtCore.QObject):
             currImage.originalImage.theta = 0.0
             currImage.originalImage.bbox = list(bbox)
             currImage.performCanvasTransform = False
+            validKey = False
 
             # handle this case if transform is not in the map yet.
             # if deleted - set transform to (0,0,0,0,0,0)
@@ -1004,8 +999,6 @@ class xasyItem(QtCore.QObject):
                 transfExists = localCount <= len(self.transfKeymap[key]) - 1
                 if transfExists:
                     validKey = not self.transfKeymap[key][localCount].deleted #Does this ever exist?
-            else:
-                validKey = False
 
             if (not transfExists) or validKey:
                 currImage.IDTag = str(file)
@@ -1027,7 +1020,7 @@ class xasyItem(QtCore.QObject):
         if self.asyengine is None:
             return 1
         if self.asyfied and not force:
-            return
+            return None
 
         self.drawObjects = []
         self.drawObjectsMap.clear()
@@ -1041,7 +1034,7 @@ class xasyItem(QtCore.QObject):
         worker = threading.Thread(target = self.asyfyThread, args = [])
         worker.start()
         item = self.imageHandleQueue.get()
-        cwd=os.getcwd();
+        cwd=os.getcwd()
         os.chdir(self.asyengine.tempDirName)
         while item != (None,) and item[0] != "ERROR":
             if item[0] == "OUTPUT":
@@ -1058,9 +1051,10 @@ class xasyItem(QtCore.QObject):
                         pass
             item = self.imageHandleQueue.get()
         # self.imageHandleQueue.task_done()
-        os.chdir(cwd);
+        os.chdir(cwd)
 
         worker.join()
+        return None
 
     def asyfyThread(self):
         """
@@ -1074,7 +1068,7 @@ class xasyItem(QtCore.QObject):
         self.maxKey=0
 
         fout.write("reset\n")
-        fout.flush();
+        fout.flush()
         for line in self.getCode().splitlines():
             if DebugFlags.printAsyTranscript:
                 print(line)
@@ -1110,9 +1104,7 @@ class xasyItem(QtCore.QObject):
         fileformat = 'svg' # Output format
 
         while raw_text != 'Done\n' and raw_text != 'Error\n':
-#            print(raw_text)
             text = fin.readline()       # the actual bounding box.
-            # print('TESTING:', text)
             keydata = raw_text.strip().replace('KEY=', '', 1)  # key
 
             clipflag = keydata[-1] == '1'
@@ -1126,8 +1118,6 @@ class xasyItem(QtCore.QObject):
                 if keydata.isdigit():
                     self.maxKey=max(self.maxKey,int(keydata))
                 self.userKeys.add(keydata)
-
-#                print(line, col)
 
             if deleted:
                 raw_text = fin.readline()
@@ -1324,7 +1314,15 @@ class xasyShape(xasyDrawnItem):
         return type(self)(self.path,self._asyengine,self.pen)
 
     def arrowify(self,arrowhead=0):
-        newObj = asyArrow(self.path.asyengine, pen=self.pen, transfKey = self.transfKey, transfKeymap = self.transfKeymap, canvas = self.onCanvas, arrowActive = arrowhead, code = self.path.getCode(yflip())) #transform
+        newObj = asyArrow(
+            self.path.asyengine,
+            pen=self.pen,
+            transfKey=self.transfKey,
+            transfKeymap=self.transfKeymap,
+            canvas=self.onCanvas,
+            arrowActive=bool(arrowhead),
+            code=self.path.getCode(yflip())
+        ) #transform
         newObj.arrowSettings["fill"] = self.path.fill
         return newObj
 
@@ -1542,7 +1540,7 @@ class xasyScript(xasyItem):
         newScript = self.getReplacedKeysCode(self.findNonIdKeys())
         with io.StringIO() as rawAsyCode:
             for line in newScript.splitlines():
-                if(rSize.match(line)):
+                if rSize.match(line):
                     self.asySize=line.rstrip()+'\n'
                 else:
                     raw_line = line.rstrip().replace('\t', ' ' * 4)
@@ -1608,7 +1606,7 @@ class xasyScript(xasyItem):
                                         break
                                     if not c.isspace():
                                         break
-                                    ++k
+                                    k += 1
                                 raw_line.write('KEY="{0:s}"'.format(linenum2key[(i + 1, j + 1)])+sep)
                                 self.userKeys.add(linenum2key[(i + 1, j + 1)])
                         curr_str = raw_line.getvalue()
@@ -1801,7 +1799,6 @@ class DrawObject(QtCore.QObject):
 
     def getScreenTransform(self):
         scrTransf = self.baseTransform.toQTransform().inverted()[0] * self.pTransform.toQTransform()
-        # print(asyTransform.fromQTransform(scrTransf).t)
         return asyTransform.fromQTransform(scrTransf)
 
     def draw(self, additionalTransformation = None, applyReverse = False, canvas: QtGui.QPainter = None, dpi = 300):
@@ -1889,10 +1886,7 @@ class asyArrow(xasyItem):
         #self.path = path
         #self.path.asyengine = asyengine
         self.transfKey = transfKey
-        if transfKeymap == None: #Better way?
-            self.transfKeymap = {self.transfKey: [transform]}
-        else:
-            self.transfKeymap = transfKeymap
+        self.transfKeymap = transfKeymap or {self.transfKey: [transform]}
         self.location = (0,0)
         self.asyfied = False
         self.onCanvas = canvas
@@ -1926,7 +1920,6 @@ class asyArrow(xasyItem):
         settings += self.arrowFillList[self.arrowSettings["fill"]]
 
         settings += ")"
-        #print(settings)
         return settings
 
     def setKey(self, newKey = None):
@@ -1936,7 +1929,6 @@ class asyArrow(xasyItem):
         self.transfKeymap = {self.transfKey: [transform]}
 
     def updateCode(self, asy2psmap = identity()):
-        newLoc = asy2psmap.inverted() * self.location
         self.asyCode = ''
         if self.arrowSettings["active"]:
             if self.arrowSettings["fill"]:

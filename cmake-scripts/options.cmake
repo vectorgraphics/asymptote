@@ -7,24 +7,6 @@ set(
         "Overriding asymptote version. If left blank, version is determined from configure.ac."
 )
 
-# Perl
-
-set(PERL_INTERPRETER "" CACHE STRING "Perl interpreter. If left empty, will try to determine interpreter automatically")
-
-if(NOT PERL_INTERPRETER)
-    message(STATUS "No Perl interpreter specified, attempting to find perl")
-    find_program(
-            PERL_INTERPRETER_FOUND
-            perl
-            REQUIRED
-    )
-    message(STATUS "Found perl at ${PERL_INTERPRETER_FOUND}")
-    set(PERL_INTERPRETER ${PERL_INTERPRETER_FOUND} CACHE STRING "" FORCE)
-endif()
-
-execute_process(COMMAND ${PERL_INTERPRETER} -e "print \"$]\"" OUTPUT_VARIABLE PERL_VERSION)
-message(STATUS "Perl version: ${PERL_VERSION}")
-
 # Python
 
 set(PY3_INTERPRETER "" CACHE STRING "Python 3 interpreter. If left empty, will try to determine Python automatically")
@@ -80,14 +62,21 @@ option(ENABLE_THREADING "enable threading support" true)
 option(ENABLE_GSL "Enable GSL support" true)
 option(ENABLE_EIGEN3 "Enable eigen3 support" true)
 option(ENABLE_FFTW3 "Enable fftw3 support" true)
-option(ENABLE_OPENGL "Whether to enable opengl or not." true)
-cmake_dependent_option(ENABLE_GL_COMPUTE_SHADERS
-        "Whether to enable compute shaders for OpenGL. Requires OpenGL >= 4.3 and GL_ARB_compute_shader"
-        true "ENABLE_OPENGL" false)
-cmake_dependent_option(ENABLE_GL_SSBO
-        "Whether to enable compute SSBO. Requires OpenGL >= 4.3 and GL_ARB_shader_storage_buffer_object"
-        true "ENABLE_OPENGL" false)
+option(
+        ENABLE_VULKAN
+        "Enable Vulkan rendering support. When disabled, neither Vulkan, glslang, glfw3,
+nor VulkanMemoryAllocator are required, and the resulting asy binary has no Vulkan renderer.
+This option is intended primarily for environments where Vulkan/glslang/glfw3 cannot be provided
+(e.g. constrained CI sandboxes); production builds should leave this enabled."
+        true)
 
+if (CMAKE_BUILD_TYPE IN_LIST cmake_release_build_types)
+    set(default_vk_validation_opt false)
+else()
+    set(default_vk_validation_opt true)
+endif()
+
+option(ENABLE_VK_VALIDATION_LAYERS "Whether to enable Vulkan validation layer" ${default_vk_validation_opt})
 option(
         ENABLE_RPC_FEATURES
         "Whether to enable XDR/RPC features. Also enables V3D. If compiling on UNIX systems, requires libtirpc to be installed."
@@ -97,7 +86,7 @@ option(
 
 option(DEBUG_GC_ENABLE "Enable debug mode for gc" false)
 option(DEBUG_GC_BACKTRACE_ENABLE "Enable backtrace for gc" false)
-option(CTAN_BUILD "Build for CTAN." false)
+# CTAN_BUILD is no longer a CMake cache variable; it's a compile definition applied per-target.
 
 option(
         ENABLE_COMPACT_ZERO_BUILD "\
@@ -189,6 +178,7 @@ function(determine_asymptote_pdf_gen_possible_win32)
             return()
         endif()
     endif()
+    message(STATUS "Building of asymptote.pdf is possible; enabling")
     set(ENABLE_ASYMPTOTE_PDF_DOCGEN_POSSIBLE true PARENT_SCOPE)
 endfunction()
 
@@ -215,13 +205,14 @@ endif()
 
 if (LATEX_PDFLATEX_FOUND AND PDFTEX_EXEC)
     set(ENABLE_BASE_DOCGEN_POSSIBLE true)
-
+    message(STATUS "LaTeX and pdftex found; building basic documentation is possible")
     if (WIN32)
         determine_asymptote_pdf_gen_possible_win32()
     elseif(UNIX)
         find_program(TEXI2DVI texi2dvi)
         if (TEXI2DVI)
             set(ENABLE_ASYMPTOTE_PDF_DOCGEN_POSSIBLE true)
+            message("Building of asymptote.pdf is possible and enabled")
         endif()
     endif()
 endif()
@@ -290,4 +281,15 @@ option(
         "Allow installation to go through, even if not every component is buildable.
         CMake will produce a warning instead of a fatal error."
         false
+)
+
+
+# asygl
+
+option(
+        USE_PREBUILT_WEBGL_LIB
+        "Use prebuilt asygl library corresponding to asygl-version (asygl-<version>.js in base/webgl directory).
+        If this option is turned off, one will need to manually build gl.js in webgl directory to complete the build
+        process."
+        true
 )

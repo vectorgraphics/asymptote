@@ -2,9 +2,11 @@
 *.o
 *.d
 *.d.*
+!*.d.ts
 
 ### python files
 __pycache__
+/venv/
 
 ### Compressed packages and Garbage Collector
 *.tar.gz
@@ -33,8 +35,12 @@ history
 /Makefile
 /doc/Makefile
 /doc/png/Makefile
-/doc/FAQ/asy-faq.*
-!/doc/FAQ/asy-faq.bfnn
+/doc/FAQ/Makefile
+/LspCpp/Makefile
+LspCpp/third_party/ixwebsocket/Makefile
+LspCpp/third_party/uri/Makefile
+LspCpp/third_party/uri/src/Makefile
+/doc/FAQ/asy-faq.html
 *.png
 *.gif
 *.pnm
@@ -57,7 +63,9 @@ history
 /config.status
 /configure
 /doc/asy-latex.i*
+/doc/asy-latex.hd
 /doc/asy.1
+/doc/asymptote_html/
 /glrender.d.54461
 /gsl.symbols.h
 /keywords.h
@@ -66,6 +74,13 @@ history
 /types.symbols.h
 *.dSYM
 .DS_Store
+/errors.temp
+/base/webgl/asygl.js
+/v3dheadertypes.py
+/v3dtypes.py
+/doc/licenses/
+libasyopengl.so
+libasyvulkan.so
 
 ### TeX-related
 ## Core latex/pdflatex auxiliary files:
@@ -95,6 +110,9 @@ history
 /doc/**/asymptote.*
 !/doc/asymptote.texi
 /doc/options
+/doc/latexusage-?.asy
+/doc/latexusage-?.tex
+/doc/latexusage-*.pbsdat
 .asy_*
 
 ## Bibliography auxiliary files (bibtex/biblatex/biber):
@@ -114,7 +132,7 @@ core.*
 \#*
 .\#*
 
-/.idea/*
+.idea
 
 examples/_ig_*.asy
 
@@ -155,21 +173,50 @@ base/v3dheadertypes.asy
 v3dtypes.h
 v3dtypes.py
 base/v3dtypes.asy
-
-LspCpp/CMakeCache.txt
-LspCpp/CMakeDoxyfile.in
-LspCpp/CMakeDoxygenDefaults.cmake
-LspCpp/CMakeFiles/
-LspCpp/Makefile
-LspCpp/cmake_install.cmake
-LspCpp/third_party/uri/CMakeFiles/
-LspCpp/third_party/uri/Doxyfile
-LspCpp/third_party/uri/Makefile
-LspCpp/third_party/uri/cmake_install.cmake
-LspCpp/third_party/uri/src/CMakeFiles/
-LspCpp/third_party/uri/src/Makefile
-LspCpp/third_party/uri/src/cmake_install.cmake
 base/webgl/asygl.js
+shaders/*.spv
+# CMake files
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+cmake-build-*
+CMakeUserPresets.json
+
+# visual studio files
+.vs
+*.DotSettings.user
+
+# ignore directory
+idir
+
+# windows-specific ignore
+*.aps
+*.exe
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+*.lnk
+*.stackdump
+
+# version package
+asy-pkg-version-suffix.cmake
 
 # CMake files
 CMakeLists.txt.user
@@ -242,3 +289,27 @@ tests/out.*
 
 # editor config
 .editorconfig
+
+cmake-scripts/generated
+tests/xdata
+
+# node modules
+node_modules
+webgl/dist
+
+# local hidden config files
+.bash_profile
+.bashrc
+.idea
+.profile
+.ripgreprc
+.zprofile
+.zshrc
+
+# AI related files
+.claude
+CLAUDE.md
+.copilot_workspace
+.github/copilot-instructions.md
+.github/prompts/
+.mcp.json

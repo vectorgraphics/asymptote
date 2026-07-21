@@ -58,7 +58,7 @@ public:
 
   // Checks if the expression can be used as the right side of a scale
   // expression.  ie. 3sin(x)
-  // If a "non-scalable" expression is scaled a warning is issued.
+  // If a "non-scalable" expression is scaled an error is reported.
   virtual bool scalable() { return true; }
 
   // Specifies if the value of the expression should be written to interactive
@@ -193,13 +193,15 @@ class tempExp : public exp {
 public:
   tempExp(coenv &e, varinit *v, types::ty *t);
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) override;
 
-  types::ty *trans(coenv &e);
+  types::ty *trans(coenv &e) override;
 
-  types::ty *getType(coenv &) {
+  types::ty *getType(coenv &) override {
     return t;
   }
+
+  exp *evaluate(coenv &e, types::ty *target) override;
 };
 
 // Wrap a varEntry so that it can be used as an expression.
@@ -267,10 +269,8 @@ public:
       em << "use of variable \'" << *value << "\' is ambiguous";
       return types::primError();
     }
-    else {
-      transAsType(e, t);
-      return t;
-    }
+    transAsType(e, t);
+    return t;
   }
 
   types::ty *getType(coenv &e) override {
@@ -298,10 +298,7 @@ public:
     ct=0;  // See note in transAsType.
   }
 
-  exp *evaluate(coenv &, types::ty *) override {
-    // Names have no side-effects.
-    return this;
-  }
+  exp *evaluate(coenv &, types::ty *) override;
 };
 
 // Most fields accessed are handled as parts of qualified names, but in cases
@@ -336,11 +333,9 @@ class fieldExp : public nameExp {
     }
 
     // As a type:
-    types::ty *typeTrans(coenv &, bool tacit = false) {
-      if (!tacit) {
-        em.error(getPos());
-        em << "expression is not a type";
-      }
+    types::ty *typeTrans(coenv &) {
+      em.error(getPos());
+      em << "expression is not a type";
       return types::primError();
     }
 
@@ -364,6 +359,10 @@ class fieldExp : public nameExp {
     void print(ostream& out) const {
       out << "<exp>";
     }
+    void printPath(ostream& out) const {
+      em.compiler(getPos());
+      em << "expression cannot be used as a path";
+    }
 
     symbol getName() const {
       return object->getName();
@@ -371,7 +370,8 @@ class fieldExp : public nameExp {
 
     AsymptoteLsp::SymbolLit getLit() const
     {
-      return AsymptoteLsp::SymbolLit(static_cast<std::string>(object->getName()));
+      return AsymptoteLsp::SymbolLit(static_cast<std::string>(object->getName())
+      );
     }
   };
 
@@ -392,33 +392,30 @@ public:
     return field;
   }
 
-  exp *evaluate(coenv &e, types::ty *) {
-    // Evaluate the object.
-    return new fieldExp(getPos(),
-                        new tempExp(e, object, getObject(e)),
-                        field);
-  }
+  exp *evaluate(coenv &e, types::ty *);
 };
 
-class arrayExp : public exp {
+// Common functionality for subscriptExp and sliceExp.
+class bracketsExp : public exp {
 protected:
-  exp *set;
+  exp *object;
 
+  types::ty *getObjectType(coenv &e);
   array *getArrayType(coenv &e);
   array *transArray(coenv &e);
 
 public:
-  arrayExp(position pos, exp *set)
-    : exp(pos), set(set) {}
+  bracketsExp(position pos, exp *set)
+    : exp(pos), object(set) {}
 };
 
 
-class subscriptExp : public arrayExp {
+class subscriptExp : public bracketsExp {
   exp *index;
 
 public:
   subscriptExp(position pos, exp *set, exp *index)
-    : arrayExp(pos, set), index(index) {}
+    : bracketsExp(pos, set), index(index) {}
 
   void prettyprint(ostream &out, Int indent);
 
@@ -426,11 +423,7 @@ public:
   types::ty *getType(coenv &e);
   void transWrite(coenv &e, types::ty *t, exp *value);
 
-  exp *evaluate(coenv &e, types::ty *) {
-    return new subscriptExp(getPos(),
-                            new tempExp(e, set, getArrayType(e)),
-                            new tempExp(e, index, types::primInt()));
-  }
+  exp *evaluate(coenv &e, types::ty *);
 };
 
 class slice : public absyn {
@@ -458,12 +451,12 @@ public:
   }
 };
 
-class sliceExp : public arrayExp {
+class sliceExp : public bracketsExp {
   slice *index;
 
 public:
   sliceExp(position pos, exp *set, slice *index)
-    : arrayExp(pos, set), index(index) {}
+    : bracketsExp(pos, set), index(index) {}
 
   void prettyprint(ostream &out, Int indent);
 
@@ -473,7 +466,7 @@ public:
 
   exp *evaluate(coenv &e, types::ty *) {
     return new sliceExp(getPos(),
-                        new tempExp(e, set, getArrayType(e)),
+                        new tempExp(e, object, getArrayType(e)),
                         index->evaluate(e));
   }
 };
@@ -826,8 +819,8 @@ public:
   using colorInfo = std::tuple<double, double, double>;
 
   /**
-   * @return nullopt if callExp is not a color, pair<color, nullopt> if color is RGB,
-   * and pair<color, alpha> if color is RGBA.
+   * @return nullopt if callExp is not a color, pair<color, nullopt> if color is
+   * RGB, and pair<color, alpha> if color is RGBA.
    */
   optional<std::tuple<colorInfo, optional<double>,
     AsymptoteLsp::posInFile, AsymptoteLsp::posInFile>> getColorInformation();
@@ -949,7 +942,6 @@ public:
   void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
-  //types::ty *getType(coenv &e);
 
   bool scalable() { return false; }
 };
@@ -1123,7 +1115,7 @@ public:
   types::ty *getType(coenv &e) override;
 };
 
-// Postfix expresions are illegal. This is caught here as we can give a
+// Postfix expressions are illegal. This is caught here as we can give a
 // more meaningful error message to the user, rather than a "parse
 // error."
 class postfixExp : public exp {

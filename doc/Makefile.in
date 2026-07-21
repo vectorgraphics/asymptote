@@ -9,7 +9,7 @@ docdir = $(DESTDIR)@docdir@
 infodir = $(DESTDIR)@infodir@
 datarootdir = @datarootdir@
 INSTALL = @INSTALL@
-TEXI2DVI = @TEXI2DVI@
+TEXI2ANY = @TEXI2ANY@
 PERL5LIB = ./
 
 export docdir infodir INSTALL PERL5LIB
@@ -30,7 +30,6 @@ doc:	$(DOCFILES) asy.1 faq
 manpage: $(MANFILES)
 
 man:	$(DOCFILES) manpage
-	cd png && $(MAKE) asymptote.info
 
 faq:
 	cd FAQ && $(MAKE) faq
@@ -50,7 +49,7 @@ latexusage.pdf: latexusage.tex asymptote.sty
 	pdflatex latexusage
 
 options: ../settings.cc
-	$(ASY) -h 2>&1 | grep -iv Asymptote > options
+	$(ASY) -h 2>&1 | tail -n +3 > options
 
 asy.1: options asy.1.begin asy.1.end
 	cat options | grep \^- | \
@@ -59,11 +58,20 @@ asy.1: options asy.1.begin asy.1.end
 
 asymptote.dvi: $(SOURCE) $(ASYFILES:.asy=.eps) latexusage.pdf
 	ln -sf asymptote.texi asymptote_.texi
-	-$(TEXI2DVI) asymptote_.texi
+	@if test "$(TEXI2ANY)" != ""; then \
+	  $(TEXI2ANY) --dvi asymptote_.texi; \
+	fi
 	mv asymptote_.dvi asymptote.dvi
 
 asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf) latexusage.pdf
-	-$(TEXI2DVI) --pdf asymptote.texi
+	@if test "$(TEXI2ANY)" != ""; then \
+	  $(TEXI2ANY) --pdf asymptote.texi; \
+	fi
+
+asymptote.info: $(SOURCE) $(ASYFILES:.asy=.pdf) latexusage.pdf
+	@if test "$(TEXI2ANY)" != ""; then \
+	  $(TEXI2ANY) --no-warn --no-split --info asymptote.texi; \
+	fi
 
 CAD.pdf: CAD.tex CAD1.eps
 	pdflatex CAD
@@ -79,15 +87,31 @@ asyRefCard.pdf: asyRefCard.tex
 
 clean: FORCE
 	-rm -f asy-latex.{aux,idx,ins,log,toc,out,hd,ins}
-	-rm -f $(ASYFILES:.asy=.pdf)
 	-rm -f *.eps latexusage.{dvi,eps,pdf,log,aux,out,*.eps} latexusage-* \
             latexusage.pre
 	-rm -f \
             {asymptote,asymptote_}.{aux,cp,cps,dvi,fn,info,ky,log,pg,toc,tp,vr}
 	-rm -f asymptote_.texi
 	-rm -f {CAD,TeXShopAndAsymptote,asyRefCard}.{aux,dvi,log,toc}
+	-cd png && $(MAKE) clean
+
+cleaner0: FORCE clean
+	-rm -f version.texi Makefile
+
+cleaner: FORCE cleaner0
+	-cd png && $(MAKE) cleaner
+	-cd FAQ && $(MAKE) cleaner
+
+cleanest: FORCE
+	-rm -f $(DOCFILES)
 	-rm -f options asy.1
-	cd png && $(MAKE) clean
+	-rm -f $(ASYFILES:.asy=.pdf)
+	-$(MAKE) cleaner0
+	-cd png && $(MAKE) cleanest
+	-cd FAQ && $(MAKE) cleanest
+
+distclean: FORCE cleaner
+maintainer-clean: FORCE cleanest
 
 install-man:
 	${INSTALL} -d -m 755 $(docdir) $(mandir)/man1
@@ -98,8 +122,7 @@ install: man faq install-man
 	cd png && $(MAKE) install
 	cd FAQ && $(MAKE) install
 
-install-prebuilt: install-man options
-	touch png/asymptote.info
+install-prebuilt: install-man options asymptote.info
 	cd png && $(MAKE) install
 	cd FAQ && $(MAKE) install-prebuilt
 
@@ -115,11 +138,6 @@ uninstall-all:
 	-cd $(mandir)/man1 && rm -f $(MANFILES)
 	-rm -f $(addprefix $(docdir)/,$(DOCFILES))
 
-distclean: FORCE clean
-	-rm -f version.texi Makefile
-	-rm -f $(DOCFILES)
-	cd png && $(MAKE) distclean
-	cd FAQ && $(MAKE) distclean
 FORCE:
 
 Makefile: Makefile.in

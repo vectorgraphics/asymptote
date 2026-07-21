@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import PyQt5.QtGui as QtGui
-import PyQt5.QtWidgets as QtWidgets
+import PySide6.QtGui as QtGui
+import PySide6.QtWidgets as QtWidgets
 import subprocess
 import sys
 import xasyOptions as xo
@@ -35,4 +35,5 @@ class SvgObject:
             )
             sys.exit(-1)
 
+        # noinspection PyTypeChecker
         return QtGui.QImage.fromData(rawDataProc.stdout, "PNG")

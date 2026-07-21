@@ -70,7 +70,11 @@ types::ty *newRecordExp::trans(coenv &e)
 
 types::ty *newRecordExp::getType(coenv &e)
 {
-  types::ty *t = result->trans(e, true);
+  types::ty *t;
+  { // Suppress errors while probing the record type.
+    auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+    t = result->trans(e);
+  }
   if (t->kind != ty_error && t->kind != ty_record)
     return primError();
   else

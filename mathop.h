@@ -141,10 +141,17 @@ struct minus<Int> {
 template<>
 struct times<Int> {
   Int operator() (Int x, Int y, size_t i=0) {
+#ifdef __SIZEOF_INT128__
+    __int128 p = (static_cast<__int128>(x) * static_cast<__int128>(y));
+    if (Int_MIN <= p && p <= Int_MAX)
+        return static_cast<Int>(p);
+    integeroverflow(i);
+#else
     if(y == 0) return 0;
     if(y < 0) {y=-y; x=-x;}
     if(y > Int_MAX || x > Int_MAX/y || x < Int_MIN/y)
       integeroverflow(i);
+#endif
     return x*y;
   }
 };

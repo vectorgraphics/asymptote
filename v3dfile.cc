@@ -26,8 +26,8 @@ void v3dfile::writeInit()
   getXDRFile() << v3dVersion << doubleprecision;
   addHeaders();
 
-  camp::clearCenters();
-  camp::clearMaterials();
+  gl->clearCenters();
+  gl->clearMaterials();
 }
 
 void v3dfile::addHeaders()
@@ -35,29 +35,28 @@ void v3dfile::addHeaders()
   getXDRFile() << v3dtypes::header;
   std::vector<std::unique_ptr<AHeader>> headers;
 
-  headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::canvasWidth, gl::fullWidth));
-  headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::canvasHeight, gl::fullHeight));
+  headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::canvasWidth, gl->fullWidth));
+  headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::canvasHeight, gl->fullHeight));
   headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::absolute, getSetting<bool>("absolute")));
-  headers.emplace_back(make_unique<TripleHeader>(v3dheadertypes::minBound, triple(gl::Xmin, gl::Ymin, gl::Zmin)));
-  headers.emplace_back(make_unique<TripleHeader>(v3dheadertypes::maxBound, triple(gl::Xmax, gl:: Ymax, gl::Zmax)));
-  headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::orthographic, gl::orthographic));
-  headers.emplace_back(make_unique<DoubleHeader>(v3dheadertypes::angleOfView, gl::Angle));
-  headers.emplace_back(make_unique<DoubleHeader>(v3dheadertypes::initialZoom, gl::Zoom0));
-  if(gl::Shift != pair(0.0,0.0))
-    headers.emplace_back(make_unique<PairHeader>(v3dheadertypes::viewportShift, gl::Shift*gl::Zoom0));
-  headers.emplace_back(make_unique<PairHeader>(v3dheadertypes::viewportMargin, gl::Margin));
+  headers.emplace_back(make_unique<TripleHeader>(v3dheadertypes::minBound, triple(gl->Xmin, gl->Ymin, gl->Zmin)));
+  headers.emplace_back(make_unique<TripleHeader>(v3dheadertypes::maxBound, triple(gl->Xmax, gl-> Ymax, gl->Zmax)));
+  headers.emplace_back(make_unique<Uint32Header>(v3dheadertypes::orthographic, gl->orthographic));
+  headers.emplace_back(make_unique<DoubleHeader>(v3dheadertypes::angleOfView, gl->Angle));
+  headers.emplace_back(make_unique<DoubleHeader>(v3dheadertypes::initialZoom, gl->Zoom0));
+  if(gl->Shift != pair(0.0,0.0))
+    headers.emplace_back(make_unique<PairHeader>(v3dheadertypes::viewportShift, gl->Shift*gl->Zoom0));
+  headers.emplace_back(make_unique<PairHeader>(v3dheadertypes::viewportMargin, gl->Margin));
 
-  for(size_t i=0; i < gl::nlights; ++i) {
+  for(size_t i=0; i < gl->nlights; ++i) {
     size_t i4=4*i;
     headers.emplace_back(make_unique<LightHeader>(
-                           gl::Lights[i],
-                           prc::RGBAColour(gl::Diffuse[i4], gl::Diffuse[i4+1], gl::Diffuse[i4+2], 1.0)
-                           ));
+                           gl->Lights[i],
+                           prc::RGBAColour(gl->LightsDiffuse[i4], gl->LightsDiffuse[i4+1], gl->LightsDiffuse[i4+2], 1.0)));
   }
 
   headers.emplace_back(make_unique<RGBAHeader>(
                          v3dheadertypes::background,
-                         prc::RGBAColour(gl::Background[0],gl::Background[1],gl::Background[2],gl::Background[3])));
+                         prc::RGBAColour(gl->Background[0],gl->Background[1],gl->Background[2],gl->Background[3])));
 
   headers.emplace_back(make_unique<DoubleHeader>(v3dheadertypes::zoomFactor, getSetting<double>("zoomfactor")));
   headers.emplace_back(make_unique<DoubleHeader>(
@@ -71,6 +70,15 @@ void v3dfile::addHeaders()
                          v3dheadertypes::shiftWaitTime, getSetting<double>("shiftWaitTime")));
   headers.emplace_back(make_unique<DoubleHeader>(
                          v3dheadertypes::vibrateTime, getSetting<double>("vibrateTime")));
+  bool ibl = getSetting<bool>("ibl");
+  if (ibl) {
+    string const& imageDir = getSetting<string>("imageDir");
+    string const& image = getSetting<string>("image");
+    if (!image.empty()) {
+      headers.emplace_back(make_unique<StringHeader>(
+                             v3dheadertypes::imagePath, std::string(imageDir) + "/" + std::string(image)));
+    }
+  }
 
   getXDRFile() << (uint32_t) headers.size();
   for(const auto& header : headers) {
@@ -152,7 +160,7 @@ void v3dfile::addMaterial(Material const& mat)
   addvec4(mat.specular);
   glm::vec4 vec=mat.parameters;
   getXDRFile() << static_cast<float>(vec.x) << static_cast<float>(vec.y)
-               << static_cast<float>(vec.z);
+               << static_cast<float>(vec.z) << static_cast<float>(vec.w);
 }
 
 void v3dfile::addCenterIndexMat()
@@ -287,6 +295,11 @@ void v3dfile::addPixel(triple const& z0, double width)
   getXDRFile() << (uint32_t) materialIndex;
 }
 
+void v3dfile::write(const string& s)
+{
+//  getXDRFile() << s;
+}
+
 void v3dfile::finalize()
 {
   if(!finalized) {
@@ -299,10 +312,11 @@ void v3dfile::finalize()
 
 xdr::oxstream& gzv3dfile::getXDRFile()
 {
-  return memxdrfile;
+  return memfile.memxdrfile;
 }
 
-gzv3dfile::gzv3dfile(string const& name, bool singleprecision): v3dfile(singleprecision), memxdrfile(singleprecision), name(name), destroyed(false)
+gzv3dfile::gzv3dfile(string const& name, bool singleprecision):
+  v3dfile(singleprecision), memfile(name,singleprecision)
 {
   writeInit();
 }
@@ -314,19 +328,8 @@ gzv3dfile::~gzv3dfile()
 
 void gzv3dfile::close()
 {
-  if(!destroyed) {
-    finalize();
-
-    std::vector<uint8_t> const resultingData = memxdrfile.createCopyOfCurrentData();
-
-    memxdrfile.close();
-    gzFile file=gzopen(name.c_str(), "wb9");
-    gzwrite(file, resultingData.data(), resultingData.size());
-    gzclose(file);
-    if(settings::verbose > 0)
-      cout << "Wrote " << name << endl;
-    destroyed=true;
-  }
+  finalize();
+  memfile.close();
 }
 
 uint32_t LightHeader::getWordSize(bool singleprecision) const

@@ -38,6 +38,8 @@ struct CameraInformation
 
   light light;
 
+  string imagePath;
+
   void setCameraInfo()
   {
     size(canvasWidth,canvasHeight);
@@ -227,6 +229,18 @@ struct v3dfile
             ci.light.position.push(position);
             ci.light.diffuse.push(rgba(readColorData(1,false)[0]));
           }
+        else if (headerKey==v3dheadertypes.imagePath)
+          {
+            xdrfile.word(true);
+            ci.imagePath=xdrfile;
+            xdrfile.word(false);
+            string c;
+            int n=length(ci.imagePath);
+            int words=(n+3)#4;
+            int bytes=4*words;
+            for(int i=n; i < bytes; ++i)
+              c=getc(xdrfile);
+          }
         else
           {
             xdrfile.dimension(headerSz);
@@ -244,16 +258,18 @@ struct v3dfile
     pen emissivePen=rgba(xdrfile);
     pen specularPen=rgba(xdrfile);
 
-    xdrfile.dimension(3);
+    bool v2=version >= 2;
+    xdrfile.dimension(v2 ? 4 : 3);
     real[] params=xdrfile;
     real shininess=params[0];
     real metallic=params[1];
     real F0=params[2];
+    bool lightOn=v2 ? params[3] != 0 : true;
 
     xdrfile.singlereal(singleprecision);
 
     return material(diffusePen,emissivePen,specularPen,1,shininess,
-                    metallic,F0);
+                    metallic,F0,lightOn);
   }
 
   triple[][] readRawPatchData() {
@@ -496,13 +512,21 @@ struct v3dfile
     static bool processed;
     if(processed) return;
 
-    while (!eof(xdrfile))
+    while (true)
       {
         int ty=getType();
+        if(eof(xdrfile)) break;
         if(ty == v3dtypes.header)
           {
             hasCameraInfo=true;
             info=processHeader();
+            if(info.imagePath != "")
+              {
+                settings.ibl=true;
+                int lastSlash=rfind(info.imagePath,'/');
+                settings.image=substr(info.imagePath,lastSlash+1);
+                settings.imageDir=substr(info.imagePath,0,lastSlash);
+              }
           }
         else if(ty == v3dtypes.material)
           {
@@ -582,7 +606,7 @@ struct v3dfile
           }
         else
           {
-            //  abort("Unknown type:"+string(ty));
+            abort("Unknown type:"+string(ty));
           }
       }
     processed=true;

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 from xasyqtui.widg_addLabel import Ui_Form
-import PyQt5.QtWidgets as QtWidgets
-import PyQt5.QtGui as QtGui
+import PySide6.QtWidgets as QtWidgets
+import PySide6.QtGui as QtGui
 
 import labelEditor
 import xasyUtils as xu
@@ -60,8 +60,7 @@ class Widg_addLabel(QtWidgets.QWidget):
     def btnAdvancedEditClicked(self):
         advancedEditDialog = labelEditor.labelEditor(self.ui.txtLabelText.text())
         advancedEditDialog.show()
-        result = advancedEditDialog.exec_()
-        if result == QtWidgets.QDialog.Accepted:
+        if advancedEditDialog.exec():
             self.ui.txtLabelText.setText(advancedEditDialog.getText())
 
     @property

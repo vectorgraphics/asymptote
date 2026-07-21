@@ -10,14 +10,16 @@ StartTest("read1");
     assert(a[i] == ++c);
   seek(fin,0);
   real[] b=fin.line();
+  assert(fin.line);
   assert(b[0] == a.length);
-  real[] b=fin.line();
+  real[] b=fin;
   c=-1;
   for(int i=0; i < b.length; ++i)
     assert(b[i] == ++c);
   seek(fin,0);
   real nx=fin;
   real[] b=fin.dimension(5);
+  assert(all(fin.dimension == new int[] {5,-1,-1}));
   c=-1;
   for(int i=0; i < 5; ++i)
     assert(b[i] == ++c);
@@ -38,7 +40,8 @@ StartTest("read2");
    real nx=fin;
   real ny=fin;
   c=-1;
- real[][] b=fin.dimension(a.length,a[0].length);
+  real[][] b=fin.dimension(a.length,a[0].length);
+  assert(all(fin.dimension == new int[] {a.length,a[0].length,-1}));
   for(int i=0; i < a.length; ++i)
     for(int j=0; j < a[0].length; ++j)
       assert(b[i][j] == ++c);
@@ -62,6 +65,8 @@ StartTest("read3");
   real ny=fin;
   real nz=fin;
   real[][][] b=fin.dimension(a.length,a[0].length,a[0][0].length);
+  assert(all(fin.dimension ==
+             new int[] {a.length,a[0].length,a[0][0].length}));
   c=-1;
   for(int i=0; i < a.length; ++i)
     for(int j=0; j < a[0].length; ++j)
