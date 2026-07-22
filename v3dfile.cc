@@ -75,8 +75,14 @@ void v3dfile::addHeaders()
     string const& imageDir = getSetting<string>("imageDir");
     string const& image = getSetting<string>("image");
     if (!image.empty()) {
+      // If the name contains an absolute path, extract just the filename; relative paths are ok.
+      std::string name(image);
+      if (!name.empty() && name[0] == '/') {
+        auto lastSlash = name.rfind('/');
+        name = (lastSlash != 0) ? name.substr(lastSlash + 1) : name.substr(1);
+      }
       headers.emplace_back(make_unique<StringHeader>(
-                             v3dheadertypes::imagePath, std::string(imageDir) + "/" + std::string(image)));
+                             v3dheadertypes::imageName, name));
     }
   }
 
