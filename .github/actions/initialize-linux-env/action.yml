@@ -28,10 +28,23 @@ runs:
       uses: actions/cache@v4
       with:
         path: /home/runner/.cache/vcpkg/archives
-        key: ${{ runner.os }}-vcpkg-cache
+        # Key on the manifest so new/changed dependencies get re-cached; the
+        # restore-keys prefix falls back to the most recent compatible cache.
+        key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+        restore-keys: |
+          ${{ runner.os }}-vcpkg-
     - name: Cache ccache
       id: cache-ccache
       uses: actions/cache@v4
       with:
         path: /home/runner/.ccache
-        key: ${{ runner.os }}-ccache-cache
+        # The key must be unique per commit *and* per job. github.sha refreshes
+        # the cache whenever code changes (avoiding unbounded cache growth from a
+        # per-run key). github.job keeps jobs from colliding: this composite
+        # action runs in several Linux jobs, and an earlier job (e.g. configure)
+        # finishing first would otherwise claim the key and make the main build
+        # job's post-step skip saving its richer cache.
+        key: ${{ runner.os }}-ccache-${{ github.job }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-ccache-${{ github.job }}-
+          ${{ runner.os }}-ccache-
