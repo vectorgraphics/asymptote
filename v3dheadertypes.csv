@@ -17,4 +17,4 @@ zoomStep,16,REAL          # Zoom power step
 shiftHoldDistance,17,REAL # Shift-mode maximum hold distance (pixels)
 shiftWaitTime,18,REAL     # Shift-mode hold time (milliseconds)
 vibrateTime,19,REAL       # Shift-mode vibrate time (milliseconds)
-imageName,20,STRING       # IBL environment map name (no path)
+imageName,20,STRING       # IBL environment map identifier (relative path or bare name)
