@@ -578,7 +578,7 @@ app_list halfExactMultimatch(env &e,
 // not give any speed-up.
 bool tooManyArgs(types::signature *target, types::signature *source) {
   return source->getNumFormals() > target->getNumFormals() &&
-    !target->hasRest();
+    !target->hasRest() && !target->isOpen;
 }
 
 // The full overloading resolution system, which handles casting of arguments,

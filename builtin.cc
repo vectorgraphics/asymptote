@@ -188,6 +188,14 @@ void addOpenFunc(venv &ve, bltin f, ty *result, symbol name)
   ve.enter(name, ent);
 }
 
+void addOpenBuiltinFunc(venv &ve, bltin runtimeFn,
+                        absyntax::callExp::CustomHandlers handlers,
+                        ty *result, symbol name)
+{
+  addOpenFunc(ve, runtimeFn, result, name);
+  absyntax::registerCustomHandlers(name, handlers);
+}
+
 
 // Add a rest function with zero or more default/explicit arguments.
 void addRestFunc(venv &ve, bltin f, ty *result, symbol name, formal frest,
@@ -601,17 +609,15 @@ void addArrayOps(venv &ve, types::array *t)
 {
   ty *ct = t->celltype;
 
-  // Check for the alias function to see if these operation have already been
-  // added, if they have, don't add them again.
-  static types::function aliasType(primBoolean(), primVoid(), primVoid());
-  aliasType.sig.formals[0].t = t;
-  aliasType.sig.formals[1].t = t;
+  // Check for the copy function to see if these operations have already been
+  // added. If they have, don't add them again.
+  static types::function copyType(primVoid(), primVoid(), primVoid());
+  copyType.result = t;
+  copyType.sig.formals[0].t = t;
+  copyType.sig.formals[1].t = primInt();
 
-  if (ve.lookByType(SYM(alias), &aliasType))
+  if (ve.lookByType(SYM(copy), &copyType))
     return;
-
-  addFunc(ve, run::arrayAlias,
-          primBoolean(), SYM(alias), formal(t, SYM(a)), formal(t, SYM(b)));
 
   size_t depth=(size_t) t->depth();
 
@@ -660,28 +666,23 @@ void addArrayOps(venv &ve, types::array *t)
   }
 }
 
-void addRecordOps(record* r)
-{
-  assert(r);
-  trans::venv &ve = r->e.ve;
-  auto addOp= [&ve, r](vm::bltin f, ty* result, symbol name, auto&&... formals) {
-    varEntry* fVar=
-            addFunc(ve, f, result, name, std::forward<formal>(formals)...);
-    r->autounravelRegistry.registerAutoUnravel(name, fVar, AutounravelPriority::OFFER);
-  };
-  // alias
-  addOp(run::boolMemEq, primBoolean(), SYM(alias), formal(r, SYM(a)),
-        formal(r, SYM(b)));
-  // operator==
-  addOp(run::boolMemEq, primBoolean(), SYM_EQ, formal(r, SYM(a)),
-        formal(r, SYM(b)));
-  // operator!=
-  addOp(run::boolMemNeq, primBoolean(), SYM_NEQ, formal(r, SYM(a)),
-        formal(r, SYM(b)));
-}
-
 void addOperators(venv &ve)
 {
+  // Global open-signature `==` / `!=`.  When neither operand has a
+  // concrete equality in scope these resolve to the open signature; a
+  // custom call-site handler then enforces record reference-equality
+  // semantics.  Replaces the legacy per-record `addRecordOps` machinery.
+  addOpenBuiltinFunc(ve, run::boolMemEq,
+                     {&absyntax::callExp::transRecordEq,
+                      &absyntax::callExp::getRecordEqType,
+                      &absyntax::specializeRecordEq},
+                     primBoolean(), SYM_EQ);
+  addOpenBuiltinFunc(ve, run::boolMemNeq,
+                     {&absyntax::callExp::transRecordEq,
+                      &absyntax::callExp::getRecordEqType,
+                      &absyntax::specializeRecordNeq},
+                     primBoolean(), SYM_NEQ);
+
   addSimpleOperator(ve,binaryOp<string,plus>,primString(),SYM_PLUS);
 
   addBooleanOps<bool,And>(ve,primBoolean(),SYM_AMPERSAND,booleanArray());
@@ -760,7 +761,6 @@ dummyRecord *createDummyRecord(venv &ve, symbol name)
   dummyRecord *r=new dummyRecord(name);
   vm::vmFrame *f = make_dummyframe(name);
   addConstant(ve, f, r, name);
-  addRecordOps(r);
   return r;
 }
 
@@ -892,6 +892,11 @@ void base_venv(venv &ve)
   addOpenFunc(ve, openFunc, primInt(), SYM(openFunc));
 #endif
 
+  addOpenBuiltinFunc(ve, run::boolMemEq,
+                     {&absyntax::callExp::transAlias,
+                      &absyntax::callExp::getAliasType,
+                      &absyntax::specializeAlias},
+                     primBoolean(), SYM(alias));
   addOpenFunc(ve, printBytecode, primVoid(), SYM(printBytecode));
 
   gen_runtime_venv(ve);

@@ -219,6 +219,36 @@ set(revision_cc_file ${GENERATED_SRC_DIR}/revision.cc)
 configure_file(${ASY_RESOURCE_DIR}/template_rev.cc.in ${revision_cc_file})
 list(APPEND ASY_GENERATED_BUILD_SOURCES ${revision_cc_file})
 
+# Guard against stale in-tree generated headers.  The autotools/make build
+# writes its generated headers (run*.h, keywords.h, camp.tab.h, *.symbols.h,
+# ...) into the source root.  The interpreter sources also live in the source
+# root and include these headers with quotes (e.g. #include "runarray.h"), and
+# the compiler resolves a quote-include from the including file's own directory
+# *before* any -I path.  So a leftover in-tree copy silently shadows the fresh
+# header this out-of-source build generates in ${GENERATED_INCLUDE_DIR},
+# producing confusing "not a member of run" errors deep in the build.  -I
+# ordering cannot override that precedence, so fail fast at configure time with
+# actionable guidance instead.
+set(_stale_generated_headers "")
+foreach(_gen_header ${ASYMPTOTE_GENERATED_HEADERS})
+    get_filename_component(_gen_header_name "${_gen_header}" NAME)
+    if (EXISTS "${ASY_INCLUDE_DIR}/${_gen_header_name}")
+        list(APPEND _stale_generated_headers ${_gen_header_name})
+    endif()
+endforeach()
+if (_stale_generated_headers)
+    list(JOIN _stale_generated_headers "\n  " _stale_generated_headers_pretty)
+    message(FATAL_ERROR
+        "Stale generated header(s) found in the source tree (${ASY_INCLUDE_DIR}):\n"
+        "  ${_stale_generated_headers_pretty}\n"
+        "These are produced by the in-tree autotools/make build and will shadow "
+        "the copies this CMake build generates, because a quote-include resolves "
+        "from each source file's own directory before any -I path.  Remove them "
+        "(e.g. run `make distclean` in the source tree, or delete the files "
+        "listed above) and re-run CMake."
+    )
+endif()
+
 add_custom_target(asy_gen_headers
         DEPENDS ${ASYMPTOTE_GENERATED_HEADERS}
 )

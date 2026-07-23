@@ -20,6 +20,7 @@
 namespace trans {
 class coenv;
 class coder;
+class access;
 
 struct label_t;
 typedef label_t *label;
@@ -77,6 +78,13 @@ public:
   // Translates the expression to the given target type, possibly using an
   // implicit cast.
   void transToType(coenv &e, types::ty *target);
+
+  // Hook called by transToType after standard cast resolution has failed,
+  // before reporting a "cannot cast" error.  Subclasses may override to emit
+  // an alternate translation (e.g. specializing an open-signature builtin
+  // read as a function value).  Returns true if it produced output, in which
+  // case transToType returns successfully without reporting an error.
+  virtual bool trySpecializeToType(coenv &, types::ty *) { return false; }
 
   // Translates the expression and returns the resultant type.
   // For some expressions, this will be ambiguous and return an error.
@@ -256,6 +264,14 @@ public:
     // overloaded types cached.
     ct=0;
   }
+
+  // If `value` resolves to an open-signature builtin whose CustomHandlers
+  // expose a `specialize` hook, emit a synthesized access matching the
+  // target type.  This preserves backward compatibility for patterns like
+  // `bool eq(R, R) = operator==;` after `operator==` migrated to a single
+  // global open-signature builtin.  Defined in exp.cc since it uses the
+  // full definitions of coenv and trans::access.
+  bool trySpecializeToType(coenv &e, types::ty *target) override;
 
   types::ty *trans(coenv &e) override {
     types::ty *t=cgetType(e);
@@ -774,6 +790,41 @@ private:
   void reportMismatch(types::function *ft,
                       types::signature *source);
 
+  bool resolvedToOpenSignature() const;
+  types::ty *getTypeRegular(coenv &e);
+
+public:
+  // Handlers for a builtin whose call-site translation and type inference are
+  // performed by custom code (rather than by emitting a bltin access on a
+  // concrete signature).  Both fields may be null if the default behaviour is
+  // desired.  `trans` is invoked from callExp::trans after argument resolution
+  // has determined that the call resolves to an open-signature function whose
+  // name matches an entry in the side table; it is responsible for emitting
+  // the runtime call.  `getType` is invoked from callExp::getType in the same
+  // situation and returns the inferred result type of the call.
+  struct CustomHandlers {
+    types::ty *(callExp::*trans)(coenv&) = nullptr;
+    types::ty *(callExp::*getType)(coenv&) = nullptr;
+    // Optional.  Invoked when a `nameExp` referring to this builtin is being
+    // coerced to a concrete target type (e.g. `bool eq(R, R) = operator==;`)
+    // and the standard cast machinery has not already found a concrete match.
+    // Returns an `access` whose runtime behaviour is equivalent to invoking
+    // the builtin, or `nullptr` if no specialization is possible for the
+    // requested target type.
+    trans::access *(*specialize)(types::ty *target) = nullptr;
+  };
+
+  // Custom handlers for the `alias` builtin.
+  types::ty *transAlias(coenv &e);
+  types::ty *getAliasType(coenv &e);
+
+  // Custom handlers for the global record `==` / `!=` builtins.  A single
+  // pair of handlers is shared between the two operators; the handler
+  // inspects the callee name to select the appropriate runtime opcode.
+  types::ty *transRecordEq(coenv &e);
+  types::ty *getRecordEqType(coenv &e);
+
+private:
   void reportNonFunction();
 
   // Caches either the application object used to apply the function to the
@@ -896,6 +947,36 @@ public:
 
   void createSymMap(AsymptoteLsp::SymbolContext* symContext) override;
 };
+
+// Register custom translation / type-inference handlers for a callable whose
+// name matches `name` and which resolves to an open signature.  The handlers
+// are consulted only after argument resolution has selected an open-signature
+// function with that name, so the table is irrelevant for the overwhelming
+// majority of calls (which resolve to concrete signatures).
+// Idempotent: re-registering `name` is allowed only if the handlers are
+// identical (asserted); registering different handlers for the same name is a
+// programming error.
+//
+// Note: the table is keyed by symbol rather than by varEntry* because the
+// overload resolver (`application::match`) discards varEntry information
+// while it works on `function*` types.  Gating on resolvedToOpenSignature()
+// makes the symbol-keyed lookup equivalent to a varEntry-keyed lookup for
+// the intended use case --- each registered name corresponds to a single
+// open-signature builtin.
+void registerCustomHandlers(symbol name, callExp::CustomHandlers h);
+
+// Returns null if no handlers are registered for `name`.
+const callExp::CustomHandlers *lookupCustomHandlers(symbol name);
+
+// `specialize` callbacks for record `==` / `!=`.  Used by builtin.cc when
+// registering the open-signature `operator==` / `operator!=` builtins so
+// that `bool eq(R, R) = operator==;` continues to work for record types.
+trans::access *specializeRecordEq(types::ty *target);
+trans::access *specializeRecordNeq(types::ty *target);
+
+// `specialize` callback for `alias`, so that `bool eq(T, T) = alias;` works
+// for any nullable type T (records, arrays, and function types).
+trans::access *specializeAlias(types::ty *target);
 
 class nullaryExp : public callExp {
 public:

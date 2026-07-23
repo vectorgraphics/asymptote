@@ -1558,14 +1558,14 @@ void getOptions(int argc, char *argv[])
     }
 
     if (showVersion) {
-      // Don't exit yet — continue parsing remaining options
+      // Don't exit yet --- continue parsing remaining options
     }
 
     errno=0;
   }
 
   if (showVersion) {
-    // Don't exit yet — continue parsing remaining options, then exit
+    // Don't exit yet --- continue parsing remaining options, then exit
     // from setOptions() after setPath() has been called so that the
     // renderer can locate its shared libraries.
   }
