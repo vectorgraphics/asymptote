@@ -29,6 +29,8 @@ constexpr auto DYNAMIC_LIB_EXTENSION= "so";
 constexpr auto DYNAMIC_LIB_EXTENSION_DOTTED= ".so";
 #endif 
 
+string extension(string name);
+
 // Check to see if a file of given name exists.
 bool exists(string filename);
 
