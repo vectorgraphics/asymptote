@@ -22,10 +22,10 @@ int MaterialIndex;
 size_t materialIndex;
 bool colors;
 
-VertexBuffer materialData;
-VertexBuffer colorData;
-VertexBuffer triangleData;
-VertexBuffer transparentData;
+VertexBuffer materialData(ReserveGlobal);
+VertexBuffer colorData(ReserveGlobal);
+VertexBuffer triangleData(ReserveGlobal);
+VertexBuffer transparentData(ReserveGlobal);
 
 const double FillFactor=0.1;
 

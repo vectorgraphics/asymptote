@@ -45,11 +45,13 @@ cleanest: FORCE
 distclean: FORCE cleaner
 maintainer-clean: FORCE cleanest
 
-install: asymptote.info
-	${INSTALL} -d -m 755 $(infodir)/asymptote
-	${INSTALL} -p -m 644 asymptote.info $(infodir)/asymptote
-	-if test -z "$(DESTDIR)"; then \
-		install-info --infodir=$(infodir) asymptote.info; \
+install:
+	@if test -f ../asymptote.info; then \
+	  ${INSTALL} -d -m 755 $(infodir)/asymptote; \
+	  ${INSTALL} -p -m 644 ../asymptote.info $(infodir)/asymptote; \
+	  if test -z "$(DESTDIR)"; then \
+	    install-info --infodir=$(infodir) ../asymptote.info; \
+	  fi; \
 	fi
 
 install-all: all install

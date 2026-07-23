@@ -70,6 +70,21 @@ void v3dfile::addHeaders()
                          v3dheadertypes::shiftWaitTime, getSetting<double>("shiftWaitTime")));
   headers.emplace_back(make_unique<DoubleHeader>(
                          v3dheadertypes::vibrateTime, getSetting<double>("vibrateTime")));
+  bool ibl = getSetting<bool>("ibl");
+  if (ibl) {
+    string const& imageDir = getSetting<string>("imageDir");
+    string const& image = getSetting<string>("image");
+    if (!image.empty()) {
+      // If the name contains an absolute path, extract just the filename; relative paths are ok.
+      std::string name(image);
+      if (!name.empty() && name[0] == '/') {
+        auto lastSlash = name.rfind('/');
+        name = (lastSlash != 0) ? name.substr(lastSlash + 1) : name.substr(1);
+      }
+      headers.emplace_back(make_unique<StringHeader>(
+                             v3dheadertypes::imageName, name));
+    }
+  }
 
   getXDRFile() << (uint32_t) headers.size();
   for(const auto& header : headers) {

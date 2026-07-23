@@ -25,7 +25,6 @@ DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 LSP_ROOT=@LSP_ROOT@
 
 CMAKE ?= cmake
-PERL ?= perl
 PYTHON ?= python3
 BISON ?= bison
 
@@ -157,7 +156,7 @@ ifeq ($(revision),)
 	revision = @VERSION@
 endif
 
-export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
+export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI PYTHON
 
 asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ $(SHIMLIBS)
 	$(CXX) $(OPTS) -rdynamic -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
@@ -336,6 +335,9 @@ man:	asy sty
 
 faq:	asy sty
 	cd doc && $(MAKE) faq
+
+info: asy sty
+	cd doc && $(MAKE) asymptote.info
 
 $(RUNTIME_FILES:=.cc): %.cc: runtime.py opsymbols.h runtimebase.in %.in
 	$(PYTHON) ./runtime.py --prefix $(@:.cc=) --opsym-file opsymbols.h \

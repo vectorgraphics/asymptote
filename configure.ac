@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ([2.71])
-AC_INIT([Asymptote],[3.13git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_INIT([Asymptote],[3.14git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -127,8 +127,11 @@ else
 fi
 ])
 
-AC_CHECK_PROGS(TEXI2ANY,[texi2any makeinfo texi2dvi],
-[@echo \*\*\*\*\*\*\*\*\*\* Please install texinfo package (texi2any)])
+AC_CHECK_PROGS(TEXI2ANY,[texi2any makeinfo])
+if test -z "$TEXI2ANY"; then
+  AC_MSG_NOTICE([*** Could not find texi2any: will compile \
+without documentation support ***])
+fi
 
 AC_SUBST(TEXI2ANY)
 

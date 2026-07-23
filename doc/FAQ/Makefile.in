@@ -8,7 +8,10 @@ INSTALL = @INSTALL@
 all: faq
 
 faq: asy-faq.texi asy-faq.css
-	$(TEXI2ANY) --html --no-split --css-include=asy-faq.css -o asy-faq.html asy-faq.texi
+	@if test "$(TEXI2ANY)" != ""; then \
+	  $(TEXI2ANY) --html --no-split --css-include=asy-faq.css -o asy-faq.html asy-faq.texi; \
+	  $(TEXI2ANY) --info asy-faq.texi; \
+	fi
 
 clean: FORCE
 	-rm -f *~ core a.out *.lout *.ps *.ascii *.xrefdb *.post
@@ -26,8 +29,10 @@ install-all: install
 
 install: faq
 	$(MAKE) install-prebuilt
-	${INSTALL} -d -m 755 $(docdir)
-	${INSTALL} -p -m 644 asy-faq.html $(docdir)
+	@if test "$(TEXI2ANY)" != ""; then \
+	  ${INSTALL} -d -m 755 $(docdir); \
+	  ${INSTALL} -p -m 644 asy-faq.html $(docdir); \
+	fi
 
 install-prebuilt:
 	${INSTALL} -d -m 755 $(infodir)

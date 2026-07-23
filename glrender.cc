@@ -1031,35 +1031,30 @@ void AsyGLRender::drawPoints()
 {
   drawBuffer(pointData,pixelShader,false,0);  // GL_POINTS
   pointData.renderCount++;
-  pointData.clear();
 }
 
 void AsyGLRender::drawLines()
 {
   drawBuffer(lineData,materialShader[Opaque],false,1);  // GL_LINES
   lineData.renderCount++;
-  lineData.clear();
 }
 
 void AsyGLRender::drawMaterials()
 {
   drawBuffer(materialData,materialShader[Opaque]);  // default GL_TRIANGLES
   materialData.renderCount++;
-  materialData.clear();
 }
 
 void AsyGLRender::drawColors()
 {
   drawBuffer(colorData,colorShader[Opaque],true);  // default GL_TRIANGLES
   colorData.renderCount++;
-  colorData.clear();
 }
 
 void AsyGLRender::drawTriangles()
 {
   drawBuffer(triangleData,generalShader[Opaque],true);  // default GL_TRIANGLES
   triangleData.renderCount++;
-  triangleData.clear();
 }
 
 void AsyGLRender::aBufferTransparency()
@@ -1097,7 +1092,6 @@ void AsyGLRender::drawTransparent()
     glDepthMask(GL_TRUE); // Write to depth buffer
   }
   transparentData.renderCount++;
-  transparentData.clear();
 }
 
 void AsyGLRender::drawBuffers()
