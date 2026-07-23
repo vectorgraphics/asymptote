@@ -117,10 +117,9 @@ bool endswith(string suffix, string str)
 }
 
 record *genv::loadModule(symbol id, string filename) {
-  // Get the abstract syntax tree.
-  absyntax::file* ast = parser::parseFileOrNull(filename,"Loading");
 
-  if (ast) {
+  // Get the abstract syntax tree
+  if (absyntax::file* ast= parser::parseFileOrNull(filename, "Loading")) {
     // in case it's an abstract syntax tree
     inTranslation.push_front(filename);
     em.sync();
@@ -129,10 +128,8 @@ record *genv::loadModule(symbol id, string filename) {
 
     return r;
   }
-
   // otherwise, try loading as a dynamic library
-  string dllPath = tryGetDllPath(filename);
-  if (!dllPath.empty()) {
+  if (string const dllPath= tryGetDllPath(filename); !dllPath.empty()) {
     inTranslation.push_front(filename);
     em.sync();
     // specifically, filename here is used as key
