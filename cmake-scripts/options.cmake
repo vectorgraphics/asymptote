@@ -7,24 +7,6 @@ set(
         "Overriding asymptote version. If left blank, version is determined from configure.ac."
 )
 
-# Perl
-
-set(PERL_INTERPRETER "" CACHE STRING "Perl interpreter. If left empty, will try to determine interpreter automatically")
-
-if(NOT PERL_INTERPRETER)
-    message(STATUS "No Perl interpreter specified, attempting to find perl")
-    find_program(
-            PERL_INTERPRETER_FOUND
-            perl
-            REQUIRED
-    )
-    message(STATUS "Found perl at ${PERL_INTERPRETER_FOUND}")
-    set(PERL_INTERPRETER ${PERL_INTERPRETER_FOUND} CACHE STRING "" FORCE)
-endif()
-
-execute_process(COMMAND ${PERL_INTERPRETER} -e "print \"$]\"" OUTPUT_VARIABLE PERL_VERSION)
-message(STATUS "Perl version: ${PERL_VERSION}")
-
 # Python
 
 set(PY3_INTERPRETER "" CACHE STRING "Python 3 interpreter. If left empty, will try to determine Python automatically")

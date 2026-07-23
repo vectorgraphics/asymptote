@@ -1,5 +1,5 @@
 canvasWidth,1,UINT        # Canvas width
-canvasHeight,2,UINT       # Canvas heighot
+canvasHeight,2,UINT       # Canvas height
 absolute,3,BOOL           # true: absolute size; false: scale to canvas
 minBound,4,TRIPLE         # Scene minimum bounding box corners
 maxBound,5,TRIPLE         # Scene maximum bounding box corners
@@ -17,3 +17,4 @@ zoomStep,16,REAL          # Zoom power step
 shiftHoldDistance,17,REAL # Shift-mode maximum hold distance (pixels)
 shiftWaitTime,18,REAL     # Shift-mode hold time (milliseconds)
 vibrateTime,19,REAL       # Shift-mode vibrate time (milliseconds)
+imageName,20,STRING       # IBL environment map identifier (relative path or bare name)

@@ -11,9 +11,6 @@ Ensure the following is installed:
   - Otherwise, CMake can be found [here](https://cmake.org/)
 - Python 3+
   - Available [here](https://www.python.org/downloads/windows/).
-- Perl on Windows
-  - (Recommended way) Strawberry Perl is available at [Strawberry Perl](https://strawberryperl.com/).
-  - (Not recommended due to license terms) ActiveState Perl is available [here](https://www.activestate.com/products/perl/).
 - Ninja
   - (Recommended) Visual Studio/Visual Studio Build Tools provides bundled Ninja as part of CMake build tools
   - Otherwise, Ninja can be installed using winget by running `winget install Ninja-build.Ninja`.
