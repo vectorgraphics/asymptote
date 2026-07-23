@@ -197,7 +197,7 @@ enum class PenColorSpace : uint8_t;
 struct PenLineType;
 struct PenTransparencyInfo;
 struct PenColor;
-}
+}// namespace Asy
 
 class IAsyContext
 {
@@ -449,9 +449,9 @@ public:
    * do not use this in any functions marked "noexcept"
    */
   virtual void reportFatal(char const* message)= 0;
-  
-  // pen creation functions 
-  
+
+  // pen creation functions
+
   virtual IAsyPen* createNewPen(
           const Asy::PenLineType* lineType, double lineWidth,
           IAsyPath const* path, char const* font, double fontSize,
@@ -607,7 +607,7 @@ enum class PenColorSpace : uint8_t
  */
 enum class PenLineCap : int8_t
 {
-  Default = -1,
+  Default= -1,
   Square,
   Round,
   Extended
@@ -618,7 +618,7 @@ enum class PenLineCap : int8_t
  */
 enum class PenLineJoin : int8_t
 {
-  Default = -1,
+  Default= -1,
   Miter,
   Round,
   Bevel
@@ -635,7 +635,7 @@ struct PenLineType {
 
   /** Pointer to array of postscript pattern entries */
   double* patternPtr;
-  
+
   /** Offset in the pattern to start drawing */
   double offset;
   /** Whether to scale the line type values by pen width */
@@ -644,8 +644,7 @@ struct PenLineType {
   bool adjust;
 };
 
-struct PenColor
-{
+struct PenColor {
   union
   {
     double red;
@@ -835,7 +834,7 @@ public:
   virtual double getFar()= 0;
 };
 
-constexpr double ASY_PEN_DEFAULT_WIDTH = -1;
+constexpr double ASY_PEN_DEFAULT_WIDTH= -1;
 
 class IAsyPen
 {
@@ -916,8 +915,9 @@ public:
   /** Creates a new pen that has its colors multiplied by factor */
   [[nodiscard]]
   virtual IAsyPen* multiplyColor(double factor) const= 0;
-  
-  virtual void setColor(Asy::PenColorSpace newColorSpace, Asy::PenColor newColor)= 0;
+
+  virtual void
+  setColor(Asy::PenColorSpace newColorSpace, Asy::PenColor newColor)= 0;
 };
 
 namespace Asy
