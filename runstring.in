@@ -175,10 +175,11 @@ string substr(string* s, Int pos, Int n=-1)
 
 string :stringBracketsHelper(Int pos, string *s)
 {
+  const size_t len = s->length();
   if (pos < 0)
-    pos += s->length();
-  if (pos >= 0 && pos < s->length())
-    return s->substr(pos, 1);
+    pos += static_cast<Int>(len);
+  if (pos >= 0 && static_cast<size_t>(pos) < len)
+    return s->substr(static_cast<size_t>(pos), 1);
   return emptystring;
 }
 

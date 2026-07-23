@@ -2294,7 +2294,7 @@ A single-character substring of a string @code{s} can be accessed with
 where @code{n} is the length of the string @code{s}. Negative indices count
 from the end of the string, so @code{s[-1]} is the last character of @code{s}.
 The start of the string is @code{s[0]}.
-If @code{pos} is out of range, the empty string @code{''} is returned.
+If @code{pos} is out of range, the empty string @code{""} (equivalently @code{''}) is returned.
 
 In the following
 string functions, position @code{0} denotes the start of the string:
