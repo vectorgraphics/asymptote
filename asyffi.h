@@ -1292,15 +1292,12 @@ typedef void (*LNK_CALL TAsyRegisterDynlibFn)(IAsyContext*, IAsyFfiRegisterer*);
 
 // convenience macros for asy function registration
 
-#define REGISTER_FN_NAME(libname) registerPlugin_##libname
-
-#define REGISTER_FN_SIG(libname)                                               \
-  void LNK_CALL REGISTER_FN_NAME(libname)(                                     \
-          IAsyContext * context, IAsyFfiRegisterer * registerer                \
+#define REGISTER_FN_SIG                                                        \
+  void LNK_CALL registerAsymptotePlugin(                                       \
+          IAsyContext* context, IAsyFfiRegisterer* registerer                  \
   )
 
-#define DECLARE_REGISTER_FN(libname)                                           \
-  extern "C" ASY_FFI_EXPORT REGISTER_FN_SIG(libname)
+#define DECLARE_REGISTER_FN extern "C" ASY_FFI_EXPORT REGISTER_FN_SIG
 
 #define ASY_FOREIGN_FUNC_SIG(functionName)                                     \
   void LNK_CALL functionName(                                                  \

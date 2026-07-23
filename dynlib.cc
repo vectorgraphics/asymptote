@@ -16,15 +16,17 @@ AsyContextImpl asyContext;
 IAsyContext* getAsyContext() { return &asyContext; }
 }// namespace camp
 
+auto constexpr ASYFFI_REGISTER_PLUGIN_FUNCTION_NAME= "registerAsymptotePlugin";
+
 record* loadDynLib(string const& key, string const& fileName, trans::genv* genv)
 {
   camp::LoadedDynLib const* lib=
           camp::getDynlibManager()->loadLib(key, fileName);
-  string const registerName= string("registerPlugin_") + key;
 
   camp::AsyFfiRegistererImpl registerer(key, genv, camp::getAsyContext());
-  auto const registerFunction=
-          lib->getSymAddress<TAsyRegisterDynlibFn>(registerName.c_str());
+  auto const registerFunction= lib->getSymAddress<TAsyRegisterDynlibFn>(
+          ASYFFI_REGISTER_PLUGIN_FUNCTION_NAME
+  );
   registerFunction(camp::getAsyContext(), &registerer);
 
   return registerer.getRecord();
