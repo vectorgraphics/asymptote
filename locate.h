@@ -21,6 +21,13 @@ extern file_list_t searchPath;
 string locateFile(string id, bool full=false, string suffix=settings::suffix);
 
 namespace fs {
+#ifdef _WIN32
+constexpr auto DYNAMIC_LIB_EXTENSION= "dll";
+constexpr auto DYNAMIC_LIB_EXTENSION_DOTTED= ".dll";
+#else
+constexpr auto DYNAMIC_LIB_EXTENSION= "so";
+constexpr auto DYNAMIC_LIB_EXTENSION_DOTTED= ".so";
+#endif 
 
 // Check to see if a file of given name exists.
 bool exists(string filename);
