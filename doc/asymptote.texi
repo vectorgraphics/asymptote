@@ -4526,13 +4526,18 @@ reference, a reference that does not actually refer to any instance of the
 structure.  Trying to use a field of a null reference will cause an error.
 
 @cindex alias
+The function @code{bool alias(T,T)} checks to see if two expressions of
+the same nullable type refer to the same instance of that type.
+In the example at the beginning of this section, @code{alias(foo,bar)}
+would return true, but @code{alias(foo,new T)} would return false, as
+@code{new T} creates a new instance of the structure @code{T}.
+If @code{a} has a well-defined type, then @code{alias(a,null)} is an idiomatic
+way to check whether @code{a} is @code{null}; however, @code{alias(null, null)}
+is an error since neither operand has a well-defined type.
+
 @cindex @code{==}
 @cindex @code{!=}
-The function @code{bool alias(T,T)} checks to see if two nullable values of
-the same type refer to the same instance of that type (or both to @code{null}).
-In the example at the beginning of this section, @code{alias(foo,bar)}
-would return true, but @code{alias(foo,new T)} would return false, as @code{new
-T} creates a new instance of the structure @code{T}.  The boolean operators
+The boolean operators
 @code{==} and @code{!=} are by default equivalent to @code{alias} and
 @code{!alias} respectively, but may be overwritten for a particular type
 (for example, to do a deep comparison).
