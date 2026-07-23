@@ -34,10 +34,17 @@ record* loadDynLib(string const& key, string const& fileName, trans::genv* genv)
 
 string tryGetDllPath(string const& libName)
 {
-#ifdef _WIN32
-  string const dllName= libName + ".dll";
-#else
-  string const dllName= "lib" + libName + ".so";
+  // firstly, try to get the file as is
+  auto const libPathAsIs= settings::locateFile(libName, true, settings::fs::DYNAMIC_LIB_EXTENSION);
+  if (!libPathAsIs.empty() && settings::fs::extension(libPathAsIs) == settings::fs::DYNAMIC_LIB_EXTENSION_DOTTED) {
+    // and only process if the file ends in .so/.dll
+    return libPathAsIs;
+  }
+  
+  // otherwise, try to find <libName>.dll or lib<libName>.so
+  string dllName= libName+settings::fs::DYNAMIC_LIB_EXTENSION_DOTTED;
+#ifndef _WIN32
+  dllName= "lib"+libName;
 #endif
   return settings::locateFile(dllName, true);
 }
