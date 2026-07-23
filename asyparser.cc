@@ -132,6 +132,9 @@ parseFileOrNull(const string& filename, const char* nameOfAction)
 
   if(file.empty())
     return nullptr;
+  
+  if (settings::fs::extension(file) == settings::fs::DYNAMIC_LIB_EXTENSION_DOTTED)
+    return nullptr; // refuse to process dll/so files
 
   if(nameOfAction && settings::verbose > 1)
     cerr << nameOfAction << " " <<  filename << " from " << file << endl;
