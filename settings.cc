@@ -2009,6 +2009,16 @@ string lookup(const string& symbol)
 }
 
 void initDir() {
+  // The TeXLive candidate, tried after the executable-relative ones in
+  // resolveSysdir() have all failed and left the compiled-in sysdir in place.
+  // An empty sysdir here means the binary was built with no fixed data
+  // directory (--enable-texlive-build) and nothing was found beside it, so ask
+  // kpathsea where the texmf tree is; it reads texmf.cnf, which is the only
+  // thing that knows, since TEXMFROOT need not be relative to the binary. This
+  // must stay a test for emptiness rather than for "sysdir does not exist":
+  // it has to leave both a baked-in path and a user-supplied ASYMPTOTE_SYSDIR
+  // alone, and a build whose own base/ is missing should fail rather than
+  // silently fall back to the TeXLive tree's (differently versioned) copy.
   if(getSetting<string>("sysdir").empty()) {
     string s=lookup("TEXMFMAIN");
     if(s.size() > 1) {

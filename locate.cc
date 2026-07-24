@@ -97,15 +97,16 @@ static bool isBaseDir(string const& dir)
 // only in a build tree or a flat install, never on a system where asy came
 // from a package, so it needs no opt-in. The install-tree and flat candidates
 // are gated behind IS_RELOCATABLE.
+//
+// When nothing matches, the compiled-in path is returned unchanged -- including
+// when it is empty, which is how a TeXLive build says "I have no fixed data
+// directory". initDir() sees the empty string and asks kpsewhich for TEXMFMAIN.
+// That lookup is therefore the next candidate after the ones below, not a
+// separate mode: a TeXLive binary run from its build tree uses the adjacent
+// base/, and only a deployed one (bin/<platform>/asy, where no candidate
+// matches) consults kpsewhich.
 string resolveSysdir(string const& compiledInSysdir)
 {
-  string sysdir= compiledInSysdir;
-
-  // An empty compiled-in sysdir is the TeXLive sentinel: it tells initDir()
-  // to ask kpsewhich for TEXMFMAIN. Never fill it in.
-  if (sysdir.empty())
-    return sysdir;
-
   string exe= getExecutablePath();
   if (!exe.empty()) {
     size_t slash= exe.find_last_of("/\\");
@@ -135,7 +136,7 @@ string resolveSysdir(string const& compiledInSysdir)
 #endif
     }
   }
-  return sysdir;
+  return compiledInSysdir;
 }
 
 namespace fs
