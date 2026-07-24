@@ -940,6 +940,10 @@ void AsyRender::initDisplay(int contentWidth, int contentHeight)
   fullWidth = (int) std::ceil(expand * contentWidth);
   fullHeight = (int) std::ceil(expand * contentHeight);
 
+  // Guard against zero/negative dimensions from empty/degenerate scenes.
+  if(fullWidth <= 0) fullWidth = 1;
+  if(fullHeight <= 0) fullHeight = 1;
+
   oWidth = contentWidth;
   oHeight = contentHeight;
 

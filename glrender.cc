@@ -478,9 +478,11 @@ void AsyGLRender::Export(int)
           tr.setOrtho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
         else
           tr.setFrustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
-        do {
-          tr.beginTile();
-          glViewport(0, 0, tr.getCurrentTileWidth(), tr.getCurrentTileHeight());
+      }
+      do {
+        tr.beginTile();
+        glViewport(0, 0, tr.getCurrentTileWidth(), tr.getCurrentTileHeight());
+        if(haveScene) {
           if(orthographic)
             ortho(tr.getLeft(), tr.getRight(), tr.getBottom(), tr.getTop(), tr.getZNear(), tr.getZFar());
           else
@@ -488,48 +490,42 @@ void AsyGLRender::Export(int)
           remesh=true;
           redraw=true;
           prepareScene();
-          drawFrame();
-          lastshader=-1;
-
-          // Efficient direct readback — single glReadPixels into final buffer
-          GLint srcX  = tr.getSrcX();
-          GLint srcY  = tr.getSrcY();
-          GLint srcW  = tr.getSrcWidth();
-          GLint srcH  = tr.getSrcHeight();
-          GLint destX = tr.getDestX();
-          GLint destY = tr.getDestY();
-
-          glPixelStorei(GL_PACK_ROW_LENGTH, fullWidth);
-          glPixelStorei(GL_PACK_SKIP_ROWS, destY);
-          glPixelStorei(GL_PACK_SKIP_PIXELS, destX);
-          glReadPixels(srcX, srcY, srcW, srcH, GL_RGB, GL_UNSIGNED_BYTE, data);
-
-          ++count;
-        } while (tr.endTile());
-      } else {// clear screen and return
-        redraw=true;
-        prepareScene();
+        }
         drawFrame();
-      }
+        lastshader=-1;
+
+        // Efficient direct readback — single glReadPixels into final buffer
+        GLint srcX  = tr.getSrcX();
+        GLint srcY  = tr.getSrcY();
+        GLint srcW  = tr.getSrcWidth();
+        GLint srcH  = tr.getSrcHeight();
+        GLint destX = tr.getDestX();
+        GLint destY = tr.getDestY();
+
+        glPixelStorei(GL_PACK_ROW_LENGTH, fullWidth);
+        glPixelStorei(GL_PACK_SKIP_ROWS, destY);
+        glPixelStorei(GL_PACK_SKIP_PIXELS, destX);
+        glReadPixels(srcX, srcY, srcW, srcH, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+        ++count;
+      } while (tr.endTile());
 
       if(settings::verbose > 1)
         cout << count << " tile" << (count != 1 ? "s" : "") << " drawn" << endl;
 
       picture pic;
-      drawRawImage *Image=NULL;
-      if(haveScene) {
-        double w=oWidth;
-        double h=oHeight;
-        double Aspect=((double) fullWidth)/fullHeight;
-        if(w > h*Aspect) w=(int) (h*Aspect+0.5);
-        else h=(int) (w/Aspect+0.5);
-        // Render an antialiased image.
+      drawRawImage *Image=NULL;  
+      double w=oWidth;
+      double h=oHeight;
+      double Aspect=((double) fullWidth)/fullHeight;
+      if(w > h*Aspect) w=(int) (h*Aspect+0.5);
+      else h=(int) (w/Aspect+0.5);
+      // Render an antialiased image.
 
-        Image=new drawRawImage(data,fullWidth,fullHeight,
-                               transform(0.0,0.0,w,0.0,0.0,h),
-                               antialias);
-        pic.append(Image);
-      }
+      Image=new drawRawImage(data,fullWidth,fullHeight,
+                             transform(0.0,0.0,w,0.0,0.0,h),
+                             antialias);
+      pic.append(Image); 
 
       pic.shipout(NULL,Prefix,Format,false,ViewExport);
       if(Image)
@@ -1200,10 +1196,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 
   nlights0 = nlights;  // Save original for mode restoration
 
-#ifdef HAVE_PTHREAD
-  static bool initializedView=false;
-#endif
-
   if(!initialized)
     Fitscreen=1;
 
@@ -1239,6 +1231,19 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   initialized=true;
 
 #ifdef HAVE_PTHREAD
+  if(threads && glfwWindow && !pthread_equal(pthread_self(),threadMgr.mainthread)) {
+    // Called from asymain thread after renderer is already initialized.
+    // Delegate to the render thread to avoid re-initializing and crashing.
+    if(View && initializedView) {
+      // Render thread is in glfwRunLoop; send message.
+      hideWindow=false;
+      threadMgr.messageQueue.enqueue(RendererMessage::updateRenderer);
+    } else {
+      // Render thread is waiting on initSignal; wake it up via handshake.
+      readyAfterExport=queueExport=true;
+    }
+    return;
+  }
   if(threads && initializedView) {
     if(View) {
       // Called from asymain thread, main thread handles rendering

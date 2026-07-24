@@ -1469,8 +1469,17 @@ void glrenderWrapper()
   gl->threadMgr.wait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
   gl->threadMgr.endwait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
 #endif
-  if(allowRender)
+  if(allowRender) {
+    allowRender=false;
     gl->render(args);
+    // Signal asymain that rendering is complete.
+    // This is needed when the render thread handles rendering via handshake
+    // (e.g., headless mode or when not yet in a View mainLoop).
+    if(gl->readyAfterExport) {
+      gl->readyAfterExport=false;
+      gl->threadMgr.endwait(gl->threadMgr.readySignal,gl->threadMgr.readyLock);
+    }
+  }
 #endif
 }
 #endif // HAVE_LIBGLM
@@ -1606,10 +1615,9 @@ bool picture::shipout3(const string& prefix, const string& format,
         pthread_mutex_lock(&gl->threadMgr.readyLock);
 #ifdef HAVE_RENDERER
       // glfwPostEmptyEvent() only works when the render thread is inside
-      // a GLFW event loop.  In headless mode (llvmpipe on macOS without
-      // Metal), the render thread is blocked on initSignal, so we must
-      // use the handshake instead.
-      if(camp::headlessRenderer) {
+      // a GLFW event loop.  In headless mode or when the render thread is
+      // not yet in a View mainLoop, use the handshake instead.
+      if(camp::headlessRenderer || !gl->initializedView) {
         // Set up args for the render thread, then wake it via handshake.
         allowRender=true;
         gl->threadMgr.wait(gl->threadMgr.initSignal,gl->threadMgr.initLock);

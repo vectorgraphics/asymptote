@@ -376,6 +376,10 @@ public:
   bool readyForExport=false;
   bool readyAfterExport=false;
 
+  // True when the render thread is inside a View-mode glfwRunLoop.
+  // Used to decide whether to use glfwPostEmptyEvent() or initSignal handshake.
+  bool initializedView=false;
+
   // Child process ID for export (used by both OpenGL and Vulkan)
   int Oldpid = 0;
 

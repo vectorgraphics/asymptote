@@ -425,6 +425,10 @@ private:
   void createSurface();
   void createAllocator();
   void pickPhysicalDevice();
+  /// Validate that the current physical device is suitable for remote onscreen rendering.
+  /// If DISPLAY indicates remote X11 and the device is not a CPU renderer (llvmpipe),
+  /// emits a runtime error instructing the user to select a software renderer.
+  void checkSoftwareRenderer();
   std::pair<std::uint32_t, vk::SampleCountFlagBits> getMaxMSAASamples( vk::PhysicalDevice& gpu );
   QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* surface);
   bool isDeviceSuitable(vk::PhysicalDevice& device);

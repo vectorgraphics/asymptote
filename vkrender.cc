@@ -333,7 +333,6 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
   copyRenderArgs(args);
 
 #ifdef HAVE_PTHREAD
-  static bool initializedView=false;
   if(vkinitialize)
     Fitscreen=1;
 #endif
@@ -360,6 +359,25 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
   initialized=true;
 
 #ifdef HAVE_PTHREAD
+  if(threads && !vkinitialize && !pthread_equal(pthread_self(),threadMgr.mainthread)) {
+    // Called from asymain thread after renderer is already initialized.
+    // Delegate to the render thread to avoid re-initializing and crashing.
+    if(View && initializedView) {
+      // Render thread is in glfwRunLoop; send message.
+      hideWindow=false;
+      threadMgr.messageQueue.enqueue(RendererMessage::updateRenderer);
+    } else {
+      // Render thread is waiting on initSignal; wake it up via handshake.
+      readyAfterExport=queueExport=true;
+    }
+    // If View changed from 0 to 1, validate that the already-selected
+    // physical device is suitable for onscreen rendering (e.g., llvmpipe
+    // for remote X11). The initial device selection skipped the DISPLAY
+    // check because View was 0 at that time.
+    if(View && !initializedView)
+      checkSoftwareRenderer();
+    return;
+  }
   if(threads && initializedView) {
     if(View) {
       // Called from asymain thread, main thread handles rendering
@@ -387,6 +405,10 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
   }
 
   if(View) {
+    // Validate that the current physical device is suitable for onscreen
+    // rendering.  If View changed from 0 to 1 between calls, the initial
+    // device selection skipped the DISPLAY check (since View was 0).
+    checkSoftwareRenderer();
     if(!glfwWindow)
       initWindow();
     if(!getSetting<bool>("fitscreen"))
@@ -858,14 +880,15 @@ void AsyVkRender::createAllocator()
   allocator = vma::cxx::UniqueAllocator(createInfo);
 }
 
+static bool isRemoteX11()
+{
+  char *display=getenv("DISPLAY");
+  return display ? string(display).find(":") != 0 : false;
+}
+
 void AsyVkRender::pickPhysicalDevice()
 {
-  bool remote=false;
-
-  if(View) {
-    char *display=getenv("DISPLAY");
-    remote=display ? string(display).find(":") != 0 : false;
-  }
+  bool remote=View && isRemoteX11();
 
   Int device=getSetting<Int>("device");
 
@@ -883,9 +906,7 @@ void AsyVkRender::pickPhysicalDevice()
 
   if(device >= 0 && device < count) {
     physicalDevice=instance->enumeratePhysicalDevices()[device];
-    if(software && physicalDevice.getProperties().deviceType !=
-       vk::PhysicalDeviceType::eCpu)
-      runtimeError("remote onscreen rendering requires the llvmpipe device");
+    checkSoftwareRenderer();
   } else {
     auto const getDeviceScore =
       [this,software](vk::PhysicalDevice& device) -> size_t
@@ -974,6 +995,14 @@ void AsyVkRender::pickPhysicalDevice()
   if(settings::verbose > 1 && msaaSamples != vk::SampleCountFlagBits::e1)
     cout << "Multisampling enabled with sample width " << nSamples
          << endl;
+}
+
+void AsyVkRender::checkSoftwareRenderer()
+{
+  if (View && isRemoteX11()) {
+    if(physicalDevice && physicalDevice.getProperties().deviceType != vk::PhysicalDeviceType::eCpu)
+      runtimeError("remote onscreen rendering requires the llvmpipe device");
+  }
 }
 
 std::pair<std::uint32_t, vk::SampleCountFlagBits>
