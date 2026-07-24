@@ -84,6 +84,17 @@ option(
 
 # Additional options
 
+option(
+        ENABLE_RELOCATABLE "\
+Bake the binary as relocatable (defines IS_RELOCATABLE): at runtime, locate the \
+base/ data directory relative to the running executable, in ../share/asymptote \
+(staged/relocated install) or beside the executable (flat MSWindows layout), \
+falling back to the compiled-in ASYMPTOTE_SYSDIR. Intended for binaries moved \
+after they are built; production installs leave this off and rely on \
+ASYMPTOTE_SYSDIR. Note that a binary run in place from its build tree uses the \
+adjacent base/ regardless of this option."
+        false)
+
 option(DEBUG_GC_ENABLE "Enable debug mode for gc" false)
 option(DEBUG_GC_BACKTRACE_ENABLE "Enable backtrace for gc" false)
 # CTAN_BUILD is no longer a CMake cache variable; it's a compile definition applied per-target.
