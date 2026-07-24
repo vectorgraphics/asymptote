@@ -103,6 +103,9 @@ public:
   void drawFrame() override;
   void swapBuffers() override;
   void Export(int imageIndex=0) override;
+  void exportSingleTile(vk::CommandBuffer& cmd, int imageIndex,
+      uint32_t srcX, uint32_t srcY, uint32_t srcW, uint32_t srcH,
+      vma::cxx::UniqueBuffer& exportBuf, vk::DeviceSize bufOffset);
   void finalizeProcess() override;
 
   GLFWwindow* getRenderWindow() const;
@@ -194,6 +197,9 @@ private:
   vk::UniqueSwapchainKHR swapChain;
   vk::UniqueCommandBuffer exportCommandBuffer;
   vk::UniqueFence exportFence;
+  uint32_t exportViewportWidth = 0;
+  uint32_t exportViewportHeight = 0;
+  uint32_t exportImageIndex = 0;  // offscreen framebuffer index for export
   vk::Format backbufferImageFormat=vk::Format::eB8G8R8A8Unorm;
   vk::Format postProcFormat;
   vk::Extent2D backbufferExtent;

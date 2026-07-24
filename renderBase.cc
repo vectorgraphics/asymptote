@@ -964,12 +964,22 @@ void AsyRender::initDisplay(int contentWidth, int contentHeight)
     Width = w;
     Height = h;
   } else {
-    // For offscreen rendering, use the expanded dimensions.
-    // OpenGL uses fullWidth/fullHeight in its Export() tiling loop; Vulkan needs
-    // Width/Height to reflect the expanded size so createOffscreenBuffers() allocates
-    // frames at the correct resolution.
-    Width = fullWidth;
-    Height = fullHeight;
+    // For offscreen rendering, use a framebuffer large enough for efficient
+    // tiling. OpenGL and Vulkan both tile in Export() to produce the final
+    // fullWidth x fullHeight image, so the GPU framebuffer does not need to
+    // be allocated at the expanded resolution. However, it should be at least
+    // as large as the desired max tile size (1024x768) to avoid wasting GPU
+    // bandwidth on excessive tile overhead.  Cap at the full export resolution
+    // since larger tiles provide no benefit.
+    int minTileW = 1024;
+    int minTileH = 768;
+    Width  = std::max(w, std::min(minTileW, fullWidth));
+    Height = std::max(h, std::min(minTileH, fullHeight));
+    // Ensure aspect ratio is preserved.
+    if ((double)Width / Height > (double)fullWidth / fullHeight)
+      Width = (int)std::ceil(Height * (double)fullWidth / fullHeight);
+    else
+      Height = (int)std::ceil(Width * (double)fullHeight / fullWidth);
   }
 
   // Guard against zero dimensions (e.g., headless rendering with no monitor)
