@@ -95,6 +95,18 @@ camp::GLTexture3<float,GL_FLOAT> fromEXR3(
   };
 }
 
+// Release IBL textures before process exit.  In threaded mode, exit() is
+// called from the asymain thread, but the GL context was created on the main
+// thread (running glrenderWrapper).  C atexit handlers run before static
+// destructors, so this zeroes out texture IDs to prevent AGLTexture
+// destructors from calling glDeleteTextures on the wrong thread.
+static void cleanupIBL()
+{
+  iblbrdfTex.release();
+  irradianceTex.release();
+  reflTexturesTex.release();
+}
+
 void initIBL()
 {
   camp::GLTexturesFmt fmt;
@@ -122,6 +134,9 @@ void initIBL()
   }
 
   reflTexturesTex=fromEXR3(files,fmt3,3);
+
+  // Register cleanup to prevent glDeleteTextures on wrong thread at exit.
+  atexit(cleanupIBL);
 }
 
 void *glrenderWrapper(void *a);
