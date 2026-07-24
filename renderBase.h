@@ -365,6 +365,10 @@ public:
   int oldWidth, oldHeight;
   double Aspect;
   double oWidth, oHeight;
+
+  // Tile size limits (from -maxtile setting)
+  int maxTileWidth = 1024;
+  int maxTileHeight = 768;
   double lastzoom;
   int Fitscreen=1;
   double zoomFactor = 1.0;  // Extra multiplicative zoom factor for fullscreen aspect compensation

@@ -60,6 +60,15 @@ void AsyRender::copyRenderArgs(RenderFunctionArgs const& args)
 
   title = std::string(PACKAGE_NAME) + ": " + args.prefix.c_str();
 
+  // Tile size limits from -maxtile setting
+  {
+    pair maxtile = getSetting<pair>("maxtile");
+    maxTileWidth = (int)maxtile.getx();
+    maxTileHeight = (int)maxtile.gety();
+    if (maxTileWidth <= 0) maxTileWidth = 1024;
+    if (maxTileHeight <= 0) maxTileHeight = 768;
+  }
+
   // Scene bounds
   Xmin = args.m.getx();
   Xmax = args.M.getx();

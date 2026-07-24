@@ -59,7 +59,7 @@ VMA_IMPL_FILES = @VMA_IMPL_FILES@
 VULKAN_OBJS = $(VMA_IMPL_FILES) vkrender vkdispatchstorage vkutils vulkanshim
 
 # OpenGL renderer objects - built into a shared library, not linked into the main binary.
-OPENGL_PIC_OBJS = glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o tr.pic.o glew.pic.o
+OPENGL_PIC_OBJS = glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o glew.pic.o
 
 COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	env genv stm dec errormsg \
@@ -269,7 +269,7 @@ novalidation:
 $(VULKAN_PIC_OBJS): %.pic.o: %.cc
 	$(CXX) $(OPTS) -fPIC -o $@ -c $<
 
-glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o tr.pic.o: %.pic.o: %.cc
+glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o: %.pic.o: %.cc
 	$(CXX) $(OPTS) -fPIC -o $@ -c $<
 
 # glew.c is a C file, needs special handling for the OpenGL shared library.

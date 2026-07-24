@@ -4693,8 +4693,8 @@ void AsyVkRender::Export(int imageIndex)
   // Compute tile grid if tiling is needed.
   camp::TileContext tr;
   if (useTiling) {
-    int maxTileW = std::min(1024, (int)backbufferExtent.width);
-    int maxTileH = std::min(768,  (int)backbufferExtent.height);
+    int maxTileW = std::min(maxTileWidth, (int)backbufferExtent.width);
+    int maxTileH = std::min(maxTileHeight,  (int)backbufferExtent.height);
 
     int numCols = ceilquotient(exportWidth, maxTileW);
     int numRows = ceilquotient(exportHeight, maxTileH);

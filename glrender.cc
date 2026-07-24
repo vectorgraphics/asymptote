@@ -26,7 +26,7 @@
 
 #ifdef HAVE_GL
 #include "glrender.h"
-#include "tr.h"
+#include "tile.h"
 #include "shaders.h"
 #include "GLTextures.h"
 #include "EXRFiles.h"
@@ -419,7 +419,7 @@ void AsyGLRender::drawFrame()
     glDisable(GL_FRAMEBUFFER_SRGB);
 
   // Set viewport before clearing (in case it wasn't set)
-  // Skip during export - trBeginTile handles viewport for tiling
+  // Skip during export - tile iteration handles viewport for tiling
   if(!exporting)
     glViewport(0, 0, Width, Height);
 
@@ -454,36 +454,58 @@ void AsyGLRender::Export(int)
   try {
     unsigned char *data=new unsigned char[ndata];
     if(data) {
-      TRcontext *tr=trNew();
-      int width=ceilquotient(fullWidth,
-                             ceilquotient(fullWidth,std::min(maxTileWidth,Width)));
-      int height=ceilquotient(fullHeight,
-                              ceilquotient(fullHeight,
-                                           std::min(maxTileHeight,Height)));
+      camp::TileContext tr;
+      int maxTileW = std::min(maxTileWidth, Width);
+      int maxTileH = std::min(maxTileHeight, Height);
+      int numCols = ceilquotient(fullWidth, maxTileW);
+      int numRows = ceilquotient(fullHeight, maxTileH);
+      int tileW = ceilquotient(fullWidth, numCols);
+      int tileH = ceilquotient(fullHeight, numRows);
       if(settings::verbose > 1)
         cout << "Exporting " << Prefix << " as " << fullWidth << "x"
-             << fullHeight << " image" << " using tiles of size "
-             << width << "x" << height << endl;
+             << fullHeight << " image using tiles of size "
+             << tileW << "x" << tileH << endl;
 
-      unsigned border=std::min(std::min(1,(width-1)/2),(height-1)/2);
-      trTileSize(tr,width,height,border);
-      trImageSize(tr,fullWidth,fullHeight);
-      trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
+      int border = std::min(std::min(1, (numCols - 1) / 2), (numRows - 1) / 2);
+      tr.setTileSize(tileW,tileH,border);
+      tr.setImageSize(fullWidth,fullHeight);
 
       setDimensions(fullWidth,fullHeight,X/Width*fullWidth,Y/Width*fullWidth);
 
       size_t count=0;
       if(haveScene) {
-        (orthographic ? trOrtho : trFrustum)(tr,xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+        if(orthographic)
+          tr.setOrtho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+        else
+          tr.setFrustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
         do {
-          trBeginTile(tr);
+          tr.beginTile();
+          glViewport(0, 0, tr.getCurrentTileWidth(), tr.getCurrentTileHeight());
+          if(orthographic)
+            ortho(tr.getLeft(), tr.getRight(), tr.getBottom(), tr.getTop(), tr.getZNear(), tr.getZFar());
+          else
+            frustum(tr.getLeft(), tr.getRight(), tr.getBottom(), tr.getTop(), tr.getZNear(), tr.getZFar());
           remesh=true;
           redraw=true;
           prepareScene();
           drawFrame();
           lastshader=-1;
+
+          // Efficient direct readback — single glReadPixels into final buffer
+          GLint srcX  = tr.getSrcX();
+          GLint srcY  = tr.getSrcY();
+          GLint srcW  = tr.getSrcWidth();
+          GLint srcH  = tr.getSrcHeight();
+          GLint destX = tr.getDestX();
+          GLint destY = tr.getDestY();
+
+          glPixelStorei(GL_PACK_ROW_LENGTH, fullWidth);
+          glPixelStorei(GL_PACK_SKIP_ROWS, destY);
+          glPixelStorei(GL_PACK_SKIP_PIXELS, destX);
+          glReadPixels(srcX, srcY, srcW, srcH, GL_RGB, GL_UNSIGNED_BYTE, data);
+
           ++count;
-        } while (trEndTile(tr));
+        } while (tr.endTile());
       } else {// clear screen and return
         redraw=true;
         prepareScene();
@@ -492,7 +514,6 @@ void AsyGLRender::Export(int)
 
       if(settings::verbose > 1)
         cout << count << " tile" << (count != 1 ? "s" : "") << " drawn" << endl;
-      trDelete(tr);
 
       picture pic;
       drawRawImage *Image=NULL;
@@ -1178,12 +1199,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   copyRenderArgs(args);
 
   nlights0 = nlights;  // Save original for mode restoration
-
-  pair maxtile=getSetting<pair>("maxtile");
-  maxTileWidth=(int) maxtile.getx();
-  maxTileHeight=(int) maxtile.gety();
-  if(maxTileWidth <= 0) maxTileWidth=1024;
-  if(maxTileHeight <= 0) maxTileHeight=768;
 
 #ifdef HAVE_PTHREAD
   static bool initializedView=false;

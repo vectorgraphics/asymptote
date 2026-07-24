@@ -124,8 +124,6 @@ private:
   // Framebuffers/textures (for export)
   GLuint pixels = 0;
   GLuint elements = 0;
-  int maxTileWidth = 1024;
-  int maxTileHeight = 768;
 
   // Rendering state
   GLint lastshader = -1;
