@@ -261,7 +261,7 @@ void main() {
       normal = -normal;
 
 #ifdef USE_IBL
-  outColor=vec4(IBLColor(viewDirection), outColor.a);
+  outColor=vec4(IBLColor(viewDirection), diffuse.a);
 #else
   for (int i = 0; i < nlights; i++)
   {
