@@ -174,10 +174,27 @@ INCL=""
 LIBS=""
 CPPFLAGS=$CPPFLAGS" -I. "
 
+# Locate the base directory within the TeX (texmf) tree at runtime instead of
+# baking in a fixed path, for a binary deployed inside a TeX installation whose
+# location is not known at build time (TeXLive/MacTeX). Implemented by leaving
+# ASYMPTOTE_SYSDIR empty, which is the signal for initDir() to ask kpsewhich for
+# TEXMFMAIN; that mechanism could change without affecting this flag.
+AC_ARG_ENABLE(texmf-sysdir,
+[AS_HELP_STRING(--enable-texmf-sysdir[[[=no]]],
+locate the base directory within the TeX installation at runtime (via
+kpsewhich), for a binary shipped inside a texmf tree)],
+[ if test "x$enableval" = "xyes" ; then
+    sysdir=""
+  fi
+])
+
+# Deprecated spelling of --enable-texmf-sysdir. Retained as an alias so existing
+# TeXLive/MacTeX build recipes keep working; remove after they have migrated.
 AC_ARG_ENABLE(texlive-build,
 [AS_HELP_STRING(--enable-texlive-build[[[=no]]],
-automatically determine sysdir from kpsewhich)],
+deprecated alias for --enable-texmf-sysdir)],
 [ if test "x$enableval" = "xyes" ; then
+    AC_MSG_WARN([--enable-texlive-build is deprecated; use --enable-texmf-sysdir instead.])
     sysdir=""
   fi
 ])
