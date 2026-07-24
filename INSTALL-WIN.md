@@ -5,7 +5,7 @@
 ### Required Dependencies
 Ensure the following is installed:
 - Visual Studio 2022+ or Visual Studio 2022+ build tools.
-  - Both can be found at [here](https://visualstudio.microsoft.com/downloads/).
+  - Both can be found [here](https://visualstudio.microsoft.com/downloads/).
 - CMake
   - (Recommended way) Visual Studio/Visual Studio Build Tools provides bundled CMake as a selectable component
   - Otherwise, CMake can be found [here](https://cmake.org/)
@@ -48,11 +48,11 @@ This script automatically checks that you have vcpkg, and if not, clones and boo
 Additionally, this script automatically locates your Visual Studio installation and
 establishes all required environment variables.
 
-## Notes on Dependency management
+## Notes on Dependency Management
 
 The recommended way is to use [vcpkg](https://vcpkg.io/).
 See `INSTALL.md` for more details.
-On windows, one may run
+On Windows, one may run
 
 ```powershell
 git clone https://github.com/microsoft/vcpkg.git
