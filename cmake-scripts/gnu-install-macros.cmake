@@ -3,12 +3,13 @@
 if (UNIX)
     include(GNUInstallDirs)
 
-    # ASYMPTOTE_SYSDIR is always set globally for asycore and shared libraries.
+    # ASYMPTOTE_SYSDIR is applied per-executable in add_settings_obj, not here:
+    # settings.cc is its only consumer and the CTAN binary needs a different value.
     set(ASYMPTOTE_SYSDIR_VALUE ${CMAKE_INSTALL_FULL_DATADIR}/asymptote CACHE PATH
-        "Path baked into the asy binary as the system base dir (ASYMPTOTE_SYSDIR). \
+        "Path baked into the asy binary as the system base dir (ASYMPTOTE_SYSDIR), \
+used as the fallback when no base/ is found relative to the executable. \
 Override only for builds that are run in-place from a fixed, non-install \
-location; the shipped presets (release and sandbox alike) leave it at the \
-install datadir so an in-place run that cannot find base/ fails consistently.")
+location; the release presets leave it at the install datadir.")
 
     set(ASYMPTOTE_DOCDIR_VALUE ${CMAKE_INSTALL_FULL_DATADIR}/doc/asymptote)
 
@@ -25,7 +26,6 @@ install datadir so an in-place run that cannot find base/ fails consistently.")
     endif()
 
     list(APPEND ASY_MACROS
-            ASYMPTOTE_SYSDIR="${ASYMPTOTE_SYSDIR_VALUE}"
             ASYMPTOTE_DOCDIR="${ASYMPTOTE_DOCDIR_VALUE}"
             ASYMPTOTE_LICENSEDIR="${ASY_LICENSEDIR}"
     )
