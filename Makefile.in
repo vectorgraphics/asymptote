@@ -425,8 +425,8 @@ define install-license-files
 	${INSTALL} -p -m 644 backports/glew/LICENSE.txt $(1)/glew-LICENSE.txt
 	${INSTALL} -p -m 644 wyhash/UNLICENSE.txt $(1)/wyhash-UNLICENSE.txt
 	${INSTALL} -p -m 644 LspCpp/LICENSE $(1)/LspCpp-LICENSE.txt
-	${INSTALL} -p -m 644 libatomic_ops/LICENSE doc/licenses/libatomic_ops-LICENSE.txt
-	${INSTALL} -p -m 644 libatomic_ops/COPYING doc/licenses/libatomic_ops-COPYING.txt
+	${INSTALL} -p -m 644 libatomic_ops/LICENSE $(1)/libatomic_ops-LICENSE.txt
+	${INSTALL} -p -m 644 libatomic_ops/COPYING $(1)/libatomic_ops-COPYING.txt
 	${INSTALL} -p -m 644 tinyexr/LICENSE.txt $(1)/tinyexr-LICENSE.txt
 	${INSTALL} -p -m 644 gc/LICENSE.txt $(1)/gc-LICENSE.txt
 endef
