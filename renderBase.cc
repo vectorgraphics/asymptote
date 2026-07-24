@@ -47,7 +47,7 @@ void AsyRender::copyRenderArgs(RenderFunctionArgs const& args)
   Angle = args.angle * radians;
   lastzoom = 0;
   Zoom0 = std::fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
-  Shift = args.shift / args.zoom;
+  Shift = args.shift / Zoom0;
   Margin = args.margin;
 
   // Background color
