@@ -105,8 +105,10 @@ mode_t mask;
 // Flag set by --version option to exit after all options are parsed
 static bool showVersion=false;
 
-// systemDir is initialized by initSysdir() (declared in locate.h).
-string systemDir=initSysdir();
+// systemDir is resolved by resolveSysdir() (declared in locate.h). Under CMake
+// this file is compiled once per executable so that ASYMPTOTE_SYSDIR can differ
+// between asy and asy-ctan; the autotools build has only the one executable.
+string systemDir=resolveSysdir(ASYMPTOTE_SYSDIR);
 string defaultPSdriver="ps2write";
 string defaultEPSdriver="eps2write";
 string defaultPNGdriver="png16malpha"; // pngalpha has issues at high resolutions
@@ -289,8 +291,11 @@ void queryRegistry()
   if (!s.empty()) {
     docdir= s;
   }
-  // An empty systemDir indicates a TeXLive build
-  if (!systemDir.empty() && !docdir.empty())
+  // The registry entry describes a separately installed Asymptote, so it must
+  // not override a systemDir that initSysdir() resolved relative to this
+  // executable; that would send a binary run in place to the installed base/.
+  // An empty systemDir indicates a TeXLive build.
+  if (!systemDir.empty() && !docdir.empty() && !relocatedSysdir)
     systemDir= docdir;
 }
 

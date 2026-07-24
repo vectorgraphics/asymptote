@@ -184,8 +184,8 @@ automatically determine sysdir from kpsewhich)],
 
 AC_ARG_ENABLE(relocatable,
 [AS_HELP_STRING(--enable-relocatable[[[=no]]],
-leave ASYMPTOTE_SYSDIR empty so the binary finds its data directory
-relative to its own location at runtime (for portable/staged macOS installs))],
+find the data directory relative to the location of the binary at runtime,
+falling back to ASYMPTOTE_SYSDIR (for portable/staged installs))],
 [ if test "x$enableval" = "xyes" ; then
     OPTIONS=$OPTIONS"-DIS_RELOCATABLE "
   fi

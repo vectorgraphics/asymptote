@@ -86,12 +86,13 @@ option(
 
 option(
         ENABLE_RELOCATABLE "\
-Bake the binary as relocatable (defines IS_RELOCATABLE): at runtime, when the \
-compiled-in ASYMPTOTE_SYSDIR does not exist on disk, locate the base/ data \
-directory relative to the running executable -- either next to it (build tree) \
-or in ../share/asymptote (staged/relocated install). Intended for binaries run \
-in place rather than installed to a fixed prefix; production installs leave \
-this off and rely on ASYMPTOTE_SYSDIR."
+Bake the binary as relocatable (defines IS_RELOCATABLE): at runtime, locate the \
+base/ data directory relative to the running executable, in ../share/asymptote \
+(staged/relocated install) or beside the executable (flat MSWindows layout), \
+falling back to the compiled-in ASYMPTOTE_SYSDIR. Intended for binaries moved \
+after they are built; production installs leave this off and rely on \
+ASYMPTOTE_SYSDIR. Note that a binary run in place from its build tree uses the \
+adjacent base/ regardless of this option."
         false)
 
 option(DEBUG_GC_ENABLE "Enable debug mode for gc" false)
