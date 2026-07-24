@@ -1,6 +1,6 @@
 # Building Asymptote with VCPKG and CMake
 
-## Dependency management
+## Dependency Management
 
 The recommended way is to use [vcpkg](https://vcpkg.io/). Clone vcpkg to your system, run bootstrap script and ensure
 `VCPKG_ROOT` environment is exported as set as path to your vcpkg repository. For example,
@@ -11,12 +11,12 @@ git clone https://github.com/microsoft/vcpkg.git
 cd vcpkg && ./bootstrap-vcpkg.sh
 export VCPKG_ROOT=~/dev/vcpkg
 ```
-# On Windows
+## On Windows
 See INSTALL-WIN.md for windows-specific instructions.
 
 ## Linux-specific dependency (Experimental)
 
-Make sure flex and bison is available in path, if not, install them manually first.
+Make sure flex and bison are available in PATH, if not, install them manually first.
 
 ```bash
 # This is specific to arch linux, other distributions might use a different name
