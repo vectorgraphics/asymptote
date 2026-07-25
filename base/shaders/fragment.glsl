@@ -10,13 +10,6 @@ struct Light
   vec4 color;
 };
 
-layout(binding = 0) uniform UniformBufferObject
-{
-  mat4 projViewMat;
-  mat4 viewMat;
-  mat4 normMat;
-} ubo;
-
 layout(binding = 1, std430) buffer MaterialBuffer
 {
   Material materials[];
