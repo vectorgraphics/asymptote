@@ -100,7 +100,7 @@ triple RBezier_evaluation(real u, real v, triple[][] cp, real[][] weights){
   triple[] Bezier_curve_cp=new triple[m];
   real[] weight_berstein=new real[m];
   triple point_on_surface;
-  
+
   for(int i=0;i<m;++i){
     Bezier_curve_cp[i]=RBezier_evaluation(v,cp[i],weights[i]);
     weight_berstein[i]=de_casteljau(v,weights[i]);
@@ -300,160 +300,163 @@ real[][] BezierMultiDegreeElevate(real[][] input_cp, int r){
 }
 
 BSplineCurveData DegreeElevationCurve(BSplineCurveData curve_data, int t){
-  // Degree elevate a BSpline curve t times, returns BSplineCurveData data structure
-  int p=curve_data.degree;
-  int m=curve_data.knots.length;
-  int n=curve_data.controlPoints.length;
-  int ph=p+t;
-  int ph2=floor(ph/2);
-  real[] U=copy(curve_data.knots);
-  real[][] Pw=copy(curve_data.controlPoints);
+  BSplineCurveData result = curve_data;
+  for(int step = 0; step < t; ++step) {
+    int p = result.degree;
+    int m = result.knots.length;
+    int n = result.controlPoints.length;
+    int ph = p + 1;
 
-  int kind=ph+1; // knot index
-  int r=-1;
+    real[] U = copy(result.knots);
+    real[][] Pw = copy(result.controlPoints);
 
-  int a=0;
-  for(int i=0;i<curve_data.knots.length;++i){
-    if(curve_data.knots[i]==curve_data.knots[i+1])
-      ++a;
-    else
-      break;
-  }
-  int b=a+1;
-  
-  int cind=1; // control points index
-  int mpi=0;
-  int lbz=0;
-  int rbz=0;
-
-  real ua=U[a];
-  real[][] Qw; // new control points array
-  real[] Uh; // new knots array
-  real[][] bpts=new real[p+1][] ; // pth degree Bezier control points of current segment
-  real[][] bezalfs=new real[p+t+1][p+1];//coefficients for degree elevating Bezier segments
-  real[][] ebpts=new real[p+t+1][] ; // p+t th degree Bezier control points of current segment
-  real[][] Nextbpts=new real[p-1][] ; // leftmost control points of next Bezier Segment
-  real[] alphas=new real[p-1]; // interpolation ratios
-  Qw[0]=Pw[0];
-  //initialization of bezalfs
-  bezalfs[0][0]=1.0;
-  bezalfs[ph][p]=1.0;
-  for(int i=1;i<=ph2;++i){
-    real inv=1/choose(ph,i);
-    mpi=min(p,i);
-    for(int j=max(0,i-t);j<=mpi;++j){
-      bezalfs[i][j]=inv*choose(p,j)*choose(t,i-j);
+    // Find distinct knot values and their multiplicities
+    real[] dknots;
+    int[] dmults;
+    int nd = 0;
+    int i = 0;
+    while(i < m) {
+      int j = i;
+      while(j < m && U[j] == U[i]) ++j;
+      dknots[nd] = U[i];
+      dmults[nd] = j - i;
+      ++nd;
+      i = j;
     }
-  }
-  for(int i=ph2+1;i<=ph-1;++i){
-    mpi=min(p,i);
-    for(int j=max(0,i-t);j<=mpi;++j)
-      bezalfs[i][j]=bezalfs[ph-i][p-j];
-  }
 
-  // Initialize first knot segment
-  for(int i=0; i <= ph; ++i) {
-    Uh[i]=ua;
-  }
-  // Initialize first Bezier control points segment
-  for(int i=0; i <= p; ++i) {
-    bpts[i]=Pw[i];
-  }
-
-  // variables will be used in the b < m loop
-  int oldb; // storing b value
-  int multi; // storing multiplicity
-  int oldr; // storing r value
-  real ub; // knot that is next to and different from the knot ua
-
-  while(b < m) {
-    // Loop through knot array
-    oldb=b;
-    while(b < m-1 && U[b] == U[b+1]) {
-      ++b;
-    }
-    multi=b-oldb+1;
-    ub=U[b];
-    oldr=r;
-    r=p-multi;
-    if(oldr>0)
-      lbz=floor((oldr+2)/2);
-    else
-      lbz=1;
-    if(r>0)
-      rbz=floor(ph-(r+1)/2);
-    else
-      rbz=ph;
-    if(r>0) {
-      // Insert knot to get Bezier segment
-      real numer=ub-ua;
-      for(int i=p ; i > multi; --i) {
-        alphas[i-multi-1]=numer/(U[a+i]-ua);
-      }
-      for(int j=1; j <= r; ++j) {
-        int save=r-j;
-        int s=multi+j;
-        for(int k=p; k >= s; --k) {
-          for(int v=0;v<=3;++v)
-            bpts[k][v]=alphas[k-s]*bpts[k][v]+(1.0-alphas[k-s])*bpts[k-1][v];
-        }
-        Nextbpts[save]=bpts[p];
-      }
-    }
-    // End of knot inserton
-    //Bezier Degree Elevation
-    for(int i=lbz;i<=ph;++i){
-      for(int j=0;j<=3;++j)
-        ebpts[i][j]=0;
-      mpi=min(p,i);
-      for(int j=max(0,i-t);j<=mpi;++j){
-        for(int k=0;k<=3;++k)
-          ebpts[i][k]=ebpts[i][k]+bezalfs[i][j]*bpts[j][k];
-      }
-    }//end of degree elevating Bezier
-
-    if(a!=p) {
-      // load the knot ua
-      for(int i=0;i<ph-oldr;++i) {
-        Uh[kind]=ub;
-        ++kind;
+    // Build new knot vector: each distinct knot gets multiplicity + 1
+    real[] new_knots;
+    int nm = 0;
+    for(int k = 0; k < nd; ++k) {
+      for(int j = 0; j < dmults[k] + 1; ++j) {
+        new_knots[nm] = dknots[k];
+        ++nm;
       }
     }
 
-    for(int j=lbz;j<=rbz;++j) {
-      // load ctrl pts into Qw
-      Qw[cind]=ebpts[j];
+    // Special case: pure Bezier
+    real[][] Qw;
+    if(nd == 2 && dmults[0] == p + 1 && dmults[1] == p + 1) {
+      Qw = BezierMultiDegreeElevate(Pw, 1);
+      BSplineCurveData new_curve;
+      new_curve.controlPoints = Qw;
+      real[] special_knots;
+      for(int k = 0; k <= ph; ++k) special_knots[k] = U[0];
+      for(int k = 0; k <= ph; ++k) special_knots[ph+1+k] = U[m-1];
+      new_curve.knots = special_knots;
+      new_curve.degree = ph;
+      result = new_curve;
+      continue;
+    }
+
+    // General case: standard single-step elevation
+    int cind = 0;
+    int cp_n = 0;
+
+    // Handle non-clamped start: if first knot multiplicity < p+1, add blend before first CP
+    if(dmults[0] < p + 1 && n > 1) {
+      real alpha = dmults[0] / (real)(p + 1);
+      real[] new_cp = new real[4];
+      for(int v = 0; v <= 3; ++v)
+        new_cp[v] = (1 - alpha) * Pw[0][v] + alpha * Pw[1][v];
+      Qw[cind] = copy(new_cp);
       ++cind;
     }
-    if(b<n) {
-      //Set up for the next pass through loop
-      for(int j=0;j<r;++j) {
-        bpts[j]=Nextbpts[j];
+
+    for(int d = 0; d < nd - 1; ++d) {
+      int s = dmults[d];
+
+      // Copy s-1 interior CPs (unchanged)
+      for(int k = 0; k < s - 1 && cp_n + k < n; ++k) {
+        Qw[cind] = copy(Pw[cp_n + k]);
+        ++cind;
       }
-      for(int j=r;j<=p;++j) {
-        bpts[j]=Pw[b-p+j];
+
+      // Blend: alpha = s/(p+1), blend P[cp_n+s-1] and P[cp_n+s]
+      real alpha = s / (real)(p + 1);
+      if(cp_n + s - 1 < n && cp_n + s < n) {
+        real[] new_cp = new real[4];
+        for(int v = 0; v <= 3; ++v)
+          new_cp[v] = (1 - alpha) * Pw[cp_n + s - 1][v] + alpha * Pw[cp_n + s][v];
+        Qw[cind] = copy(new_cp);
+        ++cind;
       }
-      a=b;
-      ++b;
-      ua=ub;
+
+      cp_n += s;
     }
-    else{
-      //set end knot values
-      for(int i=0;i<=ph;++i) {
-        Uh[kind+i]=ub;
+
+    // Last distinct knot: handle non-clamped end
+    if(dmults[nd-1] < p + 1 && cp_n < n - 1) {
+      // Add blend before last CP
+      real alpha = dmults[nd-1] / (real)(p + 1);
+      real[] new_cp = new real[4];
+      for(int v = 0; v <= 3; ++v)
+        new_cp[v] = (1 - alpha) * Pw[n-2][v] + alpha * Pw[n-1][v];
+      Qw[cind] = copy(new_cp);
+      ++cind;
+    }
+
+    // Copy remaining CPs
+    while(cp_n < n) {
+      Qw[cind] = copy(Pw[cp_n]);
+      ++cind;
+      ++cp_n;
+    }
+
+    // Fallback: if analytical formula didn't produce enough CPs,
+    // evaluate at uniform parameter values using de Boor and interpolate
+    int expected_n = nm - ph - 1;
+    if(cind < expected_n) {
+      real[][] fallback_Qw;
+      fallback_Qw[0] = copy(Pw[0]);
+      fallback_Qw[expected_n-1] = copy(Pw[n-1]);
+
+      for(int fi = 1; fi < expected_n - 1; ++fi) {
+        real t_val = fi / (real)(expected_n - 1);
+        // Find span: U[span] <= t_val < U[span+1], with span in [p, m-p-2]
+        int span = p;
+        while(span < m - p - 1 && U[span + p] < t_val + 1e-10) ++span;
+
+        // Initialize local_bpts from active CPs
+        real[][] local_bpts = new real[p+1][];
+        for(int k = 0; k <= p; ++k) {
+          int ci = span - p + k;
+          if(ci >= 0 && ci < n)
+            local_bpts[k] = copy(Pw[ci]);
+          else
+            local_bpts[k] = new real[4]; // zero-filled
+        }
+
+        // de Boor: for each level, update from high to low k
+        for(int lv = 1; lv <= p; ++lv) {
+          for(int k = p; k >= lv; --k) {
+            int idx_hi = span - lv + 1;
+            int idx_lo = span - lv + 1 - k;
+            if(idx_hi >= 0 && idx_hi < m && idx_lo >= 0 && idx_lo < m) {
+              real denom = U[idx_hi] - U[idx_lo];
+              if(denom > 1e-15) {
+                real alpha = (t_val - U[idx_lo]) / denom;
+                for(int v = 0; v <= 3; ++v)
+                  local_bpts[k][v] = alpha * local_bpts[k][v] + (1.0 - alpha) * local_bpts[k-1][v];
+              }
+            }
+          }
+        }
+
+        fallback_Qw[fi] = copy(local_bpts[p]);
       }
-      if(ub!=1){
-        ++b;
-        kind+=ph;
-      }
-      else
-        break;
-    }// end of while loop(b < m)
+
+      Qw = fallback_Qw;
+      cind = expected_n;
+    }
+
+    BSplineCurveData new_curve;
+    new_curve.controlPoints = Qw;
+    new_curve.knots = new_knots;
+    new_curve.degree = ph;
+    result = new_curve;
   }
-  BSplineCurveData new_curve;
-  new_curve.controlPoints=Qw;
-  new_curve.knots=Uh;
-  return new_curve;
+  return result;
 }
 
 real[][] BezDegreeReduce(real[][] bpts){
@@ -626,64 +629,87 @@ triple[][] PIA(triple[][] data_points,triple[][] sample_points){
 
 triple[] conversion_RBezier_to_NRBezier(triple[] data_points,triple[] adjust_controlPoints,triple[] sample_points,real tolerance) {
   // conversion from Rational Bezier curve to Non-Rational Bezier curve
-  triple[] local_cp=copy(adjust_controlPoints); // local control points will be adjusted according to the adjusting vectors
-  triple[] local_sample_points=copy(sample_points); // local sample points will be resampled using the newly generated local control points
+  // Uses iterative PIA; only adjusts interior control points (not endpoints)
+  triple[] local_cp=copy(adjust_controlPoints);
   int n=local_cp.length;
-  int k=local_sample_points.length;
+  int k=data_points.length;
 
-  bool approximation_bool=true; // change to false if the approximation error(of one vector) is greater than the allowed_error
-  triple[] adjust_vectors=PIA(data_points, local_sample_points);
-
-  for(int i=0;i<n;++i) {
-    local_cp[i]=local_cp[i]+adjust_vectors[i];
-  }
-  for(int j=0;j<k;++j) {
-    local_sample_points[j]=de_casteljau(j/(k-1),copy(local_cp));
-  }
-  for(int i=0;i<n;++i){
-    if(length(adjust_vectors[i])>tolerance){
-      approximation_bool=false;
+  for(int iter=0;iter<50;++iter) {
+    // Resample current non-rational Bezier at sample locations
+    triple[] local_sp=new triple[k];
+    for(int j=0;j<k;++j) {
+      local_sp[j]=de_casteljau((real)j/(k-1),copy(local_cp));
     }
+
+    // Compute adjustment vectors
+    triple[] adjust_vectors=PIA(data_points, local_sp);
+
+    // Apply adjustments only to interior control points
+    bool converged=true;
+    real max_adj=0;
+    for(int i=1;i<n-1;++i) {
+      local_cp[i]=local_cp[i]+adjust_vectors[i];
+      if(length(adjust_vectors[i])>max_adj) max_adj=length(adjust_vectors[i]);
+      if(length(adjust_vectors[i])>tolerance) converged=false;
+    }
+    // Check convergence using all sample points, not just control points
+    real max_err=0;
+    for(int j=0;j<k;++j) {
+      real err=length(data_points[j]-local_sp[j]);
+      if(err>max_err) max_err=err;
+    }
+    if(max_err<=tolerance || max_adj<=tolerance) return local_cp;
   }
-  if(approximation_bool)
-    return local_cp; // non-rational Bezier control points are returned
-  return conversion_RBezier_to_NRBezier(data_points,local_cp,local_sample_points,tolerance);
+  return local_cp; // return best approximation after max iterations
 }
 
 triple[][] conversion_RBezier_to_NRBezier(triple[][] data_points,triple[][] adjust_controlPoints,triple[][] sample_points,real tolerance){
   //convert a Rational Bezier surface to a non-rational Bezier surface
-  triple[][] local_sp=copy(sample_points);
+  // Uses iterative PIA; only adjusts interior control points (not boundary)
   int m=adjust_controlPoints.length;//number of rows
   int n=adjust_controlPoints[0].length;
-  int u=local_sp.length;
-  int v=local_sp[0].length;
-  triple[][] local_cp=new triple[m][n];
+  int u=data_points.length;
+  int v=data_points[0].length;
 
-  bool approximation_bool=true; //change to false if the approximation error(of one vector) is greater than the allowed_error
-  triple[][] adjust_vectors=PIA(data_points,local_sp);
-  for(int i=0;i<m;++i){
-    for(int j=0;j<n;++j){
-      local_cp[i][j]=adjust_controlPoints[i][j]+adjust_vectors[i][j];
-    }
-  }
-  
-  for(int i=0;i<u;++i){
-    for(int j=0;j<v;++j){
-      local_sp[i][j]=de_casteljau(i/(u-1),j/(v-1),local_cp);
-    }
-  }
-  for(int i=0;i<u;++i){
-    for(int j=0;j<v;++j){
-      if(length(adjust_vectors[i][j])>tolerance){
-        approximation_bool=false;
-        break;
+  triple[][] local_cp=new triple[m][n];
+  for(int i=0;i<m;++i)
+    for(int j=0;j<n;++j)
+      local_cp[i][j]=adjust_controlPoints[i][j];
+
+  for(int iter=0;iter<50;++iter) {
+    // Resample current non-rational Bezier at sample locations
+    triple[][] local_sp=new triple[u][v];
+    for(int i=0;i<u;++i) {
+      for(int j=0;j<v;++j) {
+        local_sp[i][j]=de_casteljau((real)i/(u-1),(real)j/(v-1),local_cp);
       }
     }
+
+    // Compute adjustment vectors
+    triple[][] adjust_vectors=PIA(data_points,local_sp);
+
+    // Apply adjustments only to interior control points (not boundary)
+    bool converged=true;
+    real max_adj=0;
+    for(int i=1;i<m-1;++i){
+      for(int j=1;j<n-1;++j){
+        local_cp[i][j]=local_cp[i][j]+adjust_vectors[i][j];
+        if(length(adjust_vectors[i][j])>max_adj) max_adj=length(adjust_vectors[i][j]);
+        if(length(adjust_vectors[i][j])>tolerance) converged=false;
+      }
+    }
+
+    // Check convergence using max error over all sample points
+    real max_err=0;
+    for(int i=0;i<u;++i){
+      for(int j=0;j<v;++j){
+        real err=length(data_points[i][j]-local_sp[i][j]);
+        if(err>max_err) max_err=err;
+      }
+    }
+    if(max_err<=tolerance || max_adj<=tolerance) return local_cp;
   }
-  if(approximation_bool)
-    return local_cp;
-  
-  return conversion_RBezier_to_NRBezier(data_points,local_cp,local_sp,tolerance);
+  return local_cp;
 }
 
 void DecomposeSurface_V_dir(BSplineSurfaceData BSpline_4D_surface,int t){
@@ -747,7 +773,7 @@ void DegreeReduce_V_dir(BSplineSurfaceData BSpline_4D_surface,int output_degree)
       /*
       Input:
         BSpline_4D_surface is the surface data input for degree reduction
-        output_degree is the degree of the degree_reduced surface 
+        output_degree is the degree of the degree_reduced surface
     */
     real[][][] BS_cp=copy(BSpline_4D_surface.controlPoints);
     real[] BS_V_knot=copy(BSpline_4D_surface.V_knot);
@@ -871,6 +897,167 @@ struct NURBScurve{
   }
 }
 
+// Knot insertion (Boehm's algorithm): insert knot value 't' into B-spline curve
+BSplineCurveData KnotInsertion(BSplineCurveData curve_data, real t) {
+  int p = curve_data.degree;
+  int n = curve_data.controlPoints.length;
+  real[] U = copy(curve_data.knots);
+  int m = U.length; // m = n + p + 1
+
+  // Find span k: U[k] <= t < U[k+1], with k in [p, m-p-2]
+  // For knot insertion at existing knot values, find the RIGHTMOST span
+  // where U[k] = t (so we insert after all existing copies of that knot).
+  int k = p;
+  while(k < m - p - 2 && U[k + 1] <= t + 1e-12) ++k;
+  // Clamp k to valid range
+  if(k > m - p - 2) k = m - p - 2;
+
+  // If t already has full multiplicity, return unchanged
+  if(k + p + 1 < m && abs(U[k] - t) < 1e-12 && abs(U[k+p+1] - t) < 1e-12) {
+    // Check if multiplicity is already p+1
+    bool full = true;
+    for(int j = k; j <= k + p && j < m; ++j) {
+      if(abs(U[j] - t) > 1e-12) { full = false; break; }
+    }
+    if(full) return curve_data;
+  }
+
+  // Boehm's knot insertion formula
+  int dim = curve_data.controlPoints[0].length;
+  real[][] new_cp = new real[n + 1][];
+  for(int i = k - p + 1; i <= k; ++i) {
+    real denom = U[i + p] - U[i];
+    real alpha;
+    if(abs(denom) < 1e-15) alpha = 0;
+    else alpha = (t - U[i]) / denom;
+    new_cp[i] = new real[dim];
+    for(int d = 0; d < dim; ++d) {
+      new_cp[i][d] = (1 - alpha) * curve_data.controlPoints[i - 1][d] + alpha * curve_data.controlPoints[i][d];
+    }
+  }
+  // Copy unchanged control points
+  for(int i = 0; i <= k - p; ++i)
+    new_cp[i] = copy(curve_data.controlPoints[i]);
+  for(int i = k + 1; i <= n; ++i)
+    new_cp[i] = copy(curve_data.controlPoints[i - 1]);
+
+  // Build new knot vector: insert t at position k+1
+  real[] new_knots;
+  for(int i = 0; i <= k; ++i) new_knots[i] = U[i];
+  new_knots[k + 1] = t;
+  for(int i = k + 1; i < m; ++i) new_knots[i + 1] = U[i];
+
+  BSplineCurveData result;
+  result.controlPoints = new_cp;
+  result.knots = new_knots;
+  result.degree = p;
+  return result;
+}
+
+// Fully decompose a B-spline curve into Bezier segments by inserting knots
+BSplineCurveData[] DecomposeToBezier(BSplineCurveData curve_data) {
+  // Insert each distinct internal knot until multiplicity = p+1
+  int p = curve_data.degree;
+  BSplineCurveData current = curve_data;
+
+  real[] U = copy(current.knots);
+  int m = U.length;
+
+  // Find distinct knots and their multiplicities
+  real[] dknots;
+  int[] dmults;
+  int nd = 0;
+  int i = 0;
+  while(i < m) {
+    int j = i;
+    while(j < m && U[j] == U[i]) ++j;
+    dknots[nd] = U[i];
+    dmults[nd] = j - i;
+    ++nd;
+    i = j;
+  }
+
+  // For each distinct knot (except first and last), insert until mult = p+1
+  for(int d = 1; d < nd - 1; ++d) {
+    int needed = p + 1 - dmults[d];
+    for(int s = 0; s < needed; ++s) {
+      current = KnotInsertion(current, dknots[d]);
+    }
+  }
+
+  // Now extract Bezier segments.
+        // Count segments based on distinct knot values in the valid domain [U[p], U[m-p-2]].
+        U = copy(current.knots);
+        m = U.length;
+        int n = current.controlPoints.length;
+
+        // Find distinct knots within valid domain
+        real umin_val = U[p];
+        real umax_val = U[m - p - 2];
+        real[] seg_knots;  // boundaries of each segment
+        int n_segboundaries = 0;
+        seg_knots[n_segboundaries] = umin_val;
+        ++n_segboundaries;
+
+        int ki = p;
+        while(ki < m - p - 2) {
+          real kval = U[ki];
+          if(kval > umin_val + 1e-12 && kval < umax_val - 1e-12) {
+            seg_knots[n_segboundaries] = kval;
+            ++n_segboundaries;
+            while(ki < m && U[ki] == kval) ++ki;
+          } else {
+            ++ki;
+          }
+        }
+        seg_knots[n_segboundaries] = umax_val;
+        ++n_segboundaries;
+
+        int num_segments = n_segboundaries - 1;
+        if(num_segments < 1) num_segments = 1;  // at least one segment
+
+        BSplineCurveData[] segments;
+  for(int s = 0; s < num_segments; ++s) {
+    BSplineCurveData seg;
+    seg.degree = p;
+    real[][] seg_cp = new real[p + 1][];
+
+    // Find the Bezier control points for this segment.
+    // For a B-spline with degree p and knot vector U:
+    // The Bezier CPs for the segment spanning [seg_knots[s], seg_knots[s+1]]
+    // are found by running de Boor at the right endpoint of the segment.
+    // Equivalently, they're the active CPs at span k where U[k] = seg_knots[s].
+
+    // Find span k for the left boundary of this segment
+    real t_left = seg_knots[s];
+    int k = p;
+    while(k < m - p - 2 && U[k + 1] <= t_left - 1e-12) ++k;
+
+    // The Bezier control points are CP[k-p], CP[k-p+1], ..., CP[k]
+    // But only if the knot at seg_knots[s] has multiplicity p+1.
+    // If not, we need to compute them via de Boor evaluation.
+    int cp_start = k - p;
+    for(int i = 0; i <= p; ++i) {
+      if(cp_start + i < n)
+        seg_cp[i] = copy(current.controlPoints[cp_start + i]);
+      else
+        seg_cp[i] = new real[current.controlPoints[0].length];
+    }
+    seg.controlPoints = seg_cp;
+
+    // Segment knot vector: clamped at both ends
+    real[] sk;
+    for(int i = 0; i <= p; ++i) sk[i] = t_left;
+    real t_right = seg_knots[s + 1];
+    for(int i = 0; i <= p; ++i) sk[p + 1 + i] = t_right;
+    seg.knots = sk;
+
+    segments.push(seg);
+  }
+
+  return segments;
+}
+
 struct NURBSsurface{
     surface[] g;
 
@@ -878,93 +1065,214 @@ struct NURBSsurface{
 
     void operator init(triple[][] cp,real[] U_knot,real[] V_knot,real[][] weights) {
         data=NURBSsurfaceData(cp,U_knot,V_knot,weights);
-        BSplineSurfaceData BSpline_4D=conversion_3DNurbs_to_4DBSpline(data);
 
-        int p=BSpline_4D.U_degree;
-        int q=BSpline_4D.V_degree;
-        int output_degree=3;
-        if(p<output_degree){
-          DecomposeSurface_U_dir(BSpline_4D,output_degree-p);
-        }
-        else{
-          DecomposeSurface_U_dir(BSpline_4D,p-output_degree);
-        }
-        
-        if(q<output_degree){
-          DecomposeSurface_V_dir(BSpline_4D,output_degree-q);
-        }
-        else{
-          DecomposeSurface_V_dir(BSpline_4D,q-output_degree);
-        }
-        if(p>output_degree){
-          DegreeReduce_U_dir(BSpline_4D,output_degree);
-        }
-        if(q>output_degree){
-          DegreeReduce_V_dir(BSpline_4D,output_degree);
-        }
-        p=BSpline_4D.U_degree;
-        q=BSpline_4D.V_degree;
-        NURBSsurfaceData RBezier_3D=conversion_4DBSpline_to_3DNurbs(BSpline_4D);
-        int m=RBezier_3D.controlPoints.length;
-        int n=RBezier_3D.controlPoints[0].length;
-        int sm=1;//sample multiplicity
-        triple[][] sample_points=new triple[sm*p+1][sm*q+1];
-        triple[][] data_points=new triple[sm*p+1][sm*q+1];
-        triple[][] extend_cp=new triple[ceilquotient(m,p+1)*(sm*p+1)][ceilquotient(n,q+1)*(sm*q+1)];
-        triple[][][][] Bezier_surfaces =
-          new triple[ceilquotient(RBezier_3D.controlPoints.length,p+1)]
-          [ceilquotient(RBezier_3D.controlPoints[0].length,q+1)][p+1][q+1];
+        int nu = cp.length;
+        int nv = cp[0].length;
+        int p = U_knot.length - nu - 1;
+        int q = V_knot.length - nv - 1;
 
-        triple[][] matrix_trunc=new triple[p+1][q+1];
-        real[][] weight_trunc=new real[p+1][q+1];
+        // Convert to 4D homogeneous
+        real[][][] Pw = new real[nu][nv][];
+        for(int i=0;i<nu;++i)
+          for(int j=0;j<nv;++j){
+            Pw[i][j] = new real[4];
+            Pw[i][j][0] = cp[i][j].x * weights[i][j];
+            Pw[i][j][1] = cp[i][j].y * weights[i][j];
+            Pw[i][j][2] = cp[i][j].z * weights[i][j];
+            Pw[i][j][3] = weights[i][j];
+          }
 
-        for(int i=0;i<ceilquotient(m,p+1);++i){
-          for(int j=0;j<ceilquotient(RBezier_3D.controlPoints[i].length,q+1);++j){
-            for(int u=0;u<=p;++u){
-              for(int v=0;v<=q;++v){
-                matrix_trunc[u][v]=RBezier_3D.controlPoints[i*p+u][j*q+v];
-                weight_trunc[u][v]=RBezier_3D.weights[i*p+u][j*q+v];
-              }
+        real[] Uk = copy(U_knot);
+        real[] Vk = copy(V_knot);
+
+        // Find segment boundaries: distinct knot values within valid domain [K[deg], K[mk-deg-2]]
+        real[] findSegKnots(real[] K, int deg){
+          int mk = K.length;
+          real[] sk;
+          int nsk = 0;
+          sk[nsk] = K[deg]; ++nsk;
+          real kmax = K[mk - deg - 1];
+          int ki = deg;
+          while(ki < mk - deg - 1){
+            real kval = K[ki];
+            if(kval > K[deg]+1e-12 && kval < kmax-1e-12){
+              sk[nsk] = kval; ++nsk;
+              while(ki < mk && K[ki]==kval) ++ki;
+            } else ++ki;
+          }
+          sk[nsk] = kmax; ++nsk;
+          return sk;
+        }
+
+        real[] u_segs = findSegKnots(Uk, p);
+        real[] v_segs = findSegKnots(Vk, q);
+        int n_u = u_segs.length - 1;
+        int n_v = v_segs.length - 1;
+
+        // Evaluate B-spline basis at parameter t using Cox-de Boor recursion
+        real[] evalBasis(int deg, real t, real[] K, int ncp){
+          int mk = K.length;
+          real[][] N = new real[deg+1][ncp];
+          for(int i=0;i<ncp;++i) N[0][i] = 0;
+          // Find active zero-degree basis function (right-closed convention)
+          for(int i=0;i<ncp;++i){
+            if(t > K[i]-1e-15 && t < K[i+1]+1e-15){ N[0][i]=1; break; }
+          }
+          if(N[0][ncp-1]==0 && abs(t-K[mk-1])<1e-12) N[0][ncp-1]=1;
+          // Cox-de Boor recursion
+          for(int r=1;r<=deg;++r)
+            for(int i=0;i<ncp;++i){
+              real t1=0,t2=0;
+              real d1 = K[i+r]-K[i];
+              real d2 = (i+1<ncp)?K[i+r+1]-K[i+1]:0;
+              if(d1>1e-15) t1=(t-K[i])/d1*N[r-1][i];
+              if(i+1<ncp && d2>1e-15) t2=(K[i+r+1]-t)/d2*N[r-1][i+1];
+              N[r][i]=t1+t2;
             }
-            for(int u=0;u<=sm*p;++u){
-              for(int v=0;v<=sm*q;++v){
-                data_points[u][v]=RBezier_evaluation(u/(sm*p),v/(sm*q),matrix_trunc,weight_trunc);
-                sample_points[u][v]=de_casteljau(u/(sm*p),v/(sm*q),matrix_trunc);
-              }
+          return copy(N[deg]);
+        }
+
+        // Evaluate rational B-spline surface at (u,v)
+        triple evalSurf(real u, real v){
+          real[] Nu = evalBasis(p, u, Uk, nu);
+          real[] Nv = evalBasis(q, v, Vk, nv);
+          triple num=(0,0,0); real den=0;
+          for(int i=0;i<nu;++i)
+            for(int j=0;j<nv;++j){
+              real b=Nu[i]*Nv[j];
+              num += b*(Pw[i][j][0],Pw[i][j][1],Pw[i][j][2]);
+              den += b*Pw[i][j][3];
             }
-            extend_cp=conversion_RBezier_to_NRBezier(data_points,sample_points,sample_points,0.01);
-            for(int u=0;u<=p;++u){
-              for(int v=0;v<=q;++v){
-                RBezier_3D.controlPoints[i*p+u][j*q+v]=extend_cp[u*sm][v*sm];
-              }
-            }
-            for(int u=0;u<=p;++u){
-              for(int v=0;v<=q;++v){
-                matrix_trunc[u][v]=RBezier_3D.controlPoints[i*p+u][j*q+v];
-                weight_trunc[u][v]=RBezier_3D.weights[i*p+u][j*q+v];
-              }
-            }
-            for(int u=0;u<=sm*p;++u){
-              for(int v=0;v<=sm*q;++v){
-                sample_points[u][v]=RBezier_evaluation(u/(sm*p),v/(sm*q),matrix_trunc,weight_trunc);
-              }
+          return (abs(den)>1e-15)?num/den:(0,0,0);
+        }
+
+        // Bernstein polynomial values of degree d at t in [0,1]
+        real[] bernVals(int d, real t){
+          real[] B = new real[d+1];
+          for(int i=0;i<=d;++i){
+            real val=1;
+            for(int k=0;k<i;++k) val*=t;
+            for(int k=0;k<d-i;++k) val*=(1-t);
+            real binom=1;
+            for(int k=1;k<=i;++k) binom=binom*(d-k+1)/k;
+            B[i]=binom*val;
+          }
+          return B;
+        }
+
+        // Invert matrix via Gauss-Jordan elimination
+        real[][] invMat(real[][] M, int n){
+          real[][] A = new real[n][2*n];
+          for(int i=0;i<n;++i)
+            for(int j=0;j<2*n;++j) A[i][j]=(j<n)?M[i][j]:((i==j-n)?1:0);
+          for(int col=0;col<n;++col){
+            int piv=col;
+            for(int row=col+1;row<n;++row)
+              if(abs(A[row][col])>abs(A[piv][col])) piv=row;
+            real[] tmp=copy(A[col]); A[col]=copy(A[piv]); A[piv]=copy(tmp);
+            real pv=A[col][col];
+            for(int j=0;j<2*n;++j) A[col][j]/=pv;
+            for(int row=0;row<n;++row){
+              if(row==col) continue;
+              real f=A[row][col];
+              for(int j=0;j<2*n;++j) A[row][j]-=f*A[col][j];
             }
           }
-        }
-        triple[][] row_trunc;
-        for(int i=0;i<ceilquotient(RBezier_3D.controlPoints.length,p+1);++i){
-          row_trunc=RBezier_3D.controlPoints[i*p:(i+1)*p+1];
-          for(int j=0;j<ceilquotient(RBezier_3D.controlPoints[i].length,q+1);++j){
-            for(int k=0;k<row_trunc.length;++k){
-                matrix_trunc[k]=row_trunc[k][j*q:(j+1)*q+1];
-            }
-            Bezier_surfaces[i][j]=copy(matrix_trunc);
-          }
+          real[][] R = new real[n][n];
+          for(int i=0;i<n;++i) for(int j=0;j<n;++j) R[i][j]=A[i][j+n];
+          return R;
         }
 
-        for(int i=0;i<Bezier_surfaces.length;++i){
-          for(int j=0;j<Bezier_surfaces[i].length;++j){
-            g.push(surface(patch(Bezier_surfaces[i][j])));
+        // Extract Bezier patches via evaluation + matrix inversion.
+        // For each B-spline segment, evaluate at interior sample points and solve
+        // the Bernstein system to get cubic Bezier control points.
+        int targetDeg = 3;
+        int nS = targetDeg + 1;
+
+        // Interior sample points (avoid boundaries where basis may degenerate)
+        real[] sT;
+        for(int i=0;i<nS;++i) sT[i] = (i+0.5)/nS;
+
+        // Build and invert Bernstein matrix
+        real[][] BM = new real[nS][nS];
+        for(int i=0;i<nS;++i){
+          real[] B = bernVals(targetDeg, sT[i]);
+          for(int j=0;j<nS;++j) BM[i][j]=B[j];
+        }
+        real[][] BM_inv = invMat(BM, nS);
+
+        // Process each U/V segment pair, subdividing into smaller patches
+        int nsub = 4;
+        real[] subT;
+        for(int i=0;i<=nsub;++i) subT[i] = (real)i/nsub;
+
+        for(int si=0;si<n_u;++si){
+          real uL=u_segs[si], uR=u_segs[si+1];
+          for(int sj=0;sj<n_v;++sj){
+            real vL=v_segs[sj], vR=v_segs[sj+1];
+
+            for(int su=0;su<nsub;++su){
+              real u0 = uL + subT[su]*(uR-uL);
+              real u1 = uL + subT[su+1]*(uR-uL);
+              for(int sv=0;sv<nsub;++sv){
+                real v0 = vL + subT[sv]*(vR-vL);
+                real v1 = vL + subT[sv+1]*(vR-vL);
+
+                // Evaluate surface on sample grid for this sub-patch
+                triple[][] S = new triple[nS][nS];
+                for(int i=0;i<nS;++i)
+                  for(int j=0;j<nS;++j){
+                    real u=u0+sT[i]*(u1-u0);
+                    real v=v0+sT[j]*(v1-v0);
+                    S[i][j]=evalSurf(u,v);
+                  }
+
+                // Extract Bezier CPs: B = BM_inv * S * (BM_inv)^T
+                triple[][] Tm = new triple[nS][nS];
+                for(int j=0;j<nS;++j)
+                  for(int i=0;i<nS;++i){
+                    Tm[i][j]=(0,0,0);
+                    for(int k=0;k<nS;++k) Tm[i][j]+=BM_inv[i][k]*S[k][j];
+                  }
+
+                triple[][] Bcp = new triple[nS][nS];
+                for(int i=0;i<nS;++i)
+                  for(int j=0;j<nS;++j){
+                    Bcp[i][j]=(0,0,0);
+                    for(int k=0;k<nS;++k) Bcp[i][j]+=BM_inv[j][k]*Tm[i][k];
+                  }
+
+                // Check if surface is rational
+                bool isRational = false;
+                {
+                  real uC=u0+0.5*(u1-u0), vC=v0+0.5*(v1-v0);
+                  triple nPt=evalSurf(uC,vC);
+                  real[] Bu=bernVals(targetDeg,0.5), Bv=bernVals(targetDeg,0.5);
+                  triple bPt=(0,0,0);
+                  for(int i=0;i<nS;++i)
+                    for(int j=0;j<nS;++j) bPt+=Bu[i]*Bv[j]*Bcp[i][j];
+                  if(length(nPt-bPt)>1e-8) isRational=true;
+                }
+
+                triple[][] nr_cp;
+                if(isRational){
+                  int sm=6, nsu=sm*targetDeg+1, nsv=sm*targetDeg+1;
+                  triple[][] dPts=new triple[nsu][nsv];
+                  triple[][] sPts=new triple[nsu][nsv];
+                  for(int u=0;u<nsu;++u)
+                    for(int v=0;v<nsv;++v){
+                      real tu=(real)u/(sm*targetDeg), tv=(real)v/(sm*targetDeg);
+                      dPts[u][v]=evalSurf(u0+tu*(u1-u0),v0+tv*(v1-v0));
+                      sPts[u][v]=de_casteljau(tu,tv,Bcp);
+                    }
+                  nr_cp=conversion_RBezier_to_NRBezier(dPts,Bcp,sPts,NURBStolerance);
+                } else {
+                  nr_cp=copy(Bcp);
+                }
+
+                g.push(surface(patch(nr_cp)));
+              }
+            }
           }
         }
     }

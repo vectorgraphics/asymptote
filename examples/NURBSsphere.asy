@@ -30,8 +30,8 @@ triple[][] P={{(0,0,1),(-2,-2,1),(-2,-2,-1),(0,0,-1)},
 
 P.cyclic=true;
 
-for(triple[] p: P)
-  dot(p,heavygreen);
+//for(triple[] p: P)
+//  dot(p,heavygreen);
 
 real[][] weights=new real[3][4];
 for(int i=0; i < 3; ++i)
@@ -52,5 +52,5 @@ for(int i=0; i < 4; ++i) {
   }
 }
 
-//draw(xscale3(-1)*octant1,red);
-//draw(xscale3(-1)*zscale3(-1)*octant1,red);
+draw(xscale3(-1)*octant1,red);
+draw(xscale3(-1)*zscale3(-1)*octant1,red);
