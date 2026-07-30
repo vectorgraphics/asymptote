@@ -52,5 +52,5 @@ for(int i=0; i < 4; ++i) {
   }
 }
 
-draw(xscale3(-1)*octant1,red);
-draw(xscale3(-1)*zscale3(-1)*octant1,red);
+// draw(xscale3(-1)*octant1,red);
+// draw(xscale3(-1)*zscale3(-1)*octant1,red);
