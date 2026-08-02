@@ -40,7 +40,7 @@ fi
   cat webgl/license
   echo ""
   echo "/* license for gl-matrix: "
-  curl -sL https://cdn.jsdelivr.net/gh/toji/gl-matrix@refs/heads/master/LICENSE.md
+  cat webgl/gl-matrix-license
   echo "*/"
 } > "$ASYGL_OUTPUT"
 
