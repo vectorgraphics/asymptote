@@ -2243,42 +2243,22 @@ surface surface(Label L, surface s, real uoffset, real voffset,
 
 private real a=4/3*(sqrt(2)-1);
 
-private transform3 t1=rotate(90,O,Z);
-private transform3 t2=t1*t1;
-private transform3 t3=t2*t1;
-private transform3 i=xscale3(-1)*zscale3(-1);
-
 // Degenerate first octant
 restricted patch octant1x=patch(X{Y}..{-X}Y{Z}..{-Y}Z..Z{X}..{-Z}cycle,
                                new triple[] {(1,a,a),(a,1,a),(a^2,a,1),
                                                (a,a^2,1)});
+include BezierTriangleOctant;
 
-surface octant1(real transition)
-{
-  private triple[][][] P=hsplit(octant1x.P,transition);
-  private patch P0=patch(P[0]);
-  private patch P1=patch(P[1][0][0]..controls P[1][1][0] and P[1][2][0]..
-                         P[1][3][0]..controls P[1][3][1] and P[1][3][2]..
-                         P[1][3][3]..controls P[1][0][2] and P[1][0][1]..
-                         cycle,O);
+private transform3 t1 = rotate(90, O, Z);
+private transform3 t2 = rotate(180, O, Z);
+private transform3 t3 = rotate(-90, O, Z);
+private transform3 i = xscale3(-1)*zscale3(-1);
 
-  // Set internal control point of P1 to match normals at P0.point(1/2,1).
-  triple n=P0.normal(1/2,1);
-  triple[][] P=P1.P;
-  triple u=-P[0][0]-P[1][0]+P[2][0]+P[3][0];
-  triple v=-P[0][0]-2*P[1][0]+P[1][1]-P[2][0]+P[3][1];
-  triple w=cross(u,v+(0,0,2));
-  real i=0.5*(n.z*w.x/n.x-w.z)/(u.x-u.y);
-  P1.P[2][1]=(i,i,1);
-  return surface(P0,P1);
-}
-
-// Nondegenerate first octant
-restricted surface octant1=octant1(0.95);
-
+restricted surface unitoctant=octant1;
 restricted surface unithemisphere=surface(octant1,t1*octant1,t2*octant1,
                                           t3*octant1);
-restricted surface unitsphere=surface(octant1,t1*octant1,t2*octant1,t3*octant1,
+restricted surface unitsphere=surface(octant1,t1*octant1,t2*octant1,
+                                      t3*octant1,
                                       i*octant1,i*t1*octant1,i*t2*octant1,
                                       i*t3*octant1);
 unitsphere.primitive=primitive(
