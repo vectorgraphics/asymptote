@@ -22,38 +22,29 @@ fi
 
 npm ci --prefix webgl
 
-if [ "$1" = "debug" ]; then
-  NPM_SCRIPT_TARGET=build-debug-nosourcemap
-  TRY_USE_CLANG_FORMAT=1
-elif [ "$1" = "debug-source-map" ]; then
-  NPM_SCRIPT_TARGET=build-dev
-  TRY_USE_CLANG_FORMAT=1
-else
-  NPM_SCRIPT_TARGET=build
-  TRY_USE_CLANG_FORMAT=0
-fi
-
-JS_FORMATTER=cat
-JS_FORMATTER_OPTS=
-if [ $TRY_USE_CLANG_FORMAT -ne 0 ]; then
-  if [ -x "$(command -v clang-format)" ]; then
-    JS_FORMATTER=clang-format
-    JS_FORMATTER_OPTS=--style=file:"webgl/.clang-format"
-  else
-    echo "clang-format not found; will not apply formatting to generated javascript file"
-  fi
-fi
-
-npm run "$NPM_SCRIPT_TARGET" --prefix webgl
-
-ASYGL_OUTPUT_FROM_WEBPACK=webgl/dist/gl.js
-test -f "$ASYGL_OUTPUT_FROM_WEBPACK" || die "Missing $ASYGL_OUTPUT_FROM_WEBPACK"
+(cd webgl && npx tsc --noEmit) || die "TypeScript type checking failed"
 
 ASYGL_OUTPUT=base/webgl/asygl.js
+
+ESBUILD_ARGS="src/gl.ts --bundle --format=iife --target=es2017 --loader:.glsl=text"
+
+if [ "$1" = "debug" ]; then
+  ESBUILD_ARGS="$ESBUILD_ARGS --sourcemap=external"
+elif [ "$1" = "debug-source-map" ]; then
+  ESBUILD_ARGS="$ESBUILD_ARGS --sourcemap=inline"
+else
+  ESBUILD_ARGS="$ESBUILD_ARGS --minify"
+fi
+
 {
-  cat webgl/license;
-  echo "/* license for gl-matrix: ";
-  curl -L https://cdn.jsdelivr.net/gh/toji/gl-matrix@refs/heads/master/LICENSE.md;
-  echo "*/";
-  "$JS_FORMATTER" $JS_FORMATTER_OPTS "$ASYGL_OUTPUT_FROM_WEBPACK";
+  cat webgl/license
+  echo ""
+  echo "/* license for gl-matrix: "
+  curl -sL https://cdn.jsdelivr.net/gh/toji/gl-matrix@refs/heads/master/LICENSE.md
+  echo "*/"
 } > "$ASYGL_OUTPUT"
+
+TMPJS=$(mktemp)
+(cd webgl && npx esbuild $ESBUILD_ARGS --outfile="$TMPJS")
+cat "$TMPJS" >> "$ASYGL_OUTPUT"
+rm -f "$TMPJS"
