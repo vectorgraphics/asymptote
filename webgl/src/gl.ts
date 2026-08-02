@@ -4201,6 +4201,12 @@ function webGLStart()
       SetIBL();
       redrawScene();
     }
+  if(W.ibl && Module.EXRLoader) {
+    initIBLOnceEXRLoaderReady().then(() => {
+      SetIBL();
+      redrawScene();
+    });
+  }
 
   home();
   requestAnimationFrame(animate);
