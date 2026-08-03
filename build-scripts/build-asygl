@@ -20,11 +20,15 @@ if [ $# = 1 ]; then
   fi
 fi
 
-npm ci --prefix webgl
+# Resolve repo root: script may be invoked from webgl/ (via npm run) or repo root.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-(cd webgl && npx tsc --noEmit) || die "TypeScript type checking failed"
+npm ci --prefix "$REPO_ROOT/webgl"
 
-ASYGL_OUTPUT=base/webgl/asygl.js
+(cd "$REPO_ROOT/webgl" && npx tsc --noEmit) || die "TypeScript type checking failed"
+
+ASYGL_OUTPUT="$REPO_ROOT/base/webgl/asygl.js"
 
 ESBUILD_ARGS="src/gl.ts --bundle --format=iife --target=es2017 --loader:.glsl=text"
 
@@ -36,15 +40,12 @@ else
   ESBUILD_ARGS="$ESBUILD_ARGS --minify"
 fi
 
-{
-  cat webgl/license
-  echo ""
-  echo "/* license for gl-matrix: "
-  cat webgl/gl-matrix-license
-  echo "*/"
-} > "$ASYGL_OUTPUT"
-
 TMPJS=$(mktemp)
-(cd webgl && npx esbuild $ESBUILD_ARGS --outfile="$TMPJS")
-cat "$TMPJS" >> "$ASYGL_OUTPUT"
+TJSTMP=$(mktemp)
+(cd "$REPO_ROOT/webgl" && npx esbuild $ESBUILD_ARGS --outfile="$TMPJS")
+cp "$TMPJS" "$ASYGL_OUTPUT"
 rm -f "$TMPJS"
+
+# Post-minify with terser for additional compression
+cat "$ASYGL_OUTPUT" | terser -m -c > "$TJSTMP" 2>/dev/null
+cat "$TJSTMP" > "$ASYGL_OUTPUT"

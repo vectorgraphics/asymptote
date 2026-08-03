@@ -8,6 +8,7 @@
     "gl-matrix": "3.4.3"
   },
   "scripts": {
+    "build": "../build-scripts/build-asygl",
     "prettier": "npx prettier src --check",
     "eslint": "npx eslint \"src/**\""
   },

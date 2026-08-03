@@ -428,6 +428,7 @@ copy-licenses:
 	${INSTALL} -p -m 644 libatomic_ops/COPYING doc/licenses/libatomic_ops-COPYING.txt
 	${INSTALL} -p -m 644 tinyexr/LICENSE.txt doc/licenses/tinyexr-LICENSE.txt
 	${INSTALL} -p -m 644 gc/LICENSE.txt doc/licenses/gc-LICENSE.txt
+	${INSTALL} -p -m 644 webgl/gl-matrix-license doc/licenses/gl-matrix-LICENSE.md
 
 install-licenses: copy-licenses
 	${INSTALL} -d $(licensedir)
@@ -541,7 +542,8 @@ uninstall-docdir: uninstall-man uninstall-asy
 		span-LICENSE.txt \
 		glew-LICENSE.txt wyhash-UNLICENSE.txt LspCpp-LICENSE.txt \
 		libatomic_ops-LICENSE.txt libatomic_ops-COPYING.txt \
-		tinyexr-LICENSE.txt gc-LICENSE.txt
+		tinyexr-LICENSE.txt gc-LICENSE.txt \
+		gl-matrix-LICENSE.md
 	-rmdir $(licensedir)
 	-cd $(docdir) && rm -f LICENSES-THIRD-PARTY.md
 	-rmdir $(docdir)
