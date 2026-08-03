@@ -21,7 +21,8 @@ if [ $# = 1 ]; then
 fi
 
 # Resolve repo root: script may be invoked from webgl/ (via npm run) or repo root.
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Use readlink -f to resolve symlinks so SCRIPT_DIR is always the real path.
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 npm ci --prefix "$REPO_ROOT/webgl"
