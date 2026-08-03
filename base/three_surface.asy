@@ -2247,7 +2247,7 @@ private real a=4/3*(sqrt(2)-1);
 restricted patch octant1x=patch(X{Y}..{-X}Y{Z}..{-Y}Z..Z{X}..{-Z}cycle,
                                new triple[] {(1,a,a),(a,1,a),(a^2,a,1),
                                                (a,a^2,1)});
-include BezierTriangleOctant;
+include three_octant;
 
 private transform3 t1 = rotate(90, O, Z);
 private transform3 t2 = rotate(180, O, Z);
