@@ -59,6 +59,9 @@ add_dependencies(asycore asy_gen_headers)
 target_link_libraries(asycore PUBLIC ${ASY_STATIC_LIBRARIES})
 target_compile_definitions(asycore PUBLIC ${ASY_MACROS})
 target_compile_options(asycore PUBLIC ${ASY_COMPILE_OPTS})
+target_link_options(asycore PUBLIC ${ASY_LINK_OPTS})
+
+set_property(TARGET asycore APPEND PROPERTY LINK_DEPENDS ${ASY_ADDITIONAL_DEPENDENCIES})
 
 # CTAN variant of settings.cc: compiled separately with ASYMPTOTE_SYSDIR=""
 # and CTAN_BUILD defined.  The normal asy.exe uses the settings.cc already

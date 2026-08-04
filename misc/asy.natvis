@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+    <Type Name="sym::symbol">
+        <DisplayString>{{ hash={hashplus} originalStr={sym::recordByHashplus(hashplus).s} }}</DisplayString>
+		<Expand>
+            <Item Name="[Hash]">hashplus</Item>
+            <Item Name="[OriginalString]">sym::recordByHashplus(hashplus).s</Item>
+		</Expand>
+    </Type>
+
+    <Type Name="vm::inst">
+        <DisplayString>[{pos.line}:{pos.column}] {op}</DisplayString>
+    </Type>
+</AutoVisualizer>

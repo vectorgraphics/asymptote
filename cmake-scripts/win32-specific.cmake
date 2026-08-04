@@ -77,6 +77,15 @@ to clang++.exe.")
     endif()
 endif()
 
+# natvis files
+
+if(MSVC)
+    if (CMAKE_BUILD_TYPE IN_LIST cmake_debug_build_types)
+        list(APPEND ASY_LINK_OPTS /NATVIS:${CMAKE_CURRENT_SOURCE_DIR}/misc/asy.natvis)
+        list(APPEND ASY_ADDITIONAL_DEPENDENCIES ${CMAKE_CURRENT_SOURCE_DIR}/misc/asy.natvis)
+    endif()
+endif()
+
 
 # additional win32 api libraries
 list(APPEND ASY_STATIC_LIBRARIES Shlwapi Shell32 Ws2_32)
