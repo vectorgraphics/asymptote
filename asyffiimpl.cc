@@ -349,6 +349,11 @@ void* AsyContextImpl::createAsyType(Asy::TypeInfo const typeInfo) const
 {
   return asyTypesEnumToTy(typeInfo);
 }
+IAsyVarFrame* AsyContextImpl::createNewVarFrame(const size_t& initialSize)
+{
+  return new vm::vmFrame(initialSize);
+}
+
 AsyStackContextImpl::AsyStackContextImpl(vm::stack* inStack) : stack(inStack) {}
 void AsyStackContextImpl::callVoid(
         IAsyCallable* callable, size_t const numArgs, IAsyItem const** ptrArgs

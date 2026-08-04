@@ -129,6 +129,8 @@ public:
   [[nodiscard]]
   void* createAsyType(Asy::TypeInfo typeInfo) const override;
 
+  IAsyVarFrame* createNewVarFrame(const size_t& initialSize) override;
+
 protected:
   template<typename TImpl, typename TInterface, typename... TCreationArgs>
   static TInterface* createNewItemGeneric(TCreationArgs&&... args)

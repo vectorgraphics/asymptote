@@ -474,6 +474,9 @@ public:
   [[nodiscard]]
   virtual void* createAsyType(Asy::TypeInfo typeInfo) const= 0;
   
+  // var frames
+  
+  virtual IAsyVarFrame* createNewVarFrame(size_t const& initialSize)= 0;
 };
 
 // question: will we ever exceed 256 primitive types?
