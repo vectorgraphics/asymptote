@@ -1,5 +1,5 @@
 import three;
-import nurbsToBezier;
+import nurbsToTriangle;
 
 size(10cm);
 

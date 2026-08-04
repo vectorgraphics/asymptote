@@ -1,5 +1,5 @@
 import three;
-import nurbsToBezier;
+import nurbsToTriangle;
 
 /* Reference:
    @article{Qin97,
@@ -48,7 +48,7 @@ for(int i=0; i < 4; ++i) {
     draw(Q,uknot,vknot,weights,blue);
   else {
     NURBSsurface surface2=NURBSsurface(Q,uknot,vknot,weights);
-    surface2.draw(blue+opacity(0.5));
+    surface2.draw(blue+opacity(1));
   }
 }
 
