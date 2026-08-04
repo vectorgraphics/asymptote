@@ -82,6 +82,12 @@ public:
   {
     return lookupType(symbol::literalTrans(string(typeName)));
   }
+
+  void* getTypeFromVariable(const char* varName) override
+  {
+    return ve.getType(symbol::literalTrans(string(varName)));
+  }
+
   IAsyRecord* getTypeAsRecord(const char* typeName) override
   {
     auto* tyPtr = static_cast<ty*>(getType(typeName));
@@ -96,6 +102,11 @@ public:
   {
     // Search in local vars.
     return ve.lookByType(name, t);
+  }
+
+  IAsyVarEntry* getVarRecord(const char* varName, void* type) override
+  {
+    return lookupVarByType(symbol::literalTrans(varName), static_cast<ty*>(type));
   }
 
   varEntry *lookupVarBySignature(symbol name, types::signature *sig)

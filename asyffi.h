@@ -1318,6 +1318,10 @@ public:
    * If the type does not exist or exists but is not a record (struct) type,
    * this function returns a nullptr. */
   virtual IAsyRecord* getTypeAsRecord(char const* typeName)= 0;
+  
+  virtual void* getTypeFromVariable(char const* varName)= 0;
+  
+  virtual IAsyVarEntry* getVarRecord(char const* varName, void* type)= 0;
 };
 
 /**
