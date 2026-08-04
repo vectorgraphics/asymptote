@@ -2,10 +2,10 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
     <Type Name="sym::symbol">
         <DisplayString>{{ hash={hashplus} originalStr={sym::recordByHashplus(hashplus).s} }}</DisplayString>
-		<Expand>
+        <Expand>
             <Item Name="[Hash]">hashplus</Item>
             <Item Name="[OriginalString]">sym::recordByHashplus(hashplus).s</Item>
-		</Expand>
+        </Expand>
     </Type>
 
     <Type Name="vm::inst">
@@ -14,5 +14,23 @@
 
     <Type Name="fileinfo">
         <DisplayString>{{{filename}:{lineNum}}}</DisplayString>
+    </Type>
+
+    <Type Name="trans::core_venv">
+        <DisplayString>{{size={size}}}</DisplayString>
+        <Expand>
+            <Item Name="[Size]">size</Item>
+            <Item Name="[Capacity]">capacity</Item>
+            <CustomListItems>
+                <Variable Name="pCell" InitialValue="table"/>
+                <Size>capacity</Size>
+                <Loop>
+                    <If Condition="pCell->ent != nullptr">
+                        <Item Name="{pCell->name}">*(pCell->ent)</Item>
+                    </If>
+                    <Exec>++pCell</Exec>
+                </Loop>
+            </CustomListItems>
+        </Expand>
     </Type>
 </AutoVisualizer>
