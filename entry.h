@@ -90,7 +90,8 @@ public:
   }
 };
 
-class varEntry : public entry {
+class varEntry : public entry, public IAsyVarEntry
+{
   ty *t;
   access *location;
 
@@ -119,6 +120,11 @@ public:
 
   access *getLocation()
   { return location; }
+  
+  IAsyAccess* getAccess() override
+  {
+    return getLocation();
+  }
 
   frame *getLevel();
 

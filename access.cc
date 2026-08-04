@@ -16,8 +16,17 @@ using vm::item;
 namespace trans {
 
 /* access */
-access::~access()
-{}
+void* access::tryCastTo(Asy::AccessTypes accessType)
+{
+  switch (accessType) {
+    case Asy::AccessTypes::Builtin:
+      return dynamic_cast<bltinAccess*>(this);
+    case Asy::AccessTypes::Local:
+      return dynamic_cast<localAccess*>(this);
+    default:
+      return nullptr;
+  }
+}
 
 /* identAccess */
 void identAccess::encode(action act, position pos, coder& e)
@@ -120,7 +129,10 @@ static void frameError(position pos) {
   em.error(pos);
   em << "static use of dynamic variable";
 }
-
+int64_t localAccess::getOffset() const
+{
+  return offset;
+}
 void localAccess::encode(action act, position pos, coder &e)
 {
   // Get the active frame of the virtual machine.

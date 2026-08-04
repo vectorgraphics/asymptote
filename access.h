@@ -32,7 +32,8 @@ enum action {
 };
 
 // These serves as the base class for the accesses.
-class access : public gc {
+class access : public gc, public IAsyAccess
+{
 protected:
   // Generic compiler access error - if the compiler functions properly,
   // none of these should be reachable by the user.
@@ -43,7 +44,9 @@ protected:
   }
 
 public:
-  virtual ~access() = 0;
+  ~access() override = default;
+
+  void* tryCastTo(Asy::AccessTypes accessType) override;
 
   // Encode a read/write/call of the access when nothing is on the stack.
   virtual void encode(action act, position pos, coder& e)
@@ -65,7 +68,7 @@ class identAccess : public access
 };
 
 // Represents a function that is implemented by a built-in C++ function.
-class bltinAccess : public access {
+class bltinAccess : public access, public IAsyBuiltinAccess {
   vm::bltin f;
 
 public:
@@ -107,11 +110,15 @@ public:
 };
 
 // Represents the access of a local variable.
-class localAccess : public access {
+class localAccess : public IAsyLocalAccess, public access
+{
   Int offset;
   frame *level;
 
 public:
+  [[nodiscard]]
+  int64_t getOffset() const override;
+
   localAccess(Int offset, frame *level)
     : offset(offset), level(level) {}
 
