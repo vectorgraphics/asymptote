@@ -1202,6 +1202,40 @@ public:
   virtual IAsyGlobalEnvironment* getGlobalEnvironment()= 0;
 };
 
+
+namespace Asy
+{
+enum class AccessTypes : uint8_t
+{
+  Builtin,
+  Local,
+};
+
+}
+
+class IAsyAccess
+{
+public:
+  virtual ~IAsyAccess()= default;
+  
+  virtual void* tryCastTo(Asy::AccessTypes accessType)= 0;
+};
+
+class IAsyLocalAccess
+{
+public:
+  virtual ~IAsyLocalAccess()= default;
+  
+  [[nodiscard]]
+  virtual int64_t getOffset() const= 0;
+};
+
+class IAsyBuiltinAccess
+{
+public:
+  virtual ~IAsyBuiltinAccess()= default;
+};
+
 /**
  * Interface for Asymptote variable frames, which are how
  * Asymptote internally stores its structs. Variables are accessible as
@@ -1246,6 +1280,14 @@ public:
    * if the variable frame already holds more n elements or more.
    */
   virtual void extend(size_t const& n)= 0;
+};
+
+class IAsyVarEntry
+{
+public:
+  virtual ~IAsyVarEntry()= default;
+  
+  virtual IAsyAccess* getAccess()= 0;
 };
 
 /**
