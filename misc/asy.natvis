@@ -9,6 +9,10 @@
     </Type>
 
     <Type Name="vm::inst">
-        <DisplayString>[{pos.line}:{pos.column}] {op}</DisplayString>
+        <DisplayString>{{ file={pos.file} pos=[{pos.line}:{pos.column}] {op} {ref}}}</DisplayString>
+    </Type>
+
+    <Type Name="fileinfo">
+        <DisplayString>{{{filename}:{lineNum}}}</DisplayString>
     </Type>
 </AutoVisualizer>
