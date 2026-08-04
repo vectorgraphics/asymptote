@@ -345,6 +345,10 @@ IAsyPen* AsyContextImpl::createNewPen(
   );
 }
 
+void* AsyContextImpl::createAsyType(Asy::TypeInfo const typeInfo) const
+{
+  return asyTypesEnumToTy(typeInfo);
+}
 AsyStackContextImpl::AsyStackContextImpl(vm::stack* inStack) : stack(inStack) {}
 void AsyStackContextImpl::callVoid(
         IAsyCallable* callable, size_t const numArgs, IAsyItem const** ptrArgs

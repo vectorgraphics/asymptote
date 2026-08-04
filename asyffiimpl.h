@@ -125,6 +125,9 @@ public:
           Asy::PenLineJoin lineJoin, double miterLimit,
           Asy::PenOverwrites overwriteType, IAsyTransform const* transformValue
   ) override;
+  
+  [[nodiscard]]
+  void* createAsyType(Asy::TypeInfo typeInfo) const override;
 
 protected:
   template<typename TImpl, typename TInterface, typename... TCreationArgs>

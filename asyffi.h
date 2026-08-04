@@ -185,6 +185,7 @@ class IAsyPath3;
 class IAsyRecord;
 
 class IAsyPen;
+class IAsyVarFrame;
 
 namespace Asy
 {
@@ -197,6 +198,9 @@ enum class PenColorSpace : uint8_t;
 struct PenLineType;
 struct PenTransparencyInfo;
 struct PenColor;
+
+struct TypeInfo;
+struct FnArgMetadata;
 }// namespace Asy
 
 class IAsyContext
@@ -464,6 +468,12 @@ public:
           Asy::PenLineJoin lineJoin, double miterLimit,
           Asy::PenOverwrites overwriteType, IAsyTransform const* transform
   )= 0;
+  
+  // types functions
+  
+  [[nodiscard]]
+  virtual void* createAsyType(Asy::TypeInfo typeInfo) const= 0;
+  
 };
 
 // question: will we ever exceed 256 primitive types?
@@ -924,9 +934,6 @@ public:
 
 namespace Asy
 {
-
-struct TypeInfo;
-struct FnArgMetadata;
 
 struct ArrayTypeMetadata {
   /** The type of the item that the array is storing. Cannot be ArrayType */
