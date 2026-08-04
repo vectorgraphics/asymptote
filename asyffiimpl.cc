@@ -291,6 +291,7 @@ bool AsyContextImpl::isSimpleFrameBuild() const
   return false;
 #endif
 }
+[[noreturn]]
 void AsyContextImpl::reportError(const char* message)
 {
   camp::reportError(message);
@@ -299,6 +300,7 @@ void AsyContextImpl::reportWarning(const char* message)
 {
   camp::reportWarning(message);
 }
+[[noreturn]]
 void AsyContextImpl::reportFatal(const char* message)
 {
   camp::reportFatal(message);

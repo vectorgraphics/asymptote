@@ -436,6 +436,7 @@ public:
    * @remark This function throws C++ exceptions. Therefore,
    * do not use this in any functions marked "noexcept"
    */
+  [[noreturn]]
   virtual void reportError(char const* message)= 0;
 
   /**
@@ -448,6 +449,7 @@ public:
    * @remark This function throws C++ exceptions. Therefore,
    * do not use this in any functions marked "noexcept"
    */
+  [[noreturn]]
   virtual void reportFatal(char const* message)= 0;
 
   // pen creation functions

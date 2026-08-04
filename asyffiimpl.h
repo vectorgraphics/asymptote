@@ -108,8 +108,11 @@ public:
   [[nodiscard]]
   bool isSimpleFrameBuild() const override;
 
+  [[noreturn]]
   void reportError(const char* message) override;
+  
   void reportWarning(const char* message) override;
+  [[noreturn]]
   void reportFatal(const char* message) override;
 
   IAsyPen* createNewPen(
