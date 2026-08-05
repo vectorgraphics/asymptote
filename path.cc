@@ -26,7 +26,7 @@ const double fuzzFactor=100.0;
 
 path nullpath;
 
-const char *nopoints="nullpath has no points";
+const char *nopoints="nullpath has no points - use path(p) to create a valid path, or check that your path construction succeeded";
 
 void checkEmpty(Int n) {
   if(n == 0)
@@ -428,7 +428,7 @@ path path::subpath(double a, double b) const
       aR = nodes[imod((Int) ceil(a),n)];
       bL = nodes[imod((Int) floor(b),n)];
       bR = nodes[imod((Int) ceil(b),n)];
-    } else reportError("invalid path index");
+    } else reportError("invalid path index - indices must be valid integers within the path bounds");
   }
 
   if (a == b) return path(point(a));
@@ -595,7 +595,7 @@ double arcLength(const pair& z0, const pair& c0, const pair& c1,
   derivative(a,b,c,z0,c0,c1,z1);
 
   if(!simpson(integral,ds,0.0,1.0,DBL_EPSILON,1.0))
-    reportError("nesting capacity exceeded in computing arclength");
+    reportError("nesting capacity exceeded in computing arclength - the path may be too complex or have nearly-degenerate segments; try simplifying the path or reducing its precision");
   return integral;
 }
 
@@ -619,7 +619,7 @@ double path::cubiclength(Int i, double goal) const
   goal *= third;
   static double dxmin=sqrt(DBL_EPSILON);
   if(!unsimpson(goal,ds,0.0,t,100.0*DBL_EPSILON,integral,1.0,dxmin))
-    reportError("nesting capacity exceeded in computing arctime");
+    reportError("nesting capacity exceeded in computing arctime - the path may be too complex or have nearly-degenerate segments; try simplifying the path or reducing its precision");
   return -t;
 }
 
@@ -1261,7 +1261,7 @@ Int path::windingnumber(const pair& z) const
   static const Int undefined=Int_MAX % 2 ? Int_MAX : Int_MAX-1;
 
   if(!cycles)
-    reportError("path is not cyclic");
+    reportError("path is not cyclic - use '--cycle' or '..cycle' at the end of the path declaration (e.g. path p=(0,0)--(1,0)--(1,1)--cycle;)");
 
   bbox b=bounds();
 
@@ -1314,7 +1314,7 @@ path nurb(pair z0, pair z1, pair z2, pair z3,
 {
   mem::vector<solvedKnot> nodes(m+1);
 
-  if(m < 1) reportError("invalid sampling interval");
+  if(m < 1) reportError("invalid sampling interval - the number of NURBS samples m must be a positive integer (m >= 1)");
 
   double step=1.0/m;
   for(Int i=0; i <= m; ++i) {

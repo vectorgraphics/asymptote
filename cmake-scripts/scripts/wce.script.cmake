@@ -32,8 +32,31 @@ foreach(TEST_FILE IN LISTS TEST_FILES)
 
     file(READ ${ERRORS_FILE} EXPECTED_ERROR_OUTPUT)
 
+    # Normalize line endings (CRLF -> LF, standalone CR -> LF).
+    string(REPLACE "\r\n" "\n" ASY_STDERR_OUTPUT "${ASY_STDERR_OUTPUT}")
+    string(REPLACE "\r\n" "\n" EXPECTED_ERROR_OUTPUT "${EXPECTED_ERROR_OUTPUT}")
+    string(REPLACE "\r" "\n" ASY_STDERR_OUTPUT "${ASY_STDERR_OUTPUT}")
+    string(REPLACE "\r" "\n" EXPECTED_ERROR_OUTPUT "${EXPECTED_ERROR_OUTPUT}")
+
+    # Trim trailing whitespace and newlines so that harmless formatting
+    # differences do not cause test failures.
+    string(REGEX REPLACE "[ \t\n]+$" "" ASY_STDERR_OUTPUT "${ASY_STDERR_OUTPUT}")
+    string(REGEX REPLACE "[ \t\n]+$" "" EXPECTED_ERROR_OUTPUT "${EXPECTED_ERROR_OUTPUT}")
+
+    # Strip indented continuation lines (search paths, help text) from
+    # multi-line error messages.  These contain environment-specific paths
+    # that differ between build configurations.
+    string(REGEX REPLACE "\n  [^\n]*" "" ASY_STDERR_OUTPUT "${ASY_STDERR_OUTPUT}")
+    string(REGEX REPLACE "\n  [^\n]*" "" EXPECTED_ERROR_OUTPUT "${EXPECTED_ERROR_OUTPUT}")
+
+    # Collapse redundant blank lines left after stripping continuation text.
+    string(REGEX REPLACE "\n\n+" "\n" ASY_STDERR_OUTPUT "${ASY_STDERR_OUTPUT}")
+    string(REGEX REPLACE "\n\n+" "\n" EXPECTED_ERROR_OUTPUT "${EXPECTED_ERROR_OUTPUT}")
+
     if (NOT ASY_STDERR_OUTPUT STREQUAL EXPECTED_ERROR_OUTPUT)
         message(WARNING "Error test FAILED: ${TEST_NAME}")
+        message(STATUS "  Expected:\n${EXPECTED_ERROR_OUTPUT}")
+        message(STATUS "  Actual:\n${ASY_STDERR_OUTPUT}")
         set(ALL_PASSED FALSE)
     else()
         message(STATUS "Error test passed: ${TEST_NAME}")
