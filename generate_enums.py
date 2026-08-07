@@ -18,14 +18,19 @@ import re
 import sys
 import time
 from datetime import datetime, timezone
-from typing import List, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
+
+# One row of the CSV: name and value, plus a trailing comment when the row
+# has a third field.  The generators unpack it as `name, value, *rest`, so
+# both shapes are consumed the same way.
+EnumEntry = Union[Tuple[str, int, str], Tuple[str, int]]
 
 
-def cleanComment(s):
+def cleanComment(s: str) -> str:
     return re.sub(r" *#", " ", s)
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("-language", "--language", type=str, required=True)
     parser.add_argument("-o", "--output", type=str, required=True)
@@ -35,8 +40,8 @@ def parse_args():
     return parser.parse_args()
 
 
-def create_enums(filename: str) -> List[Union[Tuple[str, int, str], Tuple[str, int]]]:
-    final_list = []
+def create_enums(filename: str) -> List[EnumEntry]:
+    final_list: List[EnumEntry] = []
     with io.open(filename, newline="", encoding="utf-8") as rawfile:
         for line in rawfile.readlines():
             if line.startswith("#") or line.strip() == "":
@@ -52,13 +57,20 @@ def create_enums(filename: str) -> List[Union[Tuple[str, int, str], Tuple[str, i
     return final_list
 
 
-def datetime_now():
+def datetime_now() -> datetime:
     return datetime.fromtimestamp(
         int(os.environ.get("SOURCE_DATE_EPOCH", time.time())), tz=timezone.utc
     )
 
 
-def generate_enum_cpp(outname, enums, name, comment=None, *args, **kwargs):
+def generate_enum_cpp(
+    outname: str,
+    enums: List[EnumEntry],
+    name: str,
+    comment: Optional[str] = None,
+    *args: Any,
+    **kwargs: str,
+) -> None:
     with io.open(outname, "w", encoding="utf-8") as fil:
         fil.write(f"// Enum class for {name}\n")
         if comment is not None:
@@ -84,7 +96,14 @@ def generate_enum_cpp(outname, enums, name, comment=None, *args, **kwargs):
         fil.write("// End of File\n")
 
 
-def generate_enum_java(outname, enums, name, comment=None, *args, **kwargs):
+def generate_enum_java(
+    outname: str,
+    enums: List[EnumEntry],
+    name: str,
+    comment: Optional[str] = None,
+    *args: Any,
+    **kwargs: str,
+) -> None:
     with io.open(outname, "w", encoding="utf-8") as fil:
         fil.write(f"// Enum class for {name}\n")
         if comment is not None:
@@ -95,7 +114,9 @@ def generate_enum_java(outname, enums, name, comment=None, *args, **kwargs):
 
         fil.write(f"public enum {name} {{\n")
 
-        spaces = kwargs.get("spaces", 4)
+        # -xopt values arrive as strings, so this needs a conversion even
+        # though the fallback is already an int.
+        spaces = int(kwargs.get("spaces", 4))
         spaces_tab = " " * spaces
 
         for i, enum in enumerate(enums):
@@ -126,7 +147,14 @@ def generate_enum_java(outname, enums, name, comment=None, *args, **kwargs):
         fil.write("// End of File\n")
 
 
-def generate_enum_asy(outname, enums, name, comment=None, *args, **kwargs):
+def generate_enum_asy(
+    outname: str,
+    enums: List[EnumEntry],
+    name: str,
+    comment: Optional[str] = None,
+    *args: Any,
+    **kwargs: str,
+) -> None:
     with io.open(outname, "w", encoding="utf-8") as fil:
         fil.write(f"// Enum class for {name}\n")
         if comment is not None:
@@ -146,7 +174,14 @@ def generate_enum_asy(outname, enums, name, comment=None, *args, **kwargs):
         fil.write("// End of File\n")
 
 
-def generate_enum_py(outname, enums, name, comment=None, *args, **kwargs):
+def generate_enum_py(
+    outname: str,
+    enums: List[EnumEntry],
+    name: str,
+    comment: Optional[str] = None,
+    *args: Any,
+    **kwargs: str,
+) -> None:
     with io.open(outname, "w", encoding="utf-8") as fil:
         fil.write("#!/usr/bin/env python3\n")
         fil.write(f"# Enum class for {name}\n")
@@ -162,7 +197,7 @@ def generate_enum_py(outname, enums, name, comment=None, *args, **kwargs):
         fil.write("# End of File\n")
 
 
-def main():
+def main() -> int:
     arg = parse_args()
     if arg.language in {"python", "py"}:
         fn = generate_enum_py
