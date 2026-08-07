@@ -1,3 +1,9 @@
+# xasy needs Python 3.9-3.13, a stricter range than the build and test scripts
+# (PY3_MINIMUM_VERSION in cmake-scripts/options.cmake, py-version in .pylintrc).
+# It comes from the pins below, not from the GUI sources: PySide6 6.9 declares
+# >=3.9,<3.14 and ships only cp39-abi3 wheels with no sdist, so 3.9 is a hard
+# floor; numpy 2.0 requires >=3.9.  Re-derive after changing a pin with
+#   curl -s https://pypi.org/pypi/PySide6/<version>/json | jq -r .info.requires_python
 numpy~=2.0.0
 cson~=0.8
 PySide6~=6.9.0

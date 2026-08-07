@@ -97,7 +97,11 @@ persistent=yes
 prefer-stubs=no
 
 # Minimum Python version to use for version dependent checks. Will default to
-# the version used to run pylint.
+# the version used to run pylint. Keep in sync with PY3_MINIMUM_VERSION in
+# cmake-scripts/options.cmake and python_version in mypy.ini. Note this covers
+# syntax and language features only, not stdlib availability: pylint passes
+# code calling math.lcm (3.9) or copytree(dirs_exist_ok=) (3.8). mypy.ini is
+# what catches those.
 py-version=3.7
 
 # Discover python modules and packages in the file system subtree.
