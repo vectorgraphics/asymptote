@@ -36,6 +36,10 @@ import shutil
 import subprocess
 import tempfile
 
+# The two flags below are spelled exactly as test_relocatable.py spells them,
+# because tests-asy.cmake passes them to both scripts the same way -- eight
+# identical lines, which pylint reads as duplicate code.
+# pylint: disable=duplicate-code
 ap = argparse.ArgumentParser(
     description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
 )
@@ -46,6 +50,7 @@ ap.add_argument(
     dest="base_dir",
     help="the build tree's base/ directory, staged next to the copied binary",
 )
+# pylint: enable=duplicate-code
 args = ap.parse_args()
 
 asy = os.path.abspath(args.asy)
