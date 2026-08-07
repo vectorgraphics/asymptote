@@ -365,12 +365,20 @@ public:
   int oldWidth, oldHeight;
   double Aspect;
   double oWidth, oHeight;
+
+  // Tile size limits (from -maxtile setting)
+  int maxTileWidth = 1024;
+  int maxTileHeight = 768;
   double lastzoom;
   int Fitscreen=1;
   double zoomFactor = 1.0;  // Extra multiplicative zoom factor for fullscreen aspect compensation
 
   bool readyForExport=false;
   bool readyAfterExport=false;
+
+  // True when the render thread is inside a View-mode glfwRunLoop.
+  // Used to decide whether to use glfwPostEmptyEvent() or initSignal handshake.
+  bool initializedView=false;
 
   // Child process ID for export (used by both OpenGL and Vulkan)
   int Oldpid = 0;

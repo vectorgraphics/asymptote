@@ -1242,6 +1242,8 @@ static const char *const licensesSummary =
   "                    https://glew.sourceforge.net/" "\n"
   "  TinyEXR           BSD 3-Clause License\n"
   "                    Syoyo Fujita -- https://github.com/syoyo/tinyexr" "\n"
+  "  gl-matrix         Zlib License\n"
+  "                    Brandon Jones, Colin MacKenzie IV -- https://github.com/toji/gl-matrix" "\n"
   "\n"
   "Use --licenses=full for complete copyright notices and license texts.\n"
   "Source: https://github.com/vectorgraphics/asymptote/\n";
@@ -1410,6 +1412,15 @@ static bool printLicensesFull(ostream& out) {
   requireFile("tinyexr-LICENSE.txt",
     "TinyEXR -- BSD 3-Clause License -- https://github.com/syoyo/tinyexr");
 
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "gl-matrix -- Zlib License\n"
+    "Brandon Jones, Colin MacKenzie IV and contributors <https://github.com/toji/gl-matrix>\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("gl-matrix-LICENSE.md",
+    "gl-matrix -- Zlib License -- https://github.com/toji/gl-matrix");
+
   return missing == 0;
 }
 
@@ -1538,14 +1549,14 @@ void getOptions(int argc, char *argv[])
     }
 
     if (showVersion) {
-      // Don't exit yet — continue parsing remaining options
+      // Don't exit yet -- continue parsing remaining options
     }
 
     errno=0;
   }
 
   if (showVersion) {
-    // Don't exit yet — continue parsing remaining options, then exit
+    // Don't exit yet -- continue parsing remaining options, then exit
     // from setOptions() after setPath() has been called so that the
     // renderer can locate its shared libraries.
   }

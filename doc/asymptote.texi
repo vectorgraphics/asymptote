@@ -2285,7 +2285,18 @@ character strings in ANSI @code{C}:
 @end itemize
 
 The implicit initializer for strings is the empty string @code{""}.
-Strings may be concatenated with the @code{+} operator. In the following
+Strings may be concatenated with the @code{+} operator.
+
+@cindex @code{[]} @subentry @code{string.operator []}
+@cindex @code{operator []} @subentry @code{string.operator []}
+A single-character substring of a string @code{s} can be accessed with
+@code{s[pos]} for an integer index @code{pos} in the range @code{[-n, n-1]},
+where @code{n} is the length of the string @code{s}. Negative indices count
+from the end of the string, so @code{s[-1]} is the last character of @code{s}.
+The start of the string is @code{s[0]}.
+If @code{pos} is out of range, the empty string @code{""} is returned.
+
+In the following
 string functions, position @code{0} denotes the start of the string:
 @table @code
 
@@ -4890,7 +4901,15 @@ If @code{a} is not an array, the notation @code{a[i]} is equivalent to
 @code{a.operator[](i)}. Thus, the@tie{}@code{[]} operator can be defined to
 provide this notation for a user-defined structure. Similarly, the notation
 @code{a[i]=b} is equivalent to @code{a.operator[=](i,b)} (except that the former
-always returns @code{b}). Note that there are some restrictions on how these
+always returns @code{b}).
+
+@cindex @code{operator []} @subentry @code{string.operator []}
+@cindex @code{[]} @subentry @code{string.operator []}
+The builtin type @code{string} has a virtual member function
+@code{string operator[](int pos)}. No primitive type has a virtual member
+function @code{operator [=]}, since primitive types are immutable.
+
+There are some restrictions on how these
 operators can be defined:
 
 @itemize

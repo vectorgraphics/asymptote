@@ -17,6 +17,7 @@
 
 #include "rendererloader.h"  // for headlessRenderer
 
+#include "tile.h"
 #include "vkutils.h"
 #include "ThreadSafeQueue.h"
 
@@ -332,7 +333,6 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
   copyRenderArgs(args);
 
 #ifdef HAVE_PTHREAD
-  static bool initializedView=false;
   if(vkinitialize)
     Fitscreen=1;
 #endif
@@ -359,6 +359,25 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
   initialized=true;
 
 #ifdef HAVE_PTHREAD
+  if(threads && !vkinitialize && !pthread_equal(pthread_self(),threadMgr.mainthread)) {
+    // Called from asymain thread after renderer is already initialized.
+    // Delegate to the render thread to avoid re-initializing and crashing.
+    if(View && initializedView) {
+      // Render thread is in glfwRunLoop; send message.
+      hideWindow=false;
+      threadMgr.messageQueue.enqueue(RendererMessage::updateRenderer);
+    } else {
+      // Render thread is waiting on initSignal; wake it up via handshake.
+      readyAfterExport=queueExport=true;
+    }
+    // If View changed from 0 to 1, validate that the already-selected
+    // physical device is suitable for onscreen rendering (e.g., llvmpipe
+    // for remote X11). The initial device selection skipped the DISPLAY
+    // check because View was 0 at that time.
+    if(View && !initializedView)
+      checkSoftwareRenderer();
+    return;
+  }
   if(threads && initializedView) {
     if(View) {
       // Called from asymain thread, main thread handles rendering
@@ -386,6 +405,10 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
   }
 
   if(View) {
+    // Validate that the current physical device is suitable for onscreen
+    // rendering.  If View changed from 0 to 1 between calls, the initial
+    // device selection skipped the DISPLAY check (since View was 0).
+    checkSoftwareRenderer();
     if(!glfwWindow)
       initWindow();
     if(!getSetting<bool>("fitscreen"))
@@ -857,14 +880,15 @@ void AsyVkRender::createAllocator()
   allocator = vma::cxx::UniqueAllocator(createInfo);
 }
 
+static bool isRemoteX11()
+{
+  char *display=getenv("DISPLAY");
+  return display ? string(display).find(":") != 0 : false;
+}
+
 void AsyVkRender::pickPhysicalDevice()
 {
-  bool remote=false;
-
-  if(View) {
-    char *display=getenv("DISPLAY");
-    remote=display ? string(display).find(":") != 0 : false;
-  }
+  bool remote=View && isRemoteX11();
 
   Int device=getSetting<Int>("device");
 
@@ -882,9 +906,7 @@ void AsyVkRender::pickPhysicalDevice()
 
   if(device >= 0 && device < count) {
     physicalDevice=instance->enumeratePhysicalDevices()[device];
-    if(software && physicalDevice.getProperties().deviceType !=
-       vk::PhysicalDeviceType::eCpu)
-      runtimeError("remote onscreen rendering requires the llvmpipe device");
+    checkSoftwareRenderer();
   } else {
     auto const getDeviceScore =
       [this,software](vk::PhysicalDevice& device) -> size_t
@@ -973,6 +995,14 @@ void AsyVkRender::pickPhysicalDevice()
   if(settings::verbose > 1 && msaaSamples != vk::SampleCountFlagBits::e1)
     cout << "Multisampling enabled with sample width " << nSamples
          << endl;
+}
+
+void AsyVkRender::checkSoftwareRenderer()
+{
+  if (View && isRemoteX11()) {
+    if(physicalDevice && physicalDevice.getProperties().deviceType != vk::PhysicalDeviceType::eCpu)
+      runtimeError("remote onscreen rendering requires the llvmpipe device");
+  }
 }
 
 std::pair<std::uint32_t, vk::SampleCountFlagBits>
@@ -1396,6 +1426,7 @@ void AsyVkRender::createOffscreenBuffers() {
           usageBits,
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   backbufferImages.emplace_back(defaultBackbufferImg.getImage());
+  exportImageIndex = static_cast<uint32_t>(backbufferImages.size() - 1);
 
   for(auto & image: backbufferImages) {
     transitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, image);
@@ -3301,27 +3332,29 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
     VK_FALSE
   );
 
-  // Set origin at lower-left corner with y coordinate increasing up
-  auto viewport = vk::Viewport(
-    0.0f,
-    static_cast<float>(backbufferExtent.height),
-    static_cast<float>(backbufferExtent.width),
-    -static_cast<float>(backbufferExtent.height),
-    0.0f,
-    1.0f
-  );
+  // Make viewport and scissor dynamic so they can be changed per-draw
+  // (needed for tiled export without recreating pipelines).
+  std::array<vk::DynamicState, 2> dynamicStates = {
+      vk::DynamicState::eViewport,
+      vk::DynamicState::eScissor
+  };
 
-  auto scissor = vk::Rect2D(
-    vk::Offset2D(0, 0),
-    backbufferExtent
-  );
+  // Placeholder viewport/scissor (required by spec even when dynamic;
+  // actual values are set via setViewport/setScissor before drawing).
+  auto placeholderViewport = vk::Viewport(
+      0.0f, static_cast<float>(backbufferExtent.height),
+      static_cast<float>(backbufferExtent.width),
+      -static_cast<float>(backbufferExtent.height), 0.0f, 1.0f);
+  auto placeholderScissor = vk::Rect2D(vk::Offset2D(0, 0), backbufferExtent);
 
   auto viewportStateCI = vk::PipelineViewportStateCreateInfo(
     vk::PipelineViewportStateCreateFlags(),
-    1,
-    &viewport,
-    1,
-    &scissor
+    1, &placeholderViewport,
+    1, &placeholderScissor
+  );
+  auto dynamicStateCI = vk::PipelineDynamicStateCreateInfo(
+    vk::PipelineDynamicStateCreateFlags(),
+    2, dynamicStates.data()
   );
 
   auto rasterizerCI = vk::PipelineRasterizationStateCreateInfo(
@@ -3409,7 +3442,7 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
     &multisamplingCI,
     &depthStencilCI,
     &colorBlendCI,
-    nullptr,
+    &dynamicStateCI,
     *graphicsPipelineLayout,
     renderPass,
     graphicsSubpass,
@@ -3776,6 +3809,17 @@ void AsyVkRender::beginCountFrameRender(int imageIndex)
   );
 
   currentCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+
+  // Set dynamic viewport and scissor (origin at lower-left, y increasing up).
+  uint32_t vpW = exportViewportWidth ? exportViewportWidth : backbufferExtent.width;
+  uint32_t vpH = exportViewportHeight ? exportViewportHeight : backbufferExtent.height;
+  auto vp = vk::Viewport(
+      0.0f, static_cast<float>(vpH),
+      static_cast<float>(vpW),
+      -static_cast<float>(vpH), 0.0f, 1.0f);
+  auto scissor = vk::Rect2D(vk::Offset2D(0, 0), vk::Extent2D(vpW, vpH));
+  currentCommandBuffer.setViewport(0, 1, &vp);
+  currentCommandBuffer.setScissor(0, 1, &scissor);
 }
 
 void AsyVkRender::beginGraphicsFrameRender(int imageIndex)
@@ -3796,6 +3840,17 @@ void AsyVkRender::beginGraphicsFrameRender(int imageIndex)
   );
 
   currentCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+
+  // Set dynamic viewport and scissor (OpenGL convention: origin at lower-left).
+  uint32_t vpW = exportViewportWidth ? exportViewportWidth : backbufferExtent.width;
+  uint32_t vpH = exportViewportHeight ? exportViewportHeight : backbufferExtent.height;
+  auto vp = vk::Viewport(
+      0.0f, static_cast<float>(vpH),
+      static_cast<float>(vpW),
+      -static_cast<float>(vpH), 0.0f, 1.0f);
+  auto scissor = vk::Rect2D(vk::Offset2D(0, 0), vk::Extent2D(vpW, vpH));
+  currentCommandBuffer.setScissor(0, 1, &scissor);
+  currentCommandBuffer.setViewport(0, 1, &vp);
 }
 
 void AsyVkRender::drawBuffer(FrameBufferPair& bufpair, VertexBuffer * data, vk::Pipeline pipeline) {
@@ -4392,8 +4447,8 @@ void AsyVkRender::drawFrame()
     createGraphicsPipelines();
   }
 
-  uint32_t imageIndex = 0;
-  if (View) {
+  uint32_t imageIndex = (exportViewportWidth != 0) ? exportImageIndex : 0;
+  if (View && exportViewportWidth == 0) {
     auto const result = device->acquireNextImageKHR(*swapChain, vkTimeout, *frameObject.imageAvailableSemaphore, nullptr, &imageIndex);
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
       framebufferResized = false;
@@ -4471,7 +4526,7 @@ void AsyVkRender::drawFrame()
   std::vector<vk::SemaphoreSubmitInfo> waitSemInfos;
   std::vector<vk::SemaphoreSubmitInfo> signalSemInfos;
   std::vector<vk::PipelineStageFlags> waitStages;
-  if (View) {
+  if (View && exportViewportWidth == 0) {
       waitSems.push_back(*frameObject.imageAvailableSemaphore);
       waitStages.push_back(vk::PipelineStageFlagBits::eColorAttachmentOutput);
   }
@@ -4484,7 +4539,7 @@ void AsyVkRender::drawFrame()
 
   std::vector<vk::Semaphore> signalSems;
 
-  if (View) {
+  if (View && exportViewportWidth == 0) {
       if (imageIndex >= renderFinishedSemaphore.size())
           renderFinishedSemaphore.push_back(device->createSemaphoreUnique(vk::SemaphoreCreateInfo()));
       signalSemInfos.push_back({*renderFinishedSemaphore[imageIndex], 0, vk::PipelineStageFlagBits2::eAllCommands});
@@ -4515,7 +4570,7 @@ void AsyVkRender::drawFrame()
   signalSems.push_back(*renderTimelineSemaphore);
 
   // The value for the binary semaphore is ignored, but the count must match.
-  if (View) {
+  if (View && exportViewportWidth == 0) {
       signalValues.push_back(0);
   }
   signalValues.push_back(frameObject.timelineValue);
@@ -4536,7 +4591,7 @@ void AsyVkRender::drawFrame()
     outOfMemory();
   }
 
-  if (View) {
+  if (View && exportViewportWidth == 0) {
     // The presentation engine only needs to wait on the binary semaphore.
     std::vector<vk::Semaphore> presentWaitSemaphores;
     presentWaitSemaphores.push_back(*renderFinishedSemaphore[imageIndex]);
@@ -4570,8 +4625,10 @@ void AsyVkRender::drawFrame()
     }
   }
 
-  if(queueExport) {
-    // Wait for the just-submitted frame to finish before exporting
+  if(queueExport && exportViewportWidth == 0) {
+    // Wait for the just-submitted frame to finish before exporting.
+    // Guard: exportViewportWidth==0 ensures we are not already inside
+    // Export()'s tiled loop (which calls drawFrame() recursively).
     waitForTimelineSemaphore(*renderTimelineSemaphore, frameObject.timelineValue);
     Export(imageIndex);
     queueExport=false;
@@ -4604,130 +4661,251 @@ void AsyVkRender::exportHandler(int) {
   Export(0);
 }
 
-void AsyVkRender::Export(int imageIndex) {
-  exportCommandBuffer->reset();
-
-  vkutils::checkVkResult(device->resetFences(1, &*exportFence));
-
-  exportCommandBuffer->begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
-
-  auto const size = device->getImageMemoryRequirements(backbufferImages[0]).size;
-  auto const swapExtent = vk::Extent3D(
-    backbufferExtent.width,
-    backbufferExtent.height,
-    1
-  );
+void AsyVkRender::exportSingleTile(
+    vk::CommandBuffer& cmd, int imageIndex,
+    uint32_t srcX, uint32_t srcY, uint32_t srcW, uint32_t srcH,
+    vma::cxx::UniqueBuffer& exportBuf, vk::DeviceSize bufOffset)
+{
+  auto const region = vk::Extent3D(srcW, srcH, 1);
   auto const reg = vk::BufferImageCopy(
-    0,
-    backbufferExtent.width,
-    backbufferExtent.height,
-    vk::ImageSubresourceLayers(
-      vk::ImageAspectFlagBits::eColor, 0, 0, 1
-    ),
-    { },
-    swapExtent
+    bufOffset,
+    srcW,                          // row pitch (tightly packed)
+    srcH,                          // slice pitch
+    vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1),
+    vk::Offset3D(srcX, srcY, 0),
+    region
   );
+
+  transitionImageLayout(
+    cmd, backbufferImages[imageIndex],
+    vk::AccessFlagBits::eMemoryRead,
+    vk::AccessFlagBits::eTransferRead,
+    !View ? vk::ImageLayout::eColorAttachmentOptimal : vk::ImageLayout::ePresentSrcKHR,
+    vk::ImageLayout::eTransferSrcOptimal,
+    vk::PipelineStageFlagBits::eTransfer,
+    vk::PipelineStageFlagBits::eTransfer,
+    vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+  );
+
+  cmd.copyImageToBuffer(
+    backbufferImages[imageIndex], vk::ImageLayout::eTransferSrcOptimal,
+    exportBuf.getBuffer(), 1, &reg);
+
+  transitionImageLayout(
+    cmd, backbufferImages[imageIndex],
+    vk::AccessFlagBits::eTransferRead,
+    vk::AccessFlagBits::eMemoryRead,
+    vk::ImageLayout::eTransferSrcOptimal,
+    !View ? vk::ImageLayout::eColorAttachmentOptimal : vk::ImageLayout::ePresentSrcKHR,
+    vk::PipelineStageFlagBits::eTransfer,
+    vk::PipelineStageFlagBits::eTransfer,
+    vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)
+  );
+}
+
+void AsyVkRender::Export(int imageIndex)
+{
+  // Determine target export resolution.
+  int exportWidth = backbufferExtent.width;
+  int exportHeight = backbufferExtent.height;
+
+  bool useTiling = false;
+  if (fullWidth > 0 && fullHeight > 0) {
+    if (fullWidth > (int)backbufferExtent.width ||
+        fullHeight > (int)backbufferExtent.height) {
+      exportWidth = fullWidth;
+      exportHeight = fullHeight;
+      useTiling = true;
+    }
+  }
+
+  // Compute tile grid if tiling is needed.
+  camp::TileContext tr;
+  if (useTiling) {
+    int maxTileW = std::min(maxTileWidth, (int)backbufferExtent.width);
+    int maxTileH = std::min(maxTileHeight,  (int)backbufferExtent.height);
+
+    int numCols = ceilquotient(exportWidth, maxTileW);
+    int numRows = ceilquotient(exportHeight, maxTileH);
+    int tileW = ceilquotient(exportWidth, numCols);
+    int tileH = ceilquotient(exportHeight, numRows);
+    int border = std::min(std::min(1, (numCols - 1) / 2), (numRows - 1) / 2);
+
+    tr.setImageSize(exportWidth, exportHeight);
+    tr.setTileSize(tileW, tileH, border);
+
+    if (orthographic)
+      tr.setOrtho(xmin, xmax, ymin, ymax, -Zmax, -Zmin);
+    else
+      tr.setFrustum(xmin, xmax, ymin, ymax, -Zmax, -Zmin);
+
+    if (settings::verbose > 1)
+      cout << "Exporting " << Prefix << " as " << exportWidth << "x"
+           << exportHeight << " image using tiles of size "
+           << tileW << "x" << tileH << endl;
+  }
+
+  // Allocate staging buffer for readback (RGBA, one tile at a time).
+  uint32_t maxReadW = backbufferExtent.width;
+  uint32_t maxReadH = backbufferExtent.height;
+  auto const stagingSize = maxReadW * maxReadH * 4u; // RGBA
 
   vma::cxx::UniqueBuffer exportBuf = createBufferUnique(
     vk::BufferUsageFlagBits::eTransferDst,
     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-    size,
+    stagingSize,
     VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT);
 
-  transitionImageLayout(
-    *exportCommandBuffer,
-    backbufferImages[imageIndex],
-    vk::AccessFlagBits::eMemoryRead,
-    vk::AccessFlagBits::eTransferRead,
-    !View ? vk::ImageLayout::eColorAttachmentOptimal : vk::ImageLayout::ePresentSrcKHR,
-    vk::ImageLayout::eTransferSrcOptimal,
-    vk::PipelineStageFlagBits::eTransfer,
-    vk::PipelineStageFlagBits::eTransfer,
-    vk::ImageSubresourceRange(
-      vk::ImageAspectFlagBits::eColor,
-      0,
-      1,
-      0,
-      1
-    )
-  );
+  // Allocate CPU-side output buffer (RGB).
+  auto * fmt = new unsigned char[exportWidth * exportHeight * 3];
 
-  exportCommandBuffer->copyImageToBuffer(backbufferImages[imageIndex], vk::ImageLayout::eTransferSrcOptimal, exportBuf.getBuffer(), 1, &reg);
+  if (useTiling) {
+    // --- Tiled export path ---
+    setDimensions(exportWidth, exportHeight,
+                  X / Width * exportWidth, Y / Width * exportWidth);
 
-  transitionImageLayout(
-    *exportCommandBuffer,
-    backbufferImages[imageIndex],
-    vk::AccessFlagBits::eTransferRead,
-    vk::AccessFlagBits::eMemoryRead,
-    vk::ImageLayout::eTransferSrcOptimal,
-    !View ? vk::ImageLayout::eColorAttachmentOptimal : vk::ImageLayout::ePresentSrcKHR,
-    vk::PipelineStageFlagBits::eTransfer,
-    vk::PipelineStageFlagBits::eTransfer,
-    vk::ImageSubresourceRange(
-      vk::ImageAspectFlagBits::eColor,
-      0,
-      1,
-      0,
-      1
-    )
-  );
+    size_t tileCount = 0;
+    while (tr.beginTile()) {
+      // Set viewport/scissor to tile dimensions (including border).
+      exportViewportWidth = static_cast<uint32_t>(tr.getCurrentTileWidth());
+      exportViewportHeight = static_cast<uint32_t>(tr.getCurrentTileHeight());
 
-  exportCommandBuffer->end();
+      // Set projection for this tile's frustum.
+      if (tr.isPerspective())
+        frustum(tr.getLeft(), tr.getRight(), tr.getBottom(), tr.getTop(),
+                tr.getZNear(), tr.getZFar());
+      else
+        ortho(tr.getLeft(), tr.getRight(), tr.getBottom(), tr.getTop(),
+              tr.getZNear(), tr.getZFar());
 
-  auto const submitInfo = vk::SubmitInfo(
-    0, nullptr, nullptr,
-    1, &*exportCommandBuffer,
-    0, nullptr
-  );
+      // Render the scene for this tile.
+      remesh = true;
+      redraw = true;
+      newUniformBuffer = true;  // Force projection update for each tile
+      prepareScene();
+      drawFrame();
 
-  if (renderQueue.submit(1, &submitInfo, *exportFence) != vk::Result::eSuccess)
-    runtimeError("failed to submit draw command buffer");
+      // Wait for the frame to complete before reading back.
+      waitForTimelineSemaphore(*renderTimelineSemaphore,
+                               frameObjects[currentFrame].timelineValue, vkTimeout);
 
-  vkutils::checkVkResult(device->waitForFences(
-    1, &*exportFence, VK_TRUE, vkTimeout
-  ));
+      uint32_t srcX = tr.getSrcX();
+      uint32_t srcY = tr.getSrcY();
+      uint32_t srcW = tr.getSrcWidth();
+      uint32_t srcH = tr.getSrcHeight();
 
-  vma::cxx::MemoryMapperLock mappedMemory(exportBuf);
+      // Read back the tile region from the offscreen backbuffer.
+      exportCommandBuffer->reset();
+      vkutils::checkVkResult(device->resetFences(1, &*exportFence));
+      exportCommandBuffer->begin(
+        vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 
-  auto * fmt = new unsigned char[backbufferExtent.width * backbufferExtent.height * 3]; // 3 for RGB
+      exportSingleTile(*exportCommandBuffer, exportImageIndex,
+                       srcX, srcY, srcW, srcH, exportBuf, 0);
 
-  auto data=mappedMemory.getCopyPtr<unsigned char>();
-  for (auto i = 0u; i < backbufferExtent.height; i++)
-    for (auto j = 0u; j < backbufferExtent.width; j++)
-      for (auto k = 0u; k < 3; k++)
-        // need to flip vertically and swap byte order due to little endian in image data
-        // 4 for sizeof unsigned (RGBA)
-        fmt[(backbufferExtent.height-1-i)*backbufferExtent.width*3+j*3+(2-k)]=data[i*backbufferExtent.width*4+j*4+k];
+      exportCommandBuffer->end();
 
+      auto const submitInfo = vk::SubmitInfo(
+        0, nullptr, nullptr, 1, &*exportCommandBuffer, 0, nullptr);
+      if (renderQueue.submit(1, &submitInfo, *exportFence) != vk::Result::eSuccess)
+        runtimeError("failed to submit export command buffer");
+      vkutils::checkVkResult(device->waitForFences(
+        1, &*exportFence, VK_TRUE, vkTimeout));
+
+      // Copy tile pixels into the final image buffer.
+      vma::cxx::MemoryMapperLock mappedMemory(exportBuf);
+      auto * data = mappedMemory.getCopyPtr<unsigned char>();
+
+      int destX = tr.getDestX();
+      int destY = tr.getDestY();
+
+      // Staging buffer is tightly packed: rowPitch = srcW.
+      // Vulkan framebuffer has origin at top-left physically.
+      // With viewport (0, H, W, -H), physical row 0 = top of viewport (highest y).
+      // copyImageToBuffer reads going down through physical rows.
+      // So staging row 0 = top of tile content, staging row srcH-1 = bottom.
+      // Output buffer has OpenGL origin (bottom-left): row 0 = bottom.
+      // BOTTOM_TO_TOP: currentRow=0 is the bottom of the image.
+      // Flip within each tile: staging row i -> output row destY + srcH - 1 - i.
+      for (int i = 0; i < (int)srcH; i++) {
+        int dstRow = destY + (int)srcH - 1 - i;
+        for (int j = 0; j < (int)srcW; j++) {
+          for (int k = 0; k < 3; k++) {
+            fmt[dstRow * exportWidth * 3 + (destX + j) * 3 + (2 - k)] =
+              data[(i * srcW + j) * 4 + k];
+          }
+        }
+      }
+
+      tileCount++;
+    }
+
+    // Reset viewport override after tiling.
+    exportViewportWidth = 0;
+    exportViewportHeight = 0;
+
+    if (settings::verbose > 1)
+      cout << tileCount << " tile" << (tileCount != 1 ? "s" : "")
+           << " drawn" << endl;
+  } else {
+    // --- Single-pass export path (existing behavior) ---
+    exportCommandBuffer->reset();
+    vkutils::checkVkResult(device->resetFences(1, &*exportFence));
+    exportCommandBuffer->begin(
+      vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+
+    exportSingleTile(*exportCommandBuffer, exportImageIndex,
+                     0, 0, backbufferExtent.width, backbufferExtent.height,
+                     exportBuf, 0);
+
+    exportCommandBuffer->end();
+
+    auto const submitInfo = vk::SubmitInfo(
+      0, nullptr, nullptr, 1, &*exportCommandBuffer, 0, nullptr);
+    if (renderQueue.submit(1, &submitInfo, *exportFence) != vk::Result::eSuccess)
+      runtimeError("failed to submit draw command buffer");
+    vkutils::checkVkResult(device->waitForFences(
+      1, &*exportFence, VK_TRUE, vkTimeout));
+
+    vma::cxx::MemoryMapperLock mappedMemory(exportBuf);
+    auto * data = mappedMemory.getCopyPtr<unsigned char>();
+
+    for (auto i = 0u; i < backbufferExtent.height; i++)
+      for (auto j = 0u; j < backbufferExtent.width; j++)
+        for (auto k = 0u; k < 3; k++)
+          fmt[(backbufferExtent.height - 1 - i) * backbufferExtent.width * 3 +
+              j * 3 + (2 - k)] = data[i * backbufferExtent.width * 4 + j * 4 + k];
+  }
+
+  // Ship out the final image.
   picture pic;
-  double w=oWidth;
-  double h=oHeight;
-  double Aspect=((double) backbufferExtent.width)/backbufferExtent.height;
-  if(w > h*Aspect) w=(int) (h*Aspect+0.5);
-  else h=(int) (w/Aspect+0.5);
+  double w = oWidth;
+  double h = oHeight;
+  double Aspect = ((double)exportWidth) / exportHeight;
+  if (w > h * Aspect) w = (int)(h * Aspect + 0.5);
+  else h = (int)(w / Aspect + 0.5);
 
-  if(settings::verbose > 1)
-    cout << "Exporting " << Prefix << " as " << backbufferExtent.width << "x"
-         << backbufferExtent.height << " image" << endl;
+  if (settings::verbose > 1 && !useTiling)
+    cout << "Exporting " << Prefix << " as " << exportWidth << "x"
+         << exportHeight << " image" << endl;
 
-  auto * const Image=new camp::drawRawImage(fmt,
-                                            backbufferExtent.width,
-                                            backbufferExtent.height,
-                                            transform(0.0,0.0,w,0.0,0.0,h),
-                                            antialias);
+  auto * const Image = new camp::drawRawImage(
+    fmt, exportWidth, exportHeight,
+    transform(0.0, 0.0, w, 0.0, 0.0, h), antialias);
   pic.append(Image);
-  pic.shipout(NULL,Prefix,Format,false,ViewExport);
+  pic.shipout(NULL, Prefix, Format, false, ViewExport);
   delete Image;
   delete[] fmt;
-  queueExport=false;
+
+  queueExport = false;
   setProjection();
-  remesh=true;
-  redraw=true;
+  remesh = true;
+  redraw = true;
 
 #ifdef HAVE_PTHREAD
-  if(threads && readyAfterExport) {
-    readyAfterExport=false;
-    threadMgr.endwait(threadMgr.readySignal,threadMgr.readyLock);
+  if (threads && readyAfterExport) {
+    readyAfterExport = false;
+    threadMgr.endwait(threadMgr.readySignal, threadMgr.readyLock);
   }
 #endif
 }

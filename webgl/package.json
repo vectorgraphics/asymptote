@@ -7,27 +7,20 @@
     "@types/webgl2": "^0.0.10",
     "gl-matrix": "3.4.3"
   },
-
   "scripts": {
+    "build": "../build-scripts/build-asygl",
     "prettier": "npx prettier src --check",
-    "eslint": "npx eslint \"src/**\"",
-    "build": "npx webpack --config webpack.prod.js",
-    "build-dev": "npx webpack --config webpack.dev.js",
-    "build-debug-nosourcemap": "npx webpack --config webpack.debug-no-sourcemap.js"
+    "eslint": "npx eslint \"src/**\""
   },
-
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^8.34.1",
     "@typescript-eslint/parser": "^8.34.1",
-    "@eslint/js": "^9.0.0",
-    "typescript-eslint": "^8.34.1",
+    "esbuild": "^0.28.1",
     "eslint": "^9.0.0",
     "typescript": "^5.8.3",
-    "webpack": "^5.105.0",
-    "webpack-cli": "^6.0.1",
-    "ts-loader": "^9.5.2"
+    "typescript-eslint": "^8.34.1"
   },
-
   "browser": {
     "fs": false,
     "os": false,

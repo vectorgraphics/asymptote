@@ -255,8 +255,11 @@ void drawBezierPatch::render(double size2, const triple& b, const triple& B,
 {
 #ifdef HAVE_RENDERER
   if(invisible) return;
-  transparent=colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
+  if(gl->mode == DRAWMODE_NORMAL)
+    transparent=colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
     diffuse.A < 1.0;
+  else
+    transparent=false;
 
   setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,lightOn,NULL);
 
@@ -506,8 +509,11 @@ void drawBezierTriangle::render(double size2, const triple& b, const triple& B,
 {
 #ifdef HAVE_RENDERER
   if(invisible) return;
-  transparent=colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
-    diffuse.A < 1.0;
+  if(gl->mode == DRAWMODE_NORMAL)
+    transparent=colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
+      diffuse.A < 1.0;
+  else
+    transparent=false;
 
   setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,lightOn,NULL);
 
@@ -985,7 +991,10 @@ void drawTriangles::render(double size2, const triple& b,
 {
 #ifdef HAVE_RENDERER
   if(invisible) return;
-  transparent=diffuse.A < 1.0;
+  if(gl->mode == DRAWMODE_NORMAL)
+    transparent=diffuse.A < 1.0;
+  else
+    transparent=false;
 
   setcolors(diffuse,emissive,specular,shininess,metallic,fresnel0,lightOn,NULL);
 
