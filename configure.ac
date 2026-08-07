@@ -181,8 +181,8 @@ CPPFLAGS=$CPPFLAGS" -I. "
 # TEXMFMAIN; that mechanism could change without affecting this flag.
 AC_ARG_ENABLE(texmf-sysdir,
 [AS_HELP_STRING(--enable-texmf-sysdir[[[=no]]],
-locate the base directory within the TeX installation at runtime (via
-kpsewhich), for a binary shipped inside a texmf tree)],
+[locate the base directory within the TeX installation at runtime (via
+kpsewhich), for a binary shipped inside a texmf tree])],
 [ if test "x$enableval" = "xyes" ; then
     sysdir=""
   fi
@@ -207,8 +207,8 @@ AC_SUBST(texmf_sysdir)
 
 AC_ARG_ENABLE(relocatable,
 [AS_HELP_STRING(--enable-relocatable[[[=no]]],
-find the data directory relative to the location of the binary at runtime,
-falling back to ASYMPTOTE_SYSDIR (for portable/staged installs))],
+[find the data directory relative to the location of the binary at runtime,
+falling back to ASYMPTOTE_SYSDIR (for portable/staged installs)])],
 [ if test "x$enableval" = "xyes" ; then
     OPTIONS=$OPTIONS"-DIS_RELOCATABLE "
   fi
