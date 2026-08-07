@@ -143,6 +143,13 @@ include(cmake-scripts/copy-build-licenses.cmake)
 
 add_custom_target(asy-with-basefiles ALL DEPENDS asy asy-basefiles asy-licenses)
 
+# Everything the `asy-check-tests` ctest label runs against.  ctest only runs
+# binaries, it never builds them, so the binaries have to be up to date before
+# it starts -- and asy-with-basefiles is not enough: the relocatable matrix also
+# drives asy-ctan, which that target does not pull in.  Build this before
+# `ctest -L asy-check-tests`.
+add_custom_target(asy-check-test-deps DEPENDS asy-with-basefiles asy-ctan)
+
 # asy misc files
 if (ENABLE_MISCFILES_GEN)
     include(cmake-scripts/asy-misc-files.cmake)

@@ -199,6 +199,12 @@ deprecated alias for --enable-texmf-sysdir)],
   fi
 ])
 
+# Let tests/Makefile give the relocatable matrix its C="" (CTAN) axis.  The
+# CMake build has a second executable, asy-ctan, to point the test at; autotools
+# builds one, so under --enable-texmf-sysdir that one *is* the CTAN binary.
+AS_IF([test "x$sysdir" = "x"], [texmf_sysdir=on], [texmf_sysdir=off])
+AC_SUBST(texmf_sysdir)
+
 AC_ARG_ENABLE(relocatable,
 [AS_HELP_STRING(--enable-relocatable[[[=no]]],
 find the data directory relative to the location of the binary at runtime,

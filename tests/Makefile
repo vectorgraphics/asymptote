@@ -2,7 +2,7 @@
 
 TESTDIRS = $(wildcard */)
 
-test: $(TESTDIRS) test_collections_errors test_executable_path
+test: $(TESTDIRS) test_collections_errors test_executable_path test_relocatable
 
 $(TESTDIRS)::
 	@echo
@@ -20,6 +20,25 @@ test_collections_errors:
 test_executable_path:
 	@echo
 	python3 test_executable_path.py --asy ../asy --asy-base-dir ../base
+
+# Sysdir-resolution matrix.  ASY_RELOCATABLE comes from the parent Makefile,
+# which knows whether -DIS_RELOCATABLE was configured in; asserting it beats
+# letting the script auto-detect, since detection infers the mode from the very
+# K2 behaviour the matrix is supposed to test.  Unset (a bare `make` in tests/)
+# falls back to auto-detection.
+RELOCATABLE_MODE = $(if $(ASY_RELOCATABLE),--mode $(ASY_RELOCATABLE),)
+
+# The C="" (CTAN/TeXLive) axis needs a binary with an empty compiled-in sysdir.
+# The CMake build has a second executable for it, asy-ctan; here there is only
+# ../asy, which *is* that binary exactly when the build was configured
+# --enable-texmf-sysdir -- so the whole run doubles as the CTAN run and ../asy
+# is handed to the axis directly.  Otherwise the axis reports itself skipped.
+CTAN_ASY = $(if $(filter on,$(ASY_TEXMF_SYSDIR)),--asy-ctan ../asy,)
+
+test_relocatable:
+	@echo
+	python3 test_relocatable.py --asy ../asy --asy-base-dir ../base \
+	  $(RELOCATABLE_MODE) $(CTAN_ASY)
 
 $(EXTRADIRS)::
 	@echo
