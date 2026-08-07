@@ -1,6 +1,9 @@
 .NOTPARALLEL:
 
-TESTDIRS = $(wildcard */)
+# Every subdirectory is a test suite, except the byte-cache Python leaves behind
+# once any of the .py scripts here has been imported (by pylint, an editor, or a
+# REPL); without the filter `make check` tries to run __pycache__/*.asy and dies.
+TESTDIRS = $(filter-out __pycache__/,$(wildcard */))
 
 test: $(TESTDIRS) test_collections_errors test_executable_path test_relocatable
 
