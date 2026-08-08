@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-  "builtin-baseline": "f33cc491c85a7d643c5ab6da1667c1458e6d7abf",
+  "builtin-baseline": "84bab45d415d22042bd0b9081aea57f362da3f35",
   "name": "asymptote",
   "version": "0.0-snapshot",
   "dependencies": [
@@ -13,13 +13,6 @@
     {
       "name": "getopt-win32",
       "platform": "windows"
-    }
-  ],
-  "$comment-overrides": "getopt-win32 1.1.0.20220925 (the version at builtin-baseline) fetches a now-deleted commit from xiaozhuai/getopt-win32 and 404s; 2.42.0 points at the maintained ludvikjerabek/getopt-win fork. Requires a vcpkg checkout recent enough to know version 2.42.0.",
-  "overrides": [
-    {
-      "name": "getopt-win32",
-      "version": "2.42.0"
     }
   ],
   "features": {
