@@ -26,7 +26,7 @@
 
 #ifdef HAVE_GL
 #include "glrender.h"
-#include "tr.h"
+#include "tile.h"
 #include "shaders.h"
 #include "GLTextures.h"
 #include "EXRFiles.h"
@@ -95,6 +95,18 @@ camp::GLTexture3<float,GL_FLOAT> fromEXR3(
   };
 }
 
+// Release IBL textures before process exit.  In threaded mode, exit() is
+// called from the asymain thread, but the GL context was created on the main
+// thread (running glrenderWrapper).  C atexit handlers run before static
+// destructors, so this zeroes out texture IDs to prevent AGLTexture
+// destructors from calling glDeleteTextures on the wrong thread.
+static void cleanupIBL()
+{
+  iblbrdfTex.release();
+  irradianceTex.release();
+  reflTexturesTex.release();
+}
+
 void initIBL()
 {
   camp::GLTexturesFmt fmt;
@@ -122,6 +134,9 @@ void initIBL()
   }
 
   reflTexturesTex=fromEXR3(files,fmt3,3);
+
+  // Register cleanup to prevent glDeleteTextures on wrong thread at exit.
+  atexit(cleanupIBL);
 }
 
 void *glrenderWrapper(void *a);
@@ -419,7 +434,7 @@ void AsyGLRender::drawFrame()
     glDisable(GL_FRAMEBUFFER_SRGB);
 
   // Set viewport before clearing (in case it wasn't set)
-  // Skip during export - trBeginTile handles viewport for tiling
+  // Skip during export - tile iteration handles viewport for tiling
   if(!exporting)
     glViewport(0, 0, Width, Height);
 
@@ -454,61 +469,78 @@ void AsyGLRender::Export(int)
   try {
     unsigned char *data=new unsigned char[ndata];
     if(data) {
-      TRcontext *tr=trNew();
-      int width=ceilquotient(fullWidth,
-                             ceilquotient(fullWidth,std::min(maxTileWidth,Width)));
-      int height=ceilquotient(fullHeight,
-                              ceilquotient(fullHeight,
-                                           std::min(maxTileHeight,Height)));
+      camp::TileContext tr;
+      int maxTileW = std::min(maxTileWidth, Width);
+      int maxTileH = std::min(maxTileHeight, Height);
+      int numCols = ceilquotient(fullWidth, maxTileW);
+      int numRows = ceilquotient(fullHeight, maxTileH);
+      int tileW = ceilquotient(fullWidth, numCols);
+      int tileH = ceilquotient(fullHeight, numRows);
       if(settings::verbose > 1)
         cout << "Exporting " << Prefix << " as " << fullWidth << "x"
-             << fullHeight << " image" << " using tiles of size "
-             << width << "x" << height << endl;
+             << fullHeight << " image using tiles of size "
+             << tileW << "x" << tileH << endl;
 
-      unsigned border=std::min(std::min(1,(width-1)/2),(height-1)/2);
-      trTileSize(tr,width,height,border);
-      trImageSize(tr,fullWidth,fullHeight);
-      trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
+      int border = std::min(std::min(1, (numCols - 1) / 2), (numRows - 1) / 2);
+      tr.setTileSize(tileW,tileH,border);
+      tr.setImageSize(fullWidth,fullHeight);
 
       setDimensions(fullWidth,fullHeight,X/Width*fullWidth,Y/Width*fullWidth);
 
       size_t count=0;
       if(haveScene) {
-        (orthographic ? trOrtho : trFrustum)(tr,xmin,xmax,ymin,ymax,-Zmax,-Zmin);
-        do {
-          trBeginTile(tr);
+        if(orthographic)
+          tr.setOrtho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+        else
+          tr.setFrustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+      }
+      do {
+        tr.beginTile();
+        glViewport(0, 0, tr.getCurrentTileWidth(), tr.getCurrentTileHeight());
+        if(haveScene) {
+          if(orthographic)
+            ortho(tr.getLeft(), tr.getRight(), tr.getBottom(), tr.getTop(), tr.getZNear(), tr.getZFar());
+          else
+            frustum(tr.getLeft(), tr.getRight(), tr.getBottom(), tr.getTop(), tr.getZNear(), tr.getZFar());
           remesh=true;
           redraw=true;
           prepareScene();
-          drawFrame();
-          lastshader=-1;
-          ++count;
-        } while (trEndTile(tr));
-      } else {// clear screen and return
-        redraw=true;
-        prepareScene();
+        }
         drawFrame();
-      }
+        lastshader=-1;
+
+        // Efficient direct readback — single glReadPixels into final buffer
+        GLint srcX  = tr.getSrcX();
+        GLint srcY  = tr.getSrcY();
+        GLint srcW  = tr.getSrcWidth();
+        GLint srcH  = tr.getSrcHeight();
+        GLint destX = tr.getDestX();
+        GLint destY = tr.getDestY();
+
+        glPixelStorei(GL_PACK_ROW_LENGTH, fullWidth);
+        glPixelStorei(GL_PACK_SKIP_ROWS, destY);
+        glPixelStorei(GL_PACK_SKIP_PIXELS, destX);
+        glReadPixels(srcX, srcY, srcW, srcH, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+        ++count;
+      } while (tr.endTile());
 
       if(settings::verbose > 1)
         cout << count << " tile" << (count != 1 ? "s" : "") << " drawn" << endl;
-      trDelete(tr);
 
       picture pic;
-      drawRawImage *Image=NULL;
-      if(haveScene) {
-        double w=oWidth;
-        double h=oHeight;
-        double Aspect=((double) fullWidth)/fullHeight;
-        if(w > h*Aspect) w=(int) (h*Aspect+0.5);
-        else h=(int) (w/Aspect+0.5);
-        // Render an antialiased image.
+      drawRawImage *Image=NULL;  
+      double w=oWidth;
+      double h=oHeight;
+      double Aspect=((double) fullWidth)/fullHeight;
+      if(w > h*Aspect) w=(int) (h*Aspect+0.5);
+      else h=(int) (w/Aspect+0.5);
+      // Render an antialiased image.
 
-        Image=new drawRawImage(data,fullWidth,fullHeight,
-                               transform(0.0,0.0,w,0.0,0.0,h),
-                               antialias);
-        pic.append(Image);
-      }
+      Image=new drawRawImage(data,fullWidth,fullHeight,
+                             transform(0.0,0.0,w,0.0,0.0,h),
+                             antialias);
+      pic.append(Image); 
 
       pic.shipout(NULL,Prefix,Format,false,ViewExport);
       if(Image)
@@ -1031,35 +1063,30 @@ void AsyGLRender::drawPoints()
 {
   drawBuffer(pointData,pixelShader,false,0);  // GL_POINTS
   pointData.renderCount++;
-  pointData.clear();
 }
 
 void AsyGLRender::drawLines()
 {
   drawBuffer(lineData,materialShader[Opaque],false,1);  // GL_LINES
   lineData.renderCount++;
-  lineData.clear();
 }
 
 void AsyGLRender::drawMaterials()
 {
   drawBuffer(materialData,materialShader[Opaque]);  // default GL_TRIANGLES
   materialData.renderCount++;
-  materialData.clear();
 }
 
 void AsyGLRender::drawColors()
 {
   drawBuffer(colorData,colorShader[Opaque],true);  // default GL_TRIANGLES
   colorData.renderCount++;
-  colorData.clear();
 }
 
 void AsyGLRender::drawTriangles()
 {
   drawBuffer(triangleData,generalShader[Opaque],true);  // default GL_TRIANGLES
   triangleData.renderCount++;
-  triangleData.clear();
 }
 
 void AsyGLRender::aBufferTransparency()
@@ -1097,7 +1124,6 @@ void AsyGLRender::drawTransparent()
     glDepthMask(GL_TRUE); // Write to depth buffer
   }
   transparentData.renderCount++;
-  transparentData.clear();
 }
 
 void AsyGLRender::drawBuffers()
@@ -1185,16 +1211,6 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 
   nlights0 = nlights;  // Save original for mode restoration
 
-  pair maxtile=getSetting<pair>("maxtile");
-  maxTileWidth=(int) maxtile.getx();
-  maxTileHeight=(int) maxtile.gety();
-  if(maxTileWidth <= 0) maxTileWidth=1024;
-  if(maxTileHeight <= 0) maxTileHeight=768;
-
-#ifdef HAVE_PTHREAD
-  static bool initializedView=false;
-#endif
-
   if(!initialized)
     Fitscreen=1;
 
@@ -1230,6 +1246,19 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   initialized=true;
 
 #ifdef HAVE_PTHREAD
+  if(threads && glfwWindow && !pthread_equal(pthread_self(),threadMgr.mainthread)) {
+    // Called from asymain thread after renderer is already initialized.
+    // Delegate to the render thread to avoid re-initializing and crashing.
+    if(View && initializedView) {
+      // Render thread is in glfwRunLoop; send message.
+      hideWindow=false;
+      threadMgr.messageQueue.enqueue(RendererMessage::updateRenderer);
+    } else {
+      // Render thread is waiting on initSignal; wake it up via handshake.
+      readyAfterExport=queueExport=true;
+    }
+    return;
+  }
   if(threads && initializedView) {
     if(View) {
       // Called from asymain thread, main thread handles rendering

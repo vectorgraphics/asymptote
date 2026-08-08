@@ -3721,83 +3721,97 @@ function triangles(CenterIndex,MaterialIndex)
   Indices.length = 0;
 }
 
+// Precomputed first octant of the unit sphere: 16 Bezier triangles (depth=2).
+// Each triangle is 10 control points in row-major order.
+const sphereOctant = (function() {
+  function gcMidPoint(P, Q) {
+    const scale = 1 / (Math.sqrt(2) * Math.sqrt(1 + dot(P, Q)));
+    return [(P[0]+Q[0])*scale, (P[1]+Q[1])*scale, (P[2]+Q[2])*scale];
+  }
+
+  function bezierEdge(P, Q) {
+    const x = dot(P, Q);
+    const k = (4/3) * Math.sqrt(1 - x) / (Math.sqrt(2) + Math.sqrt(1 + x));
+    const u = unit([Q[0]-x*P[0], Q[1]-x*P[1], Q[2]-x*P[2]]);
+    const v = unit([P[0]-x*Q[0], P[1]-x*Q[1], P[2]-x*Q[2]]);
+    return [
+      [P[0]+k*u[0], P[1]+k*u[1], P[2]+k*u[2]],
+      [Q[0]+k*v[0], Q[1]+k*v[1], Q[2]+k*v[2]]
+    ];
+  }
+
+  function makeBezierTriangle(A, B, C) {
+    const ab = bezierEdge(A, B);
+    const bc = bezierEdge(B, C);
+    const ca = bezierEdge(C, A);
+
+    const S9 = [
+      A[0]+B[0]+C[0] + 3*(ab[0][0]+ab[1][0]+bc[0][0]+bc[1][0]+ca[0][0]+ca[1][0]),
+      A[1]+B[1]+C[1] + 3*(ab[0][1]+ab[1][1]+bc[0][1]+bc[1][1]+ca[0][1]+ca[1][1]),
+      A[2]+B[2]+C[2] + 3*(ab[0][2]+ab[1][2]+bc[0][2]+bc[1][2]+ca[0][2]+ca[1][2])
+    ];
+    const dir = unit([A[0]+B[0]+C[0], A[1]+B[1]+C[1], A[2]+B[2]+C[2]]);
+    const dotSD = dot(S9, dir);
+    const disc = 144*dotSD*dotSD - 144*(dot(S9,S9) - 729);
+    const R = (-12*dotSD + Math.sqrt(Math.max(disc, 0))) / 72;
+    const p9 = [R*dir[0], R*dir[1], R*dir[2]];
+
+    return [A, ab[0], ca[1], ab[1], p9, ca[0], B, bc[0], bc[1], C];
+  }
+
+  function subdivideTriangle(A, B, C, depth) {
+    if(depth == 0) return [makeBezierTriangle(A, B, C)];
+    const midAB = gcMidPoint(A, B);
+    const midBC = gcMidPoint(B, C);
+    const midCA = gcMidPoint(C, A);
+    let result = [];
+    result = result.concat(subdivideTriangle(A, midAB, midCA, depth-1));
+    result = result.concat(subdivideTriangle(B, midBC, midAB, depth-1));
+    result = result.concat(subdivideTriangle(C, midCA, midBC, depth-1));
+    result = result.concat(subdivideTriangle(midAB, midBC, midCA, depth-1));
+    return result;
+  }
+
+  return subdivideTriangle([1,0,0], [0,1,0], [0,0,1], 2);
+})();
+
 // draw a sphere of radius r about center
 // (or optionally a hemisphere symmetric about direction dir)
 function sphere(center,r,CenterIndex,MaterialIndex,dir)
 {
-  let b=0.524670512339254;
-  let c=0.595936986722291;
-  let d=0.954967051233925;
-  let e=0.0820155480083437;
-  let f=0.996685028842544;
-  let g=0.0549670512339254;
-  let h=0.998880711874577;
-  let i=0.0405017186586849;
-
-  let octant=[[
-    [1,0,0],
-    [1,0,b],
-    [c,0,d],
-    [e,0,f],
-
-    [1,a,0],
-    [1,a,b],
-    [c,a*c,d],
-    [e,a*e,f],
-
-    [a,1,0],
-    [a,1,b],
-    [a*c,c,d],
-    [a*e,e,f],
-
-    [0,1,0],
-    [0,1,b],
-    [0,c,d],
-    [0,e,f]
-  ],[
-    [e,0,f],
-    [e,a*e,f],
-    [g,0,h],
-    [a*e,e,f],
-    [i,i,1],
-    [0.05*a,0,1],
-    [0,e,f],
-    [0,g,h],
-    [0,0.05*a,1],
-    [0,0,1]
-  ]];
-
-  let rx,ry,rz;
-  let A=new Align(center,dir);
-  let s,t,z;
+  let rx, ry, rz;
+  let A = new Align(center, dir);
+  let s, t;
 
   if(dir) {
-    s=1;
-    z=0;
-    t=A.T.bind(A);
+    s = 1;
+    t = A.T.bind(A);
   } else {
-    s=-1;
-    z=-r;
-    t=A.T0.bind(A);
+    s = -1;
+    t = A.T0.bind(A);
   }
 
-  function T(V) {
-    let p=Array(V.length);
-    for(let i=0; i < V.length; ++i) {
-      let v=V[i];
-      p[i]=t([rx*v[0],ry*v[1],rz*v[2]]);
+  function scaleAndTransform(triangle, sx, sy, sz) {
+    let p = Array(10);
+    for(let i = 0; i < 10; ++i) {
+      let v = triangle[i];
+      p[i] = t([sx*r*v[0], sy*r*v[1], sz*r*v[2]]);
     }
     return p;
   }
 
-  for(let i=-1; i <= 1; i += 2) {
-    rx=i*r;
-    for(let j=-1; j <= 1; j += 2) {
-      ry=j*r;
-      for(let k=s; k <= 1; k += 2) {
-        rz=k*r;
-        for(let m=0; m < 2; ++m)
-          P.push(new BezierPatch(T(octant[m]),CenterIndex,MaterialIndex));
+  // Reflect across coordinate planes to cover all octants.
+  for(let i = -1; i <= 1; i += 2) {
+    rx = i;
+    for(let j = -1; j <= 1; j += 2) {
+      ry = j;
+      for(let k = s; k <= 1; k += 2) {
+        rz = k;
+        for(let m = 0; m < sphereOctant.length; ++m) {
+          P.push(new BezierPatch(
+            scaleAndTransform(sphereOctant[m], rx, ry, rz),
+            CenterIndex, MaterialIndex));
+        }
       }
     }
   }
@@ -4201,6 +4215,12 @@ function webGLStart()
       SetIBL();
       redrawScene();
     }
+  if(W.ibl && Module.EXRLoader) {
+    initIBLOnceEXRLoaderReady().then(() => {
+      SetIBL();
+      redrawScene();
+    });
+  }
 
   home();
   requestAnimationFrame(animate);

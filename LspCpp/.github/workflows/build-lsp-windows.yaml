@@ -13,6 +13,8 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
+        with:
+          cache-key-suffix: ${{ matrix.with_gc }}
       - name: Add gc option to cmake build
         if: ${{ matrix.with_gc == 'with-gc' }}
         run: |

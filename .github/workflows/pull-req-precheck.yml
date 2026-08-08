@@ -1,20 +1,30 @@
-name: pull-request-precheck
+name: ci-build-test-package
 
 on:
   pull_request:
     branches:
       - "master"
       - "a/*"
+  # Also run on pushes to master so the build jobs populate the ccache/vcpkg
+  # caches in master's cache scope. GitHub only lets a PR restore caches from
+  # its own ref or the base/default branch, so without this every new PR's
+  # first run would start cold.
+  push:
+    branches:
+      - "master"
 
 jobs:
   misc-sanity-checks:
     uses: ./.github/workflows/misc-sanity-checks.yml
     with:
-      target-branch: ${{ github.base_ref }}
+      # On push events github.base_ref is empty; fall back to the pushed branch
+      # (diffing master against itself yields no changed files, so the diff-based
+      # lint jobs simply find nothing to do rather than erroring).
+      target-branch: ${{ github.base_ref || github.ref_name }}
   asygl-sanity:
     uses: ./.github/workflows/asygl-sanity.yml
     with:
-      target-branch: ${{ github.base_ref }}
+      target-branch: ${{ github.base_ref || github.ref_name }}
   determine_asy_version:
     runs-on: ubuntu-22.04
     outputs:

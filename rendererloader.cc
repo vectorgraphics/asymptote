@@ -35,8 +35,11 @@
 #include "renderBase.h"
 #include "norender.h"
 
-extern pthread_mutex_t main_wait_mutex;
-extern pthread_cond_t main_wait_cond;
+// Defined here (in asycore) rather than in main.cc so that executables which
+// link asycore without main.cc (e.g. asyCxxTests) still resolve these symbols,
+// which are referenced from picture.cc and below.
+pthread_mutex_t main_wait_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t main_wait_cond = PTHREAD_COND_INITIALIZER;
 
 #ifdef _WIN32
 #include "vkrender.h"

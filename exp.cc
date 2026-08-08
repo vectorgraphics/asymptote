@@ -346,10 +346,15 @@ types::ty *subscriptExp::getType(coenv &e)
 {
   if (!isAnArray(e, object)) {
     ty *t = object->cgetType(e)->signatureless();
-    if (!t || t->kind != ty_record) {
-      return primError();
+    if (!t) return primError();
+    switch (t->kind) {
+      case ty_record:
+        return static_cast<record*>(t)->valType();
+      case types::ty_string:
+        return primString();
+      default:
+        return primError();
     }
-    return static_cast<record*>(t)->valType();
   }
 
   array *a = getArrayType(e);

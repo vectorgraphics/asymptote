@@ -462,13 +462,19 @@ string[] codefile;
 void asyinclude(string s, real xsize=0, real ysize=xsize)
 {
   picture currentpictureSave=currentpicture;
+  light currentlightSave=currentlight;
+  pen currentpenSave=currentpen;
+  projection currentprojectionSave=currentprojection;
   currentpicture=new picture;
-  _eval("include \""+s+"\";",true);
-  s=stripdirectory(outprefix()+"_"+s);
+   _eval("include \""+s+"\";",true);
+   s=stripdirectory(outprefix()+"_"+s);
   codefile.push(s);
   frame f=(xsize > 0 || ysize > 0) ?
     currentpicture.fit(xsize,ysize) : currentpicture.fit();
   currentpicture=currentpictureSave;
+  currentlight=currentlightSave;
+  currentpen=currentpenSave;
+  currentprojection=currentprojectionSave;
   display(f);
 }
 

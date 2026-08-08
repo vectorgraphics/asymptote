@@ -10,13 +10,6 @@ struct Light
   vec4 color;
 };
 
-layout(binding = 0) uniform UniformBufferObject
-{
-  mat4 projViewMat;
-  mat4 viewMat;
-  mat4 normMat;
-} ubo;
-
 layout(binding = 1, std430) buffer MaterialBuffer
 {
   Material materials[];
@@ -261,7 +254,7 @@ void main() {
       normal = -normal;
 
 #ifdef USE_IBL
-  outColor=vec4(IBLColor(viewDirection), outColor.a);
+  outColor=vec4(IBLColor(viewDirection), diffuse.a);
 #else
   for (int i = 0; i < nlights; i++)
   {
