@@ -33,9 +33,36 @@ namespace settings
 bool relocatedSysdir= false;
 
 #if defined(_WIN32)
+// Narrow a path to the encoding the rest of the program uses for paths.
+//
+// asy strings are 8-bit, and the file APIs this program reaches for on Windows
+// are the ...A variants (PathFileExistsA in fileExists(), the narrow CRT
+// elsewhere), so a path handed to them must be in the process code page -- not
+// UTF-8. The narrowing done by path::string() follows that same code page, so
+// its result is what those APIs expect.
+//
+// A path containing characters outside that code page is therefore not
+// representable here, and path::string() substitutes for them silently. That is
+// not a loss introduced by resolving the path in wide form below: the ...A APIs
+// it would be handed to cannot open such a path either. Lifting that limitation
+// means moving the whole process to UTF-8 (a manifest declaring it as the active
+// code page), which is not something this file can do on its own.
+//
+// Returns "" rather than letting an exception escape: resolveSysdir() runs as a
+// static initializer, where an escaping exception calls terminate() before
+// main() rather than being caught anywhere.
+static string narrowPath(std::filesystem::path const& path)
+{
+  try {
+    return string(path.string().c_str());
+  } catch (...) {
+    return "";
+  }
+}
+
 // Resolve symlinks, junctions and 8.3 short names in a path, or return "" if it
 // cannot be resolved. This is the Win32 counterpart of the realpath() call in
-// the __APPLE__ branch below, and exists for the same reason: GetModuleFileNameA
+// the __APPLE__ branch below, and exists for the same reason: GetModuleFileNameW
 // reports the path the process was launched from, unresolved, and only reopening
 // the file and asking for its final name gets past a reparse point.
 //
@@ -48,17 +75,16 @@ bool relocatedSysdir= false;
 // volume with no drive letter. Calling it is preferred to reproducing it here:
 // this is delicate platform detail that few readers of this file can review.
 //
-// Note that the narrowing done by path::string() follows the process code page,
-// so the result matches the ...A APIs used elsewhere in this file.
-static string canonicalPath(string const& path)
+// The argument is a path rather than a string so that the resolution runs on the
+// wide form throughout, with narrowPath() applied once to the result. Narrowing
+// first would resolve a path that had already lost characters.
+static string canonicalPath(std::filesystem::path const& path)
 {
-  // The error_code overload, not the throwing one: resolveSysdir() runs as a
-  // static initializer, where an escaping exception calls terminate() before
-  // main() rather than being caught anywhere.
+  // The error_code overload, not the throwing one, for the reason given above
+  // narrowPath().
   std::error_code ec;
-  std::filesystem::path const resolved=
-      std::filesystem::canonical(path.c_str(), ec);
-  return ec ? "" : string(resolved.string().c_str());
+  std::filesystem::path const resolved= std::filesystem::canonical(path, ec);
+  return ec ? "" : narrowPath(resolved);
 }
 #endif
 
@@ -66,22 +92,24 @@ static string canonicalPath(string const& path)
 static string getExecutablePath()
 {
 #if defined(_WIN32)
-  // GetModuleFileNameA truncates rather than failing when the path does not
-  // fit, so allocate for the longest path Windows documents (32767 chars)
-  // rather than the MAX_PATH (260) that long-path support can exceed.
+  // GetModuleFileNameW truncates rather than failing when the path does not
+  // fit, so allocate for the longest path Windows documents (32767 characters)
+  // rather than the MAX_PATH (260) that long-path support can exceed. That
+  // limit counts characters, so the wide form is what it bounds: the same
+  // number of bytes can fall short of it under a double-byte code page.
   DWORD const size= 32768;
-  mem::vector<char> buf(size);
-  DWORD len= GetModuleFileNameA(nullptr, buf.data(), size);
+  mem::vector<wchar_t> buf(size);
+  DWORD len= GetModuleFileNameW(nullptr, buf.data(), size);
   if (len == 0 || len == size)// 0: failed; size: truncated
     return "";
-  // GetModuleFileNameA does not resolve symlinks: launched through a link on
+  // GetModuleFileNameW does not resolve symlinks: launched through a link on
   // PATH it reports the link, whose directory holds no base/. Resolve it so
   // that such a link yields the real install prefix, as on the other two
   // platforms. Falling back to the unresolved path on failure mirrors what the
   // macOS branch does when realpath() fails.
-  string exe(buf.data(), len);
+  std::filesystem::path const exe(buf.data(), buf.data() + len);
   string resolved= canonicalPath(exe);
-  return resolved.empty() ? exe : resolved;
+  return resolved.empty() ? narrowPath(exe) : resolved;
 #elif defined(__APPLE__)
   char buf[4096];
   uint32_t size= (uint32_t) sizeof(buf);
