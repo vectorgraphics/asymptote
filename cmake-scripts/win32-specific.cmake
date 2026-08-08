@@ -14,9 +14,11 @@ endif()
 list(APPEND ASY_MACROS WIN32_LEAN_AND_MEAN NOMINMAX __MSDOS__=1 HAVE_LIBTIRPC)
 
 
-# ASYMPTOTE_SYSDIR is always set globally for asycore and shared libraries.
-# The CTAN override (ASYMPTOTE_SYSDIR="") is applied per-target on settings_obj_ctan.
-list(APPEND ASY_MACROS ASYMPTOTE_SYSDIR="NUL")
+# There is no fixed install prefix on Windows: the installed sysdir comes from
+# the registry (queryRegistry) or, for a relocatable binary, from the location of
+# asy.exe. "NUL" is a placeholder that never names a base directory. Applied
+# per-executable in add_settings_obj so the CTAN binary can override it.
+set(ASYMPTOTE_SYSDIR_VALUE "NUL")
 
 
 set(BUILD_SHARED_LIBS OFF)
