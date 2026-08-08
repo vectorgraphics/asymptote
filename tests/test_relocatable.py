@@ -182,6 +182,31 @@ def child_env(**overrides: str) -> Dict[str, str]:
     return dict(_CHILD_ENV, **overrides)
 
 
+def silence_error_dialogs() -> None:
+    """Keep a child that cannot start from opening a modal dialog.
+
+    Many scenarios deliberately stage a binary that will fail, and on Windows a
+    failure to *start* -- a missing DLL, an unrunnable image -- is a loader
+    "critical error", which by default pops a message box per launch and waits
+    for someone to click it.  Under ctest nobody does: a regression that broke
+    startup turned a matrix of ~30 probes into ~30 stuck dialogs.  The error
+    mode is inherited by child processes, so setting it once here covers every
+    probe without changing how any of them is invoked.
+
+    This suppresses only the *display*; the failure is still reported through
+    the child's exit status, which is what the scenarios read.
+    """
+    if sys.platform != "win32":
+        return
+    # Local import, guarded on sys.platform, for the reason given in
+    # windows_docdir(): ctypes.windll exists only on Windows.
+    import ctypes  # pylint: disable=import-outside-toplevel
+
+    sem_failcriticalerrors = 0x0001
+    sem_nogpfaulterrorbox = 0x0002
+    ctypes.windll.kernel32.SetErrorMode(sem_failcriticalerrors | sem_nogpfaulterrorbox)
+
+
 # ---------------------------------------------------------------------------
 # the probe
 # ---------------------------------------------------------------------------
@@ -202,6 +227,49 @@ def is_base_dir(path: Optional[str]) -> bool:
     return os.path.isfile(os.path.join(path, "plain.asy"))
 
 
+def launch_target(
+    asy_to_run: str, cwd: Optional[str], env: Mapping[str, str]
+) -> Optional[str]:
+    """The absolute path behind ``asy_to_run``, or None if it cannot be found.
+
+    On Windows this is the path the OS is told to start; on POSIX it serves
+    only as a reachability check, for the reason _run_probe gives.
+
+    The ROUTE axis names the executable the awkward ways a user can -- by a
+    relative path, or by a bare name on PATH -- and on Windows neither is
+    resolved the way the call reads, because both lookups belong to
+    CreateProcess, which consults neither argument subprocess passes for them:
+
+      * a relative program path is resolved against *this* process's working
+        directory, not the ``cwd=`` handed to the child (CreateProcess has no
+        notion of the latter when it looks the program up), so ``./asy.exe``
+        with ``cwd=<staged>`` failed with WinError 2;
+      * a bare name is searched on the *parent's* PATH, not the ``env=`` one,
+        so route/path silently launched whichever asy was already installed on
+        the developer's PATH -- it reported that binary's sysdir and failed
+        against an expectation about the staged one.
+
+    The second is the dangerous one: it fails by testing the wrong program
+    rather than by not running.  So on Windows the route is resolved here and
+    passed to subprocess as ``executable=``, while ``asy_to_run`` stays argv[0]
+    -- which is what the route axis is varying.  Substituting it there costs
+    the axis nothing: GetModuleFileNameA (locate.cc:74) reports the path the
+    loader recorded for the image, which no spelling of the program argument
+    changes.  The symlink survives resolution, and deliberately so -- neither
+    abspath nor which() follows one, so route/symlink still hands asy the link
+    to resolve for itself (locate.cc:83).
+
+    POSIX needs none of this: subprocess forks, chdirs to ``cwd=`` and execs
+    there, so a relative program resolves the way the call reads, and a bare
+    name is looked up on the ``env=`` PATH (Popen builds its candidate list
+    from os.get_exec_path(env)).  There the resolved path is used only to tell
+    "not on the child PATH" apart from the ways a found binary can fail.
+    """
+    if os.path.dirname(asy_to_run):  # a path, absolute or relative
+        return os.path.abspath(os.path.join(cwd or os.getcwd(), asy_to_run))
+    return shutil.which(asy_to_run, path=env.get("PATH"))  # a bare name
+
+
 def _run_probe(
     asy_to_run: str,
     cwd: Optional[str],
@@ -216,16 +284,34 @@ def _run_probe(
     ``env`` of None means the sanitized default, not "inherit": the child never
     sees a raw os.environ, since the variables removed from it are exactly the
     ones that would answer the question being asked.
+
+    ``executable=`` is substituted on Windows only, where launch_target explains
+    why it is needed and why it is free.  It is withheld on POSIX because there
+    it would not be free: getExecutablePath() asks the OS which image is
+    running, and on two platforms the answer cannot see how the program was
+    named -- GetModuleFileNameA reports the loader's recorded path, and
+    /proc/self/exe is a kernel symlink that is already fully resolved.  macOS is
+    the exception.  _NSGetExecutablePath (locate.cc:88) hands back the string
+    that was passed to execve, which is exactly what ``executable=`` replaces,
+    so substituting a resolved path would leave the realpath() call at
+    locate.cc:100 with nothing relative left to resolve: route/relative and
+    route/symlink-rel would still pass, but they would no longer be testing the
+    branch they exist for.
     """
     cmd = [asy_to_run, *args, "-c", "write(settings.sysdir);"]
+    child = _CHILD_ENV if env is None else env
+    target = launch_target(asy_to_run, cwd, child)
+    if target is None:
+        return False, "", f"could not launch: {asy_to_run!r} is not on the child PATH"
     try:
         # A non-zero exit is a result we report, not an error: check=False.
         run = subprocess.run(
             cmd,
+            executable=target if sys.platform == "win32" else None,
             capture_output=True,
             text=True,
             cwd=cwd,
-            env=_CHILD_ENV if env is None else env,
+            env=child,
             timeout=120,
             check=False,
         )
@@ -468,11 +554,58 @@ def materialize(path: str, state: State, base_dir: str) -> None:
     copy_base_into(base_dir, path, with_plain=state is State.VALID)
 
 
+# Shared libraries a deployment bundles *beside* the executable, by platform.
+# Being able to carry its own runtime this way is part of what "relocatable"
+# means: the NSIS install ships these next to asy.exe, a macOS bundle puts
+# .dylibs next to the binary (or at @executable_path/../lib), and an $ORIGIN
+# rpath does the same for .so files.  So they are staged along with the binary
+# rather than left behind -- otherwise the copy is not the deployment shape the
+# matrix claims to be testing, and on Windows it does not start at all
+# (STATUS_DLL_NOT_FOUND, 0xC0000135, before main() and before any sysdir logic).
+#
+# macOS is listed with both suffixes: dyld loads either.
+_LIB_SUFFIXES = {"win32": (".dll",), "darwin": (".dylib", ".so")}
+_lib_suffixes: Tuple[str, ...] = _LIB_SUFFIXES.get(sys.platform, (".so",))
+
+
+def is_bundled_lib(name: str) -> bool:
+    """Is ``name`` a shared library that travels with the executable?
+
+    Matched on suffix rather than an exact list so that a build that gains or
+    loses a dependency needs no change here.  The ``.so`` case also accepts the
+    versioned ``libfoo.so.1.2`` spelling, hence the ``.so.`` test.
+    """
+    lower = name.lower()
+    if lower.endswith(_lib_suffixes):
+        return True
+    if ".so" in _lib_suffixes and ".so." in lower:
+        return True
+    return False
+
+
+def copy_bundled_libs(asy_under_test: str, dst_dir: str) -> None:
+    """Copy the shared libraries bundled beside ``asy_under_test`` into dst_dir.
+
+    They are the executable's own runtime, not part of the layout under test:
+    none of them is plain.asy, so staging them cannot change which candidate
+    resolveSysdir() selects, only whether the copy gets far enough to report
+    one.
+    """
+    os.makedirs(dst_dir, exist_ok=True)
+    srcdir = os.path.dirname(asy_under_test)
+    for name in os.listdir(srcdir):
+        src = os.path.join(srcdir, name)
+        if is_bundled_lib(name) and os.path.isfile(src):
+            shutil.copy2(src, os.path.join(dst_dir, name))
+
+
 def stage_binary(dst_dir: str, asy_under_test: str) -> str:
-    """Copy the asy binary into dst_dir; return the path to the copy."""
+    """Copy the asy binary, and its bundled libraries, into dst_dir; return the
+    path to the copy."""
     os.makedirs(dst_dir, exist_ok=True)
     staged_asy = os.path.join(dst_dir, os.path.basename(asy_under_test))
     shutil.copy2(asy_under_test, staged_asy)
+    copy_bundled_libs(asy_under_test, dst_dir)
     return staged_asy
 
 
@@ -783,12 +916,26 @@ def run_route_axis(ctx: Ctx) -> None:
     except (OSError, NotImplementedError, AttributeError) as exc:
         record("route/symlink", Status.SKIP, f"symlinks unavailable: {exc}")
     else:
-        # Homebrew/MacPorts shape.  The interesting platform is macOS: unlike
-        # /proc/self/exe, _NSGetExecutablePath() does not resolve symlinks, so
-        # this is what the realpath() call in locate.cc:61 exists for.
+        # The bundled runtime does not follow a symlink on Windows: the loader
+        # takes the *link's* directory as the application directory for the DLL
+        # search, so a link into a bundled install cannot start (0xC0000135)
+        # unless the libraries are reachable from the link too.  Staging them
+        # beside it keeps the row asserting rather than skipped, and cannot
+        # blunt it -- link_dir still holds no base/, so an exedir that stayed
+        # here resolves the absent <exedir>/base and reports a visibly
+        # different sysdir.  A no-op on platforms that resolve the link first.
+        copy_bundled_libs(ctx.asy_under_test, link_dir)
+        # Homebrew/MacPorts shape.  Linux resolves the link before asy can see
+        # it (/proc/self/exe), so the platforms this row is for are the two that
+        # do not: macOS, where _NSGetExecutablePath() reports the link and
+        # realpath() (locate.cc:100) is what resolves it, and Windows, where
+        # GetModuleFileNameA() reports the link and canonicalPath()
+        # (locate.cc:83) is.
         ctx.expect("route/symlink", os.path.join(link_dir, name), expected, runs=True)
-        # ... and reached by a relative path, where _NSGetExecutablePath() can
-        # hand back the relative string verbatim.
+        # ... and reached by a relative path, where _NSGetExecutablePath() hands
+        # the relative string back verbatim and realpath() has to resolve it
+        # against the child's cwd.  It arrives in that form only because
+        # _run_probe withholds executable= on POSIX.
         ctx.expect(
             "route/symlink-rel",
             os.path.join(os.curdir, name),
@@ -801,6 +948,7 @@ def run_route_axis(ctx: Ctx) -> None:
     env = child_env(PATH=bindir + os.pathsep + _CHILD_ENV.get("PATH", ""))
     ctx.expect("route/path", name, expected, runs=True, env=env)
 
+    # The other row that reaches macOS as a relative string; see route/symlink-rel.
     ctx.expect(
         "route/relative",
         os.path.join(os.curdir, os.path.relpath(staged_asy, root)),
@@ -1129,6 +1277,7 @@ def run_all(ctx: Ctx, asy_ctan: Optional[str]) -> None:
 
 def main() -> None:
     args = parse_args()
+    silence_error_dialogs()
 
     asy_under_test = os.path.abspath(args.asy)
     base_dir = os.path.abspath(args.base_dir)

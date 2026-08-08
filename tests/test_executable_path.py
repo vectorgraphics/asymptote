@@ -22,8 +22,10 @@ resolution matrix, which has to be told, or to detect, the build mode.  Run this
 one first: a wider sysdir test built on a broken exedir reads it as a wrong
 sysdir in every case, and every conclusion it draws is void.
 
-It is written as straight-line code -- no functions, no branches -- so that what
-it asserts can be read off in one pass.  The two failure modes are an exception:
+It is written as straight-line code -- no functions, and no branch on anything
+but the staging loop that carries the bundled shared libraries across -- so that
+what it asserts can be read off in one pass.  The two failure modes are an
+exception:
 a non-zero exit from asy raises CalledProcessError (its stderr is inherited, so
 the real complaint appears above the traceback), and a wrong sysdir trips the
 assert.  Either one leaves the staged tree behind for inspection; a passing run
@@ -34,6 +36,7 @@ import argparse
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 
 # The two flags below are spelled exactly as test_relocatable.py spells them,
@@ -64,6 +67,25 @@ expected = os.path.join(bindir, "base")
 shutil.copytree(base_dir, expected)  # creates bindir on the way
 staged_asy = os.path.join(bindir, os.path.basename(asy))
 shutil.copy2(asy, staged_asy)
+
+# The shared libraries a deployment bundles beside the executable travel with
+# it: .dll on Windows (what the NSIS install ships next to asy.exe), .dylib or
+# .so in a macOS bundle, .so under an $ORIGIN rpath.  Carrying its own runtime
+# this way is part of what relocatable means, so the staged copy is only the
+# shape under test if they come along -- and on Windows a copy without them does
+# not reach main() at all (STATUS_DLL_NOT_FOUND, 0xC0000135).  None of them is
+# plain.asy, so none can change which directory resolveSysdir() picks.
+#
+# macOS needs both suffixes: dyld loads either, and ports of libraries whose
+# build systems assume ELF (and Python extension modules) install .so there.
+suffixes = {"win32": (".dll",), "darwin": (".dylib", ".so")}.get(sys.platform, (".so",))
+srcdir = os.path.dirname(asy)
+for name in os.listdir(srcdir):
+    src = os.path.join(srcdir, name)
+    if (name.lower().endswith(suffixes) or ".so." in name.lower()) and os.path.isfile(
+        src
+    ):
+        shutil.copy2(src, os.path.join(bindir, name))
 
 # The cwd is <work>, one level above the staged binary, so a resolver that used
 # the working directory instead of the executable's would answer differently.

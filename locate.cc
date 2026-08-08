@@ -6,6 +6,8 @@
  *****/
 
 #if defined(_WIN32)
+#  include <filesystem>// canonical
+#  include <system_error>// error_code
 #  include <Windows.h>
 #else
 #  include <unistd.h>
@@ -30,6 +32,36 @@ namespace settings
 // runs as a static initializer in settings.cc -- to assign it.
 bool relocatedSysdir= false;
 
+#if defined(_WIN32)
+// Resolve symlinks, junctions and 8.3 short names in a path, or return "" if it
+// cannot be resolved. This is the Win32 counterpart of the realpath() call in
+// the __APPLE__ branch below, and exists for the same reason: GetModuleFileNameA
+// reports the path the process was launched from, unresolved, and only reopening
+// the file and asking for its final name gets past a reparse point.
+//
+// The MSVC standard library does exactly that -- CreateFileW with
+// FILE_READ_ATTRIBUTES and FILE_FLAG_BACKUP_SEMANTICS, then
+// GetFinalPathNameByHandleW with VOLUME_NAME_DOS -- and then puts the result
+// back in a form the rest of this file expects, stripping the \\?\ prefix and
+// respelling \\?\UNC\server\share as \\server\share. It also grows its buffer
+// rather than failing on a long path, and falls back to the NT namespace for a
+// volume with no drive letter. Calling it is preferred to reproducing it here:
+// this is delicate platform detail that few readers of this file can review.
+//
+// Note that the narrowing done by path::string() follows the process code page,
+// so the result matches the ...A APIs used elsewhere in this file.
+static string canonicalPath(string const& path)
+{
+  // The error_code overload, not the throwing one: resolveSysdir() runs as a
+  // static initializer, where an escaping exception calls terminate() before
+  // main() rather than being caught anywhere.
+  std::error_code ec;
+  std::filesystem::path const resolved=
+      std::filesystem::canonical(path.c_str(), ec);
+  return ec ? "" : string(resolved.string().c_str());
+}
+#endif
+
 // Absolute path of the running executable, or "" if it cannot be determined.
 static string getExecutablePath()
 {
@@ -42,7 +74,14 @@ static string getExecutablePath()
   DWORD len= GetModuleFileNameA(nullptr, buf.data(), size);
   if (len == 0 || len == size)// 0: failed; size: truncated
     return "";
-  return string(buf.data(), len);
+  // GetModuleFileNameA does not resolve symlinks: launched through a link on
+  // PATH it reports the link, whose directory holds no base/. Resolve it so
+  // that such a link yields the real install prefix, as on the other two
+  // platforms. Falling back to the unresolved path on failure mirrors what the
+  // macOS branch does when realpath() fails.
+  string exe(buf.data(), len);
+  string resolved= canonicalPath(exe);
+  return resolved.empty() ? exe : resolved;
 #elif defined(__APPLE__)
   char buf[4096];
   uint32_t size= (uint32_t) sizeof(buf);
