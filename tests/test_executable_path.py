@@ -22,9 +22,8 @@ resolution matrix, which has to be told, or to detect, the build mode.  Run this
 one first: a wider sysdir test built on a broken exedir reads it as a wrong
 sysdir in every case, and every conclusion it draws is void.
 
-It is written as straight-line code -- no functions, and no branch on anything
-but the staging loop that carries the bundled shared libraries across and the
-one that decides how much to print -- so that what it asserts can be read off in
+It is written as straight-line code -- no functions, very little branching
+-- so that what it asserts can be read off in
 one pass.  A passing run says so in a line; ``-v`` adds the three paths the
 assertion is made of, which are what you want when it is the staging rather than
 the result that is in question.  The two failure modes are an exception:
@@ -94,6 +93,15 @@ for name in os.listdir(srcdir):
         src
     ):
         shutil.copy2(src, os.path.join(bindir, name))
+
+# A macOS bundle does not lay them flat: --enable-macos-bundling collects them
+# into lib/ beside the binary and rewrites the references to @executable_path/
+# lib/, so that whole directory has to travel too -- the loader aborts before
+# main() without it.  It carries MoltenVK_icd.json along with the libraries,
+# which is the shape the bundle is meant to have.
+libdir = os.path.join(srcdir, "lib")
+if os.path.isdir(libdir):
+    shutil.copytree(libdir, os.path.join(bindir, "lib"))
 
 # The cwd is <work>, one level above the staged binary, so a resolver that used
 # the working directory instead of the executable's would answer differently.

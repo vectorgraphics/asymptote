@@ -617,7 +617,7 @@ def materialize(path: str, state: State, base_dir: str) -> None:
 # Shared libraries a deployment bundles *beside* the executable, by platform.
 # Being able to carry its own runtime this way is part of what "relocatable"
 # means: the NSIS install ships these next to asy.exe, a macOS bundle puts
-# .dylibs next to the binary (or at @executable_path/../lib), and an $ORIGIN
+# .dylibs next to the binary or in a lib/ beside it, and an $ORIGIN
 # rpath does the same for .so files.  So they are staged along with the binary
 # rather than left behind -- otherwise the copy is not the deployment shape the
 # matrix claims to be testing, and on Windows it does not start at all
@@ -657,6 +657,15 @@ def copy_bundled_libs(asy_under_test: str, dst_dir: str) -> None:
         src = os.path.join(srcdir, name)
         if is_bundled_lib(name) and os.path.isfile(src):
             shutil.copy2(src, os.path.join(dst_dir, name))
+    # A macOS bundle does not lay them flat: it collects them into lib/ beside
+    # the binary and rewrites the references to @executable_path/lib/, so that
+    # directory travels whole -- without it the loader aborts before main(),
+    # exactly as a missing .dll does on Windows.  The guard keeps this a copy
+    # into a fresh staging directory, so copytree needs no dirs_exist_ok.
+    libdir = os.path.join(srcdir, "lib")
+    staged_libdir = os.path.join(dst_dir, "lib")
+    if os.path.isdir(libdir) and not os.path.exists(staged_libdir):
+        shutil.copytree(libdir, staged_libdir)
 
 
 def stage_binary(dst_dir: str, asy_under_test: str) -> str:
@@ -733,7 +742,7 @@ def rollback_target(path: str) -> str:
     Removing it undoes the whole chain without touching pre-existing dirs."""
     anc = nearest_existing(path)
     rel = os.path.relpath(os.path.abspath(path), anc)
-    first = rel.split(os.sep)[0]
+    first = rel.split(os.sep, maxsplit=1)[0]
     return os.path.join(anc, first)
 
 
