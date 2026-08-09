@@ -23,9 +23,11 @@ one first: a wider sysdir test built on a broken exedir reads it as a wrong
 sysdir in every case, and every conclusion it draws is void.
 
 It is written as straight-line code -- no functions, and no branch on anything
-but the staging loop that carries the bundled shared libraries across -- so that
-what it asserts can be read off in one pass.  The two failure modes are an
-exception:
+but the staging loop that carries the bundled shared libraries across and the
+one that decides how much to print -- so that what it asserts can be read off in
+one pass.  A passing run says so in a line; ``-v`` adds the three paths the
+assertion is made of, which are what you want when it is the staging rather than
+the result that is in question.  The two failure modes are an exception:
 a non-zero exit from asy raises CalledProcessError (its stderr is inherited, so
 the real complaint appears above the traceback), and a wrong sysdir trips the
 assert.  Either one leaves the staged tree behind for inspection; a passing run
@@ -54,6 +56,12 @@ ap.add_argument(
     help="the build tree's base/ directory, staged next to the copied binary",
 )
 # pylint: enable=duplicate-code
+ap.add_argument(
+    "-v",
+    "--verbose",
+    action="store_true",
+    help="print the staged, expected and resolved paths, not just the verdict",
+)
 args = ap.parse_args()
 
 asy = os.path.abspath(args.asy)
@@ -100,15 +108,21 @@ run = subprocess.run(
 )
 resolved = run.stdout.strip()
 
-print(f"staged executable: {staged_asy}")
-print(f"expected sysdir:   {expected}")
-print(f"resolved sysdir:   {resolved!r}")
+if args.verbose:
+    print(f"staged executable: {staged_asy}")
+    print(f"expected sysdir:   {expected}")
+    print(f"resolved sysdir:   {resolved!r}")
 
 # realpath so that a symlinked temporary directory (macOS: /tmp -> /private/tmp)
 # does not read as a mismatch, normcase for the case-insensitive filesystems.
+# The message repeats all three paths rather than relying on the block above,
+# which a quiet run did not print.
 assert os.path.normcase(os.path.realpath(resolved)) == os.path.normcase(
     os.path.realpath(expected)
-), f"asy resolved sysdir to {resolved!r}, not the staged {expected!r}"
+), (
+    f"asy resolved sysdir to {resolved!r}, not the staged {expected!r} "
+    f"(staged executable: {staged_asy})"
+)
 
 shutil.rmtree(work, ignore_errors=True)
 print("PASS: getExecutablePath() found the executable's own directory")

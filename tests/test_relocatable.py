@@ -17,6 +17,12 @@ built with ``--mode on`` / ``--mode off``.  There is also a fallback,
 ``--mode auto``, which checks that the binary is consistent in whether it
 behaves like a relocatable build or not.
 
+A passing run reports one character per scenario -- ``.`` for a pass, ``-`` for
+a skip -- under a per-axis heading, because the full log is some forty lines
+that nobody reads when they are all PASS (this runs as part of ``make check``).
+Failures print in full whatever the setting; ``-v`` prints every outcome in
+full, which is what you want when reading the matrix rather than checking it.
+
 The model under test
 --------------------
 
@@ -131,10 +137,64 @@ class Status(Enum):
 _results: List[Tuple[str, Status, str]] = []  # (scenario, status, message)
 
 
+class _Log:  # pylint: disable=too-few-public-methods
+    """How much is printed, and whether a progress line is currently open.
+
+    Module state rather than a parameter because record() is reached from every
+    axis: threading a verbosity argument down to it would put a parameter that
+    none of them uses into every signature in the file.  A class rather than
+    two module variables so that setting either one needs no ``global`` -- it is
+    a namespace, not a type, hence the disabled method count.
+    """
+
+    verbose = False
+    line_open = False  # characters written since the last newline
+
+    @classmethod
+    def close_line(cls) -> None:
+        """End the progress line, if one is open, so the next print starts at
+        column 0 without leaving a blank line behind when none was."""
+        if cls.line_open:
+            print()
+            cls.line_open = False
+
+
 def record(scenario: str, status: Status, message: str = "") -> None:
-    """Log one scenario outcome."""
+    """Log one scenario outcome.
+
+    A quiet run collapses a pass or a skip to a single character on the current
+    section's line and prints failures in full: what survives the collapse is
+    then exactly what the caller has to act on, so no failing run needs -v to be
+    read (only to be read in context).
+    """
     _results.append((scenario, status, message))
-    print(f"  [{status.value}] {scenario:<18} {message}")
+    if _Log.verbose:
+        print(f"  [{status.value}] {scenario:<18} {message}")
+    elif status is Status.FAIL:
+        _Log.close_line()
+        print(f"  [{status.value}] {scenario:<18} {message}")
+    else:
+        # "-" rather than a letter for a skip: it sits on the same baseline as
+        # the dots, so a row of them reads as one line of progress with gaps in
+        # it rather than as a word.
+        sys.stdout.write("." if status is Status.PASS else "-")
+        sys.stdout.flush()
+        _Log.line_open = True
+
+
+def section(title: str) -> None:
+    """Start a group of scenarios.
+
+    A heading of its own when verbose; otherwise the label that this group's
+    progress characters trail after, so a quiet run still says which axis it is
+    in when it stops or fails.
+    """
+    _Log.close_line()
+    if _Log.verbose:
+        print(f"\n{title}")
+    else:
+        print(f"{title:<12} ", end="")
+        sys.stdout.flush()
 
 
 def norm(path: Optional[str]) -> str:
@@ -1233,37 +1293,52 @@ def parse_args() -> argparse.Namespace:
         default="auto",
         help="relocatable mode; 'auto' (default) falls back to probing the binary",
     )
+    ap.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="log every scenario in full, not just the failures",
+    )
     return ap.parse_args()
 
 
 def banner(ctx: Ctx) -> None:
     live = "K1, K2, K3" if ctx.relocatable else "K1 only (K2, K3 gated off)"
-    print(f"relocatable:      {'on' if ctx.relocatable else 'off'} -- live: {live}")
+    mode = "on" if ctx.relocatable else "off"
+    if not _Log.verbose:
+        # The mode is the one input that decides which rows assert, so it is
+        # the one thing a quiet run still has to say; the rest is in --verbose.
+        print(f"sysdir resolution -- relocatable {mode}")
+        return
+    print(f"relocatable:      {mode} -- live: {live}")
     print(f"binary:           {ctx.asy_under_test}")
     print(f"build-tree base:  {ctx.base_dir}")
     if ctx.compiled_in:
         exists = "exists" if os.path.exists(ctx.compiled_in) else "absent"
         print(f"compiled-in path: {ctx.compiled_in} ({exists})")
     print()
-    print("core matrix -- K1 <exedir>/base, K2 <exedir>/../share/asymptote,")
-    print("               K3 <exedir>; B = has plain.asy, D = decoy, A = absent")
+    print("candidates -- K1 <exedir>/base, K2 <exedir>/../share/asymptote,")
+    print("              K3 <exedir>; B = has plain.asy, D = decoy, A = absent")
 
 
 def run_all(ctx: Ctx, asy_ctan: Optional[str]) -> None:
     banner(ctx)
+    section("core matrix")
     run_core_matrix(ctx)
 
-    print()
+    section("route")
     run_route_axis(ctx)
 
-    print()
+    section("overrides")
     run_override_axis(ctx)
 
-    print()
+    # C and REG are one section: both are about what happens when no candidate
+    # fires, and exactly one of them applies on any given OS.
+    section("fallback")
     run_compiled_in_axis(ctx)
     run_registry_axis(ctx)
 
-    print()
+    section("ctan")
     if not asy_ctan:
         # Reported rather than passed over: whether the C="" axis ran is a
         # property of how the caller was configured, not of this run, and a
@@ -1277,6 +1352,7 @@ def run_all(ctx: Ctx, asy_ctan: Optional[str]) -> None:
 
 def main() -> None:
     args = parse_args()
+    _Log.verbose = args.verbose
     silence_error_dialogs()
 
     asy_under_test = os.path.abspath(args.asy)
@@ -1311,6 +1387,7 @@ def main() -> None:
     fails = [r for r in _results if r[1] is Status.FAIL]
     npass = sum(1 for r in _results if r[1] is Status.PASS)
     nskip = sum(1 for r in _results if r[1] is Status.SKIP)
+    _Log.close_line()  # the last section's progress characters, if any
     print()
     print(f"summary: {npass} passed, {len(fails)} failed, {nskip} skipped")
     if fails:
