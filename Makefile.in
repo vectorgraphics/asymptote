@@ -18,6 +18,13 @@ GCOPTIONS = @GCOPTIONS@
 GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
+# The settings that decide whether an already-built gc can still be linked
+# against asy: the compilers, the macOS architecture and deployment flags, and
+# the options handed to gc's own configure.  Optimization and debugging flags
+# are deliberately left out, since changing them yields a library that still
+# links fine; rebuilding gc for every CFLAGS tweak would be gratuitous.
+GCBUILDFLAGS = CC=$(CC) CXX=$(CXX) $(MACOS_CFLAGS) $(GCOPTIONS)
+GCSTAMP = gc-build-flags.txt
 LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS) @LSPLIBS@
 CXX_STANDARD = @CXX_STANDARD@
@@ -320,7 +327,16 @@ $(LSP_ROOT)/liblspcpp.a: $(GCLIB)
 
 all:	asy sty man faq asy-keywords.el
 
-$(GCLIB):
+# Rewritten only when the settings actually change, so that gc is left alone
+# on an ordinary rebuild.
+$(GCSTAMP): FORCE
+	$(SILENT_MAKE)echo "$(GCBUILDFLAGS)" > $@.tmp; \
+	if cmp -s $@.tmp $@; then rm -f $@.tmp; else mv $@.tmp $@; fi
+
+# Depending on the stamp forces a rebuild when gc's build settings change:
+# otherwise a reconfigure that, say, turns on universal macOS binaries would
+# leave the old library in place, and asy would fail to link against it.
+$(GCLIB): $(GCSTAMP)
 	-cd $(GC) && ln -sf ../libatomic_ops libatomic_ops
 	cd $(GC) && \
 		./configure CC="$(CC)" CXX="$(CXX)" CFLAGS="$(MACOS_CFLAGS) $(CFLAGS)" CXXFLAGS="$(MACOS_CFLAGS) $(CXXFLAGS)" $(GCOPTIONS)
@@ -569,8 +585,11 @@ clean:	FORCE
 	-cd doc && $(MAKE) clean
 	-cd tests && $(MAKE) clean
 
+# The stamp is not removed by clean: doing so would force a needless rebuild
+# of gc, which clean otherwise leaves intact.
 gc-clean: FORCE clean
 	-$(MAKE) -C $(GC) clean
+	-rm -f $(GCSTAMP)
 
 cleaner0: FORCE clean
 	-rm -rf __pycache__
@@ -578,6 +597,7 @@ cleaner0: FORCE clean
 	-rm -rf GUI/configs/__pycache__
 	-rm -f GUI/{xasyversion,xasyicons,xasyqtui}/__init__.py
 	-$(MAKE) -C $(GC) distclean
+	-rm -f $(GCSTAMP)
 	-$(MAKE) -C libatomic_ops distclean
 	-cd $(GC) && rm -rf libatomic_ops autom4te.cache .deps cord/.deps \
 		cord/tests/.deps extra/.deps tests/.deps
