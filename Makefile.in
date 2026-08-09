@@ -175,6 +175,11 @@ asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ $(SHIML
 	$(CXX) $(OPTS) -rdynamic -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 ifeq ($(BUNDLE_VULKAN),yes)
 	@sh build-scripts/bundle-vulkan-macos.sh $(NAME) "$(CODESIGN_IDENTITY)"
+	# Bundling rewrites the shim libraries, which are prerequisites of asy, after
+	# asy has been linked; without this the binary is left older than them and
+	# relinked on every subsequent make.  touch changes only the mtime, so the
+	# signature the script just applied stays valid.
+	@touch $(NAME)
 endif
 
 portability-check-macos:
