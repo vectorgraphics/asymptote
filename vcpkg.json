@@ -7,7 +7,6 @@
     "zlib",
     "glm",
     "vulkan",
-    "vulkan-sdk-components",
     "glfw3",
     "glslang",
     {
