@@ -37,6 +37,10 @@ IAsyProtoEnvironment* record::getPostDefinitionProtoEnvironment()
 {
   return &postdefenv;
 }
+IAsyLambda* record::getInitLambda()
+{
+  return init;
+}
 
 record *record::newRecord(symbol id, bool statically)
 {

@@ -1382,6 +1382,12 @@ class IAsyRecord
 {
 public:
   virtual ~IAsyRecord()= default;
+  
+  /**
+   * Returns the init lambda for the record. This is useful for creating
+   * new instances of a record.
+   */
+  virtual IAsyLambda* getInitLambda()= 0;
 
   /** Return the proto-environment (type & variable records) associated with
    * this struct/code block */

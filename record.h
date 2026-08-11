@@ -58,6 +58,8 @@ public:
   IAsyProtoEnvironment* getProtoEnvironment() override;
   IAsyProtoEnvironment* getPostDefinitionProtoEnvironment() override;
 
+  IAsyLambda* getInitLambda() override;
+
   symbol getName() const
   {
     return name;
