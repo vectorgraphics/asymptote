@@ -78,12 +78,12 @@ public:
     return ent ? ent->t : nullptr;
   }
 
-  void* getType(const char* typeName) override
+  THAsyType getType(const char* typeName) override
   {
     return lookupType(symbol::literalTrans(string(typeName)));
   }
 
-  void* getTypeFromVariable(const char* varName) override
+  THAsyType getTypeFromVariable(const char* varName) override
   {
     return ve.getType(symbol::literalTrans(string(varName)));
   }

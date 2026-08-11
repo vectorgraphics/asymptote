@@ -62,6 +62,9 @@ constexpr int64_t ASY_COMPACT_UNDEFINED_VALUE= 0x7ffffffffffffffeLL;
 constexpr int64_t ASY_COMPACT_BOOL_TRUTH_VALUE= 0xABABABABABABABACLL;
 constexpr int64_t ASY_COMPACT_BOOL_FALSE_VALUE= 0xABABABABABABABABLL;
 
+/** Opaque handle to Asymptote type object */
+typedef void* THAsyType;
+
 class IAsyItem
 {
 public:
@@ -472,7 +475,7 @@ public:
   // types functions
   
   [[nodiscard]]
-  virtual void* createAsyType(Asy::TypeInfo typeInfo) const= 0;
+  virtual THAsyType createAsyType(Asy::TypeInfo typeInfo) const= 0;
   
   // var frames
   
@@ -1312,16 +1315,16 @@ public:
 
   /** Return the type associated with the typename.
    * If the type does not exist, returns a null pointer. */
-  virtual void* getType(char const* typeName)= 0;
+  virtual THAsyType getType(char const* typeName)= 0;
 
   /** Return the type as record.
    * If the type does not exist or exists but is not a record (struct) type,
    * this function returns a nullptr. */
   virtual IAsyRecord* getTypeAsRecord(char const* typeName)= 0;
   
-  virtual void* getTypeFromVariable(char const* varName)= 0;
+  virtual THAsyType getTypeFromVariable(char const* varName)= 0;
   
-  virtual IAsyVarEntry* getVarRecord(char const* varName, void* type)= 0;
+  virtual IAsyVarEntry* getVarRecord(char const* varName, THAsyType type)= 0;
 };
 
 /**

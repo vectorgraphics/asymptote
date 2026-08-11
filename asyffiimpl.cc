@@ -345,7 +345,7 @@ IAsyPen* AsyContextImpl::createNewPen(
   );
 }
 
-void* AsyContextImpl::createAsyType(Asy::TypeInfo const typeInfo) const
+THAsyType AsyContextImpl::createAsyType(Asy::TypeInfo const typeInfo) const
 {
   return asyTypesEnumToTy(typeInfo);
 }
