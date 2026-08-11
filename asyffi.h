@@ -471,14 +471,14 @@ public:
           Asy::PenLineJoin lineJoin, double miterLimit,
           Asy::PenOverwrites overwriteType, IAsyTransform const* transform
   )= 0;
-  
+
   // types functions
-  
+
   [[nodiscard]]
   virtual THAsyType createAsyType(Asy::TypeInfo typeInfo) const= 0;
-  
+
   // var frames
-  
+
   virtual IAsyVarFrame* createNewVarFrame(size_t const& initialSize)= 0;
 };
 
@@ -1230,7 +1230,7 @@ class IAsyAccess
 {
 public:
   virtual ~IAsyAccess()= default;
-  
+
   virtual void* tryCastTo(Asy::AccessTypes accessType)= 0;
 };
 
@@ -1238,7 +1238,7 @@ class IAsyLocalAccess
 {
 public:
   virtual ~IAsyLocalAccess()= default;
-  
+
   [[nodiscard]]
   virtual int64_t getOffset() const= 0;
 };
@@ -1299,7 +1299,7 @@ class IAsyVarEntry
 {
 public:
   virtual ~IAsyVarEntry()= default;
-  
+
   virtual IAsyAccess* getAccess()= 0;
 };
 
@@ -1321,9 +1321,9 @@ public:
    * If the type does not exist or exists but is not a record (struct) type,
    * this function returns a nullptr. */
   virtual IAsyRecord* getTypeAsRecord(char const* typeName)= 0;
-  
+
   virtual THAsyType getTypeFromVariable(char const* varName)= 0;
-  
+
   virtual IAsyVarEntry* getVarRecord(char const* varName, THAsyType type)= 0;
 };
 
