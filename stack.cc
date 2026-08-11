@@ -475,7 +475,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
           }
 
           case inst::foreigncall: {
-            auto func = get<TAsyForeignFunction>(i);
+            auto const func = get<TAsyForeignFunction>(i);
             callForeignFunction(this, func);
             break;
           }
