@@ -1249,6 +1249,49 @@ public:
   virtual ~IAsyBuiltinAccess()= default;
 };
 
+namespace Asy
+{
+
+/** Whether a lambda requires a closure or not */
+enum class ClosureRequirement : uint8_t
+{
+  /**
+   * A closure is required.
+   * This is the case when a variable escapes a lambda function.
+   */
+  Required= 0,
+  
+  /** A closure is not required. */
+  NotRequired,
+
+  /**
+   * It is not yet known. When a lambda is run for the first time, the 
+   * requirement is updated to {@link Required} or {@link NotRequired}.
+   */
+  Maybe,
+};
+
+}// namespace Asy
+
+/**
+ * Interface for Asymptote's lambda, which is a combination of a runnable code
+ * block, variables and its closure, if applicable.
+ */
+class IAsyLambda
+{
+public:
+  virtual ~IAsyLambda()= default;
+
+  [[nodiscard]]
+  virtual size_t getFrameSize() const= 0;
+
+  [[nodiscard]]
+  virtual size_t getParentIndex() const= 0;
+
+  [[nodiscard]]
+  virtual Asy::ClosureRequirement getClosureRequirement() const= 0;
+};
+
 /**
  * Interface for Asymptote variable frames, which are how
  * Asymptote internally stores its structs. Variables are accessible as
