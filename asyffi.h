@@ -549,7 +549,7 @@ enum class BaseTypes : uint8_t
 
   /**
    * Corresponds to array. If this type is specified in {@link Asy::TypeInfo},
-   * {@link Asy::TypeInfo.arrayTypeInfo} must be specified
+   * {@link Asy::TypeInfo::extraData.arrayTypeInfo} must be specified
    */
   ArrayType,
 
@@ -558,7 +558,7 @@ enum class BaseTypes : uint8_t
 
   /**
    * Corresponds to Asympote function type. If this type is specified in
-   * {@link Asy::TypeInfo}, {@link Asy::TypeInfo.functionTypeInfo} must be
+   * {@link Asy::TypeInfo}, {@link Asy::TypeInfo::extraData.functionTypeInfo} must be
    * filled with appropriate information
    */
   FunctionType,
