@@ -49,15 +49,18 @@ class pair : public gc, public IAsyTuple {
 
 public:
   pair() : x(0.0), y(0.0) {}
-  pair(double x, double y=0.0) : x(x), y(y) {}
-
+  pair(double const x, double const y=0.0) : x(x), y(y) {}
+  
+  [[nodiscard]]
   double getx() const { return x; }
+  
+  [[nodiscard]]
   double gety() const { return y; }
 
-  bool isreal() {return y == 0;}
+  bool isreal() {return fpclassify(y) == FP_ZERO;}
 
   [[nodiscard]]
-double getIndexedValue(size_t const& index) const override
+  double getIndexedValue(size_t const& index) const override
   {
     switch (index) {
       case 0:
@@ -93,23 +96,23 @@ double getIndexedValue(size_t const& index) const override
 
   friend pair operator+ (const pair& z, const pair& w)
   {
-    return pair(z.x+w.x,z.y+w.y);
+    return {z.x+w.x,z.y+w.y};
   }
 
   friend pair operator- (const pair& z, const pair& w)
   {
-    return pair(z.x-w.x,z.y-w.y);
+    return {z.x-w.x,z.y-w.y};
   }
 
   friend pair operator- (const pair& z)
   {
-    return pair(-z.x,-z.y);
+    return {-z.x,-z.y};
   }
 
   // Complex multiplication
   friend pair operator* (const pair& z, const pair& w)
   {
-    return pair(z.x*w.x-z.y*w.y,z.x*w.y+w.x*z.y);
+    return {z.x*w.x-z.y*w.y,z.x*w.y+w.x*z.y};
   }
 
   const pair& operator+= (const pair& w)
@@ -150,7 +153,7 @@ double getIndexedValue(size_t const& index) const override
     if (t == 0.0)
       reportError("division by 0");
     t=1.0/t;
-    return pair(z.x*t, z.y*t);
+    return {z.x*t, z.y* t};
   }
 
   friend pair operator/ (const pair& z, const pair& w)
@@ -158,9 +161,9 @@ double getIndexedValue(size_t const& index) const override
     if (!w.nonZero())
       reportError("division by pair (0,0)");
 
-    double t = 1.0 / (w.x*w.x + w.y*w.y);
-    return pair(t*(z.x*w.x + z.y*w.y),
-                t*(-z.x*w.y + w.x*z.y));
+    double const t = 1.0 / (w.x*w.x + w.y*w.y);
+    return {t *(z.x*w.x + z.y*w.y),
+                t*(-z.x*w.y + w.x*z.y)};
   }
 
   friend bool operator== (const pair& z, const pair& w)
@@ -173,11 +176,13 @@ double getIndexedValue(size_t const& index) const override
     return z.x != w.x || z.y != w.y;
   }
 
+  [[nodiscard]]
   double abs2() const
   {
     return x*x + y*y;
   }
 
+  [[nodiscard]]
   double length() const
   {
     return sqrt(abs2());
@@ -188,6 +193,7 @@ double getIndexedValue(size_t const& index) const override
     return z.length();
   }
 
+  [[nodiscard]]
   double angle(bool warn=true) const
   {
     return camp::angle(x,y,warn);
@@ -226,17 +232,18 @@ double getIndexedValue(size_t const& index) const override
 // Return the principal branch of the square root (non-negative real part).
   friend pair Sqrt(const pair& z) {
     double mag=z.length();
-    if(mag == 0.0) return pair(0.0,0.0);
+    if(mag == 0.0) return {0.0, 0.0};
     else if(z.x > 0) {
       double re=sqrt(0.5*(mag+z.x));
-      return pair(re,0.5*z.y/re);
+      return {re,0.5*z.y/ re};
     } else {
       double im=sqrt(0.5*(mag-z.x));
       if(z.y < 0) im=-im;
-      return pair(0.5*z.y/im,im);
+      return {0.5 *z.y/im, im};
     }
   }
 
+  [[nodiscard]]
   bool nonZero() const
   {
     return x != 0.0 || y != 0.0;
