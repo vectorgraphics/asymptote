@@ -65,6 +65,9 @@ constexpr int64_t ASY_COMPACT_BOOL_FALSE_VALUE= 0xABABABABABABABABLL;
 /** Opaque handle to Asymptote type object */
 typedef void* THAsyType;
 
+/** Opaque handle to Asymptote string */
+typedef void* THAsyString;
+
 class IAsyItem
 {
 public:
@@ -236,17 +239,20 @@ public:
    * @return An opaque pointer to asymptote string. This pointer can then
    * be assigned to an item
    */
-  virtual void* createNewAsyString(char const* str)= 0;
-  virtual void* createNewAsyStringSized(char const* str, size_t const& size)= 0;
-  virtual void updateAsyString(void* asyStringPtr, char const* str)= 0;
+  virtual THAsyString createNewAsyString(char const* str)= 0;
+  virtual THAsyString
+  createNewAsyStringSized(char const* str, size_t const& size)= 0;
+  virtual void updateAsyString(THAsyString asyStringPtr, char const* str)= 0;
   virtual void
-  updateAsyStringSized(void* asyString, char const* str, size_t const& size)= 0;
+  updateAsyStringSized(
+          THAsyString asyString, char const* str, size_t const& size
+  )= 0;
 
   /**
    * Gets the length of the specified string (this length does not include
    * the null terminator).
    */
-  virtual size_t getStringLength(void* asyString)= 0;
+  virtual size_t getStringLength(THAsyString asyString)= 0;
 
   /**
    * Copies the string to a destination, including the null terminator of
@@ -259,7 +265,7 @@ public:
    * is at least the length of the string + 1 (for the null terminator).
    */
   virtual void
-  copyString(void* asyString, char* destination, size_t bufferSize)= 0;
+  copyString(THAsyString asyString, char* destination, size_t bufferSize)= 0;
 
   virtual IAsyArray* createNewArray(size_t const& initialSize)= 0;
 

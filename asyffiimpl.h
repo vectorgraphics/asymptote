@@ -44,18 +44,21 @@ public:
 
   IAsyItem* createBlankItem() override;
 
-  void* createNewAsyString(char const* str) override;
+  THAsyString createNewAsyString(char const* str) override;
 
-  void* createNewAsyStringSized(char const* str, size_t const& size) override;
+  THAsyString
+  createNewAsyStringSized(char const* str, size_t const& size) override;
 
-  void updateAsyString(void* asyStringPtr, const char* str) override;
+  void updateAsyString(THAsyString asyStringPtr, const char* str) override;
   void updateAsyStringSized(
-          void* asyStringPtr, const char* str, const size_t& size
+          THAsyString asyStringPtr, const char* str, const size_t& size
   ) override;
 
-  size_t getStringLength(void* asyString) override;
+  size_t getStringLength(THAsyString asyString) override;
   void
-  copyString(void* asyString, char* destination, size_t bufferSize) override;
+  copyString(
+          THAsyString asyString, char* destination, size_t bufferSize
+  ) override;
 
   IAsyArray* createNewArray(const size_t& initialSize) override;
 
