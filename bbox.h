@@ -26,7 +26,7 @@ inline T max(T a, T b)
 }
 
 // The box that encloses a path
-struct bbox : public IAsyBbox {
+struct bbox : public gc, public IAsyBbox {
   bool empty;
   double left;
   double bottom;

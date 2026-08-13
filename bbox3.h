@@ -13,7 +13,7 @@
 namespace camp {
 
 // The box that encloses a path
-struct bbox3 : public IAsyBbox3 {
+struct bbox3 : public gc, public IAsyBbox3 {
   bool empty;
   double leftBound;
   double bottomBound;
