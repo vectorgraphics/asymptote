@@ -545,6 +545,10 @@ public:
   // var frames
 
   virtual IAsyVarFrame* createNewVarFrame(size_t const& initialSize)= 0;
+  
+  // picture
+  
+  virtual IAsyPicture* createNewPicture(bool deconstruct)= 0;
 };
 
 // question: will we ever exceed 256 primitive types?

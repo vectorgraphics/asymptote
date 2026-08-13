@@ -4,6 +4,7 @@
 #include "coenv.h"
 #include "common.h"
 #include "path3.h"
+#include "picture.h"
 #include "settings.h"
 #include "transform.h"
 #include "util.h"
@@ -15,7 +16,6 @@
 #include <cstring>
 #include <guide.h>
 #include <stack.h>
-#include <string.h>
 
 namespace camp
 {
@@ -352,6 +352,10 @@ THAsyType AsyContextImpl::createAsyType(Asy::TypeInfo const typeInfo) const
 IAsyVarFrame* AsyContextImpl::createNewVarFrame(const size_t& initialSize)
 {
   return new vm::vmFrame(initialSize);
+}
+IAsyPicture* AsyContextImpl::createNewPicture(bool const deconstruct)
+{
+  return new picture(deconstruct);
 }
 
 AsyStackContextImpl::AsyStackContextImpl(vm::stack* inStack) : stack(inStack) {}

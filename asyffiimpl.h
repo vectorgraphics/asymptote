@@ -134,6 +134,8 @@ public:
 
   IAsyVarFrame* createNewVarFrame(const size_t& initialSize) override;
 
+  IAsyPicture* createNewPicture(bool deconstruct) override;
+
 protected:
   template<typename TImpl, typename TInterface, typename... TCreationArgs>
   static TInterface* createNewItemGeneric(TCreationArgs&&... args)
