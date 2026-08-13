@@ -56,10 +56,15 @@ public:
   void prepend(picture &pic);
 
   bool havelabels();
-  bool have3D();
-  bool havepng();
+  
+  [[nodiscard]]
+  bool have3D() const;
+  
+  [[nodiscard]]
+  bool havepng() const;
 
-  unsigned int pagecount();
+  [[nodiscard]]
+  unsigned int pagecount() const;
 
   bbox bounds();
   bbox3 bounds3();
@@ -98,15 +103,17 @@ public:
   // 3D output
   bool shipout3(const string& prefix, const string format);
 
+  [[nodiscard]]
   bool reloadPDF(const string& Viewer, const string& outname) const;
 
-  picture *transformed(const transform& t);
-  picture *transformed(const vm::array& t);
+  [[nodiscard]]
+  picture *transformed(const transform& t) const;
+  
+  [[nodiscard]]
+  picture *transformed(const vm::array& t) const;
 
-  bool null() {
-    return nodes.empty();
-  }
-
+  [[nodiscard]]
+  bool null() const;
 };
 
 inline picture *transformed(const transform& t, picture *p)

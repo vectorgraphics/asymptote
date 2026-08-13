@@ -169,9 +169,7 @@ const char *texpathmessage() {
   return Strdup(buf.str());
 }
 
-picture::~picture()
-{
-}
+picture::~picture()= default;
 
 void picture::enclose(drawElement *begin, drawElement *end)
 {
@@ -245,32 +243,32 @@ bool picture::havelabels()
   return labels;
 }
 
-bool picture::have3D()
+bool picture::have3D() const
 {
-  for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
-    if((*p)->is3D())
+  for (drawElement* node : nodes) {
+    assert(node);
+    if (node->is3D())
       return true;
   }
   return false;
 }
 
-bool picture::havepng()
+bool picture::havepng() const
 {
-  for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
-    if((*p)->svgpng())
+  for (drawElement* node : nodes) {
+    assert(node);
+    if(node->svgpng())
       return true;
   }
   return false;
 }
 
-unsigned int picture::pagecount()
+unsigned int picture::pagecount() const
 {
   unsigned int c=1;
-  for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
-    if((*p)->isnewpage())
+  for (drawElement* node : nodes) {
+    assert(node);
+    if(node->isnewpage())
       ++c;
   }
   return c;
@@ -315,21 +313,21 @@ bbox picture::bounds()
 
 bbox3 picture::bounds3()
 {
-  size_t n=nodes.size();
+  size_t const n=nodes.size();
   if(n == lastnumber3) return b3;
 
   if(lastnumber3 == 0)
     b3=bbox3();
 
   matrixstack ms;
-  for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
-    if((*p)->begingroup3())
-      ms.push((*p)->transf3());
-    else if((*p)->endgroup3())
+  for(drawElement* node : nodes) {
+    assert(node);
+    if (node->begingroup3())
+      ms.push(node->transf3());
+    else if (node->endgroup3())
       ms.pop();
     else
-      (*p)->bounds(ms.T(),b3);
+      node->bounds(ms.T(), b3);
   }
 
   lastnumber3=n;
@@ -341,16 +339,16 @@ pair picture::ratio(double (*m)(double, double))
   bool first=true;
   pair b;
   bounds3();
-  double fuzz=Fuzz*(b3.Max()-b3.Min()).length();
+  double const fuzz=Fuzz*(b3.Max()-b3.Min()).length();
   matrixstack ms;
-  for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
-    if((*p)->begingroup3())
-      ms.push((*p)->transf3());
-    else if((*p)->endgroup3())
+  for (drawElement* node : nodes) {
+    assert(node);
+    if (node->begingroup3())
+      ms.push(node->transf3());
+    else if (node->endgroup3())
       ms.pop();
     else
-      (*p)->ratio(ms.T(),b,m,fuzz,first);
+      node->ratio(ms.T(), b, m, fuzz, first);
   }
   return b;
 }
@@ -644,9 +642,9 @@ bool picture::texprocess(const string& texname, const string& outname,
 
 int picture::epstopdf(const string& epsname, const string& pdfname)
 {
-  string outputformat=getSetting<string>("outformat");
-  bool pdf=settings::pdf(getSetting<string>("tex"));
-  bool pdfformat=(pdf && outputformat == "") || outputformat == "pdf";
+  auto outputformat=getSetting<string>("outformat");
+  bool const pdf=settings::pdf(getSetting<string>("tex"));
+  bool const pdfformat=(pdf && outputformat == "") || outputformat == "pdf";
   string compress=getSetting<bool>("compress") && pdfformat ?
     "true" : "false";
   mem::vector<string> cmd;
@@ -1209,7 +1207,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   bool status=true;
 
   string texname;
-  texfile *tex=NULL;
+  texfile* tex=nullptr;
 
   if(Labels) {
     texname=TeXmode ? buildname(prefix,"tex") : auxname(prefix,"tex");
@@ -1255,7 +1253,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     if(preamble) {
       // Postscript preamble.
       nodelist Nodes=preamble->nodes;
-      nodelist::iterator P=Nodes.begin();
+      auto P=Nodes.begin();
       if(P != Nodes.end()) {
         out.resetpen();
         for(; P != Nodes.end(); ++P) {
@@ -1267,11 +1265,11 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     out.resetpen();
 
     bool postscript=false;
-    drawLabel *L=NULL;
+    drawLabel* L=nullptr;
 
     if(dvi)
-      for(nodelist::const_iterator r=begin.begin(); r != begin.end(); ++r)
-        (*r)->draw(&out);
+      for (drawElement* r : begin)
+        r->draw(&out);
 
     processDataStruct &pd=processData();
 
@@ -1280,13 +1278,13 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       if(Labels && (*p)->islayer()) break;
 
       if(dvi && (*p)->svg()) {
-        picture *f=(*p)->svgpng() ? new picture : NULL;
+        picture *f=(*p)->svgpng() ? new picture : nullptr;
         nodelist::const_iterator q=layerp;
         for(;;) {
           if((*q)->beginclip())
             begin.push_back(*q);
           else if((*q)->endclip()) {
-            if(begin.size() < 1)
+            if (begin.empty())
               reportError("endclip without matching beginclip");
             begin.pop_back();
           }
@@ -1295,8 +1293,9 @@ bool picture::shipout(picture *preamble, const string& Prefix,
         }
 
         if(f) {
-          for(nodelist::const_iterator r=begin.begin(); r != begin.end(); ++r)
-            f->append(*r);
+          for (drawElement* r : begin) {
+            f->append(r);
+          }
 
           f->append(*(q++));
         }
@@ -1313,8 +1312,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
           if(r == p) break;
         }
 
-        for(nodelist::reverse_iterator r=end.rbegin(); r != end.rend();
-            ++r) {
+        for(auto r=end.rbegin(); r != end.rend(); ++r) {
           (*r)->draw(&out);
           if(f)
             f->append(*r);
@@ -1433,10 +1431,10 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 void picture::render(double size2, const triple& Min, const triple& Max,
                      double perspective, bool remesh) const
 {
-  for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
-    if(remesh) (*p)->meshinit();
-    (*p)->render(size2,Min,Max,perspective,remesh);
+  for (drawElement* node : nodes) {
+    assert(node);
+    if(remesh) node->meshinit();
+    node->render(size2,Min,Max,perspective,remesh);
   }
 }
 
@@ -1492,8 +1490,8 @@ bool picture::shipout3(const string& prefix, const string& format,
   initRenderer(format.c_str());
 #endif
 
-  bool webgl=format == "html";
-  bool v3d=format == "v3d";
+  bool const webgl=format == "html";
+  bool const v3d=format == "v3d";
 
 #ifndef HAVE_LIBGLM
   if(webgl || v3d)
@@ -1514,28 +1512,28 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 
 
-  picture *pic = new picture;
+  auto* pic = new picture;
 
   matrixstack ms;
-  for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
-    if((*p)->begingroup3())
-      ms.push((*p)->transf3());
-    else if((*p)->endgroup3())
+  for (drawElement* node : nodes) {
+    assert(node);
+    if(node->begingroup3())
+      ms.push(node->transf3());
+    else if(node->endgroup3())
       ms.pop();
-    pic->append((*p)->transformed(ms.T()));
+    pic->append(node->transformed(ms.T()));
   }
 
   pic->b3=bbox3();
-  for(nodelist::iterator p=pic->nodes.begin(); p != pic->nodes.end(); ++p) {
-    assert(*p);
-    (*p)->bounds(pic->b3);
+  for (drawElement* node : nodes) {
+    assert(node);
+    node->bounds(pic->b3);
   }
   pic->lastnumber3=pic->nodes.size();
 
-  for(nodelist::iterator p=pic->nodes.begin(); p != pic->nodes.end(); ++p) {
-    assert(*p);
-    (*p)->displacement();
+  for (drawElement* node : nodes) {
+    assert(node);
+    node->displacement();
   }
 
   const string outputformat=format.empty() ?
@@ -1543,7 +1541,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifdef HAVE_LIBGLM
   static int oldpid=0;
-  bool View=settings::view() && view;
+  bool const View=settings::view() && view;
 #endif
 
 #ifdef HAVE_RENDERER
@@ -1552,12 +1550,12 @@ bool picture::shipout3(const string& prefix, const string& format,
   offscreen=!vulkan;
 #endif
 #ifdef HAVE_PTHREAD
-  bool animating=getSetting<bool>("animating");
-  bool Wait=!interact::interactive || !View || animating;
+  bool const animating=getSetting<bool>("animating");
+  bool const Wait=!interact::interactive || !View || animating;
 #endif
 #endif
 
-  bool format3d=webgl || v3d;
+  bool const format3d=webgl || v3d;
 #ifdef HAVE_LIBGLM
   args.prefix=prefix;
   args.pic=pic;
@@ -1708,58 +1706,55 @@ bool picture::shipout3(const string& prefix, const string& format,
 bool picture::shipout3(const string& prefix, const string format)
 {
   bounds3();
-  bool status;
 
-  string name=buildname(prefix,"prc");
+  string const name=buildname(prefix,"prc");
   prcfile prc(name);
 
-  static const double limit=2.5*10.0/INT_MAX;
-  double compressionlimit=max(length(b3.Max()),length(b3.Min()))*limit;
+  constexpr double limit=2.5*10.0/INT_MAX;
+  double const compressionLimit=max(length(b3.Max()),length(b3.Min()))*limit;
 
   groups.push_back(groupmap());
-  for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
-    (*p)->write(&prc,&billboard,compressionlimit,groups);
+  for (drawElement* node : nodes) {
+    assert(node);
+    node->write(&prc,&billboard,compressionLimit,groups);
   }
   groups.pop_back();
-  status=prc.finish();
 
-  if(!status) reportError("shipout3 failed");
+  if (!prc.finish()) reportError("shipout3 failed");
 
   if(verbose > 0) cout << "Wrote " << name << endl;
 
   return true;
 }
 
-picture *picture::transformed(const transform& t)
+picture *picture::transformed(const transform& t) const
 {
-  picture *pic = new picture;
+  auto* pic = new picture;
 
-  nodelist::iterator p;
-  for (p = nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
-    pic->append((*p)->transformed(t));
+  for (drawElement* node : nodes) {
+    assert(node);
+    pic->append(node->transformed(t));
   }
   pic->T=transform(t*T);
 
   return pic;
 }
 
-picture *picture::transformed(const array& t)
+picture *picture::transformed(const array& t) const
 {
-  picture *pic = new picture;
-  double* T=NULL;
+  auto* pic = new picture;
+  double* T=nullptr;
   copyArray4x4C(T,&t);
   size_t level = 0;
-  for (nodelist::iterator p = nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
+  for (drawElement* node : nodes) {
+    assert(node);
     if(level==0)
-      pic->append((*p)->transformed(T));
+      pic->append(node->transformed(T));
     else
-      pic->append(*p);
-    if((*p)->begingroup3())
+      pic->append(node);
+    if(node->begingroup3())
       level++;
-    if((*p)->endgroup3()) {
+    if(node->endgroup3()) {
       if(level==0)
         reportError("endgroup3 without matching begingroup3");
       else
@@ -1769,6 +1764,7 @@ picture *picture::transformed(const array& t)
 
   return pic;
 }
+bool picture::null() const { return nodes.empty(); }
 
 
 } // namespace camp
