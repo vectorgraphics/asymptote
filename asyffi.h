@@ -193,6 +193,9 @@ class IAsyRecord;
 class IAsyPen;
 class IAsyVarFrame;
 
+class IAsyBbox;
+class IAsyBbox3;
+
 namespace Asy
 {
 enum class PenOverwrites : int8_t;
@@ -208,6 +211,62 @@ struct PenColor;
 struct TypeInfo;
 struct FnArgMetadata;
 }// namespace Asy
+
+/** Interface for Asymptote pictures */
+class IAsyPicture
+{
+public:
+  virtual ~IAsyPicture()= default;
+  
+  /** Add another picture to this picture */
+  virtual void addToPicture(IAsyPicture* otherPic)= 0;
+  
+  /** Prepends a picture to this picture */
+  virtual void prependToPicture(IAsyPicture* otherPic)= 0;
+  
+  /** Returns whether this picture has labels */
+  virtual bool hasLabels()= 0;
+
+  /** Returns whether this picture has 3D elements */
+  [[nodiscard]]
+  virtual bool has3D() const= 0;
+  
+  /** Returns whether this picture has embedded PNG images */
+  [[nodiscard]]
+  virtual bool hasPng() const= 0;
+  
+  /**
+   * Gets bounding box of the image.
+   * @remark The returned bounding box is a copy, so it can
+   * be modified without affecting the original picture
+   */
+  virtual IAsyBbox* getBounds()= 0;
+  
+  /**
+   * Gets 3D bounding box of the image.
+   * @remark The returned bounding box is a copy, so it can
+   * be modified without affecting the original picture
+   */
+  virtual IAsyBbox3* getBounds3()= 0;
+  
+  /** Whether the picture is null */
+  [[nodiscard]]
+  virtual bool isNull() const= 0;
+  
+  /** Creates a new image with specified transformation applied */
+  [[nodiscard]]
+  virtual IAsyPicture* createTransformed(IAsyTransform const* transformPtr) const= 0;
+
+  /** Creates a new image with specified 3D transformation applied stored in
+   * arrayPtr
+   *
+   * @param arrayPtr an array of
+   * 4 sub-arrays where each sub-array is a double array with length of 4. This
+   * array stores the transformation information encoded as a row-major 4x4 matrix.
+   */
+  [[nodiscard]]
+  virtual IAsyPicture* createTransformedArray(IAsyArray const* arrayPtr) const= 0;
+};
 
 class IAsyContext
 {
@@ -741,9 +800,6 @@ public:
   [[nodiscard]]
   virtual bool isStraight() const= 0;
 };
-
-class IAsyBbox;
-class IAsyBbox3;
 
 class IAsyPath
 {

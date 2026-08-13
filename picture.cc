@@ -276,7 +276,7 @@ unsigned int picture::pagecount() const
 
 bbox picture::bounds()
 {
-  size_t n=nodes.size();
+  size_t const n=nodes.size();
   if(n == lastnumber) return b_cached;
 
   if(lastnumber == 0) { // Maybe these should be put into a structure.
@@ -1765,6 +1765,64 @@ picture *picture::transformed(const array& t) const
   return pic;
 }
 bool picture::null() const { return nodes.empty(); }
+
+// FFI functions
+void picture::addToPicture(IAsyPicture* otherPic)
+{
+  auto* castedPic = dynamic_cast<picture*>(otherPic);
+  if (castedPic == nullptr) {
+    reportError("otherPic is not a picture");
+  }
+  add(*castedPic);
+}
+void picture::prependToPicture(IAsyPicture* otherPic)
+{
+  auto* castedPic= dynamic_cast<picture*>(otherPic);
+  if (castedPic == nullptr) {
+    reportError("otherPic is not a picture");
+  }
+  prepend(*castedPic);
+}
+bool picture::hasLabels()
+{
+  return havelabels();
+}
+bool picture::has3D() const
+{
+  return have3D();
+}
+bool picture::hasPng() const
+{
+  return havepng();
+}
+IAsyBbox* picture::getBounds()
+{
+  return new bbox(bounds());
+}
+IAsyBbox3* picture::getBounds3()
+{
+  return new bbox3(bounds3());
+}
+bool picture::isNull() const
+{
+  return null();
+}
+IAsyPicture* picture::createTransformed(const IAsyTransform* transformPtr) const
+{
+  auto const* castedTransform= dynamic_cast<transform const*>(transformPtr);
+  if (castedTransform == nullptr) {
+    reportError("transformPtr is not a transform instance");
+  }
+  return transformed(*castedTransform);
+}
+IAsyPicture* picture::createTransformedArray(const IAsyArray* arrayPtr) const
+{
+  auto const* castedArray= dynamic_cast<transform const*>(arrayPtr);
+  if (castedArray == nullptr) {
+    reportError("transformPtr is not a transform instance");
+  }
+  return transformed(*castedArray);
+}
 
 
 } // namespace camp

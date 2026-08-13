@@ -16,7 +16,7 @@
 
 namespace camp {
 
-class picture : public gc {
+class picture : public gc, public IAsyPicture {
 private:
   bool labels;
   size_t lastnumber;
@@ -40,7 +40,7 @@ public:
     deconstruct(deconstruct) {}
 
   // Destroy all of the owned picture objects.
-  ~picture();
+  ~picture() override;
 
   // Prepend an object to the picture.
   void prepend(drawElement *p);
@@ -114,6 +114,24 @@ public:
 
   [[nodiscard]]
   bool null() const;
+  
+  // FFI functions
+
+  void addToPicture(IAsyPicture* otherPic) override;
+  void prependToPicture(IAsyPicture* otherPic) override;
+  bool hasLabels() override;
+  [[nodiscard]]
+  bool has3D() const override;
+  [[nodiscard]]
+  bool hasPng() const override;
+  IAsyBbox* getBounds() override;
+  IAsyBbox3* getBounds3() override;
+  [[nodiscard]]
+  bool isNull() const override;
+  [[nodiscard]]
+  IAsyPicture* createTransformed(const IAsyTransform* transformPtr) const override;
+  [[nodiscard]]
+  IAsyPicture* createTransformedArray(const IAsyArray* arrayPtr) const override;
 };
 
 inline picture *transformed(const transform& t, picture *p)
