@@ -87,8 +87,14 @@ void AsyContextImpl::copyString(
         void* asyString, char* destination, size_t bufferSize
 )
 {
-  auto* castedStr= static_cast<mem::string*>(asyString);
+  auto const* castedStr= static_cast<mem::string*>(asyString);
+#ifdef _WIN32
+  if (strcpy_s(destination, bufferSize, castedStr->c_str()) != 0) {
+    reportError("Failed to copy string");
+  }
+#else
   strncpy(destination, castedStr->c_str(), bufferSize);
+#endif
 }
 
 IAsyArray* AsyContextImpl::createNewArray(const size_t& initialSize)
