@@ -1404,17 +1404,21 @@ public:
   virtual IAsyProtoEnvironment* getPostDefinitionProtoEnvironment()= 0;
 };
 
+/** Function type for an Asymptote plugin registration point */
 typedef void (*LNK_CALL TAsyRegisterDynlibFn)(IAsyContext*, IAsyFfiRegisterer*);
 
 // convenience macros for asy function registration
 
+/** Macro to declare registration point for an Asymptote plugin */
 #define REGISTER_FN_SIG                                                        \
   void LNK_CALL registerAsymptotePlugin(                                       \
           IAsyContext* context, IAsyFfiRegisterer* registerer                  \
   )
 
+/** Macro to declare registration point function for an Asymptote plugin */
 #define DECLARE_REGISTER_FN extern "C" ASY_FFI_EXPORT REGISTER_FN_SIG
 
+/** Helper macro to declare an Asymptote foreign function with functionName */
 #define ASY_FOREIGN_FUNC_SIG(functionName)                                     \
   void LNK_CALL functionName(                                                  \
           IAsyContext* context, IAsyStackContext* stackContext,                \
