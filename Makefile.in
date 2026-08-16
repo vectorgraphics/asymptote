@@ -38,7 +38,7 @@ vpath %.cc thirdparty_impl/vk-mem-allocator_impl/src
 vpath %.ui GUI/windows
 vpath %.py GUI
 
-CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
+CAMP = camperror path bound drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill path3 drawpath3 drawsurface \
        beziercurve bezierpatch sortTriangles pen pipestream
 
