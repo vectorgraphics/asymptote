@@ -15,6 +15,7 @@ using ::orient2d;
 using ::orient3d;
 
 const double third=1.0/3.0;
+static constexpr glm::vec4 black(0, 0, 0, 0);
 
 #ifdef HAVE_LIBGLM
 
@@ -56,7 +57,7 @@ uint32_t BezierPatch::addVertex(triple pos, triple norm, int matIdx, const float
     return data.addVertex(ColorVertex{pos, norm, matIdx, glm::make_vec4(col)});
   } else {
     if constexpr (T) {
-      return data.addVertex(ColorVertex{pos, norm, matIdx});
+      return data.addVertex(ColorVertex{pos, norm, matIdx, black});
     } else {
       return data.addVertex(MaterialVertex{pos, norm, matIdx});
     }
@@ -868,9 +869,9 @@ void Triangles::queue(size_t nP, const triple* P, size_t nN, const triple* N,
       data.colorVertices[PI1]=ColorVertex{P1,N[NI[1]],MaterialIndex,glm::make_vec4(c1)};
       data.colorVertices[PI2]=ColorVertex{P2,N[NI[2]],MaterialIndex,glm::make_vec4(c2)};
     } else {
-      data.colorVertices[PI0]=ColorVertex{P0,N[NI[0]],MaterialIndex};
-      data.colorVertices[PI1]=ColorVertex{P1,N[NI[1]],MaterialIndex};
-      data.colorVertices[PI2]=ColorVertex{P2,N[NI[2]],MaterialIndex};
+      data.colorVertices[PI0]=ColorVertex{P0,N[NI[0]],MaterialIndex,black};
+      data.colorVertices[PI1]=ColorVertex{P1,N[NI[1]],MaterialIndex,black};
+      data.colorVertices[PI2]=ColorVertex{P2,N[NI[2]],MaterialIndex,black};
     }
     triple Q[]={P0,P1,P2};
     std::vector<uint32_t> &q=data.indices;
