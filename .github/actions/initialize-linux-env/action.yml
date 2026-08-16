@@ -27,7 +27,9 @@ runs:
       id: cache-vcpkg
       uses: actions/cache@v4
       with:
-        path: /home/runner/.cache/vcpkg/archives
+        path: |
+          /home/runner/.cache/vcpkg/archives
+          /home/runner/.cache/vcpkg/downloads
         # Key on the manifest so new/changed dependencies get re-cached; the
         # restore-keys prefix falls back to the most recent compatible cache.
         key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
