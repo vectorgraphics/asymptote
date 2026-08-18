@@ -18,7 +18,6 @@ import tempfile
 import datetime
 import string
 import atexit
-import pickle
 
 import xasyUtils as xu
 import xasy2asy as x2a
@@ -1044,8 +1043,8 @@ class MainWindow1(Qw.QMainWindow):
             saveAsyFile.close()
             self.updateScript()
 
-        openFile = open(file, 'wb')
-        pickle.dump(xasyObjects, openFile)
+        openFile = open(file, 'w')
+        json.dump(xasyObjects, openFile)
         openFile.close()
 
     def actionLoadXasy(self, file):
@@ -1054,8 +1053,8 @@ class MainWindow1(Qw.QMainWindow):
         self.fileName = file
         self.currDir = os.path.dirname(self.fileName)
 
-        input_file = open(file, 'rb')
-        xasyObjects = pickle.load(input_file)
+        input_file = open(file, 'r')
+        xasyObjects = json.load(input_file)
         input_file.close()
 
         prefix = os.path.splitext(self.fileName)[0]
