@@ -1118,11 +1118,7 @@ class MainWindow1(Qw.QMainWindow):
             shortcut = Qg.QShortcut(self)
             shortcut.setKey(Qg.QKeySequence(key))
 
-            # hate doing this, but python doesn't have explicit way to pass a
-            # string to a lambda without an identifier
-            # attached to it.
-            exec('shortcut.activated.connect(lambda: self.execCustomCommand("{0}"))'.format(action),
-                 {'self': self, 'shortcut': shortcut})
+            shortcut.activated.connect(lambda cmd=action: self.execCustomCommand(cmd))
 
     def initializeButtons(self):
         self.ui.btnDrawAxes.setChecked(self.settings['defaultShowAxes'])
