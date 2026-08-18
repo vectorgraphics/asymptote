@@ -15,6 +15,17 @@ runs:
         sudo apt-get install \
           libxinerama-dev libxcursor-dev xorg-dev \
           libglu1-mesa-dev pkg-config libwayland-dev autopoint
+        # Autotools, for vcpkg ports that regenerate their build system with
+        # autoreconf. No port in our current install plan does, so this is
+        # insurance rather than a live requirement: a baseline bump can pull an
+        # autotools port into the graph transitively at any time, which is
+        # exactly how this broke once already (a vulkan-sdk-components subtree
+        # reached libxcrypt, since removed). vcpkg's vcpkg_run_autoreconf aborts
+        # the port build when any of these is missing, and its error names all
+        # four regardless of which one it is, so install the set. The
+        # ubuntu-22.04 image ships every one except autoconf-archive. Matches
+        # .devcontainer/Dockerfile, so the container and CI cannot drift apart.
+        sudo apt-get install -y autoconf autoconf-archive automake libtool
         sudo apt-get install ccache
     - name: Set environment variables
       shell: bash
