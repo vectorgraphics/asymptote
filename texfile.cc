@@ -29,7 +29,7 @@ texfile::texfile(const string& texname, const bbox& box, bool pipe)
   Hoffset=inlinetex ? box.right : box.left;
   out=new ofstream(texname.c_str());
   if(!out || !*out)
-    reportError("Cannot write to "+texname);
+    reportError("Cannot write to "+texname+": check directory permissions and disk space");
   out->setf(std::ios::fixed);
   out->precision(6);
   texdocumentclass(*out,pipe);

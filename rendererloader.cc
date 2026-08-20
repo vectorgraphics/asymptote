@@ -651,7 +651,7 @@ void initRenderer(const char* format)
     }
 
     if (gl == nullptr) {
-        camp::reportError("No 3D rendering available");
+        camp::reportError("No 3D rendering available - rebuild asymptote with OpenGL or Vulkan support enabled, or use '-norenderer' to disable 3D output; for HTML/WebGL 3D output use '-f html'");
     }
 
     initializedRenderer = true;
