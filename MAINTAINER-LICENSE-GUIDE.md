@@ -50,7 +50,7 @@ works correctly.
 
 The default is `${CMAKE_INSTALL_FULL_DATADIR}/doc/asymptote/licenses`.
 
-### Common distro paths
+### Common Distro Paths
 | Distribution | Typical path |
 |---|---|
 | Fedora / RHEL | `/usr/share/licenses/asymptote` |
@@ -86,18 +86,18 @@ _Note: wyhash/ is public domain, but retain the original header comment creditin
 
 ## Distributing Asymptote
 
-### Source distributions
+### Source Distributions
 Include all components unchanged with their license files. No additional
 action is required beyond what the repository already contains.
 
-### Binary distributions
+### Binary Distributions
 Include the `licenses/` folder alongside the binary, plus
 `LICENSES-THIRD-PARTY.md`. The `licenses/` folder contains `LICENSE`,
 `LICENSE.LESSER`, and all third-party license files. The `asy --licenses=full`
 command reads from this folder and is suitable for auditing and convenience
 but is not a substitute for distributing the actual `licenses/` folder.
 
-### OS package managers (apt, yum, brew, macports)
+### OS Package Managers (apt, yum, brew, macports)
 - SPDX license metadata: `LGPL-3.0-or-later AND Unlicense AND MIT AND Boost-1.0 AND BSD-3-Clause AND GPL-2.0-only`
 - Place license files using the distro-standard location (see
   "Configuring the License Installation Directory" above).
