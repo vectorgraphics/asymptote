@@ -3,6 +3,8 @@
 #include "absyn.h"
 #include "coenv.h"
 #include "common.h"
+#include "drawpath.h"
+#include "drawpath3.h"
 #include "path3.h"
 #include "picture.h"
 #include "settings.h"
@@ -362,6 +364,51 @@ IAsyVarFrame* AsyContextImpl::createNewVarFrame(const size_t& initialSize)
 IAsyPicture* AsyContextImpl::createNewPicture(bool const deconstruct)
 {
   return new picture(deconstruct);
+}
+IAsyDrawElement* AsyContextImpl::createDrawElementFromPath(
+        IAsyPath* path, IAsyPen* pen, const char* key
+)
+{
+  string const keyStr(key == nullptr ? "" : key);
+  return new drawPath(
+          *(static_cast<class path*>(path)), *(static_cast<class pen*>(pen)),
+          keyStr
+  );
+}
+IAsyDrawElement* AsyContextImpl::createDrawElementFromPath3(
+        IAsyPath3* path3, IAsyTuple* center, double opacity,
+        const Asy::Material3D& material, bool billboard, const char* key
+)
+{
+  auto* centerCasted= dynamic_cast<triple*>(center);
+  if (centerCasted == nullptr) {
+    reportError("Center point is not triple dimension");
+    return nullptr;
+  }
+  
+  string const keyStr(key == nullptr ? "" : key);
+  return new drawPath3(
+          *static_cast<class path3*>(path3), *centerCasted,
+          *static_cast<vm::array const*>(material.dseColors), opacity,
+          material.shininess, material.metallic, material.fresnel0,
+          billboard ? Interaction::BILLBOARD : Interaction::EMBEDDED, keyStr
+  );
+}
+IAsyDrawElement* AsyContextImpl::createDrawElementForPixel(
+        IAsyTuple* point, const IAsyPen* pen, double width, const char* key
+)
+{
+  auto* centerCasted= dynamic_cast<triple*>(point);
+  if (centerCasted == nullptr) {
+    reportError("Point is not triple dimension");
+    return nullptr;
+  }
+  string const keyStr(key == nullptr ? "" : key);
+  return new drawPixel(
+    *centerCasted, 
+    *static_cast<class pen const*>(pen),
+    width, keyStr
+    );
 }
 
 AsyStackContextImpl::AsyStackContextImpl(vm::stack* inStack) : stack(inStack) {}

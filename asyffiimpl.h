@@ -136,6 +136,17 @@ public:
 
   IAsyPicture* createNewPicture(bool deconstruct) override;
 
+  IAsyDrawElement* createDrawElementFromPath(
+          IAsyPath* path, IAsyPen* pen, const char* key
+  ) override;
+  IAsyDrawElement* createDrawElementFromPath3(
+          IAsyPath3* path3, IAsyTuple* center, double opacity,
+          const Asy::Material3D& material, bool billboard, const char* key
+  ) override;
+  IAsyDrawElement* createDrawElementForPixel(
+          IAsyTuple* point, const IAsyPen* pen, double width, const char* key
+  ) override;
+
 protected:
   template<typename TImpl, typename TInterface, typename... TCreationArgs>
   static TInterface* createNewItemGeneric(TCreationArgs&&... args)

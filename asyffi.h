@@ -210,6 +210,30 @@ struct PenColor;
 
 struct TypeInfo;
 struct FnArgMetadata;
+
+
+/** Struct containing 3D Material data*/
+struct Material3D {
+
+  /** Shininess value. 1 corresponds to a perfectly smooth surface and 0 to a
+   * highly rough surface */
+  double shininess;
+
+  /** Metallic value. 1 corresponds to a metal surface (reflective with no
+   * absorption) and 0 to nonmetallic surface (color absorption/reflection by
+   * fresnel rules) */
+  double metallic;
+
+  /**
+   * Reflective value when viewed from direction perpendicular from the surface.
+   * The default value is usually 0.04
+   */
+  double fresnel0;
+
+  /** An array containing 3 pens, first pen is used as the diffuse color, second
+   * as specular, and third as emissive */
+  IAsyArray const* dseColors;
+};
 }// namespace Asy
 
 /** Interface for Asymptote pictures */
@@ -557,6 +581,19 @@ public:
   // picture
 
   virtual IAsyPicture* createNewPicture(bool deconstruct)= 0;
+
+  // draw element creation functions
+  virtual IAsyDrawElement*
+  createDrawElementFromPath(IAsyPath* path, IAsyPen* pen, char const* key)= 0;
+
+  virtual IAsyDrawElement* createDrawElementFromPath3(
+          IAsyPath3* path3, IAsyTuple* center, double opacity,
+          Asy::Material3D const& material, bool billboard, char const* key
+  )= 0;
+
+  virtual IAsyDrawElement* createDrawElementForPixel(
+          IAsyTuple* point, IAsyPen const* pen, double width, char const* key
+  )= 0;
 };
 
 // question: will we ever exceed 256 primitive types?
