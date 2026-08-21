@@ -270,6 +270,11 @@ public:
   virtual IAsyPicture*
   createTransformedArray(IAsyArray const* arrayPtr) const= 0;
 };
+
+class IAsyDrawElement
+{
+public:
+  virtual ~IAsyDrawElement()= default;
 };
 
 class IAsyContext

@@ -103,7 +103,7 @@ inline bool operator < (const triple& a, const triple& b) {
                     (a.getz() < b.getz()))));
 }
 
-class drawElement : public gc
+class drawElement : public gc, public IAsyDrawElement
 {
 public:
   string KEY;
