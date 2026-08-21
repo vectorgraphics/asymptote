@@ -132,6 +132,12 @@ public:
   IAsyPicture* createTransformed(const IAsyTransform* transformPtr) const override;
   [[nodiscard]]
   IAsyPicture* createTransformedArray(const IAsyArray* arrayPtr) const override;
+
+  void prependDrawElement(IAsyDrawElement* drawElement) override;
+  void appendDrawElement(IAsyDrawElement* drawElement) override;
+  void encloseDrawElements(
+          IAsyDrawElement* beginElement, IAsyDrawElement* endElement
+  ) override;
 };
 
 inline picture *transformed(const transform& t, picture *p)

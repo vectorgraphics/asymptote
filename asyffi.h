@@ -236,6 +236,12 @@ struct Material3D {
 };
 }// namespace Asy
 
+class IAsyDrawElement
+{
+public:
+  virtual ~IAsyDrawElement()= default;
+};
+
 /** Interface for Asymptote pictures */
 class IAsyPicture
 {
@@ -293,13 +299,19 @@ public:
   [[nodiscard]]
   virtual IAsyPicture*
   createTransformedArray(IAsyArray const* arrayPtr) const= 0;
+
+  /** Prepends a draw element to the image */
+  virtual void prependDrawElement(IAsyDrawElement* drawElement)= 0;
+
+  /** Appends a draw element to the image */
+  virtual void appendDrawElement(IAsyDrawElement* drawElement)= 0;
+
+  /** Prepends a draw element to the image */
+  virtual void encloseDrawElements(
+          IAsyDrawElement* beginElement, IAsyDrawElement* endElement
+  )= 0;
 };
 
-class IAsyDrawElement
-{
-public:
-  virtual ~IAsyDrawElement()= default;
-};
 
 class IAsyContext
 {

@@ -1823,6 +1823,23 @@ IAsyPicture* picture::createTransformedArray(const IAsyArray* arrayPtr) const
   }
   return transformed(*castedArray);
 }
+void picture::prependDrawElement(IAsyDrawElement* drawElement)
+{
+  prepend(static_cast<class drawElement*>(drawElement));
+}
+void picture::appendDrawElement(IAsyDrawElement* drawElement)
+{
+  append(static_cast<class drawElement*>(drawElement));
+}
+void picture::encloseDrawElements(
+        IAsyDrawElement* beginElement, IAsyDrawElement* endElement
+)
+{
+  enclose(
+    static_cast<drawElement*>(beginElement),
+    static_cast<drawElement*>(endElement)
+    );
+}
 
 
 } // namespace camp
