@@ -217,55 +217,59 @@ class IAsyPicture
 {
 public:
   virtual ~IAsyPicture()= default;
-  
+
   /** Add another picture to this picture */
   virtual void addToPicture(IAsyPicture* otherPic)= 0;
-  
+
   /** Prepends a picture to this picture */
   virtual void prependToPicture(IAsyPicture* otherPic)= 0;
-  
+
   /** Returns whether this picture has labels */
   virtual bool hasLabels()= 0;
 
   /** Returns whether this picture has 3D elements */
   [[nodiscard]]
   virtual bool has3D() const= 0;
-  
+
   /** Returns whether this picture has embedded PNG images */
   [[nodiscard]]
   virtual bool hasPng() const= 0;
-  
+
   /**
    * Gets bounding box of the image.
    * @remark The returned bounding box is a copy, so it can
    * be modified without affecting the original picture
    */
   virtual IAsyBbox* getBounds()= 0;
-  
+
   /**
    * Gets 3D bounding box of the image.
    * @remark The returned bounding box is a copy, so it can
    * be modified without affecting the original picture
    */
   virtual IAsyBbox3* getBounds3()= 0;
-  
+
   /** Whether the picture is null */
   [[nodiscard]]
   virtual bool isNull() const= 0;
-  
+
   /** Creates a new image with specified transformation applied */
   [[nodiscard]]
-  virtual IAsyPicture* createTransformed(IAsyTransform const* transformPtr) const= 0;
+  virtual IAsyPicture*
+  createTransformed(IAsyTransform const* transformPtr) const= 0;
 
   /** Creates a new image with specified 3D transformation applied stored in
    * arrayPtr
    *
    * @param arrayPtr an array of
    * 4 sub-arrays where each sub-array is a double array with length of 4. This
-   * array stores the transformation information encoded as a row-major 4x4 matrix.
+   * array stores the transformation information encoded as a row-major 4x4
+   * matrix.
    */
   [[nodiscard]]
-  virtual IAsyPicture* createTransformedArray(IAsyArray const* arrayPtr) const= 0;
+  virtual IAsyPicture*
+  createTransformedArray(IAsyArray const* arrayPtr) const= 0;
+};
 };
 
 class IAsyContext
@@ -302,8 +306,7 @@ public:
   virtual THAsyString
   createNewAsyStringSized(char const* str, size_t const& size)= 0;
   virtual void updateAsyString(THAsyString asyStringPtr, char const* str)= 0;
-  virtual void
-  updateAsyStringSized(
+  virtual void updateAsyStringSized(
           THAsyString asyString, char const* str, size_t const& size
   )= 0;
 
@@ -545,9 +548,9 @@ public:
   // var frames
 
   virtual IAsyVarFrame* createNewVarFrame(size_t const& initialSize)= 0;
-  
+
   // picture
-  
+
   virtual IAsyPicture* createNewPicture(bool deconstruct)= 0;
 };
 
@@ -627,8 +630,8 @@ enum class BaseTypes : uint8_t
 
   /**
    * Corresponds to Asympote function type. If this type is specified in
-   * {@link Asy::TypeInfo}, {@link Asy::TypeInfo::extraData.functionTypeInfo} must be
-   * filled with appropriate information
+   * {@link Asy::TypeInfo}, {@link Asy::TypeInfo::extraData.functionTypeInfo}
+   * must be filled with appropriate information
    */
   FunctionType,
 };
@@ -1326,12 +1329,12 @@ enum class ClosureRequirement : uint8_t
    * This is the case when a variable escapes a lambda function.
    */
   Required= 0,
-  
+
   /** A closure is not required. */
   NotRequired,
 
   /**
-   * It is not yet known. When a lambda is run for the first time, the 
+   * It is not yet known. When a lambda is run for the first time, the
    * requirement is updated to {@link Required} or {@link NotRequired}.
    */
   Maybe,
@@ -1448,7 +1451,7 @@ class IAsyRecord
 {
 public:
   virtual ~IAsyRecord()= default;
-  
+
   /**
    * Returns the init lambda for the record. This is useful for creating
    * new instances of a record.
