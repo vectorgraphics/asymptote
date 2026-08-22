@@ -32,6 +32,7 @@ history
 
 
 ### Generated files
+/gc-build-flags.txt
 /Makefile
 /doc/Makefile
 /doc/png/Makefile

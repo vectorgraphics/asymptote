@@ -882,8 +882,15 @@ void AsyVkRender::createAllocator()
 
 static bool isRemoteX11()
 {
+#ifdef _WIN32
+  // DISPLAY-based remote-session detection is an X11 concept; on native
+  // Windows it is meaningless (and a stray DISPLAY value would spuriously
+  // force software rendering), so skip it there.
+  return false;
+#else
   char *display=getenv("DISPLAY");
   return display ? string(display).find(":") != 0 : false;
+#endif
 }
 
 void AsyVkRender::pickPhysicalDevice()

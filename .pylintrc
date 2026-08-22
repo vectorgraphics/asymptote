@@ -68,7 +68,10 @@ ignored-modules=
 
 # Python code to execute, usually for sys.path manipulation such as
 # pygtk.require().
-#init-hook=
+# Needed so load-plugins below can import misc/: pylint 3 does not put the
+# current directory on sys.path.  This assumes pylint is run from the repository
+# root, which the relative --rcfile=.pylintrc path already assumes.
+init-hook=import os, sys; sys.path.insert(0, os.getcwd())
 
 # Use multiple processes to speed up Pylint. Specifying 0 will auto-detect the
 # number of processors available to use, and will cap the count on Windows to
@@ -82,7 +85,9 @@ limit-inference-results=100
 
 # List of plugins (as comma separated values of python module names) to load,
 # usually to register additional checkers.
-load-plugins=
+# misc.pylint_module_size replaces the line-based too-many-lines with a
+# statement-based module size limit; see max-module-statements below.
+load-plugins=misc.pylint_module_size
 
 # Pickle collected data for later comparisons.
 persistent=yes
@@ -92,7 +97,11 @@ persistent=yes
 prefer-stubs=no
 
 # Minimum Python version to use for version dependent checks. Will default to
-# the version used to run pylint.
+# the version used to run pylint. Keep in sync with PY3_MINIMUM_VERSION in
+# cmake-scripts/options.cmake and python_version in mypy.ini. Note this covers
+# syntax and language features only, not stdlib availability: pylint passes
+# code calling math.lcm (3.9) or copytree(dirs_exist_ok=) (3.8). mypy.ini is
+# what catches those.
 py-version=3.7
 
 # Discover python modules and packages in the file system subtree.
@@ -103,10 +112,6 @@ recursive=no
 # directory used to determine a package namespace for modules located under the
 # source root.
 source-roots=
-
-# When enabled, pylint would attempt to guess common misconfiguration and emit
-# user-friendly hints instead of false-positive error messages.
-suggestion-mode=yes
 
 # Allow loading of arbitrary C extensions. Extensions are imported into the
 # active Python interpreter and may run arbitrary code.
@@ -323,6 +328,17 @@ max-statements=50
 min-public-methods=2
 
 
+[MODULE-SIZE]
+
+# Registered by misc/pylint_module_size.py (see load-plugins).  The module-level
+# counterpart of max-statements above, counted the same way, and the replacement
+# for too-many-lines: it measures code volume, so comments and docstrings do not
+# tell against it.  500 is 10x the per-function limit.  The largest module in the
+# tree counts 260 statements, so nothing is near this today -- it is a ceiling
+# put in place before one is needed, not a limit fitted around an existing file.
+max-module-statements=500
+
+
 [EXCEPTIONS]
 
 # Exceptions that will emit a warning when caught.
@@ -347,7 +363,10 @@ indent-string='    '
 # Maximum number of characters on a single line.
 max-line-length=88
 
-# Maximum number of lines in a module.
+# Maximum number of lines in a module.  Unused: too-many-lines is disabled in
+# favour of max-module-statements (see MESSAGES CONTROL), because this limit
+# counts raw physical lines and so penalizes documentation.  Left at the default
+# so that re-enabling the message needs no other change.
 max-module-lines=1000
 
 # Allow the body of a class to be on the same line as the declaration if body
@@ -444,6 +463,12 @@ disable=raw-checker-failed,
         missing-class-docstring,
         invalid-name,
         global-variable-not-assigned,
+        # Superseded by too-many-module-statements (misc/pylint_module_size.py):
+        # this one counts raw physical lines, so it fires on prose.  Its limit,
+        # max-module-lines, is left at its default in [FORMAT].  No module in
+        # the tree trips either limit at present, so the swap changes no current
+        # verdict; it decides which way the next large file gets judged.
+        too-many-lines,
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

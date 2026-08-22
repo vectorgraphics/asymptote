@@ -79,17 +79,25 @@ target_compile_options(asycore PUBLIC ${ASY_COMPILE_OPTS})
 # copy would collide with these objects). Each variant inherits asycore's
 # include dirs / macros / options via the PRIVATE link; any extra args become
 # build-specific compile definitions.
-function(add_settings_obj target)
+#
+# The sysdir is a required parameter rather than an ${ARGN} override: definitions
+# inherited from asycore are emitted after the target's own, so a global
+# -DASYMPTOTE_SYSDIR would win over anything set here (which is how the CTAN
+# binary silently ended up with the normal sysdir). ASYMPTOTE_SYSDIR is
+# therefore not in ASY_MACROS; settings.cc is its only consumer.
+function(add_settings_obj target sysdir)
     add_library(${target} OBJECT ${ASY_SRC_DIR}/settings.cc)
     target_link_libraries(${target} PRIVATE asycore)
     target_compile_options(${target} PRIVATE ${ASY_COMPILE_OPTS})
-    target_compile_definitions(${target} PRIVATE ${ARGN})
+    target_compile_definitions(
+            ${target} PRIVATE ASYMPTOTE_SYSDIR="${sysdir}" ${ARGN}
+    )
 endfunction()
 
-#   settings_obj      -- normal binary (default ASYMPTOTE_SYSDIR, "NUL" on Win)
-#   settings_obj_ctan -- CTAN/TeXLive binary (ASYMPTOTE_SYSDIR="", CTAN_BUILD)
-add_settings_obj(settings_obj)
-add_settings_obj(settings_obj_ctan ASYMPTOTE_SYSDIR="" CTAN_BUILD)
+#   settings_obj      -- normal binary (ASYMPTOTE_SYSDIR_VALUE, "NUL" on Windows)
+#   settings_obj_ctan -- CTAN/TeXLive binary (empty sysdir: ask kpsewhich)
+add_settings_obj(settings_obj "${ASYMPTOTE_SYSDIR_VALUE}")
+add_settings_obj(settings_obj_ctan "" CTAN_BUILD)
 
 # asy executable (normal installer build)
 add_executable(
@@ -134,6 +142,13 @@ add_custom_target(asy-basefiles DEPENDS ${ASY_OUTPUT_BASE_FILES})
 include(cmake-scripts/copy-build-licenses.cmake)
 
 add_custom_target(asy-with-basefiles ALL DEPENDS asy asy-basefiles asy-licenses)
+
+# Everything the `asy-check-tests` ctest label runs against.  ctest only runs
+# binaries, it never builds them, so the binaries have to be up to date before
+# it starts -- and asy-with-basefiles is not enough: the relocatable matrix also
+# drives asy-ctan, which that target does not pull in.  Build this before
+# `ctest -L asy-check-tests`.
+add_custom_target(asy-check-test-deps DEPENDS asy-with-basefiles asy-ctan)
 
 # asy misc files
 if (ENABLE_MISCFILES_GEN)
