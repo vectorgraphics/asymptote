@@ -2635,7 +2635,7 @@ string embed3D(string prefix, string label=prefix, string text=label,
     (light.on() ? "Headlamp" : "None");
   if(defaultembed3Doptions != "") options3 += ","+defaultembed3Doptions;
 
-  if((settings.render < 0 || !settings.embed) && settings.auto3D)
+  if((settings.render != 0 || !settings.embed) && settings.auto3D)
     options3 += ",activate=pagevisible";
   options3 += ",3Dtoolbar="+(settings.toolbar ? "true" : "false")+
     ",label="+label+
