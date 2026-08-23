@@ -1615,7 +1615,7 @@ path3[] segment(triple[] v, bool[] cond, interpolate3 join=operator --)
 // 2, while data that doubles back reaches 3.2 at worst.  Cross sections
 // severely peaked at the seam itself can reach 4.4 and will fall back to
 // notaknot, which costs little on such data.
-real periodicSlopeTolerance=3;
+private real periodicSlopeTolerance=3;
 
 private bool slopesAgreeAtSeam(real[] a)
 {
