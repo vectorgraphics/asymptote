@@ -1347,6 +1347,9 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   }
 
   glEnable(GL_DEPTH_TEST);
+  // Required for gl_PointSize written in the vertex shader to take effect;
+  // without it, points rasterize at the default 1-pixel size.
+  glEnable(GL_PROGRAM_POINT_SIZE);
 
   mode = DRAWMODE_WIREFRAME;
   cycleMode();
