@@ -76,7 +76,9 @@ static string canonicalPath(std::filesystem::path const& path)
 #endif
 
 // Absolute path of the running executable, or "" if it cannot be determined.
-static string getExecutablePath()
+// Declared in locate.h: rendererloader.cc and vkrender.cc resolve co-installed
+// files (renderer shared libraries, ICD manifests) against it too.
+string executablePath()
 {
 #if defined(_WIN32)
   // GetModuleFileNameW truncates rather than failing when the path does not
@@ -119,6 +121,56 @@ static string getExecutablePath()
 #endif
 }
 
+// The directory part of path, or nullopt if it has none. An optional rather
+// than a string because a path directly under a POSIX root has an empty
+// directory part ("/bin" -> ""), which "" as a return value would conflate with
+// having no directory part at all ("asy" -> nullopt).
+//
+// A backslash is an ordinary character in a POSIX filename, so scanning for the
+// last separator is exactly right there. On MSWindows it is not, which is why
+// that branch defers to std::filesystem::path:
+//
+//  - "C:\asy.exe" splits to "C:", which is drive-*relative*: appending to it
+//    resolves against the current directory of drive C:, not its root.
+//    parent_path() yields "C:\" instead.
+//  - 0x5C is a legal trail byte in Shift-JIS, Big5 and GBK, so a scan of the
+//    narrow (process code page) form can split in the middle of a character.
+//    path parses the wide form, where it cannot.
+//  - a UNC path keeps its root name: "\\server\share" rather than "\\server".
+//
+// A root parent is the one result that carries a trailing separator ("C:\"), so
+// a caller appending "/base" to it gets "C:\/base"; Win32 collapses the doubled
+// separator, and no non-root parent is affected.
+static optional<string> parentDir(string const& path)
+{
+#if defined(_WIN32)
+  std::filesystem::path const full(path.c_str());
+  if (!full.has_parent_path())
+    return nullopt;
+  // A parent that exists is never empty on MSWindows -- it is at minimum a root
+  // ("C:\", "\") or a drive ("C:") -- so an empty result here means narrowPath()
+  // failed. Report no parent rather than "", which the caller would otherwise
+  // append to and get a path relative to the current drive.
+  string const dir= narrowPath(full.parent_path());
+  if (dir.empty())
+    return nullopt;
+  return dir;
+#else
+  size_t slash= path.find_last_of('/');
+  if (slash == string::npos)
+    return nullopt;
+  return path.substr(0, slash);
+#endif
+}
+
+// The directory containing the running executable, or "" if it cannot be
+// determined. An executablePath() that is empty, or that has no separator at
+// all, both yield "" here.
+string executableDir()
+{
+  return parentDir(executablePath()).value_or("");
+}
+
 // A directory is only accepted as a base directory if it contains this file.
 // Mere existence of the directory proves nothing: the compiled-in path may
 // belong to an unrelated (or half-removed) Asymptote installation.
@@ -156,34 +208,33 @@ string resolveSysdir(string const& compiledInSysdir)
   if (compiledInSysdir.empty())
     return compiledInSysdir;
 
-  string exe= getExecutablePath();
-  if (!exe.empty()) {
-    size_t slash= exe.find_last_of("/\\");
-    if (slash != string::npos) {
-      string bindir= exe.substr(0, slash);
-      // Build tree: base/ sits next to the executable.
-      string buildBase= bindir + "/base";
-      if (isBaseDir(buildBase)) {
-        relocatedSysdir= true;
-        return buildBase;
-      }
-#ifdef IS_RELOCATABLE
-      // Install tree: <prefix>/bin/asy with data in <prefix>/share/asymptote.
-      size_t slash2= bindir.find_last_of("/\\");
-      if (slash2 != string::npos) {
-        string shareBase= bindir.substr(0, slash2) + "/share/asymptote";
-        if (isBaseDir(shareBase)) {
-          relocatedSysdir= true;
-          return shareBase;
-        }
-      }
-      // Flat layout (the MSWindows installer): base files beside asy.exe.
-      if (isBaseDir(bindir)) {
-        relocatedSysdir= true;
-        return bindir;
-      }
-#endif
+  // parentDir() rather than executableDir(), so that an executable sitting
+  // directly in the filesystem root still gets its candidates tried.
+  optional<string> const exeDir= parentDir(executablePath());
+  if (exeDir) {
+    string const& bindir= *exeDir;
+    // Build tree: base/ sits next to the executable.
+    string buildBase= bindir + "/base";
+    if (isBaseDir(buildBase)) {
+      relocatedSysdir= true;
+      return buildBase;
     }
+#ifdef IS_RELOCATABLE
+    // Install tree: <prefix>/bin/asy with data in <prefix>/share/asymptote.
+    optional<string> const prefix= parentDir(bindir);
+    if (prefix) {
+      string shareBase= *prefix + "/share/asymptote";
+      if (isBaseDir(shareBase)) {
+        relocatedSysdir= true;
+        return shareBase;
+      }
+    }
+    // Flat layout (the MSWindows installer): base files beside asy.exe.
+    if (isBaseDir(bindir)) {
+      relocatedSysdir= true;
+      return bindir;
+    }
+#endif
   }
   return compiledInSysdir;
 }
