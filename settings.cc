@@ -22,9 +22,6 @@
 #define isatty _isatty
 #else
 #include <unistd.h>
-#ifdef __APPLE__
-#include <mach-o/dyld.h>
-#endif
 #endif
 
 #include "common.h"
@@ -108,30 +105,10 @@ mode_t mask;
 // Flag set by --version option to exit after all options are parsed
 static bool showVersion=false;
 
-// Use the compiled-in sysdir if it exists on disk; otherwise fall back to a
-// path relative to the running executable so that a staged installation works
-// when moved to a different location.
-static string initSysdir() {
-#if defined(__APPLE__) && defined(IS_RELOCATABLE)
-  char buf[4096];
-  uint32_t size = (uint32_t)sizeof(buf);
-  if (_NSGetExecutablePath(buf, &size) != 0)
-    return "";
-  string exe(buf);
-  // Strip the executable filename to get the bin directory.
-  size_t slash = exe.rfind('/');
-  if (slash == string::npos)
-    return "";
-  // Strip the bin directory to get the installation prefix.
-  size_t slash2 = exe.substr(0, slash).rfind('/');
-  if (slash2 == string::npos)
-    return "";
-  return exe.substr(0, slash2) + "/share/asymptote";
-#endif
-  return ASYMPTOTE_SYSDIR;
-}
-
-string systemDir=initSysdir();
+// systemDir is resolved by resolveSysdir() (declared in locate.h). Under CMake
+// this file is compiled once per executable so that ASYMPTOTE_SYSDIR can differ
+// between asy and asy-ctan; the autotools build has only the one executable.
+string systemDir=resolveSysdir(ASYMPTOTE_SYSDIR);
 string defaultPSdriver="ps2write";
 string defaultEPSdriver="eps2write";
 string defaultPNGdriver="png16malpha"; // pngalpha has issues at high resolutions
@@ -314,8 +291,11 @@ void queryRegistry()
   if (!s.empty()) {
     docdir= s;
   }
-  // An empty systemDir indicates a TeXLive build
-  if (!systemDir.empty() && !docdir.empty())
+  // The registry entry describes a separately installed Asymptote, so it must
+  // not override a systemDir that initSysdir() resolved relative to this
+  // executable; that would send a binary run in place to the installed base/.
+  // An empty systemDir indicates a TeXLive build.
+  if (!systemDir.empty() && !docdir.empty() && !relocatedSysdir)
     systemDir= docdir;
 }
 
