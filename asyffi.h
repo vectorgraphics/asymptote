@@ -592,7 +592,7 @@ public:
 
   // picture
 
-  virtual IAsyPicture* createNewPicture(bool deconstruct)= 0;
+  virtual IAsyPicture* createPicture(bool deconstruct)= 0;
 
   // draw element creation functions
   virtual IAsyDrawElement*

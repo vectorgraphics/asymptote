@@ -361,7 +361,7 @@ IAsyVarFrame* AsyContextImpl::createNewVarFrame(const size_t& initialSize)
 {
   return new vm::vmFrame(initialSize);
 }
-IAsyPicture* AsyContextImpl::createNewPicture(bool const deconstruct)
+IAsyPicture* AsyContextImpl::createPicture(bool const deconstruct)
 {
   return new picture(deconstruct);
 }

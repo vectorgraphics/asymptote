@@ -134,7 +134,7 @@ public:
 
   IAsyVarFrame* createNewVarFrame(const size_t& initialSize) override;
 
-  IAsyPicture* createNewPicture(bool deconstruct) override;
+  IAsyPicture* createPicture(bool deconstruct) override;
 
   IAsyDrawElement* createDrawElementFromPath(
           IAsyPath* path, IAsyPen* pen, const char* key
