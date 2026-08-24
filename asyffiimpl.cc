@@ -467,7 +467,7 @@ IAsyDrawElement* AsyContextImpl::createDrawElementForFunctionShade(
           fromCharConstOrEmpty(key)
   );
 }
-IAsyDrawElement* AsyContextImpl::createDrawElementForGourandShade(
+IAsyDrawElement* AsyContextImpl::createDrawElementForGouraudShade(
         const IAsyArray* srcPaths, bool const stroke, IAsyPen* penType,
         const IAsyArray* pens, const IAsyArray* pairVertices,
         const IAsyArray* intEdges, const char* key
