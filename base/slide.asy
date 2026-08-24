@@ -6,7 +6,6 @@ bool stepping=false;    // Set to true to enable stepping.
 bool itemstep=true;     // Set to false to disable stepping on each item.
 
 settings.toolbar=false; // Disable 3D toolbar by default.
-if(settings.render < 0) settings.render=4;
 
 bool allowstepping=false; // Allow stepping for current slide.
 

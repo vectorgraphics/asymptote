@@ -1511,7 +1511,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 
 #ifndef HAVE_LIBOSMESA
 #ifndef HAVE_RENDERER
-  if(!webgl) {
+  if(!webgl && !v3d) {
 #ifdef _WIN32
     string extra="vulkan and glslang";
 #else

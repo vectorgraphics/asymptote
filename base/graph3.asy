@@ -2073,6 +2073,22 @@ surface surface(picture pic=currentpicture, triple f(pair z),
                                   vperiodic(fz) ? periodic : notaknot};
   } else if(vsplinetype.length != 3) abort("vsplinetype must have length 3");
 
+  // If periodic interpolation is requested in a direction (explicitly or via
+  // the automatic detection above), force exact periodicity of the sampled
+  // data by overwriting the last sample with the first one.  The periodic
+  // splinetype has a strict endpoint test, and this makes it pass for
+  // parametrizations that are periodic up to evaluation noise (e.g. piece-
+  // wise-defined closed surfaces).  Skipped when a cond() is in use so that
+  // inactive grid points are not altered.
+  if(all)
+    for(int comp=0; comp<3; ++comp){
+      real[][] g=(comp==0)?fx:(comp==1?fy:fz);
+      if(usplinetype[comp]==periodic)
+        for(int j=0;j<=nv;++j) g[nu][j]=g[0][j];
+      if(vsplinetype[comp]==periodic)
+        for(int i=0;i<=nu;++i) g[i][nv]=g[i][0];
+    }
+
   real[][][] sx=bispline(fx,ipt,jpt,usplinetype[0],vsplinetype[0],active);
   real[][][] sy=bispline(fy,ipt,jpt,usplinetype[1],vsplinetype[1],active);
   real[][][] sz=bispline(fz,ipt,jpt,usplinetype[2],vsplinetype[2],active);

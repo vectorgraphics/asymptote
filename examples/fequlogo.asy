@@ -4,8 +4,6 @@ import obj;
 size(200,0);
 size3(200);
 
-if(settings.render < 0) settings.render=8;
-
 texpreamble("\usepackage[T1]{fontenc}");
 texpreamble("\usepackage{ccfonts,eulervm}");
 
