@@ -82,6 +82,8 @@ inline bool isNVIDIA30xx(const char* deviceStr)
           s.find("GA10") != string::npos);
 }
 
+double pixelsPerBp();
+
 } // namespace camp
 
 #ifdef HAVE_LIBGLM
@@ -360,7 +362,6 @@ public:
 
   // Window/viewport management
   int screenWidth, screenHeight;
-  double devicePixelRatio;
   int Width, Height;
   int oldWidth, oldHeight;
   double Aspect;
