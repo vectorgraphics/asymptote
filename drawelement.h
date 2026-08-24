@@ -111,7 +111,7 @@ public:
   drawElement(const string& key="") : KEY(key == "" ? processData().KEY : key)
   {}
 
-  virtual ~drawElement() {}
+  virtual ~drawElement() override= default;
 
   static mem::vector<triple> centers;
   static centerMap centermap;
@@ -150,17 +150,22 @@ public:
   virtual void maxratio(pair &b, double fuzz, bool &first) {
     maxratio(NULL,b,fuzz,first);
   }
+  
+  [[nodiscard]]
+  virtual bool islabel() const { return false;}
+  
+  [[nodiscard]]
+  virtual bool isnewpage() const {return false; }
 
-  virtual bool islabel() {return false;}
+  [[nodiscard]]
+  virtual bool islayer() const { return false; }
 
-  virtual bool isnewpage() {return false;}
-
-  virtual bool islayer() {return false;}
-
-  virtual bool is3D() {return false;}
+  [[nodiscard]]
+  virtual bool is3D() const { return false;}
 
 // Implement element as raw SVG code?
-  virtual bool svg() {return false;}
+  [[nodiscard]]
+  virtual bool svg() const { return false; }
 
 // Implement SVG element as png image?
   virtual bool svgpng() {return false;}
@@ -238,6 +243,18 @@ public:
   {
     return transformed(transform);
   }
+  
+  [[nodiscard]]
+  Asy::IAsyDrawElementInfo getDrawElementInfo() const override
+  {
+    return {
+      islabel(),
+      isnewpage(),
+      islayer(),
+      is3D(),
+      svg()
+    };
+  }
 };
 
 // Hold transform of an object.
@@ -262,7 +279,8 @@ public:
 
   virtual ~drawElementLC() {}
 
-  virtual bool is3D() {return true;}
+  [[nodiscard]]
+  virtual bool is3D() const override { return true;}
 
   virtual const double* transf3() {return T;}
 

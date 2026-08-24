@@ -27,7 +27,8 @@ public:
     if(!stroke && !cyclic()) noncyclic();
   }
 
-  bool svg() {return true;}
+  [[nodiscard]]
+  bool svg() const { return true;}
 
   // dvisvgm doesn't yet support SVG patterns.
   bool svgpng() {return pentype.fillpattern() != "";}
@@ -244,8 +245,9 @@ public:
   bool draw(psfile *out) {return false;}
 
   bool write(texfile *, const bbox&);
-
-  bool islabel() {return true;}
+  
+  [[nodiscard]]
+  bool islabel() const override { return true;}
 
   drawElement *transformed(const transform& t);
 };

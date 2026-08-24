@@ -28,7 +28,9 @@ public:
     b += t*pair(1,1);
   }
 
-  bool svg() {return true;}
+  [[nodiscard]]
+  bool svg() const override { return true;}
+  
   bool svgpng() {return true;}
 };
 

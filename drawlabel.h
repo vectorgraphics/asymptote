@@ -47,7 +47,8 @@ public:
 
   void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&);
 
-  bool islabel() {
+  [[nodiscard]]
+  bool islabel() const override {
     return true;
   }
 
@@ -71,7 +72,8 @@ public:
 
   virtual ~drawLabelPath() {}
 
-  bool svg() {return true;}
+  [[nodiscard]]
+  bool svg() const { return true; }
   bool svgpng() {return true;}
 
   void bounds(bbox& b, iopipestream& tex, boxvector&, bboxlist&);

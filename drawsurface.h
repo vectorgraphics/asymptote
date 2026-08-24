@@ -124,7 +124,8 @@ public:
 
   virtual ~drawSurface() {}
 
-  bool is3D() {return true;}
+  [[nodiscard]]
+  bool is3D() const override { return true;}
 };
 
 class drawBezierPatch : public drawSurface {
@@ -318,7 +319,8 @@ public:
 #endif
   }
 
-  bool is3D() {return true;}
+  [[nodiscard]]
+  bool is3D() const { return true;}
 
   void bounds(const double* t, bbox3& b);
 
@@ -658,7 +660,8 @@ public:
     }
   }
 
-  bool is3D() {return true;}
+  [[nodiscard]]
+  bool is3D() const { return true; }
 
   void bounds(const double* t, bbox3& b);
 

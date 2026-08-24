@@ -234,6 +234,30 @@ struct Material3D {
    * as specular, and third as emissive */
   IAsyArray const* dseColors;
 };
+
+/**
+ * Information about a particular draw element. Note that
+ * this struct is not for creating a new draw element, but rather
+ * to retrieve information about it (for example, whether the draw
+ * element is 3D)
+ */
+struct IAsyDrawElementInfo
+{
+  /** Whether the element is a label */
+  bool isLabel;
+  
+  /** Whether the element is a new page */
+  bool isNewPage;
+  
+  /** Whether the element is layer */
+  bool isLayer;
+  
+  /** Whether the element is 3D */
+  bool is3D;
+  
+  /** Whether the element is implemented as raw svg */
+  bool isSvg;
+};
 }// namespace Asy
 
 /** Interface for Asymptote draw element. This is a combination of drawable
@@ -258,6 +282,9 @@ public:
    * in row-major order
    */
   virtual IAsyDrawElement* createTransformed3d(double const* transform)= 0;
+  
+  [[nodiscard]]
+  virtual Asy::IAsyDrawElementInfo getDrawElementInfo() const= 0;
 };
 
 /** Interface for Asymptote pictures */

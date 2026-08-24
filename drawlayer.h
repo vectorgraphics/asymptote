@@ -18,7 +18,8 @@ public:
 
   virtual ~drawLayer() {}
 
-  bool islayer() {return true;}
+  [[nodiscard]]
+  bool islayer() const { return true; }
 };
 
 class drawBBox : public drawLayer {
@@ -28,7 +29,8 @@ public:
   drawBBox() : box() {}
   drawBBox(const bbox& box) : box(box) {}
 
-  bool islayer() {return false;}
+  [[nodiscard]]
+  bool islayer() const { return false;}
   virtual ~drawBBox() {}
 
   bool write(texfile *out, const bbox& b) {
@@ -44,9 +46,14 @@ public:
 
   virtual ~drawNewPage() {}
 
-  bool islayer() {return true;}
-  bool islabel() {return true;}
-  bool isnewpage() {return true;}
+  [[nodiscard]]
+  bool islayer() const override { return true;}
+
+  [[nodiscard]]
+  bool islabel() const override { return true;}
+
+  [[nodiscard]]
+  bool isnewpage() const override {return true;}
 
   bool write(texfile *out, const bbox& b) {
     out->newpage(box.empty ? b : box);

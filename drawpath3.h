@@ -68,7 +68,8 @@ public:
 
   virtual ~drawPath3() {}
 
-  bool is3D() {return true;}
+  [[nodiscard]]
+  bool is3D() const { return true; }
 
   void bounds(const double* t, bbox3& B) {
     if(t != NULL) {
@@ -176,7 +177,8 @@ public:
 #endif
   }
 
-  bool is3D() {return true;}
+  [[nodiscard]]
+  bool is3D() const { return true;}
 
   void bounds(const double* t, bbox3& b);
 

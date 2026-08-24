@@ -43,7 +43,8 @@ public:
     }
   }
 
-  bool islabel() override {
+  [[nodiscard]]
+  bool islabel() const override {
     return language == TeX;
   }
 

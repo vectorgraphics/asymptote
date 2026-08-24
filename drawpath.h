@@ -24,7 +24,8 @@ public:
     strokebounds(b,p);
   }
 
-  bool svg() {return true;}
+  [[nodiscard]]
+  bool svg() const { return true;}
 
   bool draw(psfile *out);
 
