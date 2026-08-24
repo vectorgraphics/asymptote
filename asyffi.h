@@ -236,10 +236,28 @@ struct Material3D {
 };
 }// namespace Asy
 
+/** Interface for Asymptote draw element. This is a combination of drawable
+ * shapes and pen which can be directly added to a picture */
 class IAsyDrawElement
 {
 public:
   virtual ~IAsyDrawElement()= default;
+
+  /**
+   * Creates a new drawElement with the transform applied for 2D.
+   * Note that in some cases, the returned draw element may be this instance.
+   */
+  virtual IAsyDrawElement*
+  createTransformed2d(IAsyTransform const* transform)= 0;
+
+  /**
+   * Creates a new drawElement with the transform applied for 3D.
+   * Note that in some cases, the returned draw element may be this instance.
+   *
+   * @param transform Array of doubles representing a 4x4 transformation matrix
+   * in row-major order
+   */
+  virtual IAsyDrawElement* createTransformed3d(double const* transform)= 0;
 };
 
 /** Interface for Asymptote pictures */

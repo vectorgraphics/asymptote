@@ -227,7 +227,17 @@ public:
   virtual drawElement *transformed(const double* t) {
     return this;
   }
+  
+  // FFI functions
 
+  IAsyDrawElement* createTransformed2d(const IAsyTransform* transform) override
+  {
+    return transformed(*static_cast<class transform const*>(transform));
+  }
+  IAsyDrawElement* createTransformed3d(const double* transform) override
+  {
+    return transformed(transform);
+  }
 };
 
 // Hold transform of an object.
