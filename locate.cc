@@ -8,6 +8,7 @@
 #if defined(_WIN32)
 #  include <filesystem>
 #  include <system_error>
+#  include <vector>
 #  include <Windows.h>
 #else
 #  include <unistd.h>
@@ -44,9 +45,10 @@ bool relocatedSysdir= false;
 // A path containing characters outside that code page is therefore not
 // representable here, and path::string() substitutes for them silently.
 
-// Returns "" rather than letting an exception escape: resolveSysdir() runs as a
-// static initializer, where an escaping exception calls terminate() before
-// main() rather than being caught anywhere.
+// Returns "" rather than letting an exception escape. resolveSysdir() guards
+// its whole body for the static-initializer case, but this is also reached at
+// runtime through executableDir(), and "" is the not-representable answer both
+// paths already handle.
 static string narrowPath(std::filesystem::path const& path)
 {
   try {
@@ -82,21 +84,37 @@ string executablePath()
 {
 #if defined(_WIN32)
   // GetModuleFileNameW truncates rather than failing when the path does not
-  // fit, so allocate for the longest path Windows documents (32767 characters)
-  // rather than the MAX_PATH (260) that long-path support can exceed. That
-  // limit counts characters, so the wide form is what it bounds: the same
+  // fit, reporting the buffer size when it does. MAX_PATH (260) covers every
+  // path not using long-path support, so try the stack first and fall back to
+  // the heap only for the rare path that needs it. The fallback is sized for
+  // the longest path Windows can represent (32767 characters), so one retry
+  // either fits or the path is unobtainable -- there is nothing to loop over.
+  // That limit counts characters, so the wide form is what it bounds: the same
   // number of bytes can fall short of it under a double-byte code page.
-  DWORD const size= 32768;
-  mem::vector<wchar_t> buf(size);
-  DWORD len= GetModuleFileNameW(nullptr, buf.data(), size);
-  if (len == 0 || len == size)// 0: failed; size: truncated
+  //
+  // std::vector rather than mem::vector: the buffer never escapes and holds no
+  // collectable pointers, so there is no reason to place it under the garbage
+  // collector -- which would scan it for pointers.
+  DWORD const maxSize= 32768;
+  wchar_t stackBuf[MAX_PATH];
+  std::vector<wchar_t> heapBuf;// stays empty unless the stack buffer is short
+  wchar_t const* data= stackBuf;
+  DWORD len= GetModuleFileNameW(nullptr, stackBuf, MAX_PATH);
+  if (len == 0)// failed
     return "";
+  if (len == MAX_PATH) {// truncated; retry at the documented maximum
+    heapBuf.resize(maxSize);
+    len= GetModuleFileNameW(nullptr, heapBuf.data(), maxSize);
+    if (len == 0 || len == maxSize)
+      return "";
+    data= heapBuf.data();
+  }
   // GetModuleFileNameW does not resolve symlinks: launched through a link on
   // PATH it reports the link, whose directory holds no base/. Resolve it so
   // that such a link yields the real install prefix, as on the other two
   // platforms. Falling back to the unresolved path on failure mirrors what the
   // macOS branch does when realpath() fails.
-  std::filesystem::path const exe(buf.data(), buf.data() + len);
+  std::filesystem::path const exe(data, data + len);
   string resolved= canonicalPath(exe);
   return resolved.empty() ? narrowPath(exe) : resolved;
 #elif defined(__APPLE__)
@@ -199,44 +217,69 @@ static bool isBaseDir(string const& dir)
 // from a package, so it needs no opt-in. The install-tree and flat candidates
 // are gated behind IS_RELOCATABLE.
 //
-string resolveSysdir(string const& compiledInSysdir)
+// noexcept because this runs as a static initializer (settings.cc), where an
+// escaping exception calls terminate() before main() rather than being caught
+// anywhere. Marking it costs nothing there -- terminate() is what an escaping
+// exception would produce either way -- and states the contract in a form the
+// compiler checks rather than one a comment can drift away from. The body is
+// guarded as a whole rather than at each allocating step: every candidate is
+// built from strings and std::filesystem paths, so the throwing operations are
+// too many to enumerate reliably, and all of them mean the same thing here.
+//
+string resolveSysdir(string const& compiledInSysdir) noexcept
 {
-  // An empty compiled-in sysdir marks a TeXLive build, whose data directory is
-  // defined only by kpathsea. It must always defer to kpsewhich, so never
-  // relocate it relative to the executable -- even when a base/ sits beside the
-  // binary (e.g. when run in place from its build tree).
-  if (compiledInSysdir.empty())
-    return compiledInSysdir;
+  try {
+    // An empty compiled-in sysdir marks a TeXLive build, whose data directory
+    // is defined only by kpathsea. It must always defer to kpsewhich, so never
+    // relocate it relative to the executable -- even when a base/ sits beside
+    // the binary (e.g. when run in place from its build tree).
+    if (compiledInSysdir.empty())
+      return compiledInSysdir;
 
-  // parentDir() rather than executableDir(), so that an executable sitting
-  // directly in the filesystem root still gets its candidates tried.
-  optional<string> const exeDir= parentDir(executablePath());
-  if (exeDir) {
-    string const& bindir= *exeDir;
-    // Build tree: base/ sits next to the executable.
-    string buildBase= bindir + "/base";
-    if (isBaseDir(buildBase)) {
-      relocatedSysdir= true;
-      return buildBase;
-    }
-#ifdef IS_RELOCATABLE
-    // Install tree: <prefix>/bin/asy with data in <prefix>/share/asymptote.
-    optional<string> const prefix= parentDir(bindir);
-    if (prefix) {
-      string shareBase= *prefix + "/share/asymptote";
-      if (isBaseDir(shareBase)) {
+    // parentDir() rather than executableDir(), so that an executable sitting
+    // directly in the filesystem root still gets its candidates tried.
+    optional<string> const exeDir= parentDir(executablePath());
+    if (exeDir) {
+      string const& bindir= *exeDir;
+      // Build tree: base/ sits next to the executable.
+      string buildBase= bindir + "/base";
+      if (isBaseDir(buildBase)) {
         relocatedSysdir= true;
-        return shareBase;
+        return buildBase;
       }
-    }
-    // Flat layout (the MSWindows installer): base files beside asy.exe.
-    if (isBaseDir(bindir)) {
-      relocatedSysdir= true;
-      return bindir;
-    }
+#ifdef IS_RELOCATABLE
+      // Install tree: <prefix>/bin/asy with data in <prefix>/share/asymptote.
+      optional<string> const prefix= parentDir(bindir);
+      if (prefix) {
+        string shareBase= *prefix + "/share/asymptote";
+        if (isBaseDir(shareBase)) {
+          relocatedSysdir= true;
+          return shareBase;
+        }
+      }
+      // Flat layout (the MSWindows installer): base files beside asy.exe.
+      if (isBaseDir(bindir)) {
+        relocatedSysdir= true;
+        return bindir;
+      }
 #endif
+    }
+    return compiledInSysdir;
+  } catch (...) {
+    // asy_malloc() throws std::bad_alloc rather than returning null, so any
+    // allocation above can land here. Treat it as "no candidate matched" and
+    // use the compiled-in path, which is what an installed binary resolves to
+    // anyway; relocatedSysdir is left false, so a MSWindows registry entry
+    // still applies.
+    //
+    // Deliberately not "": that value marks a TeXLive build and would divert
+    // the search to kpsewhich, silently mis-configuring a binary that is not
+    // one. Copying compiledInSysdir can itself allocate, but if that fails the
+    // process is out of memory before main() and terminating is the honest
+    // outcome -- and the MSWindows sysdir is short enough to fit a string's
+    // internal buffer, so it does not allocate there at all.
+    return compiledInSysdir;
   }
-  return compiledInSysdir;
 }
 
 namespace fs

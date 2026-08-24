@@ -37,8 +37,9 @@ string executableDir();
 // base/ rather than that of a separately installed Asymptote. Callers must pass
 // ASYMPTOTE_SYSDIR in: under CMake it differs between asy and asy-ctan, and
 // settings.cc is the only source file compiled separately per executable.
-// See locate.cc.
-string resolveSysdir(string const& compiledInSysdir);
+// noexcept: it runs as a static initializer, so it reports every failure by
+// falling back to compiledInSysdir rather than by throwing. See locate.cc.
+string resolveSysdir(string const& compiledInSysdir) noexcept;
 
 // True if initSysdir() resolved systemDir relative to the running executable.
 // Used to keep an installed Asymptote's configuration (the MSWindows registry
