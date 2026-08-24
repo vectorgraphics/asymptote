@@ -241,20 +241,19 @@ struct Material3D {
  * to retrieve information about it (for example, whether the draw
  * element is 3D)
  */
-struct IAsyDrawElementInfo
-{
+struct IAsyDrawElementInfo {
   /** Whether the element is a label */
   bool isLabel;
-  
+
   /** Whether the element is a new page */
   bool isNewPage;
-  
+
   /** Whether the element is layer */
   bool isLayer;
-  
+
   /** Whether the element is 3D */
   bool is3D;
-  
+
   /** Whether the element is implemented as raw svg */
   bool isSvg;
 };
@@ -282,7 +281,7 @@ public:
    * in row-major order
    */
   virtual IAsyDrawElement* createTransformed3d(double const* transform)= 0;
-  
+
   [[nodiscard]]
   virtual Asy::IAsyDrawElementInfo getDrawElementInfo() const= 0;
 };
@@ -650,6 +649,45 @@ public:
 
   virtual IAsyDrawElement* createDrawElementForPixel(
           IAsyTuple* point, IAsyPen const* pen, double width, char const* key
+  )= 0;
+
+  virtual IAsyDrawElement* createDrawElementForFill(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          char const* key
+  )= 0;
+
+  virtual IAsyDrawElement* createDrawElementForLatticeShade(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          IAsyArray const* pens, IAsyTransform const* transf, char const* key
+  )= 0;
+
+  virtual IAsyDrawElement* createDrawElementForAxialShade(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          IAsyTuple* pairA, bool extendA, IAsyPen* penB, IAsyTuple* pairB,
+          bool extendB, char const* key
+  )= 0;
+
+  virtual IAsyDrawElement* createDrawElementForRadialShade(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          IAsyTuple* pairA, double const& ra, bool extendA, IAsyPen* penB,
+          IAsyTuple* pairB, double const& rb, bool extendB, char const* key
+  )= 0;
+
+  virtual IAsyDrawElement* createDrawElementForFunctionShade(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          char const* shader, char const* key
+  )= 0;
+
+  virtual IAsyDrawElement* createDrawElementForGourandShade(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          IAsyArray const* pens, IAsyArray const* pairVertices,
+          IAsyArray const* intEdges, char const* key
+  )= 0;
+
+  virtual IAsyDrawElement* createDrawElementForTensorShade(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          IAsyArray const* pens, IAsyArray const* boundaries,
+          IAsyArray const* z, char const* key
   )= 0;
 };
 

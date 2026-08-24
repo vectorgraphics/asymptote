@@ -31,7 +31,7 @@ public:
   bool svg() const { return true;}
 
   // dvisvgm doesn't yet support SVG patterns.
-  bool svgpng() {return pentype.fillpattern() != "";}
+  bool svgpng() { return !pentype.fillpattern().empty(); }
 
   virtual ~drawFill() {}
 

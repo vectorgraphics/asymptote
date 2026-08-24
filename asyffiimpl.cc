@@ -3,6 +3,7 @@
 #include "absyn.h"
 #include "coenv.h"
 #include "common.h"
+#include "drawfill.h"
 #include "drawpath.h"
 #include "drawpath3.h"
 #include "path3.h"
@@ -369,46 +370,137 @@ IAsyDrawElement* AsyContextImpl::createDrawElementFromPath(
         IAsyPath* path, IAsyPen* pen, const char* key
 )
 {
-  string const keyStr(key == nullptr ? "" : key);
+
   return new drawPath(
-          *(static_cast<class path*>(path)), *(static_cast<class pen*>(pen)),
-          keyStr
+          castDynamicAndDereference<class path>(path),
+          castDynamicAndDereference<class pen>(pen), fromCharConstOrEmpty(key)
   );
 }
 IAsyDrawElement* AsyContextImpl::createDrawElementFromPath3(
-        IAsyPath3* path3, IAsyTuple* center, double opacity,
-        const Asy::Material3D& material, bool billboard, const char* key
+        IAsyPath3* path3, IAsyTuple* center, double const opacity,
+        const Asy::Material3D& material, bool const billboard, const char* key
 )
 {
-  auto* centerCasted= dynamic_cast<triple*>(center);
-  if (centerCasted == nullptr) {
-    reportError("Center point is not triple dimension");
-    return nullptr;
-  }
-  
-  string const keyStr(key == nullptr ? "" : key);
   return new drawPath3(
-          *static_cast<class path3*>(path3), *centerCasted,
-          *static_cast<vm::array const*>(material.dseColors), opacity,
-          material.shininess, material.metallic, material.fresnel0,
-          billboard ? Interaction::BILLBOARD : Interaction::EMBEDDED, keyStr
+          castDynamicAndDereference<class path3>(path3),
+          castDynamicAndDereference<triple>(center),
+          castDynamicAndDereference<vm::array const>(material.dseColors),
+          opacity, material.shininess, material.metallic, material.fresnel0,
+          billboard ? Interaction::BILLBOARD : Interaction::EMBEDDED,
+          fromCharConstOrEmpty(key)
   );
 }
 IAsyDrawElement* AsyContextImpl::createDrawElementForPixel(
-        IAsyTuple* point, const IAsyPen* pen, double width, const char* key
+        IAsyTuple* point, const IAsyPen* pen, double const width,
+        const char* key
 )
 {
-  auto* centerCasted= dynamic_cast<triple*>(point);
-  if (centerCasted == nullptr) {
-    reportError("Point is not triple dimension");
-    return nullptr;
-  }
-  string const keyStr(key == nullptr ? "" : key);
   return new drawPixel(
-    *centerCasted, 
-    *static_cast<class pen const*>(pen),
-    width, keyStr
-    );
+          castDynamicAndDereference<triple>(point),
+          castDynamicAndDereference<class pen const>(pen), width,
+          fromCharConstOrEmpty(key)
+  );
+}
+IAsyDrawElement* AsyContextImpl::createDrawElementForFill(
+        IAsyArray const* srcPaths, bool const stroke, IAsyPen* penType,
+        const char* key
+)
+{
+  return new drawFill(
+          castDynamicAndDereference<vm::array const>(srcPaths), stroke,
+          castDynamicAndDereference<pen>(penType), fromCharConstOrEmpty(key)
+  );
+}
+
+IAsyDrawElement* AsyContextImpl::createDrawElementForLatticeShade(
+        IAsyArray const* srcPaths, bool const stroke, IAsyPen* penType,
+        IAsyArray const* pens, const IAsyTransform* transf, const char* key
+)
+{
+  return new drawLatticeShade(
+          castDynamicAndDereference<vm::array const>(srcPaths), stroke,
+          castDynamicAndDereference<pen>(penType),
+          castDynamicAndDereference<vm::array const>(pens),
+          transf != nullptr ? castDynamicAndDereference<transform const>(transf)
+                            : identity,
+          fromCharConstOrEmpty(key)
+  );
+}
+IAsyDrawElement* AsyContextImpl::createDrawElementForAxialShade(
+        IAsyArray const* srcPaths, bool const stroke, IAsyPen* penType,
+        IAsyTuple* pairA, bool const extendA, IAsyPen* penB, IAsyTuple* pairB,
+        bool const extendB, const char* key
+)
+{
+  return new drawAxialShade(
+          castDynamicAndDereference<vm::array const>(srcPaths), stroke,
+          castDynamicAndDereference<pen>(penType),
+          castDynamicAndDereference<pair>(pairA), extendA,
+          castDynamicAndDereference<pen>(penB),
+          castDynamicAndDereference<pair>(pairB), extendB,
+          fromCharConstOrEmpty(key)
+  );
+}
+IAsyDrawElement* AsyContextImpl::createDrawElementForRadialShade(
+        IAsyArray const* srcPaths, bool const stroke, IAsyPen* penType,
+        IAsyTuple* pairA, const double& ra, bool const extendA, IAsyPen* penB,
+        IAsyTuple* pairB, const double& rb, bool const extendB, const char* key
+)
+{
+  return new drawRadialShade(
+          castDynamicAndDereference<vm::array const>(srcPaths), stroke,
+          castDynamicAndDereference<pen>(penType),
+          castDynamicAndDereference<pair>(pairA), ra, extendA,
+          castDynamicAndDereference<pen>(penB),
+          castDynamicAndDereference<pair>(pairB), rb, extendB,
+          fromCharConstOrEmpty(key)
+  );
+}
+IAsyDrawElement* AsyContextImpl::createDrawElementForFunctionShade(
+        IAsyArray const* srcPaths, bool const stroke, IAsyPen* penType,
+        const char* shader, const char* key
+)
+{
+  return new drawFunctionShade(
+          castDynamicAndDereference<vm::array const>(srcPaths), stroke,
+          castDynamicAndDereference<pen>(penType), string(shader),
+          fromCharConstOrEmpty(key)
+  );
+}
+IAsyDrawElement* AsyContextImpl::createDrawElementForGourandShade(
+        const IAsyArray* srcPaths, bool const stroke, IAsyPen* penType,
+        const IAsyArray* pens, const IAsyArray* pairVertices,
+        const IAsyArray* intEdges, const char* key
+)
+{
+  return new drawGouraudShade(
+          castDynamicAndDereference<vm::array const>(srcPaths), stroke,
+          castDynamicAndDereference<pen>(penType),
+          castDynamicAndDereference<vm::array const>(pens),
+          castDynamicAndDereference<vm::array const>(pairVertices),
+          castDynamicAndDereference<vm::array const>(intEdges),
+          fromCharConstOrEmpty(key)
+  );
+}
+IAsyDrawElement* AsyContextImpl::createDrawElementForTensorShade(
+        const IAsyArray* srcPaths, bool const stroke, IAsyPen* penType,
+        const IAsyArray* pens, const IAsyArray* boundaries, const IAsyArray* z,
+        const char* key
+)
+{
+  return new drawTensorShade(
+          castDynamicAndDereference<vm::array const>(srcPaths), stroke,
+          castDynamicAndDereference<pen>(penType),
+          castDynamicAndDereference<vm::array const>(pens),
+          castDynamicAndDereference<vm::array const>(boundaries),
+          castDynamicAndDereference<vm::array const>(z),
+          fromCharConstOrEmpty(key)
+  );
+}
+
+string AsyContextImpl::fromCharConstOrEmpty(char const* originalStr)
+{
+  return {originalStr == nullptr ? "" : originalStr};
 }
 
 AsyStackContextImpl::AsyStackContextImpl(vm::stack* inStack) : stack(inStack) {}

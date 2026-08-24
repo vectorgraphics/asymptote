@@ -147,7 +147,56 @@ public:
           IAsyTuple* point, const IAsyPen* pen, double width, const char* key
   ) override;
 
+  IAsyDrawElement* createDrawElementForFill(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          const char* key
+  ) override;
+
+  IAsyDrawElement* createDrawElementForLatticeShade(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          IAsyArray const* pens, const IAsyTransform* transf, const char* key
+  ) override;
+  IAsyDrawElement* createDrawElementForAxialShade(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          IAsyTuple* pairA, bool extendA, IAsyPen* penB, IAsyTuple* pairB,
+          bool extendB, const char* key
+  ) override;
+  IAsyDrawElement* createDrawElementForRadialShade(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          IAsyTuple* pairA, const double& ra, bool extendA, IAsyPen* penB,
+          IAsyTuple* pairB, const double& rb, bool extendB, const char* key
+  ) override;
+  IAsyDrawElement* createDrawElementForFunctionShade(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          const char* shader, const char* key
+  ) override;
+  
+  IAsyDrawElement* createDrawElementForGourandShade(
+          const IAsyArray* srcPaths, bool stroke, IAsyPen* penType,
+          const IAsyArray* pens, const IAsyArray* pairVertices,
+          const IAsyArray* intEdges, const char* key
+  ) override;
+
+  IAsyDrawElement* createDrawElementForTensorShade(
+          const IAsyArray* srcPaths, bool stroke, IAsyPen* penType,
+          const IAsyArray* pens, const IAsyArray* boundaries,
+          const IAsyArray* z, const char* key
+  ) override;
+
 protected:
+  static string fromCharConstOrEmpty(char const* originalStr);
+
+  template<typename TCastedTo, typename TCastedFrom>
+  static TCastedTo& castDynamicAndDereference(TCastedFrom* ptr, bool checkNotNull=true)
+  {
+    static_assert(std::is_base_of_v<TCastedFrom, TCastedTo>);
+    auto* dynCastedPtr= dynamic_cast<TCastedTo*>(ptr);
+    if (checkNotNull && dynCastedPtr == nullptr) {
+      camp::reportError("Failed to dynamically cast ptr to requested type ");
+    }
+    return *dynCastedPtr;
+  }
+
   template<typename TImpl, typename TInterface, typename... TCreationArgs>
   static TInterface* createNewItemGeneric(TCreationArgs&&... args)
   {
