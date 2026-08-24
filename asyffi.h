@@ -639,51 +639,183 @@ public:
   virtual IAsyPicture* createPicture(bool deconstruct)= 0;
 
   // draw element creation functions
+
+  /**
+   * Creates a new 2D draw element from a given path and a pen. The key
+   * parameter is used to differentiate elements for use with xasy.
+   */
   virtual IAsyDrawElement*
   createDrawElementFromPath(IAsyPath* path, IAsyPen* pen, char const* key)= 0;
 
+  /** Creates a new 3D draw element from a given path and a pen. They key
+   * parameter is used to differentiate elements for use with xasy.
+   */
   virtual IAsyDrawElement* createDrawElementFromPath3(
           IAsyPath3* path3, IAsyTuple* center, double opacity,
           Asy::Material3D const& material, bool billboard, char const* key
   )= 0;
 
+  /**
+   * Creates a new 3D draw element from a single point.
+   *
+   * @param point A 3-tuple value representing a point in 3D space to place the
+   * pixel
+   * @param pen The pen to draw the point with
+   * @param width The width of the point
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   *
+   * @return a new 3D draw element
+   */
   virtual IAsyDrawElement* createDrawElementForPixel(
           IAsyTuple* point, IAsyPen const* pen, double width, char const* key
   )= 0;
 
+  /**
+   * Creates a new 2D fill element by a single color. For more information, see
+   * <a href="https://asymptote.sourceforge.io/doc/fill.html">here</a>
+   *
+   * @param srcPaths An array of {@link IAsyPath} pointers representing the paths to be used
+   * @param stroke Whether to also draw the stroke
+   * @param penType Pen for drawing
+   * @param key An optional unique key for xasy to differentiate elements. This value can be null.
+   * @return A new 2D fill element
+   */
   virtual IAsyDrawElement* createDrawElementForFill(
           IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
           char const* key
   )= 0;
 
+  /**
+   * Creates a new 2D fill element by lattice shade. For more information, see
+   * Asymptote's {@code void latticeshade(...)} function
+   * <a href="https://asymptote.sourceforge.io/doc/fill.html">here</a>
+   *
+   * @param srcPaths Array of paths to use for filling
+   * @param stroke Whether to also draw the boundaries with zerowinding rule
+   * @param penType Pen fill rule
+   * @param pens A 2D array of {@link IAsyPen} for use with drawing
+   * @param transf Optional transformation to apply. This value can be null, in which the
+   * identity transformation will be used
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   * @return A new 2D lattice shaded element
+   */
   virtual IAsyDrawElement* createDrawElementForLatticeShade(
           IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
           IAsyArray const* pens, IAsyTransform const* transf, char const* key
   )= 0;
 
+  /**
+   * Creates a new 2D fill element by axial shade as a line segment from point A
+   * to point B. For more information, see Asymptote's {@code void
+   * axialshade(...)} function <a
+   * href="https://asymptote.sourceforge.io/doc/fill.html">here</a>
+   *
+   * @param srcPaths Array of paths to use for filling
+   * @param stroke Whether to also draw the boundaries with zerowinding rule
+   * @param penType Pen to draw at point A
+   * @param pairA A pair indicating point A
+   * @param extendA Whether to extend A
+   * @param penB Pen to draw at point B
+   * @param pairB A pair indicating point B
+   * @param extendB Whether to extend B
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   *
+   * @return a new axial shaded draw element
+   */
   virtual IAsyDrawElement* createDrawElementForAxialShade(
           IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
           IAsyTuple* pairA, bool extendA, IAsyPen* penB, IAsyTuple* pairB,
           bool extendB, char const* key
   )= 0;
 
+  /**
+   * Creates a new 2D fill element by radial shade transitioning from circle A
+   * to circle B. For more information, see Asymptote's {@code void
+   * radialshade(...)} function <a
+   * href="https://asymptote.sourceforge.io/doc/fill.html">here</a>
+   *
+   * @param srcPaths Array of paths to use for filling
+   * @param stroke Whether to also draw the boundaries with zerowinding rule
+   * @param penType Pen to draw at circle A
+   * @param pairA Center of the circle A
+   * @param ra Radius of circle A
+   * @param extendA Whether to extend circle A
+   * @param penB Pen to draw at circle B
+   * @param pairB A pair indicating circle B
+   * @param rb Radius of circle B
+   * @param extendB Whether to extend circle B
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   *
+   * @return a new radial shaded draw element
+   */
   virtual IAsyDrawElement* createDrawElementForRadialShade(
           IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
           IAsyTuple* pairA, double const& ra, bool extendA, IAsyPen* penB,
           IAsyTuple* pairB, double const& rb, bool extendB, char const* key
   )= 0;
 
+  /**
+   * Creates a new 2D fill element with custom postscript calculator
+   * routine. For more information, see Asymptote's {@code void
+   * functionshade(...)} <a
+   * href="https://asymptote.sourceforge.io/doc/fill.html">here</a>.
+   *
+   * @param srcPaths Array of paths to use for filling
+   * @param stroke Whether to also the boundaries with zerowinding rule
+   * @param penType pen to use for filling
+   * @param shader String containing postscript calculator routine. This routine
+   * is in the form {@code (x: real, y: real) -> color} where x and y are values
+   * from [0,1] and color has the same number of components as {@code
+   * fillrule}'s color components.
+   * @param key An optional unique key for xasy to differentiate elements.
+   * This value can be null.
+   * @return a new function shaded draw element
+   */
   virtual IAsyDrawElement* createDrawElementForFunctionShade(
           IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
           char const* shader, char const* key
   )= 0;
 
-  virtual IAsyDrawElement* createDrawElementForGourandShade(
+  /**
+   * Creates a new 2D fill element with gouraud shading.
+   * For more information, see Asymptote's {@code void
+   * gouraudshade(...)} <a
+   * href="https://asymptote.sourceforge.io/doc/fill.html">here</a>.
+   * @param srcPaths Array of paths to use for filling
+   * @param stroke Whether to also the boundaries with zerowinding rule
+   * @param penType pen to use for filling
+   * @param pens Array of pens tfor each vertex color on a triangle lattice
+   * @param pairVertices Array of pairs to specify vertices of a triangle
+   * lattice to use for shading
+   * @param intEdges Flags for each edge of the triangle lattice
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   * @return a new gouraud shaded draw element
+   */
+  virtual IAsyDrawElement* createDrawElementForGouraudShade(
           IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
           IAsyArray const* pens, IAsyArray const* pairVertices,
           IAsyArray const* intEdges, char const* key
   )= 0;
-
+  /**
+   * Creates a new 2D fill element with tensor shading.
+   * For more information, see Asymptote's {@code void
+   * tensorshade(...)} <a
+   * href="https://asymptote.sourceforge.io/doc/fill.html">here</a>.
+   * @param srcPaths Array of paths to use for filling
+   * @param stroke Whether to also the boundaries with zerowinding rule
+   * @param penType pen to use for filling
+   * @param pens 2D Array of pens for each vertex color on a triangle lattice
+   * @param boundaries Array of paths. Each path must be of length 4
+   * @param z 2D array of internal control points.
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   * @return a new tensor shaded draw element
+   */
   virtual IAsyDrawElement* createDrawElementForTensorShade(
           IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
           IAsyArray const* pens, IAsyArray const* boundaries,

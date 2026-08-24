@@ -171,7 +171,7 @@ public:
           const char* shader, const char* key
   ) override;
   
-  IAsyDrawElement* createDrawElementForGourandShade(
+  IAsyDrawElement* createDrawElementForGouraudShade(
           const IAsyArray* srcPaths, bool stroke, IAsyPen* penType,
           const IAsyArray* pens, const IAsyArray* pairVertices,
           const IAsyArray* intEdges, const char* key
