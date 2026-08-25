@@ -12,10 +12,15 @@
 #  include <Windows.h>
 #else
 #  include <unistd.h>
-#  ifdef __APPLE__
+#  if defined(__APPLE__)
 #    include <limits.h>// PATH_MAX
 #    include <stdlib.h>// realpath
 #    include <mach-o/dyld.h>
+#  elif defined(__FreeBSD__)
+#    include <limits.h>// PATH_MAX
+#    include <string.h>// strnlen
+#    include <sys/types.h>// sysctl (documented prerequisite of sys/sysctl.h)
+#    include <sys/sysctl.h>// sysctl, CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME
 #  endif
 #endif
 
@@ -124,7 +129,7 @@ string executablePath()
   }
   // GetModuleFileNameW does not resolve symlinks: launched through a link on
   // PATH it reports the link, whose directory holds no base/. Resolve it so
-  // that such a link yields the real install prefix, as on the other two
+  // that such a link yields the real install prefix, as on the other
   // platforms. Falling back to the unresolved path on failure mirrors what the
   // macOS branch does when realpath() fails.
   std::filesystem::path const exe(data, data + len);
@@ -137,8 +142,8 @@ string executablePath()
     return "";
   // _NSGetExecutablePath may return a path containing symlinks or "..";
   // resolve it so that a symlinked bin directory (Homebrew, MacPorts) yields
-  // the real install prefix. Linux does not need this: /proc/self/exe is
-  // already fully resolved.
+  // the real install prefix. The other two POSIX branches do not need this:
+  // /proc/self/exe and kern.proc.pathname both arrive resolved.
   //
   // PATH_MAX (POSIX, 1024 here -- not to be confused with Win32's MAX_PATH)
   // is required: realpath() may write that many bytes to the buffer.
@@ -148,7 +153,65 @@ string executablePath()
   if (realpath(buf, resolved) != nullptr)
     return string(resolved);
   return string(buf);
+#elif defined(__FreeBSD__)
+  // FreeBSD cannot use the /proc/self/exe branch below: procfs(5) is not
+  // mounted on a stock system, and even where it is, it is FreeBSD's own procfs
+  // -- which spells this /proc/curproc/file -- rather than the Linux one. The
+  // supported way to ask is the kern.proc.pathname sysctl, present since
+  // FreeBSD 6.0 and the same thing "procstat -b" reports. A pid of -1 in the
+  // last mib slot asks about the calling process; the kernel special-cases it,
+  // so it skips both the process lookup and the permission check that asking
+  // about a numbered pid goes through.
+  //
+  // The other BSDs are deliberately not folded in here: NetBSD spells the same
+  // query with a different mib (KERN_PROC_ARGS, with KERN_PROC_PATHNAME as the
+  // *fourth* element), and OpenBSD has no equivalent at all. Each needs its own
+  // branch, written by someone who can test it.
+  //
+  // mib is deliberately not const: FreeBSD's sysctl() takes the name as
+  // const int*, but the historical BSD prototype does not, and a non-const
+  // array binds to either.
+  int mib[4]= {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
+  // One PATH_MAX buffer is enough, and no growth loop is needed: the kernel
+  // reconstructs this path into a buffer of MAXPATHLEN bytes, and MAXPATHLEN
+  // and PATH_MAX are both 1024 on FreeBSD, so a path too long to fit here is
+  // one the kernel could not have produced. If that ever ceases to hold,
+  // sysctl() fails with ENOMEM and we return "" -- resolveSysdir() then uses
+  // the compiled-in sysdir, which is what a non-relocatable build does anyway.
+  // (PATH_MAX is used for the same reason as in the __APPLE__ branch above:
+  // required here, and avoided everywhere else in this file because POSIX
+  // leaves it optional.)
+  char buf[PATH_MAX];
+  size_t size= sizeof(buf);
+  if (sysctl(mib, 4, buf, &size, nullptr, 0) != 0)
+    return "";
+  // Succeeding while writing nothing is a real outcome, not a contradiction:
+  // the kernel returns an empty result rather than an error for a process with
+  // no text vnode. Without this, buf would be read uninitialized.
+  if (size == 0)
+    return "";
+  // Bound the reported length by the buffer before using it as one: sysctl()
+  // cannot have written more than it was given room for, so a larger value
+  // would be a kernel bug -- and strnlen() would run off the end on it.
+  if (size > sizeof(buf))
+    size= sizeof(buf);
+  // size counts the terminating NUL that the kernel writes, so the string is
+  // one shorter. strnlen() rather than size - 1 so that a result that somehow
+  // arrived unterminated is bounded by what was actually written instead of
+  // running off the end of the buffer.
+  //
+  // No realpath() here, unlike the __APPLE__ branch: this path arrives already
+  // resolved, as /proc/self/exe does. The kernel does not record the string
+  // passed to execve(); it reconstructs a path from p_textvp, the vnode of the
+  // file that was executed. execve()'s lookup followed any symlinks on the way
+  // to that vnode, so it is the target's vnode and not the link's, and the name
+  // cache can only spell it as its own name in its own parent directory.
+  return string(buf, strnlen(buf, size));
 #else
+  // Linux, and anything else carrying a Linux-style /proc. The kernel resolves
+  // this symlink itself, so there is nothing left to canonicalize -- and
+  // nothing to fall back on either: a system with neither /proc nor a branch
+  // above needs one written for it, as FreeBSD did.
   char buf[4096];
   ssize_t len= readlink("/proc/self/exe", buf, sizeof(buf) - 1);
   if (len <= 0)
