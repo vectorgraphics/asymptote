@@ -980,6 +980,9 @@ void AsyVkRender::pickPhysicalDevice()
     physicalDevice = highestDeviceScore.second;
   }
 
+  maxComputeWorkGroupCountX=(uint32_t)physicalDevice.getProperties().limits.maxComputeWorkGroupCount[0];
+  maxComputeWorkGroupCountY=(uint32_t)physicalDevice.getProperties().limits.maxComputeWorkGroupCount[1];
+
   if(settings::verbose > 1)
     cout << "Using device " << physicalDevice.getProperties().deviceName
          << endl;
@@ -3579,9 +3582,8 @@ void AsyVkRender::setupPostProcessingComputeParameters()
 {
 // TODO: We should share this constant with the shader code & C++ side")
   uint32_t constexpr localGroupSize=20;
-
-  postProcessThreadGroupCount.width=ceilquotient(backbufferExtent.width, localGroupSize);
-  postProcessThreadGroupCount.height=ceilquotient(backbufferExtent.height, localGroupSize);
+  postProcessThreadGroupCount.width =std::min(ceilquotient(backbufferExtent.width, localGroupSize), maxComputeWorkGroupCountX);
+  postProcessThreadGroupCount.height=std::min(ceilquotient(backbufferExtent.height, localGroupSize), maxComputeWorkGroupCountY);
 }
 
 void AsyVkRender::createBlendPipeline() {
@@ -4195,6 +4197,7 @@ void AsyVkRender::refreshBuffers(FrameObject & object, int imageIndex) {
 
   beginFrameCommands(*object.computeCommandBuffer);
   g=ceilquotient(elements,groupSize);
+  g=std::min(g, maxComputeWorkGroupCountX);
   elements=groupSize*g;
 
   const unsigned int NSUMS=10000;

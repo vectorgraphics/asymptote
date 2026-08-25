@@ -64,6 +64,15 @@ bool vulkan = false;
 #include <pthread.h>
 #include <string>
 
+#ifndef _WIN32
+#  include <unistd.h>
+#  ifdef __APPLE__
+#    include <limits.h>
+#    include <stdlib.h>
+#    include <mach-o/dyld.h>
+#  endif
+#endif
+
 #include "settings.h"    // for settings::verbose
 #include "locate.h"       // for settings::locateFile
 
@@ -96,9 +105,56 @@ static void *glLibHandle = nullptr;
  * Returns a valid handle on success, or nullptr on failure.
  */
 #ifndef _WIN32
+// Directory containing the running executable, or "" if it cannot be
+// determined. Used to resolve the co-installed renderer shared libraries
+// relative to the executable rather than via the CWD-dependent Asymptote search
+// path (which can pick up a stale system-installed lib when asy is run from
+// outside the build directory). Mirrors settings::getExecutablePath() in
+// locate.cc.
+static string executableDir()
+{
+    char buf[4096];
+    const char *exePath = buf;
+#if defined(__APPLE__)
+    uint32_t size = (uint32_t)sizeof(buf);
+    if (_NSGetExecutablePath(buf, &size) != 0)
+        return "";
+    // Resolve symlinks so a symlinked bin directory (Homebrew, MacPorts) yields
+    // the real install prefix; fall back to the unresolved path on failure.
+    char resolved[PATH_MAX];
+    if (realpath(buf, resolved) != nullptr)
+        exePath = resolved;
+#else
+    ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+    if (len <= 0)
+        return "";
+    buf[len] = '\0';
+#endif
+    string exe(exePath);
+    size_t slash = exe.find_last_of('/');
+    if (slash == string::npos)
+        return "";
+    return exe.substr(0, slash);
+}
+
+// Resolve a renderer shared library path. Prefer a copy that sits next to the
+// executable (the build tree's lib); otherwise fall back to the Asymptote
+// search path. Relying on locateFile() alone is CWD-dependent and can pick up a
+// stale system-installed lib when asy is run from outside the build directory.
+static string resolveRendererLib(const char *libName)
+{
+    string dir = executableDir();
+    if (!dir.empty()) {
+        string candidate = dir + "/" + libName;
+        if (settings::fs::exists(candidate))
+            return candidate;
+    }
+    return settings::locateFile(libName, true, "");
+}
+
 static void *loadRendererLib(const char *libName)
 {
-    mem::string locPath = settings::locateFile(libName, true, "");
+    mem::string locPath = resolveRendererLib(libName);
     std::string pathStr = mem::stdString(locPath);
 
     return dlopen(pathStr.c_str(), RTLD_NOW | RTLD_LOCAL);
@@ -127,7 +183,7 @@ static bool tryLoadVulkanLib()
     CreateAsyVkRenderFn fn =
         reinterpret_cast<CreateAsyVkRenderFn>(GetProcAddress(vulkanLibHandle, "createAsyVkRender"));
 #else
-    mem::string locPath = settings::locateFile("libasyvulkan.so", true, "");
+    mem::string locPath = resolveRendererLib("libasyvulkan.so");
     std::string pathStr = mem::stdString(locPath);
 
     vulkanLibHandle = dlopen(pathStr.c_str(), RTLD_NOW | RTLD_LOCAL);
@@ -196,7 +252,7 @@ static bool tryLoadOpenGLLib()
     CreateAsyGLRenderFn fn =
         reinterpret_cast<CreateAsyGLRenderFn>(GetProcAddress(glLibHandle, "createAsyGLRender"));
 #else
-    mem::string locPath = settings::locateFile("libasyopengl.so", true, "");
+    mem::string locPath = resolveRendererLib("libasyopengl.so");
     std::string pathStr = mem::stdString(locPath);
 
     glLibHandle = dlopen(pathStr.c_str(), RTLD_NOW | RTLD_LOCAL);

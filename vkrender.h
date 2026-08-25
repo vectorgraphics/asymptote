@@ -184,6 +184,8 @@ private:
   vk::UniqueSurfaceKHR surface;
 
   vk::PhysicalDevice physicalDevice = nullptr;
+  uint32_t maxComputeWorkGroupCountX=0; // device compute limit, cached in pickPhysicalDevice
+  uint32_t maxComputeWorkGroupCountY=0; // device compute limit, cached in pickPhysicalDevice
   vk::UniqueDevice device;
 
   vma::cxx::UniqueAllocator allocator;

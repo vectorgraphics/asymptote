@@ -105,8 +105,10 @@ git -C C:\path\to\your\vcpkg pull
 & "C:\path\to\your\vcpkg\bootstrap-vcpkg.bat"
 ```
 
-Then re-run the `cmake --preset ...` command. This can recur whenever the pinned
-baseline is bumped to a commit newer than your last pull.
+Then re-run the `cmake --preset ...` command, first confirming that `$env:VCPKG_ROOT`
+points at the clone you just updated — inside the VS Developer PowerShell it does not by
+default, and configuring against the bundled snapshot will reproduce the same error. This
+can recur whenever the pinned baseline is bumped to a commit newer than your last pull.
 
 ## Using CMake
 
@@ -149,14 +151,36 @@ $vsInfo = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
 
 This prompt should put you in to 64-bit Visual Studio Developer PowerShell.
 
-> **Note on `VCPKG_ROOT` inside the VS Developer PowerShell.**
+> **Important: `VCPKG_ROOT` inside the VS Developer PowerShell.**
 > The Visual Studio Developer PowerShell sets `VCPKG_ROOT` to Visual Studio's own
 > bundled vcpkg (e.g. `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\vcpkg`),
 > overriding any user- or machine-scope `VCPKG_ROOT` for the duration of that shell.
-> That bundled copy is a stripped-down snapshot with no `.git` and no `bootstrap-vcpkg.bat`,
-> so commands like `git -C $env:VCPKG_ROOT pull` or `& "$env:VCPKG_ROOT\bootstrap-vcpkg.bat"`
-> will fail there. When maintaining your own vcpkg clone (fetch, pull, bootstrap),
-> use its explicit path rather than `$env:VCPKG_ROOT`.
+> That bundled copy is a stripped-down snapshot with no `.git` and no `bootstrap-vcpkg.bat`.
+>
+> This affects the build in two ways:
+>
+> - Maintenance commands such as `git -C $env:VCPKG_ROOT pull` or
+>   `& "$env:VCPKG_ROOT\bootstrap-vcpkg.bat"` fail outright, since the target is not a
+>   git repository and has no bootstrap script.
+> - **The `cmake --preset` step below reads its vcpkg toolchain from `$env:VCPKG_ROOT`**
+>   (see `base/vcpkg` in `cmake-preset-files/base-presets.json`). Left as the Developer
+>   PowerShell set it, configuration silently uses the bundled snapshot instead of your
+>   clone — so a clone you just updated has no effect, and the baseline errors described
+>   under "Troubleshooting: vcpkg baseline / version errors during configure" can persist
+>   or appear for the first time.
+>
+> After launching the Developer PowerShell, and before configuring, point `VCPKG_ROOT`
+> back at your own clone for the rest of the session:
+>
+> ```powershell
+> $env:VCPKG_ROOT = 'C:\path\to\your\vcpkg'
+> ```
+>
+> Verify with `$env:VCPKG_ROOT` before running `cmake --preset ...`; it should print your
+> clone, not a path under the Visual Studio installation directory. Note that setting the
+> variable at user or machine scope is not sufficient — the Developer PowerShell overrides
+> it in-process every time it is launched, so this must be redone in each such shell.
+> When maintaining your clone (fetch, pull, bootstrap), prefer its explicit path anyway.
 
 #### Configuring build files
 

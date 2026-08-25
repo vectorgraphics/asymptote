@@ -451,12 +451,6 @@ void AsyGLRender::drawFrame()
   }
 }
 
-// Return x divided by y rounded up to the nearest integer.
-int ceilquotient(int x, int y)
-{
-  return (x+y-1)/y;
-}
-
 void AsyGLRender::Export(int)
 {
   size_t ndata=3*fullWidth*fullHeight;
@@ -509,7 +503,7 @@ void AsyGLRender::Export(int)
         drawFrame();
         lastshader=-1;
 
-        // Efficient direct readback — single glReadPixels into final buffer
+        // Efficient direct readback -- single glReadPixels into final buffer
         GLint srcX  = tr.getSrcX();
         GLint srcY  = tr.getSrcY();
         GLint srcW  = tr.getSrcWidth();
@@ -529,7 +523,7 @@ void AsyGLRender::Export(int)
         cout << count << " tile" << (count != 1 ? "s" : "") << " drawn" << endl;
 
       picture pic;
-      drawRawImage *Image=NULL;  
+      drawRawImage *Image=NULL;
       double w=oWidth;
       double h=oHeight;
       double Aspect=((double) fullWidth)/fullHeight;
@@ -540,7 +534,7 @@ void AsyGLRender::Export(int)
       Image=new drawRawImage(data,fullWidth,fullHeight,
                              transform(0.0,0.0,w,0.0,0.0,h),
                              antialias);
-      pic.append(Image); 
+      pic.append(Image);
 
       pic.shipout(NULL,Prefix,Format,false,ViewExport);
       if(Image)
@@ -1353,6 +1347,9 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   }
 
   glEnable(GL_DEPTH_TEST);
+  // Required for gl_PointSize written in the vertex shader to take effect;
+  // without it, points rasterize at the default 1-pixel size.
+  glEnable(GL_PROGRAM_POINT_SIZE);
 
   mode = DRAWMODE_WIREFRAME;
   cycleMode();
