@@ -8,6 +8,7 @@
 #if defined(_WIN32)
 #  include <filesystem>// canonical
 #  include <system_error>// error_code
+#  include <vector>
 #  include <Windows.h>
 #else
 #  include <unistd.h>
@@ -48,9 +49,10 @@ bool relocatedSysdir= false;
 // means moving the whole process to UTF-8 (a manifest declaring it as the active
 // code page), which is not something this file can do on its own.
 //
-// Returns "" rather than letting an exception escape: resolveSysdir() runs as a
-// static initializer, where an escaping exception calls terminate() before
-// main() rather than being caught anywhere.
+// Returns "" rather than letting an exception escape. resolveSysdir() guards
+// its whole body for the static-initializer case, but this is also reached at
+// runtime through executableDir(), and "" is the not-representable answer both
+// paths already handle.
 static string narrowPath(std::filesystem::path const& path)
 {
   try {
@@ -89,25 +91,43 @@ static string canonicalPath(std::filesystem::path const& path)
 #endif
 
 // Absolute path of the running executable, or "" if it cannot be determined.
-static string getExecutablePath()
+// Declared in locate.h: rendererloader.cc and vkrender.cc resolve co-installed
+// files (renderer shared libraries, ICD manifests) against it too.
+string executablePath()
 {
 #if defined(_WIN32)
   // GetModuleFileNameW truncates rather than failing when the path does not
-  // fit, so allocate for the longest path Windows documents (32767 characters)
-  // rather than the MAX_PATH (260) that long-path support can exceed. That
-  // limit counts characters, so the wide form is what it bounds: the same
+  // fit, reporting the buffer size when it does. MAX_PATH (260) covers every
+  // path not using long-path support, so try the stack first and fall back to
+  // the heap only for the rare path that needs it. The fallback is sized for
+  // the longest path Windows can represent (32767 characters), so one retry
+  // either fits or the path is unobtainable -- there is nothing to loop over.
+  // That limit counts characters, so the wide form is what it bounds: the same
   // number of bytes can fall short of it under a double-byte code page.
-  DWORD const size= 32768;
-  mem::vector<wchar_t> buf(size);
-  DWORD len= GetModuleFileNameW(nullptr, buf.data(), size);
-  if (len == 0 || len == size)// 0: failed; size: truncated
+  //
+  // std::vector rather than mem::vector: the buffer never escapes and holds no
+  // collectable pointers, so there is no reason to place it under the garbage
+  // collector -- which would scan it for pointers.
+  DWORD const maxSize= 32768;
+  wchar_t stackBuf[MAX_PATH];
+  std::vector<wchar_t> heapBuf;// stays empty unless the stack buffer is short
+  wchar_t const* data= stackBuf;
+  DWORD len= GetModuleFileNameW(nullptr, stackBuf, MAX_PATH);
+  if (len == 0)// failed
     return "";
+  if (len == MAX_PATH) {// truncated; retry at the documented maximum
+    heapBuf.resize(maxSize);
+    len= GetModuleFileNameW(nullptr, heapBuf.data(), maxSize);
+    if (len == 0 || len == maxSize)
+      return "";
+    data= heapBuf.data();
+  }
   // GetModuleFileNameW does not resolve symlinks: launched through a link on
   // PATH it reports the link, whose directory holds no base/. Resolve it so
   // that such a link yields the real install prefix, as on the other two
   // platforms. Falling back to the unresolved path on failure mirrors what the
   // macOS branch does when realpath() fails.
-  std::filesystem::path const exe(buf.data(), buf.data() + len);
+  std::filesystem::path const exe(data, data + len);
   string resolved= canonicalPath(exe);
   return resolved.empty() ? narrowPath(exe) : resolved;
 #elif defined(__APPLE__)
@@ -135,6 +155,56 @@ static string getExecutablePath()
     return "";
   return string(buf, len);
 #endif
+}
+
+// The directory part of path, or nullopt if it has none. An optional rather
+// than a string because a path directly under a POSIX root has an empty
+// directory part ("/bin" -> ""), which "" as a return value would conflate with
+// having no directory part at all ("asy" -> nullopt).
+//
+// A backslash is an ordinary character in a POSIX filename, so scanning for the
+// last separator is exactly right there. On MSWindows it is not, which is why
+// that branch defers to std::filesystem::path:
+//
+//  - "C:\asy.exe" splits to "C:", which is drive-*relative*: appending to it
+//    resolves against the current directory of drive C:, not its root.
+//    parent_path() yields "C:\" instead.
+//  - 0x5C is a legal trail byte in Shift-JIS, Big5 and GBK, so a scan of the
+//    narrow (process code page) form can split in the middle of a character.
+//    path parses the wide form, where it cannot.
+//  - a UNC path keeps its root name: "\\server\share" rather than "\\server".
+//
+// A root parent is the one result that carries a trailing separator ("C:\"), so
+// a caller appending "/base" to it gets "C:\/base"; Win32 collapses the doubled
+// separator, and no non-root parent is affected.
+static optional<string> parentDir(string const& path)
+{
+#if defined(_WIN32)
+  std::filesystem::path const full(path.c_str());
+  if (!full.has_parent_path())
+    return nullopt;
+  // A parent that exists is never empty on MSWindows -- it is at minimum a root
+  // ("C:\", "\") or a drive ("C:") -- so an empty result here means narrowPath()
+  // failed. Report no parent rather than "", which the caller would otherwise
+  // append to and get a path relative to the current drive.
+  string const dir= narrowPath(full.parent_path());
+  if (dir.empty())
+    return nullopt;
+  return dir;
+#else
+  size_t slash= path.find_last_of('/');
+  if (slash == string::npos)
+    return nullopt;
+  return path.substr(0, slash);
+#endif
+}
+
+// The directory containing the running executable, or "" if it cannot be
+// determined. An executablePath() that is empty, or that has no separator at
+// all, both yield "" here.
+string executableDir()
+{
+  return parentDir(executablePath()).value_or("");
 }
 
 // A directory is only accepted as a base directory if it contains this file.
@@ -172,13 +242,24 @@ static bool isBaseDir(string const& dir)
 // separate mode: a TeXLive binary run from its build tree uses the adjacent
 // base/, and only a deployed one (bin/<platform>/asy, where no candidate
 // matches) consults kpsewhich.
-string resolveSysdir(string const& compiledInSysdir)
+//
+// noexcept because this runs as a static initializer (settings.cc), where an
+// escaping exception calls terminate() before main() rather than being caught
+// anywhere. Marking it costs nothing there -- terminate() is what an escaping
+// exception would produce either way -- and states the contract in a form the
+// compiler checks rather than one a comment can drift away from. The body is
+// guarded as a whole rather than at each allocating step: every candidate is
+// built from strings and std::filesystem paths, so the throwing operations are
+// too many to enumerate reliably, and all of them mean the same thing here.
+//
+string resolveSysdir(string const& compiledInSysdir) noexcept
 {
-  string exe= getExecutablePath();
-  if (!exe.empty()) {
-    size_t slash= exe.find_last_of("/\\");
-    if (slash != string::npos) {
-      string bindir= exe.substr(0, slash);
+  try {
+    // parentDir() rather than executableDir(), so that an executable sitting
+    // directly in the filesystem root still gets its candidates tried.
+    optional<string> const exeDir= parentDir(executablePath());
+    if (exeDir) {
+      string const& bindir= *exeDir;
       // Build tree: base/ sits next to the executable.
       string buildBase= bindir + "/base";
       if (isBaseDir(buildBase)) {
@@ -187,9 +268,9 @@ string resolveSysdir(string const& compiledInSysdir)
       }
 #ifdef IS_RELOCATABLE
       // Install tree: <prefix>/bin/asy with data in <prefix>/share/asymptote.
-      size_t slash2= bindir.find_last_of("/\\");
-      if (slash2 != string::npos) {
-        string shareBase= bindir.substr(0, slash2) + "/share/asymptote";
+      optional<string> const prefix= parentDir(bindir);
+      if (prefix) {
+        string shareBase= *prefix + "/share/asymptote";
         if (isBaseDir(shareBase)) {
           relocatedSysdir= true;
           return shareBase;
@@ -202,8 +283,22 @@ string resolveSysdir(string const& compiledInSysdir)
       }
 #endif
     }
+    return compiledInSysdir;
+  } catch (...) {
+    // asy_malloc() throws std::bad_alloc rather than returning null, so any
+    // allocation above can land here. Treat it as "no candidate matched" and
+    // use the compiled-in path, which is what an installed binary resolves to
+    // anyway; relocatedSysdir is left false, so a MSWindows registry entry
+    // still applies.
+    //
+    // Deliberately not "": that value marks a TeXLive build and would divert
+    // the search to kpsewhich, silently mis-configuring a binary that is not
+    // one. Copying compiledInSysdir can itself allocate, but if that fails the
+    // process is out of memory before main() and terminating is the honest
+    // outcome -- and the MSWindows sysdir is short enough to fit a string's
+    // internal buffer, so it does not allocate there at all.
+    return compiledInSysdir;
   }
-  return compiledInSysdir;
 }
 
 namespace fs

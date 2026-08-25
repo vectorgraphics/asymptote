@@ -64,17 +64,12 @@ bool vulkan = false;
 #include <pthread.h>
 #include <string>
 
-#ifndef _WIN32
-#  include <unistd.h>
-#  ifdef __APPLE__
-#    include <limits.h>
-#    include <stdlib.h>
-#    include <mach-o/dyld.h>
-#  endif
+#ifdef __APPLE__
+#  include <stdlib.h>    // for realpath(), setenv() in the llvmpipe fallback
 #endif
 
 #include "settings.h"    // for settings::verbose
-#include "locate.h"       // for settings::locateFile
+#include "locate.h"      // for settings::locateFile, settings::executableDir
 
 namespace camp {
 
@@ -105,45 +100,13 @@ static void *glLibHandle = nullptr;
  * Returns a valid handle on success, or nullptr on failure.
  */
 #ifndef _WIN32
-// Directory containing the running executable, or "" if it cannot be
-// determined. Used to resolve the co-installed renderer shared libraries
-// relative to the executable rather than via the CWD-dependent Asymptote search
-// path (which can pick up a stale system-installed lib when asy is run from
-// outside the build directory). Mirrors settings::getExecutablePath() in
-// locate.cc.
-static string executableDir()
-{
-    char buf[4096];
-    const char *exePath = buf;
-#if defined(__APPLE__)
-    uint32_t size = (uint32_t)sizeof(buf);
-    if (_NSGetExecutablePath(buf, &size) != 0)
-        return "";
-    // Resolve symlinks so a symlinked bin directory (Homebrew, MacPorts) yields
-    // the real install prefix; fall back to the unresolved path on failure.
-    char resolved[PATH_MAX];
-    if (realpath(buf, resolved) != nullptr)
-        exePath = resolved;
-#else
-    ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
-    if (len <= 0)
-        return "";
-    buf[len] = '\0';
-#endif
-    string exe(exePath);
-    size_t slash = exe.find_last_of('/');
-    if (slash == string::npos)
-        return "";
-    return exe.substr(0, slash);
-}
-
 // Resolve a renderer shared library path. Prefer a copy that sits next to the
 // executable (the build tree's lib); otherwise fall back to the Asymptote
 // search path. Relying on locateFile() alone is CWD-dependent and can pick up a
 // stale system-installed lib when asy is run from outside the build directory.
 static string resolveRendererLib(const char *libName)
 {
-    string dir = executableDir();
+    string dir = settings::executableDir();
     if (!dir.empty()) {
         string candidate = dir + "/" + libName;
         if (settings::fs::exists(candidate))
@@ -469,26 +432,15 @@ void createRenderer()
         // VK_ICD_FILENAMES so the Vulkan loader picks it up on the next
         // instance creation.
 
-        // 1) Determine the directory of our own executable.
-        std::string exeDir;
-        {
-            char buf[MAX_PATH];
-            DWORD len = GetModuleFileNameA(nullptr, buf, MAX_PATH);
-            if (len > 0 && len < MAX_PATH) {
-                std::string exePath(buf);
-                size_t slash = exePath.find_last_of("\\/");
-                if (slash != std::string::npos)
-                    exeDir = exePath.substr(0, slash + 1);
-            }
-        }
+        // 1) Determine the directory of our own executable. Both files below
+        //    fall back to a bare name -- resolved against the current
+        //    directory, and for the DLL against the standard search order --
+        //    if it cannot be determined.
+        std::string const exeDir = mem::stdString(settings::executableDir());
 
         // 2) Write lvp_icd.json next to the executable.
-        std::string icdName = "lvp_icd.json";
-        std::string icdPath;
-        if (!exeDir.empty())
-            icdPath = exeDir + icdName;
-        else
-            icdPath = icdName;
+        std::string icdPath =
+            exeDir.empty() ? "lvp_icd.json" : exeDir + "\\lvp_icd.json";
 
         {
             std::ofstream ofs(icdPath.c_str(), std::ios::trunc);
@@ -510,11 +462,8 @@ void createRenderer()
         _putenv_s("VK_ICD_FILENAMES", icdPath.c_str());
 
         // 4) Load vulkan_lvp.dll (the Lavapipe driver).
-        std::string lvpDllPath;
-        if (!exeDir.empty())
-            lvpDllPath = exeDir + "vulkan_lvp.dll";
-        else
-            lvpDllPath = "vulkan_lvp.dll";
+        std::string const lvpDllPath =
+            exeDir.empty() ? "vulkan_lvp.dll" : exeDir + "\\vulkan_lvp.dll";
 
         lvpLibHandle = LoadLibraryA(lvpDllPath.c_str());
         if (lvpLibHandle) {
