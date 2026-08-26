@@ -111,7 +111,7 @@ public:
   drawElement(const string& key="") : KEY(key == "" ? processData().KEY : key)
   {}
 
-  virtual ~drawElement() override= default;
+  ~drawElement() override= default;
 
   static mem::vector<triple> centers;
   static centerMap centermap;

@@ -257,6 +257,14 @@ struct IAsyDrawElementInfo {
   /** Whether the element is implemented as raw svg */
   bool isSvg;
 };
+
+enum class DrawVerbatimLanguage : uint8_t
+{
+  PostScript= 0,
+  TeX,
+  JavaScript
+};
+
 }// namespace Asy
 
 /** Interface for Asymptote draw element. This is a combination of drawable
@@ -675,10 +683,12 @@ public:
    * Creates a new 2D fill element by a single color. For more information, see
    * <a href="https://asymptote.sourceforge.io/doc/fill.html">here</a>
    *
-   * @param srcPaths An array of {@link IAsyPath} pointers representing the paths to be used
+   * @param srcPaths An array of {@link IAsyPath} pointers representing the
+   * paths to be used
    * @param stroke Whether to also draw the stroke
    * @param penType Pen for drawing
-   * @param key An optional unique key for xasy to differentiate elements. This value can be null.
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
    * @return A new 2D fill element
    */
   virtual IAsyDrawElement* createDrawElementForFill(
@@ -695,8 +705,8 @@ public:
    * @param stroke Whether to also draw the boundaries with zerowinding rule
    * @param penType Pen fill rule
    * @param pens A 2D array of {@link IAsyPen} for use with drawing
-   * @param transf Optional transformation to apply. This value can be null, in which the
-   * identity transformation will be used
+   * @param transf Optional transformation to apply. This value can be null, in
+   * which the identity transformation will be used
    * @param key An optional unique key for xasy to differentiate elements. This
    * value can be null.
    * @return A new 2D lattice shaded element
@@ -820,6 +830,62 @@ public:
           IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
           IAsyArray const* pens, IAsyArray const* boundaries,
           IAsyArray const* z, char const* key
+  )= 0;
+
+  /**
+   * Creates a new draw element for labels. For more information, see
+   * {@code label(...)} <a
+   * href="https://asymptote.sourceforge.io/doc/label.html">here</a>.
+   * @param label Text of the label
+   * @param size Size of the label
+   * @param transf Transform to apply to the label
+   * @param pairPosition Pair for label's position
+   * @param pairAlign Pair for align data
+   * @param penType pen type
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   * @return
+   */
+  virtual IAsyDrawElement* createDrawElementForLabel(
+          char const* label, char const* size, IAsyTransform* transf,
+          IAsyTuple* pairPosition, IAsyTuple* pairAlign, IAsyPen* penType,
+          char const* key
+  )= 0;
+
+  /**
+   * Creates a new draw element for labels following path. For more information,
+   * see
+   * {@code label(..., path g, ...)} <a
+   * href="https://asymptote.sourceforge.io/doc/label.html">here</a>.
+   * @param label Text of the label
+   * @param size Size of the label
+   * @param src Path to follow
+   * @param justify Justify option for the label
+   * @param pairShift pair for shift data
+   * @param penType pen type
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   * @return
+   */
+  virtual IAsyDrawElement* createDrawElementForLabelPath(
+          char const* label, char const* size, IAsyPath* src,
+          char const* justify, IAsyTuple* pairShift, IAsyPen* penType,
+          char const* key
+  )= 0;
+
+  /**
+   * Creates a new draw element for verbatim drawings.
+   * 
+   * @param language Language of the text to draw
+   * @param text The text content
+   * @param pairMin An optional pair value for minimum. This value can be null.
+   * If this value is not null, pairMax must also be not null
+   * @param pairMax An optional pair value for maximum. This value must not be null if pairMin is not null
+   * @return
+   */
+  virtual IAsyDrawElement* createDrawElementForVerbatim(
+          Asy::DrawVerbatimLanguage language, char const* text,
+          IAsyTuple* pairMin, IAsyTuple* pairMax
   )= 0;
 };
 

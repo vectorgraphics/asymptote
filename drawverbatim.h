@@ -12,7 +12,7 @@
 
 namespace camp {
 
-enum Language {PostScript,TeX,JavaScript};
+enum Language: uint8_t {PostScript=0,TeX,JavaScript};
 
 class drawVerbatim : public drawElement {
 private:

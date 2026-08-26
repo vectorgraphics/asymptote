@@ -4,8 +4,10 @@
 #include "coenv.h"
 #include "common.h"
 #include "drawfill.h"
+#include "drawlabel.h"
 #include "drawpath.h"
 #include "drawpath3.h"
+#include "drawverbatim.h"
 #include "path3.h"
 #include "picture.h"
 #include "settings.h"
@@ -497,6 +499,49 @@ IAsyDrawElement* AsyContextImpl::createDrawElementForTensorShade(
           fromCharConstOrEmpty(key)
   );
 }
+IAsyDrawElement* AsyContextImpl::createDrawElementForLabel(
+        const char* label, const char* size, IAsyTransform* transf,
+        IAsyTuple* pairPosition, IAsyTuple* pairAlign, IAsyPen* penType,
+        const char* key
+)
+{
+  return new drawLabel(
+          string(label), string(size),
+          castDynamicAndDereference<transform>(transf),
+          castDynamicAndDereference<pair>(pairPosition),
+          castDynamicAndDereference<pair>(pairAlign),
+          castDynamicAndDereference<pen>(penType), fromCharConstOrEmpty(key)
+  );
+}
+IAsyDrawElement* AsyContextImpl::createDrawElementForLabelPath(
+        const char* label, const char* size, IAsyPath* src, const char* justify,
+        IAsyTuple* pairShift, IAsyPen* penType, const char* key
+)
+{
+  return new drawLabelPath(
+          string(label), string(size), castDynamicAndDereference<path>(src),
+          string(justify), castDynamicAndDereference<pair>(pairShift),
+          castDynamicAndDereference<pen>(penType), fromCharConstOrEmpty(key)
+  );
+}
+IAsyDrawElement* AsyContextImpl::createDrawElementForVerbatim(
+        Asy::DrawVerbatimLanguage language, const char* text,
+        IAsyTuple* pairMin, IAsyTuple* pairMax
+)
+{
+  string const textStr(text);
+  auto const languageCasted=
+          static_cast<Language>(static_cast<uint8_t>(language));
+  if (pairMin == nullptr) {
+    return new drawVerbatim(languageCasted, textStr);
+  } else {
+    return new drawVerbatim(
+            languageCasted, textStr, castDynamicAndDereference<pair>(pairMin),
+            castDynamicAndDereference<pair>(pairMax)
+    );
+  }
+}
+
 
 string AsyContextImpl::fromCharConstOrEmpty(char const* originalStr)
 {

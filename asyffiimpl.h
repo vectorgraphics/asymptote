@@ -183,6 +183,23 @@ public:
           const IAsyArray* z, const char* key
   ) override;
 
+  IAsyDrawElement* createDrawElementForLabel(
+          const char* label, const char* size, IAsyTransform* transf,
+          IAsyTuple* pairPosition, IAsyTuple* pairAlign, IAsyPen* penType,
+          const char* key
+  ) override;
+
+  IAsyDrawElement* createDrawElementForLabelPath(
+          const char* label, const char* size, IAsyPath* src,
+          const char* justify, IAsyTuple* pairShift, IAsyPen* penType,
+          const char* key
+  ) override;
+
+  IAsyDrawElement* createDrawElementForVerbatim(
+          Asy::DrawVerbatimLanguage language, const char* text,
+          IAsyTuple* pairMin, IAsyTuple* pairMax
+  ) override;
+
 protected:
   static string fromCharConstOrEmpty(char const* originalStr);
 
