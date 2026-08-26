@@ -200,6 +200,9 @@ public:
           IAsyTuple* pairMin, IAsyTuple* pairMax
   ) override;
 
+  void runString(const char* text, bool interactiveWrite) override;
+  void runRunnable(THAsyRunnable runnableCode) override;
+
 protected:
   static string fromCharConstOrEmpty(char const* originalStr);
 
@@ -246,6 +249,13 @@ public:
   IAsyCallable* getBuiltin(
           char const* module, const char* fnName, Asy::TypeInfo typeInfo
   ) override;
+
+  [[nodiscard]]
+  bool isInteractive() const override;
+
+  void runStringEmbedded(const char* text) override;
+  
+  void runCodeEmbedded(THAsyRunnable runnableCode) override;
 
 protected:
   trans::access* getVariableAccess(

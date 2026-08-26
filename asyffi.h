@@ -68,6 +68,9 @@ typedef void* THAsyType;
 /** Opaque handle to Asymptote string */
 typedef void* THAsyString;
 
+/** Opaque handle for Asymptote runnable */
+typedef void* THAsyRunnable;
+
 class IAsyItem
 {
 public:
@@ -875,18 +878,25 @@ public:
 
   /**
    * Creates a new draw element for verbatim drawings.
-   * 
+   *
    * @param language Language of the text to draw
    * @param text The text content
    * @param pairMin An optional pair value for minimum. This value can be null.
    * If this value is not null, pairMax must also be not null
-   * @param pairMax An optional pair value for maximum. This value must not be null if pairMin is not null
+   * @param pairMax An optional pair value for maximum. This value must not be
+   * null if pairMin is not null
    * @return
    */
   virtual IAsyDrawElement* createDrawElementForVerbatim(
           Asy::DrawVerbatimLanguage language, char const* text,
           IAsyTuple* pairMin, IAsyTuple* pairMax
   )= 0;
+
+  /** Runs a piece of Asymptote code in a non-embedded manner */
+  virtual void runString(char const* text, bool interactiveWrite)= 0;
+
+  /** Runs a piece of Asymptote code in a non-embedded manner */
+  virtual void runRunnable(THAsyRunnable runnableCode)= 0;
 };
 
 // question: will we ever exceed 256 primitive types?
@@ -951,7 +961,7 @@ enum class BaseTypes : uint8_t
   /** Corresponds to file */
   File,
 
-  /** Corresponds to code */
+  /** Corresponds to code. The object type is an opaque handle {@link THAsyRunnable} */
   Code,
 
   /**
@@ -1501,6 +1511,18 @@ public:
    */
   virtual IAsyCallable*
   getBuiltin(char const* module, char const* fnName, Asy::TypeInfo typeInfo)= 0;
+  
+  /** Whether the stack is interactive. Only interactive stacks can run embedded code. */
+  [[nodiscard]]
+  virtual bool isInteractive() const= 0;
+
+  /** Runs a piece of Asymptote code in an embedded manner. The stack must be of
+   * interactive type. */
+  virtual void runStringEmbedded(char const* text)= 0;
+
+  /** Runs a piece of runnable code in an embedded manner. The stack must be of
+   * an interactive type. */
+  virtual void runCodeEmbedded(THAsyRunnable runnableCode)= 0;
 };
 
 /**

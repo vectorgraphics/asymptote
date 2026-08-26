@@ -541,6 +541,18 @@ IAsyDrawElement* AsyContextImpl::createDrawElementForVerbatim(
     );
   }
 }
+void AsyContextImpl::runString(const char* text, bool const interactiveWrite)
+{
+  ::runString(string(text), interactiveWrite);
+}
+void AsyContextImpl::runRunnable(THAsyRunnable const runnableCode)
+{
+  auto* runnableCasted= static_cast<absyntax::runnable*>(runnableCode);
+  auto* ast= new absyntax::block(runnableCasted->getPos(), false);
+  ast->add(runnableCasted);
+
+  runCode(ast);
+}
 
 
 string AsyContextImpl::fromCharConstOrEmpty(char const* originalStr)
@@ -605,6 +617,37 @@ IAsyCallable* AsyStackContextImpl::getBuiltin(
   }
 
   return nullptr;
+}
+bool AsyStackContextImpl::isInteractive() const
+{
+  auto const* stackInteractive= dynamic_cast<vm::interactiveStack const*>(stack);
+  return stackInteractive != nullptr;
+}
+void AsyStackContextImpl::runStringEmbedded(const char* text)
+{
+  trans::coenv* coe= stack->getEnvironment();
+
+  if (auto* stackInteractive= dynamic_cast<vm::interactiveStack*>(stack);
+      stackInteractive && coe) {
+    ::runStringEmbedded(string(text), *coe, *stackInteractive);
+  } else {
+    camp::reportError("There is no runtime for embedded evaluation");
+  }
+}
+void AsyStackContextImpl::runCodeEmbedded(THAsyRunnable const runnableCode)
+{
+  auto* runnableCasted= static_cast<absyntax::runnable*>(runnableCode);
+  auto* ast= new absyntax::block(runnableCasted->getPos(), false);
+  ast->add(runnableCasted);
+  
+  trans::coenv* coe= stack->getEnvironment();
+
+  if (auto* stackInteractive= dynamic_cast<vm::interactiveStack*>(stack);
+      stackInteractive && coe) {
+    ::runCodeEmbedded(ast, *coe, *stackInteractive);
+  } else {
+    camp::reportError("There is no runtime for embedded evaluation");
+  }
 }
 
 trans::access* AsyStackContextImpl::getVariableAccess(
