@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
-"""Smoke test for getExecutablePath() (locate.cc) on the host it runs on.
+"""Smoke test for executablePath() (locate.cc) on the host it runs on.
 
     python3 test_executable_path.py --asy ../asy --asy-base-dir ../base
 
-getExecutablePath() is the one part of sysdir resolution written three times --
-GetModuleFileNameA on Windows, _NSGetExecutablePath + realpath on macOS,
-/proc/self/exe elsewhere -- so it is the part that can be wrong on a platform
-nobody has run the suite on.  It is static, and nothing prints it, so it is
-checked here through its only observable: resolveSysdir() offers <exedir>/base
-as its first candidate, and reports the result as settings.sysdir.
+executablePath() is the one part of sysdir resolution written once per OS --
+GetModuleFileNameW + canonical() on Windows, _NSGetExecutablePath + realpath on
+macOS, the kern.proc.pathname sysctl on FreeBSD, /proc/self/exe elsewhere -- so
+it is the part that can be wrong on a platform nobody has run the suite on.
+That is not hypothetical: the FreeBSD branch exists because /proc is not mounted
+on a stock FreeBSD, where the "elsewhere" case therefore returned nothing at
+all.  Nothing prints the value, so it is checked here through its only
+observable: resolveSysdir() offers <exedir>/base as its first candidate, and
+reports the result as settings.sysdir.
 
 So: copy asy and a base/ into a fresh temporary directory and ask the copy where
 its sysdir is.  Nothing could have compiled that path in and the answer does not
@@ -16,21 +19,20 @@ come from the cwd, the environment or an installed Asymptote, so getting it back
 means the executable's own directory was computed at run time, and correctly.
 
 That candidate is deliberately the one that is live in *every* build (it is
-outside the IS_RELOCATABLE guard, locate.cc:117), so this script needs no
-knowledge of how asy was configured -- unlike a full enumeration of the
-resolution matrix, which has to be told, or to detect, the build mode.  Run this
+outside the IS_RELOCATABLE guard), so this script needs no knowledge of how asy
+was configured -- unlike a full enumeration of the resolution matrix, which has
+to be told, or to detect, the build mode.  Run this
 one first: a wider sysdir test built on a broken exedir reads it as a wrong
 sysdir in every case, and every conclusion it draws is void.
 
-It is written as straight-line code -- no functions, very little branching
--- so that what it asserts can be read off in
-one pass.  A passing run says so in a line; ``-v`` adds the three paths the
-assertion is made of, which are what you want when it is the staging rather than
-the result that is in question.  The two failure modes are an exception:
-a non-zero exit from asy raises CalledProcessError (its stderr is inherited, so
-the real complaint appears above the traceback), and a wrong sysdir trips the
-assert.  Either one leaves the staged tree behind for inspection; a passing run
-removes it.
+It is written as straight-line code -- no functions, very little branching -- so
+that what it asserts can be read off in one pass.  A passing run says so in a
+line; ``-v`` adds the three paths the assertion is made of, which are what you
+want when it is the staging rather than the result that is in question.  The two
+failure modes are an exception: a non-zero exit from asy raises
+CalledProcessError (its stderr is inherited, so the real complaint appears above
+the traceback), and a wrong sysdir trips the assert.  Either one leaves the
+staged tree behind for inspection; a passing run removes it.
 """
 
 import argparse
@@ -85,6 +87,11 @@ shutil.copy2(asy, staged_asy)
 #
 # macOS needs both suffixes: dyld loads either, and ports of libraries whose
 # build systems assume ELF (and Python extension modules) install .so there.
+#
+# Everything else takes the .so default, which is what the ELF platforms want.
+# That includes FreeBSD, whose sys.platform carries the major version
+# ("freebsd14"), so it could not be a key here even if it needed a different
+# answer.
 suffixes = {"win32": (".dll",), "darwin": (".dylib", ".so")}.get(sys.platform, (".so",))
 srcdir = os.path.dirname(asy)
 for name in os.listdir(srcdir):
@@ -133,4 +140,4 @@ assert os.path.normcase(os.path.realpath(resolved)) == os.path.normcase(
 )
 
 shutil.rmtree(work, ignore_errors=True)
-print("PASS: getExecutablePath() found the executable's own directory")
+print("PASS: executablePath() found the executable's own directory")
