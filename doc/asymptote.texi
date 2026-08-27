@@ -8376,9 +8376,9 @@ the abbreviation @code{Spline} is also accepted);
 @item @code{linear} (linear interpolation),
 @item @code{Hermite} (standard cubic spline interpolation using boundary
 condition @code{notaknot}, @code{natural},  @code{periodic},
-@code{periodicOffset} (like @code{periodic}, but for data that repeats
-after a constant offset, as in @math{y=x+\sin x}),
-@code{clamped(real slopea, real slopeb)}), or @code{monotonic}.
+@code{periodicOffset}, @footnote{like @code{periodic} but for data that repeats
+after a constant offset, as in @math{y=x+\sin x}.}
+@code{clamped(real slopea, real slopeb)}, or @code{monotonic}).
 The abbreviation @code{Hermite} is equivalent to
 @code{Hermite(notaknot)} for nonperiodic data and
 @code{Hermite(periodic)} for periodic data).
