@@ -456,14 +456,18 @@ define install-license-files
 	${INSTALL} -p -m 644 libatomic_ops/COPYING $(1)/libatomic_ops-COPYING.txt
 	${INSTALL} -p -m 644 tinyexr/LICENSE.txt $(1)/tinyexr-LICENSE.txt
 	${INSTALL} -p -m 644 gc/LICENSE.txt $(1)/gc-LICENSE.txt
-	${INSTALL} -p -m 644 webgl/gl-matrix-license doc/licenses/gl-matrix-LICENSE.md
+	${INSTALL} -p -m 644 webgl/gl-matrix-license $(1)/gl-matrix-LICENSE.md
 endef
 
 copy-licenses:
 	$(call install-license-files,doc/licenses)
 
+# $(docdir) has to be created here rather than relied upon: it is not
+# necessarily an ancestor of $(licensedir), which --with-licensedir can point
+# somewhere else entirely.
 install-licenses:
 	$(call install-license-files,$(licensedir))
+	${INSTALL} -d $(docdir)
 	${INSTALL} -p -m 644 LICENSES-THIRD-PARTY.md $(docdir)
 
 install-notexhash: asy-keywords.el install-asy install-licenses install-man
