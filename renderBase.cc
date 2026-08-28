@@ -19,6 +19,31 @@ namespace camp {
 
 AsyRender* gl;
 
+// Physical pixels per PostScript unit: 72 bp/inch * inch/pixels, where
+// pixels/inch comes from the monitor's physical size and pixel resolution.
+double pixelsPerBp()
+{
+  static double ppb = 0;
+  if(ppb == 0) {
+    double ppi = 96.0;
+#ifdef HAVE_LIBGLFW
+    glfwInit();
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    if(monitor) {
+      int wmm, hmm;
+      glfwGetMonitorPhysicalSize(monitor, &wmm, &hmm);
+      const GLFWvidmode* vm = glfwGetVideoMode(monitor);
+      if(wmm > 0 && vm != nullptr && vm->width > 0) {
+        ppi=(double) vm->width/(wmm/25.4);  // pixels per inch
+      }
+    }
+#endif
+    ppb=ppi/72.0;                              // pixels per bp
+  }
+
+  return ppb;
+}
+
 } // namespace camp
 
 using namespace glm;
@@ -947,26 +972,19 @@ void AsyRender::initDisplay(int contentWidth, int contentHeight)
   oWidth = contentWidth;
   oHeight = contentHeight;
 
-  GLFWmonitor* monitor = NULL;
   glfwInit();
-
-  devicePixelRatio = settings::getSetting<double>("devicepixelratio");
-  monitor = glfwGetPrimaryMonitor();
+  GLFWmonitor* monitor = glfwGetPrimaryMonitor();
   if (monitor) {
     int mx, my;
     glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
-    if (devicePixelRatio <= 0.0) {
-      float sx = 1.0f, sy = 1.0f;
-      glfwGetMonitorContentScale(monitor, &sx, &sy);
-      devicePixelRatio = std::max(sx, sy);
-    }
   } else {
     screenWidth = fullWidth;
     screenHeight = fullHeight;
   }
 
-  oldWidth = (int) std::ceil(contentWidth * devicePixelRatio);
-  oldHeight = (int) std::ceil(contentHeight * devicePixelRatio);
+  double pixelsperbp=pixelsPerBp();
+  oldWidth = (int) std::ceil(contentWidth * pixelsperbp);
+  oldHeight = (int) std::ceil(contentHeight * pixelsperbp);
 
   int w = std::min(oldWidth, screenWidth);
   int h = std::min(oldHeight, screenHeight);

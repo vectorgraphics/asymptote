@@ -466,8 +466,9 @@ struct option : public gc {
 
   // Outputs description of the command for the -help option.
   virtual void describe(char option) {
-    // Don't show the option if it has no description.
-    if(!hide() && ((option == 'h') ^ env())) {
+    // Don't show the option if it has no description (deprecated options
+    // are silently accepted but not listed).
+    if(!hide() && !desc.empty() && ((option == 'h') ^ env())) {
       const unsigned WIDTH=22;
       string start=describeStart();
       cerr << std::left << std::setw(WIDTH) << start;
@@ -478,7 +479,7 @@ struct option : public gc {
       cerr << " " << desc;
       if(cmdlineonly) cerr << "; command-line only";
       if(Default != "") {
-        if(!desc.empty()) cerr << " ";
+        cerr << " ";
         cerr << Default;
       }
       cerr << endl;
@@ -1655,7 +1656,7 @@ void initSettings() {
   addOption(new realSetting("render", 0, "n",
                             "Render 3D graphics using n pixels per bp",
                             havegl ? 2.0 : 0.0));
-  addOption(new realSetting("devicepixelratio", 0, "n", "Ratio of physical to logical pixels", 0.0));
+  addOption(new realSetting("devicepixelratio", 0, "n", "", 0.0));
   addOption(new IntSetting("antialias", 0, "n",
                            "Antialiasing width for rasterized output", 2));
   addOption(new IntSetting("multisample", 0, "n",
