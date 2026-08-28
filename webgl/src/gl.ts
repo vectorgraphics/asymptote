@@ -2193,13 +2193,20 @@ class BezierCurve extends Geometry {
   }
 }
 
+function pixelsPerBp() {
+  return 96.0/72.0; // pixels per bp
+}
+
+// Draw a pixel.
 class Pixel extends Geometry {
   constructor(private controlpoint,private width,protected MaterialIndex,
               transform = animatedGeometry()) {
     super();
     this.CenterIndex=0;
-    this.Min=controlpoint;
-    this.Max=controlpoint;
+    // width is in device pixels; convert to PostScript units.
+    let h=0.5*width/pixelsPerBp();
+    this.Min=[controlpoint[0]-h,controlpoint[1]-h,controlpoint[2]-h];
+    this.Max=[controlpoint[0]+h,controlpoint[1]+h,controlpoint[2]+h];
     this.transform=transform;
     this.controlpoints=[controlpoint];
   }
@@ -2209,11 +2216,13 @@ class Pixel extends Geometry {
   }
 
   Bounds(p,fuzz) {
-    return [this.controlpoints[0],this.controlpoints[0]];
+    // width is in device pixels; convert to PostScript units.
+    let h=0.5*this.width/pixelsPerBp();
+    let v=p[0];
+    return [[v[0]-h,v[1]-h,v[2]-h],[v[0]+h,v[1]+h,v[2]+h]];
   }
 
-  process(p) {
-    this.data.indices.push(this.data.vertex0(p[0],this.width));
+  process(p) {    this.data.indices.push(this.data.vertex0(p[0],this.width));
     this.append();
   }
 
