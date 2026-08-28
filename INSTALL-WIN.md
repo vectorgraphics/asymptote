@@ -73,6 +73,43 @@ VCPKG_ROOT entry, or by PowerShell,
 
 Otherwise, you can also set VCPKG_ROOT for everyone on your machine.
 
+### Troubleshooting: vcpkg baseline / version errors during configure
+
+If `cmake --preset ...` fails during "Running vcpkg install", it usually means your
+local vcpkg checkout is older than the `builtin-baseline` commit pinned in `vcpkg.json`.
+This shows up in one of two forms:
+
+```
+error: while checking out baseline from commit '<hash>', failed to `git show` versions/baseline.json.
+This may be fixed by fetching commits with `git fetch`.
+fatal: path 'versions/baseline.json' exists on disk, but not in '<hash>'
+```
+
+(the baseline commit itself is missing locally), or
+
+```
+error: no version database entry for <port> at <version>.
+note: updating vcpkg by rerunning bootstrap-vcpkg may resolve this failure.
+```
+
+(the commit is present but vcpkg's on-disk version database is older than the version the
+baseline requires).
+
+Both are fixed by updating your vcpkg clone to a commit at or newer than the baseline,
+then re-bootstrapping. Use the **explicit path** to your clone, not `$env:VCPKG_ROOT`
+(see the note under "Environment set up" — inside the VS Developer PowerShell that variable
+points at Visual Studio's bundled vcpkg, which is not a git repository):
+
+```powershell
+git -C C:\path\to\your\vcpkg pull
+& "C:\path\to\your\vcpkg\bootstrap-vcpkg.bat"
+```
+
+Then re-run the `cmake --preset ...` command, first confirming that `$env:VCPKG_ROOT`
+points at the clone you just updated — inside the VS Developer PowerShell it does not by
+default, and configuring against the bundled snapshot will reproduce the same error. This
+can recur whenever the pinned baseline is bumped to a commit newer than your last pull.
+
 ## Using CMake
 
 ### Installing GCC-compatible C++ compiler
@@ -113,6 +150,37 @@ $vsInfo = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
 ```
 
 This prompt should put you in to 64-bit Visual Studio Developer PowerShell.
+
+> **Important: `VCPKG_ROOT` inside the VS Developer PowerShell.**
+> The Visual Studio Developer PowerShell sets `VCPKG_ROOT` to Visual Studio's own
+> bundled vcpkg (e.g. `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\vcpkg`),
+> overriding any user- or machine-scope `VCPKG_ROOT` for the duration of that shell.
+> That bundled copy is a stripped-down snapshot with no `.git` and no `bootstrap-vcpkg.bat`.
+>
+> This affects the build in two ways:
+>
+> - Maintenance commands such as `git -C $env:VCPKG_ROOT pull` or
+>   `& "$env:VCPKG_ROOT\bootstrap-vcpkg.bat"` fail outright, since the target is not a
+>   git repository and has no bootstrap script.
+> - **The `cmake --preset` step below reads its vcpkg toolchain from `$env:VCPKG_ROOT`**
+>   (see `base/vcpkg` in `cmake-preset-files/base-presets.json`). Left as the Developer
+>   PowerShell set it, configuration silently uses the bundled snapshot instead of your
+>   clone — so a clone you just updated has no effect, and the baseline errors described
+>   under "Troubleshooting: vcpkg baseline / version errors during configure" can persist
+>   or appear for the first time.
+>
+> After launching the Developer PowerShell, and before configuring, point `VCPKG_ROOT`
+> back at your own clone for the rest of the session:
+>
+> ```powershell
+> $env:VCPKG_ROOT = 'C:\path\to\your\vcpkg'
+> ```
+>
+> Verify with `$env:VCPKG_ROOT` before running `cmake --preset ...`; it should print your
+> clone, not a path under the Visual Studio installation directory. Note that setting the
+> variable at user or machine scope is not sufficient — the Developer PowerShell overrides
+> it in-process every time it is launched, so this must be redone in each such shell.
+> When maintaining your clone (fetch, pull, bootstrap), prefer its explicit path anyway.
 
 #### Configuring build files
 
