@@ -3328,16 +3328,20 @@ function setDimensions(width,height,X,Y)
       // clipped by the frustum at this canvas size. A sprite with center (x,y)
       // and half-size n canvas px projects to y*height*near/(2*r*d) canvas px
       // from the center at depth d, so it fits iff r >= |y|*near*height/
-      // (d*(height-2*n)) (and analogously in x). Solve for the base half-height
-      // so that zooming still moves sprites offscreen.
+      // (d*(height-2*n)) (and analogously in x), where r is the final
+      // half-height. Solve that constraint at the initial zoom W.zoom0
+      // (which includes the aspect correction for non-default canvas aspects)
+      // so that user zooming still moves sprites offscreen and zero-width
+      // pixels reduce to the default framing H.
       let r=H;
       if(pixelList.length) {
         let near=-W.maxBound[2];
+        let z0=W.zoom0;
         for(const q of pixelList) {
           let d=-q.z;
           if(d > 0) {
-            r=Math.max(r,Math.abs(q.y)*near*height/(d*Math.max(height-2*q.n,1)),
-                           Math.abs(q.x)*near*width/(Aspect*d*Math.max(width-2*q.n,1)));
+            r=Math.max(r,z0*Math.abs(q.y)*near*height/(d*Math.max(height-2*q.n,1)),
+                           z0*Math.abs(q.x)*near*width/(Aspect*d*Math.max(width-2*q.n,1)));
           }
         }
       }
