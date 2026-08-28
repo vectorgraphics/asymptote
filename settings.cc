@@ -1363,6 +1363,8 @@ static bool printLicensesFull(ostream& out) {
     "Hans-J. Boehm, Alan J. Demers, Xerox Corporation, Silicon Graphics,\n"
     "Hewlett-Packard Development Company, Ivan Maidanski, Fergus Henderson\n"
     "<https://www.hboehm.info/gc/>\n"
+    "(The project ships no standalone license file; the copyright notices and\n"
+    "license terms are reproduced below as published in the upstream README.md.)\n"
     "------------------------------------------------------------------------\n";
   requireFile("gc-LICENSE.txt",
     "Boehm GC -- Custom permissive license -- https://www.hboehm.info/gc/");

@@ -1,8 +1,8 @@
-# Asymptote Licensing — Maintainer Reference
+# Asymptote Licensing -- Maintainer Reference
 
 ## Overview
 
-Asymptote is **LGPL v3+**. It incorporates seven third-party components,
+Asymptote is **LGPL v3+**. It incorporates several third-party components,
 each licensed separately. See [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md)
 for the canonical component table.
 
@@ -15,7 +15,7 @@ directory at runtime.
 The Asymptote license files (`LICENSE`, `LICENSE.LESSER`) and all third-party
 component license files live in a single `licenses/` directory (with
 component-prefixed names to avoid collisions).
-The canonical mapping (source path → installed name) lives in
+The canonical mapping (source path -> installed name) lives in
 [cmake-scripts/copy-build-licenses.cmake](cmake-scripts/copy-build-licenses.cmake).
 
 The same files are also listed in the `copy-licenses` / `uninstall-docdir`
@@ -64,13 +64,20 @@ The default is `${CMAKE_INSTALL_FULL_DATADIR}/doc/asymptote/licenses`.
 When adding, removing, or updating a third-party component:
 1. Update [LICENSES-THIRD-PARTY.md](LICENSES-THIRD-PARTY.md) (the component table).
 2. Update the `licensesSummary` constant and the `printLicensesFull()` function
-   in [settings.cc](settings.cc) — add/remove the hardcoded section header and
+   in [settings.cc](settings.cc) -- add/remove the hardcoded section header and
    the `requireFile()` call for the new component.
 3. Update [cmake-scripts/copy-build-licenses.cmake](cmake-scripts/copy-build-licenses.cmake).
-4. Update [Makefile.in](Makefile.in) — `copy-licenses` and `uninstall-docdir`.
+4. Update [Makefile.in](Makefile.in) -- `copy-licenses` and `uninstall-docdir`.
 5. Retain the component's original license file and headers unchanged.
 
 _Note: wyhash/ is public domain, but retain the original header comment crediting Wang Yi._
+
+### Special case: `gc/` (Boehm GC, git subrepo)
+
+`gc/` is a git-subrepo clone of bdwgc.
+Upstream bdwgc ships no standalone license file; the
+copyright notices and license terms are published in the "License" section of
+`gc/README.md`. The build installs `gc/README.md` as `gc-LICENSE.txt` (see "License File Locations" above).
 
 ## Adding New Asymptote Source Files
 
@@ -79,7 +86,7 @@ _Note: wyhash/ is public domain, but retain the original header comment creditin
 
 ## Modifying backports/span/span.hpp
 
-⚠️ **Cannot be relicensed.** If modifying:
+ **Cannot be relicensed.** If modifying:
 1. Retain Martin Moene copyright (2018-2021).
 2. Document all changes clearly.
 3. Distribute under the Boost license.
