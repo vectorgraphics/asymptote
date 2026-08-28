@@ -34,7 +34,7 @@ asy_copy_build_license(LspCpp/LICENSE               LspCpp-LICENSE.txt)
 asy_copy_build_license(libatomic_ops/LICENSE        libatomic_ops-LICENSE.txt)
 asy_copy_build_license(libatomic_ops/COPYING        libatomic_ops-COPYING.txt)
 asy_copy_build_license(tinyexr/LICENSE.txt          tinyexr-LICENSE.txt)
-asy_copy_build_license(gc/LICENSE.txt               gc-LICENSE.txt)
+asy_copy_build_license(gc/README.md                 gc-LICENSE.txt)
 asy_copy_build_license(webgl/gl-matrix-license      gl-matrix-LICENSE.md)
 
 add_custom_target(asy-licenses DEPENDS ${ASY_BUILD_LICENSE_COPIES})
