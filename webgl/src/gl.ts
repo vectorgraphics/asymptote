@@ -3332,7 +3332,10 @@ function setDimensions(width,height,X,Y)
       // half-height. Solve that constraint at the initial zoom W.zoom0
       // (which includes the aspect correction for non-default canvas aspects)
       // so that user zooming still moves sprites offscreen and zero-width
-      // pixels reduce to the default framing H.
+      // pixels reduce to the default framing H. An axis whose sprite is
+      // wider than the canvas can never be fit by any field of view, so it
+      // contributes no constraint (clamping its denominator to 1 would
+      // over-inflate r instead of recognizing the sprite simply does not fit).
       let r=H;
       if(pixelList.length) {
         let near=-W.maxBound[2];
@@ -3340,8 +3343,10 @@ function setDimensions(width,height,X,Y)
         for(const q of pixelList) {
           let d=-q.z;
           if(d > 0) {
-            r=Math.max(r,z0*Math.abs(q.y)*near*height/(d*Math.max(height-2*q.n,1)),
-                           z0*Math.abs(q.x)*near*width/(Aspect*d*Math.max(width-2*q.n,1)));
+            if(height-2*q.n > 0)
+              r=Math.max(r,z0*Math.abs(q.y)*near*height/(d*(height-2*q.n)));
+            if(width-2*q.n > 0)
+              r=Math.max(r,z0*Math.abs(q.x)*near*width/(Aspect*d*(width-2*q.n)));
           }
         }
       }
@@ -4333,49 +4338,63 @@ function updateSceneBounds() {
 // is n*s, where s is the fit scale (scene units per canvas px), which itself
 // depends on the bounds. Inflate the x/y bounds to a fixed point so that no
 // sprite is clipped by the viewport. The frustum window is centered at the
-// origin along one axis, so also force symmetric coverage of the sprites'
-// extent from the origin along that axis. The constraint is invariant under
-// zoom.
+// origin along one axis, whose extent is derived from the fitted axis, so
+// the branch is decided from the base bounds and only the fitted axis is
+// grown: to cover the sprites' extent, and symmetrically about its center
+// until the centered window covers the sprites' extent from the origin.
+// Growing only the fitted axis keeps the branch, so the scene framing is
+// never worse than without pixels. The constraint is invariant under zoom.
 function inflatePixelBounds(minB,maxB,width,height) {
   if(pixelList.length == 0) return;
   let Aspect=width/height;
-  // Fit scale (scene units per canvas px) implied by inflating the bounds
-  // with the sprites' extents n*s and forcing symmetric coverage along the
-  // centered axis; fills mn/mx with the resulting bounds.
+  // Fit scale (scene units per canvas px) implied by inflating the fitted
+  // axis; fills mn/mx with the resulting bounds. The centered axis is left
+  // at the base bounds: its window is +/-r, derived from the fitted size,
+  // so growing it would not help coverage and could flip the branch in
+  // setDimensions.
   let mn=[0,0],mx=[0,0];
   function F(s) {
-    mn[0]=minB[0]; mn[1]=minB[1];
-    mx[0]=maxB[0]; mx[1]=maxB[1];
-    let Mx=0,My=0;
-    for(const q of pixelList) {
-      mn[0]=Math.min(mn[0],q.x-q.n*s);
-      mx[0]=Math.max(mx[0],q.x+q.n*s);
-      mn[1]=Math.min(mn[1],q.y-q.n*s);
-      mx[1]=Math.max(mx[1],q.y+q.n*s);
-
-      Mx=Math.max(Mx,Math.abs(q.x)+q.n*s);
-      My=Math.max(My,Math.abs(q.y)+q.n*s);
-    }
-    let xsize=mx[0]-mn[0];
-    let ysize=mx[1]-mn[1];
+    let xsize=maxB[0]-minB[0];
+    let ysize=maxB[1]-minB[1];
     if(xsize < ysize*Aspect) { // x window is centered at the origin
-      mn[0]=Math.min(mn[0],-Mx);
-      mx[0]=Math.max(mx[0],Mx);
+      // y is the fitted axis: cover the sprites' y extent, then grow
+      // symmetrically about its center until the x window, +/-ysize*Aspect/2,
+      // covers the sprites' x extent from the origin, Mx.
+      let Mx=0,mn1=minB[1],mx1=maxB[1];
+      for(const q of pixelList) {
+        Mx=Math.max(Mx,Math.abs(q.x)+q.n*s);
+        mn1=Math.min(mn1,q.y-q.n*s);
+        mx1=Math.max(mx1,q.y+q.n*s);
+      }
+      let d=2*Mx/Aspect-(mx1-mn1);
+      if(d > 0) { mn1-=0.5*d; mx1+=0.5*d; }
+      mn[0]=minB[0]; mx[0]=maxB[0];
+      mn[1]=mn1; mx[1]=mx1;
+      return (mx1-mn1)/height;
     } else { // y window is centered at the origin
-      mn[1]=Math.min(mn[1],-My);
-      mx[1]=Math.max(mx[1],My);
+      // x is the fitted axis: cover the sprites' x extent, then grow
+      // symmetrically about its center until the y window, +/-xsize/(2*Aspect),
+      // covers the sprites' y extent from the origin, My.
+      let My=0,mn0=minB[0],mx0=maxB[0];
+      for(const q of pixelList) {
+        My=Math.max(My,Math.abs(q.y)+q.n*s);
+        mn0=Math.min(mn0,q.x-q.n*s);
+        mx0=Math.max(mx0,q.x+q.n*s);
+      }
+      let d=2*Aspect*My-(mx0-mn0);
+      if(d > 0) { mn0-=0.5*d; mx0+=0.5*d; }
+      mn[0]=mn0; mx[0]=mx0;
+      mn[1]=minB[1]; mx[1]=maxB[1];
+      return (mx0-mn0)/width;
     }
-    xsize=mx[0]-mn[0];
-    ysize=mx[1]-mn[1];
-    return xsize < ysize*Aspect ? ysize/height : xsize/width;
   }
   // F is continuous and piecewise linear in s, with slope < 1 wherever a
-  // finite fit exists, so g(s)=F(s)-s is decreasing with a unique root.
-  // Bisect for it: unlike the contraction s<-F(s), whose rate approaches 1
-  // when a large sprite dominates, this takes a fixed number of iterations.
-  // g(0)=F(0)>0 when pixels exist; double hi until g(hi)<=0, bailing out if
-  // no finite fit exists (a sprite larger than the canvas), keeping the
-  // input bounds.
+  // finite fit exists, so g(s)=F(s)-s has the smallest fitting scale as its
+  // first root. Bisect for it: unlike the contraction s<-F(s), whose rate
+  // approaches 1 when a large sprite dominates, this takes a fixed number of
+  // iterations. g(0)=F(0)>0 when pixels exist; double hi until g(hi)<=0,
+  // bailing out if no finite fit exists (a sprite larger than the canvas),
+  // keeping the input bounds.
   let lo=0,hi=F(0);
   for(let i=0; i < 64 && F(hi) > hi; ++i) hi*=2;
   if(F(hi) > hi) return;
