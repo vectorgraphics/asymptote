@@ -2242,17 +2242,26 @@ class Triangles extends Geometry {
   private transparent: boolean = false;
 
   constructor(protected CenterIndex,protected MaterialIndex,
-              transform = null) {
+              transform = animatedGeometry()) {
     super();
     const wany = window as any;
-    this.controlpoints=wany.Positions;
-    this.Normals=wany.Normals;
-    this.Colors=wany.Colors;
-    this.Indices=wany.Indices;
+    // Copy the data: triangles() resets the globals after construction.
+    this.controlpoints=[...wany.Positions];
+    this.Normals=[...wany.Normals];
+    this.Colors=[...wany.Colors];
+    this.Indices=[...wany.Indices];
     this.transparent=Materials[this.MaterialIndex].diffuse[3] < 1;
+
+    this.transform=transform;
+    if(transform == null) {
+      let norm2=L2norm2(this.controlpoints);
+      this.epsilon=norm2*Number.EPSILON;
+      let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
+      [this.Min,this.Max]=this.Bounds(this.controlpoints,fuzz);
+    }
   }
 
-  Bound(p,m) {
+  Bound(p,m,fuzz) {
     let b=Array(3);
     let n=p.length;
     let x=Array(n);
@@ -2265,7 +2274,7 @@ class Triangles extends Geometry {
   }
 
   Bounds(p,fuzz) {
-    return [this.Bounds(p,min),this.Bounds(p,max)];
+    return [this.Bound(p,min,fuzz),this.Bound(p,max,fuzz)];
   }
 
   setMaterialIndex() {
