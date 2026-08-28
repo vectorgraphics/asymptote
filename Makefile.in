@@ -492,6 +492,9 @@ install-html: html
 install-man: man
 	cd doc && $(MAKE) install
 
+install-info:
+	cd doc && $(MAKE) install-info
+
 install-prebuilt: install-asy
 	cd doc && $(MAKE) install-prebuilt
 
