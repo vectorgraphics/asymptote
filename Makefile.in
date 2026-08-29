@@ -336,7 +336,11 @@ man:	asy sty
 faq:	asy sty
 	cd doc && $(MAKE) faq
 
-info: asy sty
+
+# Depend on `man` (rather than just asy/sty) so the info build does not
+# run in parallel with the manual build: both render the example PDFs and
+# run texi2any on asymptote.texi, which is not safe to do concurrently.
+info: man
 	cd doc && $(MAKE) asymptote.info
 
 $(RUNTIME_FILES:=.cc): %.cc: runtime.py opsymbols.h runtimebase.in %.in
