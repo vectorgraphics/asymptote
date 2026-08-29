@@ -72,7 +72,6 @@ void v3dfile::addHeaders()
                          v3dheadertypes::vibrateTime, getSetting<double>("vibrateTime")));
   bool ibl = getSetting<bool>("ibl");
   if (ibl) {
-    string const& imageDir = getSetting<string>("imageDir");
     string const& image = getSetting<string>("image");
     if (!image.empty()) {
       // If the name contains an absolute path, extract just the filename; relative paths are ok.
