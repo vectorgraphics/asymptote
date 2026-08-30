@@ -39,9 +39,13 @@ make $MAKEFLAGS asy
 rm base/webgl/asygl-*.js
 make -j1 all
 make -j1 install
-strip asy
 rm -rf webgl/node_modules
 make DESTDIR="$BUILD/" latexdir=$LATEXDIR install
+strip "$BUILD/$BINDIR/local/bin/asy" || exit 1
+for so in "$BUILD/$BINDIR/local/share/asymptote/libasy"*.so; do
+    [ -f "$so" ] || continue
+    strip "$so" || exit 1
+done
 rm $BUILD/$BINDIR/local/info/dir
 cp -a $BUILD/asymptote-$VERSION/ChangeLog .
 cp -a $ASYMPTOTE/ReleaseNotes .
