@@ -296,9 +296,9 @@ void main()
 #endif
   fragment[listIndex]=linearColor;
   depth[listIndex]=gl_FragCoord.z;
-#ifndef WIREFRAME
+  // The fragment's color reaches the framebuffer through the blend pass;
+  // discarding here matches the Vulkan shader's behavior in all modes
   discard;
-#endif
 #else
 #if defined(HAVE_INTERLOCK) && !defined(OPAQUE)
   beginInvocationInterlockARB();

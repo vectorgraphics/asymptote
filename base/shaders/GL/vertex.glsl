@@ -30,6 +30,10 @@ in float width;
 
 uniform mat4 projViewMat;
 
+// runtime light count (same uniform as in the fragment shader): unlit
+// scenes, including outline mode's runtime nlights=0, need no recompilation
+uniform uint nlights;
+
 #ifdef NORMAL
 struct Material
 {
@@ -74,9 +78,10 @@ void main()
   else {
     if (m.parameters[3] != 0) {
       diffuse=color;
-#if Nlights == 0
-      emissive += color;
-#endif
+      // with no active lights the fragment shader's BRDF loop runs zero
+      // times, so the color must reach the output via emissive
+      if(nlights == 0)
+        emissive += color;
     } else {
       emissive += color;
       diffuse = m.diffuse;
@@ -89,9 +94,10 @@ void main()
 #ifdef COLOR
   if (m.parameters[3] != 0) {
     diffuse=color;
-#if Nlights == 0
-    emissive += color;
-#endif
+    // with no active lights the fragment shader's BRDF loop runs zero
+    // times, so the color must reach the output via emissive
+    if(nlights == 0)
+      emissive += color;
   } else {
     emissive += color;
     diffuse = m.diffuse;

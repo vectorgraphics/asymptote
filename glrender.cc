@@ -343,10 +343,16 @@ void AsyGLRender::initShaders()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
 
-  interlock=ssbo && getSetting<bool>("GPUinterlock");
+  // interlock selects the compiled shader variant (HAVE_INTERLOCK), so
+  // capture it exactly once, like the other GPU options (see
+  // interlockCaptured in glrender.h)
+  if(!interlockCaptured) {
+    interlock=ssbo && getSetting<bool>("GPUinterlock");
 
-  if(isNVIDIA30xx((const char*)glGetString(GL_RENDERER)))
-    interlock = false;
+    if(isNVIDIA30xx((const char*)glGetString(GL_RENDERER)))
+      interlock = false;
+    interlockCaptured=true;
+  }
 
   if(!ssbo && settings::verbose > 2)
     cout << "No SSBO support; order-independent transparency unavailable"
@@ -391,8 +397,6 @@ void AsyGLRender::initShaders()
   shaderParams.pop_back();
 
   shaderParams.push_back("GENERAL");
-  if(mode != DRAWMODE_NORMAL)
-    shaderParams.push_back("WIREFRAME");
   generalShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo,
                                               interlock);
   shaderParams.push_back("OPAQUE");
@@ -466,8 +470,11 @@ void AsyGLRender::deleteShaders()
 
 void AsyGLRender::drawFrame()
 {
-  if((nlights == 0 && Nlights > 0) || nlights > Nlights ||
-     materials.size() > nmaterials) {
+  // Shaders are recompiled only when the baked-in light/material counts
+  // must grow (array sizes).  A decrease, or outline mode's runtime
+  // nlights=0, is handled by the nlights runtime uniform and needs no
+  // recompilation.
+  if(nlights > Nlights || materials.size() > nmaterials) {
     deleteShaders();
     initShaders();
   }
@@ -642,11 +649,18 @@ void AsyGLRender::cycleMode()
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
       break;
     case DRAWMODE_OUTLINE: // outline
-      nlights=0; // Force shader recompilation
+      // Unlit rendering at runtime: the nlights uniform drives the BRDF
+      // loop (zero iterations) and the vertex shader's unlit-color path,
+      // so no shader recompilation is needed
+      nlights=0;
+      lastshader=-1;
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       break;
     case DRAWMODE_WIREFRAME: // wireframe
-      Nlights=1; // Force shader recompilation
+      // No shader change is needed: the fragment shader behaves the same
+      // in all modes (see the discard in the OIT accumulate path), so
+      // mode switching needs no recompilation
+      lastshader=-1;
       break;
   }
 }
@@ -1393,21 +1407,27 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     fpu_trap(settings::trap());
   }
 
+  // These values are baked into the shader #defines (GPUINDEXING,
+  // GPUCOMPRESS, LOCALSIZE, BLOCKSIZE), so capture them exactly once, as
+  // of the first render() call (see gpuOptionsCaptured in glrender.h).
+  if(!gpuOptionsCaptured) {
 #if defined(HAVE_COMPUTE_SHADER)
-  GPUindexing=getSetting<bool>("GPUindexing");
-  GPUcompress=getSetting<bool>("GPUcompress");
+    GPUindexing=getSetting<bool>("GPUindexing");
+    GPUcompress=getSetting<bool>("GPUcompress");
 #else
-  GPUindexing=false;
-  GPUcompress=false;
+    GPUindexing=false;
+    GPUcompress=false;
 #endif
 
-  // Initialize GPU compute parameters
-  if(GPUindexing) {
-    localSize = settings::getSetting<Int>("GPUlocalSize");
-    checkpow2(localSize,"GPUlocalSize");
-    blockSize = settings::getSetting<Int>("GPUblockSize");
-    checkpow2(blockSize,"GPUblockSize");
-    groupSize = localSize * blockSize;
+    // Initialize GPU compute parameters
+    if(GPUindexing) {
+      localSize = settings::getSetting<Int>("GPUlocalSize");
+      checkpow2(localSize,"GPUlocalSize");
+      blockSize = settings::getSetting<Int>("GPUblockSize");
+      checkpow2(blockSize,"GPUblockSize");
+      groupSize = localSize * blockSize;
+    }
+    gpuOptionsCaptured=true;
   }
 
   glClearColor(Background[0], Background[1],

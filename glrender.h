@@ -86,7 +86,15 @@ public:
 
 private:
   bool GPUindexing=false;
-  bool GPUcompress;
+  bool GPUcompress=false;
+  // The GPU options (GPUindexing, GPUcompress, GPUinterlock, GPUlocalSize,
+  // GPUblockSize) are baked into shader #defines and select compiled shader
+  // variants, so they are captured exactly once, at the first render() call
+  // (see render() and initShaders()).  Users may still override them before
+  // the first render (settings.* in an asy file, interactive mode), but they
+  // are session-constant afterwards.
+  bool gpuOptionsCaptured=false;
+  bool interlockCaptured=false;
   bool shouldUpdateBuffers = true;
   bool copied = false;
   size_t Nlights = 1;
