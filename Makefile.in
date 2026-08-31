@@ -114,8 +114,8 @@ DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -I.
 # Let tests/Makefile assert the relocatable mode instead of auto-detecting it.
 export ASY_RELOCATABLE = $(if $(findstring -DIS_RELOCATABLE,$(DEFS)),on,off)
 # ...and tell it whether this build's asy is the CTAN/TeXLive binary, i.e. was
-# configured --enable-texmf-sysdir (empty compiled-in sysdir). See configure.ac.
-export ASY_TEXMF_SYSDIR = @texmf_sysdir@
+# configured --enable-texlive-build. See configure.ac.
+export ASY_TEXLIVE_BUILD = @texlive_build@
 CFLAGS = @CFLAGS@
 CPPFLAGS = $(shell echo '@CPPFLAGS@' | awk -f dedup.awk)
 OPTS = $(DEFS) $(CPPFLAGS) @CXXFLAGS@ $(CFLAGS) \

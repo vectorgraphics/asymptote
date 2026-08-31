@@ -34,9 +34,9 @@ RELOCATABLE_MODE = $(if $(ASY_RELOCATABLE),--mode $(ASY_RELOCATABLE),)
 # The C="" (CTAN/TeXLive) axis needs a binary with an empty compiled-in sysdir.
 # The CMake build has a second executable for it, asy-ctan; here there is only
 # ../asy, which *is* that binary exactly when the build was configured
-# --enable-texmf-sysdir -- so the whole run doubles as the CTAN run and ../asy
+# --enable-texlive-build -- so the whole run doubles as the CTAN run and ../asy
 # is handed to the axis directly.  Otherwise the axis reports itself skipped.
-CTAN_ASY = $(if $(filter on,$(ASY_TEXMF_SYSDIR)),--asy-ctan ../asy,)
+CTAN_ASY = $(if $(filter on,$(ASY_TEXLIVE_BUILD)),--asy-ctan ../asy,)
 
 test_relocatable:
 	@echo

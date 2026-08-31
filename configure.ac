@@ -174,36 +174,28 @@ INCL=""
 LIBS=""
 CPPFLAGS=$CPPFLAGS" -I. "
 
-# Locate the base directory within the TeX (texmf) tree at runtime instead of
-# baking in a fixed path, for a binary deployed inside a TeX installation whose
-# location is not known at build time (TeXLive/MacTeX). Implemented by leaving
-# ASYMPTOTE_SYSDIR empty, which is the signal for initDir() to ask kpsewhich for
-# TEXMFMAIN; that mechanism could change without affecting this flag.
-AC_ARG_ENABLE(texmf-sysdir,
-[AS_HELP_STRING(--enable-texmf-sysdir[[[=no]]],
-[locate the base directory within the TeX installation at runtime (via
-kpsewhich), for a binary shipped inside a texmf tree])],
-[ if test "x$enableval" = "xyes" ; then
-    sysdir=""
-  fi
-])
-
-# Deprecated spelling of --enable-texmf-sysdir. Retained as an alias so existing
-# TeXLive/MacTeX build recipes keep working; remove after they have migrated.
+# For a binary that ships inside a texmf tree -- the TeX Live and MacTeX binary
+# distributions -- where the path of that tree is not known at build time.  Such
+# a binary has no fixed data directory: instead of a path chosen here, it finds
+# base/ within the TeX installation when it runs, by asking kpsewhich where the
+# texmf tree is.
+texlive_build=off
 AC_ARG_ENABLE(texlive-build,
 [AS_HELP_STRING(--enable-texlive-build[[[=no]]],
-deprecated alias for --enable-texmf-sysdir)],
+[for a binary shipped inside a texmf tree: find base/ within the TeX
+installation at run time (via kpsewhich) instead of at a fixed path])],
 [ if test "x$enableval" = "xyes" ; then
-    AC_MSG_WARN([--enable-texlive-build is deprecated; use --enable-texmf-sysdir instead.])
+    texlive_build=on
+    # How that is asked for: an empty sysdir is what initDir() (settings.cc)
+    # tests to decide to consult kpsewhich.
     sysdir=""
   fi
 ])
 
 # Let tests/Makefile give the relocatable matrix its C="" (CTAN) axis.  The
 # CMake build has a second executable, asy-ctan, to point the test at; autotools
-# builds one, so under --enable-texmf-sysdir that one *is* the CTAN binary.
-AS_IF([test "x$sysdir" = "x"], [texmf_sysdir=on], [texmf_sysdir=off])
-AC_SUBST(texmf_sysdir)
+# builds one, so under --enable-texlive-build that one *is* the CTAN binary.
+AC_SUBST(texlive_build)
 
 AC_ARG_ENABLE(relocatable,
 [AS_HELP_STRING(--enable-relocatable[[[=no]]],
