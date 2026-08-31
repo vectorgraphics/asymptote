@@ -80,7 +80,7 @@ void main()
       diffuse=color;
       // with no active lights the fragment shader's BRDF loop runs zero
       // times, so the color must reach the output via emissive
-      if(nlights == 0)
+      if(nlights == 0u)
         emissive += color;
     } else {
       emissive += color;
@@ -96,7 +96,7 @@ void main()
     diffuse=color;
     // with no active lights the fragment shader's BRDF loop runs zero
     // times, so the color must reach the output via emissive
-    if(nlights == 0)
+    if(nlights == 0u)
       emissive += color;
   } else {
     emissive += color;
