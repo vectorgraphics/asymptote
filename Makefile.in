@@ -19,11 +19,13 @@ GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 # The settings that decide whether an already-built gc can still be linked
-# against asy: the compilers, the macOS architecture and deployment flags, and
-# the options handed to gc's own configure.  Optimization and debugging flags
-# are deliberately left out, since changing them yields a library that still
-# links fine; rebuilding gc for every CFLAGS tweak would be gratuitous.
-GCBUILDFLAGS = CC=$(CC) CXX=$(CXX) $(MACOS_CFLAGS) $(GCOPTIONS)
+# against asy: the macOS architecture and deployment flags, and the options
+# handed to gc's own configure.  Optimization/debugging flags and the
+# compilers are deliberately left out, since changes to these build flags
+# typically do not cause link errors. (Note that the ABI is pure C, so
+# clang/gcc swaps are not an issue.) For atypical cases (e.g. CC="gcc -m32"),
+# a rebuild can be forced using "make gc-clean".
+GCBUILDFLAGS = $(MACOS_CFLAGS) $(GCOPTIONS)
 GCSTAMP = gc-build-flags.txt
 LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS) @LSPLIBS@
