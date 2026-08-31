@@ -2026,7 +2026,7 @@ void initDir() {
   // The TeXLive candidate, tried after the executable-relative ones in
   // resolveSysdir() have all failed and left the compiled-in sysdir in place.
   // An empty sysdir here means the binary was built with no fixed data
-  // directory (--enable-texlive-build) and nothing was found beside it, so ask
+  // directory (--enable-texmf-sysdir) and nothing was found beside it, so ask
   // kpathsea where the texmf tree is; it reads texmf.cnf, which is the only
   // thing that knows, since TEXMFROOT need not be relative to the binary. This
   // must stay a test for emptiness rather than for "sysdir does not exist":
