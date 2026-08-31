@@ -84,6 +84,10 @@ const third=1/3;
 const pi=Math.acos(-1.0);
 const radians=pi/180.0;
 const maxDepth=Math.ceil(1-Math.log2(Number.EPSILON));
+// Relative tolerance (working precision) for the pixel bounds fixed-point
+// iteration: the result feeds comparisons of independently computed
+// O(scene-size) quantities.
+const fitTolerance=Math.sqrt(Number.EPSILON);
 
 let Zoom;
 let lastZoom;
@@ -2193,13 +2197,20 @@ class BezierCurve extends Geometry {
   }
 }
 
+function pixelsPerBp() {
+  return 96.0/72.0; // pixels per bp
+}
+
+// Draw a pixel.
 class Pixel extends Geometry {
   constructor(private controlpoint,private width,protected MaterialIndex,
               transform = animatedGeometry()) {
     super();
     this.CenterIndex=0;
-    this.Min=controlpoint;
-    this.Max=controlpoint;
+    // width is in device pixels; convert to PostScript units.
+    let h=0.5*width/pixelsPerBp();
+    this.Min=[controlpoint[0]-h,controlpoint[1]-h,controlpoint[2]-h];
+    this.Max=[controlpoint[0]+h,controlpoint[1]+h,controlpoint[2]+h];
     this.transform=transform;
     this.controlpoints=[controlpoint];
   }
@@ -2209,11 +2220,13 @@ class Pixel extends Geometry {
   }
 
   Bounds(p,fuzz) {
-    return [this.controlpoints[0],this.controlpoints[0]];
+    // width is in device pixels; convert to PostScript units.
+    let h=0.5*this.width/pixelsPerBp();
+    let v=p[0];
+    return [[v[0]-h,v[1]-h,v[2]-h],[v[0]+h,v[1]+h,v[2]+h]];
   }
 
-  process(p) {
-    this.data.indices.push(this.data.vertex0(p[0],this.width));
+  process(p) {    this.data.indices.push(this.data.vertex0(p[0],this.width));
     this.append();
   }
 
@@ -2233,17 +2246,26 @@ class Triangles extends Geometry {
   private transparent: boolean = false;
 
   constructor(protected CenterIndex,protected MaterialIndex,
-              transform = null) {
+              transform = animatedGeometry()) {
     super();
     const wany = window as any;
-    this.controlpoints=wany.Positions;
-    this.Normals=wany.Normals;
-    this.Colors=wany.Colors;
-    this.Indices=wany.Indices;
+    // Copy the data: triangles() resets the globals after construction.
+    this.controlpoints=[...wany.Positions];
+    this.Normals=[...wany.Normals];
+    this.Colors=[...wany.Colors];
+    this.Indices=[...wany.Indices];
     this.transparent=Materials[this.MaterialIndex].diffuse[3] < 1;
+
+    this.transform=transform;
+    if(transform == null) {
+      let norm2=L2norm2(this.controlpoints);
+      this.epsilon=norm2*Number.EPSILON;
+      let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
+      [this.Min,this.Max]=this.Bounds(this.controlpoints,fuzz);
+    }
   }
 
-  Bound(p,m) {
+  Bound(p,m,fuzz) {
     let b=Array(3);
     let n=p.length;
     let x=Array(n);
@@ -2256,7 +2278,7 @@ class Triangles extends Geometry {
   }
 
   Bounds(p,fuzz) {
-    return [this.Bounds(p,min),this.Bounds(p,max)];
+    return [this.Bound(p,min,fuzz),this.Bound(p,max,fuzz)];
   }
 
   setMaterialIndex() {
@@ -3292,28 +3314,70 @@ function setDimensions(width,height,X,Y)
   xshift=(X/width+W.viewportShift[0])*Zoom;
   yshift=(Y/height+W.viewportShift[1])*Zoom;
   let Zoominv=1/Zoom;
+  if(fitWidth != width || fitHeight != height) {
+    if(W.orthographic) {
+      // Inflate the bounds so that fixed-size pixel() sprites are not clipped
+      // by the viewport at this canvas size (centering is unchanged).
+      inflatedMin=[W.minBound[0],W.minBound[1]];
+      inflatedMax=[W.maxBound[0],W.maxBound[1]];
+      inflatePixelBounds(inflatedMin,inflatedMax,width,height);
+      fitWidth=width;
+      fitHeight=height;
+    } else if(H != null) { // H is set by initProjection, after the first call
+      // Inflate the field of view so that fixed-size pixel() sprites are not
+      // clipped by the frustum at this canvas size. A sprite with center (x,y)
+      // and half-size n canvas px projects to y*height*near/(2*r*d) canvas px
+      // from the center at depth d, so it fits iff r >= |y|*near*height/
+      // (d*(height-2*n)) (and analogously in x), where r is the final
+      // half-height. Solve that constraint at the initial zoom W.zoom0
+      // (which includes the aspect correction for non-default canvas aspects)
+      // so that user zooming still moves sprites offscreen and zero-width
+      // pixels reduce to the default framing H. An axis whose sprite is
+      // wider than the canvas can never be fit by any field of view, so it
+      // contributes no constraint (clamping its denominator to 1 would
+      // over-inflate r instead of recognizing the sprite simply does not fit).
+      let r=H;
+      if(pixelList.length) {
+        let near=-W.maxBound[2];
+        let z0=W.zoom0;
+        for(const q of pixelList) {
+          let d=-q.z;
+          if(d > 0) {
+            if(height-2*q.n > 0)
+              r=Math.max(r,z0*Math.abs(q.y)*near*height/(d*(height-2*q.n)));
+            if(width-2*q.n > 0)
+              r=Math.max(r,z0*Math.abs(q.x)*near*width/(Aspect*d*(width-2*q.n)));
+          }
+        }
+      }
+      perspectiveR=r;
+      fitWidth=width;
+      fitHeight=height;
+    }
+  }
   if(W.orthographic) {
-    let xsize=W.maxBound[0]-W.minBound[0];
-    let ysize=W.maxBound[1]-W.minBound[1];
+    let minB=inflatedMin,maxB=inflatedMax;
+    let xsize=maxB[0]-minB[0];
+    let ysize=maxB[1]-minB[1];
     if(xsize < ysize*Aspect) {
       let r=0.5*ysize*Aspect*Zoominv;
       let X0=2*r*xshift;
       let Y0=ysize*Zoominv*yshift;
       viewParam.xmin=-r-X0;
       viewParam.xmax=r-X0;
-      viewParam.ymin=W.minBound[1]*Zoominv-Y0;
-      viewParam.ymax=W.maxBound[1]*Zoominv-Y0;
+      viewParam.ymin=minB[1]*Zoominv-Y0;
+      viewParam.ymax=maxB[1]*Zoominv-Y0;
     } else {
       let r=0.5*xsize*Zoominv/Aspect;
       let X0=xsize*Zoominv*xshift;
       let Y0=2*r*yshift;
-      viewParam.xmin=W.minBound[0]*Zoominv-X0;
-      viewParam.xmax=W.maxBound[0]*Zoominv-X0;
+      viewParam.xmin=minB[0]*Zoominv-X0;
+      viewParam.xmax=maxB[0]*Zoominv-X0;
       viewParam.ymin=-r-Y0;
       viewParam.ymax=r-Y0;
     }
   } else {
-    let r=H*Zoominv;
+    let r=perspectiveR*Zoominv;
     let rAspect=r*Aspect;
     let X0=2*rAspect*xshift;
     let Y0=2*r*yshift;
@@ -4202,6 +4266,8 @@ function webGLStart()
   W.canvasWidth0=W.canvasWidth;
   W.canvasHeight0=W.canvasHeight;
 
+  updateSceneBounds();
+
   mat4.identity(rotMat);
 
   if(window.innerWidth != 0 && window.innerHeight != 0)
@@ -4224,6 +4290,121 @@ function webGLStart()
 
   home();
   requestAnimationFrame(animate);
+}
+
+
+// Override the precomputed scene x/y bounds with the union of the objects'
+// tight bounds, which accounts for pixel() widths. Keep the precomputed z
+// range: it is expanded to a sphere about the target so that the depth
+// frustum contains the whole scene under rotation. If any object has an
+// animation transform, keep all precomputed bounds.
+let pixelList=[]; // Static pixels: {x,y,z} center and n half-size in canvas px
+// Cached pixel-fit quantities. They depend only on the canvas size (the scene
+// is static after webGLStart), so they are recomputed only when the size
+// changes (initial render and resizes), not on every zoom/pan event.
+let inflatedMin=null,inflatedMax=null; // Inflated x/y bounds (orthographic)
+let perspectiveR=0;                    // Base field-of-view half-height
+let fitWidth=0,fitHeight=0;            // Canvas size the cache fits
+
+function updateSceneBounds() {
+  if(P.length == 0) return;
+  let min=[Infinity,Infinity];
+  let max=[-Infinity,-Infinity];
+  pixelList.length=0;
+  for(const p of P) {
+    if(p.transform) return;
+    for(let i=0; i < 2; ++i) {
+      min[i]=Math.min(min[i],p.Min[i]);
+      max[i]=Math.max(max[i],p.Max[i]);
+    }
+    if(p instanceof Pixel) {
+      // The sprite is drawn with a fixed on-screen size (width canvas px),
+      // so record its half-size in canvas px for the fit calculation.
+
+      let q=p as any;
+      pixelList.push({x:0.5*(q.Min[0]+q.Max[0]), y:0.5*(q.Min[1]+q.Max[1]),
+                      z:0.5*(q.Min[2]+q.Max[2]),
+                      n:0.5*(q.Max[0]-q.Min[0])*pixelsPerBp()});
+    }
+  }
+  W.minBound[0]=min[0];
+  W.minBound[1]=min[1];
+  W.maxBound[0]=max[0];
+  W.maxBound[1]=max[1];
+}
+
+
+// A pixel() sprite has a fixed on-screen size, so its extent in scene units
+// is n*s, where s is the fit scale (scene units per canvas px), which itself
+// depends on the bounds. Inflate the x/y bounds to a fixed point so that no
+// sprite is clipped by the viewport. The frustum window is centered at the
+// origin along one axis, whose extent is derived from the fitted axis, so
+// the branch is decided from the base bounds and only the fitted axis is
+// grown: to cover the sprites' extent, and symmetrically about its center
+// until the centered window covers the sprites' extent from the origin.
+// Growing only the fitted axis keeps the branch, so the scene framing is
+// never worse than without pixels. The constraint is invariant under zoom.
+function inflatePixelBounds(minB,maxB,width,height) {
+  if(pixelList.length == 0) return;
+  let Aspect=width/height;
+  // Fit scale (scene units per canvas px) implied by inflating the fitted
+  // axis; fills mn/mx with the resulting bounds. The centered axis is left
+  // at the base bounds: its window is +/-r, derived from the fitted size,
+  // so growing it would not help coverage and could flip the branch in
+  // setDimensions.
+  let mn=[0,0],mx=[0,0];
+  function F(s) {
+    let xsize=maxB[0]-minB[0];
+    let ysize=maxB[1]-minB[1];
+    if(xsize < ysize*Aspect) { // x window is centered at the origin
+      // y is the fitted axis: cover the sprites' y extent, then grow
+      // symmetrically about its center until the x window, +/-ysize*Aspect/2,
+      // covers the sprites' x extent from the origin, Mx.
+      let Mx=0,mn1=minB[1],mx1=maxB[1];
+      for(const q of pixelList) {
+        Mx=Math.max(Mx,Math.abs(q.x)+q.n*s);
+        mn1=Math.min(mn1,q.y-q.n*s);
+        mx1=Math.max(mx1,q.y+q.n*s);
+      }
+      let d=2*Mx/Aspect-(mx1-mn1);
+      if(d > 0) { mn1-=0.5*d; mx1+=0.5*d; }
+      mn[0]=minB[0]; mx[0]=maxB[0];
+      mn[1]=mn1; mx[1]=mx1;
+      return (mx1-mn1)/height;
+    } else { // y window is centered at the origin
+      // x is the fitted axis: cover the sprites' x extent, then grow
+      // symmetrically about its center until the y window, +/-xsize/(2*Aspect),
+      // covers the sprites' y extent from the origin, My.
+      let My=0,mn0=minB[0],mx0=maxB[0];
+      for(const q of pixelList) {
+        My=Math.max(My,Math.abs(q.y)+q.n*s);
+        mn0=Math.min(mn0,q.x-q.n*s);
+        mx0=Math.max(mx0,q.x+q.n*s);
+      }
+      let d=2*Aspect*My-(mx0-mn0);
+      if(d > 0) { mn0-=0.5*d; mx0+=0.5*d; }
+      mn[0]=mn0; mx[0]=mx0;
+      mn[1]=minB[1]; mx[1]=maxB[1];
+      return (mx0-mn0)/width;
+    }
+  }
+  // F is continuous and piecewise linear in s, with slope < 1 wherever a
+  // finite fit exists, so g(s)=F(s)-s has the smallest fitting scale as its
+  // first root. Bisect for it: unlike the contraction s<-F(s), whose rate
+  // approaches 1 when a large sprite dominates, this takes a fixed number of
+  // iterations. g(0)=F(0)>0 when pixels exist; double hi until g(hi)<=0,
+  // bailing out if no finite fit exists (a sprite larger than the canvas),
+  // keeping the input bounds.
+  let lo=0,hi=F(0);
+  for(let i=0; i < 64 && F(hi) > hi; ++i) hi*=2;
+  if(F(hi) > hi) return;
+  for(let i=0; i < 64 && hi-lo > fitTolerance*hi; ++i) {
+    let mid=0.5*(lo+hi);
+    if(F(mid) > mid) lo=mid; else hi=mid;
+  }
+  F(hi);
+  minB[0]=mn[0]; minB[1]=mn[1];
+  maxB[0]=mx[0]; maxB[1]=mx[1];
 }
 
 function updateScene() {

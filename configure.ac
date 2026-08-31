@@ -2,8 +2,8 @@
 # Run autoheader and autoconf to produce a header and configure script from
 # this file.
 
-AC_PREREQ([2.71])
-AC_INIT([Asymptote],[3.14git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_PREREQ([2.72])
+AC_INIT([Asymptote],[3.15git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])

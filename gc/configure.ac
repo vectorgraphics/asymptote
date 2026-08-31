@@ -1,6 +1,6 @@
 # Copyright (c) 1999-2001 by Red Hat, Inc. All rights reserved.
 # Copyright (c) 2005-2009 Hewlett-Packard Development Company, L.P.
-# Copyright (c) 2009-2021 Ivan Maidanski
+# Copyright (c) 2009-2025 Ivan Maidanski
 #
 # THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
 # OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.
@@ -14,20 +14,19 @@
 dnl Process this file with autoconf to produce configure.
 
 dnl Initialization.
-AC_INIT([gc],[8.2.8],[https://github.com/ivmai/bdwgc/issues])
+AC_INIT([gc],[8.2.12],[https://github.com/bdwgc/bdwgc/issues])
 dnl Version must conform to: [0-9]+[.][0-9]+[.][0-9]+
 
 AC_CONFIG_SRCDIR(gcj_mlc.c)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_TARGET
-AC_PREREQ([2.71])
+AC_PREREQ([2.72])
 GC_SET_VERSION
 AM_INIT_AUTOMAKE([foreign nostdinc subdir-objects])
 AC_CONFIG_HEADERS([include/config.h])
 AM_MAINTAINER_MODE
 
 AC_SUBST(PACKAGE)
-AC_SUBST(GC_VERSION)
 
 AM_PROG_CC_C_O
 AC_PROG_CXX
@@ -213,7 +212,7 @@ case "$THREADS" in
       *-*-aix* | *-*-android* | *-*-cygwin* | *-*-darwin* | *-*-dragonfly* | \
       *-*-freebsd* | *-*-haiku* | *-*-hpux11* | *-*-irix* | \
       *-*-kfreebsd*-gnu | *-*-gnu* | *-*-*linux* | *-*-msys* | *-*-nacl* | \
-      *-*-netbsd* | *-*-openbsd* | *-*-osf* | *-*-solaris*)
+      *-*-netbsd* | *-*-openbsd* | *-*-osf* | *-*-serenity* | *-*-solaris*)
         AC_DEFINE(GC_THREADS)
         AC_DEFINE([_REENTRANT], [1],
                   [Required define if using POSIX threads.])
@@ -556,15 +555,6 @@ AC_SUBST(CXXLIBS)
 #
 AC_MSG_CHECKING(whether to build shared libraries)
 AC_ENABLE_SHARED
-
-case "$host" in
- alpha-*-openbsd*)
-     enable_shared=no
-     ;;
- *)
-     ;;
-esac
-
 AC_MSG_RESULT($enable_shared)
 
 # Compile with GC_DLL defined unless building static libraries.
@@ -627,7 +617,7 @@ case "$host" in
     AC_DEFINE(SUNOS53_SHARED_LIB, 1,
               [Define to work around a Solaris 5.3 bug (see dyn_load.c).])
     ;;
- sparc*-sun-solaris2*)
+ sparc*-sun-solaris*)
     machdep="sparc_mach_dep.lo"
     compile_asm=true
     ;;
@@ -835,24 +825,24 @@ AS_IF([test "$THREADS" = posix],
   [AC_MSG_CHECKING(for pthread_setname_np)
    old_CFLAGS="$CFLAGS"
    CFLAGS="$CFLAGS $CFLAGS_EXTRA -Werror"
-   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #         define _GNU_SOURCE 1
 #         include <pthread.h>
-        ], [pthread_setname_np("thread-name")])],
-     [AC_MSG_RESULT([yes (w/o tid)])
+        ]], [[pthread_setname_np("thread-name")]])],[AC_MSG_RESULT([yes (w/o tid)])
       AC_DEFINE([HAVE_PTHREAD_SETNAME_NP_WITHOUT_TID], [1],
-                [Define to use 'pthread_setname_np(const char*)' function.])],     [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
+                [Define to use 'pthread_setname_np(const char*)' function.])],
+       [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #         define _GNU_SOURCE 1
 #         include <pthread.h>
-        ], [pthread_setname_np(pthread_self(), "thread-name-%u", 0)])],
+        ]], [pthread_setname_np(pthread_self(), "thread-name-%u", 0)])],
        [AC_MSG_RESULT([yes (with tid and arg)])
         AC_DEFINE([HAVE_PTHREAD_SETNAME_NP_WITH_TID_AND_ARG], [1],
          [Define to use 'pthread_setname_np(pthread_t, const char*, void *)'
           function.])],
-       [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
+       [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #             define _GNU_SOURCE 1
 #             include <pthread.h>
-            ], [pthread_setname_np(pthread_self(), "thread-name")])],
+            ]], [pthread_setname_np(pthread_self(), "thread-name")])],
          [AC_MSG_RESULT([yes (with tid)])
           AC_DEFINE([HAVE_PTHREAD_SETNAME_NP_WITH_TID], [1],
                     [Define to use 'pthread_setname_np(pthread_t, const char*)'
@@ -902,7 +892,7 @@ if test "${enable_redirect_malloc}" = yes; then
         AC_DEFINE([REDIRECT_MALLOC], GC_debug_malloc_replacement,
                   [If defined, redirect malloc to this function.])
         AC_DEFINE([REDIRECT_REALLOC], GC_debug_realloc_replacement,
-                  [If defined, redirect GC_realloc to this function.])
+                  [If defined, redirect realloc to this function.])
         AC_DEFINE([REDIRECT_FREE], GC_debug_free,
                   [If defined, redirect free to this function.])
     else
@@ -1024,12 +1014,6 @@ AC_ARG_ENABLE(werror,
     werror_flag=$enableval, werror_flag=no)
 if test x$werror_flag = xyes; then
     WERROR_CFLAGS="-Werror"
-    case "$host" in
-      # _dyld_bind_fully_image_containing_address is deprecated in OS X 10.5+
-      *-*-darwin*)
-        WERROR_CFLAGS="$WERROR_CFLAGS -Wno-deprecated-declarations"
-        ;;
-    esac
 fi
 AC_SUBST([WERROR_CFLAGS])
 
@@ -1063,7 +1047,7 @@ AM_CONDITIONAL(ENABLE_DOCS, test x$enable_docs != xno)
 
 AM_CONDITIONAL(ENABLE_SHARED, test x$enable_shared = xyes)
 
-# Atomic Ops
+# Atomic_ops
 # ----------
 
 # Do we want to use an external libatomic_ops?  By default use it if it's

@@ -8369,13 +8369,16 @@ the abbreviation @code{Spline} is also accepted);
 @cindex @code{notaknot}
 @cindex @code{natural}
 @cindex @code{periodic}
+@cindex @code{periodicOffset}
 @cindex @code{clamped}
 @cindex @code{monotonic}
 @cindex @code{Hermite(splinetype splinetype}
 @item @code{linear} (linear interpolation),
 @item @code{Hermite} (standard cubic spline interpolation using boundary
 condition @code{notaknot}, @code{natural},  @code{periodic},
-@code{clamped(real slopea, real slopeb)}), or @code{monotonic}.
+@code{periodicOffset}, @footnote{like @code{periodic} but for data that repeats
+after a constant offset, as in @math{y=x+\sin x}.}
+@code{clamped(real slopea, real slopeb)}, or @code{monotonic}).
 The abbreviation @code{Hermite} is equivalent to
 @code{Hermite(notaknot)} for nonperiodic data and
 @code{Hermite(periodic)} for periodic data).
@@ -9416,14 +9419,13 @@ There are six choices for viewing 3D @code{Asymptote} output:
 @cindex @code{render}
 @cindex @code{outformat}
 @cindex @code{multisample}
-@cindex @code{devicepixelratio}
 @cindex @code{position}
 @item Use the native @code{Asymptote} adaptive @code{OpenGL}-based
 renderer (with the command-line option @code{-V} and the default settings
 @code{outformat=""} and @code{render=-1}). On @code{UNIX} systems with
 graphics support for multisampling, the sample width can be
-controlled with the setting @code{multisample}. The ratio of physical to
-logical screen pixels can be specified with the setting @code{devicepixelratio}. An initial screen position can be specified with the pair setting
+controlled with the setting @code{multisample}.
+An initial screen position can be specified with the pair setting
 @code{position}, where negative values are interpreted as relative to the
 corresponding maximum screen dimension. The default settings
 @cindex mouse bindings
@@ -12504,7 +12506,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  5cm freshnel0 fresnel0 PBR prethree specularfactor
 @c  LocalWords:  renderers 2E ESC AsyGL 48kB 2n 100d 5z 5y 5unit 10cm
 @c  LocalWords:  unicode 144x144 Pedram Emami 204e 10x Ai Ai Ai Ai Ai
-@c  LocalWords:  Ai Ai Ai 5a 5E 5cm 2N 2E devicepixelratio 48kB 2n 5z
+@c  LocalWords:  Ai Ai Ai 5a 5E 5cm 2N 2E 48kB 2n 5z
 @c  LocalWords:  100d 5y 5unit 144x144 2004-23 2004-24 top-level 3D
 @c  LocalWords:  1filll Command-line Command-Line command-line 2D 15
 @c  LocalWords:  higher-order User-defined Python-style Templated V3D

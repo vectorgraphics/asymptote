@@ -348,18 +348,6 @@ string resolveSysdir(string const& compiledInSysdir) noexcept
     }
     return compiledInSysdir;
   } catch (...) {
-    // asy_malloc() throws std::bad_alloc rather than returning null, so any
-    // allocation above can land here. Treat it as "no candidate matched" and
-    // use the compiled-in path, which is what an installed binary resolves to
-    // anyway; relocatedSysdir is left false, so a MSWindows registry entry
-    // still applies.
-    //
-    // Deliberately not "": that value marks a TeXLive build and would divert
-    // the search to kpsewhich, silently mis-configuring a binary that is not
-    // one. Copying compiledInSysdir can itself allocate, but if that fails the
-    // process is out of memory before main() and terminating is the honest
-    // outcome -- and the MSWindows sysdir is short enough to fit a string's
-    // internal buffer, so it does not allocate there at all.
     return compiledInSysdir;
   }
 }

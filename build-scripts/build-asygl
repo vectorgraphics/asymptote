@@ -33,11 +33,12 @@ ASYGL_OUTPUT="$REPO_ROOT/base/webgl/asygl.js"
 
 ESBUILD_ARGS="src/gl.ts --bundle --format=iife --target=es2017 --loader:.glsl=text"
 
-if [ "$1" = "debug" ]; then
-  ESBUILD_ARGS="$ESBUILD_ARGS --sourcemap=external"
-elif [ "$1" = "debug-source-map" ]; then
+# debug: unminified, no sourcemap (clean file for debugging/editing)
+# debug-source-map: unminified, with inline sourcemap
+# default: minified (esbuild + terser)
+if [ "$1" = "debug-source-map" ]; then
   ESBUILD_ARGS="$ESBUILD_ARGS --sourcemap=inline"
-else
+elif [ "$1" != "debug" ]; then
   ESBUILD_ARGS="$ESBUILD_ARGS --minify"
 fi
 
@@ -47,6 +48,10 @@ TJSTMP=$(mktemp)
 cp "$TMPJS" "$ASYGL_OUTPUT"
 rm -f "$TMPJS"
 
-# Post-minify with terser for additional compression
-cat "$ASYGL_OUTPUT" | terser -m -c > "$TJSTMP" 2>/dev/null
-cat "$TJSTMP" > "$ASYGL_OUTPUT"
+# Post-minify with terser for additional compression.
+# Skip in debug mode: the debug options must inhibit minification.
+if [ "$1" != "debug" ] && [ "$1" != "debug-source-map" ]; then
+  cat "$ASYGL_OUTPUT" | terser -m -c > "$TJSTMP" 2>/dev/null
+  cat "$TJSTMP" > "$ASYGL_OUTPUT"
+fi
+rm -f "$TJSTMP"

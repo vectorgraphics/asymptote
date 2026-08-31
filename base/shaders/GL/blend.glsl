@@ -45,6 +45,25 @@ out vec4 outColor;
 uniform uint width;
 uniform vec4 background;
 
+// sRGB (perceptual) output; set at runtime, so no recompilation is needed
+// when the setting changes (true = convert, false = output linear)
+uniform bool srgb;
+
+const float gamma=2.2;
+const float invGamma=1.0/gamma;
+
+/**
+ * @brief Converts linear color (measuring photon count) to srgb (what our brain thinks
+ * is the brightness
+ * example linearToPerceptual(vec3(0.5)) is approximately vec3(0.729)
+ */
+vec3 linearToPerceptual(vec3 inColor)
+{
+  // an actual 0.5 brightness (half amount of photons) would
+  // look brighter than what our eyes think is "half" light
+  return pow(inColor, vec3(invGamma));
+}
+
 vec4 blend(vec4 outColor, vec4 color)
 {
   return mix(outColor,color,color.a);
@@ -129,10 +148,6 @@ void main()
     if(OpaqueDepth != 0.0)
       opaqueDepth[pixel]=0.0;
   } else {
-    atomicMax(maxDepth,size);
-#ifndef GPUINDEXING
-    maxSize=maxDepth;
-#endif
     for(uint i=k+1u; i < size; i++) {
       vec4 temp=fragment[listIndex+i];
       float d=depth[listIndex+i];
@@ -157,6 +172,13 @@ void main()
       }
       opaqueDepth[pixel]=0.0;
     }
+  }
+
+  // Match the fragment shader: the blended color is linear, convert to
+  // perceptual if sRGB output is requested
+  if(srgb) {
+    vec3 perceptualColor=linearToPerceptual(outColor.rgb);
+    outColor=vec4(perceptualColor,outColor.a);
   }
 
   COUNT(pixel)=0u;

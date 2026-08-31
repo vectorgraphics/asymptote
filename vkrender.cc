@@ -389,21 +389,32 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
   }
 #endif
 
-  GPUcompress=settings::getSetting<bool>("GPUcompress");
 
-  localSize=settings::getSetting<Int>("GPUlocalSize");
-  checkpow2(localSize,"GPUlocalSize");
-  blockSize=settings::getSetting<Int>("GPUblockSize");
-  checkpow2(blockSize,"GPUblockSize");
-  groupSize=localSize*blockSize;
-
+  // These values are baked into the shader modules compiled once per session
+  // (see createShaderModules), so capture them exactly once, as of the first
+  // render() call.  Users may still override them before the first render
+  // (settings.* in an asy file, interactive mode), but they are
+  // session-constant afterwards.
   if(vkinitialize) {
+    GPUcompress=settings::getSetting<bool>("GPUcompress");
+
+    localSize=settings::getSetting<Int>("GPUlocalSize");
+    checkpow2(localSize,"GPUlocalSize");
+    blockSize=settings::getSetting<Int>("GPUblockSize");
+    checkpow2(blockSize,"GPUblockSize");
+    groupSize=localSize*blockSize;
+
     interlock=settings::getSetting<bool>("GPUinterlock");
     fxaa=settings::getSetting<bool>("fxaa");
     srgb=settings::getSetting<bool>("srgb");
-
-    ibl=settings::getSetting<bool>("ibl");
   }
+
+  // IBL is a push-constant flag (no shader recompilation). Re-read on every
+  // render() so a new scene can turn it on or change the image (v3d.asy sets
+  // settings.ibl when a V3D header names an environment image). Mirrors the
+  // mode-dependent logic in AsyRender::cycleMode().
+  if (mode == DRAWMODE_NORMAL)
+    ibl = settings::getSetting<bool>("ibl");
 
   if(View) {
     // Validate that the current physical device is suitable for onscreen
@@ -424,6 +435,10 @@ void AsyVkRender::render(RenderFunctionArgs const& args)
     vkinitialize=false;
     initVulkan();
   }
+
+  // Load environment images if this scene enabled IBL or names a new image.
+  // No-op on the first render (initVulkan already loaded the images).
+  updateIBL();
 
   readyForUpdate=true;
   mainLoop();
@@ -502,6 +517,8 @@ void AsyVkRender::initVulkan()
 
   if (ibl) {
     initIBL();
+  } else {
+    createIBLPlaceholders();
   }
 
   createDescriptorPool();
@@ -547,7 +564,6 @@ void AsyVkRender::recreateSwapChain()
     renderTimelineSemaphore.reset();
     renderTimelineSemaphore = createTimelineSemaphore(0);
 
-    resetDepth=true;
     createSwapChain();
 
     if (fxaa)
@@ -2139,11 +2155,12 @@ void AsyVkRender::createDescriptorSetLayout()
     elementBufferBinding
   };
 
-  if (ibl) {
-    layoutBindings.emplace_back(irradianceSamplerBinding);
-    layoutBindings.emplace_back(brdfSamplerBinding);
-    layoutBindings.emplace_back(reflectionSamplerBinding);
-  }
+  // IBL sampler bindings are always present: the fragment shader declares
+  // them unconditionally and gates their use on a push-constant flag. When
+  // IBL is off the descriptor sets hold small placeholder images.
+  layoutBindings.emplace_back(irradianceSamplerBinding);
+  layoutBindings.emplace_back(brdfSamplerBinding);
+  layoutBindings.emplace_back(reflectionSamplerBinding);
 
   auto layoutCI = vk::DescriptorSetLayoutCreateInfo(
     vk::DescriptorSetLayoutCreateFlags(),
@@ -2220,19 +2237,9 @@ void AsyVkRender::createDescriptorPool()
   poolSizes[10].type = vk::DescriptorType::eStorageBuffer;
   poolSizes[10].descriptorCount = maxFramesInFlight;
 
-  if (ibl) {
-    poolSizes.emplace_back(
-      vk::DescriptorPoolSize(
-        vk::DescriptorType::eCombinedImageSampler,
-        maxFramesInFlight
-      )
-    );
-    poolSizes.emplace_back(
-      vk::DescriptorPoolSize(
-        vk::DescriptorType::eCombinedImageSampler,
-        maxFramesInFlight
-      )
-    );
+  // Three CombinedImageSampler entries per set for the IBL samplers
+  // (bindings 11-13), which are always declared (see createDescriptorSetLayout).
+  for (auto i = 0; i < 3; i++) {
     poolSizes.emplace_back(
       vk::DescriptorPoolSize(
         vk::DescriptorType::eCombinedImageSampler,
@@ -2487,55 +2494,60 @@ void AsyVkRender::writeDescriptorSets()
     device->updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
   }
 
-  if (ibl) {
-    for (auto i = 0; i < maxFramesInFlight; i++) {
-      auto irradianceSampInfo = vk::DescriptorImageInfo();
-
-      irradianceSampInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-      irradianceSampInfo.imageView = *irradianceView;
-      irradianceSampInfo.sampler = *irradianceSampler;
-
-      auto brdfSampInfo = vk::DescriptorImageInfo();
-
-      brdfSampInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-      brdfSampInfo.imageView = *brdfView;
-      brdfSampInfo.sampler = *brdfSampler;
-
-      auto reflSampInfo = vk::DescriptorImageInfo();
-
-      reflSampInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-      reflSampInfo.imageView = *reflectionView;
-      reflSampInfo.sampler = *reflectionSampler;
-
-      std::array<vk::WriteDescriptorSet, 3> samplerWrites;
-
-      samplerWrites[0].dstSet = *frameObjects[i].descriptorSet;
-      samplerWrites[0].dstBinding = 11;
-      samplerWrites[0].dstArrayElement = 0;
-      samplerWrites[0].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-      samplerWrites[0].descriptorCount = 1;
-      samplerWrites[0].pImageInfo = &irradianceSampInfo;
-
-      samplerWrites[1].dstSet = *frameObjects[i].descriptorSet;
-      samplerWrites[1].dstBinding = 12;
-      samplerWrites[1].dstArrayElement = 0;
-      samplerWrites[1].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-      samplerWrites[1].descriptorCount = 1;
-      samplerWrites[1].pImageInfo = &brdfSampInfo;
-
-      samplerWrites[2].dstSet = *frameObjects[i].descriptorSet;
-      samplerWrites[2].dstBinding = 13;
-      samplerWrites[2].dstArrayElement = 0;
-      samplerWrites[2].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-      samplerWrites[2].descriptorCount = 1;
-      samplerWrites[2].pImageInfo = &reflSampInfo;
-
-      device->updateDescriptorSets(samplerWrites.size(), samplerWrites.data(), 0, nullptr);
-    }
-  }
+  // IBL samplers (bindings 11-13) are always written: the images are either
+  // the loaded environment maps or the placeholders created in
+  // createIBLPlaceholders().
+  writeIBLDescriptors();
 
   if (fxaa)
     writePostProcessDescSets();
+}
+
+void AsyVkRender::writeIBLDescriptors() {
+  for (auto i = 0; i < maxFramesInFlight; i++) {
+    auto irradianceSampInfo = vk::DescriptorImageInfo();
+
+    irradianceSampInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    irradianceSampInfo.imageView = *irradianceView;
+    irradianceSampInfo.sampler = *irradianceSampler;
+
+    auto brdfSampInfo = vk::DescriptorImageInfo();
+
+    brdfSampInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    brdfSampInfo.imageView = *brdfView;
+    brdfSampInfo.sampler = *brdfSampler;
+
+    auto reflSampInfo = vk::DescriptorImageInfo();
+
+    reflSampInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    reflSampInfo.imageView = *reflectionView;
+    reflSampInfo.sampler = *reflectionSampler;
+
+    std::array<vk::WriteDescriptorSet, 3> samplerWrites;
+
+    samplerWrites[0].dstSet = *frameObjects[i].descriptorSet;
+    samplerWrites[0].dstBinding = 11;
+    samplerWrites[0].dstArrayElement = 0;
+    samplerWrites[0].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    samplerWrites[0].descriptorCount = 1;
+    samplerWrites[0].pImageInfo = &irradianceSampInfo;
+
+    samplerWrites[1].dstSet = *frameObjects[i].descriptorSet;
+    samplerWrites[1].dstBinding = 12;
+    samplerWrites[1].dstArrayElement = 0;
+    samplerWrites[1].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    samplerWrites[1].descriptorCount = 1;
+    samplerWrites[1].pImageInfo = &brdfSampInfo;
+
+    samplerWrites[2].dstSet = *frameObjects[i].descriptorSet;
+    samplerWrites[2].dstBinding = 13;
+    samplerWrites[2].dstArrayElement = 0;
+    samplerWrites[2].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    samplerWrites[2].descriptorCount = 1;
+    samplerWrites[2].pImageInfo = &reflSampInfo;
+
+    device->updateDescriptorSets(samplerWrites.size(), samplerWrites.data(), 0, nullptr);
+  }
 }
 
 void AsyVkRender::writePostProcessDescSets()
@@ -2974,6 +2986,66 @@ void AsyVkRender::initIBL() {
     reflectionSampler,
     files
   );
+
+  iblImageName = settings::getSetting<string>("image");
+}
+
+void AsyVkRender::createIBLPlaceholders() {
+  // The IBL samplers (bindings 11-13) are always declared in the fragment
+  // shader, so the descriptor sets must hold valid images even when IBL is
+  // off. The shader only samples them when the IBL push-constant bit is
+  // set, so the (undefined) placeholder contents are never read.
+  struct Spec {
+    vma::cxx::UniqueImage& img;
+    vk::UniqueImageView& view;
+    vk::UniqueSampler& sampler;
+    bool t3d;
+  };
+  const Spec specs[] = {
+    {irradianceImg, irradianceView, irradianceSampler, false},
+    {brdfImg, brdfView, brdfSampler, false},
+    {reflectionImg, reflectionView, reflectionSampler, true},
+  };
+  for (auto const& s : specs) {
+    s.img = createImage(1, 1,
+                        vk::SampleCountFlagBits::e1,
+                        vk::Format::eR32G32B32A32Sfloat,
+                        vk::ImageUsageFlagBits::eSampled,
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                        s.t3d ? vk::ImageType::e3D : vk::ImageType::e2D,
+                        1);
+    transitionImageLayout(vk::ImageLayout::eUndefined,
+                          vk::ImageLayout::eShaderReadOnlyOptimal,
+                          s.img.getImage());
+    createImageView(vk::Format::eR32G32B32A32Sfloat,
+                    vk::ImageAspectFlagBits::eColor,
+                    s.img.getImage(), s.view,
+                    s.t3d ? vk::ImageViewType::e3D : vk::ImageViewType::e2D);
+    createImageSampler(s.sampler);
+  }
+  iblImageName = "";
+}
+
+void AsyVkRender::updateIBL() {
+  // IBL is a push-constant flag, so enabling/disabling it needs no shader
+  // recompilation. Loading a new environment image (e.g. a new V3D scene
+  // that names one, or cycling back to normal mode) only requires fresh
+  // images and a descriptor rewrite.
+  if (!ibl || !device)
+    return;
+
+  string image = settings::getSetting<string>("image");
+  if (image == iblImageName)
+    return;
+
+  device->waitIdle();
+
+  irradianceImg.reset(); irradianceView.reset(); irradianceSampler.reset();
+  brdfImg.reset(); brdfView.reset(); brdfSampler.reset();
+  reflectionImg.reset(); reflectionView.reset(); reflectionSampler.reset();
+
+  initIBL();
+  writeIBLDescriptors();
 }
 
 void AsyVkRender::createCountRenderPass()
@@ -3205,7 +3277,7 @@ void AsyVkRender::createGraphicsRenderPass()
 void AsyVkRender::createGraphicsPipelineLayout()
 {
   auto flagsPushConstant = vk::PushConstantRange(
-    vk::ShaderStageFlagBits::eFragment,
+    vk::ShaderStageFlagBits::eFragment | vk::ShaderStageFlagBits::eVertex,
     0,
     sizeof(PushConstants)
   );
@@ -3225,23 +3297,6 @@ void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, Pipelin
   if (type != PIPELINE_COUNT)
     options.emplace_back("MATERIAL");
 
-  if (ibl) {
-    options.emplace_back("USE_IBL");
-  }
-  if (orthographic) {
-    options.emplace_back("ORTHOGRAPHIC");
-  }
-
-  if (fxaa)
-  {
-    options.emplace_back("ENABLE_FXAA");
-  }
-
-  if (srgb)
-  {
-    options.emplace_back("OUTPUT_AS_SRGB");
-  }
-
   if (type == PIPELINE_OPAQUE) {
     options.emplace_back("OPAQUE");
     return;
@@ -3258,49 +3313,48 @@ void AsyVkRender::modifyShaderOptions(std::vector<std::string>& options, Pipelin
 
   options.emplace_back("LOCALSIZE " + std::to_string(localSize));
   options.emplace_back("BLOCKSIZE " + std::to_string(blockSize));
-  options.emplace_back("ARRAYSIZE " + std::to_string(maxSize));
+}
+
+void AsyVkRender::pipelineModulesForType(PipelineType type, PipelineConfig const& config,
+                                         vk::ShaderModule& vertexModule, vk::ShaderModule& fragmentModule)
+{
+  switch (type) {
+    case PIPELINE_COUNT:
+      vertexModule = config.countVert;
+      fragmentModule = config.countFrag;
+      break;
+    case PIPELINE_TRANSPARENT:
+      vertexModule = config.transVert;
+      fragmentModule = config.transFrag;
+      break;
+    default:
+      vertexModule = config.opaqueVert;
+      fragmentModule = config.opaqueFrag;
+      break;
+  }
 }
 
 template<typename V>
 void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline & graphicsPipeline, vk::PrimitiveTopology topology,
-                                         vk::PolygonMode fillMode, std::vector<std::string> options,
+                                         vk::PolygonMode fillMode, vk::ShaderModule vertexModule, vk::ShaderModule fragmentModule,
                                          std::string const & name,
-                                         std::string const & vertexShader,
-                                         std::string const & fragmentShader,
                                          int graphicsSubpass, bool enableDepthWrite,
-                                         bool transparent, bool disableMultisample)
+                                         bool transparent, bool disableMultisample,
+                                         bool screenVertex)
 {
-  std::string vertShaderName = SHADER_DIRECTORY + vertexShader + ".glsl";
-  std::string fragShaderName = SHADER_DIRECTORY + fragmentShader + ".glsl";
-
-  bool width=topology == vk::PrimitiveTopology::ePointList;
-
-  if (type == PIPELINE_COUNT) {
-    vertShaderName = SHADER_DIRECTORY "vertex.glsl";
-    fragShaderName = SHADER_DIRECTORY "count.glsl";
-    if(width)
-      options.emplace_back("WIDTH");
-    if(GPUcompress)
-      options.emplace_back("GPUCOMPRESS");
-  } else
-    modifyShaderOptions(options, type);
-
-  auto vertShaderModule = createShaderModule(EShLangVertex, vertShaderName, options);
-  auto fragShaderModule = createShaderModule(EShLangFragment, fragShaderName, options);
-
   auto specializationInfo = vk::SpecializationInfo();
 
   auto vertShaderStageCI = vk::PipelineShaderStageCreateInfo(
     vk::PipelineShaderStageCreateFlags(),
     vk::ShaderStageFlagBits::eVertex,
-    *vertShaderModule,
+    vertexModule,
     "main",
     &specializationInfo
   );
   auto fragShaderStageCI = vk::PipelineShaderStageCreateInfo(
     vk::PipelineShaderStageCreateFlags(),
     vk::ShaderStageFlagBits::eFragment,
-    *fragShaderModule,
+    fragmentModule,
     "main",
     &specializationInfo
   );
@@ -3312,7 +3366,7 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
   vk::VertexInputBindingDescription bindingDescription;
   std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
 
-  if (vertexShader == "screen") {
+  if (screenVertex) {
     // For screen shader, use empty vertex input state
     vertexInputCI = vk::PipelineVertexInputStateCreateInfo();
   } else {
@@ -3465,19 +3519,21 @@ void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline &
 template<typename V>
 void AsyVkRender::createGraphicsPipeline(PipelineType type, vk::UniquePipeline& graphicsPipeline, const AsyVkRender::PipelineConfig& config)
 {
+    vk::ShaderModule vertexModule, fragmentModule;
+    pipelineModulesForType(type, config, vertexModule, fragmentModule);
     createGraphicsPipeline<V>(
         type,
         graphicsPipeline,
         config.topology,
         config.fillMode,
-        type == PIPELINE_COUNT ? countShaderOptions : config.shaderOptions,
+        vertexModule,
+        fragmentModule,
         config.namePrefix,
-        config.vertexShader,
-        config.fragmentShader,
         config.graphicsSubpass,
         config.enableDepthWrite,
         config.transparent,
-        config.disableMultisample
+        config.disableMultisample,
+        config.screenVertex
     );
 }
 
@@ -3489,21 +3545,102 @@ void AsyVkRender::createPipelineSet(
     PipelineType end)
 {
     for (auto u = static_cast<unsigned>(start); u < static_cast<unsigned>(end); u++) {
+        auto const type = static_cast<PipelineType>(u);
+        vk::ShaderModule vertexModule, fragmentModule;
+        pipelineModulesForType(type, config, vertexModule, fragmentModule);
         createGraphicsPipeline<V>(
-            static_cast<PipelineType>(u),
+            type,
             pipelines[u],
             config.topology,
             config.fillMode,
-            u == PIPELINE_COUNT ? countShaderOptions : config.shaderOptions,
+            vertexModule,
+            fragmentModule,
             config.namePrefix + std::to_string(u),
-            config.vertexShader,
-            config.fragmentShader,
             config.graphicsSubpass,
             config.enableDepthWrite,
             config.transparent,
-            config.disableMultisample
+            config.disableMultisample,
+            config.screenVertex
         );
     }
+}
+
+void AsyVkRender::createShaderModules()
+{
+  // Shaders depend on width/height and on the toggleable settings (srgb,
+  // fxaa, ibl, orthographic) only through push constants, plus a few
+  // session-fixed #defines (GPUcompress, interlock, localSize, blockSize),
+  // so compile each module exactly once per session; pipeline (re)creation
+  // reuses them.
+  if (!shaderModules.empty())
+    return;
+
+  shaderModules.resize(static_cast<std::size_t>(ModuleCount));
+
+  auto const optionsFor = [this](std::vector<std::string> const& base, PipelineType type) {
+    std::vector<std::string> options = base;
+    modifyShaderOptions(options, type);
+    return options;
+  };
+  auto const vert = [this](std::string const& file, std::vector<std::string> const& options) {
+    return createShaderModule(EShLangVertex, SHADER_DIRECTORY + file, options);
+  };
+  auto const frag = [this](std::string const& file, std::vector<std::string> const& options) {
+    return createShaderModule(EShLangFragment, SHADER_DIRECTORY + file, options);
+  };
+
+  std::vector<std::string> const noOptions;
+  // Material triangles and lines share shaders and defines.
+  shaderModules[MaterialVert] = vert("vertex.glsl", optionsFor(materialShaderOptions, PIPELINE_OPAQUE));
+  shaderModules[MaterialFrag] = frag("fragment.glsl", optionsFor(materialShaderOptions, PIPELINE_OPAQUE));
+  shaderModules[MaterialTransVert] = vert("vertex.glsl", optionsFor(materialShaderOptions, PIPELINE_TRANSPARENT));
+  shaderModules[MaterialTransFrag] = frag("fragment.glsl", optionsFor(materialShaderOptions, PIPELINE_TRANSPARENT));
+  // Color triangles
+  shaderModules[ColorVert] = vert("vertex.glsl", optionsFor(colorShaderOptions, PIPELINE_OPAQUE));
+  shaderModules[ColorFrag] = frag("fragment.glsl", optionsFor(colorShaderOptions, PIPELINE_OPAQUE));
+  shaderModules[ColorTransVert] = vert("vertex.glsl", optionsFor(colorShaderOptions, PIPELINE_TRANSPARENT));
+  shaderModules[ColorTransFrag] = frag("fragment.glsl", optionsFor(colorShaderOptions, PIPELINE_TRANSPARENT));
+  // Triangle groups
+  shaderModules[TriangleVert] = vert("vertex.glsl", optionsFor(triangleShaderOptions, PIPELINE_OPAQUE));
+  shaderModules[TriangleFrag] = frag("fragment.glsl", optionsFor(triangleShaderOptions, PIPELINE_OPAQUE));
+  shaderModules[TriangleTransVert] = vert("vertex.glsl", optionsFor(triangleShaderOptions, PIPELINE_TRANSPARENT));
+  shaderModules[TriangleTransFrag] = frag("fragment.glsl", optionsFor(triangleShaderOptions, PIPELINE_TRANSPARENT));
+  // Points
+  shaderModules[PointVert] = vert("vertex.glsl", optionsFor(pointShaderOptions, PIPELINE_OPAQUE));
+  shaderModules[PointFrag] = frag("fragment.glsl", optionsFor(pointShaderOptions, PIPELINE_OPAQUE));
+  shaderModules[PointTransVert] = vert("vertex.glsl", optionsFor(pointShaderOptions, PIPELINE_TRANSPARENT));
+  shaderModules[PointTransFrag] = frag("fragment.glsl", optionsFor(pointShaderOptions, PIPELINE_TRANSPARENT));
+  // Count pass: empty options, +WIDTH for points, +GPUCOMPRESS if enabled.
+  std::vector<std::string> countOptions;
+  if (GPUcompress)
+    countOptions.emplace_back("GPUCOMPRESS");
+  shaderModules[CountVert] = vert("vertex.glsl", countOptions);
+  shaderModules[CountFrag] = frag("count.glsl", countOptions);
+  std::vector<std::string> pointCountOptions = countOptions;
+  pointCountOptions.emplace_back("WIDTH");
+  shaderModules[PointCountVert] = vert("vertex.glsl", pointCountOptions);
+  // Compress and blend: shared screen vertex shader.
+  shaderModules[ScreenVert] = vert("screen.glsl", optionsFor(noOptions, PIPELINE_COMPRESS));
+  shaderModules[CompressFrag] = frag("compress.glsl", optionsFor(noOptions, PIPELINE_COMPRESS));
+  // Blend: two pre-compiled variants (small/big ARRAYSIZE).
+  {
+    auto small = optionsFor(noOptions, PIPELINE_DONTCARE);
+    small.emplace_back("ARRAYSIZE " + std::to_string(blendSmallSize));
+    shaderModules[BlendFrag] = frag("blend.glsl", small);
+    auto big = optionsFor(noOptions, PIPELINE_DONTCARE);
+    big.emplace_back("ARRAYSIZE " + std::to_string(blendBigSize));
+    shaderModules[BlendFragBig] = frag("blend.glsl", big);
+  }
+  // Transparent set (TRANSPARENT and COUNT variants only).
+  shaderModules[TransparentVert] = vert("vertex.glsl", optionsFor(transparentShaderOptions, PIPELINE_TRANSPARENT));
+  shaderModules[TransparentFrag] = frag("fragment.glsl", optionsFor(transparentShaderOptions, PIPELINE_TRANSPARENT));
+  // Compute.
+  std::vector<std::string> const computeOptions = optionsFor(noOptions, PIPELINE_DONTCARE);
+  shaderModules[Sum1] = createShaderModule(EShLangCompute, SHADER_DIRECTORY "sum1.glsl", computeOptions);
+  shaderModules[Sum2] = createShaderModule(EShLangCompute, SHADER_DIRECTORY "sum2.glsl", computeOptions);
+  shaderModules[Sum3] = createShaderModule(EShLangCompute, SHADER_DIRECTORY "sum3.glsl", computeOptions);
+  if (fxaa)
+    shaderModules[Fxaa] = createShaderModule(EShLangCompute, SHADER_DIRECTORY "fxaa.cs.glsl", computeOptions);
 }
 
 void AsyVkRender::createGraphicsPipelines()
@@ -3514,26 +3651,40 @@ void AsyVkRender::createGraphicsPipelines()
     ? vk::PolygonMode::eLine
     : vk::PolygonMode::eFill;
 
+  createShaderModules(); // no-op after the first call
+
   std::vector<PipelineConfig> configs = {
     // Material triangles
     {
-      vk::PrimitiveTopology::eTriangleList, drawMode, materialShaderOptions,
-      "materialPipeline", "vertex", "fragment", 0, true, false, false
+      vk::PrimitiveTopology::eTriangleList, drawMode,
+      *shaderModules[MaterialVert], *shaderModules[MaterialFrag],
+      *shaderModules[MaterialTransVert], *shaderModules[MaterialTransFrag],
+      *shaderModules[CountVert], *shaderModules[CountFrag],
+      "materialPipeline", 0, true, false, false, false
     },
     // Color triangles
     {
-      vk::PrimitiveTopology::eTriangleList, drawMode, colorShaderOptions,
-      "colorPipeline", "vertex", "fragment", 0, true, false, false
+      vk::PrimitiveTopology::eTriangleList, drawMode,
+      *shaderModules[ColorVert], *shaderModules[ColorFrag],
+      *shaderModules[ColorTransVert], *shaderModules[ColorTransFrag],
+      *shaderModules[CountVert], *shaderModules[CountFrag],
+      "colorPipeline", 0, true, false, false, false
     },
     // Triangle groups
     {
-      vk::PrimitiveTopology::eTriangleList, drawMode, triangleShaderOptions,
-      "trianglePipeline", "vertex", "fragment", 0, true, false, false
+      vk::PrimitiveTopology::eTriangleList, drawMode,
+      *shaderModules[TriangleVert], *shaderModules[TriangleFrag],
+      *shaderModules[TriangleTransVert], *shaderModules[TriangleTransFrag],
+      *shaderModules[CountVert], *shaderModules[CountFrag],
+      "trianglePipeline", 0, true, false, false, false
     },
-    // Lines
+    // Lines (share the material shaders)
     {
-      vk::PrimitiveTopology::eLineList, vk::PolygonMode::eLine, materialShaderOptions,
-      "linePipeline", "vertex", "fragment", 0, true, false, false
+      vk::PrimitiveTopology::eLineList, vk::PolygonMode::eLine,
+      *shaderModules[MaterialVert], *shaderModules[MaterialFrag],
+      *shaderModules[MaterialTransVert], *shaderModules[MaterialTransFrag],
+      *shaderModules[CountVert], *shaderModules[CountFrag],
+      "linePipeline", 0, true, false, false, false
     },
     // Points
     {
@@ -3543,7 +3694,10 @@ void AsyVkRender::createGraphicsPipelines()
 #else
       vk::PolygonMode::ePoint,
 #endif
-      pointShaderOptions, "pointPipeline", "vertex", "fragment", 0, true, false, false
+      *shaderModules[PointVert], *shaderModules[PointFrag],
+      *shaderModules[PointTransVert], *shaderModules[PointTransFrag],
+      *shaderModules[PointCountVert], *shaderModules[CountFrag],
+      "pointPipeline", 0, true, false, false, false
     }
   };
 
@@ -3555,15 +3709,20 @@ void AsyVkRender::createGraphicsPipelines()
 
   // Create pipelines for transparent triangles
   PipelineConfig transparentConfig = {
-      vk::PrimitiveTopology::eTriangleList, drawMode, transparentShaderOptions,
-      "transparentPipeline", "vertex", "fragment", 1, false, true, false
+      vk::PrimitiveTopology::eTriangleList, drawMode,
+      vk::ShaderModule(), vk::ShaderModule(),
+      *shaderModules[TransparentVert], *shaderModules[TransparentFrag],
+      *shaderModules[CountVert], *shaderModules[CountFrag],
+      "transparentPipeline", 1, false, true, false, false
   };
   createPipelineSet<ColorVertex>(transparentPipelines, transparentConfig, PIPELINE_TRANSPARENT, PIPELINE_MAX);
 
-  static std::vector<std::string> emptyOptions;
   PipelineConfig compressConfig = {
-      vk::PrimitiveTopology::eTriangleList, vk::PolygonMode::eFill, emptyOptions,
-      "compressPipeline", "screen", "compress", 2, false, false, true
+      vk::PrimitiveTopology::eTriangleList, vk::PolygonMode::eFill,
+      *shaderModules[ScreenVert], *shaderModules[CompressFrag],
+      vk::ShaderModule(), vk::ShaderModule(),
+      vk::ShaderModule(), vk::ShaderModule(),
+      "compressPipeline", 2, false, false, true, true
   };
   createGraphicsPipeline<ColorVertex>(PIPELINE_COMPRESS, compressPipeline, compressConfig);
 
@@ -3581,25 +3740,35 @@ void AsyVkRender::setupPostProcessingComputeParameters()
 
 void AsyVkRender::createBlendPipeline() {
 
-  static std::vector<std::string> emptyOptions;
   PipelineConfig blendConfig = {
-      vk::PrimitiveTopology::eTriangleList, vk::PolygonMode::eFill, emptyOptions,
-      "blendPipeline", "screen", "blend", 2, false, false, true
+      vk::PrimitiveTopology::eTriangleList, vk::PolygonMode::eFill,
+      *shaderModules[ScreenVert], *shaderModules[BlendFrag],
+      vk::ShaderModule(), vk::ShaderModule(),
+      vk::ShaderModule(), vk::ShaderModule(),
+      "blendPipeline", 2, false, false, true, true
   };
   createGraphicsPipeline<ColorVertex>(PIPELINE_DONTCARE, blendPipeline, blendConfig);
+
+  // Big-ARRAYSIZE variant for deep transparent stacks (see blendBig).
+  blendConfig.opaqueFrag = *shaderModules[BlendFragBig];
+  blendConfig.namePrefix = "blendPipelineBig";
+  createGraphicsPipeline<ColorVertex>(PIPELINE_DONTCARE, blendPipelineBig, blendConfig);
 }
 
 void AsyVkRender::createComputePipeline(
   vk::UniquePipelineLayout& layout,
   vk::UniquePipeline& pipeline,
-  std::string const& shaderFile,
+  vk::ShaderModule computeModule,
   std::vector<vk::DescriptorSetLayout> const& descSetLayout
 )
 {
+  // Cover the full graphics PushConstants so the FXAA post-process pass can
+  // read the flags word; the sum shaders use only the first
+  // sizeof(ComputePushConstants) bytes.
   auto miscConstant = vk::PushConstantRange(
     vk::ShaderStageFlagBits::eCompute,
     0,
-    sizeof(ComputePushConstants)
+    sizeof(PushConstants)
   );
 
   auto pipelineLayoutCI = vk::PipelineLayoutCreateInfo(
@@ -3614,7 +3783,7 @@ void AsyVkRender::createComputePipeline(
 
   layout = device->createPipelineLayoutUnique(pipelineLayoutCI, nullptr);
 
-  createComputePipelineOnly(*layout, pipeline, shaderFile);
+  createComputePipelineOnly(*layout, pipeline, computeModule);
 }
 
 // Create a compute pipeline using an existing layout (does NOT create a new layout).
@@ -3624,20 +3793,13 @@ void AsyVkRender::createComputePipeline(
 void AsyVkRender::createComputePipelineOnly(
   vk::PipelineLayout layout,
   vk::UniquePipeline& pipeline,
-  std::string const& shaderFile
+  vk::ShaderModule computeModule
 )
 {
-  auto const filename = SHADER_DIRECTORY + shaderFile + ".glsl";
-
-  std::vector<std::string> options;
-  modifyShaderOptions(options, PIPELINE_DONTCARE);
-
-  vk::UniqueShaderModule computeShaderModule = createShaderModule(EShLangCompute, filename, options);
-
   auto computeShaderStageInfo = vk::PipelineShaderStageCreateInfo(
     vk::PipelineShaderStageCreateFlags(),
     vk::ShaderStageFlagBits::eCompute,
-    *computeShaderModule,
+    computeModule,
     "main"
   );
 
@@ -3663,13 +3825,15 @@ void AsyVkRender::createComputePipelines()
   sum2Pipeline.reset();
   sum3Pipeline.reset();
 
+  createShaderModules(); // no-op after the first call
+
   // Create the shared pipeline layout only once, then create all three
   // pipelines using it.  Previously each call to createComputePipeline()
   // created a new layout and destroyed the old one, leaving sum1Pipeline
   // and sum2Pipeline referencing a destroyed VkPipelineLayout.
-  createComputePipeline(sumPipelineLayout, sum1Pipeline, "sum1", computeDescSetLayoutVec);
-  createComputePipelineOnly(*sumPipelineLayout, sum2Pipeline, "sum2");
-  createComputePipelineOnly(*sumPipelineLayout, sum3Pipeline, "sum3");
+  createComputePipeline(sumPipelineLayout, sum1Pipeline, *shaderModules[Sum1], computeDescSetLayoutVec);
+  createComputePipelineOnly(*sumPipelineLayout, sum2Pipeline, *shaderModules[Sum2]);
+  createComputePipelineOnly(*sumPipelineLayout, sum3Pipeline, *shaderModules[Sum3]);
 
   if (fxaa)
   {
@@ -3677,7 +3841,7 @@ void AsyVkRender::createComputePipelines()
     postProcessPipeline.reset();
 
     std::vector const postProcessDescSetLayoutVec{*postProcessDescSetLayout};
-    createComputePipeline(postProcessPipelineLayout, postProcessPipeline, "fxaa.cs", postProcessDescSetLayoutVec);
+    createComputePipeline(postProcessPipelineLayout, postProcessPipeline, *shaderModules[Fxaa], postProcessDescSetLayoutVec);
   }
 }
 
@@ -3769,6 +3933,10 @@ PushConstants AsyVkRender::buildPushConstants()
   pushConstants.constants[0] = mode!= DRAWMODE_NORMAL ? 0 : nlights;
   pushConstants.constants[1] = backbufferExtent.width;
   pushConstants.constants[2] = backbufferExtent.height;
+  pushConstants.constants[3] = (orthographic ? 1u : 0u)
+                             | (srgb ? 2u : 0u)        // bit 1: sRGB (perceptual) output
+                             | (ibl ? 4u : 0u)         // bit 2: IBL shading
+                             | (fxaa ? 8u : 0u);       // bit 3: FXAA (force perceptual output for the post-process pass)
 
   for (int i = 0; i < 4; i++)
     pushConstants.background[i]=Background[i];
@@ -3905,7 +4073,7 @@ void AsyVkRender::drawBuffer(FrameBufferPair& bufpair, VertexBuffer * data, vk::
   currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
   currentCommandBuffer.bindVertexBuffers(0, vertexBuffers, vertexOffsets);
   currentCommandBuffer.bindIndexBuffer(bufpair.indexBuffer.getBuffer(), 0, vk::IndexType::eUint32);
-  currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &pushConstants);
+  currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment | vk::ShaderStageFlagBits::eVertex, 0, sizeof(PushConstants), &pushConstants);
   // Use current CPU-side index count (like OpenGL's glDrawElements(drawType, data.indices.size(), ...))
   // rather than the cached bufpair.nobjects which may be stale when copy==false.
   currentCommandBuffer.drawIndexed(data->indices.size(), 1, 0, 0, 0);
@@ -4052,12 +4220,6 @@ void AsyVkRender::partialSums(FrameObject & object, bool timing)
   }
 }
 
-void AsyVkRender::resizeBlendShader(std::uint32_t maxDepth) {
-
-  maxSize=ceilpow2(maxDepth);
-  recreateBlendPipeline=true;
-}
-
 void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
   // Wait on the fence from the count+compute submission instead of polling an event.
   // The fence puts the OS thread to sleep (zero CPU waste), whereas waitForEvent()
@@ -4069,17 +4231,16 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
   // Ensure we have the latest data from GPU
   feedbackMappedPtr->invalidate();
   const uint32_t *feedbackData = feedbackMappedPtr->getCopyPtr();
-  std::uint32_t maxDepth = feedbackData[0];
   fragments = feedbackData[1];
 
-  if(resetDepth) {
-    maxSize=maxDepth=1;
-    resetDepth=false;
-  }
-
-  if (maxDepth > maxSize) {
-    resizeBlendShader(maxDepth);
-  }
+  // feedbackData[0] is the previous frame's max per-pixel transparent
+  // fragment count: sum3.glsl reduces it from the count buffer (one atomicMax
+  // per workgroup) and resets the counter atomically each frame.  It counts
+  // fragments the blend pass may later discard behind the opaque depth, so it
+  // slightly overestimates blended depth - conservative for the switch.
+  // The selection is only a pipeline choice for the upcoming blendFrame;
+  // beyond blendBigSize the shader's in-buffer fallback sort applies.
+  switchBlendPipeline(feedbackData[0]);
 
   if (fragments > maxFragments) {
     maxFragments=11*fragments/10;
@@ -4092,7 +4253,7 @@ void AsyVkRender::compressCount(FrameObject & object)
 {
   auto push = buildPushConstants();
   currentCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *compressPipeline);
-  currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &push);
+  currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment | vk::ShaderStageFlagBits::eVertex, 0, sizeof(PushConstants), &push);
   currentCommandBuffer.draw(3, 1, 0, 0);
 }
 
@@ -4299,9 +4460,9 @@ void AsyVkRender::blendFrame(int imageIndex)
   auto push = buildPushConstants();
   currentCommandBuffer.bindPipeline(
     vk::PipelineBindPoint::eGraphics,
-    *blendPipeline
+    blendBig ? *blendPipelineBig : *blendPipeline
   );
-  currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &push);
+  currentCommandBuffer.pushConstants(*graphicsPipelineLayout, vk::ShaderStageFlagBits::eFragment | vk::ShaderStageFlagBits::eVertex, 0, sizeof(PushConstants), &push);
   currentCommandBuffer.draw(3, 1, 0, 0);
 }
 
@@ -4362,6 +4523,15 @@ void AsyVkRender::postProcessImage(vk::CommandBuffer& cmdBuffer, uint32_t const&
     runtimeError("Invalid post-process descriptor set");
 
   cmdBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, *postProcessPipeline);
+
+  auto const push = buildPushConstants();
+  cmdBuffer.pushConstants(
+    *postProcessPipelineLayout,
+    vk::ShaderStageFlagBits::eCompute,
+    0,
+    sizeof(PushConstants),
+    &push
+  );
 
   std::vector const computeDescSet{*postProcessDescSet[frameIndex]};
   cmdBuffer.bindDescriptorSets(
@@ -4436,13 +4606,17 @@ void AsyVkRender::drawFrame()
     initializeSwapChainIfNeeded();
   }
 
-  // Detect srgb setting changes and recreate pipelines accordingly
-  bool newSrgb = settings::getSetting<bool>("srgb");
-  if (newSrgb != srgb) {
-    srgb = newSrgb;
-    recreatePipeline = true;
-  }
+  // srgb can change within a session (settings.srgb); it is a push constant
+  // (constants[3] bit 1), so a change takes effect with the next
+  // push-constant write - no shader recompilation or pipeline recreation.
+  srgb = settings::getSetting<bool>("srgb");
 
+  // fxaa is deliberately not polled here: in addition to the push constant
+  // (constants[3] bit 3) it gates the post-process pass dispatch and pipeline
+  // creation, so it remains session-fixed.  The remaining shader #defines
+  // (GPUcompress, interlock, localSize, blockSize) are session-fixed as well,
+  // so the modules compiled once per session (see createShaderModules) stay
+  // valid.
   if (recreatePipeline)
   {
     device->waitIdle();
@@ -4635,12 +4809,6 @@ void AsyVkRender::drawFrame()
     waitForTimelineSemaphore(*renderTimelineSemaphore, frameObject.timelineValue);
     Export(imageIndex);
     queueExport=false;
-  }
-
-  if (recreateBlendPipeline) {
-    waitForTimelineSemaphore(*renderTimelineSemaphore, frameObject.timelineValue);
-    createBlendPipeline();
-    recreateBlendPipeline=false;
   }
 
   currentFrame = (currentFrame + 1) % maxFramesInFlight;
@@ -4931,6 +5099,10 @@ void AsyVkRender::cycleMode() {
 
   // Use base class implementation for mode cycling
   AsyRender::cycleMode();
+
+  // The base class updated the ibl flag; load the environment images if we
+  // just switched back to normal mode with IBL enabled.
+  updateIBL();
 
   // Vulkan-specific: update uniform buffer and pipeline flags
   newUniformBuffer = true;

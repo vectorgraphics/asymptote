@@ -160,7 +160,7 @@ INSTALL = @INSTALL@
 REVISION = "const char *REVISION="
 last = $(shell head -1 revision.cc | sed -e 's/.*\"\(.*\)\";/\1/')
 usinggit = $(shell if test -d ".git"; then echo yes; fi)
-revision = ""
+revision =
 ifeq ($(usinggit),yes)
 	revision = $(shell LC_ALL="C" git describe --long 2>/dev/null | \
 	sed -e 's/git-\([0-9]*\)-g.*/-\1/' | sed -e 's/-0-g.*//')
@@ -363,7 +363,11 @@ man:	asy sty
 faq:	asy sty
 	cd doc && $(MAKE) faq
 
-info: asy sty
+
+# Depend on `man` (rather than just asy/sty) so the info build does not
+# run in parallel with the manual build: both render the example PDFs and
+# run texi2any on asymptote.texi, which is not safe to do concurrently.
+info: man
 	cd doc && $(MAKE) asymptote.info
 
 $(RUNTIME_FILES:=.cc): %.cc: runtime.py opsymbols.h runtimebase.in %.in
@@ -455,7 +459,7 @@ define install-license-files
 	${INSTALL} -p -m 644 libatomic_ops/LICENSE $(1)/libatomic_ops-LICENSE.txt
 	${INSTALL} -p -m 644 libatomic_ops/COPYING $(1)/libatomic_ops-COPYING.txt
 	${INSTALL} -p -m 644 tinyexr/LICENSE.txt $(1)/tinyexr-LICENSE.txt
-	${INSTALL} -p -m 644 gc/LICENSE.txt $(1)/gc-LICENSE.txt
+	${INSTALL} -p -m 644 gc/README.md $(1)/gc-LICENSE.txt
 	${INSTALL} -p -m 644 webgl/gl-matrix-license $(1)/gl-matrix-LICENSE.md
 endef
 
@@ -526,6 +530,9 @@ install-html: html
 
 install-man: man
 	cd doc && $(MAKE) install
+
+install-info:
+	cd doc && $(MAKE) install-info
 
 install-prebuilt: install-asy
 	cd doc && $(MAKE) install-prebuilt

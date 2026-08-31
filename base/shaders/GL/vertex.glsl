@@ -2,10 +2,12 @@ in vec3 position;
 
 #ifdef NORMAL
 
-#ifndef ORTHOGRAPHIC
 uniform mat4 viewMat;
 out vec3 ViewPosition;
-#endif
+
+// orthographic projection; set at runtime, so switching projection types
+// needs no shader recompilation
+uniform bool orthographic;
 
 uniform mat3 normMat;
 in vec3 normal;
@@ -27,6 +29,10 @@ in float width;
 #endif
 
 uniform mat4 projViewMat;
+
+// runtime light count (same uniform as in the fragment shader): unlit
+// scenes, including outline mode's runtime nlights=0, need no recompilation
+uniform uint nlights;
 
 #ifdef NORMAL
 struct Material
@@ -50,9 +56,16 @@ void main()
   vec4 v=vec4(position,1.0);
   gl_Position=projViewMat*v;
 #ifdef NORMAL
-#ifndef ORTHOGRAPHIC
-  ViewPosition=(viewMat*v).xyz;
-#endif
+  // In orthographic mode the eye is at infinity along view-z, so every
+  // pixel's view direction is the constant (0,0,1); writing
+  // ViewPosition=(0,0,-1) makes the fragment shader's
+  // -normalize(ViewPosition) produce exactly that, keeping the fragment
+  // shader branch-free. (The branch below is uniform; the matmul only
+  // executes in perspective mode.)
+  if(orthographic)
+    ViewPosition=vec3(0.0,0.0,-1.0);
+  else
+    ViewPosition=(viewMat*v).xyz;
   Normal=normalize(normal*normMat);
 
   Material m;
@@ -65,9 +78,10 @@ void main()
   else {
     if (m.parameters[3] != 0) {
       diffuse=color;
-#if Nlights == 0
-      emissive += color;
-#endif
+      // with no active lights the fragment shader's BRDF loop runs zero
+      // times, so the color must reach the output via emissive
+      if(nlights == 0u)
+        emissive += color;
     } else {
       emissive += color;
       diffuse = m.diffuse;
@@ -80,9 +94,10 @@ void main()
 #ifdef COLOR
   if (m.parameters[3] != 0) {
     diffuse=color;
-#if Nlights == 0
-    emissive += color;
-#endif
+    // with no active lights the fragment shader's BRDF loop runs zero
+    // times, so the color must reach the output via emissive
+    if(nlights == 0u)
+      emissive += color;
   } else {
     emissive += color;
     diffuse = m.diffuse;

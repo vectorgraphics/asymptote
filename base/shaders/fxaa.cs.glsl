@@ -15,7 +15,13 @@ writeonly uniform image2D outputImage;
 
 layout(local_size_x=20, local_size_y=20, local_size_z=1) in;
 
-#ifndef OUTPUT_AS_SRGB
+layout(push_constant) uniform PushConstants
+{
+  uvec4 constants;
+  // constants[3] = flags; bit 1: output as sRGB (perceptual) space
+  vec4 background;
+} push;
+
 const float gamma=2.2;
 
 /**
@@ -29,7 +35,6 @@ vec3 perceptualToLinear(vec3 inColor)
   // of the light's original photon count
   return pow(inColor, vec3(gamma));
 }
-#endif
 
 // based on https://catlikecoding.com/unity/tutorials/advanced-rendering/fxaa/
 
@@ -208,11 +213,9 @@ void main()
   // coordinate is valid
   vec3 outputColor=fxaa(coord,size);
 
-#ifdef OUTPUT_AS_SRGB
-  vec3 returnColor=outputColor;
-#else
-  vec3 returnColor=perceptualToLinear(outputColor);
-#endif
+  // if the sRGB flag (push.constants[3] bit 1) is set, the perceptual color
+  // is stored as-is; otherwise convert it back to linear
+  vec3 returnColor = (push.constants[3] & 2u) != 0u ? outputColor : perceptualToLinear(outputColor);
 
   // final
   imageStore(

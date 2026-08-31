@@ -1601,6 +1601,34 @@ path3[] segment(triple[] v, bool[] cond, interpolate3 join=operator --)
                   segment.length);
 }
 
+// Returning to its initial value is not enough to make a sample periodic:
+// r*cos(theta) over a half turn closes up in value but arrives with the
+// opposite slope, and imposing s'(a)=s'(b) on it flattens both ends.  Compare
+// the secant slopes on either side of the seam of the periodic extension of a
+// against the largest change in secant slope within a itself.  Only slopes
+// enter, so a constant offset between the ends cancels and the same test
+// serves a sample that repeats outright and one that repeats after a
+// translation.  Genuinely periodic samples bend no more sharply at the seam
+// than they do anywhere else; a sample that merely retraces itself bends far
+// more.  Measured over 5 to 80 intervals, ordinary closed cross sections --
+// circles, ellipses, epitrochoids, limacons, roses, superellipses -- peak at
+// 2, while data that doubles back reaches 3.2 at worst.  Cross sections
+// severely peaked at the seam itself can reach 4.4 and will fall back to
+// notaknot, which costs little on such data.
+private real periodicSlopeTolerance=3;
+
+private bool slopesAgreeAtSeam(real[] a)
+{
+  int n=a.length;
+  if(n < 3) return true;
+  // Second difference of the periodic extension at the seam.
+  real seam=abs((a[1]-a[0])-(a[n-1]-a[n-2]));
+  if(seam <= sqrtEpsilon*max(abs(a))) return true;
+  // Largest second difference within a itself.
+  real interior=max(abs(a[2:n]-2*a[1:n-1]+a[0:n-2]));
+  return seam <= periodicSlopeTolerance*interior;
+}
+
 bool uperiodic(real[][] a) {
   int n=a.length;
   if(n == 0) return false;
@@ -1626,6 +1654,52 @@ bool vperiodic(real[][] a) {
     if(abs(ai[0]-ai[m]) > epsilon) return false;
   }
   return true;
+}
+
+// True if the sample repeats along its first index after a constant
+// translation: f[n-1][j] = f[0][j]+D for a vector D independent of j, and the
+// two ends of each column meet with the same slope, so that one period
+// continues into the next without a kink.  D=0 is an ordinary closed surface;
+// D nonzero is a screw motion, one turn of a helicoid.
+//
+// The offset is a property of the surface rather than of the coordinate
+// frame -- rotating the surface rotates D but leaves it constant -- so, unlike
+// asking whether each coordinate separately returns to its initial value, this
+// recognizes a helicoid whatever its axis.  All three components are tested
+// together for the same reason: a parameterization repeats as a whole or not
+// at all, and testing them one at a time lets a single component that merely
+// returns to its initial value -- x=r*cos(theta) at both ends of a half turn,
+// say -- be interpolated periodically while its partners are not.
+private bool translated(real[][] fx, real[][] fy, real[][] fz)
+{
+  int n=fx.length;
+  if(n == 0 || fx[0].length == 0) return false;
+
+  real epsilon=sqrtEpsilon*max(norm(fx),norm(fy),norm(fz));
+
+  // The offset, as three arrays indexed by j; each entry must agree with the
+  // first.  Comparing the squared distances keeps the test independent of the
+  // coordinate frame, as the offset itself is.
+  real[] dx=fx[n-1]-fx[0];
+  real[] dy=fy[n-1]-fy[0];
+  real[] dz=fz[n-1]-fz[0];
+  real[] ex=dx-dx[0], ey=dy-dy[0], ez=dz-dz[0];
+  if(max(ex^2+ey^2+ez^2) > epsilon^2) return false;
+
+  for(real[][] f : new real[][][] {transpose(fx),transpose(fy),transpose(fz)})
+    for(real[] column : f)
+      if(!slopesAgreeAtSeam(column)) return false;
+  return true;
+}
+
+// True if a parametric surface repeats in u (respectively v) after a constant
+// translation, so that periodicOffset end conditions are appropriate there.
+bool uPeriodicOffset(real[][] fx, real[][] fy, real[][] fz) {
+  return translated(fx,fy,fz);
+}
+
+bool vPeriodicOffset(real[][] fx, real[][] fy, real[][] fz) {
+  return translated(transpose(fx),transpose(fy),transpose(fz));
 }
 
 bool uperiodic(triple[][] a) {
@@ -2062,15 +2136,13 @@ surface surface(picture pic=currentpicture, triple f(pair z),
   }
 
   if(usplinetype.length == 0) {
-    usplinetype=new splinetype[] {uperiodic(fx) ? periodic : notaknot,
-                                  uperiodic(fy) ? periodic : notaknot,
-                                  uperiodic(fz) ? periodic : notaknot};
+    splinetype u=uPeriodicOffset(fx,fy,fz) ? periodicOffset : notaknot;
+    usplinetype=new splinetype[] {u,u,u};
   } else if(usplinetype.length != 3) abort("usplinetype must have length 3");
 
   if(vsplinetype.length == 0) {
-    vsplinetype=new splinetype[] {vperiodic(fx) ? periodic : notaknot,
-                                  vperiodic(fy) ? periodic : notaknot,
-                                  vperiodic(fz) ? periodic : notaknot};
+    splinetype v=vPeriodicOffset(fx,fy,fz) ? periodicOffset : notaknot;
+    vsplinetype=new splinetype[] {v,v,v};
   } else if(vsplinetype.length != 3) abort("vsplinetype must have length 3");
 
   // If periodic interpolation is requested in a direction (explicitly or via
@@ -2121,11 +2193,20 @@ surface surface(picture pic=currentpicture, triple f(pair z),
     s.s[k]=patch(Q);
   }
 
-  if(usplinetype[0] == periodic && usplinetype[1] == periodic &&
-     usplinetype[1] == periodic) s.ucyclic(true);
+  // A cyclic u parameter should have splinetype either periodic or
+  // periodicOffset. The periodicOffset splinetype also accepts a screw
+  // motion; to rule this out, we test uperiodic. The story for v is similar.
+  bool joinsSmoothly(splinetype t) {
+    return t == periodic || t == periodicOffset;
+  }
 
-  if(vsplinetype[0] == periodic && vsplinetype[1] == periodic &&
-     vsplinetype[1] == periodic) s.vcyclic(true);
+  if(joinsSmoothly(usplinetype[0]) && joinsSmoothly(usplinetype[1]) &&
+     joinsSmoothly(usplinetype[2]) &&
+     uperiodic(fx) && uperiodic(fy) && uperiodic(fz)) s.ucyclic(true);
+
+  if(joinsSmoothly(vsplinetype[0]) && joinsSmoothly(vsplinetype[1]) &&
+     joinsSmoothly(vsplinetype[2]) &&
+     vperiodic(fx) && vperiodic(fy) && vperiodic(fz)) s.vcyclic(true);
 
   return s;
 }

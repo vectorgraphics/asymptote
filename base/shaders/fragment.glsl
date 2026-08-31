@@ -89,7 +89,14 @@ layout(push_constant) uniform PushConstants
 {
   uvec4 constants;
   // constants[0] = nlights
-  // constants[1] = width;
+  // constants[1] = width
+  // constants[2] = height
+  // constants[3] = flags; bit 0: orthographic projection
+  //                        bit 1: sRGB (perceptual) output
+  //                        bit 2: IBL shading (bindings 11-13 are
+  //                               placeholders when the bit is clear)
+  //                        bit 3: FXAA (force perceptual output for the
+  //                               post-process pass)
   vec4 background;
 } push;
 
@@ -118,8 +125,9 @@ vec3 linearToPerceptual(vec3 inColor)
   return pow(inColor, vec3(invGamma));
 }
 
-#ifdef USE_IBL
-
+// IBL samplers are always declared (binding 11-13); they are only sampled
+// when the IBL push-constant flag (constants[3] bit 2) is set. When IBL is
+// off the descriptors hold small placeholder images.
 layout(binding=11) uniform sampler2D diffuseSampler;
 layout(binding=12) uniform sampler2D reflBRDFSampler;
 layout(binding=13) uniform sampler3D reflImgSampler;
@@ -175,8 +183,6 @@ vec3 IBLColor(vec3 viewDir)
   return mix(dielectric,metal,Metallic);
 }
 
-#else
-
 float NDF_TRG(vec3 h)
 {
   float ndoth=max(dot(normal,h),0.0);
@@ -227,8 +233,6 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
   return mix(dielectric,metal,Metallic);
 }
 
-#endif
-
 void main() {
 
   uint nlights = push.constants[0];
@@ -243,29 +247,29 @@ void main() {
   Fresnel0 = params.z;
   Roughness2 = Roughness * Roughness;
 
-#ifdef ORTHOGRAPHIC
-  vec3 viewDirection=vec3(0.0,0.0,1.0);
-#else
+  // Orthographic mode is handled by the vertex shader, which writes
+  // viewPosition=(0,0,-1); -normalize(viewPosition) is then (0,0,1).
   vec3 viewDirection=-normalize(viewPosition);
-#endif
   normal = normalize(norm);
 
   if (!gl_FrontFacing)
       normal = -normal;
 
-#ifdef USE_IBL
-  outColor=vec4(IBLColor(viewDirection), diffuse.a);
-#else
-  for (int i = 0; i < nlights; i++)
-  {
-      Light light = lights[i];
+  // The IBL flag (push.constants[3] bit 2) selects the shading model; it can
+  // change within a session, so this is a runtime branch, not a #define.
+  if ((push.constants[3] & 4u) != 0u) {
+    outColor=vec4(IBLColor(viewDirection), diffuse.a);
+  } else {
+    for (int i = 0; i < nlights; i++)
+    {
+        Light light = lights[i];
 
-      vec3 radiance = max(dot(normal, light.direction.xyz), 0.0) * light.color.rgb;
-      outColor += vec4(BRDF(viewDirection, light.direction.xyz) * radiance, 0.0);
+        vec3 radiance = max(dot(normal, light.direction.xyz), 0.0) * light.color.rgb;
+        outColor += vec4(BRDF(viewDirection, light.direction.xyz) * radiance, 0.0);
+    }
+
+    outColor = vec4(outColor.rgb, diffuse.a);
   }
-
-  outColor = vec4(outColor.rgb, diffuse.a);
-#endif /*USE_IBL*/
 #else
   Material mat = materials[materialIndex];
   outColor = mat.emissive;
@@ -278,15 +282,14 @@ void main() {
   // as the original pixel
   vec4 linearColor=outColor;
 
-  // if FXAA is enabled, convert it to perceptual since FXAA needs it
-  // otherwise, if OUTPUT_AS_SRGB is enabled, also convert it to perceptual
-#if defined(ENABLE_FXAA) || defined(OUTPUT_AS_SRGB)
-  // outColor is our output vector, so save what we have as linear color
-  vec3 outColorInPerceptualSpace=linearToPerceptual(linearColor.rgb);
-  outColor=vec4(outColorInPerceptualSpace,linearColor.a);
-#else
-  outColor=linearColor;
-#endif
+  // Convert to perceptual space if the sRGB flag (push.constants[3] bit 1)
+  // or the FXAA flag (bit 3) is set: FXAA always operates on perceptual values
+  if((push.constants[3] & (2u | 8u)) != 0u) {
+    vec3 outColorInPerceptualSpace=linearToPerceptual(linearColor.rgb);
+    outColor=vec4(outColorInPerceptualSpace,linearColor.a);
+  } else {
+    outColor=linearColor;
+  }
 
 #ifndef WIDTH
 #if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
@@ -295,9 +298,7 @@ void main() {
   uint listIndex=atomicAdd(offset[element],-1u)-1u;
   fragment[listIndex]=linearColor;
   depth[listIndex]=gl_FragCoord.z;
-#ifndef WIREFRAME
   discard;
-#endif /*WIREFRAME*/
 #else
 #if defined(HAVE_INTERLOCK) && !defined(OPAQUE)
   uint pixel=uint(gl_FragCoord.y)*push.constants[1]+uint(gl_FragCoord.x);

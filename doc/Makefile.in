@@ -126,6 +126,12 @@ install-prebuilt: install-man options asymptote.info
 	cd png && $(MAKE) install
 	cd FAQ && $(MAKE) install-prebuilt
 
+# Build and install the info page (doc/asymptote.info). Kept separate from
+# `install` so a plain install does not require texinfo support; call this
+# explicitly (e.g. from the RPM spec) to ship the info pages.
+install-info: asymptote.info
+	cd png && $(MAKE) install
+
 install-all: $(DOCFILES) $(MANFILES) faq install-man
 	cd png && $(MAKE) install-all
 	cd FAQ && $(MAKE) install-info
