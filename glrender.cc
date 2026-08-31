@@ -143,11 +143,7 @@ void initIBL()
     mss << prefix << i << ".exr";
     files.emplace_back(mss.str());
   }
-
   reflTexturesTex=fromEXR3(files,fmt3,3);
-
-  // Register cleanup to prevent glDeleteTextures on wrong thread at exit.
-  atexit(cleanupIBL);
 }
 
 void initPlaceholderTextures()
@@ -168,6 +164,12 @@ void initPlaceholderTextures()
   placeholderReflTex=
     camp::GLTexture3<float,GL_FLOAT>{black,std::tuple<int,int,int>(1,1,1),6,fmt};
   placeholderTexturesInitialized=true;
+
+  // Register cleanup to prevent glDeleteTextures on the wrong thread at
+  // exit (see cleanupIBL).  This runs for every scene, with or without IBL:
+  // the placeholder textures above are created unconditionally, so the
+  // registration must not depend on initIBL() (lazy IBL loading).
+  atexit(cleanupIBL);
 }
 
 void AsyGLRender::updateIBL()
