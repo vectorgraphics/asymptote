@@ -2,10 +2,12 @@ in vec3 position;
 
 #ifdef NORMAL
 
-#ifndef ORTHOGRAPHIC
 uniform mat4 viewMat;
 out vec3 ViewPosition;
-#endif
+
+// orthographic projection; set at runtime, so switching projection types
+// needs no shader recompilation
+uniform bool orthographic;
 
 uniform mat3 normMat;
 in vec3 normal;
@@ -50,9 +52,16 @@ void main()
   vec4 v=vec4(position,1.0);
   gl_Position=projViewMat*v;
 #ifdef NORMAL
-#ifndef ORTHOGRAPHIC
-  ViewPosition=(viewMat*v).xyz;
-#endif
+  // In orthographic mode the eye is at infinity along view-z, so every
+  // pixel's view direction is the constant (0,0,1); writing
+  // ViewPosition=(0,0,-1) makes the fragment shader's
+  // -normalize(ViewPosition) produce exactly that, keeping the fragment
+  // shader branch-free. (The branch below is uniform; the matmul only
+  // executes in perspective mode.)
+  if(orthographic)
+    ViewPosition=vec3(0.0,0.0,-1.0);
+  else
+    ViewPosition=(viewMat*v).xyz;
   Normal=normalize(normal*normMat);
 
   Material m;

@@ -13,6 +13,30 @@ struct Light
 uniform uint nlights;
 uniform Light lights[max(Nlights,1)];
 
+// sRGB (perceptual) output; set at runtime, so no recompilation is needed
+// when the setting changes (true = convert, false = output linear)
+uniform bool srgb;
+
+// IBL shading; set at runtime, so enabling/disabling IBL needs no shader
+// recompilation. The IBL samplers are always declared; they are only
+// sampled when this flag is set.
+uniform bool ibl;
+
+const float gamma=2.2;
+const float invGamma=1.0/gamma;
+
+/**
+ * @brief Converts linear color (measuring photon count) to srgb (what our brain thinks
+ * is the brightness
+ * example linearToPerceptual(vec3(0.5)) is approximately vec3(0.729)
+ */
+vec3 linearToPerceptual(vec3 inColor)
+{
+  // an actual 0.5 brightness (half amount of photons) would
+  // look brighter than what our eyes think is "half" light
+  return pow(inColor, vec3(invGamma));
+}
+
 uniform MaterialBuffer {
   Material Materials[Nmaterials];
 };
@@ -88,13 +112,12 @@ uniform uint width;
 
 #ifdef NORMAL
 
-#ifndef ORTHOGRAPHIC
 in vec3 ViewPosition;
-#endif
 in vec3 Normal;
 vec3 normal;
 
-#ifdef USE_IBL
+// IBL samplers are always declared; they are only sampled when the `ibl`
+// uniform is set
 uniform sampler2D reflBRDFSampler;
 uniform sampler2D diffuseSampler;
 uniform sampler3D reflImgSampler;
@@ -149,7 +172,7 @@ vec3 IBLColor(vec3 viewDir)
   vec3 metal=Diffuse*IBLRefl;
   return mix(dielectric,metal,Metallic);
 }
-#else
+
 // h is the halfway vector between normal and light direction
 // GGX Trowbridge-Reitz Approximation
 float NDF_TRG(vec3 h)
@@ -202,7 +225,6 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
   return mix(dielectric,metal,Metallic);
 }
-#endif
 
 #endif
 
@@ -223,25 +245,25 @@ void main()
 
   normal=normalize(Normal);
   normal=gl_FrontFacing ? normal : -normal;
-#ifdef ORTHOGRAPHIC
-  vec3 viewDir=vec3(0.0,0.0,1.0);
-#else
+  // Orthographic mode is handled by the vertex shader, which writes
+  // ViewPosition=(0,0,-1); -normalize(ViewPosition) is then (0,0,1)
   vec3 viewDir=-normalize(ViewPosition);
-#endif
   vec3 color;
-#ifdef USE_IBL
-  color=IBLColor(viewDir);
-#else
-  // For a finite point light, the rendering equation simplifies.
-  color=emissive.rgb;
-  for(uint i=0u; i < nlights; ++i) {
-    Light Li=lights[i];
-    vec3 L=Li.direction;
-    float cosTheta=max(dot(normal,L),0.0); // $\omega_i \cdot n$ term
-    vec3 radiance=cosTheta*Li.color;
-    color += BRDF(viewDir,L)*radiance;
+  // The IBL flag is a runtime uniform, so enabling/disabling IBL needs no
+  // shader recompilation
+  if(ibl) {
+    color=IBLColor(viewDir);
+  } else {
+    // For a finite point light, the rendering equation simplifies.
+    color=emissive.rgb;
+    for(uint i=0u; i < nlights; ++i) {
+      Light Li=lights[i];
+      vec3 L=Li.direction;
+      float cosTheta=max(dot(normal,L),0.0); // $\omega_i \cdot n$ term
+      vec3 radiance=cosTheta*Li.color;
+      color += BRDF(viewDir,L)*radiance;
+    }
   }
-#endif
   outColor=vec4(color,diffuse.a);
 #else
 #ifdef NORMAL
@@ -251,6 +273,16 @@ void main()
   outColor=m.emissive;
 #endif
 #endif
+
+  // All of our calculations have been linear (i.e. by measuring photon counts);
+  // if sRGB output is requested, convert to perceptual here. The transparency
+  // buffers store linear values; the blend pass applies the same conversion to
+  // its output. The framebuffer's sRGB capability is not used.
+  vec4 linearColor=outColor;
+  if(srgb) {
+    vec3 outColorInPerceptualSpace=linearToPerceptual(linearColor.rgb);
+    outColor=vec4(outColorInPerceptualSpace,linearColor.a);
+  }
 
 #ifndef WIDTH
 #ifdef HAVE_SSBO
@@ -262,7 +294,7 @@ void main()
 #else
   uint listIndex=offset[element]-atomicAdd(count[element],1u)-1u;
 #endif
-  fragment[listIndex]=outColor;
+  fragment[listIndex]=linearColor;
   depth[listIndex]=gl_FragCoord.z;
 #ifndef WIREFRAME
   discard;
@@ -273,7 +305,7 @@ void main()
   if(opaqueDepth[pixel] == 0.0 || gl_FragCoord.z < opaqueDepth[pixel])
     {
     opaqueDepth[pixel]=gl_FragCoord.z;
-    opaqueColor[pixel]=outColor;
+    opaqueColor[pixel]=linearColor;
   }
   endInvocationInterlockARB();
 #endif

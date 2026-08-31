@@ -88,6 +88,9 @@ public:
   [[nodiscard]]
   VkImage getImage() const;
 
+  // Destroy the image (if any) and return to the empty state.
+  void reset();
+
 private:
   VmaAllocator _allocator= VK_NULL_HANDLE;
   VkImage _image= VK_NULL_HANDLE;

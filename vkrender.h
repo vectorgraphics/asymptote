@@ -70,8 +70,11 @@ struct PushConstants
   glm::uvec4 constants;
   glm::vec4 background;
   // GRAPHICS:
-    // constants[0] = flags
+    // constants[0] = nlights (0 when not in DRAWMODE_NORMAL)
     // constants[1] = width
+    // constants[2] = height
+    // constants[3] = flags; bit 0: orthographic projection
+    //                   bit 1: render output in sRGB (perceptual) space
 };
 
 struct ComputePushConstants {
@@ -114,7 +117,6 @@ public:
 private:
   bool framebufferResized=false;
   bool recreatePipeline=false;
-  bool recreateBlendPipeline=false;
   bool shouldUpdateBuffers=true;
   bool newUniformBuffer=true;
   bool vkexit=false;
@@ -171,8 +173,6 @@ private:
   std::uint32_t elements;
   std::uint32_t fragments;
   std::uint32_t maxFragments;
-  std::uint32_t maxSize=1;
-  bool resetDepth=false;
   bool vkinitialize=true;
   uint64_t vkTimeout; // Vulkan wait timeout in nanoseconds; set per-device in pickPhysicalDevice
 
@@ -187,6 +187,36 @@ private:
   uint32_t maxComputeWorkGroupCountX=0; // device compute limit, cached in pickPhysicalDevice
   uint32_t maxComputeWorkGroupCountY=0; // device compute limit, cached in pickPhysicalDevice
   vk::UniqueDevice device;
+
+  // Indices into shaderModules (populated by createShaderModules).
+  enum ShaderModuleIndex : std::size_t
+  {
+    MaterialVert, MaterialFrag,         // also used by lines
+    MaterialTransVert, MaterialTransFrag,
+    ColorVert, ColorFrag,
+    ColorTransVert, ColorTransFrag,
+    TriangleVert, TriangleFrag,
+    TriangleTransVert, TriangleTransFrag,
+    PointVert, PointFrag,
+    PointTransVert, PointTransFrag,
+    PointCountVert,
+    CountVert, CountFrag,               // count pass, non-point sets
+    ScreenVert,                         // shared by compress and blend
+    CompressFrag,
+    BlendFrag,
+    BlendFragBig,                       // deep transparent stacks (see blendBig)
+    TransparentVert, TransparentFrag,
+    Sum1, Sum2, Sum3, Fxaa,
+    ModuleCount
+  };
+
+  // Compiled shader modules, created once per session.  Shaders depend on
+  // width/height only through push constants and on a few session-fixed
+  // #defines (srgb, fxaa, ibl, ...), so they never need to be recompiled;
+  // pipeline (re)creation (swap chain resize, draw mode change) simply
+  // reuses these modules.  Declared after device so the modules are
+  // destroyed before it.
+  std::vector<vk::UniqueShaderModule> shaderModules;
 
   vma::cxx::UniqueAllocator allocator;
 
@@ -251,8 +281,6 @@ private:
     PIPELINE_COMPRESS,
     PIPELINE_DONTCARE
   };
-  std::vector<std::string> countShaderOptions {
-  };
   std::vector<std::string> materialShaderOptions {
     "NORMAL"
   };
@@ -284,6 +312,7 @@ private:
   std::array<vk::UniquePipeline, PIPELINE_MAX> linePipelines;
   std::array<vk::UniquePipeline, PIPELINE_MAX> pointPipelines;
   vk::UniquePipeline blendPipeline;
+  vk::UniquePipeline blendPipelineBig;
   vk::UniquePipeline compressPipeline;
 
   vk::UniqueDescriptorPool computeDescriptorPool;
@@ -342,6 +371,7 @@ private:
   vma::cxx::UniqueImage reflectionImg;
   vk::UniqueImageView reflectionView;
   vk::UniqueSampler reflectionSampler;
+  string iblImageName; // environment image currently bound ("" = placeholders)
 
 // Post-process compute stuff
   vk::Extent2D postProcessThreadGroupCount;
@@ -569,6 +599,9 @@ private:
   void createDependentBuffers();
 
   void initIBL();
+  void createIBLPlaceholders();
+  void writeIBLDescriptors();
+  void updateIBL();
 
   void createCountRenderPass();
   void createGraphicsRenderPass();
@@ -579,23 +612,22 @@ private:
   void modifyShaderOptions(std::vector<std::string>& options, PipelineType type);
   template<typename V>
   void createGraphicsPipeline(PipelineType type, vk::UniquePipeline & graphicsPipeline, vk::PrimitiveTopology topology,
-                              vk::PolygonMode fillMode, std::vector<std::string> options,
+                              vk::PolygonMode fillMode, vk::ShaderModule vertexModule, vk::ShaderModule fragmentModule,
                               std::string const & name,
-                              std::string const & vertexShader,
-                              std::string const & fragmentShader,
                               int graphicsSubpass, bool enableDepthWrite=true,
-                              bool transparent=false, bool disableMultisample=false);
+                              bool transparent=false, bool disableMultisample=false,
+                              bool screenVertex=false);
   void createBlendPipeline();
   void createComputePipeline(
     vk::UniquePipelineLayout & layout,
     vk::UniquePipeline & pipeline,
-    std::string const& shaderFile,
+    vk::ShaderModule computeModule,
     std::vector<vk::DescriptorSetLayout> const& descSetLayout
   );
   void createComputePipelineOnly(
     vk::PipelineLayout layout,
     vk::UniquePipeline & pipeline,
-    std::string const& shaderFile
+    vk::ShaderModule computeModule
   );
   void createComputePipelines();
 
@@ -610,7 +642,6 @@ private:
   void drawTriangles(FrameObject & object);
   void drawTransparent(FrameObject & object);
   void partialSums(FrameObject & object, bool timing=false);
-  void resizeBlendShader(std::uint32_t maxDepth);
   void resizeFragmentBuffer(FrameObject & object);
   void compressCount(FrameObject & object);
   void refreshBuffers(FrameObject & object, int imageIndex);
@@ -622,21 +653,32 @@ private:
   void recreateSwapChain();
   void initializeSwapChainIfNeeded();
   vk::UniqueShaderModule createShaderModule(EShLanguage lang, std::string const & filename, std::vector<std::string> const & options);
+  // Populate shaderModules.  A no-op after the first call: the shaders are
+  // compiled once per session (see shaderModules).
+  void createShaderModules();
 
   void cleanup();
 
   struct PipelineConfig {
     vk::PrimitiveTopology topology;
     vk::PolygonMode fillMode;
-    std::vector<std::string>& shaderOptions;
+    // Shader modules (created once per session, see shaderModules) for the
+    // OPAQUE, TRANSPARENT and COUNT pipeline variants of this set.
+    vk::ShaderModule opaqueVert, opaqueFrag;
+    vk::ShaderModule transVert, transFrag;
+    vk::ShaderModule countVert, countFrag;
     std::string namePrefix;
-    std::string vertexShader;
-    std::string fragmentShader;
     int graphicsSubpass;
     bool enableDepthWrite;
     bool transparent;
     bool disableMultisample;
+    // Empty vertex input state (screen-space shaders: compress, blend).
+    bool screenVertex = false;
   };
+
+  // Pick the (session-unique) shader modules for a pipeline variant.
+  static void pipelineModulesForType(PipelineType type, PipelineConfig const& config,
+                                     vk::ShaderModule& vertexModule, vk::ShaderModule& fragmentModule);
 
   template<typename V>
   void createGraphicsPipeline(PipelineType type, vk::UniquePipeline& graphicsPipeline, const PipelineConfig& config);

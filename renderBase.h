@@ -318,6 +318,12 @@ public:
    * Shared by all renderer implementations (Vulkan, OpenGL, WebGL). */
   void copyRenderArgs(RenderFunctionArgs const& args);
 
+  /** Update the small/big blend pipeline selection from the previous frame's
+   * max per-pixel transparent fragment count, with hysteresis: switch up
+   * above blendSwitchUp, back down at or below blendSwitchDown.  Shared by
+   * the Vulkan and GL renderers (see blendSmallSize/blendBigSize). */
+  void switchBlendPipeline(std::uint32_t maxDepth);
+
   double getRenderResolution(triple Min) const;
 
   // Scene bounds
@@ -400,6 +406,20 @@ public:
   utils::stopWatch frameTimer;
   utils::statistics fpsStats;
   size_t framecount = 0;
+
+  // Blend pipeline selection, shared by the GL and Vulkan renderers: two
+  // pre-compiled blend shaders (ARRAYSIZE blendSmallSize / blendBigSize) are
+  // switched at runtime from the GPU's per-frame max transparent fragment
+  // count (see switchBlendPipeline); beyond blendBigSize the shader's
+  // in-buffer fallback sort applies.
+  static constexpr std::uint32_t blendSmallSize=16;
+  static constexpr std::uint32_t blendBigSize=128;
+  // depth > this: use big
+  static constexpr std::uint32_t blendSwitchUp=blendSmallSize;
+  // depth <= this: use small
+  static constexpr std::uint32_t blendSwitchDown=12;
+  static_assert(blendSwitchDown < blendSmallSize, "blend deadband must not invert");
+  bool blendBig=false;
 
   // Rendering state flags
   bool redraw=false;

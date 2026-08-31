@@ -61,6 +61,14 @@ camp::GLTexture2<float,GL_FLOAT> iblbrdfTex;
 camp::GLTexture2<float,GL_FLOAT> irradianceTex;
 camp::GLTexture3<float,GL_FLOAT> reflTexturesTex;
 
+// Small placeholder textures bound to the IBL samplers when IBL is off, so
+// the samplers always reference valid images (mirrors the Vulkan
+// placeholder descriptors). Defined in initPlaceholderTextures().
+camp::GLTexture2<float,GL_FLOAT> placeholderIrradianceTex;
+camp::GLTexture2<float,GL_FLOAT> placeholderBRDFTex;
+camp::GLTexture3<float,GL_FLOAT> placeholderReflTex;
+bool placeholderTexturesInitialized=false;
+
 // GLFW window globals - kept in camp namespace for type compatibility
 string Action;
 
@@ -105,6 +113,9 @@ static void cleanupIBL()
   iblbrdfTex.release();
   irradianceTex.release();
   reflTexturesTex.release();
+  placeholderIrradianceTex.release();
+  placeholderBRDFTex.release();
+  placeholderReflTex.release();
 }
 
 void initIBL()
@@ -137,6 +148,43 @@ void initIBL()
 
   // Register cleanup to prevent glDeleteTextures on wrong thread at exit.
   atexit(cleanupIBL);
+}
+
+void initPlaceholderTextures()
+{
+  if(placeholderTexturesInitialized)
+    return;
+  // 1x1 black textures; their contents are never read, because the samplers
+  // are only sampled when IBL is on, in which case the real environment
+  // images are bound instead
+  float const black[3]={0,0,0};
+  camp::GLTexturesFmt fmt;
+  fmt.format=GL_RGB;
+  fmt.internalFmt=GL_RGB16F;
+  placeholderIrradianceTex=
+    camp::GLTexture2<float,GL_FLOAT>{black,{1,1},4,fmt};
+  placeholderBRDFTex=
+    camp::GLTexture2<float,GL_FLOAT>{black,{1,1},5,fmt};
+  placeholderReflTex=
+    camp::GLTexture3<float,GL_FLOAT>{black,std::tuple<int,int,int>(1,1,1),6,fmt};
+  placeholderTexturesInitialized=true;
+}
+
+void AsyGLRender::updateIBL()
+{
+  // IBL is a runtime uniform, so enabling/disabling it needs no shader
+  // recompilation. Loading a new environment image (e.g. a new V3D scene
+  // that names one, or cycling back to normal mode) only requires fresh
+  // textures.
+  if(!ibl)
+    return;
+
+  string image=settings::getSetting<string>("image");
+  if(image == iblImageName)
+    return;
+
+  initIBL();
+  iblImageName=image;
 }
 
 void *glrenderWrapper(void *a);
@@ -193,19 +241,25 @@ void AsyGLRender::initBlendShader()
   if(screen.empty() || blend.empty())
     noShaders();
 
-  std::vector<ShaderfileModePair> shaders(2);
-  std::vector<std::string> shaderParams;
+  // Two pre-compiled variants (small/big ARRAYSIZE); the blend pass switches
+  // between them at runtime (see switchBlendPipeline in renderBase).
+  auto const build=[&](std::uint32_t size)->GLint {
+    std::vector<ShaderfileModePair> shaders(2);
+    std::vector<std::string> shaderParams;
 
-  ostringstream s;
-  s << "ARRAYSIZE " << maxSize << "u" << endl;
-  shaderParams.push_back(s.str().c_str());
-  if(GPUindexing)
-    shaderParams.push_back("GPUINDEXING");
-  if(GPUcompress)
-    shaderParams.push_back("GPUCOMPRESS");
-  shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
-  shaders[1]=ShaderfileModePair(blend.c_str(),GL_FRAGMENT_SHADER);
-  blendShader=compileAndLinkShader(shaders,shaderParams,ssbo);
+    ostringstream s;
+    s << "ARRAYSIZE " << size << "u" << endl;
+    shaderParams.push_back(s.str().c_str());
+    if(GPUindexing)
+      shaderParams.push_back("GPUINDEXING");
+    if(GPUcompress)
+      shaderParams.push_back("GPUCOMPRESS");
+    shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
+    shaders[1]=ShaderfileModePair(blend.c_str(),GL_FRAGMENT_SHADER);
+    return compileAndLinkShader(shaders,shaderParams,ssbo);
+  };
+  blendShader=build(blendSmallSize);
+  blendShaderBig=build(blendBigSize);
 }
 
 void AsyGLRender::setBuffers()
@@ -264,10 +318,8 @@ void AsyGLRender::initShaders()
   std::vector<ShaderfileModePair> shaders(2);
   std::vector<std::string> shaderParams;
 
-  if(ibl) {
-    shaderParams.push_back("USE_IBL");
-    initIBL();
-  }
+  // IBL is a runtime uniform (see the `ibl` uniform in the fragment
+  // shader); environment images are loaded lazily in updateIBL().
 
   shaders[0]=ShaderfileModePair(vertex.c_str(),GL_VERTEX_SHADER);
 
@@ -302,8 +354,8 @@ void AsyGLRender::initShaders()
 
   shaders[1]=ShaderfileModePair(fragment.c_str(),GL_FRAGMENT_SHADER);
   shaderParams.push_back("MATERIAL");
-  if(orthographic)
-    shaderParams.push_back("ORTHOGRAPHIC");
+  // Orthographic mode is a runtime uniform (see the `orthographic` uniform
+  // in the vertex shader), not a #define.
 
   ostringstream lights,materials,opaque;
   lights << "Nlights " << Nlights;
@@ -364,7 +416,6 @@ void AsyGLRender::initShaders()
       shaders[1]=ShaderfileModePair(zero.c_str(),GL_FRAGMENT_SHADER);
       zeroShader=compileAndLinkShader(shaders,shaderParams,ssbo);
     }
-    maxSize=1;
     initBlendShader();
   }
   lastshader=-1;
@@ -384,6 +435,7 @@ void AsyGLRender::deleteComputeShaders()
 void AsyGLRender::deleteBlendShader()
 {
   glDeleteProgram(blendShader);
+  glDeleteProgram(blendShaderBig);
 }
 
 void AsyGLRender::deleteShaders()
@@ -412,13 +464,6 @@ void AsyGLRender::deleteShaders()
     glDeleteProgram(pixelShader);
 }
 
-void AsyGLRender::resizeBlendShader(GLuint maxDepth)
-{
-  maxSize=ceilpow2(maxDepth);
-  deleteBlendShader();
-  initBlendShader();
-}
-
 void AsyGLRender::drawFrame()
 {
   if((nlights == 0 && Nlights > 0) || nlights > Nlights ||
@@ -427,11 +472,10 @@ void AsyGLRender::drawFrame()
     initShaders();
   }
 
-  // Apply srgb setting each frame so changes take effect dynamically
-  if(getSetting<bool>("srgb"))
-    glEnable(GL_FRAMEBUFFER_SRGB);
-  else
-    glDisable(GL_FRAMEBUFFER_SRGB);
+  // The sRGB conversion is done in the fragment/blend shaders via the
+  // runtime `srgb` uniform, so the framebuffer's sRGB capability is not
+  // needed; keep the hardware conversion off to avoid double conversion.
+  glDisable(GL_FRAMEBUFFER_SRGB);
 
   // Set viewport before clearing (in case it wasn't set)
   // Skip during export - tile iteration handles viewport for tiling
@@ -694,10 +738,10 @@ void AsyGLRender::resizeFragmentBuffer()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,feedbackBuffer);
     GLuint *feedback=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_ONLY);
 
-    GLuint maxDepth=feedback[0];
-    if(maxDepth > maxSize)
-      resizeBlendShader(maxDepth);
-
+    // feedback[0] is the previous frame's max per-pixel fragment count
+    // (reduced in sum3.glsl from the count buffer; see switchBlendPipeline
+    // in renderBase).
+    switchBlendPipeline(feedback[0]);
     fragments=feedback[1];
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
   }
@@ -856,7 +900,6 @@ void AsyGLRender::refreshBuffers()
     GLuint *p=(GLuint *) glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
                                           0,size+sizeof(GLuint),
                                               GL_MAP_READ_BIT);
-    GLuint maxDepth=p[0];
     GLuint *count=p+1;
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,offsetBuffer);
@@ -865,8 +908,14 @@ void AsyGLRender::refreshBuffers()
                                                GL_MAP_WRITE_BIT);
 
     size_t Offset=offset[0]=count[0];
-    for(size_t i=1; i < elements; ++i)
+    // Max per-pixel fragment count (CPU path; the GPU path gets it from
+    // sum3.glsl via the feedback buffer)
+    GLuint maxDepth=count[0];
+    for(size_t i=1; i < elements; ++i) {
+      if(count[i] > maxDepth)
+        maxDepth=count[i];
       offset[i]=Offset += count[i];
+    }
     fragments=Offset;
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,offsetBuffer);
@@ -882,8 +931,7 @@ void AsyGLRender::refreshBuffers()
     } else
       clearCount();
 
-    if(maxDepth > maxSize)
-      resizeBlendShader(maxDepth);
+    switchBlendPipeline(maxDepth);
   }
   lastshader=-1;
 }
@@ -921,6 +969,16 @@ void AsyGLRender::setUniformsOpenGL(GLint shader)
   if(shader != lastshader) {
     lastshader=shader;
     glUniform1ui(glGetUniformLocation(shader,"nlights"),nlights);
+    // Apply the srgb setting on every program switch so changes take
+    // effect dynamically (the conversion happens in the shader)
+    glUniform1i(glGetUniformLocation(shader,"srgb"),
+                getSetting<bool>("srgb") ? 1 : 0);
+    // IBL flag follows the (mode-aware) ibl member, which the base class
+    // updates from the setting (outline mode disables it)
+    glUniform1i(glGetUniformLocation(shader,"ibl"), ibl ? 1 : 0);
+    // Orthographic flag is consumed by the vertex shader (see ViewPosition)
+    glUniform1i(glGetUniformLocation(shader,"orthographic"),
+                orthographic ? 1 : 0);
 
     for(size_t i=0; i < nlights; ++i) {
       triple Lighti=Lights[i];
@@ -936,11 +994,18 @@ void AsyGLRender::setUniformsOpenGL(GLint shader)
                   (GLfloat) Diffusei[2]);
     }
 
-    if(settings::getSetting<bool>("ibl")) {
-      iblbrdfTex.setUniform(glGetUniformLocation(shader, "reflBRDFSampler"));
-      irradianceTex.setUniform(glGetUniformLocation(shader, "diffuseSampler"));
-      reflTexturesTex.setUniform(glGetUniformLocation(shader, "reflImgSampler"));
-    }
+    // The IBL samplers must always reference valid textures: the loaded
+    // environment images when IBL is on, small placeholders otherwise
+    // (mirrors the Vulkan placeholder descriptors)
+    if(ibl)
+      updateIBL();
+    initPlaceholderTextures();
+    (ibl ? iblbrdfTex : placeholderBRDFTex)
+      .setUniform(glGetUniformLocation(shader, "reflBRDFSampler"));
+    (ibl ? irradianceTex : placeholderIrradianceTex)
+      .setUniform(glGetUniformLocation(shader, "diffuseSampler"));
+    (ibl ? reflTexturesTex : placeholderReflTex)
+      .setUniform(glGetUniformLocation(shader, "reflImgSampler"));
   }
 
   // Bind global materials buffer
@@ -1090,14 +1155,18 @@ void AsyGLRender::aBufferTransparency()
   drawBuffer(transparentData,transparentShader,true);
   glDepthMask(GL_TRUE); // Respect depth
 
-  // Blend transparent fragments
+  // Blend transparent fragments (small/big variant selected by
+  // switchBlendPipeline from the previous frame's max fragment count)
   glDisable(GL_DEPTH_TEST);
-  glUseProgram(blendShader);
-  lastshader=blendShader;
-  glUniform1ui(glGetUniformLocation(blendShader,"width"),Width);
-  glUniform4f(glGetUniformLocation(blendShader,"background"),
+  GLint program=blendBig ? blendShaderBig : blendShader;
+  glUseProgram(program);
+  lastshader=program;
+  glUniform1ui(glGetUniformLocation(program,"width"),Width);
+  glUniform4f(glGetUniformLocation(program,"background"),
               Background[0],Background[1],Background[2],
               Background[3]);
+  glUniform1i(glGetUniformLocation(program,"srgb"),
+              getSetting<bool>("srgb") ? 1 : 0);
   fpu_trap(false); // Work around FE_INVALID
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDrawArrays(GL_TRIANGLES,0,3);
@@ -1168,6 +1237,7 @@ AsyGLRender::~AsyGLRender()
   glDeleteProgram(countShader);
   glDeleteProgram(transparentShader);
   glDeleteProgram(blendShader);
+  glDeleteProgram(blendShaderBig);
   glDeleteProgram(zeroShader);
   glDeleteProgram(compressShader);
   glDeleteProgram(sum1Shader);
@@ -1202,6 +1272,13 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   lastshader = -1;
 
   copyRenderArgs(args);
+
+  // IBL is a runtime uniform (no shader recompilation). Re-read on every
+  // render() so a new scene can turn it on or change the image (v3d.asy sets
+  // settings.ibl when a V3D header names an environment image). Mirrors the
+  // mode-dependent logic in AsyRender::cycleMode().
+  if(mode == DRAWMODE_NORMAL)
+    ibl = getSetting<bool>("ibl");
 
   nlights0 = nlights;  // Save original for mode restoration
 

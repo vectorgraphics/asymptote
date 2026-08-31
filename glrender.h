@@ -92,6 +92,7 @@ private:
   size_t Nlights = 1;
   size_t nmaterials = 0;
   size_t nlights0 = 0;
+  string iblImageName; // environment image currently loaded ("" = none)
 
   // Shaders
   GLint pixelShader = 0;
@@ -101,6 +102,7 @@ private:
   GLint countShader = 0;
   GLint transparentShader = 0;
   GLint blendShader = 0;
+  GLint blendShaderBig = 0;
   GLint zeroShader = 0;
   GLint compressShader = 0;
   GLint sum1Shader = 0;
@@ -136,7 +138,6 @@ private:
   std::unordered_map<VertexBuffer*, GLBufferPair> glBuffers;
   GLuint fragments = 0;
   GLuint maxFragments = 0;
-  GLuint maxSize = 1;
 
   // GPU settings
   GLuint g = 0;
@@ -158,7 +159,8 @@ private:
   void deleteComputeShaders();
   void deleteBlendShader();
   void deleteShaders();
-  void resizeBlendShader(GLuint maxDepth);
+  // Load environment images when IBL is enabled and the image changed
+  void updateIBL();
 
   // Rendering functions
   void refreshBuffers();

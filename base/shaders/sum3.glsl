@@ -33,6 +33,7 @@ layout(binding=3, std430) buffer feedbackBuffer
 
 shared uint shuffle[groupSize+LOCALSIZE-1u];
 shared uint groupSum[LOCALSIZE+1u];
+shared uint maxSum[LOCALSIZE+1u]; // prefix max piggybacked on the sum reduction
 
 void main()
 {
@@ -42,8 +43,12 @@ void main()
   uint dataOffset=gl_WorkGroupID.x*groupSize+id;
   uint shuffleOffset=id/BLOCKSIZE+id;
   const uint stride=LOCALSIZE/BLOCKSIZE+LOCALSIZE;
-  for(uint i=0u; i < BLOCKSIZE; i++)
-    shuffle[shuffleOffset+i*stride]=count[dataOffset+i*LOCALSIZE];
+  uint localMax=0u;
+  for(uint i=0u; i < BLOCKSIZE; i++) {
+    uint c=count[dataOffset+i*LOCALSIZE];
+    shuffle[shuffleOffset+i*stride]=c;
+    if(c > localMax) localMax=c;
+  }
 
   barrier();
 
@@ -54,21 +59,38 @@ void main()
   for(uint i=Offset; i < stop; ++i)
     shuffle[i]=sum += shuffle[i];
 
+  // groupSum carries the per-thread block sums; maxSum carries the matching
+  // per-thread block maxima through the same reduction (prefix max), so the
+  // workgroup max of the per-pixel fragment counts adds no extra barriers.
+  // It feeds the CPU's small/big blend-pipeline switch (resizeFragmentBuffer).
   if(id == 0u)
-    groupSum[0u]=0u;
+    {
+      groupSum[0u]=0u;
+      maxSum[0u]=0u;
+    }
   groupSum[id+1u]=sum;
+  maxSum[id+1u]=localMax;
   barrier();
 
   // Apply Hillis-Steele algorithm over all sums in workgroup
   for(uint shift=1u; shift < LOCALSIZE; shift *= 2u) {
-    uint read;
+    uint read, readMax;
     if(shift <= id)
-      read=groupSum[id]+groupSum[id-shift];
+      {
+        read=groupSum[id]+groupSum[id-shift];
+        readMax=max(maxSum[id],maxSum[id-shift]);
+      }
     barrier();
     if(shift <= id)
-      groupSum[id]=read;
+      {
+        groupSum[id]=read;
+        maxSum[id]=readMax;
+      }
     barrier();
   }
+  // maxSum[LOCALSIZE-1] holds the workgroup max (prefix max over all threads)
+  if(id == 0u)
+    atomicMax(maxDepth,maxSum[LOCALSIZE-1u]);
 
   uint groupOffset=globalSum[gl_WorkGroupID.x];
   for(uint i=0u; i < BLOCKSIZE; ++i)
@@ -77,8 +99,10 @@ void main()
 
   uint diff=push.final-dataOffset;
   if(diff < groupSize && diff % LOCALSIZE == 0) {
-    size=maxDepth;
-    maxDepth=0u;
+    // Atomic read+reset: other workgroups' atomicMax() calls may still be in
+    // flight; any that land after this exchange carry over into the next
+    // frame's snapshot (the switch logic tolerates one stale frame).
+    size=atomicExchange(maxDepth,0u);
     fragments=offset[push.final+1u]=offset[push.final];
   }
 }

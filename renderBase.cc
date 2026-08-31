@@ -115,6 +115,16 @@ void AsyRender::copyRenderArgs(RenderFunctionArgs const& args)
     Tup[i] = args.tup[i];
 }
 
+void AsyRender::switchBlendPipeline(std::uint32_t maxDepth)
+{
+  if (blendBig) {
+    if (maxDepth <= blendSwitchDown)
+      blendBig = false;
+  } else if (maxDepth > blendSwitchUp) {
+    blendBig = true;
+  }
+}
+
 double AsyRender::getRenderResolution(triple Min) const
 {
   double prerender = settings::getSetting<double>("prerender");
