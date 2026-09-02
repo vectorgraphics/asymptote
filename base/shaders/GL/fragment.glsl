@@ -64,14 +64,13 @@ float Roughness;
 
 layout(binding=0, std430) buffer offsetBuffer
 {
-  uint maxDepth;
   uint offset[];
 };
 
 #ifndef GPUINDEXING
 layout(binding=2, std430) buffer countBuffer
 {
-  uint maxSize;
+  uint maxDepth;
   uint count[];
 };
 #endif

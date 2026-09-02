@@ -10,7 +10,9 @@ layout(push_constant) uniform PushConstants
 
 layout(binding=0, std430) buffer countBuffer
 {
-  uint maxSize;
+  // Max per-pixel fragment count for this frame; atomically reduced here and
+  // reset to zero at the end of every frame (see atomicExchange below)
+  uint maxDepth;
   uint count[];
 };
 
@@ -21,7 +23,6 @@ layout(binding=1, std430) buffer globalSumBuffer
 
 layout(binding=2, std430) buffer offsetBuffer
 {
-  uint maxDepth;
   uint offset[];
 };
 

@@ -1,13 +1,12 @@
 
 layout(binding = 3, std430) buffer CountBuffer
 {
-  uint maxSize;
+  uint maxDepth;
   uint count[];
 };
 
 layout(binding = 4, std430) buffer OffsetBuffer
 {
-  uint maxDepth;
   uint offset[];
 };
 
