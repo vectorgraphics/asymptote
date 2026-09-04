@@ -15,7 +15,10 @@ Asymptote with the CMake + vcpkg toolchain. It mirrors the Linux CI environment
   `glfw3`/`vulkan` vcpkg ports need, and the autotools/libtool stack
   (`autoconf`, `automake`, `autoconf-archive`, `libtool`, `libtool-bin`,
   `libltdl-dev`) that the `libxcrypt` vcpkg port uses to regenerate its build
-  system. The `glm`, GSL, curl, readline and curses dev packages
+  system. The same stack runs the project's own `./autogen.sh`:
+  [`configure.ac`](../configure.ac) declares `AC_PREREQ([2.71])`, which is
+  exactly what Ubuntu 22.04 (and 24.04) ship, so nothing needs building from
+  source. The `glm`, GSL, curl, readline and curses dev packages
   (`libglm-dev`, `libgsl-dev`, `libcurl4-openssl-dev`, `libreadline-dev`,
   `libncurses-dev`) are also installed so the no-vcpkg `linux/sandbox` preset
   (see [Sandbox build](#sandbox-build-no-network)) can build from system
