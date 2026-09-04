@@ -15,21 +15,13 @@ test_collections_errors:
 	@echo
 	python3 test_collections_errors.py
 
-# getExecutablePath(), through the one sysdir candidate every build has live --
-# so it takes no mode argument: that candidate is outside the IS_RELOCATABLE
-# guard.  Listed early in `test:` above, and .NOTPARALLEL makes prerequisite
-# order the run order, so a broken exedir is reported here rather than as a
-# wrong sysdir in every case of whatever wider sysdir test follows.
+# getExecutablePath(), through the sysdir candidate it feeds.  Listed early in
+# `test:` above, and .NOTPARALLEL makes prerequisite order the run order, so a
+# broken exedir is reported here rather than as a wrong sysdir in every case of
+# whatever wider sysdir test follows.
 test_executable_path:
 	@echo
 	python3 test_executable_path.py --asy ../asy --asy-base-dir ../base
-
-# Sysdir-resolution matrix.  ASY_RELOCATABLE comes from the parent Makefile,
-# which knows whether -DIS_RELOCATABLE was configured in; asserting it beats
-# letting the script auto-detect, since detection infers the mode from the very
-# K2 behaviour the matrix is supposed to test.  Unset (a bare `make` in tests/)
-# falls back to auto-detection.
-RELOCATABLE_MODE = $(if $(ASY_RELOCATABLE),--mode $(ASY_RELOCATABLE),)
 
 # The C="" (CTAN/TeXLive) axis needs a binary with an empty compiled-in sysdir.
 # The CMake build has a second executable for it, asy-ctan; here there is only
@@ -40,8 +32,7 @@ CTAN_ASY = $(if $(filter on,$(ASY_TEXLIVE_BUILD)),--asy-ctan ../asy,)
 
 test_relocatable:
 	@echo
-	python3 test_relocatable.py --asy ../asy --asy-base-dir ../base \
-	  $(RELOCATABLE_MODE) $(CTAN_ASY)
+	python3 test_relocatable.py --asy ../asy --asy-base-dir ../base $(CTAN_ASY)
 
 $(EXTRADIRS)::
 	@echo

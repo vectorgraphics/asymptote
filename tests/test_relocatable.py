@@ -11,11 +11,8 @@ start, by retrying through a known-good base/ -- see ``probe`` for why the exit
 status alone is not a usable signal.
 
 The derivation of the matrix is given below.  This file is pure Python stdlib
-and runs anywhere asy does -- Linux, macOS, Windows, FreeBSD.  The same script
-covers both the ENABLE_RELOCATABLE=ON matrix and the OFF regression: callers
-say which one they built with ``--mode on`` / ``--mode off``.  There is also a
-fallback, ``--mode auto``, which checks that the binary is consistent in
-whether it behaves like a relocatable build or not.
+and runs anywhere asy does -- Linux, macOS, Windows, FreeBSD.  It takes no
+build-configuration argument: resolution is the same in every build.
 
 A passing run reports one character per scenario -- ``.`` for a pass, ``-`` for
 a skip -- under a per-axis heading, because the full log is some forty lines
@@ -26,17 +23,14 @@ full, which is what you want when reading the matrix rather than checking it.
 The model under test
 --------------------
 
-The resolver, resolveSysdir(), is a first-match search over three *candidate
-locations*, each accepted only if it contains plain.asy (isBaseDir() in
-locate.cc):
+The resolver, resolveSysdir(), searches exactly one *candidate location*,
+accepted only if it contains plain.asy (isBaseDir() in locate.cc):
 
-  K1  <exedir>/base                  build tree / flat install   always live
-  K2  <exedir>/../share/asymptote    install tree                live iff RELOC
-  K3  <exedir>                       flat layout (NSIS)          live iff RELOC
+  K1  <exedir>/base                  build tree, relocatable distribution
 
-If none matches, the compiled-in ASYMPTOTE_SYSDIR is returned *unchanged and
-unvalidated*.  Two further locations are often described as candidates 4 and 5,
-but neither is selected by a plain.asy test:
+If it does not match, the compiled-in ASYMPTOTE_SYSDIR is returned *unchanged
+and unvalidated*.  Two further locations are often described as candidates 2
+and 3, but neither is selected by a plain.asy test:
 
   * the compiled-in path is the default, not a candidate -- its own state never
     changes which path is resolved, only whether the resolved path works;
@@ -44,10 +38,19 @@ but neither is selected by a plain.asy test:
     sysdir is *empty*, i.e. iff the compiled-in value is the empty string.
 
 So they are not two independent locations but two settings of one variable, C,
-the compiled-in sysdir.  That projection is what keeps the matrix small: the
-selector reads exactly three booleans, so the layout space is 3x3x2 = 18 states
-(K3 has no "absent" state -- the executable's own directory always exists) and
-is enumerated exhaustively below rather than sampled.
+the compiled-in sysdir.  That projection is what keeps the matrix small.
+
+Two *non-candidates* are staged alongside K1 all the same:
+
+  K2  <exedir>/../share/asymptote    a relocated GNU-layout install
+  K3  <exedir>                       base files flat beside the binary
+
+Both were candidates once, behind a build flag, and both were removed.  They
+are staged as negative controls -- a base/ at either must be ignored, whatever
+K1 holds -- which is what makes the removal a tested property rather than a
+remembered one.  So the layout space stays 3x3x2 = 18 states (K3 has no
+"absent" state: the executable's own directory always exists), enumerated
+exhaustively below rather than sampled.  Twelve of those rows are the controls.
 
 Everything else is an axis that feeds, or post-processes, that same core:
 
@@ -56,8 +59,8 @@ Everything else is an axis that feeds, or post-processes, that same core:
           wrong exedir would be visible.
   OVR     -sysdir / -dir / ASYMPTOTE_SYSDIR, applied after resolution.
   C       the compiled-in sysdir: absent / valid / decoy / empty (CTAN).
-          Tested against two layout rows: one where no candidate fires (C
-          decides) and one where K1 fires (C must be ignored).
+          Tested against two layout rows: one where K1 does not fire (C
+          decides) and one where it does (C must be ignored).
   REG     Windows only: queryRegistry() overwrites systemDir unless it was
           resolved relative to the executable.
 
@@ -65,10 +68,9 @@ Scenario IDs are ``core/<states>`` for the exhaustive rows -- B = contains
 plain.asy, D = decoy (exists, no plain.asy), A = absent, in K1 K2 K3 order --
 and ``<axis>/<case>`` elsewhere.
 
-Requirements not scriptable in-suite -- a second build for the OFF matrix, a
-compiled-in value of Windows' literal ``NUL``, a deployed texmf tree -- are
-handled by a second invocation under ``--mode off``, or reported as SKIP rather
-than failing the run.
+Requirements not scriptable in-suite -- a compiled-in value of Windows' literal
+``NUL``, a deployed texmf tree -- are reported as SKIP rather than failing the
+run.
 
 
 Naming
@@ -557,10 +559,12 @@ class State(Enum):
 
 
 class Location(IntEnum):
-    """The locations resolveSysdir() searches, in resolution order.
+    """The executable-relative locations the matrix stages.
 
-    The value is the position in a States or Paths triple, so a Location
-    subscripts either one directly.
+    Only K1 is a candidate; K2 and K3 are the negative controls described in
+    the module docstring, kept here so that staging one is as easy as staging
+    the real thing.  The value is the position in a States or Paths triple, so
+    a Location subscripts either one directly.
     """
 
     K1 = 0
@@ -577,13 +581,13 @@ class Location(IntEnum):
         }[self]
 
 
-# One point of the layout space: the state of (K1, K2, K3), in resolution
-# order.  Always exactly three -- the selector reads three locations, and
-# everything downstream indexes all three positionally.
+# One point of the layout space: the state of (K1, K2, K3), K1 first.  Always
+# exactly three -- the candidate and its two controls -- and everything
+# downstream indexes all three positionally.
 States = Tuple[State, State, State]
 
-# The three candidate locations as staged paths, in the same resolution order,
-# so Paths[i] is the directory whose state is States[i].
+# The same three locations as staged paths, in the same order, so Paths[i] is
+# the directory whose state is States[i].
 Paths = Tuple[str, str, str]
 
 
@@ -689,11 +693,11 @@ def stage_layout(
 ) -> Tuple[str, Paths]:
     """Stage a prefix realizing one (K1, K2, K3) state triple.
 
-    The layout is <root>/bin/asy, so all three candidate locations exist as
-    distinct paths under <root> and can be populated independently.
+    The layout is <root>/bin/asy, so all three locations exist as distinct
+    paths under <root> and can be populated independently.
 
-    Returns (staged_asy, paths) with paths in resolution order, so paths[i] is
-    what asy must report when candidate i wins.
+    Returns (staged_asy, paths) in K1-first order, so paths[i] is the directory
+    location i names -- and, for K1, what asy must report when it wins.
     """
     bindir = os.path.join(root, "bin")
     staged_asy = stage_binary(bindir, asy_under_test)
@@ -712,14 +716,15 @@ def stage_layout(
     return staged_asy, paths
 
 
-def winner(states: States, relocatable: bool) -> Optional[Location]:
-    """The oracle: the candidate resolveSysdir() must select, or None if it
-    must fall through to the compiled-in value.  First match wins, over the
-    candidates the build has live."""
-    live = tuple(Location) if relocatable else (Location.K1,)
-    for i in live:
-        if states[i] is State.VALID:
-            return i
+def winner(states: States) -> Optional[Location]:
+    """The oracle: the location resolveSysdir() must select, or None if it must
+    fall through to the compiled-in value.
+
+    K1 is the entire search: the other two staged locations are the negative
+    controls, and their state cannot change the answer.
+    """
+    if states[Location.K1] is State.VALID:
+        return Location.K1
     return None
 
 
@@ -820,7 +825,7 @@ def fallback_sysdir(compiled_in: Optional[str]) -> Optional[str]:
 
 
 # ---------------------------------------------------------------------------
-# the core matrix: every reachable (K1, K2, K3) state
+# the core matrix: every reachable (K1, K2, K3) state, K1 the only candidate
 # ---------------------------------------------------------------------------
 
 
@@ -831,7 +836,6 @@ class Ctx(NamedTuple):
     base_dir: str  # its build-tree base/, used as the -dir rescue
     compiled_in: Optional[str]  # ASYMPTOTE_SYSDIR, if the caller named it
     work: str  # scratch root; also the cwd every probe runs in
-    relocatable: bool  # whether K2 and K3 are live
 
     def stage(
         self, name: str, states: States, asy_under_test: Optional[str] = None
@@ -893,7 +897,7 @@ def state_code(states: States) -> str:
 def check_layout(ctx: Ctx, scenario: str, states: States) -> None:
     """Stage one state triple and assert the oracle's prediction."""
     staged_asy, paths = ctx.stage(os.path.join("core", state_code(states)), states)
-    idx = winner(states, ctx.relocatable)
+    idx = winner(states)
     if idx is not None:
         # The winner is by definition a location staged with plain.asy.
         ctx.expect(
@@ -937,11 +941,12 @@ def run_core_matrix(ctx: Ctx) -> None:
     """All 3x3x2 layout states, exhaustively.
 
     No representatives, no pruning: after projecting out the compiled-in value
-    and the texmf tree (neither is selected by a plain.asy test) the selector
-    reads exactly three locations, and <exedir> cannot be absent.  Enumerating
-    the space outright is cheaper than arguing about which rows would suffice,
-    and it *measures* rather than assumes both the first-match ordering and the
-    equivalence of a decoy directory with an absent one.
+    and the texmf tree (neither is selected by a plain.asy test) three staged
+    locations remain, and <exedir> cannot be absent.  Enumerating the space
+    outright is cheaper than arguing about which rows would suffice; it
+    *measures* rather than assumes both the equivalence of a decoy directory
+    with an absent one and the indifference of the result to K2 and K3, which
+    is the property that keeps them from creeping back in as candidates.
     """
     for states in itertools.product(State, State, (State.VALID, State.DECOY)):
         check_layout(ctx, "core/" + state_code(states), states)
@@ -952,16 +957,10 @@ def run_core_matrix(ctx: Ctx) -> None:
 # ---------------------------------------------------------------------------
 
 
-def layout_for_route(relocatable: bool) -> States:
-    """A layout in which the answer depends on where the executable is.
-
-    Relocatable builds use the install tree (K2), the shape a packaged binary
-    actually has; an OFF build resolves only K1, so use that.  Either way a
-    wrong exedir yields a visibly different path rather than the same one.
-    """
-    if relocatable:
-        return (State.ABSENT, State.VALID, State.DECOY)
-    return (State.VALID, State.ABSENT, State.DECOY)
+# A layout in which the answer depends on where the executable is: K1 holds the
+# only base/, so a wrong exedir yields a visibly different path rather than the
+# same one.
+ROUTE_LAYOUT: States = (State.VALID, State.ABSENT, State.DECOY)
 
 
 def run_route_axis(ctx: Ctx) -> None:
@@ -972,10 +971,10 @@ def run_route_axis(ctx: Ctx) -> None:
     per route.  ROUTE x layout would multiply the matrix by 6 and prove nothing
     the core matrix does not already prove.
     """
-    states = layout_for_route(ctx.relocatable)
+    states = ROUTE_LAYOUT
     root = os.path.join(ctx.work, "route")
     staged_asy, paths = ctx.stage("route", states)
-    idx = winner(states, ctx.relocatable)
+    idx = winner(states)
     assert idx is not None, "the route layout must have a winner"
     expected = paths[idx]
     name = os.path.basename(staged_asy)
@@ -1268,24 +1267,6 @@ def run_registry_axis(ctx: Ctx) -> None:
 # ---------------------------------------------------------------------------
 
 
-def detect_relocatable(asy_under_test: str, base_dir: str, work: str) -> bool:
-    """Empirically decide whether the binary was built relocatable.
-
-    Stage an install-tree layout (K2, gated on IS_RELOCATABLE) and see whether
-    it resolves.  This avoids having to plumb the build flag through
-    configure/CMake -- the binary's own behaviour is the source of truth.
-
-    Takes the three fields it needs rather than a Ctx: its answer is what
-    fixes Ctx.relocatable, so it has to run before there is a Ctx to pass.
-    """
-    root = os.path.join(work, "detect")
-    states = (State.ABSENT, State.VALID, State.DECOY)
-    staged_asy, paths = stage_layout(root, asy_under_test, base_dir, states)
-    _, _, resolved = probe(staged_asy, rescue_base=base_dir)
-    shutil.rmtree(root, ignore_errors=True)
-    return norm(resolved) == norm(paths[Location.K2])
-
-
 def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -1310,12 +1291,6 @@ def parse_args() -> argparse.Namespace:
         "fall-through rows and the C axis can only be observed, not asserted",
     )
     ap.add_argument(
-        "--mode",
-        choices=("auto", "on", "off"),
-        default="auto",
-        help="relocatable mode; 'auto' (default) falls back to probing the binary",
-    )
-    ap.add_argument(
         "-v",
         "--verbose",
         action="store_true",
@@ -1325,22 +1300,18 @@ def parse_args() -> argparse.Namespace:
 
 
 def banner(ctx: Ctx) -> None:
-    live = "K1, K2, K3" if ctx.relocatable else "K1 only (K2, K3 gated off)"
-    mode = "on" if ctx.relocatable else "off"
     if not _Log.verbose:
-        # The mode is the one input that decides which rows assert, so it is
-        # the one thing a quiet run still has to say; the rest is in --verbose.
-        print(f"sysdir resolution -- relocatable {mode}")
+        print("sysdir resolution")
         return
-    print(f"relocatable:      {mode} -- live: {live}")
     print(f"binary:           {ctx.asy_under_test}")
     print(f"build-tree base:  {ctx.base_dir}")
     if ctx.compiled_in:
         exists = "exists" if os.path.exists(ctx.compiled_in) else "absent"
         print(f"compiled-in path: {ctx.compiled_in} ({exists})")
     print()
-    print("candidates -- K1 <exedir>/base, K2 <exedir>/../share/asymptote,")
-    print("              K3 <exedir>; B = has plain.asy, D = decoy, A = absent")
+    print("candidate     -- K1 <exedir>/base")
+    print("controls      -- K2 <exedir>/../share/asymptote, K3 <exedir>")
+    print("staged states -- B = has plain.asy, D = decoy, A = absent")
 
 
 def run_all(ctx: Ctx, asy_ctan: Optional[str]) -> None:
@@ -1386,13 +1357,9 @@ def main() -> None:
 
     work = tempfile.mkdtemp(prefix="asy-relocatable-")
     # Point the children's configuration directory at the (config.asy-free)
-    # scratch tree, before the first probe -- detect_relocatable runs one.
+    # scratch tree, before the first probe.
     _CHILD_ENV["ASYMPTOTE_HOME"] = work
     try:
-        if args.mode == "auto":
-            relocatable = detect_relocatable(asy_under_test, base_dir, work)
-        else:
-            relocatable = args.mode == "on"
         ctx = Ctx(
             asy_under_test=asy_under_test,
             base_dir=base_dir,
@@ -1400,7 +1367,6 @@ def main() -> None:
                 os.path.abspath(args.compiled_in) if args.compiled_in else None
             ),
             work=work,
-            relocatable=relocatable,
         )
         run_all(ctx, os.path.abspath(args.asy_ctan) if args.asy_ctan else None)
     finally:

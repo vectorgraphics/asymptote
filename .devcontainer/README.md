@@ -186,7 +186,7 @@ on the host they are usually incompatible with the container
 (`GLIBCXX_… not found`). Running the container's `asy` *from the workspace root*
 picks up those stale copies first and fails to render. Avoid this by running
 from another directory (as above), or remove the host-built
-`/workspaces/asymptote/libasy*.so`. The relocatable build installs its own
+`/workspaces/asymptote/libasy*.so`. The out-of-workspace build installs its own
 `libasyvulkan.so` into `~/.local/asy-build/release/base/`, so `-dir <that base>`
 finds the correct one from any non-workspace directory.
 

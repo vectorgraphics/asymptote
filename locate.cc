@@ -287,64 +287,52 @@ static bool isBaseDir(string const& dir)
 // for the two binaries. The autotools build has a single executable and is
 // unaffected either way.
 //
-// Candidates are tried relative to the running executable first, so that a
-// binary run in place from its build tree uses its own base/ even when some
-// other Asymptote is installed at the compiled-in sysdir. Falling back to the
-// compiled-in path last costs nothing for an installed binary, whose
-// <prefix>/bin/asy resolves to the same <prefix>/share/asymptote either way.
+// There is one candidate -- base/ beside the running executable -- and it is
+// tried before the compiled-in path, so that a binary run in place from its
+// build tree uses its own base/ even when some other Asymptote is installed at
+// the compiled-in sysdir. Trying it first costs nothing for an installed
+// binary, whose <prefix>/bin/asy holds no adjacent base/ and so falls through
+// to the compiled-in <prefix>/share/asymptote.
 //
-// The build-tree candidate is always tried: <exedir>/base/plain.asy exists
-// only in a build tree or a flat install, never on a system where asy came
-// from a package, so it needs no opt-in. The install-tree and flat candidates
-// are gated behind IS_RELOCATABLE.
+// The candidate needs no opt-in, because <exedir>/base/plain.asy exists only in
+// a build tree or in a distribution that deliberately ships base/ beside the
+// binary, never on a system where asy came from a package. A distribution meant
+// to be moved after it is built is therefore laid out that way -- the macOS
+// bundle installs with
+//
+//   make install-asy bindir=<dest>/Asymptote asydir=<dest>/Asymptote/base
+//
+// -- and resolves wherever the user puts it, with no compiled-in path involved.
 //
 // When nothing matches, the compiled-in path is returned unchanged -- including
 // when it is empty, which is how a TeXLive build says "I have no fixed data
 // directory". initDir() sees the empty string and asks kpsewhich for TEXMFMAIN.
-// That lookup is therefore the next candidate after the ones below, not a
+// That lookup is therefore the next candidate after the one below, not a
 // separate mode: a TeXLive binary run from its build tree uses the adjacent
-// base/, and only a deployed one (bin/<platform>/asy, where no candidate
-// matches) consults kpsewhich.
+// base/, and only a deployed one (bin/<platform>/asy, where the candidate does
+// not match) consults kpsewhich.
 //
 // noexcept because this runs as a static initializer (settings.cc), where an
 // escaping exception calls terminate() before main() rather than being caught
 // anywhere. Marking it costs nothing there -- terminate() is what an escaping
 // exception would produce either way -- and states the contract in a form the
 // compiler checks rather than one a comment can drift away from. The body is
-// guarded as a whole rather than at each allocating step: every candidate is
-// built from strings and std::filesystem paths, so the throwing operations are
-// too many to enumerate reliably, and all of them mean the same thing here.
+// guarded as a whole rather than at each allocating step: it is built out of
+// strings and std::filesystem paths, so the throwing operations are too many to
+// enumerate reliably, and all of them mean the same thing here.
 //
 string resolveSysdir(string const& compiledInSysdir) noexcept
 {
   try {
     // parentDir() rather than executableDir(), so that an executable sitting
-    // directly in the filesystem root still gets its candidates tried.
+    // directly in the filesystem root still gets the candidate tried.
     optional<string> const exeDir= parentDir(executablePath());
     if (exeDir) {
-      string const& bindir= *exeDir;
-      // Build tree: base/ sits next to the executable.
-      string buildBase= bindir + "/base";
-      if (isBaseDir(buildBase)) {
+      string adjacentBase= *exeDir + "/base";
+      if (isBaseDir(adjacentBase)) {
         relocatedSysdir= true;
-        return buildBase;
+        return adjacentBase;
       }
-#ifdef IS_RELOCATABLE
-      // Install tree: <prefix>/bin/asy with data in <prefix>/share/asymptote.
-      optional<string> const prefix= parentDir(bindir);
-      if (prefix) {
-        string shareBase= *prefix + "/share/asymptote";
-        if (isBaseDir(shareBase)) {
-          relocatedSysdir= true;
-          return shareBase;
-        }
-      }
-      // Flat layout (the MSWindows installer): base files beside asy.exe.
-      if (isBaseDir(bindir)) {
-        relocatedSysdir= true;
-        return bindir;
-      }
-#endif
     }
     return compiledInSysdir;
   } catch (...) {

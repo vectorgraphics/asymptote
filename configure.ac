@@ -197,15 +197,6 @@ installation at run time (via kpsewhich) instead of at a fixed path])],
 # builds one, so under --enable-texlive-build that one *is* the CTAN binary.
 AC_SUBST(texlive_build)
 
-AC_ARG_ENABLE(relocatable,
-[AS_HELP_STRING(--enable-relocatable[[[=no]]],
-[find the data directory relative to the location of the binary at runtime,
-falling back to ASYMPTOTE_SYSDIR (for portable/staged installs)])],
-[ if test "x$enableval" = "xyes" ; then
-    OPTIONS=$OPTIONS"-DIS_RELOCATABLE "
-  fi
-])
-
 AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$sysdir",
         [System directory for global .asy files])
 AC_DEFINE_UNQUOTED(ASYMPTOTE_DOCDIR,"$docdir",

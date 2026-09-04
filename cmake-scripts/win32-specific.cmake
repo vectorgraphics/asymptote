@@ -15,9 +15,10 @@ list(APPEND ASY_MACROS WIN32_LEAN_AND_MEAN NOMINMAX __MSDOS__=1 HAVE_LIBTIRPC)
 
 
 # There is no fixed install prefix on Windows: the installed sysdir comes from
-# the registry (queryRegistry) or, for a relocatable binary, from the location of
-# asy.exe. "NUL" is a placeholder that never names a base directory. Applied
-# per-executable in add_settings_obj so the CTAN binary can override it.
+# the registry (queryRegistry), which the NSIS installer writes to
+# App Paths\Asymptote, or from a base/ beside asy.exe (resolveSysdir). "NUL" is
+# a placeholder that never names a base directory. Applied per-executable in
+# add_settings_obj so the CTAN binary can override it.
 set(ASYMPTOTE_SYSDIR_VALUE "NUL")
 
 

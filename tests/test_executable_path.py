@@ -10,7 +10,7 @@ it is the part that can be wrong on a platform nobody has run the suite on.
 That is not hypothetical: the FreeBSD branch exists because /proc is not mounted
 on a stock FreeBSD, where the "elsewhere" case therefore returned nothing at
 all.  Nothing prints the value, so it is checked here through its only
-observable: resolveSysdir() offers <exedir>/base as its first candidate, and
+observable: resolveSysdir() takes <exedir>/base as its one candidate, and
 reports the result as settings.sysdir.
 
 So: copy asy and a base/ into a fresh temporary directory and ask the copy where
@@ -18,12 +18,8 @@ its sysdir is.  Nothing could have compiled that path in and the answer does not
 come from the cwd, the environment or an installed Asymptote, so getting it back
 means the executable's own directory was computed at run time, and correctly.
 
-That candidate is deliberately the one that is live in *every* build (it is
-outside the IS_RELOCATABLE guard), so this script needs no knowledge of how asy
-was configured -- unlike a full enumeration of the resolution matrix, which has
-to be told, or to detect, the build mode.  Run this
-one first: a wider sysdir test built on a broken exedir reads it as a wrong
-sysdir in every case, and every conclusion it draws is void.
+Run this one first: a wider sysdir test built on a broken exedir reads it as a
+wrong sysdir in every case, and every conclusion it draws is void.
 
 It is written as straight-line code -- no functions, very little branching -- so
 that what it asserts can be read off in one pass.  A passing run says so in a

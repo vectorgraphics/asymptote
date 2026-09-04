@@ -292,7 +292,7 @@ void queryRegistry()
     docdir= s;
   }
   // The registry entry describes a separately installed Asymptote, so it must
-  // not override a systemDir that initSysdir() resolved relative to this
+  // not override a systemDir that resolveSysdir() resolved relative to this
   // executable; that would send a binary run in place to the installed base/.
   // An empty systemDir indicates a TeXLive build.
   if (!systemDir.empty() && !docdir.empty() && !relocatedSysdir)

@@ -48,7 +48,6 @@ export PKG_CONFIG_LIBDIR=""
    LDFLAGS="-L${VULKAN_LIB_DIR} -L${GLFW_LIB_DIR} -Wl,-rpath,${VULKAN_LIB_DIR} -Wl,-rpath,${GLFW_LIB_DIR}" \
    --enable-macos-universal \
    --enable-macos-bundling \
-   --enable-relocatable \
    --disable-lsp \
    --disable-readline \
    --disable-fftw \
