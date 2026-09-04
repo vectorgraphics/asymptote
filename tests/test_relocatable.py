@@ -556,10 +556,10 @@ class State(Enum):
         return self.name.lower()
 
 
-class Candidate(IntEnum):
+class Location(IntEnum):
     """The locations resolveSysdir() searches, in resolution order.
 
-    The value is the position in a States or Paths triple, so a Candidate
+    The value is the position in a States or Paths triple, so a Location
     subscripts either one directly.
     """
 
@@ -571,9 +571,9 @@ class Candidate(IntEnum):
     def where(self) -> str:
         """Human-readable location, for the scenario notes."""
         return {
-            Candidate.K1: "<exedir>/base",
-            Candidate.K2: "<exedir>/../share/asymptote",
-            Candidate.K3: "<exedir>",
+            Location.K1: "<exedir>/base",
+            Location.K2: "<exedir>/../share/asymptote",
+            Location.K3: "<exedir>",
         }[self]
 
 
@@ -702,21 +702,21 @@ def stage_layout(
         os.path.join(root, "share", "asymptote"),
         bindir,
     )
-    for k in (Candidate.K1, Candidate.K2):
+    for k in (Location.K1, Location.K2):
         materialize(paths[k], states[k], base_dir)
     # K3 is the executable's own directory: it always exists (the staged binary
     # is in it), so ABSENT is unreachable and DECOY means "populated but no
     # plain.asy" rather than "empty".
-    assert states[Candidate.K3] is not State.ABSENT, "<exedir> cannot be absent"
-    copy_base_into(base_dir, bindir, with_plain=states[Candidate.K3] is State.VALID)
+    assert states[Location.K3] is not State.ABSENT, "<exedir> cannot be absent"
+    copy_base_into(base_dir, bindir, with_plain=states[Location.K3] is State.VALID)
     return staged_asy, paths
 
 
-def winner(states: States, relocatable: bool) -> Optional[Candidate]:
+def winner(states: States, relocatable: bool) -> Optional[Location]:
     """The oracle: the candidate resolveSysdir() must select, or None if it
     must fall through to the compiled-in value.  First match wins, over the
     candidates the build has live."""
-    live = tuple(Candidate) if relocatable else (Candidate.K1,)
+    live = tuple(Location) if relocatable else (Location.K1,)
     for i in live:
         if states[i] is State.VALID:
             return i
@@ -1151,7 +1151,7 @@ def run_compiled_in_axis(ctx: Ctx) -> None:
             runs=state is State.VALID,
         )
         ctx.expect(
-            f"C/{state.label}-hit", staged_hit, hit_paths[Candidate.K1], runs=True
+            f"C/{state.label}-hit", staged_hit, hit_paths[Location.K1], runs=True
         )
         record("C/absent-*", Status.SKIP, "compiled-in path exists (real install)")
         return
@@ -1164,7 +1164,7 @@ def run_compiled_in_axis(ctx: Ctx) -> None:
 
     # The absent case: it is returned anyway, unvalidated and unusable.
     ctx.expect("C/absent-miss", staged_miss, compiled_in, runs=False)
-    ctx.expect("C/absent-hit", staged_hit, hit_paths[Candidate.K1], runs=True)
+    ctx.expect("C/absent-hit", staged_hit, hit_paths[Location.K1], runs=True)
 
     # Here the compiled-in tree is staged by this loop, so -miss runs exactly
     # when the state being staged is the one with plain.asy in it.
@@ -1180,7 +1180,7 @@ def run_compiled_in_axis(ctx: Ctx) -> None:
             # The regression the reordering exists for: an unrelated install at
             # the compiled-in path must not preempt the binary's own base/.
             ctx.expect(
-                f"C/{state.label}-hit", staged_hit, hit_paths[Candidate.K1], runs=True
+                f"C/{state.label}-hit", staged_hit, hit_paths[Location.K1], runs=True
             )
 
 
@@ -1192,7 +1192,7 @@ def run_ctan_axis(ctx: Ctx, asy_ctan: str) -> None:
     particular the answer must not be a build or staging path.
     """
     staged_hit, hit_paths = ctx.stage("ctan-hit", HIT, asy_under_test=asy_ctan)
-    ctx.expect("ctan/hit", staged_hit, hit_paths[Candidate.K1], runs=True)
+    ctx.expect("ctan/hit", staged_hit, hit_paths[Location.K1], runs=True)
 
     # Deployed TeXLive shape: bin/<platform>/asy, no adjacent base/.  On a host
     # whose texmf tree has no asymptote/ directory the binary cannot start; the
@@ -1248,7 +1248,7 @@ def run_registry_axis(ctx: Ctx) -> None:
     ctx.expect(
         "reg/hit",
         staged_hit,
-        hit_paths[Candidate.K1],
+        hit_paths[Location.K1],
         runs=True,
         note="the registry must not override an exe-relative sysdir",
     )
@@ -1283,7 +1283,7 @@ def detect_relocatable(asy_under_test: str, base_dir: str, work: str) -> bool:
     staged_asy, paths = stage_layout(root, asy_under_test, base_dir, states)
     _, _, resolved = probe(staged_asy, rescue_base=base_dir)
     shutil.rmtree(root, ignore_errors=True)
-    return norm(resolved) == norm(paths[Candidate.K2])
+    return norm(resolved) == norm(paths[Location.K2])
 
 
 def parse_args() -> argparse.Namespace:
