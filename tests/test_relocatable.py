@@ -96,6 +96,7 @@ what the assertion means, so they are named apart throughout:
 import argparse
 import contextlib
 import itertools
+import ntpath
 import os
 import shutil
 import subprocess
@@ -798,16 +799,28 @@ def windows_docdir() -> str:
     import winreg  # pylint: disable=import-outside-toplevel,import-error
 
     key = r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\Asymptote"
-    for root in (winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE):
+    # HKEY_LOCAL_MACHINE first: that is the order getEntry() searches the roots
+    # in (settings.cc:259), and with both set to different paths it is the
+    # whole answer.
+    for root in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
         try:
             with winreg.OpenKey(root, key) as handle:
-                value, _ = winreg.QueryValueEx(handle, "Path")
-            # QueryValueEx is typed Any: the key could hold a REG_DWORD, and
-            # returning that would quietly violate this function's contract.
-            if isinstance(value, str) and value:
-                return value
+                value, kind = winreg.QueryValueEx(handle, "Path")
         except OSError:
+            continue  # not under this root; RegGetValueA fails here too
+        # QueryValueEx is typed Any: a REG_DWORD would violate this function's
+        # contract, and RRF_RT_REG_SZ makes RegGetValueA skip the root as well.
+        if not isinstance(value, str):
             continue
+        # An empty string, though, counts as found: getEntry() returns
+        # optional("") and stops (settings.cc:266), so docdir keeps its default.
+        if not value:
+            break
+        # RegGetValueA expands environment strings (it passes no RRF_NOEXPAND);
+        # ntpath rather than os.path so the expansion is Windows' off Windows.
+        if kind == winreg.REG_EXPAND_SZ:
+            return ntpath.expandvars(value)
+        return value
     return default
 
 
