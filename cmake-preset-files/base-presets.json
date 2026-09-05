@@ -8,6 +8,9 @@
         "strategy": "external",
         "value": "x64"
       },
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      },
       "hidden": true
     },
     {
