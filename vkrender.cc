@@ -4507,6 +4507,19 @@ void AsyVkRender::drawBuffers(FrameObject & object, int imageIndex)
   drawTriangles(object);
 
   if(!Opaque) {
+    // The transparent data was already uploaded during the count pass in
+    // refreshBuffers (which always draws the transparent COUNT pipeline, even
+    // when interlock causes the opaque count draws to be skipped).  With
+    // interlock, `copied` had to stay false through the opaque draws above so
+    // those buffers could upload, but that would make drawTransparent re-upload
+    // the identical transparent vertices/indices a second time.  Set it here --
+    // after the opaque uploads but before drawTransparent (mirrors glrender).
+    // The first upload is guaranteed complete before this pass reads the
+    // buffer: the count/compute submission waited on the transfer semaphore
+    // and resizeFragmentBuffer() waited on inComputeFence (or the GPUcompress
+    // path synchronously waited on the transfer fence) before preDrawBuffers
+    // returned.
+    copied=true;
     currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);
     drawTransparent(object);
     currentCommandBuffer.nextSubpass(vk::SubpassContents::eInline);

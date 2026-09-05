@@ -6,13 +6,14 @@ uniform uint final;
 
 layout(binding=0, std430) buffer offsetBuffer
 {
-  uint maxDepth;
   uint offset[];
 };
 
 layout(binding=2, std430) buffer countBuffer
 {
-  uint maxSize;
+  // Max per-pixel fragment count for this frame; atomically reduced here and
+  // reset to zero at the end of every frame (see atomicExchange below)
+  uint maxDepth;
   uint count[];
 };
 

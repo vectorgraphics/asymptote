@@ -805,13 +805,13 @@ void AsyGLRender::refreshBuffers()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,offsetBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,(Pixels+2)*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
-    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
-                      GL_UNSIGNED_INT,&zero);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,offsetBuffer);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,countBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,(Pixels+2)*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
+                      GL_UNSIGNED_INT,&zero); // Clear count[] and maxDepth
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,countBuffer);
 
     if(GPUcompress) {
@@ -824,10 +824,10 @@ void AsyGLRender::refreshBuffers()
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,indexBuffer);
       glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),
                    NULL,GL_DYNAMIC_DRAW);
+      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
+                        GL_UNSIGNED_INT,&zero); // Clear index buffer
       glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,indexBuffer);
     }
-    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
-                      GL_UNSIGNED_INT,&zero); // Clear count or index buffer
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,opaqueBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(vec4),NULL,
@@ -920,7 +920,7 @@ void AsyGLRender::refreshBuffers()
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,offsetBuffer);
     GLuint *offset=(GLuint *) glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
-                                               sizeof(GLuint),size,
+                                               0,size,
                                                GL_MAP_WRITE_BIT);
 
     size_t Offset=offset[0]=count[0];
