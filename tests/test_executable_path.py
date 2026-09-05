@@ -14,9 +14,10 @@ observable: resolveSysdir() takes <exedir>/base as its one candidate, and
 reports the result as settings.sysdir.
 
 So: copy asy and a base/ into a fresh temporary directory and ask the copy where
-its sysdir is.  Nothing could have compiled that path in and the answer does not
-come from the cwd, the environment or an installed Asymptote, so getting it back
-means the executable's own directory was computed at run time, and correctly.
+its sysdir is.  Nothing could have compiled that path in, the cwd is elsewhere,
+and the probe runs in an environment stripped of the variables that would answer
+for it, so getting it back means the executable's own directory was computed at
+run time, and correctly.
 
 Run this one first: a wider sysdir test built on a broken exedir reads it as a
 wrong sysdir in every case, and every conclusion it draws is void.
@@ -106,6 +107,28 @@ libdir = os.path.join(srcdir, "lib")
 if os.path.isdir(libdir):
     shutil.copytree(libdir, os.path.join(bindir, "lib"))
 
+# The answer has to come from executablePath(), so the probe does not inherit
+# the variables that would answer for it.  ASYMPTOTE_SYSDIR is an envSetting
+# (settings.cc:1933): it replaces the resolved value outright, so a developer
+# or CI shell that exports it -- at a working base/, which is how anyone who
+# exports it sets it -- fails this test without any regression to find.
+# ASYMPTOTE_DIR is the same hazard one step removed.  Both are dropped from a
+# copy of os.environ, never from os.environ itself, so this process's own
+# environment is left as the caller wrote it.
+#
+# ASYMPTOTE_HOME cannot reach sysdir -- setOptions() restores the value it read
+# before the configuration file (settings.cc:2325) -- but it names the
+# directory config.asy is read from, and whatever that file writes arrives in
+# the captured stdout beside the answer.  Unset, it falls back to $HOME/.asy
+# (initDir()), which is a config file the caller did not write either, so it is
+# pointed at the staging tree rather than dropped.
+child_env = {
+    k: v
+    for k, v in os.environ.items()
+    if k not in ("ASYMPTOTE_SYSDIR", "ASYMPTOTE_DIR")
+}
+child_env["ASYMPTOTE_HOME"] = work
+
 # The cwd is <work>, one level above the staged binary, so a resolver that used
 # the working directory instead of the executable's would answer differently.
 # stdout is captured (it carries the answer); stderr is left attached to ours.
@@ -114,6 +137,7 @@ run = subprocess.run(
     stdout=subprocess.PIPE,
     text=True,
     cwd=work,
+    env=child_env,
     timeout=120,
     check=True,
 )
