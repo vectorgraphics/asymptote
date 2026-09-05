@@ -19,12 +19,10 @@ GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 # The settings that decide whether an already-built gc can still be linked
-# against asy: the macOS architecture and deployment flags, and the options
-# handed to gc's own configure.  Optimization/debugging flags and the
-# compilers are deliberately left out, since changes to these build flags
-# typically do not cause link errors. (Note that the ABI is pure C, so
-# clang/gcc swaps are not an issue.) For atypical cases (e.g. CC="gcc -m32"),
-# a rebuild can be forced using "make gc-clean".
+# against asy: the macOS architecture and deployment flags, and gc's own
+# configure options.  Optimization flags and the compilers are left out, since
+# those do not usually break the link (the ABI is pure C).  For atypical cases
+# such as CC="gcc -m32", force a rebuild with "make gc-clean".
 GCBUILDFLAGS = $(MACOS_CFLAGS) $(GCOPTIONS)
 GCSTAMP = gc-build-flags.txt
 LFLAGS = @LDFLAGS@
@@ -176,9 +174,8 @@ asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ $(SHIML
 ifeq ($(BUNDLE_VULKAN),yes)
 	@sh build-scripts/bundle-vulkan-macos.sh $(NAME) "$(CODESIGN_IDENTITY)"
 	# Bundling rewrites the shim libraries, which are prerequisites of asy, after
-	# asy has been linked; without this the binary is left older than them and
-	# relinked on every subsequent make.  touch changes only the mtime, so the
-	# signature the script just applied stays valid.
+	# asy has been linked; without this the binary is older than them and gets
+	# relinked on every subsequent make.  touch leaves the new signature valid.
 	@touch $(NAME)
 endif
 
@@ -338,9 +335,9 @@ $(GCSTAMP): FORCE
 	$(SILENT_MAKE)echo "$(GCBUILDFLAGS)" > $@.tmp; \
 	if cmp -s $@.tmp $@; then rm -f $@.tmp; else mv $@.tmp $@; fi
 
-# Depending on the stamp forces a rebuild when gc's build settings change:
-# otherwise a reconfigure that, say, turns on universal macOS binaries would
-# leave the old library in place, and asy would fail to link against it.
+# Depending on the stamp rebuilds gc when its build settings change: otherwise a
+# reconfigure that turns on, say, universal macOS binaries would leave the old
+# library in place and asy would fail to link against it.
 $(GCLIB): $(GCSTAMP)
 	-cd $(GC) && ln -sf ../libatomic_ops libatomic_ops
 	cd $(GC) && \
@@ -466,9 +463,8 @@ endef
 copy-licenses:
 	$(call install-license-files,doc/licenses)
 
-# $(docdir) has to be created here rather than relied upon: it is not
-# necessarily an ancestor of $(licensedir), which --with-licensedir can point
-# somewhere else entirely.
+# $(docdir) has to be created here: it need not be an ancestor of
+# $(licensedir), which --with-licensedir can point anywhere.
 install-licenses:
 	$(call install-license-files,$(licensedir))
 	${INSTALL} -d $(docdir)

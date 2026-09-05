@@ -4,93 +4,53 @@
 Exercises settings::resolveSysdir() (locate.cc) -- the logic that decides where
 ``asy`` looks for ``base/`` when no -dir is given -- by staging the built binary
 into the layouts a real deployment produces and probing the resolved directory
-with ``asy -c "write(settings.sysdir);"``.
+with ``asy -c "write(settings.sysdir);"``.  The probe recovers the resolved
+value even where asy cannot start; see ``probe``.
 
-That probe reports the resolved value even in the scenarios where asy cannot
-start, by retrying through a known-good base/ -- see ``probe`` for why the exit
-status alone is not a usable signal.
-
-The derivation of the matrix is given below.  This file is pure Python stdlib
-and runs anywhere asy does -- Linux, macOS, Windows, FreeBSD.  It takes no
-build-configuration argument: resolution is the same in every build.
-
-A passing run reports one character per scenario -- ``.`` for a pass, ``-`` for
-a skip -- under a per-axis heading, because the full log is some forty lines
-that nobody reads when they are all PASS (this runs as part of ``make check``).
-Failures print in full whatever the setting; ``-v`` prints every outcome in
-full, which is what you want when reading the matrix rather than checking it.
+Pure stdlib, and runs anywhere asy does (Linux, macOS, Windows, FreeBSD).  A
+quiet run prints one character per scenario -- ``.`` pass, ``-`` skip -- under a
+per-axis heading; failures always print in full, and ``-v`` prints everything.
 
 The model under test
 --------------------
 
-The resolver, resolveSysdir(), searches exactly one *candidate location*,
-accepted only if it contains plain.asy (isBaseDir() in locate.cc):
+resolveSysdir() searches exactly one *candidate location*, accepted only if it
+contains plain.asy (isBaseDir() in locate.cc):
 
   K1  <exedir>/base                  build tree, relocatable distribution
 
-If it does not match, the compiled-in ASYMPTOTE_SYSDIR is returned *unchanged
-and unvalidated*.  Two further locations are often described as candidates 2
-and 3, but neither is selected by a plain.asy test:
+Otherwise the compiled-in ASYMPTOTE_SYSDIR is returned unchanged and
+unvalidated.  The compiled-in path and the texmf tree are often described as
+candidates 2 and 3, but neither is selected by a plain.asy test: the first is
+the default, and the second (kpsewhich TEXMFMAIN, in initDir()) is consulted iff
+the sysdir is empty.  They are two settings of one variable, C.
 
-  * the compiled-in path is the default, not a candidate -- its own state never
-    changes which path is resolved, only whether the resolved path works;
-  * the texmf tree (kpsewhich TEXMFMAIN, in initDir()) is consulted iff the
-    sysdir is *empty*, i.e. iff the compiled-in value is the empty string.
-
-So they are not two independent locations but two settings of one variable, C,
-the compiled-in sysdir.  That projection is what keeps the matrix small.
-
-Two *non-candidates* are staged alongside K1 all the same:
+Two *non-candidates* are staged alongside K1 anyway, as negative controls -- a
+base/ at either must be ignored, whatever K1 holds -- since both were candidates
+once, behind a build flag since removed:
 
   K2  <exedir>/../share/asymptote    a relocated GNU-layout install
   K3  <exedir>                       base files flat beside the binary
 
-Both were candidates once, behind a build flag, and both were removed.  They
-are staged as negative controls -- a base/ at either must be ignored, whatever
-K1 holds -- which is what makes the removal a tested property rather than a
-remembered one.  So the layout space stays 3x3x2 = 18 states (K3 has no
-"absent" state: the executable's own directory always exists), enumerated
-exhaustively below rather than sampled.  Twelve of those rows are the controls.
+That leaves 3x3x2 = 18 layout states (K3 is never absent: the executable's own
+directory always exists), enumerated exhaustively rather than sampled.  The
+other axes feed, or post-process, that same core:
 
-Everything else is an axis that feeds, or post-processes, that same core:
-
-  ROUTE   how asy was launched -- changes only the string executablePath()
-          returns, so it is tested once per route against one layout where a
-          wrong exedir would be visible.
+  ROUTE   how asy was launched -- varies only the string executablePath()
+          returns, so one discriminating layout per route suffices.
   OVR     -sysdir / -dir / ASYMPTOTE_SYSDIR, applied after resolution.
-  C       the compiled-in sysdir: absent / valid / decoy / empty (CTAN).
-          Tested against two layout rows: one where K1 does not fire (C
-          decides) and one where it does (C must be ignored).
+  C       the compiled-in sysdir: absent / valid / decoy / empty (CTAN), each
+          against one layout where K1 fires and one where it does not.
   REG     Windows only: queryRegistry() overwrites systemDir unless it was
           resolved relative to the executable.
 
-Scenario IDs are ``core/<states>`` for the exhaustive rows -- B = contains
-plain.asy, D = decoy (exists, no plain.asy), A = absent, in K1 K2 K3 order --
-and ``<axis>/<case>`` elsewhere.
+Scenario IDs are ``core/<states>`` -- B = holds plain.asy, D = decoy, A =
+absent, in K1 K2 K3 order -- and ``<axis>/<case>`` elsewhere.  Requirements not
+scriptable in-suite (a compiled-in ``NUL``, a deployed texmf tree) are SKIPped.
 
-Requirements not scriptable in-suite -- a compiled-in value of Windows' literal
-``NUL``, a deployed texmf tree -- are reported as SKIP rather than failing the
-run.
-
-
-Naming
-------
-
-Three different asy paths are in play, and which one a variable holds decides
-what the assertion means, so they are named apart throughout:
-
-  asy_under_test  the binary given on the command line (--asy, or --asy-ctan
-                  for that axis).  Staging copies *from* it; the OVR axis is
-                  the one place it is also run directly, since overrides act on
-                  the result of resolution rather than on the layout.
-  staged_asy      a copy placed into a staged layout -- the binary whose
-                  <exedir> is the point of the scenario.  Where several are
-                  live at once they are staged_hit / staged_miss, after the
-                  layout each realizes.
-  asy_to_run      the probe layer's parameter (_run_probe, probe, expect,
-                  Ctx.expect): any executable to invoke.  It deliberately
-                  accepts either of the above, which is why it is named after
-                  neither.
+Three asy paths are named apart throughout: ``asy_under_test`` is the binary
+given on the command line, ``staged_asy`` a copy placed into a staged layout,
+and ``asy_to_run`` the probe layer's parameter, which takes either.
 """
 
 import argparse
@@ -127,9 +87,8 @@ from typing import (
 class Status(Enum):
     """The outcome of one scenario.
 
-    A plain Enum rather than a ``str`` mixin: a mixin formats as ``PASS`` up to
-    3.10 but as ``Status.PASS`` from 3.11 on, which would make the log depend on
-    the interpreter.  Hence the explicit ``.value`` where it is printed.
+    A plain Enum rather than a ``str`` mixin, which formats as ``PASS`` up to
+    3.10 but ``Status.PASS`` from 3.11 on; hence the explicit ``.value`` below.
     """
 
     PASS = "PASS"
@@ -143,11 +102,8 @@ _results: List[Tuple[str, Status, str]] = []  # (scenario, status, message)
 class _Log:  # pylint: disable=too-few-public-methods
     """How much is printed, and whether a progress line is currently open.
 
-    Module state rather than a parameter because record() is reached from every
-    axis: threading a verbosity argument down to it would put a parameter that
-    none of them uses into every signature in the file.  A class rather than
-    two module variables so that setting either one needs no ``global`` -- it is
-    a namespace, not a type, hence the disabled method count.
+    Module state, so that no axis has to thread a verbosity argument down to
+    record(); a class rather than two variables so neither needs a ``global``.
     """
 
     verbose = False
@@ -155,8 +111,7 @@ class _Log:  # pylint: disable=too-few-public-methods
 
     @classmethod
     def close_line(cls) -> None:
-        """End the progress line, if one is open, so the next print starts at
-        column 0 without leaving a blank line behind when none was."""
+        """End the progress line, if one is open, without leaving a blank."""
         if cls.line_open:
             print()
             cls.line_open = False
@@ -165,10 +120,8 @@ class _Log:  # pylint: disable=too-few-public-methods
 def record(scenario: str, status: Status, message: str = "") -> None:
     """Log one scenario outcome.
 
-    A quiet run collapses a pass or a skip to a single character on the current
-    section's line and prints failures in full: what survives the collapse is
-    then exactly what the caller has to act on, so no failing run needs -v to be
-    read (only to be read in context).
+    A quiet run collapses a pass or a skip to a single character and prints
+    failures in full, so no failing run needs -v to be readable.
     """
     _results.append((scenario, status, message))
     if _Log.verbose:
@@ -177,21 +130,14 @@ def record(scenario: str, status: Status, message: str = "") -> None:
         _Log.close_line()
         print(f"  [{status.value}] {scenario:<18} {message}")
     else:
-        # "-" rather than a letter for a skip: it sits on the same baseline as
-        # the dots, so a row of them reads as one line of progress with gaps in
-        # it rather than as a word.
         sys.stdout.write("." if status is Status.PASS else "-")
         sys.stdout.flush()
         _Log.line_open = True
 
 
 def section(title: str) -> None:
-    """Start a group of scenarios.
-
-    A heading of its own when verbose; otherwise the label that this group's
-    progress characters trail after, so a quiet run still says which axis it is
-    in when it stops or fails.
-    """
+    """Start a group of scenarios: a heading when verbose, otherwise the label
+    this group's progress characters trail after."""
     _Log.close_line()
     if _Log.verbose:
         print(f"\n{title}")
@@ -202,10 +148,7 @@ def section(title: str) -> None:
 
 def norm(path: Optional[str]) -> str:
     """Canonical form for comparing two paths across OSes (case, symlinks, ..).
-
-    An absent or empty path normalizes to "", so the result is always a string
-    and two absent paths still compare equal.
-    """
+    An absent or empty path normalizes to "", so two of those compare equal."""
     if not path:
         return ""
     return os.path.normcase(os.path.realpath(path))
@@ -215,33 +158,23 @@ def norm(path: Optional[str]) -> str:
 # the child environment
 # ---------------------------------------------------------------------------
 
-# Every setting is also readable as ASYMPTOTE_<NAME> (GetEnv) and an envSetting
-# beats the resolved value, so an ASYMPTOTE_SYSDIR exported in the shell that
-# started this script would be the answer to every probe: the whole matrix
-# would collapse onto one value, and ovr/env would still pass since it sets
-# that variable itself.  ASYMPTOTE_DIR is the same hazard one step
-# removed -- it prepends to the import search path, which decides the second
-# half of every assertion (whether asy runs at all).  Both are dropped from the
-# environment handed to the children only, never from os.environ, so this
-# process's own environment -- and hence the caller's, and anything else either
-# may go on to launch -- is left exactly as it was found.
+# An envSetting beats the resolved value, so an ASYMPTOTE_SYSDIR exported in
+# the calling shell would be the answer to every probe and collapse the whole
+# matrix onto one value.  ASYMPTOTE_DIR is the same hazard one step removed: it
+# prepends to the import search path, which decides whether asy runs at all.
+# Both are dropped from the children's environment only, never from os.environ.
 _STRIPPED = ("ASYMPTOTE_SYSDIR", "ASYMPTOTE_DIR")
 
-# ASYMPTOTE_HOME is not stripped but redirected, in main(), once there is a
-# scratch directory to point it at: dropping it would fall back to $HOME/.asy
-# (initDir()'s last resort), the *more* likely place to hold a config.asy.
-# That file cannot reach sysdir -- setOptions saves the value across the config
-# load and restores it afterwards -- but it can set anything else, including
-# dir, so the run is kept out of it either way.
+# ASYMPTOTE_HOME is redirected rather than stripped, in main(), once there is a
+# scratch directory to point it at: dropping it would fall back to $HOME/.asy,
+# the *more* likely place to hold a config.asy.  Such a file cannot reach sysdir
+# (setOptions restores it across the config load) but can set anything else.
 _CHILD_ENV: Dict[str, str] = {k: v for k, v in os.environ.items() if k not in _STRIPPED}
 
 
 def child_env(**overrides: str) -> Dict[str, str]:
-    """The environment probes run in, plus any per-scenario additions.
-
-    Callers that want one extra variable use this rather than
-    ``dict(os.environ, X=...)``, which would carry the stripped ones back in.
-    """
+    """The environment probes run in, plus any per-scenario additions.  Use this
+    rather than ``dict(os.environ, ...)``, which carries the stripped ones back."""
     return dict(_CHILD_ENV, **overrides)
 
 
@@ -249,15 +182,10 @@ def silence_error_dialogs() -> None:
     """Keep a child that cannot start from opening a modal dialog.
 
     Many scenarios deliberately stage a binary that will fail, and on Windows a
-    failure to *start* -- a missing DLL, an unrunnable image -- is a loader
-    "critical error", which by default pops a message box per launch and waits
-    for someone to click it.  Under ctest nobody does: a regression that broke
-    startup turned a matrix of ~30 probes into ~30 stuck dialogs.  The error
-    mode is inherited by child processes, so setting it once here covers every
-    probe without changing how any of them is invoked.
-
-    This suppresses only the *display*; the failure is still reported through
-    the child's exit status, which is what the scenarios read.
+    failure to *start* is a loader "critical error", which pops a message box
+    per launch and waits for a click nobody gives it under ctest.  The error
+    mode is inherited, so setting it once here covers every probe.  Only the
+    display is suppressed; the exit status the scenarios read is unaffected.
     """
     if sys.platform != "win32":
         return
@@ -295,38 +223,17 @@ def launch_target(
 ) -> Optional[str]:
     """The absolute path behind ``asy_to_run``, or None if it cannot be found.
 
-    On Windows this is the path the OS is told to start; on POSIX it serves
-    only as a reachability check, for the reason _run_probe gives.
+    The ROUTE axis names the executable the awkward ways a user can, and on
+    Windows both lookups belong to CreateProcess, which ignores the arguments
+    subprocess passes for them: a relative path resolves against *this* process's
+    cwd (WinError 2), and a bare name is searched on the *parent's* PATH -- which
+    silently launched whichever asy was already installed.  So on Windows the
+    route is resolved here and passed as ``executable=``, costing the axis
+    nothing (GetModuleFileNameW reports the loader's path) and leaving a symlink
+    unresolved, since neither abspath nor which() follows one.
 
-    The ROUTE axis names the executable the awkward ways a user can -- by a
-    relative path, or by a bare name on PATH -- and on Windows neither is
-    resolved the way the call reads, because both lookups belong to
-    CreateProcess, which consults neither argument subprocess passes for them:
-
-      * a relative program path is resolved against *this* process's working
-        directory, not the ``cwd=`` handed to the child (CreateProcess has no
-        notion of the latter when it looks the program up), so ``./asy.exe``
-        with ``cwd=<staged>`` failed with WinError 2;
-      * a bare name is searched on the *parent's* PATH, not the ``env=`` one,
-        so route/path silently launched whichever asy was already installed on
-        the developer's PATH -- it reported that binary's sysdir and failed
-        against an expectation about the staged one.
-
-    The second is the dangerous one: it fails by testing the wrong program
-    rather than by not running.  So on Windows the route is resolved here and
-    passed to subprocess as ``executable=``, while ``asy_to_run`` stays argv[0]
-    -- which is what the route axis is varying.  Substituting it there costs
-    the axis nothing: GetModuleFileNameW reports the path the loader recorded
-    for the image, which no spelling of the program argument changes.  The
-    symlink survives resolution, and deliberately so -- neither abspath nor
-    which() follows one, so route/symlink still hands asy the link to resolve
-    for itself in canonicalPath().
-
-    POSIX needs none of this: subprocess forks, chdirs to ``cwd=`` and execs
-    there, so a relative program resolves the way the call reads, and a bare
-    name is looked up on the ``env=`` PATH (Popen builds its candidate list
-    from os.get_exec_path(env)).  There the resolved path is used only to tell
-    "not on the child PATH" apart from the ways a found binary can fail.
+    POSIX forks, chdirs and execs, so both lookups behave as the call reads;
+    there this result is only a reachability check.
     """
     if os.path.dirname(asy_to_run):  # a path, absolute or relative
         return os.path.abspath(os.path.join(cwd or os.getcwd(), asy_to_run))
@@ -342,25 +249,14 @@ def _run_probe(
     """One ``asy ... -c 'write(settings.sysdir);'`` run.
 
     Returns (ok, stdout, error): on success stdout is the resolved sysdir; on
-    failure error is the (trimmed) stderr.
+    failure error is the (trimmed) stderr.  ``env`` of None means the sanitized
+    default, not "inherit".
 
-    ``env`` of None means the sanitized default, not "inherit": the child never
-    sees a raw os.environ, since the variables removed from it are exactly the
-    ones that would answer the question being asked.
-
-    ``executable=`` is substituted on Windows only, where launch_target explains
-    why it is needed and why it is free.  It is withheld on POSIX because there
-    it would not be free: executablePath() asks the OS which image is running,
-    and on most platforms the answer cannot see how the program was named --
-    GetModuleFileNameW reports the loader's recorded path, /proc/self/exe is a
-    kernel symlink that is already fully resolved, and FreeBSD's
-    kern.proc.pathname is rebuilt from the text vnode rather than from anything
-    argv or execve was given.  macOS is the exception: _NSGetExecutablePath
-    hands back the string that was passed to execve, which is exactly what
-    ``executable=`` replaces, so substituting a resolved path would leave the
-    realpath() call with nothing relative left to resolve: route/relative and
-    route/symlink-rel would still pass, but they would no longer be testing
-    the branch they exist for.
+    ``executable=`` is substituted on Windows only (launch_target says why), and
+    withheld on POSIX for macOS's sake: _NSGetExecutablePath hands back the
+    string passed to execve, so substituting a resolved path would leave
+    realpath() nothing to do and route/relative and route/symlink-rel would pass
+    without testing their branch.
     """
     cmd = [asy_to_run, *args, "-c", "write(settings.sysdir);"]
     child = _CHILD_ENV if env is None else env
@@ -400,24 +296,17 @@ def probe(
       ok        the run exited 0 -- asy found a usable base/ and ran the
                 command.
       value     the resolved sysdir when ok, else the (trimmed) stderr.
-      resolved  the resolved sysdir whenever we could obtain it -- including
-                from a failing run -- or None if even that was impossible.
-                Note "" (an empty sysdir, which is what a TeXLive build reports
-                when no candidate matched) is a value, not a failure.
+      resolved  the resolved sysdir whenever we could obtain it, including from
+                a failing run, else None.  "" -- what a TeXLive build reports
+                when no candidate matched -- is a value, not a failure.
 
-    The command is executed by plain.asy itself, in its settings.command block,
-    so a run that cannot load plain prints nothing at all and we would learn
-    only that it failed.  That is too coarse: resolveSysdir() never fails --
-    when no candidate matches it returns the compiled-in path unchanged, which
-    may not exist -- so "asy exited non-zero" conflates "no sysdir" with "a
-    sysdir that isn't usable" and with "failed for some unrelated reason".
-
-    The ``rescue_base`` parameter closes that gap: on failure we retry with
-    ``-dir <rescue_base>``, which feeds plain from a known-good directory
-    without altering settings.sysdir (this is what ovr/dir asserts), so the
-    failing run's resolved value is recovered.  Passing -noautoplain instead
-    would not work -- it suppresses the -c command entirely and exits 0
-    silently.
+    plain.asy itself executes the -c command, so a run that cannot load plain
+    prints nothing.  That is too coarse: resolveSysdir() never fails, it returns
+    a compiled-in path that may not exist, so a non-zero exit conflates "no
+    sysdir" with "an unusable sysdir" and with an unrelated failure.
+    ``rescue_base`` closes the gap by retrying with ``-dir <rescue_base>``,
+    which feeds plain without altering settings.sysdir (what ovr/dir asserts).
+    -noautoplain would not do: it suppresses the -c command and exits 0.
     """
     ok, out, err = _run_probe(asy_to_run, cwd, env, args=extra_args)
     if ok:
@@ -445,58 +334,20 @@ def expect(
 ) -> bool:
     """Assert asy resolves sysdir to ``expected``, and then starts iff ``runs``.
 
-    Two-part assertion, because resolveSysdir() cannot report failure (see
-    ``probe``): the resolved path must be the predicted one, *and* asy must run
-    exactly when the callsite says it will.  Checking only the exit status would
-    score a PASS for any unrelated startup failure, and would report a
-    compiled-in path that merely does not exist as "resolution failed" when in
-    fact resolution returned it.
+    Two-part, because resolveSysdir() cannot report failure (see ``probe``): the
+    resolved path must be the predicted one *and* asy must run exactly when the
+    callsite says.  The exit status alone would score a PASS for any unrelated
+    startup failure.
 
-    ``runs`` is stated at the callsite rather than derived here, so that reading
-    a scenario tells you which way its second half points without first working
-    out whether ``expected`` was staged with plain.asy.  It is still checked
-    against is_base_dir(expected) -- the model being that a resolved sysdir
-    containing plain.asy must work and one without it must not -- and a
-    disagreement is reported as a test bug, since it means the scenario did not
-    stage what its callsite claims.  The rows whose answer genuinely depends on
-    the environment rather than on staging (the fall-through rows, and the C
-    axis run against a pre-existing install) pass ``runs=is_base_dir(...)``,
-    which names that dependency at the callsite instead of hiding it here.
+    ``runs`` is stated at the callsite rather than derived, so a scenario reads
+    without first working out whether ``expected`` was staged with plain.asy;
+    it is cross-checked against is_base_dir(expected), and a disagreement is a
+    test bug.  Rows whose answer depends on the host pass
+    ``runs=is_base_dir(...)``, naming that dependency where it arises; ovr/dir
+    is the one row outside the model, its success licensed by ``-dir``.
 
-    One row does already sit outside the model: ovr/dir passes ``-dir`` at a
-    usable base/, so its success is licensed by that argument rather than by the
-    resolved sysdir, and it satisfies the cross-check only because the sysdir it
-    resolves is a real base/ too.  Any future row that pairs ``-dir`` with a
-    deliberately unusable resolved sysdir would need a way to opt out of that
-    cross-check, ``runs`` alone being unable to express it.
-
-    ``**kw`` is forwarded verbatim to ``probe``; PEP 692 typed kwargs are far
-    newer than 3.7, so it can only be spelled ``Any`` here.  The accepted keys
-    are therefore exactly ``probe``'s keyword parameters, restated:
-
-      cwd          Optional[str]       directory to run asy in; None = inherit
-                                       this process's cwd.
-      env          Optional[Mapping[str, str]]
-                                       full environment for the child; None =
-                                       the sanitized default (see child_env).
-                                       It replaces rather than extends, so
-                                       callers adding one variable pass
-                                       child_env(X=...) -- not dict(os.environ,
-                                       X=...), which would undo the sanitizing.
-      extra_args   Sequence[str]       arguments inserted before the probe's own
-                                       ``-c``; default ().
-      rescue_base  Optional[str]       base/ to retry through with ``-dir`` when
-                                       the run fails, so the resolved sysdir is
-                                       still recovered; None = do not retry, in
-                                       which case a failing run yields
-                                       resolved=None and this function FAILs
-                                       with "value could not be recovered".
-
-    This list is the fragile part: nothing checks it against ``probe``, and a
-    misspelled key here becomes a TypeError only when that branch runs.  If it
-    looks stale, ``probe``'s signature is the authority -- and note that
-    ``asy_to_run`` is *not* forwardable, since it is passed positionally from
-    this function's own ``asy_to_run`` parameter.
+    ``**kw`` is forwarded verbatim to ``probe``, whose signature is the
+    authority on the accepted keys.
     """
     # Checked before probing: if the claim and the staging disagree there is no
     # scenario to run, and asy's behaviour would only obscure that.
@@ -546,10 +397,7 @@ class State(Enum):
     """The state of one candidate location.  The value is its letter in the
     core scenario IDs; declaration order is the order they are enumerated in."""
 
-    # "B" is for base directory: the letters are the ones the core scenario ID
-    # triples are written in, so this one is not the member's own initial the
-    # way D and A happen to be.
-    VALID = "B"
+    VALID = "B"  # B for base directory, not the member's own initial
     DECOY = "D"
     ABSENT = "A"
 
@@ -560,12 +408,9 @@ class State(Enum):
 
 
 class Location(IntEnum):
-    """The executable-relative locations the matrix stages.
-
-    Only K1 is a candidate; K2 and K3 are the negative controls described in
-    the module docstring, kept here so that staging one is as easy as staging
-    the real thing.  The value is the position in a States or Paths triple, so
-    a Location subscripts either one directly.
+    """The executable-relative locations the matrix stages: K1 the candidate,
+    K2 and K3 the negative controls (see the module docstring).  The value is
+    the position in a States or Paths triple, so a Location subscripts either.
     """
 
     K1 = 0
@@ -582,23 +427,19 @@ class Location(IntEnum):
         }[self]
 
 
-# One point of the layout space: the state of (K1, K2, K3), K1 first.  Always
-# exactly three -- the candidate and its two controls -- and everything
-# downstream indexes all three positionally.
+# One point of the layout space: the state of (K1, K2, K3), in that order.
 States = Tuple[State, State, State]
 
-# The same three locations as staged paths, in the same order, so Paths[i] is
-# the directory whose state is States[i].
+# The same three locations as staged paths, so Paths[i] has state States[i].
 Paths = Tuple[str, str, str]
 
 
 def copy_base_into(base_dir: str, dst: str, with_plain: bool = True) -> None:
     """Copy the base files into ``dst``, creating it if need be.
 
-    Passing ``with_plain=False`` builds a decoy: everything except plain.asy,
-    which is the only file resolveSysdir() looks for.  Unlike copytree this
-    tolerates an existing destination (the flat layout copies base files in
-    beside asy) -- copytree's dirs_exist_ok is 3.8+.
+    ``with_plain=False`` builds a decoy: everything but plain.asy, the only file
+    resolveSysdir() looks for.  Hand-rolled because it must tolerate an existing
+    destination (the flat layout) and copytree's dirs_exist_ok is 3.8+.
     """
     os.makedirs(dst, exist_ok=True)
     for name in os.listdir(base_dir):
@@ -621,20 +462,12 @@ def materialize(path: str, state: State, base_dir: str) -> None:
 
 
 # Shared libraries a deployment bundles *beside* the executable, by platform.
-# Being able to carry its own runtime this way is part of what "relocatable"
-# means: the NSIS install ships these next to asy.exe, a macOS bundle puts
-# .dylibs next to the binary or in a lib/ beside it, and an $ORIGIN
-# rpath does the same for .so files.  So they are staged along with the binary
-# rather than left behind -- otherwise the copy is not the deployment shape the
-# matrix claims to be testing, and on Windows it does not start at all
-# (STATUS_DLL_NOT_FOUND, 0xC0000135, before main() and before any sysdir logic).
-#
-# macOS is listed with both suffixes: dyld loads either.
-#
-# Everything else takes the .so default, which is what the ELF platforms want.
-# That includes FreeBSD, whose sys.platform carries the major version
-# ("freebsd14"), so it could not be a key here even if it needed a different
-# answer.
+# Carrying its own runtime this way is part of what "relocatable" means, so they
+# are staged with the binary: otherwise the copy is not the deployment shape the
+# matrix claims to test, and on Windows it does not start at all (0xC0000135,
+# before main()).  macOS lists both suffixes since dyld loads either; everything
+# else takes the ELF .so default, FreeBSD included (its sys.platform carries the
+# major version, so it could not be a key here anyway).
 _LIB_SUFFIXES = {"win32": (".dll",), "darwin": (".dylib", ".so")}
 _lib_suffixes: Tuple[str, ...] = _LIB_SUFFIXES.get(sys.platform, (".so",))
 
@@ -642,9 +475,8 @@ _lib_suffixes: Tuple[str, ...] = _LIB_SUFFIXES.get(sys.platform, (".so",))
 def is_bundled_lib(name: str) -> bool:
     """Is ``name`` a shared library that travels with the executable?
 
-    Matched on suffix rather than an exact list so that a build that gains or
-    loses a dependency needs no change here.  The ``.so`` case also accepts the
-    versioned ``libfoo.so.1.2`` spelling, hence the ``.so.`` test.
+    Matched on suffix, not an exact list, so a changed dependency needs no edit
+    here; the ``.so.`` test catches the versioned ``libfoo.so.1.2`` spelling.
     """
     lower = name.lower()
     if lower.endswith(_lib_suffixes):
@@ -657,10 +489,8 @@ def is_bundled_lib(name: str) -> bool:
 def copy_bundled_libs(asy_under_test: str, dst_dir: str) -> None:
     """Copy the shared libraries bundled beside ``asy_under_test`` into dst_dir.
 
-    They are the executable's own runtime, not part of the layout under test:
-    none of them is plain.asy, so staging them cannot change which candidate
-    resolveSysdir() selects, only whether the copy gets far enough to report
-    one.
+    None of them is plain.asy, so staging them cannot change which candidate
+    resolveSysdir() selects -- only whether the copy gets far enough to report.
     """
     os.makedirs(dst_dir, exist_ok=True)
     srcdir = os.path.dirname(asy_under_test)
@@ -668,11 +498,10 @@ def copy_bundled_libs(asy_under_test: str, dst_dir: str) -> None:
         src = os.path.join(srcdir, name)
         if is_bundled_lib(name) and os.path.isfile(src):
             shutil.copy2(src, os.path.join(dst_dir, name))
-    # A macOS bundle does not lay them flat: it collects them into lib/ beside
-    # the binary and rewrites the references to @executable_path/lib/, so that
-    # directory travels whole -- without it the loader aborts before main(),
-    # exactly as a missing .dll does on Windows.  The guard keeps this a copy
-    # into a fresh staging directory, so copytree needs no dirs_exist_ok.
+    # A macOS bundle collects them into lib/ beside the binary instead, with the
+    # references rewritten to @executable_path/lib/, so that directory travels
+    # whole.  The guard keeps the destination fresh, so copytree needs no
+    # dirs_exist_ok (3.8+).
     libdir = os.path.join(srcdir, "lib")
     staged_libdir = os.path.join(dst_dir, "lib")
     if os.path.isdir(libdir) and not os.path.exists(staged_libdir):
@@ -694,11 +523,9 @@ def stage_layout(
 ) -> Tuple[str, Paths]:
     """Stage a prefix realizing one (K1, K2, K3) state triple.
 
-    The layout is <root>/bin/asy, so all three locations exist as distinct
-    paths under <root> and can be populated independently.
-
-    Returns (staged_asy, paths) in K1-first order, so paths[i] is the directory
-    location i names -- and, for K1, what asy must report when it wins.
+    The layout is <root>/bin/asy, so all three locations are distinct paths and
+    can be populated independently.  Returns (staged_asy, paths) with paths[i]
+    the directory location i names.
     """
     bindir = os.path.join(root, "bin")
     staged_asy = stage_binary(bindir, asy_under_test)
@@ -709,9 +536,8 @@ def stage_layout(
     )
     for k in (Location.K1, Location.K2):
         materialize(paths[k], states[k], base_dir)
-    # K3 is the executable's own directory: it always exists (the staged binary
-    # is in it), so ABSENT is unreachable and DECOY means "populated but no
-    # plain.asy" rather than "empty".
+    # K3 is the executable's own directory, so it always exists: ABSENT is
+    # unreachable and DECOY means "populated but no plain.asy", not "empty".
     assert states[Location.K3] is not State.ABSENT, "<exedir> cannot be absent"
     copy_base_into(base_dir, bindir, with_plain=states[Location.K3] is State.VALID)
     return staged_asy, paths
@@ -719,11 +545,8 @@ def stage_layout(
 
 def winner(states: States) -> Optional[Location]:
     """The oracle: the location resolveSysdir() must select, or None if it must
-    fall through to the compiled-in value.
-
-    K1 is the entire search: the other two staged locations are the negative
-    controls, and their state cannot change the answer.
-    """
+    fall through to the compiled-in value.  K1 is the entire search; the other
+    two are controls, and their state cannot change the answer."""
     if states[Location.K1] is State.VALID:
         return Location.K1
     return None
@@ -762,9 +585,9 @@ def rollback_target(path: str) -> str:
 def temporary_tree(path: str) -> Generator[None, None, None]:
     """Let the body materialize ``path``, then remove it again on the way out.
 
-    The rollback target is computed on entry, while ``path`` is still absent --
-    that is what makes it the topmost *newly created* directory rather than a
-    pre-existing one.  So the body must create ``path``, not the caller."""
+    The rollback target is computed on entry, while ``path`` is still absent;
+    that is what makes it the topmost *newly created* directory.  So the body
+    must create ``path``, not the caller."""
     undo = rollback_target(path)
     try:
         yield
@@ -780,44 +603,40 @@ def temporary_tree(path: str) -> Generator[None, None, None]:
 def windows_docdir() -> str:
     """The value queryRegistry() will impose on a non-relocated sysdir.
 
-    On Windows queryRegistry(), which initSettings() calls, ends with
-    ``systemDir = docdir`` unless the sysdir came from the executable, and
-    docdir is the registry's App Paths\\Asymptote entry, or a hard-coded
-    default that is never empty.  So on Windows the fall-through value is this,
-    not the compiled-in path.  An unreadable registry yields that same default,
-    which mirrors what settings.cc does rather than reporting a failure.
+    queryRegistry() ends with ``systemDir = docdir`` unless the sysdir came from
+    the executable, and docdir is the registry's App Paths\\Asymptote entry or a
+    never-empty hard-coded default.  So on Windows this, not the compiled-in
+    path, is the fall-through value.  An unreadable registry yields the same
+    default, mirroring settings.cc rather than reporting a failure.
     """
     default = "c:\\Program Files\\Asymptote"
     if sys.platform != "win32":
         return default
-    # Guarded on sys.platform rather than ImportError so that a type checker
-    # can see winreg is only touched where it exists.  The cost is that mypy
-    # prunes everything below on any other platform -- an undefined winreg name
-    # here passes a Linux run -- so misc-sanity-checks.yml types this file a
-    # second time with --platform=win32, which needs no Windows host.
-    # Disabling import-error is deliberate: winreg does not exist off Windows.
+    # Guarded on sys.platform rather than ImportError so a type checker can see
+    # winreg is only touched where it exists.  mypy then prunes everything below
+    # on Linux, which is why misc-sanity-checks.yml also types this file with
+    # --platform=win32.
     import winreg  # pylint: disable=import-outside-toplevel,import-error
 
     key = r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\Asymptote"
-    # HKEY_LOCAL_MACHINE first: that is the order getEntry() searches the roots
-    # in (settings.cc:259), and with both set to different paths it is the
-    # whole answer.
+    # HKEY_LOCAL_MACHINE first, the order getEntry() searches the roots in
+    # (settings.cc:259) -- the whole answer when both are set to different paths.
     for root in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
         try:
             with winreg.OpenKey(root, key) as handle:
                 value, kind = winreg.QueryValueEx(handle, "Path")
         except OSError:
             continue  # not under this root; RegGetValueA fails here too
-        # QueryValueEx is typed Any: a REG_DWORD would violate this function's
-        # contract, and RRF_RT_REG_SZ makes RegGetValueA skip the root as well.
+        # QueryValueEx is typed Any; RRF_RT_REG_SZ makes RegGetValueA skip a
+        # non-string root as well.
         if not isinstance(value, str):
             continue
-        # An empty string, though, counts as found: getEntry() returns
-        # optional("") and stops (settings.cc:266), so docdir keeps its default.
+        # An empty string counts as found: getEntry() returns optional("") and
+        # stops (settings.cc:266), so docdir keeps its default.
         if not value:
             break
-        # RegGetValueA expands environment strings (it passes no RRF_NOEXPAND);
-        # ntpath rather than os.path so the expansion is Windows' off Windows.
+        # RegGetValueA expands environment strings (no RRF_NOEXPAND); ntpath so
+        # the expansion is Windows' even off Windows.
         if kind == winreg.REG_EXPAND_SZ:
             return ntpath.expandvars(value)
         return value
@@ -827,10 +646,9 @@ def windows_docdir() -> str:
 def fallback_sysdir(compiled_in: Optional[str]) -> Optional[str]:
     """What asy must report when no candidate fires, or None if unpredictable.
 
-    Off Windows that is the compiled-in value verbatim -- so we can only
-    predict it when the caller told us what it is.  A compiled-in value of ""
-    (the CTAN/TeXLive build) is not handled here: it hands off to kpsewhich,
-    which is checked separately in the C axis.
+    Off Windows that is the compiled-in value verbatim, so it is predictable
+    only when the caller named it.  A compiled-in "" (the CTAN build) hands off
+    to kpsewhich instead, which run_ctan_axis checks.
     """
     if os.name == "nt":
         return windows_docdir()
@@ -854,10 +672,8 @@ class Ctx(NamedTuple):
         self, name: str, states: States, asy_under_test: Optional[str] = None
     ) -> Tuple[str, Paths]:
         """Stage layout ``states`` under <work>/<name>; see stage_layout.
-
-        ``asy_under_test`` overrides the run's binary for this one layout; the
-        CTAN axis uses it to stage a *different* binary into the same shapes.
-        """
+        ``asy_under_test`` overrides the run's binary for this one layout, which
+        is how the CTAN axis stages a different binary into the same shapes."""
         return stage_layout(
             os.path.join(self.work, name),
             asy_under_test or self.asy_under_test,
@@ -870,32 +686,10 @@ class Ctx(NamedTuple):
     ) -> bool:
         """Call expect() with this run's cwd and rescue filled in.
 
-        ``runs`` -- whether asy is expected to start once it has resolved
-        ``expected`` -- is required, and named at the callsite rather than
-        inferred from the staged layout; see the module-level ``expect``.
-
-        ``**kw`` is forwarded to the module-level ``expect``, so it accepts that
-        function's remaining keyword parameters plus the ones it in turn
-        forwards to ``probe``:
-
-          note         str              parenthetical appended to the record.
-          cwd          Optional[str]    defaults to ctx.work here, not to None.
-          env          Optional[Mapping[str, str]]
-                                        full child environment; None = the
-                                        sanitized default (see child_env).
-          extra_args   Sequence[str]    arguments placed before the probe's -c.
-          rescue_base  Optional[str]    defaults to ctx.base_dir here; pass None
-                                        explicitly to forgo the -dir retry (only
-                                        ovr/dir does, since it is what licenses
-                                        that retry in the first place).
-
-        Fragile parts, in order: the two setdefault keys above must stay spelled
-        exactly as ``probe``'s parameters -- a typo would silently add an unused
-        key and drop the intended default rather than error -- and the list
-        itself is a hand-kept copy of two signatures.  Check it against
-        ``expect`` and ``probe``; ``scenario``, ``asy_to_run`` and ``expected``
-        are passed positionally, and ``runs`` explicitly, so none of the four
-        can appear here.
+        ``**kw`` is forwarded to the module-level ``expect``, whose signature is
+        the authority on the accepted keys.  Note that the two setdefault keys
+        below must stay spelled as ``probe``'s parameters: a typo would add an
+        unused key and drop the intended default rather than error.
         """
         kw.setdefault("cwd", self.work)
         kw.setdefault("rescue_base", self.base_dir)
@@ -953,13 +747,10 @@ def check_layout(ctx: Ctx, scenario: str, states: States) -> None:
 def run_core_matrix(ctx: Ctx) -> None:
     """All 3x3x2 layout states, exhaustively.
 
-    No representatives, no pruning: after projecting out the compiled-in value
-    and the texmf tree (neither is selected by a plain.asy test) three staged
-    locations remain, and <exedir> cannot be absent.  Enumerating the space
-    outright is cheaper than arguing about which rows would suffice; it
-    *measures* rather than assumes both the equivalence of a decoy directory
-    with an absent one and the indifference of the result to K2 and K3, which
-    is the property that keeps them from creeping back in as candidates.
+    Enumerating the space outright is cheaper than arguing about which rows
+    would suffice, and it *measures* rather than assumes the two properties
+    that keep K2 and K3 from creeping back in as candidates: that a decoy is
+    equivalent to an absent directory, and that the result ignores both.
     """
     for states in itertools.product(State, State, (State.VALID, State.DECOY)):
         check_layout(ctx, "core/" + state_code(states), states)
@@ -979,10 +770,9 @@ ROUTE_LAYOUT: States = (State.VALID, State.ABSENT, State.DECOY)
 def run_route_axis(ctx: Ctx) -> None:
     """Every way of naming the executable must resolve the same layout.
 
-    The only per-OS part of the mechanism is executablePath(), and it is the
-    only thing these cases vary; one discriminating layout is therefore enough
-    per route.  ROUTE x layout would multiply the matrix by 6 and prove nothing
-    the core matrix does not already prove.
+    These cases vary only executablePath(), so one discriminating layout per
+    route is enough; ROUTE x layout would multiply the matrix by 6 and prove
+    nothing the core matrix does not.
     """
     states = ROUTE_LAYOUT
     root = os.path.join(ctx.work, "route")
@@ -1003,28 +793,20 @@ def run_route_axis(ctx: Ctx) -> None:
     except (OSError, NotImplementedError, AttributeError) as exc:
         record("route/symlink", Status.SKIP, f"symlinks unavailable: {exc}")
     else:
-        # The bundled runtime does not follow a symlink on Windows: the loader
-        # takes the *link's* directory as the application directory for the DLL
-        # search, so a link into a bundled install cannot start (0xC0000135)
-        # unless the libraries are reachable from the link too.  Staging them
-        # beside it keeps the row asserting rather than skipped, and cannot
-        # blunt it -- link_dir still holds no base/, so an exedir that stayed
-        # here resolves the absent <exedir>/base and reports a visibly
-        # different sysdir.  A no-op on platforms that resolve the link first.
+        # Windows' loader takes the *link's* directory as the application
+        # directory for the DLL search, so a link into a bundled install cannot
+        # start without the libraries beside it too.  This cannot blunt the row:
+        # link_dir still holds no base/, so an exedir that stayed here resolves
+        # a different sysdir.  A no-op where the link is resolved first.
         copy_bundled_libs(ctx.asy_under_test, link_dir)
-        # Homebrew/MacPorts shape.  Linux resolves the link before asy can see
-        # it (/proc/self/exe), and so does FreeBSD (kern.proc.pathname names the
-        # vnode that was executed, which is the link's target), so the platforms
-        # this row is for are the two that do not: macOS, where
-        # _NSGetExecutablePath() reports the link and realpath() is what
-        # resolves it, and Windows, where GetModuleFileNameW() reports the link
-        # and canonicalPath() is.  Everywhere else it is a regression test: the
-        # answer must come back resolved, whoever did the resolving.
+        # Homebrew/MacPorts shape.  This row is for the two platforms that
+        # report the link rather than its target -- macOS, where realpath()
+        # resolves it, and Windows, where canonicalPath() does; elsewhere it is
+        # a regression test that the answer comes back resolved regardless.
         ctx.expect("route/symlink", os.path.join(link_dir, name), expected, runs=True)
-        # ... and reached by a relative path, where _NSGetExecutablePath() hands
-        # the relative string back verbatim and realpath() has to resolve it
-        # against the child's cwd.  It arrives in that form only because
-        # _run_probe withholds executable= on POSIX.
+        # ... and reached by a relative path, which _NSGetExecutablePath() hands
+        # back verbatim for realpath() to resolve against the child's cwd.  It
+        # arrives that way only because _run_probe withholds executable=.
         ctx.expect(
             "route/symlink-rel",
             os.path.join(os.curdir, name),
@@ -1047,9 +829,8 @@ def run_route_axis(ctx: Ctx) -> None:
     )
 
     # Moving the whole tree: nothing may have been baked in at build time.
-    # Done last -- it invalidates the symlink and the PATH entry above.  Both
-    # paths below are the old ones re-rooted at `moved`; relpath is purely
-    # lexical, so it does not matter that staged_asy no longer exists.
+    # Done last -- it invalidates the symlink and the PATH entry above.  relpath
+    # is lexical, so it does not matter that staged_asy no longer exists.
     moved = os.path.join(ctx.work, "route-moved")
     shutil.move(root, moved)
     ctx.expect(
@@ -1068,21 +849,18 @@ def run_route_axis(ctx: Ctx) -> None:
 def run_override_axis(ctx: Ctx) -> None:
     """-sysdir / -dir / ASYMPTOTE_SYSDIR, applied on top of the resolved value.
 
-    Each override is tested against a value that differs from what resolution
-    would produce on its own, so "override applied" and "override ignored" are
-    distinguishable; pointing an override at the already-resolved directory
-    would pass either way.  Layout is held fixed: these act on the result of
-    resolution, not on its inputs.
+    Each override points somewhere resolution would not have chosen, so that
+    "applied" and "ignored" are distinguishable.  Layout is held fixed: these
+    act on the result of resolution, not on its inputs.
     """
     alt = os.path.join(ctx.work, "altbase")
     materialize(alt, State.VALID, ctx.base_dir)
     bogus = os.path.join(ctx.work, "does-not-exist")
 
-    # These run the binary in place rather than a staged copy: the overrides act
-    # on the result of resolution, so the layout it resolves from is irrelevant.
-    # -sysdir replaces the resolved value outright, valid or not: pointed at a
-    # real base/ asy runs, pointed at a nonexistent one it cannot start, and
-    # both are equally an override having been applied.
+    # Run in place rather than staged: the layout resolved from is irrelevant.
+    # -sysdir replaces the resolved value outright, valid or not -- asy runs
+    # from a real base/ and cannot start from a nonexistent one, and both are
+    # equally the override having been applied.
     ctx.expect(
         "ovr/sysdir", ctx.asy_under_test, alt, runs=True, extra_args=("-sysdir", alt)
     )
@@ -1094,9 +872,8 @@ def run_override_axis(ctx: Ctx) -> None:
         extra_args=("-sysdir", bogus),
     )
 
-    # -dir only prepends to the import search path.  This is what licenses the
-    # rescue -dir that probe() uses everywhere else, so it takes no rescue
-    # itself -- and it points at a *different* base/ than the resolved one.
+    # -dir only prepends to the import search path.  This row is what licenses
+    # the rescue -dir probe() uses elsewhere, so it takes no rescue itself.
     ctx.expect(
         "ovr/dir",
         ctx.asy_under_test,
@@ -1107,8 +884,8 @@ def run_override_axis(ctx: Ctx) -> None:
     )
 
     # The environment variable overrides everything (envSetting, settings.cc).
-    # This is the one row that puts ASYMPTOTE_SYSDIR back: every other probe
-    # runs without it, which is what makes this row's result attributable.
+    # The one row that puts ASYMPTOTE_SYSDIR back, which is what makes its
+    # result attributable.
     ctx.expect(
         "ovr/env",
         ctx.asy_under_test,
@@ -1125,10 +902,9 @@ def run_override_axis(ctx: Ctx) -> None:
 
 # The only two layouts at which C, and the Windows registry, can matter: one
 # where no candidate fires, so the fallback decides, and one where K1 fires, so
-# the fallback must be ignored whatever state it is in.  Every other layout is
-# equivalent to one of these two as far as those variables are concerned, which is what
-# makes these axes |values| x 2 rather than |values| x 18.  They are named for what
-# the candidate search does, not for what happens afterwards.
+# the fallback must be ignored.  Every other layout is equivalent to one of
+# these as far as those variables go, which is what makes the axes |values| x 2
+# rather than |values| x 18.  Named for the candidate search, not the fallback.
 MISS = (State.ABSENT, State.ABSENT, State.DECOY)
 HIT = (State.VALID, State.ABSENT, State.DECOY)
 
@@ -1136,9 +912,9 @@ HIT = (State.VALID, State.ABSENT, State.DECOY)
 def run_compiled_in_axis(ctx: Ctx) -> None:
     """C = absent / valid / decoy, at MISS and at HIT.
 
-    We only mutate the compiled-in path when that is safe: the caller named it,
-    it does not already exist (never delete a real install), and its parent is
-    writable.  Otherwise we report what the environment happens to provide.
+    The compiled-in path is mutated only when that is safe: the caller named
+    it, it does not already exist (never delete a real install), and its parent
+    is writable.  Otherwise this reports what the host happens to provide.
     """
     if os.name == "nt":
         record("C/*", Status.SKIP, "on Windows the fallback is the registry docdir")
@@ -1154,7 +930,7 @@ def run_compiled_in_axis(ctx: Ctx) -> None:
     if os.path.exists(compiled_in):
         # A real tree lives there; verify it is used but do not touch it.  What
         # it holds is the host's business, so -miss takes its expectation from
-        # the same measurement that picked the label.
+        # the measurement that picked the label.
         state = State.VALID if is_base_dir(compiled_in) else State.DECOY
         ctx.expect(
             f"C/{state.label}-miss",
@@ -1200,23 +976,18 @@ def run_ctan_axis(ctx: Ctx, asy_ctan: str) -> None:
     """C = "" -- the CTAN/TeXLive binary, which defers to kpsewhich.
 
     Same two layouts: at HIT the adjacent base/ must still win (kpsewhich is the
-    *last* resort, not a mode), and at MISS the texmf tree answers -- and in
+    last resort, not a mode), and at MISS the texmf tree answers -- and in
     particular the answer must not be a build or staging path.
     """
     staged_hit, hit_paths = ctx.stage("ctan-hit", HIT, asy_under_test=asy_ctan)
     ctx.expect("ctan/hit", staged_hit, hit_paths[Location.K1], runs=True)
 
-    # Deployed TeXLive shape: bin/<platform>/asy, no adjacent base/.  On a host
-    # whose texmf tree has no asymptote/ directory the binary cannot start; the
-    # rescue -dir reports what it resolved anyway, so this is checkable either
-    # way.  An empty sysdir (no kpsewhich answer at all) is a legitimate
-    # outcome, hence the `is None` test: only an unlaunchable binary is
-    # unmeasurable.
-    #
-    # The platform name is a stand-in for whatever the host's would be
-    # (amd64-freebsd, universal-darwin, ...): nothing reads it, and all the
-    # shape needs is a directory with no base/ next to it and no
-    # share/asymptote above it.
+    # Deployed TeXLive shape: bin/<platform>/asy, no adjacent base/.  Where the
+    # texmf tree has no asymptote/ the binary cannot start, but the rescue -dir
+    # reports what it resolved anyway; an empty sysdir (no kpsewhich answer at
+    # all) is legitimate, hence the `is None` test.  The platform name is a
+    # stand-in -- nothing reads it, and the shape only needs a directory with no
+    # base/ beside it and no share/asymptote above it.
     platform_dir = os.path.join(ctx.work, "ctan-miss", "bin", "x86_64-linux")
     staged_asy = stage_binary(platform_dir, asy_ctan)
     _, val, resolved = probe(staged_asy, cwd=ctx.work, rescue_base=ctx.base_dir)
@@ -1249,8 +1020,7 @@ def run_registry_axis(ctx: Ctx) -> None:
     """Only a non-relocated sysdir may be replaced by queryRegistry().
 
     Read-only: the registry describes whatever Asymptote is installed on the
-    machine, so this reports rather than arranges.  Skipped off Windows, where
-    queryRegistry() is not compiled in at all.
+    machine, so this reports rather than arranges.
     """
     if os.name != "nt":
         record("reg/*", Status.SKIP, "Windows only")
@@ -1346,9 +1116,8 @@ def run_all(ctx: Ctx, asy_ctan: Optional[str]) -> None:
 
     section("ctan")
     if not asy_ctan:
-        # Reported rather than passed over: whether the C="" axis ran is a
-        # property of how the caller was configured, not of this run, and a
-        # silently absent axis reads like a passing one.
+        # Reported rather than passed over: a silently absent axis reads like a
+        # passing one.
         record("ctan/*", Status.SKIP, "no --asy-ctan given")
     elif os.path.exists(asy_ctan):
         run_ctan_axis(ctx, asy_ctan)
@@ -1369,8 +1138,8 @@ def main() -> None:
         sys.exit(f"base dir not found: {base_dir}")
 
     work = tempfile.mkdtemp(prefix="asy-relocatable-")
-    # Point the children's configuration directory at the (config.asy-free)
-    # scratch tree, before the first probe.
+    # Point the children's config directory at the (config.asy-free) scratch
+    # tree, before the first probe.
     _CHILD_ENV["ASYMPTOTE_HOME"] = work
     try:
         ctx = Ctx(

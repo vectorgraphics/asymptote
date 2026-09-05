@@ -102,26 +102,22 @@ done
 
 # Every reference now points at @executable_path/lib/, so nothing consults
 # LC_RPATH any more.  Strip the absolute rpaths the linker recorded -- the
-# Vulkan SDK and GLFW build directories, which sit in the *builder's* home --
-# from everything that ships.  Two reasons: they put the builder's username and
-# directory layout into a binary handed to every user of the .dmg, and they are
-# a dylib search path that would come back to life, pointing at directories no
-# user has, if a later change reintroduced an unbundled @rpath reference.
-# Nothing downstream catches them: the portability check in Makefile.in reads
-# otool -L (the references), not otool -l (the search path).
-#
-# @executable_path/ and @loader_path/ rpaths are kept.  There are none today,
-# but those relocate with the bundle and are the supported way to add one.
+# Vulkan SDK and GLFW build directories, in the *builder's* home -- from
+# everything that ships: they leak the builder's username and layout to every
+# user of the .dmg, and they are a search path that would come back to life if
+# a later change reintroduced an unbundled @rpath reference.  Makefile.in's
+# portability check does not catch them; it reads otool -L, not otool -l.
+# @executable_path/ and @loader_path/ rpaths relocate with the bundle and are
+# kept.
 shipped_bins="$all_bins"
 for bundled in lib/*.dylib; do
     shipped_bins="$shipped_bins $bundled"
 done
 
-# Refuse to strip while something still needs them.  dyld resolves @rpath/ only
-# against LC_RPATH, so removing the rpaths out from under a surviving reference
-# yields a binary that cannot start.  Makefile.in rejects such a reference too,
-# but only after this script has run, so catching it here is what keeps the
-# failure legible.
+# Refuse to strip while something still needs them: dyld resolves @rpath/ only
+# against LC_RPATH, so removing them out from under a surviving reference yields
+# a binary that cannot start.  Makefile.in rejects such a reference too, but
+# only after this script has run.
 stray_refs=$(otool -L $shipped_bins 2>/dev/null \
     | awk '{print $1}' \
     | grep '^@rpath/' \
@@ -136,8 +132,7 @@ fi
 
 for bin in $shipped_bins; do
     # One call per LC_RPATH: install_name_tool removes a single load command at
-    # a time, and a universal binary reports the same path once per slice.  Each
-    # iteration either deletes one (progress) or exits, so this terminates.
+    # a time, and a universal binary reports the same path once per slice.
     while :; do
         rpath=$(otool -l "$bin" \
             | awk '/LC_RPATH/{f=1} f && /[[:space:]]path /{print $2; f=0}' \

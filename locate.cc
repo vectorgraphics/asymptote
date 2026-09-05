@@ -48,11 +48,9 @@ bool relocatedSysdir= false;
 // its result is what those APIs expect.
 //
 // A path containing characters outside that code page is therefore not
-// representable here, and path::string() substitutes for them silently. That is
-// not a loss introduced by resolving the path in wide form below: the ...A APIs
-// it would be handed to cannot open such a path either. Lifting that limitation
-// means moving the whole process to UTF-8 (a manifest declaring it as the active
-// code page), which is not something this file can do on its own.
+// representable here, and path::string() substitutes for them silently. The
+// ...A APIs it would be handed to could not open such a path either; lifting
+// the limitation means moving the whole process to UTF-8.
 //
 // Returns "" rather than letting an exception escape. resolveSysdir() guards
 // its whole body for the static-initializer case, but this is also reached at
@@ -73,14 +71,9 @@ static string narrowPath(std::filesystem::path const& path)
 // reports the path the process was launched from, unresolved, and only reopening
 // the file and asking for its final name gets past a reparse point.
 //
-// The MSVC standard library does exactly that -- CreateFileW with
-// FILE_READ_ATTRIBUTES and FILE_FLAG_BACKUP_SEMANTICS, then
-// GetFinalPathNameByHandleW with VOLUME_NAME_DOS -- and then puts the result
-// back in a form the rest of this file expects, stripping the \\?\ prefix and
-// respelling \\?\UNC\server\share as \\server\share. It also grows its buffer
-// rather than failing on a long path, and falls back to the NT namespace for a
-// volume with no drive letter. Calling it is preferred to reproducing it here:
-// this is delicate platform detail that few readers of this file can review.
+// std::filesystem::canonical is preferred to hand-rolling that
+// CreateFileW/GetFinalPathNameByHandleW dance, which also has to strip the \\?\
+// prefix, grow its buffer and cope with a volume that has no drive letter.
 //
 // The argument is a path rather than a string so that the resolution runs on the
 // wide form throughout, with narrowPath() applied once to the result. Narrowing
@@ -142,76 +135,42 @@ string executablePath()
     return "";
   // _NSGetExecutablePath may return a path containing symlinks or "..";
   // resolve it so that a symlinked bin directory (Homebrew, MacPorts) yields
-  // the real install prefix. The other two POSIX branches do not need this:
-  // /proc/self/exe and kern.proc.pathname both arrive resolved.
-  //
-  // PATH_MAX (POSIX, 1024 here -- not to be confused with Win32's MAX_PATH)
-  // is required: realpath() may write that many bytes to the buffer.
-  // Nothing else here uses it, since POSIX leaves it optional and glibc/Hurd
-  // does not define it.
+  // the real install prefix. The other POSIX branches arrive resolved already.
+  // PATH_MAX is required here -- realpath() may write that many bytes -- and
+  // avoided elsewhere in this file, since POSIX leaves it optional.
   char resolved[PATH_MAX];
   if (realpath(buf, resolved) != nullptr)
     return string(resolved);
   return string(buf);
 #elif defined(__FreeBSD__)
-  // FreeBSD cannot use the /proc/self/exe branch below: procfs(5) is not
-  // mounted on a stock system, and even where it is, it is FreeBSD's own procfs
-  // -- which spells this /proc/curproc/file -- rather than the Linux one. The
-  // supported way to ask is the kern.proc.pathname sysctl, present since
-  // FreeBSD 6.0 and the same thing "procstat -b" reports. A pid of -1 in the
-  // last mib slot asks about the calling process; the kernel special-cases it,
-  // so it skips both the process lookup and the permission check that asking
-  // about a numbered pid goes through.
-  //
-  // The other BSDs are deliberately not folded in here: NetBSD spells the same
-  // query with a different mib (KERN_PROC_ARGS, with KERN_PROC_PATHNAME as the
-  // *fourth* element), and OpenBSD has no equivalent at all. Each needs its own
-  // branch, written by someone who can test it.
-  //
-  // mib is deliberately not const: FreeBSD's sysctl() takes the name as
-  // const int*, but the historical BSD prototype does not, and a non-const
-  // array binds to either.
+  // procfs(5) is not mounted on a stock FreeBSD, and where it is it spells this
+  // /proc/curproc/file; kern.proc.pathname is the supported query, and a pid of
+  // -1 asks about the calling process. The other BSDs need their own branches:
+  // NetBSD uses a different mib, OpenBSD has no equivalent. mib is non-const so
+  // that it binds to the historical BSD prototype as well as FreeBSD's.
   int mib[4]= {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
-  // One PATH_MAX buffer is enough, and no growth loop is needed: the kernel
-  // reconstructs this path into a buffer of MAXPATHLEN bytes, and MAXPATHLEN
-  // and PATH_MAX are both 1024 on FreeBSD, so a path too long to fit here is
-  // one the kernel could not have produced. If that ever ceases to hold,
-  // sysctl() fails with ENOMEM and we return "" -- resolveSysdir() then uses
-  // the compiled-in sysdir, which is what a non-relocatable build does anyway.
-  // (PATH_MAX is used for the same reason as in the __APPLE__ branch above:
-  // required here, and avoided everywhere else in this file because POSIX
-  // leaves it optional.)
+  // No growth loop: the kernel builds this path in a MAXPATHLEN buffer, and
+  // MAXPATHLEN and PATH_MAX are both 1024 here, so a longer path is one it
+  // could not have produced.
   char buf[PATH_MAX];
   size_t size= sizeof(buf);
   if (sysctl(mib, 4, buf, &size, nullptr, 0) != 0)
     return "";
-  // Succeeding while writing nothing is a real outcome, not a contradiction:
-  // the kernel returns an empty result rather than an error for a process with
-  // no text vnode. Without this, buf would be read uninitialized.
+  // A process with no text vnode succeeds while writing nothing, which would
+  // leave buf uninitialized.
   if (size == 0)
     return "";
-  // Bound the reported length by the buffer before using it as one: sysctl()
-  // cannot have written more than it was given room for, so a larger value
-  // would be a kernel bug -- and strnlen() would run off the end on it.
+  // A size past the buffer would be a kernel bug; clamp it before strnlen()
+  // reads that far. size counts the terminating NUL.
   if (size > sizeof(buf))
     size= sizeof(buf);
-  // size counts the terminating NUL that the kernel writes, so the string is
-  // one shorter. strnlen() rather than size - 1 so that a result that somehow
-  // arrived unterminated is bounded by what was actually written instead of
-  // running off the end of the buffer.
-  //
-  // No realpath() here, unlike the __APPLE__ branch: this path arrives already
-  // resolved, as /proc/self/exe does. The kernel does not record the string
-  // passed to execve(); it reconstructs a path from p_textvp, the vnode of the
-  // file that was executed. execve()'s lookup followed any symlinks on the way
-  // to that vnode, so it is the target's vnode and not the link's, and the name
-  // cache can only spell it as its own name in its own parent directory.
+  // Already resolved, like /proc/self/exe: the kernel reconstructs the path
+  // from p_textvp, the vnode execve() reached after following any symlinks.
   return string(buf, strnlen(buf, size));
 #else
   // Linux, and anything else carrying a Linux-style /proc. The kernel resolves
-  // this symlink itself, so there is nothing left to canonicalize -- and
-  // nothing to fall back on either: a system with neither /proc nor a branch
-  // above needs one written for it, as FreeBSD did.
+  // this symlink itself, so there is nothing left to canonicalize. A system
+  // with neither /proc nor a branch above needs one written for it.
   char buf[4096];
   ssize_t len= readlink("/proc/self/exe", buf, sizeof(buf) - 1);
   if (len <= 0)
@@ -287,30 +246,18 @@ static bool isBaseDir(string const& dir)
 // for the two binaries. The autotools build has a single executable and is
 // unaffected either way.
 //
-// There is one candidate -- base/ beside the running executable -- and it is
-// tried before the compiled-in path, so that a binary run in place from its
-// build tree uses its own base/ even when some other Asymptote is installed at
-// the compiled-in sysdir. Trying it first costs nothing for an installed
-// binary, whose <prefix>/bin/asy holds no adjacent base/ and so falls through
-// to the compiled-in <prefix>/share/asymptote.
+// The one candidate is base/ beside the running executable, tried before the
+// compiled-in path so that a binary run in place from its build tree uses its
+// own base/ rather than that of a separately installed Asymptote. It needs no
+// opt-in: <exedir>/base/plain.asy exists only in a build tree or in a
+// distribution that deliberately ships base/ beside the binary. The macOS
+// bundle is laid out that way -- install-asy with bindir=<dest>/Asymptote
+// asydir=<dest>/Asymptote/base -- so it relocates with no compiled-in path
+// involved.
 //
-// The candidate needs no opt-in, because <exedir>/base/plain.asy exists only in
-// a build tree or in a distribution that deliberately ships base/ beside the
-// binary, never on a system where asy came from a package. A distribution meant
-// to be moved after it is built is therefore laid out that way -- the macOS
-// bundle installs with
-//
-//   make install-asy bindir=<dest>/Asymptote asydir=<dest>/Asymptote/base
-//
-// -- and resolves wherever the user puts it, with no compiled-in path involved.
-//
-// When nothing matches, the compiled-in path is returned unchanged -- including
-// when it is empty, which is how a TeXLive build says "I have no fixed data
-// directory". initDir() sees the empty string and asks kpsewhich for TEXMFMAIN.
-// That lookup is therefore the next candidate after the one below, not a
-// separate mode: a TeXLive binary run from its build tree uses the adjacent
-// base/, and only a deployed one (bin/<platform>/asy, where the candidate does
-// not match) consults kpsewhich.
+// Otherwise the compiled-in path is returned unchanged, including when it is
+// empty: that is how a TeXLive build says it has no fixed data directory, and
+// initDir() then asks kpsewhich for TEXMFMAIN.
 //
 // noexcept because this runs as a static initializer (settings.cc), where an
 // escaping exception calls terminate() before main() rather than being caught

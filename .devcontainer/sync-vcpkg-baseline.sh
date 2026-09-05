@@ -42,7 +42,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VCPKG_DIR="${VCPKG_ROOT:-/usr/local/vcpkg}"
 # Records the baseline the tool was last *successfully* bootstrapped for; see
-# the fast path below. Untracked in the vcpkg repo, so a checkout leaves it be.
+# the fast path below. Untracked, so a checkout leaves it be.
 MARKER="$VCPKG_DIR/.asy-vcpkg-baseline"
 
 give_up() {
@@ -70,13 +70,9 @@ fi
 
 # Fast path: already in sync, and the tool has been bootstrapped *for this
 # baseline*. This is the usual case on container start, and costs one rev-parse.
-#
-# The marker is what makes that second half trustworthy. An executable alone
-# does not prove anything: bootstrap-vcpkg.sh only moves the new tool into place
-# once its download and hash check have both passed, so a bootstrap that fails
-# or is interrupted after the checkout leaves HEAD at the baseline and the
-# *previous* vcpkg sitting there. Testing for the executable would then take
-# this path on every later start and never retry the bootstrap.
+# The marker is what makes the second half trustworthy: a bootstrap interrupted
+# after the checkout leaves HEAD at the baseline and the *previous* vcpkg in
+# place, so testing for the executable alone would never retry it.
 if [ "$(git -C "$VCPKG_DIR" rev-parse HEAD 2>/dev/null || true)" = "$BASELINE" ] \
     && [ -x "$VCPKG_DIR/vcpkg" ] \
     && [ "$(cat "$MARKER" 2>/dev/null || true)" = "$BASELINE" ]; then
@@ -108,9 +104,8 @@ if ! "$VCPKG_DIR/bootstrap-vcpkg.sh"; then
 fi
 
 # Only now is the tool known to match the baseline. Failing to write the marker
-# is not fatal: it just costs a redundant (and harmless) re-bootstrap on each
-# later start, which is the safe direction to err in. umask 002 so another
-# member of the 'vcpkg' group can rewrite it at the next baseline bump.
+# costs a harmless re-bootstrap on each later start, which is the safe direction
+# to err in. umask 002 so another member of the 'vcpkg' group can rewrite it.
 if ! ( umask 002; printf '%s\n' "$BASELINE" >"$MARKER" ) 2>/dev/null; then
     echo "warning: could not write '$MARKER'; vcpkg will be re-bootstrapped on" >&2
     echo "         every container start." >&2

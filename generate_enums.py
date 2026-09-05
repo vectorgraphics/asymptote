@@ -20,9 +20,8 @@ import time
 from datetime import datetime, timezone
 from typing import Any, List, Optional, Tuple, Union
 
-# One row of the CSV: name and value, plus a trailing comment when the row
-# has a third field.  The generators unpack it as `name, value, *rest`, so
-# both shapes are consumed the same way.
+# One row of the CSV: name and value, plus a trailing comment when the row has a
+# third field.  The generators unpack it as `name, value, *rest`.
 EnumEntry = Union[Tuple[str, int, str], Tuple[str, int]]
 
 
@@ -114,8 +113,7 @@ def generate_enum_java(
 
         fil.write(f"public enum {name} {{\n")
 
-        # -xopt values arrive as strings, so this needs a conversion even
-        # though the fallback is already an int.
+        # -xopt values arrive as strings, unlike the int fallback.
         spaces = int(kwargs.get("spaces", 4))
         spaces_tab = " " * spaces
 

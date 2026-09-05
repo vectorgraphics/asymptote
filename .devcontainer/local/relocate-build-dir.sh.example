@@ -58,11 +58,10 @@ fi
 #       libglm-dev ships a glmConfig.cmake whose cmake_minimum_required predates
 #       3.5, which the image's modern CMake (>= 4) otherwise refuses to load.
 #
-# Neither preset needs anything set for the binaries to find their base/: they
-# are run in place from their out-of-workspace build dir and never installed to
-# the compiled-in ASYMPTOTE_SYSDIR (/usr/local/share/asymptote), and
-# resolveSysdir() (locate.cc) prefers the base/ sitting beside the executable
-# over that compiled-in path in every build.
+# Neither preset needs anything set for the binaries to find their base/, even
+# though they are run in place and never installed to the compiled-in
+# ASYMPTOTE_SYSDIR: resolveSysdir() (locate.cc) prefers the base/ beside the
+# executable over that path in every build.
 cat > "$PRESETS_FILE" <<EOF
 {
   "version": 6,

@@ -1,8 +1,7 @@
 black~=26.3.1
 isort~=5.13.2
-# Pinned to 1.8.x deliberately: it is the last mypy that can target Python 3.7
-# (1.9 raised its minimum to 3.8, 2.x to 3.10), and python_version in mypy.ini
-# must match PY3_MINIMUM_VERSION. Raise this only together with that floor.
+# Pinned to 1.8.x deliberately: the last mypy that can target Python 3.7, which
+# is python_version in mypy.ini. Raise this only together with that floor.
 mypy~=1.8.0
 pylint~=3.3.1
 # Required by the libsystemd vcpkg port's meson build at configure time

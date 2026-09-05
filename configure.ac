@@ -174,11 +174,9 @@ INCL=""
 LIBS=""
 CPPFLAGS=$CPPFLAGS" -I. "
 
-# For a binary that ships inside a texmf tree -- the TeX Live and MacTeX binary
-# distributions -- where the path of that tree is not known at build time.  Such
-# a binary has no fixed data directory: instead of a path chosen here, it finds
-# base/ within the TeX installation when it runs, by asking kpsewhich where the
-# texmf tree is.
+# For a binary that ships inside a texmf tree (TeX Live, MacTeX) whose path is
+# not known at build time.  Instead of a fixed data directory it finds base/
+# when it runs, by asking kpsewhich where the texmf tree is.
 texlive_build=off
 AC_ARG_ENABLE(texlive-build,
 [AS_HELP_STRING(--enable-texlive-build[[[=no]]],
@@ -192,9 +190,9 @@ installation at run time (via kpsewhich) instead of at a fixed path])],
   fi
 ])
 
-# Let tests/Makefile give the relocatable matrix its C="" (CTAN) axis.  The
-# CMake build has a second executable, asy-ctan, to point the test at; autotools
-# builds one, so under --enable-texlive-build that one *is* the CTAN binary.
+# Let tests/Makefile give the relocatable matrix its C="" (CTAN) axis.  CMake
+# has a second executable, asy-ctan, to point the test at; autotools builds one,
+# which under --enable-texlive-build *is* the CTAN binary.
 AC_SUBST(texlive_build)
 
 AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$sysdir",

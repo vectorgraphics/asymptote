@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 """Print the python files that should be linted, one absolute path per line.
 
-The candidate set comes from git rather than from a plain filesystem walk:
-tracked files, plus untracked files that are not ignored (so a new file
-destined for the next commit is linted before it is committed).  A CI
-checkout is pristine, but a working repository is not -- it accumulates
-virtual environments, build trees and scratch scripts, none of which we
-want to lint.  Asking git keeps those out for free, provided they are
-ignored; anything not covered by .gitignore is still swept up, which is
-usually a hint that it belongs in .gitignore.
+The candidate set comes from git rather than a filesystem walk: tracked files,
+plus untracked files that are not ignored (so a new file is linted before it is
+committed).  A working repository accumulates virtual environments, build trees
+and scratch scripts, and asking git keeps those out for free provided they are
+ignored -- anything not covered by .gitignore is still swept up, which is
+usually a hint that it belongs there.
 
-The candidates are then filtered through the exclusion lists below, which
-remove checked-in code that is linted elsewhere (GUI) or not ours to lint
-(third-party subtrees, generated files).
+The candidates are then filtered through the exclusion lists below, which drop
+checked-in code linted elsewhere (GUI) or not ours to lint (third-party
+subtrees, generated files).
 """
 
 import fnmatch
@@ -21,10 +19,9 @@ import pathlib
 import subprocess
 import sys
 
-# abspath rather than resolve(): callers rely on absolute output (the CI job
-# compares this list against absolute paths from git diff-tree), but python
-# before 3.9 leaves a relative __file__ relative, and resolving would also
-# rewrite symlinks that the caller may have deliberately used.
+# abspath rather than resolve(): callers rely on absolute output, but python
+# before 3.9 leaves a relative __file__ relative, and resolving would rewrite
+# symlinks the caller may have used deliberately.
 REPO_ROOT = pathlib.Path(os.path.abspath(__file__)).parents[1]
 
 EXCLUDED_ROOT_FOLDERS = [
@@ -56,11 +53,9 @@ EXCLUDED_FILE_GLOB_PATTERNS = [
 def git_candidate_files():
     """Return the repo-relative python files git knows or would soon know about.
 
-    The ".py" selection is done here rather than with a git pathspec: a
-    pathspec would have to survive the argument handling of whichever git
-    build is on PATH, and on Windows that is a MinGW program whose runtime
-    may expand wildcards before git ever sees them.  Listing everything and
-    filtering costs one pass over a few thousand names.
+    The ".py" selection is done here rather than with a git pathspec, which
+    would have to survive the argument handling of whichever git is on PATH --
+    on Windows a MinGW program whose runtime may expand wildcards first.
     """
     tracked = run_git("ls-files", "-z")
     untracked = run_git("ls-files", "-z", "--others", "--exclude-standard")
@@ -101,9 +96,8 @@ def print_non_gui_py_files_for_linting():
     for relative_path in git_candidate_files():
         if is_excluded(relative_path):
             continue
-        # Join component-wise: git always reports posix separators, and this
-        # keeps the result native on Windows without relying on how a given
-        # python version combines two different pathlib flavours.
+        # Join component-wise: git reports posix separators, and this keeps the
+        # result native without mixing two pathlib flavours.
         print(REPO_ROOT.joinpath(*relative_path.parts))
 
 

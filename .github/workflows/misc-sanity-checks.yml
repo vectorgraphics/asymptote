@@ -61,13 +61,10 @@ jobs:
       - name: pylint check
         run: python3 -m pylint --rcfile=.pylintrc $(cat idir/lintable-files.txt)
       # mypy takes its file list from mypy.ini rather than the changed-files
-      # list: it is a whole-program check, and only the annotated files are
-      # opted in so far.  See the comment at the top of mypy.ini.
-      #
-      # One run checks one platform -- mypy prunes the sys.platform branches
-      # that do not match it and has no all-platforms mode -- so there is a
-      # pass per platform the checked files branch on.  Neither pass needs a
-      # host of that platform.
+      # list; see the comment at the top of mypy.ini.  One run checks one
+      # platform -- mypy prunes the sys.platform branches that do not match and
+      # has no all-platforms mode -- hence a pass per platform, neither of which
+      # needs a host of that platform.
       - name: mypy check (linux)
         run: python3 -m mypy --config-file=mypy.ini --platform=linux
       - name: mypy check (win32)

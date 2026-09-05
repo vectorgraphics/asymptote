@@ -83,8 +83,7 @@ target_compile_options(asycore PUBLIC ${ASY_COMPILE_OPTS})
 # The sysdir is a required parameter rather than an ${ARGN} override: definitions
 # inherited from asycore are emitted after the target's own, so a global
 # -DASYMPTOTE_SYSDIR would win over anything set here (which is how the CTAN
-# binary silently ended up with the normal sysdir). ASYMPTOTE_SYSDIR is
-# therefore not in ASY_MACROS; settings.cc is its only consumer.
+# binary silently ended up with the normal sysdir).
 function(add_settings_obj target sysdir)
     add_library(${target} OBJECT ${ASY_SRC_DIR}/settings.cc)
     target_link_libraries(${target} PRIVATE asycore)
@@ -143,11 +142,9 @@ include(cmake-scripts/copy-build-licenses.cmake)
 
 add_custom_target(asy-with-basefiles ALL DEPENDS asy asy-basefiles asy-licenses)
 
-# Everything the `asy-check-tests` ctest label runs against.  ctest only runs
-# binaries, it never builds them, so the binaries have to be up to date before
-# it starts -- and asy-with-basefiles is not enough: the relocatable matrix also
-# drives asy-ctan, which that target does not pull in.  Build this before
-# `ctest -L asy-check-tests`.
+# Everything the `asy-check-tests` ctest label runs against.  ctest never builds
+# anything, and asy-with-basefiles is not enough: the relocatable matrix also
+# drives asy-ctan.  Build this before `ctest -L asy-check-tests`.
 add_custom_target(asy-check-test-deps DEPENDS asy-with-basefiles asy-ctan)
 
 # asy misc files

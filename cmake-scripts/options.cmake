@@ -9,19 +9,16 @@ set(
 
 # Python
 
-# The build and test scripts are written to run on this version and up; raise it
-# only in step with what those scripts actually use.  Kept low on purpose: some
-# builders build on deliberately old software so that what they produce runs on
-# old software.  Keep this in sync with py-version in .pylintrc and
-# python_version in mypy.ini, which lint and type-check the same scripts.
-# Raising it also unpins mypy, which cannot target 3.7 past 1.8 (see mypy.ini).
+# The floor the build and test scripts are written to.  Kept low on purpose:
+# some builders build on deliberately old software so that what they produce
+# runs on old software.  Keep in sync with py-version in .pylintrc and
+# python_version in mypy.ini; raising it also unpins mypy (see mypy.ini).
 set(PY3_MINIMUM_VERSION "3.7")
 
 set(PY3_INTERPRETER "" CACHE STRING "Python 3 interpreter. If left empty, will try to determine Python automatically")
 
 # Report the interpreter's version as major.minor.micro, or "" if it will not
-# run at all.  sys.version_info is used rather than the first character of
-# sys.version so that the result compares correctly component-wise.
+# run at all.
 function(get_py_interpreter_version out_var py_interpreter)
     execute_process(
             COMMAND ${py_interpreter} -c "import sys; print('%d.%d.%d' % sys.version_info[:3],end='')"
@@ -36,8 +33,7 @@ function(get_py_interpreter_version out_var py_interpreter)
 endfunction()
 
 # find_program VALIDATOR contract: reject a candidate by setting the named
-# result variable FALSE; leaving it alone accepts.  CMake's VERSION_LESS does a
-# numeric component-wise comparison, so 3.10 correctly outranks 3.6.
+# result variable FALSE; leaving it alone accepts.
 function(verify_py3_interpreter validator_result_var py_interpreter)
     get_py_interpreter_version(PY_VERSION ${py_interpreter})
     if (PY_VERSION STREQUAL "" OR PY_VERSION VERSION_LESS PY3_MINIMUM_VERSION)

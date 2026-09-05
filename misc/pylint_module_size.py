@@ -1,34 +1,23 @@
 """A pylint plugin gating module size by statement count rather than by lines.
 
-Pylint's built-in size gate for a module is ``too-many-lines`` (C0302), and it
-counts raw physical lines: comments, docstrings and blank lines all tell against
-the limit (pylint/checkers/format.py:442 does ``line_num -= 1  # to be ok with
-"wc -l"``, with no filtering by token type).  A heavily documented file can
-therefore trip it while containing very little code, which is the opposite of
-what a complexity limit is for -- it penalizes exactly the thing we want.
-
-This checker adds ``too-many-module-statements`` (R9001), which counts
-*statements* in the module and so is blind to prose.  Enable it and turn
-``too-many-lines`` off (see .pylintrc) to gate on code volume alone.
+Pylint's built-in gate, ``too-many-lines`` (C0302), counts raw physical lines,
+so comments and docstrings tell against it: a heavily documented file can trip
+it while containing very little code.  This checker adds
+``too-many-module-statements`` (R9001), which counts *statements* and so is
+blind to prose.  Enable it and turn ``too-many-lines`` off (see .pylintrc).
 
 The count mirrors pylint's own ``too-many-statements`` (R0915) accounting for
-functions -- same ``node.is_statement`` test, driven from the same
-``visit_default`` hook (pylint/checkers/design_analysis.py:642) -- so a module's
-number is directly comparable to the per-function limit, and to the statement
-total that ``pylint --reports=y`` prints.  The one deliberate difference is that
-bare string-constant statements are not counted: on an astroid tree a docstring
-is normally lifted out of the body into ``doc_node``, but a string used as a
-comment in statement position is prose either way and must not count as code.
+functions -- same ``node.is_statement`` test, same ``visit_default`` hook -- so
+a module's number is comparable to the per-function limit.  The one deliberate
+difference is that bare string-constant statements do not count; see
+is_prose_statement.
 
-Loaded via ``load-plugins`` in .pylintrc, which resolves it as an import, so
-pylint must run with the repository root on sys.path.  It is *not* there by
-default: pylint 3 does not add the current directory, and ``python3 -m pylint``
-does not either, since pylint rewrites sys.path itself.  The ``init-hook`` in
-.pylintrc puts it back, which makes the whole arrangement depend on pylint being
-run from the repository root -- the same assumption the relative
-``--rcfile=.pylintrc`` in .github/workflows/misc-sanity-checks.yml already makes.
-Symptom if that breaks: ``E0013 bad-plugin-value ... No module named 'misc'``,
-followed by every option below being reported as unrecognized.
+``load-plugins`` resolves this as an import, so pylint must run with the
+repository root on sys.path, which it does not add by default.  The
+``init-hook`` in .pylintrc puts it back, making the arrangement depend on pylint
+being run from the repository root -- the same assumption the relative
+``--rcfile=.pylintrc`` in CI already makes.  Symptom if that breaks: ``E0013
+bad-plugin-value ... No module named 'misc'``.
 """
 
 from typing import TYPE_CHECKING, List
@@ -40,26 +29,19 @@ from pylint.interfaces import HIGH
 if TYPE_CHECKING:  # pragma: no cover -- import cycle at runtime, fine for typing
     from pylint.lint import PyLinter
 
-# Annotations use the 3.7-compatible spelling (typing aliases rather than
-# builtin generics or PEP 604 unions) because pylint lints this file against
-# py-version=3.7 like every other script here -- not because it runs there: as a
-# pylint plugin it runs on whatever interpreter runs pylint, which for pylint 3.3
-# is 3.9+.
-#
-# Note for anyone adding a type checker over this tree later: this file is a bad
-# candidate to check at that 3.7 floor.  A checker follows the import into
-# pylint's own source, which uses 3.8+ syntax ("Assignment expressions are only
-# supported in Python 3.8 and greater" in checkers/utils.py), and astroid ships
-# no py.typed, so `from astroid import nodes` is untyped either way.
+# Annotations use the 3.7-compatible spelling because pylint lints this file
+# against py-version=3.7 like every other script here -- not because it runs
+# there; as a plugin it runs on whatever interpreter runs pylint.  Do not add it
+# to mypy.ini at that floor: a checker follows the import into pylint's own
+# source, which uses 3.8+ syntax, and astroid ships no py.typed anyway.
 
 
 def is_prose_statement(node: nodes.NodeNG) -> bool:
     """True for a statement that is just a string literal.
 
-    Astroid normally lifts a docstring out of the body into ``doc_node``, so this
-    mostly catches strings used as block comments.  Either way the content is
-    prose, and counting it would reintroduce the bias this checker exists to
-    remove.
+    Astroid lifts a docstring out of the body into ``doc_node``, so this mostly
+    catches strings used as block comments.  Either way it is prose, and
+    counting it would reintroduce the bias this checker exists to remove.
     """
     return (
         isinstance(node, nodes.Expr)
@@ -99,8 +81,7 @@ class ModuleSizeChecker(BaseChecker):
 
     def __init__(self, linter: "PyLinter") -> None:
         super().__init__(linter)
-        # A stack, not a scalar: nested modules do not occur, but a stack costs
-        # nothing and keeps the count well defined if a walk is ever re-entered.
+        # A stack, so the count stays well defined if a walk is re-entered.
         self._statements: List[int] = []
 
     def visit_module(self, _node: nodes.Module) -> None:

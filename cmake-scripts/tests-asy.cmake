@@ -34,9 +34,8 @@ set_property(
 )
 
 # ---- getExecutablePath() smoke test ------
-# It exercises the <exedir>/base candidate on its own.  It is also the
-# prerequisite for any wider sysdir test -- a wrong exedir would invalidate
-# every case of one -- so it is worth running wherever asy is built.
+# Exercises the <exedir>/base candidate on its own, and is the prerequisite for
+# any wider sysdir test: a wrong exedir would invalidate every case of one.
 add_test(
         NAME bundled.asy.executable_path
         COMMAND ${PY3_INTERPRETER} ${ASY_ASYLANG_TEST_ROOT}/test_executable_path.py
@@ -50,14 +49,11 @@ set_property(
 )
 
 # ---- sysdir-resolution matrix ------
-# Covers the whole resolver, not just the one candidate above: the decoy layouts
-# that must *not* resolve, the launch routes that feed executablePath(), the
-# -sysdir / -dir / ASYMPTOTE_SYSDIR overrides applied afterwards, and the
-# compiled-in fallback (the C/* rows).  It also probes the CTAN binary (the
-# ctan/* rows, via the asy-ctan target); asy-ctan is not part of
-# asy-with-basefiles, so build asy-check-test-deps before running this label.
-# Given only asy -- an artifact download, say -- the ctan/* rows report
-# themselves skipped and the rest still run.
+# Covers the whole resolver, not just the one candidate above: decoy layouts,
+# launch routes, the -sysdir / -dir / ASYMPTOTE_SYSDIR overrides and the
+# compiled-in fallback.  The ctan/* rows need asy-ctan, which
+# asy-with-basefiles does not pull in -- hence asy-check-test-deps; without it
+# those rows report themselves skipped and the rest still run.
 add_test(
         NAME bundled.asy.relocatable
         COMMAND ${PY3_INTERPRETER} ${ASY_ASYLANG_TEST_ROOT}/test_relocatable.py

@@ -23,10 +23,9 @@ ARG INSTALL_DOC_DEPS=true
 #     the `libxcrypt` vcpkg port regenerates its build system with
 #     `autoreconf -vfi` (which needs autoconf/automake/autoconf-archive) and
 #     `libtoolize` (libtool); libxcrypt also links against system libltdl.
-#     Jammy's autoconf (2.71) also runs our own ./autogen.sh: configure.ac
-#     declares AC_PREREQ([2.71]) deliberately, so that the autotools build
-#     stays reachable on a stock LTS with no autoconf built from source. Keep
-#     it that way -- a bump to 2.72 excludes both current Ubuntu LTS releases.
+#     Jammy's autoconf (2.71) also runs our own ./autogen.sh, which is why
+#     configure.ac declares AC_PREREQ([2.71]): a bump to 2.72 would exclude
+#     both current Ubuntu LTS releases.
 #   - libglm-dev, libgsl-dev, libcurl4-openssl-dev, libreadline-dev,
 #     libncurses-dev: system libraries for the `linux/sandbox` preset (and its
 #     `linux/sandbox/devcontainer` relocation). Unlike `linux/release`, that

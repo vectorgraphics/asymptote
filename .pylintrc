@@ -69,8 +69,8 @@ ignored-modules=
 # Python code to execute, usually for sys.path manipulation such as
 # pygtk.require().
 # Needed so load-plugins below can import misc/: pylint 3 does not put the
-# current directory on sys.path.  This assumes pylint is run from the repository
-# root, which the relative --rcfile=.pylintrc path already assumes.
+# current directory on sys.path.  Assumes pylint runs from the repository root,
+# as the relative --rcfile=.pylintrc path already does.
 init-hook=import os, sys; sys.path.insert(0, os.getcwd())
 
 # Use multiple processes to speed up Pylint. Specifying 0 will auto-detect the
@@ -98,10 +98,8 @@ prefer-stubs=no
 
 # Minimum Python version to use for version dependent checks. Will default to
 # the version used to run pylint. Keep in sync with PY3_MINIMUM_VERSION in
-# cmake-scripts/options.cmake and python_version in mypy.ini. Note this covers
-# syntax and language features only, not stdlib availability: pylint passes
-# code calling math.lcm (3.9) or copytree(dirs_exist_ok=) (3.8). mypy.ini is
-# what catches those.
+# cmake-scripts/options.cmake and python_version in mypy.ini. Covers syntax
+# only, not stdlib availability; mypy.ini catches that half.
 py-version=3.7
 
 # Discover python modules and packages in the file system subtree.
@@ -330,12 +328,11 @@ min-public-methods=2
 
 [MODULE-SIZE]
 
-# Registered by misc/pylint_module_size.py (see load-plugins).  The module-level
+# Registered by misc/pylint_module_size.py (see load-plugins): the module-level
 # counterpart of max-statements above, counted the same way, and the replacement
-# for too-many-lines: it measures code volume, so comments and docstrings do not
-# tell against it.  500 is 10x the per-function limit.  The largest module in the
-# tree counts 260 statements, so nothing is near this today -- it is a ceiling
-# put in place before one is needed, not a limit fitted around an existing file.
+# for too-many-lines.  500 is 10x the per-function limit; the largest module in
+# the tree counts 260, so this is a ceiling set before one is needed rather than
+# a limit fitted around an existing file.
 max-module-statements=500
 
 
@@ -364,8 +361,7 @@ indent-string='    '
 max-line-length=88
 
 # Maximum number of lines in a module.  Unused: too-many-lines is disabled in
-# favour of max-module-statements (see MESSAGES CONTROL), because this limit
-# counts raw physical lines and so penalizes documentation.  Left at the default
+# favour of max-module-statements (see MESSAGES CONTROL).  Left at the default
 # so that re-enabling the message needs no other change.
 max-module-lines=1000
 
@@ -464,10 +460,9 @@ disable=raw-checker-failed,
         invalid-name,
         global-variable-not-assigned,
         # Superseded by too-many-module-statements (misc/pylint_module_size.py):
-        # this one counts raw physical lines, so it fires on prose.  Its limit,
-        # max-module-lines, is left at its default in [FORMAT].  No module in
-        # the tree trips either limit at present, so the swap changes no current
-        # verdict; it decides which way the next large file gets judged.
+        # this one counts raw physical lines, so it fires on prose.  No module
+        # trips either limit today, so the swap changes no current verdict; it
+        # decides which way the next large file gets judged.
         too-many-lines,
 
 # Enable the message, report, category or checker with the given id(s). You can

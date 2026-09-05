@@ -7,9 +7,8 @@ if (UNIX)
     # settings.cc is its only consumer and the CTAN binary needs a different value.
     set(ASYMPTOTE_SYSDIR_VALUE ${CMAKE_INSTALL_FULL_DATADIR}/asymptote CACHE PATH
         "Path baked into the asy binary as the system base dir (ASYMPTOTE_SYSDIR), \
-used as the fallback when no base/ is found relative to the executable. \
-Override only for builds that are run in-place from a fixed, non-install \
-location; the release presets leave it at the install datadir.")
+used as the fallback when no base/ is found beside the executable. Override only \
+for builds run in place from a fixed, non-install location.")
 
     set(ASYMPTOTE_DOCDIR_VALUE ${CMAKE_INSTALL_FULL_DATADIR}/doc/asymptote)
 

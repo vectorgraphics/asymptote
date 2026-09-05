@@ -42,23 +42,20 @@ export PKG_CONFIG_LIBDIR=""
 
 
 
-# Staging tree for the bundle.  Wipe it before installing: the configured prefix
-# is baked into the binary as ASYMPTOTE_SYSDIR, so a stale $STAGE/share/asymptote
-# left by an older build would be a base/ that resolves on this machine and
-# nowhere else.  A freshly-staged bundle never creates that directory.
+# Staging tree for the bundle.  Wipe it before installing: the prefix is baked
+# into the binary as ASYMPTOTE_SYSDIR, so a stale $STAGE/share/asymptote would
+# be a base/ that resolves on this machine and nowhere else.
 STAGE=${HOME}/asy_vulkan/tmp/staging
 
 # The bundle is relocatable by its layout, not by a build flag: asy prefers a
-# base/ sitting beside the executable over the compiled-in ASYMPTOTE_SYSDIR
-# (resolveSysdir(), locate.cc), so installing the two side by side makes the
-# bundle work wherever the user drags it out of the .dmg.  After building:
+# base/ beside the executable over the compiled-in ASYMPTOTE_SYSDIR
+# (resolveSysdir(), locate.cc).  So after building:
 #
 #   rm -rf $STAGE
 #   make install-asy bindir=$STAGE/Asymptote asydir=$STAGE/Asymptote/base
 #
-# which gives $STAGE/Asymptote/{asy,base/,lib/} -- lib/ being the bundled
-# dylibs, which asy finds through @executable_path/lib.  $STAGE/Asymptote is
-# what goes into the .dmg.
+# giving $STAGE/Asymptote/{asy,base/,lib/} -- lib/ being the bundled dylibs,
+# found through @executable_path/lib -- which is what goes into the .dmg.
 
 # For a portable build:
 ./configure CC=clang CXX=clang++ \
