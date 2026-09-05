@@ -398,9 +398,14 @@ recompiles stay cheap:
 
 ```bash
 cmake --preset linux/release/devcontainer
-cmake --build --preset linux/release/devcontainer --target asy-with-basefiles
-ctest --test-dir ~/.local/asy-build/release/ -R "asy.types.*"
+cmake --build --preset linux/release/devcontainer --target asy-check-test-deps
+ctest --test-dir ~/.local/asy-build/release/
 ```
+
+(`asy-with-basefiles` is enough to *run* asy, but `ctest` never builds anything,
+so build `asy-check-test-deps` before testing — see
+[Testing](../INSTALL-VCPKG.md#testing) for the test names and for running a
+subset of the `.asy` tests.)
 
 The hook will not overwrite a `CMakeUserPresets.json` you wrote yourself (see
 below); in that case it prints the `binaryDir` to add manually and exits.
