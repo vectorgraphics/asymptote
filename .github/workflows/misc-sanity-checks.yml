@@ -60,3 +60,12 @@ jobs:
         run: python3 -m isort --sp=.isort.cfg --check $(cat idir/lintable-files.txt)
       - name: pylint check
         run: python3 -m pylint --rcfile=.pylintrc $(cat idir/lintable-files.txt)
+      # mypy takes its file list from mypy.ini rather than the changed-files
+      # list; see the comment at the top of mypy.ini.  One run checks one
+      # platform -- mypy prunes the sys.platform branches that do not match and
+      # has no all-platforms mode -- hence a pass per platform, neither of which
+      # needs a host of that platform.
+      - name: mypy check (linux)
+        run: python3 -m mypy --config-file=mypy.ini --platform=linux
+      - name: mypy check (win32)
+        run: python3 -m mypy --config-file=mypy.ini --platform=win32

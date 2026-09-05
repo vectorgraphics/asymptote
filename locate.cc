@@ -6,16 +6,21 @@
  *****/
 
 #if defined(_WIN32)
-#  include <filesystem>
-#  include <system_error>
+#  include <filesystem>// canonical
+#  include <system_error>// error_code
 #  include <vector>
 #  include <Windows.h>
 #else
 #  include <unistd.h>
-#  ifdef __APPLE__
-#    include <limits.h>
-#    include <stdlib.h>
+#  if defined(__APPLE__)
+#    include <limits.h>// PATH_MAX
+#    include <stdlib.h>// realpath
 #    include <mach-o/dyld.h>
+#  elif defined(__FreeBSD__)
+#    include <limits.h>// PATH_MAX
+#    include <string.h>// strnlen
+#    include <sys/types.h>// sysctl (documented prerequisite of sys/sysctl.h)
+#    include <sys/sysctl.h>// sysctl, CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME
 #  endif
 #endif
 
@@ -43,8 +48,10 @@ bool relocatedSysdir= false;
 // its result is what those APIs expect.
 //
 // A path containing characters outside that code page is therefore not
-// representable here, and path::string() substitutes for them silently.
-
+// representable here, and path::string() substitutes for them silently. The
+// ...A APIs it would be handed to could not open such a path either; lifting
+// the limitation means moving the whole process to UTF-8.
+//
 // Returns "" rather than letting an exception escape. resolveSysdir() guards
 // its whole body for the static-initializer case, but this is also reached at
 // runtime through executableDir(), and "" is the not-representable answer both
@@ -63,6 +70,10 @@ static string narrowPath(std::filesystem::path const& path)
 // the __APPLE__ branch below, and exists for the same reason: GetModuleFileNameW
 // reports the path the process was launched from, unresolved, and only reopening
 // the file and asking for its final name gets past a reparse point.
+//
+// std::filesystem::canonical is preferred to hand-rolling that
+// CreateFileW/GetFinalPathNameByHandleW dance, which also has to strip the \\?\
+// prefix, grow its buffer and cope with a volume that has no drive letter.
 //
 // The argument is a path rather than a string so that the resolution runs on the
 // wide form throughout, with narrowPath() applied once to the result. Narrowing
@@ -111,7 +122,7 @@ string executablePath()
   }
   // GetModuleFileNameW does not resolve symlinks: launched through a link on
   // PATH it reports the link, whose directory holds no base/. Resolve it so
-  // that such a link yields the real install prefix, as on the other two
+  // that such a link yields the real install prefix, as on the other
   // platforms. Falling back to the unresolved path on failure mirrors what the
   // macOS branch does when realpath() fails.
   std::filesystem::path const exe(data, data + len);
@@ -124,13 +135,42 @@ string executablePath()
     return "";
   // _NSGetExecutablePath may return a path containing symlinks or "..";
   // resolve it so that a symlinked bin directory (Homebrew, MacPorts) yields
-  // the real install prefix.
-  //
+  // the real install prefix. The other POSIX branches arrive resolved already.
+  // PATH_MAX is required here -- realpath() may write that many bytes -- and
+  // avoided elsewhere in this file, since POSIX leaves it optional.
   char resolved[PATH_MAX];
   if (realpath(buf, resolved) != nullptr)
     return string(resolved);
   return string(buf);
+#elif defined(__FreeBSD__)
+  // procfs(5) is not mounted on a stock FreeBSD, and where it is it spells this
+  // /proc/curproc/file; kern.proc.pathname is the supported query, and a pid of
+  // -1 asks about the calling process. The other BSDs need their own branches:
+  // NetBSD uses a different mib, OpenBSD has no equivalent. mib is non-const so
+  // that it binds to the historical BSD prototype as well as FreeBSD's.
+  int mib[4]= {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
+  // No growth loop: the kernel builds this path in a MAXPATHLEN buffer, and
+  // MAXPATHLEN and PATH_MAX are both 1024 here, so a longer path is one it
+  // could not have produced.
+  char buf[PATH_MAX];
+  size_t size= sizeof(buf);
+  if (sysctl(mib, 4, buf, &size, nullptr, 0) != 0)
+    return "";
+  // A process with no text vnode succeeds while writing nothing, which would
+  // leave buf uninitialized.
+  if (size == 0)
+    return "";
+  // A size past the buffer would be a kernel bug; clamp it before strnlen()
+  // reads that far. size counts the terminating NUL.
+  if (size > sizeof(buf))
+    size= sizeof(buf);
+  // Already resolved, like /proc/self/exe: the kernel reconstructs the path
+  // from p_textvp, the vnode execve() reached after following any symlinks.
+  return string(buf, strnlen(buf, size));
 #else
+  // Linux, and anything else carrying a Linux-style /proc. The kernel resolves
+  // this symlink itself, so there is nothing left to canonicalize. A system
+  // with neither /proc nor a branch above needs one written for it.
   char buf[4096];
   ssize_t len= readlink("/proc/self/exe", buf, sizeof(buf) - 1);
   if (len <= 0)
@@ -206,63 +246,40 @@ static bool isBaseDir(string const& dir)
 // for the two binaries. The autotools build has a single executable and is
 // unaffected either way.
 //
-// Candidates are tried relative to the running executable first, so that a
-// binary run in place from its build tree uses its own base/ even when some
-// other Asymptote is installed at the compiled-in sysdir. Falling back to the
-// compiled-in path last costs nothing for an installed binary, whose
-// <prefix>/bin/asy resolves to the same <prefix>/share/asymptote either way.
+// The one candidate is base/ beside the running executable, tried before the
+// compiled-in path so that a binary run in place from its build tree uses its
+// own base/ rather than that of a separately installed Asymptote. It needs no
+// opt-in: <exedir>/base/plain.asy exists only in a build tree or in a
+// distribution that deliberately ships base/ beside the binary. The macOS
+// bundle is laid out that way -- install-asy with bindir=<dest>/Asymptote
+// asydir=<dest>/Asymptote/base -- so it relocates with no compiled-in path
+// involved.
 //
-// The build-tree candidate is always tried: <exedir>/base/plain.asy exists
-// only in a build tree or a flat install, never on a system where asy came
-// from a package, so it needs no opt-in. The install-tree and flat candidates
-// are gated behind IS_RELOCATABLE.
+// Otherwise the compiled-in path is returned unchanged, including when it is
+// empty: that is how a TeXLive build says it has no fixed data directory, and
+// initDir() then asks kpsewhich for TEXMFMAIN.
 //
 // noexcept because this runs as a static initializer (settings.cc), where an
 // escaping exception calls terminate() before main() rather than being caught
 // anywhere. Marking it costs nothing there -- terminate() is what an escaping
 // exception would produce either way -- and states the contract in a form the
 // compiler checks rather than one a comment can drift away from. The body is
-// guarded as a whole rather than at each allocating step: every candidate is
-// built from strings and std::filesystem paths, so the throwing operations are
-// too many to enumerate reliably, and all of them mean the same thing here.
+// guarded as a whole rather than at each allocating step: it is built out of
+// strings and std::filesystem paths, so the throwing operations are too many to
+// enumerate reliably, and all of them mean the same thing here.
 //
 string resolveSysdir(string const& compiledInSysdir) noexcept
 {
   try {
-    // An empty compiled-in sysdir marks a TeXLive build, whose data directory
-    // is defined only by kpathsea. It must always defer to kpsewhich, so never
-    // relocate it relative to the executable -- even when a base/ sits beside
-    // the binary (e.g. when run in place from its build tree).
-    if (compiledInSysdir.empty())
-      return compiledInSysdir;
-
     // parentDir() rather than executableDir(), so that an executable sitting
-    // directly in the filesystem root still gets its candidates tried.
+    // directly in the filesystem root still gets the candidate tried.
     optional<string> const exeDir= parentDir(executablePath());
     if (exeDir) {
-      string const& bindir= *exeDir;
-      // Build tree: base/ sits next to the executable.
-      string buildBase= bindir + "/base";
-      if (isBaseDir(buildBase)) {
+      string adjacentBase= *exeDir + "/base";
+      if (isBaseDir(adjacentBase)) {
         relocatedSysdir= true;
-        return buildBase;
+        return adjacentBase;
       }
-#ifdef IS_RELOCATABLE
-      // Install tree: <prefix>/bin/asy with data in <prefix>/share/asymptote.
-      optional<string> const prefix= parentDir(bindir);
-      if (prefix) {
-        string shareBase= *prefix + "/share/asymptote";
-        if (isBaseDir(shareBase)) {
-          relocatedSysdir= true;
-          return shareBase;
-        }
-      }
-      // Flat layout (the MSWindows installer): base files beside asy.exe.
-      if (isBaseDir(bindir)) {
-        relocatedSysdir= true;
-        return bindir;
-      }
-#endif
     }
     return compiledInSysdir;
   } catch (...) {

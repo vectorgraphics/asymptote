@@ -15,7 +15,10 @@ Asymptote with the CMake + vcpkg toolchain. It mirrors the Linux CI environment
   `glfw3`/`vulkan` vcpkg ports need, and the autotools/libtool stack
   (`autoconf`, `automake`, `autoconf-archive`, `libtool`, `libtool-bin`,
   `libltdl-dev`) that the `libxcrypt` vcpkg port uses to regenerate its build
-  system. The `glm`, GSL, curl, readline and curses dev packages
+  system. The same stack runs the project's own `./autogen.sh`:
+  [`configure.ac`](../configure.ac) declares `AC_PREREQ([2.71])`, which is
+  exactly what Ubuntu 22.04 (and 24.04) ship, so nothing needs building from
+  source. The `glm`, GSL, curl, readline and curses dev packages
   (`libglm-dev`, `libgsl-dev`, `libcurl4-openssl-dev`, `libreadline-dev`,
   `libncurses-dev`) are also installed so the no-vcpkg `linux/sandbox` preset
   (see [Sandbox build](#sandbox-build-no-network)) can build from system
@@ -183,7 +186,7 @@ on the host they are usually incompatible with the container
 (`GLIBCXX_… not found`). Running the container's `asy` *from the workspace root*
 picks up those stale copies first and fails to render. Avoid this by running
 from another directory (as above), or remove the host-built
-`/workspaces/asymptote/libasy*.so`. The relocatable build installs its own
+`/workspaces/asymptote/libasy*.so`. The out-of-workspace build installs its own
 `libasyvulkan.so` into `~/.local/asy-build/release/base/`, so `-dir <that base>`
 finds the correct one from any non-workspace directory.
 
@@ -395,9 +398,14 @@ recompiles stay cheap:
 
 ```bash
 cmake --preset linux/release/devcontainer
-cmake --build --preset linux/release/devcontainer --target asy-with-basefiles
-ctest --test-dir ~/.local/asy-build/release/ -R "asy.types.*"
+cmake --build --preset linux/release/devcontainer --target asy-check-test-deps
+ctest --test-dir ~/.local/asy-build/release/
 ```
+
+(`asy-with-basefiles` is enough to *run* asy, but `ctest` never builds anything,
+so build `asy-check-test-deps` before testing — see
+[Testing](../INSTALL-VCPKG.md#testing) for the test names and for running a
+subset of the `.asy` tests.)
 
 The hook will not overwrite a `CMakeUserPresets.json` you wrote yourself (see
 below); in that case it prints the `binaryDir` to add manually and exits.

@@ -174,22 +174,26 @@ INCL=""
 LIBS=""
 CPPFLAGS=$CPPFLAGS" -I. "
 
+# For a binary that ships inside a texmf tree (TeX Live, MacTeX) whose path is
+# not known at build time.  Instead of a fixed data directory it finds base/
+# when it runs, by asking kpsewhich where the texmf tree is.
+texlive_build=off
 AC_ARG_ENABLE(texlive-build,
 [AS_HELP_STRING(--enable-texlive-build[[[=no]]],
-automatically determine sysdir from kpsewhich)],
+[for a binary shipped inside a texmf tree: find base/ within the TeX
+installation at run time (via kpsewhich) instead of at a fixed path])],
 [ if test "x$enableval" = "xyes" ; then
+    texlive_build=on
+    # How that is asked for: an empty sysdir is what initDir() (settings.cc)
+    # tests to decide to consult kpsewhich.
     sysdir=""
   fi
 ])
 
-AC_ARG_ENABLE(relocatable,
-[AS_HELP_STRING(--enable-relocatable[[[=no]]],
-leave ASYMPTOTE_SYSDIR empty so the binary finds its data directory
-relative to its own location at runtime (for portable/staged macOS installs))],
-[ if test "x$enableval" = "xyes" ; then
-    OPTIONS=$OPTIONS"-DIS_RELOCATABLE "
-  fi
-])
+# Let tests/Makefile give the relocatable matrix its C="" (CTAN) axis.  CMake
+# has a second executable, asy-ctan, to point the test at; autotools builds one,
+# which under --enable-texlive-build *is* the CTAN binary.
+AC_SUBST(texlive_build)
 
 AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$sysdir",
         [System directory for global .asy files])

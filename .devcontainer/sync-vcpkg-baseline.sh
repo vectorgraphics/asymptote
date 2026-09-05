@@ -41,6 +41,9 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VCPKG_DIR="${VCPKG_ROOT:-/usr/local/vcpkg}"
+# Records the baseline the tool was last *successfully* bootstrapped for; see
+# the fast path below. Untracked, so a checkout leaves it be.
+MARKER="$VCPKG_DIR/.asy-vcpkg-baseline"
 
 give_up() {
     echo "warning: could not sync '$VCPKG_DIR' to the vcpkg baseline pinned in" >&2
@@ -65,10 +68,14 @@ if [ ! -d "$VCPKG_DIR/.git" ]; then
     give_up "'$VCPKG_DIR' is not a git checkout"
 fi
 
-# Fast path: already in sync, and the tool has been bootstrapped. This is the
-# usual case on container start, and costs one rev-parse.
+# Fast path: already in sync, and the tool has been bootstrapped *for this
+# baseline*. This is the usual case on container start, and costs one rev-parse.
+# The marker is what makes the second half trustworthy: a bootstrap interrupted
+# after the checkout leaves HEAD at the baseline and the *previous* vcpkg in
+# place, so testing for the executable alone would never retry it.
 if [ "$(git -C "$VCPKG_DIR" rev-parse HEAD 2>/dev/null || true)" = "$BASELINE" ] \
-    && [ -x "$VCPKG_DIR/vcpkg" ]; then
+    && [ -x "$VCPKG_DIR/vcpkg" ] \
+    && [ "$(cat "$MARKER" 2>/dev/null || true)" = "$BASELINE" ]; then
     exit 0
 fi
 
@@ -94,4 +101,12 @@ fi
 echo "Bootstrapping vcpkg tool for baseline $BASELINE"
 if ! "$VCPKG_DIR/bootstrap-vcpkg.sh"; then
     give_up "bootstrap-vcpkg.sh failed"
+fi
+
+# Only now is the tool known to match the baseline. Failing to write the marker
+# costs a harmless re-bootstrap on each later start, which is the safe direction
+# to err in. umask 002 so another member of the 'vcpkg' group can rewrite it.
+if ! ( umask 002; printf '%s\n' "$BASELINE" >"$MARKER" ) 2>/dev/null; then
+    echo "warning: could not write '$MARKER'; vcpkg will be re-bootstrapped on" >&2
+    echo "         every container start." >&2
 fi
