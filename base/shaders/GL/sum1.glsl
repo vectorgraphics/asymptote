@@ -6,7 +6,7 @@ uniform uint elements;
 
 layout(binding=2, std430) buffer countBuffer
 {
-  uint maxSize;
+  uint maxDepth;
   uint count[];
 };
 

@@ -128,7 +128,7 @@ using std::make_shared;
 static const struct ws_t {} ws={};
 
 // Portable way of skipping whitespace
-inline std::istream &operator >> (std::istream & s, const ws_t &ws) {
+inline std::istream &operator >> (std::istream & s, const ws_t &) {
   if(!s.eof())
     s >> std::ws;
   return s;

@@ -84,6 +84,10 @@ const third=1/3;
 const pi=Math.acos(-1.0);
 const radians=pi/180.0;
 const maxDepth=Math.ceil(1-Math.log2(Number.EPSILON));
+// Relative tolerance (working precision) for the pixel bounds fixed-point
+// iteration: the result feeds comparisons of independently computed
+// O(scene-size) quantities.
+const fitTolerance=Math.sqrt(Number.EPSILON);
 
 let Zoom;
 let lastZoom;
@@ -640,15 +644,17 @@ abstract class Geometry {
   }
 
   T(v) {
-    let c0=this.c[0];
-    let c1=this.c[1];
-    let c2=this.c[2];
-    let x=v[0]-c0;
-    let y=v[1]-c1;
-    let z=v[2]-c2;
-    return [x*normMat[0]+y*normMat[3]+z*normMat[6]+c0,
-            x*normMat[1]+y*normMat[4]+z*normMat[7]+c1,
-            x*normMat[2]+y*normMat[5]+z*normMat[8]+c2];
+    // Apply the transform to the center point to get its transformed position
+    let centerTrans=this.transform ? this.transform([this.c])[0] : this.c;
+
+    // Calculate the offset of the original vertex relative to the original center (this.c)
+    let x=v[0]-this.c[0];
+    let y=v[1]-this.c[1];
+    let z=v[2]-this.c[2];
+
+    return [x*normMat[0]+y*normMat[3]+z*normMat[6]+centerTrans[0],
+            x*normMat[1]+y*normMat[4]+z*normMat[7]+centerTrans[1],
+            x*normMat[2]+y*normMat[5]+z*normMat[8]+centerTrans[2]];
   }
 
   Tcorners(m,M) {
@@ -704,7 +710,7 @@ abstract class Geometry {
       v=corners(this.Min,this.Max);
     else {
       this.c=W.Centers[this.CenterIndex-1];
-      v=this.Tcorners(this.Min,this.Max);
+      v=this.transform ? p : this.Tcorners(this.Min,this.Max);
     }
 
     if(this.offscreen(v)) { // Fully offscreen
@@ -722,10 +728,10 @@ abstract class Geometry {
       }
       P=p;
     } else { // Transform billboard labels
-      let n=p.length;
+      let n=this.controlpoints.length;
       P=Array(n);
       for(let i=0; i < n; ++i)
-        P[i]=this.T(p[i]);
+        P[i]=this.T(this.controlpoints[i]);
     }
 
     let s=W.orthographic ? 1 : this.Min[2]/W.maxBound[2];
@@ -2191,13 +2197,20 @@ class BezierCurve extends Geometry {
   }
 }
 
+function pixelsPerBp() {
+  return 96.0/72.0; // pixels per bp
+}
+
+// Draw a pixel.
 class Pixel extends Geometry {
   constructor(private controlpoint,private width,protected MaterialIndex,
               transform = animatedGeometry()) {
     super();
     this.CenterIndex=0;
-    this.Min=controlpoint;
-    this.Max=controlpoint;
+    // width is in device pixels; convert to PostScript units.
+    let h=0.5*width/pixelsPerBp();
+    this.Min=[controlpoint[0]-h,controlpoint[1]-h,controlpoint[2]-h];
+    this.Max=[controlpoint[0]+h,controlpoint[1]+h,controlpoint[2]+h];
     this.transform=transform;
     this.controlpoints=[controlpoint];
   }
@@ -2207,11 +2220,13 @@ class Pixel extends Geometry {
   }
 
   Bounds(p,fuzz) {
-    return [this.controlpoints[0],this.controlpoints[0]];
+    // width is in device pixels; convert to PostScript units.
+    let h=0.5*this.width/pixelsPerBp();
+    let v=p[0];
+    return [[v[0]-h,v[1]-h,v[2]-h],[v[0]+h,v[1]+h,v[2]+h]];
   }
 
-  process(p) {
-    this.data.indices.push(this.data.vertex0(p[0],this.width));
+  process(p) {    this.data.indices.push(this.data.vertex0(p[0],this.width));
     this.append();
   }
 
@@ -2231,17 +2246,26 @@ class Triangles extends Geometry {
   private transparent: boolean = false;
 
   constructor(protected CenterIndex,protected MaterialIndex,
-              transform = null) {
+              transform = animatedGeometry()) {
     super();
     const wany = window as any;
-    this.controlpoints=wany.Positions;
-    this.Normals=wany.Normals;
-    this.Colors=wany.Colors;
-    this.Indices=wany.Indices;
+    // Copy the data: triangles() resets the globals after construction.
+    this.controlpoints=[...wany.Positions];
+    this.Normals=[...wany.Normals];
+    this.Colors=[...wany.Colors];
+    this.Indices=[...wany.Indices];
     this.transparent=Materials[this.MaterialIndex].diffuse[3] < 1;
+
+    this.transform=transform;
+    if(transform == null) {
+      let norm2=L2norm2(this.controlpoints);
+      this.epsilon=norm2*Number.EPSILON;
+      let fuzz=Math.sqrt(1000*Number.EPSILON*norm2);
+      [this.Min,this.Max]=this.Bounds(this.controlpoints,fuzz);
+    }
   }
 
-  Bound(p,m) {
+  Bound(p,m,fuzz) {
     let b=Array(3);
     let n=p.length;
     let x=Array(n);
@@ -2254,7 +2278,7 @@ class Triangles extends Geometry {
   }
 
   Bounds(p,fuzz) {
-    return [this.Bounds(p,min),this.Bounds(p,max)];
+    return [this.Bound(p,min,fuzz),this.Bound(p,max,fuzz)];
   }
 
   setMaterialIndex() {
@@ -3290,28 +3314,70 @@ function setDimensions(width,height,X,Y)
   xshift=(X/width+W.viewportShift[0])*Zoom;
   yshift=(Y/height+W.viewportShift[1])*Zoom;
   let Zoominv=1/Zoom;
+  if(fitWidth != width || fitHeight != height) {
+    if(W.orthographic) {
+      // Inflate the bounds so that fixed-size pixel() sprites are not clipped
+      // by the viewport at this canvas size (centering is unchanged).
+      inflatedMin=[W.minBound[0],W.minBound[1]];
+      inflatedMax=[W.maxBound[0],W.maxBound[1]];
+      inflatePixelBounds(inflatedMin,inflatedMax,width,height);
+      fitWidth=width;
+      fitHeight=height;
+    } else if(H != null) { // H is set by initProjection, after the first call
+      // Inflate the field of view so that fixed-size pixel() sprites are not
+      // clipped by the frustum at this canvas size. A sprite with center (x,y)
+      // and half-size n canvas px projects to y*height*near/(2*r*d) canvas px
+      // from the center at depth d, so it fits iff r >= |y|*near*height/
+      // (d*(height-2*n)) (and analogously in x), where r is the final
+      // half-height. Solve that constraint at the initial zoom W.zoom0
+      // (which includes the aspect correction for non-default canvas aspects)
+      // so that user zooming still moves sprites offscreen and zero-width
+      // pixels reduce to the default framing H. An axis whose sprite is
+      // wider than the canvas can never be fit by any field of view, so it
+      // contributes no constraint (clamping its denominator to 1 would
+      // over-inflate r instead of recognizing the sprite simply does not fit).
+      let r=H;
+      if(pixelList.length) {
+        let near=-W.maxBound[2];
+        let z0=W.zoom0;
+        for(const q of pixelList) {
+          let d=-q.z;
+          if(d > 0) {
+            if(height-2*q.n > 0)
+              r=Math.max(r,z0*Math.abs(q.y)*near*height/(d*(height-2*q.n)));
+            if(width-2*q.n > 0)
+              r=Math.max(r,z0*Math.abs(q.x)*near*width/(Aspect*d*(width-2*q.n)));
+          }
+        }
+      }
+      perspectiveR=r;
+      fitWidth=width;
+      fitHeight=height;
+    }
+  }
   if(W.orthographic) {
-    let xsize=W.maxBound[0]-W.minBound[0];
-    let ysize=W.maxBound[1]-W.minBound[1];
+    let minB=inflatedMin,maxB=inflatedMax;
+    let xsize=maxB[0]-minB[0];
+    let ysize=maxB[1]-minB[1];
     if(xsize < ysize*Aspect) {
       let r=0.5*ysize*Aspect*Zoominv;
       let X0=2*r*xshift;
       let Y0=ysize*Zoominv*yshift;
       viewParam.xmin=-r-X0;
       viewParam.xmax=r-X0;
-      viewParam.ymin=W.minBound[1]*Zoominv-Y0;
-      viewParam.ymax=W.maxBound[1]*Zoominv-Y0;
+      viewParam.ymin=minB[1]*Zoominv-Y0;
+      viewParam.ymax=maxB[1]*Zoominv-Y0;
     } else {
       let r=0.5*xsize*Zoominv/Aspect;
       let X0=xsize*Zoominv*xshift;
       let Y0=2*r*yshift;
-      viewParam.xmin=W.minBound[0]*Zoominv-X0;
-      viewParam.xmax=W.maxBound[0]*Zoominv-X0;
+      viewParam.xmin=minB[0]*Zoominv-X0;
+      viewParam.xmax=maxB[0]*Zoominv-X0;
       viewParam.ymin=-r-Y0;
       viewParam.ymax=r-Y0;
     }
   } else {
-    let r=H*Zoominv;
+    let r=perspectiveR*Zoominv;
     let rAspect=r*Aspect;
     let X0=2*rAspect*xshift;
     let Y0=2*r*yshift;
@@ -3529,7 +3595,9 @@ function animatedGeometry(){
 
   return function(controlpoints: vec3[]): vec3[] {
     let cp=toUser(controlpoints);
-    for(const {geometryTransform,durationInv} of stack) {
+    // Process stack in reverse order: inner transforms first
+    for(let i=stack.length-1; i >= 0; i--) {
+      const {geometryTransform,durationInv} = stack[i];
       const t=min(playbackTime*durationInv,1.0);
       cp=transformCP(cp,t,geometryTransform);
     }
@@ -3543,7 +3611,9 @@ function animatedColor() {
 
   return function(color,p) {
     let P=toUser([p[0],p[12],p[15],p[3]]);
-    for(const {colorTransform,durationInv} of stack) {
+    // Process stack in reverse order: inner transforms first
+    for(let i=stack.length-1; i >= 0; i--) {
+      const {colorTransform,durationInv} = stack[i];
       const t=min(playbackTime*durationInv,1.0);
       color=transformColor(
             [[P[0],color[0]],
@@ -3715,83 +3785,97 @@ function triangles(CenterIndex,MaterialIndex)
   Indices.length = 0;
 }
 
+// Precomputed first octant of the unit sphere: 16 Bezier triangles (depth=2).
+// Each triangle is 10 control points in row-major order.
+const sphereOctant = (function() {
+  function gcMidPoint(P, Q) {
+    const scale = 1 / (Math.sqrt(2) * Math.sqrt(1 + dot(P, Q)));
+    return [(P[0]+Q[0])*scale, (P[1]+Q[1])*scale, (P[2]+Q[2])*scale];
+  }
+
+  function bezierEdge(P, Q) {
+    const x = dot(P, Q);
+    const k = (4/3) * Math.sqrt(1 - x) / (Math.sqrt(2) + Math.sqrt(1 + x));
+    const u = unit([Q[0]-x*P[0], Q[1]-x*P[1], Q[2]-x*P[2]]);
+    const v = unit([P[0]-x*Q[0], P[1]-x*Q[1], P[2]-x*Q[2]]);
+    return [
+      [P[0]+k*u[0], P[1]+k*u[1], P[2]+k*u[2]],
+      [Q[0]+k*v[0], Q[1]+k*v[1], Q[2]+k*v[2]]
+    ];
+  }
+
+  function makeBezierTriangle(A, B, C) {
+    const ab = bezierEdge(A, B);
+    const bc = bezierEdge(B, C);
+    const ca = bezierEdge(C, A);
+
+    const S9 = [
+      A[0]+B[0]+C[0] + 3*(ab[0][0]+ab[1][0]+bc[0][0]+bc[1][0]+ca[0][0]+ca[1][0]),
+      A[1]+B[1]+C[1] + 3*(ab[0][1]+ab[1][1]+bc[0][1]+bc[1][1]+ca[0][1]+ca[1][1]),
+      A[2]+B[2]+C[2] + 3*(ab[0][2]+ab[1][2]+bc[0][2]+bc[1][2]+ca[0][2]+ca[1][2])
+    ];
+    const dir = unit([A[0]+B[0]+C[0], A[1]+B[1]+C[1], A[2]+B[2]+C[2]]);
+    const dotSD = dot(S9, dir);
+    const disc = 144*dotSD*dotSD - 144*(dot(S9,S9) - 729);
+    const R = (-12*dotSD + Math.sqrt(Math.max(disc, 0))) / 72;
+    const p9 = [R*dir[0], R*dir[1], R*dir[2]];
+
+    return [A, ab[0], ca[1], ab[1], p9, ca[0], B, bc[0], bc[1], C];
+  }
+
+  function subdivideTriangle(A, B, C, depth) {
+    if(depth == 0) return [makeBezierTriangle(A, B, C)];
+    const midAB = gcMidPoint(A, B);
+    const midBC = gcMidPoint(B, C);
+    const midCA = gcMidPoint(C, A);
+    let result = [];
+    result = result.concat(subdivideTriangle(A, midAB, midCA, depth-1));
+    result = result.concat(subdivideTriangle(B, midBC, midAB, depth-1));
+    result = result.concat(subdivideTriangle(C, midCA, midBC, depth-1));
+    result = result.concat(subdivideTriangle(midAB, midBC, midCA, depth-1));
+    return result;
+  }
+
+  return subdivideTriangle([1,0,0], [0,1,0], [0,0,1], 2);
+})();
+
 // draw a sphere of radius r about center
 // (or optionally a hemisphere symmetric about direction dir)
 function sphere(center,r,CenterIndex,MaterialIndex,dir)
 {
-  let b=0.524670512339254;
-  let c=0.595936986722291;
-  let d=0.954967051233925;
-  let e=0.0820155480083437;
-  let f=0.996685028842544;
-  let g=0.0549670512339254;
-  let h=0.998880711874577;
-  let i=0.0405017186586849;
-
-  let octant=[[
-    [1,0,0],
-    [1,0,b],
-    [c,0,d],
-    [e,0,f],
-
-    [1,a,0],
-    [1,a,b],
-    [c,a*c,d],
-    [e,a*e,f],
-
-    [a,1,0],
-    [a,1,b],
-    [a*c,c,d],
-    [a*e,e,f],
-
-    [0,1,0],
-    [0,1,b],
-    [0,c,d],
-    [0,e,f]
-  ],[
-    [e,0,f],
-    [e,a*e,f],
-    [g,0,h],
-    [a*e,e,f],
-    [i,i,1],
-    [0.05*a,0,1],
-    [0,e,f],
-    [0,g,h],
-    [0,0.05*a,1],
-    [0,0,1]
-  ]];
-
-  let rx,ry,rz;
-  let A=new Align(center,dir);
-  let s,t,z;
+  let rx, ry, rz;
+  let A = new Align(center, dir);
+  let s, t;
 
   if(dir) {
-    s=1;
-    z=0;
-    t=A.T.bind(A);
+    s = 1;
+    t = A.T.bind(A);
   } else {
-    s=-1;
-    z=-r;
-    t=A.T0.bind(A);
+    s = -1;
+    t = A.T0.bind(A);
   }
 
-  function T(V) {
-    let p=Array(V.length);
-    for(let i=0; i < V.length; ++i) {
-      let v=V[i];
-      p[i]=t([rx*v[0],ry*v[1],rz*v[2]]);
+  function scaleAndTransform(triangle, sx, sy, sz) {
+    let p = Array(10);
+    for(let i = 0; i < 10; ++i) {
+      let v = triangle[i];
+      p[i] = t([sx*r*v[0], sy*r*v[1], sz*r*v[2]]);
     }
     return p;
   }
 
-  for(let i=-1; i <= 1; i += 2) {
-    rx=i*r;
-    for(let j=-1; j <= 1; j += 2) {
-      ry=j*r;
-      for(let k=s; k <= 1; k += 2) {
-        rz=k*r;
-        for(let m=0; m < 2; ++m)
-          P.push(new BezierPatch(T(octant[m]),CenterIndex,MaterialIndex));
+  // Reflect across coordinate planes to cover all octants.
+  for(let i = -1; i <= 1; i += 2) {
+    rx = i;
+    for(let j = -1; j <= 1; j += 2) {
+      ry = j;
+      for(let k = s; k <= 1; k += 2) {
+        rz = k;
+        for(let m = 0; m < sphereOctant.length; ++m) {
+          P.push(new BezierPatch(
+            scaleAndTransform(sphereOctant[m], rx, ry, rz),
+            CenterIndex, MaterialIndex));
+        }
       }
     }
   }
@@ -4182,6 +4266,8 @@ function webGLStart()
   W.canvasWidth0=W.canvasWidth;
   W.canvasHeight0=W.canvasHeight;
 
+  updateSceneBounds();
+
   mat4.identity(rotMat);
 
   if(window.innerWidth != 0 && window.innerHeight != 0)
@@ -4195,10 +4281,137 @@ function webGLStart()
       SetIBL();
       redrawScene();
     }
+  if(W.ibl && Module.EXRLoader) {
+    initIBLOnceEXRLoaderReady().then(() => {
+      SetIBL();
+      redrawScene();
+    });
+  }
 
   home();
   requestAnimationFrame(animate);
 }
+
+
+// Override the precomputed scene x/y bounds with the union of the objects'
+// tight bounds, which accounts for pixel() widths. Keep the precomputed z
+// range: it is expanded to a sphere about the target so that the depth
+// frustum contains the whole scene under rotation. If any object has an
+// animation transform, keep all precomputed bounds.
+let pixelList=[]; // Static pixels: {x,y,z} center and n half-size in canvas px
+// Cached pixel-fit quantities. They depend only on the canvas size (the scene
+// is static after webGLStart), so they are recomputed only when the size
+// changes (initial render and resizes), not on every zoom/pan event.
+let inflatedMin=null,inflatedMax=null; // Inflated x/y bounds (orthographic)
+let perspectiveR=0;                    // Base field-of-view half-height
+let fitWidth=0,fitHeight=0;            // Canvas size the cache fits
+
+function updateSceneBounds() {
+  if(P.length == 0) return;
+  let min=[Infinity,Infinity];
+  let max=[-Infinity,-Infinity];
+  pixelList.length=0;
+  for(const p of P) {
+    if(p.transform) return;
+    for(let i=0; i < 2; ++i) {
+      min[i]=Math.min(min[i],p.Min[i]);
+      max[i]=Math.max(max[i],p.Max[i]);
+    }
+    if(p instanceof Pixel) {
+      // The sprite is drawn with a fixed on-screen size (width canvas px),
+      // so record its half-size in canvas px for the fit calculation.
+
+      let q=p as any;
+      pixelList.push({x:0.5*(q.Min[0]+q.Max[0]), y:0.5*(q.Min[1]+q.Max[1]),
+                      z:0.5*(q.Min[2]+q.Max[2]),
+                      n:0.5*(q.Max[0]-q.Min[0])*pixelsPerBp()});
+    }
+  }
+  W.minBound[0]=min[0];
+  W.minBound[1]=min[1];
+  W.maxBound[0]=max[0];
+  W.maxBound[1]=max[1];
+}
+
+
+// A pixel() sprite has a fixed on-screen size, so its extent in scene units
+// is n*s, where s is the fit scale (scene units per canvas px), which itself
+// depends on the bounds. Inflate the x/y bounds to a fixed point so that no
+// sprite is clipped by the viewport. The frustum window is centered at the
+// origin along one axis, whose extent is derived from the fitted axis, so
+// the branch is decided from the base bounds and only the fitted axis is
+// grown: to cover the sprites' extent, and symmetrically about its center
+// until the centered window covers the sprites' extent from the origin.
+// Growing only the fitted axis keeps the branch, so the scene framing is
+// never worse than without pixels. The constraint is invariant under zoom.
+function inflatePixelBounds(minB,maxB,width,height) {
+  if(pixelList.length == 0) return;
+  let Aspect=width/height;
+  // Fit scale (scene units per canvas px) implied by inflating the fitted
+  // axis; fills mn/mx with the resulting bounds. The centered axis is left
+  // at the base bounds: its window is +/-r, derived from the fitted size,
+  // so growing it would not help coverage and could flip the branch in
+  // setDimensions.
+  let mn=[0,0],mx=[0,0];
+  function F(s) {
+    let xsize=maxB[0]-minB[0];
+    let ysize=maxB[1]-minB[1];
+    if(xsize < ysize*Aspect) { // x window is centered at the origin
+      // y is the fitted axis: cover the sprites' y extent, then grow
+      // symmetrically about its center until the x window, +/-ysize*Aspect/2,
+      // covers the sprites' x extent from the origin, Mx.
+      let Mx=0,mn1=minB[1],mx1=maxB[1];
+      for(const q of pixelList) {
+        Mx=Math.max(Mx,Math.abs(q.x)+q.n*s);
+        mn1=Math.min(mn1,q.y-q.n*s);
+        mx1=Math.max(mx1,q.y+q.n*s);
+      }
+      let d=2*Mx/Aspect-(mx1-mn1);
+      if(d > 0) { mn1-=0.5*d; mx1+=0.5*d; }
+      mn[0]=minB[0]; mx[0]=maxB[0];
+      mn[1]=mn1; mx[1]=mx1;
+      return (mx1-mn1)/height;
+    } else { // y window is centered at the origin
+      // x is the fitted axis: cover the sprites' x extent, then grow
+      // symmetrically about its center until the y window, +/-xsize/(2*Aspect),
+      // covers the sprites' y extent from the origin, My.
+      let My=0,mn0=minB[0],mx0=maxB[0];
+      for(const q of pixelList) {
+        My=Math.max(My,Math.abs(q.y)+q.n*s);
+        mn0=Math.min(mn0,q.x-q.n*s);
+        mx0=Math.max(mx0,q.x+q.n*s);
+      }
+      let d=2*Aspect*My-(mx0-mn0);
+      if(d > 0) { mn0-=0.5*d; mx0+=0.5*d; }
+      mn[0]=mn0; mx[0]=mx0;
+      mn[1]=minB[1]; mx[1]=maxB[1];
+      return (mx0-mn0)/width;
+    }
+  }
+  // F is continuous and piecewise linear in s, with slope < 1 wherever a
+  // finite fit exists, so g(s)=F(s)-s has the smallest fitting scale as its
+  // first root. Bisect for it: unlike the contraction s<-F(s), whose rate
+  // approaches 1 when a large sprite dominates, this takes a fixed number of
+  // iterations. g(0)=F(0)>0 when pixels exist; double hi until g(hi)<=0,
+  // bailing out if no finite fit exists (a sprite larger than the canvas),
+  // keeping the input bounds.
+  let lo=0,hi=F(0);
+  for(let i=0; i < 64 && F(hi) > hi; ++i) hi*=2;
+  if(F(hi) > hi) return;
+  for(let i=0; i < 64 && hi-lo > fitTolerance*hi; ++i) {
+    let mid=0.5*(lo+hi);
+    if(F(mid) > mid) lo=mid; else hi=mid;
+  }
+  F(hi);
+  minB[0]=mn[0]; minB[1]=mn[1];
+  maxB[0]=mx[0]; maxB[1]=mx[1];
+}
+
+function updateScene() {
+    remesh=true;
+    drawScene();
+}
+
 globalThis.window.webGLStart=webGLStart;
 globalThis.window.light=light;
 globalThis.window.material= material;
@@ -4218,3 +4431,4 @@ globalThis.window.initTransform=initTransform;
 globalThis.window.beginTransform=beginTransform;
 globalThis.window.endTransform=endTransform;
 globalThis.window.interp=interp;
+globalThis.window.updateScene=updateScene;

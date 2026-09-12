@@ -41,12 +41,12 @@ static const char *installFFTW=
 #endif
 
 #ifdef HAVE_EIGEN_DENSE
-#if __GNUC__ >= 15
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
 #include <Eigen/Dense>
-#if __GNUC__ >= 15
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
 typedef std::complex<double> Complex;
@@ -348,15 +348,6 @@ array *AtA(array *a)
 
   delete[] A;
   return c;
-}
-
-double norm(double *a, size_t n)
-{
-  if(n == 0) return 0.0;
-  double M=fabs(a[0]);
-  for(size_t i=1; i < n; ++i)
-    M=::max(M,fabs(a[i]));
-  return M;
 }
 
 double norm(triple *a, size_t n)

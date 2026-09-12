@@ -3,7 +3,7 @@
 %global __python %{__python3}
 
 Name:           asymptote
-Version:        3.12
+Version:        3.14
 Release:        1%{?dist}
 Summary:        Descriptive vector graphics language
 
@@ -54,12 +54,18 @@ that LaTeX does for scientific text.
 %build
 CFLAGS="`echo $RPM_OPT_FLAGS | sed s/-O2/-O3/` -fno-lto" \
 %configure --with-latex=%{_texmf}/tex/latex --with-context=%{_texmf}/tex/context/third
-make %{?_smp_mflags}
+# Build the info page (and its example-PDF dependencies) here so that
+# %install stays lean and only copies the pre-built info file.
+make all info %{?_smp_mflags}
 
 
 %install
 rm -rf $RPM_BUILD_ROOT
 make install-notexhash DESTDIR=$RPM_BUILD_ROOT
+# The info page is already built in %build; install-info here just copies
+# it into the build root (kept separate from install-notexhash so that
+# target remains independent of texinfo support).
+make install-info DESTDIR=$RPM_BUILD_ROOT
 
 %{__install} -p -m 644 BUGS ChangeLog LICENSE README ReleaseNotes TODO \
     $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}/

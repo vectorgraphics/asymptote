@@ -35,8 +35,11 @@
 #include "renderBase.h"
 #include "norender.h"
 
-extern pthread_mutex_t main_wait_mutex;
-extern pthread_cond_t main_wait_cond;
+// Defined here (in asycore) rather than in main.cc so that executables which
+// link asycore without main.cc (e.g. asyCxxTests) still resolve these symbols,
+// which are referenced from picture.cc and below.
+pthread_mutex_t main_wait_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t main_wait_cond = PTHREAD_COND_INITIALIZER;
 
 #ifdef _WIN32
 #include "vkrender.h"
@@ -61,8 +64,12 @@ bool vulkan = false;
 #include <pthread.h>
 #include <string>
 
+#ifdef __APPLE__
+#  include <stdlib.h>    // for realpath(), setenv() in the llvmpipe fallback
+#endif
+
 #include "settings.h"    // for settings::verbose
-#include "locate.h"       // for settings::locateFile
+#include "locate.h"      // for settings::locateFile, settings::executableDir
 
 namespace camp {
 
@@ -93,9 +100,24 @@ static void *glLibHandle = nullptr;
  * Returns a valid handle on success, or nullptr on failure.
  */
 #ifndef _WIN32
+// Resolve a renderer shared library path. Prefer a copy that sits next to the
+// executable (the build tree's lib); otherwise fall back to the Asymptote
+// search path. Relying on locateFile() alone is CWD-dependent and can pick up a
+// stale system-installed lib when asy is run from outside the build directory.
+static string resolveRendererLib(const char *libName)
+{
+    string dir = settings::executableDir();
+    if (!dir.empty()) {
+        string candidate = dir + "/" + libName;
+        if (settings::fs::exists(candidate))
+            return candidate;
+    }
+    return settings::locateFile(libName, true, "");
+}
+
 static void *loadRendererLib(const char *libName)
 {
-    mem::string locPath = settings::locateFile(libName, true, "");
+    mem::string locPath = resolveRendererLib(libName);
     std::string pathStr = mem::stdString(locPath);
 
     return dlopen(pathStr.c_str(), RTLD_NOW | RTLD_LOCAL);
@@ -124,7 +146,7 @@ static bool tryLoadVulkanLib()
     CreateAsyVkRenderFn fn =
         reinterpret_cast<CreateAsyVkRenderFn>(GetProcAddress(vulkanLibHandle, "createAsyVkRender"));
 #else
-    mem::string locPath = settings::locateFile("libasyvulkan.so", true, "");
+    mem::string locPath = resolveRendererLib("libasyvulkan.so");
     std::string pathStr = mem::stdString(locPath);
 
     vulkanLibHandle = dlopen(pathStr.c_str(), RTLD_NOW | RTLD_LOCAL);
@@ -193,7 +215,7 @@ static bool tryLoadOpenGLLib()
     CreateAsyGLRenderFn fn =
         reinterpret_cast<CreateAsyGLRenderFn>(GetProcAddress(glLibHandle, "createAsyGLRender"));
 #else
-    mem::string locPath = settings::locateFile("libasyopengl.so", true, "");
+    mem::string locPath = resolveRendererLib("libasyopengl.so");
     std::string pathStr = mem::stdString(locPath);
 
     glLibHandle = dlopen(pathStr.c_str(), RTLD_NOW | RTLD_LOCAL);
@@ -410,26 +432,15 @@ void createRenderer()
         // VK_ICD_FILENAMES so the Vulkan loader picks it up on the next
         // instance creation.
 
-        // 1) Determine the directory of our own executable.
-        std::string exeDir;
-        {
-            char buf[MAX_PATH];
-            DWORD len = GetModuleFileNameA(nullptr, buf, MAX_PATH);
-            if (len > 0 && len < MAX_PATH) {
-                std::string exePath(buf);
-                size_t slash = exePath.find_last_of("\\/");
-                if (slash != std::string::npos)
-                    exeDir = exePath.substr(0, slash + 1);
-            }
-        }
+        // 1) Determine the directory of our own executable. Both files below
+        //    fall back to a bare name -- resolved against the current
+        //    directory, and for the DLL against the standard search order --
+        //    if it cannot be determined.
+        std::string const exeDir = mem::stdString(settings::executableDir());
 
         // 2) Write lvp_icd.json next to the executable.
-        std::string icdName = "lvp_icd.json";
-        std::string icdPath;
-        if (!exeDir.empty())
-            icdPath = exeDir + icdName;
-        else
-            icdPath = icdName;
+        std::string icdPath =
+            exeDir.empty() ? "lvp_icd.json" : exeDir + "\\lvp_icd.json";
 
         {
             std::ofstream ofs(icdPath.c_str(), std::ios::trunc);
@@ -451,11 +462,8 @@ void createRenderer()
         _putenv_s("VK_ICD_FILENAMES", icdPath.c_str());
 
         // 4) Load vulkan_lvp.dll (the Lavapipe driver).
-        std::string lvpDllPath;
-        if (!exeDir.empty())
-            lvpDllPath = exeDir + "vulkan_lvp.dll";
-        else
-            lvpDllPath = "vulkan_lvp.dll";
+        std::string const lvpDllPath =
+            exeDir.empty() ? "vulkan_lvp.dll" : exeDir + "\\vulkan_lvp.dll";
 
         lvpLibHandle = LoadLibraryA(lvpDllPath.c_str());
         if (lvpLibHandle) {

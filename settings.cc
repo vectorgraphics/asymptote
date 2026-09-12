@@ -22,9 +22,6 @@
 #define isatty _isatty
 #else
 #include <unistd.h>
-#ifdef __APPLE__
-#include <mach-o/dyld.h>
-#endif
 #endif
 
 #include "common.h"
@@ -108,30 +105,10 @@ mode_t mask;
 // Flag set by --version option to exit after all options are parsed
 static bool showVersion=false;
 
-// Use the compiled-in sysdir if it exists on disk; otherwise fall back to a
-// path relative to the running executable so that a staged installation works
-// when moved to a different location.
-static string initSysdir() {
-#if defined(__APPLE__) && defined(IS_RELOCATABLE)
-  char buf[4096];
-  uint32_t size = (uint32_t)sizeof(buf);
-  if (_NSGetExecutablePath(buf, &size) != 0)
-    return "";
-  string exe(buf);
-  // Strip the executable filename to get the bin directory.
-  size_t slash = exe.rfind('/');
-  if (slash == string::npos)
-    return "";
-  // Strip the bin directory to get the installation prefix.
-  size_t slash2 = exe.substr(0, slash).rfind('/');
-  if (slash2 == string::npos)
-    return "";
-  return exe.substr(0, slash2) + "/share/asymptote";
-#endif
-  return ASYMPTOTE_SYSDIR;
-}
-
-string systemDir=initSysdir();
+// systemDir is resolved by resolveSysdir() (declared in locate.h). Under CMake
+// this file is compiled once per executable so that ASYMPTOTE_SYSDIR can differ
+// between asy and asy-ctan; the autotools build has only the one executable.
+string systemDir=resolveSysdir(ASYMPTOTE_SYSDIR);
 string defaultPSdriver="ps2write";
 string defaultEPSdriver="eps2write";
 string defaultPNGdriver="png16malpha"; // pngalpha has issues at high resolutions
@@ -314,8 +291,11 @@ void queryRegistry()
   if (!s.empty()) {
     docdir= s;
   }
-  // An empty systemDir indicates a TeXLive build
-  if (!systemDir.empty() && !docdir.empty())
+  // The registry entry describes a separately installed Asymptote, so it must
+  // not override a systemDir that initSysdir() resolved relative to this
+  // executable; that would send a binary run in place to the installed base/.
+  // An empty systemDir indicates a TeXLive build.
+  if (!systemDir.empty() && !docdir.empty() && !relocatedSysdir)
     systemDir= docdir;
 }
 
@@ -486,8 +466,9 @@ struct option : public gc {
 
   // Outputs description of the command for the -help option.
   virtual void describe(char option) {
-    // Don't show the option if it has no description.
-    if(!hide() && ((option == 'h') ^ env())) {
+    // Don't show the option if it has no description (deprecated options
+    // are silently accepted but not listed).
+    if(!hide() && !desc.empty() && ((option == 'h') ^ env())) {
       const unsigned WIDTH=22;
       string start=describeStart();
       cerr << std::left << std::setw(WIDTH) << start;
@@ -498,7 +479,7 @@ struct option : public gc {
       cerr << " " << desc;
       if(cmdlineonly) cerr << "; command-line only";
       if(Default != "") {
-        if(!desc.empty()) cerr << " ";
+        cerr << " ";
         cerr << Default;
       }
       cerr << endl;
@@ -1262,6 +1243,8 @@ static const char *const licensesSummary =
   "                    https://glew.sourceforge.net/" "\n"
   "  TinyEXR           BSD 3-Clause License\n"
   "                    Syoyo Fujita -- https://github.com/syoyo/tinyexr" "\n"
+  "  gl-matrix         Zlib License\n"
+  "                    Brandon Jones, Colin MacKenzie IV -- https://github.com/toji/gl-matrix" "\n"
   "\n"
   "Use --licenses=full for complete copyright notices and license texts.\n"
   "Source: https://github.com/vectorgraphics/asymptote/\n";
@@ -1380,6 +1363,8 @@ static bool printLicensesFull(ostream& out) {
     "Hans-J. Boehm, Alan J. Demers, Xerox Corporation, Silicon Graphics,\n"
     "Hewlett-Packard Development Company, Ivan Maidanski, Fergus Henderson\n"
     "<https://www.hboehm.info/gc/>\n"
+    "(The project ships no standalone license file; the copyright notices and\n"
+    "license terms are reproduced below as published in the upstream README.md.)\n"
     "------------------------------------------------------------------------\n";
   requireFile("gc-LICENSE.txt",
     "Boehm GC -- Custom permissive license -- https://www.hboehm.info/gc/");
@@ -1429,6 +1414,15 @@ static bool printLicensesFull(ostream& out) {
     "------------------------------------------------------------------------\n";
   requireFile("tinyexr-LICENSE.txt",
     "TinyEXR -- BSD 3-Clause License -- https://github.com/syoyo/tinyexr");
+
+  out <<
+    "\n"
+    "------------------------------------------------------------------------\n"
+    "gl-matrix -- Zlib License\n"
+    "Brandon Jones, Colin MacKenzie IV and contributors <https://github.com/toji/gl-matrix>\n"
+    "------------------------------------------------------------------------\n";
+  requireFile("gl-matrix-LICENSE.md",
+    "gl-matrix -- Zlib License -- https://github.com/toji/gl-matrix");
 
   return missing == 0;
 }
@@ -1558,14 +1552,14 @@ void getOptions(int argc, char *argv[])
     }
 
     if (showVersion) {
-      // Don't exit yet — continue parsing remaining options
+      // Don't exit yet -- continue parsing remaining options
     }
 
     errno=0;
   }
 
   if (showVersion) {
-    // Don't exit yet — continue parsing remaining options, then exit
+    // Don't exit yet -- continue parsing remaining options, then exit
     // from setOptions() after setPath() has been called so that the
     // renderer can locate its shared libraries.
   }
@@ -1662,9 +1656,9 @@ void initSettings() {
   addOption(new stringSetting("imageDir", 0,"str","Environment image library directory","ibl"));
   addOption(new stringSetting("imageURL", 0,"str","Environment image library URL","https://vectorgraphics.gitlab.io/asymptote/ibl"));
   addOption(new realSetting("render", 0, "n",
-                            "Render 3D graphics using n pixels per bp (-1=auto)",
-                            havegl ? -1.0 : 0.0));
-  addOption(new realSetting("devicepixelratio", 0, "n", "Ratio of physical to logical pixels", 0.0));
+                            "Render 3D graphics using n pixels per bp",
+                            havegl ? 2.0 : 0.0));
+  addOption(new realSetting("devicepixelratio", 0, "n", "", 0.0));
   addOption(new IntSetting("antialias", 0, "n",
                            "Antialiasing width for rasterized output", 2));
   addOption(new IntSetting("multisample", 0, "n",

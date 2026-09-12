@@ -3,7 +3,6 @@ import three;
 picture pic;
 unitsize(pic,5cm);
 
-if(settings.render < 0) settings.render=4;
 settings.toolbar=false;
 viewportmargin=(1cm,1cm);
 

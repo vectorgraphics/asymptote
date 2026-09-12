@@ -81,8 +81,10 @@ int _matherr(struct _exception *except)
 
 #include "renderBase.h"
 
-pthread_mutex_t main_wait_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t main_wait_cond = PTHREAD_COND_INITIALIZER;
+// Defined in rendererloader.cc (part of asycore) so that test executables
+// linking asycore without main.cc can resolve them as well.
+extern pthread_mutex_t main_wait_mutex;
+extern pthread_cond_t main_wait_cond;
 
 using namespace settings;
 

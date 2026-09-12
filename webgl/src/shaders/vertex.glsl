@@ -21,10 +21,6 @@ flat out int MaterialIndex;
 #ifdef COLOR
 OUT vec4 Color;
 #endif
-#ifdef NORMAL
-OUT vec4 diffuse;
-OUT vec3 specular;
-OUT float roughness,metallic,fresnel0;
 OUT vec4 emissive;
 
 struct Material {
@@ -33,6 +29,11 @@ struct Material {
 };
 
 uniform Material Materials[Nmaterials];
+
+#ifdef NORMAL
+OUT vec4 diffuse;
+OUT vec3 specular;
+OUT float roughness,metallic,fresnel0;
 #endif
 
 #else

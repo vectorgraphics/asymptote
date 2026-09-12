@@ -1,5 +1,7 @@
 private import math;
 
+// Given knots x and values y, return the derivatives dy/dx at the knots, one
+// per knot.  Callers convert these to Bezier control points.
 typedef real[] splinetype(real[], real[]);
 
 restricted real[] Spline(real[] x, real[] y);
@@ -109,6 +111,25 @@ real[] periodic(real[] x, real[] y)
     d=new real[] {0,0};
   } else abort(morepoints);
   return d;
+}
+
+// Cubic spline interpolation with the periodic conditions s'(a)=s'(b),
+// s''(a)=s''(b), but without assuming f(a)=f(b): the sample may repeat after a
+// constant offset, as along one turn of a helix.  Subtract the linear drift
+// carrying y[0] to y[n-1], interpolate the remainder periodically, then add
+// the drift's slope back to every derivative.  A cubic spline plus a linear
+// function is again a cubic spline, so this is exact; with a zero offset it
+// reduces to periodic.
+real[] periodicOffset(real[] x, real[] y)
+{
+  int n=x.length;
+  checklengths(n,y.length);
+  checkincreasing(x);
+  if(n < 2) abort(morepoints);
+  real slope=(y[n-1]-y[0])/(x[n-1]-x[0]);
+  real[] z=y-slope*(x-x[0]);
+  z[n-1]=z[0];
+  return periodic(x,z)+slope;
 }
 
 // Standard cubic spline interpolation with the natural condition
@@ -229,7 +250,7 @@ real[] monotonic(real[] x, real[] y)
     else if((sgn(del[0]) != sgn(del[1])) && (abs(d[0]) > abs(3*del[0])))
       d[0]=3*del[0];
 
-    d[n-1]=((2*h[n-2]+h[n-3])*del[n-2]-h[n-2]*del[n-2])/(h[n-2]+h[n-3]);
+    d[n-1]=((2*h[n-2]+h[n-3])*del[n-2]-h[n-2]*del[n-3])/(h[n-2]+h[n-3]);
     if(sgn(d[n-1]) != sgn(del[n-2])) {d[n-1]=0;}
     else if((sgn(del[n-2]) != sgn(del[n-3])) &&
             (abs(d[n-1]) > abs(3*del[n-2])))
