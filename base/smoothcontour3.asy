@@ -269,13 +269,6 @@ patch trianglewithnormals(path3 external, triple n1,
   n3 -= dot(n3,tangent)*tangent;
   n3 = unit(n3);
 
-  real wild = 2 * wildnessweight;
-  real[][] matrix = { {n1.x, n1.y, n1.z},
-                      {n2.x, n2.y, n2.z},
-                      {n3.x, n3.y, n3.z},
-                      {      wild,          0,          0},
-                      {         0,       wild,          0},
-                      {         0,          0,       wild} };
   real[] rightvector =
     { dot(n1, (a3 + 3a2b + 3ab2 + b3 - 2a2c - 2b2c)) / 4,
       dot(n2, (b3 + 3b2c + 3bc2 + c3 - 2ab2 - 2ac2)) / 4,
@@ -285,16 +278,73 @@ patch trianglewithnormals(path3 external, triple n1,
   // the mixed partials on the corners.
   triple tameinnercontrol =
     ((a2b + a2c - a3) + (ab2 + b2c - b3) + (ac2 + bc2 - c3)) / 3;
-  rightvector.append(wild * new real[]
-                     {tameinnercontrol.x, tameinnercontrol.y, tameinnercontrol.z});
-  real[] solution = leastsquares(matrix, rightvector, warn=false);
-  if (solution.length == 0) { // if the matrix was singular
+
+  real[][] normalrows = { {n1.x, n1.y, n1.z},
+                          {n2.x, n2.y, n2.z},
+                          {n3.x, n3.y, n3.z} };
+  real[] tame = {tameinnercontrol.x, tameinnercontrol.y, tameinnercontrol.z};
+  // To get innercontroloffset, we will solve
+  //     (N^t N) offset = N^t misfit
+  // terminology: N^t N is called the "Gram matrix"
+  real[] misfit = rightvector - normalrows * tame;
+  real[][] gram = AtA(normalrows);
+  real[] Nt_misfit = misfit * normalrows;  // = transpose(normalrows) * misfit
+
+  bool singular = false;
+
+  // The offset from tameinnercontrol minimizing
+  //   |normalrows * offset - misfit|^2 + wild^2 * |offset|^2,
+  // whose length decreases monotonically to zero as wild grows.
+  triple offset(real wild) {
+    real[][] matrix = copy(gram);
+    for (int i = 0; i < 3; ++i)
+      matrix[i][i] += wild^2;
+    // if wild == 0, then the equation is N^t N x = N^t misfit
+    real[] solution = solve(matrix, Nt_misfit, warn=false);
+    if (solution.length == 0) { // only reachable if wild == 0
+      singular = true;
+      return O;
+    }
+    return (solution[0], solution[1], solution[2]);
+  }
+
+  real wild = 2 * wildnessweight;
+  triple innercontroloffset = offset(wild);
+  if (singular) {
     write("Warning: unable to solve matrix for specifying edge normals "
           + "on bezier triangle. Using coons triangle.");
     return patch(external);
   }
-  triple innercontrol = (solution[0], solution[1], solution[2]);
-  return patch(external, innercontrol);
+
+  // The rows above pin the inner control point along n1, n2 and n3 only, and
+  // on a nearly flat triangle those are nearly parallel: two directions are
+  // then barely constrained, and a weight this small lets the solution buy a
+  // slightly better normal with an inner control point far outside the
+  // triangle, bulging the patch through a boundary that stays put. Treat
+  // straying further than a corner as the sign of that, and pull the point
+  // back the further it strayed, to limit^2/reach: the two meet where reach
+  // is limit, so nothing jumps as a triangle crosses the threshold.
+  real limit = max(abs(a3 - tameinnercontrol), abs(b3 - tameinnercontrol),
+                   abs(c3 - tameinnercontrol));
+  real reach = abs(innercontroloffset);
+  if (reach > limit) {
+    innercontroloffset = O;
+    if (limit > 0) {
+      // Raising the weight shrinks the barely constrained directions first, so
+      // the best inner control point within the target is the one from the
+      // smallest adequate weight. Bisect for it: |offset(wild)| is at most
+      // |Nt_misfit| / wild^2, making the upper bracket certainly adequate.
+      real target = limit^2 / reach;
+      real lo = wild, hi = sqrt(sqrt(dot(Nt_misfit, Nt_misfit)) / target);
+      for (int i = 0; i < 24; ++i) {
+        real mid = 0.5 * (lo + hi);
+        if (abs(offset(mid)) > target) lo = mid;
+        else hi = mid;
+      }
+      innercontroloffset = offset(hi);
+    }
+  }
+  return patch(external, tameinnercontrol + innercontroloffset);
 }
 
 // A wrapper for the previous functions when the normal direction
