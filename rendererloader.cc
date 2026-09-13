@@ -470,14 +470,18 @@ void createRenderer()
             if (settings::verbose > 1)
                 std::cout << "Loaded llvmpipe fallback: " << lvpDllPath
                           << std::endl;
-        } else {
-            std::cerr << "No GPU detected and llvmpipe fallback not available.\n"
-                      << "For software 3D rendering, install vulkan_lvp.dll here:\n"
-                      << "  " << lvpDllPath << "\n";
         }
 
         // 5) Re-initialize the Vulkan dispatcher so it picks up the new ICD.
         VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
+    }
+
+    if (!lvpLibHandle && !hasHardwareGPU) {
+        std::string const lvpDllPath =
+            exeDir.empty() ? "vulkan_lvp.dll" : exeDir + "\\vulkan_lvp.dll";
+        std::cerr << "No GPU detected and llvmpipe fallback not available.\n"
+                  << "For software 3D rendering, install vulkan_lvp.dll here:\n"
+                  << "  " << lvpDllPath << "\n";
     }
 
     // Directly instantiate the Vulkan renderer.
