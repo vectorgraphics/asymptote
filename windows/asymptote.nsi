@@ -65,7 +65,11 @@ var ICONS_GROUP
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "asymptote-${PRODUCT_VERSION}-setup.exe"
 InstallDir "$PROGRAMFILES64\Asymptote"
-InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
+; Read the "Path" value (the directory), NOT the default value: the default
+; value of an App Paths key is the exe path ("...\Asymptote\asy.exe"), and
+; using it as the install dir would nest the whole install in a subdirectory
+; named "asy.exe".
+InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" "Path"
 ShowInstDetails show
 ShowUnInstDetails show
 
