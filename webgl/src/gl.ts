@@ -2714,12 +2714,12 @@ function setUniforms(data,shader)
   gl.uniformMatrix4fv(shader.projViewMatUniform,false,projViewMat);
   gl.uniformMatrix4fv(shader.viewMatUniform,false,viewMat);
   gl.uniformMatrix3fv(shader.normMatUniform,false,normMat);
-  gl.uniform1i(shader.orthographicUniform,1,W.orthographic);
+  gl.uniform1i(shader.orthographicUniform,W.orthographic);
 
   // unlit rendering (outline/wireframe modes) and light-count changes are
   // runtime, like the compile-time macro these replace
   gl.uniform1i(shader.nlightsUniform, wireframe == 0 ? Lights.length : 0);
-  gl.uniform1i(shader.iblUniform, W.ibl ? 1 : 0);
+  gl.uniform1i(shader.iblUniform, W.ibl);
 }
 
 function handleMouseDown(event)
