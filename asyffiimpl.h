@@ -200,6 +200,12 @@ public:
           IAsyTuple* pairMin, IAsyTuple* pairMax
   ) override;
 
+  IAsyDrawElement* createDrawElementForBeginClip(
+          IAsyArray* src, bool stroke, IAsyPen* pen, bool gSave, const char* key
+  ) override;
+  IAsyDrawElement*
+  createDrawElementEndClip(IAsyDrawElement* beginClip, bool gRestore) override;
+
   void runString(const char* text, bool interactiveWrite) override;
   void runRunnable(THAsyRunnable runnableCode) override;
 

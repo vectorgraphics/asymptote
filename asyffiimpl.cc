@@ -3,6 +3,8 @@
 #include "absyn.h"
 #include "coenv.h"
 #include "common.h"
+#include "drawclipbegin.h"
+#include "drawclipend.h"
 #include "drawfill.h"
 #include "drawlabel.h"
 #include "drawpath.h"
@@ -541,6 +543,29 @@ IAsyDrawElement* AsyContextImpl::createDrawElementForVerbatim(
     );
   }
 }
+IAsyDrawElement* AsyContextImpl::createDrawElementForBeginClip(
+        IAsyArray* src, bool const stroke, IAsyPen* pen, bool const gSave,
+        const char* key
+)
+{
+  return new drawClipBegin(
+          castDynamicAndDereference<vm::array>(src), stroke,
+          castDynamicAndDereference<class pen>(pen), gSave,
+          fromCharConstOrEmpty(key)
+  );
+}
+IAsyDrawElement* AsyContextImpl::createDrawElementEndClip(
+        IAsyDrawElement* beginClip, bool const gRestore
+)
+{
+  auto* beginClipCasted= dynamic_cast<drawClipBegin*>(beginClip);
+  if (beginClipCasted == nullptr) {
+    camp::reportError("Cannot cast beginClip to draw clip begin type");
+    return nullptr;
+  }
+
+  return new drawClipEnd(gRestore, beginClipCasted);
+}
 void AsyContextImpl::runString(const char* text, bool const interactiveWrite)
 {
   ::runString(string(text), interactiveWrite);
@@ -620,7 +645,8 @@ IAsyCallable* AsyStackContextImpl::getBuiltin(
 }
 bool AsyStackContextImpl::isInteractive() const
 {
-  auto const* stackInteractive= dynamic_cast<vm::interactiveStack const*>(stack);
+  auto const* stackInteractive=
+          dynamic_cast<vm::interactiveStack const*>(stack);
   return stackInteractive != nullptr;
 }
 void AsyStackContextImpl::runStringEmbedded(const char* text)
@@ -639,7 +665,7 @@ void AsyStackContextImpl::runCodeEmbedded(THAsyRunnable const runnableCode)
   auto* runnableCasted= static_cast<absyntax::runnable*>(runnableCode);
   auto* ast= new absyntax::block(runnableCasted->getPos(), false);
   ast->add(runnableCasted);
-  
+
   trans::coenv* coe= stack->getEnvironment();
 
   if (auto* stackInteractive= dynamic_cast<vm::interactiveStack*>(stack);

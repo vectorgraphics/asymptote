@@ -892,6 +892,22 @@ public:
           IAsyTuple* pairMin, IAsyTuple* pairMax
   )= 0;
 
+  /**
+   *
+   * @param src Array of {@link IAsyPath*}. The enclosing path must be cyclic
+   * @param stroke
+   * @param pen
+   * @param gSave
+   * @param key
+   * @return
+   */
+  virtual IAsyDrawElement* createDrawElementForBeginClip(
+          IAsyArray* src, bool stroke, IAsyPen* pen, bool gSave, char const* key
+  )= 0;
+
+  virtual IAsyDrawElement*
+  createDrawElementEndClip(IAsyDrawElement* beginClip, bool gRestore)= 0;
+
   /** Runs a piece of Asymptote code in a non-embedded manner */
   virtual void runString(char const* text, bool interactiveWrite)= 0;
 
@@ -956,16 +972,18 @@ enum class BaseTypes : uint8_t
   Pen,
 
   /**
-   * Corresponds to pictures. Note that in Asymptote, the corresponding type is frame.
-   * @remark frame in Asymptote corresponds to C++-level picture, while picture in Asymptote is
-   * a wrapping struct on top.
+   * Corresponds to pictures. Note that in Asymptote, the corresponding type is
+   * frame.
+   * @remark frame in Asymptote corresponds to C++-level picture, while picture
+   * in Asymptote is a wrapping struct on top.
    */
   Picture,
 
   /** Corresponds to file */
   File,
 
-  /** Corresponds to code. The object type is an opaque handle {@link THAsyRunnable} */
+  /** Corresponds to code. The object type is an opaque handle {@link
+     THAsyRunnable} */
   Code,
 
   /**
@@ -1515,8 +1533,9 @@ public:
    */
   virtual IAsyCallable*
   getBuiltin(char const* module, char const* fnName, Asy::TypeInfo typeInfo)= 0;
-  
-  /** Whether the stack is interactive. Only interactive stacks can run embedded code. */
+
+  /** Whether the stack is interactive. Only interactive stacks can run embedded
+   * code. */
   [[nodiscard]]
   virtual bool isInteractive() const= 0;
 
