@@ -438,23 +438,27 @@ void createRenderer()
         //    if it cannot be determined.
         std::string const exeDir = mem::stdString(settings::executableDir());
 
-        // 2) Write lvp_icd.json next to the executable.
+        // 2) Ensure lvp_icd.json exists next to the executable. The NSIS
+        //    installer ships it; this fallback covers source builds.
         std::string icdPath =
             exeDir.empty() ? "lvp_icd.json" : exeDir + "\\lvp_icd.json";
 
         {
-            std::ofstream ofs(icdPath.c_str(), std::ios::trunc);
-            if (ofs.is_open()) {
-                ofs << "{\n"
-                    << "    \"file_format_version\": \"1.0.0\",\n"
-                    << "    \"ICD\": {\n"
-                    << "        \"library_path\": \".\\\\vulkan_lvp.dll\",\n"
-                    << "        \"api_version\": \"1.3.0\"\n"
-                    << "    }\n"
-                    << "}\n";
-                if (settings::verbose > 1)
-                    std::cout << "Wrote Lavapipe ICD manifest: " << icdPath
-                              << std::endl;
+            std::ifstream test(icdPath.c_str());
+            if (!test.good()) {
+                std::ofstream ofs(icdPath.c_str(), std::ios::trunc);
+                if (ofs.is_open()) {
+                    ofs << "{\n"
+                        << "    \"file_format_version\": \"1.0.0\",\n"
+                        << "    \"ICD\": {\n"
+                        << "        \"library_path\": \".\\\\vulkan_lvp.dll\",\n"
+                        << "        \"api_version\": \"1.3.0\"\n"
+                        << "    }\n"
+                        << "}\n";
+                    if (settings::verbose > 1)
+                        std::cout << "Wrote Lavapipe ICD manifest: " << icdPath
+                                  << std::endl;
+                }
             }
         }
 
@@ -471,9 +475,9 @@ void createRenderer()
                 std::cout << "Loaded llvmpipe fallback: " << lvpDllPath
                           << std::endl;
         } else {
-            if (settings::verbose > 1)
-                std::cout << "Warning: failed to load " << lvpDllPath
-                          << "; proceeding without llvmpipe" << std::endl;
+            std::cerr << "No GPU detected and llvmpipe fallback not available.\n"
+                      << "For software 3D rendering, place vulkan_lvp.dll next to asy.exe:\n"
+                      << "  " << lvpDllPath << "\n";
         }
 
         // 5) Re-initialize the Vulkan dispatcher so it picks up the new ICD.
