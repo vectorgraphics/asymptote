@@ -955,7 +955,11 @@ enum class BaseTypes : uint8_t
   /** Corresponds to Pen */
   Pen,
 
-  /** Corresponds to picture */
+  /**
+   * Corresponds to pictures. Note that in Asymptote, the corresponding type is frame.
+   * @remark frame in Asymptote corresponds to C++-level picture, while picture in Asymptote is
+   * a wrapping struct on top.
+   */
   Picture,
 
   /** Corresponds to file */
