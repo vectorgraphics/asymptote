@@ -4,14 +4,20 @@
     Script to build asymptote
 .DESCRIPTION
     Builds asymptote installer file.
-    This script uses asymptote source directory. If building fails, try removing cmake-build-msvc/release directory
+    This script uses asymptote source directory. If building fails, try re-running with -Reconfigure,
+    or removing cmake-build-msvc/release directory
 .PARAMETER Version
     Specifies Asymptote version to build. If not given, will automatically determine version from configure.ac.
+.PARAMETER Reconfigure
+    Force CMakeCache.txt to be cleared before configuring (full reconfigure). By default
+    the cache is kept between runs (and only cleared when the preset changes), so the
+    build stays incremental.
 #>
 param(
     [AllowEmptyString()]
     [Parameter()]
-    [string]$Version
+    [string]$Version,
+    [switch]$Reconfigure
 )
 $ErrorActionPreference = "Stop"
 $PSNativeCommandUseErrorActionPreference = $true
@@ -236,12 +242,30 @@ function buildAsy($preset, $cfgDir) {
         $env:VCPKG_ROOT = $vcpkgToolsCacheLoc
     }
 
+
     # ------------------------------------
-    # clear CMakeCache.txt
-    if (Test-Path -Type Leaf "$asymptoteRoot/$cfgDir/CMakeCache.txt")
+    # clear CMakeCache.txt only when the preset changed since the last run (or
+    # -Reconfigure was given). Keeping the cache otherwise skips the full
+    # reconfigure (vcpkg toolchain + dependency checks), so re-runs of the
+    # script are incremental. The preset used on the previous run is recorded
+    # in a marker file so a preset switch is still detected.
+    $presetMarker="$asymptoteRoot/$cfgDir/.asy-build-preset"
+    New-Item -ItemType Directory -Path "$asymptoteRoot/$cfgDir" -Force | Out-Null
+    $lastPreset=""
+    if (Test-Path -Type Leaf $presetMarker)
     {
-        Remove-Item -Force "$asymptoteRoot/$cfgDir/CMakeCache.txt"
+        $lastPreset=Get-Content -Raw -Path $presetMarker
+        if ($null -ne $lastPreset) { $lastPreset=$lastPreset.Trim() }
     }
+    if ($Reconfigure -or $lastPreset -ne $preset)
+    {
+        if (Test-Path -Type Leaf "$asymptoteRoot/$cfgDir/CMakeCache.txt")
+        {
+            Write-Host "Clearing CMakeCache.txt in $cfgDir (preset '$lastPreset' -> '$preset', or -Reconfigure)"
+            Remove-Item -Force "$asymptoteRoot/$cfgDir/CMakeCache.txt"
+        }
+    }
+    Set-Content -Path $presetMarker -Value $preset
 
     # ------------------------------------
     # configure
