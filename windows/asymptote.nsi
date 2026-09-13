@@ -74,15 +74,17 @@ ShowInstDetails show
 ShowUnInstDetails show
 
 Section "Asymptote" SEC01
-  ; Remove the old asy.exe and renderer libraries BEFORE copying. A running
-  ; (or hung) asy.exe keeps these images locked, and `File /r` with
-  ; SetOverwrite try skips locked files SILENTLY, leaving the old version
-  ; installed. Windows allows deleting a running image (it stays mapped in
-  ; memory until the process exits), so removing it first lets the fresh copy
+
+  ; Remove the old asy.exe and ALL old DLLs before copying. A running (or
+  ; hung) asy.exe keeps its own image and every DLL it loaded (the renderer
+  ; libs in base\ plus the top-level runtime DLLs like glfw3.dll and
+  ; vulkan-1.dll) mapped, and `File /r` cannot overwrite any of them. Windows
+  ; allows deleting images that are still running (they stay mapped in memory
+  ; until the process exits), so clearing them first lets the fresh copies
   ; land unconditionally; the old process simply keeps running until closed.
   Delete "$INSTDIR\asy.exe"
-  Delete "$INSTDIR\base\asyvulkan.dll"
-  Delete "$INSTDIR\base\asyopengl.dll"
+  Delete "$INSTDIR\*.dll"
+  Delete "$INSTDIR\base\*.dll"
 
   SetOutPath "$INSTDIR"
   SetOverwrite on
