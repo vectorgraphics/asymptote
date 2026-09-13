@@ -476,7 +476,7 @@ void createRenderer()
                           << std::endl;
         } else {
             std::cerr << "No GPU detected and llvmpipe fallback not available.\n"
-                      << "For software 3D rendering, place vulkan_lvp.dll next to asy.exe:\n"
+                      << "For software 3D rendering, install vulkan_lvp.dll here:\n"
                       << "  " << lvpDllPath << "\n";
         }
 

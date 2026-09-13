@@ -83,7 +83,23 @@ Section "Asymptote" SEC01
   ; until the process exits), so clearing them first lets the fresh copies
   ; land unconditionally; the old process simply keeps running until closed.
   Delete "$INSTDIR\asy.exe"
-  Delete "$INSTDIR\*.dll"
+
+  ; Delete old runtime DLLs so File /r can replace them even if a previous
+  ; asy.exe still has them mapped. Skip vulkan_lvp.dll: it is user-installed
+  ; for software rendering and is not part of the package.
+  FindFirst $R9 $R8 "$INSTDIR\*.dll"
+  ${IfNot} ${Errors}
+    asy_dll_del:
+      StrCmp $R8 "vulkan_lvp.dll" asy_dll_skip
+      Delete "$INSTDIR\$R8"
+      asy_dll_skip:
+      FindNext $R9 $R8
+      ${IfNot} ${Errors}
+        Goto asy_dll_del
+      ${EndIf}
+    FindClose $R9
+  ${EndIf}
+
   Delete "$INSTDIR\base\*.dll"
 
   SetOutPath "$INSTDIR"
