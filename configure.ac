@@ -176,9 +176,11 @@ CPPFLAGS=$CPPFLAGS" -I. "
 
 AC_ARG_ENABLE(texlive-build,
 [AS_HELP_STRING(--enable-texlive-build[[[=no]]],
-automatically determine sysdir from kpsewhich)],
+leave ASYMPTOTE_SYSDIR empty and define KPSEWHICH so the binary
+determines sysdir from kpsewhich at runtime)],
 [ if test "x$enableval" = "xyes" ; then
     sysdir=""
+    OPTIONS=$OPTIONS"-DKPSEWHICH "
   fi
 ])
 
@@ -187,6 +189,7 @@ AC_ARG_ENABLE(relocatable,
 leave ASYMPTOTE_SYSDIR empty so the binary finds its data directory
 relative to its own location at runtime (for portable/staged macOS installs))],
 [ if test "x$enableval" = "xyes" ; then
+    sysdir=""
     OPTIONS=$OPTIONS"-DIS_RELOCATABLE "
   fi
 ])

@@ -200,11 +200,12 @@ static bool isBaseDir(string const& dir)
 // Determine the system base directory.
 //
 // ASYMPTOTE_SYSDIR is passed in rather than read here. Under CMake it differs
-// between asy and asy-ctan (the CTAN/TeXLive build defines it empty), but only
-// settings.cc is compiled separately per executable; locate.cc is compiled once
-// into asycore and linked into both, so a value read here would be identical
-// for the two binaries. The autotools build has a single executable and is
-// unaffected either way.
+// between asy and asy-ctan, but only settings.cc is compiled separately per
+// executable; locate.cc is compiled once into asycore and linked into both, so
+// a value read here would be identical for the two binaries. The autotools
+// build has a single executable and is unaffected either way. (The CTAN/TeXLive
+// build, with its empty sysdir, does not call this function at all -- see
+// settings.cc -- so its behavior is fixed there, not here.)
 //
 // Candidates are tried relative to the running executable first, so that a
 // binary run in place from its build tree uses its own base/ even when some
@@ -229,13 +230,13 @@ static bool isBaseDir(string const& dir)
 string resolveSysdir(string const& compiledInSysdir) noexcept
 {
   try {
-    // An empty compiled-in sysdir marks a TeXLive build, whose data directory
-    // is defined only by kpathsea. It must always defer to kpsewhich, so never
-    // relocate it relative to the executable -- even when a base/ sits beside
-    // the binary (e.g. when run in place from its build tree).
-    if (compiledInSysdir.empty())
-      return compiledInSysdir;
-
+    // The TeXLive (kpsewhich) build does not call this function at all:
+    // settings.cc leaves systemDir empty there and resolves it from kpathsea
+    // in initDir(), so nothing is relocated relative to the executable.
+    // An empty compiledInSysdir in the builds that do call it just means
+    // there is no compiled-in fallback (relocatable install); the executable
+    // candidates below are the only source of the base directory.
+    //
     // parentDir() rather than executableDir(), so that an executable sitting
     // directly in the filesystem root still gets its candidates tried.
     optional<string> const exeDir= parentDir(executablePath());

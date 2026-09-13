@@ -108,7 +108,16 @@ static bool showVersion=false;
 // systemDir is resolved by resolveSysdir() (declared in locate.h). Under CMake
 // this file is compiled once per executable so that ASYMPTOTE_SYSDIR can differ
 // between asy and asy-ctan; the autotools build has only the one executable.
+//
+// In the CTAN/TeXLive build (--enable-texlive-build, or the asy-ctan target)
+// KPSEWHICH is defined and ASYMPTOTE_SYSDIR is empty: the data directory is
+// defined only by kpathsea, so there is nothing to relocate -- initDir()
+// resolves sysdir with kpsewhich at startup instead.
+#ifdef KPSEWHICH
+string systemDir="";
+#else
 string systemDir=resolveSysdir(ASYMPTOTE_SYSDIR);
+#endif
 string defaultPSdriver="ps2write";
 string defaultEPSdriver="eps2write";
 string defaultPNGdriver="png16malpha"; // pngalpha has issues at high resolutions
@@ -292,9 +301,11 @@ void queryRegistry()
     docdir= s;
   }
   // The registry entry describes a separately installed Asymptote, so it must
-  // not override a systemDir that initSysdir() resolved relative to this
+  // not override a systemDir that resolveSysdir() resolved relative to this
   // executable; that would send a binary run in place to the installed base/.
-  // An empty systemDir indicates a TeXLive build.
+  // An empty systemDir indicates a TeXLive (KPSEWHICH) build, whose sysdir is
+  // resolved from kpathsea in initDir(), or a relocatable build that found no
+  // base/ relative to the executable.
   if (!systemDir.empty() && !docdir.empty() && !relocatedSysdir)
     systemDir= docdir;
 }
@@ -2023,6 +2034,11 @@ string lookup(const string& symbol)
 }
 
 void initDir() {
+#ifdef KPSEWHICH
+  // TeXLive build: the data directory is defined only by kpathsea, so look
+  // it up with kpsewhich unless the user supplied an explicit -sysdir.
+  // Non-TeXLive builds never run this: an empty sysdir there means the
+  // relocatable lookup found no base/ (or the user passed -sysdir "").
   if(getSetting<string>("sysdir").empty()) {
     string s=lookup("TEXMFMAIN");
     if(s.size() > 1) {
@@ -2034,6 +2050,7 @@ void initDir() {
         initdir=s;
     }
   }
+#endif
 
   if(initdir.empty())
     initdir=Getenv("ASYMPTOTE_HOME",msdos);
