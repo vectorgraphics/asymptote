@@ -74,23 +74,25 @@ ShowInstDetails show
 ShowUnInstDetails show
 
 Section "Asymptote" SEC01
-  ; Guard against a running (or hung) asy.exe: it holds its image file locked,
-  ; which makes the `File /r` below skip the new binary SILENTLY (SetOverwrite
-  ; try), leaving the old version installed. The uninstaller's Delete/RMDir fail
-  ; the same way. Detect the lock up front and bail out with a clear message.
-  ${If} ${FileExists} "$INSTDIR\asy.exe"
-    FileOpen $1 "$INSTDIR\asy.exe" a
-    ${If} $1 != -1
-      FileClose $1
-    ${Else}
-      MessageBox MB_ICONSTOP "Asymptote appears to be running (asy.exe is in use).$\r$\nClose all Asymptote windows, kill any asy.exe in Task Manager, and run the installer again."
-      Abort
-    ${EndIf}
-  ${EndIf}
+  ; Remove the old asy.exe and renderer libraries BEFORE copying. A running
+  ; (or hung) asy.exe keeps these images locked, and `File /r` with
+  ; SetOverwrite try skips locked files SILENTLY, leaving the old version
+  ; installed. Windows allows deleting a running image (it stays mapped in
+  ; memory until the process exits), so removing it first lets the fresh copy
+  ; land unconditionally; the old process simply keeps running until closed.
+  Delete "$INSTDIR\asy.exe"
+  Delete "$INSTDIR\base\asyvulkan.dll"
+  Delete "$INSTDIR\base\asyopengl.dll"
 
   SetOutPath "$INSTDIR"
-  SetOverwrite try
+  SetOverwrite on
   File /r build-${PRODUCT_VERSION}\*
+
+  ; A failed asy.exe copy must not complete as a silent no-op install.
+  ${IfNot} ${FileExists} "$INSTDIR\asy.exe"
+    MessageBox MB_ICONSTOP "Installation failed: asy.exe could not be written to $INSTDIR.$\r$\nClose any running Asymptote processes (check Task Manager) and install again."
+    Abort
+  ${EndIf}
 
   FileOpen $0 $INSTDIR\asy.bat w
 
@@ -175,17 +177,9 @@ FunctionEnd
 
 Section Uninstall
   !insertmacro MUI_STARTMENU_GETFOLDER "Application" $ICONS_GROUP
-  ; Same guard as the installer: with a locked asy.exe, the Delete/RMDir below
-  ; fail silently and the old installation is left behind.
-  ${If} ${FileExists} "$INSTDIR\asy.exe"
-    FileOpen $1 "$INSTDIR\asy.exe" a
-    ${If} $1 != -1
-      FileClose $1
-    ${Else}
-      MessageBox MB_ICONSTOP "Asymptote is still running (asy.exe is in use).$\r$\nClose it (kill asy.exe in Task Manager if it is hung) and uninstall again."
-      Abort
-    ${EndIf}
-  ${EndIf}
+  ; No lock guard needed here: unlike overwriting, Windows allows deleting a
+  ; running image file, so the Delete/RMDir below succeed even if asy.exe is
+  ; still running (the process keeps its in-memory copy until it exits).
   Delete "$INSTDIR\${PRODUCT_NAME}.url"
   Delete "$INSTDIR\uninst.exe"
   !include AsymptoteUninstallList.nsi
