@@ -427,7 +427,6 @@ void createRenderer()
     }
 
     std::string const exeDir = mem::stdString(settings::executableDir());
-    bool triedLlvmpipe = false;
 
     if (!hasHardwareGPU) {
         // No hardware GPU found -- set up llvmpipe (Lavapipe) fallback.
@@ -472,7 +471,9 @@ void createRenderer()
                 std::cout << "Loaded llvmpipe fallback: " << lvpDllPath
                           << std::endl;
         } else {
-            triedLlvmpipe = true;
+            std::cerr << "No GPU detected and llvmpipe fallback not available.\n"
+                      << "For software 3D rendering, install vulkan_lvp.dll here:\n"
+                      << "  " << lvpDllPath << "\n";
         }
 
         // 5) Re-initialize the Vulkan dispatcher so it picks up the new ICD.
@@ -495,12 +496,6 @@ void createRenderer()
         // Leave gl as nullptr so initRenderer() reports the error.
         std::cerr << "Vulkan renderer initialization failed: " << e.what()
                   << std::endl;
-        if (triedLlvmpipe) {
-            std::string const lvpDllPath =
-                exeDir.empty() ? "vulkan_lvp.dll" : exeDir + "\\vulkan_lvp.dll";
-            std::cerr << "For software 3D rendering, install vulkan_lvp.dll here:\n"
-                      << "  " << lvpDllPath << "\n";
-        }
     } catch (...) {
         std::cerr << "Vulkan renderer initialization failed (unknown error)"
                   << std::endl;

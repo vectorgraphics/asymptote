@@ -75,18 +75,16 @@ ShowUnInstDetails show
 
 Section "Asymptote" SEC01
 
-  ; Remove the old asy.exe and ALL old DLLs before copying. A running (or
-  ; hung) asy.exe keeps its own image and every DLL it loaded (the renderer
-  ; libs in base\ plus the top-level runtime DLLs like glfw3.dll and
-  ; vulkan-1.dll) mapped, and `File /r` cannot overwrite any of them. Windows
+  ; Remove the old asy.exe and its runtime DLLs before copying. A running
+  ; (or hung) asy.exe keeps its image and loaded DLLs (glfw3.dll,
+  ; vulkan-1.dll, etc.) mapped, and `File /r` cannot overwrite them. Windows
   ; allows deleting images that are still running (they stay mapped in memory
   ; until the process exits), so clearing them first lets the fresh copies
   ; land unconditionally; the old process simply keeps running until closed.
   Delete "$INSTDIR\asy.exe"
 
-  ; Delete old runtime DLLs so File /r can replace them even if a previous
-  ; asy.exe still has them mapped. Skip vulkan_lvp.dll: it is user-installed
-  ; for software rendering and is not part of the package.
+  ; Skip vulkan_lvp.dll: it is user-installed for software rendering and is
+  ; not part of the package.
   FindFirst $R9 $R8 "$INSTDIR\*.dll"
   ${IfNot} ${Errors}
     asy_dll_del:
