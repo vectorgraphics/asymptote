@@ -330,7 +330,7 @@ else
 
 if ($env:ASYMPTOTE_BUILD_SHARED_DIRECTORY)
 {
-    Write-Output "Using shared build directory at $ASYMPTOTE_BUILD_SHARED_DIRECTORY for CTAN output"
+    Write-Output "Using shared build directory at $env:ASYMPTOTE_BUILD_SHARED_DIRECTORY for CTAN output"
     $ctanOutputDir = "$env:ASYMPTOTE_BUILD_SHARED_DIRECTORY/CTAN"
 }
 else
