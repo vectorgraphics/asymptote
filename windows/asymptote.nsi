@@ -70,6 +70,20 @@ ShowInstDetails show
 ShowUnInstDetails show
 
 Section "Asymptote" SEC01
+  ; Guard against a running (or hung) asy.exe: it holds its image file locked,
+  ; which makes the `File /r` below skip the new binary SILENTLY (SetOverwrite
+  ; try), leaving the old version installed. The uninstaller's Delete/RMDir fail
+  ; the same way. Detect the lock up front and bail out with a clear message.
+  ${If} ${FileExists} "$INSTDIR\asy.exe"
+    FileOpen $1 "$INSTDIR\asy.exe" a
+    ${If} $1 != -1
+      FileClose $1
+    ${Else}
+      MessageBox MB_ICONSTOP "Asymptote appears to be running (asy.exe is in use).$\r$\nClose all Asymptote windows, kill any asy.exe in Task Manager, and run the installer again."
+      Abort
+    ${EndIf}
+  ${EndIf}
+
   SetOutPath "$INSTDIR"
   SetOverwrite try
   File /r build-${PRODUCT_VERSION}\*
@@ -157,6 +171,17 @@ FunctionEnd
 
 Section Uninstall
   !insertmacro MUI_STARTMENU_GETFOLDER "Application" $ICONS_GROUP
+  ; Same guard as the installer: with a locked asy.exe, the Delete/RMDir below
+  ; fail silently and the old installation is left behind.
+  ${If} ${FileExists} "$INSTDIR\asy.exe"
+    FileOpen $1 "$INSTDIR\asy.exe" a
+    ${If} $1 != -1
+      FileClose $1
+    ${Else}
+      MessageBox MB_ICONSTOP "Asymptote is still running (asy.exe is in use).$\r$\nClose it (kill asy.exe in Task Manager if it is hung) and uninstall again."
+      Abort
+    ${EndIf}
+  ${EndIf}
   Delete "$INSTDIR\${PRODUCT_NAME}.url"
   Delete "$INSTDIR\uninst.exe"
   !include AsymptoteUninstallList.nsi
