@@ -426,17 +426,14 @@ void createRenderer()
         // If probing fails for any reason, proceed without the check.
     }
 
+    std::string const exeDir = mem::stdString(settings::executableDir());
+    bool triedLlvmpipe = false;
+
     if (!hasHardwareGPU) {
         // No hardware GPU found -- set up llvmpipe (Lavapipe) fallback.
         // Strategy: write lvp_icd.json next to the executable and set
         // VK_ICD_FILENAMES so the Vulkan loader picks it up on the next
         // instance creation.
-
-        // 1) Determine the directory of our own executable. Both files below
-        //    fall back to a bare name -- resolved against the current
-        //    directory, and for the DLL against the standard search order --
-        //    if it cannot be determined.
-        std::string const exeDir = mem::stdString(settings::executableDir());
 
         // 2) Ensure lvp_icd.json exists next to the executable. The NSIS
         //    installer ships it; this fallback covers source builds.
@@ -475,9 +472,7 @@ void createRenderer()
                 std::cout << "Loaded llvmpipe fallback: " << lvpDllPath
                           << std::endl;
         } else {
-            std::cerr << "No GPU detected and llvmpipe fallback not available.\n"
-                      << "For software 3D rendering, install vulkan_lvp.dll here:\n"
-                      << "  " << lvpDllPath << "\n";
+            triedLlvmpipe = true;
         }
 
         // 5) Re-initialize the Vulkan dispatcher so it picks up the new ICD.
@@ -500,6 +495,12 @@ void createRenderer()
         // Leave gl as nullptr so initRenderer() reports the error.
         std::cerr << "Vulkan renderer initialization failed: " << e.what()
                   << std::endl;
+        if (triedLlvmpipe) {
+            std::string const lvpDllPath =
+                exeDir.empty() ? "vulkan_lvp.dll" : exeDir + "\\vulkan_lvp.dll";
+            std::cerr << "For software 3D rendering, install vulkan_lvp.dll here:\n"
+                      << "  " << lvpDllPath << "\n";
+        }
     } catch (...) {
         std::cerr << "Vulkan renderer initialization failed (unknown error)"
                   << std::endl;
