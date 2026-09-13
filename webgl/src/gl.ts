@@ -149,13 +149,6 @@ function IBLReady()
   return IBLReflMap !== null && IBLDiffuseMap !== null && IBLbdrfMap !== null;
 }
 
-function SetIBL()
-{
-  if(!W.embedded)
-    deleteShaders();
-  initShaders(W.ibl);
-}
-
 let roughnessStepCount=8;
 
 class Material {
@@ -191,8 +184,10 @@ class Light {
   }
 }
 
-function initShaders(ibl=false)
+function initShaders()
 {
+  // IBL is a runtime uniform (see setUniforms), so it is not a shader
+  // option
   const maxUniforms=gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
   maxMaterials=Math.floor((maxUniforms-14)/4);
   Nmaterials=min(max(Nmaterials,Materials.length),maxMaterials);
@@ -201,11 +196,6 @@ function initShaders(ibl=false)
   const materialOpt=["NORMAL"];
   const colorOpt=["NORMAL","COLOR"];
   const transparentOpt=["NORMAL","COLOR","GENERAL"];
-
-  if(ibl) {
-    materialOpt.push('USE_IBL');
-    transparentOpt.push('USE_IBL');
-  }
 
   pixelShader=initShader(pixelOpt);
   materialShader=initShader(materialOpt);
@@ -294,7 +284,10 @@ function findGL()
     saveAttributes();
   } else {
     restoreAttributes();
-    if((Lights.length != nlights) ||
+    // Recompile only when the baked-in light/material counts must grow;
+    // a decrease, or outline mode's unlit rendering, is handled by the
+    // runtime nlights uniform and needs no recompilation
+    if(Lights.length > nlights ||
        min(Materials.length,maxMaterials) > Nmaterials) {
       initShaders();
       saveAttributes();
@@ -350,14 +343,15 @@ function getShader(gl,shaderScript,type,options=[])
 {
   let version=W.webgl2 ? '300 es' : '100';
   let defines=Array(...options)
+  // Nlights is a preprocessor constant (array size, loop bound); nlights
+  // (lowercase) is a runtime uniform (see setUniforms), so the light count
+  // and mode (unlit rendering) can change without recompiling the shaders
   let macros=[
-    ['nlights',wireframe == 0 ? Lights.length : 0],
-    ['Nmaterials',Nmaterials]
+    ['Nmaterials',Nmaterials],
+    ['Nlights',max(Lights.length,1)]
   ]
 
-  let consts=[
-    ['int','Nlights',max(Lights.length,1)]
-  ]
+  let consts: string[][]=[];
 
   let addenum=`
 #ifdef GL_FRAGMENT_PRECISION_HIGH
@@ -365,6 +359,7 @@ precision highp float;
 #else
 precision mediump float;
 #endif
+precision mediump int;
   `
 
   let extensions=[];
@@ -372,8 +367,9 @@ precision mediump float;
   if(W.webgl2)
     defines.push('WEBGL2');
 
-  if(W.ibl)
-    macros.push(['ROUGHNESS_STEP_COUNT',roughnessStepCount.toFixed(2)]);
+  // The IBL functions are always compiled (ibl is a runtime uniform), so
+  // this macro must always be defined
+  macros.push(['ROUGHNESS_STEP_COUNT',roughnessStepCount.toFixed(2)]);
 
   const macros_str=macros.map(macro => `#define ${macro[0]} ${macro[1]}`).join('\n')
   const define_str=defines.map(define => `#define ${define}`).join('\n');
@@ -2414,7 +2410,7 @@ function initShader(options=[])
   gl.bindAttribLocation(shader,widthAttribute,"width");
   gl.linkProgram(shader);
   if(!gl.getProgramParameter(shader,gl.LINK_STATUS))
-    alert("Could not initialize shaders");
+    alert("Could not initialize shaders:\n"+gl.getProgramInfoLog(shader));
 
   return shader;
 }
@@ -2701,6 +2697,8 @@ function setUniforms(data,shader)
   shader.viewMatUniform=gl.getUniformLocation(shader,"viewMat");
   shader.normMatUniform=gl.getUniformLocation(shader,"normMat");
   shader.orthographicUniform=gl.getUniformLocation(shader,"orthographic");
+  shader.nlightsUniform=gl.getUniformLocation(shader,"nlights");
+  shader.iblUniform=gl.getUniformLocation(shader,"ibl");
 
   if(shader == colorShader || shader == transparentShader)
     gl.enableVertexAttribArray(colorAttribute);
@@ -2717,6 +2715,11 @@ function setUniforms(data,shader)
   gl.uniformMatrix4fv(shader.viewMatUniform,false,viewMat);
   gl.uniformMatrix3fv(shader.normMatUniform,false,normMat);
   gl.uniform1i(shader.orthographicUniform,1,W.orthographic);
+
+  // unlit rendering (outline/wireframe modes) and light-count changes are
+  // runtime, like the compile-time macro these replace
+  gl.uniform1i(shader.nlightsUniform, wireframe == 0 ? Lights.length : 0);
+  gl.uniform1i(shader.iblUniform, W.ibl ? 1 : 0);
 }
 
 function handleMouseDown(event)
@@ -3022,11 +3025,8 @@ function handleKey(event)
   case 'm':
     ++wireframe;
     if(wireframe == 3) wireframe=0;
-    if(wireframe != 2) {
-      if(!W.embedded)
-        deleteShaders();
-      initShaders(W.ibl);
-    }
+    // No shader recompilation needed: unlit rendering is selected at
+    // runtime by the nlights uniform (see setUniforms)
     remesh=true;
     drawScene();
     break;
@@ -4278,12 +4278,10 @@ function webGLStart()
   if(W.ibl)
     Module.onRuntimeInitialized = async () => {
       await initIBLOnceEXRLoaderReady();
-      SetIBL();
       redrawScene();
     }
   if(W.ibl && Module.EXRLoader) {
     initIBLOnceEXRLoaderReady().then(() => {
-      SetIBL();
       redrawScene();
     });
   }
