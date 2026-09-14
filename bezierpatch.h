@@ -133,6 +133,8 @@ struct BezierPatch
     return false;
   }
 
+  virtual ~BezierPatch() = default;
+
   virtual void render(const triple *p, bool straight, float *c0=NULL);
 
   // Template-based render to eliminate runtime branching
@@ -204,7 +206,7 @@ public:
     return std::max(d,Straightness(p6,p[7],p[8],p9));
   }
 
-  void render(const triple *p, bool straight, float *c0=NULL);
+  void render(const triple *p, bool straight, float *c0=NULL) override;
 
   // Template-based render for triangles
   template<bool T, bool C>
@@ -238,7 +240,7 @@ public:
       triangleData.extendColor(data);
   }
 
-  void notRendered() {
+  void notRendered() override {
     if(transparent)
       transparentData.renderCount=0;
     else

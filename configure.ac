@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ([2.71])
-AC_INIT([Asymptote],[3.13git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_INIT([Asymptote],[3.16git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -127,10 +127,13 @@ else
 fi
 ])
 
-AC_CHECK_PROGS(TEXI2DVI,[texi2dvi],
-[@echo \*\*\*\*\*\*\*\*\*\* Please install texi2dvi or put https://asymptote.sourceforge.io/asymptote.pdf in the doc directory: cannot execute texi2dvi])
+AC_CHECK_PROGS(TEXI2ANY,[texi2any makeinfo])
+if test -z "$TEXI2ANY"; then
+  AC_MSG_NOTICE([*** Could not find texi2any: will compile \
+without documentation support ***])
+fi
 
-AC_SUBST(TEXI2DVI)
+AC_SUBST(TEXI2ANY)
 
 latexdir=$latexdir/asymptote
 contextdir=$contextdir/asymptote
@@ -173,9 +176,11 @@ CPPFLAGS=$CPPFLAGS" -I. "
 
 AC_ARG_ENABLE(texlive-build,
 [AS_HELP_STRING(--enable-texlive-build[[[=no]]],
-automatically determine sysdir from kpsewhich)],
+leave ASYMPTOTE_SYSDIR empty and define KPSEWHICH so the binary
+determines sysdir from kpsewhich at runtime)],
 [ if test "x$enableval" = "xyes" ; then
     sysdir=""
+    OPTIONS=$OPTIONS"-DKPSEWHICH "
   fi
 ])
 
@@ -184,6 +189,7 @@ AC_ARG_ENABLE(relocatable,
 leave ASYMPTOTE_SYSDIR empty so the binary finds its data directory
 relative to its own location at runtime (for portable/staged macOS installs))],
 [ if test "x$enableval" = "xyes" ; then
+    sysdir=""
     OPTIONS=$OPTIONS"-DIS_RELOCATABLE "
   fi
 ])
@@ -284,7 +290,7 @@ LSPLIBS=
 LSPLIB=
 if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
    LSPLIB=$LSP_ROOT/liblspcpp.a
-   LSPLIBS=$LSPLIBS" -L$LSP_ROOT -L$LSP_ROOT/third_party/uri/src -llspcpp -lnetwork-uri"
+   LSPLIBS=$LSPLIBS" -L$LSP_ROOT/build -L$LSP_ROOT/build/third_party/uri/src -llspcpp -lnetwork-uri"
    LSP_CMAKE_OPTIONS="-DLSPCPP_USE_CPP17=ON "
 
    if test "x$enable_gc" != "xno"; then
@@ -763,6 +769,6 @@ AC_FUNC_FSEEKO
 AC_CHECK_FUNCS(strptime)
 AC_CHECK_FUNCS(strnlen)
 
-AC_CONFIG_FILES([Makefile doc/Makefile doc/png/Makefile])
+AC_CONFIG_FILES([Makefile doc/Makefile doc/png/Makefile doc/FAQ/Makefile])
 AC_CONFIG_HEADERS([config.h])
 AC_OUTPUT

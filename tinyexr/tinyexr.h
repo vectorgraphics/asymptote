@@ -2699,7 +2699,7 @@ static void hufFreeDecTable(HufDec *hdecod)  // io: Decoding table
   for (int i = 0; i < HUF_DECSIZE; i++) {
     if (hdecod[i].p) {
       delete[] hdecod[i].p;
-      hdecod[i].p = 0;
+      hdecod[i].p = nullptr;
     }
   }
 }
@@ -6895,7 +6895,7 @@ struct MemoryMappedFile {
     size = static_cast<size_t>(info.st_size);
 
     data = reinterpret_cast<unsigned char *>(
-        mmap(0, size, PROT_READ, MAP_SHARED, posix_descriptor, 0));
+        mmap(nullptr, size, PROT_READ, MAP_SHARED, posix_descriptor, 0));
     if (data == MAP_FAILED) {
       data = nullptr;
       return;
@@ -7066,7 +7066,7 @@ static bool EncodePixelData(/* out */ std::vector<unsigned char>& out_data,
                             const std::vector<ChannelInfo>& channels,
                             const std::vector<size_t>& channel_offset_list,
                             std::string *err,
-                            const void* compression_param = 0) // zfp compression param
+                            const void* compression_param = nullptr) // zfp compression param
 {
   size_t buf_size = static_cast<size_t>(width) *
                   static_cast<size_t>(num_lines) *
@@ -7490,7 +7490,7 @@ static int EncodeChunk(const EXRImage* exr_image, const EXRHeader* exr_header,
     }
   }
 
-  const void* compression_param = 0;
+  const void* compression_param = nullptr;
 #if TINYEXR_USE_ZFP
   tinyexr::ZFPCompressionParam zfp_compression_param;
 
@@ -9147,7 +9147,7 @@ int SaveEXRToMemory(const float *data, int width, int height, int components,
     }
   }
 
-  float *image_ptr[4] = {0, 0, 0, 0};
+  float *image_ptr[4] = {nullptr, nullptr, nullptr, nullptr};
   if (components == 4) {
     image_ptr[0] = &(images[3].at(0));  // A
     image_ptr[1] = &(images[2].at(0));  // B
@@ -9304,7 +9304,7 @@ int SaveEXR(const float *data, int width, int height, int components,
     }
   }
 
-  float *image_ptr[4] = {0, 0, 0, 0};
+  float *image_ptr[4] = {nullptr, nullptr, nullptr, nullptr};
   if (components == 4) {
     image_ptr[0] = &(images[3].at(0));  // A
     image_ptr[1] = &(images[2].at(0));  // B
