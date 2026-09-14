@@ -9,39 +9,67 @@ set(
 
 # Python
 
+# The floor the build and test scripts are written to.  Kept low on purpose:
+# some builders build on deliberately old software so that what they produce
+# runs on old software.  Keep in sync with py-version in .pylintrc and
+# python_version in mypy.ini; raising it also unpins mypy (see mypy.ini).
+set(PY3_MINIMUM_VERSION "3.7")
+
 set(PY3_INTERPRETER "" CACHE STRING "Python 3 interpreter. If left empty, will try to determine Python automatically")
 
-function(verify_py3_interpreter_is_py3 validator_result_var py_interpreter)
+# Report the interpreter's version as major.minor.micro, or "" if it will not
+# run at all.
+function(get_py_interpreter_version out_var py_interpreter)
     execute_process(
-            COMMAND ${py_interpreter} -c "import sys; print(int(sys.version[0])>=3,end='')"
-            OUTPUT_VARIABLE PY3_INTERPRETER_VERSION_RESULT)
-    if (NOT PY3_INTERPRETER_VERSION_RESULT STREQUAL "True")
+            COMMAND ${py_interpreter} -c "import sys; print('%d.%d.%d' % sys.version_info[:3],end='')"
+            OUTPUT_VARIABLE PY_VERSION_OUTPUT
+            RESULT_VARIABLE PY_VERSION_RESULT
+            ERROR_QUIET)
+    if (NOT PY_VERSION_RESULT EQUAL 0)
+        set(${out_var} "" PARENT_SCOPE)
+    else()
+        set(${out_var} "${PY_VERSION_OUTPUT}" PARENT_SCOPE)
+    endif()
+endfunction()
+
+# find_program VALIDATOR contract: reject a candidate by setting the named
+# result variable FALSE; leaving it alone accepts.
+function(verify_py3_interpreter validator_result_var py_interpreter)
+    get_py_interpreter_version(PY_VERSION ${py_interpreter})
+    if (PY_VERSION STREQUAL "" OR PY_VERSION VERSION_LESS PY3_MINIMUM_VERSION)
         set(${validator_result_var} FALSE PARENT_SCOPE)
     endif()
 endfunction()
 
 if(NOT PY3_INTERPRETER)
-    message(STATUS "No Python3 interpreter specified, attempting to find python")
+    message(STATUS "No Python3 interpreter specified, attempting to find python >= ${PY3_MINIMUM_VERSION}")
     find_program(
             PY3_INTERPRETER_FOUND
             NAMES python3 python
-            VALIDATOR verify_py3_interpreter_is_py3
+            VALIDATOR verify_py3_interpreter
             REQUIRED
     )
     message(STATUS "Found python3 at ${PY3_INTERPRETER_FOUND}")
     set(PY3_INTERPRETER ${PY3_INTERPRETER_FOUND} CACHE STRING "" FORCE)
 else()
-    set(PY_INTERPRETER_IS_PY3 TRUE)
-    set(VARIABLE_RESULT_VAR PY_INTERPRETER_IS_PY3)
-    verify_py3_interpreter_is_py3(VARIABLE_RESULT_VAR ${PY3_INTERPRETER})
+    # Pass the variable's name, not its value: the function writes through
+    # ${validator_result_var} into the caller's scope.
+    set(PY_INTERPRETER_USABLE TRUE)
+    verify_py3_interpreter(PY_INTERPRETER_USABLE ${PY3_INTERPRETER})
 
-    if (NOT PY_INTERPRETER_IS_PY3)
-        message(FATAL_ERROR "Specified python interpreter cannot be used as python3 interpreter!")
+    if (NOT PY_INTERPRETER_USABLE)
+        get_py_interpreter_version(PY3_VERSION ${PY3_INTERPRETER})
+        if (PY3_VERSION STREQUAL "")
+            message(FATAL_ERROR "Specified python interpreter ${PY3_INTERPRETER} could not be run!")
+        endif()
+        message(FATAL_ERROR
+                "Specified python interpreter ${PY3_INTERPRETER} is version ${PY3_VERSION}; "
+                "this build requires Python >= ${PY3_MINIMUM_VERSION}.")
     endif()
 endif()
 
-execute_process(COMMAND ${PY3_INTERPRETER} --version OUTPUT_VARIABLE PY3_VERSION)
-message(STATUS "Version: ${PY3_VERSION}")
+get_py_interpreter_version(PY3_VERSION ${PY3_INTERPRETER})
+message(STATUS "Version: ${PY3_VERSION} (minimum ${PY3_MINIMUM_VERSION})")
 
 # windows flex + bison
 set(

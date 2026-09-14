@@ -103,12 +103,29 @@ suffix is "+debug" for debug builds, or an empty string for all other builds, in
 
 ## Testing
 
-Asymptote unit testing is integrated into CMake's `CTest` framework.
-All Asymptote `.asy` based tests are named `asy.<test dirname>.<test file name>`
-excluding `*.asy` extension.
+Asymptote unit testing is integrated into CMake's `CTest` framework. The
+Asymptote `.asy` tests are not registered with CTest one by one; the whole
+`tests/` tree is driven by `tests/run_asy_tests.py`, which CTest runs as the
+single test `bundled.asy.checktests`. The other `bundled.asy.*` tests cover the
+`collections` error messages, `getExecutablePath()`, the relocatable sysdir
+matrix and `wce`; they all carry the label `asy-check-tests`.
 
-These tests can be run by CTest. For example, after building on linux/release,
+CTest never builds anything, so build the `asy-check-test-deps` target first —
+`asy-with-basefiles` is enough to *run* asy, but not to run every test.
 
 ```bash
-ctest --test-dir cmake-build-linux/release/ -R "asy.types.*"
+cmake --build --preset linux/release --target asy-check-test-deps
+ctest --test-dir cmake-build-linux/release/                     # everything
+ctest --test-dir cmake-build-linux/release/ -L asy-check-tests  # only the asy suites
+```
+
+To run just a few `.asy` tests, call the runner directly with `--tests-list`, a
+semicolon-separated list of `<test dirname>/<test file name>` paths without the
+`.asy` extension:
+
+```bash
+python3 tests/run_asy_tests.py \
+    --asy cmake-build-linux/release/asy \
+    --asy-base-dir cmake-build-linux/release/base \
+    --tests-list "types/cast;types/var"
 ```

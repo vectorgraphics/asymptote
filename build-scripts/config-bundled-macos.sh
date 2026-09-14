@@ -42,13 +42,27 @@ export PKG_CONFIG_LIBDIR=""
 
 
 
+# Staging tree for the bundle.  Wipe it before installing: the prefix is baked
+# into the binary as ASYMPTOTE_SYSDIR, so a stale $STAGE/share/asymptote would
+# be a base/ that resolves on this machine and nowhere else.
+STAGE=${HOME}/asy_vulkan/tmp/staging
+
+# The bundle is relocatable by its layout, not by a build flag: asy prefers a
+# base/ beside the executable over the compiled-in ASYMPTOTE_SYSDIR
+# (resolveSysdir(), locate.cc).  So after building:
+#
+#   rm -rf $STAGE
+#   make install-asy bindir=$STAGE/Asymptote asydir=$STAGE/Asymptote/base
+#
+# giving $STAGE/Asymptote/{asy,base/,lib/} -- lib/ being the bundled dylibs,
+# found through @executable_path/lib -- which is what goes into the .dmg.
+
 # For a portable build:
 ./configure CC=clang CXX=clang++ \
    CPPFLAGS="-I${VULKAN_INCLUDE_DIR} -I${GLFW_INCLUDE_DIR}" \
    LDFLAGS="-L${VULKAN_LIB_DIR} -L${GLFW_LIB_DIR} -Wl,-rpath,${VULKAN_LIB_DIR} -Wl,-rpath,${GLFW_LIB_DIR}" \
    --enable-macos-universal \
    --enable-macos-bundling \
-   --enable-relocatable \
    --disable-lsp \
    --disable-readline \
    --disable-fftw \
@@ -57,7 +71,7 @@ export PKG_CONFIG_LIBDIR=""
    --disable-curl \
    --disable-xdr \
    --disable-eigen \
-   --prefix=${HOME}/asy_vulkan/tmp/staging \
-   --with-latex=${HOME}/asy_vulkan/tmp/staging/texmf/tex/latex \
-   --with-context=${HOME}/asy_vulkan/tmp/staging/texmf/tex/context
+   --prefix=${STAGE} \
+   --with-latex=${STAGE}/texmf/tex/latex \
+   --with-context=${STAGE}/texmf/tex/context
   # TODO: build readline from source to get universal binary, then re-enable it
