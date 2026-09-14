@@ -59,6 +59,55 @@ def library_refs(binaries, pattern):
     return refs
 
 
+def strip_absolute_rpaths(binaries):
+    """Remove every absolute LC_RPATH from BINARIES.
+
+    Every reference now points at @executable_path/lib/, so nothing consults
+    LC_RPATH any more.  The rpaths the linker recorded are the Vulkan SDK and
+    GLFW build directories, in the *builder's* home: they leak the builder's
+    username and layout to every user of the .dmg, and they are a search path
+    that would come back to life if a later change reintroduced an unbundled
+    @rpath reference.  Makefile.in's portability check does not catch them; it
+    reads otool -L, not otool -l.  @executable_path/ and @loader_path/ rpaths
+    relocate with the bundle and are kept.
+    """
+    # Refuse to strip while something still needs them: dyld resolves @rpath/
+    # only against LC_RPATH, so removing them out from under a surviving
+    # reference yields a binary that cannot start.  Makefile.in rejects such a
+    # reference too, but only after this script has run.
+    stray_refs = library_refs(binaries, re.compile(r"@rpath/"))
+    if stray_refs:
+        die("ERROR: these @rpath references were not rewritten to "
+            "@executable_path/lib/:",
+            *sorted(stray_refs),
+            "Fix: extend the lib(glfw|vulkan|SPIRV|glslang) pattern in "
+            "main() so the library is bundled, or link against a system "
+            "library.")
+
+    for binary in binaries:
+        # One call per LC_RPATH: install_name_tool removes a single load
+        # command at a time, and a universal binary reports the same path once
+        # per slice.
+        while True:
+            absolute = [r for r in baked_rpaths(binary)
+                        if not r.startswith("@")]
+            if not absolute:
+                break
+            rpath = absolute[0]
+            if subprocess.run(["install_name_tool", "-delete_rpath", rpath,
+                               binary]).returncode != 0:
+                die("ERROR: could not remove the rpath {} from {}."
+                    .format(rpath, binary),
+                    "Fix options:",
+                    "  - check that {} is writable and was not already signed;"
+                    .format(binary),
+                    "  - a path containing a space arrives here truncated at",
+                    "    the space (this script reads otool output field by",
+                    "    field, as it does for the rpaths it searches above),",
+                    "    so rebuild with the Vulkan SDK and GLFW at paths",
+                    "    without spaces.")
+
+
 def main(argv):
     if len(argv) < 2:
         die("Usage: {} <binary-name> <codesign-identity>".format(argv[0]))
@@ -180,7 +229,13 @@ def main(argv):
             run_quiet(["install_name_tool", "-change", lib,
                        "@executable_path/lib/" + libname, bundled_path])
 
-    # Re-sign everything.
+    strip_absolute_rpaths(
+        all_bins + [os.path.join("lib", p) for p in
+                    sorted(p for p in os.listdir("lib")
+                           if p.endswith(".dylib"))])
+
+    # Re-sign everything.  This must stay last: the rewrites and the rpath
+    # removal above both invalidate any existing signature.
     for bundled in sorted(p for p in os.listdir("lib") if p.endswith(".dylib")):
         run_quiet(["codesign", "--sign", codesign_identity, "--force",
                    os.path.join("lib", bundled)])

@@ -115,15 +115,12 @@ static bool showVersion=false;
 // this file is compiled once per executable so that ASYMPTOTE_SYSDIR can differ
 // between asy and asy-ctan; the autotools build has only the one executable.
 //
-// In the CTAN/TeXLive build (--enable-texlive-build, or the asy-ctan target)
-// KPSEWHICH is defined and ASYMPTOTE_SYSDIR is empty: the data directory is
-// defined only by kpathsea, so there is nothing to relocate -- initDir()
-// resolves sysdir with kpsewhich at startup instead.
-#ifdef KPSEWHICH
-string systemDir="";
-#else
+// The CTAN/TeXLive build (--enable-texlive-build, or the asy-ctan target) is no
+// exception: it compiles in an empty ASYMPTOTE_SYSDIR, but a base/ beside the
+// binary still wins, so a TeXLive-configured build run in place from its build
+// tree uses its own base/. Only when that finds nothing does the empty value
+// survive to initDir(), which asks kpathsea -- see KPSEWHICH there.
 string systemDir=resolveSysdir(ASYMPTOTE_SYSDIR);
-#endif
 string defaultPSdriver="ps2write";
 string defaultEPSdriver="eps2write";
 string defaultPNGdriver="png16malpha"; // pngalpha has issues at high resolutions
@@ -309,9 +306,9 @@ void queryRegistry()
   // The registry entry describes a separately installed Asymptote, so it must
   // not override a systemDir that resolveSysdir() resolved relative to this
   // executable; that would send a binary run in place to the installed base/.
-  // An empty systemDir indicates a TeXLive (KPSEWHICH) build, whose sysdir is
-  // resolved from kpathsea in initDir(), or a relocatable build that found no
-  // base/ relative to the executable.
+  // An empty systemDir indicates a TeXLive (KPSEWHICH) build that found no
+  // base/ beside the executable either; its sysdir comes from kpathsea in
+  // initDir().
   if (!systemDir.empty() && !docdir.empty() && !relocatedSysdir)
     systemDir= docdir;
 }
@@ -2157,10 +2154,17 @@ string lookup(const string& symbol)
 
 void initDir() {
 #ifdef KPSEWHICH
-  // TeXLive build: the data directory is defined only by kpathsea, so look
-  // it up with kpsewhich unless the user supplied an explicit -sysdir.
-  // Non-TeXLive builds never run this: an empty sysdir there means the
-  // relocatable lookup found no base/ (or the user passed -sysdir "").
+  // TeXLive build (--enable-texlive-build, or the asy-ctan target): the data
+  // directory is defined only by kpathsea, so ask kpsewhich where the texmf
+  // tree is. This is the last sysdir candidate, not the first -- an empty
+  // sysdir here means the user supplied no -sysdir and resolveSysdir() found no
+  // base/ beside the executable. Keep it a test for emptiness rather than for
+  // "sysdir does not exist": a build whose own base/ is missing should fail
+  // rather than silently use the TeXLive copy.
+  //
+  // Guarded by KPSEWHICH rather than by emptiness alone so that only a build
+  // that asked for kpathsea consults it; elsewhere -sysdir "" means what it
+  // says.
   if(getSetting<string>("sysdir").empty()) {
     string s=lookup("TEXMFMAIN");
     if(s.size() > 1) {
