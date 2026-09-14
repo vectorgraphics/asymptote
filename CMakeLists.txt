@@ -94,16 +94,17 @@ function(add_settings_obj target sysdir)
 endfunction()
 
 #   settings_obj      -- normal binary (ASYMPTOTE_SYSDIR_VALUE, "NUL" on Windows)
-#   settings_obj_ctan -- CTAN/TeXLive binary (empty sysdir: ask kpsewhich)
+#   settings_obj_ctan -- CTAN/TeXLive binary (empty sysdir + KPSEWHICH: fall
+#                        back to kpsewhich when no base/ sits beside the binary)
 add_settings_obj(settings_obj "${ASYMPTOTE_SYSDIR_VALUE}")
-add_settings_obj(settings_obj_ctan "" CTAN_BUILD)
+add_settings_obj(settings_obj_ctan "" KPSEWHICH CTAN_BUILD)
 
 # asy executable (normal installer build)
 add_executable(
         asy ${ASY_SRC_DIR}/main.cc ${ASY_WIN_RC_FILE} $<TARGET_OBJECTS:settings_obj>
 )
 
-# asy-ctan executable (CTAN/TexLive build with ASYMPTOTE_SYSDIR="")
+# asy-ctan executable (CTAN/TexLive build with ASYMPTOTE_SYSDIR="", KPSEWHICH)
 add_executable(asy-ctan ${ASY_SRC_DIR}/main.cc ${ASY_WIN_RC_FILE} $<TARGET_OBJECTS:settings_obj_ctan>)
 
 # Link asycore into both executables. On Unix the renderer libraries

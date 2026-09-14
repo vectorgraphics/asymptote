@@ -256,8 +256,10 @@ static bool isBaseDir(string const& dir)
 // involved.
 //
 // Otherwise the compiled-in path is returned unchanged, including when it is
-// empty: that is how a TeXLive build says it has no fixed data directory, and
-// initDir() then asks kpsewhich for TEXMFMAIN.
+// empty: that is how a TeXLive build (KPSEWHICH) says it has no fixed data
+// directory, and initDir() then asks kpsewhich for TEXMFMAIN. That build is not
+// special-cased here -- kpathsea is its last resort, not its first, so an
+// adjacent base/ wins for it too.
 //
 // noexcept because this runs as a static initializer (settings.cc), where an
 // escaping exception calls terminate() before main() rather than being caught

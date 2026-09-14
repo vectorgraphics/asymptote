@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ([2.71])
-AC_INIT([Asymptote],[3.15git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_INIT([Asymptote],[3.16git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -184,9 +184,10 @@ AC_ARG_ENABLE(texlive-build,
 installation at run time (via kpsewhich) instead of at a fixed path])],
 [ if test "x$enableval" = "xyes" ; then
     texlive_build=on
-    # How that is asked for: an empty sysdir is what initDir() (settings.cc)
-    # tests to decide to consult kpsewhich.
+    # How that is asked for: KPSEWHICH lets initDir() (settings.cc) consult
+    # kpsewhich, and the empty sysdir is what leaves it something to resolve.
     sysdir=""
+    OPTIONS=$OPTIONS"-DKPSEWHICH "
   fi
 ])
 
