@@ -17,6 +17,10 @@ import sys
 
 
 def die(*lines):
+    # Flush first: stdout is block-buffered when the build log is a pipe, while
+    # stderr is not, so without this the error jumps ahead of the progress
+    # output it belongs after.
+    sys.stdout.flush()
     for line in lines:
         print(line, file=sys.stderr)
     sys.exit(1)
@@ -57,6 +61,22 @@ def library_refs(binaries, pattern):
         if fields and pattern.match(fields[0]):
             refs.add(fields[0])
     return refs
+
+
+def codesign(identity, binary):
+    """Sign BINARY, reporting a failure instead of swallowing it."""
+    proc = subprocess.run(["codesign", "--sign", identity, "--force", binary],
+                          capture_output=True, text=True)
+    if proc.returncode == 0:
+        return
+    detail = (proc.stderr or proc.stdout).strip()
+    die("ERROR: could not sign {}.".format(binary),
+        *([detail] if detail else []),
+        "Fix options:",
+        "  - check that the identity passed as CODESIGN_IDENTITY exists in the",
+        "    keychain ('security find-identity -v -p codesigning' lists them);",
+        "    the default, '-', signs ad hoc and needs no keychain;",
+        "  - check that {} is writable.".format(binary))
 
 
 def strip_absolute_rpaths(binaries):
@@ -242,7 +262,7 @@ def main(argv):
     # shims', which install_name_tool strips outright, leaving a dylib that
     # notarization rejects.
     for binary in shipped_bins:
-        run_quiet(["codesign", "--sign", codesign_identity, "--force", binary])
+        codesign(codesign_identity, binary)
 
     return 0
 

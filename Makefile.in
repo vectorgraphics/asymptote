@@ -170,10 +170,15 @@ endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI PYTHON
 
+# Appended to every post-link step of the asy rule, so that a step which fails
+# takes the binary down with it, so that a rerun will know `asy` was not built
+# successfully.
+UNDO_LINK = || { rm -f $(NAME); exit 1; }
+
 asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ $(SHIMLIBS)
 	$(CXX) $(OPTS) -rdynamic -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 ifeq ($(BUNDLE_VULKAN),yes)
-	@$(PYTHON) build-scripts/bundle-vulkan-macos.py $(NAME) "$(CODESIGN_IDENTITY)"
+	@$(PYTHON) build-scripts/bundle-vulkan-macos.py $(NAME) "$(CODESIGN_IDENTITY)" $(UNDO_LINK)
 # Bundling rewrites the shim libraries, which are prerequisites of asy, after
 # asy has been linked; without this the binary is older than them and gets
 # relinked on every subsequent make.  touch leaves the new signature valid.
@@ -182,7 +187,7 @@ ifeq ($(BUNDLE_VULKAN),yes)
 endif
 ifeq ($(BUNDLED_DYLIBS_LICENSES),yes)
 	@$(PYTHON) build-scripts/stage-bundled-licenses.py \
-		lib doc/licenses build-scripts/bundled-dylib-licenses.tsv
+		lib doc/licenses build-scripts/bundled-dylib-licenses.tsv $(UNDO_LINK)
 endif
 
 ifeq ($(BUNDLED_DYLIBS_LICENSES),yes)
