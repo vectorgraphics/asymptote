@@ -191,6 +191,20 @@ installation at run time (via kpsewhich) instead of at a fixed path])],
   fi
 ])
 
+# An explicit sysdir, overriding both the $Datadir default and the empty one
+# --enable-texlive-build selects.  --with-sysdir= (empty) is the case that needs
+# it: a relocatable distribution -- a macOS .dmg, say -- wants base/ found
+# beside the executable and *no* fallback baked in, since any compiled-in path
+# would name a directory on the build machine.  --enable-texlive-build also
+# empties the sysdir but pairs it with -DKPSEWHICH, which asks a texmf tree to
+# resolve it instead; a self-contained bundle wants neither.  CMake has offered
+# this as ASYMPTOTE_SYSDIR_VALUE all along (cmake-scripts/gnu-install-macros.cmake).
+AC_ARG_WITH(sysdir,
+[AS_HELP_STRING(--with-sysdir=PATH,
+[system directory for global .asy files (default: DATADIR/asymptote); pass an
+empty PATH for a relocatable build that must find base/ beside the executable])],
+                     [sysdir=$withval])
+
 # Let tests/Makefile give the relocatable matrix its C="" (CTAN) axis.  CMake
 # has a second executable, asy-ctan, to point the test at; autotools builds one,
 # which under --enable-texlive-build *is* the CTAN binary.
