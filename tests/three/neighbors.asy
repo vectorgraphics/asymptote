@@ -1,16 +1,13 @@
 import TestLib;
 import graph3;
 
-// Tests for surface.buildNeighborsSlow, which reconstructs the adjacency
-// table `neighbors` from the patch geometry alone (without consulting the
-// u/v grid in `index`).
+// Tests for the edge information a surface carries in `neighbors`: for
+// surface.buildNeighborsSlow, which reconstructs that table from the patch
+// geometry alone (without consulting the u/v grid in `index`), and for
+// surface.boundary, which reads it back to assemble the boundary loops.
 
 real tol = 1e-6;
 bool near(triple x, triple y) { return abs(x - y) < tol; }
-
-path3 patchboundary(patch p) {
-  return p.triangular ? p.externaltriangular() : p.external();
-}
 
 // Every recorded adjacency must be reciprocal and the shared edge must
 // coincide geometrically (respecting the reversed flag).
@@ -24,8 +21,8 @@ void checkreciprocal(surface s) {
       edgeInfo back = nbrs[ei.patch][ei.edge];
       assert(back.patch == p && back.edge == e && back.reversed == ei.reversed,
              "adjacency must be reciprocal");
-      path3 extp = patchboundary(s.s[p]);
-      path3 extq = patchboundary(s.s[ei.patch]);
+      path3 extp = s.s[p].external();
+      path3 extq = s.s[ei.patch].external();
       triple a1 = point(extp, e), a2 = point(extp, e + 1);
       triple b1 = point(extq, ei.edge), b2 = point(extq, ei.edge + 1);
       if (ei.reversed) { triple t = b1; b1 = b2; b2 = t; }
@@ -35,17 +32,39 @@ void checkreciprocal(surface s) {
   }
 }
 
-// Collect the boundary edges (those with no adjoining patch) as endpoint
-// pairs.
-triple[][] boundaryEdges(surface s) {
-  triple[][] edges;
-  for (int k = 0; k < s.neighbors.length; ++k) {
-    path3 ext = patchboundary(s.s[k]);
+// The number of patch edges that adjoin another patch.
+int sharedEdges(surface s) {
+  int shared = 0;
+  for (int k = 0; k < s.neighbors.length; ++k)
     for (int e = 0; e < s.neighbors[k].length; ++e)
-      if (s.neighbors[k][e].patch < 0)
-        edges.push(new triple[] {point(ext, e), point(ext, e + 1)});
+      if (s.neighbors[k][e].patch >= 0) ++shared;
+  return shared;
+}
+
+// How many times a closed loop winds about the z axis, signed according to
+// the direction of travel.  The loop must avoid the axis.
+real windings(path3 g, int samplesPerArc = 8) {
+  real turning = 0;
+  for (int i = 0; i < samplesPerArc*length(g); ++i) {
+    triple p = point(g, i/samplesPerArc), q = point(g, (i + 1)/samplesPerArc);
+    turning += degrees(angle((q.x, q.y)/(p.x, p.y)));  // complex division
   }
-  return edges;
+  return turning/360;
+}
+
+// Assert that a loop is the circle of the given radius in the plane
+// z = height, traversed exactly once.
+void checkcircle(path3 g, real radius, real height, real circletol = 1e-3) {
+  assert(cyclic(g), "a boundary loop must be cyclic");
+  int samples = 16;
+  for (int i = 0; i < samples*length(g); ++i) {
+    triple p = point(g, i/samples);
+    assert(abs(p.z - height) < circletol, "the loop lies in its plane");
+    assert(abs(abs((p.x, p.y)) - radius) < circletol,
+           "the loop lies on its circle");
+  }
+  assert(abs(abs(windings(g)) - 1) < 1e-2,
+         "the loop winds once about the axis");
 }
 
 StartTest("Klein bottle is a closed surface");
@@ -70,14 +89,15 @@ StartTest("Klein bottle is a closed surface");
   }
   surface s = surface(f, (0,0), (2pi,2pi), 8, 8, Spline);
 
-  // The grid constructor records v-closure but leaves the u-seam open.
-  assert(boundaryEdges(s).length > 0,
+  // The grid constructor records v-closure but leaves the u-seam open, as
+  // the two circles it is made of.
+  assert(s.boundary().length == 2,
          "grid construction should leave the u-seam open");
 
   s.buildNeighborsSlow();
   checkreciprocal(s);
-  assert(boundaryEdges(s).length == 0,
-         "buildNeighborsSlow must close the Klein bottle (no boundary edges)");
+  assert(s.boundary().length == 0,
+         "buildNeighborsSlow must close the Klein bottle (no boundary)");
 }
 EndTest();
 
@@ -142,9 +162,21 @@ StartTest("patches sharing a nondegenerate loop edge are adjacent");
   edgeInfo ei = s.neighbors[0][1];
   assert(ei.patch == 1 && ei.edge == 1 && ei.reversed,
          "the loop edge must join patch 0 to patch 1 (reversed)");
-  // It is the only adjacency: every other edge is a boundary.
-  assert(boundaryEdges(s).length == 6,
-         "only the loop edge is shared (4+4 edges, 2 matched)");
+  assert(sharedEdges(s) == 2,
+         "the loop edge is the only one shared (of 4+4 edges)");
+
+  // Each patch leaves three consecutive edges unshared, so assembling the
+  // boundary steps from one edge of a patch to the next without crossing a
+  // seam -- the case in which the rotation about a corner stops at once.
+  // (Every other surface here is grid- or ring-like, leaving a patch's
+  // unshared edges on opposite sides, so the rotation always has to cross.)
+  path3[] b = s.boundary();
+  assert(b.length == 1, "the pinched pair has a single boundary loop");
+  path3 g = b[0];
+  assert(cyclic(g) && length(g) == 6,
+         "the loop uses all three free edges of each patch");
+  assert(near(point(g, 1), O) && near(point(g, 4), O),
+         "the loop passes through the pinch point twice");
 }
 EndTest();
 
@@ -154,29 +186,183 @@ StartTest("unithemisphere has the expected equatorial boundary");
   s.buildNeighborsSlow();
   checkreciprocal(s);
 
-  // The only boundary is the equator z = 0: four quarter-arc edges joining
-  // (1,0,0), (0,1,0), (-1,0,0), (0,-1,0) into a single closed loop.
-  triple[][] edges = boundaryEdges(s);
-  assert(edges.length == 4, "hemisphere boundary must be four edges");
+  // The only boundary is the equator: a smooth closed loop traversing the
+  // unit circle in the plane z = 0 exactly once.  How the hemisphere is cut
+  // into patches -- and hence how many arcs that loop is made of -- is an
+  // implementation detail, so nothing below depends on it.
+  path3[] b = s.boundary();
+  assert(b.length == 1, "the hemisphere boundary is a single loop");
+  path3 g = b[0];
+  checkcircle(g, 1, 0);
 
-  triple[] rim = {(1,0,0), (0,1,0), (-1,0,0), (0,-1,0)};
-  for (triple[] edge : edges) {
-    for (triple end : edge) {
-      assert(abs(end.z) < tol, "boundary lies on the equator z = 0");
-      assert(abs(abs(end) - 1) < tol, "boundary lies on the unit circle");
+  // The loop is smooth: consecutive arcs leave and arrive in the same
+  // direction (a distance of 0.02 between unit tangents is about 1 degree).
+  for (int i = 0; i < length(g); ++i)
+    assert(abs(dir(g, i, 1) - dir(g, i, -1)) < 0.02,
+           "the boundary loop must be smooth (no corners at the joins)");
+
+  // Patches meeting the equator in a single corner, with no edge along it,
+  // lie between the patches that do contribute an arc; assembling the loop
+  // has to pass through them.
+  int passthrough = 0;
+  for (int k = 0; k < s.s.length; ++k) {
+    path3 ext = s.s[k].external();
+    bool corner = false, arc = false;
+    for (int e = 0; e < s.neighbors[k].length; ++e) {
+      if (abs(point(ext, e).z) < tol) corner = true;
+      if (s.neighbors[k][e].patch < 0) arc = true;
+    }
+    if (corner && !arc) ++passthrough;
+  }
+  assert(passthrough > 0,
+         "some patch must meet the equator in a single corner only");
+}
+EndTest();
+
+StartTest("a Mobius band is bounded by one loop winding twice");
+{
+  // A Mobius band one patch wide.  The parametrization rotates the cross
+  // section at u by u/2, spreading the twist along the whole band; by the
+  // time the cross section comes back round it has flipped, so that
+  // f(2pi,v) = f(0,-v).  The band is therefore nonorientable without being
+  // u-periodic: the grid constructor leaves the u = 0 seam open, and
+  // buildNeighborsSlow has to recover it from the geometry.
+  int n = 12;
+  real R = 2, w = 0.6;
+  triple mobius(pair z) {
+    real u = z.x, v = z.y;
+    real r = R + v*cos(u/2);
+    return (r*cos(u), r*sin(u), v*sin(u/2));
+  }
+  surface s = surface(mobius, (0,-w), (2pi,w), n, 1, Spline);
+  assert(s.s.length == n, "the band is n patches around and one wide");
+  assert(!s.ucyclic(), "the band cannot be recorded as u-periodic");
+
+  // Every cross section is a straight segment, so the two patches meeting
+  // along one share it exactly rather than to within a spline fuzz.
+  for (int k = 0; k < s.s.length; ++k) {
+    path3 ext = s.s[k].external();
+    for (int e : new int[] {1, 3}) {
+      triple a = point(ext, e), b = point(ext, e + 1);
+      assert(near(postcontrol(ext, e), interp(a, b, 1/3)) &&
+             near(precontrol(ext, e + 1), interp(a, b, 2/3)),
+             "the cross sections are straight segments");
     }
   }
 
-  // Each rim vertex must be met by exactly two boundary edges (one
-  // incoming, one outgoing): the boundary is a single closed cycle.
-  for (triple v : rim) {
-    int starts = 0, ends = 0;
-    for (triple[] edge : edges) {
-      if (near(edge[0], v)) ++starts;
-      if (near(edge[1], v)) ++ends;
-    }
-    assert(starts == 1 && ends == 1,
-           "each equator vertex joins two boundary edges");
+  s.buildNeighborsSlow();
+  checkreciprocal(s);
+
+  // Edge 1 of a patch is the cross section it shares with the next one.  At
+  // the seam the half twist leaves the two patches running along that cross
+  // section in the same direction rather than in opposite directions.
+  edgeInfo seam = s.neighbors[n-1][1];
+  assert(seam.patch == 0 && seam.edge == 3 && !seam.reversed,
+         "the half twist makes the patches at the seam agree in direction");
+  assert(sharedEdges(s) == 2*n, "every cross section is shared");
+
+  // Each patch leaves its two lengthwise edges unshared, one along each
+  // side of the band, and all 2n of them belong to a single loop: the band
+  // has one boundary curve, which runs the length of one side and then the
+  // length of the other.
+  path3[] b = s.boundary();
+  assert(b.length == 1, "the Mobius band has a single boundary loop");
+  path3 g = b[0];
+  assert(cyclic(g), "a boundary loop must be cyclic");
+  assert(length(g) == 2*n, "the loop uses every unshared edge");
+  assert(abs(abs(windings(g)) - 2) < 1e-2,
+         "the boundary must wind twice about the axis");
+}
+EndTest();
+
+StartTest("a cube with a face missing is bounded by that face's outline");
+{
+  triple[] v = {(0,0,0), (1,0,0), (1,1,0), (0,1,0),
+                (0,0,1), (1,0,1), (1,1,1), (0,1,1)};
+  patch face(int a, int b, int c, int d) {
+    return patch(v[a]--v[b]--v[c]--v[d]--cycle);
   }
+  // The five faces other than z = 1, each wound so its normal points out.
+  surface s = surface(face(0,3,2,1), face(0,1,5,4), face(1,2,6,5),
+                      face(2,3,7,6), face(3,0,4,7));
+  s.buildNeighborsSlow();
+  checkreciprocal(s);
+
+  // Each of the four side faces contributes its one top edge, and together
+  // they outline the missing face.
+  path3[] b = s.boundary();
+  assert(b.length == 1, "the missing face leaves a single boundary loop");
+  path3 g = b[0];
+  assert(cyclic(g) && length(g) == 4, "the loop is a quadrilateral");
+  assert(piecewisestraight(g), "its sides are straight");
+
+  // Its corners are the four corners of the missing face, each visited
+  // once, and consecutive ones are joined along an edge of that face.
+  triple[] corners = {v[4], v[5], v[6], v[7]};
+  bool[] seen = array(4, false);
+  for (int i = 0; i < 4; ++i) {
+    int at = -1;
+    for (int j = 0; j < 4; ++j)
+      if (near(point(g, i), corners[j])) at = j;
+    assert(at >= 0, "every corner of the loop is a corner of the face");
+    assert(!seen[at], "no corner is visited twice");
+    seen[at] = true;
+    assert(abs(abs(point(g, i + 1) - point(g, i)) - 1) < tol,
+           "consecutive corners are joined by an edge of the face");
+  }
+}
+EndTest();
+
+StartTest("a cylinder is bounded by its two rim circles");
+{
+  surface s = surface(unitcylinder);
+  s.buildNeighborsSlow();
+  checkreciprocal(s);
+
+  path3[] b = s.boundary();
+  assert(b.length == 2, "the cylinder has two boundary loops");
+  real z0 = point(b[0], 0).z, z1 = point(b[1], 0).z;
+  checkcircle(b[0], 1, z0);
+  checkcircle(b[1], 1, z1);
+  assert(abs(min(z0, z1)) < tol && abs(max(z0, z1) - 1) < tol,
+         "the loops are the circles z = 0 and z = 1");
+}
+EndTest();
+
+StartTest("a cylinder two patches tall, cut in half, is bounded by four");
+{
+  // Two rings of patches stacked to make a cylinder two patches tall.
+  surface s;
+  s.s.append((zscale3(0.5)*unitcylinder).s);
+  int split = s.s.length;
+  s.s.append((shift(0.5Z)*zscale3(0.5)*unitcylinder).s);
+  s.buildNeighborsSlow();
+  checkreciprocal(s);
+  assert(s.boundary().length == 2,
+         "joined, the two rings still have only the two rim circles");
+
+  // Forget that the rings adjoin.  The circle at z = 1/2 is then unshared
+  // from both sides, so it bounds each ring separately.
+  for (int k = 0; k < s.s.length; ++k)
+    for (int e = 0; e < s.neighbors[k].length; ++e) {
+      edgeInfo ei = s.neighbors[k][e];
+      if (ei.patch >= 0 && (ei.patch < split) != (k < split))
+        s.neighbors[k][e] = new edgeInfo;
+    }
+  checkreciprocal(s);
+
+  path3[] b = s.boundary();
+  assert(b.length == 4, "the two rings have four boundary loops together");
+  int[] count = array(3, 0);  // loops at z = 0, 1/2 and 1
+  for (path3 g : b) {
+    real z = point(g, 0).z;
+    checkcircle(g, 1, z);
+    int i = round(2*z);
+    assert(i >= 0 && i <= 2 && abs(z - 0.5*i) < tol,
+           "every loop is one of the circles z = 0, 1/2, 1");
+    ++count[i];
+  }
+  assert(count[0] == 1 && count[2] == 1, "one loop at each rim");
+  assert(count[1] == 2, "two coincident loops along the cut");
 }
 EndTest();

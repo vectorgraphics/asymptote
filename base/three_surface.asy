@@ -23,10 +23,12 @@ triple coons3(path3 external) {
 struct edgeInfo {
   int patch=-1;        // index into surface.s; -1 if no adjoining patch
   int edge=-1;         // edge index on the adjoining patch (0..3 or 0..2)
-  bool reversed=false; // true iff the two edges traverse the shared
-                       // segment in opposite directions
-  
-  void operator init(int patch, int edge, bool reversed) {
+  bool reversed=true;  // true iff the two edges traverse the shared
+                       // segment in opposite directions, as they do
+                       // whenever the two patches agree in orientation;
+                       // hence the default
+
+  void operator init(int patch, int edge, bool reversed=true) {
     this.patch=patch;
     this.edge=edge;
     this.reversed=reversed;
@@ -793,6 +795,43 @@ struct primitive {
   }
 }
 
+// Assembles a closed path3 one arc at a time.  Joining paths with & copies
+// every node already placed, so a loop of n arcs costs O(n^2) to build that
+// way; appending here is O(1) and the path is assembled once, by cyclic().
+private struct loopbuilder {
+  // Arc j leaves node[j] along after[j] and arrives along beforeNext[j]; the
+  // last arc returns to node[0].
+  triple[] node,after,beforeNext;
+  bool[] linear;
+
+  bool empty() {return node.length == 0;}
+
+  // Append arc i of g, traversed backwards if direction is not 1.  The
+  // accessors below each copy g, as every builtin taking a path3 does, so g
+  // must be short: a patch outline, never a long accumulated path.
+  void append(path3 g, int i, int direction=1) {
+    if(direction == 1) {
+      node.push(point(g,i));
+      after.push(postcontrol(g,i));
+      beforeNext.push(precontrol(g,i+1));
+    } else {
+      node.push(point(g,i+1));
+      after.push(precontrol(g,i+1));
+      beforeNext.push(postcontrol(g,i));
+    }
+    linear.push(straight(g,i));
+  }
+
+  path3 cyclic() {
+    // Node j is arrived at along the arc beforeNext it, so the control points
+    // preceding the nodes are those of beforeNext shifted by one: a cyclic
+    // slice, which wraps the last arc's around to node 0.
+    beforeNext.cyclic=true;
+    return path3(beforeNext[-1:beforeNext.length-1],
+                 node,after,linear,cyclic=true);
+  }
+}
+
 struct surface {
   patch[] s;
   int index[][];// Position of patch corresponding to major U,V parameter in s.
@@ -928,19 +967,19 @@ struct surface {
         // edge 0: (i,j)->(i+1,j); neighbor at (i,j-1) edge 2
         int jm=j == 0 ? (vc ? nV-1 : -1) : j-1;
         if(act(i,jm))
-          neighbors[k][0]=edgeInfo(index[i][jm],2,true);
+          neighbors[k][0]=edgeInfo(index[i][jm],2);
         // edge 1: (i+1,j)->(i+1,j+1); neighbor at (i+1,j) edge 3
         int ip=i == nU-1 ? (uc ? 0 : -1) : i+1;
         if(act(ip,j))
-          neighbors[k][1]=edgeInfo(index[ip][j],3,true);
+          neighbors[k][1]=edgeInfo(index[ip][j],3);
         // edge 2: (i+1,j+1)->(i,j+1); neighbor at (i,j+1) edge 0
         int jp=j == nV-1 ? (vc ? 0 : -1) : j+1;
         if(act(i,jp))
-          neighbors[k][2]=edgeInfo(index[i][jp],0,true);
+          neighbors[k][2]=edgeInfo(index[i][jp],0);
         // edge 3: (i,j+1)->(i,j); neighbor at (i-1,j) edge 1
         int im=i == 0 ? (uc ? nU-1 : -1) : i-1;
         if(act(im,j))
-          neighbors[k][3]=edgeInfo(index[im][j],1,true);
+          neighbors[k][3]=edgeInfo(index[im][j],1);
       }
     }
   }
@@ -949,17 +988,18 @@ struct surface {
   // information beyond the patches themselves (in particular, `index` need
   // not be set).  Two patch edges are recognized as the same shared seam
   // when their four Bezier control points coincide to within `fuzz` (a
-  // relative tolerance, scaled by the surface's size as in
-  // uperiodic/vperiodic); the resulting edgeInfo.reversed flag is true
-  // exactly when the adjoining patch traverses the seam in the opposite
-  // direction, the orientation-consistent case.  Matching on all four
-  // control points (rather than just the endpoints) keeps distinct edges
-  // apart even when their endpoints coincide -- in particular a
-  // nondegenerate loop edge, whose first and last control points are equal
-  // but whose interior control points are not, is still paired with the
-  // correct partner.  Each edge is matched to at most one partner (the
-  // first found); an unmatched edge keeps its default edgeInfo, i.e. a -1
-  // patch index marking a surface boundary.
+  // relative tolerance, scaled by the greatest distance of a control point
+  // from the origin, as in uperiodic/vperiodic); the resulting
+  // edgeInfo.reversed flag is true exactly when the adjoining patch
+  // traverses the seam in the opposite direction, the
+  // orientation-consistent case.  Matching on all four control points
+  // (rather than just the endpoints) keeps distinct edges apart even
+  // when their endpoints coincide -- in particular a nondegenerate loop
+  // edge, whose first and last control points are equal but whose interior
+  // control points are not, is still paired with the correct partner.  Each
+  // edge is matched to at most one partner (the first found); an unmatched
+  // edge keeps its default edgeInfo, i.e. a -1 patch index marking a
+  // surface boundary.
   //
   // This routine is deliberately simple and correspondingly slow: it
   // compares every patch edge against every other, an O(E^2) scan in the
@@ -975,7 +1015,7 @@ struct surface {
     // empty) edgeInfo rows.
     triple[][][] ctrl=new triple[s.length][][];
     neighbors=new edgeInfo[s.length][];
-    real size=0;
+    real maxNorm=0;
     for(int k : s.keys) {
       path3 ext=s[k].external();
       int n=length(ext);
@@ -984,13 +1024,13 @@ struct surface {
       for(int e : range(n)) {
         ek[e]=new triple[] {point(ext,e),postcontrol(ext,e),
                             precontrol(ext,e+1),point(ext,e+1)};
-        for(triple g : ek[e]) size=max(size,abs(g));
+        maxNorm=max(maxNorm, ...abs(ek[e]));
         row[e]=new edgeInfo;
       }
       ctrl[k]=ek;
       neighbors[k]=row;
     }
-    real epsilon=fuzz*size;
+    real epsilon=fuzz*maxNorm;
     bool near(triple a, triple b) {return abs(a-b) <= epsilon;}
 
     // An edge is degenerate (and has no partner) only if all four of its
@@ -1033,6 +1073,123 @@ struct surface {
         }
       }
     }
+  }
+
+  // The boundary of the surface: those arcs of the patch boundaries that no
+  // second patch shares, assembled into closed loops.  Returns one cyclic
+  // path3 per loop, so a closed surface yields an empty array.  Adjacency
+  // information is required (see buildGridNeighbors and buildNeighborsSlow).
+  //
+  // Consecutive boundary arcs are found by rotating about the corner they
+  // share: on reaching the end of an arc, the walk steps to the next edge
+  // around that corner and, whenever that edge turns out to be shared,
+  // crosses into the adjoining patch and keeps turning, stopping at the
+  // first unshared edge.  A patch is therefore traversed even when it meets
+  // the boundary in that single corner alone.
+  //
+  // The walk also records the direction in which it traverses each arc,
+  // because crossing a seam that both patches traverse the same way (an
+  // edgeInfo with reversed=false) reverses the sense of the rotation.  That
+  // is what lets the boundary of a nonorientable surface close up: the one
+  // boundary loop of a Mobius band runs along an arc of every patch in one
+  // direction and back along another arc of every patch in the other.
+  //
+  // Arcs whose four control points agree to within fuzz (a relative
+  // tolerance, scaled by the greatest distance of a control point from the
+  // origin, as in buildNeighborsSlow) contribute nothing and are dropped,
+  // and a loop made of nothing but such arcs -- the degenerate edges
+  // meeting at the pole of a parametrization, say -- yields no path at all.
+  path3[] boundary(real fuzz=sqrtEpsilon) {
+    if(neighbors.length != s.length)
+      abort('surface.boundary: no edge information');
+
+    path3[] ext=new path3[s.length];
+    real maxNorm=0;
+    int darts=0;  // "dart" = directed edge (two of these per undirected edge)
+    for(int k : s.keys) {
+      path3 g=s[k].external();
+      ext[k]=g;
+      int n=length(g);
+      darts += 2n;
+      for(int e : range(n)) {
+        maxNorm=max(maxNorm, abs(point(g,e)), abs(postcontrol(g,e)),
+                    abs(precontrol(g,e+1)));
+      }
+    }
+    real epsilon=fuzz*maxNorm;
+    bool near(triple a, triple b) {return abs(a-b) <= epsilon;}
+
+    // Whether edge e of patch k collapses to a single point, as the edges
+    // at a pole do.  A loop edge, whose endpoints coincide but whose
+    // interior control points do not, is not degenerate.
+    bool degenerate(int k, int e) {
+      path3 g=ext[k];
+      triple z=point(g,e);
+      return near(z,postcontrol(g,e)) && near(z,precontrol(g,e+1)) &&
+             near(z,point(g,e+1));
+    }
+
+    // A dart: edge e of patch k, traversed forwards if direction == 1 and
+    // backwards if direction == -1.
+    struct dart {
+      restricted int patch;     // index into s
+      restricted int edge;      // edge index on that patch
+      restricted int direction; // 1 or -1
+      void operator init(int patch, int edge, int direction) {
+        this.patch=patch;
+        this.edge=edge;
+        this.direction=direction;
+      }
+    }
+
+    // The boundary arc following arc e of patch k, traversed in direction
+    // d: rotate about the corner at which that traversal ends, crossing
+    // shared edges, until an unshared one appears.
+    dart nextarc(int k, int e, int d) {
+      // Each step consumes a distinct directed edge, so darts is an upper
+      // bound. Usually this will only take one or two iterations.
+      for(int _ : range(darts)) {
+        int n=length(ext[k]);
+        // Traversing edge e forwards (d == 1) ends at corner e+1, whose other
+        // edge is e+1; traversing it backwards (d == -1) ends at corner e,
+        // whose other edge is e-1.
+        int f=(e+d) % n;
+        edgeInfo ei=neighbors[k][f];
+        if(ei.patch < 0) return dart(k,f,d);
+        // Cross the seam and keep turning.
+        k=ei.patch;
+        e=ei.edge;
+        // reversed <-> patches have same orientation
+        d=ei.reversed ? d : -d;
+      }
+      abort('surface.boundary: inconsistent edge information');
+      return null;
+    }
+
+    // Whether arc e of patch k has already been claimed by a loop.  Since
+    // each loop claims a whole orbit of the rotation, and the reverse of
+    // that orbit describes the same loop backwards, this also keeps a loop
+    // from being reported twice.
+    bool[][] walked=new bool[s.length][];
+    for(int k : s.keys)
+      walked[k]=array(length(ext[k]),false);
+
+    path3[] loops;
+    for(int k0 : s.keys) {
+      for(int e0 : range(length(ext[k0]))) {
+        if(walked[k0][e0] || neighbors[k0][e0].patch >= 0) continue;
+        loopbuilder loop;
+        int k=k0, e=e0, d=1;
+        while(!walked[k][e]) {
+          walked[k][e]=true;
+          if(!degenerate(k,e)) loop.append(ext[k],e,d);
+          dart next=nextarc(k,e,d);
+          k=next.patch; e=next.edge; d=next.direction;
+        }
+        if(!loop.empty()) loops.push(loop.cyclic());
+      }
+    }
+    return loops;
   }
 
   path3 uequals(real u) {
