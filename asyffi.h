@@ -893,18 +893,35 @@ public:
   )= 0;
 
   /**
+   * Creates a draw element for clipping a picture. For more information, see
+   * <a href="https://asymptote.sourceforge.io/doc/clip.html">here</a>
    *
-   * @param src Array of {@link IAsyPath*}. The enclosing path must be cyclic
-   * @param stroke
-   * @param pen
+   * @param src Array of {@link IAsyPath*}. The enclosing path must be cyclic.
+   * @param stroke If true, the clipped region is the same as if the region
+   * drawn by the source path under zerowinding rule.
+   * @param pen Pen containing the fillrule to use when determining the clipping
+   * region.
    * @param gSave
-   * @param key
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   *
+   * @remark In order to properly clip a picture, one must also create an end
+   * clip drawElement using {@link IAsyContext::createDrawElementEndClip} with a
+   * reference to this beginClip draw element and enclose both into a picture
+   * using {@link IAsyPicture::encloseDrawElements}}.
    * @return
    */
   virtual IAsyDrawElement* createDrawElementForBeginClip(
           IAsyArray* src, bool stroke, IAsyPen* pen, bool gSave, char const* key
   )= 0;
 
+  /** A corresponding element to {@link
+   * IAsyContext::createDrawElementForBeginClip}.
+   * @param beginClip Pointer to the matching {@link IAsyDrawElement} pointer
+   * created by {@link IAsyContext::createDrawElementForBeginClip}.
+   * @param gRestore This param must be same as the {@code gSave} parameter in
+   * the specified beginClip.
+   */
   virtual IAsyDrawElement*
   createDrawElementEndClip(IAsyDrawElement* beginClip, bool gRestore)= 0;
 
