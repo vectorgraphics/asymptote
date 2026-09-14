@@ -10,7 +10,6 @@
 
 #include "drawelement.h"
 #include "path.h"
-#include "drawpath.h"
 
 namespace camp {
 
@@ -26,10 +25,10 @@ public:
                 bool gsave=true, const string& key="") :
     drawElement(key), drawSuperPathPenBase(src,pentype), gsave(gsave),
     stroke(stroke) {
-    if(!stroke && !cyclic()) noncyclic();
+    if(!stroke && !drawSuperPathPenBase::cyclic()) noncyclic();
   }
 
-  virtual ~drawClipBegin() {}
+  ~drawClipBegin() override= default;
 
   bool beginclip() {return true;}
 
