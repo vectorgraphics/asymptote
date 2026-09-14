@@ -229,17 +229,20 @@ def main(argv):
             run_quiet(["install_name_tool", "-change", lib,
                        "@executable_path/lib/" + libname, bundled_path])
 
-    strip_absolute_rpaths(
-        all_bins + [os.path.join("lib", p) for p in
-                    sorted(p for p in os.listdir("lib")
-                           if p.endswith(".dylib"))])
+    # Everything that ships, and everything rewritten above: the main binary,
+    # the renderer shims, and the copied dylibs.
+    shipped_bins = all_bins + [
+        os.path.join("lib", p)
+        for p in sorted(p for p in os.listdir("lib") if p.endswith(".dylib"))]
+
+    strip_absolute_rpaths(shipped_bins)
 
     # Re-sign everything.  This must stay last: the rewrites and the rpath
-    # removal above both invalidate any existing signature.
-    for bundled in sorted(p for p in os.listdir("lib") if p.endswith(".dylib")):
-        run_quiet(["codesign", "--sign", codesign_identity, "--force",
-                   os.path.join("lib", bundled)])
-    run_quiet(["codesign", "--sign", codesign_identity, "--force", name])
+    # removal above both invalidate any existing signature -- including the
+    # shims', which install_name_tool strips outright, leaving a dylib that
+    # notarization rejects.
+    for binary in shipped_bins:
+        run_quiet(["codesign", "--sign", codesign_identity, "--force", binary])
 
     return 0
 

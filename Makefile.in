@@ -174,9 +174,10 @@ asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ $(SHIML
 	$(CXX) $(OPTS) -rdynamic -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 ifeq ($(BUNDLE_VULKAN),yes)
 	@$(PYTHON) build-scripts/bundle-vulkan-macos.py $(NAME) "$(CODESIGN_IDENTITY)"
-	# Bundling rewrites the shim libraries, which are prerequisites of asy, after
-	# asy has been linked; without this the binary is older than them and gets
-	# relinked on every subsequent make.  touch leaves the new signature valid.
+# Bundling rewrites the shim libraries, which are prerequisites of asy, after
+# asy has been linked; without this the binary is older than them and gets
+# relinked on every subsequent make.  touch leaves the new signature valid.
+# NOTE: Don't indent these comments; if you do they get echoed to the shell.
 	@touch $(NAME)
 endif
 ifeq ($(BUNDLED_DYLIBS_LICENSES),yes)
