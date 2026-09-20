@@ -17,11 +17,21 @@ namespace vm {
 class stack;
 typedef void (*bltin)(stack *s);
 
+// Forward declarations for fast type-tagged comparison without RTTI.
+struct func;
+class bfunc;
+
 struct callable : public gc
 {
   virtual void call(stack *) = 0;
   virtual ~callable();
   virtual bool compare(callable*) { return false; }
+
+  // Fast non-RTTI downcasts.  Default implementations return null; the
+  // appropriate subclass overrides its own accessor.  Avoids the cost of
+  // dynamic_cast in hot paths (e.g. callable equality tests).
+  virtual func* isFunc() { return 0; }
+  virtual bfunc* isBfunc() { return 0; }
 
   // For debugging:
   virtual void print(ostream& out) = 0;
@@ -47,6 +57,7 @@ struct func : public callable {
   func () : body(), closure() {}
   virtual void call (stack*);
   virtual bool compare(callable*);
+  virtual func* isFunc() { return this; }
 
   void print(ostream& out);
 };
@@ -57,6 +68,7 @@ public:
   bfunc(bltin b) : func(b) {}
   virtual void call (stack *s) { func(s); }
   virtual bool compare(callable*);
+  virtual bfunc* isBfunc() { return this; }
 
   void print(ostream& out);
 private:
