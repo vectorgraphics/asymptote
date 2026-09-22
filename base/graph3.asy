@@ -1723,6 +1723,28 @@ bool vperiodic(triple[][] a) {
   return true;
 }
 
+private triple[][] points(real[][] fx, real[][] fy, real[][] fz) {
+  triple[][] a=new triple[fx.length][];
+  for(int i=0; i < fx.length; ++i) {
+    real[] fxi=fx[i], fyi=fy[i], fzi=fz[i];
+    triple[] ai=new triple[fxi.length];
+    for(int j=0; j < fxi.length; ++j)
+      ai[j]=(fxi[j],fyi[j],fzi[j]);
+    a[i]=ai;
+  }
+  return a;
+}
+
+// Periodicity of a parametric surface sampled one component at a time,
+// judged on the sample points (fx[i][j],fy[i][j],fz[i][j]) together.
+bool uperiodic(real[][] fx, real[][] fy, real[][] fz) {
+  return uperiodic(points(fx,fy,fz));
+}
+
+bool vperiodic(real[][] fx, real[][] fy, real[][] fz) {
+  return vperiodic(points(fx,fy,fz));
+}
+
 // return the surface described by a matrix f
 surface surface(picture pic=currentpicture, triple[][] f, bool[][] cond={})
 {
@@ -2202,11 +2224,11 @@ surface surface(picture pic=currentpicture, triple f(pair z),
 
   if(joinsSmoothly(usplinetype[0]) && joinsSmoothly(usplinetype[1]) &&
      joinsSmoothly(usplinetype[2]) &&
-     uperiodic(fx) && uperiodic(fy) && uperiodic(fz)) s.ucyclic(true);
+     uperiodic(fx,fy,fz)) s.ucyclic(true);
 
   if(joinsSmoothly(vsplinetype[0]) && joinsSmoothly(vsplinetype[1]) &&
      joinsSmoothly(vsplinetype[2]) &&
-     vperiodic(fx) && vperiodic(fy) && vperiodic(fz)) s.vcyclic(true);
+     vperiodic(fx,fy,fz)) s.vcyclic(true);
 
   return s;
 }
