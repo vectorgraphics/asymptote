@@ -832,6 +832,24 @@ private struct loopbuilder {
   }
 }
 
+// A cell of the cubical grid that surface.buildNeighbors sorts patch edges
+// into, together with the edges filed there, each encoded as 4*patch+edge.
+private struct edgeCell {
+  int i,j,k;
+  int h;
+  int[] edges;
+  void set(int i, int j, int k) {
+    this.i=i; this.j=j; this.k=k;
+    h=hash(new int[] {i,j,k});
+  }
+  int hash() {return h;}
+}
+private bool sameCell(edgeCell a, edgeCell b) {
+  return a.i == b.i && a.j == b.j && a.k == b.k;
+}
+private from collections.hashset(T=edgeCell) access
+  HashSet_T as HashSet_edgeCell;
+
 struct surface {
   patch[] s;
   int index[][];// Position of patch corresponding to major U,V parameter in s.
@@ -999,15 +1017,19 @@ struct surface {
   // control points are not, is still paired with the correct partner.  Each
   // edge is matched to at most one partner (the first found); an unmatched
   // edge keeps its default edgeInfo, i.e. a -1 patch index marking a
-  // surface boundary.
+  // surface boundary.  A degenerate edge, all four of whose control points
+  // coincide, is never matched.  Two edges of the same patch may be, as
+  // when a patch is rolled up into a tube (compare buildGridNeighbors on a
+  // cyclic grid one patch wide).
   //
   // This routine is deliberately simple and correspondingly slow: it
   // compares every patch edge against every other, an O(E^2) scan in the
   // total number of edges E.  When the connectivity is known as the surface
   // is assembled -- e.g. from a u/v grid -- recording `neighbors` in the
   // constructor (see buildGridNeighbors) is far cheaper and should be
-  // preferred; buildNeighborsSlow is a fallback for surfaces built with no
-  // such bookkeeping.
+  // preferred; failing that, buildNeighbors computes the same result as
+  // this routine without comparing every pair of edges.  buildNeighborsSlow
+  // is kept as a deliberately simple cross-check on buildNeighbors.
   void buildNeighborsSlow(real fuzz=sqrtEpsilon) {
     // The four Bezier control points of each patch edge, in patch-edge
     // order: ctrl[k][e] = {start, postcontrol, precontrol, end} of edge e
@@ -1053,23 +1075,136 @@ struct surface {
         triple[] grev={g[3],g[2],g[1],g[0]};
         bool found=false;
         for(int l : s.keys) {
-          if(l == k) continue;
           triple[][] el=ctrl[l];
           for(int m : el.keys) {
+            if(l == k && m == e) continue; // every edge matches itself
             if(neighbors[l][m].patch >= 0) continue;
             triple[] h=el[m];
-            if(sameEdge(grev,h)) {  // opposite traversal
-              neighbors[k][e]=edgeInfo(l,m,true);
-              neighbors[l][m]=edgeInfo(k,e,true);
-              found=true; break;
-            }
-            if(sameEdge(g,h)) {     // same traversal
-              neighbors[k][e]=edgeInfo(l,m,false);
-              neighbors[l][m]=edgeInfo(k,e,false);
-              found=true; break;
-            }
+            bool reversed=sameEdge(grev,h); // opposite traversal preferred
+            if(!reversed && !sameEdge(g,h)) continue;
+            if(degenerate(h)) continue;
+            neighbors[k][e]=edgeInfo(l,m,reversed);
+            neighbors[l][m]=edgeInfo(k,e,reversed);
+            found=true; break;
           }
           if(found) break;
+        }
+      }
+    }
+  }
+
+  // Populate `neighbors` from the patch geometry.  Edges match by the rule
+  // of buildNeighborsSlow (see there): their four control points coincide
+  // to within fuzz, opposite traversal being preferred when both directions
+  // match, and a degenerate edge never matches.
+  //
+  // The edges are taken in order (by patch, then edge).  Each is paired
+  // with the earliest unmatched edge before it that matches it, if there is
+  // one, and otherwise filed to await a later partner.  Unmatched edges are
+  // filed in a hash set under the grid cell containing the centroid of
+  // their four control points.  Matching edges have centroids within
+  // epsilon of each other, and reversing an edge leaves its centroid
+  // unchanged, so searching the cells within epsilon of an edge's centroid
+  // finds every candidate partner of either orientation.  That is a single
+  // cell unless the centroid lies within epsilon of a cell wall (as it does
+  // on a coordinate plane, each of which is a wall), and never more than
+  // eight.
+  //
+  // The time taken is then roughly proportional to the number of edges, so
+  // long as few edges share a cell.  Where many do -- edges piled up along
+  // one seam, say -- it grows with the square of their number.
+  //
+  // The result is the same as that of buildNeighborsSlow, which pairs each
+  // edge in turn with the earliest unmatched edge anywhere that matches it,
+  // even where three or more edges coincide.  Both routines pair the
+  // earliest edge v that matches anything with the earliest edge w that
+  // matches v: no edge between them can claim either one, since it would
+  // match v and precede w.  Setting v and w aside and repeating the
+  // argument accounts for every other pair.
+  void buildNeighbors(real fuzz=sqrtEpsilon) {
+    triple[][][] ctrl=new triple[s.length][][];
+    neighbors=new edgeInfo[s.length][];
+    real maxNorm=0;
+    for(int k : s.keys) {
+      path3 ext=s[k].external();
+      int n=length(ext);  // either 3 or 4
+      triple[][] ek=new triple[n][];
+      edgeInfo[] row=new edgeInfo[n];
+      for(int e : range(n)) {
+        ek[e]=new triple[] {point(ext,e),postcontrol(ext,e),
+                            precontrol(ext,e+1),point(ext,e+1)};
+        maxNorm=max(maxNorm, ...abs(ek[e]));
+        row[e]=new edgeInfo;
+      }
+      ctrl[k]=ek;
+      neighbors[k]=row;
+    }
+    if(maxNorm == 0) return; // every edge is degenerate
+    real epsilon=fuzz*maxNorm;
+    bool near(triple a, triple b) {return abs(a-b) <= epsilon;}
+    bool degenerate(triple[] g) {
+      return near(g[0],g[1]) && near(g[0],g[2]) && near(g[0],g[3]);
+    }
+    bool sameEdge(triple[] g, triple[] h) {
+      return near(g[0],h[0]) && near(g[1],h[1]) &&
+             near(g[2],h[2]) && near(g[3],h[3]);
+    }
+
+    // The margin allows for roundoff as well as epsilon (summing in pairs
+    // makes the centroid of a reversed edge bitwise identical, but the
+    // margin would absorb the difference anyway).  Cells much wider than
+    // the margin keep the band near each wall, in which an edge must search
+    // a neighbouring cell too, thin.  Cell indices are at most about
+    // 1/(16384*realEpsilon) in magnitude, far inside the range of an int.
+    triple centroid(triple[] g) {return 0.25*((g[0]+g[3])+(g[1]+g[2]));}
+    real margin=epsilon+16*realEpsilon*maxNorm;
+    real width=1024*margin;
+
+    HashSet_edgeCell cells=HashSet_edgeCell(null,sameCell,
+                                            new bool(edgeCell c) {
+                                              return alias(c,null);
+                                            });
+    edgeCell probe=new edgeCell;
+    for(int k : s.keys) {
+      triple[][] ek=ctrl[k];
+      for(int e : ek.keys) {
+        triple[] g=ek[e];
+        if(degenerate(g)) continue; // never matched
+        triple[] grev={g[3],g[2],g[1],g[0]};
+        triple c=centroid(g);
+        int best=intMax;
+        bool reversed;
+        for(int i=floor((c.x-margin)/width); i <= floor((c.x+margin)/width);
+            ++i)
+          for(int j=floor((c.y-margin)/width);
+              j <= floor((c.y+margin)/width); ++j)
+            for(int l=floor((c.z-margin)/width);
+                l <= floor((c.z+margin)/width); ++l) {
+              probe.set(i,j,l);
+              edgeCell cell=cells.get(probe);
+              if(alias(cell,null)) continue;
+              for(int id : cell.edges) { // earliest first
+                if(id >= best) break;  // cell.edges is strictly increasing
+                int p=id#4, m=id%4;
+                if(neighbors[p][m].patch >= 0) continue; // claimed since
+                triple[] h=ctrl[p][m];
+                if(sameEdge(grev,h)) {best=id; reversed=true; break;}
+                if(sameEdge(g,h)) {best=id; reversed=false; break;}
+              }
+            }
+        if(best < intMax) {
+          int p=best#4, m=best%4;
+          neighbors[k][e]=edgeInfo(p,m,reversed);
+          neighbors[p][m]=edgeInfo(k,e,reversed);
+        } else {
+          probe.set(floor(c.x/width),floor(c.y/width),floor(c.z/width));
+          edgeCell cell=cells.get(probe);
+          if(alias(cell,null)) {
+            cell=new edgeCell;
+            cell.set(probe.i,probe.j,probe.k);
+            cells.add(cell);
+          }
+          cell.edges.push(4*k+e);
         }
       }
     }
@@ -1078,7 +1213,7 @@ struct surface {
   // The boundary of the surface: those arcs of the patch boundaries that no
   // second patch shares, assembled into closed loops.  Returns one cyclic
   // path3 per loop, so a closed surface yields an empty array.  Adjacency
-  // information is required (see buildGridNeighbors and buildNeighborsSlow).
+  // information is required (see buildGridNeighbors and buildNeighbors).
   //
   // Consecutive boundary arcs are found by rotating about the corner they
   // share: on reaching the end of an arc, the walk steps to the next edge

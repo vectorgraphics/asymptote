@@ -2,8 +2,9 @@ import TestLib;
 import graph3;
 
 // Tests for the edge information a surface carries in `neighbors`: for
-// surface.buildNeighborsSlow, which reconstructs that table from the patch
-// geometry alone (without consulting the u/v grid in `index`), and for
+// surface.buildNeighborsSlow and surface.buildNeighbors, which reconstruct
+// that table from the patch geometry alone (without consulting the u/v grid
+// in `index`), and for
 // surface.boundary, which reads it back to assemble the boundary loops.
 
 real tol = 1e-6;
@@ -127,6 +128,48 @@ StartTest("buildNeighborsSlow agrees with constructed neighbors on a torus");
              "reconstructed adjacency must match the constructed one");
     }
   }
+}
+EndTest();
+
+StartTest("a cyclic grid one patch wide is adjacent to itself");
+{
+  // Wrapping around a u-cyclic grid one patch wide, buildGridNeighbors
+  // records each patch as adjoining itself, its edge 1 meeting its own
+  // edge 3.  Reconstruction from the geometry must agree.  The grid is two
+  // patches, each rolled up into a tube (so that its edges along u are
+  // nondegenerate loops), stacked one above the other.
+  patch rolled(real z0) {
+    triple[][] P = new triple[4][4];
+    for (int i = 0; i < 4; ++i)
+      for (int j = 0; j < 4; ++j) {
+        real a = 2pi*i/3;
+        P[i][j] = (cos(a), sin(a), z0 + j/6);
+      }
+    P[3] = copy(P[0]);
+    return patch(P);
+  }
+  surface s = surface(rolled(0), rolled(0.5));
+  s.index = new int[][] {{0, 1}};
+  s.ucyclic(true);
+  s.buildGridNeighbors();
+  for (int k : s.s.keys) {
+    edgeInfo ei = s.neighbors[k][1];
+    assert(ei.patch == k && ei.edge == 3, "the grid wraps onto the patch");
+  }
+  edgeInfo[][] constructed = copyNeighbors(s.neighbors);
+  surface slow = surface(s), fast = surface(s);
+  slow.buildNeighborsSlow();
+  fast.buildNeighbors();
+  for (int k : constructed.keys)
+    for (int e : constructed[k].keys) {
+      edgeInfo c = constructed[k][e], a = slow.neighbors[k][e],
+               b = fast.neighbors[k][e];
+      assert(a.patch == c.patch && a.edge == c.edge && a.reversed == c.reversed,
+             "buildNeighborsSlow must match buildGridNeighbors");
+      assert(b.patch == c.patch && b.edge == c.edge && b.reversed == c.reversed,
+             "buildNeighbors must match buildGridNeighbors");
+    }
+  assert(s.boundary().length == 2, "the tube is bounded by its two rims");
 }
 EndTest();
 
@@ -364,5 +407,184 @@ StartTest("a cylinder two patches tall, cut in half, is bounded by four");
   }
   assert(count[0] == 1 && count[2] == 1, "one loop at each rim");
   assert(count[1] == 2, "two coincident loops along the cut");
+}
+EndTest();
+
+// buildNeighbors must reproduce buildNeighborsSlow exactly: the same
+// partner, edge and orientation for every patch edge.
+void checkagree(surface s, real fuzz = sqrtEpsilon) {
+  surface slow = surface(s), fast = surface(s);
+  slow.buildNeighborsSlow(fuzz);
+  fast.buildNeighbors(fuzz);
+  assert(fast.neighbors.length == slow.neighbors.length, "row count");
+  for (int k = 0; k < slow.neighbors.length; ++k) {
+    assert(fast.neighbors[k].length == slow.neighbors[k].length,
+           "edge count");
+    for (int e = 0; e < slow.neighbors[k].length; ++e) {
+      edgeInfo a = fast.neighbors[k][e], b = slow.neighbors[k][e];
+      assert(a.patch == b.patch && a.edge == b.edge && a.reversed == b.reversed,
+             "buildNeighbors must agree with buildNeighborsSlow");
+    }
+  }
+}
+
+// Move every control point by a random amount of at most d in each
+// coordinate, independently in each patch, so that shared edges no longer
+// coincide exactly.
+surface jiggle(surface s, real d) {
+  surface t = surface(s);
+  for (patch p : t.s)
+    for (triple[] row : p.P)
+      for (int i = 0; i < row.length; ++i)
+        row[i] += d*(2*unitrand() - 1, 2*unitrand() - 1, 2*unitrand() - 1);
+  return t;
+}
+
+StartTest("buildNeighbors agrees with buildNeighborsSlow");
+{
+  srand(1);
+  real R = 3, r = 1;
+  triple torus(pair t) {
+    real u = t.x, v = t.y;
+    return ((R + r*cos(v))*cos(u), (R + r*cos(v))*sin(u), r*sin(v));
+  }
+  surface T = surface(torus, (0,0), (2pi,2pi), 16, 16, Spline);
+  checkagree(T);
+  checkagree(surface(unitsphere));       // triangular patches
+  checkagree(surface(unithemisphere));
+  checkagree(surface(unitcylinder));
+  // Seams that match only to within the fuzz.  Two copies of a control
+  // point jiggled by a quarter of the fuzz per coordinate stay within the
+  // fuzz of each other, keeping every seam; half the fuzz breaks over half
+  // of the seams, and twice the fuzz, all of them.
+  checkagree(jiggle(T, 0.25*sqrtEpsilon*(R + r)));
+  checkagree(jiggle(T, 0.5*sqrtEpsilon*(R + r)));
+  checkagree(jiggle(T, 2*sqrtEpsilon*(R + r)));
+  checkagree(jiggle(T, 1e-4), fuzz = 1e-4);
+  // No fuzz at all, and nothing but a point.
+  checkagree(T, fuzz = 0);
+  checkagree(surface(patch(new triple[][] {{O,O,O,O}, {O,O,O,O},
+                                           {O,O,O,O}, {O,O,O,O}})));
+}
+EndTest();
+
+StartTest("buildNeighbors agrees with buildNeighborsSlow where edges pile up");
+{
+  srand(2);
+  // Five square pages of a book, all bound along the z axis, some of them
+  // turned over, plus a copy of the first: seven patches share one edge.
+  surface book;
+  for (int i = 0; i < 5; ++i) {
+    triple d = (cos(2pi*i/5), sin(2pi*i/5), 0);
+    patch p = patch(O--d--(d + Z)--Z--cycle);
+    book.s.push(i % 2 == 0 ? p : patch(reverse(p.external())));
+  }
+  book.s.push(patch(book.s[0]));
+  checkagree(book);
+  checkagree(jiggle(book, 0.25*sqrtEpsilon*sqrt(2)));
+  checkagree(jiggle(book, 0.5*sqrtEpsilon*sqrt(2)));
+
+  // A patch rolled up so that its edges 1 and 3 coincide, together with a
+  // second patch along the same seam.  Two edges of one patch may be paired,
+  // so whichever of the rolled patch and the flap comes first claims the
+  // seam.
+  triple[][] P = new triple[4][4];
+  for (int i = 0; i < 4; ++i)
+    for (int j = 0; j < 4; ++j) {
+      real a = 2pi*i/3;
+      P[i][j] = (cos(a), sin(a), j/3);
+    }
+  P[3] = copy(P[0]);
+  patch rolled = patch(P);
+  assert(near(point(rolled.external(), 1), point(rolled.external(), 4)),
+         "the rolled patch meets itself");
+  patch flap = patch(X--(2,0,0)--(2,0,1)--(1,0,1)--cycle);
+  checkagree(surface(rolled, flap));
+  checkagree(surface(flap, rolled));
+  surface s = surface(rolled, flap);
+  s.buildNeighbors();
+  edgeInfo ei = s.neighbors[0][1];
+  assert(ei.patch == 0 && ei.edge == 3 && ei.reversed,
+         "the rolled patch closes up on itself");
+  s = surface(flap, rolled);
+  s.buildNeighbors();
+  ei = s.neighbors[0][3];
+  assert(ei.patch == 1 && ei.edge == 1 && ei.reversed,
+         "the flap claims the seam when it comes first");
+  assert(s.neighbors[1][3].patch == -1, "leaving the rolled patch open");
+
+  // A hairpin edge runs out along a curve and back again, so it matches
+  // itself reversed -- but is never paired with itself -- and it matches a
+  // partner in both directions at once, in which case the partner is
+  // recorded as running the opposite way.
+  patch hairpin(triple side) {
+    return patch(O..controls X and X..O--side--(side + Z)--cycle);
+  }
+  surface h = surface(hairpin(Y), hairpin(-Y));
+  checkagree(h);
+  h.buildNeighbors();
+  ei = h.neighbors[0][0];
+  assert(ei.patch == 1 && ei.edge == 0 && ei.reversed,
+         "the hairpins are paired, as if running in opposite directions");
+  // Edges A and B, 1.2 fuzz apart, both match a later edge C midway between
+  // them, but not each other.  C must be paired with the earlier of the two,
+  // A, even though B lies on the side of the cell wall at x = 0 (a wall
+  // whatever the cell size) that is searched first.
+  triple[] far = {(3,1,0), (3,2,0), (3,3,0)};
+  real fz = sqrtEpsilon*abs(far[2] + Z);  // the fuzz; |(3,3,1)| is greatest
+  patch strand(real dx, triple far) {
+    return patch((dx,1,1.3)--(dx,2,1.3)--far--(far + Z)--cycle);
+  }
+  surface abc = surface(strand(0.6*fz, far[0]), strand(-0.6*fz, far[1]),
+                        strand(0, far[2]));
+  checkagree(abc);
+  abc.buildNeighbors();
+  assert(abc.neighbors[2][0].patch == 0 && abc.neighbors[1][0].patch == -1,
+         "C is paired with A, leaving B unpaired");
+
+  surface lone = surface(hairpin(Y));
+  checkagree(lone);
+  lone.buildNeighbors();
+  assert(lone.neighbors[0][0].patch == -1, "a hairpin is not its own partner");
+
+  // A nondegenerate edge less than twice the fuzz long, whose control
+  // points each lie within the fuzz of those of a degenerate edge.  A
+  // degenerate edge is never paired, even with an edge that matches it; so
+  // tiny is paired with U, which matches tiny but not D, in either order.
+  real eps = sqrtEpsilon*5;  // the fuzz: the greatest norm below is |(3,0,4)|
+  triple Q = (2,0,0);
+  triple[][] D = {{Q,Q,Q,Q}, {(2,1,0),(2,1,0),(2,1,0),(2,1,0)},
+                  {(2,2,1),(2,2,1),(2,2,1),(2,2,1)},
+                  {(0,0,4),(1,0,4),(2,0,4),(3,0,4)}};  // edge 3 is all Q
+  patch flat(triple a, triple b, triple c, triple d, triple far) {
+    return patch(a..controls b and c..d--far--(far + Z)--cycle);
+  }
+  patch tiny = flat(Q - 0.6*eps*X, Q, Q, Q + 0.6*eps*X, (3,1,0));
+  patch U = flat(Q - 1.3*eps*X, Q, Q, Q + 0.6*eps*X, (3,2,0));
+  surface[] cases = {surface(patch(D), tiny), surface(tiny, patch(D)),
+                     surface(patch(D), tiny, patch(D)),
+                     surface(patch(D), U, tiny), surface(patch(D), tiny, U)};
+  for (surface c : cases) {
+    checkagree(c);
+    c.buildNeighbors();
+    int degenerates = 0;
+    for (int k : c.s.keys) {
+      path3 g = c.s[k].external();
+      for (int e : c.neighbors[k].keys) {
+        triple z = point(g, e);
+        if (postcontrol(g, e) == z && precontrol(g, e + 1) == z &&
+            point(g, e + 1) == z) {
+          ++degenerates;
+          assert(c.neighbors[k][e].patch == -1,
+                 "a degenerate edge is never paired");
+        }
+      }
+    }
+    assert(degenerates > 0, "every case has a degenerate edge");
+  }
+  surface t = surface(patch(D), tiny, U);
+  t.buildNeighbors();
+  assert(t.neighbors[1][0].patch == 2 && t.neighbors[2][0].patch == 1,
+         "tiny is paired with U");
 }
 EndTest();
