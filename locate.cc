@@ -72,8 +72,8 @@ static string narrowPath(std::filesystem::path const& path)
 // the file and asking for its final name gets past a reparse point.
 //
 // std::filesystem::canonical is preferred to hand-rolling that
-// CreateFileW/GetFinalPathNameByHandleW dance, which also has to strip the \\?\
-// prefix, grow its buffer and cope with a volume that has no drive letter.
+// CreateFileW/GetFinalPathNameByHandleW dance, which also has to strip the
+// \\?\ prefix, grow its buffer and cope with a volume that has no drive letter.
 //
 // The argument is a path rather than a string so that the resolution runs on the
 // wide form throughout, with narrowPath() applied once to the result. Narrowing
