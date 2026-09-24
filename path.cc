@@ -945,7 +945,7 @@ void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
   }
 }
 
-void intersections(std::vector<double>& S, path& g,
+void intersections(std::vector<double>& S, const path& g,
                    const pair& p, const pair& q, double fuzz)
 {
   double fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
@@ -957,7 +957,7 @@ void intersections(std::vector<double>& S, path& g,
 }
 
 bool intersections(double &s, double &t, std::vector<double>& S,
-                   std::vector<double>& T, path& p, path& q,
+                   std::vector<double>& T, const path& p, const path& q,
                    double fuzz, bool single, bool exact, unsigned depth)
 {
   if(errorstream::interrupt) throw interrupted();

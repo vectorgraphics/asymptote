@@ -553,7 +553,7 @@ void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
 }
 
 bool intersections(double &s, double &t, std::vector<double>& S,
-                   std::vector<double>& T, path3& p, path3& q,
+                   std::vector<double>& T, const path3& p, const path3& q,
                    double fuzz, bool single, bool exact, unsigned depth)
 {
   if(errorstream::interrupt) throw interrupted();
@@ -1040,7 +1040,7 @@ bool intersections(double& U, double& V, const triple& v, triple *P,
 }
 
 bool intersections(std::vector<double>& T, std::vector<double>& U,
-                   std::vector<double>& V, path3& p, triple *P,
+                   std::vector<double>& V, const path3& p, triple *P,
                    double fuzz, bool single, unsigned depth)
 {
   if(errorstream::interrupt) throw interrupted();
