@@ -31,6 +31,16 @@ import subprocess
 import sys
 import tempfile
 
+def _ignore_unsafe(dirpath, names):
+    """Names that shutil.copytree cannot copy.  os.stat follows symlinks just
+    as the copy does, so anything it cannot stat (dangling symlinks, ...) is
+    skipped."""
+    return {
+        n
+        for n in names
+        if not os.path.exists(os.path.join(dirpath, n))
+    }
+
 # tests-asy.cmake passes these two flags to both scripts the same way, so they
 # are spelled as test_relocatable.py spells them; pylint sees duplicate code.
 # pylint: disable=duplicate-code
@@ -61,7 +71,7 @@ base_dir = os.path.abspath(args.base_dir)
 work = tempfile.mkdtemp(prefix="asy-exedir-")
 bindir = os.path.join(work, "bin")
 expected = os.path.join(bindir, "base")
-shutil.copytree(base_dir, expected)  # creates bindir on the way
+shutil.copytree(base_dir, expected, ignore=_ignore_unsafe)  # creates bindir on the way
 staged_asy = os.path.join(bindir, os.path.basename(asy))
 shutil.copy2(asy, staged_asy)
 

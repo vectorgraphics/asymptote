@@ -434,12 +434,22 @@ States = Tuple[State, State, State]
 Paths = Tuple[str, str, str]
 
 
+def _skip_unsafe(dirpath: str, names: List[str]) -> set:
+    """Names that shutil.copytree cannot copy.  os.path.exists follows
+    symlinks just as the copy does, so anything it cannot resolve (dangling
+    symlinks, ...) is skipped."""
+    return {n for n in names if not os.path.exists(os.path.join(dirpath, n))}
+
+
 def copy_base_into(base_dir: str, dst: str, with_plain: bool = True) -> None:
     """Copy the base files into ``dst``, creating it if need be.
 
     ``with_plain=False`` builds a decoy: everything but plain.asy, the only file
     resolveSysdir() looks for.  Hand-rolled because it must tolerate an existing
     destination (the flat layout) and copytree's dirs_exist_ok is 3.8+.
+    Dangling symlinks are skipped: os.path.isdir/isfile
+    follow symlinks, so a dangling link matches neither branch here, and
+    _skip_unsafe handles the same cases in subdirectories.
     """
     os.makedirs(dst, exist_ok=True)
     for name in os.listdir(base_dir):
@@ -448,8 +458,8 @@ def copy_base_into(base_dir: str, dst: str, with_plain: bool = True) -> None:
         src = os.path.join(base_dir, name)
         tgt = os.path.join(dst, name)
         if os.path.isdir(src):
-            shutil.copytree(src, tgt)
-        else:
+            shutil.copytree(src, tgt, ignore=_skip_unsafe)
+        elif os.path.isfile(src):
             shutil.copy2(src, tgt)
 
 
