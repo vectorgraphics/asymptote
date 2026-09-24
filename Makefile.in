@@ -628,6 +628,8 @@ cleanest: FORCE
 	-$(MAKE) cleaner0
 	-cd $(GC) && rm -rf ltmain.sh missing \
 		test-driver configure m4/l*.m4
+# gc has no aux files of its own, so libtoolize/automake install them here.
+	-rm -f ltmain.sh missing test-driver
 	-cd libatomic_ops && rm -rf ltmain.sh missing \
 		test-driver configure m4/l*.m4
 	-cd GUI && $(PYTHON) buildtool.py clean
