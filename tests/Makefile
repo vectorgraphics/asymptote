@@ -23,10 +23,10 @@ test_executable_path:
 	@echo
 	python3 test_executable_path.py --asy ../asy --asy-base-dir ../base
 
-# The C="" (CTAN/TeXLive) axis needs a binary with an empty compiled-in sysdir.
-# CMake builds a second executable for it; here there is only ../asy, which *is*
-# that binary exactly when configured --enable-texlive-build.  Otherwise the
-# axis reports itself skipped.
+# Chooses which asy binary to run when testing the CTAN/TeXLive axis.
+# For the autotools build chain, this is either the standard asy binary
+# (if compiled with --enable-texlive-build) or no binary at all (skip
+# that axis).
 CTAN_ASY = $(if $(filter on,$(ASY_TEXLIVE_BUILD)),--asy-ctan ../asy,)
 
 test_relocatable:
