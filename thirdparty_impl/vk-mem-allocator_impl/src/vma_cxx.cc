@@ -162,6 +162,16 @@ UniqueImage::~UniqueImage()
     vmaDestroyImage(_allocator, _image, _allocation);
   }
 }
+void UniqueImage::reset()
+{
+  if (_allocation != VK_NULL_HANDLE)
+  {
+    vmaDestroyImage(_allocator, _image, _allocation);
+  }
+  _allocator = VK_NULL_HANDLE;
+  _image = VK_NULL_HANDLE;
+  _allocation = VK_NULL_HANDLE;
+}
 UniqueImage::UniqueImage(UniqueImage&& other) noexcept
     : _allocator(std::exchange(other._allocator, nullptr)), _image(std::exchange(other._image, VK_NULL_HANDLE)),
       _allocation(std::exchange(other._allocation, nullptr))

@@ -5,7 +5,7 @@ set(ASYMPTOTE_INCLUDES ${ASY_INCLUDE_DIR})
 # than into the shared asycore. Keeping it out of asycore also lets asycore be
 # whole-archived into the executables without colliding with those objects.
 set(CAMP_BUILD_FILES
-        camperror path drawpath drawlabel picture psfile texfile util
+        camperror path bound drawpath drawlabel picture psfile texfile util
         guide flatguide knot drawfill path3 drawpath3 drawsurface
         beziercurve bezierpatch pen pipestream
 )

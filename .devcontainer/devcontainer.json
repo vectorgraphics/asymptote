@@ -122,11 +122,17 @@
 
   "remoteUser": "vscode",
 
-  // One-time provisioning: fix cache-volume ownership, fetch the pinned vcpkg
+  // One-time provisioning: fix cache-volume ownership, sync the pinned vcpkg
   // baseline, and build the Python developer virtualenv. See post-create.sh.
   // Personal setup (e.g. installing Claude Code) lives in the gitignored
   // .devcontainer/local/*.sh hooks that post-create.sh runs last.
   // (No automatic CMake configure here: the first `cmake --preset
   // linux/release` will populate the vcpkg cache, which can take a while.)
-  "postCreateCommand": "bash .devcontainer/post-create.sh"
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  // Re-check the vcpkg baseline on every start, not just on create: pulling a
+  // commit that bumps `builtin-baseline` in vcpkg.json would otherwise leave an
+  // existing container pinned to a checkout that cannot resolve it. A no-op
+  // once the checkout is in sync.
+  "postStartCommand": "bash .devcontainer/sync-vcpkg-baseline.sh"
 }

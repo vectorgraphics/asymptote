@@ -20,11 +20,17 @@ Asymptote with the CMake + vcpkg toolchain. It mirrors the Linux CI environment
   `libncurses-dev`) are also installed so the no-vcpkg `linux/sandbox` preset
   (see [Sandbox build](#sandbox-build-no-network)) can build from system
   libraries alone.
-- **vcpkg baseline access** (`Dockerfile`): `/usr/local/vcpkg` is registered as
-  a git `safe.directory` so vcpkg can fetch the `builtin-baseline` pinned in
-  [`vcpkg.json`](../vcpkg.json) (it is owned by root but the build runs as
-  `vscode`; without this, baseline resolution fails with a `git show
-  versions/baseline.json` error).
+- **vcpkg baseline sync** (`sync-vcpkg-baseline.sh`): the image's vcpkg clone is
+  shallow and pinned to whenever the image was built, so it is checked out to the
+  `builtin-baseline` from [`vcpkg.json`](../vcpkg.json) and re-bootstrapped. This
+  runs on container start as well as on create, so pulling a commit that bumps
+  the baseline does not strand an existing container. Fetching the baseline
+  commit alone is *not* sufficient: vcpkg reads `versions/baseline.json` from
+  that commit but reads the version database (`versions/<x>-/<port>.json`) from
+  the checked-out tree, so a pin newer than the checkout fails with `no version
+  database entry for <port> at <version>`. `/usr/local/vcpkg` is also registered
+  as a git `safe.directory` in the `Dockerfile`, since it is owned by root while
+  the build runs as `vscode`.
 - **CPU rendering** (`Dockerfile` + `devcontainer.json`): Mesa's software
   rasterizers are installed and forced on so the Vulkan/OpenGL renderers can
   produce rasterized images without a GPU — `mesa-vulkan-drivers` (lavapipe) for

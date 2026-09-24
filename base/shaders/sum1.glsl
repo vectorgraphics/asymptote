@@ -2,7 +2,7 @@ layout(local_size_x=LOCALSIZE) in;
 
 layout(binding=0, std430) buffer countBuffer
 {
-  uint maxSize;
+  uint maxDepth;
   uint count[];
 };
 

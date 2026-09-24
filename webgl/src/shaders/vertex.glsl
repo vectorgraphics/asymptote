@@ -21,10 +21,6 @@ flat out int MaterialIndex;
 #ifdef COLOR
 OUT vec4 Color;
 #endif
-#ifdef NORMAL
-OUT vec4 diffuse;
-OUT vec3 specular;
-OUT float roughness,metallic,fresnel0;
 OUT vec4 emissive;
 
 struct Material {
@@ -33,6 +29,11 @@ struct Material {
 };
 
 uniform Material Materials[Nmaterials];
+
+#ifdef NORMAL
+OUT vec4 diffuse;
+OUT vec3 specular;
+OUT float roughness,metallic,fresnel0;
 #endif
 
 #else
@@ -54,6 +55,12 @@ IN vec4 color;
 #endif
 
 uniform bool orthographic;
+
+// runtime light count (same uniform as in the fragment shader): unlit
+// scenes, including outline mode's runtime nlights=0, need no
+// recompilation
+uniform int nlights;
+
 uniform mat3 normMat;
 uniform mat4 viewMat;
 uniform mat4 projViewMat;
@@ -85,9 +92,10 @@ void main(void)
   else {
     if (m.parameters[3] != 0.0) {
       diffuse=color;
-#if nlights == 0
-      emissive += color;
-#endif
+      // with no active lights the fragment shader's BRDF loop runs zero
+      // times, so the color must reach the output via emissive
+      if (nlights == 0)
+        emissive += color;
     } else {
       emissive += color;
       diffuse = m.diffuse;
@@ -99,9 +107,10 @@ void main(void)
 #ifdef COLOR
   if (m.parameters[3] != 0.0) {
     diffuse=color;
-#if nlights == 0
+    // with no active lights the fragment shader's BRDF loop runs zero
+    // times, so the color must reach the output via emissive
+    if (nlights == 0)
       emissive += color;
-#endif
   } else {
     emissive += color;
     diffuse = m.diffuse;
@@ -132,9 +141,10 @@ void main(void)
   else {
     if (m.parameters[3] != 0.0) {
       diffuse=color;
-#if nlights == 0
-      emissive += color;
-#endif
+      // with no active lights the fragment shader's BRDF loop runs zero
+      // times, so the color must reach the output via emissive
+      if (nlights == 0)
+        emissive += color;
     } else {
       emissive += color;
       diffuse = m.diffuse;
@@ -146,9 +156,10 @@ void main(void)
 #ifdef COLOR
   if (m.parameters[3] != 0.0) {
     diffuse=color;
-#if nlights == 0
+    // with no active lights the fragment shader's BRDF loop runs zero
+    // times, so the color must reach the output via emissive
+    if (nlights == 0)
       emissive += color;
-#endif
   } else {
     emissive += color;
     diffuse = m.diffuse;

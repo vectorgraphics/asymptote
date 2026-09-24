@@ -224,3 +224,4 @@ yaxis("$y$",LeftRight,RightTicks);
 attach(legend(),point(10S),30S);
 
 shipout("runge7");
+erase();

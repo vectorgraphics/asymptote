@@ -46,6 +46,8 @@ string escapeCharacters(string const& inText, std::unordered_set<char> const& ch
 
 void readDisabled();
 void writeDisabled();
+void checkread(const string& name);
+void checkwrite(const string& name);
 
 // Replace spaces in file part of name with underscores.
 string cleanpath(string name);

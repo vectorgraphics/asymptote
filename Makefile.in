@@ -25,7 +25,6 @@ DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 LSP_ROOT=@LSP_ROOT@
 
 CMAKE ?= cmake
-PERL ?= perl
 PYTHON ?= python3
 BISON ?= bison
 
@@ -39,7 +38,7 @@ vpath %.cc thirdparty_impl/vk-mem-allocator_impl/src
 vpath %.ui GUI/windows
 vpath %.py GUI
 
-CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
+CAMP = camperror path bound drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill path3 drawpath3 drawsurface \
        beziercurve bezierpatch sortTriangles pen pipestream
 
@@ -60,7 +59,7 @@ VMA_IMPL_FILES = @VMA_IMPL_FILES@
 VULKAN_OBJS = $(VMA_IMPL_FILES) vkrender vkdispatchstorage vkutils vulkanshim
 
 # OpenGL renderer objects - built into a shared library, not linked into the main binary.
-OPENGL_PIC_OBJS = glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o tr.pic.o glew.pic.o
+OPENGL_PIC_OBJS = glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o glew.pic.o
 
 COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	env genv stm dec errormsg \
@@ -148,7 +147,7 @@ INSTALL = @INSTALL@
 REVISION = "const char *REVISION="
 last = $(shell head -1 revision.cc | sed -e 's/.*\"\(.*\)\";/\1/')
 usinggit = $(shell if test -d ".git"; then echo yes; fi)
-revision = ""
+revision =
 ifeq ($(usinggit),yes)
 	revision = $(shell LC_ALL="C" git describe --long 2>/dev/null | \
 	sed -e 's/git-\([0-9]*\)-g.*/-\1/' | sed -e 's/-0-g.*//')
@@ -157,7 +156,7 @@ ifeq ($(revision),)
 	revision = @VERSION@
 endif
 
-export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
+export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI PYTHON
 
 asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ $(SHIMLIBS)
 	$(CXX) $(OPTS) -rdynamic -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
@@ -270,7 +269,7 @@ novalidation:
 $(VULKAN_PIC_OBJS): %.pic.o: %.cc
 	$(CXX) $(OPTS) -fPIC -o $@ -c $<
 
-glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o tr.pic.o: %.pic.o: %.cc
+glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o: %.pic.o: %.cc
 	$(CXX) $(OPTS) -fPIC -o $@ -c $<
 
 # glew.c is a C file, needs special handling for the OpenGL shared library.
@@ -307,7 +306,7 @@ doc/version.texi: version.txt
 asymptote.so: $(COREFILES:=.pic.o) glew.o
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
-$(LSP_ROOT)/build/liblspcpp.a:
+$(LSP_ROOT)/build/liblspcpp.a: $(GCLIB)
 	$(CMAKE) -B$(LSP_ROOT)/build -S$(LSP_ROOT) -DCMAKE_CXX_FLAGS=\
 	"-fPIE @OPTIONS@ @LSP_CXX_BUILD_FLAGS@" \
 	@LSP_CMAKE_OPTIONS@
@@ -336,6 +335,13 @@ man:	asy sty
 
 faq:	asy sty
 	cd doc && $(MAKE) faq
+
+
+# Depend on `man` (rather than just asy/sty) so the info build does not
+# run in parallel with the manual build: both render the example PDFs and
+# run texi2any on asymptote.texi, which is not safe to do concurrently.
+info: man
+	cd doc && $(MAKE) asymptote.info
 
 $(RUNTIME_FILES:=.cc): %.cc: runtime.py opsymbols.h runtimebase.in %.in
 	$(PYTHON) ./runtime.py --prefix $(@:.cc=) --opsym-file opsymbols.h \
@@ -392,7 +398,7 @@ camp.tab.h: camp.tab.cc
 lex.yy.cc: camp.l
 	$(LEX) -d -olex.yy.cc camp.l
 
-lex.yy.d: $(GCLIB) lex.yy.cc camp.tab.h
+lex.yy.d: lex.yy.cc camp.tab.h
 
 keywords.h: camp.l keywords.py asyprocess.cc
 	$(PYTHON) ./keywords.py --camplfile $< --output $@ --process-file asyprocess.cc
@@ -425,7 +431,8 @@ copy-licenses:
 	${INSTALL} -p -m 644 libatomic_ops/LICENSE doc/licenses/libatomic_ops-LICENSE.txt
 	${INSTALL} -p -m 644 libatomic_ops/COPYING doc/licenses/libatomic_ops-COPYING.txt
 	${INSTALL} -p -m 644 tinyexr/LICENSE.txt doc/licenses/tinyexr-LICENSE.txt
-	${INSTALL} -p -m 644 gc/LICENSE.txt doc/licenses/gc-LICENSE.txt
+	${INSTALL} -p -m 644 gc/README.md doc/licenses/gc-LICENSE.txt
+	${INSTALL} -p -m 644 webgl/gl-matrix-license doc/licenses/gl-matrix-LICENSE.md
 
 install-licenses: copy-licenses
 	${INSTALL} -d $(licensedir)
@@ -489,6 +496,9 @@ install-html: html
 install-man: man
 	cd doc && $(MAKE) install
 
+install-info:
+	cd doc && $(MAKE) install-info
+
 install-prebuilt: install-asy
 	cd doc && $(MAKE) install-prebuilt
 
@@ -539,7 +549,8 @@ uninstall-docdir: uninstall-man uninstall-asy
 		span-LICENSE.txt \
 		glew-LICENSE.txt wyhash-UNLICENSE.txt LspCpp-LICENSE.txt \
 		libatomic_ops-LICENSE.txt libatomic_ops-COPYING.txt \
-		tinyexr-LICENSE.txt gc-LICENSE.txt
+		tinyexr-LICENSE.txt gc-LICENSE.txt \
+		gl-matrix-LICENSE.md
 	-rmdir $(licensedir)
 	-cd $(docdir) && rm -f LICENSES-THIRD-PARTY.md
 	-rmdir $(docdir)
@@ -618,7 +629,7 @@ glew.d: glew.c config.h
 .SUFFIXES: .c .cc .o .d .ui .py
 %.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.cc)
 	$(CXX) $(OPTS) -o $@ -c $<
-%.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
+%.d: %.cc $(GENERATEDENUMS:=.h)
 	@echo Creating $@; \
 	rm -f $@; \
 	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
