@@ -30,9 +30,10 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from typing import List, Set
 
 
-def _ignore_unsafe(dirpath, names):
+def _ignore_unsafe(dirpath: str, names: List[str]) -> Set[str]:
     """Names that shutil.copytree cannot copy.  os.stat follows symlinks just
     as the copy does, so anything it cannot stat (dangling symlinks, ...) is
     skipped."""
