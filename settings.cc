@@ -1118,6 +1118,7 @@ void displayFeatures(bool enabled)
     bool sigsegv=false;
     bool usegc=false;
     bool usethreads=false;
+    bool kpsewhich=false;
 
 #if HAVE_LIBGLM
     glm=true;
@@ -1203,24 +1204,29 @@ void displayFeatures(bool enabled)
     usethreads=true;
 #endif
 
-    feature("V3D      3D vector graphics output",glm && xdr);
-    feature("WebGL    3D HTML rendering",glm);
-    feature("OpenGL   3D OpenGL rendering",haveopengl);
-    feature("Vulkan   3D Vulkan rendering",havevulkan);
-    feature("SSBO     OpenGL shader storage buffer objects",ssbo);
-    feature("GSL      GNU Scientific Library (special functions)",gsl);
-    feature("FFTW3    Fast Fourier transforms",fftw3);
-    feature("Eigen    Eigenvalue library",eigen);
-    feature("XDR      External Data Representation (portable binary file format for V3D)",xdr);
-    feature("CURL     URL support",curl);
-    feature("LSP      Language Server Protocol",lsp);
-    feature("Readline Interactive history and editing",readline);
+#ifdef KPSEWHICH
+    kpsewhich=true;
+#endif
+
+    feature("V3D       3D vector graphics output",glm && xdr);
+    feature("WebGL     3D HTML rendering",glm);
+    feature("OpenGL    3D OpenGL rendering",haveopengl);
+    feature("Vulkan    3D Vulkan rendering",havevulkan);
+    feature("SSBO      OpenGL shader storage buffer objects",ssbo);
+    feature("GSL       GNU Scientific Library (special functions)",gsl);
+    feature("FFTW3     Fast Fourier transforms",fftw3);
+    feature("Eigen     Eigenvalue library",eigen);
+    feature("XDR       External Data Representation (portable binary file format for V3D)",xdr);
+    feature("CURL      URL support",curl);
+    feature("LSP       Language Server Protocol",lsp);
+    feature("Readline  Interactive history and editing",readline);
     if(!readline)
-      feature("Editline interactive editing (Readline is unavailable)",editline);
-    feature("Sigsegv  Distinguish stack overflows from segmentation faults",
+      feature("Editline  Interactive editing (Readline is unavailable)",editline);
+    feature("Sigsegv   Distinguish stack overflows from segmentation faults",
             sigsegv);
-    feature("GC       Boehm garbage collector",usegc);
-    feature("threads  Render 3D scenes in a separate thread",usethreads);
+    feature("GC        Boehm garbage collector",usegc);
+    feature("threads   Render 3D scenes in a separate thread",usethreads);
+    feature("kpsewhich Lookup system directory with kpsewhich",kpsewhich);
 }
 
 // Short license summary printed by asy --licenses.
