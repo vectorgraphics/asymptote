@@ -31,15 +31,13 @@ import subprocess
 import sys
 import tempfile
 
+
 def _ignore_unsafe(dirpath, names):
     """Names that shutil.copytree cannot copy.  os.stat follows symlinks just
     as the copy does, so anything it cannot stat (dangling symlinks, ...) is
     skipped."""
-    return {
-        n
-        for n in names
-        if not os.path.exists(os.path.join(dirpath, n))
-    }
+    return {n for n in names if not os.path.exists(os.path.join(dirpath, n))}
+
 
 # tests-asy.cmake passes these two flags to both scripts the same way, so they
 # are spelled as test_relocatable.py spells them; pylint sees duplicate code.
