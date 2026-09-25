@@ -97,7 +97,7 @@ endfunction()
 #   settings_obj_ctan -- CTAN/TeXLive binary (empty sysdir + KPSEWHICH: fall
 #                        back to kpsewhich when no base/ sits beside the binary)
 add_settings_obj(settings_obj "${ASYMPTOTE_SYSDIR_VALUE}")
-add_settings_obj(settings_obj_ctan "" KPSEWHICH CTAN_BUILD)
+add_settings_obj(settings_obj_ctan "" KPSEWHICH)
 
 # asy executable (normal installer build)
 add_executable(

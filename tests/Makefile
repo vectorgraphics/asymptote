@@ -23,15 +23,9 @@ test_executable_path:
 	@echo
 	python3 test_executable_path.py --asy ../asy --asy-base-dir ../base
 
-# Chooses which asy binary to run when testing the CTAN/TeXLive axis.
-# For the autotools build chain, this is either the standard asy binary
-# (if compiled with --enable-texlive-build) or no binary at all (skip
-# that axis).
-CTAN_ASY = $(if $(filter on,$(ASY_TEXLIVE_BUILD)),--asy-ctan ../asy,)
-
 test_relocatable:
 	@echo
-	python3 test_relocatable.py --asy ../asy --asy-base-dir ../base $(CTAN_ASY)
+	python3 test_relocatable.py --asy ../asy --asy-base-dir ../base
 
 $(EXTRADIRS)::
 	@echo

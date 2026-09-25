@@ -2038,17 +2038,10 @@ string lookup(const string& symbol)
 
 void initDir() {
 #ifdef KPSEWHICH
-  // TeXLive build (--enable-texlive-build, or the asy-ctan target): the data
-  // directory is defined only by kpathsea, so ask kpsewhich where the texmf
-  // tree is. This is the last sysdir candidate, not the first -- an empty
-  // sysdir here means the user supplied no -sysdir and resolveSysdir() found no
-  // base/ beside the executable. Keep it a test for emptiness rather than for
-  // "sysdir does not exist": a build whose own base/ is missing should fail
-  // rather than silently use the TeXLive copy.
-  //
-  // Guarded by KPSEWHICH rather than by emptiness alone so that only a build
-  // that asked for kpathsea consults it; elsewhere -sysdir "" means what it
-  // says.
+  // TeXLive build: the data directory is defined only by kpathsea, so look
+  // it up with kpsewhich unless the user supplied an explicit -sysdir.
+  // Non-TeXLive builds never run this: an empty sysdir there means the
+  // relocatable lookup found no base/ (or the user passed -sysdir "").
   if(getSetting<string>("sysdir").empty()) {
     string s=lookup("TEXMFMAIN");
     if(s.size() > 1) {

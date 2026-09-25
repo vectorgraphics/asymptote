@@ -114,7 +114,6 @@ option(
 
 option(DEBUG_GC_ENABLE "Enable debug mode for gc" false)
 option(DEBUG_GC_BACKTRACE_ENABLE "Enable backtrace for gc" false)
-# CTAN_BUILD is no longer a CMake cache variable; it's a compile definition applied per-target.
 
 option(
         ENABLE_COMPACT_ZERO_BUILD "\

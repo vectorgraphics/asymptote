@@ -982,6 +982,32 @@ def run_compiled_in_axis(ctx: Ctx) -> None:
             )
 
 
+def is_kpsewhich_build(asy_to_run: str) -> Optional[bool]:
+    """Whether ``asy -version`` lists kpsewhich among its ENABLED OPTIONS, i.e.
+    the binary was compiled with KPSEWHICH; None if -version could not be read.
+
+    Asked of the binary itself so the build system need not relay how it was
+    configured -- and so a stale binary cannot be mistaken for a fresh one.
+    """
+    try:
+        run = subprocess.run(
+            [asy_to_run, "-version"],
+            capture_output=True,
+            text=True,
+            env=_CHILD_ENV,
+            timeout=120,
+            check=False,
+        )
+    except OSError:
+        return None
+    # -version writes to stderr; ENABLED precedes DISABLED.
+    _, sep, tail = run.stderr.partition("ENABLED OPTIONS:")
+    if not sep:
+        return None
+    enabled = tail.split("DISABLED OPTIONS:")[0]
+    return any(line.split()[:1] == ["kpsewhich"] for line in enabled.splitlines())
+
+
 def run_ctan_axis(ctx: Ctx, asy_ctan: str) -> None:
     """C = "" -- the CTAN/TeXLive binary, which defers to kpsewhich.
 
@@ -1075,7 +1101,8 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument(
         "--asy-ctan",
         default=None,
-        help='path to the CTAN/TeXLive binary (enables the C="" axis)',
+        help='path to a CTAN/TeXLive (kpsewhich) build of asy, for the C="" '
+        "axis; if omitted, --asy is used when its -version lists kpsewhich",
     )
     ap.add_argument(
         "--compiled-in",
@@ -1125,14 +1152,31 @@ def run_all(ctx: Ctx, asy_ctan: Optional[str]) -> None:
     run_registry_axis(ctx)
 
     section("ctan")
-    if not asy_ctan:
-        # Reported rather than passed over: a silently absent axis reads like a
-        # passing one.
-        record("ctan/*", Status.SKIP, "no --asy-ctan given")
-    elif os.path.exists(asy_ctan):
-        run_ctan_axis(ctx, asy_ctan)
+    # Without --asy-ctan, --asy stands in when it is itself the TeXLive binary
+    # (an autotools build configured --enable-texlive-build).  Skips are
+    # reported rather than passed over: a silently absent axis reads like a
+    # passing one.
+    candidate = asy_ctan or ctx.asy_under_test
+    if not os.path.exists(candidate):
+        record("ctan/*", Status.SKIP, f"asy-ctan not found: {candidate}")
+        return
+    kpsewhich = is_kpsewhich_build(candidate)
+    if kpsewhich is None:
+        record("ctan/*", Status.FAIL, f"could not read {candidate} -version")
+    elif kpsewhich:
+        run_ctan_axis(ctx, candidate)
+    elif asy_ctan:
+        record(
+            "ctan/*",
+            Status.FAIL,
+            f"--asy-ctan {asy_ctan} does not list kpsewhich in -version",
+        )
     else:
-        record("ctan/*", Status.SKIP, f"asy-ctan not found: {asy_ctan}")
+        record(
+            "ctan/*",
+            Status.SKIP,
+            "--asy is not a TeXLive (kpsewhich) build and no --asy-ctan given",
+        )
 
 
 def main() -> None:

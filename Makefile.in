@@ -110,9 +110,6 @@ CONTEXTFILES = colo-asy.tex
 ASY = ./asy -dir base -config "" -render=0
 
 DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -I.
-
-# Plumb --enabled-texlive-build value to test folder.
-export ASY_TEXLIVE_BUILD = @texlive_build@
 CFLAGS = @CFLAGS@
 CPPFLAGS = $(shell echo '@CPPFLAGS@' | awk -f dedup.awk)
 OPTS = $(DEFS) $(CPPFLAGS) @CXXFLAGS@ $(CFLAGS) \
