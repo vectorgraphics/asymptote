@@ -548,7 +548,6 @@ case "$OSTYPE" in
           if test "x$have_vulkan_hpp" != "xyes"; then
             AC_MSG_NOTICE([*** Could not find vulkan/vulkan.hpp with VK_API_VERSION_1_4: will compile without Vulkan support ***])
           else
-          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
           AC_CHECK_LIB([vulkan], [vkCreateInstance],
           [
           LIBS_SAVE=$LIBS
@@ -647,7 +646,6 @@ case "$OSTYPE" in
               # chained fixups. Add -no_fixup_chains to use traditional fixups
               # which work correctly with dynamic_lookup for dlopen'd libraries.
               SHIM_LDFLAGS="-undefined dynamic_lookup -Wl,-no_fixup_chains"
-              AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL,1,
                              DEFINE([<gl.h> header]))
@@ -701,7 +699,6 @@ CXX_STANDARD=$cxxstd
 AC_SUBST(ASYGLVERSION)
 AC_SUBST(GCOPTIONS)
 AC_SUBST(GCLIB)
-AC_SUBST(GCPPLIB)
 AC_SUBST(LSPLIB)
 AC_SUBST(LSPLIBS)
 AC_SUBST(INCL)
