@@ -1,5 +1,6 @@
 import bezulate;
 private import interpolate;
+import palette;
 
 int nslice=12;
 real camerafactor=1.2;
@@ -63,8 +64,17 @@ struct patch {
     return new real[] {f(P[0][0]),f(P[3][0]),f(P[3][3]),f(P[0][3])};
   }
 
+  pen[] map(pen f(triple, int, int), int i) {
+    return new pen[] {f(P[0][0],i,0),f(P[3][0],i,1),
+                      f(P[3][3],i,2),f(P[0][3],i,3)};
+  }
+
   real[] maptriangular(real f(triple)) {
     return new real[] {f(P[0][0]),f(P[3][0]),f(P[3][3])};
+  }
+
+  pen[] maptriangular(pen f(triple, int, int), int i) {
+    return new pen[] {f(P[0][0],i,0),f(P[3][0],i,1),f(P[3][3],i,2)};
   }
 
   triple Bu(int j, real u) {return bezier(P[0][j],P[1][j],P[2][j],P[3][j],u);}
@@ -262,7 +272,12 @@ struct patch {
       internal=internaltriangular;
       cornermean=cornermeantriangular;
       corners=cornerstriangular;
-      map=maptriangular;
+      using realTriple=real(triple);
+      using realMap=real[](realTriple);
+      map=(realMap) maptriangular;
+      using penTriple=pen(triple, int, int);
+      using penMap=pen[](penTriple, int);
+      map=(penMap) maptriangular;
       point=pointtriangular;
       normal=normaltriangular;
       normal00=normal00triangular;
@@ -758,11 +773,44 @@ struct primitive {
   }
 }
 
+// first integer: index of patch in surface.s;
+// second integer: index of corner in patch
+using spatialPen=pen(triple, int, int);
+
+spatialPen cornerPen(pen[][] p) {
+  p.cyclic=true;
+  return new pen(triple, int i, int j) {
+    return p[i][j];
+  };
+}
+
+spatialPen cornerPen(...pen[] p) {
+  return cornerPen(new pen[][] {p});
+}
+
+// integers: the u, v indices of the patch using surface.index
+using paramPen=pen(pair, int, int);
+
+private string nullsurface="null surface";
+
 struct surface {
   patch[] s;
-  int index[][];// Position of patch corresponding to major U,V parameter in s.
+  // Position of patch corresponding to major U,V parameter in s;
+  // left uninitialized if there is no such patch.
+  int index[][];
   bool vcyclic;
   transform3 T=identity4;
+  // For a parametrically constructed surface, the affine map from the original
+  // parametrization coordinates to surface coordinates. Surface coordinates are
+  // scaled so that each patch is a unit square; the grid spans [0,nu]x[0,nv],
+  // where nu=index.length and nv=index[0].length. The construction corners a
+  // and b map to (0,0) and (nu,nv) respectively, so the map reflects an axis
+  // whenever a exceeds b along it. Lets surface operations work in either
+  // coordinate system. Defaults to the identity for non-parametric surfaces.
+  //
+  // WARNING: implementation detail; may be removed or have its type or
+  // semantics changed in a future release. Do not rely on it.
+  transform paramToSurface=identity;
 
   primitive primitive=null;
   bool PRCprimitive=true; // True unless no PRC primitive is available.
@@ -785,6 +833,7 @@ struct surface {
       this.s[i]=patch(s.s[i]);
     this.index=copy(s.index);
     this.vcyclic=s.vcyclic;
+    this.paramToSurface=s.paramToSurface;
   }
 
   void operator init(triple[][][] P, pen[][] colors=new pen[][],
@@ -794,6 +843,65 @@ struct surface {
         return patch(P[i],colors.length == 0 ? new pen[] : colors[i],
                      straight,planar,triangular);
       },P.length);
+  }
+
+  triple min() {
+    if(s.length == 0)
+      abort(nullsurface);
+    triple bound=s[0].min();
+    for(int i=1; i < s.length; ++i)
+      bound=s[i].min(bound);
+    return bound;
+  }
+
+  triple max() {
+    if(s.length == 0)
+      abort(nullsurface);
+    triple bound=s[0].max();
+    for(int i=1; i < s.length; ++i)
+      bound=s[i].max(bound);
+    return bound;
+  }
+
+  pair min(projection P) {
+    if(s.length == 0)
+      abort(nullsurface);
+    pair bound=s[0].min(P);
+    for(int i=1; i < s.length; ++i)
+      bound=s[i].min(P,bound);
+    return bound;
+  }
+
+  pair max(projection P) {
+    if(s.length == 0)
+      abort(nullsurface);
+    pair bound=s[0].max(P);
+    for(int i=1; i < s.length; ++i)
+      bound=s[i].max(P,bound);
+    return bound;
+  }
+
+  real min(real f(triple)) {
+    if(s.length == 0)
+      abort(nullsurface);
+    real m=min(s[0].map(f));
+    for(int i=1; i < s.length; ++i)
+      m=min(m,min(s[i].map(f)));
+    return m;
+  }
+
+  real max(real f(triple)) {
+    if(s.length == 0)
+      abort(nullsurface);
+    real m=max(s[0].map(f));
+    for(int i=1; i < s.length; ++i)
+      m=max(m,max(s[i].map(f)));
+    return m;
+  }
+
+  // Construct a spatialPen from f using the specified palette.
+  spatialPen palette(real f(triple), pen[] palette) {
+    return palette(f,min(f),max(f),palette);
   }
 
   void colors(pen[][] palette) {
@@ -819,18 +927,100 @@ struct surface {
     return sequence(new triple(int i) {return s[i].cornermean();},s.length);
   }
 
-  triple point(real u, real v) {
+  private struct intPair {
+    int U, V;
+    void operator init(int U, int V) {
+      this.U=U;
+      this.V=V;
+    }
+    int index() {
+      return index[U][V];
+    }
+  }
+
+  // Locate the patch covering surface coordinates (u,v), preferring cell (U,V).
+  // If (U,V) has no patch but (u,v) lies on a cell boundary shared with a
+  // neighboring non-missing patch, that neighbor is used instead (a point on a
+  // shared boundary belongs to either patch). Returns the cell (iu,iv) of the
+  // covering patch, or null if no non-missing patch contains (u,v). The patch
+  // index is the returned intPair's index().
+  private intPair locatePatch(real u, real v, int U, int V) {
+    int nU=index.length;
+    int nV=index[0].length;
+    // Candidate cells: (U,V) itself, plus a lower or upper neighbor
+    // along each axis when (u,v) lies exactly on the corresponding cell edge.
+    int[] Us={U};
+    if(u == U) Us.push(U-1);
+    if(u == U+1) Us.push(U+1);
+    int[] Vs={V};
+    if(v == V) Vs.push(V-1);
+    if(v == V+1) Vs.push(V+1);
+    // A cyclic axis has no out-of-range cells: index wraps, and returning the
+    // wrapped cell base (iu,iv) keeps the fractional offset u-iu, v-iv correct.
+    for(int iu : Us) {
+      if((iu < 0 || iu >= nU) && !index.cyclic) continue;
+      for(int iv : Vs) {
+        if((iv < 0 || iv >= nV) && !vcyclic) continue;
+        if(index[iu].initialized(iv))
+          return intPair(iu,iv);
+      }
+    }
+    return null;
+  }
+
+  // A patch in s[] together with the local coordinates at which to evaluate it.
+  private static struct patchAt {
+    int index;  // index into s
+    real u, v;  // local coordinates within s[index]
+    void operator init(int index, real u, real v) {
+      this.index=index;
+      this.u=u;
+      this.v=v;
+    }
+  }
+
+  // Resolve surface coordinates (u,v) to the patch covering them and the
+  // local coordinates at which that patch should be evaluated.
+  private patchAt locate(real u, real v) {
     int U=floor(u);
     int V=floor(v);
-    int index=index.length == 0 ? U+V : index[U][V];
-    return s[index].point(u-U,v-V);
+    if(index.length == 0)
+      return patchAt(U+V,u-U,v-V);
+    // On a non-cyclic upper boundary u==index.length or v==index[0].length,
+    // evaluate the boundary of the last patch instead of running off the grid.
+    // When cyclic, index is a cyclic array, so index[U][V] (and the
+    // fractional offset u-U, v-V) wraps out-of-range cells automatically.
+    if(U == index.length && !index.cyclic) U=index.length-1;
+    if(V == index[0].length && !vcyclic) V=index[0].length-1;
+    if(index[U].initialized(V))
+      return patchAt(index[U][V],u-U,v-V);
+    intPair p=locatePatch(u,v,U,V);
+    if(p == null)
+      abort("no patch at surface coordinates (" +
+            (string) u + "," + (string) v + ")");
+    return patchAt(p.index(),u-p.U,v-p.V);
+  }
+
+  triple point(real u, real v) {
+    patchAt q=locate(u,v);
+    return s[q.index].point(q.u,q.v);
+  }
+
+  // Evaluate the surface at the parametrization coordinates (u,v), mapped to
+  // surface coordinates by paramToSurface. Delegates to point().
+  triple paramPoint(real u, real v) {
+    pair sc=paramToSurface*(u,v);
+    return point(sc.x,sc.y);
   }
 
   triple normal(real u, real v) {
-    int U=floor(u);
-    int V=floor(v);
-    int index=index.length == 0 ? U+V : index[U][V];
-    return s[index].normal(u-U,v-V);
+    patchAt q=locate(u,v);
+    return s[q.index].normal(q.u,q.v);
+  }
+
+  triple paramNormal(real u, real v) {
+    pair sc=paramToSurface*(u,v);
+    return normal(sc.x,sc.y);
   }
 
   void ucyclic(bool f)
@@ -1040,6 +1230,12 @@ struct surface {
       ucyclic((angle2-angle1) % 360 == 0);
       vcyclic(cyclic(g));
     }
+    // The rotation (u) parameter is measured in radians; the longitudinal (v)
+    // parameter is the node index along g.
+    pair aParam=(radians(angle1),0);
+    pair bParam=(radians(angle2),L);
+    paramToSurface=xscale(n/(bParam.x-aParam.x))*yscale(L/(bParam.y-aParam.y))*
+      shift(-aParam);
   }
 
   void push(patch s) {
@@ -1064,6 +1260,7 @@ surface operator * (transform3 t, surface s)
     S.s[i]=t*s.s[i];
   S.index=copy(s.index);
   S.vcyclic=(bool) s.vcyclic;
+  S.paramToSurface=s.paramToSurface;
   S.T=t*s.T;
   S.primitive=s.primitive;
   S.PRCprimitive=s.PRCprimitive;
@@ -1071,46 +1268,24 @@ surface operator * (transform3 t, surface s)
   return S;
 }
 
-private string nullsurface="null surface";
-
 triple min(surface s)
 {
-  if(s.s.length == 0)
-    abort(nullsurface);
-  triple bound=s.s[0].min();
-  for(int i=1; i < s.s.length; ++i)
-    bound=s.s[i].min(bound);
-  return bound;
+  return s.min();
 }
 
 triple max(surface s)
 {
-  if(s.s.length == 0)
-    abort(nullsurface);
-  triple bound=s.s[0].max();
-  for(int i=1; i < s.s.length; ++i)
-    bound=s.s[i].max(bound);
-  return bound;
+  return s.max();
 }
 
 pair min(surface s, projection P)
 {
-  if(s.s.length == 0)
-    abort(nullsurface);
-  pair bound=s.s[0].min(P);
-  for(int i=1; i < s.s.length; ++i)
-    bound=s.s[i].min(P,bound);
-  return bound;
+  return s.min(P);
 }
 
 pair max(surface s, projection P)
 {
-  if(s.s.length == 0)
-    abort(nullsurface);
-  pair bound=s.s[0].max(P);
-  for(int i=1; i < s.s.length; ++i)
-    bound=s.s[i].max(P,bound);
-  return bound;
+  return s.max(P);
 }
 
 private triple[] split(triple z0, triple c0, triple c1, triple z1, real t=0.5)
@@ -1708,58 +1883,72 @@ void drawTessellation(frame f, surface s,
   int nV=s.index[0].length;
   if(nV == 0) return;
 
-  int N=(nU+1)*(nV+1);
-  triple[] v=new triple[N];
-  triple[] n=new triple[N];
-
   bool colors=s.s[0].colors.length > 0;
+
+  // Build the triangle mesh by welding the patch corners that meet at a shared
+  // grid point only when they also agree on both normal and color. Corners that
+  // disagree are emitted as separate vertices, so the vertex-sharing
+  // optimization is applied exactly where it is faithful: it never smooths
+  // shading across a crease (normals differ) nor smears a flat or otherwise
+  // discontinuous parampen across a patch seam (colors differ).
+  triple[] v;
+  triple[] n;
   pen[] p;
-  if(colors)
-    p=new pen[N];
 
-  int index(int i,int j) {return (nV+1)*i+j;}
+  // For each grid point (nU+1 by nV+1), the indices of the vertices already
+  // emitted there -- usually one, more where corners disagree.
+  int gridV=nV+1;
+  int[][] variant=new int[(nU+1)*gridV][];
 
-  int k=0;
+  // Corner normals are "equal" when nearly parallel (the threshold is on
+  // 1-cos, i.e. about 0.08 degrees); colors when their rgba components nearly
+  // match. A smooth surface's shared corners agree to rounding and weld; a
+  // crease or a flat checkerboard differs outright and splits. Each emitted
+  // vertex caches its rgba components so the comparison allocates only once per
+  // corner rather than once per candidate.
+  real normalTol=1e-6;
+  real colorTol=1e-4;
+  real[][] vcolor;
+  bool sameColor(real[] a, real[] b) {
+    return abs(a[0]-b[0]) < colorTol && abs(a[1]-b[1]) < colorTol &&
+           abs(a[2]-b[2]) < colorTol && abs(a[3]-b[3]) < colorTol;
+  }
+
+  // Return the index of a vertex at grid point (i,j) carrying normal nrm (and
+  // color col, when colored), reusing an existing one if it matches.
+  int vertex(int i, int j, triple pos, triple nrm, pen col) {
+    int g=gridV*i+j;
+    real[] rc=colors ? rgba(col) : null;
+    for(int idx : variant[g]) {
+      if(dot(n[idx],nrm) > 1-normalTol && (!colors || sameColor(vcolor[idx],rc)))
+        return idx;
+    }
+    int idx=v.length;
+    v.push(pos);
+    n.push(nrm);
+    if(colors) {
+      p.push(col);
+      vcolor.push(rc);
+    }
+    variant[g].push(idx);
+    return idx;
+  }
+
+  int[][] vi=new int[2*nU*nV][];
+  int t=-1;  // Always used as ++t.
   for(int U=0; U < nU; ++U) {
     for(int V=0; V < nV; ++V) {
       patch q=s.s[s.index[U][V]];
-      v[k]=q.P[0][0];
-      n[k]=unit(q.normal00());
-      if(colors)
-        p[k]=q.colors[0];
-      ++k;
-    }
-    patch q=s.s[s.index[U][nV-1]];
-    v[k]=q.P[0][3];
-    n[k]=unit(q.normal01());
-    if(colors)
-      p[k]=q.colors[3];
-    ++k;
-  }
-
-  for(int V=0; V < nV; ++V) {
-    patch q=s.s[s.index[nU-1][V]];
-    v[k]=q.P[3][0];
-    n[k]=unit(q.normal10());
-    if(colors)
-      p[k]=q.colors[1];
-    ++k;
-  }
-  patch q=s.s[s.index[nU-1][nV-1]];
-  v[k]=q.P[3][3];
-  n[k]=unit(q.normal11());
-  if(colors)
-    p[k]=q.colors[2];
-  ++k;
-
-  int[][] vi=new int[nU*nV][];
-  int k=0;
-  for(int i=0; i < nU; ++i) {
-    for(int j=0; j < nV; ++j) {
-      vi[k]=new int[] {index(i,j),index(i+1,j),index(i+1,j+1)};
-      ++k;
-      vi[k]=new int[] {index(i,j),index(i+1,j+1),index(i,j+1)};
-      ++k;
+      pen c0, c1, c2, c3;
+      if(colors) {
+        c0=q.colors[0]; c1=q.colors[1]; c2=q.colors[2]; c3=q.colors[3];
+      }
+      int a=vertex(U,  V,  q.P[0][0],unit(q.normal00()),c0);
+      int b=vertex(U+1,V,  q.P[3][0],unit(q.normal10()),c1);
+      int c=vertex(U+1,V+1,q.P[3][3],unit(q.normal11()),c2);
+      int d=vertex(U,  V+1,q.P[0][3],unit(q.normal01()),c3);
+      vi[++t]=new int[] {a,b,c};
+      vi[++t]=new int[] {a,c,d};
     }
   }
 
@@ -1787,8 +1976,16 @@ void drawTessellation(picture pic=currentpicture, surface s,
                       light light=currentlight, light meshlight=nolight,
                       string name="", render render=defaultrender)
 {
-  pic.add(new void(frame f, transform3 t, picture, projection) {
-      drawTessellation(f,t*s,surfacepen,meshpen,light,meshlight,name,render);
+  pic.add(new void(frame f, transform3 t, picture pic, projection P) {
+      surface S=t*s;
+      drawTessellation(f,S,surfacepen,meshpen,light,meshlight,name,render);
+      if(pic != null) {
+        // Register the projected extent so the tessellated surface contributes
+        // to the 2D sizing of the picture; without this a picture containing
+        // only tessellated surfaces has unbounded x/y scaling.
+        pic.addPoint(min(S,P));
+        pic.addPoint(max(S,P));
+      }
     },true);
 
   pic.addPoint(min(s));
@@ -1802,8 +1999,37 @@ void drawTessellation(picture pic=currentpicture, surface s,
   }
 }
 
+// Color each indexed patch of the draw-time surface copy S using parampen,
+// evaluated at the parametric coordinates of the patch corners. The integer
+// arguments passed to parampen are the patch's u, v indices in S.index. This is
+// a drawing helper: colors are written only into the copy made for drawing,
+// never into a user's surface. Callers must ensure S.index is populated.
+private void colorParam(surface S, paramPen parampen) {
+  transform surfaceToParam=inverse(S.paramToSurface);
+  int nU=S.index.length;
+  int nV=S.index[0].length;
+  for(int U=0; U < nU; ++U) {
+    for(int V=0; V < nV; ++V) {
+      if(!S.index[U].initialized(V)) continue;
+      int i=S.index[U][V];
+      pen p00=parampen(surfaceToParam*(U,V),U,V);
+      pen p10=parampen(surfaceToParam*(U+1,V),U,V);
+      pen p11=parampen(surfaceToParam*(U+1,V+1),U,V);
+      patch si=S.s[i];
+      if (si.triangular) {
+        si.colors = new pen[] {p00,p10,p11};
+        continue;
+      }
+      pen p01=parampen(surfaceToParam*(U,V+1),U,V);
+      si.colors=new pen[] {p00,p10,p11,p01};
+    }
+  }
+}
+
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
+          pen spatialpen(triple, int, int)=null,
+          pen parampen(pair, int, int)=null,
           light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
 {
@@ -1814,6 +2040,16 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
+      // Color the patches before drawing so both the 3D render and the
+      // 2D-projection (vector output) path below pick up the result. The param
+      // pen takes precedence over the spatial pen, but is ignored unless the
+      // surface has a populated index grid.
+      if(parampen != null && s.index.length > 0)
+        colorParam(S,parampen);
+      else if(spatialpen != null)
+        for(int i=0; i < s.s.length; ++i)
+          S.s[i].colors=s.s[i].map(spatialpen,i);
+
       if(is3D()) {
         render Render=render(render,interaction(render.interaction,
                                                 t*render.interaction.center));
@@ -1853,17 +2089,26 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
+          pen spatialpen(triple, int, int)=null,
+          pen parampen(pair, int, int)=null,
           light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
 {
   if(render.tessellate && s.index.length > 0 && settings.render != 0) {
+    // Color a copy of the surface so the tessellation picks up the param pen.
+    if(parampen != null) {
+      s=surface(s);
+      colorParam(s,parampen);
+    }
     drawTessellation(pic,s,surfacepen,meshpen,light,meshlight,name,render);
   } else {
     material[] surfacepen={surfacepen};
     surfacepen.cyclic=true;
     pen[] meshpen={meshpen};
     meshpen.cyclic=true;
-    draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight,name,render);
+    draw(pic,s,nu,nv,surfacepen,meshpen,
+         spatialpen,parampen,light,meshlight,name,
+         render);
   }
 }
 

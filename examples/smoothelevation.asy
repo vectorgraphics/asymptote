@@ -13,9 +13,8 @@ size(400,300,IgnoreAspect);
 real f(pair z) {return cos(2*pi*z.x)*sin(2*pi*z.y);}
 
 surface s=surface(f,(-1/2,-1/2),(1/2,1/2),20,Spline);
-s.colors(palette(s.map(zpart),Rainbow()));
 
-draw(s,render(tessellate=false));
+draw(s,s.palette(zpart,Rainbow()));
 
 scale(true);
 
