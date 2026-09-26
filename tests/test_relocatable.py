@@ -46,7 +46,7 @@ other axes feed, or post-process, that same core:
 
 Scenario IDs are ``core/<states>`` -- B = holds plain.asy, D = decoy, A =
 absent, in K1 K2 K3 order -- and ``<axis>/<case>`` elsewhere.  Requirements not
-scriptable in-suite (a compiled-in ``NUL``, a deployed texmf tree) are SKIPped.
+scriptable in-suite (a deployed texmf tree) are SKIPped.
 
 Three asy paths are named apart throughout: ``asy_under_test`` is the binary
 given on the command line, ``staged_asy`` a copy placed into a staged layout,
@@ -653,6 +653,35 @@ def windows_docdir() -> str:
     return default
 
 
+def kpathsea_sysdir() -> Optional[str]:
+    """The sysdir initDir() derives from kpathsea, or None if kpsewhich is
+    unavailable here.
+
+    Mirrors settings.cc: lookup() asks ``kpsewhich --var-value=TEXMFMAIN``, and
+    initDir() appends asymptote/ only to an answer longer than one character,
+    leaving the sysdir empty otherwise.  lookup() would prefer a kpsewhich
+    beside the binary, but the staged copies have none, so PATH decides.
+    """
+    kpsewhich = shutil.which("kpsewhich")
+    if kpsewhich is None:
+        return None
+    try:
+        run = subprocess.run(
+            [kpsewhich, "--var-value=TEXMFMAIN"],
+            capture_output=True,
+            text=True,
+            env=_CHILD_ENV,
+            timeout=120,
+            check=False,
+        )
+    except OSError:
+        return None
+    # lookup() reads one whitespace-delimited token.
+    words = run.stdout.split()
+    texmf = words[0] if words else ""
+    return texmf + os.sep + "asymptote" if len(texmf) > 1 else ""
+
+
 def fallback_sysdir(compiled_in: Optional[str]) -> Optional[str]:
     """What asy must report when no candidate fires, or None if unpredictable.
 
@@ -1011,12 +1040,36 @@ def is_kpsewhich_build(asy_to_run: str) -> Optional[bool]:
 def run_ctan_axis(ctx: Ctx, asy_ctan: str) -> None:
     """C = "" -- the CTAN/TeXLive binary, which defers to kpsewhich.
 
-    Same two layouts: at HIT the adjacent base/ must still win (kpsewhich is the
-    last resort, not a mode), and at MISS the texmf tree answers -- and in
-    particular the answer must not be a build or staging path.
+    The TeXLive build never calls resolveSysdir(), so the texmf tree answers at
+    both layouts.  At HIT the adjacent base/ must be ignored in favor of that
+    answer; at MISS the answer must not be a build or staging path.
     """
-    staged_hit, hit_paths = ctx.stage("ctan-hit", HIT, asy_under_test=asy_ctan)
-    ctx.expect("ctan/hit", staged_hit, hit_paths[Location.K1], runs=True)
+    staged_hit, _ = ctx.stage("ctan-hit", HIT, asy_under_test=asy_ctan)
+    expected = kpathsea_sysdir()
+    if expected is None:
+        record("ctan/hit", Status.SKIP, "no kpsewhich to predict the sysdir")
+    else:
+        # Only the path is asserted, not whether asy starts: that would load
+        # whatever base/ a TeXLive-installed Asymptote left in the texmf tree,
+        # making the row depend on that version's compatibility with this one.
+        _, val, resolved = probe(staged_hit, cwd=ctx.work, rescue_base=ctx.base_dir)
+        if resolved is None:
+            record(
+                "ctan/hit",
+                Status.FAIL,
+                f"sysdir not recoverable even with -dir: {brief(val)}",
+            )
+        elif norm(resolved) != norm(expected):
+            record(
+                "ctan/hit",
+                Status.FAIL,
+                f"expected kpathsea sysdir {expected!r}, got {resolved!r}",
+            )
+        else:
+            shown = resolved if resolved else "<empty>"
+            record(
+                "ctan/hit", Status.PASS, f"{shown} (kpathsea, not the adjacent base/)"
+            )
 
     # Deployed TeXLive shape: bin/<platform>/asy, no adjacent base/.  Where the
     # texmf tree has no asymptote/ the binary cannot start, but the rescue -dir

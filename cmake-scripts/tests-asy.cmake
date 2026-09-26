@@ -60,7 +60,7 @@ add_test(
             --asy $<TARGET_FILE:asy>
             --asy-base-dir ${ASY_BUILD_BASE_DIR}
             --asy-ctan $<TARGET_FILE:asy-ctan>
-            --compiled-in ${ASYMPTOTE_SYSDIR_VALUE}
+            "--compiled-in=${ASYMPTOTE_SYSDIR_VALUE}"
         WORKING_DIRECTORY ${ASY_ASYLANG_TEST_ROOT}
 )
 set_property(

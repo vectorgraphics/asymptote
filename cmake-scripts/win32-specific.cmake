@@ -16,10 +16,10 @@ list(APPEND ASY_MACROS WIN32_LEAN_AND_MEAN NOMINMAX __MSDOS__=1 HAVE_LIBTIRPC)
 
 # There is no fixed install prefix on Windows: the installed sysdir comes from
 # the registry (queryRegistry, written by the NSIS installer) or from a base/
-# beside asy.exe (resolveSysdir). "NUL" is a placeholder that never names a base
-# directory. It is applied per-target in add_settings_obj, not globally:
-# settings.cc is ASYMPTOTE_SYSDIR's only consumer and asy-ctan needs "".
-set(ASYMPTOTE_SYSDIR_VALUE "NUL")
+# beside asy.exe (resolveSysdir), so there is nothing to compile in. It is
+# applied per-target in add_settings_obj, not globally: settings.cc is
+# ASYMPTOTE_SYSDIR's only consumer.
+set(ASYMPTOTE_SYSDIR_VALUE "")
 
 
 set(BUILD_SHARED_LIBS OFF)

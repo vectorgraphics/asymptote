@@ -89,9 +89,9 @@ function(add_settings_obj target sysdir)
     )
 endfunction()
 
-#   settings_obj      -- normal binary (ASYMPTOTE_SYSDIR_VALUE, "NUL" on Windows)
-#   settings_obj_ctan -- CTAN/TeXLive binary (empty sysdir + KPSEWHICH: fall
-#                        back to kpsewhich when no base/ sits beside the binary)
+#   settings_obj      -- normal binary (ASYMPTOTE_SYSDIR_VALUE, "" on Windows)
+#   settings_obj_ctan -- CTAN/TeXLive binary (empty sysdir + KPSEWHICH: the
+#                        sysdir comes from kpsewhich)
 add_settings_obj(settings_obj "${ASYMPTOTE_SYSDIR_VALUE}")
 add_settings_obj(settings_obj_ctan "" KPSEWHICH)
 

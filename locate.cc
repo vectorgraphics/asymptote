@@ -233,35 +233,29 @@ static bool isBaseDir(string const& dir)
 // Determine the system base directory.
 //
 // ASYMPTOTE_SYSDIR is passed in rather than read here. Under CMake it differs
-// between asy and asy-ctan (the CTAN/TeXLive build defines it empty), but only
-// settings.cc is compiled separately per executable; locate.cc is compiled once
-// into asycore and linked into both, so a value read here would be identical
-// for the two binaries. The autotools build has a single executable and is
-// unaffected either way.
+// between asy and asy-ctan, so it is defined only for settings.cc, the one
+// file compiled separately per executable; locate.cc is compiled once into
+// asycore and linked into both. The autotools build has a single executable
+// and is unaffected either way. (The TeXLive build, KPSEWHICH, does not call
+// this function at all: settings.cc leaves systemDir empty there, for initDir()
+// to fill in from kpathsea.)
 //
-// The one candidate is base/ beside the running executable, tried before the
-// compiled-in path so that a binary run in place from its build tree uses its
-// own base/ rather than that of a separately installed Asymptote. It needs no
-// opt-in: <exedir>/base/plain.asy exists only in a build tree or in a
-// distribution that deliberately ships base/ beside the binary. The macOS
-// bundle is laid out that way -- install-asy with bindir=<dest>/Asymptote
-// asydir=<dest>/Asymptote/base -- so it relocates with no compiled-in path
-// involved.
+// base/ beside the running executable is tried first, so that a binary run in
+// place from its build tree uses its own base/ even when some other Asymptote
+// is installed at the compiled-in sysdir. This needs no opt-in:
+// <exedir>/base/plain.asy exists only in a build tree or in a distribution
+// that deliberately ships base/ beside the binary, such as the macOS bundle.
 //
-// Otherwise the compiled-in path is returned unchanged, including when it is
-// empty: that is how a TeXLive build (KPSEWHICH) says it has no fixed data
-// directory, and initDir() then asks kpsewhich for TEXMFMAIN. That build is not
-// special-cased here -- kpathsea is its last resort, not its first, so an
-// adjacent base/ wins for it too.
+// Otherwise the compiled-in path is returned unchanged.
 //
 // noexcept because this runs as a static initializer (settings.cc), where an
 // escaping exception calls terminate() before main() rather than being caught
 // anywhere. Marking it costs nothing there -- terminate() is what an escaping
 // exception would produce either way -- and states the contract in a form the
 // compiler checks rather than one a comment can drift away from. The body is
-// guarded as a whole rather than at each allocating step: it is built out of
-// strings and std::filesystem paths, so the throwing operations are too many to
-// enumerate reliably, and all of them mean the same thing here.
+// guarded as a whole rather than at each allocating step: the candidate is
+// built from strings and std::filesystem paths, so the throwing operations are
+// too many to enumerate reliably, and all of them mean the same thing here.
 //
 string resolveSysdir(string const& compiledInSysdir) noexcept
 {
