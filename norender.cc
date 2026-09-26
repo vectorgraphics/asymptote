@@ -26,7 +26,7 @@ void NoRender::render(RenderFunctionArgs const& args)
   Height = fullHeight;
 
   // Initialize camera state so that getProjViewMat() returns a valid matrix.
-  // This is needed for bbox2::Bounds which uses Transform2T(getProjViewMat(), v).
+  // This is needed for bbox2::outcode, which uses getProjViewMat().
   X = Y = cx = cy = 0;
   rotateMat = dmat4(1.0);
   Zoom = Zoom0;
