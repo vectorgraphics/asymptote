@@ -460,9 +460,6 @@ disable=raw-checker-failed,
         invalid-name,
         global-variable-not-assigned,
         # Superseded by too-many-module-statements (misc/pylint_module_size.py):
-        # this one counts raw physical lines, so it fires on prose.  No module
-        # trips either limit today, so the swap changes no current verdict; it
-        # decides which way the next large file gets judged.
         too-many-lines,
 
 # Enable the message, report, category or checker with the given id(s). You can

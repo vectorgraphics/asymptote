@@ -80,10 +80,6 @@ target_compile_options(asycore PUBLIC ${ASY_COMPILE_OPTS})
 # include dirs / macros / options via the PRIVATE link; any extra args become
 # build-specific compile definitions.
 #
-# The sysdir is a required parameter rather than an ${ARGN} override: definitions
-# inherited from asycore are emitted after the target's own, so a global
-# -DASYMPTOTE_SYSDIR would win over anything set here (which is how the CTAN
-# binary silently ended up with the normal sysdir).
 function(add_settings_obj target sysdir)
     add_library(${target} OBJECT ${ASY_SRC_DIR}/settings.cc)
     target_link_libraries(${target} PRIVATE asycore)

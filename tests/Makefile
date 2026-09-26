@@ -1,8 +1,7 @@
 .NOTPARALLEL:
 
 # Every subdirectory is a test suite, except the byte-cache Python leaves behind
-# once any .py script here has been imported; without the filter `make check`
-# tries to run __pycache__/*.asy and dies.
+# once any .py script here has been imported.
 TESTDIRS = $(filter-out __pycache__/,$(wildcard */))
 
 test: $(TESTDIRS) test_collections_errors test_executable_path test_relocatable

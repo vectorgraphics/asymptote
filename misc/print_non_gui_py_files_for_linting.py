@@ -3,10 +3,7 @@
 
 The candidate set comes from git rather than a filesystem walk: tracked files,
 plus untracked files that are not ignored (so a new file is linted before it is
-committed).  A working repository accumulates virtual environments, build trees
-and scratch scripts, and asking git keeps those out for free provided they are
-ignored -- anything not covered by .gitignore is still swept up, which is
-usually a hint that it belongs there.
+committed).
 
 The candidates are then filtered through the exclusion lists below, which drop
 checked-in code linted elsewhere (GUI) or not ours to lint (third-party
@@ -19,9 +16,10 @@ import pathlib
 import subprocess
 import sys
 
-# abspath rather than resolve(): callers rely on absolute output, but python
-# before 3.9 leaves a relative __file__ relative, and resolving would rewrite
-# symlinks the caller may have used deliberately.
+
+# Obtain an absolute path without following symlinks. The
+# os.path.abspath call is redundant for Python 3.9+, but we are
+# currently looking for 3.7 compatibility.
 REPO_ROOT = pathlib.Path(os.path.abspath(__file__)).parents[1]
 
 EXCLUDED_ROOT_FOLDERS = [
@@ -54,8 +52,7 @@ def git_candidate_files():
     """Return the repo-relative python files git knows or would soon know about.
 
     The ".py" selection is done here rather than with a git pathspec, which
-    would have to survive the argument handling of whichever git is on PATH --
-    on Windows a MinGW program whose runtime may expand wildcards first.
+    might behave badly on Windows (MinGW).
     """
     tracked = run_git("ls-files", "-z")
     untracked = run_git("ls-files", "-z", "--others", "--exclude-standard")
@@ -65,7 +62,10 @@ def git_candidate_files():
 
 
 def run_git(*args):
-    """Run a NUL-separated git command in the repository, returning its entries."""
+    """Run a git command in the repository, returning its entries split by NUL.
+
+    Callers should include the `-z` flag where applicable.
+    """
     try:
         completed = subprocess.run(
             ["git", "-C", str(REPO_ROOT)] + list(args),

@@ -174,16 +174,11 @@ INCL=""
 LIBS=""
 CPPFLAGS=$CPPFLAGS" -I. "
 
-# For a binary that ships inside a texmf tree (TeX Live, MacTeX) whose path is
-# not known at build time.  Instead of a fixed data directory it finds base/
-# when it runs, by asking kpsewhich where the texmf tree is.
 AC_ARG_ENABLE(texlive-build,
 [AS_HELP_STRING(--enable-texlive-build[[[=no]]],
-[for a binary shipped inside a texmf tree: find base/ within the TeX
-installation at run time (via kpsewhich) instead of at a fixed path])],
+leave ASYMPTOTE_SYSDIR empty and define KPSEWHICH so the binary
+determines sysdir from kpsewhich at runtime)],
 [ if test "x$enableval" = "xyes" ; then
-    # How that is asked for: KPSEWHICH lets initDir() (settings.cc) consult
-    # kpsewhich, and the empty sysdir is what leaves it something to resolve.
     sysdir=""
     OPTIONS=$OPTIONS"-DKPSEWHICH "
   fi

@@ -6,21 +6,21 @@
  *****/
 
 #if defined(_WIN32)
-#  include <filesystem>// canonical
-#  include <system_error>// error_code
+#  include <filesystem>
+#  include <system_error>
 #  include <vector>
 #  include <Windows.h>
 #else
 #  include <unistd.h>
 #  if defined(__APPLE__)
-#    include <limits.h>// PATH_MAX
-#    include <stdlib.h>// realpath
+#    include <limits.h>
+#    include <stdlib.h>
 #    include <mach-o/dyld.h>
 #  elif defined(__FreeBSD__)
-#    include <limits.h>// PATH_MAX
-#    include <string.h>// strnlen
-#    include <sys/types.h>// sysctl (documented prerequisite of sys/sysctl.h)
-#    include <sys/sysctl.h>// sysctl, CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME
+#    include <limits.h>
+#    include <string.h>
+#    include <sys/types.h>
+#    include <sys/sysctl.h>
 #  endif
 #endif
 
@@ -48,10 +48,8 @@ bool relocatedSysdir= false;
 // its result is what those APIs expect.
 //
 // A path containing characters outside that code page is therefore not
-// representable here, and path::string() substitutes for them silently. The
-// ...A APIs it would be handed to could not open such a path either; lifting
-// the limitation means moving the whole process to UTF-8.
-//
+// representable here, and path::string() substitutes for them silently.
+
 // Returns "" rather than letting an exception escape. resolveSysdir() guards
 // its whole body for the static-initializer case, but this is also reached at
 // runtime through executableDir(), and "" is the not-representable answer both
@@ -70,10 +68,6 @@ static string narrowPath(std::filesystem::path const& path)
 // the __APPLE__ branch below, and exists for the same reason: GetModuleFileNameW
 // reports the path the process was launched from, unresolved, and only reopening
 // the file and asking for its final name gets past a reparse point.
-//
-// std::filesystem::canonical is preferred to hand-rolling that
-// CreateFileW/GetFinalPathNameByHandleW dance, which also has to strip the
-// \\?\ prefix, grow its buffer and cope with a volume that has no drive letter.
 //
 // The argument is a path rather than a string so that the resolution runs on the
 // wide form throughout, with narrowPath() applied once to the result. Narrowing
@@ -135,9 +129,8 @@ string executablePath()
     return "";
   // _NSGetExecutablePath may return a path containing symlinks or "..";
   // resolve it so that a symlinked bin directory (Homebrew, MacPorts) yields
-  // the real install prefix. The other POSIX branches arrive resolved already.
-  // PATH_MAX is required here -- realpath() may write that many bytes -- and
-  // avoided elsewhere in this file, since POSIX leaves it optional.
+  // the real install prefix.
+  //
   char resolved[PATH_MAX];
   if (realpath(buf, resolved) != nullptr)
     return string(resolved);
