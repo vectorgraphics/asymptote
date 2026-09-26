@@ -32,6 +32,7 @@ history
 
 
 ### Generated files
+/gc-build-flags.txt
 /Makefile
 /doc/Makefile
 /doc/png/Makefile
@@ -70,7 +71,10 @@ LspCpp/third_party/uri/src/Makefile
 /gsl.symbols.h
 /keywords.h
 /lex.yy.cc
+/ltmain.sh
+/missing
 /opsymbols.h
+/test-driver
 /types.symbols.h
 *.dSYM
 .DS_Store

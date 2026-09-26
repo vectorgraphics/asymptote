@@ -1,0 +1,36 @@
+// Pyright/Pylance configuration -- the editor-side counterpart to mypy.ini.
+// Not in .vscode/settings.json: that directory is gitignored, so a setting
+// there cannot be shared.
+{
+    // Do not assume the host's platform, which would grey out every
+    // `if sys.platform == "win32"` block as unreachable and stop checking it
+    // (os.name follows, being derived from this setting).  mypy has no
+    // equivalent, so CI types the file once per platform instead.
+    "pythonPlatform": "All",
+
+    // Same allowlist as mypy.ini's `files =`; see the comment there.  Files
+    // outside it are still analyzed when opened, just not part of the project.
+    "include": [
+        "findsym.py",
+        "generate_enums.py",
+        "tests/test_collections_errors.py",
+        "tests/test_executable_path.py",
+        "tests/test_relocatable.py"
+    ],
+
+    // The build and test scripts' floor, kept in sync with PY3_MINIMUM_VERSION
+    // (cmake-scripts/options.cmake), py-version (.pylintrc) and python_version
+    // (mypy.ini).  Unset, it follows the configured interpreter instead.
+    "pythonVersion": "3.7",
+
+    // xasy is the documented exception: PySide6 ships only cp39-abi3 wheels,
+    // so GUI/ needs 3.9-3.13 (see GUI/requirements.txt).  `root` is always a
+    // directory, and a file takes the FIRST entry containing it, so a future
+    // nested root must precede its parent; unset fields inherit the globals.
+    "executionEnvironments": [
+        {
+            "root": "GUI",
+            "pythonVersion": "3.9"
+        }
+    ]
+}

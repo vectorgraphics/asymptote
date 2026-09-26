@@ -58,14 +58,10 @@ fi
 #       libglm-dev ships a glmConfig.cmake whose cmake_minimum_required predates
 #       3.5, which the image's modern CMake (>= 4) otherwise refuses to load.
 #
-# Both presets set ENABLE_RELOCATABLE=ON. These binaries are run in place from
-# their out-of-workspace build dir and never installed to the compiled-in
-# ASYMPTOTE_SYSDIR (/usr/local/share/asymptote), so without this they fail with
-# "could not load module 'plain'". ENABLE_RELOCATABLE makes initSysdir() fall
-# back to base/ next to the binary when ASYMPTOTE_SYSDIR is absent. It is set on
-# both presets identically so the sandbox build keeps behaving like the release
-# build; the shipped (non-devcontainer) presets leave it off, matching a normal
-# installed-to-prefix production build.
+# Neither preset needs anything set for the binaries to find their base/, even
+# though they are run in place and never installed to the compiled-in
+# ASYMPTOTE_SYSDIR: resolveSysdir() (locate.cc) prefers the base/ beside the
+# executable over that path in every build.
 cat > "$PRESETS_FILE" <<EOF
 {
   "version": 6,
@@ -80,10 +76,7 @@ cat > "$PRESETS_FILE" <<EOF
         "linux/release",
         "base/linuxCcache"
       ],
-      "binaryDir": "$BUILD_ROOT/release",
-      "cacheVariables": {
-        "ENABLE_RELOCATABLE": "ON"
-      }
+      "binaryDir": "$BUILD_ROOT/release"
     },
     {
       "name": "linux/sandbox/devcontainer",
@@ -94,8 +87,7 @@ cat > "$PRESETS_FILE" <<EOF
       ],
       "binaryDir": "$BUILD_ROOT/sandbox",
       "cacheVariables": {
-        "CMAKE_POLICY_VERSION_MINIMUM": "3.5",
-        "ENABLE_RELOCATABLE": "ON"
+        "CMAKE_POLICY_VERSION_MINIMUM": "3.5"
       }
     }
   ],

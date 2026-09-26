@@ -184,16 +184,6 @@ determines sysdir from kpsewhich at runtime)],
   fi
 ])
 
-AC_ARG_ENABLE(relocatable,
-[AS_HELP_STRING(--enable-relocatable[[[=no]]],
-leave ASYMPTOTE_SYSDIR empty so the binary finds its data directory
-relative to its own location at runtime (for portable/staged macOS installs))],
-[ if test "x$enableval" = "xyes" ; then
-    sysdir=""
-    OPTIONS=$OPTIONS"-DIS_RELOCATABLE "
-  fi
-])
-
 AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$sysdir",
         [System directory for global .asy files])
 AC_DEFINE_UNQUOTED(ASYMPTOTE_DOCDIR,"$docdir",
