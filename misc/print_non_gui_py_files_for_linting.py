@@ -16,7 +16,6 @@ import pathlib
 import subprocess
 import sys
 
-
 # Obtain an absolute path without following symlinks. The
 # os.path.abspath call is redundant for Python 3.9+, but we are
 # currently looking for 3.7 compatibility.
