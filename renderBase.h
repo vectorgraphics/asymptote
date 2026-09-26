@@ -306,6 +306,14 @@ public:
 
     bool view;
     int oldpid=0;
+
+    // If viewframe is set, the image is the picture plane
+    // {frameCorner+s*frameU+t*frameV : 0 <= s,t <= 1}, given in eye
+    // coordinates and perpendicular to the z axis; frameCorner is the
+    // bottom-left corner of the image and nothing nearer to the eye than the
+    // plane is drawn.
+    bool viewframe=false;
+    triple frameCorner, frameU, frameV;
   };
 
   /** Entry point for rendering. Called by the asymain thread to process
@@ -333,6 +341,8 @@ public:
 
   // Projection and camera state
   bool orthographic;
+  bool viewframe=false; // See RenderFunctionArgs::viewframe.
+  triple frameCorner, frameU, frameV;
   glm::dmat4 rotateMat;
   glm::dmat4 projMat;
   glm::dmat4 viewMat;
@@ -537,6 +547,15 @@ public:
    * Derived classes may override for backend-specific handling. */
   virtual void ortho(double left, double right, double bottom,
                      double top, double nearVal, double farVal);
+
+  /** Return the projection matrix for the viewframe picture plane, with the
+   * given far clipping distance. The near clipping plane is the picture
+   * plane. */
+  glm::dmat4 viewframeProjection(double farVal) const;
+
+  /** Whether clip-space depth runs over [0,1], as in Vulkan, rather than
+   * over [-1,1], as in OpenGL. */
+  virtual bool zeroToOneDepth() const { return true; }
 
   /** Recompute the projection matrix and notify derived classes to upload.
    * Called after setProjection() or when viewport changes. */

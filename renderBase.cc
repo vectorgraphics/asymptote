@@ -107,6 +107,11 @@ void AsyRender::copyRenderArgs(RenderFunctionArgs const& args)
   H = orthographic ? 0.0 : -tan(0.5 * Angle) * Zmax;
   Xfactor = Yfactor = 1.0;
 
+  viewframe = args.viewframe;
+  frameCorner = args.frameCorner;
+  frameU = args.frameU;
+  frameV = args.frameV;
+
   // Transform matrices
   for (int i = 0; i < 16; ++i)
     T[i] = args.t[i];
@@ -148,6 +153,22 @@ void AsyRender::setDimensions(int Width, int Height, double X, double Y)
   // Guard against zero dimensions to prevent division by zero (SIGFPE).
   if(Width <= 0) Width = 1;
   if(Height <= 0) Height = 1;
+
+  if (viewframe) {
+    // The viewport is fixed by the picture plane; take its bounding box in
+    // the plane.
+    triple corners[]={frameCorner+frameU, frameCorner+frameV,
+                      frameCorner+frameU+frameV};
+    xmin = xmax = frameCorner.getx();
+    ymin = ymax = frameCorner.gety();
+    for (triple const& c : corners) {
+      xmin = std::min(xmin, c.getx());
+      xmax = std::max(xmax, c.getx());
+      ymin = std::min(ymin, c.gety());
+      ymax = std::max(ymax, c.gety());
+    }
+    return;
+  }
 
   double aspect = ((double) Width) / Height;
   double zoom = Zoom * zoomFactor;
@@ -233,8 +254,57 @@ void AsyRender::updateProjection()
 void AsyRender::frustum(double left, double right, double bottom,
                         double top, double nearVal, double farVal)
 {
-  projMat = glm::frustum(left, right, bottom, top, nearVal, farVal);
+  if (viewframe) {
+    // [left,right] x [bottom,top] is a subwindow of [xmin,xmax] x
+    // [ymin,ymax] (for instance, one tile of an export); map the
+    // corresponding part of the normalized device coordinates onto
+    // [-1,1] x [-1,1].
+    double a0 = 2.0 * (left - xmin) / (xmax - xmin) - 1.0;
+    double a1 = 2.0 * (right - xmin) / (xmax - xmin) - 1.0;
+    double b0 = 2.0 * (bottom - ymin) / (ymax - ymin) - 1.0;
+    double b1 = 2.0 * (top - ymin) / (ymax - ymin) - 1.0;
+    dmat4 sub(1.0);
+    sub[0][0] = 2.0 / (a1 - a0);
+    sub[3][0] = -(a0 + a1) / (a1 - a0);
+    sub[1][1] = 2.0 / (b1 - b0);
+    sub[3][1] = -(b0 + b1) / (b1 - b0);
+    projMat = sub * viewframeProjection(farVal);
+  } else
+    projMat = glm::frustum(left, right, bottom, top, nearVal, farVal);
   updateProjection();
+}
+
+dmat4 AsyRender::viewframeProjection(double farVal) const
+{
+  // The eye is at the origin and the picture plane is z=-d. A point (x,y,z)
+  // projects to (X,Y)=(d/w)*(x,y) on the plane, where w=-z. Solving
+  // (X,Y)=corner+s*u+t*v gives the image coordinates (s,t), which must be
+  // mapped to the normalized device coordinates (2s-1,2t-1); multiplying
+  // by w keeps this linear in (x,y,z).
+  double d = -frameCorner.getz();
+  double ux = frameU.getx(), uy = frameU.gety();
+  double vx = frameV.getx(), vy = frameV.gety();
+  double det = ux * vy - uy * vx;
+  // Inverse of the matrix with columns (ux,uy) and (vx,vy).
+  double i00 = vy / det, i01 = -vx / det;
+  double i10 = -uy / det, i11 = ux / det;
+  double cx = frameCorner.getx(), cy = frameCorner.gety();
+
+  // The depth and w rows do not depend on the lateral bounds.
+  dmat4 P = zeroToOneDepth() ?
+    glm::frustumRH_ZO(-1.0, 1.0, -1.0, 1.0, d, farVal) :
+    glm::frustumRH_NO(-1.0, 1.0, -1.0, 1.0, d, farVal);
+
+  // glm matrices are indexed [column][row].
+  P[0][0] = 2.0 * d * i00;
+  P[1][0] = 2.0 * d * i01;
+  P[2][0] = 2.0 * (i00 * cx + i01 * cy) + 1.0;
+  P[3][0] = 0.0;
+  P[0][1] = 2.0 * d * i10;
+  P[1][1] = 2.0 * d * i11;
+  P[2][1] = 2.0 * (i10 * cx + i11 * cy) + 1.0;
+  P[3][1] = 0.0;
+  return P;
 }
 
 void AsyRender::ortho(double left, double right, double bottom,

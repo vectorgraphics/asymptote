@@ -1490,7 +1490,7 @@ bool picture::shipout3(const string& prefix, const string& format,
                        const pair& margin, double *t, double *tup,
                        double *background,
                        size_t nlights, triple *lights, double *diffuse,
-                       bool view)
+                       bool view, const triple *viewframe)
 {
   if(getSetting<bool>("interrupt"))
     return true;
@@ -1587,6 +1587,12 @@ bool picture::shipout3(const string& prefix, const string& format,
   args.diffuse=diffuse;
   args.view=View;
   args.oldpid=oldpid;
+  args.viewframe=viewframe != nullptr;
+  if(viewframe) {
+    args.frameCorner=viewframe[0];
+    args.frameU=viewframe[1];
+    args.frameV=viewframe[2];
+  }
 #endif
   if(!format3d) {
 #ifdef HAVE_RENDERER

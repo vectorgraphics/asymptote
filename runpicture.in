@@ -488,9 +488,17 @@ void shipout3(string prefix, picture *f, string format=emptystring,
               triple m, triple M, pair shift, pair margin, realarray2 *t,
               realarray2 *tup,
               realarray *background, triplearray *lights, realarray2 *diffuse,
-              bool view=true)
+              bool view=true, triplearray *viewframe=emptyarray)
 {
   size_t n=checkArrays(lights,diffuse);
+
+  // The picture plane {corner+s*u+t*v : 0 <= s,t <= 1} as {corner,u,v}.
+  size_t nframe=checkArray(viewframe);
+  if(nframe != 0 && nframe != 3)
+    error("viewframe must be empty or contain a corner and two vectors");
+  triple Viewframe[3];
+  for(size_t i=0; i < nframe; ++i)
+    Viewframe[i]=read<triple>(viewframe,i);
 
   real *T,*Tup,*Background,*Diffuse;
   triple *Lights;
@@ -502,7 +510,8 @@ void shipout3(string prefix, picture *f, string format=emptystring,
   copyArray2C(Diffuse,diffuse,false,4,UseGC);
 
   f->shipout3(prefix,format,width,height,angle,zoom,m,M,shift,margin,T,Tup,
-              Background,n,Lights,Diffuse,view);
+              Background,n,Lights,Diffuse,view,
+              nframe == 0 ? nullptr : Viewframe);
 
   delete[] Background;
   delete[] T;

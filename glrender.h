@@ -81,6 +81,8 @@ public:
   void drawFrame() override;
   void swapBuffers() override;
   void Export(int imageIndex=0) override;
+  // OpenGL clips depth to [-1,1] (glClipControl is not used).
+  bool zeroToOneDepth() const override { return false; }
 
   GLFWwindow* getRenderWindow() const;
 

@@ -76,6 +76,9 @@ struct projection {
   bool center=false;    // Center target within bounding volume?
   int ninterpolate;     // Used for projecting nurbs to 2D Bezier curves.
   bool bboxonly=true;   // Typeset label bounding box only.
+  // For a projection constructed by viewframe(), the picture plane
+  // {corner+s*u+t*v : 0 <= s,t <= 1} as {corner,u,v}; empty otherwise.
+  triple[] viewframe;
 
   transformation T;
 
@@ -127,6 +130,7 @@ struct projection {
     P.projector=projector;
     P.ninterpolate=ninterpolate;
     P.bboxonly=bboxonly;
+    P.viewframe=copy(viewframe);
     P.T=T.copy();
     return P;
   }

@@ -2563,6 +2563,56 @@ projection absperspective(triple camera=Z, triple target=O, real roll=0,
   return P;
 }
 
+// A perspective projection from the given eye through the picture plane
+// {corner+s*u+t*v : 0 <= s,t <= 1}, which becomes the whole image, with corner
+// at its bottom-left, u running rightward and v upward. The eye may lie off
+// the perpendicular through the center of the plane, and u and v need not be
+// perpendicular. Nothing nearer to the eye than the picture plane is drawn.
+// The image is sized as if it were a two-dimensional picture of the plane,
+// abs(u) wide and abs(v) high; pen widths and labels have their nominal size
+// in the image where they lie on the picture plane. Only rendered (bitmap)
+// output is supported: not PRC, WebGL, V3D, settings.render=0, or the
+// interactive viewer.
+projection viewframe(triple eye, triple corner, triple u, triple v)
+{
+  triple n=cross(u,v);
+  if(n == O) abort("viewframe: u and v must be linearly independent");
+  n=unit(n);
+  real h=dot(eye-corner,n); // Distance from the picture plane to the eye.
+  if(h == 0) abort("viewframe: eye cannot lie in the picture plane");
+  if(h < 0)
+    abort("viewframe: eye must lie on the side of the picture plane toward "+
+          "which cross(u,v) points");
+  // Look along the normal of the picture plane, so that the plane is
+  // perpendicular to the view axis, with the image x axis along u.
+  triple target=eye-h*n;
+  triple up=v-dot(v,unit(u))*unit(u);
+  projection P=
+    projection(eye,up,target,showtarget=false,autoadjust=false,center=false,
+               new transformation(triple camera, triple up, triple target) {
+                 transform3 modelview=look(camera,up,target);
+                 // The picture plane in eye coordinates, where it is z=-h.
+                 triple c=modelview*corner;
+                 triple U=shiftless(modelview)*u;
+                 triple V=shiftless(modelview)*v;
+                 // Map a point to (s*abs(u),t*abs(v)), where corner+s*u+t*v
+                 // is where it projects onto the picture plane.
+                 real det=U.x*V.y-U.y*V.x;
+                 real[] s={V.y,-V.x,-V.y*c.x+V.x*c.y};
+                 real[] t={-U.y,U.x,U.y*c.x-U.x*c.y};
+                 s *= abs(u)/det;
+                 t *= abs(v)/det;
+                 transform3 projection={{s[0],s[1],-s[2]/h,0},
+                                        {t[0],t[1],-t[2]/h,0},
+                                        {0,0,1,0},
+                                        {0,0,-1/h,0}};
+                 return transformation(modelview,projection);
+               });
+  P.absolute=true;
+  P.viewframe=new triple[] {corner,u,v};
+  return P;
+}
+
 private string Format(real x)
 {
   assert(abs(x) < 1e17,"Number too large: "+string(x));
@@ -2682,6 +2732,35 @@ struct scene
     real xsize3=pic.xsize3, ysize3=pic.ysize3, zsize3=pic.zsize3;
     bool warn=true;
     this.keepAspect=keepAspect;
+
+    if(P.viewframe.length > 0) {
+      if(!is3D)
+        abort("viewframe projections require rendering (settings.render != 0)");
+      // The camera is placed in user coordinates, so the image is sized as a
+      // two-dimensional picture of the picture plane.
+      pair lambda=(abs(P.viewframe[1]),abs(P.viewframe[2]));
+      if(xsize == 0 && ysize == 0) {
+        if(pic.xunitsize != 0) lambda=(pic.xunitsize*lambda.x,lambda.y);
+        if(pic.yunitsize != 0) lambda=(lambda.x,pic.yunitsize*lambda.y);
+      } else if(!keepAspect && xsize != 0 && ysize != 0)
+        lambda=(xsize,ysize);
+      else
+        lambda *= min(xsize == 0 ? infinity : xsize/lambda.x,
+                      ysize == 0 ? infinity : ysize/lambda.y);
+      // Don't let rounding error in the scaling add a pixel.
+      width=ceil((1-sqrtEpsilon)*lambda.x);
+      height=ceil((1-sqrtEpsilon)*lambda.y);
+      // Scale the scene and the camera together to PostScript coordinates,
+      // so that pen widths and labels, which are sized in bp, have their
+      // nominal size in the image where they lie on the picture plane.
+      real k=sqrt(lambda.x/abs(P.viewframe[1])*lambda.y/abs(P.viewframe[2]));
+      t=scale3(k);
+      this.P=viewframe(k*P.camera,k*P.viewframe[0],k*P.viewframe[1],
+                       k*P.viewframe[2]);
+      this.P.bboxonly=false;
+      f=pic.fit3(t,null,this.P);
+      return;
+    }
 
     if(xsize3 == 0 && ysize3 == 0 && zsize3 == 0) {
       xsize3=ysize3=zsize3=max(xsize,ysize);
@@ -2805,6 +2884,32 @@ object embed(string prefix=outprefix(), string label=prefix,
              string options="", string script="", light light=currentlight)
 {
   object F;
+  if(S.P.viewframe.length > 0) {
+    if(prc(format) || v3d(format) || outformat(format) == "html")
+      abort("viewframe projections support only rendered (bitmap) output");
+    projection P=S.P;
+    transform3 modelview=P.T.modelview;
+    frame f=modelview*S.f;
+    // The picture plane in eye coordinates, where it is z=-d.
+    triple corner=modelview*P.viewframe[0];
+    triple u=shiftless(modelview)*P.viewframe[1];
+    triple v=shiftless(modelview)*P.viewframe[2];
+    real d=-corner.z;
+    // The renderer puts its near clipping plane at M.z and its far one at
+    // m.z; keep the far one beyond both the scene and the picture plane.
+    triple m=min3(f);
+    triple M=max3(f);
+    m=(m.x,m.y,min(m.z,-2d));
+    M=(M.x,M.y,-d);
+    real fov=2aTan(0.5*abs(v)/d); // Nonzero, to request perspective.
+    transform3 inv=inverse(modelview);
+    light Light=modelview*light;
+    if(prefix == "") prefix=outprefix();
+    shipout3(prefix,f,format,S.width,S.height,fov,1,m,M,(0,0),(0,0),
+             inv,inv,Light.background(),Light.position,Light.diffuse,
+             view=false,viewframe=new triple[] {corner,u,v});
+    return F;
+  }
   transform3 modelview;
   projection P=S.P;
   transform3 tinv=inverse(S.t);
