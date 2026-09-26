@@ -1642,7 +1642,23 @@ bool picture::shipout3(const string& prefix, const string& format,
         camp::reportError("Cannot fork process");
       if(pid != 0)  {
         oldpid=pid;
-        waitpid(pid,NULL,interact::interactive && View ? WNOHANG : 0);
+        if(interact::interactive && View) {
+          waitpid(pid,nullptr,WNOHANG);
+          return true;
+        }
+        int status=0;
+        while(waitpid(pid,&status,0) == -1 && errno == EINTR);
+        if(WIFSIGNALED(status)) {
+          ostringstream buf;
+          buf << "3D renderer terminated by signal " << WTERMSIG(status)
+              << " (" << strsignal(WTERMSIG(status)) << ")";
+          reportError(buf);
+        }
+        if(WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+          ostringstream buf;
+          buf << "3D renderer exited with status " << WEXITSTATUS(status);
+          reportError(buf);
+        }
         return true;
       }
 #endif
