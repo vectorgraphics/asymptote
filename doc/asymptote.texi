@@ -9780,6 +9780,32 @@ This is equivalent to
 perspective((x,y,z),up,target,zoom,angle,viewportshift,showtarget,
             autoadjust,center)
 @end verbatim
+
+@item viewframe(triple eye, triple corner, triple u, triple v)
+@cindex @code{viewframe}
+This perspective projection places the camera at @code{eye}, looking
+through the picture plane
+@code{@{corner+s*u+t*v : 0 <= s,t <= 1@}},
+which becomes the whole image: @code{corner} is its bottom-left corner,
+@code{u} runs rightward, and @code{v} runs upward. The eye need not lie
+on the perpendicular through the center of the picture plane, and
+@code{u} and @code{v} need not be perpendicular, but @code{eye} must lie
+on the side of the plane toward which @code{cross(u,v)} points.
+Nothing nearer to the eye than the picture plane is drawn, so the camera
+may be placed inside or among the objects of a scene.
+The camera is placed in user coordinates, and the scene is not rescaled;
+the image is sized like a two-dimensional picture of the picture plane,
+@code{abs(u)} wide and @code{abs(v)} high, so that, for example,
+@code{size(640,360)} with @code{abs(u):abs(v)} equal to @code{16:9}
+yields a @code{640x360} image. Pen widths, dots, and labels have their
+nominal size in the image where they lie on the picture plane, and appear
+smaller farther away.
+Only rendered (bitmap) output is supported: not @acronym{PRC},
+@acronym{WebGL}, @acronym{V3D}, @code{settings.render=0}, or the
+interactive viewer. The example
+@code{@uref{https://asymptote.sourceforge.io/gallery/animations/torusflight.gif,,torusflight}@uref{https://asymptote.sourceforge.io/gallery/animations/torusflight.asy,,.asy}}
+in the @code{animations} directory uses @code{viewframe} to fly around and
+through a torus.
 @end table
 
 @cindex @code{currentprojection}
