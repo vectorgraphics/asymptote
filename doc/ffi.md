@@ -1,12 +1,12 @@
 
 # Asymptote FFI -- Getting Started
 
-The Asymptote Foreign Function Interface (FFI) lets you write **plugins as
-native shared libraries** (`.so` / `.dll`) that register functions and
+The Asymptote Foreign Function Interface (FFI) lets you write plugins as
+native shared libraries (`.so` / `.dll`) that register functions and
 manipulate Asymptote objects (items, paths, pictures, records, and more)
 directly from C/C++.
 
-The entire public API lives in the single header **`asyffi.h`**
+The entire public API lives in the single header `asyffi.h`
 (Apache License 2.0, see `LICENSE-APACHE.TXT`). If you only need to *write*
 a plugin, that is the only file you need from the Asymptote source tree.
 
@@ -16,9 +16,9 @@ a plugin, that is the only file you need from the Asymptote source tree.
 
 | Platform | ABI notes |
 |----------|-----------|
-| Windows (x64 / 32-bit x86) | Exports use `__declspec(dllexport)`; 32-bit builds use `__cdecl` (the `LNK_CALL` macro handles this) |
-| Linux (LP64, or 32-bit x86) | Exports use `[[gnu::visibility("default")]]`; 32-bit x86 uses `__cdecl` (the `LNK_CALL` macro handles this) |
-| macOS (arm64 / x86_64) | Same as Linux |
+| Windows (x86-64 / x86) | Exports use `__declspec(dllexport)`; 32-bit builds use `__cdecl` (the `LNK_CALL` macro handles this) |
+| Linux (x86-64, or x86) | Exports use `[[gnu::visibility("default")]]`; 32-bit x86 uses `__cdecl` (the `LNK_CALL` macro handles this) |
+| macOS (arm64 / x86-64) | Same as Linux |
 
 Any other platform will make `asyffi.h` emit a compile error.
 
@@ -44,12 +44,8 @@ When Asymptote cannot find `mymodule.asy`, it looks for a dynamic library:
 1. `mymodule.so` (or `mymodule.dll` on Windows), then
 2. `libmymodule.so` on non-Windows.
 
-The search uses the standard Asymptote path (`asy path`). The **import name
-is used as the library key**; you can later unload it with the built-in
-
-```asy
-unloadLib("mymodule");
-```
+The search uses the standard Asymptote path (`asy path`). The import name
+is used as the library key
 
 When the library is found, Asymptote looks up the exported symbol
 
@@ -77,8 +73,9 @@ The header provides convenience macros:
 // myplugin.cc
 #include "asyffi.h"
 
-extern "C" ASY_FFI_EXPORT
-void registerAsymptotePlugin(IAsyContext* ctx, IAsyFfiRegisterer* reg)
+DECLARE_REGISTER_FN;
+
+REGISTER_FN_SIG
 {
   // Register: real doubleIt(real x)
   Asy::TypeInfo realType;
@@ -89,7 +86,7 @@ void registerAsymptotePlugin(IAsyContext* ctx, IAsyFfiRegisterer* reg)
 
   Asy::FunctionTypeMetadata const meta{ realType, /*numArgs*/ 1, &arg };
 
-  reg->registerFunction("doubleIt",
+  registerer->registerFunction("doubleIt",
       +[](IAsyContext* ctx, IAsyStackContext* stack,
           IAsyArgs* args, IAsyItem* ret) {
         double const x = args->getNumberedArg(0)->asDouble();
@@ -179,7 +176,7 @@ Everything else hangs off this. Highlights:
 
 | Area | Methods |
 |------|---------|
-| Memory | `malloc`, `mallocAtomic` -- **use these, not your own allocator**, for anything the Asy GC must track |
+| Memory | `malloc`, `mallocAtomic` -- use these for anything the Asy GC must track |
 | GC (multithreaded plugins) | `isGcSupported`, `getGcStackBase`, `registerThreadWithGc`, `unregisterThreadWithGc` |
 | Strings | `createNewAsyString`, `updateAsyString(Sized)`, `getStringLength`, `copyString` (opaque `THAsyString`, assign into an item with `setRawPointer`) |
 | Arrays | `createNewArray`, then `IAsyArray` (`getItem`, `setItem`, `setSize`, `pushItem`, `popItem`, ...); out-of-range access is undefined behavior |
@@ -191,7 +188,7 @@ Everything else hangs off this. Highlights:
 | Error reporting | `reportError` (user-catchable), `reportWarning`, `reportFatal` |
 | Misc | `getVersion`, `isCompactBuild`, `isSimpleFrameBuild`, `getSetting(name)`, `createAsyType` |
 
-### `IAsyStackContext` -- talking back to Asymptote
+### `IAsyStackContext` -- For calling asymptote functions at the C++ level
 
 Available from any foreign function:
 
@@ -262,10 +259,10 @@ C++ destructors on your plugin's stack still run during unwinding.
 
 ## 7. C++ helper library (recommended for real plugins)
 
-For anything beyond a toy example, look at the companion project
-**[asymptote-ffi-helper-lib](https://github.com/vectorgraphics/asymptote-ffi-helper-lib)**
-(Apache-2.0). It is a thin C++20 layer on top of `asyffi.h` that removes
-most of the boilerplate:
+For anything beyond a toy example, look at
+[asymptote-ffi-helper-lib](https://github.com/vectorgraphics/asymptote-ffi-helper-lib),
+an Apache-license Asymptote FFI helper library.
+It is a thin C++20 layer on top of `asyffi.h` that removes most of the boilerplate:
 
 - **Type builders** (`AsyFfiHelpers::TypeObjects`) -- build the
   `Asy::FunctionTypeMetadata` / `Asy::TypeInfo` trees for
@@ -296,22 +293,7 @@ The repo's `examples/` directory has complete, buildable plugins:
 
 ### Building the helper library
 
-It requires a C++20 compiler (MSVC on Windows; gcc  16 on POSIX, e.g.
-`CXX=g++-16`). It is *not* self-contained -- it needs `asyffi.h` from the
-Asymptote source tree:
-
-- **CMake (recommended):** set the cache variable
-  `ASYFFI_HEADER_DOWNLOAD_URL` to either a local path to your
-  `asyffi.h` (e.g. `ASYFFI_HEADER_DOWNLOAD_URL=/path/to/asymptote/asyffi.h`)
-  or a URL. Without it, CMake downloads the header from a default URL
-  that may be outdated.
-- **Autotools:** `autoconf && ./configure` with either
-  `--with-asyffi-header-location=/path/to/asyffi.h` or
-  `--with-asyffi-header-url=https://...` (requires `wget`);
-  `CXX=g++-16` recommended on Linux/macOS.
-
-If you are building Asymptote from source (as in this repo), point it at
-`./asyffi.h` here -- that guarantees your plugin matches the host's ABI.
+See the repo website for instructions on how to build the library.
 
 ---
 
@@ -331,17 +313,6 @@ If you are building Asymptote from source (as in this repo), point it at
    used as the library key; `unloadLib("mymodule")` reload-safe re-import
    during interactive sessions; `ctx->reportWarning(...)` is a handy
    print-to-console.
-
-## 9. Where to look in the source
-
-| File | Contents |
-|------|----------|
-| `asyffi.h` | **The public API** (interfaces, macros, metadata structs) |
-| `asyffiimpl.h` / `asyffiimpl.cc` | Reference implementation of every interface (great example code) |
-| `dlmanager.h` / `dlmanager.cc` | Shared-library loading (RAII, refcounted) |
-| `dynlib.h` / `dynlib.cc` | Bridge: locating the file, calling the entry point, dispatching calls |
-| `rundynlib.in` | Asymptote-level `unloadLib` |
-| `genv.cc` -> `genv::loadModule` | Where `import` falls through to dynamic-library loading |
 
 External (companion repo, Apache-2.0):
 
