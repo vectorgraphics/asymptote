@@ -270,6 +270,16 @@ public:
 };
 #endif // HAVE_PTHREAD
 
+/** Return the projection matrix for the viewframe picture plane
+ * {corner+s*u+t*v : 0 <= s,t <= 1}, given in eye coordinates and
+ * perpendicular to the z axis, with the near clipping plane at distance
+ * nearVal from the eye and no far clipping plane. Clip-space depth runs
+ * over [0,1] if zeroToOneDepth, as in Vulkan, and over [-1,1] otherwise,
+ * as in OpenGL. */
+glm::dmat4 viewframeProjection(triple const& corner, triple const& u,
+                               triple const& v, double nearVal,
+                               bool zeroToOneDepth);
+
 /**
  * AsyRender - Library-agnostic base class for renderers.
  * Contains code that is independent of the underlying graphics API (Vulkan, OpenGL, etc.).
@@ -311,7 +321,7 @@ public:
     // {frameCorner+s*frameU+t*frameV : 0 <= s,t <= 1}, given in eye
     // coordinates and perpendicular to the z axis; frameCorner is the
     // bottom-left corner of the image. The near clipping plane is z=M.z,
-    // which need not be the picture plane.
+    // which need not be the picture plane; there is no far clipping plane.
     bool viewframe=false;
     triple frameCorner, frameU, frameV;
   };
@@ -547,10 +557,6 @@ public:
    * Derived classes may override for backend-specific handling. */
   virtual void ortho(double left, double right, double bottom,
                      double top, double nearVal, double farVal);
-
-  /** Return the projection matrix for the viewframe picture plane, with the
-   * given near and far clipping distances. */
-  glm::dmat4 viewframeProjection(double nearVal, double farVal) const;
 
   /** Whether clip-space depth runs over [0,1], as in Vulkan, rather than
    * over [-1,1], as in OpenGL. */

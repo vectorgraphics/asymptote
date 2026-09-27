@@ -2899,8 +2899,9 @@ object embed(string prefix=outprefix(), string label=prefix,
     triple u=shiftless(modelview)*P.viewframe[1];
     triple v=shiftless(modelview)*P.viewframe[2];
     real d=-corner.z;
-    // The renderer puts its near clipping plane at M.z and its far one at
-    // m.z; keep the far one beyond the scene and the near one.
+    // The renderer puts its near clipping plane at M.z and has no far one;
+    // it still takes m.z as the depth of the scene, which must lie beyond
+    // the near clipping plane.
     triple m=min3(f);
     triple M=max3(f);
     m=(m.x,m.y,min(m.z,-2P.viewnear));

@@ -269,13 +269,15 @@ void AsyRender::frustum(double left, double right, double bottom,
     sub[3][0] = -(a0 + a1) / (a1 - a0);
     sub[1][1] = 2.0 / (b1 - b0);
     sub[3][1] = -(b0 + b1) / (b1 - b0);
-    projMat = sub * viewframeProjection(nearVal, farVal);
+    projMat = sub * viewframeProjection(frameCorner, frameU, frameV, nearVal,
+                                        zeroToOneDepth());
   } else
     projMat = glm::frustum(left, right, bottom, top, nearVal, farVal);
   updateProjection();
 }
 
-dmat4 AsyRender::viewframeProjection(double nearVal, double farVal) const
+dmat4 viewframeProjection(triple const& corner, triple const& u,
+                          triple const& v, double nearVal, bool zeroToOneDepth)
 {
   // The eye is at the origin and the picture plane is z=-d. A point (x,y,z)
   // projects to (X,Y)=(d/w)*(x,y) on the plane, where w=-z. Solving
@@ -284,29 +286,42 @@ dmat4 AsyRender::viewframeProjection(double nearVal, double farVal) const
   // by w keeps this linear in (x,y,z). These rows are unchanged when the
   // picture plane is scaled about the eye, so the near clipping plane can
   // lie elsewhere.
-  double d = -frameCorner.getz();
-  double ux = frameU.getx(), uy = frameU.gety();
-  double vx = frameV.getx(), vy = frameV.gety();
+  double d = -corner.getz();
+  double ux = u.getx(), uy = u.gety();
+  double vx = v.getx(), vy = v.gety();
   double det = ux * vy - uy * vx;
   // Inverse of the matrix with columns (ux,uy) and (vx,vy).
   double i00 = vy / det, i01 = -vx / det;
   double i10 = -uy / det, i11 = ux / det;
-  double cx = frameCorner.getx(), cy = frameCorner.gety();
-
-  // The depth and w rows do not depend on the lateral bounds.
-  dmat4 P = zeroToOneDepth() ?
-    glm::frustumRH_ZO(-1.0, 1.0, -1.0, 1.0, nearVal, farVal) :
-    glm::frustumRH_NO(-1.0, 1.0, -1.0, 1.0, nearVal, farVal);
+  double cx = corner.getx(), cy = corner.gety();
 
   // glm matrices are indexed [column][row].
+  dmat4 P(0.0);
   P[0][0] = 2.0 * d * i00;
   P[1][0] = 2.0 * d * i01;
   P[2][0] = 2.0 * (i00 * cx + i01 * cy) + 1.0;
-  P[3][0] = 0.0;
   P[0][1] = 2.0 * d * i10;
   P[1][1] = 2.0 * d * i11;
   P[2][1] = 2.0 * (i10 * cx + i11 * cy) + 1.0;
-  P[3][1] = 0.0;
+
+  // The depth row is the limit of that of a frustum as its far clipping
+  // distance goes to infinity, so that nothing is clipped for being far
+  // from the eye, however deep the scene. The depth of a point at distance
+  // w from the eye then approaches its maximum as w grows. That maximum is
+  // lowered by epsilon, some 17 float ulps, so that rounding cannot push
+  // distant points past it, while the near clipping plane stays at the
+  // minimum depth.
+  const double epsilon = 1.0e-6;
+  if(zeroToOneDepth) {
+    // Depth (1-epsilon)*(1-nearVal/w) runs from 0 to 1-epsilon.
+    P[2][2] = -(1.0 - epsilon);
+    P[3][2] = -(1.0 - epsilon) * nearVal;
+  } else {
+    // Depth (2-epsilon)*(1-nearVal/w)-1 runs from -1 to 1-epsilon.
+    P[2][2] = -(1.0 - epsilon);
+    P[3][2] = -(2.0 - epsilon) * nearVal;
+  }
+  P[2][3] = -1.0;
   return P;
 }
 
