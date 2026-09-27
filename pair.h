@@ -50,14 +50,14 @@ class pair : public gc, public IAsyTuple {
 public:
   pair() : x(0.0), y(0.0) {}
   pair(double const x, double const y=0.0) : x(x), y(y) {}
-  
+
   [[nodiscard]]
   double getx() const { return x; }
-  
+
   [[nodiscard]]
   double gety() const { return y; }
 
-  bool isreal() {return fpclassify(y) == FP_ZERO;}
+  bool isreal() {return std::fpclassify(y) == FP_ZERO;}
 
   [[nodiscard]]
   double getIndexedValue(size_t const& index) const override
