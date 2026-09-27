@@ -345,7 +345,12 @@ Many of the features of @code{Asymptote} are written in the
 @code{Asymptote} is designed for mathematical typesetting needs, one can
 write @code{Asymptote} modules that tailor it to specific
 applications. For example, a scientific graphing module is available
-(@pxref{graph}). Examples of @code{Asymptote} code and output,
+(@pxref{graph}). Asymptote can also be extended with native plugins written
+in @acronym{C/C++} through its foreign function interface (@acronym{FFI}); a
+getting-started guide is available at
+@url{https://asymptote.sourceforge.io/ffi.md}.
+
+Examples of @code{Asymptote} code and output,
 including animations, are available at
 @quotation
 @url{https://asymptote.sourceforge.io/gallery/}

@@ -5,6 +5,10 @@ ASY = ../asy -dir ../base -config "" -render=0
 DOCFILES = asymptote.pdf asy-latex.pdf CAD.pdf TeXShopAndAsymptote.pdf \
            asyRefCard.pdf
 
+# ffi.md is a source file (not generated), so it is not in DOCFILES, but it
+# is installed alongside the other documentation files.
+EXTRA_DOCFILES = ffi.md
+
 docdir = $(DESTDIR)@docdir@
 infodir = $(DESTDIR)@infodir@
 datarootdir = @datarootdir@
@@ -115,7 +119,7 @@ maintainer-clean: FORCE cleanest
 
 install-man:
 	${INSTALL} -d -m 755 $(docdir) $(mandir)/man1
-	${INSTALL} -p -m 644 $(DOCFILES) $(docdir)
+	${INSTALL} -p -m 644 $(DOCFILES) $(EXTRA_DOCFILES) $(docdir)
 	${INSTALL} -p -m 644 $(MANFILES) $(mandir)/man1
 
 install: man faq install-man
@@ -142,7 +146,7 @@ uninstall-all:
 	cd png && $(MAKE) uninstall
 	cd FAQ && $(MAKE) uninstall
 	-cd $(mandir)/man1 && rm -f $(MANFILES)
-	-rm -f $(addprefix $(docdir)/,$(DOCFILES))
+	-rm -f $(addprefix $(docdir)/,$(DOCFILES) $(EXTRA_DOCFILES))
 
 FORCE:
 
