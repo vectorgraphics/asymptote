@@ -1,3 +1,6 @@
 black~=26.3.1
 isort~=5.13.2
 pylint~=3.3.1
+# Required by the libsystemd vcpkg port's meson build at configure time
+# (linux/release preset); not a linting tool.
+jinja2~=3.1.6

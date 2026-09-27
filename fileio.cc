@@ -126,6 +126,12 @@ void ifile::open()
             "libcurl disabled after reading files via input(): "
             "read online content before local files or "
             "override with the unsafe option -curlAfterRead");
+        if(name.rfind("file://",0)==0) {
+          if(!settings::globalread())
+            camp::reportError(
+              "cannot read file:// URL when globalread is disabled");
+          settings::haveReadFile=true;
+        }
         parser::readURL(buf,name);
         stream=&buf;
       } else

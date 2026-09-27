@@ -18,15 +18,7 @@
         "vulkan",
         "vulkan-sdk-components",
         "glslang",
-        {
-          "name": "glfw3",
-          "platform": "windows"
-        },
-        {
-          "name": "glfw3",
-          "features": ["wayland"],
-          "platform": "!windows"
-        }
+        "glfw3"
       ]
     },
     "threading": {

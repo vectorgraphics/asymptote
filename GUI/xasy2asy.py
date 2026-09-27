@@ -513,17 +513,17 @@ class asyPen(asyObj):
         if colorspace.find("cmyk") != -1:
             lines = fin.readline() + fin.readline() + fin.readline() + fin.readline()
             parts = lines.split()
-            c, m, y, k = eval(parts[0]), eval(parts[1]), eval(parts[2]), eval(parts[3])
+            c, m, y, k = float(parts[0]), float(parts[1]), float(parts[2]), float(parts[3])
             k = 1 - k
             r, g, b = ((1 - c) * k, (1 - m) * k, (1 - y) * k)
         elif colorspace.find("rgb") != -1:
             lines = fin.readline() + fin.readline() + fin.readline()
             parts = lines.split()
-            r, g, b = eval(parts[0]), eval(parts[1]), eval(parts[2])
+            r, g, b = float(parts[0]), float(parts[1]), float(parts[2])
         elif colorspace.find("gray") != -1:
             lines = fin.readline()
             parts = lines.split()
-            r = g = b = eval(parts[0])
+            r = g = b = float(parts[0])
         else:
             raise ChildProcessError('Asymptote error.')
         self.color = (r, g, b)
@@ -764,7 +764,7 @@ class asyPath(asyObj):
         fout.flush()
 
         lengthStr = fin.readline()
-        pathSegments = eval(lengthStr.split()[-1])
+        pathSegments = int(lengthStr.split()[-1])
         pathStrLines = []
         for i in range(pathSegments + 1):
             line = fin.readline()
@@ -778,9 +778,13 @@ class asyPath(asyObj):
             if a == 'cycle':
                 self.nodeSet.append(a)
             else:
-                self.nodeSet.append(eval(a))
+                x, y = a.strip('()').split(',')
+                self.nodeSet.append([float(x), float(y)])
         controls = [a.replace("controls", "").split("and") for a in splitList if a.find("controls") != -1]
-        self.controlSet = [[eval(a[0]), eval(a[1])] for a in controls]
+        self.controlSet = []
+        for pair in controls:
+            pt0, pt1 = pair[0].strip('()').split(','), pair[1].strip('()').split(',')
+            self.controlSet.append([[float(pt0[0]), float(pt0[1])], [float(pt1[0]), float(pt1[1])]])
         self.computed = True
 
         if startUp:

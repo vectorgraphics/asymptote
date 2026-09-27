@@ -13,7 +13,6 @@ Install VSSetup extension for powershell by "Install-Module VSSetup -Scope Curre
 
 Install Visual Studio Build Tools (Select CMake build tools as part of installation)
 Install python3 (https://www.python.org/)
-Install perl (https://strawberryperl.com/)
 Install LLVM (https://github.com/llvm/llvm-project/releases)
 
 Install virtualenv:

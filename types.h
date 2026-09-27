@@ -195,26 +195,28 @@ public:
   primitiveTy(ty_kind kind)
     : ty(kind) {}
 
-  bool primitive() {
+  bool primitive() override {
     return true;
   }
 
-  bool isReference() {
+  bool isReference() override {
     return false;
   }
 
-  ty *virtualFieldGetType(symbol );
-  trans::varEntry *virtualField(symbol, signature *);
+  ty *virtualFieldGetType(symbol) override;
+  trans::varEntry *virtualField(symbol, signature *) override;
 
-  bool equiv(const ty *other) const
+  bool equiv(const ty *other) const override
   {
     return this->kind==other->kind;
   }
 
-  size_t hash() const {
+  size_t hash() const override {
     return (size_t)kind + 47;
   }
 
+  ty *keyType() override;
+  
   struct hashStruct
   {
     size_t operator()(primitiveTy const& obj) const { return obj.hash(); }

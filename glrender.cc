@@ -26,7 +26,7 @@
 
 #ifdef HAVE_GL
 #include "glrender.h"
-#include "tr.h"
+#include "tile.h"
 #include "shaders.h"
 #include "GLTextures.h"
 #include "EXRFiles.h"
@@ -60,6 +60,14 @@ namespace camp {
 camp::GLTexture2<float,GL_FLOAT> iblbrdfTex;
 camp::GLTexture2<float,GL_FLOAT> irradianceTex;
 camp::GLTexture3<float,GL_FLOAT> reflTexturesTex;
+
+// Small placeholder textures bound to the IBL samplers when IBL is off, so
+// the samplers always reference valid images (mirrors the Vulkan
+// placeholder descriptors). Defined in initPlaceholderTextures().
+camp::GLTexture2<float,GL_FLOAT> placeholderIrradianceTex;
+camp::GLTexture2<float,GL_FLOAT> placeholderBRDFTex;
+camp::GLTexture3<float,GL_FLOAT> placeholderReflTex;
+bool placeholderTexturesInitialized=false;
 
 // GLFW window globals - kept in camp namespace for type compatibility
 string Action;
@@ -95,6 +103,21 @@ camp::GLTexture3<float,GL_FLOAT> fromEXR3(
   };
 }
 
+// Release IBL textures before process exit.  In threaded mode, exit() is
+// called from the asymain thread, but the GL context was created on the main
+// thread (running glrenderWrapper).  C atexit handlers run before static
+// destructors, so this zeroes out texture IDs to prevent AGLTexture
+// destructors from calling glDeleteTextures on the wrong thread.
+static void cleanupIBL()
+{
+  iblbrdfTex.release();
+  irradianceTex.release();
+  reflTexturesTex.release();
+  placeholderIrradianceTex.release();
+  placeholderBRDFTex.release();
+  placeholderReflTex.release();
+}
+
 void initIBL()
 {
   camp::GLTexturesFmt fmt;
@@ -120,8 +143,50 @@ void initIBL()
     mss << prefix << i << ".exr";
     files.emplace_back(mss.str());
   }
-
   reflTexturesTex=fromEXR3(files,fmt3,3);
+}
+
+void initPlaceholderTextures()
+{
+  if(placeholderTexturesInitialized)
+    return;
+  // 1x1 black textures; their contents are never read, because the samplers
+  // are only sampled when IBL is on, in which case the real environment
+  // images are bound instead
+  float const black[3]={0,0,0};
+  camp::GLTexturesFmt fmt;
+  fmt.format=GL_RGB;
+  fmt.internalFmt=GL_RGB16F;
+  placeholderIrradianceTex=
+    camp::GLTexture2<float,GL_FLOAT>{black,{1,1},4,fmt};
+  placeholderBRDFTex=
+    camp::GLTexture2<float,GL_FLOAT>{black,{1,1},5,fmt};
+  placeholderReflTex=
+    camp::GLTexture3<float,GL_FLOAT>{black,std::tuple<int,int,int>(1,1,1),6,fmt};
+  placeholderTexturesInitialized=true;
+
+  // Register cleanup to prevent glDeleteTextures on the wrong thread at
+  // exit (see cleanupIBL).  This runs for every scene, with or without IBL:
+  // the placeholder textures above are created unconditionally, so the
+  // registration must not depend on initIBL() (lazy IBL loading).
+  atexit(cleanupIBL);
+}
+
+void AsyGLRender::updateIBL()
+{
+  // IBL is a runtime uniform, so enabling/disabling it needs no shader
+  // recompilation. Loading a new environment image (e.g. a new V3D scene
+  // that names one, or cycling back to normal mode) only requires fresh
+  // textures.
+  if(!ibl)
+    return;
+
+  string image=settings::getSetting<string>("image");
+  if(image == iblImageName)
+    return;
+
+  initIBL();
+  iblImageName=image;
 }
 
 void *glrenderWrapper(void *a);
@@ -178,19 +243,25 @@ void AsyGLRender::initBlendShader()
   if(screen.empty() || blend.empty())
     noShaders();
 
-  std::vector<ShaderfileModePair> shaders(2);
-  std::vector<std::string> shaderParams;
+  // Two pre-compiled variants (small/big ARRAYSIZE); the blend pass switches
+  // between them at runtime (see switchBlendPipeline in renderBase).
+  auto const build=[&](std::uint32_t size)->GLint {
+    std::vector<ShaderfileModePair> shaders(2);
+    std::vector<std::string> shaderParams;
 
-  ostringstream s;
-  s << "ARRAYSIZE " << maxSize << "u" << endl;
-  shaderParams.push_back(s.str().c_str());
-  if(GPUindexing)
-    shaderParams.push_back("GPUINDEXING");
-  if(GPUcompress)
-    shaderParams.push_back("GPUCOMPRESS");
-  shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
-  shaders[1]=ShaderfileModePair(blend.c_str(),GL_FRAGMENT_SHADER);
-  blendShader=compileAndLinkShader(shaders,shaderParams,ssbo);
+    ostringstream s;
+    s << "ARRAYSIZE " << size << "u" << endl;
+    shaderParams.push_back(s.str().c_str());
+    if(GPUindexing)
+      shaderParams.push_back("GPUINDEXING");
+    if(GPUcompress)
+      shaderParams.push_back("GPUCOMPRESS");
+    shaders[0]=ShaderfileModePair(screen.c_str(),GL_VERTEX_SHADER);
+    shaders[1]=ShaderfileModePair(blend.c_str(),GL_FRAGMENT_SHADER);
+    return compileAndLinkShader(shaders,shaderParams,ssbo);
+  };
+  blendShader=build(blendSmallSize);
+  blendShaderBig=build(blendBigSize);
 }
 
 void AsyGLRender::setBuffers()
@@ -249,10 +320,8 @@ void AsyGLRender::initShaders()
   std::vector<ShaderfileModePair> shaders(2);
   std::vector<std::string> shaderParams;
 
-  if(ibl) {
-    shaderParams.push_back("USE_IBL");
-    initIBL();
-  }
+  // IBL is a runtime uniform (see the `ibl` uniform in the fragment
+  // shader); environment images are loaded lazily in updateIBL().
 
   shaders[0]=ShaderfileModePair(vertex.c_str(),GL_VERTEX_SHADER);
 
@@ -276,10 +345,16 @@ void AsyGLRender::initShaders()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
 
-  interlock=ssbo && getSetting<bool>("GPUinterlock");
+  // interlock selects the compiled shader variant (HAVE_INTERLOCK), so
+  // capture it exactly once, like the other GPU options (see
+  // interlockCaptured in glrender.h)
+  if(!interlockCaptured) {
+    interlock=ssbo && getSetting<bool>("GPUinterlock");
 
-  if(isNVIDIA30xx((const char*)glGetString(GL_RENDERER)))
-    interlock = false;
+    if(isNVIDIA30xx((const char*)glGetString(GL_RENDERER)))
+      interlock = false;
+    interlockCaptured=true;
+  }
 
   if(!ssbo && settings::verbose > 2)
     cout << "No SSBO support; order-independent transparency unavailable"
@@ -287,8 +362,8 @@ void AsyGLRender::initShaders()
 
   shaders[1]=ShaderfileModePair(fragment.c_str(),GL_FRAGMENT_SHADER);
   shaderParams.push_back("MATERIAL");
-  if(orthographic)
-    shaderParams.push_back("ORTHOGRAPHIC");
+  // Orthographic mode is a runtime uniform (see the `orthographic` uniform
+  // in the vertex shader), not a #define.
 
   ostringstream lights,materials,opaque;
   lights << "Nlights " << Nlights;
@@ -324,8 +399,6 @@ void AsyGLRender::initShaders()
   shaderParams.pop_back();
 
   shaderParams.push_back("GENERAL");
-  if(mode != DRAWMODE_NORMAL)
-    shaderParams.push_back("WIREFRAME");
   generalShader[0]=compileAndLinkShader(shaders,shaderParams,ssbo,
                                               interlock);
   shaderParams.push_back("OPAQUE");
@@ -349,7 +422,6 @@ void AsyGLRender::initShaders()
       shaders[1]=ShaderfileModePair(zero.c_str(),GL_FRAGMENT_SHADER);
       zeroShader=compileAndLinkShader(shaders,shaderParams,ssbo);
     }
-    maxSize=1;
     initBlendShader();
   }
   lastshader=-1;
@@ -369,6 +441,7 @@ void AsyGLRender::deleteComputeShaders()
 void AsyGLRender::deleteBlendShader()
 {
   glDeleteProgram(blendShader);
+  glDeleteProgram(blendShaderBig);
 }
 
 void AsyGLRender::deleteShaders()
@@ -397,29 +470,24 @@ void AsyGLRender::deleteShaders()
     glDeleteProgram(pixelShader);
 }
 
-void AsyGLRender::resizeBlendShader(GLuint maxDepth)
-{
-  maxSize=ceilpow2(maxDepth);
-  deleteBlendShader();
-  initBlendShader();
-}
-
 void AsyGLRender::drawFrame()
 {
-  if((nlights == 0 && Nlights > 0) || nlights > Nlights ||
-     materials.size() > nmaterials) {
+  // Shaders are recompiled only when the baked-in light/material counts
+  // must grow (array sizes).  A decrease, or outline mode's runtime
+  // nlights=0, is handled by the nlights runtime uniform and needs no
+  // recompilation.
+  if(nlights > Nlights || materials.size() > nmaterials) {
     deleteShaders();
     initShaders();
   }
 
-  // Apply srgb setting each frame so changes take effect dynamically
-  if(getSetting<bool>("srgb"))
-    glEnable(GL_FRAMEBUFFER_SRGB);
-  else
-    glDisable(GL_FRAMEBUFFER_SRGB);
+  // The sRGB conversion is done in the fragment/blend shaders via the
+  // runtime `srgb` uniform, so the framebuffer's sRGB capability is not
+  // needed; keep the hardware conversion off to avoid double conversion.
+  glDisable(GL_FRAMEBUFFER_SRGB);
 
   // Set viewport before clearing (in case it wasn't set)
-  // Skip during export - trBeginTile handles viewport for tiling
+  // Skip during export - tile iteration handles viewport for tiling
   if(!exporting)
     glViewport(0, 0, Width, Height);
 
@@ -436,12 +504,6 @@ void AsyGLRender::drawFrame()
   }
 }
 
-// Return x divided by y rounded up to the nearest integer.
-int ceilquotient(int x, int y)
-{
-  return (x+y-1)/y;
-}
-
 void AsyGLRender::Export(int)
 {
   size_t ndata=3*fullWidth*fullHeight;
@@ -454,61 +516,78 @@ void AsyGLRender::Export(int)
   try {
     unsigned char *data=new unsigned char[ndata];
     if(data) {
-      TRcontext *tr=trNew();
-      int width=ceilquotient(fullWidth,
-                             ceilquotient(fullWidth,std::min(maxTileWidth,Width)));
-      int height=ceilquotient(fullHeight,
-                              ceilquotient(fullHeight,
-                                           std::min(maxTileHeight,Height)));
+      camp::TileContext tr;
+      int maxTileW = std::min(maxTileWidth, Width);
+      int maxTileH = std::min(maxTileHeight, Height);
+      int numCols = ceilquotient(fullWidth, maxTileW);
+      int numRows = ceilquotient(fullHeight, maxTileH);
+      int tileW = ceilquotient(fullWidth, numCols);
+      int tileH = ceilquotient(fullHeight, numRows);
       if(settings::verbose > 1)
         cout << "Exporting " << Prefix << " as " << fullWidth << "x"
-             << fullHeight << " image" << " using tiles of size "
-             << width << "x" << height << endl;
+             << fullHeight << " image using tiles of size "
+             << tileW << "x" << tileH << endl;
 
-      unsigned border=std::min(std::min(1,(width-1)/2),(height-1)/2);
-      trTileSize(tr,width,height,border);
-      trImageSize(tr,fullWidth,fullHeight);
-      trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
+      int border = std::min(std::min(1, (numCols - 1) / 2), (numRows - 1) / 2);
+      tr.setTileSize(tileW,tileH,border);
+      tr.setImageSize(fullWidth,fullHeight);
 
       setDimensions(fullWidth,fullHeight,X/Width*fullWidth,Y/Width*fullWidth);
 
       size_t count=0;
       if(haveScene) {
-        (orthographic ? trOrtho : trFrustum)(tr,xmin,xmax,ymin,ymax,-Zmax,-Zmin);
-        do {
-          trBeginTile(tr);
+        if(orthographic)
+          tr.setOrtho(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+        else
+          tr.setFrustum(xmin,xmax,ymin,ymax,-Zmax,-Zmin);
+      }
+      do {
+        tr.beginTile();
+        glViewport(0, 0, tr.getCurrentTileWidth(), tr.getCurrentTileHeight());
+        if(haveScene) {
+          if(orthographic)
+            ortho(tr.getLeft(), tr.getRight(), tr.getBottom(), tr.getTop(), tr.getZNear(), tr.getZFar());
+          else
+            frustum(tr.getLeft(), tr.getRight(), tr.getBottom(), tr.getTop(), tr.getZNear(), tr.getZFar());
           remesh=true;
           redraw=true;
           prepareScene();
-          drawFrame();
-          lastshader=-1;
-          ++count;
-        } while (trEndTile(tr));
-      } else {// clear screen and return
-        redraw=true;
-        prepareScene();
+        }
         drawFrame();
-      }
+        lastshader=-1;
+
+        // Efficient direct readback -- single glReadPixels into final buffer
+        GLint srcX  = tr.getSrcX();
+        GLint srcY  = tr.getSrcY();
+        GLint srcW  = tr.getSrcWidth();
+        GLint srcH  = tr.getSrcHeight();
+        GLint destX = tr.getDestX();
+        GLint destY = tr.getDestY();
+
+        glPixelStorei(GL_PACK_ROW_LENGTH, fullWidth);
+        glPixelStorei(GL_PACK_SKIP_ROWS, destY);
+        glPixelStorei(GL_PACK_SKIP_PIXELS, destX);
+        glReadPixels(srcX, srcY, srcW, srcH, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+        ++count;
+      } while (tr.endTile());
 
       if(settings::verbose > 1)
         cout << count << " tile" << (count != 1 ? "s" : "") << " drawn" << endl;
-      trDelete(tr);
 
       picture pic;
       drawRawImage *Image=NULL;
-      if(haveScene) {
-        double w=oWidth;
-        double h=oHeight;
-        double Aspect=((double) fullWidth)/fullHeight;
-        if(w > h*Aspect) w=(int) (h*Aspect+0.5);
-        else h=(int) (w/Aspect+0.5);
-        // Render an antialiased image.
+      double w=oWidth;
+      double h=oHeight;
+      double Aspect=((double) fullWidth)/fullHeight;
+      if(w > h*Aspect) w=(int) (h*Aspect+0.5);
+      else h=(int) (w/Aspect+0.5);
+      // Render an antialiased image.
 
-        Image=new drawRawImage(data,fullWidth,fullHeight,
-                               transform(0.0,0.0,w,0.0,0.0,h),
-                               antialias);
-        pic.append(Image);
-      }
+      Image=new drawRawImage(data,fullWidth,fullHeight,
+                             transform(0.0,0.0,w,0.0,0.0,h),
+                             antialias);
+      pic.append(Image);
 
       pic.shipout(NULL,Prefix,Format,false,ViewExport);
       if(Image)
@@ -572,11 +651,18 @@ void AsyGLRender::cycleMode()
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
       break;
     case DRAWMODE_OUTLINE: // outline
-      nlights=0; // Force shader recompilation
+      // Unlit rendering at runtime: the nlights uniform drives the BRDF
+      // loop (zero iterations) and the vertex shader's unlit-color path,
+      // so no shader recompilation is needed
+      nlights=0;
+      lastshader=-1;
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       break;
     case DRAWMODE_WIREFRAME: // wireframe
-      Nlights=1; // Force shader recompilation
+      // No shader change is needed: the fragment shader behaves the same
+      // in all modes (see the discard in the OIT accumulate path), so
+      // mode switching needs no recompilation
+      lastshader=-1;
       break;
   }
 }
@@ -668,10 +754,10 @@ void AsyGLRender::resizeFragmentBuffer()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,feedbackBuffer);
     GLuint *feedback=(GLuint *) glMapBuffer(GL_SHADER_STORAGE_BUFFER,GL_READ_ONLY);
 
-    GLuint maxDepth=feedback[0];
-    if(maxDepth > maxSize)
-      resizeBlendShader(maxDepth);
-
+    // feedback[0] is the previous frame's max per-pixel fragment count
+    // (reduced in sum3.glsl from the count buffer; see switchBlendPipeline
+    // in renderBase).
+    switchBlendPipeline(feedback[0]);
     fragments=feedback[1];
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
   }
@@ -719,13 +805,13 @@ void AsyGLRender::refreshBuffers()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,offsetBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,(Pixels+2)*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
-    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
-                      GL_UNSIGNED_INT,&zero);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,offsetBuffer);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,countBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,(Pixels+2)*sizeof(GLuint),
                  NULL,GL_DYNAMIC_DRAW);
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
+                      GL_UNSIGNED_INT,&zero); // Clear count[] and maxDepth
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,countBuffer);
 
     if(GPUcompress) {
@@ -738,10 +824,10 @@ void AsyGLRender::refreshBuffers()
       glBindBuffer(GL_SHADER_STORAGE_BUFFER,indexBuffer);
       glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(GLuint),
                    NULL,GL_DYNAMIC_DRAW);
+      glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
+                        GL_UNSIGNED_INT,&zero); // Clear index buffer
       glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,indexBuffer);
     }
-    glClearBufferData(GL_SHADER_STORAGE_BUFFER,GL_R32UI,GL_RED_INTEGER,
-                      GL_UNSIGNED_INT,&zero); // Clear count or index buffer
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,opaqueBuffer);
     glBufferData(GL_SHADER_STORAGE_BUFFER,pixels*sizeof(vec4),NULL,
@@ -830,17 +916,22 @@ void AsyGLRender::refreshBuffers()
     GLuint *p=(GLuint *) glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
                                           0,size+sizeof(GLuint),
                                               GL_MAP_READ_BIT);
-    GLuint maxDepth=p[0];
     GLuint *count=p+1;
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,offsetBuffer);
     GLuint *offset=(GLuint *) glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
-                                               sizeof(GLuint),size,
+                                               0,size,
                                                GL_MAP_WRITE_BIT);
 
     size_t Offset=offset[0]=count[0];
-    for(size_t i=1; i < elements; ++i)
+    // Max per-pixel fragment count (CPU path; the GPU path gets it from
+    // sum3.glsl via the feedback buffer)
+    GLuint maxDepth=count[0];
+    for(size_t i=1; i < elements; ++i) {
+      if(count[i] > maxDepth)
+        maxDepth=count[i];
       offset[i]=Offset += count[i];
+    }
     fragments=Offset;
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,offsetBuffer);
@@ -856,8 +947,7 @@ void AsyGLRender::refreshBuffers()
     } else
       clearCount();
 
-    if(maxDepth > maxSize)
-      resizeBlendShader(maxDepth);
+    switchBlendPipeline(maxDepth);
   }
   lastshader=-1;
 }
@@ -895,6 +985,16 @@ void AsyGLRender::setUniformsOpenGL(GLint shader)
   if(shader != lastshader) {
     lastshader=shader;
     glUniform1ui(glGetUniformLocation(shader,"nlights"),nlights);
+    // Apply the srgb setting on every program switch so changes take
+    // effect dynamically (the conversion happens in the shader)
+    glUniform1i(glGetUniformLocation(shader,"srgb"),
+                getSetting<bool>("srgb") ? 1 : 0);
+    // IBL flag follows the (mode-aware) ibl member, which the base class
+    // updates from the setting (outline mode disables it)
+    glUniform1i(glGetUniformLocation(shader,"ibl"), ibl ? 1 : 0);
+    // Orthographic flag is consumed by the vertex shader (see ViewPosition)
+    glUniform1i(glGetUniformLocation(shader,"orthographic"),
+                orthographic ? 1 : 0);
 
     for(size_t i=0; i < nlights; ++i) {
       triple Lighti=Lights[i];
@@ -910,11 +1010,18 @@ void AsyGLRender::setUniformsOpenGL(GLint shader)
                   (GLfloat) Diffusei[2]);
     }
 
-    if(settings::getSetting<bool>("ibl")) {
-      iblbrdfTex.setUniform(glGetUniformLocation(shader, "reflBRDFSampler"));
-      irradianceTex.setUniform(glGetUniformLocation(shader, "diffuseSampler"));
-      reflTexturesTex.setUniform(glGetUniformLocation(shader, "reflImgSampler"));
-    }
+    // The IBL samplers must always reference valid textures: the loaded
+    // environment images when IBL is on, small placeholders otherwise
+    // (mirrors the Vulkan placeholder descriptors)
+    if(ibl)
+      updateIBL();
+    initPlaceholderTextures();
+    (ibl ? iblbrdfTex : placeholderBRDFTex)
+      .setUniform(glGetUniformLocation(shader, "reflBRDFSampler"));
+    (ibl ? irradianceTex : placeholderIrradianceTex)
+      .setUniform(glGetUniformLocation(shader, "diffuseSampler"));
+    (ibl ? reflTexturesTex : placeholderReflTex)
+      .setUniform(glGetUniformLocation(shader, "reflImgSampler"));
   }
 
   // Bind global materials buffer
@@ -1031,35 +1138,30 @@ void AsyGLRender::drawPoints()
 {
   drawBuffer(pointData,pixelShader,false,0);  // GL_POINTS
   pointData.renderCount++;
-  pointData.clear();
 }
 
 void AsyGLRender::drawLines()
 {
   drawBuffer(lineData,materialShader[Opaque],false,1);  // GL_LINES
   lineData.renderCount++;
-  lineData.clear();
 }
 
 void AsyGLRender::drawMaterials()
 {
   drawBuffer(materialData,materialShader[Opaque]);  // default GL_TRIANGLES
   materialData.renderCount++;
-  materialData.clear();
 }
 
 void AsyGLRender::drawColors()
 {
   drawBuffer(colorData,colorShader[Opaque],true);  // default GL_TRIANGLES
   colorData.renderCount++;
-  colorData.clear();
 }
 
 void AsyGLRender::drawTriangles()
 {
   drawBuffer(triangleData,generalShader[Opaque],true);  // default GL_TRIANGLES
   triangleData.renderCount++;
-  triangleData.clear();
 }
 
 void AsyGLRender::aBufferTransparency()
@@ -1069,14 +1171,18 @@ void AsyGLRender::aBufferTransparency()
   drawBuffer(transparentData,transparentShader,true);
   glDepthMask(GL_TRUE); // Respect depth
 
-  // Blend transparent fragments
+  // Blend transparent fragments (small/big variant selected by
+  // switchBlendPipeline from the previous frame's max fragment count)
   glDisable(GL_DEPTH_TEST);
-  glUseProgram(blendShader);
-  lastshader=blendShader;
-  glUniform1ui(glGetUniformLocation(blendShader,"width"),Width);
-  glUniform4f(glGetUniformLocation(blendShader,"background"),
+  GLint program=blendBig ? blendShaderBig : blendShader;
+  glUseProgram(program);
+  lastshader=program;
+  glUniform1ui(glGetUniformLocation(program,"width"),Width);
+  glUniform4f(glGetUniformLocation(program,"background"),
               Background[0],Background[1],Background[2],
               Background[3]);
+  glUniform1i(glGetUniformLocation(program,"srgb"),
+              getSetting<bool>("srgb") ? 1 : 0);
   fpu_trap(false); // Work around FE_INVALID
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   glDrawArrays(GL_TRIANGLES,0,3);
@@ -1097,7 +1203,6 @@ void AsyGLRender::drawTransparent()
     glDepthMask(GL_TRUE); // Write to depth buffer
   }
   transparentData.renderCount++;
-  transparentData.clear();
 }
 
 void AsyGLRender::drawBuffers()
@@ -1148,6 +1253,7 @@ AsyGLRender::~AsyGLRender()
   glDeleteProgram(countShader);
   glDeleteProgram(transparentShader);
   glDeleteProgram(blendShader);
+  glDeleteProgram(blendShaderBig);
   glDeleteProgram(zeroShader);
   glDeleteProgram(compressShader);
   glDeleteProgram(sum1Shader);
@@ -1183,17 +1289,14 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
 
   copyRenderArgs(args);
 
+  // IBL is a runtime uniform (no shader recompilation). Re-read on every
+  // render() so a new scene can turn it on or change the image (v3d.asy sets
+  // settings.ibl when a V3D header names an environment image). Mirrors the
+  // mode-dependent logic in AsyRender::cycleMode().
+  if(mode == DRAWMODE_NORMAL)
+    ibl = getSetting<bool>("ibl");
+
   nlights0 = nlights;  // Save original for mode restoration
-
-  pair maxtile=getSetting<pair>("maxtile");
-  maxTileWidth=(int) maxtile.getx();
-  maxTileHeight=(int) maxtile.gety();
-  if(maxTileWidth <= 0) maxTileWidth=1024;
-  if(maxTileHeight <= 0) maxTileHeight=768;
-
-#ifdef HAVE_PTHREAD
-  static bool initializedView=false;
-#endif
 
   if(!initialized)
     Fitscreen=1;
@@ -1230,6 +1333,19 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   initialized=true;
 
 #ifdef HAVE_PTHREAD
+  if(threads && glfwWindow && !pthread_equal(pthread_self(),threadMgr.mainthread)) {
+    // Called from asymain thread after renderer is already initialized.
+    // Delegate to the render thread to avoid re-initializing and crashing.
+    if(View && initializedView) {
+      // Render thread is in glfwRunLoop; send message.
+      hideWindow=false;
+      threadMgr.messageQueue.enqueue(RendererMessage::updateRenderer);
+    } else {
+      // Render thread is waiting on initSignal; wake it up via handshake.
+      readyAfterExport=queueExport=true;
+    }
+    return;
+  }
   if(threads && initializedView) {
     if(View) {
       // Called from asymain thread, main thread handles rendering
@@ -1293,21 +1409,27 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     fpu_trap(settings::trap());
   }
 
+  // These values are baked into the shader #defines (GPUINDEXING,
+  // GPUCOMPRESS, LOCALSIZE, BLOCKSIZE), so capture them exactly once, as
+  // of the first render() call (see gpuOptionsCaptured in glrender.h).
+  if(!gpuOptionsCaptured) {
 #if defined(HAVE_COMPUTE_SHADER)
-  GPUindexing=getSetting<bool>("GPUindexing");
-  GPUcompress=getSetting<bool>("GPUcompress");
+    GPUindexing=getSetting<bool>("GPUindexing");
+    GPUcompress=getSetting<bool>("GPUcompress");
 #else
-  GPUindexing=false;
-  GPUcompress=false;
+    GPUindexing=false;
+    GPUcompress=false;
 #endif
 
-  // Initialize GPU compute parameters
-  if(GPUindexing) {
-    localSize = settings::getSetting<Int>("GPUlocalSize");
-    checkpow2(localSize,"GPUlocalSize");
-    blockSize = settings::getSetting<Int>("GPUblockSize");
-    checkpow2(blockSize,"GPUblockSize");
-    groupSize = localSize * blockSize;
+    // Initialize GPU compute parameters
+    if(GPUindexing) {
+      localSize = settings::getSetting<Int>("GPUlocalSize");
+      checkpow2(localSize,"GPUlocalSize");
+      blockSize = settings::getSetting<Int>("GPUblockSize");
+      checkpow2(blockSize,"GPUblockSize");
+      groupSize = localSize * blockSize;
+    }
+    gpuOptionsCaptured=true;
   }
 
   glClearColor(Background[0], Background[1],
@@ -1324,6 +1446,9 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
   }
 
   glEnable(GL_DEPTH_TEST);
+  // Required for gl_PointSize written in the vertex shader to take effect;
+  // without it, points rasterize at the default 1-pixel size.
+  glEnable(GL_PROGRAM_POINT_SIZE);
 
   mode = DRAWMODE_WIREFRAME;
   cycleMode();

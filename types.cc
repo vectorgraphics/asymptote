@@ -178,6 +178,10 @@ ty *hashMethodType() {
   return new function(primInt());
 }
 
+ty *stringBracketsType() {
+  return new function(primString(),formal(primInt(),SYM(pos)));
+}
+
 ty *dimensionType() {
   return new function(primFile(),
                       formal(primInt(),SYM(nx),true),
@@ -195,9 +199,11 @@ ty *readType() {
 
 trans::varEntry *primitiveTy::virtualField(symbol id, signature *sig)
 {
+  static const symbol SYM_BRACKETS = symbol::opTrans("[]");
   switch (kind) {
     case ty_string:
       SIGFIELD(hashMethodType,SYM(hash),stringHash);
+      SIGFIELD(stringBracketsType,SYM_BRACKETS,stringBrackets);
       break;
     case ty_Int:
       SIGFIELD(hashMethodType,SYM(hash),intHash);
@@ -254,6 +260,13 @@ ty *ty::keyType()
   return primError();
 }
 
+ty *primitiveTy::keyType() {
+  if (kind == ty_string) {
+    return primInt();
+  }
+  return ty::keyType();
+}
+
 ty *overloadedDimensionType() {
   overloaded *o=new overloaded;
   o->add(dimensionType());
@@ -293,6 +306,11 @@ ty *primitiveTy::virtualFieldGetType(symbol id)
 
     if (id == SYM(read))
       return readType();
+  }
+
+  const static symbol SYM_BRACKETS = symbol::opTrans("[]");
+  if(kind == ty_string && id == SYM_BRACKETS) {
+    return stringBracketsType();
   }
 
   trans::varEntry *v = virtualField(id, 0);

@@ -18,7 +18,6 @@ import tempfile
 import datetime
 import string
 import atexit
-import pickle
 
 import xasyUtils as xu
 import xasy2asy as x2a
@@ -1044,8 +1043,8 @@ class MainWindow1(Qw.QMainWindow):
             saveAsyFile.close()
             self.updateScript()
 
-        openFile = open(file, 'wb')
-        pickle.dump(xasyObjects, openFile)
+        openFile = open(file, 'w')
+        json.dump(xasyObjects, openFile)
         openFile.close()
 
     def actionLoadXasy(self, file):
@@ -1054,8 +1053,8 @@ class MainWindow1(Qw.QMainWindow):
         self.fileName = file
         self.currDir = os.path.dirname(self.fileName)
 
-        input_file = open(file, 'rb')
-        xasyObjects = pickle.load(input_file)
+        input_file = open(file, 'r')
+        xasyObjects = json.load(input_file)
         input_file.close()
 
         prefix = os.path.splitext(self.fileName)[0]
@@ -1119,11 +1118,7 @@ class MainWindow1(Qw.QMainWindow):
             shortcut = Qg.QShortcut(self)
             shortcut.setKey(Qg.QKeySequence(key))
 
-            # hate doing this, but python doesn't have explicit way to pass a
-            # string to a lambda without an identifier
-            # attached to it.
-            exec('shortcut.activated.connect(lambda: self.execCustomCommand("{0}"))'.format(action),
-                 {'self': self, 'shortcut': shortcut})
+            shortcut.activated.connect(lambda cmd=action: self.execCustomCommand(cmd))
 
     def initializeButtons(self):
         self.ui.btnDrawAxes.setChecked(self.settings['defaultShowAxes'])

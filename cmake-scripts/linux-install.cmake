@@ -63,6 +63,16 @@ install(
 )
 #endregion
 
+#region renderer shared libraries
+# Build and install the runtime-dlopened renderer shared libraries
+# (libasyvulkan.so). On Unix the main asy binary loads these via dlopen at
+# runtime (rendererloader.cc); without this include the library is never built
+# and 3D rendering fails with "No 3D rendering available". Included here, after
+# ASY_INSTALL_SYSDIR_VALUE / ASY_BASE_INSTALL_COMPONENT are defined, as the
+# header of renderer-shared-libs.cmake documents.
+include(cmake-scripts/renderer-shared-libs.cmake)
+#endregion
+
 #region example files
 set(ASYMPTOTE_EXAMPLESDIR_VALUE ${ASY_INSTALL_SYSDIR_VALUE}/examples)
 
