@@ -40,6 +40,10 @@ size_t AsyArgsImpl::getArgumentCount() const { return argsStorage.size(); }
 
 IAsyItem* AsyArgsImpl::getNumberedArg(const size_t& argNum)
 {
+  if (argNum >= argsStorage.size()) {
+    reportError("Argument number out of range");
+    return nullptr;
+  }
   return argsStorage.data() + argNum;
 }
 

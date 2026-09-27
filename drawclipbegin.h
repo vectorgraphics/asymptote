@@ -43,7 +43,7 @@ public:
 
   bool begingroup() {return true;}
 
-  bool svg() {return true;}
+  bool svg() const {return true;}
 
   void save(bool b) {
     gsave=b;

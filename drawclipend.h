@@ -35,7 +35,7 @@ public:
 
   bool endgroup() {return true;}
 
-  bool svg() {return true;}
+  bool svg() const {return true;}
 
   void save(bool b) {
     grestore=b;

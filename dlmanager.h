@@ -21,7 +21,14 @@ typedef int TDlLoadFlags;
 typedef void* TProcAddress;
 #endif
 
-/** RAII wrapper for loaded library handles */
+/** RAII wrapper for loaded library handles
+ * @remark @b Warning: if constructed with @p closingInThread= true
+ * (Windows only), destroying an object that still holds a loaded
+ * library will call FreeLibraryAndExitThread, which terminates the
+ * thread performing the destruction. Ensure such an object never
+ * goes out of scope while still holding a library handle (move it to
+ * an owner whose lifetime is managed explicitly, or construct with
+ * closingInThread= false). */
 class LoadedDynLib
 {
 

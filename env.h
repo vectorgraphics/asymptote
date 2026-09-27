@@ -91,10 +91,13 @@ public:
   IAsyRecord* getTypeAsRecord(const char* typeName) override
   {
     auto* tyPtr = static_cast<ty*>(getType(typeName));
+    if (tyPtr == nullptr) {
+      return nullptr;
+    }
     if (tyPtr->kind == types::ty_record) {
       return dynamic_cast<IAsyRecord*>(tyPtr);
     }
-    
+
     return nullptr;
   }
 
