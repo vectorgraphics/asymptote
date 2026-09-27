@@ -31,7 +31,7 @@ private real aspect(picture pic)
 
 // A perspective camera at eye, looking toward target, turned about its line
 // of sight so that up points as nearly upward in the image as possible.
-// Arguments:
+// Additional arguments:
 //
 //   fov     The field of view, in degrees, strictly between 0 and 180.
 //   fovaxis Which extent of the image fov measures: "horizontal",
@@ -39,8 +39,11 @@ private real aspect(picture pic)
 //   aspect  The width/height ratio of the image. Defaults to that of the
 //           size of currentpicture, so call size(width,height) first (or
 //           pass aspect); if the picture has no size, the default is 1.
-//   roll    Rolls the camera about its line of sight so that the image
-//           turns roll degrees counterclockwise, as in absperspective().
+//   roll    Starting from the orientation set by up, rolls the camera
+//           about its line of sight so that the image turns roll degrees
+//           counterclockwise, as in absperspective(). This is only a
+//           convenience: roll=a is the same as
+//           up=rotate(a,O,target-eye)*up.
 //   shift   A lens shift: moves the image off the line of sight by
 //           shift.x image widths rightward and shift.y image heights
 //           upward, without turning the camera. For instance, a camera

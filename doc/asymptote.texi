@@ -10276,8 +10276,15 @@ of the size of @code{currentpicture}, so call @code{size(width,height)}
 before @code{camera} (or pass @code{aspect}); if the picture has no size,
 the default is @code{1}.
 
-The camera is rolled about its line of sight so that the image turns
-@code{roll} degrees counterclockwise, as in @code{absperspective}.
+Starting from the orientation set by @code{up}, the camera is rolled
+about its line of sight so that the image turns @code{roll} degrees
+counterclockwise, as in @code{absperspective}: @code{up} fixes which way
+the camera is level, and @code{roll} tilts it away from level.
+Any tilt could also be had by choosing a different @code{up} instead:
+@code{roll=a} gives the same camera as
+@code{up=rotate(a,O,target-eye)*up} with no roll. The @code{roll}
+parameter is a convenience that spares that calculation; it does not
+let the camera point or turn in any way that @code{up} alone cannot.
 A lens shift moves the image off the line of sight by @code{shift.x}
 image widths rightward and @code{shift.y} image heights upward without
 turning the camera; for instance, a camera aimed horizontally with
