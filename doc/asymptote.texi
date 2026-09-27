@@ -193,6 +193,7 @@ User modules
 
 * graph::                       2D linear & logarithmic graphs
 * three::                       3D vector graphics
+* camera::                      Cameras placed by field of view
 * graph3::                      3D linear & logarithmic graphs
 * palette::                     Color density images and palettes
 * colormap::                    Colormaps from matplotlib
@@ -8298,6 +8299,7 @@ These are the most commonly used base modules for creating graphics and visualiz
 @menu
 * graph::                       2D linear & logarithmic graphs
 * three::                       3D vector graphics
+* camera::                      Cameras placed by field of view
 * graph3::                      3D linear & logarithmic graphs
 * palette::                     Color density images and palettes
 * colormap::                    Colormaps from matplotlib
@@ -9805,10 +9807,46 @@ nominal size in the image where they lie on the picture plane, and appear
 smaller farther away.
 Only rendered (bitmap) output is supported: not @acronym{PRC},
 @acronym{WebGL}, @acronym{V3D}, @code{settings.render=0}, or the
-interactive viewer. The example
+interactive viewer.
+
+Unlike the other projections, which frame the image to fit the scene
+(adjusting the camera, the target, or the field of view as needed),
+@code{viewframe} frames exactly the given picture plane, however much of
+the scene that leaves out. This makes it suitable for cameras that move
+through a scene, as in an animation, and for sequences of images that must
+line up with each other. For example, this camera stands two units in front
+of the origin and looks along the @math{y} axis through a @code{4x3} window
+one unit ahead of it, whose bottom edge is at the height of the eye:
+@verbatim
+size(400,300);
+currentprojection=viewframe((0,-2,0),(-2,-1,0),(4,0,0),(0,0,3));
+@end verbatim
+@noindent
+The window is off-center (the eye is level with its bottom edge rather than
+its middle), so the vertical lines of the scene stay vertical in the image,
+as with the lens shift of a view camera.
+
+As with other projections, the light positions of @code{currentlight} are
+given relative to the camera, so a light moves with the camera. To fix a
+light in the scene instead, rotate its direction into the frame of the
+camera: for a light shining from the direction @code{sun},
+@verbatim
+projection P=currentprojection;
+currentlight=light(shiftless(P.T.modelview)*sun);
+@end verbatim
+@noindent
+An animation in which the camera moves must fit each frame with its own
+projection, so construct it with @code{animation(global=false)}
+(@pxref{animation}) and set @code{currentprojection} before adding each
+frame; a picture drawn with a @code{viewframe} projection can also be
+fitted into a larger picture, as in
+@code{add(pic.fit(P=viewframe(@dots{})))}.
+
+The example
 @code{@uref{https://asymptote.sourceforge.io/gallery/animations/torusflight.gif,,torusflight}@uref{https://asymptote.sourceforge.io/gallery/animations/torusflight.asy,,.asy}}
 in the @code{animations} directory uses @code{viewframe} to fly around and
-through a torus.
+through a torus. The module @code{camera} (@pxref{camera}) constructs
+@code{viewframe} projections from a field of view.
 @end table
 
 @cindex @code{currentprojection}
@@ -10210,6 +10248,76 @@ intersecting planes:
 @sp 1
 @center @image{./planes}
 
+
+@node camera
+@section @code{camera}
+@cindex @code{camera}
+@cindex field of view
+This module places a @code{viewframe} camera (@pxref{three}) using the
+terms of photography: the position of the camera, what it looks at, which
+way is up, and its field of view. Like any @code{viewframe} projection,
+it supports only rendered (bitmap) output, and it frames exactly the view
+that it describes, however much of the scene that leaves out, rather than
+fitting the image to the scene as @code{perspective} does. For this reason,
+the image should have the aspect ratio of the camera, which is easiest to
+arrange by calling @code{size(width,height)} before @code{camera}.
+
+@table @code
+@item projection camera(triple eye, triple target=O, triple up=Z, real fov=50, @*@ @ @ @ @ @ @ @ @ @ @ @ string fovaxis="auto", real aspect=aspect(currentpicture), @*@ @ @ @ @ @ @ @ @ @ @ @ real roll=0, pair shift=(0,0), real focus=0, real near=0)
+@cindex @code{camera}
+A perspective camera at @code{eye}, looking toward @code{target}, turned
+about its line of sight so that @code{up} points as nearly upward in the
+image as possible. Its field of view is @code{fov} degrees, strictly
+between @code{0} and @code{180}, measured across the extent of the image
+given by @code{fovaxis}: @code{"horizontal"}, @code{"vertical"},
+@code{"diagonal"}, or @code{"auto"}, which measures the longer side.
+The image has width/height ratio @code{aspect}, which defaults to that
+of the size of @code{currentpicture}, so call @code{size(width,height)}
+before @code{camera} (or pass @code{aspect}); if the picture has no size,
+the default is @code{1}.
+
+The camera is rolled about its line of sight so that the image turns
+@code{roll} degrees counterclockwise, as in @code{absperspective}.
+A lens shift moves the image off the line of sight by @code{shift.x}
+image widths rightward and @code{shift.y} image heights upward without
+turning the camera; for instance, a camera aimed horizontally with
+@code{shift=(0,0.3)} photographs a tall building without making its
+vertical edges converge.
+
+Pen widths, dots, and labels have their nominal size in the image at
+distance @code{focus} from the eye, measured along the line of sight,
+which defaults to the distance to @code{target}; they appear larger nearer
+the camera and smaller farther away. Without a call to @code{size}, the
+image is sized in @code{bp} as the view at this distance is in user
+coordinates. Nothing nearer to the eye than @code{near} is drawn; this
+defaults to @code{focus/100}, so that the camera can stand among the
+objects of the scene. The notes on lighting and animation under
+@code{viewframe} apply to @code{camera} as well.
+
+@item real lens(real focallength, real sensor=36)
+@cindex @code{lens}
+The angle of view, in degrees, across a sensor (or film) @code{sensor}
+millimeters wide behind a lens of focal length @code{focallength}
+millimeters. The default sensor width is that of @math{35}mm film, which
+is the longer side of the frame, so that, for example,
+@code{camera(eye,fov=lens(50))} (with the default @code{fovaxis="auto"})
+behaves like a @math{50}mm lens on a @math{35}mm camera.
+@end table
+
+For example, this photographs a cube through a @math{35}mm lens:
+@verbatim
+import camera;
+size(400,300);
+currentprojection=camera((3,-4,2),target=(0,0,0.5),fov=lens(35));
+draw(unitcube,lightblue);
+@end verbatim
+@noindent
+The example @code{lenses.asy} in the examples directory
+photographs a colonnade through three lenses, moving each camera so that the
+subject in the foreground fills the same part of the frame, to show how the
+wide-angle lens stretches the depth of the scene and the telephoto lens
+compresses it; its level cameras use a lens shift to keep the columns
+vertical.
 
 @node graph3
 @section @code{graph3}
