@@ -2567,13 +2567,15 @@ projection absperspective(triple camera=Z, triple target=O, real roll=0,
 // {corner+s*u+t*v : 0 <= s,t <= 1}, which becomes the whole image, with corner
 // at its bottom-left, u running rightward and v upward. The eye may lie off
 // the perpendicular through the center of the plane, and u and v need not be
-// perpendicular. Nothing nearer to the eye than the picture plane is drawn.
-// The image is sized as if it were a two-dimensional picture of the plane,
-// abs(u) wide and abs(v) high; pen widths and labels have their nominal size
-// in the image where they lie on the picture plane. Only rendered (bitmap)
-// output is supported: not PRC, WebGL, V3D, settings.render=0, or the
-// interactive viewer.
-projection viewframe(triple eye, triple corner, triple u, triple v)
+// perpendicular. Nothing nearer to the eye than the picture plane is drawn,
+// or, if near > 0, nothing nearer than the plane parallel to it at distance
+// near from the eye. The image is sized as if it were a two-dimensional
+// picture of the plane, abs(u) wide and abs(v) high; pen widths and labels
+// have their nominal size in the image where they lie on the picture plane.
+// Only rendered (bitmap) output is supported: not PRC, WebGL, V3D,
+// settings.render=0, or the interactive viewer.
+projection viewframe(triple eye, triple corner, triple u, triple v,
+                     real near=0)
 {
   triple n=cross(u,v);
   if(n == O) abort("viewframe: u and v must be linearly independent");
@@ -2583,6 +2585,7 @@ projection viewframe(triple eye, triple corner, triple u, triple v)
   if(h < 0)
     abort("viewframe: eye must lie on the side of the picture plane toward "+
           "which cross(u,v) points");
+  if(near < 0) abort("viewframe: near must be nonnegative");
   // Look along the normal of the picture plane, so that the plane is
   // perpendicular to the view axis, with the image x axis along u.
   triple target=eye-h*n;
@@ -2610,6 +2613,7 @@ projection viewframe(triple eye, triple corner, triple u, triple v)
                });
   P.absolute=true;
   P.viewframe=new triple[] {corner,u,v};
+  P.viewnear=near > 0 ? near : h;
   return P;
 }
 
@@ -2756,7 +2760,7 @@ struct scene
       real k=sqrt(lambda.x/abs(P.viewframe[1])*lambda.y/abs(P.viewframe[2]));
       t=scale3(k);
       this.P=viewframe(k*P.camera,k*P.viewframe[0],k*P.viewframe[1],
-                       k*P.viewframe[2]);
+                       k*P.viewframe[2],k*P.viewnear);
       this.P.bboxonly=false;
       f=pic.fit3(t,null,this.P);
       return;
@@ -2896,11 +2900,11 @@ object embed(string prefix=outprefix(), string label=prefix,
     triple v=shiftless(modelview)*P.viewframe[2];
     real d=-corner.z;
     // The renderer puts its near clipping plane at M.z and its far one at
-    // m.z; keep the far one beyond both the scene and the picture plane.
+    // m.z; keep the far one beyond the scene and the near one.
     triple m=min3(f);
     triple M=max3(f);
-    m=(m.x,m.y,min(m.z,-2d));
-    M=(M.x,M.y,-d);
+    m=(m.x,m.y,min(m.z,-2P.viewnear));
+    M=(M.x,M.y,-P.viewnear);
     real fov=2aTan(0.5*abs(v)/d); // Nonzero, to request perspective.
     transform3 inv=inverse(modelview);
     light Light=modelview*light;

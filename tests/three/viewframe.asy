@@ -62,3 +62,16 @@ StartTest("viewframe survives copy and transformation");
   assert(close(project(p+u+v,Q),(abs(u),abs(v))));
 }
 EndTest();
+
+StartTest("viewframe near clipping distance");
+{
+  // By default, the near clipping plane is the picture plane.
+  projection P=viewframe(eye,p,u,v);
+  assert(abs(P.viewnear-dot(eye-p,unit(cross(u,v)))) < 1e-12);
+  projection Q=viewframe(eye,p,u,v,near=0.25);
+  assert(Q.viewnear == 0.25);
+  assert(Q.copy().viewnear == 0.25);
+  // The near distance does not affect the projection.
+  assert(close(project(p+0.3u+0.6v,Q),project(p+0.3u+0.6v,P)));
+}
+EndTest();

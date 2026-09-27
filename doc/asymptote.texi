@@ -9781,8 +9781,9 @@ perspective((x,y,z),up,target,zoom,angle,viewportshift,showtarget,
             autoadjust,center)
 @end verbatim
 
-@item viewframe(triple eye, triple corner, triple u, triple v)
+@item viewframe(triple eye, triple corner, triple u, triple v, real near=0)
 @cindex @code{viewframe}
+@cindex picture plane
 This perspective projection places the camera at @code{eye}, looking
 through the picture plane
 @code{@{corner+s*u+t*v : 0 <= s,t <= 1@}},
@@ -9792,7 +9793,9 @@ on the perpendicular through the center of the picture plane, and
 @code{u} and @code{v} need not be perpendicular, but @code{eye} must lie
 on the side of the plane toward which @code{cross(u,v)} points.
 Nothing nearer to the eye than the picture plane is drawn, so the camera
-may be placed inside or among the objects of a scene.
+may be placed inside or among the objects of a scene. If @code{near > 0},
+the plane parallel to the picture plane at distance @code{near} from the
+eye bounds what is drawn instead; this changes nothing else about the image.
 The camera is placed in user coordinates, and the scene is not rescaled;
 the image is sized like a two-dimensional picture of the picture plane,
 @code{abs(u)} wide and @code{abs(v)} high, so that, for example,

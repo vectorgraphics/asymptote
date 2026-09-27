@@ -155,17 +155,18 @@ void AsyRender::setDimensions(int Width, int Height, double X, double Y)
   if(Height <= 0) Height = 1;
 
   if (viewframe) {
-    // The viewport is fixed by the picture plane; take its bounding box in
-    // the plane.
+    // The viewport is fixed by the picture plane; take the bounding box of
+    // its projection onto the near clipping plane z=Zmax.
+    double scale = Zmax / frameCorner.getz();
     triple corners[]={frameCorner+frameU, frameCorner+frameV,
                       frameCorner+frameU+frameV};
-    xmin = xmax = frameCorner.getx();
-    ymin = ymax = frameCorner.gety();
+    xmin = xmax = scale * frameCorner.getx();
+    ymin = ymax = scale * frameCorner.gety();
     for (triple const& c : corners) {
-      xmin = std::min(xmin, c.getx());
-      xmax = std::max(xmax, c.getx());
-      ymin = std::min(ymin, c.gety());
-      ymax = std::max(ymax, c.gety());
+      xmin = std::min(xmin, scale * c.getx());
+      xmax = std::max(xmax, scale * c.getx());
+      ymin = std::min(ymin, scale * c.gety());
+      ymax = std::max(ymax, scale * c.gety());
     }
     return;
   }
@@ -268,19 +269,21 @@ void AsyRender::frustum(double left, double right, double bottom,
     sub[3][0] = -(a0 + a1) / (a1 - a0);
     sub[1][1] = 2.0 / (b1 - b0);
     sub[3][1] = -(b0 + b1) / (b1 - b0);
-    projMat = sub * viewframeProjection(farVal);
+    projMat = sub * viewframeProjection(nearVal, farVal);
   } else
     projMat = glm::frustum(left, right, bottom, top, nearVal, farVal);
   updateProjection();
 }
 
-dmat4 AsyRender::viewframeProjection(double farVal) const
+dmat4 AsyRender::viewframeProjection(double nearVal, double farVal) const
 {
   // The eye is at the origin and the picture plane is z=-d. A point (x,y,z)
   // projects to (X,Y)=(d/w)*(x,y) on the plane, where w=-z. Solving
   // (X,Y)=corner+s*u+t*v gives the image coordinates (s,t), which must be
   // mapped to the normalized device coordinates (2s-1,2t-1); multiplying
-  // by w keeps this linear in (x,y,z).
+  // by w keeps this linear in (x,y,z). These rows are unchanged when the
+  // picture plane is scaled about the eye, so the near clipping plane can
+  // lie elsewhere.
   double d = -frameCorner.getz();
   double ux = frameU.getx(), uy = frameU.gety();
   double vx = frameV.getx(), vy = frameV.gety();
@@ -292,8 +295,8 @@ dmat4 AsyRender::viewframeProjection(double farVal) const
 
   // The depth and w rows do not depend on the lateral bounds.
   dmat4 P = zeroToOneDepth() ?
-    glm::frustumRH_ZO(-1.0, 1.0, -1.0, 1.0, d, farVal) :
-    glm::frustumRH_NO(-1.0, 1.0, -1.0, 1.0, d, farVal);
+    glm::frustumRH_ZO(-1.0, 1.0, -1.0, 1.0, nearVal, farVal) :
+    glm::frustumRH_NO(-1.0, 1.0, -1.0, 1.0, nearVal, farVal);
 
   // glm matrices are indexed [column][row].
   P[0][0] = 2.0 * d * i00;

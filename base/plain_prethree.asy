@@ -79,6 +79,8 @@ struct projection {
   // For a projection constructed by viewframe(), the picture plane
   // {corner+s*u+t*v : 0 <= s,t <= 1} as {corner,u,v}; empty otherwise.
   triple[] viewframe;
+  real viewnear;        // Distance from the eye to the near clipping plane of a
+                        // viewframe() projection, along the view axis.
 
   transformation T;
 
@@ -131,6 +133,7 @@ struct projection {
     P.ninterpolate=ninterpolate;
     P.bboxonly=bboxonly;
     P.viewframe=copy(viewframe);
+    P.viewnear=viewnear;
     P.T=T.copy();
     return P;
   }

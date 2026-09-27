@@ -310,8 +310,8 @@ public:
     // If viewframe is set, the image is the picture plane
     // {frameCorner+s*frameU+t*frameV : 0 <= s,t <= 1}, given in eye
     // coordinates and perpendicular to the z axis; frameCorner is the
-    // bottom-left corner of the image and nothing nearer to the eye than the
-    // plane is drawn.
+    // bottom-left corner of the image. The near clipping plane is z=M.z,
+    // which need not be the picture plane.
     bool viewframe=false;
     triple frameCorner, frameU, frameV;
   };
@@ -549,9 +549,8 @@ public:
                      double top, double nearVal, double farVal);
 
   /** Return the projection matrix for the viewframe picture plane, with the
-   * given far clipping distance. The near clipping plane is the picture
-   * plane. */
-  glm::dmat4 viewframeProjection(double farVal) const;
+   * given near and far clipping distances. */
+  glm::dmat4 viewframeProjection(double nearVal, double farVal) const;
 
   /** Whether clip-space depth runs over [0,1], as in Vulkan, rather than
    * over [-1,1], as in OpenGL. */
