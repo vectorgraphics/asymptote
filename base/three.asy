@@ -2577,9 +2577,8 @@ projection absperspective(triple camera=Z, triple target=O, real roll=0,
 projection viewframe(triple eye, triple corner, triple u, triple v,
                      real near=0)
 {
-  triple n=cross(u,v);
+  triple n=unit(cross(u,v));
   if(n == O) abort("viewframe: u and v must be linearly independent");
-  n=unit(n);
   real h=dot(eye-corner,n); // Distance from the picture plane to the eye.
   if(h == 0) abort("viewframe: eye cannot lie in the picture plane");
   if(h < 0)

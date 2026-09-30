@@ -60,10 +60,9 @@ projection camera(triple eye, triple target=O, triple up=Z, real fov=50,
                   string fovaxis="auto", real aspect=aspect(currentpicture),
                   real roll=0, pair shift=(0,0), real focus=0, real near=0)
 {
-  triple forward=target-eye;
+  triple forward=unit(target-eye);
   if(forward == O) abort("camera: eye cannot be at target");
-  real distance=abs(forward);
-  forward /= distance;
+  real distance=abs(target-eye);
   if(!(fov > 0 && fov < 180))
     abort("camera: fov must be strictly between 0 and 180 degrees");
   if(!(aspect > 0)) abort("camera: aspect must be positive");
