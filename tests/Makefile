@@ -2,7 +2,7 @@
 
 TESTDIRS = $(wildcard */)
 
-test: $(TESTDIRS) test_collections_errors
+test: $(TESTDIRS) test_collections_errors test_render3d
 
 $(TESTDIRS)::
 	@echo
@@ -11,6 +11,10 @@ $(TESTDIRS)::
 test_collections_errors:
 	@echo
 	python3 test_collections_errors.py
+
+test_render3d:
+	@echo
+	python3 test_render3d.py || test $$? -eq 77
 
 $(EXTRADIRS)::
 	@echo

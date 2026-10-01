@@ -32,3 +32,15 @@ set_property(
         TEST bundled.asy.collections_errors
         PROPERTY LABELS asy-check-tests
 )
+
+add_test(
+        NAME bundled.asy.render3d
+        COMMAND ${PY3_INTERPRETER} ${ASY_ASYLANG_TEST_ROOT}/test_render3d.py
+            --asy $<TARGET_FILE:asy>
+            --asy-base-dir=${ASY_BUILD_BASE_DIR}
+        WORKING_DIRECTORY ${ASY_ASYLANG_TEST_ROOT}
+)
+set_tests_properties(
+        bundled.asy.render3d
+        PROPERTIES LABELS asy-check-tests SKIP_RETURN_CODE 77
+)
