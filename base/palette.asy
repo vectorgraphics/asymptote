@@ -265,18 +265,39 @@ pen[] palette(real[] f, pen[] palette)
                   f.length);
 }
 
-using spatialPen=pen(triple, int, int);
+struct vertexData {
+  triple z;      // 3D vertex position (always populated)
+  pair uv;       // parametric coordinates (meaningful when surface has an index grid)
+  int patch;     // index of patch in surface.s
+  int corner;    // index of corner in patch (0-3 or 0-2)
+  int U, V;      // grid indices in surface.index
+  void operator init(triple z, pair uv=(0,0), int patch=0, int corner=0,
+                     int U=0, int V=0) {
+    this.z=z;
+    this.uv=uv;
+    this.patch=patch;
+    this.corner=corner;
+    this.U=U;
+    this.V=V;
+  }
+}
 
-// Construct a spatialPen from f using the specified palette.
-spatialPen palette(real f(triple), real Min, real Max, pen[] palette)
+using vertexPen=pen(vertexData);
+
+vertexPen operator cast(pen f(triple)) {
+  return new pen(vertexData vd) {return f(vd.z);};
+}
+
+// Construct a vertexPen from f using the specified palette.
+vertexPen palette(real f(triple), real Min, real Max, pen[] palette)
 {
-  if(palette.length == 0) return new pen(triple, int, int) {return nullpen;};
+  if(palette.length == 0) return new pen(vertexData) {return nullpen;};
   real step=Max == Min ? 0.0 : (palette.length-1)/(Max-Min);
-  return new pen(triple v, int, int) {return palette[round((f(v)-Min)*step)];};
+  return new pen(vertexData vd) {return palette[round((f(vd.z)-Min)*step)];};
 }
 
 // Fits a quadratic interpolant to the data (one for each color channel).
-spatialPen fitColors(triple[] coords, pen[] colors)
+vertexPen fitColors(triple[] coords, pen[] colors)
 {
   int n=coords.length;
   assert(n == colors.length,
@@ -352,8 +373,8 @@ spatialPen fitColors(triple[] coords, pen[] colors)
   }
 
   real invscale=1/scale;
-  return new pen(triple v, int, int) {
-    triple q=(v-center)*invscale;
+  return new pen(vertexData vd) {
+    triple q=(vd.z-center)*invscale;
     real x=q.x, y=q.y, z=q.z;
     real[] feats={1,x,y,z,x*y,x*z,y*z,x^2,y^2,z^2};
     real[] vals=new real[nch];

@@ -27,7 +27,7 @@ pen[] cols={
 // The angular hue direction reverses top-to-bottom, creating a spiral that
 // requires the xy, xz, yz, xyz cross-terms -- not reproducible analytically.
 
-spatialPen cpen=fitColors(coords,cols);
+vertexPen cpen=fitColors(coords,cols);
 
 // Build a finely tessellated cylinder as a surface of revolution:
 // ncirc patches around the circumference, nvert patches vertically.
@@ -36,7 +36,7 @@ path3 gen = operator--(
   ...sequence(new triple(int i) { return (1,0,i/nvert); }, nvert+1));
 surface cyl=surface(O, gen, Z, ncirc);
 
-draw(cyl, spatialpen=cpen, nolight);
+draw(cyl, vertexpen=cpen, nolight);
 for (int i=0; i < 8; ++i) {
   dot(coords[i], cols[i]);
 }

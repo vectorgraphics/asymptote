@@ -52,13 +52,13 @@ pen spectrum(real t) {
 // leaving the color unchanged (spectrum has period 1). The pen reads the
 // surface's own (u,v) directly -- no remapping from indices needed.
 int windLoop=3, windTube=1;
-pen spiralpen(pair uv, int, int) {
-  real loop=uv.x/(2pi);             // 0..1 around the major loop
-  real tube=uv.y/(2pi);             // 0..1 around the tube
+pen spiralpen(vertexData vd) {
+  real loop=vd.uv.x/(2pi);          // 0..1 around the major loop
+  real tube=vd.uv.y/(2pi);          // 0..1 around the tube
   return spectrum(windLoop*loop+windTube*tube);
 }
 
-draw(torus(nloop,ntube),parampen=spiralpen);
+draw(torus(nloop,ntube),vertexpen=spiralpen);
 
 // --- Checkerboard torus -----------------------------------------------------
 
@@ -68,12 +68,12 @@ int mloop=24, mtube=12;
 pen cream=rgb(0.95,0.93,0.86);
 pen navy=rgb(0.12,0.18,0.45);
 
-// The checkerboard depends only on the patch's u,v indices in the index grid,
+// The checkerboard depends only on the patch's U,V indices in the index grid,
 // so all four corners of a patch share one color: crisp, flat squares.
-pen checkerpen(pair, int U, int V) {
-  return (U+V)%2 == 0 ? cream : navy;
+pen checkerpen(vertexData vd) {
+  return (vd.U+vd.V)%2 == 0 ? cream : navy;
 }
 
 // Link the second torus through the first: rotate it into the xz plane and
 // shift its center onto the first torus's major circle, so it threads the hole.
-draw(shift((R,0,0))*rotate(90,X)*torus(mloop,mtube), parampen=checkerpen);
+draw(shift((R,0,0))*rotate(90,X)*torus(mloop,mtube), vertexpen=checkerpen);

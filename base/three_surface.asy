@@ -64,17 +64,18 @@ struct patch {
     return new real[] {f(P[0][0]),f(P[3][0]),f(P[3][3]),f(P[0][3])};
   }
 
-  pen[] map(pen f(triple, int, int), int i) {
-    return new pen[] {f(P[0][0],i,0),f(P[3][0],i,1),
-                      f(P[3][3],i,2),f(P[0][3],i,3)};
+  pen[] map(pen f(vertexData), int i) {
+    return new pen[] {f(vertexData(P[0][0],(0,0),i,0)),f(vertexData(P[3][0],(0,0),i,1)),
+                      f(vertexData(P[3][3],(0,0),i,2)),f(vertexData(P[0][3],(0,0),i,3))};
   }
 
   real[] maptriangular(real f(triple)) {
     return new real[] {f(P[0][0]),f(P[3][0]),f(P[3][3])};
   }
 
-  pen[] maptriangular(pen f(triple, int, int), int i) {
-    return new pen[] {f(P[0][0],i,0),f(P[3][0],i,1),f(P[3][3],i,2)};
+  pen[] maptriangular(pen f(vertexData), int i) {
+    return new pen[] {f(vertexData(P[0][0],(0,0),i,0)),f(vertexData(P[3][0],(0,0),i,1)),
+                      f(vertexData(P[3][3],(0,0),i,2))};
   }
 
   triple Bu(int j, real u) {return bezier(P[0][j],P[1][j],P[2][j],P[3][j],u);}
@@ -275,8 +276,8 @@ struct patch {
       using realTriple=real(triple);
       using realMap=real[](realTriple);
       map=(realMap) maptriangular;
-      using penTriple=pen(triple, int, int);
-      using penMap=pen[](penTriple, int);
+      using penVertexData=pen(vertexData);
+      using penMap=pen[](penVertexData, int);
       map=(penMap) maptriangular;
       point=pointtriangular;
       normal=normaltriangular;
@@ -773,23 +774,16 @@ struct primitive {
   }
 }
 
-// first integer: index of patch in surface.s;
-// second integer: index of corner in patch
-using spatialPen=pen(triple, int, int);
-
-spatialPen cornerPen(pen[][] p) {
+vertexPen cornerPen(pen[][] p) {
   p.cyclic=true;
-  return new pen(triple, int i, int j) {
-    return p[i][j];
+  return new pen(vertexData vd) {
+    return p[vd.patch][vd.corner];
   };
 }
 
-spatialPen cornerPen(...pen[] p) {
+vertexPen cornerPen(...pen[] p) {
   return cornerPen(new pen[][] {p});
 }
-
-// integers: the u, v indices of the patch using surface.index
-using paramPen=pen(pair, int, int);
 
 private string nullsurface="null surface";
 
@@ -899,8 +893,8 @@ struct surface {
     return m;
   }
 
-  // Construct a spatialPen from f using the specified palette.
-  spatialPen palette(real f(triple), pen[] palette) {
+  // Construct a vertexPen from f using the specified palette.
+  vertexPen palette(real f(triple), pen[] palette) {
     return palette(f,min(f),max(f),palette);
   }
 
@@ -1999,37 +1993,53 @@ void drawTessellation(picture pic=currentpicture, surface s,
   }
 }
 
-// Color each indexed patch of the draw-time surface copy S using parampen,
-// evaluated at the parametric coordinates of the patch corners. The integer
-// arguments passed to parampen are the patch's u, v indices in S.index. This is
-// a drawing helper: colors are written only into the copy made for drawing,
-// never into a user's surface. Callers must ensure S.index is populated.
-private void colorParam(surface S, paramPen parampen) {
-  transform surfaceToParam=inverse(S.paramToSurface);
-  int nU=S.index.length;
-  int nV=S.index[0].length;
-  for(int U=0; U < nU; ++U) {
-    for(int V=0; V < nV; ++V) {
-      if(!S.index[U].initialized(V)) continue;
-      int i=S.index[U][V];
-      pen p00=parampen(surfaceToParam*(U,V),U,V);
-      pen p10=parampen(surfaceToParam*(U+1,V),U,V);
-      pen p11=parampen(surfaceToParam*(U+1,V+1),U,V);
-      patch si=S.s[i];
-      if (si.triangular) {
-        si.colors = new pen[] {p00,p10,p11};
-        continue;
+// Color the patches of the draw-time surface copy dst using vertexpen,
+// evaluating the pen at the original (untransformed) surface src positions.
+// Each corner's vertexData is fully populated: z from src, uv from the
+// inverse paramToSurface (when an index grid is available), and the patch,
+// corner, U, V indices. This is a drawing helper: colors are written only
+// into dst, never into a user's surface.
+private void colorVertex(surface dst, surface src, vertexPen vertexpen) {
+  bool hasGrid=dst.index.length > 0;
+  transform surfaceToParam=hasGrid ? inverse(dst.paramToSurface) : identity;
+  if(hasGrid) {
+    int nU=dst.index.length;
+    int nV=dst.index[0].length;
+    for(int U=0; U < nU; ++U) {
+      for(int V=0; V < nV; ++V) {
+        if(!dst.index[U].initialized(V)) continue;
+        int i=dst.index[U][V];
+        patch si=src.s[i];
+        pen p00=vertexpen(vertexData(si.P[0][0],surfaceToParam*(U,V),i,0,U,V));
+        pen p10=vertexpen(vertexData(si.P[3][0],surfaceToParam*(U+1,V),i,1,U,V));
+        pen p11=vertexpen(vertexData(si.P[3][3],surfaceToParam*(U+1,V+1),i,2,U,V));
+        if(si.triangular) {
+          dst.s[i].colors=new pen[] {p00,p10,p11};
+        } else {
+          pen p01=vertexpen(vertexData(si.P[0][3],surfaceToParam*(U,V+1),i,3,U,V));
+          dst.s[i].colors=new pen[] {p00,p10,p11,p01};
+        }
       }
-      pen p01=parampen(surfaceToParam*(U,V+1),U,V);
-      si.colors=new pen[] {p00,p10,p11,p01};
+    }
+  } else {
+    for(int i=0; i < dst.s.length; ++i) {
+      patch si=src.s[i];
+      pen p00=vertexpen(vertexData(si.P[0][0]));
+      pen p10=vertexpen(vertexData(si.P[3][0],(0,0),i,1));
+      pen p11=vertexpen(vertexData(si.P[3][3],(0,0),i,2));
+      if(si.triangular) {
+        dst.s[i].colors=new pen[] {p00,p10,p11};
+      } else {
+        pen p01=vertexpen(vertexData(si.P[0][3],(0,0),i,3));
+        dst.s[i].colors=new pen[] {p00,p10,p11,p01};
+      }
     }
   }
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
-          pen spatialpen(triple, int, int)=null,
-          pen parampen(pair, int, int)=null,
+          vertexPen vertexpen=null,
           light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
 {
@@ -2041,14 +2051,10 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
       // Color the patches before drawing so both the 3D render and the
-      // 2D-projection (vector output) path below pick up the result. The param
-      // pen takes precedence over the spatial pen, but is ignored unless the
-      // surface has a populated index grid.
-      if(parampen != null && s.index.length > 0)
-        colorParam(S,parampen);
-      else if(spatialpen != null)
-        for(int i=0; i < s.s.length; ++i)
-          S.s[i].colors=s.s[i].map(spatialpen,i);
+      // 2D-projection (vector output) path below pick up the result.
+      // The pen is evaluated at the original (untransformed) positions.
+      if(vertexpen != null)
+        colorVertex(S,s,vertexpen);
 
       if(is3D()) {
         render Render=render(render,interaction(render.interaction,
@@ -2089,16 +2095,16 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
-          pen spatialpen(triple, int, int)=null,
-          pen parampen(pair, int, int)=null,
+          vertexPen vertexpen=null,
           light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
 {
   if(render.tessellate && s.index.length > 0 && settings.render != 0) {
-    // Color a copy of the surface so the tessellation picks up the param pen.
-    if(parampen != null) {
+    // Color a copy of the surface so the tessellation picks up the colors.
+    if(vertexpen != null) {
+      surface src=s;
       s=surface(s);
-      colorParam(s,parampen);
+      colorVertex(s,src,vertexpen);
     }
     drawTessellation(pic,s,surfacepen,meshpen,light,meshlight,name,render);
   } else {
@@ -2107,7 +2113,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
     pen[] meshpen={meshpen};
     meshpen.cyclic=true;
     draw(pic,s,nu,nv,surfacepen,meshpen,
-         spatialpen,parampen,light,meshlight,name,
+         vertexpen,light,meshlight,name,
          render);
   }
 }

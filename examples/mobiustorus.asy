@@ -49,8 +49,8 @@ pen spectrum(real t) {
 
 // The color depends only on how far along the strip we are: once around the
 // color wheel over all sides laps, so the strip ends on the color it started.
-pen strippen(pair uv, int, int) {
-  return spectrum(uv.x/sides);
+pen strippen(vertexData vd) {
+  return spectrum(vd.uv.x/sides);
 }
 
-draw(s,parampen=strippen,nolight);
+draw(s,vertexpen=strippen,nolight);
