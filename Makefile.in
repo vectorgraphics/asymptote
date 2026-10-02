@@ -106,7 +106,6 @@ DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -I.
 CFLAGS = @CFLAGS@
 CPPFLAGS = $(shell echo '@CPPFLAGS@' | awk -f dedup.awk)
 OPTS = $(DEFS) $(CPPFLAGS) @CXXFLAGS@ $(CFLAGS) \
-	-Ibackports/optional/include \
 	-Iprc/include -I$(LSP_ROOT)/include -I. \
 	$(MACOS_CFLAGS)
 
