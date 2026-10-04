@@ -777,10 +777,22 @@ struct primitive {
   }
 }
 
+// Construct a vertexPen that colors corner j of patch i with pen j of the row
+// p[i % p.length]. If that row is a cyclic array, j is likewise reduced modulo
+// the length of the row; otherwise the row must supply a pen for every corner
+// of its patches.
+// The array is copied, so later changes to p do not affect the result.
 vertexPen cornerPen(pen[][] p) {
-  p.cyclic=true;
+  if(p.length == 0)
+    abort('cornerPen: no pens specified');
+  for(int i=0; i < p.length; ++i)
+    if(p[i].length == 0)
+      abort('cornerPen: no pens specified for patch '+(string) i);
+  // A deep copy that preserves the cyclic flag of each row.
+  pen[][] q=copy(p);
+  q.cyclic=true;
   return new pen(surfaceVertex sv) {
-    return p[sv.patch][sv.corner];
+    return q[sv.patch][sv.corner];
   };
 }
 

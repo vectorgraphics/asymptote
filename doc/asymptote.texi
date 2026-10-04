@@ -10604,6 +10604,25 @@ vertexPen cornerPen(...pen[] p);
 vertexPen cornerPen(pen[][] p);
 @end verbatim
 @noindent
+The first form applies the same list of pens to every patch; it must
+supply a pen for every corner (four for a Bezier patch, three for a
+Bezier triangle). In the second form, corner @code{j} of patch @code{i}
+is drawn with pen @code{j} of the row @code{p[i % p.length]}. If that
+row is a cyclic array, @code{j} is likewise reduced modulo the length
+of the row; otherwise, it is an error for a patch to have more corners
+than the row has pens:
+@verbatim
+draw(s,cornerPen(red,green,blue,black));   // four pens per patch
+
+pen[] p={red,blue};
+p.cyclic=true;
+draw(s,cornerPen(new pen[][] {p}));        // red,blue,red,blue
+@end verbatim
+@noindent
+The array @code{p} is copied, so subsequent changes to it do not
+affect the surface colors.
+
+@noindent
 @cindex parametric coordinates
 For parametrically constructed surfaces (built with
 @code{surface(f, a, b, ...)}), the fields @code{sv.uv}, @code{sv.U},
