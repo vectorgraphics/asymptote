@@ -1993,13 +1993,13 @@ void drawTessellation(picture pic=currentpicture, surface s,
   }
 }
 
-// Color the patches of the draw-time surface copy dst using vertexpen,
+// Color the patches of the draw-time surface copy dst using vertexPen,
 // evaluating the pen at the original (untransformed) surface src positions.
 // Each corner's vertexData is fully populated: z from src, uv from the
 // inverse paramToSurface (when an index grid is available), and the patch,
 // corner, U, V indices. This is a drawing helper: colors are written only
 // into dst, never into a user's surface.
-private void colorVertex(surface dst, surface src, vertexPen vertexpen) {
+private void colorVertex(surface dst, surface src, vertexPen vertexPen) {
   bool hasGrid=dst.index.length > 0;
   transform surfaceToParam=hasGrid ? inverse(dst.paramToSurface) : identity;
   if(hasGrid) {
@@ -2010,13 +2010,13 @@ private void colorVertex(surface dst, surface src, vertexPen vertexpen) {
         if(!dst.index[U].initialized(V)) continue;
         int i=dst.index[U][V];
         patch si=src.s[i];
-        pen p00=vertexpen(vertexData(si.P[0][0],surfaceToParam*(U,V),i,0,U,V));
-        pen p10=vertexpen(vertexData(si.P[3][0],surfaceToParam*(U+1,V),i,1,U,V));
-        pen p11=vertexpen(vertexData(si.P[3][3],surfaceToParam*(U+1,V+1),i,2,U,V));
+        pen p00=vertexPen(vertexData(si.P[0][0],surfaceToParam*(U,V),i,0,U,V));
+        pen p10=vertexPen(vertexData(si.P[3][0],surfaceToParam*(U+1,V),i,1,U,V));
+        pen p11=vertexPen(vertexData(si.P[3][3],surfaceToParam*(U+1,V+1),i,2,U,V));
         if(si.triangular) {
           dst.s[i].colors=new pen[] {p00,p10,p11};
         } else {
-          pen p01=vertexpen(vertexData(si.P[0][3],surfaceToParam*(U,V+1),i,3,U,V));
+          pen p01=vertexPen(vertexData(si.P[0][3],surfaceToParam*(U,V+1),i,3,U,V));
           dst.s[i].colors=new pen[] {p00,p10,p11,p01};
         }
       }
@@ -2024,13 +2024,13 @@ private void colorVertex(surface dst, surface src, vertexPen vertexpen) {
   } else {
     for(int i=0; i < dst.s.length; ++i) {
       patch si=src.s[i];
-      pen p00=vertexpen(vertexData(si.P[0][0]));
-      pen p10=vertexpen(vertexData(si.P[3][0],(0,0),i,1));
-      pen p11=vertexpen(vertexData(si.P[3][3],(0,0),i,2));
+      pen p00=vertexPen(vertexData(si.P[0][0]));
+      pen p10=vertexPen(vertexData(si.P[3][0],(0,0),i,1));
+      pen p11=vertexPen(vertexData(si.P[3][3],(0,0),i,2));
       if(si.triangular) {
         dst.s[i].colors=new pen[] {p00,p10,p11};
       } else {
-        pen p01=vertexpen(vertexData(si.P[0][3],(0,0),i,3));
+        pen p01=vertexPen(vertexData(si.P[0][3],(0,0),i,3));
         dst.s[i].colors=new pen[] {p00,p10,p11,p01};
       }
     }
@@ -2039,7 +2039,7 @@ private void colorVertex(surface dst, surface src, vertexPen vertexpen) {
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
-          vertexPen vertexpen=null,
+          vertexPen vertexPen=null,
           light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
 {
@@ -2053,8 +2053,8 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
       // Color the patches before drawing so both the 3D render and the
       // 2D-projection (vector output) path below pick up the result.
       // The pen is evaluated at the original (untransformed) positions.
-      if(vertexpen != null)
-        colorVertex(S,s,vertexpen);
+      if(vertexPen != null)
+        colorVertex(S,s,vertexPen);
 
       if(is3D()) {
         render Render=render(render,interaction(render.interaction,
@@ -2095,16 +2095,16 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
-          vertexPen vertexpen=null,
+          vertexPen vertexPen=null,
           light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
 {
   if(render.tessellate && s.index.length > 0 && settings.render != 0) {
     // Color a copy of the surface so the tessellation picks up the colors.
-    if(vertexpen != null) {
+    if(vertexPen != null) {
       surface src=s;
       s=surface(s);
-      colorVertex(s,src,vertexpen);
+      colorVertex(s,src,vertexPen);
     }
     drawTessellation(pic,s,surfacepen,meshpen,light,meshlight,name,render);
   } else {
@@ -2113,7 +2113,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
     pen[] meshpen={meshpen};
     meshpen.cyclic=true;
     draw(pic,s,nu,nv,surfacepen,meshpen,
-         vertexpen,light,meshlight,name,
+         vertexPen,light,meshlight,name,
          render);
   }
 }

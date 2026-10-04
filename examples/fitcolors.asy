@@ -36,7 +36,7 @@ path3 gen = operator--(
   ...sequence(new triple(int i) { return (1,0,i/nvert); }, nvert+1));
 surface cyl=surface(O, gen, Z, ncirc);
 
-draw(cyl, vertexpen=cpen, nolight);
+draw(cyl, vertexPen=cpen, nolight);
 for (int i=0; i < 8; ++i) {
   dot(coords[i], cols[i]);
 }
