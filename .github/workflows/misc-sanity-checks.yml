@@ -60,3 +60,9 @@ jobs:
         run: python3 -m isort --sp=.isort.cfg --check $(cat idir/lintable-files.txt)
       - name: pylint check
         run: python3 -m pylint --rcfile=.pylintrc $(cat idir/lintable-files.txt)
+      # mypy takes a list of files to check from mypy.ini rather than the changed-files
+      # list; see the comment at the top of mypy.ini.
+      - name: mypy check (linux)
+        run: python3 -m mypy --config-file=mypy.ini --platform=linux
+      - name: mypy check (win32)
+        run: python3 -m mypy --config-file=mypy.ini --platform=win32

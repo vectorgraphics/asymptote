@@ -303,11 +303,12 @@ void queryRegistry()
   // The registry entry describes a separately installed Asymptote, so it must
   // not override a systemDir that resolveSysdir() resolved relative to this
   // executable; that would send a binary run in place to the installed base/.
-  // An empty systemDir indicates a TeXLive (KPSEWHICH) build, whose sysdir is
-  // resolved from kpathsea in initDir(), or a relocatable build that found no
-  // base/ relative to the executable.
-  if (!systemDir.empty() && !docdir.empty() && !relocatedSysdir)
+  // The TeXLive (KPSEWHICH) build takes its sysdir from kpathsea in initDir()
+  // instead.
+#ifndef KPSEWHICH
+  if (!docdir.empty() && !relocatedSysdir)
     systemDir= docdir;
+#endif
 }
 
 #endif
@@ -2042,9 +2043,9 @@ string lookup(const string& symbol)
 void initDir() {
 #ifdef KPSEWHICH
   // TeXLive build: the data directory is defined only by kpathsea, so look
-  // it up with kpsewhich unless the user supplied an explicit -sysdir.
-  // Non-TeXLive builds never run this: an empty sysdir there means the
-  // relocatable lookup found no base/ (or the user passed -sysdir "").
+  // it up with kpsewhich unless the user supplied -sysdir or ASYMPTOTE_SYSDIR.
+  // Other builds never run this, and there an empty sysdir can only come
+  // from an explicit -sysdir "".
   if(getSetting<string>("sysdir").empty()) {
     string s=lookup("TEXMFMAIN");
     if(s.size() > 1) {
