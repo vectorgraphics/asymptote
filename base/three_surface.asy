@@ -64,18 +64,21 @@ struct patch {
     return new real[] {f(P[0][0]),f(P[3][0]),f(P[3][3]),f(P[0][3])};
   }
 
-  pen[] map(pen f(vertexData), int i) {
-    return new pen[] {f(vertexData(P[0][0],(0,0),i,0)),f(vertexData(P[3][0],(0,0),i,1)),
-                      f(vertexData(P[3][3],(0,0),i,2)),f(vertexData(P[0][3],(0,0),i,3))};
+  pen[] map(pen f(surfaceVertex), int i) {
+    return new pen[] {f(surfaceVertex(P[0][0],(0,0),i,0)),
+                      f(surfaceVertex(P[3][0],(0,0),i,1)),
+                      f(surfaceVertex(P[3][3],(0,0),i,2)),
+                      f(surfaceVertex(P[0][3],(0,0),i,3))};
   }
 
   real[] maptriangular(real f(triple)) {
     return new real[] {f(P[0][0]),f(P[3][0]),f(P[3][3])};
   }
 
-  pen[] maptriangular(pen f(vertexData), int i) {
-    return new pen[] {f(vertexData(P[0][0],(0,0),i,0)),f(vertexData(P[3][0],(0,0),i,1)),
-                      f(vertexData(P[3][3],(0,0),i,2))};
+  pen[] maptriangular(pen f(surfaceVertex), int i) {
+    return new pen[] {f(surfaceVertex(P[0][0],(0,0),i,0)),
+                      f(surfaceVertex(P[3][0],(0,0),i,1)),
+                      f(surfaceVertex(P[3][3],(0,0),i,2))};
   }
 
   triple Bu(int j, real u) {return bezier(P[0][j],P[1][j],P[2][j],P[3][j],u);}
@@ -276,8 +279,8 @@ struct patch {
       using realTriple=real(triple);
       using realMap=real[](realTriple);
       map=(realMap) maptriangular;
-      using penVertexData=pen(vertexData);
-      using penMap=pen[](penVertexData, int);
+      using penSurfaceVertex=pen(surfaceVertex);
+      using penMap=pen[](penSurfaceVertex, int);
       map=(penMap) maptriangular;
       point=pointtriangular;
       normal=normaltriangular;
@@ -776,8 +779,8 @@ struct primitive {
 
 vertexPen cornerPen(pen[][] p) {
   p.cyclic=true;
-  return new pen(vertexData vd) {
-    return p[vd.patch][vd.corner];
+  return new pen(surfaceVertex sv) {
+    return p[sv.patch][sv.corner];
   };
 }
 
@@ -1995,7 +1998,7 @@ void drawTessellation(picture pic=currentpicture, surface s,
 
 // Color the patches of the draw-time surface copy dst using vertexPen,
 // evaluating the pen at the original (untransformed) surface src positions.
-// Each corner's vertexData is fully populated: z from src, uv from the
+// Each corner's surfaceVertex is fully populated: z from src, uv from the
 // inverse paramToSurface (when an index grid is available), and the patch,
 // corner, U, V indices. This is a drawing helper: colors are written only
 // into dst, never into a user's surface.
@@ -2010,13 +2013,17 @@ private void colorVertex(surface dst, surface src, vertexPen vertexPen) {
         if(!dst.index[U].initialized(V)) continue;
         int i=dst.index[U][V];
         patch si=src.s[i];
-        pen p00=vertexPen(vertexData(si.P[0][0],surfaceToParam*(U,V),i,0,U,V));
-        pen p10=vertexPen(vertexData(si.P[3][0],surfaceToParam*(U+1,V),i,1,U,V));
-        pen p11=vertexPen(vertexData(si.P[3][3],surfaceToParam*(U+1,V+1),i,2,U,V));
+        pen p00=vertexPen(surfaceVertex(si.P[0][0],surfaceToParam*(U,V),
+                                        i,0,U,V));
+        pen p10=vertexPen(surfaceVertex(si.P[3][0],surfaceToParam*(U+1,V),
+                                        i,1,U,V));
+        pen p11=vertexPen(surfaceVertex(si.P[3][3],surfaceToParam*(U+1,V+1),
+                                        i,2,U,V));
         if(si.triangular) {
           dst.s[i].colors=new pen[] {p00,p10,p11};
         } else {
-          pen p01=vertexPen(vertexData(si.P[0][3],surfaceToParam*(U,V+1),i,3,U,V));
+          pen p01=vertexPen(surfaceVertex(si.P[0][3],surfaceToParam*(U,V+1),
+                                          i,3,U,V));
           dst.s[i].colors=new pen[] {p00,p10,p11,p01};
         }
       }
@@ -2024,13 +2031,13 @@ private void colorVertex(surface dst, surface src, vertexPen vertexPen) {
   } else {
     for(int i=0; i < dst.s.length; ++i) {
       patch si=src.s[i];
-      pen p00=vertexPen(vertexData(si.P[0][0]));
-      pen p10=vertexPen(vertexData(si.P[3][0],(0,0),i,1));
-      pen p11=vertexPen(vertexData(si.P[3][3],(0,0),i,2));
+      pen p00=vertexPen(surfaceVertex(si.P[0][0]));
+      pen p10=vertexPen(surfaceVertex(si.P[3][0],(0,0),i,1));
+      pen p11=vertexPen(surfaceVertex(si.P[3][3],(0,0),i,2));
       if(si.triangular) {
         dst.s[i].colors=new pen[] {p00,p10,p11};
       } else {
-        pen p01=vertexPen(vertexData(si.P[0][3],(0,0),i,3));
+        pen p01=vertexPen(surfaceVertex(si.P[0][3],(0,0),i,3));
         dst.s[i].colors=new pen[] {p00,p10,p11,p01};
       }
     }

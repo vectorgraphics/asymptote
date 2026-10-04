@@ -265,7 +265,7 @@ pen[] palette(real[] f, pen[] palette)
                   f.length);
 }
 
-struct vertexData {
+struct surfaceVertex {
   triple z;      // 3D vertex position (always populated)
   pair uv;       // parametric coordinates (meaningful when surface has an index grid)
   int patch;     // index of patch in surface.s
@@ -282,18 +282,18 @@ struct vertexData {
   }
 }
 
-using vertexPen=pen(vertexData);
+using vertexPen=pen(surfaceVertex);
 
 vertexPen operator cast(pen f(triple)) {
-  return new pen(vertexData vd) {return f(vd.z);};
+  return new pen(surfaceVertex sv) {return f(sv.z);};
 }
 
 // Construct a vertexPen from f using the specified palette.
 vertexPen palette(real f(triple), real Min, real Max, pen[] palette)
 {
-  if(palette.length == 0) return new pen(vertexData) {return nullpen;};
+  if(palette.length == 0) return new pen(surfaceVertex) {return nullpen;};
   real step=Max == Min ? 0.0 : (palette.length-1)/(Max-Min);
-  return new pen(vertexData vd) {return palette[round((f(vd.z)-Min)*step)];};
+  return new pen(surfaceVertex sv) {return palette[round((f(sv.z)-Min)*step)];};
 }
 
 // Fits a quadratic interpolant to the data (one for each color channel).
@@ -373,8 +373,8 @@ vertexPen fitColors(triple[] coords, pen[] colors)
   }
 
   real invscale=1/scale;
-  return new pen(vertexData vd) {
-    triple q=(vd.z-center)*invscale;
+  return new pen(surfaceVertex sv) {
+    triple q=(sv.z-center)*invscale;
     real x=q.x, y=q.y, z=q.z;
     real[] feats={1,x,y,z,x*y,x*z,y*z,x^2,y^2,z^2};
     real[] vals=new real[nch];

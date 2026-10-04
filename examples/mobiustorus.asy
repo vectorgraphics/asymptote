@@ -49,8 +49,8 @@ pen spectrum(real t) {
 
 // The color depends only on how far along the strip we are: once around the
 // color wheel over all sides laps, so the strip ends on the color it started.
-pen stripPen(vertexData vd) {
-  return spectrum(vd.uv.x/sides);
+pen stripPen(surfaceVertex sv) {
+  return spectrum(sv.uv.x/sides);
 }
 
 draw(s,vertexPen=stripPen,nolight);

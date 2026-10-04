@@ -9212,7 +9212,7 @@ parameters are ignored for Bezier triangles). The optional
 @code{name} parameter is used as a prefix for naming the surface
 patches in the @acronym{PRC} model tree.
 The optional @code{vertexPen} parameter specifies a function
-@code{pen(vertexData)} that is evaluated at each patch corner to
+@code{pen(surfaceVertex)} that is evaluated at each patch corner to
 assign vertex colors (@pxref{Surface coloring}).
 Here material is a structure defined in @code{three_light.asy}:
 @cindex @code{material}
@@ -10562,17 +10562,17 @@ pen[][] palette(real[][] f, pen[] palette);
 @cindex coloring surfaces
 @cindex vertex shading
 @cindex vertex-dependent colors
-@cindex @code{vertexData}
+@cindex @code{surfaceVertex}
 @cindex @code{vertexPen}
-@anchor{vertexData}
-The @code{palette} module defines the @code{vertexData} structure and
+@anchor{surfaceVertex}
+The @code{palette} module defines the @code{surfaceVertex} structure and
 @code{vertexPen} type used by @code{draw(surface,...)} to assign
 vertex colors at draw time.
 The argument to the @code{vertexPen} parameter is a function
-@code{pen(vertexData)} where @code{vertexData} provides the following
+@code{pen(surfaceVertex)} where @code{surfaceVertex} provides the following
 information about each patch corner:
 @verbatim
-struct vertexData {
+struct surfaceVertex {
   triple z;      // 3D vertex position (always populated)
   pair uv;       // parametric coordinates (meaningful for parametric surfaces)
   int patch;     // index of patch in surface.s
@@ -10588,14 +10588,16 @@ automatically converted to a @code{vertexPen}, so the following
 are equivalent:
 @verbatim
 draw(s, vertexPen=new pen(triple v) {return hsv(360*zpart(v),1,1);});
-draw(s, vertexPen=new pen(vertexData vd) {return hsv(360*zpart(vd.z),1,1);});
+draw(s, vertexPen=new pen(surfaceVertex sv) {
+  return hsv(360*zpart(sv.z),1,1);
+});
 @end verbatim
 @noindent
 @cindex @code{cornerPen}
 @cindex patch-dependent colors
 The convenience function @code{cornerPen} (defined in
 @code{three_surface.asy}) constructs a @code{vertexPen} from a list
-of pens (one per corner), using @code{vd.patch} and @code{vd.corner}
+of pens (one per corner), using @code{sv.patch} and @code{sv.corner}
 for indexing:
 @verbatim
 vertexPen cornerPen(...pen[] p);
@@ -10604,12 +10606,12 @@ vertexPen cornerPen(pen[][] p);
 @noindent
 @cindex parametric coordinates
 For parametrically constructed surfaces (built with
-@code{surface(f, a, b, ...)}), the fields @code{vd.uv}, @code{vd.U},
-and @code{vd.V} carry the parametric coordinates and grid indices,
+@code{surface(f, a, b, ...)}), the fields @code{sv.uv}, @code{sv.U},
+and @code{sv.V} carry the parametric coordinates and grid indices,
 enabling smooth or flat coloring in parametric space:
 @verbatim
-draw(s, vertexPen=new pen(vertexData vd) {
-  return hsv(360*vd.uv.x/(2pi), 1, 1);
+draw(s, vertexPen=new pen(surfaceVertex sv) {
+  return hsv(360*sv.uv.x/(2pi), 1, 1);
 });
 @end verbatim
 @noindent
