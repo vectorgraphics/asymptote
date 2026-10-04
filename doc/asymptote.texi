@@ -9192,6 +9192,7 @@ the routines
 @verbatim
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
+          vertexPen vertexPen=null,
           light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender);
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
@@ -9200,6 +9201,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           render render=defaultrender);
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
+          vertexPen vertexPen=null,
           light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender);
 
@@ -9209,6 +9211,9 @@ for drawing optional mesh lines for each Bezier patch (these
 parameters are ignored for Bezier triangles). The optional
 @code{name} parameter is used as a prefix for naming the surface
 patches in the @acronym{PRC} model tree.
+The optional @code{vertexPen} parameter specifies a function
+@code{pen(vertexData)} that is evaluated at each patch corner to
+assign vertex colors; see below.
 Here material is a structure defined in @code{three_light.asy}:
 @cindex @code{material}
 @cindex @code{diffusepen}
@@ -9326,6 +9331,12 @@ the three-dimensional vector output format @code{V3D}, and
 two-dimensional vector output (@code{settings.render=0}). Since
 the legacy @acronym{PRC} output format does not support vertex
 shading of Bezier surfaces, @acronym{PRC} patches are shaded with the mean of the four vertex colors.
+
+@cindex @code{vertexData}
+@cindex @code{vertexPen}
+Vertex colors may be assigned at draw time using the
+@code{vertexPen} parameter of @code{draw(surface,...)},
+documented in the @code{palette} module (@pxref{palette}).
 
 @cindex @code{surface}
 @cindex @code{planar}
@@ -10349,6 +10360,7 @@ as illustrated in the examples @code{@uref{https://asymptote.sourceforge.io/gall
 
 @node palette
 @section @code{palette}
+@cindex @code{palette}
 @anchor{images}
 @cindex images
 @code{Asymptote} can also generate color density images
@@ -10521,6 +10533,71 @@ that may be used to construct a pen array from a given function and palette:
 pen[] palette(real[] f, pen[] palette);
 pen[][] palette(real[][] f, pen[] palette);
 @end verbatim
+
+@cindex @code{vertexData}
+@cindex @code{vertexPen}
+@anchor{vertexData}
+The module also defines the @code{vertexData} structure and
+@code{vertexPen} type used by @code{draw(surface,...)} to assign
+vertex colors at draw time.
+The argument to the @code{vertexPen} parameter is a function
+@code{pen(vertexData)} where @code{vertexData} provides the following
+information about each patch corner:
+@verbatim
+struct vertexData {
+  triple z;      // 3D vertex position (always populated)
+  pair uv;       // parametric coordinates (meaningful for parametric surfaces)
+  int patch;     // index of patch in surface.s
+  int corner;    // index of corner in patch (0-3 or 0-2)
+  int U, V;      // grid indices in surface.index
+}
+@end verbatim
+@noindent
+For nonparametric surfaces (such as @code{unitsphere}), the fields
+@code{uv}, @code{U}, and @code{V} are left at their defaults.
+A simple pen function of a single @code{triple} argument is
+automatically converted to a @code{vertexPen}, so the following
+are equivalent:
+@verbatim
+draw(s, vertexPen=new pen(triple v) {return hsv(360*zpart(v),1,1);});
+draw(s, vertexPen=new pen(vertexData vd) {return hsv(360*zpart(vd.z),1,1);});
+@end verbatim
+@noindent
+The convenience function @code{cornerPen} (defined in
+@code{three_surface.asy}) constructs a @code{vertexPen} from a list
+of pens (one per corner), using @code{vd.patch} and @code{vd.corner}
+for indexing:
+@verbatim
+vertexPen cornerPen(...pen[] p);
+vertexPen cornerPen(pen[][] p);
+@end verbatim
+@noindent
+For parametrically constructed surfaces (built with
+@code{surface(f, a, b, ...)}), the fields @code{vd.uv}, @code{vd.U},
+and @code{vd.V} carry the parametric coordinates and grid indices,
+enabling smooth or flat coloring in parametric space:
+@verbatim
+draw(s, vertexPen=new pen(vertexData vd) {
+  return hsv(360*vd.uv.x/(2pi), 1, 1);
+});
+@end verbatim
+@noindent
+The following helpers construct @code{vertexPen} values:
+@verbatim
+vertexPen palette(real f(triple), real Min, real Max, pen[] palette);
+vertexPen fitColors(triple[] coords, pen[] colors);
+@end verbatim
+@noindent
+The function @code{surface.palette(f, palette)} (a method on
+@code{surface}) constructs a @code{vertexPen} that maps the range of
+@code{f} over the surface to the given palette:
+@verbatim
+vertexPen palette(real f(triple), pen[] palette);  // method on surface
+@end verbatim
+@noindent
+The function @code{fitColors} fits a quadratic interpolant to a
+set of colored points and returns a @code{vertexPen} that reproduces
+those colors smoothly at arbitrary positions.
 
 
 @node colormap
