@@ -2031,7 +2031,7 @@ private void colorVertex(surface dst, surface src, vertexPen vertexPen) {
   } else {
     for(int i=0; i < dst.s.length; ++i) {
       patch si=src.s[i];
-      pen p00=vertexPen(surfaceVertex(si.P[0][0]));
+      pen p00=vertexPen(surfaceVertex(si.P[0][0],(0,0),i,0));
       pen p10=vertexPen(surfaceVertex(si.P[3][0],(0,0),i,1));
       pen p11=vertexPen(surfaceVertex(si.P[3][3],(0,0),i,2));
       if(si.triangular) {
