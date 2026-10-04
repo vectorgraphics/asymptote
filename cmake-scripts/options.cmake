@@ -9,9 +9,8 @@ set(
 
 # Python
 
-# The floor the build and test scripts are written to.  Kept low on purpose:
-# some builders build on deliberately old software so that what they produce
-# runs on old software.  Keep in sync with py-version in .pylintrc and
+# Some builds are deliberately done with old software so that they
+# run on old platforms.  Keep in sync with py-version in .pylintrc and
 # python_version in mypy.ini; raising it also unpins mypy (see mypy.ini).
 set(PY3_MINIMUM_VERSION "3.7")
 
