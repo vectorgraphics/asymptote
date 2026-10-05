@@ -24,7 +24,7 @@ void nullfunc::print(ostream& out) {
 
 bool func::compare(callable* F)
 {
-  if (func* f=dynamic_cast<func*>(F))
+  if (func* f=F->isFunc())
     return (body == f->body) && (closure == f->closure);
   else return false;
 }
@@ -38,7 +38,7 @@ void func::print(ostream& out) {
 
 bool bfunc::compare(callable* F)
 {
-  if (bfunc* f=dynamic_cast<bfunc*>(F))
+  if (bfunc* f=F->isBfunc())
     return (func == f->func);
   else return false;
 }
