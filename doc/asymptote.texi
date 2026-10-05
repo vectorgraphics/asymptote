@@ -10690,9 +10690,9 @@ draw(s, vertexPen=new pen(surfaceVertex sv) {
 @cindex @code{cornerPen}
 @cindex patch-dependent colors
 The convenience function @code{cornerPen} (defined in
-@code{three_surface.asy}) constructs a @code{vertexPen} from a list
-of pens (one per corner), using @code{sv.patch} and @code{sv.corner}
-for indexing:
+@code{three_surface.asy}) constructs a @code{vertexPen} that assigns a pen
+to each corner of each patch, using @code{sv.patch} and
+@code{sv.corner} for indexing:
 @verbatim
 vertexPen cornerPen(...pen[] p);
 vertexPen cornerPen(pen[][] p);
@@ -10713,6 +10713,10 @@ p.cyclic=true;
 draw(s,cornerPen(new pen[][] {p}));        // red,blue,red,blue
 @end verbatim
 @noindent
+Corner @code{j} of a patch is node @code{j} of the boundary path of the
+patch, as returned by the patch method @code{external()}. For a surface
+constructed from a single cyclic path of length at most 4, this is
+node @code{j} of that path.
 The array @code{p} is copied, so subsequent changes to it do not
 affect the surface colors.
 
