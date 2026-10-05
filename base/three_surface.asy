@@ -801,6 +801,8 @@ vertexPen cornerPen(...pen[] p) {
 }
 
 private string nullsurface="null surface";
+private string unstructured=
+  'surface is unstructured (it has no parametric coordinates)';
 
 struct surface {
   patch[] s;
@@ -1018,6 +1020,8 @@ struct surface {
   // Evaluate the surface at the parametrization coordinates (u,v), mapped to
   // surface coordinates by paramToSurface. Delegates to point().
   triple paramPoint(real u, real v) {
+    if(index.length == 0)
+      abort('paramPoint: '+unstructured);
     pair sc=paramToSurface*(u,v);
     return point(sc.x,sc.y);
   }
@@ -1028,6 +1032,8 @@ struct surface {
   }
 
   triple paramNormal(real u, real v) {
+    if(index.length == 0)
+      abort('paramNormal: '+unstructured);
     pair sc=paramToSurface*(u,v);
     return normal(sc.x,sc.y);
   }

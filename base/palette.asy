@@ -266,11 +266,11 @@ pen[] palette(real[] f, pen[] palette)
 }
 
 struct surfaceVertex {
-  triple z;      // 3D vertex position (always populated)
-  pair uv;       // parametric coordinates (meaningful when surface has an index grid)
+  triple z;      // 3D vertex position
+  pair uv;       // parametric coordinates (structured surfaces only)
   int patch;     // index of patch in surface.s
   int corner;    // index of corner in patch (0-3 or 0-2)
-  int U, V;      // grid indices in surface.index
+  int U, V;      // mesh cell of patch in surface.index (structured only)
   void operator init(triple z, pair uv=(0,0), int patch=0, int corner=0,
                      int U=0, int V=0) {
     this.z=z;
