@@ -297,6 +297,8 @@ vertexPen palette(real f(triple), real Min, real Max, pen[] palette)
 }
 
 // Fits a quadratic interpolant to the data (one for each color channel).
+// If any of the pens is not opaque, the opacity is fit as a further channel,
+// using the blend mode of the first pen; otherwise the result is opaque.
 vertexPen fitColors(triple[] coords, pen[] colors)
 {
   int n=coords.length;
@@ -340,6 +342,14 @@ vertexPen fitColors(triple[] coords, pen[] colors)
     for(int k=0; k < nch; ++k) channel[k][i]=cc[k];
   }
 
+  // Fit the opacity only if it varies from 1, so that opaque data always
+  // yields an exactly opaque surface.
+  real[] alpha=sequence(new real(int i) {return opacity(colors[i]);},n);
+  bool transparent=min(alpha) < 1;
+  string blend=blend(colors[0]);
+  if(transparent) channel.push(alpha);
+  int nfit=channel.length;
+
   // Build the design matrix with rows {1,x,y,z,xy,xz,yz,x^2,y^2,z^2} plus
   // a small ridge penalty to handle underdetermined systems.
   int nfeat=10;
@@ -357,8 +367,8 @@ vertexPen fitColors(triple[] coords, pen[] colors)
     A[n+k]=row;
   }
 
-  real[][] coeffs=new real[nch][];
-  for(int k=0; k < nch; ++k) {
+  real[][] coeffs=new real[nfit][];
+  for(int k=0; k < nfit; ++k) {
     real[] b=new real[rows];
     for(int i=0; i < n; ++i) b[i]=channel[k][i];
     for(int j=0; j < nfeat; ++j) b[n+j]=0;
@@ -366,10 +376,11 @@ vertexPen fitColors(triple[] coords, pen[] colors)
   }
 
   pen makepen(real[] vals) {
-    if(cs == "gray") return gray(vals[0]);
-    if(cs == "rgb") return rgb(vals[0],vals[1],vals[2]);
-    if(cs == "cmyk") return cmyk(vals[0],vals[1],vals[2],vals[3]);
-    return nullpen;
+    pen p=nullpen;
+    if(cs == "gray") p=gray(vals[0]);
+    else if(cs == "rgb") p=rgb(vals[0],vals[1],vals[2]);
+    else if(cs == "cmyk") p=cmyk(vals[0],vals[1],vals[2],vals[3]);
+    return transparent ? p+opacity(vals[nch],blend) : p;
   }
 
   real invscale=1/scale;
@@ -377,8 +388,8 @@ vertexPen fitColors(triple[] coords, pen[] colors)
     triple q=(sv.z-center)*invscale;
     real x=q.x, y=q.y, z=q.z;
     real[] feats={1,x,y,z,x*y,x*z,y*z,x^2,y^2,z^2};
-    real[] vals=new real[nch];
-    for(int k=0; k < nch; ++k) {
+    real[] vals=new real[nfit];
+    for(int k=0; k < nfit; ++k) {
       real[] ck=coeffs[k];
       real s=0;
       for(int j=0; j < nfeat; ++j) s += ck[j]*feats[j];

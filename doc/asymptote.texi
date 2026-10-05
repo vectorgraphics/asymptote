@@ -10776,6 +10776,8 @@ vertexPen palette(real f(triple), pen[] palette);  // method on surface
 The function @code{fitColors} fits a quadratic interpolant to a
 set of colored points and returns a @code{vertexPen} that reproduces
 those colors smoothly at arbitrary positions.
+If any of the pens is not opaque, the opacity is fit in the same way,
+using the blend mode of the first pen; otherwise the surface is opaque.
 
 Surface coloring is illustrated in the examples
 @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/smoothelevation.html,,smoothelevation}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/smoothelevation.asy,,.asy}}
