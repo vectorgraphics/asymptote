@@ -9214,6 +9214,7 @@ patches in the @acronym{PRC} model tree.
 The optional @code{vertexPen} parameter specifies a function
 @code{pen(surfaceVertex)} that is evaluated at each patch corner to
 assign vertex colors (@pxref{Surface coloring}).
+@anchor{material}
 Here material is a structure defined in @code{three_light.asy}:
 @cindex @code{material}
 @cindex @code{diffusepen}
@@ -10686,6 +10687,24 @@ draw(s, vertexPen=new pen(surfaceVertex sv) {
   return hsv(360*zpart(sv.z),1,1);
 });
 @end verbatim
+
+@cindex @code{nolight}
+Color is thus a property of how a surface is drawn, rather than of the
+surface itself: drawing does not modify the surface, and the same
+surface can be drawn again with a different @code{vertexPen}. The
+vertex colors replace the color of
+@code{surfacepen}@footnote{Strictly, its diffuse color: a pen used as a
+@code{surfacepen} becomes the diffuse pen of a @code{material}
+(@pxref{material}).}: if
+@code{surfacepen} is @code{red}, the surface is no longer red. They
+also replace any colors stored in the surface when it was constructed.
+Other attributes of a @code{material}, such as its shininess, still
+apply. When the colors convey data, it is often preferable to
+show them exactly as specified, by turning the lighting off:
+@verbatim
+draw(s,s.palette(zpart,Rainbow()),nolight);
+@end verbatim
+
 @noindent
 @cindex @code{cornerPen}
 @cindex patch-dependent colors
