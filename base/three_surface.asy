@@ -1,6 +1,9 @@
 import bezulate;
 private import interpolate;
-import palette;
+// Re-export only the types that appear in the signatures of surface routines
+// (together with the cast from pen(triple) to vertexPen).
+from palette access surfaceVertex, vertexPen, operator cast;
+private from palette access palette;
 
 int nslice=12;
 real camerafactor=1.2;
