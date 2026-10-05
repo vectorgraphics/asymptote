@@ -2284,7 +2284,12 @@ surface surface(picture pic=currentpicture, real f(pair z), pair a, pair b,
       if(!all) activei[j]=cond(z);
     }
   }
-  return surface(pic,F,x,y,xsplinetype,ysplinetype,active);
+  surface s=surface(pic,F,x,y,xsplinetype,ysplinetype,active);
+  // The grid is uniform over box(a,b), so parametric coordinates map affinely
+  // to surface coordinates.
+  if(nx > 0 && ny > 0)
+    s.paramToSurface=xscale(nx/(b.x-a.x))*yscale(ny/(b.y-a.y))*shift(-a);
+  return s;
 }
 
 guide3[][] lift(real f(real x, real y), guide[][] g,
