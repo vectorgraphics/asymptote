@@ -296,7 +296,8 @@ vertexPen palette(real f(triple), real Min, real Max, pen[] palette)
   return new pen(surfaceVertex sv) {return palette[round((f(sv.z)-Min)*step)];};
 }
 
-// Fits a quadratic interpolant to the data (one for each color channel).
+// Fits a cubic polynomial to the data (one for each color channel), preferring
+// polynomials of low degree. The fit commutes with rotations of the data.
 // If any of the pens is not opaque, the opacity is fit as a further channel,
 // using the blend mode of the first pen; otherwise the result is opaque.
 vertexPen fitColors(triple[] coords, pen[] colors)
@@ -350,20 +351,43 @@ vertexPen fitColors(triple[] coords, pen[] colors)
   if(transparent) channel.push(alpha);
   int nfit=channel.length;
 
-  // Build the design matrix with rows {1,x,y,z,xy,xz,yz,x^2,y^2,z^2} plus
-  // a small ridge penalty to handle underdetermined systems.
-  int nfeat=10;
-  int rows=n+nfeat;
-  real[][] A=new real[rows][nfeat];
-  for(int i=0; i < n; ++i) {
-    real x=c[i].x, y=c[i].y, z=c[i].z;
-    A[i]=new real[] {1,x,y,z,x*y,x*z,y*z,x^2,y^2,z^2};
+  // The monomials of degree at most 3. Cubics, unlike trilinear polynomials,
+  // are closed under rotation, and they can interpolate the corners of a box
+  // in any orientation.
+  real[] monomials(triple p) {
+    real x=p.x, y=p.y, z=p.z;
+    real xx=x*x, yy=y*y, zz=z*z;
+    return new real[] {1,
+                       x,y,z,
+                       xx,x*y,x*z,yy,y*z,zz,
+                       xx*x,xx*y,xx*z,x*yy,x*y*z,x*zz,yy*y,yy*z,y*zz,zz*z};
   }
-  real penalty=sqrt(0.001);
+
+  // Build the design matrix, plus a small ridge penalty to handle
+  // underdetermined systems. Weighting the penalty for the coefficient of
+  // x^a y^b z^c by sqrt(a!b!c!/(a+b+c)!) (the Bombieri norm) makes it invariant
+  // under rotation. The penalty grows with the degree so that a term of high
+  // degree is used only where the data cannot be fit without it; otherwise
+  // the fit would be shared among monomials that agree at the data points
+  // (such as x and x^3 at the corners of a box).
+  real cubic=sqrt(0.001);
+  real quadratic=0.1*cubic;
+  real linear=0.01*cubic;
+  real r2=sqrt(1/2), r3=sqrt(1/3), r6=sqrt(1/6);
+  real[] penalty={linear,
+                  linear,linear,linear,
+                  quadratic,r2*quadratic,r2*quadratic,
+                  quadratic,r2*quadratic,quadratic,
+                  cubic,r3*cubic,r3*cubic,r3*cubic,r6*cubic,r3*cubic,
+                  cubic,r3*cubic,r3*cubic,cubic};
+  int nfeat=penalty.length;
+  int rows=n+nfeat;
+  real[][] A=new real[rows][];
+  for(int i=0; i < n; ++i)
+    A[i]=monomials(c[i]);
   for(int k=0; k < nfeat; ++k) {
-    real[] row=new real[nfeat];
-    for(int j=0; j < nfeat; ++j) row[j]=0;
-    row[k]=penalty;
+    real[] row=array(nfeat,0.0);
+    row[k]=penalty[k];
     A[n+k]=row;
   }
 
@@ -385,9 +409,7 @@ vertexPen fitColors(triple[] coords, pen[] colors)
 
   real invscale=1/scale;
   return new pen(surfaceVertex sv) {
-    triple q=(sv.z-center)*invscale;
-    real x=q.x, y=q.y, z=q.z;
-    real[] feats={1,x,y,z,x*y,x*z,y*z,x^2,y^2,z^2};
+    real[] feats=monomials((sv.z-center)*invscale);
     real[] vals=new real[nfit];
     for(int k=0; k < nfit; ++k) {
       real[] ck=coeffs[k];

@@ -10773,9 +10773,16 @@ The function @code{surface.palette(f, palette)} (a method on
 vertexPen palette(real f(triple), pen[] palette);  // method on surface
 @end verbatim
 @noindent
-The function @code{fitColors} fits a quadratic interpolant to a
-set of colored points and returns a @code{vertexPen} that reproduces
-those colors smoothly at arbitrary positions.
+The function @code{fitColors} is intended for specifying the colors at
+a few points, such as the corners of a square or a box, and blending
+smoothly between them. Each color component of the resulting
+@code{vertexPen} is a cubic polynomial in the position, chosen by
+least squares to fit the given colors, with a preference for
+polynomials of low degree. The fit works equally well whether or not
+the square or box is aligned with the coordinate axes. Since such a
+polynomial has only twenty coefficients, the given colors are closely
+approximated only when there are few of them; @code{fitColors} cannot
+produce an intricate pattern from a large number of points.
 If any of the pens is not opaque, the opacity is fit in the same way,
 using the blend mode of the first pen; otherwise the surface is opaque.
 
