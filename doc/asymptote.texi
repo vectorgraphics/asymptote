@@ -10432,7 +10432,8 @@ cyclic in a direction only if a splinetype is specified and the
 splinetype in that direction is @code{periodic}.
 @end itemize
 
-It is an error to evaluate the surface at a point belonging only to
+It is an error to evaluate the surface outside its domain in a
+direction in which it is not cyclic, or at a point belonging only to
 mesh cells that were omitted by @code{cond}.
 
 @noindent

@@ -993,25 +993,56 @@ struct surface {
     }
   }
 
+  // Handle a surface coordinate t found to lie outside the range [0,n] of a
+  // noncyclic direction (the first one if first is true). Evaluating the
+  // boundary patch out there would silently extrapolate it, so this is an
+  // error, unless t misses the range only by rounding, in which case the
+  // nearest boundary is returned. If param is true, the error is reported in
+  // parametrization coordinates.
+  private real outside(real t, int n, bool first, bool param) {
+    if(t >= -sqrtEpsilon && t <= n+sqrtEpsilon)
+      return t < 0 ? 0 : n;
+    transform T=param ? inverse(paramToSurface) : identity;
+    real part(pair z) {return first ? z.x : z.y;}
+    pair e=first ? (1,0) : (0,1);
+    real a=part(T*(0,0));
+    real b=part(T*(n*e));
+    abort((first ? 'u=' : 'v=')+(string) part(T*(t*e))+
+          ' lies outside the domain ['+(string) min(a,b)+','+
+          (string) max(a,b)+'] of the surface');
+    return t;
+  }
+
   // Resolve surface coordinates (u,v) to the patch covering them and the
-  // local coordinates at which that patch should be evaluated.
-  private patchAt locate(real u, real v) {
+  // local coordinates at which that patch should be evaluated. If param is
+  // true, errors are reported in parametrization coordinates.
+  private patchAt locate(real u, real v, bool param=false) {
+    if(index.length == 0) {
+      int U=floor(u);
+      int V=floor(v);
+      return patchAt(U+V,u-U,v-V);
+    }
+    int nu=index.length;
+    int nv=index[0].length;
+    if(!index.cyclic && (u < 0 || u > nu)) u=outside(u,nu,true,param);
+    if(!vcyclic && (v < 0 || v > nv)) v=outside(v,nv,false,param);
+
     int U=floor(u);
     int V=floor(v);
-    if(index.length == 0)
-      return patchAt(U+V,u-U,v-V);
-    // On a non-cyclic upper boundary u==index.length or v==index[0].length,
-    // evaluate the boundary of the last patch instead of running off the grid.
+    // On a non-cyclic upper boundary u==nu or v==nv, evaluate the boundary of
+    // the last patch instead of running off the grid.
     // When cyclic, index is a cyclic array, so index[U][V] (and the
     // fractional offset u-U, v-V) wraps out-of-range cells automatically.
-    if(U == index.length && !index.cyclic) U=index.length-1;
-    if(V == index[0].length && !vcyclic) V=index[0].length-1;
+    if(U == nu && !index.cyclic) U=nu-1;
+    if(V == nv && !vcyclic) V=nv-1;
     if(index[U].initialized(V))
       return patchAt(index[U][V],u-U,v-V);
     intPair p=locatePatch(u,v,U,V);
-    if(p == null)
-      abort("no patch at surface coordinates (" +
-            (string) u + "," + (string) v + ")");
+    if(p == null) {
+      pair z=param ? inverse(paramToSurface)*(u,v) : (u,v);
+      abort('no patch at '+(param ? 'parametric' : 'surface')+
+            ' coordinates ('+(string) z.x+','+(string) z.y+')');
+    }
     return patchAt(p.index(),u-p.U,v-p.V);
   }
 
@@ -1021,12 +1052,13 @@ struct surface {
   }
 
   // Evaluate the surface at the parametrization coordinates (u,v), mapped to
-  // surface coordinates by paramToSurface. Delegates to point().
+  // surface coordinates by paramToSurface.
   triple paramPoint(real u, real v) {
     if(index.length == 0)
       abort('paramPoint: '+unstructured);
     pair sc=paramToSurface*(u,v);
-    return point(sc.x,sc.y);
+    patchAt q=locate(sc.x,sc.y,true);
+    return s[q.index].point(q.u,q.v);
   }
 
   triple normal(real u, real v) {
@@ -1038,7 +1070,8 @@ struct surface {
     if(index.length == 0)
       abort('paramNormal: '+unstructured);
     pair sc=paramToSurface*(u,v);
-    return normal(sc.x,sc.y);
+    patchAt q=locate(sc.x,sc.y,true);
+    return s[q.index].normal(q.u,q.v);
   }
 
   void ucyclic(bool f)
