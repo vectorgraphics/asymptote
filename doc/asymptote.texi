@@ -10667,7 +10667,7 @@ The structure @code{surfaceVertex} provides the following information
 about the patch corner:
 @verbatim
 struct surfaceVertex {
-  triple z;      // 3D vertex position
+  triple z;      // vertex position in user coordinates
   pair uv;       // parametric coordinates (structured surfaces only)
   int patch;     // index of patch (see below)
   int corner;    // index of corner in patch (0-3 or 0-2)

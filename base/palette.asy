@@ -266,7 +266,7 @@ pen[] palette(real[] f, pen[] palette)
 }
 
 struct surfaceVertex {
-  triple z;      // 3D vertex position
+  triple z;      // 3D vertex position (user coordinates)
   pair uv;       // parametric coordinates (structured surfaces only)
   int patch;     // index of patch in surface.s
   int corner;    // index of corner in patch (0-3 or 0-2)
