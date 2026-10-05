@@ -33,6 +33,18 @@ set_property(
         PROPERTY LABELS asy-check-tests
 )
 
+add_test(
+        NAME bundled.asy.surface_errors
+        COMMAND ${PY3_INTERPRETER} ${ASY_ASYLANG_TEST_ROOT}/test_surface_errors.py
+            --asy $<TARGET_FILE:asy>
+            --asy-base-dir=${ASY_BUILD_BASE_DIR}
+        WORKING_DIRECTORY ${ASY_ASYLANG_TEST_ROOT}
+)
+set_property(
+        TEST bundled.asy.surface_errors
+        PROPERTY LABELS asy-check-tests
+)
+
 # ---- getExecutablePath() smoke test ------
 # Exercises the <exedir>/base candidate on its own, and is the prerequisite for
 # any wider sysdir test: a wrong exedir would invalidate every case of one.

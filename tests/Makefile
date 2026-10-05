@@ -4,7 +4,7 @@
 # once any .py script here has been imported.
 TESTDIRS = $(filter-out __pycache__/,$(wildcard */))
 
-test: $(TESTDIRS) test_collections_errors test_executable_path test_relocatable
+test: $(TESTDIRS) test_collections_errors test_surface_errors test_executable_path test_relocatable
 
 $(TESTDIRS)::
 	@echo
@@ -13,6 +13,10 @@ $(TESTDIRS)::
 test_collections_errors:
 	@echo
 	python3 test_collections_errors.py
+
+test_surface_errors:
+	@echo
+	python3 test_surface_errors.py
 
 # getExecutablePath(), through the sysdir candidate it feeds.  Listed before
 # test_relocatable in `test:` above, and .NOTPARALLEL makes prerequisite order
