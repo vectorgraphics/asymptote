@@ -11,6 +11,8 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
+        with:
+          vcpkg-cache: 'false'
       - name: Download test artifacts
         uses: actions/download-artifact@v4
         with:
@@ -30,6 +32,8 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
+        with:
+          vcpkg-cache: 'false'
       - uses: ./.github/actions/initialize-windows-latex-and-gs
       - name: Download build artifacts
         uses: actions/download-artifact@v4
