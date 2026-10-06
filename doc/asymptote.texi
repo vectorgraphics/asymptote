@@ -10365,8 +10365,8 @@ other predefined surfaces of module @code{three}, as well as the implicit
 surfaces produced by the modules @code{contour3} and
 @code{smoothcontour3}.
 
-@cindex @code{paramPoint}
-@cindex @code{paramNormal}
+@cindex @code{surface.paramPoint}
+@cindex @code{surface.paramNormal}
 The point and a normal vector (not normalized) of a structured surface
 @code{s} at the parametric coordinates @math{(u,v)} are returned by
 @verbatim
@@ -10783,20 +10783,19 @@ patch, so that the order is known. Wherever possible, use the position
 
 @noindent
 @cindex @code{palette}
-@cindex @code{fitColors}
-The following helpers construct @code{vertexPen} values:
+The function @code{palette} (in the @code{palette} module) constructs a
+@code{vertexPen} that colors each vertex according to the value of a
+function @code{f} there:
 @verbatim
-vertexPen fitColors(triple[] coords, pen[] colors);
 vertexPen palette(real f(triple), real Min, real Max, pen[] palette);
 @end verbatim
 @noindent
-The function @code{palette} colors each vertex according to the value
-of @code{f} there: @code{Min} is mapped to the first pen of the palette,
+The value @code{Min} is mapped to the first pen of the palette,
 @code{Max} to the last, and the values in between to the pens in
 between. For example, to color a surface by
-height@footnote{The built-in function @code{zpart} does the same as
+height:@footnote{The built-in function @code{zpart} does the same as
 @code{height}, so it can be passed to @code{palette} directly, with
-nothing to define.}:
+nothing to define.}
 @verbatim
 real height(triple v) {return v.z;}
 draw(s,palette(height,0,1,Gradient(blue,red)));
@@ -10806,6 +10805,7 @@ Here a vertex at height 0 is blue, a vertex at height 1 is red, and a
 vertex at height 0.5 is halfway between the two. The value of @code{f}
 at every vertex must lie between @code{Min} and @code{Max}.
 
+@cindex @code{surface.palette}
 When the range of @code{f} is not known in advance, the surface method
 @code{palette} finds it, using the least and greatest values of @code{f}
 at the vertices of the surface:
@@ -10816,9 +10816,16 @@ draw(s,s.palette(height,Gradient(blue,red)));
 Now the lowest vertex of @code{s} is blue and the highest is red. The
 resulting @code{vertexPen} should be used to draw that same surface.
 
-The function @code{fitColors} is intended for specifying the colors at
-a few points, such as the corners of a square or a box, and blending
-smoothly between them. Each color component of the resulting
+@cindex @code{fitColors}
+The function @code{fitColors} (also in the @code{palette} module)
+constructs a @code{vertexPen} from the colors at a few points, such as
+the corners of a square or a box, blending smoothly between them; the
+pen @code{colors[i]} is the color at the point @code{coords[i]}:
+@verbatim
+vertexPen fitColors(triple[] coords, pen[] colors);
+@end verbatim
+@noindent
+Each color component of the resulting
 @code{vertexPen} is a cubic polynomial in the position, chosen by
 least squares to fit the given colors, with a preference for
 polynomials of low degree. The fit works equally well whether or not
@@ -10828,6 +10835,8 @@ approximated only when there are few of them; @code{fitColors} cannot
 produce an intricate pattern from a large number of points.
 If any of the pens is not opaque, the opacity is fit in the same way,
 using the blend mode of the first pen; otherwise the surface is opaque.
+If the pens are in different colorspaces, they are converted to that of
+the first pen @code{colors[0]}.
 
 Surface coloring is illustrated in the examples
 @code{@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/smoothelevation.html,,smoothelevation}@uref{https://asymptote.sourceforge.io/gallery/3Dgraphs/smoothelevation.asy,,.asy}}
