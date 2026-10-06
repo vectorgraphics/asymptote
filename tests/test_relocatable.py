@@ -770,15 +770,16 @@ def check_layout(ctx: Ctx, scenario: str, states: States) -> None:
         return
 
     # No --compiled-in given: we cannot name the fall-through value, but we can
-    # still assert the negative half -- that no candidate fired.
+    # still assert the negative half -- that no candidate fired.  The resolved
+    # path is the compiled-in sysdir (e.g. a system install), which may hold a
+    # different version of base/ than the binary under test.  We therefore only
+    # check that no staged candidate fired, not whether asy can load the
+    # fallback base (version mixing is out of scope here).
     ok, val, resolved = probe(staged_asy, cwd=ctx.work, rescue_base=ctx.base_dir)
     if resolved is None:
         record(scenario, Status.SKIP, f"sysdir not recoverable: {brief(val)}")
     elif any(norm(p) == norm(resolved) for p in paths):
         record(scenario, Status.FAIL, f"no candidate should fire, but got {resolved!r}")
-    elif ok != is_base_dir(resolved):
-        ran = "ran" if ok else "failed"
-        record(scenario, Status.FAIL, f"asy {ran} with sysdir {resolved!r}")
     else:
         record(scenario, Status.PASS, f"fell through to {resolved!r} (unverified)")
 
