@@ -1,0 +1,55 @@
+name: vcpkg-cache-restore
+description: >
+  Restore vcpkg's binary archives and source downloads. Pair it with
+  vcpkg-cache-save after every step that runs vcpkg install.
+runs:
+  using: 'composite'
+  steps:
+    - name: Set vcpkg cache locations
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" = Windows ]; then
+          dir="$(cygpath -m "$LOCALAPPDATA")/vcpkg"
+          workspace="$(cygpath -m "$GITHUB_WORKSPACE")"
+          python="$(cygpath -m "$(command -v python)")"
+        else
+          dir="$HOME/.cache/vcpkg"
+          workspace="$GITHUB_WORKSPACE"
+          python="$(command -v python3)"
+        fi
+        mkdir -p "$dir/archives" "$dir/downloads"
+        # vcpkg runs this with the cleaned environment of a port build, hence
+        # the absolute paths.
+        mirror="$python $workspace/.github/actions/vcpkg-cache-restore/gnu-mirror.py"
+        {
+          echo "ASY_VCPKG_CACHE_DIR=$dir"
+          echo "VCPKG_DEFAULT_BINARY_CACHE=$dir/archives"
+          # Without this, vcpkg downloads into $VCPKG_ROOT/downloads, which is
+          # not cached.
+          echo "VCPKG_DOWNLOADS=$dir/downloads"
+          # Naming {sha512} keeps vcpkg from running the script for a download
+          # that has no hash to check the mirror's copy against.
+          echo "X_VCPKG_ASSET_SOURCES=clear;x-script,$mirror {url} {dst} {sha512}"
+        } >> "$GITHUB_ENV"
+    - name: Restore vcpkg cache
+      uses: actions/cache/restore@v4
+      with:
+        # Keep in sync with vcpkg-cache-save. The downloads glob takes the
+        # source archives but not the tools/ tree vcpkg unpacks next to them.
+        path: |
+          ${{ env.ASY_VCPKG_CACHE_DIR }}/archives
+          ${{ env.ASY_VCPKG_CACHE_DIR }}/downloads/*.*
+        # vcpkg-cache-save appends a hash of the cache contents to this key,
+        # so only the restore-keys prefixes ever match; they pick the most
+        # recent cache for this manifest, or failing that for any manifest.
+        key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+        restore-keys: |
+          vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}-
+          vcpkg-${{ runner.os }}-
+    - name: Record restored vcpkg cache contents
+      shell: bash
+      run: |
+        cd "$ASY_VCPKG_CACHE_DIR"
+        hash=$( (find archives -type f; find downloads -maxdepth 1 -type f -name '*.*') |
+          LC_ALL=C sort | sha256sum | cut -c1-16)
+        echo "ASY_VCPKG_CACHE_RESTORED=$hash" >> "$GITHUB_ENV"
