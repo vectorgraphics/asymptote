@@ -10388,8 +10388,13 @@ splinetype is specified, @math{(u,v)} is the argument @code{z} of
 @code{f}: @math{u} ranges from @code{a.x} to @code{b.x} and @math{v}
 ranges from @code{a.y} to @code{b.y};
 
-@item for a surface constructed from a matrix, or from a function
-sampled at the values in the arrays @code{u} and @code{v}, the
+@item for a surface constructed from a real matrix @code{f} over
+@code{box(a,b)}, the parametric coordinates likewise range over
+@code{box(a,b)}, so that @math{(u,v)} are the @math{x} and @math{y}
+coordinates of the point of the surface (for a linear picture scaling);
+
+@item for a surface constructed from any other matrix or arrays, or from
+a function sampled at the values in the arrays @code{u} and @code{v}, the
 parametric coordinates are mesh coordinates: @math{u} ranges from
 @code{0} to @code{nu} and @math{v} ranges from @code{0} to @code{nv},
 where @code{nu} and @code{nv} are the number of mesh cells in each

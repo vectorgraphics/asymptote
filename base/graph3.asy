@@ -2037,7 +2037,11 @@ surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
 
   real[] x=uniform(pic.scale.x.T,pic.scale.x.Tinv,a.x,b.x,nx);
   real[] y=uniform(pic.scale.y.T,pic.scale.y.Tinv,a.y,b.y,ny);
-  return surface(pic,f,x,y,xsplinetype,ysplinetype,cond);
+  surface s=surface(pic,f,x,y,xsplinetype,ysplinetype,cond);
+  // The grid is uniform over box(a,b), so parametric coordinates map affinely
+  // to surface coordinates.
+  s.paramToSurface=xscale(nx/(b.x-a.x))*yscale(ny/(b.y-a.y))*shift(-a);
+  return s;
 }
 
 // return the surface described by a real matrix f, interpolated linearly.
@@ -2055,6 +2059,8 @@ surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
 
   triple[][] v=new triple[nx+1][ny+1];
 
+  pair aParam=a;
+  pair bParam=b;
   pair a=Scale(pic,a);
   pair b=Scale(pic,b);
   for(int i=0; i <= nx; ++i) {
@@ -2066,7 +2072,10 @@ surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
       if(all || condi[j])
         vi[j]=(x,pic.scale.y.Tinv(interp(a.y,b.y,j/ny)),fi[j]);
   }
-  return surface(pic,v,cond);
+  surface s=surface(pic,v,cond);
+  s.paramToSurface=xscale(nx/(bParam.x-aParam.x))*
+    yscale(ny/(bParam.y-aParam.y))*shift(-aParam);
+  return s;
 }
 
 // return the surface described by a parametric function f over box(a,b),

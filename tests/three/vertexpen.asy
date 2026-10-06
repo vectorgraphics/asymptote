@@ -122,12 +122,31 @@ EndTest();
 
 StartTest("vertexPen: matrix surfaces");
 {
-  // A matrix of heights is parametrized by mesh coordinates.
+  // A matrix of heights over box(a,b) is parametrized over box(a,b), with
+  // or without a splinetype.
   real[][] h={{0,1,2},{1,2,3},{2,3,5},{4,4,4}};
-  for(surfaceVertex sv : checkStructured(surface(h,(10,20),(40,60)))) {
+  pair a=(10,20), b=(40,60);
+  for(surface s : new surface[] {surface(h,a,b),surface(h,a,b,Spline),
+        surface(h,a,b,linear)}) {
+    for(surfaceVertex sv : checkStructured(s)) {
+      pair ij=(sv.U,sv.V)+cornerOffset[sv.corner];
+      assert(close(sv.uv,(10+10*ij.x,20+20*ij.y)));
+      assert(close(sv.z,(sv.uv.x,sv.uv.y,h[round(ij.x)][round(ij.y)])));
+    }
+    assert(close(s.paramPoint(40,60),(40,60,4)));
+  }
+  // Also when a exceeds b.
+  for(surfaceVertex sv : checkStructured(surface(h,(40,20),(10,60))))
+    assert(close(sv.z.x,sv.uv.x) && close(sv.z.y,sv.uv.y));
+
+  // A matrix sampled at given x and y values, which need not be uniform, is
+  // parametrized by mesh coordinates.
+  real[] x={10,20,30,40}, y={20,30,60};
+  for(surfaceVertex sv : checkStructured(surface(h,x,y))) {
     pair ij=(sv.U,sv.V)+cornerOffset[sv.corner];
     assert(close(sv.uv,ij));
-    assert(close(sv.z,(10+10*ij.x,20+20*ij.y,h[round(ij.x)][round(ij.y)])));
+    assert(close(sv.z,(x[round(ij.x)],y[round(ij.y)],
+                       h[round(ij.x)][round(ij.y)])));
   }
 
   // Omitted cells are skipped and the patches that remain keep their own
