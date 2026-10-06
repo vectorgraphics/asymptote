@@ -814,17 +814,14 @@ struct surface {
   int index[][];
   bool vcyclic;
   transform3 T=identity4;
-  // For a parametrically constructed surface, the affine map from the original
-  // parametrization coordinates to surface coordinates. Surface coordinates are
-  // scaled so that each patch is a unit square; the grid spans [0,nu]x[0,nv],
-  // where nu=index.length and nv=index[0].length. The construction corners a
-  // and b map to (0,0) and (nu,nv) respectively, so the map reflects an axis
-  // whenever a exceeds b along it. Lets surface operations work in either
-  // coordinate system. Defaults to the identity for non-parametric surfaces.
-  //
-  // WARNING: implementation detail; may be removed or have its type or
-  // semantics changed in a future release. Do not rely on it.
-  transform paramToSurface=identity;
+  // The affine maps between the parametric coordinates of a structured
+  // surface and its surface coordinates, each the inverse of the other.
+  // Surface coordinates are scaled so that each patch is a unit square; the
+  // grid spans [0,nu]x[0,nv], where nu=index.length and nv=index[0].length.
+  // Both maps are the identity, so that the parametric coordinates are the
+  // surface coordinates, until domain() is called.
+  private transform paramToSurface=identity;
+  private transform surfaceToParam=identity;
 
   primitive primitive=null;
   bool PRCprimitive=true; // True unless no PRC primitive is available.
@@ -848,6 +845,34 @@ struct surface {
     this.index=copy(s.index);
     this.vcyclic=s.vcyclic;
     this.paramToSurface=s.paramToSurface;
+    this.surfaceToParam=s.surfaceToParam;
+  }
+
+  // Let the parametric coordinates of a structured surface range over
+  // box(a,b): a corresponds to the surface coordinates (0,0) and b to (nu,nv),
+  // so an axis is reversed whenever a exceeds b along it. A surface without
+  // patches and a box without area admit no such coordinates; the surface
+  // then keeps the parametric coordinates it has.
+  void domain(pair a, pair b) {
+    if(index.length == 0 || index[0].length == 0 || a.x == b.x || a.y == b.y)
+      return;
+    paramToSurface=xscale(index.length/(b.x-a.x))*
+      yscale(index[0].length/(b.y-a.y))*shift(-a);
+    surfaceToParam=inverse(paramToSurface);
+  }
+
+  // Let the parametric coordinates of this surface range over the domain of
+  // s, whether or not the two grids are of the same size. If s is
+  // unstructured, this surface keeps the parametric coordinates it has.
+  void domain(surface s) {
+    int nu=s.index.length;
+    int nv=nu > 0 ? s.index[0].length : 0;
+    if(index.length == nu && (nu == 0 || index[0].length == nv)) {
+      // The maps of s apply as they are; copying them avoids any rounding.
+      paramToSurface=s.paramToSurface;
+      surfaceToParam=s.surfaceToParam;
+    } else
+      domain(s.surfaceToParam*(0,0),s.surfaceToParam*(nu,nv));
   }
 
   void operator init(triple[][][] P, pen[][] colors=new pen[][],
@@ -1002,7 +1027,7 @@ struct surface {
   private real outside(real t, int n, bool first, bool param) {
     if(t >= -sqrtEpsilon && t <= n+sqrtEpsilon)
       return t < 0 ? 0 : n;
-    transform T=param ? inverse(paramToSurface) : identity;
+    transform T=param ? surfaceToParam : identity;
     real part(pair z) {return first ? z.x : z.y;}
     pair e=first ? (1,0) : (0,1);
     real a=part(T*(0,0));
@@ -1039,7 +1064,7 @@ struct surface {
       return patchAt(index[U][V],u-U,v-V);
     intPair p=locatePatch(u,v,U,V);
     if(p == null) {
-      pair z=param ? inverse(paramToSurface)*(u,v) : (u,v);
+      pair z=param ? surfaceToParam*(u,v) : (u,v);
       abort('no patch at '+(param ? 'parametric' : 'surface')+
             ' coordinates ('+(string) z.x+','+(string) z.y+')');
     }
@@ -1051,8 +1076,15 @@ struct surface {
     return s[q.index].point(q.u,q.v);
   }
 
-  // Evaluate the surface at the parametrization coordinates (u,v), mapped to
-  // surface coordinates by paramToSurface.
+  // Return the parametric coordinates that correspond to the surface
+  // coordinates (u,v).
+  pair paramCoords(real u, real v) {
+    if(index.length == 0)
+      abort('paramCoords: '+unstructured);
+    return surfaceToParam*(u,v);
+  }
+
+  // Evaluate the surface at the parametric coordinates (u,v).
   triple paramPoint(real u, real v) {
     if(index.length == 0)
       abort('paramPoint: '+unstructured);
@@ -1283,10 +1315,7 @@ struct surface {
     }
     // The rotation (u) parameter is measured in radians; the longitudinal (v)
     // parameter is the node index along g.
-    pair aParam=(radians(angle1),0);
-    pair bParam=(radians(angle2),L);
-    paramToSurface=xscale(n/(bParam.x-aParam.x))*yscale(L/(bParam.y-aParam.y))*
-      shift(-aParam);
+    domain((radians(angle1),0),(radians(angle2),L));
   }
 
   void push(patch s) {
@@ -1311,7 +1340,7 @@ surface operator * (transform3 t, surface s)
     S.s[i]=t*s.s[i];
   S.index=copy(s.index);
   S.vcyclic=(bool) s.vcyclic;
-  S.paramToSurface=s.paramToSurface;
+  S.domain(s);
   S.T=t*s.T;
   S.primitive=s.primitive;
   S.PRCprimitive=s.PRCprimitive;
@@ -2052,13 +2081,12 @@ void drawTessellation(picture pic=currentpicture, surface s,
 
 // Color the patches of the draw-time surface copy dst using vertexPen,
 // evaluating the pen at the original (untransformed) surface src positions.
-// Each corner's surfaceVertex is fully populated: z from src, uv from the
-// inverse paramToSurface (when an index grid is available), and the patch,
+// Each corner's surfaceVertex is fully populated: z from src, uv from
+// paramCoords (when an index grid is available), and the patch,
 // corner, U, V indices. This is a drawing helper: colors are written only
 // into dst, never into a user's surface.
 private void colorVertex(surface dst, surface src, vertexPen vertexPen) {
   bool hasGrid=dst.index.length > 0;
-  transform surfaceToParam=hasGrid ? inverse(dst.paramToSurface) : identity;
   if(hasGrid) {
     int nU=dst.index.length;
     int nV=dst.index[0].length;
@@ -2067,16 +2095,16 @@ private void colorVertex(surface dst, surface src, vertexPen vertexPen) {
         if(!dst.index[U].initialized(V)) continue;
         int i=dst.index[U][V];
         patch si=src.s[i];
-        pen p00=vertexPen(surfaceVertex(si.P[0][0],surfaceToParam*(U,V),
+        pen p00=vertexPen(surfaceVertex(si.P[0][0],dst.paramCoords(U,V),
                                         i,0,U,V));
-        pen p10=vertexPen(surfaceVertex(si.P[3][0],surfaceToParam*(U+1,V),
+        pen p10=vertexPen(surfaceVertex(si.P[3][0],dst.paramCoords(U+1,V),
                                         i,1,U,V));
-        pen p11=vertexPen(surfaceVertex(si.P[3][3],surfaceToParam*(U+1,V+1),
+        pen p11=vertexPen(surfaceVertex(si.P[3][3],dst.paramCoords(U+1,V+1),
                                         i,2,U,V));
         if(si.triangular) {
           dst.s[i].colors=new pen[] {p00,p10,p11};
         } else {
-          pen p01=vertexPen(surfaceVertex(si.P[0][3],surfaceToParam*(U,V+1),
+          pen p01=vertexPen(surfaceVertex(si.P[0][3],dst.paramCoords(U,V+1),
                                           i,3,U,V));
           dst.s[i].colors=new pen[] {p00,p10,p11,p01};
         }

@@ -47,7 +47,6 @@ surfaceVertex[] checkStructured(surface s)
 {
   surfaceVertex[] v=collect(s);
   assert(v.length == 4*s.s.length);
-  transform surfaceToParam=inverse(s.paramToSurface);
   bool[] seen=array(s.s.length,false);
   for(int k=0; k < v.length; ++k) {
     surfaceVertex sv=v[k];
@@ -65,7 +64,8 @@ surfaceVertex[] checkStructured(surface s)
       assert(sv.U == v[k-1].U && sv.V == v[k-1].V);
     }
     assert(sv.z == corners(s.s[sv.patch])[sv.corner]);
-    assert(close(sv.uv,surfaceToParam*((sv.U,sv.V)+cornerOffset[sv.corner])));
+    pair node=(sv.U,sv.V)+cornerOffset[sv.corner];
+    assert(sv.uv == s.paramCoords(node.x,node.y));
     assert(close(s.paramPoint(sv.uv.x,sv.uv.y),sv.z));
   }
   assert(all(seen));

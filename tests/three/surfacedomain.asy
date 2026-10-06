@@ -98,3 +98,64 @@ StartTest("surface domain: mixed cyclic and noncyclic");
   assert(close(s.paramPoint(pi/2,2),(0,1,3)));
 }
 EndTest();
+
+StartTest("surface domain: domain and paramCoords");
+{
+  triple f(pair z) {return (z.x,z.y,z.x*z.y);}
+  pair a=(1,2), b=(5,8);
+  int nu=4, nv=3;
+  surface s=surface(f,a,b,nu,nv);
+
+  // paramCoords maps surface coordinates to parametric coordinates.
+  assert(s.paramCoords(0,0) == a);
+  assert(abs(s.paramCoords(nu,nv)-b) <= 1e-12);
+  assert(abs(s.paramCoords(1,1.5)-(2,5)) <= 1e-12);
+  pair z=s.paramCoords(2.5,0.75);
+  assert(close(s.paramPoint(z.x,z.y),s.point(2.5,0.75)));
+
+  // A surface built from arrays has surface coordinates until it is given a
+  // domain.
+  surface t=surface(f,uniform(a.x,b.x,nu),uniform(a.y,b.y,nv),Spline);
+  assert(t.paramCoords(1,2) == (1,2));
+  assert(close(t.paramPoint(nu,nv),f(b)));
+  t.domain(a,b);
+  assert(t.paramCoords(0,0) == a);
+  assert(close(t.paramPoint(b.x,b.y),f(b)));
+  assert(close(t.paramPoint(2,5),s.paramPoint(2,5)));
+
+  // Whichever corner comes first corresponds to the surface coordinates (0,0).
+  t.domain(b,a);
+  assert(t.paramCoords(0,0) == b);
+  assert(close(t.paramPoint(b.x,b.y),f(a)));
+  assert(close(t.paramPoint(a.x,a.y),f(b)));
+
+  // The parametric coordinates of another surface, and of a copy.
+  surface r=surface(f,(0,0),(1,1),nu,nv);
+  r.domain(s);
+  assert(r.paramCoords(1,1.5) == s.paramCoords(1,1.5));
+  // With a grid of another size, the domain is the same but not the spacing.
+  surface r=surface(f,(0,0),(1,1),2nu,nv+2);
+  r.domain(s);
+  assert(abs(r.paramCoords(0,0)-a) <= 1e-12);
+  assert(abs(r.paramCoords(2nu,nv+2)-b) <= 1e-12);
+  assert(abs(r.paramCoords(nu,0)-(3,2)) <= 1e-12);
+  assert(close(r.paramPoint(b.x,b.y),f((1,1))));
+  // An unstructured surface has no domain to give.
+  r.domain(unitsphere);
+  assert(abs(r.paramCoords(2nu,nv+2)-b) <= 1e-12);
+  r.domain((-1,-1),(0,0));
+  assert(s.paramCoords(0,0) == a);
+  assert(surface(s).paramCoords(1,1.5) == s.paramCoords(1,1.5));
+  assert((shift(Z)*s).paramCoords(1,1.5) == s.paramCoords(1,1.5));
+
+  // A box without area and a surface without patches are left alone.
+  t.domain(a,b);
+  t.domain((1,2),(1,8));
+  t.domain((1,2),(5,2));
+  assert(t.paramCoords(0,0) == a);
+  surface e;
+  e.domain(a,b);
+  assert(surface(f,(0,0),(0,1),nu,nv).s.length == nu*nv);
+  assert(surface(O,(1,0,0)--(1,0,1),Z,4,30,30).s.length == 4);
+}
+EndTest();

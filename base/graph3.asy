@@ -2038,9 +2038,7 @@ surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
   real[] x=uniform(pic.scale.x.T,pic.scale.x.Tinv,a.x,b.x,nx);
   real[] y=uniform(pic.scale.y.T,pic.scale.y.Tinv,a.y,b.y,ny);
   surface s=surface(pic,f,x,y,xsplinetype,ysplinetype,cond);
-  // The grid is uniform over box(a,b), so parametric coordinates map affinely
-  // to surface coordinates.
-  s.paramToSurface=xscale(nx/(b.x-a.x))*yscale(ny/(b.y-a.y))*shift(-a);
+  s.domain(a,b);
   return s;
 }
 
@@ -2073,8 +2071,7 @@ surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
         vi[j]=(x,pic.scale.y.Tinv(interp(a.y,b.y,j/ny)),fi[j]);
   }
   surface s=surface(pic,v,cond);
-  s.paramToSurface=xscale(nx/(bParam.x-aParam.x))*
-    yscale(ny/(bParam.y-aParam.y))*shift(-aParam);
+  s.domain(aParam,bParam);
   return s;
 }
 
@@ -2110,8 +2107,7 @@ surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
     }
   }
   surface s=surface(pic,v,active);
-  s.paramToSurface=xscale(nu/(bParam.x-aParam.x))*
-    yscale(nv/(bParam.y-aParam.y))*shift(-aParam);
+  s.domain(aParam,bParam);
   return s;
 }
 
@@ -2233,9 +2229,9 @@ surface surface(picture pic=currentpicture, triple f(pair z),
      joinsSmoothly(vsplinetype[2]) &&
      vperiodic(fx) && vperiodic(fy) && vperiodic(fz)) s.vcyclic(true);
 
-  // paramToSurface is left at the default (identity): u and v may be spaced
-  // non-uniformly, so the map from parametric to surface coordinates is not
-  // affine in general. Callers that lay out a uniform grid set it themselves.
+  // The parametric coordinates are left as surface coordinates: u and v may
+  // be spaced nonuniformly, so the map between the two is not affine in
+  // general. Callers that lay out a uniform grid call s.domain themselves.
 
   return s;
 }
@@ -2250,9 +2246,7 @@ surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
   real[] x=uniform(pic.scale.x.T,pic.scale.x.Tinv,a.x,b.x,nu);
   real[] y=uniform(pic.scale.y.T,pic.scale.y.Tinv,a.y,b.y,nv);
   surface s=surface(pic,f,x,y,usplinetype,vsplinetype,cond);
-  // The grid is uniform over box(a,b), so parametric coordinates map affinely
-  // to surface coordinates.
-  s.paramToSurface=xscale(nu/(b.x-a.x))*yscale(nv/(b.y-a.y))*shift(-a);
+  s.domain(a,b);
   return s;
 }
 
@@ -2294,10 +2288,7 @@ surface surface(picture pic=currentpicture, real f(pair z), pair a, pair b,
     }
   }
   surface s=surface(pic,F,x,y,xsplinetype,ysplinetype,active);
-  // The grid is uniform over box(a,b), so parametric coordinates map affinely
-  // to surface coordinates.
-  if(nx > 0 && ny > 0)
-    s.paramToSurface=xscale(nx/(b.x-a.x))*yscale(ny/(b.y-a.y))*shift(-a);
+  s.domain(a,b);
   return s;
 }
 

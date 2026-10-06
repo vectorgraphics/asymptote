@@ -104,6 +104,11 @@ CASES: list[tuple[str, str, str]] = [
         "import three; unitsphere.paramNormal(0,0);",
         "paramNormal: " + _UNSTRUCTURED,
     ),
+    (
+        "paramCoords on an unstructured surface",
+        "import three; unitsphere.paramCoords(0,0);",
+        "paramCoords: " + _UNSTRUCTURED,
+    ),
     # --- bounds of an empty surface ---
     (
         "palette of a null surface",

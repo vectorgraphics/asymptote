@@ -10407,6 +10407,25 @@ measured in radians (not degrees), ranging from
 time along the path @code{g}, ranging from @code{0} to @code{length(g)}.
 @end itemize
 
+@cindex @code{surface.domain}
+@cindex @code{surface.paramCoords}
+A structured surface can be given a different domain with
+@verbatim
+void s.domain(pair a, pair b);
+@end verbatim
+@noindent
+after which the parametric coordinates range over @code{box(a,b)}, with
+the mesh taken to be uniform: the sample with indices @code{i} and
+@code{j} then has the parametric coordinates returned by
+@verbatim
+pair s.paramCoords(real i, real j);
+@end verbatim
+@noindent
+For example, if the entries of a matrix of triples are the values of a
+function on an evenly spaced grid over the unit square, the surface
+constructed from the matrix can be given the coordinates of that function
+with @code{s.domain((0,0),(1,1))}.
+
 @cindex @code{ucyclic}
 @cindex @code{vcyclic}
 Parametric coordinates must normally lie within this domain. The
