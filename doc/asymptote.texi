@@ -10815,6 +10815,11 @@ draw(s,s.palette(height,Gradient(blue,red)));
 @noindent
 Now the lowest vertex of @code{s} is blue and the highest is red. The
 resulting @code{vertexPen} should be used to draw that same surface.
+Here is a complete example, drawn with @code{nolight} so that the colors
+appear exactly as specified:
+@verbatiminclude colorsurface.asy
+@sp 1
+@center @image{./colorsurface}
 
 @cindex @code{fitColors}
 The function @code{fitColors} (also in the @code{palette} module)
