@@ -31,7 +31,6 @@ runs:
       shell: bash
       run: |
         echo VCPKG_ROOT="$VCPKG_INSTALLATION_ROOT" >> "$GITHUB_ENV"
-        echo VCPKG_OVERLAY_PORTS="$GITHUB_WORKSPACE/vcpkg-overlays" >> "$GITHUB_ENV"
         echo CCACHE_DIR=/home/runner/.ccache >> "$GITHUB_ENV"
         echo CCACHE_TEMP_DIR=/home/runner/.ccache >> "$GITHUB_ENV"
         echo CCACHE_MAXSIZE=1G >> "$GITHUB_ENV"
