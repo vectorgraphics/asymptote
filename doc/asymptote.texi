@@ -10786,17 +10786,36 @@ patch, so that the order is known. Wherever possible, use the position
 @cindex @code{fitColors}
 The following helpers construct @code{vertexPen} values:
 @verbatim
-vertexPen palette(real f(triple), real Min, real Max, pen[] palette);
 vertexPen fitColors(triple[] coords, pen[] colors);
+vertexPen palette(real f(triple), real Min, real Max, pen[] palette);
 @end verbatim
 @noindent
-The function @code{surface.palette(f, palette)} (a method on
-@code{surface}) constructs a @code{vertexPen} that maps the range of
-@code{f} over the surface to the given palette:
+The function @code{palette} colors each vertex according to the value
+of @code{f} there: @code{Min} is mapped to the first pen of the palette,
+@code{Max} to the last, and the values in between to the pens in
+between. For example, to color a surface by
+height@footnote{The built-in function @code{zpart} does the same as
+@code{height}, so it can be passed to @code{palette} directly, with
+nothing to define.}:
 @verbatim
-vertexPen palette(real f(triple), pen[] palette);  // method on surface
+real height(triple v) {return v.z;}
+draw(s,palette(height,0,1,Gradient(blue,red)));
 @end verbatim
 @noindent
+Here a vertex at height 0 is blue, a vertex at height 1 is red, and a
+vertex at height 0.5 is halfway between the two. The value of @code{f}
+at every vertex must lie between @code{Min} and @code{Max}.
+
+When the range of @code{f} is not known in advance, the surface method
+@code{palette} finds it, using the least and greatest values of @code{f}
+at the vertices of the surface:
+@verbatim
+draw(s,s.palette(height,Gradient(blue,red)));
+@end verbatim
+@noindent
+Now the lowest vertex of @code{s} is blue and the highest is red. The
+resulting @code{vertexPen} should be used to draw that same surface.
+
 The function @code{fitColors} is intended for specifying the colors at
 a few points, such as the corners of a square or a box, and blending
 smoothly between them. Each color component of the resulting
