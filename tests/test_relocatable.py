@@ -775,7 +775,7 @@ def check_layout(ctx: Ctx, scenario: str, states: States) -> None:
     # different version of base/ than the binary under test.  We therefore only
     # check that no staged candidate fired, not whether asy can load the
     # fallback base (version mixing is out of scope here).
-    ok, val, resolved = probe(staged_asy, cwd=ctx.work, rescue_base=ctx.base_dir)
+    _, val, resolved = probe(staged_asy, cwd=ctx.work, rescue_base=ctx.base_dir)
     if resolved is None:
         record(scenario, Status.SKIP, f"sysdir not recoverable: {brief(val)}")
     elif any(norm(p) == norm(resolved) for p in paths):
