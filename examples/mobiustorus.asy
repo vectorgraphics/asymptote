@@ -1,7 +1,7 @@
 // A Mobius torus: a hexagonal tube bent into a ring whose cross-section turns
 // by one sixth of a revolution on each trip around. The twist carries each face
 // of the tube onto the next, so the six faces are really a single strip that
-// winds around the ring six times before closing up. A param pen colors that
+// winds around the ring six times before closing up. A vertexPen colors that
 // strip continuously through the color wheel, returning to its starting color.
 
 import graph3;

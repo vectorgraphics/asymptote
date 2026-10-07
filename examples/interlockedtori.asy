@@ -1,4 +1,4 @@
-// Two interlocked tori colored at drawing time with a param pen, which is
+// Two interlocked tori colored at drawing time with a vertexPen, which is
 // evaluated at the parametric coordinates of each patch corner. One torus
 // carries a smooth spiral of rainbow color, the other a flat checkerboard.
 
@@ -27,7 +27,7 @@ triple torus(pair uv) {
 // data is periodic in both u and v, so the surface is cyclic in both directions
 // and closes up seamlessly. Because the surface is parametric, the (u,v) it
 // records are exactly the radians fed to the formula above, and those same
-// (u,v) are what the param pen receives -- the pen and the surface share one
+// (u,v) are what the vertexPen receives -- the pen and the surface share one
 // coordinate system.
 surface torus(int nloop, int ntube) {
   return surface(torus, (0,0), (2pi,2pi), nloop, ntube, Spline);

@@ -24,8 +24,9 @@ pen[] cols={
   rgb(0.0, 0.8, 0.75),  // ( 1, 1,1) NE: aqua teal     }
 };
 // z=0 theme: fire (warm); z=1 theme: aurora (cool).
-// The angular hue direction reverses top-to-bottom, creating a spiral that
-// requires the xy, xz, yz, xyz cross-terms -- not reproducible analytically.
+// The angular hue direction reverses top-to-bottom, creating a spiral. No
+// linear gradient passes through these colors, so the cubic fit has to use
+// its mixed terms (xy, xz, yz, xyz).
 
 vertexPen cpen=fitColors(coords,cols);
 

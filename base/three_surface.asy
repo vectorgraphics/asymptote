@@ -1970,7 +1970,7 @@ void drawTessellation(frame f, surface s,
   // disagree are emitted as separate vertices, so the vertex-sharing
   // optimization is applied exactly where it is faithful: it never smooths
   // shading across a crease (normals differ) nor smears a flat or otherwise
-  // discontinuous parampen across a patch seam (colors differ).
+  // discontinuous vertexPen across a patch seam (colors differ).
   triple[] v;
   triple[] n;
   pen[] p;
