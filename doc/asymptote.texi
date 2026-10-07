@@ -10326,9 +10326,9 @@ surface surface(triple f(pair z), real[] u, real[] v,
                 bool cond(pair z)=null);
 @end verbatim
 
-In each case the surface is interpolated linearly unless a splinetype such
-as @code{Spline} is specified, except that a matrix with arrays @code{x}
-and @code{y} is interpolated with a spline by default.
+A version with no splinetype parameter interpolates linearly; the others
+interpolate with the splinetypes given, such as @code{Spline} for a smooth
+surface.
 The boolean array or function @code{cond} can be used to control which
 surface mesh cells are actually drawn (by default all mesh cells are
 drawn).
