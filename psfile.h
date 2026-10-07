@@ -136,8 +136,8 @@ protected:
   pen lastpen;
   std::ostream *out;
 
-  void beginmeshscale(double scale);
-  void endmeshscale(double scale);
+  void beginmeshframe(const pair& origin, double scale);
+  void endmeshframe(const pair& origin, double scale);
 
 public:
   bool pdftex() {return settings::pdf(settings::getSetting<string>("tex"));}
