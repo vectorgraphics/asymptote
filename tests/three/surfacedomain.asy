@@ -159,3 +159,48 @@ StartTest("surface domain: domain and paramCoords");
   assert(surface(O,(1,0,0)--(1,0,1),Z,4,30,30).s.length == 4);
 }
 EndTest();
+
+StartTest("surface domain: logarithmic axes");
+{
+  // The parametric coordinates of a graph are the x and y coordinates of its
+  // points, which on a logarithmic axis are the logarithms of the values
+  // plotted.
+  picture pic;
+  scale(pic,Log,Linear,Log);
+  pair a=(1,2), b=(100,8);
+  int nx=4, ny=3;
+  real f(pair z) {return z.x^2*z.y;}
+  real[][] F=new real[nx+1][ny+1];
+  for(int i=0; i <= nx; ++i)
+    for(int j=0; j <= ny; ++j)
+      F[i][j]=f((10^(i/2),2+2j));
+
+  surface[] S={surface(pic,f,a,b,nx,ny),surface(pic,f,a,b,nx,ny,Spline),
+               surface(pic,F,a,b),surface(pic,F,a,b,Spline)};
+  for(surface s : S) {
+    assert(abs(s.paramCoords(0,0)-(0,2)) <= 1e-12);
+    assert(abs(s.paramCoords(nx,ny)-(2,8)) <= 1e-12);
+    for(int i=0; i <= nx; ++i) {
+      for(int j=0; j <= ny; ++j) {
+        triple p=s.point(i,j);
+        assert(abs(s.paramCoords(i,j)-(p.x,p.y)) <= 1e-12);
+        assert(close(p,(i/2,2+2j,log10(f((10^(i/2),2+2j))))));
+        assert(close(s.paramPoint(p.x,p.y),p));
+      }
+    }
+    // Between the samples as well, u and v are the x and y coordinates.
+    triple p=s.paramPoint(0.8,3.5);
+    assert(abs((p.x,p.y)-(0.8,3.5)) <= 1e-9);
+  }
+
+  // The parameters of a parametric surface are not coordinates and are not
+  // scaled.
+  triple g(pair z) {return (10^z.x,z.y,1);}
+  for(surface s : new surface[] {surface(pic,g,a,b,nx,ny),
+        surface(pic,g,a,b,nx,ny,Spline)}) {
+    assert(abs(s.paramCoords(0,0)-a) <= 1e-12);
+    assert(abs(s.paramCoords(nx,ny)-b) <= 1e-12);
+  }
+}
+EndTest();
+

@@ -10409,16 +10409,19 @@ parametric coordinates, when a @code{transform3} is applied to it.
 The domain of the parametric coordinates depends on how the surface
 was constructed:
 @itemize @bullet
-@item for a surface constructed from a function @code{f(pair z)} over
-@code{box(a,b)}, whether real or triple valued and whether or not a
-splinetype is specified, @math{(u,v)} is the argument @code{z} of
-@code{f}: @math{u} ranges from @code{a.x} to @code{b.x} and @math{v}
-ranges from @code{a.y} to @code{b.y};
+@item for a surface constructed from a parametric function
+@code{triple f(pair z)} over @code{box(a,b)}, whether or not a splinetype
+is specified, @math{(u,v)} is the argument @code{z} of @code{f}: @math{u}
+ranges from @code{a.x} to @code{b.x} and @math{v} ranges from @code{a.y}
+to @code{b.y};
 
-@item for a surface constructed from a real matrix @code{f} over
-@code{box(a,b)}, the parametric coordinates likewise range over
-@code{box(a,b)}, so that @math{(u,v)} are the @math{x} and @math{y}
-coordinates of the point of the surface (for a linear picture scaling);
+@item for the graph of a real function @code{real f(pair z)} or of a real
+matrix @code{f} over @code{box(a,b)}, @math{(u,v)} are the @math{x} and
+@math{y} coordinates of the point of the surface, so that they also range
+over @code{box(a,b)}. On a logarithmic axis (@pxref{automatic scaling})
+the coordinate of a point is the logarithm of the value plotted there,
+and this is the parametric coordinate as well: for @math{x} plotted from 1
+to 100, @math{u} ranges from 0 to 2;
 
 @item for a surface constructed from any other matrix or arrays, or from
 a function sampled at the values in the arrays @code{u} and @code{v}, the

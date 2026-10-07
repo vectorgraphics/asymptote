@@ -2034,7 +2034,9 @@ surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
   real[] x=uniform(pic.scale.x.T,pic.scale.x.Tinv,a.x,b.x,nx);
   real[] y=uniform(pic.scale.y.T,pic.scale.y.Tinv,a.y,b.y,ny);
   surface s=surface(pic,f,x,y,xsplinetype,ysplinetype,cond);
-  s.domain(a,b);
+  // The parametric coordinates are the x and y coordinates of the points of
+  // the surface, which are scaled coordinates of pic.
+  s.domain(Scale(pic,a),Scale(pic,b));
   return s;
 }
 
@@ -2053,8 +2055,6 @@ surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
 
   triple[][] v=new triple[nx+1][ny+1];
 
-  pair aParam=a;
-  pair bParam=b;
   pair a=Scale(pic,a);
   pair b=Scale(pic,b);
   for(int i=0; i <= nx; ++i) {
@@ -2067,7 +2067,9 @@ surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
         vi[j]=(x,pic.scale.y.Tinv(interp(a.y,b.y,j/ny)),fi[j]);
   }
   surface s=surface(pic,v,cond);
-  s.domain(aParam,bParam);
+  // The parametric coordinates are the x and y coordinates of the points of
+  // the surface, which are scaled coordinates of pic.
+  s.domain(a,b);
   return s;
 }
 
@@ -2265,8 +2267,6 @@ surface surface(picture pic=currentpicture, real f(pair z), pair a, pair b,
   if(nx <= 0 || ny <= 0) return nullsurface;
 
   // The samples are evenly spaced in the scaled coordinates of pic.
-  pair aParam=a;
-  pair bParam=b;
   pair a=Scale(pic,a);
   pair b=Scale(pic,b);
   real dx=1/nx;
@@ -2279,7 +2279,9 @@ surface surface(picture pic=currentpicture, real f(pair z), pair a, pair b,
     },ny+1);
   surface s=surface(pic,new triple(pair z) {return (z.x,z.y,f(z));},x,y,
                     cond);
-  s.domain(aParam,bParam);
+  // The parametric coordinates are the x and y coordinates of the points of
+  // the surface, which are scaled coordinates of pic.
+  s.domain(a,b);
   return s;
 }
 
@@ -2312,7 +2314,9 @@ surface surface(picture pic=currentpicture, real f(pair z), pair a, pair b,
     }
   }
   surface s=surface(pic,F,x,y,xsplinetype,ysplinetype,active);
-  s.domain(a,b);
+  // The parametric coordinates are the x and y coordinates of the points of
+  // the surface, which are scaled coordinates of pic.
+  s.domain(Scale(pic,a),Scale(pic,b));
   return s;
 }
 
