@@ -2069,36 +2069,46 @@ surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
   return surface(pic,v,cond);
 }
 
-// return the surface described by a parametric function f over box(a,b),
-// interpolated linearly.
-surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
-                int nu=nmesh, int nv=nu, bool cond(pair z)=null)
+// return the surface described by a parametric function f evaluated at u and v
+// and interpolated linearly.
+surface surface(picture pic=currentpicture, triple f(pair z),
+                real[] u, real[] v, bool cond(pair z)=null)
 {
+  int nu=u.length-1;
+  int nv=v.length-1;
   if(nu <= 0 || nv <= 0) return nullsurface;
 
   bool[][] active;
   bool all=cond == null;
   if(!all) active=new bool[nu+1][nv+1];
 
-  real du=1/nu;
-  real dv=1/nv;
-  pair Idv=(0,dv);
-  pair dz=(du,dv);
+  triple[][] P=new triple[nu+1][nv+1];
 
-  triple[][] v=new triple[nu+1][nv+1];
-
-  pair a=Scale(pic,a);
-  pair b=Scale(pic,b);
   for(int i=0; i <= nu; ++i) {
-    real x=pic.scale.x.Tinv(interp(a.x,b.x,i*du));
+    real ui=u[i];
     bool[] activei=all ? null : active[i];
-    triple[] vi=v[i];
+    triple[] Pi=P[i];
     for(int j=0; j <= nv; ++j) {
-      pair z=(x,pic.scale.y.Tinv(interp(a.y,b.y,j*dv)));
-      if(all || (activei[j]=cond(z))) vi[j]=f(z);
+      pair z=(ui,v[j]);
+      if(all || (activei[j]=cond(z))) Pi[j]=f(z);
     }
   }
-  return surface(pic,v,active);
+  return surface(pic,P,active);
+}
+
+// return the surface described by a parametric function f over box(a,b),
+// interpolated linearly. The parameters are sampled at evenly spaced values,
+// whatever the scaling of pic.
+surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
+                int nu=nmesh, int nv=nu, bool cond(pair z)=null)
+{
+  if(nu <= 0 || nv <= 0) return nullsurface;
+
+  real du=1/nu;
+  real dv=1/nv;
+  real[] u=sequence(new real(int i) {return interp(a.x,b.x,i*du);},nu+1);
+  real[] v=sequence(new real(int j) {return interp(a.y,b.y,j*dv);},nv+1);
+  return surface(pic,f,u,v,cond);
 }
 
 // return the surface described by a parametric function f evaluated at u and v
@@ -2212,15 +2222,15 @@ surface surface(picture pic=currentpicture, triple f(pair z),
 }
 
 // return the surface described by a parametric function f over box(a,b),
-// interpolated with usplinetype and vsplinetype.
+// sampled at evenly spaced parameter values and interpolated with
+// usplinetype and vsplinetype.
 surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
                 int nu=nmesh, int nv=nu,
                 splinetype[] usplinetype, splinetype[] vsplinetype=Spline,
                 bool cond(pair z)=null)
 {
-  real[] x=uniform(pic.scale.x.T,pic.scale.x.Tinv,a.x,b.x,nu);
-  real[] y=uniform(pic.scale.y.T,pic.scale.y.Tinv,a.y,b.y,nv);
-  return surface(pic,f,x,y,usplinetype,vsplinetype,cond);
+  return surface(pic,f,uniform(a.x,b.x,nu),uniform(a.y,b.y,nv),
+                 usplinetype,vsplinetype,cond);
 }
 
 // return the surface described by a real function f over box(a,b),
@@ -2228,8 +2238,20 @@ surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
 surface surface(picture pic=currentpicture, real f(pair z), pair a, pair b,
                 int nx=nmesh, int ny=nx, bool cond(pair z)=null)
 {
-  return surface(pic,new triple(pair z) {return (z.x,z.y,f(z));},a,b,nx,ny,
-                 cond);
+  if(nx <= 0 || ny <= 0) return nullsurface;
+
+  // The samples are evenly spaced in the scaled coordinates of pic.
+  pair a=Scale(pic,a);
+  pair b=Scale(pic,b);
+  real dx=1/nx;
+  real dy=1/ny;
+  real[] x=sequence(new real(int i) {
+      return pic.scale.x.Tinv(interp(a.x,b.x,i*dx));
+    },nx+1);
+  real[] y=sequence(new real(int j) {
+      return pic.scale.y.Tinv(interp(a.y,b.y,j*dy));
+    },ny+1);
+  return surface(pic,new triple(pair z) {return (z.x,z.y,f(z));},x,y,cond);
 }
 
 // return the surface described by a real function f over box(a,b),

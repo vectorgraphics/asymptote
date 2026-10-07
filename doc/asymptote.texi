@@ -10289,6 +10289,8 @@ surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
                 splinetype xsplinetype, splinetype ysplinetype=xsplinetype,
                 bool cond(pair z)=null);
 surface surface(triple f(pair z), real[] u, real[] v,
+                bool cond(pair z)=null);
+surface surface(triple f(pair z), real[] u, real[] v,
                 splinetype[] usplinetype, splinetype[] vsplinetype=Spline,
                 bool cond(pair z)=null);
 surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
@@ -10302,6 +10304,10 @@ The final two versions draw parametric surfaces for a function
 @math{f(u,v)} over the parameter space @code{box(a,b)},
 as illustrated in the example @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/parametricsurface.html,,parametricsurface}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/parametricsurface.asy,,.asy}}.
 An optional splinetype @code{Spline} may be specified.
+The parameters are sampled at evenly spaced values over @code{box(a,b)},
+even in a picture with logarithmic axes (@pxref{automatic scaling}); to
+sample them at other values, use one of the two versions before these,
+which evaluate @code{f} at the values in the arrays @code{u} and @code{v}.
 The boolean array or function @code{cond} can be used to control which
 surface mesh cells are actually drawn (by default all mesh cells over
 @code{box(a,b)} are drawn).
