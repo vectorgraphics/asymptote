@@ -33,6 +33,9 @@ jobs:
         run: |
           ${{ env.pwsh_initialize_devenv }}
           cmake --preset ${{ env.cmake_msvc_profile }}
+      - name: Save vcpkg cache (even if configure failed)
+        uses: ./.github/actions/vcpkg-cache-save
+        if: always()
       - name: zip cmake configuration
         shell: pwsh
         # Compress-Archive cmdlet does not support hidden files
@@ -79,6 +82,9 @@ jobs:
         run: |
           ${{ env.pwsh_initialize_devenv }}
           cmake --preset ${{ env.cmake_msvc_profile }} -DPDFTEX_EXEC=C:/texlive/bin/windows/pdftex.exe
+      - name: Save vcpkg cache (even if configure failed)
+        uses: ./.github/actions/vcpkg-cache-save
+        if: always()
       - name: Upload cmake install file
         uses: actions/upload-artifact@v4
         with:
