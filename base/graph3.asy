@@ -1941,11 +1941,10 @@ real[][][] bispline(real[][] f, real[] x, real[] y,
                     splinetype xsplinetype=null,
                     splinetype ysplinetype=xsplinetype, bool[][] cond={})
 {
-  real epsilon=sqrtEpsilon*norm(y);
-  if(xsplinetype == null)
-    xsplinetype=(abs(x[0]-x[x.length-1]) <= epsilon) ? periodic : notaknot;
-  if(ysplinetype == null)
-    ysplinetype=(abs(y[0]-y[y.length-1]) <= epsilon) ? periodic : notaknot;
+  // Spline is null. The values at the two ends cannot show reliably that a
+  // function is periodic, so periodic end conditions must be requested.
+  if(xsplinetype == null) xsplinetype=notaknot;
+  if(ysplinetype == null) ysplinetype=notaknot;
   int n=x.length; int m=y.length;
   real[][] ft=transpose(f);
   real[][] tp=new real[m][];
@@ -1967,7 +1966,7 @@ real[][][] bispline(real[][] f, real[] x, real[] y,
 // return the surface described by a real matrix f, interpolated with
 // xsplinetype and ysplinetype.
 surface surface(picture pic=currentpicture, real[][] f, real[] x, real[] y,
-                splinetype xsplinetype=null,
+                splinetype xsplinetype=Spline,
                 splinetype ysplinetype=xsplinetype,
                 bool[][] cond={})
 {
@@ -1996,11 +1995,10 @@ surface surface(picture pic=currentpicture, real[][] f, real[] x, real[] y,
   real[] x=map(pic.scale.x.T,x);
   real[] y=map(pic.scale.y.T,y);
 
-  real epsilon=sqrtEpsilon*norm(y);
-  if(xsplinetype == null)
-    xsplinetype=(abs(x[0]-x[x.length-1]) <= epsilon) ? periodic : notaknot;
-  if(ysplinetype == null)
-    ysplinetype=(abs(y[0]-y[y.length-1]) <= epsilon) ? periodic : notaknot;
+  // Spline is null. The values at the two ends cannot show reliably that a
+  // function is periodic, so periodic end conditions must be requested.
+  if(xsplinetype == null) xsplinetype=notaknot;
+  if(ysplinetype == null) ysplinetype=notaknot;
   int n=x.length; int m=y.length;
   real[][] ft=transpose(f);
   real[][] tp=new real[m][];
@@ -2017,8 +2015,6 @@ surface surface(picture pic=currentpicture, real[][] f, real[] x, real[] y,
   for(int i=0; i < n; ++i)
     r[i]=clamped(d1[i],d2[i])(y,p[i]);
   surface s=bispline(f,p,q,r,x,y,cond);
-  if(xsplinetype == periodic) s.ucyclic(true);
-  if(ysplinetype == periodic) s.vcyclic(true);
   return s;
 }
 

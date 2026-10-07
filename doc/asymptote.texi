@@ -10283,7 +10283,7 @@ surface surface(real[][] f, pair a, pair b, bool[][] cond={});
 surface surface(real[][] f, pair a, pair b, splinetype xsplinetype,
                 splinetype ysplinetype=xsplinetype, bool[][] cond={});
 surface surface(real[][] f, real[] x, real[] y,
-                splinetype xsplinetype=null,
+                splinetype xsplinetype=Spline,
                 splinetype ysplinetype=xsplinetype,
                 bool[][] cond={})
 surface surface(triple[][] f, bool[][] cond={});
