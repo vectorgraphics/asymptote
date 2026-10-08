@@ -405,58 +405,6 @@ void psfile::gradientshade(bool axial, ColorSpace colorspace,
        << "shfill" << newl;
 }
 
-// Ghostscript's pdfwrite device stores the coordinates of a mesh shading
-// (types 4-7) as signed meshBits-bit integers in the user space
-// current at shfill, which rounds them to whole PostScript points and leaves
-// visible gaps between adjacent patches. To retain subpoint precision, the
-// coordinates are written multiplied by a power of two, in a user space
-// scaled by its inverse. The factor is reduced for coordinates that would
-// otherwise leave the representable range.
-namespace {
-
-constexpr int meshBits=24;
-// The scaled coordinates must not exceed meshMax in absolute value.
-constexpr double meshMax=(double) ((1 << (meshBits-1))-1);
-constexpr double maxMeshScale=1024.0;
-
-double meshScale(double norm)
-{
-  double scale=maxMeshScale;
-  while(scale > 1.0 && scale*norm > meshMax)
-    scale *= 0.5;
-  return scale;
-}
-
-double maxnorm(const pair& z)
-{
-  return max(fabs(z.getx()),fabs(z.gety()));
-}
-
-// Return the interior control point of a Coons patch with boundary g that
-// corresponds to node j.
-pair coonsInterior(const path& g, Int j)
-{
-  static double nineth=1.0/9.0;
-  return nineth*(-4.0*g.point(j)+6.0*(g.precontrol(j)+g.postcontrol(j))
-                 -2.0*(g.point(j-1)+g.point(j+1))
-                 +3.0*(g.precontrol(j-1)+g.postcontrol(j+1))
-                 -g.point(j+2));
-}
-
-} // namespace
-
-void psfile::beginmeshscale(double scale)
-{
-  if(scale != 1.0)
-    *out << "1 " << scale << " div dup scale" << newl;
-}
-
-void psfile::endmeshscale(double scale)
-{
-  if(scale != 1.0)
-    *out << scale << " dup scale" << newl;
-}
-
 void psfile::gouraudshade(const pen& pentype,
                           const array& pens, const array& vertices,
                           const array& edges)
@@ -470,18 +418,12 @@ void psfile::gouraudshade(const pen& pentype,
   setfirstopacity(pens);
   ColorSpace colorspace=maxcolorspace(pens);
 
-  double norm=0.0;
-  for(size_t i=0; i < size; i++)
-    norm=max(norm,maxnorm(read<pair>(vertices,i)));
-  double scale=meshScale(norm);
-
-  beginmeshscale(scale);
   *out << "<< /ShadingType 4" << newl
        << "/ColorSpace /Device" << ColorDeviceSuffix[colorspace] << newl
        << "/DataSource [" << newl;
   for(size_t i=0; i < size; i++) {
     write(read<Int>(edges,i));
-    write(scale*read<pair>(vertices,i));
+    write(read<pair>(vertices,i));
     pen *p=read<pen *>(pens,i);
     p->convert();
     if(!p->promote(colorspace))
@@ -493,7 +435,6 @@ void psfile::gouraudshade(const pen& pentype,
   *out << "]" << newl
        << ">>" << newl
        << "shfill" << newl;
-  endmeshscale(scale);
 }
 
 void psfile::vertexpen(array *pi, int j, ColorSpace colorspace)
@@ -525,38 +466,6 @@ void psfile::tensorshade(const pen& pentype, const array& pens,
   ColorSpace colorspace=maxcolorspace2(pens);
   checkColorSpace(colorspace);
 
-  // The 16 control points of each patch, in the order they are written.
-  constexpr size_t npoints=16;
-  mem::vector<pair> points;
-  points.reserve(npoints*size);
-  double norm=0.0;
-  for(size_t i=0; i < size; i++) {
-    path g=read<path>(boundaries,i);
-    if(!(g.cyclic() && g.size() == 4))
-      reportError("specify cyclic path of length 4");
-    for(Int j=4; j > 0; --j) {
-      points.push_back(g.point(j));
-      points.push_back(g.precontrol(j));
-      points.push_back(g.postcontrol(j-1));
-    }
-    if(nz == 0) { // Coons patch
-      for(Int j=0; j < 4; ++j)
-        points.push_back(coonsInterior(g,j));
-    } else {
-      array *zi=read<array *>(z,i);
-      if(checkArray(zi) != 4)
-        reportError("specify 4 internal control points for each path");
-      points.push_back(read<pair>(zi,0));
-      points.push_back(read<pair>(zi,3));
-      points.push_back(read<pair>(zi,2));
-      points.push_back(read<pair>(zi,1));
-    }
-  }
-  for(const pair& point : points)
-    norm=max(norm,maxnorm(point));
-  double scale=meshScale(norm);
-
-  beginmeshscale(scale);
   *out << "<< /ShadingType 7" << newl
        << "/ColorSpace /Device" << ColorDeviceSuffix[colorspace] << newl
        << "/DataSource [" << newl;
@@ -566,8 +475,31 @@ void psfile::tensorshade(const pen& pentype, const array& pens,
     // compression (for RGB) afforded by other edge flags really isn't worth
     // the trouble or confusion for the user.
     write(0);
-    for(size_t j=0; j < npoints; ++j)
-      write(scale*points[npoints*i+j]);
+    path g=read<path>(boundaries,i);
+    if(!(g.cyclic() && g.size() == 4))
+      reportError("specify cyclic path of length 4");
+    for(Int j=4; j > 0; --j) {
+      write(g.point(j));
+      write(g.precontrol(j));
+      write(g.postcontrol(j-1));
+    }
+    if(nz == 0) { // Coons patch
+      static double nineth=1.0/9.0;
+      for(Int j=0; j < 4; ++j) {
+        write(nineth*(-4.0*g.point(j)+6.0*(g.precontrol(j)+g.postcontrol(j))
+                      -2.0*(g.point(j-1)+g.point(j+1))
+                      +3.0*(g.precontrol(j-1)+g.postcontrol(j+1))
+                      -g.point(j+2)));
+      }
+    } else {
+      array *zi=read<array *>(z,i);
+      if(checkArray(zi) != 4)
+        reportError("specify 4 internal control points for each path");
+      write(read<pair>(zi,0));
+      write(read<pair>(zi,3));
+      write(read<pair>(zi,2));
+      write(read<pair>(zi,1));
+    }
 
     array *pi=read<array *>(pens,i);
     if(checkArray(pi) != 4)
@@ -582,7 +514,6 @@ void psfile::tensorshade(const pen& pentype, const array& pens,
   *out << "]" << newl
        << ">>" << newl
        << "shfill" << newl;
-  endmeshscale(scale);
 }
 
 void psfile::write(pen *p, size_t ncomponents)
