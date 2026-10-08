@@ -27,11 +27,22 @@ if (ENABLE_GC)
     unset(BUILD_SHARED_LIBS CACHE)
     set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED_LIBS})
 
-    list(APPEND ASY_STATIC_LIBRARIES gc gccpp atomic_ops)
+    list(APPEND ASY_STATIC_LIBRARIES gc atomic_ops)
 
+    # Link gccpp only on Windows, where operator new replacement does not cross
+    # DLL boundaries. Elsewhere its global operator new/delete would route
+    # every allocation in the process -- including those made by dlopened
+    # libraries on their own threads -- through the collector. When one of
+    # those threads (e.g. lavapipe compiling shaders via LLVM) triggers a
+    # collection, bdwgc aborts with "Collecting from unknown thread". asy code
+    # keeps GC pointers in gc-allocated memory (mem:: containers,
+    # gc_allocator), not in default-allocator memory; the autotools build
+    # stopped linking the bundled libgccpp.a in 2007 on that basis.
     if (WIN32)
+        list(APPEND ASY_STATIC_LIBRARIES gccpp)
         list(APPEND ASY_MACROS GC_NOT_DLL)
     endif()
+
     # We use #include <gc.h> as opposed to <gc/gc.h> (and also for other gc include files) to allow
     # linking directly to the compiled source for testing different GC versions.
 
