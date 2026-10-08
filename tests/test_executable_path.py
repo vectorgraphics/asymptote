@@ -92,7 +92,10 @@ for name in os.listdir(srcdir):
     ):
         dst = os.path.join(bindir, name)
         if not os.path.exists(dst):
-            os.symlink(src, dst)
+            try:
+                os.symlink(src, dst)
+            except (OSError, NotImplementedError, AttributeError):
+                shutil.copy2(src, dst)
 
 # A macOS bundle collects them into lib/ beside the binary instead, with the
 # references rewritten to @executable_path/lib/, so that directory travels

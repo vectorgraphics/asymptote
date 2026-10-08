@@ -496,13 +496,23 @@ def is_bundled_lib(name: str) -> bool:
     return False
 
 
+def _symlink_or_copy(src: str, dst: str) -> None:
+    """Create dst pointing at src; fall back to a copy where symlinks are
+    unavailable (Windows without Developer Mode or admin)."""
+    try:
+        os.symlink(src, dst)
+    except (OSError, NotImplementedError, AttributeError):
+        shutil.copy2(src, dst)
+
+
 def copy_bundled_libs(asy_under_test: str, dst_dir: str) -> None:
     """Symlink the shared libraries bundled beside ``asy_under_test`` into dst_dir.
 
     None of them is plain.asy, so staging them cannot change which candidate
     resolveSysdir() selects -- only whether the process gets far enough to
     report.  Symlinks keep the dynamic linker satisfied without consuming
-    space on (possibly small) tmpfs mounts.
+    space on (possibly small) tmpfs mounts; a copy is the fallback for
+    platforms without symlink permission.
     """
     os.makedirs(dst_dir, exist_ok=True)
     srcdir = os.path.dirname(asy_under_test)
@@ -511,7 +521,7 @@ def copy_bundled_libs(asy_under_test: str, dst_dir: str) -> None:
         if is_bundled_lib(name) and os.path.isfile(src):
             dst = os.path.join(dst_dir, name)
             if not os.path.exists(dst):
-                os.symlink(src, dst)
+                _symlink_or_copy(src, dst)
     # A macOS bundle collects them into lib/ beside the binary instead, with the
     # references rewritten to @executable_path/lib/, so that directory travels
     # whole.  The guard keeps the destination fresh, so copytree needs no
