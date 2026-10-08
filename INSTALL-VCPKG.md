@@ -32,7 +32,7 @@ Then run
 
 ```bash
 mkdir -p cmake-build-linux/release
-cmake --preset linux/release 
+cmake --preset linux/release
 cmake --build --preset linux/release --target asy-with-basefiles
 ```
 
@@ -93,7 +93,7 @@ for my (Jamie's) setup:
 ### Additional build information
 
 One can specify additional package string (this is useful for CI for denoting build revision).
-To do this, add a file called `asy-pkg-version-suffix.cmake` with a cmake command 
+To do this, add a file called `asy-pkg-version-suffix.cmake` with a cmake command
 ```cmake
 set(ASY_VERSION_SUFFIX "<custom version suffix>")
 ```
@@ -110,7 +110,7 @@ single test `bundled.asy.checktests`. The other `bundled.asy.*` tests cover the
 `collections` error messages, `getExecutablePath()`, the relocatable sysdir
 matrix and `wce`; they all carry the label `asy-check-tests`.
 
-CTest never builds anything, so build the `asy-check-test-deps` target first —
+CTest never builds anything, so build the `asy-check-test-deps` target first --
 `asy-with-basefiles` is enough to *run* asy, but not to run every test.
 
 ```bash

@@ -36,7 +36,7 @@ Asymptote with the CMake + vcpkg toolchain. It mirrors the Linux CI environment
   the build runs as `vscode`.
 - **CPU rendering** (`Dockerfile` + `devcontainer.json`): Mesa's software
   rasterizers are installed and forced on so the Vulkan/OpenGL renderers can
-  produce rasterized images without a GPU — `mesa-vulkan-drivers` (lavapipe) for
+  produce rasterized images without a GPU -- `mesa-vulkan-drivers` (lavapipe) for
   Vulkan, `libgl1-mesa-dri` (llvmpipe) for OpenGL, plus `xvfb` for the X display
   the GL path needs. See [CPU rendering](#cpu-rendering-llvmpipe--lavapipe).
 - **Documentation toolchain:** LaTeX + Ghostscript + texinfo are baked into the
@@ -49,10 +49,10 @@ Asymptote with the CMake + vcpkg toolchain. It mirrors the Linux CI environment
   and are resolved automatically by CMake during configure.
 - **Python developer virtualenv** (`post-create.sh`): a venv is created at
   `~/.venv/asymptote` with the packages from [`requirements-dev.txt`](../requirements-dev.txt)
-  (linting tools — black, isort, pylint — plus `jinja2`, which the `libsystemd`
+  (linting tools -- black, isort, pylint -- plus `jinja2`, which the `libsystemd`
   vcpkg port's meson build needs at configure time). VS Code is pointed at it via
   `python.defaultInterpreterPath`, and it is auto-activated in integrated
-  terminals. It lives *outside* the workspace on purpose — see
+  terminals. It lives *outside* the workspace on purpose -- see
   [Python virtualenv](#python-virtualenv) below.
 
 ## Getting started
@@ -61,7 +61,7 @@ Open the repository in VS Code and choose **"Reopen in Container"** (or use the
 Dev Containers CLI). Once the container is up:
 
 ```bash
-# Configure (first run downloads + builds vcpkg deps — this can take a while)
+# Configure (first run downloads + builds vcpkg deps -- this can take a while)
 cmake --preset linux/release
 
 # Build the asy binary plus base files
@@ -101,19 +101,19 @@ If you want a leaner image without these (they add several GB), set the
 
 The container has no GPU, but it can still exercise the Vulkan and OpenGL
 renderers via Mesa's software rasterizers and write the result to a rasterized
-file (PNG, etc.). This is for *testing* the renderers — producing and inspecting
-images — not for interactive viewing.
+file (PNG, etc.). This is for *testing* the renderers -- producing and inspecting
+images -- not for interactive viewing.
 
 What's set up for you (see [`Dockerfile`](./Dockerfile) and
 [`devcontainer.json`](./devcontainer.json)):
 
-- **lavapipe** (`mesa-vulkan-drivers`) — Mesa's software Vulkan driver.
+- **lavapipe** (`mesa-vulkan-drivers`) -- Mesa's software Vulkan driver.
   `VK_ICD_FILENAMES` is pinned to its ICD
   (`/usr/share/vulkan/icd.d/lvp_icd.x86_64.json`) so device selection is
   deterministic.
-- **llvmpipe** (`libgl1-mesa-dri`) — Mesa's software OpenGL rasterizer, forced
+- **llvmpipe** (`libgl1-mesa-dri`) -- Mesa's software OpenGL rasterizer, forced
   on with `LIBGL_ALWAYS_SOFTWARE=true` and `GALLIUM_DRIVER=llvmpipe`.
-- **xvfb** — a virtual X server, because asy's OpenGL renderer always opens a
+- **xvfb** -- a virtual X server, because asy's OpenGL renderer always opens a
   (hidden) GLFW window and so needs a display. Vulkan export renders to
   offscreen buffers and needs no display.
 
@@ -149,11 +149,11 @@ twice on stderr:
 
     error: XDG_RUNTIME_DIR not set in the environment.
 
-Despite the `error:` prefix this is **not** an asy error and **not** fatal — the
+Despite the `error:` prefix this is **not** an asy error and **not** fatal -- the
 render still succeeds and the PNG is written. The message comes from
 `libwayland`: Mesa's Vulkan WSI probes for a Wayland session during instance
 creation by calling `wl_display_connect()`, and libwayland prints this when
-`XDG_RUNTIME_DIR` is unset (any Vulkan program does it here — e.g. `vulkaninfo`
+`XDG_RUNTIME_DIR` is unset (any Vulkan program does it here -- e.g. `vulkaninfo`
 prints the same). This container therefore sets `XDG_RUNTIME_DIR` (in
 [`devcontainer.json`](./devcontainer.json), with the directory created by
 [`post-create.sh`](./post-create.sh)), which silences it; the line above only
@@ -161,29 +161,29 @@ appears if you unset that variable or run in an environment that lacks it (in
 which case `export XDG_RUNTIME_DIR=/tmp/runtime-vscode` makes it go away). It is
 safe to ignore.
 
-**Gotcha — Vulkan render hangs forever (the `device_select` layer).** Mesa ships
+**Gotcha -- Vulkan render hangs forever (the `device_select` layer).** Mesa ships
 an implicit Vulkan layer, `VK_LAYER_MESA_device_select`, that during
 `vkEnumeratePhysicalDevices()` connects to the X server named by `DISPLAY` (VS
 Code sets `DISPLAY=:0`) to learn which GPU drives the display so it can rank
-devices. This container has no working X server — only a stale
-`/tmp/.X11-unix/X0` socket with nothing behind it — so the layer's
+devices. This container has no working X server -- only a stale
+`/tmp/.X11-unix/X0` socket with nothing behind it -- so the layer's
 `xcb_wait_for_reply()` blocks in `poll()` and the render hangs indefinitely
 (intermittently, depending on the socket's state). A backtrace of the stuck
-process shows `xcb_wait_for_reply` → `libVkLayer_MESA_device_select.so` →
-`vkEnumeratePhysicalDevices` → `AsyVkRender::pickPhysicalDevice`.
+process shows `xcb_wait_for_reply` -> `libVkLayer_MESA_device_select.so` ->
+`vkEnumeratePhysicalDevices` -> `AsyVkRender::pickPhysicalDevice`.
 [`devcontainer.json`](./devcontainer.json) disables the layer with
 `VK_LOADER_LAYERS_DISABLE=VK_LAYER_MESA_device_select` (it has nothing to select
-anyway — `VK_ICD_FILENAMES` pins the single lavapipe device). If you hit this in
+anyway -- `VK_ICD_FILENAMES` pins the single lavapipe device). If you hit this in
 an environment without that variable, `export
 VK_LOADER_LAYERS_DISABLE=VK_LAYER_MESA_device_select` (or `unset DISPLAY`) before
 rendering.
 
-**Gotcha — stale workspace renderer libs / current directory.** asy locates the
+**Gotcha -- stale workspace renderer libs / current directory.** asy locates the
 renderer library through its search path, which is tried in order: the *current
 directory* first, then `-dir`, then the system dir. An autotools `make` in the
 workspace leaves `libasyvulkan.so` / `libasyopengl.so` in the repo root; built
 on the host they are usually incompatible with the container
-(`GLIBCXX_… not found`). Running the container's `asy` *from the workspace root*
+(`GLIBCXX_... not found`). Running the container's `asy` *from the workspace root*
 picks up those stale copies first and fails to render. Avoid this by running
 from another directory (as above), or remove the host-built
 `/workspaces/asymptote/libasy*.so`. The out-of-workspace build installs its own
@@ -192,7 +192,7 @@ finds the correct one from any non-workspace directory.
 
 **PNG driver.** asy defaults to the Ghostscript `png16malpha` device, which
 Ubuntu 22.04's stock Ghostscript (9.55) does not provide (`Unknown device:
-png16malpha` → `shipout failed`). The `Dockerfile` builds a current Ghostscript
+png16malpha` -> `shipout failed`). The `Dockerfile` builds a current Ghostscript
 from source and puts it ahead of the apt one on `PATH`, so the default driver
 works and no `-pngdriver` override is needed. (This newer `gs` is part of the
 doc toolchain, so it is present only when `INSTALL_DOC_DEPS=true`, the default;
@@ -202,8 +202,8 @@ ever do hit a `png16malpha` error, fall back with `-pngdriver pngalpha` or
 
 **Note (Vulkan version).** asy requests Vulkan 1.4
 (`apiVersion=VK_API_VERSION_1_4` in `vkrender.cc`, VMA configured for 1.4) while
-Ubuntu 22.04's lavapipe advertises 1.3. In practice this works — the loader
-tolerates an application requesting a higher API version than the device — and
+Ubuntu 22.04's lavapipe advertises 1.3. In practice this works -- the loader
+tolerates an application requesting a higher API version than the device -- and
 rendering succeeds on lavapipe. If a future change makes asy hard-require 1.4
 device features, install modern Mesa from the `kisak-mesa` PPA (the Linux
 analogue of building Mesa from source as `doc/lavapipe.txt` does on macOS).
@@ -213,7 +213,7 @@ analogue of building Mesa from source as `doc/lavapipe.txt` does on macOS).
 `devcontainer.json` is an open spec ([containers.dev](https://containers.dev/)),
 not a VS Code feature, so the same config works from other tooling:
 
-- **The `devcontainer` CLI** — the editor-agnostic reference implementation.
+- **The `devcontainer` CLI** -- the editor-agnostic reference implementation.
   Build/start the container and get a shell in it with nothing but Docker (or
   Podman) and Node:
 
@@ -223,12 +223,12 @@ not a VS Code feature, so the same config works from other tooling:
   devcontainer exec --workspace-folder . bash   # shell inside; run cmake/ctest here
   ```
 
-- **JetBrains IDEs** (IntelliJ family, **CLion** — relevant for this C++
+- **JetBrains IDEs** (IntelliJ family, **CLion** -- relevant for this C++
   project) read `devcontainer.json` natively. The `customizations.vscode` block
   is simply ignored by them, not an error.
 
 - **Visual Studio 2022** (17.4+) supports dev containers for C++ projects that
-  use CMake Presets — which this repo does. Enable the *Linux and embedded
+  use CMake Presets -- which this repo does. Enable the *Linux and embedded
   development with C++* workload, install Docker Desktop, and VS drives the
   container as a remote build target (it likewise ignores the VS-Code-specific
   `customizations`). See Microsoft's
@@ -237,7 +237,7 @@ not a VS Code feature, so the same config works from other tooling:
 - **GitHub Codespaces** uses this `devcontainer.json` directly as the cloud-hosted
   equivalent.
 
-Coverage varies by tool — VS Code and the CLI are the most complete — but the
+Coverage varies by tool -- VS Code and the CLI are the most complete -- but the
 core fields this config relies on (`build`/`Dockerfile`, `runArgs`,
 `containerEnv`, `mounts`, `postCreateCommand`) are honored broadly.
 
@@ -261,7 +261,7 @@ docker ps   # note the container NAME the `devcontainer up` step created
 M-x find-file RET /docker:<NAME>:/workspaces/asymptote/README.md
 ```
 
-Use `/podman:<NAME>:…` under rootless Podman. Emacs runs on the host while
+Use `/podman:<NAME>:...` under rootless Podman. Emacs runs on the host while
 Eglot/LSP, `M-x compile`, and shells (`M-x shell`) all execute *inside* the
 container over TRAMP, so the build matches everyone else's. Community packages
 [`devcontainer.el`](https://github.com/lina-bh/devcontainer.el) and
@@ -304,13 +304,13 @@ rebuild. See the `mounts` entry in `devcontainer.json`.
 ## Nested sandboxes (bubblewrap) and `/proc` masking
 
 Some tools run their own [bubblewrap](https://github.com/containers/bubblewrap)
-(`bwrap`) sandbox *inside* this container — Claude Code is one. A bwrap sandbox
+(`bwrap`) sandbox *inside* this container -- Claude Code is one. A bwrap sandbox
 creates a new PID namespace and mounts a fresh procfs into it, and the kernel
 only permits that nested `mount -t proc` when the container's existing `/proc`
 is **fully visible** (no masked sub-paths).
 
 Rootless **Podman** masks paths under `/proc` (`/proc/sys`, `/proc/kcore`,
-`/proc/irq`, …) with read-only / tmpfs overmounts, so the nested mount fails
+`/proc/irq`, ...) with read-only / tmpfs overmounts, so the nested mount fails
 with:
 
     Can't mount proc on /newroot/proc: Operation not permitted
@@ -318,20 +318,20 @@ with:
 The fix is to unmask `/proc` for the container (no full `--privileged` needed).
 Because that slightly widens what the container can see, it is **off by
 default** and opt-in via a **host** environment variable, read when the
-container is created — set it in the environment that launches VS Code or the
+container is created -- set it in the environment that launches VS Code or the
 Dev Containers CLI, then rebuild/reopen the container:
 
 | Runtime | Set on the host | Effect |
 |---------|-----------------|--------|
 | **Podman** (rootless) | `ASY_DEVCONTAINER_SECURITY_OPT=unmask=/proc/*` | drops only the `/proc` masks |
 | **Docker** | `ASY_DEVCONTAINER_SECURITY_OPT=systempaths=unconfined` | unmasks all of `/proc` and `/sys` (broader; Docker has no `unmask=`) |
-| _unset (default)_ | — | expands to `no-new-privileges=false`, a no-op on both runtimes |
+| _unset (default)_ | -- | expands to `no-new-privileges=false`, a no-op on both runtimes |
 
 If you do not run a nested sandbox inside the container, leave it unset. The
-variable feeds the `runArgs` `${localEnv:…}` substitution in
+variable feeds the `runArgs` `${localEnv:...}` substitution in
 [`devcontainer.json`](./devcontainer.json).
 
-> **Where to set it:** `${localEnv:…}` reads the environment of whatever
+> **Where to set it:** `${localEnv:...}` reads the environment of whatever
 > *launches* VS Code or the Dev Containers CLI, which is not always your shell.
 >
 > - **Launched from a terminal** (`code .`): export it from your shell rc file
@@ -345,7 +345,7 @@ variable feeds the `runArgs` `${localEnv:…}` substitution in
 > - **Launched from a desktop launcher / dock icon**: that process does **not**
 >   inherit your shell rc files, so set it in your login (graphical-session)
 >   environment instead. On Linux, add a line to `~/.config/environment.d/*.conf`
->   and log out and back in. This is systemd, not a shell — use **no** `export`
+>   and log out and back in. This is systemd, not a shell -- use **no** `export`
 >   and **no** quotes:
 >
 >   ```ini
@@ -361,21 +361,21 @@ variable feeds the `runArgs` `${localEnv:…}` substitution in
 
 After the standard provisioning, `post-create.sh` runs every `*.sh` file in
 `.devcontainer/local/` (if that directory exists), in sorted order. The
-executable bit is not required — each hook is invoked via `bash`, so `chmod +x`
-is unnecessary. This is where personal, optional setup lives — it is
+executable bit is not required -- each hook is invoked via `bash`, so `chmod +x`
+is unnecessary. This is where personal, optional setup lives -- it is
 intentionally separate from the shared container definition, so it never affects
 other developers or CI. A hook that exits non-zero is reported but does not abort
 the rest of provisioning.
 
-Everything in `local/` is gitignored **except** a committed template pair —
+Everything in `local/` is gitignored **except** a committed template pair --
 [`local/README.example.md`](./local/README.example.md) and
-`local/example-hook.sh.example` — which documents the hook contract and gives a
+`local/example-hook.sh.example` -- which documents the hook contract and gives a
 starting point to copy. Your own `README.md` and `*.sh` hooks there stay private.
 
 ## Out-of-workspace build directory
 
 The workspace is bind-mounted from the host, so anything CMake writes under
-`cmake-build-linux/` is visible on the host too — which makes it easy to
+`cmake-build-linux/` is visible on the host too -- which makes it easy to
 accidentally launch a container-built `asy` (linked against the container's
 libraries) outside the container.
 
@@ -391,9 +391,9 @@ additionally enable `ccache` (whose cache is a persistent volume), so although
 the build trees themselves are not persisted across container rebuilds,
 recompiles stay cheap:
 
-- **`linux/release/devcontainer`** — the full vcpkg build, in
+- **`linux/release/devcontainer`** -- the full vcpkg build, in
   `~/.local/asy-build/release`.
-- **`linux/sandbox/devcontainer`** — the no-vcpkg sandbox build, in
+- **`linux/sandbox/devcontainer`** -- the no-vcpkg sandbox build, in
   `~/.local/asy-build/sandbox` (see [Sandbox build](#sandbox-build-no-network)).
 
 ```bash
@@ -403,7 +403,7 @@ ctest --test-dir ~/.local/asy-build/release/
 ```
 
 (`asy-with-basefiles` is enough to *run* asy, but `ctest` never builds anything,
-so build `asy-check-test-deps` before testing — see
+so build `asy-check-test-deps` before testing -- see
 [Testing](../INSTALL-VCPKG.md#testing) for the test names and for running a
 subset of the `.asy` tests.)
 
@@ -418,7 +418,7 @@ run in a no-network sandbox (e.g. a coding agent's bash sandbox). The
 the `Dockerfile` and disables the features whose deps only come through vcpkg
 (`ENABLE_VULKAN`, `ENABLE_FFTW3`, `ENABLE_EIGEN3`, `ENABLE_LSP`,
 `ENABLE_ASY_CXXTEST`, `ENABLE_DOCGEN`, `ENABLE_MISCFILES_GEN`). Coverage is
-partial, but it exercises the bulk of `cmake-scripts/` end-to-end — enough to
+partial, but it exercises the bulk of `cmake-scripts/` end-to-end -- enough to
 catch most build-script regressions without leaving the sandbox.
 
 The relocated `linux/sandbox/devcontainer` variant (from the hook above) keeps

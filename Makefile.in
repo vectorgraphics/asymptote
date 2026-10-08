@@ -16,8 +16,6 @@ ASYGLVERSION = @ASYGLVERSION@
 GC = gc
 GCOPTIONS = @GCOPTIONS@
 GCLIB = @GCLIB@
-GCPPLIB = @GCPPLIB@
-GCLIBS = $(GCPPLIB) $(GCLIB)
 # The settings that decide whether an already-built gc can still be linked
 # against asy: the macOS architecture and deployment flags, and gc's own
 # configure options.  Optimization flags and the compilers are left out, since
@@ -26,7 +24,7 @@ GCLIBS = $(GCPPLIB) $(GCLIB)
 GCBUILDFLAGS = $(MACOS_CFLAGS) $(GCOPTIONS)
 GCSTAMP = gc-build-flags.txt
 LFLAGS = @LDFLAGS@
-LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS) @LSPLIBS@
+LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIB) @LSPLIBS@
 CXX_STANDARD = @CXX_STANDARD@
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 LSP_ROOT=@LSP_ROOT@
@@ -37,7 +35,7 @@ BISON ?= bison
 
 # Libraries needed to make asymptote.so.
 # We have to remove OpenGL, threading, GC, etc from this.
-SHAREDLIBS = $(filter-out -lglut -lglfw -GL -pthread $(GCLIBS), $(LIBS))
+SHAREDLIBS = $(filter-out -lglut -lglfw -GL -pthread $(GCLIB), $(LIBS))
 
 vpath %.cc prc
 vpath %.cc thirdparty_impl/tinyexr_impl/src

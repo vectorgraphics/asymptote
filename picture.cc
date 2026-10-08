@@ -665,7 +665,10 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   cmd.push_back("-dMaxSubsetPct=100");
   cmd.push_back("-dEncodeColorImages="+compress);
   cmd.push_back("-dEncodeGrayImages="+compress);
-  cmd.push_back("-dCompatibilityLevel=1.5");
+  if(getSetting<double>("render") == 0)
+    cmd.push_back("-dCompatibilityLevel=1.4");
+  else
+    cmd.push_back("-dCompatibilityLevel=1.5");
   cmd.push_back("-dTransferFunctionInfo=/Apply");
   if(!getSetting<bool>("autorotate"))
     cmd.push_back("-dAutoRotatePages=/None");
