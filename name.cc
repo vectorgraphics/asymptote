@@ -166,7 +166,12 @@ record *qualifiedName::castToRecord(types::ty *t)
       return 0;
     default:
       em.error(qualifier->getPos());
-      em << "type '" << *t << "' is not a structure";
+      if (t->kind == ty_array &&
+          ((types::array *)t)->celltype &&
+          ((types::array *)t)->celltype->kind == ty_inferred)
+        em << "var[] does not support \x27" << id << "\x27";
+      else
+        em << "type '" << *t << "' is not a structure";
       return 0;
   }
 }

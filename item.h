@@ -199,6 +199,25 @@ private:
   };
 };
 
+// A self-describing value for the `var` (ty_inferred) type in COMPACT mode,
+// where vm::item is a bare union with no type tag.  A `var` value in the VM
+// is a pointer to a tagged_var.  The tag stores the full types::ty * pointer
+// as an Int (both are 64-bit), giving access to both the ty_kind (for fast
+// dispatch) and the full type (for record method lookup).
+//
+// Invariant: tagged_var* values only appear in var[] array elements and
+// as rest-arg values passed to write_var.  var[] arrays are immutable
+// after creation (no push/insert/delete/append), so every element is
+// guaranteed to be a tagged_var*.  No code path can place a raw value
+// where a tagged_var* is expected.
+struct tagged_var : public gc {
+  Int tag;        // types::ty * of the original value (reinterpreted as Int)
+  item value;     // the actual value
+
+  tagged_var() : tag(0), value() {}
+  tagged_var(Int tag, item value) : tag(tag), value(value) {}
+};
+
 #ifdef SIMPLE_FRAME
 // In the simple implementation, a frame is just an array of items.
 typedef item vmFrame;
