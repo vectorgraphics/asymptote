@@ -1,5 +1,11 @@
 name: initialize-env
 description: Initialize environment
+inputs:
+  vcpkg-cache:
+    description: >
+      Restore the vcpkg cache. Pass 'false' in a job that never runs vcpkg
+      install.
+    default: 'true'
 runs:
   using: 'composite'
   steps:
@@ -7,13 +13,5 @@ runs:
       shell: pwsh
       run: choco install ninja -y
 
-    - name: Cache Vcpkg
-      id: cache-vcpkg
-      uses: actions/cache@v4
-      with:
-        path: ~\AppData\Local\vcpkg\archives
-        # Key on the manifest so new/changed dependencies get re-cached; the
-        # restore-keys prefix falls back to the most recent compatible cache.
-        key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
-        restore-keys: |
-          ${{ runner.os }}-vcpkg-
+    - uses: ./.github/actions/vcpkg-cache-restore
+      if: inputs.vcpkg-cache == 'true'
