@@ -77,8 +77,10 @@ shutil.copy2(asy, staged_asy)
 # The shared libraries a deployment bundles beside the executable travel with
 # it, or the staged copy is not the shape under test -- and on Windows does not
 # reach main() at all (0xC0000135).  None of them is plain.asy, so none can
-# change which directory resolveSysdir() picks.  macOS needs both suffixes,
-# since dyld loads either; everything else takes the ELF .so default, FreeBSD
+# change which directory resolveSysdir() picks.  Symlinks are sufficient: the
+# dynamic linker follows them to the real files, and they take no meaningful
+# space on (possibly small) tmpfs mounts.  macOS needs both suffixes, since
+# dyld loads either; everything else takes the ELF .so default, FreeBSD
 # included (its sys.platform carries the major version, so it could not be a key
 # here anyway).
 suffixes = {"win32": (".dll",), "darwin": (".dylib", ".so")}.get(sys.platform, (".so",))
@@ -88,7 +90,9 @@ for name in os.listdir(srcdir):
     if (name.lower().endswith(suffixes) or ".so." in name.lower()) and os.path.isfile(
         src
     ):
-        shutil.copy2(src, os.path.join(bindir, name))
+        dst = os.path.join(bindir, name)
+        if not os.path.exists(dst):
+            os.symlink(src, dst)
 
 # A macOS bundle collects them into lib/ beside the binary instead, with the
 # references rewritten to @executable_path/lib/, so that directory travels
