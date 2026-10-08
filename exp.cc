@@ -49,6 +49,26 @@ void exp::transToType(coenv &e, types::ty *target)
 {
   types::ty *ct=cgetType(e);
 
+  if (target->kind == ty_inferred) {
+    // A `var` value must be a tagged_var* so that its type travels with it
+    // (see item.h).  This invariant is what lets write_var dispatch on
+    // heterogeneous `var` arguments in COMPACT mode, where vm::item carries
+    // no type tag.  If the value is already a `var` (hence already a
+    // tagged_var*), pass it through unchanged; otherwise wrap the value in a
+    // tagged_var keyed by its computed type.  Wrapping here (at the point a
+    // value enters a var-typed slot) guarantees that every var parameter,
+    // field, and local holds a tagged_var*, even when the value is a raw
+    // literal such as the argument to `void h(var x) { write(..., x); }`.
+    if (ct->kind == ty_inferred) {
+      transAsType(e, ct);
+    } else {
+      transAsType(e, ct);
+      e.c.encode(inst::intpush, (Int)(intptr_t)ct);
+      e.c.encode(inst::builtin, run::makeTaggedVar);
+    }
+    return;
+  }
+
   if (equivalent(target, ct)) {
     transAsType(e, target);
     return;

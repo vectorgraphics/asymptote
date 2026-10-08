@@ -3,9 +3,6 @@
   var x;
 }
 {
-  var f() { return 4; }
-}
-{
   (var)3;
   var x = (var)3;
   int y = (var)3;
@@ -14,16 +11,8 @@
   var[] b = new var[] { 1, 2, 3};
   var[] b = new int[] { 1, 2, 3};
   var[] c = {1, 2, 3};
-  new var[] { 4, 5, 6};
   int[] d = new var[] { 4, 5, 6};
   new var;
-}
-{
-  int f(var x = 3) { return 0; }
-}
-{
-  int f, f();
-  var g = f;
 }
 {
   struct A { int f, f(); }
@@ -53,3 +42,17 @@
 
   temp[v]= v;
 }
+{
+  var[] b = new var[] {1};
+  b.push(2);
+  b.insert(0, 3);
+  var[] c = new var[] {4};
+  b.append(c);
+}
+{
+  var[] b = new var[] {1, 2.5, "s"};
+  var x = b[0];
+  int i = (int)x;
+  real r = (real)x;
+}
+

@@ -109,6 +109,9 @@ public:
   localAccess(Int offset, frame *level)
     : offset(offset), level(level) {}
 
+  Int getOffset() const { return offset; }
+  frame *getLevel() const { return level; }
+
   void encode(action act, position pos, coder &e);
   void encode(action act, position pos, coder &e, frame *top);
 };

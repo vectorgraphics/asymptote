@@ -366,7 +366,21 @@ trans::varEntry *array::virtualField(symbol id, signature *sig)
   FIELD(IntArray, SYM(keys), arrayKeys);
   RWFIELD(primBoolean, SYM(cyclic), arrayCyclicFlag, arraySetCyclicFlag);
 
-#define ASIGFIELD(name, sym, func) DSIGFIELD(name, sym, func)
+  // var[] arrays hold tagged_var* elements.  We register only the
+  // methods that do not *add* a value: initialized (a query), and
+  // pop/delete (which only remove elements).  The adders -- push,
+  // insert, append -- would introduce raw untagged values and are
+  // therefore unavailable.  An allowlist keeps any future mutating
+  // method excluded automatically.
+  bool isVarArray = (celltype && celltype->kind == ty_inferred);
+
+#define ASIGFIELD(name, sym, func)                                     \
+  if (isVarArray &&                                                    \
+      !(sym == SYM(initialized) || sym == SYM(pop) ||                 \
+         sym == SYM(delete)))                                          \
+    ;                                                                  \
+  else                                                                 \
+    DSIGFIELD(name, sym, func)
 
   SIGFIELDLIST
 

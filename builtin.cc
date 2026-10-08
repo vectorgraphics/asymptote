@@ -858,6 +858,12 @@ void base_venv(venv &ve)
           formal(primString(),SYM(s)),
           formal(voidFileFunction(),SYM(suffix),true));
 
+  // Generic heterogeneous write: write(file?=, string=, ... var[])
+  // Matches any combination of writeable scalar types not covered by
+  // the type-specific write overloads above.
+  addRestFunc(ve, run::write_var, primVoid(), SYM(write),
+              formal(inferredArray()));
+
   addWrite(ve,write<transform>,primTransform(),transformArray());
   addWrite(ve,write<guide *>,primGuide(),guideArray());
   addWrite(ve,write<pen>,primPen(),penArray());

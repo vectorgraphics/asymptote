@@ -32,6 +32,8 @@ bool castable(env &e, formal& target, formal& source) {
 }
 
 score castScore(env &e, formal& target, formal& source) {
+  if (target.t->kind == ty_inferred && source.t->kind != ty_overloaded)
+    return CAST;
   return equivalent(target.t,source.t) ? EXACT :
     (!target.Explicit &&
      e.fastCastable(target.t,source.t)) ? CAST : FAIL;
@@ -47,7 +49,9 @@ void restArg::transMaker(coenv &e, Int size, bool rest) {
 
 void restArg::trans(coenv &e, temp_vector &temps)
 {
-  // Push the values on the stack.
+  // Push the values on the stack.  For a var (ty_inferred) rest cell, each
+  // argument translates via transToType(var), which yields a tagged_var* (see
+  // exp.cc), so the resulting var[] array is already self-describing.
   for (mem::list<arg *>::iterator p = inits.begin(); p != inits.end(); ++p)
     (*p)->trans(e, temps);
 

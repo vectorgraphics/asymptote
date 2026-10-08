@@ -25,6 +25,11 @@ using camp::tab;
 vm::array *copyArray(vm::array *a);
 vm::array *copyArray2(vm::array *a);
 
+// Call the write(file, suffix) method on a record.
+// frame is the record's vmFrame, t is the record type (ty with kind ty_record),
+// f is the target file.
+void callRecordWriteMethod(vm::stack *s, vm::vmFrame *frame, types::ty *t, camp::file *f);
+
 template<class T, class U, template <class S> class op>
 void arrayOp(vm::stack *s)
 {
@@ -317,6 +322,128 @@ void searchArray(vm::stack *s)
 extern string emptystring;
 
 void writestring(vm::stack *s);
+
+// Generic write fallback for heterogeneous var[] rest arguments.
+// Receives a single array of tagged_var* elements (the rest parameter).
+// Each element is a tagged_var whose ->tag is the full types::ty * pointer
+// (stored as an Int) and whose ->value holds the actual vm::item.
+// Scans the elements to identify the file (first, if ty_file), label
+// (next, if ty_string), optional suffix (last, if ty_function/ty_code),
+// and data values (everything else).
+inline void write_var(vm::stack *s)
+{
+  array *arr = pop<array *>(s);
+  size_t n = checkArray(arr);
+
+
+  // Helper: resolve the effective type and value for element i.
+  // The tag in tagged_var is the types::ty * pointer as an Int.
+  //
+  // Invariant: a `var` value is always a tagged_var*, and it is wrapped
+  // exactly once, at the point a value enters a var-typed slot (see
+  // exp.cc, transToType for ty_inferred).  A concrete value passed here
+  // is therefore a tagged_var keyed by a concrete type, and a `var` value
+  // passed here is the already-wrapped tagged_var* itself.  The ty_inferred
+  // branch below is defensive: it dereferences one level in the (unreachable)
+  // case an element is still tagged var.
+  struct tv_res {
+    types::ty *t;
+    vm::item value;
+  };
+  auto getTV = [&](size_t i) -> tv_res {
+    vm::tagged_var *tv = vm::get<vm::tagged_var *>((*arr)[i]);
+    types::ty *t = (types::ty *)(intptr_t)tv->tag;
+    if (t->kind == types::ty_inferred) {
+      vm::tagged_var *inner = vm::get<vm::tagged_var *>(tv->value);
+      return { (types::ty *)(intptr_t)inner->tag, inner->value };
+    }
+    return { t, tv->value };
+  };
+
+  camp::file *f = &camp::Stdout;
+  bool defaultfile = true;
+  string label;
+  bool haveLabel = false;
+  size_t i = 0;
+
+  // Consume optional file (first element, if file type).
+  if (i < n && getTV(i).t->kind == types::ty_file) {
+    vm::item vi = getTV(i).value;
+    f = isdefault(vi) ? &camp::Stdout : vm::get<camp::file *>(vi);
+    defaultfile = isdefault(vi);
+    ++i;
+  }
+
+  // Consume optional label (next element, if string).
+  if (i < n && getTV(i).t->kind == types::ty_string) {
+    label = vm::get<string>(getTV(i).value);
+    haveLabel = true;
+    ++i;
+  }
+
+  // Check for suffix (last element, if function or code type).
+  vm::callable *suffix = NULL;
+  size_t dataEnd = n;
+  if (n > 0) {
+    size_t last = n - 1;
+    if (last >= i) {
+      tv_res lastTV = getTV(last);
+      if (lastTV.t->kind == types::ty_function || lastTV.t->kind == types::ty_code) {
+        suffix = vm::get<vm::callable *>(lastTV.value);
+        dataEnd = n - 1;
+      }
+    }
+  }
+
+  if (!f->isOpen() || !f->enabled()) return;
+
+  if (haveLabel && label != "") f->write(label);
+
+  // Write one data value (and the separating tab, unless it is the first
+  // value written) to f.  Returns true if anything was written, false if the
+  // value's type is not one write_var can write and it should be skipped.
+  // This single switch is the source of truth for writeable kinds: to make
+  // write_var handle a new type, add its case here and only here.
+  bool firstWritten = true;
+  auto beginValue = [&]() {
+    if (!firstWritten) f->write(tab);
+    firstWritten = false;
+  };
+  auto writeOne = [&](tv_res tv) -> bool {
+    switch (tv.t->kind) {
+      case types::ty_boolean:   beginValue(); f->write(vm::get<bool>(tv.value)); return true;
+      case types::ty_Int:       beginValue(); f->write(vm::get<Int>(tv.value)); return true;
+      case types::ty_real:      beginValue(); f->write(vm::get<double>(tv.value)); return true;
+      case types::ty_pair:      beginValue(); f->write(vm::get<camp::pair>(tv.value)); return true;
+      case types::ty_triple:    beginValue(); f->write(vm::get<camp::triple>(tv.value)); return true;
+      case types::ty_string:    beginValue(); f->write(vm::get<string>(tv.value)); return true;
+      case types::ty_pen:       beginValue(); f->write(vm::get<camp::pen>(tv.value)); return true;
+      case types::ty_guide:     beginValue(); f->write(vm::get<camp::guide *>(tv.value)); return true;
+      case types::ty_transform: beginValue(); f->write(vm::get<camp::transform>(tv.value)); return true;
+      case types::ty_record: {
+        vm::vmFrame *recFrame = vm::get<vm::vmFrame *>(tv.value);
+        if (!recFrame) return false;
+        beginValue();
+        callRecordWriteMethod(s, recFrame, tv.t, f);
+        return true;
+      }
+      default:
+        return false;
+    }
+  };
+
+  for (size_t d = 0; d < dataEnd - i; ++d)
+    writeOne(getTV(i + d));
+
+  if (f->text()) {
+    if (suffix) {
+      s->push(f);
+      suffix->call(s);
+    } else if (defaultfile) {
+      try { f->writeline(); } catch (quit&) {}
+    }
+  }
+}
 
 template<class T>
 void write(vm::stack *s)
