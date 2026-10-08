@@ -10285,7 +10285,7 @@ surface surface(real[][] f, pair a, pair b, splinetype xsplinetype,
 surface surface(real[][] f, real[] x, real[] y,
                 splinetype xsplinetype=Spline,
                 splinetype ysplinetype=xsplinetype,
-                bool[][] cond={})
+                bool[][] cond={});
 surface surface(triple[][] f, bool[][] cond={});
 @end verbatim
 
@@ -10326,8 +10326,8 @@ surface surface(triple f(pair z), real[] u, real[] v,
                 bool cond(pair z)=null);
 @end verbatim
 
-A version with no splinetype parameter interpolates linearly; the others
-interpolate with the splinetypes given, such as @code{Spline} for a smooth
+A @code{surface} constructor with no splinetype parameter interpolates linearly;
+the others interpolate with the splinetypes given, such as @code{Spline} for a smooth
 surface.
 The boolean array or function @code{cond} can be used to control which
 surface mesh cells are actually drawn (by default all mesh cells are

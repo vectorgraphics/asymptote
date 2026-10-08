@@ -1723,7 +1723,7 @@ bool vperiodic(triple[][] a) {
   return true;
 }
 
-// return the surface described by a matrix f
+// return the surface described by a matrix f interpolated bilinearly
 surface surface(picture pic=currentpicture, triple[][] f, bool[][] cond={})
 {
   if(!rectangular(f)) abort("matrix is not rectangular");
@@ -2036,7 +2036,7 @@ surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
   return surface(pic,f,x,y,xsplinetype,ysplinetype,cond);
 }
 
-// return the surface described by a real matrix f, interpolated linearly.
+// return the surface described by a real matrix f, interpolated bilinearly.
 surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
                 bool[][] cond={})
 {
@@ -2066,7 +2066,7 @@ surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
 }
 
 // return the surface described by a parametric function f evaluated at u and v
-// and interpolated linearly.
+// and interpolated bilinearly.
 surface surface(picture pic=currentpicture, triple f(pair z),
                 real[] u, real[] v, bool cond(pair z)=null)
 {
@@ -2093,8 +2093,8 @@ surface surface(picture pic=currentpicture, triple f(pair z),
 }
 
 // return the surface described by a parametric function f over box(a,b),
-// interpolated linearly. The parameters are sampled at evenly spaced values,
-// whatever the scaling of pic.
+// interpolated bilinearly. The parameters are sampled at evenly spaced values,
+// independent of the scaling of pic.
 surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
                 int nu=nmesh, int nv=nu, bool cond(pair z)=null)
 {
@@ -2230,7 +2230,7 @@ surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
 }
 
 // return the surface described by a real function f over box(a,b),
-// interpolated linearly.
+// interpolated bilinearly.
 surface surface(picture pic=currentpicture, real f(pair z), pair a, pair b,
                 int nx=nmesh, int ny=nx, bool cond(pair z)=null)
 {
