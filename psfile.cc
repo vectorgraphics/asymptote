@@ -406,27 +406,26 @@ void psfile::gradientshade(bool axial, ColorSpace colorspace,
 }
 
 // Ghostscript's pdfwrite device stores the coordinates of a mesh shading
-// (types 4-7) as fixed-point numbers in the user space current at shfill.
-// Their resolution and range depend on the version: 10.05 rounds them to
-// whole PostScript points, which leaves visible gaps between adjacent
-// patches, while 10.02 keeps a fraction of a point but cannot represent a
-// coordinate beyond meshMax. To retain subpoint precision in both, the
-// coordinates are written relative to the center of the shading and
-// multiplied by a power of two, in a user space shifted and scaled to
-// compensate. The factor is reduced for a shading too large for its
-// coordinates to stay within meshMax.
+// (types 4-7) as signed meshBits-bit integers in the user space
+// current at shfill, which rounds them to whole PostScript points and leaves
+// visible gaps between adjacent patches. To retain subpoint precision, the
+// coordinates are written multiplied by a power of two, in a user space
+// scaled by its inverse. The factor is reduced for coordinates that would
+// otherwise leave the representable range.
 namespace {
 
-// The coordinates written must not exceed meshMax in absolute value.
-constexpr double meshMax=16384.0;
+constexpr int meshBits=24;
+// The scaled coordinates must not exceed meshMax in absolute value.
+constexpr double meshMax=(double) ((1 << (meshBits-1))-1);
 constexpr double maxMeshScale=1024.0;
 
-struct meshFrame {
-  pair origin;
-  double scale=1.0;
-
-  pair operator() (const pair& z) const {return scale*(z-origin);}
-};
+double meshScale(double norm)
+{
+  double scale=maxMeshScale;
+  while(scale > 1.0 && scale*norm > meshMax)
+    scale *= 0.5;
+  return scale;
+}
 
 double maxnorm(const pair& z)
 {
@@ -444,45 +443,18 @@ pair coonsInterior(const path& g, Int j)
                  -g.point(j+2));
 }
 
-// Return the frame in which to write the coordinates of a shading with the
-// given points. The origin has integer coordinates so that the shadings of
-// adjacent patches round a vertex they share to the same position.
-meshFrame meshframe(const mem::vector<pair>& points)
-{
-  meshFrame frame;
-  if(points.empty()) return frame;
-  pair m=points[0];
-  pair M=m;
-  for(const pair& z : points) {
-    m=pair(min(m.getx(),z.getx()),min(m.gety(),z.gety()));
-    M=pair(max(M.getx(),z.getx()),max(M.gety(),z.gety()));
-  }
-  pair origin(floor(0.5*(m.getx()+M.getx())),floor(0.5*(m.gety()+M.gety())));
-  double norm=max(maxnorm(m-origin),maxnorm(M-origin));
-  double scale=maxMeshScale;
-  while(scale > 1.0 && scale*norm > meshMax)
-    scale *= 0.5;
-  if(scale > 1.0) {
-    frame.origin=origin;
-    frame.scale=scale;
-  }
-  return frame;
-}
-
 } // namespace
 
-void psfile::beginmeshframe(const pair& origin, double scale)
+void psfile::beginmeshscale(double scale)
 {
   if(scale != 1.0)
-    *out << origin.getx() << " " << origin.gety() << " translate 1 " << scale
-         << " div dup scale" << newl;
+    *out << "1 " << scale << " div dup scale" << newl;
 }
 
-void psfile::endmeshframe(const pair& origin, double scale)
+void psfile::endmeshscale(double scale)
 {
   if(scale != 1.0)
-    *out << scale << " dup scale " << -origin.getx() << " " << -origin.gety()
-         << " translate" << newl;
+    *out << scale << " dup scale" << newl;
 }
 
 void psfile::gouraudshade(const pen& pentype,
@@ -498,19 +470,18 @@ void psfile::gouraudshade(const pen& pentype,
   setfirstopacity(pens);
   ColorSpace colorspace=maxcolorspace(pens);
 
-  mem::vector<pair> points;
-  points.reserve(size);
+  double norm=0.0;
   for(size_t i=0; i < size; i++)
-    points.push_back(read<pair>(vertices,i));
-  meshFrame frame=meshframe(points);
+    norm=max(norm,maxnorm(read<pair>(vertices,i)));
+  double scale=meshScale(norm);
 
-  beginmeshframe(frame.origin,frame.scale);
+  beginmeshscale(scale);
   *out << "<< /ShadingType 4" << newl
        << "/ColorSpace /Device" << ColorDeviceSuffix[colorspace] << newl
        << "/DataSource [" << newl;
   for(size_t i=0; i < size; i++) {
     write(read<Int>(edges,i));
-    write(frame(points[i]));
+    write(scale*read<pair>(vertices,i));
     pen *p=read<pen *>(pens,i);
     p->convert();
     if(!p->promote(colorspace))
@@ -522,7 +493,7 @@ void psfile::gouraudshade(const pen& pentype,
   *out << "]" << newl
        << ">>" << newl
        << "shfill" << newl;
-  endmeshframe(frame.origin,frame.scale);
+  endmeshscale(scale);
 }
 
 void psfile::vertexpen(array *pi, int j, ColorSpace colorspace)
@@ -558,6 +529,7 @@ void psfile::tensorshade(const pen& pentype, const array& pens,
   constexpr size_t npoints=16;
   mem::vector<pair> points;
   points.reserve(npoints*size);
+  double norm=0.0;
   for(size_t i=0; i < size; i++) {
     path g=read<path>(boundaries,i);
     if(!(g.cyclic() && g.size() == 4))
@@ -580,9 +552,11 @@ void psfile::tensorshade(const pen& pentype, const array& pens,
       points.push_back(read<pair>(zi,1));
     }
   }
-  meshFrame frame=meshframe(points);
+  for(const pair& point : points)
+    norm=max(norm,maxnorm(point));
+  double scale=meshScale(norm);
 
-  beginmeshframe(frame.origin,frame.scale);
+  beginmeshscale(scale);
   *out << "<< /ShadingType 7" << newl
        << "/ColorSpace /Device" << ColorDeviceSuffix[colorspace] << newl
        << "/DataSource [" << newl;
@@ -593,7 +567,7 @@ void psfile::tensorshade(const pen& pentype, const array& pens,
     // the trouble or confusion for the user.
     write(0);
     for(size_t j=0; j < npoints; ++j)
-      write(frame(points[npoints*i+j]));
+      write(scale*points[npoints*i+j]);
 
     array *pi=read<array *>(pens,i);
     if(checkArray(pi) != 4)
@@ -608,7 +582,7 @@ void psfile::tensorshade(const pen& pentype, const array& pens,
   *out << "]" << newl
        << ">>" << newl
        << "shfill" << newl;
-  endmeshframe(frame.origin,frame.scale);
+  endmeshscale(scale);
 }
 
 void psfile::write(pen *p, size_t ncomponents)
