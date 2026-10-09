@@ -97,7 +97,7 @@ baseline requires).
 
 Both are fixed by updating your vcpkg clone to a commit at or newer than the baseline,
 then re-bootstrapping. Use the **explicit path** to your clone, not `$env:VCPKG_ROOT`
-(see the note under "Environment set up" — inside the VS Developer PowerShell that variable
+(see the note under "Environment set up" -- inside the VS Developer PowerShell that variable
 points at Visual Studio's bundled vcpkg, which is not a git repository):
 
 ```powershell
@@ -106,7 +106,7 @@ git -C C:\path\to\your\vcpkg pull
 ```
 
 Then re-run the `cmake --preset ...` command, first confirming that `$env:VCPKG_ROOT`
-points at the clone you just updated — inside the VS Developer PowerShell it does not by
+points at the clone you just updated -- inside the VS Developer PowerShell it does not by
 default, and configuring against the bundled snapshot will reproduce the same error. This
 can recur whenever the pinned baseline is bumped to a commit newer than your last pull.
 
@@ -119,11 +119,11 @@ Our recommendation is to use clang/LLVM tools, available [here](https://releases
 Once your compiler is installed, there are a few options.
 
 - (Recommended) Ensure `clang++.exe` is available in `PATH` and leave `GCCCOMPAT_CXX_COMPILER_FOR_MSVC` unset.
-  The build script will automatically try to locate `clang++.exe` or `g++.exe` in places 
+  The build script will automatically try to locate `clang++.exe` or `g++.exe` in places
   within `PATH`.
-  Be warned that the build script may select a different compiler depending 
+  Be warned that the build script may select a different compiler depending
   on if there are other compilers available in `PATH`.
-- (Only if you require a specific clang++ compiler) Set `GCCCOMPAT_CXX_COMPILER_FOR_MSVC` environment variable to 
+- (Only if you require a specific clang++ compiler) Set `GCCCOMPAT_CXX_COMPILER_FOR_MSVC` environment variable to
   your GCC-compatible C++ compiler. For example
   ```powershell
   $env:GCCCOMPAT_CXX_COMPILER_FOR_MSVC="<LLVM install location>/bin/clang++.exe
@@ -165,7 +165,7 @@ This prompt should put you in to 64-bit Visual Studio Developer PowerShell.
 > - **The `cmake --preset` step below reads its vcpkg toolchain from `$env:VCPKG_ROOT`**
 >   (see `base/vcpkg` in `cmake-preset-files/base-presets.json`). Left as the Developer
 >   PowerShell set it, configuration silently uses the bundled snapshot instead of your
->   clone — so a clone you just updated has no effect, and the baseline errors described
+>   clone -- so a clone you just updated has no effect, and the baseline errors described
 >   under "Troubleshooting: vcpkg baseline / version errors during configure" can persist
 >   or appear for the first time.
 >
@@ -178,7 +178,7 @@ This prompt should put you in to 64-bit Visual Studio Developer PowerShell.
 >
 > Verify with `$env:VCPKG_ROOT` before running `cmake --preset ...`; it should print your
 > clone, not a path under the Visual Studio installation directory. Note that setting the
-> variable at user or machine scope is not sufficient — the Developer PowerShell overrides
+> variable at user or machine scope is not sufficient -- the Developer PowerShell overrides
 > it in-process every time it is launched, so this must be redone in each such shell.
 > When maintaining your clone (fetch, pull, bootstrap), prefer its explicit path anyway.
 
@@ -253,7 +253,7 @@ python.exe buildtool.py build
 
 This should build all required GUI files.
 
-## Installation file generation 
+## Installation file generation
 
 #### Prerequisites for installation file generation
 
@@ -291,14 +291,14 @@ for asymptote installation.
 #### Generating the installer file
 
 After building `asy-pre-nsis-targets`, install using CMake.
-Note that this does not install into 
+Note that this does not install into
 the program files directory, but rather, to a "local install root"
 at `<asymptote-repo>/cmake-install-w32-nsis-release/`.
 
-Due to how google test build files are written (as of currently), installing 
+Due to how google test build files are written (as of currently), installing
 every component may result in an error (in particular, with `gmock.lib`).
 This can be remedied by installing only the component needed for installer generation: `asy-pre-nsis`
-To do this, run 
+To do this, run
 
 ```powershell
 cmake --install cmake-build-msvc/release --component asy-pre-nsis
