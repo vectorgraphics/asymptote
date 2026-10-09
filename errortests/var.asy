@@ -56,3 +56,15 @@
   real r = (real)x;
 }
 
+{
+  void g() {}
+  void h(var x) {}
+  h(g());
+  h(null);
+  var[] a = {g()};
+  var[] b = new var[] {null};
+  write(g());
+  write(1, g());
+  var f() { return g(); }
+  void k(var x=g()) {}
+}

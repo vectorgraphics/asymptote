@@ -59,8 +59,17 @@ void exp::transToType(coenv &e, types::ty *target)
     // value enters a var-typed slot) guarantees that every var parameter,
     // field, and local holds a tagged_var*, even when the value is a raw
     // literal such as the argument to `void h(var x) { write(..., x); }`.
+    // A void expression pushes no value to wrap, and null has no type to
+    // tag, so neither can enter a var slot.  This is the one place every
+    // such value passes through (arguments, default arguments, return
+    // values, and array initializers).
     if (ct->kind == ty_inferred) {
       transAsType(e, ct);
+    } else if (ct->kind == ty_error) {
+      // The error has already been reported.
+    } else if (ct->kind == ty_void || ct->kind == ty_null) {
+      em.error(getPos());
+      em << "cannot cast '" << *ct << "' to 'var'";
     } else {
       transAsType(e, ct);
       e.c.encode(inst::intpush, (Int)(intptr_t)ct);

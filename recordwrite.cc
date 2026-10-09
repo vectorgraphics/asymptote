@@ -23,6 +23,13 @@ static void noSuffixBltin(vm::stack *s)
   (void)vm::pop<camp::file *>(s);
 }
 
+bool isWriteSuffixType(types::ty *t)
+{
+  static types::function *suffixType = new types::function(
+    types::primVoid(), types::formal(types::primFile()));
+  return t->kind == types::ty_function && types::equivalent(t, suffixType);
+}
+
 void callRecordWriteMethod(vm::stack *s, vm::vmFrame *frame,
                            types::ty *t, camp::file *f)
 {

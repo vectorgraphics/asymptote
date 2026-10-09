@@ -282,6 +282,36 @@ StartTest("non-suffix function in data position is skipped");
 }
 EndTest();
 
+StartTest("user-defined suffix is called");
+{
+  void bang(file f) { write(f, "!", endl); }
+  file f = output(tmpfile);
+  write(f, 1, "a", bang);
+  close(f);
+  assert(doRead() == "1" + '\t' + "a!");
+}
+EndTest();
+
+StartTest("function in last position that is not a suffix is not called");
+{
+  // Only a void (file) function is a suffix.  Calling any other function
+  // here would hand it a file as its argument and leave its return value on
+  // the stack, corrupting the array being built below.
+  bool called = false;
+  real notSuffix(real x) { called = true; return 7; }
+  int writeIt() {
+    file f = output(tmpfile);
+    write(f, 1, notSuffix);
+    close(f);
+    return 5;
+  }
+  int[] a = {1, writeIt(), 3};
+  assert(!called);
+  assert(a.length == 3 && a[0] == 1 && a[1] == 5 && a[2] == 3);
+  assert(doRead() == "1");
+}
+EndTest();
+
 StartTest("existing type-specific overloads still work");
 {
   int x = 42;

@@ -30,6 +30,9 @@ vm::array *copyArray2(vm::array *a);
 // f is the target file.
 void callRecordWriteMethod(vm::stack *s, vm::vmFrame *frame, types::ty *t, camp::file *f);
 
+// Tests whether t is the type of a write suffix, void (file).
+bool isWriteSuffixType(types::ty *t);
+
 template<class T, class U, template <class S> class op>
 void arrayOp(vm::stack *s)
 {
@@ -328,7 +331,7 @@ void writestring(vm::stack *s);
 // Each element is a tagged_var whose ->tag is the full types::ty * pointer
 // (stored as an Int) and whose ->value holds the actual vm::item.
 // Scans the elements to identify the file (first, if ty_file), label
-// (next, if ty_string), optional suffix (last, if ty_function/ty_code),
+// (next, if ty_string), optional suffix (last, if of type void (file)),
 // and data values (everything else).
 inline void write_var(vm::stack *s)
 {
@@ -381,14 +384,17 @@ inline void write_var(vm::stack *s)
     ++i;
   }
 
-  // Check for suffix (last element, if function or code type).
+  // Check for suffix (last element, if of type void (file)).  The test must
+  // be on the full type recorded in the tag, not just its kind: the callable
+  // is handed a file and expected to return nothing, so calling a function of
+  // any other signature would corrupt the stack.
   vm::callable *suffix = NULL;
   size_t dataEnd = n;
   if (n > 0) {
     size_t last = n - 1;
     if (last >= i) {
       tv_res lastTV = getTV(last);
-      if (lastTV.t->kind == types::ty_function || lastTV.t->kind == types::ty_code) {
+      if (isWriteSuffixType(lastTV.t)) {
         suffix = vm::get<vm::callable *>(lastTV.value);
         dataEnd = n - 1;
       }

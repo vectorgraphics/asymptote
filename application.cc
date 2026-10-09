@@ -32,8 +32,11 @@ bool castable(env &e, formal& target, formal& source) {
 }
 
 score castScore(env &e, formal& target, formal& source) {
-  if (target.t->kind == ty_inferred && source.t->kind != ty_overloaded)
-    return CAST;
+  // Anything that can be wrapped in a tagged_var converts to var; see
+  // exp::transToType for why void and null cannot.
+  if (target.t->kind == ty_inferred)
+    return (source.t->kind == ty_overloaded || source.t->kind == ty_void ||
+            source.t->kind == ty_null) ? FAIL : CAST;
   return equivalent(target.t,source.t) ? EXACT :
     (!target.Explicit &&
      e.fastCastable(target.t,source.t)) ? CAST : FAIL;
