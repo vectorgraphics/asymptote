@@ -1,6 +1,6 @@
 # Building Asymptote with VCPKG and CMake
 
-## Dependency management
+## Dependency Management
 
 The recommended way is to use [vcpkg](https://vcpkg.io/). Clone vcpkg to your system, run bootstrap script and ensure
 `VCPKG_ROOT` environment is exported as set as path to your vcpkg repository. For example,
@@ -11,12 +11,12 @@ git clone https://github.com/microsoft/vcpkg.git
 cd vcpkg && ./bootstrap-vcpkg.sh
 export VCPKG_ROOT=~/dev/vcpkg
 ```
-# On Windows
+## On Windows
 See INSTALL-WIN.md for windows-specific instructions.
 
 ## Linux-specific dependency (Experimental)
 
-Make sure flex and bison is available in path, if not, install them manually first.
+Make sure flex and bison are available in PATH, if not, install them manually first.
 
 ```bash
 # This is specific to arch linux, other distributions might use a different name
@@ -32,7 +32,7 @@ Then run
 
 ```bash
 mkdir -p cmake-build-linux/release
-cmake --preset linux/release 
+cmake --preset linux/release
 cmake --build --preset linux/release --target asy-with-basefiles
 ```
 
@@ -93,7 +93,7 @@ for my (Jamie's) setup:
 ### Additional build information
 
 One can specify additional package string (this is useful for CI for denoting build revision).
-To do this, add a file called `asy-pkg-version-suffix.cmake` with a cmake command 
+To do this, add a file called `asy-pkg-version-suffix.cmake` with a cmake command
 ```cmake
 set(ASY_VERSION_SUFFIX "<custom version suffix>")
 ```
@@ -103,12 +103,29 @@ suffix is "+debug" for debug builds, or an empty string for all other builds, in
 
 ## Testing
 
-Asymptote unit testing is integrated into CMake's `CTest` framework.
-All Asymptote `.asy` based tests are named `asy.<test dirname>.<test file name>`
-excluding `*.asy` extension.
+Asymptote unit testing is integrated into CMake's `CTest` framework. The
+Asymptote `.asy` tests are not registered with CTest one by one; the whole
+`tests/` tree is driven by `tests/run_asy_tests.py`, which CTest runs as the
+single test `bundled.asy.checktests`. The other `bundled.asy.*` tests cover the
+`collections` error messages, `getExecutablePath()`, the relocatable sysdir
+matrix and `wce`; they all carry the label `asy-check-tests`.
 
-These tests can be run by CTest. For example, after building on linux/release,
+CTest never builds anything, so build the `asy-check-test-deps` target first --
+`asy-with-basefiles` is enough to *run* asy, but not to run every test.
 
 ```bash
-ctest --test-dir cmake-build-linux/release/ -R "asy.types.*"
+cmake --build --preset linux/release --target asy-check-test-deps
+ctest --test-dir cmake-build-linux/release/                     # everything
+ctest --test-dir cmake-build-linux/release/ -L asy-check-tests  # only the asy suites
+```
+
+To run just a few `.asy` tests, call the runner directly with `--tests-list`, a
+semicolon-separated list of `<test dirname>/<test file name>` paths without the
+`.asy` extension:
+
+```bash
+python3 tests/run_asy_tests.py \
+    --asy cmake-build-linux/release/asy \
+    --asy-base-dir cmake-build-linux/release/base \
+    --tests-list "types/cast;types/var"
 ```

@@ -509,10 +509,6 @@ void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
               formal(primFile(),SYM(file),true),
               formal(primString(),SYM(s),true),
               formal(t2,SYM(a),false,true));
-  addFunc(ve,writeArray2<T>,primVoid(),SYM(write),
-          formal(primFile(),SYM(file),true),t3);
-  addFunc(ve,writeArray3<T>,primVoid(),SYM(write),
-          formal(primFile(),SYM(file),true),t4);
 }
 
 inline double abs(pair z) {
@@ -857,6 +853,12 @@ void base_venv(venv &ve)
           formal(primFile(),SYM(file),true),
           formal(primString(),SYM(s)),
           formal(voidFileFunction(),SYM(suffix),true));
+
+  // Generic heterogeneous write: write(file?=, string=, ... var[])
+  // Matches any combination of writeable scalar types not covered by
+  // the type-specific write overloads above.
+  addRestFunc(ve, run::write_var, primVoid(), SYM(write),
+              formal(inferredArray()));
 
   addWrite(ve,write<transform>,primTransform(),transformArray());
   addWrite(ve,write<guide *>,primGuide(),guideArray());

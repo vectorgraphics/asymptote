@@ -15,11 +15,10 @@
 #include "mathop.h"
 #include "predicates.h"
 #include "rounding.h"
+#include "bound.h"
 
 namespace camp {
 
-const double Fuzz2=1000.0*DBL_EPSILON;
-const double Fuzz=sqrt(Fuzz2);
 const double Fuzz4=Fuzz2*Fuzz2;
 const double BigFuzz=10.0*Fuzz2;
 const double fuzzFactor=100.0;
@@ -751,7 +750,6 @@ double path::directiontime(const pair& dir) const {
 
 // {{{ Path Intersection Calculations
 
-const unsigned maxdepth=DBL_MANT_DIG;
 const unsigned mindepth=maxdepth-16;
 
 void roots(std::vector<double> &roots, double a, double b, double c, double d)
@@ -947,7 +945,7 @@ void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
   }
 }
 
-void intersections(std::vector<double>& S, path& g,
+void intersections(std::vector<double>& S, const path& g,
                    const pair& p, const pair& q, double fuzz)
 {
   double fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
@@ -959,7 +957,7 @@ void intersections(std::vector<double>& S, path& g,
 }
 
 bool intersections(double &s, double &t, std::vector<double>& S,
-                   std::vector<double>& T, path& p, path& q,
+                   std::vector<double>& T, const path& p, const path& q,
                    double fuzz, bool single, bool exact, unsigned depth)
 {
   if(errorstream::interrupt) throw interrupted();

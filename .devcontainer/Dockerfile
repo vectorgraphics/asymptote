@@ -117,12 +117,14 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 # Mark the pre-installed vcpkg clone as a safe git directory. The base image's
 # vcpkg lives at /usr/local/vcpkg owned by root:vcpkg; the build runs as the
 # `vscode` user (a member of the vcpkg group, so it can write), but git refuses
-# to operate on a directory it does not own ("detected dubious ownership").
-# That refusal makes vcpkg's *own* internal `git fetch` fail when it needs to
-# pull the builtin-baseline pinned in vcpkg.json (which is newer than the
-# commit baked into the base image's shallow clone), surfacing as:
-#   error: ... failed to `git show` versions/baseline.json ... fix with `git fetch`
-# Configuring this system-wide lets vcpkg fetch the baseline on demand.
+# to operate on a directory it does not own ("detected dubious ownership"), and
+# both vcpkg's own internal git calls and our baseline sync run as that user.
+#
+# This does NOT, on its own, get the pinned builtin-baseline into the image's
+# shallow vcpkg clone -- vcpkg does not fetch it on demand. Syncing the checkout
+# to the baseline is the job of .devcontainer/sync-vcpkg-baseline.sh (run on
+# container create and start); see that script for why fetching the baseline
+# commit alone is not sufficient either.
 RUN git config --system --add safe.directory /usr/local/vcpkg
 
 # Modern CMake. The base image ships CMake 3.22 (Ubuntu 22.04), but our

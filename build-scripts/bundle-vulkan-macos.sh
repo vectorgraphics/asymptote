@@ -100,7 +100,60 @@ for bundled in lib/*.dylib; do
     done
 done
 
-# Re-sign everything.
+# Every reference now points at @executable_path/lib/, so nothing consults
+# LC_RPATH any more.  Strip the absolute rpaths the linker recorded -- the
+# Vulkan SDK and GLFW build directories, in the *builder's* home -- from
+# everything that ships: they leak the builder's username and layout to every
+# user of the .dmg, and they are a search path that would come back to life if
+# a later change reintroduced an unbundled @rpath reference.  Makefile.in's
+# portability check does not catch them; it reads otool -L, not otool -l.
+# @executable_path/ and @loader_path/ rpaths relocate with the bundle and are
+# kept.
+shipped_bins="$all_bins"
+for bundled in lib/*.dylib; do
+    shipped_bins="$shipped_bins $bundled"
+done
+
+# Refuse to strip while something still needs them: dyld resolves @rpath/ only
+# against LC_RPATH, so removing them out from under a surviving reference yields
+# a binary that cannot start.  Makefile.in rejects such a reference too, but
+# only after this script has run.
+stray_refs=$(otool -L $shipped_bins 2>/dev/null \
+    | awk '{print $1}' \
+    | grep '^@rpath/' \
+    | sort -u || true)
+if [ -n "$stray_refs" ]; then
+    echo "ERROR: these @rpath references were not rewritten to @executable_path/lib/:"
+    echo "$stray_refs"
+    echo "Fix: extend the lib(glfw|vulkan|SPIRV|glslang) pattern near the top of"
+    echo "this script so the library is bundled, or link against a system library."
+    exit 1
+fi
+
+for bin in $shipped_bins; do
+    # One call per LC_RPATH: install_name_tool removes a single load command at
+    # a time, and a universal binary reports the same path once per slice.
+    while :; do
+        rpath=$(otool -l "$bin" \
+            | awk '/LC_RPATH/{f=1} f && /[[:space:]]path /{print $2; f=0}' \
+            | grep -v '^@' \
+            | head -1)
+        [ -n "$rpath" ] || break
+        if ! install_name_tool -delete_rpath "$rpath" "$bin"; then
+            echo "ERROR: could not remove the rpath $rpath from $bin."
+            echo "Fix options:"
+            echo "  - check that $bin is writable and was not already signed;"
+            echo "  - a path containing a space arrives here truncated at the"
+            echo "    space (this script reads otool output field by field, as"
+            echo "    it does for the rpaths it searches above), so rebuild with"
+            echo "    the Vulkan SDK and GLFW at paths without spaces."
+            exit 1
+        fi
+    done
+done
+
+# Re-sign everything.  This must stay last: the rewrites and the rpath removal
+# above both invalidate any existing signature.
 for bundled in lib/*.dylib; do
     codesign --sign "$CODESIGN_IDENTITY" --force "$bundled" 2>/dev/null || true
 done

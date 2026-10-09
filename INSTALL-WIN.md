@@ -5,7 +5,7 @@
 ### Required Dependencies
 Ensure the following is installed:
 - Visual Studio 2022+ or Visual Studio 2022+ build tools.
-  - Both can be found at [here](https://visualstudio.microsoft.com/downloads/).
+  - Both can be found [here](https://visualstudio.microsoft.com/downloads/).
 - CMake
   - (Recommended way) Visual Studio/Visual Studio Build Tools provides bundled CMake as a selectable component
   - Otherwise, CMake can be found [here](https://cmake.org/)
@@ -48,11 +48,11 @@ This script automatically checks that you have vcpkg, and if not, clones and boo
 Additionally, this script automatically locates your Visual Studio installation and
 establishes all required environment variables.
 
-## Notes on Dependency management
+## Notes on Dependency Management
 
 The recommended way is to use [vcpkg](https://vcpkg.io/).
 See `INSTALL.md` for more details.
-On windows, one may run
+On Windows, one may run
 
 ```powershell
 git clone https://github.com/microsoft/vcpkg.git
@@ -73,6 +73,43 @@ VCPKG_ROOT entry, or by PowerShell,
 
 Otherwise, you can also set VCPKG_ROOT for everyone on your machine.
 
+### Troubleshooting: vcpkg baseline / version errors during configure
+
+If `cmake --preset ...` fails during "Running vcpkg install", it usually means your
+local vcpkg checkout is older than the `builtin-baseline` commit pinned in `vcpkg.json`.
+This shows up in one of two forms:
+
+```
+error: while checking out baseline from commit '<hash>', failed to `git show` versions/baseline.json.
+This may be fixed by fetching commits with `git fetch`.
+fatal: path 'versions/baseline.json' exists on disk, but not in '<hash>'
+```
+
+(the baseline commit itself is missing locally), or
+
+```
+error: no version database entry for <port> at <version>.
+note: updating vcpkg by rerunning bootstrap-vcpkg may resolve this failure.
+```
+
+(the commit is present but vcpkg's on-disk version database is older than the version the
+baseline requires).
+
+Both are fixed by updating your vcpkg clone to a commit at or newer than the baseline,
+then re-bootstrapping. Use the **explicit path** to your clone, not `$env:VCPKG_ROOT`
+(see the note under "Environment set up" -- inside the VS Developer PowerShell that variable
+points at Visual Studio's bundled vcpkg, which is not a git repository):
+
+```powershell
+git -C C:\path\to\your\vcpkg pull
+& "C:\path\to\your\vcpkg\bootstrap-vcpkg.bat"
+```
+
+Then re-run the `cmake --preset ...` command, first confirming that `$env:VCPKG_ROOT`
+points at the clone you just updated -- inside the VS Developer PowerShell it does not by
+default, and configuring against the bundled snapshot will reproduce the same error. This
+can recur whenever the pinned baseline is bumped to a commit newer than your last pull.
+
 ## Using CMake
 
 ### Installing GCC-compatible C++ compiler
@@ -82,11 +119,11 @@ Our recommendation is to use clang/LLVM tools, available [here](https://releases
 Once your compiler is installed, there are a few options.
 
 - (Recommended) Ensure `clang++.exe` is available in `PATH` and leave `GCCCOMPAT_CXX_COMPILER_FOR_MSVC` unset.
-  The build script will automatically try to locate `clang++.exe` or `g++.exe` in places 
+  The build script will automatically try to locate `clang++.exe` or `g++.exe` in places
   within `PATH`.
-  Be warned that the build script may select a different compiler depending 
+  Be warned that the build script may select a different compiler depending
   on if there are other compilers available in `PATH`.
-- (Only if you require a specific clang++ compiler) Set `GCCCOMPAT_CXX_COMPILER_FOR_MSVC` environment variable to 
+- (Only if you require a specific clang++ compiler) Set `GCCCOMPAT_CXX_COMPILER_FOR_MSVC` environment variable to
   your GCC-compatible C++ compiler. For example
   ```powershell
   $env:GCCCOMPAT_CXX_COMPILER_FOR_MSVC="<LLVM install location>/bin/clang++.exe
@@ -113,6 +150,37 @@ $vsInfo = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
 ```
 
 This prompt should put you in to 64-bit Visual Studio Developer PowerShell.
+
+> **Important: `VCPKG_ROOT` inside the VS Developer PowerShell.**
+> The Visual Studio Developer PowerShell sets `VCPKG_ROOT` to Visual Studio's own
+> bundled vcpkg (e.g. `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\vcpkg`),
+> overriding any user- or machine-scope `VCPKG_ROOT` for the duration of that shell.
+> That bundled copy is a stripped-down snapshot with no `.git` and no `bootstrap-vcpkg.bat`.
+>
+> This affects the build in two ways:
+>
+> - Maintenance commands such as `git -C $env:VCPKG_ROOT pull` or
+>   `& "$env:VCPKG_ROOT\bootstrap-vcpkg.bat"` fail outright, since the target is not a
+>   git repository and has no bootstrap script.
+> - **The `cmake --preset` step below reads its vcpkg toolchain from `$env:VCPKG_ROOT`**
+>   (see `base/vcpkg` in `cmake-preset-files/base-presets.json`). Left as the Developer
+>   PowerShell set it, configuration silently uses the bundled snapshot instead of your
+>   clone -- so a clone you just updated has no effect, and the baseline errors described
+>   under "Troubleshooting: vcpkg baseline / version errors during configure" can persist
+>   or appear for the first time.
+>
+> After launching the Developer PowerShell, and before configuring, point `VCPKG_ROOT`
+> back at your own clone for the rest of the session:
+>
+> ```powershell
+> $env:VCPKG_ROOT = 'C:\path\to\your\vcpkg'
+> ```
+>
+> Verify with `$env:VCPKG_ROOT` before running `cmake --preset ...`; it should print your
+> clone, not a path under the Visual Studio installation directory. Note that setting the
+> variable at user or machine scope is not sufficient -- the Developer PowerShell overrides
+> it in-process every time it is launched, so this must be redone in each such shell.
+> When maintaining your clone (fetch, pull, bootstrap), prefer its explicit path anyway.
 
 #### Configuring build files
 
@@ -185,7 +253,7 @@ python.exe buildtool.py build
 
 This should build all required GUI files.
 
-## Installation file generation 
+## Installation file generation
 
 #### Prerequisites for installation file generation
 
@@ -223,14 +291,14 @@ for asymptote installation.
 #### Generating the installer file
 
 After building `asy-pre-nsis-targets`, install using CMake.
-Note that this does not install into 
+Note that this does not install into
 the program files directory, but rather, to a "local install root"
 at `<asymptote-repo>/cmake-install-w32-nsis-release/`.
 
-Due to how google test build files are written (as of currently), installing 
+Due to how google test build files are written (as of currently), installing
 every component may result in an error (in particular, with `gmock.lib`).
 This can be remedied by installing only the component needed for installer generation: `asy-pre-nsis`
-To do this, run 
+To do this, run
 
 ```powershell
 cmake --install cmake-build-msvc/release --component asy-pre-nsis

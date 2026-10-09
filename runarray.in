@@ -350,15 +350,6 @@ array *AtA(array *a)
   return c;
 }
 
-double norm(double *a, size_t n)
-{
-  if(n == 0) return 0.0;
-  double M=fabs(a[0]);
-  for(size_t i=1; i < n; ++i)
-    M=::max(M,fabs(a[i]));
-  return M;
-}
-
 double norm(triple *a, size_t n)
 {
   if(n == 0) return 0.0;
@@ -677,6 +668,13 @@ array* :newAppendedArray(array* tail, Int n)
   return a;
 }
 
+// Create a tagged_var from a value and a type tag.
+// tag is the types::ty * pointer reinterpreted as Int.
+tagged_var* :makeTaggedVar(item value, Int tag)
+{
+  return new tagged_var(tag, value);
+}
+
 // Produce an array of n deep copies of value.
 // typeDepth is the true depth of the array determined at compile-time when the
 // operations for the array type are added.  This typeDepth argument is
@@ -848,6 +846,7 @@ callable* :arrayPush(array *a)
 {
   return new thunk(new bfunc(arrayPushHelper),a);
 }
+
 
 // The helper function for the append method that appends b to a.
 void :arrayAppendHelper(array *b, array *a)

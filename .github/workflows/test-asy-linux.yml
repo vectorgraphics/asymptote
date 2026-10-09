@@ -11,6 +11,8 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-linux-env
+        with:
+          vcpkg-cache: 'false'
       - name: Download test artifacts
         uses: actions/download-artifact@v4
         with:
@@ -31,6 +33,8 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-linux-env
+        with:
+          vcpkg-cache: 'false'
       - uses: ./.github/actions/initialize-linux-latex-and-gs
       - name: Download build artifacts
         uses: actions/download-artifact@v4

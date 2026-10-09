@@ -12,24 +12,14 @@ set -euo pipefail
 sudo chown -R vscode:vscode /home/vscode/.cache/vcpkg /home/vscode/.ccache
 
 # ---------------------------------------------------------------------------
-# Ensure the vcpkg builtin-baseline pinned in vcpkg.json is present locally.
+# Sync the vcpkg checkout to the builtin-baseline pinned in vcpkg.json.
 #
-# The base image ships a shallow vcpkg clone whose tip can predate the baseline
-# commit pinned in vcpkg.json. Contrary to the assumption that a `safe.directory`
-# config lets vcpkg fetch it on demand, vcpkg does NOT reliably fetch a missing
-# baseline -- it aborts configure with "failed to `git show`
-# versions/baseline.json ... This may be fixed by fetching commits with
-# `git fetch`". Fetch the pinned commit explicitly so `cmake --preset` works on
-# a fresh container regardless of how old the image's vcpkg clone is. Reading the
-# baseline from vcpkg.json keeps this correct when the pin is later bumped.
+# Lives in its own script because devcontainer.json also runs it on every
+# container *start*: the baseline can be bumped by a commit pulled long after
+# this container was created, and a stale checkout breaks configure. See
+# sync-vcpkg-baseline.sh for what vcpkg actually requires.
 # ---------------------------------------------------------------------------
-VCPKG_DIR="${VCPKG_ROOT:-/usr/local/vcpkg}"
-VCPKG_BASELINE="$(python3 -c 'import json; print(json.load(open("vcpkg.json")).get("builtin-baseline", ""))')"
-if [ -n "$VCPKG_BASELINE" ] \
-    && ! git -C "$VCPKG_DIR" cat-file -e "${VCPKG_BASELINE}^{commit}" 2>/dev/null; then
-    echo "Fetching pinned vcpkg baseline $VCPKG_BASELINE into $VCPKG_DIR"
-    git -C "$VCPKG_DIR" fetch --depth 1 origin "$VCPKG_BASELINE"
-fi
+bash "$(dirname "$0")/sync-vcpkg-baseline.sh"
 
 # ---------------------------------------------------------------------------
 # Runtime dir for the (absent) Wayland session.

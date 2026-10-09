@@ -215,6 +215,10 @@ Int convert(string args=emptystring, string file=emptystring,
   string s=getSetting<string>("convert");
   cmd.push_back(s);
   push_split(cmd,args);
+  for(size_t i=1; i<cmd.size(); ++i) {
+    checkread(cmd[i]);
+    checkwrite(cmd[i]);
+  }
   cmd.push_back(name);
   bool quiet=verbose <= 1;
 
@@ -247,6 +251,10 @@ Int animate(string args=emptystring, string file=emptystring,
     if(s == "magick")
       cmd.push_back("animate");
     push_split(cmd,args);
+    for(size_t i=1; i<cmd.size(); ++i) {
+      checkread(cmd[i]);
+      checkwrite(cmd[i]);
+    }
     cmd.push_back(name);
     return System(cmd,0,false,"animate","your animated GIF viewer");
   }

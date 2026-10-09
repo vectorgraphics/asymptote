@@ -393,13 +393,13 @@ extern const unsigned maxdepth;
 extern const unsigned mindepth;
 extern const char *nopoints;
 
-bool intersect(double& S, double& T, path& p, path& q, double fuzz,
+bool intersect(double& S, double& T, const path& p, const path& q, double fuzz,
                unsigned depth=maxdepth);
 bool intersections(double& s, double& t, std::vector<double>& S,
-                   std::vector<double>& T, path& p, path& q,
+                   std::vector<double>& T, const path& p, const path& q,
                    double fuzz, bool single, bool exact,
                    unsigned depth=maxdepth);
-void intersections(std::vector<double>& S, path& g,
+void intersections(std::vector<double>& S, const path& g,
                    const pair& p, const pair& q, double fuzz);
 
 

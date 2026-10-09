@@ -14,7 +14,10 @@ jobs:
       - name: Configure and build asymptote with compact 0
         run: |
           cmake --preset linux/release/ci/with-ccache/compact-zero
-          cmake --build --preset linux/release/ci/with-ccache/compact-zero --target asy-with-basefiles -j
+          cmake --build --preset linux/release/ci/with-ccache/compact-zero --target asy-check-test-deps -j
+      - name: Save vcpkg cache (even if configure failed)
+        uses: ./.github/actions/vcpkg-cache-save
+        if: always()
       - uses: ./.github/actions/initialize-linux-latex-and-gs
       - name: Run asy check tests
         run: |

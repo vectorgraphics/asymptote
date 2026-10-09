@@ -2,7 +2,7 @@ private import math;
 
 if(settings.v3d) settings.prc=false;
 
-if(prc0() || settings.v3d) {
+if((settings.prc || settings.v3d) && (outformat() == "pdf" || settings.inlineimage)) {
   if(!latex()) {
     settings.prc=false;
     settings.v3d=false;
@@ -2605,7 +2605,7 @@ string embed3D(string prefix, string label=prefix, string text=label,
                light light=currentlight, projection P=currentprojection,
                real viewplanesize=0)
 {
-  if(!prc(format) || Embed == null) return "";
+  if(!prc(format)) return "";
 
   if(width == 0) width=settings.paperwidth;
   if(height == 0) height=settings.paperheight;
@@ -2623,9 +2623,9 @@ string embed3D(string prefix, string label=prefix, string text=label,
 
   shipout3(prefix,f);
 
-  string name=prefix+".js";
+  if(Embed == null) return "";
 
-  if(!settings.inlinetex && !prconly())
+  if(!settings.inlinetex)
     file3.push(prefix+".prc");
 
   static transform3 flipxz=xscale3(-1)*zscale3(-1);
@@ -2635,7 +2635,7 @@ string embed3D(string prefix, string label=prefix, string text=label,
     (light.on() ? "Headlamp" : "None");
   if(defaultembed3Doptions != "") options3 += ","+defaultembed3Doptions;
 
-  if((settings.render < 0 || !settings.embed) && settings.auto3D)
+  if((settings.render != 0 || !settings.embed) && settings.auto3D)
     options3 += ",activate=pagevisible";
   options3 += ",3Dtoolbar="+(settings.toolbar ? "true" : "false")+
     ",label="+label+
@@ -2864,7 +2864,8 @@ object embed(string prefix=outprefix(), string label=prefix,
 
   if(prefix == "") prefix=outprefix();
   bool preview=settings.render > 0 && !prconly();
-  if(prc || settings.v3d) {
+  bool v3d=v3d(format);
+  if(prc || v3d) {
     // The media9.sty package cannot handle spaces or dots in filenames.
     string dir=stripfile(prefix);
     prefix=dir+replace(stripdirectory(prefix),
@@ -2873,7 +2874,7 @@ object embed(string prefix=outprefix(), string label=prefix,
       prefix += "+"+(string) file3.length;
   } else
     preview=false;
-  if(preview || (!prc && settings.render != 0) || settings.v3d) {
+  if(preview || (!prc && settings.render != 0) || v3d) {
     frame f=S.f;
     triple m,M;
     real zcenter;
@@ -2900,7 +2901,7 @@ object embed(string prefix=outprefix(), string label=prefix,
     } else if(M.z >= 0 && !S.pic2.empty()) abort("camera too close");
 
     if(primitive())
-      format=settings.v3d ? "v3d" : settings.outformat;
+      format=v3d ? "v3d" : settings.outformat;
 
     real w=S.width-defaultrender.margin;
     real h=S.height-defaultrender.margin;
@@ -2912,15 +2913,16 @@ object embed(string prefix=outprefix(), string label=prefix,
              w,h,fov,P.zoom,m,M,P.viewportshift,S.viewportmargin,
              T,Tup,Light.background(),Light.position,
              Light.diffuse,view && !preview);
-    if(settings.v3d) {
+    if(v3d && preview) {
       shipout3(prefix,f,format,w,h,fov,P.zoom,m,M,P.viewportshift,S.viewportmargin,
                T,Tup,Light.background(),Light.position,Light.diffuse,view);
     }
-    if(!preview) return F;
+    if(!preview && !v3d) return F;
   }
 
   string image;
-  if((preview || (prc && settings.render == 0)) && settings.embed) {
+  if((preview || ((prc || v3d) && !prconly() && settings.render == 0)) &&
+     settings.embed) {
     image=prefix;
     if(settings.inlinetex) image += "_0";
     image += "."+nativeformat();
@@ -2965,7 +2967,7 @@ shift");
     F.L=embed3D(prefix,label,text=image,S.f,format,
                 S.width-2,S.height-2,options,script,light,Q,viewplanesize);
   }
-  if(settings.v3d) {
+  if(v3d) {
     string content=prefix+".v3d";
     if(!settings.inlinetex) file3.push(content);
     F.L = image == "" ? Embed(content,S.width,S.height) :
@@ -3019,8 +3021,8 @@ frame embedder(object embedder(string prefix, string format),
                string prefix, string format, bool view, light light)
 {
   frame f;
-  bool prc=prc(format) || settings.v3d;
-  if(!prc && settings.render != 0 && !view) {
+  bool format3D=format3D(format);
+  if(!format3D && settings.render != 0 && !view) {
     static int previewcount=0;
     bool keep=prefix != "";
     prefix=outprefix(prefix)+"+"+(string) previewcount;
@@ -3029,7 +3031,7 @@ frame embedder(object embedder(string prefix, string format),
     if(!keep) file3.push(prefix+"."+format);
   }
   object F=embedder(prefix,format);
-  if(prc)
+  if(format3D)
     label(f,F.L);
   else {
     if(settings.render == 0) {

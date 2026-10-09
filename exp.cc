@@ -49,6 +49,41 @@ void exp::transToType(coenv &e, types::ty *target)
 {
   types::ty *ct=cgetType(e);
 
+  if (target->kind == ty_inferred) {
+    // A `var` value must be a tagged_var* so that its type travels with it
+    // (see item.h).  This invariant is what lets write_var dispatch on
+    // heterogeneous `var` arguments in COMPACT mode, where vm::item carries
+    // no type tag.  If the value is already a `var` (hence already a
+    // tagged_var*), pass it through unchanged; otherwise wrap the value in a
+    // tagged_var keyed by its computed type.  Wrapping here (at the point a
+    // value enters a var-typed slot) guarantees that every var parameter,
+    // field, and local holds a tagged_var*, even when the value is a raw
+    // literal such as the argument to `void h(var x) { write(..., x); }`.
+    // A void expression pushes no value to wrap, and null has no type to
+    // tag, so neither can enter a var slot.  This is the one place every
+    // such value passes through (arguments, default arguments, return
+    // values, and array initializers).
+    // An overloaded value (a name binding both a variable and a function)
+    // must be stored as its value (non-function) subtype; the tagged_var
+    // must be keyed by that concrete type, not the overloaded type.
+    ty *vt = ct;
+    if (vt->kind == ty_overloaded)
+      vt = vt->signatureless();
+    if (!vt || vt->kind == ty_error) {
+      // No usable value subtype (or error already reported).
+    } else if (vt->kind == ty_inferred) {
+      transAsType(e, vt);
+    } else if (vt->kind == ty_void || vt->kind == ty_null) {
+      em.error(getPos());
+      em << "cannot cast '" << *vt << "' to 'var'";
+    } else {
+      transAsType(e, vt);
+      e.c.encode(inst::intpush, (Int)(intptr_t)vt);
+      e.c.encode(inst::builtin, run::makeTaggedVar);
+    }
+    return;
+  }
+
   if (equivalent(target, ct)) {
     transAsType(e, target);
     return;
@@ -365,10 +400,15 @@ types::ty *subscriptExp::getType(coenv &e)
 {
   if (!isAnArray(e, object)) {
     ty *t = object->cgetType(e)->signatureless();
-    if (!t || t->kind != ty_record) {
-      return primError();
+    if (!t) return primError();
+    switch (t->kind) {
+      case ty_record:
+        return static_cast<record*>(t)->valType();
+      case types::ty_string:
+        return primString();
+      default:
+        return primError();
     }
-    return static_cast<record*>(t)->valType();
   }
 
   array *a = getArrayType(e);

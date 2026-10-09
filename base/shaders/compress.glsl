@@ -1,6 +1,6 @@
 layout(binding=3, std430) buffer countBuffer
 {
-  uint maxSize;
+  uint maxDepth;
   uint count[];
 };
 

@@ -31,6 +31,7 @@ install: faq
 	$(MAKE) install-prebuilt
 	@if test "$(TEXI2ANY)" != ""; then \
 	  ${INSTALL} -d -m 755 $(docdir); \
+	  rm -rf $(docdir)/asy-faq.html; \
 	  ${INSTALL} -p -m 644 asy-faq.html $(docdir); \
 	fi
 

@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ([2.71])
-AC_INIT([Asymptote],[3.14git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_INIT([Asymptote],[3.16git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -176,18 +176,11 @@ CPPFLAGS=$CPPFLAGS" -I. "
 
 AC_ARG_ENABLE(texlive-build,
 [AS_HELP_STRING(--enable-texlive-build[[[=no]]],
-automatically determine sysdir from kpsewhich)],
+leave ASYMPTOTE_SYSDIR empty and define KPSEWHICH so the binary
+determines sysdir from kpsewhich at runtime)],
 [ if test "x$enableval" = "xyes" ; then
     sysdir=""
-  fi
-])
-
-AC_ARG_ENABLE(relocatable,
-[AS_HELP_STRING(--enable-relocatable[[[=no]]],
-leave ASYMPTOTE_SYSDIR empty so the binary finds its data directory
-relative to its own location at runtime (for portable/staged macOS installs))],
-[ if test "x$enableval" = "xyes" ; then
-    OPTIONS=$OPTIONS"-DIS_RELOCATABLE "
+    OPTIONS=$OPTIONS"-DKPSEWHICH "
   fi
 ])
 
@@ -545,7 +538,6 @@ case "$OSTYPE" in
           if test "x$have_vulkan_hpp" != "xyes"; then
             AC_MSG_NOTICE([*** Could not find vulkan/vulkan.hpp with VK_API_VERSION_1_4: will compile without Vulkan support ***])
           else
-          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
           AC_CHECK_LIB([vulkan], [vkCreateInstance],
           [
           LIBS_SAVE=$LIBS
@@ -644,7 +636,6 @@ case "$OSTYPE" in
               # chained fixups. Add -no_fixup_chains to use traditional fixups
               # which work correctly with dynamic_lookup for dlopen'd libraries.
               SHIM_LDFLAGS="-undefined dynamic_lookup -Wl,-no_fixup_chains"
-              AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL,1,
                              DEFINE([<gl.h> header]))
@@ -698,7 +689,6 @@ CXX_STANDARD=$cxxstd
 AC_SUBST(ASYGLVERSION)
 AC_SUBST(GCOPTIONS)
 AC_SUBST(GCLIB)
-AC_SUBST(GCPPLIB)
 AC_SUBST(LSPLIB)
 AC_SUBST(LSPLIBS)
 AC_SUBST(INCL)

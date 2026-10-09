@@ -79,8 +79,9 @@ void overloadedMessage(file file) {
   endl(file);
 }
 
-void write(suffix suffix=endl) {suffix(stdout);}
 void write(file file, suffix suffix=none) {suffix(file);}
+void write(var[] b) {write(...b);}
+void write(file f, var[] b) {write(f, ...b);}
 
 path box(pair a, pair b)
 {

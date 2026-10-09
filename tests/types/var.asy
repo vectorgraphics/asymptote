@@ -83,4 +83,27 @@ for (int i = 0; i < 100; ++i)
   var x = (int)f;
   assert(x == 4);
 }
+
+// A variable whose name collides with a global function is overloaded
+// (bound to both a value and a function).  It must still be usable as a
+// value in a var position.
+{
+  void h(var x) {}
+  int foo(int x) { return x; }
+  int g(int foo) {
+    h(foo);
+    return foo;
+  }
+  assert(g(5) == 5);
+}
+
+{
+  void h(... var[] a) {}
+  int foo(int x) { return x; }
+  int g(int foo) {
+    h(foo);
+    return foo;
+  }
+  assert(g(5) == 5);
+}
 EndTest();

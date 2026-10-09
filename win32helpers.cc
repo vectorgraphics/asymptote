@@ -200,7 +200,31 @@ string buildWindowsCmd(const mem::vector<string>& command)
   ostringstream out;
   for (auto it= command.begin(); it != command.end(); ++it)
   {
-    out << '"' << *it << '"';
+    out << '"';
+    const string& arg = *it;
+    size_t i = 0;
+    while (i < arg.size()) {
+      if (arg[i] == '\\') {
+        // Count consecutive backslashes
+        size_t start = i;
+        while (i < arg.size() && arg[i] == '\\') ++i;
+        size_t count = i - start;
+        // Double backslashes only if followed by a quote or end of string
+        if (i < arg.size() && arg[i] == '"') {
+          for (size_t j = 0; j < count * 2; ++j) out << '\\';
+        } else {
+          for (size_t j = 0; j < count; ++j) out << '\\';
+        }
+      } else if (arg[i] == '"') {
+        out << '\\';
+        out << '"';
+        ++i;
+      } else {
+        out << arg[i];
+        ++i;
+      }
+    }
+    out << '"';
     if (std::next(it) != command.end())
     {
       out << ' ';

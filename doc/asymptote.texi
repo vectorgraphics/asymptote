@@ -2285,7 +2285,18 @@ character strings in ANSI @code{C}:
 @end itemize
 
 The implicit initializer for strings is the empty string @code{""}.
-Strings may be concatenated with the @code{+} operator. In the following
+Strings may be concatenated with the @code{+} operator.
+
+@cindex @code{[]} @subentry @code{string.operator []}
+@cindex @code{operator []} @subentry @code{string.operator []}
+A single-character substring of a string @code{s} can be accessed with
+@code{s[pos]} for an integer index @code{pos} in the range @code{[-n, n-1]},
+where @code{n} is the length of the string @code{s}. Negative indices count
+from the end of the string, so @code{s[-1]} is the last character of @code{s}.
+The start of the string is @code{s[0]}.
+If @code{pos} is out of range, the empty string @code{""} is returned.
+
+In the following
 string functions, position @code{0} denotes the start of the string:
 @table @code
 
@@ -4179,9 +4190,19 @@ write(file file, string s="", T x, suffix suffix=none, ... T[]);
 write(file file=stdout, string s="", explicit T[] x, ... T[][]);
 write(file file=stdout, T[][]);
 write(file file=stdout, T[][][]);
-write(suffix suffix=endl);
+write(file file=stdout, suffix suffix=endl);
 write(file file, suffix suffix=none);
+write(file file=stdout, ...);
 @end verbatim
+The last form accepts a heterogeneous list of writeable values,
+optionally prefixed by a @code{file} and/or an identifying
+@code{string}, and optionally suffixed by a @code{suffix}.  It is
+used when no type-specific @code{write} overload matches, for
+example @code{write(42, 3.14, "done")}.  Values of any struct type
+that defines a @code{void write(file, suffix)} method (such as
+@code{Label}) are written by calling that method.  The optional
+identifying string is written flush against the first data value
+(no tab separator).
 @cindex @code{none}
 @cindex @code{flush}
 @cindex @code{endl}
@@ -4900,7 +4921,15 @@ If @code{a} is not an array, the notation @code{a[i]} is equivalent to
 @code{a.operator[](i)}. Thus, the@tie{}@code{[]} operator can be defined to
 provide this notation for a user-defined structure. Similarly, the notation
 @code{a[i]=b} is equivalent to @code{a.operator[=](i,b)} (except that the former
-always returns @code{b}). Note that there are some restrictions on how these
+always returns @code{b}).
+
+@cindex @code{operator []} @subentry @code{string.operator []}
+@cindex @code{[]} @subentry @code{string.operator []}
+The builtin type @code{string} has a virtual member function
+@code{string operator[](int pos)}. No primitive type has a virtual member
+function @code{operator [=]}, since primitive types are immutable.
+
+There are some restrictions on how these
 operators can be defined:
 
 @itemize
@@ -8359,13 +8388,16 @@ the abbreviation @code{Spline} is also accepted);
 @cindex @code{notaknot}
 @cindex @code{natural}
 @cindex @code{periodic}
+@cindex @code{periodicOffset}
 @cindex @code{clamped}
 @cindex @code{monotonic}
 @cindex @code{Hermite(splinetype splinetype}
 @item @code{linear} (linear interpolation),
 @item @code{Hermite} (standard cubic spline interpolation using boundary
 condition @code{notaknot}, @code{natural},  @code{periodic},
-@code{clamped(real slopea, real slopeb)}), or @code{monotonic}.
+@code{periodicOffset}, @footnote{like @code{periodic} but for data that repeats
+after a constant offset, as in @math{y=x+\sin x}.}
+@code{clamped(real slopea, real slopeb)}, or @code{monotonic}).
 The abbreviation @code{Hermite} is equivalent to
 @code{Hermite(notaknot)} for nonperiodic data and
 @code{Hermite(periodic)} for periodic data).
@@ -9406,14 +9438,13 @@ There are six choices for viewing 3D @code{Asymptote} output:
 @cindex @code{render}
 @cindex @code{outformat}
 @cindex @code{multisample}
-@cindex @code{devicepixelratio}
 @cindex @code{position}
 @item Use the native @code{Asymptote} adaptive @code{OpenGL}-based
 renderer (with the command-line option @code{-V} and the default settings
 @code{outformat=""} and @code{render=-1}). On @code{UNIX} systems with
 graphics support for multisampling, the sample width can be
-controlled with the setting @code{multisample}. The ratio of physical to
-logical screen pixels can be specified with the setting @code{devicepixelratio}. An initial screen position can be specified with the pair setting
+controlled with the setting @code{multisample}.
+An initial screen position can be specified with the pair setting
 @code{position}, where negative values are interpreted as relative to the
 corresponding maximum screen dimension. The default settings
 @cindex mouse bindings
@@ -9568,6 +9599,9 @@ within a @acronym{PDF} file using the @code{media9} @LaTeX{} package:
 An online @code{Javascript}-based V3D-aware @code{PDF} viewer is
 available at
 @url{https://github.com/vectorgraphics/pdfv3dReader}.
+An @code{Okular} plugin for interactive viewing of @acronym{V3D} files and
+@acronym{V3D}-embedded content in @acronym{PDF} files is available at
+@url{https://github.com/vectorgraphics/Okular-v3d-Plugins}.
 
 The @acronym{V3D} specification and the
 @code{pyv3d} library are available at
@@ -10259,23 +10293,40 @@ One can also place ticks along a general three-dimensional axis:
 @cindex @code{Spline}
 @cindex parametric surface
 Surface plots of matrices and functions over the region
-@code{box(a,b)} in the @math{XY} plane are also implemented:
+@code{box(a,b)} in the @math{XY} plane are also implemented.
+A surface can be constructed from a matrix @code{f} of heights, at evenly
+spaced points over @code{box(a,b)} or at the points @code{(x[i],y[j])},
+or from a matrix of points:
 @verbatim
 surface surface(real[][] f, pair a, pair b, bool[][] cond={});
 surface surface(real[][] f, pair a, pair b, splinetype xsplinetype,
                 splinetype ysplinetype=xsplinetype, bool[][] cond={});
 surface surface(real[][] f, real[] x, real[] y,
-                splinetype xsplinetype=null, splinetype ysplinetype=xsplinetype,
-                bool[][] cond={})
+                splinetype xsplinetype=Spline,
+                splinetype ysplinetype=xsplinetype,
+                bool[][] cond={});
 surface surface(triple[][] f, bool[][] cond={});
+@end verbatim
+
+The graph of a real function @math{f(x,y)} over @code{box(a,b)} is
+constructed with
+@verbatim
 surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
                 bool cond(pair z)=null);
 surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
                 splinetype xsplinetype, splinetype ysplinetype=xsplinetype,
                 bool cond(pair z)=null);
-surface surface(triple f(pair z), real[] u, real[] v,
-                splinetype[] usplinetype, splinetype[] vsplinetype=Spline,
-                bool cond(pair z)=null);
+@end verbatim
+@noindent
+On a logarithmic axis (@pxref{automatic scaling}), the points at which
+@code{f} is sampled are evenly spaced along the axis, as are the entries
+of a matrix over @code{box(a,b)}.
+
+A parametric surface for a function @math{f(u,v)} over the parameter
+space @code{box(a,b)}, as illustrated in the example
+@code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/parametricsurface.html,,parametricsurface}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/parametricsurface.asy,,.asy}},
+is constructed with
+@verbatim
 surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
                 bool cond(pair z)=null);
 surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
@@ -10283,13 +10334,23 @@ surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
                 bool cond(pair z)=null);
 @end verbatim
 @noindent
-The final two versions draw parametric surfaces for a function
-@math{f(u,v)} over the parameter space @code{box(a,b)},
-as illustrated in the example @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/parametricsurface.html,,parametricsurface}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/parametricsurface.asy,,.asy}}.
-An optional splinetype @code{Spline} may be specified.
+The parameters, in contrast, are sampled at evenly spaced values over
+@code{box(a,b)} even in a picture with logarithmic axes. To sample them
+at other values, specify the values in the arrays @code{u} and @code{v}:
+@verbatim
+surface surface(triple f(pair z), real[] u, real[] v,
+                bool cond(pair z)=null);
+surface surface(triple f(pair z), real[] u, real[] v,
+                splinetype[] usplinetype, splinetype[] vsplinetype=Spline,
+                bool cond(pair z)=null);
+@end verbatim
+
+A @code{surface} constructor with no splinetype parameter interpolates linearly;
+the others interpolate with the splinetypes given, such as @code{Spline} for a smooth
+surface.
 The boolean array or function @code{cond} can be used to control which
-surface mesh cells are actually drawn (by default all mesh cells over
-@code{box(a,b)} are drawn).
+surface mesh cells are actually drawn (by default all mesh cells are
+drawn).
 
 @cindex @code{surface}
 One can also construct the surface generated by rotating a path @code{g}
@@ -11571,7 +11632,8 @@ pictures (@pxref{deferred drawing}).
 @section @code{v3d}
 @cindex @code{v3d}
 This module provides support for the V3D 3D graphics format, which can be
-viewed using the Python @code{pyv3d} library or embedded within PDF documents.
+viewed using the Python @code{pyv3d} library, an @code{Okular} plugin
+(@url{https://github.com/vectorgraphics/Okular-v3d-Plugins}), or embedded within PDF documents.
 V3D content can be automatically generated by setting @code{settings.v3d=true},
 or existing V3D files can be imported using the @code{importv3d} function:
 @verbatim
@@ -12494,7 +12556,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  5cm freshnel0 fresnel0 PBR prethree specularfactor
 @c  LocalWords:  renderers 2E ESC AsyGL 48kB 2n 100d 5z 5y 5unit 10cm
 @c  LocalWords:  unicode 144x144 Pedram Emami 204e 10x Ai Ai Ai Ai Ai
-@c  LocalWords:  Ai Ai Ai 5a 5E 5cm 2N 2E devicepixelratio 48kB 2n 5z
+@c  LocalWords:  Ai Ai Ai 5a 5E 5cm 2N 2E 48kB 2n 5z
 @c  LocalWords:  100d 5y 5unit 144x144 2004-23 2004-24 top-level 3D
 @c  LocalWords:  1filll Command-line Command-Line command-line 2D 15
 @c  LocalWords:  higher-order User-defined Python-style Templated V3D
