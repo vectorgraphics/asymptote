@@ -271,17 +271,6 @@ StartTest("write(var[]) splats the array");
 }
 EndTest();
 
-StartTest("non-suffix function in data position is skipped");
-{
-  // A function that is NOT the last argument is not treated as a suffix;
-  // it is skipped rather than reinterpreting the callable pointer as Int.
-  file f = output(tmpfile);
-  write(f, endl, 42, endl);
-  close(f);
-  assert(doRead() == "42");
-}
-EndTest();
-
 StartTest("user-defined suffix is called");
 {
   void bang(file f) { write(f, "!", endl); }
@@ -292,23 +281,44 @@ StartTest("user-defined suffix is called");
 }
 EndTest();
 
-StartTest("function in last position that is not a suffix is not called");
+StartTest("array values are written");
 {
-  // Only a void (file) function is a suffix.  Calling any other function
-  // here would hand it a file as its argument and leave its return value on
-  // the stack, corrupting the array being built below.
-  bool called = false;
-  real notSuffix(real x) { called = true; return 7; }
-  int writeIt() {
-    file f = output(tmpfile);
-    write(f, 1, notSuffix);
-    close(f);
-    return 5;
-  }
-  int[] a = {1, writeIt(), 3};
-  assert(!called);
-  assert(a.length == 3 && a[0] == 1 && a[1] == 5 && a[2] == 3);
-  assert(doRead() == "1");
+  file f = output(tmpfile);
+  write(f, 1, new int[] {10,20}, endl);
+  close(f);
+  file g = input(tmpfile);
+  string s; s = g; assert(s == "1");
+  s = g; assert(s == "10");
+  s = g; assert(s == "20");
+  close(g);
+}
+EndTest();
+
+StartTest("2-D array is written in mixed write");
+{
+  file f = output(tmpfile);
+  write(f, new int[][] {{1,2},{3,4}}, endl);
+  close(f);
+  file g = input(tmpfile);
+  string s; s = g; assert(s == "1" + '\t' + "2");
+  s = g; assert(s == "3" + '\t' + "4");
+  close(g);
+}
+EndTest();
+
+StartTest("3-D array is written in mixed write");
+{
+  file f = output(tmpfile);
+  write(f, new int[][][] {{{1,2},{3,4}},{{5,6},{7,8}}}, endl);
+  close(f);
+  file g = input(tmpfile);
+  string s;
+  s = g; assert(s == "1" + '\t' + "2");
+  s = g; assert(s == "3" + '\t' + "4");
+  s = g; assert(s == "");
+  s = g; assert(s == "5" + '\t' + "6");
+  s = g; assert(s == "7" + '\t' + "8");
+  close(g);
 }
 EndTest();
 

@@ -501,10 +501,6 @@ void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
               formal(primFile(),SYM(file),true),
               formal(primString(),SYM(s),true),
               formal(t2,SYM(a),false,true));
-  addFunc(ve,writeArray2<T>,primVoid(),SYM(write),
-          formal(primFile(),SYM(file),true),t3);
-  addFunc(ve,writeArray3<T>,primVoid(),SYM(write),
-          formal(primFile(),SYM(file),true),t4);
 }
 
 inline double abs(pair z) {
