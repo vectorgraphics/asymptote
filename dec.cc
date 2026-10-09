@@ -18,7 +18,7 @@
 #include "runtime.h"
 #include "locate.h"
 #include "asyparser.h"
-#include "builtin.h"  // for trans::addRecordOps
+#include "builtin.h"
 
 namespace absyntax {
 
@@ -1428,7 +1428,6 @@ void recorddec::transAsField(coenv &e, record *parent)
   addTypeWithPermission(
           e, parent, new trans::tyEntry(r, nullptr, parent, getPos()), id
   );
-  trans::addRecordOps(r);
 
   // Start translating the initializer.
   coder c=e.c.newRecordInit(getPos(), r);

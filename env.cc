@@ -186,11 +186,6 @@ void protoenv::addArrayOps(array *a)
   trans::addArrayOps(ve, a);
 }
 
-void protoenv::addRecordOps(record *r)
-{
-  trans::addRecordOps(r);
-}
-
 env::env(genv &ge)
   : protoenv(venv::file_env_tag()), ge(ge)
 {

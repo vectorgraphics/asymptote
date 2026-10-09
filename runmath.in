@@ -353,6 +353,11 @@ bool :boolMemEq(vmFrame *a, vmFrame *b)
   return a == b;
 }
 
+bool :boolMemEqNull(vmFrame *a)
+{
+  return a == nullptr;
+}
+
 bool :boolMemNeq(vmFrame *a, vmFrame *b)
 {
   return a != b;
@@ -361,6 +366,11 @@ bool :boolMemNeq(vmFrame *a, vmFrame *b)
 bool :boolFuncEq(callable *a, callable *b)
 {
   return a->compare(b);
+}
+
+bool :boolFuncEqNull(callable *a)
+{
+  return vm::nullfunc::instance()->compare(a);
 }
 
 bool :boolFuncNeq(callable *a, callable *b)
