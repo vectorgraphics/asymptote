@@ -1038,8 +1038,10 @@ void callExp::reportNonFunction() {
 
 bool callExp::resolvedToOpenSignature() const
 {
-  if (cachedApp)
-    return cachedApp->getType()->getSignature()->isOpen;
+  if (cachedApp) {
+    signature *sig = cachedApp->getType()->getSignature();
+    return sig && sig->isOpen;
+  }
 
   if (cachedVarEntry) {
     function *ft = dynamic_cast<function *>(cachedVarEntry->getType());
