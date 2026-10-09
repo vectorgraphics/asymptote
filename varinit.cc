@@ -13,7 +13,6 @@
 #include "coenv.h"
 #include "runtime.h"
 #include "runarray.h"
-#include "exp.h"
 
 namespace absyntax {
 
@@ -68,10 +67,7 @@ void arrayinit::transToType(coenv &e, types::ty *target)
     celltype = ((types::array *)target)->celltype;
   }
 
-
-  // Push the values on the stack.  For a var (ty_inferred) cell, translating
-  // each element via transToType(var) yields a tagged_var* (see exp.cc), so
-  // the resulting var[] array is already self-describing.
+  // Push the values on the stack.
   for (mem::list<varinit *>::iterator p = inits.begin(); p != inits.end(); ++p)
     (*p)->transToType(e, celltype);
 

@@ -854,11 +854,13 @@ void base_venv(venv &ve)
           formal(primString(),SYM(s)),
           formal(voidFileFunction(),SYM(suffix),true));
 
-  // Generic heterogeneous write: write(file?=, string=, ... var[])
-  // Matches any combination of writeable scalar types not covered by
-  // the type-specific write overloads above.
-  addRestFunc(ve, run::write_var, primVoid(), SYM(write),
-              formal(inferredArray()));
+  // Generic heterogeneous write: the open-signature fallback.  Concretes win;
+  // the handler classifies file/label/data/suffix and emits a call to
+  // write_var.
+  addOpenBuiltinFunc(ve, run::write_var,
+                     {&absyntax::callExp::transHeteroWrite,
+                      &absyntax::callExp::getHeteroWriteType},
+                     primVoid(), SYM(write));
 
   addWrite(ve,write<transform>,primTransform(),transformArray());
   addWrite(ve,write<guide *>,primGuide(),guideArray());

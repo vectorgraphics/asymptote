@@ -14,6 +14,7 @@
 #include "runtime.h"
 #include "runarray.h"
 #include "runmath.h"
+#include "arrayop.h"
 #include "coenv.h"
 #include "application.h"
 #include "inst.h"
@@ -21,6 +22,7 @@
 #include "access.h"
 #include "callable.h"
 #include "stack.h"
+#include <vector>
 
 namespace absyntax {
 
@@ -363,6 +365,129 @@ types::ty *callExp::transRecordEq(coenv &e)
   e.c.encode(inst::builtin, isEq ? run::boolMemEq : run::boolMemNeq);
 
   return primBoolean();
+}
+
+// ---------------------------------------------------------------------------
+// Heterogeneous write() handler
+// ---------------------------------------------------------------------------
+
+namespace {
+
+// Returns true if `t` is a type that the write_var runtime can format:
+// one of the writeable scalar kinds, an array (any depth) thereof, or a
+// record (which may or may not have a write method).
+bool isWriteableData(ty *t)
+{
+  switch (t->kind) {
+    case ty_boolean: case ty_Int: case ty_real:
+    case ty_pair: case ty_triple: case ty_string:
+    case ty_pen: case ty_guide: case ty_transform:
+      return true;
+    case ty_array: {
+      array *a = dynamic_cast<array *>(t);
+      return a && isWriteableData(a->celltype);
+    }
+    case ty_record:
+      return true;
+    default:
+      return false;
+  }
+}
+
+} // namespace
+
+types::ty *callExp::getHeteroWriteType(coenv &)
+{
+  return primVoid();
+}
+
+types::ty *callExp::transHeteroWrite(coenv &e)
+{
+  // Invoked when a `write` call resolves to the open-signature fallback.
+  // Classifies each argument by its static type (file / label / suffix /
+  // data), validates writeability at compile time, builds a vm::array of
+  // tagged_var* elements, and emits a call to the existing write_var runtime.
+  cachedApp = 0;
+  cachedVarEntry = 0;
+
+  if (args->rest.val) {
+    em.error(getPos());
+    em << "splat (...) is not supported in heterogeneous write";
+    return primError();
+  }
+
+  size_t n = args->size();
+
+  // First pass: determine the concrete (reduced) type of each argument.
+  std::vector<ty *> argTypes(n, 0);
+  for (size_t i = 0; i < n; ++i) {
+    ty *t = (*args)[i].val->getType(e);
+    if (t->kind == ty_error) {
+      reportArgErrors(e);
+      return primError();
+    }
+    ty *vt = t;
+    if (vt->kind == ty_overloaded)
+      vt = vt->signatureless();
+    if (!vt || vt->kind == ty_error) {
+      em.error(getPos());
+      em << "argument " << (i + 1) << ": cannot write a function value";
+      return primError();
+    }
+    argTypes[i] = vt;
+  }
+
+  // Classify arguments the same way write_var does at runtime:
+  //   - first arg (if file)    => file element
+  //   - next arg (if string)   => label element
+  //   - last arg (if void(file)) => suffix element
+  //   - everything else        => data
+  size_t first = 0;
+  if (first < n && argTypes[first]->kind == ty_file)
+    ++first;
+  if (first < n && argTypes[first]->kind == ty_string)
+    ++first;
+
+  size_t dataEnd = n;
+  if (n > first) {
+    size_t last = n - 1;
+    if (last >= first && run::isWriteSuffixType(argTypes[last]))
+      dataEnd = n - 1;
+  }
+
+  // Validate each data element at compile time.
+  for (size_t j = first; j < dataEnd; ++j) {
+    if (!isWriteableData(argTypes[j])) {
+      em.error(getPos());
+      em << "argument " << (j + 1)
+         << ": cannot write value of type '" << *argTypes[j] << "'";
+      return primError();
+    }
+  }
+
+  // Second pass: evaluate each argument in source order and wrap it in a
+  // tagged_var*.  Every argument reaches this point with a concrete type:
+  // the file/label/suffix slots are occupied only by ty_file / ty_string /
+  // void(file), and each data element was validated above as writeable,
+  // which excludes var (ty_inferred).  No element can therefore be a var
+  // value (which, since the var-storage revert, is no longer pre-wrapped at
+  // transToType), so every argument must be wrapped here before write_var
+  // can dispatch on it at runtime.
+  for (size_t j = 0; j < n; ++j) {
+    (*args)[j].val->transToType(e, argTypes[j]);
+    e.c.encode(inst::intpush, (Int)(intptr_t)argTypes[j]);
+    e.c.encode(inst::builtin, run::makeTaggedVar);
+  }
+
+  // Build the array: push element count, call newInitializedArray (which
+  // pops elements in reverse to fill indices 0..n-1, preserving source order).
+  e.c.encode(inst::intpush, (Int)n);
+  e.c.encode(inst::builtin, run::newInitializedArray);
+
+  // Call the existing heterogeneous write runtime.
+  e.c.encode(inst::builtin, run::write_var);
+
+  return primVoid();
 }
 
 } // namespace absyntax

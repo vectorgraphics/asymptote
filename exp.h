@@ -824,6 +824,15 @@ public:
   types::ty *transRecordEq(coenv &e);
   types::ty *getRecordEqType(coenv &e);
 
+  // Custom handlers for the heterogeneous `write` builtin.  The handler
+  // classifies each argument by its static type (file / label / suffix /
+  // data), validates writeability at compile time, builds an array of
+  // tagged_var*, and emits a call to the existing write_var runtime.
+  // Named transHeteroWrite (not transWrite) so it does not hide the base
+  // virtual exp::transWrite(coenv&, ty*, exp*).
+  types::ty *transHeteroWrite(coenv &e);
+  types::ty *getHeteroWriteType(coenv &e);
+
 private:
   void reportNonFunction();
 

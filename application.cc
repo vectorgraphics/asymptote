@@ -32,21 +32,6 @@ bool castable(env &e, formal& target, formal& source) {
 }
 
 score castScore(env &e, formal& target, formal& source) {
-  // Anything that can be wrapped in a tagged_var converts to var; see
-  // exp::transToType for why void and null cannot.
-  if (target.t->kind == ty_inferred) {
-    // A var accepts any value.  An *overloaded* source (a name binding both
-    // a variable and a function) is usable as a var iff it has a value
-    // (non-function) subtype.
-    if (source.t->kind == ty_overloaded) {
-      ty *sl = source.t->signatureless();
-      if (!sl || sl->kind == ty_void || sl->kind == ty_null)
-        return FAIL;
-      return CAST;
-    }
-    return (source.t->kind == ty_void || source.t->kind == ty_null)
-      ? FAIL : CAST;
-  }
   return equivalent(target.t,source.t) ? EXACT :
     (!target.Explicit &&
      e.fastCastable(target.t,source.t)) ? CAST : FAIL;
@@ -62,9 +47,7 @@ void restArg::transMaker(coenv &e, Int size, bool rest) {
 
 void restArg::trans(coenv &e, temp_vector &temps)
 {
-  // Push the values on the stack.  For a var (ty_inferred) rest cell, each
-  // argument translates via transToType(var), which yields a tagged_var* (see
-  // exp.cc), so the resulting var[] array is already self-describing.
+  // Push the values on the stack.
   for (mem::list<arg *>::iterator p = inits.begin(); p != inits.end(); ++p)
     (*p)->trans(e, temps);
 

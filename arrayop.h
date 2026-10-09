@@ -341,27 +341,16 @@ inline void write_var(vm::stack *s)
 
 
   // Helper: resolve the effective type and value for element i.
-  // The tag in tagged_var is the types::ty * pointer as an Int.
-  //
-  // Invariant: a `var` value is always a tagged_var*, and it is wrapped
-  // exactly once, at the point a value enters a var-typed slot (see
-  // exp.cc, transToType for ty_inferred).  A concrete value passed here
-  // is therefore a tagged_var keyed by a concrete type, and a `var` value
-  // passed here is the already-wrapped tagged_var* itself.  The ty_inferred
-  // branch below is defensive: it dereferences one level in the (unreachable)
-  // case an element is still tagged var.
+  // The tag in tagged_var is the types::ty * pointer as an Int.  Every
+  // element is keyed by a concrete type: the transHeteroWrite handler wraps
+  // only writeable, non-var values, so no further unwrapping is needed.
   struct tv_res {
     types::ty *t;
     vm::item value;
   };
   auto getTV = [&](size_t i) -> tv_res {
     vm::tagged_var *tv = vm::get<vm::tagged_var *>((*arr)[i]);
-    types::ty *t = (types::ty *)(intptr_t)tv->tag;
-    if (t->kind == types::ty_inferred) {
-      vm::tagged_var *inner = vm::get<vm::tagged_var *>(tv->value);
-      return { (types::ty *)(intptr_t)inner->tag, inner->value };
-    }
-    return { t, tv->value };
+    return { (types::ty *)(intptr_t)tv->tag, tv->value };
   };
 
   camp::file *f = &camp::Stdout;
