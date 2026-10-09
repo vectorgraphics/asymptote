@@ -7007,7 +7007,7 @@ This approach is necessary if we are redefining the @code{==}
 operator. Two @code{Person}s are equal if they have the same first name,
 last name, and age.
 
-By contrast, the default @code{==} operator for structs considers two objects
+In contrast, the default @code{==} operator for structs considers two objects
 equal if they are the same object, meaning that changes to one will be
 reflected in the other. A hash method that plays well with this operator must
 remain the same even if the fields change. In this case, we can add a
