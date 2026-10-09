@@ -63,16 +63,22 @@ void exp::transToType(coenv &e, types::ty *target)
     // tag, so neither can enter a var slot.  This is the one place every
     // such value passes through (arguments, default arguments, return
     // values, and array initializers).
-    if (ct->kind == ty_inferred) {
-      transAsType(e, ct);
-    } else if (ct->kind == ty_error) {
-      // The error has already been reported.
-    } else if (ct->kind == ty_void || ct->kind == ty_null) {
+    // An overloaded value (a name binding both a variable and a function)
+    // must be stored as its value (non-function) subtype; the tagged_var
+    // must be keyed by that concrete type, not the overloaded type.
+    ty *vt = ct;
+    if (vt->kind == ty_overloaded)
+      vt = vt->signatureless();
+    if (!vt || vt->kind == ty_error) {
+      // No usable value subtype (or error already reported).
+    } else if (vt->kind == ty_inferred) {
+      transAsType(e, vt);
+    } else if (vt->kind == ty_void || vt->kind == ty_null) {
       em.error(getPos());
-      em << "cannot cast '" << *ct << "' to 'var'";
+      em << "cannot cast '" << *vt << "' to 'var'";
     } else {
-      transAsType(e, ct);
-      e.c.encode(inst::intpush, (Int)(intptr_t)ct);
+      transAsType(e, vt);
+      e.c.encode(inst::intpush, (Int)(intptr_t)vt);
       e.c.encode(inst::builtin, run::makeTaggedVar);
     }
     return;
