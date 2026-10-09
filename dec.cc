@@ -1430,7 +1430,6 @@ void recorddec::transAsField(coenv &e, record *parent)
   );
 
   // Start translating the initializer.
-
   coder c=e.c.newRecordInit(getPos(), r);
   coenv re(c,e.e);
 

@@ -163,7 +163,6 @@ public:
   // Add the standard functions for a new type.
   void addArrayOps(types::array *t);
 
-
   void list(record *r=0)
   {
     ve.list(r);
