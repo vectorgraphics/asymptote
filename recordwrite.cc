@@ -2,8 +2,8 @@
 // recordwrite.cc
 //
 // Implements the callRecordWriteMethod helper for writing struct values
-// via their write(file, suffix) method in the heterogeneous write() var
-// handler.
+// via their write(file, suffix) method in the heterogeneous write() runtime
+// (write_var in arrayop.h).
 //
 
 #include "stack.h"
