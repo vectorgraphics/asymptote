@@ -327,8 +327,9 @@ extern string emptystring;
 
 void writestring(vm::stack *s);
 
-// Generic write fallback for heterogeneous var[] rest arguments.
-// Receives a single array of tagged_var* elements (the rest parameter).
+// Generic write fallback for heterogeneous arguments.
+// Receives a single array of tagged_var* elements, built by the
+// transHeteroWrite handler (builtin_handlers.cc).
 // Each element is a tagged_var whose ->tag is the full types::ty * pointer
 // (stored as an Int) and whose ->value holds the actual vm::item.
 // Scans the elements to identify the file (first, if ty_file), label
@@ -343,7 +344,7 @@ inline void write_var(vm::stack *s)
   // Helper: resolve the effective type and value for element i.
   // The tag in tagged_var is the types::ty * pointer as an Int.  Every
   // element is keyed by a concrete type: the transHeteroWrite handler wraps
-  // only writeable, non-var values, so no further unwrapping is needed.
+  // only values it has validated as writeable.
   struct tv_res {
     types::ty *t;
     vm::item value;
