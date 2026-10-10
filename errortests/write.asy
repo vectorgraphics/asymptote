@@ -10,6 +10,12 @@
   write(1, sin, 3);
 }
 {
+  // Rest arguments must be arrays of writeable values.
+  struct NoWrite { }
+  write(1 ... 2);
+  write(1 ... new NoWrite[] {new NoWrite});
+}
+{
   // Named arguments.
   write(1, x=2);
   write(1, s=2);

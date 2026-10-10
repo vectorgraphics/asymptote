@@ -414,6 +414,13 @@ struct WritePlan {
   // Argument indices in the order write_var expects the values: the file (if
   // any), the identifying string (if any), the data, the suffix (if any).
   mem::vector<size_t> order;
+  bool hasFile = false;
+  bool hasSuffix = false;
+  // True if an empty identifying string must be supplied so that write_var
+  // does not mistake the first string of a rest argument for one.
+  bool padLabel = false;
+  // The type of the rest argument, or null if there is none.
+  types::array *restType = nullptr;
   // Set if planning failed because an argument is itself erroneous.
   bool argError = false;
 };
@@ -533,14 +540,26 @@ bool planHeteroWrite(coenv &e, arglist *args, WritePlan &plan, bool report)
     }
   }
 
-  // A rest argument is not accepted.
+  // The elements of a rest argument are further data.
   if (exp *rest = args->rest.val) {
-    writeError(report, rest->getPos());
-    if (report)
-      em << "splat (...) is not supported in heterogeneous write";
-    return false;
+    ty *t = writtenType(e, rest, plan, report);
+    if (!t)
+      return false;
+    if (t->kind == ty_array)
+      plan.restType = dynamic_cast<types::array *>(t);
+    if (!plan.restType || !isWriteableData(plan.restType->celltype, e.c)) {
+      writeError(report, rest->getPos());
+      if (report)
+        em << "rest argument of type '" << *t
+           << "' is not an array of writeable values";
+      return false;
+    }
+    plan.padLabel = labelArg == NONE && p == q &&
+                    plan.restType->celltype->kind == ty_string;
   }
 
+  plan.hasFile = fileArg != NONE;
+  plan.hasSuffix = suffixArg != NONE;
   if (fileArg != NONE)
     plan.order.push_back(fileArg);
   if (labelArg != NONE)
@@ -589,7 +608,15 @@ types::ty *callExp::transHeteroWrite(coenv &e)
   // order write_var expects them, which differs from source order only when
   // named arguments are given out of place.
   size_t count = plan.order.size();
-  for (size_t k = 0; k < count; ++k) {
+  size_t labelPos = plan.hasFile ? 1 : 0;
+  for (size_t k = 0; k <= plan.order.size(); ++k) {
+    if (plan.padLabel && k == labelPos) {
+      e.c.encode(inst::constpush, (vm::item)string(""));
+      tag(primString());
+      ++count;
+    }
+    if (k == plan.order.size())
+      break;
     size_t j = plan.order[k];
     (*args)[j].val->transToType(e, plan.argTypes[j]);
     tag(plan.argTypes[j]);
@@ -599,6 +626,15 @@ types::ty *callExp::transHeteroWrite(coenv &e)
   // pops elements in reverse to fill indices 0..n-1, preserving order).
   e.c.encode(inst::intpush, (Int)count);
   e.c.encode(inst::builtin, run::newInitializedArray);
+
+  // Tag the elements of a rest argument with their cell type and insert them
+  // after the other data.
+  if (plan.restType) {
+    args->rest.val->transToType(e, plan.restType);
+    e.c.encode(inst::intpush, (Int)(intptr_t)plan.restType->celltype);
+    e.c.encode(inst::intpush, (Int)plan.hasSuffix);
+    e.c.encode(inst::builtin, run::insertTaggedRest);
+  }
 
   // Call the existing heterogeneous write runtime.
   e.c.encode(inst::builtin, run::write_var);

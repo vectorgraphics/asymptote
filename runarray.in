@@ -675,6 +675,35 @@ tagged_var* :makeTaggedVar(item value, Int tag)
   return new tagged_var(tag, value);
 }
 
+// Tag each element of rest with the type tag, as makeTaggedVar does, and
+// insert the results into the tagged_var array a, before its last element if
+// beforeLast is nonzero and at the end otherwise.  Used by the heterogeneous
+// write handler for a rest argument, which is written after the other data
+// but before the suffix is called.
+array* :insertTaggedRest(array *a, array *rest, Int tag, Int beforeLast)
+{
+  size_t n=checkArray(a);
+  size_t m=checkArray(rest);
+  size_t split=beforeLast && n > 0 ? n-1 : n;
+
+  array *c=new array(n+m);
+  for(size_t i=0; i < split; ++i)
+    (*c)[i]=(*a)[i];
+  for(size_t i=0; i < m; ++i) {
+    item& value=(*rest)[i];
+    if(value.empty()) {
+      ostringstream buf;
+      buf << "read uninitialized value from array at index " << i;
+      error(buf);
+    }
+    (*c)[split+i]=new tagged_var(tag, value);
+  }
+  for(size_t i=split; i < n; ++i)
+    (*c)[m+i]=(*a)[i];
+
+  return c;
+}
+
 // Produce an array of n deep copies of value.
 // typeDepth is the true depth of the array determined at compile-time when the
 // operations for the array type are added.  This typeDepth argument is
