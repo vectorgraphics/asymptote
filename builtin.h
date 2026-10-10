@@ -40,10 +40,13 @@ varEntry *addFunc(venv &ve, vm::bltin f, types::ty *result, symbol name,
 // are invoked from callExp::trans / callExp::getType after the call has been
 // resolved to this open-signature entry.  `runtimeFn` is the bltin associated
 // with the venv entry; for handlers that always emit their own runtime call
-// (the typical pattern), it is never actually invoked.
+// (the typical pattern), it is never actually invoked.  If `takesNames` is
+// true, calls with named arguments also resolve to this entry and the handler
+// must interpret the names itself.
 void addOpenBuiltinFunc(venv &ve, vm::bltin runtimeFn,
                         absyntax::callExp::CustomHandlers handlers,
-                        types::ty *result, symbol name);
+                        types::ty *result, symbol name,
+                        bool takesNames=false);
 
 // Adds standard functions for a newly added types.
 void addArrayOps(venv &ve, types::array *t);

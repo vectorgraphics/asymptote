@@ -448,38 +448,80 @@ ty *writtenType(coenv &e, exp *val, WritePlan &plan, bool report)
 }
 
 // Classifies the arguments of a write() call that resolved to the
-// open-signature fallback and checks that they can be written.  A leading
-// file, then a leading string, and a trailing void(file) fill the
-// corresponding slots; the rest are data.  Returns false, reporting the error
-// if `report` is true, when the call is invalid.
+// open-signature fallback and checks that they can be written.  The names
+// file, s and suffix select the corresponding slot.  Of the unnamed
+// arguments, a leading file, then a leading string, and a trailing
+// void(file) fill whichever of those slots are still vacant; the rest are
+// data.  Returns false, reporting the error if `report` is true, when the
+// call is invalid.
 bool planHeteroWrite(coenv &e, arglist *args, WritePlan &plan, bool report)
 {
+  static symbol fileName = symbol::trans("file");
+  static symbol labelName = symbol::trans("s");
+  static symbol suffixName = symbol::trans("suffix");
+
   const size_t NONE = (size_t) -1;
   size_t n = args->size();
   size_t fileArg = NONE, labelArg = NONE, suffixArg = NONE;
+  mem::vector<size_t> positional;
 
   plan.argTypes.assign(n, nullptr);
   for (size_t i = 0; i < n; ++i) {
     exp *val = (*args)[i].val;
+    symbol name = (*args)[i].name;
     ty *t = writtenType(e, val, plan, report);
     if (!t)
       return false;
     plan.argTypes[i] = t;
+
+    if (!name) {
+      positional.push_back(i);
+      continue;
+    }
+
+    size_t *slot = nullptr;
+    bool fits = false;
+    if (name == fileName) {
+      slot = &fileArg;
+      fits = t->kind == ty_file;
+    } else if (name == labelName) {
+      slot = &labelArg;
+      fits = t->kind == ty_string;
+    } else if (name == suffixName) {
+      slot = &suffixArg;
+      fits = run::isWriteSuffixType(t);
+    }
+    if (!slot || *slot != NONE || !fits) {
+      writeError(report, val->getPos());
+      if (!report)
+        return false;
+      if (!slot)
+        em << "write has no parameter named '" << name << "'";
+      else if (*slot != NONE)
+        em << "multiple arguments named '" << name << "'";
+      else
+        em << "type '" << *t << "' cannot be used for parameter '" << name
+           << "' of write";
+      return false;
+    }
+    *slot = i;
   }
 
-  size_t p = 0, q = n;
-  if (p < q && plan.argTypes[p]->kind == ty_file)
-    fileArg = p++;
-  if (p < q && plan.argTypes[p]->kind == ty_string)
-    labelArg = p++;
-  if (p < q && run::isWriteSuffixType(plan.argTypes[q - 1]))
-    suffixArg = --q;
+  size_t p = 0, q = positional.size();
+  if (fileArg == NONE && p < q && plan.argTypes[positional[p]]->kind == ty_file)
+    fileArg = positional[p++];
+  if (labelArg == NONE && p < q &&
+      plan.argTypes[positional[p]]->kind == ty_string)
+    labelArg = positional[p++];
+  if (suffixArg == NONE && p < q &&
+      run::isWriteSuffixType(plan.argTypes[positional[q - 1]]))
+    suffixArg = positional[--q];
 
   // Validate each data element at compile time.
   for (size_t k = p; k < q; ++k) {
-    ty *t = plan.argTypes[k];
+    ty *t = plan.argTypes[positional[k]];
     if (!isWriteableData(t, e.c)) {
-      writeError(report, (*args)[k].val->getPos());
+      writeError(report, (*args)[positional[k]].val->getPos());
       if (report) {
         em << "type '" << *t;
         if (t->kind == ty_record)
@@ -504,7 +546,7 @@ bool planHeteroWrite(coenv &e, arglist *args, WritePlan &plan, bool report)
   if (labelArg != NONE)
     plan.order.push_back(labelArg);
   for (size_t k = p; k < q; ++k)
-    plan.order.push_back(k);
+    plan.order.push_back(positional[k]);
   if (suffixArg != NONE)
     plan.order.push_back(suffixArg);
   return true;
@@ -520,9 +562,10 @@ types::ty *callExp::getHeteroWriteType(coenv &)
 types::ty *callExp::transHeteroWrite(coenv &e)
 {
   // Invoked when a `write` call resolves to the open-signature fallback.
-  // Classifies each argument by its static type (file / label / suffix /
-  // data), validates writeability at compile time, builds a vm::array of
-  // tagged_var* elements, and emits a call to the existing write_var runtime.
+  // Classifies each argument by its name or static type (file / label /
+  // suffix / data), validates writeability at compile time, builds a
+  // vm::array of tagged_var* elements, and emits a call to the existing
+  // write_var runtime.
   cachedApp = 0;
   cachedVarEntry = 0;
 
@@ -540,7 +583,8 @@ types::ty *callExp::transHeteroWrite(coenv &e)
 
   // Evaluate each argument and wrap it in a tagged_var*, so that write_var
   // can dispatch on its type at runtime.  The arguments are evaluated in the
-  // order write_var expects them, which is source order.
+  // order write_var expects them, which differs from source order only when
+  // named arguments are given out of place.
   size_t count = plan.order.size();
   for (size_t k = 0; k < count; ++k) {
     size_t j = plan.order[k];
