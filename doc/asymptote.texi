@@ -4198,7 +4198,8 @@ type-specific @code{write} overload matches, for example
 @code{write(42, 3.14, "done")}.  The file, identifying string, and
 suffix may instead be given anywhere in the list as the named
 arguments @code{file}, @code{s}, and @code{suffix}, as in
-@code{write(x, y, suffix=none)}.
+@code{write(x, y, suffix=none)}.  The elements of a rest argument,
+as in @code{write(x ... a)}, are written after the other values.
 Values of any struct type that
 defines a publicly accessible @code{write(file, suffix)} method
 (such as @code{Label}) are written by calling that method.  The

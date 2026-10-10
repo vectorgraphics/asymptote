@@ -18,6 +18,12 @@
   write(1, s="a", s="b");
 }
 {
+  // Rest arguments must be arrays of writeable values.
+  struct NoWrite { }
+  write(1 ... 2);
+  write(1 ... new NoWrite[] {new NoWrite});
+}
+{
   // Each error is reported at the offending argument.
   struct NoWrite { }
   void suffix(file f) { }

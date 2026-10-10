@@ -6,6 +6,8 @@ errortests/write.asy: 15.14: type 'int' cannot be used for parameter 's' of writ
 errortests/write.asy: 16.17: type 'string' cannot be used for parameter 'file' of write
 errortests/write.asy: 17.19: type 'int' cannot be used for parameter 'suffix' of write
 errortests/write.asy: 18.21: multiple arguments named 's'
-errortests/write.asy: 25.12: type 'file' is not writeable
-errortests/write.asy: 26.12: type 'void(file f)' is not writeable
-errortests/write.asy: 27.12: type 'NoWrite[]' is not writeable
+errortests/write.asy: 23.15: rest argument of type 'int' is not an array of writeable values
+errortests/write.asy: 24.15: rest argument of type 'NoWrite[]' is not an array of writeable values
+errortests/write.asy: 31.12: type 'file' is not writeable
+errortests/write.asy: 32.12: type 'void(file f)' is not writeable
+errortests/write.asy: 33.12: type 'NoWrite[]' is not writeable
