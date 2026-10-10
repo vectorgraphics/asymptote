@@ -407,6 +407,109 @@ bool isWriteableData(ty *t, coder &c)
   }
 }
 
+// The result of analysing the arguments of a heterogeneous write() call.
+struct WritePlan {
+  // The static type each argument is written as, indexed as in the call.
+  mem::vector<ty *> argTypes;
+  // Argument indices in the order write_var expects the values: the file (if
+  // any), the identifying string (if any), the data, the suffix (if any).
+  mem::vector<size_t> order;
+  // Set if planning failed because an argument is itself erroneous.
+  bool argError = false;
+};
+
+void writeError(bool report, position pos)
+{
+  if (report)
+    em.error(pos);
+}
+
+// Returns the type that `val` is written as, or null if there is no such
+// type.  An overloaded name is written as its non-function value (there is at
+// most one, as a variable hides any earlier variable of the same name).
+ty *writtenType(coenv &e, exp *val, WritePlan &plan, bool report)
+{
+  ty *t = val->cgetType(e);
+  if (t->kind == ty_error) {
+    plan.argError = true;
+    return nullptr;
+  }
+  if (t->kind != ty_overloaded)
+    return t;
+
+  ty *value = t->signatureless();
+  if (!value || value->kind == ty_error) {
+    writeError(report, val->getPos());
+    if (report)
+      em << "cannot write a function value";
+    return nullptr;
+  }
+  return value;
+}
+
+// Classifies the arguments of a write() call that resolved to the
+// open-signature fallback and checks that they can be written.  A leading
+// file, then a leading string, and a trailing void(file) fill the
+// corresponding slots; the rest are data.  Returns false, reporting the error
+// if `report` is true, when the call is invalid.
+bool planHeteroWrite(coenv &e, arglist *args, WritePlan &plan, bool report)
+{
+  const size_t NONE = (size_t) -1;
+  size_t n = args->size();
+  size_t fileArg = NONE, labelArg = NONE, suffixArg = NONE;
+
+  plan.argTypes.assign(n, nullptr);
+  for (size_t i = 0; i < n; ++i) {
+    exp *val = (*args)[i].val;
+    ty *t = writtenType(e, val, plan, report);
+    if (!t)
+      return false;
+    plan.argTypes[i] = t;
+  }
+
+  size_t p = 0, q = n;
+  if (p < q && plan.argTypes[p]->kind == ty_file)
+    fileArg = p++;
+  if (p < q && plan.argTypes[p]->kind == ty_string)
+    labelArg = p++;
+  if (p < q && run::isWriteSuffixType(plan.argTypes[q - 1]))
+    suffixArg = --q;
+
+  // Validate each data element at compile time.
+  for (size_t k = p; k < q; ++k) {
+    ty *t = plan.argTypes[k];
+    if (!isWriteableData(t, e.c)) {
+      writeError(report, (*args)[k].val->getPos());
+      if (report) {
+        em << "type '" << *t;
+        if (t->kind == ty_record)
+          em << "' has no accessible write(file, void(file)) method";
+        else
+          em << "' is not writeable";
+      }
+      return false;
+    }
+  }
+
+  // A rest argument is not accepted.
+  if (exp *rest = args->rest.val) {
+    writeError(report, rest->getPos());
+    if (report)
+      em << "splat (...) is not supported in heterogeneous write";
+    return false;
+  }
+
+  if (fileArg != NONE)
+    plan.order.push_back(fileArg);
+  if (labelArg != NONE)
+    plan.order.push_back(labelArg);
+  for (size_t k = p; k < q; ++k)
+    plan.order.push_back(k);
+  if (suffixArg != NONE)
+    plan.order.push_back(suffixArg);
+  return true;
+}
+
 } // namespace
 
 types::ty *callExp::getHeteroWriteType(coenv &)
@@ -423,81 +526,31 @@ types::ty *callExp::transHeteroWrite(coenv &e)
   cachedApp = 0;
   cachedVarEntry = 0;
 
-  if (args->rest.val) {
-    em.error(args->rest.val->getPos());
-    em << "splat (...) is not supported in heterogeneous write";
+  WritePlan plan;
+  if (!planHeteroWrite(e, args, plan, true)) {
+    if (plan.argError)
+      reportArgErrors(e);
     return primError();
   }
 
-  size_t n = args->size();
-
-  // First pass: determine the concrete (reduced) type of each argument.
-  mem::vector<ty *> argTypes(n, nullptr);
-  for (size_t i = 0; i < n; ++i) {
-    ty *t = (*args)[i].val->getType(e);
-    if (t->kind == ty_error) {
-      reportArgErrors(e);
-      return primError();
-    }
-    ty *vt = t;
-    if (vt->kind == ty_overloaded)
-      vt = vt->signatureless();
-    if (!vt || vt->kind == ty_error) {
-      em.error((*args)[i].val->getPos());
-      em << "cannot write a function value";
-      return primError();
-    }
-    argTypes[i] = vt;
-  }
-
-  // Classify arguments the same way write_var does at runtime:
-  //   - first arg (if file)    => file element
-  //   - next arg (if string)   => label element
-  //   - last arg (if void(file)) => suffix element
-  //   - everything else        => data
-  size_t first = 0;
-  if (first < n && argTypes[first]->kind == ty_file)
-    ++first;
-  if (first < n && argTypes[first]->kind == ty_string)
-    ++first;
-
-  size_t dataEnd = n;
-  if (n > first) {
-    size_t last = n - 1;
-    if (last >= first && run::isWriteSuffixType(argTypes[last]))
-      dataEnd = n - 1;
-  }
-
-  // Validate each data element at compile time.
-  for (size_t j = first; j < dataEnd; ++j) {
-    if (!isWriteableData(argTypes[j], e.c)) {
-      em.error((*args)[j].val->getPos());
-      em << "type '" << *argTypes[j];
-      if (argTypes[j]->kind == ty_record)
-        em << "' has no accessible write(file, void(file)) method";
-      else
-        em << "' is not writeable";
-      return primError();
-    }
-  }
-
-  // Second pass: evaluate each argument in source order and wrap it in a
-  // tagged_var*.  Every argument reaches this point with a concrete type:
-  // the file/label/suffix slots are occupied only by ty_file / ty_string /
-  // void(file), and each data element was validated above as writeable,
-  // which excludes var (ty_inferred).  No element can therefore be a var
-  // value (which, since the var-storage revert, is no longer pre-wrapped at
-  // transToType), so every argument must be wrapped here before write_var
-  // can dispatch on it at runtime.
-  for (size_t j = 0; j < n; ++j) {
-    (*args)[j].val->transToType(e, argTypes[j]);
-    e.c.encode(inst::intpush, (Int)(intptr_t)argTypes[j]);
+  auto tag = [&](ty *t) {
+    e.c.encode(inst::intpush, (Int)(intptr_t)t);
     e.c.encode(inst::builtin, run::makeTaggedVar);
+  };
+
+  // Evaluate each argument and wrap it in a tagged_var*, so that write_var
+  // can dispatch on its type at runtime.  The arguments are evaluated in the
+  // order write_var expects them, which is source order.
+  size_t count = plan.order.size();
+  for (size_t k = 0; k < count; ++k) {
+    size_t j = plan.order[k];
+    (*args)[j].val->transToType(e, plan.argTypes[j]);
+    tag(plan.argTypes[j]);
   }
 
   // Build the array: push element count, call newInitializedArray (which
-  // pops elements in reverse to fill indices 0..n-1, preserving source order).
-  e.c.encode(inst::intpush, (Int)n);
+  // pops elements in reverse to fill indices 0..n-1, preserving order).
+  e.c.encode(inst::intpush, (Int)count);
   e.c.encode(inst::builtin, run::newInitializedArray);
 
   // Call the existing heterogeneous write runtime.
