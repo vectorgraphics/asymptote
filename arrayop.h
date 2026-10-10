@@ -401,9 +401,9 @@ inline void write_var(vm::stack *s)
   // any depth are written recursively: tab between elements on the same
   // line, newline between lines, and (depth-2) blank lines between blocks
   // at each level above the innermost -- matching the type-specific
-  // write(file, array) builtins.  Records with a write(file, suffix) method
-  // are written by calling that method.  A type that cannot be written is a
-  // runtime error.
+  // write(file, array) builtins.  Records, whether standalone or the cells
+  // of an array, are written by calling their write(file, suffix) method.
+  // A type that cannot be written is a runtime error.
   bool firstWritten = true;
   auto beginValue = [&]() {
     if (!firstWritten) f->write(tab);
@@ -438,7 +438,9 @@ inline void write_var(vm::stack *s)
       vm::item &it = (*a)[k];
       if (it.empty()) continue;
       if (depth == 1) {
-        if (!writeScalar(f, elemTy, it)) {
+        if (elemTy->kind == types::ty_record)
+          writeRecord(elemTy, it);
+        else if (!writeScalar(f, elemTy, it)) {
           ostringstream msg;
           msg << "cannot write value of type '" << *elemTy << "'";
           vm::error(msg);
