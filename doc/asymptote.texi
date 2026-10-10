@@ -4199,7 +4199,7 @@ optionally prefixed by a @code{file} and/or an identifying
 @code{string}, and optionally suffixed by a @code{suffix}.  It is
 used when no type-specific @code{write} overload matches, for
 example @code{write(42, 3.14, "done")}.  Values of any struct type
-that defines a @code{void write(file, suffix)} method (such as
+that defines a @code{write(file, suffix)} method (such as
 @code{Label}) are written by calling that method.  The optional
 identifying string is written flush against the first data value
 (no tab separator).

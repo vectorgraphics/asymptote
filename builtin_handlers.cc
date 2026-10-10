@@ -22,6 +22,7 @@
 #include "access.h"
 #include "callable.h"
 #include "stack.h"
+#include "record.h"
 
 namespace absyntax {
 
@@ -374,7 +375,7 @@ namespace {
 
 // Returns true if `t` is a type that the write_var runtime can format:
 // one of the writeable scalar kinds, an array (any depth) thereof, or a
-// record (which may or may not have a write method).
+// record that has a write(file, void(file)) method.
 bool isWriteableData(ty *t)
 {
   switch (t->kind) {
@@ -386,8 +387,19 @@ bool isWriteableData(ty *t)
       array *a = dynamic_cast<array *>(t);
       return a && isWriteableData(a->celltype);
     }
-    case ty_record:
-      return true;
+    case ty_record: {
+      record *recType = dynamic_cast<record *>(t);
+      if (!recType) return false;
+      // Check that the record actually has a write(file, void(file)) method.
+      static types::function *suffixType = new types::function(
+        types::primVoid(), types::formal(types::primFile()));
+      static types::function *writeType = new types::function(
+        types::primVoid(),
+        types::formal(types::primFile()),
+        types::formal(suffixType));
+      return recType->e.lookupVarByType(symbol::trans("write"), writeType)
+             != nullptr;
+    }
     default:
       return false;
   }
@@ -458,8 +470,11 @@ types::ty *callExp::transHeteroWrite(coenv &e)
   for (size_t j = first; j < dataEnd; ++j) {
     if (!isWriteableData(argTypes[j])) {
       em.error(getPos());
-      em << "argument " << (j + 1)
-         << ": cannot write value of type '" << *argTypes[j] << "'";
+      em << "argument " << (j + 1) << ": type '" << *argTypes[j];
+      if (argTypes[j]->kind == ty_record)
+        em << "' has no write(file, void(file)) method";
+      else
+        em << "' is not writeable";
       return primError();
     }
   }

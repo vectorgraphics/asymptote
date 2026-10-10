@@ -256,17 +256,6 @@ StartTest("write file only (no data) is a no-op");
 }
 EndTest();
 
-StartTest("record without write method writes nothing");
-{
-  struct MyRec { int a; real b; }
-  MyRec r;
-  file f = output(tmpfile);
-  write(f, r, endl);
-  close(f);
-  assert(doRead() == "");
-}
-EndTest();
-
 StartTest("mixed scalars and arrays");
 {
   file f = output(tmpfile);
