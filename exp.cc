@@ -49,14 +49,6 @@ void exp::transToType(coenv &e, types::ty *target)
 {
   types::ty *ct=cgetType(e);
 
-  if (target->kind == ty_boolean && ct->kind == ty_array) {
-    ostringstream dbgs;
-    dbgs << "DEBUG transToType: this=" << this << " ct is " << *ct << "(rk=" << ct->kind << ") target=" << *target << "(rk=" << target->kind << ") pos=" << getPos();
-    if (dynamic_cast<callExp *>(this)) dbgs << " [callExp]";
-    fprintf(stderr, "%s\n", dbgs.str().c_str());
-  }
-
-
   if (equivalent(target, ct)) {
     transAsType(e, target);
     return;
@@ -84,15 +76,6 @@ void exp::transToType(coenv &e, types::ty *target)
       return;
     if (target->kind != ty_error) {
       types::ty *sources=cgetType(e);
-      {
-        ostringstream dbgc;
-        dbgc << "DEBUG transToType ERROR: cannot cast ";
-        if (sources->kind==ty_overloaded) dbgc << "expression";
-        else dbgc << "'" << *sources << "'(rk=" << sources->kind << ")";
-        dbgc << " to '" << *target << "'(rk=" << target->kind << ")";
-        if (dynamic_cast<callExp *>(this)) dbgc << " [callExp]";
-        fprintf(stderr, "%s\n", dbgc.str().c_str());
-      }
       em.error(getPos());
 
       em << "cannot cast ";
@@ -1207,18 +1190,6 @@ types::ty *callExp::trans(coenv &e)
           if (containsRecord(rt) && p1 && !equivalent(rt, p1))
             spurious = true;
         }
-        if (cachedApp) {
-          ostringstream dbg;
-          dbg << "DEBUG trans: this=" << this << " checking ==";
-          if (lt) dbg << " lt=" << *lt << "(rk=" << lt->kind << ")";
-          if (rt) dbg << " rt=" << *rt << "(rk=" << rt->kind << ")";
-          if (sig && sig->getNumFormals() >= 2) {
-            dbg << " p0=" << *sig->getFormal(0).t << "(rk=" << sig->getFormal(0).t->kind << ")";
-            dbg << " p1=" << *sig->getFormal(1).t << "(rk=" << sig->getFormal(1).t->kind << ")";
-          }
-          dbg << " spurious=" << spurious;
-          fprintf(stderr, "%s\n", dbg.str().c_str());
-        }
         if (spurious) {
           cachedApp = 0;
           cachedVarEntry = 0;
@@ -1267,11 +1238,6 @@ types::ty *callExp::getType(coenv &e)
   if (h && h->getType) {
     types::ty *t = getTypeRegular(e);
     assert(t);
-    if (t->kind == ty_array) {
-      ostringstream dbgArr;
-      dbgArr << "DEBUG getType: this=" << this << " name=" << name << " t=" << *t << "(rk=" << t->kind << ") resolvedOpen=" << resolvedToOpenSignature();
-      fprintf(stderr, "%s\n", dbgArr.str().c_str());
-    }
     // Dispatch to the custom handler only when the call actually resolved to
     // the open-signature builtin (mirroring the gating in trans()).  If regular
     // resolution produced a concrete match or an error, return it as-is;
@@ -1316,18 +1282,9 @@ types::ty *callExp::getType(coenv &e)
         }
       }
       if (spurious) {
-        ostringstream dbg;
-        dbg << "DEBUG getType: this=" << this << " spurious match for ==";
-        if (lt) dbg << " lt=" << *lt << "(rk=" << lt->kind << ")";
-        if (rt) dbg << " rt=" << *rt << "(rk=" << rt->kind << ")";
-        fprintf(stderr, "%s\n", dbg.str().c_str());
         cachedApp = 0;
         cachedVarEntry = 0;
-        types::ty *ht = (this->*(h->getType))(e);
-        ostringstream dbg2;
-        dbg2 << "DEBUG getType: handler returned rk=" << ht->kind;
-        fprintf(stderr, "%s\n", dbg2.str().c_str());
-        return ht;
+        return (this->*(h->getType))(e);
       }
     }
     return t;
@@ -1445,11 +1402,6 @@ types::ty *castExp::trans(coenv &e)
 
   if (!tryCast(e, t, s, symbol::ecastsym))
     if (!tryCast(e, t, s, symbol::castsym)) {
-      {
-        ostringstream dbgc2;
-        dbgc2 << "DEBUG castExp::trans ERROR: cannot cast '" << *s << "' to '" << *t << "'";
-        fprintf(stderr, "%s\n", dbgc2.str().c_str());
-      }
       em.error(getPos());
       em << "cannot cast '" << *s << "' to '" << *t << "'";
     }
