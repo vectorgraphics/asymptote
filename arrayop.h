@@ -426,6 +426,12 @@ inline void write_var(vm::stack *s)
       default: return false;
     }
   };
+  auto writeRecord = [&](types::ty *t, vm::item val) {
+    vm::vmFrame *recFrame = vm::get<vm::vmFrame *>(val);
+    if (!recFrame)
+      vm::error("dereference of null pointer");
+    callRecordWriteMethod(s, recFrame, t, f);
+  };
   auto writeArr = [&](auto&& self, types::ty *elemTy, vm::array *a, int depth, int totalDepth) -> void {
     size_t n = checkArray(a);
     for (size_t k = 0; k < n; ++k) {
@@ -468,15 +474,11 @@ inline void write_var(vm::stack *s)
         return;
       }
     }
-    if (tv.t->kind == types::ty_record) {
-      vm::vmFrame *recFrame = vm::get<vm::vmFrame *>(tv.value);
-      if (recFrame) {
-        beginValue();
-        callRecordWriteMethod(s, recFrame, tv.t, f);
-        return;
-      }
-    }
     beginValue();
+    if (tv.t->kind == types::ty_record) {
+      writeRecord(tv.t, tv.value);
+      return;
+    }
     if (!writeScalar(f, tv.t, tv.value)) {
       ostringstream msg;
       msg << "cannot write value of type '" << *tv.t << "'";
