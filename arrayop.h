@@ -401,9 +401,9 @@ inline void write_var(vm::stack *s)
   // any depth are written recursively: tab between elements on the same
   // line, newline between lines, and (depth-2) blank lines between blocks
   // at each level above the innermost -- matching the type-specific
-  // write(file, array) builtins.  Records with a write(file, suffix) method
-  // are written by calling that method.  A type that cannot be written is a
-  // runtime error.
+  // write(file, array) builtins.  Records, whether standalone or the cells
+  // of an array, are written by calling their write(file, suffix) method.
+  // A type that cannot be written is a runtime error.
   bool firstWritten = true;
   auto beginValue = [&]() {
     if (!firstWritten) f->write(tab);
@@ -426,13 +426,21 @@ inline void write_var(vm::stack *s)
       default: return false;
     }
   };
+  auto writeRecord = [&](types::ty *t, vm::item val) {
+    vm::vmFrame *recFrame = vm::get<vm::vmFrame *>(val);
+    if (!recFrame)
+      vm::error("dereference of null pointer");
+    callRecordWriteMethod(s, recFrame, t, f);
+  };
   auto writeArr = [&](auto&& self, types::ty *elemTy, vm::array *a, int depth, int totalDepth) -> void {
     size_t n = checkArray(a);
     for (size_t k = 0; k < n; ++k) {
       vm::item &it = (*a)[k];
       if (it.empty()) continue;
       if (depth == 1) {
-        if (!writeScalar(f, elemTy, it)) {
+        if (elemTy->kind == types::ty_record)
+          writeRecord(elemTy, it);
+        else if (!writeScalar(f, elemTy, it)) {
           ostringstream msg;
           msg << "cannot write value of type '" << *elemTy << "'";
           vm::error(msg);
@@ -468,15 +476,11 @@ inline void write_var(vm::stack *s)
         return;
       }
     }
-    if (tv.t->kind == types::ty_record) {
-      vm::vmFrame *recFrame = vm::get<vm::vmFrame *>(tv.value);
-      if (recFrame) {
-        beginValue();
-        callRecordWriteMethod(s, recFrame, tv.t, f);
-        return;
-      }
-    }
     beginValue();
+    if (tv.t->kind == types::ty_record) {
+      writeRecord(tv.t, tv.value);
+      return;
+    }
     if (!writeScalar(f, tv.t, tv.value)) {
       ostringstream msg;
       msg << "cannot write value of type '" << *tv.t << "'";

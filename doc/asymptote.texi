@@ -4202,7 +4202,8 @@ arguments @code{file}, @code{s}, and @code{suffix}, as in
 as in @code{write(x ... a)}, are written after the other values.
 Values of any struct type that
 defines a publicly accessible @code{write(file, suffix)} method
-(such as @code{Label}) are written by calling that method.  The
+(such as @code{Label}), and arrays of such values, are written by
+calling that method.  The
 optional identifying string (if present) is written flush against
 the first data value (no tab separator), so
 @code{write("a", "b", 1)} produces

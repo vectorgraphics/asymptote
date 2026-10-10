@@ -140,6 +140,20 @@ StartTest("write two labels (struct method)");
 }
 EndTest();
 
+StartTest("write array of Labels (struct method)");
+{
+  Label[] L = {Label("a"), Label("b")};
+  file f = output(tmpfile);
+  write(f, 1, L, endl);
+  close(f);
+  file g = input(tmpfile);
+  string s; s = g; assert(s == "1");
+  s = g; assert(s == "\"a\"");
+  s = g; assert(s == "\"b\"");
+  close(g);
+}
+EndTest();
+
 StartTest("write with flush suffix (no newline)");
 {
   file f = output(tmpfile);
