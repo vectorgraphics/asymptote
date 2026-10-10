@@ -424,7 +424,7 @@ types::ty *callExp::transHeteroWrite(coenv &e)
   cachedVarEntry = 0;
 
   if (args->rest.val) {
-    em.error(getPos());
+    em.error(args->rest.val->getPos());
     em << "splat (...) is not supported in heterogeneous write";
     return primError();
   }
@@ -443,8 +443,8 @@ types::ty *callExp::transHeteroWrite(coenv &e)
     if (vt->kind == ty_overloaded)
       vt = vt->signatureless();
     if (!vt || vt->kind == ty_error) {
-      em.error(getPos());
-      em << "argument " << (i + 1) << ": cannot write a function value";
+      em.error((*args)[i].val->getPos());
+      em << "cannot write a function value";
       return primError();
     }
     argTypes[i] = vt;
@@ -471,8 +471,8 @@ types::ty *callExp::transHeteroWrite(coenv &e)
   // Validate each data element at compile time.
   for (size_t j = first; j < dataEnd; ++j) {
     if (!isWriteableData(argTypes[j], e.c)) {
-      em.error(getPos());
-      em << "argument " << (j + 1) << ": type '" << *argTypes[j];
+      em.error((*args)[j].val->getPos());
+      em << "type '" << *argTypes[j];
       if (argTypes[j]->kind == ty_record)
         em << "' has no accessible write(file, void(file)) method";
       else

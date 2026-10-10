@@ -1,1 +1,1 @@
-errortests/write.asy: 4.8: argument 3: type 'real(real x)' is not writeable
+errortests/write.asy: 4.15: type 'real(real x)' is not writeable
