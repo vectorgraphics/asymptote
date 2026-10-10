@@ -154,6 +154,16 @@ StartTest("write array of Labels (struct method)");
 }
 EndTest();
 
+StartTest("write string prefix and label");
+{
+  Label L = "value";
+  file f = output(tmpfile);
+  write(f, "key", L, endl);
+  close(f);
+  assert(doRead() == "key\"value\"");
+}
+EndTest();
+
 StartTest("write with flush suffix (no newline)");
 {
   file f = output(tmpfile);
