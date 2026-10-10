@@ -298,8 +298,9 @@ bool application::matchOpen(env &e, signature *source, arglist &al) {
   // Pack all given parameters into the rest argument.
   formal_vector &f=source->formals;
   for (size_t i = 0; i < f.size(); ++i)
-    if (al[i].name)
-      // Named arguments are not handled by open signatures.
+    if (al[i].name && !sig->openTakesNames)
+      // Named arguments are not handled by open signatures, unless the
+      // builtin's custom handler interprets them itself.
       return false;
     else
       rest->add(seq.addArg(al[i].val, f[i].t, i));

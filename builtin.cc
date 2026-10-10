@@ -176,9 +176,11 @@ varEntry *addFunc(venv &ve, bltin f, ty *result, symbol name,
                  fA,fB,fC,fD,fE,fF,fG,fH,fI);
 }
 
-void addOpenFunc(venv &ve, bltin f, ty *result, symbol name)
+void addOpenFunc(venv &ve, bltin f, ty *result, symbol name,
+                 bool takesNames=false)
 {
   function *fun = new function(result, signature::OPEN);
+  fun->getSignature()->openTakesNames = takesNames;
 
   REGISTER_BLTIN(f, name);
   access *a= new bltinAccess(f);
@@ -190,9 +192,9 @@ void addOpenFunc(venv &ve, bltin f, ty *result, symbol name)
 
 void addOpenBuiltinFunc(venv &ve, bltin runtimeFn,
                         absyntax::callExp::CustomHandlers handlers,
-                        ty *result, symbol name)
+                        ty *result, symbol name, bool takesNames)
 {
-  addOpenFunc(ve, runtimeFn, result, name);
+  addOpenFunc(ve, runtimeFn, result, name, takesNames);
   absyntax::registerCustomHandlers(name, handlers);
 }
 
@@ -847,12 +849,12 @@ void base_venv(venv &ve)
           formal(voidFileFunction(),SYM(suffix),true));
 
   // Generic heterogeneous write: the open-signature fallback.  Concretes win;
-  // the handler classifies file/label/data/suffix and emits a call to
-  // write_var.
+  // the handler classifies file/label/data/suffix (accepting the names file,
+  // s and suffix) and emits a call to write_var.
   addOpenBuiltinFunc(ve, run::write_var,
                      {&absyntax::callExp::transHeteroWrite,
                       &absyntax::callExp::getHeteroWriteType},
-                     primVoid(), SYM(write));
+                     primVoid(), SYM(write), true);
 
   addFunc(ve,arrayArrayOp<pen,equals>,booleanArray(),SYM_EQ,
           formal(penArray(),SYM(a)),formal(penArray(),SYM(b)));
