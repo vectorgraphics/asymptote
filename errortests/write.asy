@@ -4,3 +4,17 @@
   write(f, 1, notSuffix);
   close(f);
 }
+{
+  // Function values and overloaded functions.
+  write(1, 2, sin);
+  write(1, sin, 3);
+}
+{
+  // Each error is reported at the offending argument.
+  struct NoWrite { }
+  void suffix(file f) { }
+  file g;
+  write(1, g);
+  write(1, suffix, 2);
+  write(1, new NoWrite[] {new NoWrite});
+}
