@@ -89,7 +89,7 @@ ASYGENERATEDENUMS=$(addprefix base/,$(GENERATEDENUMS:=.asy))
 PYGENERATEDENUMS=$(GENERATEDENUMS:=.py)
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.h \
-	asy-keywords.el $(RUNTIME_FILES:=.cc) asy.list \
+	asy-keywords.el $(RUNTIME_FILES:=.cc) $(RUNTIME_FILES:=.h) asy.list \
 	$(SYMBOLSH) $(GENERATEDENUMS:=.h) $(ASYGENERATEDENUMS) $(PYFILES)
 
 NAME = asy
