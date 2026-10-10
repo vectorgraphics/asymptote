@@ -315,3 +315,21 @@ StartTest("mixed scalars and arrays");
   close(g);
 }
 EndTest();
+
+StartTest("rest argument");
+{
+  file f = output(tmpfile);
+  write(f, 1, 2, endl ... new int[] {3, 4});
+  write(f, "x=", 1.5 ... new real[] {});
+  write(f, endl ... new string[] {"a", "b"});
+  write(f, "c", endl ... new string[] {"a", "b"});
+  write(f, 0, endl ... new Label[] {Label("L")});
+  close(f);
+  file g = input(tmpfile);
+  string s; s = g; assert(s == "1" + '\t' + "2" + '\t' + "3" + '\t' + "4");
+  s = g; assert(s == "x=1.5a" + '\t' + "b");
+  s = g; assert(s == "ca" + '\t' + "b");
+  s = g; assert(s == "0" + '\t' + "\"L\"");
+  close(g);
+}
+EndTest();

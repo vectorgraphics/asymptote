@@ -4195,7 +4195,9 @@ optionally prefixed by a @code{file} and/or an identifying
 @code{string}, and optionally suffixed by a @code{suffix} (a
 function of type @code{void(file)}).  It is used when no
 type-specific @code{write} overload matches, for example
-@code{write(42, 3.14, "done")}.  Values of any struct type that
+@code{write(42, 3.14, "done")}.  The elements of a rest argument,
+as in @code{write(x ... a)}, are written after the other values.
+Values of any struct type that
 defines a publicly accessible @code{write(file, suffix)} method
 (such as @code{Label}) are written by calling that method.  The
 optional identifying string (if present) is written flush against
