@@ -43,7 +43,7 @@ StartTest("write two ints");
   file f = output(tmpfile);
   write(f, 42, 7, endl);
   close(f);
-  assert(doRead() == "42" + "	" + "7");
+  assert(doRead() == "42" + '\t' + "7");
 }
 EndTest();
 
@@ -52,7 +52,7 @@ StartTest("write int and real");
   file f = output(tmpfile);
   write(f, 42, 3.14, endl);
   close(f);
-  assert(doRead() == "42" + "	" + "3.14");
+  assert(doRead() == "42" + '\t' + "3.14");
 }
 EndTest();
 
@@ -61,7 +61,7 @@ StartTest("write real and pair");
   file f = output(tmpfile);
   write(f, 1.5, (1,2), endl);
   close(f);
-  assert(doRead() == "1.5" + "	" + "(1,2)");
+  assert(doRead() == "1.5" + '\t' + "(1,2)");
 }
 EndTest();
 
@@ -70,7 +70,7 @@ StartTest("write three heterogeneous");
   file f = output(tmpfile);
   write(f, 42, 3.14, "end", endl);
   close(f);
-  assert(doRead() == "42" + "	" + "3.14" + "	" + "end");
+  assert(doRead() == "42" + '\t' + "3.14" + '\t' + "end");
 }
 EndTest();
 
@@ -88,7 +88,7 @@ StartTest("write label and two values");
   file f = output(tmpfile);
   write(f, "x =", 42, 7, endl);
   close(f);
-  assert(doRead() == "x =42" + "	" + "7");
+  assert(doRead() == "x =42" + '\t' + "7");
 }
 EndTest();
 
@@ -106,7 +106,7 @@ StartTest("write two pairs");
   file f = output(tmpfile);
   write(f, (1,2), (3,4), endl);
   close(f);
-  assert(doRead() == "(1,2)" + "	" + "(3,4)");
+  assert(doRead() == "(1,2)" + '\t' + "(3,4)");
 }
 EndTest();
 
@@ -115,7 +115,7 @@ StartTest("write two bools");
   file f = output(tmpfile);
   write(f, true, false, endl);
   close(f);
-  assert(doRead() == "true " + "	" + "false ");
+  assert(doRead() == "true " + '\t' + "false ");
 }
 EndTest();
 
@@ -125,7 +125,7 @@ StartTest("write Label (struct method)");
   file f = output(tmpfile);
   write(f, L, 42, endl);
   close(f);
-  assert(doRead() == "\"hi\"" + "	" + "42");
+  assert(doRead() == "\"hi\"" + '\t' + "42");
 }
 EndTest();
 
@@ -136,7 +136,7 @@ StartTest("write two labels (struct method)");
   file f = output(tmpfile);
   write(f, A, B, endl);
   close(f);
-  assert(doRead() == "\"first\"" + "	" + "\"second\"");
+  assert(doRead() == "\"first\"" + '\t' + "\"second\"");
 }
 EndTest();
 
@@ -183,8 +183,8 @@ StartTest("write multiple lines");
   write(f, 3, 4, endl);
   close(f);
   file g = input(tmpfile);
-  string s; s = g; assert(s == "1" + "	" + "2");
-  s = g; assert(s == "3" + "	" + "4");
+  string s; s = g; assert(s == "1" + '\t' + "2");
+  s = g; assert(s == "3" + '\t' + "4");
   close(g);
 }
 EndTest();
@@ -195,7 +195,7 @@ StartTest("user-defined suffix is called");
   file f = output(tmpfile);
   write(f, 1, "a", bang);
   close(f);
-  assert(doRead() == "1" + '	' + "a!");
+  assert(doRead() == "1" + '\t' + "a!");
 }
 EndTest();
 
@@ -218,8 +218,8 @@ StartTest("2-D array is written in mixed write");
   write(f, new int[][] {{1,2},{3,4}}, endl);
   close(f);
   file g = input(tmpfile);
-  string s; s = g; assert(s == "1" + '	' + "2");
-  s = g; assert(s == "3" + '	' + "4");
+  string s; s = g; assert(s == "1" + '\t' + "2");
+  s = g; assert(s == "3" + '\t' + "4");
   close(g);
 }
 EndTest();
@@ -231,11 +231,11 @@ StartTest("3-D array is written in mixed write");
   close(f);
   file g = input(tmpfile);
   string s;
-  s = g; assert(s == "1" + '	' + "2");
-  s = g; assert(s == "3" + '	' + "4");
+  s = g; assert(s == "1" + '\t' + "2");
+  s = g; assert(s == "3" + '\t' + "4");
   s = g; assert(s == "");
-  s = g; assert(s == "5" + '	' + "6");
-  s = g; assert(s == "7" + '	' + "8");
+  s = g; assert(s == "5" + '\t' + "6");
+  s = g; assert(s == "7" + '\t' + "8");
   close(g);
 }
 EndTest();
@@ -249,7 +249,7 @@ StartTest("existing type-specific overloads still work");
   file f = output(tmpfile);
   write(f, x, y, endl);
   close(f);
-  assert(doRead() == "42" + "	" + "3.14");
+  assert(doRead() == "42" + '\t' + "3.14");
   f = output(tmpfile);
   write(f, s, x, endl);
   close(f);
@@ -325,7 +325,7 @@ StartTest("mixed scalars and arrays");
   file g = input(tmpfile);
   string s; s = g; assert(s == "1");
   s = g; assert(s == "2");
-  s = g; assert(s == "3	4.5");
+  s = g; assert(s == "3" + '\t' + "4.5");
   close(g);
 }
 EndTest();
