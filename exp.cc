@@ -1146,6 +1146,18 @@ types::ty *callExp::getTypeRegular(coenv &e)
   return cacheAppOrVarEntry(e, true);
 }
 
+// Returns true if the type is itself a record, or is an overloaded type
+// that includes a record among its possible types.
+static bool containsRecord(types::ty *at) {
+  if (!at) return false;
+  if (at->kind == ty_record) return true;
+  if (at->kind == ty_overloaded) {
+    for (types::ty_iterator ai = at->begin(); ai != at->end(); ++ai)
+      if ((*ai)->kind == ty_record) return true;
+  }
+  return false;
+}
+
 types::ty *callExp::trans(coenv &e)
 {
   // Resolve the callee if not already cached.
@@ -1172,15 +1184,6 @@ types::ty *callExp::trans(coenv &e)
         types::ty *lt = (*args)[0].val->cgetType(e);
         types::ty *rt = (*args)[1].val->cgetType(e);
         types::signature *sig = cachedApp->getType()->getSignature();
-        auto containsRecord = [](types::ty *at) -> bool {
-          if (!at) return false;
-          if (at->kind == ty_record) return true;
-          if (at->kind == ty_overloaded) {
-            for (types::ty_iterator ai = at->begin(); ai != at->end(); ++ai)
-              if ((*ai)->kind == ty_record) return true;
-          }
-          return false;
-        };
         bool spurious = false;
         if (sig && sig->getNumFormals() >= 2) {
           types::ty *p0 = sig->getFormal(0).t;
@@ -1258,17 +1261,6 @@ types::ty *callExp::getType(coenv &e)
         && args->size() == 2) {
       types::ty *lt = (*args)[0].val->cgetType(e);
       types::ty *rt = (*args)[1].val->cgetType(e);
-      // A type "contains a record" if it is itself a record, or is an
-      // overloaded type that includes a record among its possible types.
-      auto containsRecord = [](types::ty *at) -> bool {
-        if (!at) return false;
-        if (at->kind == ty_record) return true;
-        if (at->kind == ty_overloaded) {
-          for (types::ty_iterator ai = at->begin(); ai != at->end(); ++ai)
-            if ((*ai)->kind == ty_record) return true;
-        }
-        return false;
-      };
       bool spurious = false;
       if (cachedApp) {
         types::signature *sig = cachedApp->getType()->getSignature();
