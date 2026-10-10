@@ -22,7 +22,6 @@
 #include "access.h"
 #include "callable.h"
 #include "stack.h"
-#include <vector>
 
 namespace absyntax {
 
@@ -419,7 +418,7 @@ types::ty *callExp::transHeteroWrite(coenv &e)
   size_t n = args->size();
 
   // First pass: determine the concrete (reduced) type of each argument.
-  std::vector<ty *> argTypes(n, 0);
+  mem::vector<ty *> argTypes(n, nullptr);
   for (size_t i = 0; i < n; ++i) {
     ty *t = (*args)[i].val->getType(e);
     if (t->kind == ty_error) {
