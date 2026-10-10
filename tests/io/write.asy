@@ -315,3 +315,20 @@ StartTest("mixed scalars and arrays");
   close(g);
 }
 EndTest();
+
+StartTest("named arguments");
+{
+  file f = output(tmpfile);
+  write(file=f, 1, 2.5, suffix=endl);
+  write(f, s="x=", 3, endl);
+  write(suffix=endl, 4, s="y=", "z", file=f);
+  write(f, "a", s="b", endl);
+  close(f);
+  file g = input(tmpfile);
+  string s; s = g; assert(s == "1" + '\t' + "2.5");
+  s = g; assert(s == "x=3");
+  s = g; assert(s == "y=4" + '\t' + "z");
+  s = g; assert(s == "ba");
+  close(g);
+}
+EndTest();

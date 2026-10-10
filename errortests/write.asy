@@ -10,6 +10,14 @@
   write(1, sin, 3);
 }
 {
+  // Named arguments.
+  write(1, x=2);
+  write(1, s=2);
+  write(1, file="a");
+  write(1, suffix=3);
+  write(1, s="a", s="b");
+}
+{
   // Each error is reported at the offending argument.
   struct NoWrite { }
   void suffix(file f) { }
