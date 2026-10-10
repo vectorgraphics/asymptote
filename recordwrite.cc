@@ -33,6 +33,10 @@ bool isWriteSuffixType(types::ty *t)
 void callRecordWriteMethod(vm::stack *s, vm::vmFrame *frame,
                            types::ty *t, camp::file *f)
 {
+  // Note: this function does not perform a permission check on the write
+  // method.  Access control is enforced at compile time by
+  // isWriteableData (builtin_handlers.cc), which is the sole code path
+  // that constructs the tagged_var array passed to write_var.
   // Cast to record type (safe because kind is ty_record).
   types::record *recType = dynamic_cast<types::record *>(t);
   if (!recType) return;

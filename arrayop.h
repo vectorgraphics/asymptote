@@ -418,7 +418,10 @@ inline void write_var(vm::stack *s)
       case types::ty_triple:    f->write(vm::get<camp::triple>(val)); return true;
       case types::ty_string:    f->write(vm::get<string>(val)); return true;
       case types::ty_pen:       f->write(vm::get<camp::pen>(val)); return true;
-      case types::ty_guide:     f->write(vm::get<camp::guide *>(val)); return true;
+      case types::ty_guide:
+                               f->write(vm::get<camp::guide *>(val)); return true;
+      case types::ty_path:
+                               f->write(new camp::pathguide(*vm::get<camp::path *>(val))); return true;
       case types::ty_transform: f->write(vm::get<camp::transform>(val)); return true;
       default: return false;
     }
@@ -497,37 +500,6 @@ inline void write_var(vm::stack *s)
   }
 }
 
-template<class T>
-void write(vm::stack *s)
-{
-  array *a=pop<array*>(s);
-  vm::callable *suffix=pop<vm::callable *>(s,NULL);
-  T first=pop<T>(s);
-  string S=pop<string>(s,emptystring);
-  vm::item it=pop(s);
-  bool defaultfile=isdefault(it);
-  camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
-  if(!f->isOpen() || !f->enabled()) return;
-
-  size_t size=checkArray(a);
-  if(S != "") f->write(S);
-  f->write(first);
-  for(size_t i=0; i < size; ++i) {
-    f->write(tab);
-    f->write(read<T>(a,i));
-  }
-  if(f->text()) {
-    if(suffix) {
-      s->push(f);
-      suffix->call(s);
-    } else if(defaultfile) {
-      try {
-        f->writeline();
-      } catch (quit&) {
-      }
-    }
-  }
-}
 
 template<class T>
 void writeArray(vm::stack *s)

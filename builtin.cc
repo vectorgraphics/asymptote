@@ -479,13 +479,6 @@ void addBooleanOps(venv &ve, ty *t1, symbol name, ty *t2)
           formal(t2,SYM(b)));
 }
 
-void addWrite(venv &ve, bltin f, ty *t1, ty *t2)
-{
-  addRestFunc(ve,f,primVoid(),SYM(write),t2,
-              formal(primFile(),SYM(file),true),
-              formal(primString(),SYM(s),true),
-              formal(t1,SYM(x)),formal(voidFileFunction(),SYM(suffix),true));
-}
 
 template<class T>
 void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
@@ -504,7 +497,6 @@ void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   addCast(ve,t3,primFile(),readArray2<T>);
   addCast(ve,t4,primFile(),readArray3<T>);
 
-  addWrite(ve,write<T>,t1,t2);
   addRestFunc(ve,writeArray<T>,primVoid(),SYM(write),t3,
               formal(primFile(),SYM(file),true),
               formal(primString(),SYM(s),true),
@@ -862,9 +854,6 @@ void base_venv(venv &ve)
                       &absyntax::callExp::getHeteroWriteType},
                      primVoid(), SYM(write));
 
-  addWrite(ve,write<transform>,primTransform(),transformArray());
-  addWrite(ve,write<guide *>,primGuide(),guideArray());
-  addWrite(ve,write<pen>,primPen(),penArray());
   addFunc(ve,arrayArrayOp<pen,equals>,booleanArray(),SYM_EQ,
           formal(penArray(),SYM(a)),formal(penArray(),SYM(b)));
   addFunc(ve,arrayArrayOp<pen,notequals>,booleanArray(),SYM_NEQ,

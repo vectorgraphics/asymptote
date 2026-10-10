@@ -23,6 +23,7 @@
 #include "callable.h"
 #include "stack.h"
 #include "record.h"
+#include "entry.h"
 
 namespace absyntax {
 
@@ -375,30 +376,31 @@ namespace {
 
 // Returns true if `t` is a type that the write_var runtime can format:
 // one of the writeable scalar kinds, an array (any depth) thereof, or a
-// record that has a write(file, void(file)) method.
-bool isWriteableData(ty *t)
+// record that has a publicly accessible write(file, void(file)) method.
+bool isWriteableData(ty *t, coder &c)
 {
   switch (t->kind) {
     case ty_boolean: case ty_Int: case ty_real:
     case ty_pair: case ty_triple: case ty_string:
-    case ty_pen: case ty_guide: case ty_transform:
+    case ty_pen: case ty_guide: case ty_path: case ty_transform:
       return true;
     case ty_array: {
       array *a = dynamic_cast<array *>(t);
-      return a && isWriteableData(a->celltype);
+      return a && isWriteableData(a->celltype, c);
     }
     case ty_record: {
       record *recType = dynamic_cast<record *>(t);
       if (!recType) return false;
-      // Check that the record actually has a write(file, void(file)) method.
+      // Check that the record actually has a write(file, void(file)) method,
+      // and that the method is accessible from the current context.
       static types::function *suffixType = new types::function(
         types::primVoid(), types::formal(types::primFile()));
       static types::function *writeType = new types::function(
         types::primVoid(),
         types::formal(types::primFile()),
         types::formal(suffixType));
-      return recType->e.lookupVarByType(symbol::trans("write"), writeType)
-             != nullptr;
+      varEntry *ve = recType->e.lookupVarByType(symbol::trans("write"), writeType);
+      return ve && ve->checkPerm(READ, c);
     }
     default:
       return false;
@@ -468,11 +470,11 @@ types::ty *callExp::transHeteroWrite(coenv &e)
 
   // Validate each data element at compile time.
   for (size_t j = first; j < dataEnd; ++j) {
-    if (!isWriteableData(argTypes[j])) {
+    if (!isWriteableData(argTypes[j], e.c)) {
       em.error(getPos());
       em << "argument " << (j + 1) << ": type '" << *argTypes[j];
       if (argTypes[j]->kind == ty_record)
-        em << "' has no write(file, void(file)) method";
+        em << "' has no accessible write(file, void(file)) method";
       else
         em << "' is not writeable";
       return primError();

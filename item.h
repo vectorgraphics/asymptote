@@ -199,17 +199,19 @@ private:
   };
 };
 
-// A self-describing value for the `var` (ty_inferred) type in COMPACT mode,
-// where vm::item is a bare union with no type tag.  A `var` value in the VM
-// is a pointer to a tagged_var.  The tag stores the full types::ty * pointer
-// as an Int (both are 64-bit), giving access to both the ty_kind (for fast
-// dispatch) and the full type (for record method lookup).
+// A self-describing value used by the heterogeneous write() builtin in
+// COMPACT mode, where vm::item is a bare union with no type tag.  The
+// transHeteroWrite handler (builtin_handlers.cc) wraps each argument in a
+// tagged_var* and builds a temporary array that is passed directly to
+// write_var.  The tag stores the full types::ty * pointer as an Int (both
+// are 64-bit), giving access to both the ty_kind (for fast dispatch) and
+// the full type (for record method lookup).
 //
-// Invariant: tagged_var* values only appear in var[] array elements and
-// as rest-arg values passed to write_var.  var[] arrays are immutable
-// after creation (no push/insert/delete/append), so every element is
-// guaranteed to be a tagged_var*.  No code path can place a raw value
-// where a tagged_var* is expected.
+// Invariant: tagged_var* values only appear in the internal array built by
+// transHeteroWrite and consumed by write_var.  The array is created and
+// consumed within a single bytecode sequence (newInitializedArray immediately
+// followed by the write_var builtin call), so no user-visible code path can
+// observe or mutate the elements.
 struct tagged_var : public gc {
   Int tag;        // types::ty * of the original value (reinterpreted as Int)
   item value;     // the actual value

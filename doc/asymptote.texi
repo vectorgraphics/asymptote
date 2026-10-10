@@ -4185,24 +4185,23 @@ Data of a built-in type @code{T} can be written to an output file by
 calling one of the functions
 @cindex @code{write}
 @verbatim
-write(string s="", T x, suffix suffix=endl, ... T[]);
-write(file file, string s="", T x, suffix suffix=none, ... T[]);
-write(file file=stdout, string s="", explicit T[] x, ... T[][]);
-write(file file=stdout, T[][]);
-write(file file=stdout, T[][][]);
-write(file file=stdout, suffix suffix=endl);
+write(file file=stdout, string s="", ... T[]);
+write(suffix suffix=endl);
 write(file file, suffix suffix=none);
-write(file file=stdout, ...);
+write(...);
 @end verbatim
 The last form accepts a heterogeneous list of writeable values,
 optionally prefixed by a @code{file} and/or an identifying
-@code{string}, and optionally suffixed by a @code{suffix}.  It is
-used when no type-specific @code{write} overload matches, for
-example @code{write(42, 3.14, "done")}.  Values of any struct type
-that defines a @code{write(file, suffix)} method (such as
-@code{Label}) are written by calling that method.  The optional
-identifying string is written flush against the first data value
-(no tab separator).
+@code{string}, and optionally suffixed by a @code{suffix} (a
+function of type @code{void(file)}).  It is used when no
+type-specific @code{write} overload matches, for example
+@code{write(42, 3.14, "done")}.  Values of any struct type that
+defines a publicly accessible @code{write(file, suffix)} method
+(such as @code{Label}) are written by calling that method.  The
+optional identifying string (if present) is written flush against
+the first data value (no tab separator), so
+@code{write("a", "b", 1)} produces @code{ab@tab 1} while
+@code{write(1, "a", "b")} produces @code{1@tab a@tab b}.
 @cindex @code{none}
 @cindex @code{flush}
 @cindex @code{endl}
@@ -4212,10 +4211,9 @@ identifying string is written flush against the first data value
 @cindex @code{tab}
 @cindex @code{comma}
 If @code{file} is not specified, @code{stdout} is used and
-terminated by default with a newline. If specified, the optional
+the default @code{suffix} is @code{endl}. If specified, the optional
 identifying string @code{s} is written before the data @code{x}.
-An arbitrary number of data values may be listed when writing scalars
-or one-dimensional arrays. The @code{suffix} may be one of the following:
+The @code{suffix} may be one of the following:
 @code{none} (do nothing), @code{flush} (output buffered data),
 @code{endl} (terminate with a newline and flush),
 @code{newl} (terminate with a newline),
@@ -4228,6 +4226,23 @@ file fout=output("test.txt");
 write(fout,1);                  // Writes "1"
 write(fout, endl);              // Writes a new line
 write(fout,"List: ",1,2,3);     // Writes "List: 1     2     3"
+@end verbatim
+@noindent
+When multiple arrays of the same scalar type @code{T} are listed, they are
+written as indexed columns, one index per line:
+@verbatim
+write(new int[] {1,2}, new int[]{3,4});
+// 0:      1       3
+// 1:      2       4
+@end verbatim
+Arrays of different types (or any mix of values) are written by the
+heterogeneous form, with each value on its own line:
+@verbatim
+write(new int[] {1,2}, new pair[]{1, I});
+// 1
+// 2
+// (1,0)
+// (0,1)
 @end verbatim
 @noindent
 

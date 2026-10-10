@@ -247,6 +247,53 @@ StartTest("existing type-specific overloads still work");
 }
 EndTest();
 
+StartTest("write path");
+{
+  path p = unitcircle;
+  file f = output(tmpfile);
+  write(f, p, endl);
+  close(f);
+  file g = input(tmpfile);
+  string s; s = g;
+  assert(s == "(1,0).. controls (1,0.5522847) and (0.5522847,1)");
+  s = g; assert(s == " ..(0,1).. controls (-0.5522847,1) and (-1,0.5522847)");
+  s = g; assert(s == " ..(-1,0).. controls (-1,-0.5522847) and (-0.5522847,-1)");
+  s = g; assert(s == " ..(0,-1).. controls (0.5522847,-1) and (1,-0.5522847)");
+  s = g; assert(s == " ..cycle");
+  close(g);
+}
+EndTest();
+
+StartTest("write guide");
+{
+  guide g2 = (0,0)..(1,1)..(2,0);
+  file f = output(tmpfile);
+  write(f, g2, endl);
+  close(f);
+  file g = input(tmpfile);
+  string s; s = g;
+  assert(s == "(0,0)");
+  s = g; assert(s == "..(1,1)");
+  s = g; assert(s == "..(2,0)");
+  close(g);
+}
+EndTest();
+
+StartTest("write path and guide together");
+{
+  path p = (0,0)--(1,0)--cycle;
+  guide g2 = (0,0)..(1,1);
+  file f = output(tmpfile);
+  write(f, p, g2, endl);
+  close(f);
+  file g = input(tmpfile);
+  string s; s = g;
+  assert(find(s, "--") >= 0);
+  s = g; assert(find(s, "..") >= 0);
+  close(g);
+}
+EndTest();
+
 StartTest("write file only (no data) is a no-op");
 {
   file f = output(tmpfile);
