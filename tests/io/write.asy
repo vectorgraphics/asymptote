@@ -374,3 +374,14 @@ StartTest("rest argument");
   close(g);
 }
 EndTest();
+
+StartTest("overloaded name is written as its value");
+{
+  int h = 3;
+  int h(int x) { return x; }
+  file f = output(tmpfile);
+  write(f, h, 2.5, endl);
+  close(f);
+  assert(doRead() == "3" + '\t' + "2.5");
+}
+EndTest();
