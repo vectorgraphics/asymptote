@@ -554,9 +554,12 @@ bool planHeteroWrite(coenv &e, arglist *args, WritePlan &plan, bool report)
 
 } // namespace
 
-types::ty *callExp::getHeteroWriteType(coenv &)
+types::ty *callExp::getHeteroWriteType(coenv &e)
 {
-  return primVoid();
+  // A call that cannot be translated has no type.  Interactive mode relies on
+  // this to fall back to describing a value it cannot write.
+  WritePlan plan;
+  return planHeteroWrite(e, args, plan, false) ? primVoid() : primError();
 }
 
 types::ty *callExp::transHeteroWrite(coenv &e)
