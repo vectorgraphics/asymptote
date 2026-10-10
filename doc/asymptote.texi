@@ -4200,8 +4200,16 @@ defines a publicly accessible @code{write(file, suffix)} method
 (such as @code{Label}) are written by calling that method.  The
 optional identifying string (if present) is written flush against
 the first data value (no tab separator), so
-@code{write("a", "b", 1)} produces @code{ab@tab 1} while
-@code{write(1, "a", "b")} produces @code{1@tab a@tab b}.
+@code{write("a", "b", 1)} produces
+@verbatim
+ab	1
+@end verbatim
+@noindent
+while @code{write(1, "a", "b")} produces
+@verbatim
+1	a	b
+@end verbatim
+@noindent
 @cindex @code{none}
 @cindex @code{flush}
 @cindex @code{endl}
@@ -4212,7 +4220,7 @@ the first data value (no tab separator), so
 @cindex @code{comma}
 If @code{file} is not specified, @code{stdout} is used and
 the default @code{suffix} is @code{endl}. If specified, the optional
-identifying string @code{s} is written before the data @code{x}.
+identifying string @code{s} is written before the data.
 The @code{suffix} may be one of the following:
 @code{none} (do nothing), @code{flush} (output buffered data),
 @code{endl} (terminate with a newline and flush),

@@ -361,8 +361,17 @@ types::ty *callExp::transRecordEq(coenv &e)
   }
 
   // Emit the comparison.
+  {
+    ostringstream dbgeq;
+    dbgeq << "DEBUG transRecordEq: lt=" << *lt << "(rk=" << lt->kind << ")"
+          << " rt=" << *rt << "(rk=" << rt->kind << ")"
+          << " target=" << *target << "(rk=" << target->kind << ")";
+    fprintf(stderr, "%s\n", dbgeq.str().c_str());
+  }
   left->transToType(e, target);
+  fprintf(stderr, "DEBUG transRecordEq: after left->transToType\n");
   right->transToType(e, target);
+  fprintf(stderr, "DEBUG transRecordEq: after right->transToType\n");
   e.c.encode(inst::builtin, isEq ? run::boolMemEq : run::boolMemNeq);
 
   return primBoolean();
