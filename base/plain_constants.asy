@@ -79,6 +79,7 @@ void overloadedMessage(file file) {
   endl(file);
 }
 
+// Handles calls with a named suffix argument, e.g., write(suffix=endl).
 void write(suffix suffix=endl) {suffix(stdout);}
 void write(file file, suffix suffix=none) {suffix(file);}
 
