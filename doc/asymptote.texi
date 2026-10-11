@@ -4262,8 +4262,11 @@ write(new int[] {1,2}, new pair[]{1, I});
 A value of a struct type is written by the struct's own writer, if it
 has one: either a method @code{void write(file, suffix)} (as in
 @code{Label}) or a static function
-@code{void write(file, T, suffix)} defined inside the struct @code{T},
-typically with the @code{autounravel} modifier (@pxref{Autounravel}).
+@code{void write(file, T, suffix)} or
+@code{void write(file, string, T, suffix)} defined inside the struct
+@code{T}, typically with the @code{autounravel} modifier
+(@pxref{Autounravel}). The @code{string} of the second form is an
+identifying prefix.
 The writer must not be @code{private}. Because it belongs to the type,
 such a writer is found wherever a value of the type is written, including
 inside a templated module and when the value is a field of another struct.

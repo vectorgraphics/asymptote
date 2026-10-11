@@ -60,10 +60,13 @@ types::function *suffixType()
 // type alone, wherever a value of that type is written.
 struct RecordWriter {
   trans::localAccess *loc = nullptr;
-  // False for a method   void write(file, void(file)),
-  // true for a static (typically autounravel) function
-  //                      void write(file, T, void(file)).
-  bool takesValue = false;
+  // The writer is one of
+  //   a method           void write(file, void(file)),
+  //   a static function  void write(file, T, void(file)),
+  //   a static function  void write(file, string, T, void(file)),
+  // where a static function is typically declared autounravel.  The string
+  // is an identifying prefix, for which the empty string is passed.
+  enum { METHOD, STATIC, STATIC_WITH_PREFIX } form = METHOD;
 };
 
 RecordWriter findRecordWriter(types::record *r)
@@ -78,16 +81,25 @@ RecordWriter findRecordWriter(types::record *r)
                          types::formal(types::primFile()),
                          types::formal(r),
                          types::formal(suffixType()));
+  types::function prefixed(types::primVoid(),
+                           types::formal(types::primFile()),
+                           types::formal(types::primString()),
+                           types::formal(r),
+                           types::formal(suffixType()));
 
   // A private writer is an implementation detail of the struct, not a
   // statement of how its values are to be displayed.
-  trans::varEntry *ve = r->e.lookupVarByType(writeSym, &method);
-  if (!ve || ve->isPrivate()) {
-    ve = r->e.lookupVarByType(writeSym, &statik);
-    w.takesValue = true;
-  }
-  if (ve && !ve->isPrivate())
+  types::function *forms[] = {&method, &statik, &prefixed};
+  for (int i = 0; i < 3; ++i) {
+    trans::varEntry *ve = r->e.lookupVarByType(writeSym, forms[i]);
+    if (!ve || ve->isPrivate())
+      continue;
     w.loc = dynamic_cast<trans::localAccess *>(ve->getLocation());
+    w.form = i == 0 ? RecordWriter::METHOD :
+             i == 1 ? RecordWriter::STATIC : RecordWriter::STATIC_WITH_PREFIX;
+    if (w.loc)
+      break;
+  }
   return w;
 }
 
@@ -358,7 +370,9 @@ bool callRecordWriter(vm::stack *s, vm::vmFrame *frame,
   // Call the writer with a no-op suffix.
   static vm::bfunc noSuffix(noSuffixBltin);
   s->push((vm::item) f);
-  if (w.takesValue)
+  if (w.form == RecordWriter::STATIC_WITH_PREFIX)
+    s->push((vm::item) string(""));
+  if (w.form != RecordWriter::METHOD)
     s->push((vm::item) frame);
   s->push((vm::item) (vm::callable *) &noSuffix);
   writer->call(s);
