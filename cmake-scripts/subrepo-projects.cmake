@@ -23,6 +23,19 @@ if (ENABLE_GC)
     set(enable_large_config ON CACHE INTERNAL "bdwgc large config")
     add_subdirectory(${BOEHM_GC_ROOT})
 
+    # LTO on all subdirectory targets (matches the autotools build, which passes
+    # -flto through CFLAGS to every subproject). Diagnostic builds confirmed the
+    # forked 3D render child (-noV) works with the GC under LTO, so the original
+    # blanket exclusion of subdirectory targets from LTO was a red herring.
+    # ASY_LTO_COMPILE_OPTIONS is only set on the non-MSVC (-flto) path; MSVC
+    # drives LTO via CMAKE_INTERPROCEDURAL_OPTIMIZATION, which already propagates
+    # to this subdirectory target. The final asy/asy-ctan link carries
+    # ASY_LTO_LINK_OPTIONS (-flto), which processes these LTO objects, so no link
+    # change is needed here.
+    if (ASY_LTO_COMPILE_OPTIONS)
+        target_compile_options(gc PRIVATE ${ASY_LTO_COMPILE_OPTIONS})
+    endif()
+
     set(CFLAG_EXTRA ${OLD_CFLAG_EXTRA})
     unset(BUILD_SHARED_LIBS CACHE)
     set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED_LIBS})

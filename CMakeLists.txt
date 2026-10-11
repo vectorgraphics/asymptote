@@ -41,6 +41,15 @@ include(cmake-scripts/thirdparty-impl.cmake)
 
 # PRC
 add_subdirectory(prc/)
+
+# LTO on all subdirectory targets (matches the autotools build, which passes
+# -flto through CFLAGS to every subproject). ASY_LTO_COMPILE_OPTIONS is only
+# set on the non-MSVC (-flto) path; MSVC already propagates LTO here via
+# CMAKE_INTERPROCEDURAL_OPTIMIZATION.
+if (ASY_LTO_COMPILE_OPTIONS)
+    target_compile_options(PRC PRIVATE ${ASY_LTO_COMPILE_OPTIONS})
+endif()
+
 list(APPEND ASY_STATIC_LIBRARIES PRC)
 
 get_target_property(prc_incl_dir PRC INCLUDE_DIRECTORIES)

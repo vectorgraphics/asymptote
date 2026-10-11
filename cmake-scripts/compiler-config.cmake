@@ -13,12 +13,14 @@ if (OPTIMIZE_LINK_TIME)
         endif()
     else()
         # Use plain -flto (fat objects) to match the autotools build.
-        # Set as variables for CMakeLists.txt to apply only to asycore
-        # and settings objects — NOT to subdirectory targets (gc, prc,
-        # tinyexr, vma) which are built separately in the autotools model.
+        # Set as variables applied to asycore, settings objects and all
+        # subdirectory targets (gc, vma, prc, tinyexr). Diagnostic builds
+        # confirmed the forked 3D render child (-noV) works with those targets
+        # under LTO, so the earlier per-target exclusion was a red herring and
+        # LTO is now applied uniformly.
         set(ASY_LTO_COMPILE_OPTIONS -flto)
         set(ASY_LTO_LINK_OPTIONS -flto)
-        message(STATUS "Using link-time optimization (-flto, asycore only)")
+        message(STATUS "Using link-time optimization (-flto, all targets)")
     endif()
 endif()
 
