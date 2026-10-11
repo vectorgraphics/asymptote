@@ -79,6 +79,14 @@ public:
 
   bool checkPerm(action act, coder &c);
   void reportPerm(action act, position pos, coder &c);
+
+  // Returns true if the entry is private to some record, whatever the context.
+  bool isPrivate() const {
+    for (const pr& p : perms)
+      if (p.perm == PRIVATE)
+        return true;
+    return false;
+  }
   void listPerm();
 
   record *whereDefined() {
@@ -94,6 +102,11 @@ class varEntry : public entry {
   ty *t;
   access *location;
 
+  // True if the variable was introduced by a function definition, such as
+  //   void f() {}
+  // as opposed to a declaration of a variable of function type.
+  bool functionDefinition = false;
+
 public:
   varEntry(ty *t, access *location, record *where, position pos)
     : entry(where, pos), t(t), location(location) {}
@@ -107,7 +120,8 @@ public:
 
   // Copies the original varEntry and adds a new permission constraint.
   varEntry(varEntry &base, permission perm, record *r)
-    : entry(base, perm, r), t(base.t), location(base.location) {}
+    : entry(base, perm, r), t(base.t), location(base.location),
+      functionDefinition(base.functionDefinition) {}
 
   ty *getType()
   { return t; }
@@ -119,6 +133,12 @@ public:
 
   access *getLocation()
   { return location; }
+
+  bool isFunctionDefinition() const
+  { return functionDefinition; }
+
+  void markFunctionDefinition()
+  { functionDefinition = true; }
 
   frame *getLevel();
 
@@ -528,6 +548,22 @@ public:
 
   // Prints a list of the variables to the standard output.
   void list(record *module=0);
+
+  // Calls f(name, v) for every variable, in no particular order.
+  template<class F>
+  void forEach(F f) {
+    for (namemap::iterator N = names.begin(); N != names.end(); ++N) {
+      ty *t = N->second.t;
+      if (!t)
+        continue;
+      if (t->isOverloaded()) {
+        for (types::ty_iterator i = t->begin(); i != t->end(); ++i)
+          if (varEntry *v = lookByType(N->first, *i))
+            f(N->first, v);
+      } else if (varEntry *v = lookByType(N->first, t))
+        f(N->first, v);
+    }
+  }
 
   // Adds to l, all names prefixed by start.
   void completions(mem::list<symbol>& l, string start);

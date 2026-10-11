@@ -739,12 +739,15 @@ types::ty *inferType(position pos, coenv &e, varinit *init)
 }
 
 void createVar(position pos, coenv &e, record *r,
-               symbol id, types::ty *t, varinit *init)
+               symbol id, types::ty *t, varinit *init,
+               bool functionDefinition)
 {
   // I'm not sure how to handle inferred types in these cases.
   assert(t->kind != types::ty_inferred);
 
   varEntry *v=makeVarEntry(pos, e, r, t);
+  if (functionDefinition)
+    v->markFunctionDefinition();
   addVar(e, r, v, id);
   initializeVar(pos, e, v, init);
 }

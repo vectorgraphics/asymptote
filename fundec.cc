@@ -319,7 +319,7 @@ void fundec::transAsField(coenv &e, record *r)
   function *ft = fun.transTypeAndAddOps(e, r);
   assert(ft);
 
-  createVar(getPos(), e, r, id, ft, fun.makeVarInit(ft));
+  createVar(getPos(), e, r, id, ft, fun.makeVarInit(ft), true);
 }
 
 

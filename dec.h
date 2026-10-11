@@ -471,8 +471,11 @@ public:
   { return true; }
 };
 
+// If functionDefinition is true, the variable is recorded as having been
+// introduced by a function definition.
 void createVar(position pos, coenv &e, record *r,
-               symbol id, types::ty *t, varinit *init);
+               symbol id, types::ty *t, varinit *init,
+               bool functionDefinition=false);
 
 class vardec : public dec {
   astType *base;
