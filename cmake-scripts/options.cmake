@@ -103,6 +103,14 @@ else()
     set(default_vk_validation_opt true)
 endif()
 
+option(ENABLE_OPENGL "Enable OpenGL as a fallback renderer (requires OpenGL >= 4.3 and GLFW3)." true)
+cmake_dependent_option(ENABLE_GL_COMPUTE_SHADERS
+        "Whether to enable compute shaders for OpenGL. Requires OpenGL >= 4.3 and GL_ARB_compute_shader"
+        true "ENABLE_OPENGL" false)
+cmake_dependent_option(ENABLE_GL_SSBO
+        "Whether to enable compute SSBO. Requires OpenGL >= 4.3 and GL_ARB_shader_storage_buffer_object"
+        true "ENABLE_OPENGL" false)
+
 option(ENABLE_VK_VALIDATION_LAYERS "Whether to enable Vulkan validation layer" ${default_vk_validation_opt})
 option(
         ENABLE_RPC_FEATURES

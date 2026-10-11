@@ -59,6 +59,12 @@
         "fftw3"
       ]
     },
+    "opengl": {
+      "description": "OpenGL Support",
+      "dependencies": [
+        "opengl"
+      ]
+    },
     "lsp": {
       "description": "Language Server Protocol Support",
       "dependencies": [

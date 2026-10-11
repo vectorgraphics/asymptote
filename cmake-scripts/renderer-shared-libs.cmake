@@ -1,18 +1,19 @@
+
 # renderer-shared-libs.cmake
 #
-# Builds libasyvulkan.so (and optionally libasyopengl.so) for Unix platforms.
-# On Unix the main asy binary carries zero link-time Vulkan/OpenGL dependencies;
-# instead it calls dlopen("libasyvulkan.so") at runtime via rendererloader.cc.
-# This mirrors the autotools SHIMLIBS / "libasyvulkan.so" target.
+# Builds the renderer shared libraries (libasyvulkan and optionally
+# libasyopengl) for both Unix (.so) and Windows (.dll). The main asy
+# binary carries zero link-time Vulkan/OpenGL dependencies; instead it
+# calls dlopen("libasyvulkan.so") on Unix or LoadLibrary("libasyvulkan.dll")
+# on Windows at runtime via rendererloader.cc. This mirrors the autotools
+# SHIMLIBS model.
 #
-# Included from linux-install.cmake, so ASY_BASE_INSTALL_COMPONENT and
-# ASY_INSTALL_SYSDIR_VALUE are already defined.
+# On Unix, included from linux-install.cmake (ASY_BASE_INSTALL_COMPONENT
+# and ASY_INSTALL_SYSDIR_VALUE are already defined).
+# On Windows, included from CMakeLists.txt directly (before the NSIS
+# installer step); DLLs are collected from the build dir by the installer.
 
-if (NOT UNIX OR WIN32)
-    return()
-endif()
-
-# ── libasyvulkan.so ──────────────────────────────────────────────────────────
+# ── libasyvulkan (libasyvulkan.so / libasyvulkan.dll) ───────────────────────
 
 if (ENABLE_VULKAN)
     # The renderer links the glslang:: imported targets (glslang::glslang,
@@ -37,29 +38,26 @@ if (ENABLE_VULKAN)
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty_impl/vk-mem-allocator_impl/src/vma_cxx.cc
     )
 
-    # CMake automatically adds the "lib" prefix and ".so" suffix → libasyvulkan.so
-    #
-    # Build the library into the assembled base directory (the same place the
-    # base/*.asy files are staged). At runtime the loader finds it through the
-    # Asymptote search path via settings::locateFile; placing it alongside the
-    # base files makes `asy -dir <base>` resolve it from any working directory,
-    # mirroring the installed layout (where it lands in the sysdir next to base).
-    # Otherwise it would only be found when the current directory happened to be
-    # the build root.
     set_target_properties(asyvulkan PROPERTIES
         OUTPUT_NAME asyvulkan
+        PREFIX "lib"          # libasyvulkan.so / libasyvulkan.dll
         POSITION_INDEPENDENT_CODE ON
-        LIBRARY_OUTPUT_DIRECTORY ${ASY_BUILD_BASE_DIR}
     )
 
+    # On Unix, build into the assembled base directory so the runtime loader
+    # finds it via the Asymptote search path. On Windows, the DLL is placed in
+    # the build output dir and collected by the NSIS installer.
+    if (UNIX)
+        set_target_properties(asyvulkan PROPERTIES
+            LIBRARY_OUTPUT_DIRECTORY ${ASY_BUILD_BASE_DIR}
+        )
+    endif()
+
     target_include_directories(asyvulkan PRIVATE
-        # Pull in asycore's full include set (includes GC headers from the gc subrepo target).
         $<TARGET_PROPERTY:asycore,INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:vk-mem-allocator-impl,INCLUDE_DIRECTORIES>
     )
 
-    # Same macro set as asycore (includes HAVE_LIBVULKAN, HAVE_LIBGLFW, etc.)
-    # No -DFOR_SHARED: the renderer is not a Python bindings library.
     target_compile_definitions(asyvulkan PRIVATE ${ASY_MACROS})
     target_compile_options(asyvulkan PRIVATE ${ASY_COMPILE_OPTS})
 
@@ -70,19 +68,79 @@ if (ENABLE_VULKAN)
         glfw
     )
 
-    # Generated headers (e.g. asy-keywords.h) must exist before compilation.
     add_dependencies(asyvulkan asy_gen_headers)
 
-    # Pull libasyvulkan.so into the default ALL build via asy-with-basefiles.
-    add_dependencies(asy-with-basefiles asyvulkan)
+    if (UNIX)
+        add_dependencies(asy-with-basefiles asyvulkan)
 
-    install(
-        TARGETS asyvulkan
-        LIBRARY
-            DESTINATION ${ASY_INSTALL_SYSDIR_VALUE}
-            COMPONENT   ${ASY_BASE_INSTALL_COMPONENT}
-            PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-                        GROUP_READ GROUP_EXECUTE
-                        WORLD_READ WORLD_EXECUTE
-    )
+        install(
+            TARGETS asyvulkan
+            LIBRARY
+                DESTINATION ${ASY_INSTALL_SYSDIR_VALUE}
+                COMPONENT   ${ASY_BASE_INSTALL_COMPONENT}
+                PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                            GROUP_READ GROUP_EXECUTE
+                            WORLD_READ WORLD_EXECUTE
+        )
+    endif()
 endif()
+
+# ── libasyopengl (libasyopengl.so / libasyopengl.dll) ───────────────────────
+
+if (ENABLE_OPENGL)
+    add_library(asyopengl SHARED
+        ${ASY_SRC_DIR}/glrender.cc
+        ${ASY_SRC_DIR}/shaders.cc
+        ${ASY_SRC_DIR}/GLTextures.cc
+        ${ASY_SRC_DIR}/sortTriangles.cc
+    )
+
+    set_target_properties(asyopengl PROPERTIES
+        OUTPUT_NAME asyopengl
+        PREFIX "lib"
+        POSITION_INDEPENDENT_CODE ON
+    )
+
+    if (UNIX)
+        set_target_properties(asyopengl PROPERTIES
+            LIBRARY_OUTPUT_DIRECTORY ${ASY_BUILD_BASE_DIR}
+        )
+    endif()
+
+    target_include_directories(asyopengl PRIVATE
+        $<TARGET_PROPERTY:asycore,INCLUDE_DIRECTORIES>
+    )
+
+    target_compile_definitions(asyopengl PRIVATE ${ASY_MACROS})
+    target_compile_options(asyopengl PRIVATE ${ASY_COMPILE_OPTS})
+
+    if (WIN32)
+        target_link_libraries(asyopengl PRIVATE
+            OpenGL::GL
+            GLEW
+            glfw
+        )
+    else()
+        target_link_libraries(asyopengl PRIVATE
+            OpenGL::GL
+            glfw
+        )
+    endif()
+
+    add_dependencies(asyopengl asy_gen_headers)
+
+    if (UNIX)
+        add_dependencies(asy-with-basefiles asyopengl)
+
+        install(
+            TARGETS asyopengl
+            LIBRARY
+                DESTINATION ${ASY_INSTALL_SYSDIR_VALUE}
+                COMPONENT   ${ASY_BASE_INSTALL_COMPONENT}
+                PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                            GROUP_READ GROUP_EXECUTE
+                            WORLD_READ WORLD_EXECUTE
+        )
+    endif()
+endif()
+

@@ -118,6 +118,10 @@ add_executable(asy-ctan ${ASY_SRC_DIR}/main.cc ${ASY_WIN_RC_FILE} $<TARGET_OBJEC
 #      in the executable's dynamic symbol table where the dlopened libraries
 #      can bind to them.
 #
+# On Windows the renderer DLLs are loaded via LoadLibrary and are self-contained
+# (they do not resolve symbols from the loading executable), so a plain static
+# library link is sufficient.
+#
 # Applied to asy-ctan as well so the CTAN/TeXLive binary can render too.
 foreach(asy_exe asy asy-ctan)
     if (UNIX AND NOT WIN32)
@@ -163,6 +167,14 @@ include(cmake-scripts/tests-wce.cmake)
 
 if (ENABLE_ASY_CXXTEST)
     add_subdirectory(cxxtests)
+endif()
+
+# renderer shared libraries (libasyvulkan / libasyopengl). On Unix this is
+# included from linux-install.cmake (where install variables are defined).
+# On Windows, include directly here -- the NSIS installer collects DLLs
+# from the build output directory.
+if (WIN32)
+    include(cmake-scripts/renderer-shared-libs.cmake)
 endif()
 
 # installation

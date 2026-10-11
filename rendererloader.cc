@@ -41,10 +41,6 @@
 pthread_mutex_t main_wait_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t main_wait_cond = PTHREAD_COND_INITIALIZER;
 
-#ifdef _WIN32
-#include "vkrender.h"
-#endif
-
 bool vulkan = false;
 
 #ifdef HAVE_RENDERER
@@ -52,9 +48,6 @@ bool vulkan = false;
 #ifdef _WIN32
 #include <windows.h>
 #include <libloaderapi.h>
-// For llvmpipe fallback: we need raw Vulkan types to probe device availability.
-#define VK_NO_PROTOTYPES
-#include <vulkan/vulkan.h>
 #else
 #include <dlfcn.h>
 #endif
@@ -271,8 +264,12 @@ static bool tryLoadOpenGLLib()
 bool tryLoadVulkan()
 {
 #ifdef _WIN32
-    // On Windows, Vulkan is statically linked; always available.
-    return true;
+    HMODULE h = LoadLibraryA("libasyvulkan.dll");
+    if (h) {
+        FreeLibrary(h);
+        return true;
+    }
+    return false;
 #else
     void *h = loadRendererLib("libasyvulkan.so");
     if (h) {
@@ -291,7 +288,11 @@ bool tryLoadVulkan()
 bool tryLoadOpenGL()
 {
 #ifdef _WIN32
-    // On Windows, OpenGL is not supported; only Vulkan is available.
+    HMODULE h = LoadLibraryA("libasyopengl.dll");
+    if (h) {
+        FreeLibrary(h);
+        return true;
+    }
     return false;
 #else
     void *h = loadRendererLib("libasyopengl.so");
@@ -390,118 +391,6 @@ void createRenderer()
 
     bool useVulkan = settings::getSetting<bool>("vulkan");
 
-#ifdef _WIN32
-    // On Windows, Vulkan is linked against vulkan-1.dll.  Initialize the
-    // Vulkan-Hpp dynamic dispatcher before creating the renderer.
-    VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
-
-    // Probe for a hardware GPU.  If none is available (e.g., pre-2012
-    // hardware, VirtualBox VM), fall back to llvmpipe via Lavapipe.
-    bool hasHardwareGPU = false;
-    try {
-        VkInstanceCreateInfo info = {};
-        info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-
-        VkInstance tmpInst;
-        if (vkCreateInstance(&info, nullptr, &tmpInst) == VK_SUCCESS) {
-            uint32_t devCount = 0;
-            vkEnumeratePhysicalDevices(tmpInst, &devCount, nullptr);
-            if (devCount > 0) {
-                std::vector<VkPhysicalDevice> devices(devCount);
-                vkEnumeratePhysicalDevices(tmpInst, &devCount, devices.data());
-                for (uint32_t i = 0; i < devCount; ++i) {
-                    VkPhysicalDeviceProperties props;
-                    vkGetPhysicalDeviceProperties(devices[i], &props);
-                    if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU ||
-                        props.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU ||
-                        props.deviceType == VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU) {
-                        hasHardwareGPU = true;
-                        break;
-                    }
-                }
-            }
-            vkDestroyInstance(tmpInst, nullptr);
-        }
-    } catch (...) {
-        // If probing fails for any reason, proceed without the check.
-    }
-
-    std::string const exeDir = mem::stdString(settings::executableDir());
-
-    if (!hasHardwareGPU) {
-        // No hardware GPU found -- set up llvmpipe (Lavapipe) fallback.
-        // Strategy: write lvp_icd.json next to the executable and set
-        // VK_ICD_FILENAMES so the Vulkan loader picks it up on the next
-        // instance creation.
-
-        // 2) Ensure lvp_icd.json exists next to the executable. The NSIS
-        //    installer ships it; this fallback covers source builds.
-        std::string icdPath =
-            exeDir.empty() ? "lvp_icd.json" : exeDir + "\\lvp_icd.json";
-
-        {
-            std::ifstream test(icdPath.c_str());
-            if (!test.good()) {
-                std::ofstream ofs(icdPath.c_str(), std::ios::trunc);
-                if (ofs.is_open()) {
-                    ofs << "{\n"
-                        << "    \"file_format_version\": \"1.0.0\",\n"
-                        << "    \"ICD\": {\n"
-                        << "        \"library_path\": \".\\\\vulkan_lvp.dll\",\n"
-                        << "        \"api_version\": \"1.3.0\"\n"
-                        << "    }\n"
-                        << "}\n";
-                    if (settings::verbose > 1)
-                        std::cout << "Wrote Lavapipe ICD manifest: " << icdPath
-                                  << std::endl;
-                }
-            }
-        }
-
-        // 3) Set VK_ICD_FILENAMES so the loader finds our manifest.
-        _putenv_s("VK_ICD_FILENAMES", icdPath.c_str());
-
-        // 4) Load vulkan_lvp.dll (the Lavapipe driver).
-        std::string const lvpDllPath =
-            exeDir.empty() ? "vulkan_lvp.dll" : exeDir + "\\vulkan_lvp.dll";
-
-        lvpLibHandle = LoadLibraryA(lvpDllPath.c_str());
-        if (lvpLibHandle) {
-            if (settings::verbose > 1)
-                std::cout << "Loaded llvmpipe fallback: " << lvpDllPath
-                          << std::endl;
-        } else {
-            // No GPU and no llvmpipe: leave gl as nullptr. The error will
-            // be reported lazily in initRenderer() when 3D is requested.
-            signalRendererReady();
-            return;
-        }
-
-        // 5) Re-initialize the Vulkan dispatcher so it picks up the new ICD.
-        VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
-    }
-
-    // Directly instantiate the Vulkan renderer.
-    try {
-        gl = new camp::AsyVkRender();
-#ifdef HAVE_PTHREAD
-        if (gl)
-            gl->threadMgr.mainthread = pthread_self();
-#endif
-        signalRendererReady();
-        vulkan = true;
-        if (settings::verbose > 1)
-            std::cout << "Using Vulkan renderer" << std::endl;
-    } catch (const std::exception &e) {
-        // Vulkan renderer failed to initialize (e.g., no display, no GPU).
-        // Leave gl as nullptr so initRenderer() reports the error.
-        std::cerr << "Vulkan renderer initialization failed: " << e.what()
-                  << std::endl;
-    } catch (...) {
-        std::cerr << "Vulkan renderer initialization failed (unknown error)"
-                  << std::endl;
-    }
-#else
 #if defined(__APPLE__) && defined(__x86_64__)
     // On Intel Macs, detect Metal availability BEFORE any Vulkan calls.
     // MoltenVK's ICD is found by the Vulkan loader, but if Metal is not
@@ -591,13 +480,10 @@ void createRenderer()
     if (tryLoadOpenGLLib()) {
         return;
     }
-#endif // _WIN32
 
-    // On Unix: both renderers failed to load. Leave gl as nullptr; the error will be
+    // Both renderers failed to load. Leave gl as nullptr; the error will be
     // reported lazily in initRenderer() when 3D rendering is actually requested.
-#ifndef _WIN32
     vulkan = false;
-#endif
 }
 
 /**

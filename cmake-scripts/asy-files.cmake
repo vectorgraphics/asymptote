@@ -37,17 +37,16 @@ set(CORE_BUILD_FILES
         lspdec lspexp lspfundec lspstm
 )
 
-# Vulkan renderer sources. On a Unix Vulkan build these are compiled
-# exclusively into the dlopened libasyvulkan.so (see
-# cmake-scripts/renderer-shared-libs.cmake), so they must NOT also go into
-# asycore: doing so pulls glslang into the main binary, whose bison parser
-# collides with asymptote's own (`multiple definition of yydebug`) once asycore
-# is whole-archived into asy.
+# Vulkan renderer sources. On both Unix and Windows these are compiled
+# exclusively into the dlopened/LoadLibrary'd libasyvulkan shared library
+# (see cmake-scripts/renderer-shared-libs.cmake), so they must NOT also go
+# into asycore: doing so pulls glslang into the main binary, whose bison
+# parser collides with asymptote's own (`multiple definition of yydebug`)
+# once asycore is whole-archived into asy.
 #
-# Everywhere else they belong in the core build: on Windows (including Cygwin)
-# Vulkan is linked directly into the binary, and when Vulkan is disabled there
-# is no separate # renderer library to hold them.
-if (WIN32 OR NOT UNIX OR NOT ENABLE_VULKAN)
+# When Vulkan is disabled there is no separate renderer library to hold them,
+# so they belong in the core build.
+if (NOT ENABLE_VULKAN)
     list(APPEND CORE_BUILD_FILES vkrender vkutils vkdispatchstorage)
 endif()
 

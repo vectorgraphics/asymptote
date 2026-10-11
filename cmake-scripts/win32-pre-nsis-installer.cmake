@@ -13,6 +13,12 @@ endif()
 
 # helper target for files needed
 add_custom_target(asy-pre-nsis-targets DEPENDS asy asy-ctan asy-basefiles asy-licenses)
+if (ENABLE_VULKAN)
+    add_dependencies(asy-pre-nsis-targets asyvulkan)
+endif()
+if (ENABLE_OPENGL)
+    add_dependencies(asy-pre-nsis-targets asyopengl)
+endif()
 
 # check done, start configuration
 set(ASYMPTOTE_NSI_CONFIGURATION_DIR ${CMAKE_CURRENT_BINARY_DIR}/nsifiles)
@@ -55,6 +61,16 @@ install(TARGETS asy
         POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
         ${ASY_NSIS_INSTALL_ARGUMENT}
 )
+
+# Renderer shared libraries (libasyvulkan.dll / libasyopengl.dll).
+# These are loaded at runtime via LoadLibrary, so CMake's RUNTIME_DEPENDENCIES
+# won't detect them automatically. Install them explicitly.
+if (ENABLE_VULKAN)
+    install(TARGETS asyvulkan RUNTIME ${ASY_NSIS_INSTALL_ARGUMENT})
+endif()
+if (ENABLE_OPENGL)
+    install(TARGETS asyopengl RUNTIME ${ASY_NSIS_INSTALL_ARGUMENT})
+endif()
 
 # Lavapipe ICD manifest and DLL (from the shared DLL directory).
 if(WIN32 AND DEFINED ENV{ASYMPTOTE_BUILD_SHARED_DIRECTORY})

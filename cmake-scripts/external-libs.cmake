@@ -189,13 +189,10 @@ if (ENABLE_VULKAN)
     find_package(Vulkan COMPONENTS glslang)
     if (Vulkan_FOUND AND Vulkan_glslang_FOUND)
         list(APPEND ASY_MACROS HAVE_LIBVULKAN)
-        # On Windows, link Vulkan and glslang into the main binary (no dlopen).
-        # On Unix, the main binary must NOT link these — the renderer is loaded
-        # via dlopen("libasyvulkan.so") which carries its own dependencies,
-        # mirroring the autotools model.
-        if (WIN32)
-            list(APPEND ASY_STATIC_LIBRARIES Vulkan::Vulkan Vulkan::glslang)
-        endif()
+        # Do NOT link Vulkan/glslang into the main binary on any platform.
+        # The renderer is loaded at runtime via dlopen("libasyvulkan.so")
+        # on Unix or LoadLibrary("libasyvulkan.dll") on Windows (see
+        # cmake-scripts/renderer-shared-libs.cmake).
     else()
         message(FATAL_ERROR "Vulkan not found")
     endif()
@@ -213,6 +210,53 @@ if (ENABLE_VULKAN)
     endif()
 else()
     message(STATUS "Vulkan support disabled; will not build Vulkan renderer.")
+endif()
+
+# OpenGL
+if (ENABLE_OPENGL)
+    find_package(OpenGL REQUIRED)
+    if (OPENGL_FOUND)
+        # Do NOT link OpenGL into the main binary. The renderer is loaded at
+        # runtime via dlopen("libasyopengl.so") on Unix or
+        # LoadLibrary("libasyopengl.dll") on Windows.
+        list(APPEND ASY_MACROS HAVE_LIBGL)
+    else()
+        message(FATAL_ERROR "OpenGL not found")
+    endif()
+
+    # GLEW (Windows only): needed for GL function loading. Include is
+    # propagated to all targets via ASYMPTOTE_INCLUDES since glrender.h
+    # (included from asycore) references GL/glew.h.
+    if (WIN32)
+        add_subdirectory(${CMAKE_SOURCE_DIR}/backports/glew)
+        list(APPEND ASY_STATIC_LIBRARIES GLEW)
+        list(APPEND ASYMPTOTE_INCLUDES $<TARGET_PROPERTY:GLEW,INCLUDE_DIRECTORIES>)
+    endif()
+
+    # GLFW is already linked above for Vulkan; only add the macro if not already set
+    if (NOT ENABLE_VULKAN)
+        find_package(glfw3 CONFIG)
+        if (glfw3_FOUND)
+            list(APPEND ASY_STATIC_LIBRARIES glfw)
+            list(APPEND ASY_MACROS HAVE_LIBGLFW)
+        else()
+            message(FATAL_ERROR "glfw3 not found")
+        endif()
+    endif()
+
+    if (ENABLE_GL_COMPUTE_SHADERS)
+        list(APPEND ASY_MACROS HAVE_COMPUTE_SHADER)
+    else()
+        message(STATUS "OpenGL compute shaders disabled")
+    endif()
+
+    if (ENABLE_GL_SSBO)
+        list(APPEND ASY_MACROS HAVE_SSBO)
+    else()
+        message(STATUS "OpenGL SSBO disabled")
+    endif()
+else()
+    message(STATUS "OpenGL support disabled")
 endif()
 
 
