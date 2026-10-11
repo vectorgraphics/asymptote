@@ -88,6 +88,9 @@ struct HashMap_K_V {
   autounravel Map_K_V operator cast(HashMap_K_V map) {
     return map.map;
   }
+  autounravel void write(file file, HashMap_K_V map, void suffix(file)) {
+    map.map.pairs().writeItems(file, suffix);
+  }
 
   unravel map;
 }

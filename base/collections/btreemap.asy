@@ -79,6 +79,9 @@ struct BTreeMap_K_V {
   autounravel Map_K_V operator cast(BTreeMap_K_V map) {
     return map.map;
   }
+  autounravel void write(file file, BTreeMap_K_V map, void suffix(file)) {
+    map.map.pairs().writeItems(file, suffix);
+  }
 
   unravel map;
 }

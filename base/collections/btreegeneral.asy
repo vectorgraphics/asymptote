@@ -496,5 +496,9 @@ struct BTreeSet_T {
     return Iterable_T(set.super.operator iter);
   }
 
+  autounravel void write(file file, BTreeSet_T set, void suffix(file)) {
+    ((Iterable_T)set).writeItems(file, suffix);
+  }
+
   from super unravel *;
 }

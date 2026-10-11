@@ -29,6 +29,10 @@ struct SortedSet_T {
   autounravel Set_T operator cast(SortedSet_T sorted_set) {
     return sorted_set.set;
   }
+
+  autounravel void write(file file, SortedSet_T sorted_set, void suffix(file)) {
+    ((Iterable_T)sorted_set).writeItems(file, suffix);
+  }
   from set unravel *;
 }
 
@@ -182,6 +186,10 @@ struct Naive_T {
   }
   autounravel Iterable_T operator cast(Naive_T naive) {
     return Iterable(naive.super.operator iter);
+  }
+
+  autounravel void write(file file, Naive_T naive, void suffix(file)) {
+    ((Iterable_T)naive).writeItems(file, suffix);
   }
 
 

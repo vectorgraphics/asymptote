@@ -7153,6 +7153,15 @@ containers and utilities via templated modules.
 or associative arrays), which are arguably the single most useful
 container in the @code{collections} module.
 
+The containers can be written with @code{write}, which helps when
+debugging. Sets, queues, and wrapped arrays are written as their items
+between braces, as in @code{@{1, 2, 3@}}; maps as their key-value pairs, as
+in @code{@{("a", 1), ("b", 2)@}}; a pair as @code{(k, v)}; and a wrapped
+value as the value itself. Items appear in iteration order and are shown
+as @code{describe} gives them, so that strings are quoted. This also
+applies when a container is a field of a struct that is written field by
+field.
+
 @menu
 * Pairs::                       Generic pair of two types with hash support
 * Iterators and utilities::     Iterable structures and manipulation tools

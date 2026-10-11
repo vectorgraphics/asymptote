@@ -79,6 +79,11 @@ struct Set_T {
     return Iterable_T(set.operator iter);
   }
 
+  // Written as {a, b, c}, in iteration order.
+  autounravel void write(file file, Set_T set, void suffix(file)) {
+    ((Iterable_T)set).writeItems(file, suffix);
+  }
+
   void add(Iterable_T other) {
     for (T item : other) {
       add(item);
@@ -279,6 +284,10 @@ struct NaiveSet_T {
 
   autounravel Set_T operator cast(NaiveSet_T set) {
     return set.super;
+  }
+
+  autounravel void write(file file, NaiveSet_T set, void suffix(file)) {
+    ((Iterable_T)set).writeItems(file, suffix);
   }
 
   super.newEmpty = new Set_T() {

@@ -85,6 +85,11 @@ struct Map_K_V {
       this[kv.k] = kv.v;
     }
   }
+
+  // Written as {(key, value), (key, value)}, in iteration order.
+  autounravel void write(file file, Map_K_V map, void suffix(file)) {
+    map.pairs().writeItems(file, suffix);
+  }
 }
 
 // Reference implementation for testing purposes.
@@ -194,6 +199,9 @@ struct NaiveMap_K_V {
   }
   autounravel Map_K_V operator cast(NaiveMap_K_V map) {
     return map.map;
+  }
+  autounravel void write(file file, NaiveMap_K_V map, void suffix(file)) {
+    map.map.pairs().writeItems(file, suffix);
   }
   from map unravel *;
 }

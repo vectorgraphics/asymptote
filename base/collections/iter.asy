@@ -43,6 +43,28 @@ struct Iterable_T {
   // The following is essentially a constructor, and is made autounravel for
   // that reason.
   autounravel Iterable_T Iterable(Iter_T iter()) = Iterable_T;
+
+  // Writes the items between braces, separated by commas. Collections use
+  // this to define how they are written. It is deliberately not the writer
+  // of Iterable_T itself, since iterating over an arbitrary iterable might
+  // never end or might have side effects. It is a method rather than an
+  // autounravel function so that it can be called from the autounravel
+  // functions of a struct that unravels another struct's fields.
+  void writeItems(file file, void suffix(file)) {
+    if (operator iter == null) {
+      // A collection whose methods have not been implemented.
+      write(file, '<no iterator>', suffix);
+      return;
+    }
+    write(file, '{');
+    bool first = true;
+    for (T item : this) {
+      if (!first) write(file, ', ');
+      first = false;
+      write(file, describe(item));
+    }
+    write(file, '}', suffix);
+  }
 }
 
 Iterable_T range(T[] items) = Iterable_T;

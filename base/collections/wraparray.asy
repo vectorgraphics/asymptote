@@ -60,6 +60,11 @@ struct Array_T {
   // Cast operators.
   autounravel Array_T operator cast(T[] x) { return Array_T(x); }
   autounravel T[] operator cast(Array_T x) { return x.data; }
+
+  // Written on one line, as {a, b, c}.
+  autounravel void write(file file, Array_T x, void suffix(file)) {
+    Iterable_T(x.data).writeItems(file, suffix);
+  }
 }
 
 Array_T wrap(T[] data, int hashElement(T x) = null) = Array_T;

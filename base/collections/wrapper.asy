@@ -12,6 +12,10 @@ struct Wrapped_T {
     // Let's not assume that != was overloaded.
     return !(a.t == b.t);
   }
+  // A wrapped value is written as the value itself.
+  autounravel void write(file file, Wrapped_T w, void suffix(file)) {
+    write(file, describe(w.t), suffix);
+  }
 }
 
 Wrapped_T wrap(T t) {

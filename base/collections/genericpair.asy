@@ -22,6 +22,11 @@ struct Pair_K_V {
     return !(a == b);
   }
   int hash();  // To be overridden by the user.
+
+  autounravel void write(file file, Pair_K_V pair, void suffix(file)) {
+    write(file, '(' + describe(pair.k) + ', ' + describe(pair.v) + ')',
+          suffix);
+  }
 }
 
 Pair_K_V makePair(K k, V v) = Pair_K_V;

@@ -598,4 +598,9 @@ struct SplayTree_T {
   autounravel Set_T operator cast(SplayTree_T splaytree) {
     return (SortedSet_T)splaytree;
   }
+
+  // Written as {a, b, c}, in increasing order.
+  autounravel void write(file file, SplayTree_T splaytree, void suffix(file)) {
+    Iterable_T(splaytree.operator iter).writeItems(file, suffix);
+  }
 }

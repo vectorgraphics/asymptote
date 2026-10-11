@@ -321,6 +321,10 @@ struct HashSet_T {
   autounravel Iterable_T operator cast(HashSet_T set) {
     return Iterable_T(set.super.operator iter);
   }
+
+  autounravel void write(file file, HashSet_T set, void suffix(file)) {
+    ((Iterable_T)set).writeItems(file, suffix);
+  }
   unravel super;
 }
     

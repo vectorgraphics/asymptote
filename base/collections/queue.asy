@@ -11,6 +11,10 @@ struct Queue_T {
   autounravel Iterable_T operator cast(Queue_T queue) {
     return Iterable_T(queue.operator iter);
   }
+  // Written as {a, b, c}, starting with the next item to be popped.
+  autounravel void write(file file, Queue_T queue, void suffix(file)) {
+    ((Iterable_T)queue).writeItems(file, suffix);
+  }
   autounravel Queue_T makeQueue(T[] initialData);
 }
 
@@ -143,6 +147,10 @@ struct ArrayQueue_T {
     return Iterable_T(queue.operator iter);
   }
 
+  autounravel void write(file file, ArrayQueue_T queue, void suffix(file)) {
+    ((Iterable_T)queue).writeItems(file, suffix);
+  }
+
   autounravel Queue_T operator cast(ArrayQueue_T queue) {
     Queue_T queue_ = new Queue_T;
     queue_.push = queue.push;
@@ -233,6 +241,10 @@ struct LinkedQueue_T {
 
   autounravel Iterable_T operator cast(LinkedQueue_T queue) {
     return Iterable_T(queue.operator iter);
+  }
+
+  autounravel void write(file file, LinkedQueue_T queue, void suffix(file)) {
+    ((Iterable_T)queue).writeItems(file, suffix);
   }
 
 }
