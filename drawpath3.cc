@@ -96,7 +96,7 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
 
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  R.queue(controls,straight,size3.length()/size2);
+  R.queue(Controls,straight,size3.length()/size2);
 #endif
 }
 
