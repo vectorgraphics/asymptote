@@ -173,7 +173,9 @@ align operator cast(triple dir) {align A; A.init(dir,false); return A;}
 align operator cast(side side) {align A; A.init(side.align,true); return A;}
 restricted align NoAlign;
 
-void write(file file=stdout, align align, suffix suffix=endl)
+// The align is explicit so that this does not capture a pair or triple,
+// which can be cast to an align.
+void write(file file=stdout, explicit align align, suffix suffix=endl)
 {
   align.write(file,suffix);
 }

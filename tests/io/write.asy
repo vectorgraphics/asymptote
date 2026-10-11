@@ -557,3 +557,14 @@ StartTest("bool3 is written by its own writer");
   close(g);
 }
 EndTest();
+
+StartTest("pair and triple written to a file get no newline");
+{
+  file f = output(tmpfile);
+  write(f, (1, 2));
+  write(f, (1, 2, 3));
+  write(f, "|", endl);
+  close(f);
+  assert(doRead() == "(1,2)(1,2,3)|");
+}
+EndTest();
