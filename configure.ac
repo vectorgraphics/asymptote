@@ -121,13 +121,21 @@ AC_ARG_WITH(x86-64-v3-targeting,
 AS_IF(
    [test "x$with_x86_64_v3_targeting" = "xcheck"],
    [
-      AX_GCC_X86_CPU_SUPPORTS(avx2, [
-         with_x86_64_v3_targeting=yes
-         AC_MSG_NOTICE([Build CPU supports AVX2, targeting x86-64-v3])
-      ], [
-         with_x86_64_v3_targeting=no
-         AC_MSG_NOTICE([Build CPU does not support AVX2, using baseline x86-64])
-      ])
+      case "$host_cpu" in
+        x86_64|amd64|i686|x86)
+           AX_GCC_X86_CPU_SUPPORTS(avx2, [
+              with_x86_64_v3_targeting=yes
+              AC_MSG_NOTICE([Build CPU supports AVX2, targeting x86-64-v3])
+           ], [
+              with_x86_64_v3_targeting=no
+              AC_MSG_NOTICE([Build CPU does not support AVX2, using baseline x86-64])
+           ])
+           ;;
+        *)
+           with_x86_64_v3_targeting=no
+           AC_MSG_NOTICE([Not an x86 architecture ($host_cpu), x86-64-v3 targeting not applicable])
+           ;;
+      esac
    ]
 )
 
@@ -141,7 +149,7 @@ AS_IF(
          [AC_LANG_PROGRAM([],[])],
          [AC_MSG_NOTICE([Compiler supports -march=x86-64-v3])],
          [
-            CFLAGS=$saved_CFLAGS
+            CFLAGS="$saved_CFLAGS"
             with_x86_64_v3_targeting=no
             AC_MSG_NOTICE([Compiler does not support -march=x86-64-v3, using baseline])
          ]
