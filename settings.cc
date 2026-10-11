@@ -1911,6 +1911,12 @@ void initSettings() {
   addOption(new realSetting("resizestep", 0, "step", "Resize step", 1.2));
   addOption(new IntSetting("digits", 0, "n",
                            "Default output file precision", 7));
+  addOption(new IntSetting("structdepth", 0, "n",
+                           "Nesting depth to which write shows struct fields",
+                           3));
+  addOption(new IntSetting("structlimit", 0, "n",
+                           "Characters write shows of a struct (0 for all)",
+                           1000));
 
   addOption(new realSetting("paperwidth", 0, "bp", "Default page width"));
   addOption(new realSetting("paperheight", 0, "bp", "Default page height"));

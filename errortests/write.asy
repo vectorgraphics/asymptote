@@ -1,19 +1,11 @@
 {
-  real notSuffix(real x) { return 7; }
-  file f = output("write_errtest_tmp.txt");
-  write(f, 1, notSuffix);
-  close(f);
-}
-{
-  // Function values and overloaded functions.
+  // An overloaded name with no value: which function is meant is unknown.
   write(1, 2, sin);
   write(1, sin, 3);
 }
 {
-  // Rest arguments must be arrays of writeable values.
-  struct NoWrite { }
+  // A rest argument must be an array.
   write(1 ... 2);
-  write(1 ... new NoWrite[] {new NoWrite});
 }
 {
   // Named arguments.
@@ -24,11 +16,8 @@
   write(1, s="a", s="b");
 }
 {
-  // Each error is reported at the offending argument.
-  struct NoWrite { }
-  void suffix(file f) { }
-  file g;
-  write(1, g);
-  write(1, suffix, 2);
-  write(1, new NoWrite[] {new NoWrite});
+  // A void expression has no value to write.  The error is reported at the
+  // offending argument.
+  void nothing() { }
+  write(1, nothing(), 2);
 }

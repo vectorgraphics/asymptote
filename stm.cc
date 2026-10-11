@@ -125,7 +125,10 @@ void tryToWriteExp(coenv &e, exp *expr)
   exp *call=new callExp(pos, callee, expr);
 
   types::ty *ct=call->getType(e);
-  if (ct->kind == ty_error || ct->kind == ty_overloaded) {
+  // A function is described by its type and name, which says more than the
+  // type alone that write() would give.
+  if (ct->kind == ty_error || ct->kind == ty_overloaded ||
+      t->kind == ty_function) {
     if (t->kind == ty_overloaded) {
       // Translate the expr in order to print the ambiguity error first.
       expr->trans(e);

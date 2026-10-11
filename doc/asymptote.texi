@@ -4190,7 +4190,7 @@ write(suffix suffix=endl);
 write(file file, suffix suffix=none);
 write(...);
 @end verbatim
-The last form accepts a heterogeneous list of writeable values,
+The last form accepts a heterogeneous list of values of any type,
 optionally prefixed by a @code{file} and/or an identifying
 @code{string}, and optionally suffixed by a @code{suffix} (a
 function of type @code{void(file)}).  It is used when no
@@ -4200,10 +4200,7 @@ suffix may instead be given anywhere in the list as the named
 arguments @code{file}, @code{s}, and @code{suffix}, as in
 @code{write(x, y, suffix=none)}.  The elements of a rest argument,
 as in @code{write(x ... a)}, are written after the other values.
-Values of any struct type that
-defines a publicly accessible @code{write(file, suffix)} method
-(such as @code{Label}), and arrays of such values, are written by
-calling that method.  The
+The
 optional identifying string (if present) is written flush against
 the first data value (no tab separator), so
 @code{write("a", "b", 1)} produces
@@ -4259,6 +4256,59 @@ write(new int[] {1,2}, new pair[]{1, I});
 // (0,1)
 @end verbatim
 @noindent
+
+@cindex @code{structdepth}
+@cindex @code{structlimit}
+A value of a struct type is written by the struct's own writer, if it
+has one: either a method @code{void write(file, suffix)} (as in
+@code{Label}) or a static function
+@code{void write(file, T, suffix)} defined inside the struct @code{T},
+typically with the @code{autounravel} modifier (@pxref{Autounravel}).
+The writer must not be @code{private}. Because it belongs to the type,
+such a writer is found wherever a value of the type is written, including
+inside a templated module and when the value is a field of another struct.
+A @code{write} function defined outside the struct is used only by calls
+that resolve directly to it.
+
+A struct with no writer of its own is written as a list of its fields,
+which is intended as an aid to debugging:
+@verbatim
+struct Point {
+  int x=1;
+  private real y=2.5;
+  string name="p";
+  Point next;
+  real norm() {return sqrt(x^2+y^2);}
+}
+write(new Point);
+// (x=1, y=2.5, name="p", next=null)
+@end verbatim
+@noindent
+Private fields are included, but methods (fields introduced by a function
+definition) and static fields are not. A field that is itself a struct is
+written in the same way, to a nesting depth given by the setting
+@code{structdepth} (default @code{3}), beyond which only the name of its
+type is shown, as in @code{<Point>}. A struct that contains a reference to
+itself, directly or through other structs, is not written again at that
+point but shown as @code{<Point, cyclic>}. At most @code{structlimit} characters
+(default @code{1000}; @code{0} means no limit) are written for each struct,
+after which the output ends in @code{...} followed by the closing brackets
+still needed for the brackets to match. Text written by a field's own
+writer is not counted.
+
+A value with no textual form, such as a function or a file, is
+written as the name of its type, as in @code{<real(real)>}, and an array
+of functions as, for example, @code{<real(real)[] of length 2>}. Every
+value can therefore be written, which lets a templated module write values
+of its type parameters whatever they are. Since a leading @code{file} or
+@code{string} and a trailing @code{void(file)} are otherwise taken as the
+file, identifying string, and suffix, such a module should name all three:
+@verbatim
+write(file=stdout, s="", key, value, suffix=endl);
+@end verbatim
+@noindent
+The name of an overloaded function cannot be written, as it does not
+identify a single value.
 
 @cindex binary format
 @cindex single precision
@@ -11889,10 +11939,9 @@ interactive input buffer.
 
 @cindex @code{%}
 Interactive mode can be conveniently used as a calculator: expressions
-entered at the interactive prompt (for which a corresponding @code{write}
-function exists) are automatically evaluated and written to @code{stdout}.
-If the expression is non-writable, its type signature will be printed out
-instead. In either case, the expression can be referred to using the symbol
+entered at the interactive prompt are automatically evaluated and written
+to @code{stdout}. If the expression is a function, its type signature will
+be printed out instead. In either case, the expression can be referred to using the symbol
 @code{%} in the next line input at the prompt.  For example:
 @verbatim
 > 2+3

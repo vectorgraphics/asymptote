@@ -1,1 +1,0 @@
-errortests/write_private.asy: 6.9: type 'PrivOnly' has no accessible write(file, void(file)) method

@@ -26,10 +26,10 @@ using camp::tab;
 vm::array *copyArray(vm::array *a);
 vm::array *copyArray2(vm::array *a);
 
-// Call the write(file, suffix) method on a record.
-// frame is the record's vmFrame, t is the record type (ty with kind ty_record),
-// f is the target file.
-void callRecordWriteMethod(vm::stack *s, vm::vmFrame *frame, types::ty *t, camp::file *f);
+// Writes a description of val, of type t, to f.  This is how write() shows a
+// struct (through its own writer if it has one, field by field otherwise) and
+// any value with no textual form of its own, such as a function.
+void describeValue(vm::stack *s, camp::file *f, types::ty *t, vm::item val);
 
 // Tests whether t is the type of a write suffix, void (file).
 bool isWriteSuffixType(types::ty *t);
@@ -343,8 +343,7 @@ inline void write_var(vm::stack *s)
 
   // Helper: resolve the effective type and value for element i.
   // The tag in tagged_var is the types::ty * pointer as an Int.  Every
-  // element is keyed by a concrete type: the transHeteroWrite handler wraps
-  // only values it has validated as writeable.
+  // element is keyed by the concrete static type of the value.
   struct tv_res {
     types::ty *t;
     vm::item value;
@@ -402,9 +401,8 @@ inline void write_var(vm::stack *s)
   // any depth are written recursively: tab between elements on the same
   // line, newline between lines, and (depth-2) blank lines between blocks
   // at each level above the innermost -- matching the type-specific
-  // write(file, array) builtins.  Records, whether standalone or the cells
-  // of an array, are written by calling their write(file, suffix) method.
-  // A type that cannot be written is a runtime error.
+  // write(file, array) builtins.  Anything that is not a scalar, whether
+  // standalone or the cell of an array, is written by describeValue.
   bool firstWritten = true;
   auto beginValue = [&]() {
     if (!firstWritten) f->write(tab);
@@ -427,11 +425,9 @@ inline void write_var(vm::stack *s)
       default: return false;
     }
   };
-  auto writeRecord = [&](types::ty *t, vm::item val) {
-    vm::vmFrame *recFrame = vm::get<vm::vmFrame *>(val);
-    if (!recFrame)
-      vm::error("dereference of null pointer");
-    callRecordWriteMethod(s, recFrame, t, f);
+  auto writeAny = [&](types::ty *t, vm::item val) {
+    if (!writeScalar(f, t, val))
+      describeValue(s, f, t, val);
   };
   auto writeArr = [&](auto&& self, types::ty *elemTy, vm::array *a, int depth, int totalDepth) -> void {
     size_t n = checkArray(a);
@@ -439,13 +435,7 @@ inline void write_var(vm::stack *s)
       vm::item &it = (*a)[k];
       if (it.empty()) continue;
       if (depth == 1) {
-        if (elemTy->kind == types::ty_record)
-          writeRecord(elemTy, it);
-        else if (!writeScalar(f, elemTy, it)) {
-          ostringstream msg;
-          msg << "cannot write value of type '" << *elemTy << "'";
-          vm::error(msg);
-        }
+        writeAny(elemTy, it);
       } else {
         vm::array *sub = vm::get<vm::array *>(it);
         self(self, elemTy, sub, depth - 1, totalDepth);
@@ -466,27 +456,20 @@ inline void write_var(vm::stack *s)
   auto writeOne = [&](tv_res tv) {
     if (tv.t->kind == types::ty_array) {
       types::array *arrTy = dynamic_cast<types::array *>(tv.t);
-      if (arrTy) {
+      types::ty *innerTy = arrTy ? arrTy->celltype : nullptr;
+      while (innerTy && innerTy->kind == types::ty_array)
+        innerTy = ((types::array *)innerTy)->celltype;
+      // An array of functions is shown as a single placeholder.
+      if (innerTy && innerTy->kind != types::ty_function) {
         if (!firstWritten) f->writeline();
         firstWritten = false;
         vm::array *data = vm::get<vm::array *>(tv.value);
-        types::ty *innerTy = arrTy->celltype;
-        while (innerTy->kind == types::ty_array)
-          innerTy = ((types::array *)innerTy)->celltype;
         writeArr(writeArr, innerTy, data, arrTy->depth(), arrTy->depth());
         return;
       }
     }
     beginValue();
-    if (tv.t->kind == types::ty_record) {
-      writeRecord(tv.t, tv.value);
-      return;
-    }
-    if (!writeScalar(f, tv.t, tv.value)) {
-      ostringstream msg;
-      msg << "cannot write value of type '" << *tv.t << "'";
-      vm::error(msg);
-    }
+    writeAny(tv.t, tv.value);
   };
 
   try {

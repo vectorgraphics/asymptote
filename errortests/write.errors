@@ -1,13 +1,9 @@
-errortests/write.asy: 4.15: type 'real(real x)' is not writeable
-errortests/write.asy: 9.15: cannot write a function value
-errortests/write.asy: 10.12: cannot write a function value
-errortests/write.asy: 15.15: rest argument of type 'int' is not an array of writeable values
-errortests/write.asy: 16.15: rest argument of type 'NoWrite[]' is not an array of writeable values
-errortests/write.asy: 20.14: write has no parameter named 'x'
-errortests/write.asy: 21.14: type 'int' cannot be used for parameter 's' of write
-errortests/write.asy: 22.17: type 'string' cannot be used for parameter 'file' of write
-errortests/write.asy: 23.19: type 'int' cannot be used for parameter 'suffix' of write
-errortests/write.asy: 24.21: multiple arguments named 's'
-errortests/write.asy: 31.12: type 'file' is not writeable
-errortests/write.asy: 32.12: type 'void(file f)' is not writeable
-errortests/write.asy: 33.12: type 'NoWrite[]' is not writeable
+errortests/write.asy: 3.15: cannot write an overloaded function
+errortests/write.asy: 4.12: cannot write an overloaded function
+errortests/write.asy: 8.15: rest argument of type 'int' is not an array
+errortests/write.asy: 12.14: write has no parameter named 'x'
+errortests/write.asy: 13.14: type 'int' cannot be used for parameter 's' of write
+errortests/write.asy: 14.17: type 'string' cannot be used for parameter 'file' of write
+errortests/write.asy: 15.19: type 'int' cannot be used for parameter 'suffix' of write
+errortests/write.asy: 16.21: multiple arguments named 's'
+errortests/write.asy: 22.19: cannot write a void value

@@ -374,39 +374,6 @@ types::ty *callExp::transRecordEq(coenv &e)
 
 namespace {
 
-// Returns true if `t` is a type that the write_var runtime can format:
-// one of the writeable scalar kinds, an array (any depth) thereof, or a
-// record that has a publicly accessible write(file, void(file)) method.
-bool isWriteableData(ty *t, coder &c)
-{
-  switch (t->kind) {
-    case ty_boolean: case ty_Int: case ty_real:
-    case ty_pair: case ty_triple: case ty_string:
-    case ty_pen: case ty_guide: case ty_path: case ty_transform:
-      return true;
-    case ty_array: {
-      array *a = dynamic_cast<array *>(t);
-      return a && isWriteableData(a->celltype, c);
-    }
-    case ty_record: {
-      record *recType = dynamic_cast<record *>(t);
-      if (!recType) return false;
-      // Check that the record actually has a write(file, void(file)) method,
-      // and that the method is accessible from the current context.
-      static types::function *suffixType = new types::function(
-        types::primVoid(), types::formal(types::primFile()));
-      static types::function *writeType = new types::function(
-        types::primVoid(),
-        types::formal(types::primFile()),
-        types::formal(suffixType));
-      varEntry *ve = recType->e.lookupVarByType(symbol::trans("write"), writeType);
-      return ve && ve->checkPerm(READ, c);
-    }
-    default:
-      return false;
-  }
-}
-
 // The result of analysing the arguments of a heterogeneous write() call.
 struct WritePlan {
   // The static type each argument is written as, indexed as in the call.
@@ -433,7 +400,8 @@ void writeError(bool report, position pos)
 
 // Returns the type that `val` is written as, or null if there is no such
 // type.  An overloaded name is written as its non-function value (there is at
-// most one, as a variable hides any earlier variable of the same name).
+// most one, as a variable hides any earlier variable of the same name); if it
+// has none, there is no telling which of its functions is meant.
 ty *writtenType(coenv &e, exp *val, WritePlan &plan, bool report)
 {
   ty *t = val->cgetType(e);
@@ -448,7 +416,7 @@ ty *writtenType(coenv &e, exp *val, WritePlan &plan, bool report)
   if (!value || value->kind == ty_error) {
     writeError(report, val->getPos());
     if (report)
-      em << "cannot write a function value";
+      em << "cannot write an overloaded function";
     return nullptr;
   }
   return value;
@@ -524,18 +492,14 @@ bool planHeteroWrite(coenv &e, arglist *args, WritePlan &plan, bool report)
       run::isWriteSuffixType(plan.argTypes[positional[q - 1]]))
     suffixArg = positional[--q];
 
-  // Validate each data element at compile time.
+  // Every value can be written: write_var describes those that have no
+  // textual form of their own.
   for (size_t k = p; k < q; ++k) {
     ty *t = plan.argTypes[positional[k]];
-    if (!isWriteableData(t, e.c)) {
+    if (t->kind == ty_void) {
       writeError(report, (*args)[positional[k]].val->getPos());
-      if (report) {
-        em << "type '" << *t;
-        if (t->kind == ty_record)
-          em << "' has no accessible write(file, void(file)) method";
-        else
-          em << "' is not writeable";
-      }
+      if (report)
+        em << "cannot write a void value";
       return false;
     }
   }
@@ -547,11 +511,10 @@ bool planHeteroWrite(coenv &e, arglist *args, WritePlan &plan, bool report)
       return false;
     if (t->kind == ty_array)
       plan.restType = dynamic_cast<types::array *>(t);
-    if (!plan.restType || !isWriteableData(plan.restType->celltype, e.c)) {
+    if (!plan.restType) {
       writeError(report, rest->getPos());
       if (report)
-        em << "rest argument of type '" << *t
-           << "' is not an array of writeable values";
+        em << "rest argument of type '" << *t << "' is not an array";
       return false;
     }
     plan.padLabel = labelArg == NONE && p == q &&
@@ -576,7 +539,7 @@ bool planHeteroWrite(coenv &e, arglist *args, WritePlan &plan, bool report)
 types::ty *callExp::getHeteroWriteType(coenv &e)
 {
   // A call that cannot be translated has no type.  Interactive mode relies on
-  // this to fall back to describing a value it cannot write.
+  // this to fall back to listing the functions an overloaded name stands for.
   WritePlan plan;
   return planHeteroWrite(e, args, plan, false) ? primVoid() : primError();
 }
@@ -585,7 +548,7 @@ types::ty *callExp::transHeteroWrite(coenv &e)
 {
   // Invoked when a `write` call resolves to the open-signature fallback.
   // Classifies each argument by its name or static type (file / label /
-  // suffix / data), validates writeability at compile time, builds a
+  // suffix / data), builds a
   // vm::array of tagged_var* elements, and emits a call to the existing
   // write_var runtime.
   cachedApp = 0;
