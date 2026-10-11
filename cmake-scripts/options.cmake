@@ -123,13 +123,11 @@ this option should be turned off."
 
 # additional optimization options
 
-if (CMAKE_BUILD_TYPE IN_LIST cmake_release_build_types)
-    set(default_lto true)
-else()
-    set(default_lto false)
-endif()
-
-option(OPTIMIZE_LINK_TIME "Enable link-time optimization. Enabled by default in release build types" ${default_lto})
+# LTO is disabled by default: it changes code and stack layout in ways that
+# corrupt Boehm GC's stack scan in the forked 3D render child, causing
+# silent render failures.  Enable explicitly with -DOPTIMIZE_LINK_TIME=ON
+# if you are not using the non-interactive 3D render path.
+option(OPTIMIZE_LINK_TIME "Enable link-time optimization (breaks fork-based 3D rendering)" false)
 
 # testing
 option(ENABLE_ASY_CXXTEST "Enable C++-side testing. This option is inert for final asy libraries and binaries" true)

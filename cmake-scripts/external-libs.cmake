@@ -188,12 +188,14 @@ if (ENABLE_VULKAN)
 
     find_package(Vulkan COMPONENTS glslang)
     if (Vulkan_FOUND AND Vulkan_glslang_FOUND)
-        list(APPEND ASY_STATIC_LIBRARIES Vulkan::Vulkan Vulkan::glslang)
         list(APPEND ASY_MACROS HAVE_LIBVULKAN)
-        # libglslang.a (static) contains its own bison parser which defines
-        # yydebug. Suppress the duplicate in camp.tab.cc when both are
-        # linked into the same binary.
-        list(APPEND ASY_MACROS YYDEBUG=0)
+        # On Windows, link Vulkan and glslang into the main binary (no dlopen).
+        # On Unix, the main binary must NOT link these — the renderer is loaded
+        # via dlopen("libasyvulkan.so") which carries its own dependencies,
+        # mirroring the autotools model.
+        if (WIN32)
+            list(APPEND ASY_STATIC_LIBRARIES Vulkan::Vulkan Vulkan::glslang)
+        endif()
     else()
         message(FATAL_ERROR "Vulkan not found")
     endif()
