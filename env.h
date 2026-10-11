@@ -162,7 +162,6 @@ public:
 
   // Add the standard functions for a new type.
   void addArrayOps(types::array *t);
-  void addRecordOps(types::record *r);
 
   void list(record *r=0)
   {

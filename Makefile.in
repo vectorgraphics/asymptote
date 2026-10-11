@@ -10,27 +10,32 @@ MACOS_UNIVERSAL = @MACOS_UNIVERSAL@
 MACOS_MIN_VERSION = @MACOS_MIN_VERSION@
 MACOS_ARCH_FLAGS = @MACOS_ARCH_FLAGS@
 MACOS_DEPLOYMENT_FLAGS = @MACOS_DEPLOYMENT_FLAGS@
+MACOS_CFLAGS = $(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)
 
 ASYGLVERSION = @ASYGLVERSION@
 GC = gc
 GCOPTIONS = @GCOPTIONS@
 GCLIB = @GCLIB@
-GCPPLIB = @GCPPLIB@
-GCLIBS = $(GCPPLIB) $(GCLIB)
+# The settings that decide whether an already-built gc can still be linked
+# against asy: the macOS architecture and deployment flags, and gc's own
+# configure options.  Optimization flags and the compilers are left out, since
+# those do not usually break the link (the ABI is pure C).  For atypical cases
+# such as CC="gcc -m32", force a rebuild with "make gc-clean".
+GCBUILDFLAGS = $(MACOS_CFLAGS) $(GCOPTIONS)
+GCSTAMP = gc-build-flags.txt
 LFLAGS = @LDFLAGS@
-LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS) @LSPLIBS@
+LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIB) @LSPLIBS@
 CXX_STANDARD = @CXX_STANDARD@
 DOSLIBS = $(LIBS) -ltermcap -lwolfssl -lgdi32 -lwinmm -s -static
 LSP_ROOT=@LSP_ROOT@
 
 CMAKE ?= cmake
-PERL ?= perl
 PYTHON ?= python3
 BISON ?= bison
 
 # Libraries needed to make asymptote.so.
 # We have to remove OpenGL, threading, GC, etc from this.
-SHAREDLIBS = $(filter-out -lglut -lglfw -GL -pthread $(GCLIBS), $(LIBS))
+SHAREDLIBS = $(filter-out -lglut -lglfw -GL -pthread $(GCLIB), $(LIBS))
 
 vpath %.cc prc
 vpath %.cc thirdparty_impl/tinyexr_impl/src
@@ -38,7 +43,7 @@ vpath %.cc thirdparty_impl/vk-mem-allocator_impl/src
 vpath %.ui GUI/windows
 vpath %.py GUI
 
-CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
+CAMP = camperror path bound drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill path3 drawpath3 drawsurface \
        beziercurve bezierpatch sortTriangles pen pipestream
 
@@ -59,11 +64,11 @@ VMA_IMPL_FILES = @VMA_IMPL_FILES@
 VULKAN_OBJS = $(VMA_IMPL_FILES) vkrender vkdispatchstorage vkutils vulkanshim
 
 # OpenGL renderer objects - built into a shared library, not linked into the main binary.
-OPENGL_PIC_OBJS = glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o tr.pic.o glew.pic.o
+OPENGL_PIC_OBJS = glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o glew.pic.o
 
 COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	env genv stm dec errormsg \
-    callable name symbol entry exp newexp stack exithandlers camp.tab lex.yy \
+    callable name symbol entry exp newexp builtin_handlers stack exithandlers camp.tab lex.yy \
 	access virtualfieldaccess absyn record interact fileio \
 	fftw++asy parallel simpson coder coenv impdatum locate asyparser program application \
 	varinit fundec refaccess envcompleter asyprocess constructor array memory \
@@ -71,7 +76,7 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) $(PRC) $(TINYEXR_FILES) \
 	EXRFiles lspserv symbolmaps win32helpers win32pipestream \
 	win32xdr xstream \
 	lspdec lspexp lspfundec lspstm \
-	hashing random rendererloader webglrender
+	hashing random rendererloader norender recordwrite
 
 FILES = $(COREFILES) main
 
@@ -84,7 +89,7 @@ ASYGENERATEDENUMS=$(addprefix base/,$(GENERATEDENUMS:=.asy))
 PYGENERATEDENUMS=$(GENERATEDENUMS:=.py)
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.h \
-	asy-keywords.el $(RUNTIME_FILES:=.cc) asy.list \
+	asy-keywords.el $(RUNTIME_FILES:=.cc) $(RUNTIME_FILES:=.h) asy.list \
 	$(SYMBOLSH) $(GENERATEDENUMS:=.h) $(ASYGENERATEDENUMS) $(PYFILES)
 
 NAME = asy
@@ -104,10 +109,10 @@ ASY = ./asy -dir base -config "" -render=0
 
 DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD -Wall -I.
 CFLAGS = @CFLAGS@
-OPTS = $(sort $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) \
-	-Ibackports/optional/include \
+CPPFLAGS = $(shell echo '@CPPFLAGS@' | awk -f dedup.awk)
+OPTS = $(DEFS) $(CPPFLAGS) @CXXFLAGS@ $(CFLAGS) \
 	-Iprc/include -I$(LSP_ROOT)/include -I. \
-	$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS))
+	$(MACOS_CFLAGS)
 
 # Multi-arch flags are incompatible with -E (preprocess-only) and -M (deps).
 # Strip them for any pass that runs the preprocessor without compiling.
@@ -123,8 +128,8 @@ CXX = @CXX@
 CC = @CC@
 MAKEDEPEND = $(PREPROC_OPTS) -O0 -M -MG -MP -DDEPEND
 LEX = @LEX@
-GLEWOPTS = $(sort $(DEFS) @CPPFLAGS@ $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC -Ibackports/glew/include \
-	$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS))
+GLEWOPTS = $(DEFS) $(CPPFLAGS) $(CFLAGS) -DGLEW_NO_GLU -DGLEW_BUILD -O1 -fPIC -Ibackports/glew/include \
+	$(MACOS_CFLAGS)
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -146,21 +151,25 @@ INSTALL = @INSTALL@
 REVISION = "const char *REVISION="
 last = $(shell head -1 revision.cc | sed -e 's/.*\"\(.*\)\";/\1/')
 usinggit = $(shell if test -d ".git"; then echo yes; fi)
-revision = ""
+revision =
 ifeq ($(usinggit),yes)
-	revision = $(shell LC_ALL="C" git describe --long | \
+	revision = $(shell LC_ALL="C" git describe --long 2>/dev/null | \
 	sed -e 's/git-\([0-9]*\)-g.*/-\1/' | sed -e 's/-0-g.*//')
 endif
-ifeq ($(revision),"")
+ifeq ($(revision),)
 	revision = @VERSION@
 endif
 
-export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
+export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI PYTHON
 
 asy: base/version.asy $(FILES:=.o) $(XNAME) revision.o $(GCLIB) @LSPLIB@ $(SHIMLIBS)
 	$(CXX) $(OPTS) -rdynamic -o $(NAME) $(FILES:=.o) revision.o $(LIBS)
 ifeq ($(BUNDLE_VULKAN),yes)
 	@sh build-scripts/bundle-vulkan-macos.sh $(NAME) "$(CODESIGN_IDENTITY)"
+	# Bundling rewrites the shim libraries, which are prerequisites of asy, after
+	# asy has been linked; without this the binary is older than them and gets
+	# relinked on every subsequent make.  touch leaves the new signature valid.
+	@touch $(NAME)
 endif
 
 portability-check-macos:
@@ -268,7 +277,7 @@ novalidation:
 $(VULKAN_PIC_OBJS): %.pic.o: %.cc
 	$(CXX) $(OPTS) -fPIC -o $@ -c $<
 
-glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o tr.pic.o: %.pic.o: %.cc
+glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o: %.pic.o: %.cc
 	$(CXX) $(OPTS) -fPIC -o $@ -c $<
 
 # glew.c is a C file, needs special handling for the OpenGL shared library.
@@ -305,18 +314,29 @@ doc/version.texi: version.txt
 asymptote.so: $(COREFILES:=.pic.o) glew.o
 	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
-$(LSP_ROOT)/liblspcpp.a:
-	$(CMAKE) -B$(LSP_ROOT) -S$(LSP_ROOT) -DCMAKE_CXX_FLAGS=\
+$(LSP_ROOT)/liblspcpp.a: $(GCLIB)
+	$(CMAKE) -B$(LSP_ROOT)/build -S$(LSP_ROOT) -DCMAKE_CXX_FLAGS=\
 	"-fPIE @OPTIONS@ @LSP_CXX_BUILD_FLAGS@" \
 	@LSP_CMAKE_OPTIONS@
-	$(MAKE) -C $(LSP_ROOT)
+	$(MAKE) -C $(LSP_ROOT)/build
 
 all:	asy sty man faq asy-keywords.el
 
-$(GCLIB):
-	cd $(GC) && ln -sf ../libatomic_ops . && \
-		./configure CC="$(CC)" CXX="$(CXX)" CFLAGS="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)" CXXFLAGS="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)" $(GCOPTIONS)
-	$(MAKE) -C $(GC) check CFLAGS_EXTRA="$(MACOS_ARCH_FLAGS) $(MACOS_DEPLOYMENT_FLAGS)"
+# Rewritten only when the settings actually change, so that gc is left alone
+# on an ordinary rebuild.
+$(GCSTAMP): FORCE
+	$(SILENT_MAKE)echo "$(GCBUILDFLAGS)" > $@.tmp; \
+	if cmp -s $@.tmp $@; then rm -f $@.tmp; else mv $@.tmp $@; fi
+
+# Depending on the stamp rebuilds gc when its build settings change: otherwise a
+# reconfigure that turns on, say, universal macOS binaries would leave the old
+# library in place and asy would fail to link against it.
+$(GCLIB): $(GCSTAMP)
+	-cd $(GC) && ln -sf ../libatomic_ops libatomic_ops
+	cd $(GC) && \
+		./configure CC="$(CC)" CXX="$(CXX)" CFLAGS="$(MACOS_CFLAGS) $(CFLAGS)" CXXFLAGS="$(MACOS_CFLAGS) $(CXXFLAGS)" $(GCOPTIONS)
+	$(MAKE) -C $(GC) all CFLAGS_EXTRA="$(MACOS_CFLAGS)"
+	$(MAKE) -C $(GC) check CFLAGS_EXTRA="$(MACOS_CFLAGS)"
 
 sty: doc/version.texi
 	cd doc && $(MAKE) asy-latex.pdf
@@ -332,6 +352,13 @@ man:	asy sty
 
 faq:	asy sty
 	cd doc && $(MAKE) faq
+
+
+# Depend on `man` (rather than just asy/sty) so the info build does not
+# run in parallel with the manual build: both render the example PDFs and
+# run texi2any on asymptote.texi, which is not safe to do concurrently.
+info: man
+	cd doc && $(MAKE) asymptote.info
 
 $(RUNTIME_FILES:=.cc): %.cc: runtime.py opsymbols.h runtimebase.in %.in
 	$(PYTHON) ./runtime.py --prefix $(@:.cc=) --opsym-file opsymbols.h \
@@ -388,7 +415,7 @@ camp.tab.h: camp.tab.cc
 lex.yy.cc: camp.l
 	$(LEX) -d -olex.yy.cc camp.l
 
-lex.yy.d: $(GCLIB) lex.yy.cc camp.tab.h
+lex.yy.d: lex.yy.cc camp.tab.h
 
 keywords.h: camp.l keywords.py asyprocess.cc
 	$(PYTHON) ./keywords.py --camplfile $< --output $@ --process-file asyprocess.cc
@@ -410,22 +437,30 @@ asy-keywords.el: asy base/v3dtypes.asy base/v3dheadertypes.asy asy-list.py
 
 licensedir = $(DESTDIR)@licensedir@
 
-copy-licenses:
-	${INSTALL} -d doc/licenses
-	${INSTALL} -p -m 644 LICENSE doc/licenses/LICENSE
-	${INSTALL} -p -m 644 LICENSE.LESSER doc/licenses/LICENSE.LESSER
-	${INSTALL} -p -m 644 backports/span/LICENSE.txt doc/licenses/span-LICENSE.txt
-	${INSTALL} -p -m 644 backports/glew/LICENSE.txt doc/licenses/glew-LICENSE.txt
-	${INSTALL} -p -m 644 wyhash/UNLICENSE.txt doc/licenses/wyhash-UNLICENSE.txt
-	${INSTALL} -p -m 644 LspCpp/LICENSE doc/licenses/LspCpp-LICENSE.txt
-	${INSTALL} -p -m 644 libatomic_ops/LICENSE doc/licenses/libatomic_ops-LICENSE.txt
-	${INSTALL} -p -m 644 libatomic_ops/COPYING doc/licenses/libatomic_ops-COPYING.txt
-	${INSTALL} -p -m 644 tinyexr/LICENSE.txt doc/licenses/tinyexr-LICENSE.txt
-	${INSTALL} -p -m 644 gc/LICENSE.txt doc/licenses/gc-LICENSE.txt
+# Install all license files into directory $(1).
+define install-license-files
+	${INSTALL} -d $(1)
+	${INSTALL} -p -m 644 LICENSE $(1)/LICENSE
+	${INSTALL} -p -m 644 LICENSE.LESSER $(1)/LICENSE.LESSER
+	${INSTALL} -p -m 644 backports/span/LICENSE.txt $(1)/span-LICENSE.txt
+	${INSTALL} -p -m 644 backports/glew/LICENSE.txt $(1)/glew-LICENSE.txt
+	${INSTALL} -p -m 644 wyhash/UNLICENSE.txt $(1)/wyhash-UNLICENSE.txt
+	${INSTALL} -p -m 644 LspCpp/LICENSE $(1)/LspCpp-LICENSE.txt
+	${INSTALL} -p -m 644 libatomic_ops/LICENSE $(1)/libatomic_ops-LICENSE.txt
+	${INSTALL} -p -m 644 libatomic_ops/COPYING $(1)/libatomic_ops-COPYING.txt
+	${INSTALL} -p -m 644 tinyexr/LICENSE.txt $(1)/tinyexr-LICENSE.txt
+	${INSTALL} -p -m 644 gc/README.md $(1)/gc-LICENSE.txt
+	${INSTALL} -p -m 644 webgl/gl-matrix-license $(1)/gl-matrix-LICENSE.md
+endef
 
-install-licenses: copy-licenses
-	${INSTALL} -d $(licensedir)
-	${INSTALL} -p -m 644 doc/licenses/* $(licensedir)
+copy-licenses:
+	$(call install-license-files,doc/licenses)
+
+# $(docdir) has to be created here: it need not be an ancestor of
+# $(licensedir), which --with-licensedir can point anywhere.
+install-licenses:
+	$(call install-license-files,$(licensedir))
+	${INSTALL} -d $(docdir)
 	${INSTALL} -p -m 644 LICENSES-THIRD-PARTY.md $(docdir)
 
 install-notexhash: asy-keywords.el install-asy install-licenses install-man
@@ -485,6 +520,9 @@ install-html: html
 install-man: man
 	cd doc && $(MAKE) install
 
+install-info:
+	cd doc && $(MAKE) install-info
+
 install-prebuilt: install-asy
 	cd doc && $(MAKE) install-prebuilt
 
@@ -510,6 +548,8 @@ uninstall-asy:
 	-rmdir $(GUIdir)/res/icons
 	-rmdir $(GUIdir)/res
 	-rmdir $(GUIdir)
+	-cd $(shaderdir)/GL && rm -f *.glsl
+	-rmdir $(shaderdir)/GL
 	-cd $(shaderdir) && rm -f *.glsl
 	-rmdir $(shaderdir)
 	-cd $(webgldir) && rm -f *.html *.js
@@ -535,7 +575,8 @@ uninstall-docdir: uninstall-man uninstall-asy
 		span-LICENSE.txt \
 		glew-LICENSE.txt wyhash-UNLICENSE.txt LspCpp-LICENSE.txt \
 		libatomic_ops-LICENSE.txt libatomic_ops-COPYING.txt \
-		tinyexr-LICENSE.txt gc-LICENSE.txt
+		tinyexr-LICENSE.txt gc-LICENSE.txt \
+		gl-matrix-LICENSE.md
 	-rmdir $(licensedir)
 	-cd $(docdir) && rm -f LICENSES-THIRD-PARTY.md
 	-rmdir $(docdir)
@@ -544,13 +585,16 @@ clean:	FORCE
 	-rm -f asy asymptote.so libasyvulkan.so libasyopengl.so *.pic.o *.o *.d *.raw.i *mon.out $(CLEAN)
 	-rm -rf doc/licenses
 	-rm -rf lib
-	-cd LspCpp && $(MAKE) distclean
+	-rm -rf LspCpp/build
 	-cd tinyexr && $(MAKE) clean
 	-cd doc && $(MAKE) clean
 	-cd tests && $(MAKE) clean
 
+# The stamp is not removed by clean: doing so would force a needless rebuild
+# of gc, which clean otherwise leaves intact.
 gc-clean: FORCE clean
 	-$(MAKE) -C $(GC) clean
+	-rm -f $(GCSTAMP)
 
 cleaner0: FORCE clean
 	-rm -rf __pycache__
@@ -558,13 +602,14 @@ cleaner0: FORCE clean
 	-rm -rf GUI/configs/__pycache__
 	-rm -f GUI/{xasyversion,xasyicons,xasyqtui}/__init__.py
 	-$(MAKE) -C $(GC) distclean
+	-rm -f $(GCSTAMP)
 	-$(MAKE) -C libatomic_ops distclean
 	-cd $(GC) && rm -rf libatomic_ops autom4te.cache .deps cord/.deps \
 		cord/tests/.deps extra/.deps tests/.deps
 
 	-cd libatomic_ops && rm -rf autom4te.cache
 	-rm -f config.h config.log config.status
-	-rm -rf autom4te.cache LspCpp/CMakeCache.txt
+	-rm -rf autom4te.cache LspCpp/CMakeCache.txt LspCpp/build
 	-rm -f Makefile
 
 cleaner: FORCE cleaner0
@@ -576,6 +621,7 @@ cleanest: FORCE
 	-$(MAKE) cleaner0
 	-cd $(GC) && rm -rf ltmain.sh missing \
 		test-driver configure m4/l*.m4
+	-rm -f ltmain.sh missing test-driver
 	-cd libatomic_ops && rm -rf ltmain.sh missing \
 		test-driver configure m4/l*.m4
 	-cd GUI && $(PYTHON) buildtool.py clean
@@ -608,23 +654,23 @@ glew.d: glew.c config.h
 	@echo Creating $@; \
 	rm -f $@; \
 	$(CC) $(filter-out $(MACOS_ARCH_FLAGS),$(GLEWOPTS)) -O0 -M -MG -MP -DDEPEND $< > $@.$$$$ 2>/dev/null && \
-	sed 's,\(glew\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	sed 's,\(glew\)\.o[ :]*,\1.o : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 .SUFFIXES: .c .cc .o .d .ui .py
 %.o: %.cc $(GENERATEDENUMS:=.h) $(RUNTIME_FILES:=.cc)
 	$(CXX) $(OPTS) -o $@ -c $<
-%.d: %.cc $(GENERATEDENUMS:=.h) $(GCLIB)
+%.d: %.cc $(GENERATEDENUMS:=.h)
 	@echo Creating $@; \
 	rm -f $@; \
 	${CXX} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
-	sed 's,\($*\)\.o[ :]*,\1.o \1.pic.o $@ : ,g' < $@.$$$$ > $@; \
+	sed 's,\($*\)\.o[ :]*,\1.o \1.pic.o : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 %.d: %.c
 	@echo Creating $@; \
 	rm -f $@; \
 	${CC} $(MAKEDEPEND) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	sed 's,\($*\)\.o[ :]*,\1.o : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 # Compile for the shared library.  OpenGL must be disabled as it causes

@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ([2.71])
-AC_INIT([Asymptote],[3.12git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_INIT([Asymptote],[3.16git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -128,10 +128,13 @@ else
 fi
 ])
 
-AC_CHECK_PROGS(TEXI2DVI,[texi2dvi],
-[@echo \*\*\*\*\*\*\*\*\*\* Please install texi2dvi or put https://asymptote.sourceforge.io/asymptote.pdf in the doc directory: cannot execute texi2dvi])
+AC_CHECK_PROGS(TEXI2ANY,[texi2any makeinfo])
+if test -z "$TEXI2ANY"; then
+  AC_MSG_NOTICE([*** Could not find texi2any: will compile \
+without documentation support ***])
+fi
 
-AC_SUBST(TEXI2DVI)
+AC_SUBST(TEXI2ANY)
 
 latexdir=$latexdir/asymptote
 contextdir=$contextdir/asymptote
@@ -174,18 +177,11 @@ CPPFLAGS=$CPPFLAGS" -I. "
 
 AC_ARG_ENABLE(texlive-build,
 [AS_HELP_STRING(--enable-texlive-build[[[=no]]],
-automatically determine sysdir from kpsewhich)],
+leave ASYMPTOTE_SYSDIR empty and define KPSEWHICH so the binary
+determines sysdir from kpsewhich at runtime)],
 [ if test "x$enableval" = "xyes" ; then
     sysdir=""
-  fi
-])
-
-AC_ARG_ENABLE(relocatable,
-[AS_HELP_STRING(--enable-relocatable[[[=no]]],
-leave ASYMPTOTE_SYSDIR empty so the binary finds its data directory
-relative to its own location at runtime (for portable/staged macOS installs))],
-[ if test "x$enableval" = "xyes" ; then
-    OPTIONS=$OPTIONS"-DIS_RELOCATABLE "
+    OPTIONS=$OPTIONS"-DKPSEWHICH "
   fi
 ])
 
@@ -285,7 +281,7 @@ LSPLIBS=
 LSPLIB=
 if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
    LSPLIB=$LSP_ROOT/liblspcpp.a
-   LSPLIBS=$LSPLIBS" -L$LSP_ROOT -L$LSP_ROOT/third_party/uri/src -llspcpp -lnetwork-uri"
+   LSPLIBS=$LSPLIBS" -L$LSP_ROOT/build -L$LSP_ROOT/build/third_party/uri/src -llspcpp -lnetwork-uri"
    LSP_CMAKE_OPTIONS="-DLSPCPP_USE_CPP17=ON "
 
    if test "x$enable_gc" != "xno"; then
@@ -526,9 +522,23 @@ VMA_IMPL_FILES=$VMA_IMPL_FILES" vma_cxx vma_impl"
 ASY_VULKAN_LIBS=""
 AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
 
+dnl Check for vulkan/vulkan.hpp and VK_API_VERSION_1_4 using a C++ compile test.
+dnl On some distros (e.g., Ubuntu with LunarG libvulkan-dev) the C++ header
+dnl may be missing, or the headers may be too old to support Vulkan 1.4.
+AC_LANG_PUSH([C++])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([[#include <vulkan/vulkan.hpp>]],
+                   [[(void)(uintptr_t)VK_API_VERSION_1_4;]])],
+  [have_vulkan_hpp=yes],
+  [have_vulkan_hpp=no]
+)
+AC_LANG_POP([C++])
+
 case "$OSTYPE" in
      *)
-          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
+          if test "x$have_vulkan_hpp" != "xyes"; then
+            AC_MSG_NOTICE([*** Could not find vulkan/vulkan.hpp with VK_API_VERSION_1_4: will compile without Vulkan support ***])
+          else
           AC_CHECK_LIB([vulkan], [vkCreateInstance],
           [
           LIBS_SAVE=$LIBS
@@ -541,31 +551,39 @@ case "$OSTYPE" in
                ;;
           esac
           ASY_VULKAN_LIBS="-lvulkan $VULKAN_LIBS-lSPIRV"
-          AC_CHECK_LIB([glslang],[glslang_initialize_process],
-          [
-          AC_DEFINE(HAVE_LIBVULKAN,1,
-          DEFINE_LIB([vulkan]))
-          ASY_VULKAN_LIBS="$ASY_VULKAN_LIBS -lglslang -lSPIRV-Tools-opt -lSPIRV-Tools"
-          ],
-
-          [
-          ASY_VULKAN_LIBS="$ASY_VULKAN_LIBS -lOGLCompiler"
-          AC_CHECK_LIB([glslang],[glslang_finalize_process],
-          [
-          AC_DEFINE(HAVE_LIBVULKAN,1,
-          DEFINE_LIB([vulkan]))
-          ASY_VULKAN_LIBS="$ASY_VULKAN_LIBS -lglslang"
-          ],
-          [
-          AC_MSG_NOTICE([*** Could not find libglslang: will compile without Vulkan support ***])
-          ASY_VULKAN_LIBS=""
+          dnl On some distros (e.g., Ubuntu) libglslang.a is a thin C wrapper and
+          dnl the actual C++ implementation is in companion libraries. Try -lglslang
+          dnl alone first; if that fails, try with companions.
+          ASY_GLSLANG_LIBS=""
+          LIBS_SAVE=$LIBS
+          LIBS="$LIBS -lglslang"
+          AC_LINK_IFELSE(
+            [AC_LANG_CALL([], [glslang_initialize_process])],
+            [ASY_GLSLANG_LIBS="-lglslang"],
+            []
+          )
+          dnl If -lglslang alone didn't work, try with companion libraries
+          if test "x$ASY_GLSLANG_LIBS" = "x"; then
+            LIBS="$LIBS_SAVE -lglslang $VULKAN_LIBS -lOGLCompiler"
+            AC_LINK_IFELSE(
+              [AC_LANG_CALL([], [glslang_initialize_process])],
+              [ASY_GLSLANG_LIBS="-lglslang $VULKAN_LIBS -lOGLCompiler"],
+              []
+            )
+          fi
           LIBS=$LIBS_SAVE
-          ]
-          )
-          ]
-          )
+          if test "x$ASY_GLSLANG_LIBS" != "x"; then
+            AC_DEFINE(HAVE_LIBVULKAN,1,
+            DEFINE_LIB([vulkan]))
+            ASY_VULKAN_LIBS="$ASY_VULKAN_LIBS $ASY_GLSLANG_LIBS -lSPIRV-Tools-opt -lSPIRV-Tools"
+          else
+            AC_MSG_NOTICE([*** Could not find libglslang: will compile without Vulkan support ***])
+            ASY_VULKAN_LIBS=""
+            LIBS=$LIBS_SAVE
+          fi
           ],
           AC_MSG_NOTICE([*** Could not find libvulkan: will compile without Vulkan support ***]))
+          fi
 esac
 fi
 
@@ -619,7 +637,6 @@ case "$OSTYPE" in
               # chained fixups. Add -no_fixup_chains to use traditional fixups
               # which work correctly with dynamic_lookup for dlopen'd libraries.
               SHIM_LDFLAGS="-undefined dynamic_lookup -Wl,-no_fixup_chains"
-              AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL,1,
                              DEFINE([<gl.h> header]))
@@ -673,7 +690,6 @@ CXX_STANDARD=$cxxstd
 AC_SUBST(ASYGLVERSION)
 AC_SUBST(GCOPTIONS)
 AC_SUBST(GCLIB)
-AC_SUBST(GCPPLIB)
 AC_SUBST(LSPLIB)
 AC_SUBST(LSPLIBS)
 AC_SUBST(INCL)
@@ -724,6 +740,6 @@ AC_FUNC_FSEEKO
 AC_CHECK_FUNCS(strptime)
 AC_CHECK_FUNCS(strnlen)
 
-AC_CONFIG_FILES([Makefile doc/Makefile doc/png/Makefile])
+AC_CONFIG_FILES([Makefile doc/Makefile doc/png/Makefile doc/FAQ/Makefile])
 AC_CONFIG_HEADERS([config.h])
 AC_OUTPUT

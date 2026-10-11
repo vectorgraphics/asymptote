@@ -40,8 +40,6 @@ if (CMAKE_BUILD_TYPE IN_LIST cmake_debug_build_types)
     list(APPEND ASY_MACROS DEBUG)
 endif()
 
-# CTAN_BUILD is no longer a global macro; it's applied per-target on settings_obj_ctan.
-
 if (ENABLE_COMPACT_ZERO_BUILD)
     message(STATUS "Setting COMPACT=0. Ensure this is not a production build.")
     list(APPEND ASY_MACROS COMPACT=0)

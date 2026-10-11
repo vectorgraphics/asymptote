@@ -1,0 +1,85 @@
+name: vcpkg-cache-save
+description: >
+  Save vcpkg's binary archives and source downloads if vcpkg install changed
+  them. Run it with "if: always()" right after the step that runs vcpkg
+  install, so that a failed install still keeps the packages it did build.
+runs:
+  using: 'composite'
+  steps:
+    - name: Prune vcpkg cache and check for changes
+      id: contents
+      shell: bash
+      env:
+        JOB_STATUS: ${{ job.status }}
+      run: |
+        # "if: always()" also runs this after a job that failed before
+        # vcpkg-cache-restore finished.
+        if [ -z "${ASY_VCPKG_CACHE_RESTORED:-}" ]; then
+          echo "vcpkg-cache-restore did not complete; nothing to save."
+          exit 0
+        fi
+        cd "$ASY_VCPKG_CACHE_DIR"
+        # A binary archive is keyed by an ABI hash covering the compiler,
+        # CMake and vcpkg's own scripts, so a runner image update orphans
+        # every archive. Mark the ones this job installed as fresh and drop
+        # those that no job has used for a month. A failed job installed only
+        # some of its packages, so it must not judge what is unused.
+        #
+        # The fresh timestamps are saved only if the set of files changes, so
+        # a job sees the archives it does not install itself age from the day
+        # they were built. That is harmless while every job on a runner OS
+        # installs the same packages. Jobs with different feature sets would
+        # drop each other's archives once a month. So does a runner image
+        # being rolled out: the first job on the new image drops the archives
+        # of the old one if they were built over a month ago, and the next
+        # job on the old image builds them all again, once.
+        if [ "$JOB_STATUS" = success ]; then
+          if [ "$RUNNER_OS" = Windows ]; then
+            workspace="$(cygpath -m "$GITHUB_WORKSPACE")"
+          else
+            workspace="$GITHUB_WORKSPACE"
+          fi
+          used=0
+          for status in "$workspace"/cmake-build-*/*/vcpkg_installed/vcpkg/status; do
+            if [ -f "$status" ]; then
+              for abi in $(sed -n 's/^Abi: //p' "$status" | tr -d '\r'); do
+                if [ -f "archives/${abi:0:2}/$abi.zip" ]; then
+                  touch "archives/${abi:0:2}/$abi.zip"
+                  used=$((used + 1))
+                fi
+              done
+            fi
+          done
+          # Zero means the status file was not found, not that nothing is in
+          # use.
+          echo "Archives this job installed: $used"
+          if [ "$used" -gt 0 ]; then
+            find archives -type f -mtime +30 -print -delete
+          fi
+        fi
+        # What a download interrupted by a failed or cancelled job leaves.
+        find downloads -maxdepth 1 -type f -name '*.part' -print -delete
+        # A source archive is read only when its package is built rather than
+        # restored from archives, and nothing records which ones a job read,
+        # so they cannot be kept fresh the way the binary archives are. Drop
+        # them by age instead: each is then fetched again at most twice a
+        # year, and only if its package is built again.
+        find downloads -maxdepth 1 -type f -name '*.*' -mtime +180 -print -delete
+        hash=$( (find archives -type f; find downloads -maxdepth 1 -type f -name '*.*') |
+          LC_ALL=C sort | sha256sum | cut -c1-16)
+        echo "hash=$hash" >> "$GITHUB_OUTPUT"
+        if [ "$hash" != "$ASY_VCPKG_CACHE_RESTORED" ]; then
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+        fi
+    - name: Save vcpkg cache
+      if: steps.contents.outputs.changed == 'true'
+      uses: actions/cache/save@v4
+      with:
+        # Keep in sync with vcpkg-cache-restore.
+        path: |
+          ${{ env.ASY_VCPKG_CACHE_DIR }}/archives
+          ${{ env.ASY_VCPKG_CACHE_DIR }}/downloads/*.*
+        # A cache cannot be overwritten, so the key has to change whenever
+        # the contents do; a key fixed by the manifest alone would freeze the
+        # first cache saved under it, stale archives and all.
+        key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}-${{ steps.contents.outputs.hash }}

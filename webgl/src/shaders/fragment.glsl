@@ -10,6 +10,13 @@ out vec4 outValue;
 #ifdef WEBGL2
 flat in int MaterialIndex;
 
+#ifdef NORMAL
+IN vec4 diffuse;
+IN vec3 specular;
+IN float roughness,metallic,fresnel0;
+IN vec4 emissive;
+#else
+
 struct Material {
   vec4 diffuse,emissive,specular;
   vec4 parameters;
@@ -17,13 +24,7 @@ struct Material {
 
 uniform Material Materials[Nmaterials];
 
-vec4 diffuse;
-vec3 specular;
-float roughness,metallic,fresnel0;
 vec4 emissive;
-
-#ifdef COLOR
-in vec4 Color;
 #endif
 
 #else
@@ -47,7 +48,18 @@ struct Light {
 
 uniform Light Lights[Nlights];
 
-#ifdef USE_IBL
+// runtime light count (same uniform as in the vertex shader): unlit
+// scenes, including outline mode's runtime nlights=0, need no
+// recompilation
+uniform int nlights;
+
+// IBL is selected at runtime by this uniform; when it is false the
+// samplers below are simply unused
+uniform bool ibl;
+
+#ifdef WEBGL2
+// IBL requires WebGL2 (see initGL), so the samplers and IBLColor are
+// compiled only there; ibl can only be true in that case
 uniform sampler2D reflBRDFSampler;
 uniform sampler2D diffuseSampler;
 uniform sampler2D reflImgSampler;
@@ -93,7 +105,8 @@ vec3 IBLColor(vec3 viewDir)
   vec3 metal=diffuse.rgb*IBLRefl;
   return mix(dielectric,metal,metallic);
 }
-#else
+#endif
+
 float Roughness2;
 float NDF_TRG(vec3 h)
 {
@@ -144,69 +157,48 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
   return mix(dielectric,metal,metallic);
 }
-#endif
 
 #endif
 
 void main(void)
 {
-#ifdef WEBGL2
 #ifdef NORMAL
-  Material m;
-#ifdef TRANSPARENT
-  m=Materials[abs(MaterialIndex)-1];
-  emissive=m.emissive;
-  if(MaterialIndex >= 0)
-    diffuse=m.diffuse;
-  else {
-    diffuse=Color;
-#if nlights == 0
-    emissive += Color;
+  // nlights is a runtime uniform, so switching to unlit rendering (e.g.
+  // outline mode) needs no shader recompilation
+  if (nlights > 0) {
+    normal=normalize(Normal);
+    normal=gl_FrontFacing ? normal : -normal;
+    vec3 viewDir=-normalize(ViewPosition);
+
+    vec3 color;
+#ifdef WEBGL2
+    // IBL requires WebGL2 (see initGL), so the ibl branch exists only there
+    if (ibl) {
+      color=IBLColor(viewDir);
+    } else {
 #endif
-  }
-#else
-  m=Materials[MaterialIndex];
-  emissive=m.emissive;
-#ifdef COLOR
-  diffuse=Color;
-#if nlights == 0
-    emissive += Color;
+      Roughness2=roughness*roughness;
+      color=emissive.rgb;
+      // Loop over the compiled-in maximum (a constant bound, as required
+      // by WebGL1) and stop at the runtime light count
+      for(int i=0; i < Nlights; ++i) {
+        if (i >= nlights) break;
+        Light Li=Lights[i];
+        vec3 L=Li.direction;
+        float cosTheta=max(dot(normal,L),0.0);
+        vec3 radiance=cosTheta*Li.color;
+        color += BRDF(viewDir,L)*radiance;
+      }
+#ifdef WEBGL2
+    }
 #endif
+    OUTVALUE=vec4(color,diffuse.a);
+  } else
+    OUTVALUE=emissive;
 #else
-  diffuse=m.diffuse;
-#endif // COLOR
-#endif // TRANSPARENT
-  specular=m.specular.rgb;
-  vec4 parameters=m.parameters;
-  roughness=1.0-parameters[0];
-  metallic=parameters[1];
-  fresnel0=parameters[2];
-#else
+#ifdef WEBGL2
   emissive=Materials[MaterialIndex].emissive;
-#endif // NORMAL
-#endif // WEBGL2
-
-#if defined(NORMAL) && nlights > 0
-  normal=normalize(Normal);
-  normal=gl_FrontFacing ? normal : -normal;
-  vec3 viewDir=-normalize(ViewPosition);
-
-vec3 color;
-#ifdef USE_IBL
-  color=IBLColor(viewDir);
-#else
-  Roughness2=roughness*roughness;
-  color=emissive.rgb;
-  for(int i=0; i < nlights; ++i) {
-    Light Li=Lights[i];
-    vec3 L=Li.direction;
-    float cosTheta=max(dot(normal,L),0.0);
-    vec3 radiance=cosTheta*Li.color;
-    color += BRDF(viewDir,L)*radiance;
-  }
 #endif
-  OUTVALUE=vec4(color,diffuse.a);
-#else
   OUTVALUE=emissive;
 #endif
 }

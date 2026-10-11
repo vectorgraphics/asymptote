@@ -19,6 +19,31 @@ namespace camp {
 
 AsyRender* gl;
 
+// Physical pixels per PostScript unit: 72 bp/inch * inch/pixels, where
+// pixels/inch comes from the monitor's physical size and pixel resolution.
+double pixelsPerBp()
+{
+  static double ppb = 0;
+  if(ppb == 0) {
+    double ppi = 96.0;
+#ifdef HAVE_LIBGLFW
+    glfwInit();
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    if(monitor) {
+      int wmm, hmm;
+      glfwGetMonitorPhysicalSize(monitor, &wmm, &hmm);
+      const GLFWvidmode* vm = glfwGetVideoMode(monitor);
+      if(wmm > 0 && vm != nullptr && vm->width > 0) {
+        ppi=(double) vm->width/(wmm/25.4);  // pixels per inch
+      }
+    }
+#endif
+    ppb=ppi/72.0;                              // pixels per bp
+  }
+
+  return ppb;
+}
+
 } // namespace camp
 
 using namespace glm;
@@ -47,7 +72,7 @@ void AsyRender::copyRenderArgs(RenderFunctionArgs const& args)
   Angle = args.angle * radians;
   lastzoom = 0;
   Zoom0 = std::fpclassify(args.zoom) == FP_NORMAL ? args.zoom : 1.0;
-  Shift = args.shift / args.zoom;
+  Shift = args.shift / Zoom0;
   Margin = args.margin;
 
   // Background color
@@ -59,6 +84,15 @@ void AsyRender::copyRenderArgs(RenderFunctionArgs const& args)
   View = args.view && !settings::getSetting<bool>("offscreen");
 
   title = std::string(PACKAGE_NAME) + ": " + args.prefix.c_str();
+
+  // Tile size limits from -maxtile setting
+  {
+    pair maxtile = getSetting<pair>("maxtile");
+    maxTileWidth = (int)maxtile.getx();
+    maxTileHeight = (int)maxtile.gety();
+    if (maxTileWidth <= 0) maxTileWidth = 1024;
+    if (maxTileHeight <= 0) maxTileHeight = 768;
+  }
 
   // Scene bounds
   Xmin = args.m.getx();
@@ -81,6 +115,16 @@ void AsyRender::copyRenderArgs(RenderFunctionArgs const& args)
     Tup[i] = args.tup[i];
 }
 
+void AsyRender::switchBlendPipeline(std::uint32_t maxDepth)
+{
+  if (blendBig) {
+    if (maxDepth <= blendSwitchDown)
+      blendBig = false;
+  } else if (maxDepth > blendSwitchUp) {
+    blendBig = true;
+  }
+}
+
 double AsyRender::getRenderResolution(triple Min) const
 {
   double prerender = settings::getSetting<double>("prerender");
@@ -101,10 +145,15 @@ double AsyRender::getRenderResolution(triple Min) const
 // Default implementations for virtual methods that can have generic behavior
 void AsyRender::setDimensions(int Width, int Height, double X, double Y)
 {
+  // Guard against zero dimensions to prevent division by zero (SIGFPE).
+  if(Width <= 0) Width = 1;
+  if(Height <= 0) Height = 1;
+
   double aspect = ((double) Width) / Height;
-  double xshift = (X / (double) Width + Shift.getx() * Xfactor) * Zoom;
-  double yshift = (Y / (double) Height + Shift.gety() * Yfactor) * Zoom;
-  double zoominv = 1.0 / Zoom;
+  double zoom = Zoom * zoomFactor;
+  double xshift = (X / (double) Width + Shift.getx() * Xfactor) * zoom;
+  double yshift = (Y / (double) Height + Shift.gety() * Yfactor) * zoom;
+  double zoominv = 1.0 / zoom;
   if (orthographic) {
     double xsize = Xmax - Xmin;
     double ysize = Ymax - Ymin;
@@ -166,13 +215,13 @@ void AsyRender::update()
   redraw=true;
 
 #ifdef HAVE_PTHREAD
+#ifdef HAVE_LIBGLFW
   if(View) {
     pthread_t postThread;
-#ifdef HAVE_LIBGLFW
     if(pthread_create(&postThread,NULL,postEmptyEvent,NULL) == 0)
       pthread_join(postThread,NULL);
-#endif
   }
+#endif
 #endif
 }
 
@@ -404,6 +453,10 @@ void AsyRender::windowposition(int& x, int& y, int width, int height)
 void AsyRender::fullscreen(bool reposition)
 {
   Xfactor = Yfactor = 1.0;
+  if (screenWidth < screenHeight * Aspect)
+    zoomFactor = (double)screenWidth / (screenHeight * Aspect);
+  else
+    zoomFactor = 1.0;
   setsize(screenWidth, screenHeight, reposition);
   reshape(screenWidth, screenHeight);
 }
@@ -438,15 +491,18 @@ void AsyRender::reshape(int width, int height)
 
 void AsyRender::fitscreen(bool reposition)
 {
+  remesh = true;
   switch(Fitscreen) {
     case 0: // Original size: use saved framebuffer dimensions
     {
       Xfactor = Yfactor = 1.0;
+      zoomFactor = 1.0;
       setsize(oldWidth, oldHeight, reposition);
       break;
     }
     case 1: // Fit to screen: screenWidth/screenHeight already physical pixels
     {
+      zoomFactor = 1.0;
       int w = screenWidth;
       int h = screenHeight;
       fitAspect(w, h);
@@ -476,6 +532,7 @@ void AsyRender::home()
   lastzoom = Zoom = Zoom0;
   framecount = 0;
 
+  remesh = true;
   setProjection();
   updateModelViewData();
 }
@@ -918,37 +975,58 @@ void AsyRender::initDisplay(int contentWidth, int contentHeight)
   fullWidth = (int) std::ceil(expand * contentWidth);
   fullHeight = (int) std::ceil(expand * contentHeight);
 
+  // Guard against zero/negative dimensions from empty/degenerate scenes.
+  if(fullWidth <= 0) fullWidth = 1;
+  if(fullHeight <= 0) fullHeight = 1;
+
   oWidth = contentWidth;
   oHeight = contentHeight;
 
-  GLFWmonitor* monitor = NULL;
   glfwInit();
-
-  devicePixelRatio = settings::getSetting<double>("devicepixelratio");
-  monitor = glfwGetPrimaryMonitor();
+  GLFWmonitor* monitor = glfwGetPrimaryMonitor();
   if (monitor) {
     int mx, my;
     glfwGetMonitorWorkarea(monitor, &mx, &my, &screenWidth, &screenHeight);
-    if (devicePixelRatio <= 0.0) {
-      float sx = 1.0f, sy = 1.0f;
-      glfwGetMonitorContentScale(monitor, &sx, &sy);
-      devicePixelRatio = std::max(sx, sy);
-    }
   } else {
     screenWidth = fullWidth;
     screenHeight = fullHeight;
   }
 
-  oldWidth = (int) std::ceil(contentWidth * devicePixelRatio);
-  oldHeight = (int) std::ceil(contentHeight * devicePixelRatio);
+  double pixelsperbp=pixelsPerBp();
+  oldWidth = (int) std::ceil(contentWidth * pixelsperbp);
+  oldHeight = (int) std::ceil(contentHeight * pixelsperbp);
 
   int w = std::min(oldWidth, screenWidth);
   int h = std::min(oldHeight, screenHeight);
 
   fitAspect(w, h);
 
-  Width = w;
-  Height = h;
+  if(View) {
+    Width = w;
+    Height = h;
+  } else {
+    // For offscreen rendering, use a framebuffer large enough for efficient
+    // tiling. OpenGL and Vulkan both tile in Export() to produce the final
+    // fullWidth x fullHeight image, so the GPU framebuffer does not need to
+    // be allocated at the expanded resolution. However, it should be at least
+    // as large as the desired max tile size (1024x768) to avoid wasting GPU
+    // bandwidth on excessive tile overhead.  Cap at the full export resolution
+    // since larger tiles provide no benefit.
+    int minTileW = 1024;
+    int minTileH = 768;
+    Width  = std::max(w, std::min(minTileW, fullWidth));
+    Height = std::max(h, std::min(minTileH, fullHeight));
+    // Ensure aspect ratio is preserved.
+    if ((double)Width / Height > (double)fullWidth / fullHeight)
+      Width = (int)std::ceil(Height * (double)fullWidth / fullHeight);
+    else
+      Height = (int)std::ceil(Width * (double)fullHeight / fullWidth);
+  }
+
+  // Guard against zero dimensions (e.g., headless rendering with no monitor)
+  // to avoid division by zero in setDimensions() and ArcballFactor computation.
+  if(Width <= 0) Width = 1;
+  if(Height <= 0) Height = 1;
 
   home();
 
@@ -965,6 +1043,16 @@ void AsyRender::clearData()
   transparentData.clear();
 }
 
+void AsyRender::setOpaque()
+{
+  Opaque = transparentData.indices.empty();
+}
+
+void AsyRender::exportHandler(int)
+{
+  readyAfterExport = true;
+}
+
 void AsyRender::setsize(int w, int h, bool reposition)
 {
   capsize(w, h);
@@ -978,11 +1066,6 @@ void AsyRender::setsize(int w, int h, bool reposition)
     }
   }
   update();
-}
-
-void AsyRender::exportHandler(int)
-{
-  readyAfterExport = true;
 }
 
 void AsyRender::updateHandler(int)
@@ -1042,10 +1125,14 @@ void AsyRender::onMouseButton(int button, int action, int mods)
     }
 }
 
-void AsyRender::setOpaque()
-{
-  Opaque = transparentData.indices.empty();
-}
+#else // !HAVE_RENDERER
+// Stubs for when GLFW/Vulkan/GL are unavailable (satisfy vtable and link).
+void AsyRender::clearData() {}
+void AsyRender::setOpaque() {}
+void AsyRender::exportHandler(int) { readyAfterExport = true; }
+void AsyRender::setsize(int, int, bool) {}
+void AsyRender::updateHandler(int) {}
+void AsyRender::quit() { exit(0); }
 
 #endif // HAVE_RENDERER
 

@@ -1406,7 +1406,7 @@ void draw3D(frame f, patch s, material m,
 
  (s.triangular ? drawbeziertriangle : draw)
     (f,s.P,render.interaction.center,straight,m.p,m.opacity,m.shininess,
-     m.metallic,m.fresnel0,s.colors,render.interaction.type,digits,
+     m.metallic,m.fresnel0,m.lightOn,s.colors,render.interaction.type,digits,
      primitive);
 }
 
@@ -1478,7 +1478,7 @@ void draw(frame f, triple[] v, int[][] vi,
   }
 
   draw(f,v,vi,render.interaction.center,n,ni,
-       m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,p,pi,
+       m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,m.lightOn,p,pi,
        render.interaction.type);
 }
 
@@ -1631,18 +1631,22 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
         int k=round(a[1]);
         patch S=s.s[k];
         pen meshpen=meshpen[k];
-        if(!invisible(meshpen) && !S.triangular) {
+        if(!invisible(meshpen)) {
+          meshpen=modifiers+meshpen;
           if(group)
             begingroup3(f,meshname(name),render);
-          meshpen=modifiers+meshpen;
-          real step=nu == 0 ? 0 : 1/nu;
-          for(int i=0; i <= nu; ++i)
-            draw(f,S.uequals(i*step),meshpen,meshlight,partname(i,render),
-                 render);
-          step=nv == 0 ? 0 : 1/nv;
-          for(int j=0; j <= nv; ++j)
-            draw(f,S.vequals(j*step),meshpen,meshlight,partname(j,render),
-                 render);
+          if(S.triangular)
+            draw(f,S.external(),meshpen,meshlight,partname(0,render),render);
+          else {
+            real step=nu == 0 ? 0 : 1/nu;
+            for(int i=0; i <= nu; ++i)
+              draw(f,S.uequals(i*step),meshpen,meshlight,partname(i,render),
+                   render);
+            step=nv == 0 ? 0 : 1/nv;
+            for(int j=0; j <= nv; ++j)
+              draw(f,S.vequals(j*step),meshpen,meshlight,partname(j,render),
+                   render);
+          }
           if(group)
             endgroup3(f);
         }
@@ -1831,14 +1835,18 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   for(int k=0; k < s.s.length; ++k) {
     patch S=s.s[k];
     pen meshpen=meshpen[k];
-    if(!invisible(meshpen) && !S.triangular) {
+    if(!invisible(meshpen)) {
       meshpen=modifiers+meshpen;
-      real step=nu == 0 ? 0 : 1/nu;
-      for(int i=0; i <= nu; ++i)
-        addPath(pic,s.s[k].uequals(i*step),meshpen);
-      step=nv == 0 ? 0 : 1/nv;
-      for(int j=0; j <= nv; ++j)
-        addPath(pic,s.s[k].vequals(j*step),meshpen);
+      if(S.triangular)
+        addPath(pic,s.s[k].external(),meshpen);
+      else {
+        real step=nu == 0 ? 0 : 1/nu;
+        for(int i=0; i <= nu; ++i)
+          addPath(pic,s.s[k].uequals(i*step),meshpen);
+        step=nv == 0 ? 0 : 1/nv;
+        for(int j=0; j <= nv; ++j)
+          addPath(pic,s.s[k].vequals(j*step),meshpen);
+      }
     }
   }
 }
@@ -2235,42 +2243,22 @@ surface surface(Label L, surface s, real uoffset, real voffset,
 
 private real a=4/3*(sqrt(2)-1);
 
-private transform3 t1=rotate(90,O,Z);
-private transform3 t2=t1*t1;
-private transform3 t3=t2*t1;
-private transform3 i=xscale3(-1)*zscale3(-1);
-
 // Degenerate first octant
 restricted patch octant1x=patch(X{Y}..{-X}Y{Z}..{-Y}Z..Z{X}..{-Z}cycle,
                                new triple[] {(1,a,a),(a,1,a),(a^2,a,1),
                                                (a,a^2,1)});
+include three_octant;
 
-surface octant1(real transition)
-{
-  private triple[][][] P=hsplit(octant1x.P,transition);
-  private patch P0=patch(P[0]);
-  private patch P1=patch(P[1][0][0]..controls P[1][1][0] and P[1][2][0]..
-                         P[1][3][0]..controls P[1][3][1] and P[1][3][2]..
-                         P[1][3][3]..controls P[1][0][2] and P[1][0][1]..
-                         cycle,O);
+private transform3 t1 = rotate(90, O, Z);
+private transform3 t2 = rotate(180, O, Z);
+private transform3 t3 = rotate(-90, O, Z);
+private transform3 i = xscale3(-1)*zscale3(-1);
 
-  // Set internal control point of P1 to match normals at P0.point(1/2,1).
-  triple n=P0.normal(1/2,1);
-  triple[][] P=P1.P;
-  triple u=-P[0][0]-P[1][0]+P[2][0]+P[3][0];
-  triple v=-P[0][0]-2*P[1][0]+P[1][1]-P[2][0]+P[3][1];
-  triple w=cross(u,v+(0,0,2));
-  real i=0.5*(n.z*w.x/n.x-w.z)/(u.x-u.y);
-  P1.P[2][1]=(i,i,1);
-  return surface(P0,P1);
-}
-
-// Nondegenerate first octant
-restricted surface octant1=octant1(0.95);
-
+restricted surface unitoctant=octant1;
 restricted surface unithemisphere=surface(octant1,t1*octant1,t2*octant1,
                                           t3*octant1);
-restricted surface unitsphere=surface(octant1,t1*octant1,t2*octant1,t3*octant1,
+restricted surface unitsphere=surface(octant1,t1*octant1,t2*octant1,
+                                      t3*octant1,
                                       i*octant1,i*t1*octant1,i*t2*octant1,
                                       i*t3*octant1);
 unitsphere.primitive=primitive(
@@ -2279,7 +2267,7 @@ unitsphere.primitive=primitive(
   {
    material m=material(m[0],light);
    drawSphere(f,t,half=false,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
-             render.sphere);
+             m.lightOn,render.sphere);
   },new bool(transform3 t) {
     return unscaled(t,X,Y) && unscaled(t,Y,Z);
   });
@@ -2290,7 +2278,7 @@ unithemisphere.primitive=primitive(
   {
    material m=material(m[0],light);
    drawSphere(f,t,half=true,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
-             render.sphere);
+             m.lightOn,render.sphere);
   },new bool(transform3 t) {
     return unscaled(t,X,Y) && unscaled(t,Y,Z);
   });
@@ -2328,7 +2316,7 @@ drawfcn unitcylinderDraw(bool core) {
   {
    material m=material(m[0],light);
    drawCylinder(f,t,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
-                m.opacity == 1 ? core : false);
+                m.lightOn,m.opacity == 1 ? core : false);
   };
 }
 
@@ -2352,7 +2340,7 @@ unitdisk.primitive=primitive(
            light light=currentlight, render render=defaultrender)
   {
    material m=material(m[0],light);
-   drawDisk(f,t,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0);
+   drawDisk(f,t,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,m.lightOn);
   },
   new bool(transform3 t) {
     return unscaled(t,X,Y);
@@ -2613,7 +2601,7 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
           begingroup3(f,name == "" ? "surface" : name,render);
         triple[][] P=t*P;
         draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,m.metallic,
-             m.fresnel0,colors);
+             m.fresnel0,m.lightOn,colors);
         if(group)
           endgroup3(f);
         if(pic != null)

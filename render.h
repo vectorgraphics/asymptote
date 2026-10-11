@@ -18,6 +18,7 @@
 
 constexpr size_t Nbuffer = 10000;  // Initial size of 2D dynamic buffers
 constexpr size_t nbuffer = 1000;   // Initial size of 0D & 1D dynamic buffers
+static constexpr bool ReserveGlobal = true;
 
 
 
@@ -77,12 +78,14 @@ struct VertexBuffer {
 
   int renderCount=0;  // Number of frames this data has been drawn on
 
-  VertexBuffer()
+  VertexBuffer(bool reserveMemory = false)
   {
-    materialVertices.reserve(Nbuffer);
-    colorVertices.reserve(nbuffer);
-    pointVertices.reserve(nbuffer);
-    indices.reserve(Nbuffer);
+    if (reserveMemory) {
+      materialVertices.reserve(Nbuffer);
+      colorVertices.reserve(Nbuffer);
+      pointVertices.reserve(nbuffer);
+      indices.reserve(Nbuffer);
+    }
   }
 
   void clear()

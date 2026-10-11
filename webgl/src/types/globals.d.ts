@@ -23,6 +23,7 @@ declare global {
         beginTransform: Function,
         endTransform: Function,
         interp: Function,
+        updateScene: Function,
         javascript: (code: string) => void
     }
 

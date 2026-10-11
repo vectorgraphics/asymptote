@@ -16,7 +16,7 @@
  *
  * On Windows, Vulkan is linked directly into the asy binary.
  *
- * For WebGL (html) and v3d output, AsyWebGLRender is used instead, which
+ * For WebGL (html) and v3d output, NoRender is used instead, which
  * requires no GPU libraries - it only sets up state for client-side rendering.
  *****/
 
@@ -33,10 +33,13 @@
 #endif
 
 #include "renderBase.h"
-#include "webglrender.h"
+#include "norender.h"
 
-extern pthread_mutex_t main_wait_mutex;
-extern pthread_cond_t main_wait_cond;
+// Defined here (in asycore) rather than in main.cc so that executables which
+// link asycore without main.cc (e.g. asyCxxTests) still resolve these symbols,
+// which are referenced from picture.cc and below.
+pthread_mutex_t main_wait_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t main_wait_cond = PTHREAD_COND_INITIALIZER;
 
 #ifdef _WIN32
 #include "vkrender.h"
@@ -61,8 +64,12 @@ bool vulkan = false;
 #include <pthread.h>
 #include <string>
 
+#ifdef __APPLE__
+#  include <stdlib.h>    // for realpath(), setenv() in the llvmpipe fallback
+#endif
+
 #include "settings.h"    // for settings::verbose
-#include "locate.h"       // for settings::locateFile
+#include "locate.h"      // for settings::locateFile, settings::executableDir
 
 namespace camp {
 
@@ -93,9 +100,24 @@ static void *glLibHandle = nullptr;
  * Returns a valid handle on success, or nullptr on failure.
  */
 #ifndef _WIN32
+// Resolve a renderer shared library path. Prefer a copy that sits next to the
+// executable (the build tree's lib); otherwise fall back to the Asymptote
+// search path. Relying on locateFile() alone is CWD-dependent and can pick up a
+// stale system-installed lib when asy is run from outside the build directory.
+static string resolveRendererLib(const char *libName)
+{
+    string dir = settings::executableDir();
+    if (!dir.empty()) {
+        string candidate = dir + "/" + libName;
+        if (settings::fs::exists(candidate))
+            return candidate;
+    }
+    return settings::locateFile(libName, true, "");
+}
+
 static void *loadRendererLib(const char *libName)
 {
-    mem::string locPath = settings::locateFile(libName, true, "");
+    mem::string locPath = resolveRendererLib(libName);
     std::string pathStr = mem::stdString(locPath);
 
     return dlopen(pathStr.c_str(), RTLD_NOW | RTLD_LOCAL);
@@ -124,7 +146,7 @@ static bool tryLoadVulkanLib()
     CreateAsyVkRenderFn fn =
         reinterpret_cast<CreateAsyVkRenderFn>(GetProcAddress(vulkanLibHandle, "createAsyVkRender"));
 #else
-    mem::string locPath = settings::locateFile("libasyvulkan.so", true, "");
+    mem::string locPath = resolveRendererLib("libasyvulkan.so");
     std::string pathStr = mem::stdString(locPath);
 
     vulkanLibHandle = dlopen(pathStr.c_str(), RTLD_NOW | RTLD_LOCAL);
@@ -193,7 +215,7 @@ static bool tryLoadOpenGLLib()
     CreateAsyGLRenderFn fn =
         reinterpret_cast<CreateAsyGLRenderFn>(GetProcAddress(glLibHandle, "createAsyGLRender"));
 #else
-    mem::string locPath = settings::locateFile("libasyopengl.so", true, "");
+    mem::string locPath = resolveRendererLib("libasyopengl.so");
     std::string pathStr = mem::stdString(locPath);
 
     glLibHandle = dlopen(pathStr.c_str(), RTLD_NOW | RTLD_LOCAL);
@@ -314,16 +336,16 @@ void unloadOpenGL()
 }
 
 /**
- * Create a WebGL renderer for html/v3d output.
+ * Create a NoRender instance for html/v3d output.
  * This does NOT require Vulkan or OpenGL libraries - it only sets up state
  * needed by jsfile.cc and v3dfile.cc to generate the output files.
  *
  * If a Vulkan/OpenGL renderer was already created (e.g., by createRenderer()),
- * we replace the global pointer with AsyWebGLRender. The old renderer is NOT
+ * we replace the global pointer with NoRender. The old renderer is NOT
  * deleted to avoid triggering cleanup code (like glslang::FinalizeProcess())
  * that can cause issues when called during program shutdown.
  */
-static void createWebGLRenderer()
+static void createNoRenderer()
 {
     // Replace the global pointer without deleting the old renderer.
     // This avoids triggering Vulkan/OpenGL cleanup code that can cause
@@ -334,7 +356,7 @@ static void createWebGLRenderer()
         gl = nullptr;
     }
 
-    gl = new camp::AsyWebGLRender();
+    gl = new camp::NoRender();
 
 #ifdef HAVE_PTHREAD
     if (gl)
@@ -343,7 +365,7 @@ static void createWebGLRenderer()
 
     signalRendererReady();
 #ifdef HAVE_RENDERER
-    vulkan = false;  // WebGL renderer is not Vulkan
+    vulkan = false;  // NoRender is not Vulkan
 #endif
 }
 
@@ -404,46 +426,35 @@ void createRenderer()
         // If probing fails for any reason, proceed without the check.
     }
 
+    std::string const exeDir = mem::stdString(settings::executableDir());
+
     if (!hasHardwareGPU) {
         // No hardware GPU found -- set up llvmpipe (Lavapipe) fallback.
         // Strategy: write lvp_icd.json next to the executable and set
         // VK_ICD_FILENAMES so the Vulkan loader picks it up on the next
         // instance creation.
 
-        // 1) Determine the directory of our own executable.
-        std::string exeDir;
-        {
-            char buf[MAX_PATH];
-            DWORD len = GetModuleFileNameA(nullptr, buf, MAX_PATH);
-            if (len > 0 && len < MAX_PATH) {
-                std::string exePath(buf);
-                size_t slash = exePath.find_last_of("\\/");
-                if (slash != std::string::npos)
-                    exeDir = exePath.substr(0, slash + 1);
-            }
-        }
-
-        // 2) Write lvp_icd.json next to the executable.
-        std::string icdName = "lvp_icd.json";
-        std::string icdPath;
-        if (!exeDir.empty())
-            icdPath = exeDir + icdName;
-        else
-            icdPath = icdName;
+        // 2) Ensure lvp_icd.json exists next to the executable. The NSIS
+        //    installer ships it; this fallback covers source builds.
+        std::string icdPath =
+            exeDir.empty() ? "lvp_icd.json" : exeDir + "\\lvp_icd.json";
 
         {
-            std::ofstream ofs(icdPath.c_str(), std::ios::trunc);
-            if (ofs.is_open()) {
-                ofs << "{\n"
-                    << "    \"file_format_version\": \"1.0.0\",\n"
-                    << "    \"ICD\": {\n"
-                    << "        \"library_path\": \".\\\\vulkan_lvp.dll\",\n"
-                    << "        \"api_version\": \"1.3.0\"\n"
-                    << "    }\n"
-                    << "}\n";
-                if (settings::verbose > 1)
-                    std::cout << "Wrote Lavapipe ICD manifest: " << icdPath
-                              << std::endl;
+            std::ifstream test(icdPath.c_str());
+            if (!test.good()) {
+                std::ofstream ofs(icdPath.c_str(), std::ios::trunc);
+                if (ofs.is_open()) {
+                    ofs << "{\n"
+                        << "    \"file_format_version\": \"1.0.0\",\n"
+                        << "    \"ICD\": {\n"
+                        << "        \"library_path\": \".\\\\vulkan_lvp.dll\",\n"
+                        << "        \"api_version\": \"1.3.0\"\n"
+                        << "    }\n"
+                        << "}\n";
+                    if (settings::verbose > 1)
+                        std::cout << "Wrote Lavapipe ICD manifest: " << icdPath
+                                  << std::endl;
+                }
             }
         }
 
@@ -451,11 +462,8 @@ void createRenderer()
         _putenv_s("VK_ICD_FILENAMES", icdPath.c_str());
 
         // 4) Load vulkan_lvp.dll (the Lavapipe driver).
-        std::string lvpDllPath;
-        if (!exeDir.empty())
-            lvpDllPath = exeDir + "vulkan_lvp.dll";
-        else
-            lvpDllPath = "vulkan_lvp.dll";
+        std::string const lvpDllPath =
+            exeDir.empty() ? "vulkan_lvp.dll" : exeDir + "\\vulkan_lvp.dll";
 
         lvpLibHandle = LoadLibraryA(lvpDllPath.c_str());
         if (lvpLibHandle) {
@@ -463,9 +471,10 @@ void createRenderer()
                 std::cout << "Loaded llvmpipe fallback: " << lvpDllPath
                           << std::endl;
         } else {
-            if (settings::verbose > 1)
-                std::cout << "Warning: failed to load " << lvpDllPath
-                          << "; proceeding without llvmpipe" << std::endl;
+            // No GPU and no llvmpipe: leave gl as nullptr. The error will
+            // be reported lazily in initRenderer() when 3D is requested.
+            signalRendererReady();
+            return;
         }
 
         // 5) Re-initialize the Vulkan dispatcher so it picks up the new ICD.
@@ -594,7 +603,7 @@ void createRenderer()
 /**
  * Initialise the renderer, optionally selecting based on output format.
  *
- * For WebGL (html) and v3d formats, creates AsyWebGLRender which requires
+ * For WebGL (html) and v3d formats, creates NoRender which requires
  * no GPU libraries - it only sets up state for client-side rendering.
  *
  * For all other formats, lazily calls createRenderer() to probe for Vulkan/
@@ -605,21 +614,21 @@ void createRenderer()
  */
 void initRenderer(const char* format)
 {
-    // For WebGL and v3d output, use the lightweight AsyWebGLRender
+    // For WebGL and v3d output, use the lightweight NoRender
     // which doesn't require Vulkan or OpenGL libraries
     bool isFormat3D = (format != nullptr &&
                        (strcmp(format, "html") == 0 || strcmp(format, "v3d") == 0));
 
-    // If we have a WebGL renderer but now need GPU rendering (or vice versa),
+    // If we have a NoRender but now need GPU rendering (or vice versa),
     // reset and re-initialize with the appropriate renderer
     if (initializedRenderer) {
-        bool currentIsWebGL = dynamic_cast<AsyWebGLRender*>(gl) != nullptr;
-        if (currentIsWebGL != isFormat3D) {
+        bool currentIsNoRender = dynamic_cast<NoRender*>(gl) != nullptr;
+        if (currentIsNoRender != isFormat3D) {
             initializedRenderer = false;
             // Clear the old renderer so a new one gets created below.
             // We don't delete it to avoid triggering cleanup code
             // (e.g., glslang::FinalizeProcess()) that can cause issues.
-            if (currentIsWebGL)
+            if (currentIsNoRender)
                 gl = nullptr;
         }
     }
@@ -628,7 +637,7 @@ void initRenderer(const char* format)
         return; // Already fully initialised for this format type
 
     if (isFormat3D) {
-        createWebGLRenderer();
+        createNoRenderer();
     } else if (gl == nullptr) {
         // Lazy initialisation: probe for Vulkan/OpenGL only when GPU
         // rendering is actually needed.
@@ -648,15 +657,16 @@ void initRenderer(const char* format)
     }
 
     if (gl == nullptr) {
+#ifdef _WIN32
+        std::string const exeDir = mem::stdString(settings::executableDir());
+        std::cerr << "For software 3D rendering, install vulkan_lvp.dll here:\n"
+                  << "  " << (exeDir.empty() ? "." : exeDir) << "\n";
+#endif
         camp::reportError("No 3D rendering available");
     }
 
     initializedRenderer = true;
 
-    if (settings::verbose > 2) {
-        if (isFormat3D && format)
-            std::cout << "Using WebGL renderer for " << format << " output" << std::endl;
-    }
 }
 
 } // namespace camp
@@ -681,17 +691,17 @@ void unloadOpenGL() {}
 void createRenderer() {}
 
 /**
- * Create a WebGL renderer for html/v3d output.
+ * Create a NoRender instance for html/v3d output.
  * This does NOT require Vulkan or OpenGL libraries - it only sets up state
  * needed by jsfile.cc and v3dfile.cc to generate the output files.
  */
 #ifdef HAVE_LIBGLM
-static void createWebGLRenderer()
+static void createNoRenderer()
 {
     if (gl != nullptr)
         gl = nullptr;
 
-    gl = new camp::AsyWebGLRender();
+    gl = new camp::NoRender();
     signalRendererReady();
 }
 #endif
@@ -703,7 +713,7 @@ void initRenderer(const char* format)
                        (strcmp(format, "html") == 0 || strcmp(format, "v3d") == 0));
 
     if (isFormat3D) {
-        createWebGLRenderer();
+        createNoRenderer();
     }
 #endif
     // For non-format3d output without GPU libraries, picture.cc will report

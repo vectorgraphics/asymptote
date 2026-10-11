@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+#
+# Example per-developer provisioning hook.
+#
+# Copy this file to a name ending in `.sh` (e.g. `my-setup.sh`) in this same
+# directory to activate it. After the standard provisioning, post-create.sh runs
+# every `*.sh` here, in sorted order. The executable bit is NOT required -- each
+# hook is invoked via `bash`, so `chmod +x` is unnecessary. A hook that exits
+# non-zero is reported but does not abort the rest of provisioning.
+#
+# This template itself ends in `.example`, so it is inert: the `*.sh` glob in
+# post-create.sh never matches it until you rename it.
+set -euo pipefail
+
+echo "example hook: replace this with your personal setup"
+
+# Example: install extra pip packages into the container-owned dev virtualenv
+# that post-create.sh builds (VS Code is pointed at this same interpreter).
+# "$HOME/.venv/asymptote/bin/pip" install ipython

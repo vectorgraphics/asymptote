@@ -10,6 +10,7 @@
 #include "vm.h"
 #include "types.h"
 #include "arrayop.h"
+#include "exp.h"
 
 namespace trans {
 
@@ -34,9 +35,21 @@ varEntry *addFunc(venv &ve, vm::bltin f, types::ty *result, symbol name,
                   types::formal fF=noformal, types::formal fG=noformal,
                   types::formal fH=noformal, types::formal fI=noformal);
 
+// Register an open-signature builtin together with a pair of custom call-site
+// handlers.  The handlers (declared as member-function pointers on callExp)
+// are invoked from callExp::trans / callExp::getType after the call has been
+// resolved to this open-signature entry.  `runtimeFn` is the bltin associated
+// with the venv entry; for handlers that always emit their own runtime call
+// (the typical pattern), it is never actually invoked.  If `takesNames` is
+// true, calls with named arguments also resolve to this entry and the handler
+// must interpret the names itself.
+void addOpenBuiltinFunc(venv &ve, vm::bltin runtimeFn,
+                        absyntax::callExp::CustomHandlers handlers,
+                        types::ty *result, symbol name,
+                        bool takesNames=false);
+
 // Adds standard functions for a newly added types.
 void addArrayOps(venv &ve, types::array *t);
-void addRecordOps(types::record *r);
 
 #ifdef HAVE_LIBGSL
 types::record *getGSLModule();

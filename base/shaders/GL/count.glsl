@@ -6,7 +6,7 @@ layout(binding=1, std430) buffer indexBuffer
 #else
 layout(binding=2, std430) buffer countBuffer
 {
-  uint maxSize;
+  uint maxDepth;
   uint index[];
 };
 #endif

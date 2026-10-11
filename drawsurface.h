@@ -39,6 +39,7 @@ protected:
   double shininess;
   double metallic;
   double fresnel0;
+  bool lightOn;
   bool invisible;
   size_t centerIndex;
   Interaction interaction;
@@ -67,11 +68,11 @@ public:
   drawSurface(const vm::array& g, size_t ncontrols, const triple& center,
               bool straight, const vm::array&p, double opacity,
               double shininess, double metallic, double fresnel0,
-              const vm::array &pens, Interaction interaction, int digits,
+              bool lightOn, const vm::array &pens, Interaction interaction, int digits,
               bool primitive=true, const string& key="") :
     drawElement(key), ncontrols(ncontrols), center(center), straight(straight),
     opacity(opacity), shininess(shininess), metallic(metallic),
-    fresnel0(fresnel0), interaction(interaction), digits(digits),
+    fresnel0(fresnel0), lightOn(lightOn), interaction(interaction), digits(digits),
     primitive(primitive) {
     init();
     if(checkArray(&g) != 4 || checkArray(&p) != 3)
@@ -109,7 +110,7 @@ public:
     drawElement(s->KEY), ncontrols(s->ncontrols), straight(s->straight),
     diffuse(s->diffuse), emissive(s->emissive), specular(s->specular),
     colors(s->colors), opacity(s->opacity), shininess(s->shininess),
-    metallic(s->metallic), fresnel0(s->fresnel0), invisible(s->invisible),
+    metallic(s->metallic), fresnel0(s->fresnel0), lightOn(s->lightOn), invisible(s->invisible),
     interaction(s->interaction), digits(s->digits), primitive(s->primitive) {
     init();
     if(s->controls) {
@@ -134,10 +135,11 @@ public:
 
   drawBezierPatch(const vm::array& g, const triple& center, bool straight,
                   const vm::array&p, double opacity, double shininess,
-                  double metallic, double fresnel0, const vm::array &pens,
-                  Interaction interaction, int digits, bool primitive) :
-    drawSurface(g,16,center,straight,p,opacity,shininess,metallic,fresnel0,
-                pens,interaction,digits,primitive) {}
+                  double metallic, double fresnel0, bool lightOn,
+                  const vm::array &pens, Interaction interaction, int digits,
+                  bool primitive) :
+    drawSurface(g,16,center,straight,p,opacity,shininess,metallic,fresnel0,lightOn,
+                pens,interaction,digits,primitive,"") {}
 
   drawBezierPatch(const double* t, const drawBezierPatch *s) :
     drawSurface(t,s) {}
@@ -168,10 +170,11 @@ public:
 
   drawBezierTriangle(const vm::array& g, const triple& center, bool straight,
                      const vm::array&p, double opacity, double shininess,
-                     double metallic, double fresnel0, const vm::array &pens,
-                     Interaction interaction, int digits, bool primitive) :
-    drawSurface(g,10,center,straight,p,opacity,shininess,metallic,fresnel0,
-                pens,interaction,digits,primitive) {}
+                     double metallic, double fresnel0, bool lightOn,
+                     const vm::array &pens, Interaction interaction, int digits,
+                     bool primitive) :
+    drawSurface(g,10,center,straight,p,opacity,shininess,metallic,fresnel0,lightOn,
+                pens,interaction,digits,primitive,"") {}
 
   drawBezierTriangle(const double* t, const drawBezierTriangle *s) :
     drawSurface(t,s) {}
@@ -208,6 +211,7 @@ protected:
   double shininess;
   double metallic;
   double fresnel0;
+  bool lightOn;
   triple normal;
   bool invisible;
 
@@ -224,9 +228,9 @@ public:
   drawNurbs(const vm::array& g, const vm::array* uknot, const vm::array* vknot,
             const vm::array* weight, const vm::array&p, double opacity,
             double shininess, double metallic, double fresnel0,
-            const vm::array &pens, const string& key="")
+            bool lightOn, const vm::array &pens, const string& key="")
     : drawElement(key), opacity(opacity), shininess(shininess),
-      metallic(metallic), fresnel0(fresnel0) {
+      metallic(metallic), fresnel0(fresnel0), lightOn(lightOn) {
     size_t weightsize=checkArray(weight);
 
     const string wrongsize="Inconsistent NURBS data";
@@ -300,7 +304,8 @@ public:
     nv(s->nv), weights(s->weights), uknots(s->uknots), vknots(s->vknots),
     diffuse(s->diffuse),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
-    shininess(s->shininess), invisible(s->invisible) {
+    shininess(s->shininess), metallic(s->metallic), fresnel0(s->fresnel0),
+    lightOn(s->lightOn), invisible(s->invisible) {
 
     const size_t n=nu*nv;
     controls=new(UseGC) triple[n];
@@ -341,6 +346,7 @@ protected:
   double shininess;
   double metallic;
   double fresnel0;
+  bool lightOn;
   bool invisible;
 public:
   void init(const vm::array&p) {
@@ -356,16 +362,16 @@ public:
   }
 
   drawPRC(const vm::array& t, const vm::array&p, double opacity,
-          double shininess, double metallic, double fresnel0) :
+          double shininess, double metallic, double fresnel0, bool lightOn=false) :
     drawElementLC(t), opacity(opacity), shininess(shininess),
-    metallic(metallic), fresnel0(fresnel0) {
+    metallic(metallic), fresnel0(fresnel0), lightOn(lightOn) {
     init(p);
   }
 
   drawPRC(const vm::array&p, double opacity,
-          double shininess, double metallic, double fresnel0) :
+          double shininess, double metallic, double fresnel0, bool lightOn=false) :
     drawElementLC(NULL), opacity(opacity), shininess(shininess),
-    metallic(metallic), fresnel0(fresnel0) {
+    metallic(metallic), fresnel0(fresnel0), lightOn(lightOn) {
     init(p);
   }
 
@@ -373,7 +379,7 @@ public:
     drawElementLC(t,s), diffuse(s->diffuse),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), metallic(s->metallic), fresnel0(s->fresnel0),
-    invisible(s->invisible) {
+    lightOn(s->lightOn), invisible(s->invisible) {
   }
 
   virtual void P(triple& t, double x, double y, double z);
@@ -396,8 +402,9 @@ class drawSphere : public drawPRC {
   int type;
 public:
   drawSphere(const vm::array& t, bool half, const vm::array&p, double opacity,
-             double shininess, double metallic, double fresnel0, int type) :
-    drawPRC(t,p,opacity,shininess,metallic,fresnel0), half(half), type(type) {}
+             double shininess, double metallic, double fresnel0, bool lightOn,
+             int type) :
+    drawPRC(t,p,opacity,shininess,metallic,fresnel0,lightOn), half(half), type(type) {}
 
   drawSphere(const double* t, const drawSphere *s) :
     drawElement(s->KEY), drawPRC(t,s), half(s->half), type(s->type) {}
@@ -418,8 +425,8 @@ class drawCylinder : public drawPRC {
 public:
   drawCylinder(const vm::array& t, const vm::array&p,
                double opacity, double shininess, double metallic,
-               double fresnel0, bool core=false) :
-    drawPRC(t,p,opacity,shininess,metallic,fresnel0), core(core) {}
+               double fresnel0, bool lightOn, bool core=false) :
+    drawPRC(t,p,opacity,shininess,metallic,fresnel0,lightOn), core(core) {}
 
   drawCylinder(const double* t, const drawCylinder *s) :
     drawElement(s->KEY), drawPRC(t,s), core(s->core) {}
@@ -436,8 +443,8 @@ public:
 class drawDisk : public drawPRC {
 public:
   drawDisk(const vm::array& t, const vm::array&p, double opacity,
-           double shininess, double metallic, double fresnel0) :
-    drawPRC(t,p,opacity,shininess,metallic,fresnel0) {}
+           double shininess, double metallic, double fresnel0, bool lightOn=false) :
+    drawPRC(t,p,opacity,shininess,metallic,fresnel0,lightOn) {}
 
   drawDisk(const double* t, const drawDisk *s) :
     drawElement(s->KEY), drawPRC(t,s) {}
@@ -460,8 +467,8 @@ protected:
 public:
   drawTube(const vm::array&G, double width, const vm::array&p, double opacity,
            double shininess, double metallic, double fresnel0,
-           const triple& m, const triple& M, bool core) :
-    drawPRC(p,opacity,shininess,metallic,fresnel0), width(width), m(m), M(M),
+           bool lightOn, const triple& m, const triple& M, bool core) :
+    drawPRC(p,opacity,shininess,metallic,fresnel0,lightOn), width(width), m(m), M(M),
     core(core) {
     if(vm::checkArray(&G) != 4)
       reportError("array of 4 triples required");
@@ -684,17 +691,19 @@ class drawTriangles : public drawBaseTriangles {
   double shininess;
   double metallic;
   double fresnel0;
+  bool lightOn;
   bool invisible;
 
 public:
   drawTriangles(const vm::array& v, const vm::array& vi, const triple& center,
                 const vm::array& n, const vm::array& ni,
                 const vm::array&p, double opacity, double shininess,
-                double metallic, double fresnel0,
+                double metallic, double fresnel0, bool lightOn,
                 const vm::array& c, const vm::array& ci,
                 Interaction interaction) :
     drawBaseTriangles(v,vi,center,n,ni,interaction), opacity(opacity),
-    shininess(shininess), metallic(metallic), fresnel0(fresnel0) {
+    shininess(shininess), metallic(metallic), fresnel0(fresnel0),
+    lightOn(lightOn) {
 
     if(checkArray(&p) != 3)
       reportError(need3pens);
@@ -743,7 +752,7 @@ public:
                 double opacity,
                 double shininess,
                 double metallic,
-                double fresnel0, Interaction interaction,
+                double fresnel0, bool lightOn, Interaction interaction,
                 bool invisible,
                 const triple& Min, const triple& Max) :
     drawBaseTriangles(vb,center,interaction,isColor,Min,Max),
@@ -752,7 +761,7 @@ public:
     Ci(isColor ? Ni : 0),
     diffuse(diffuse), emissive(emissive), specular(specular),
     opacity(opacity), shininess(shininess),
-    metallic(metallic), fresnel0(fresnel0), invisible(invisible) {
+    metallic(metallic), fresnel0(fresnel0), lightOn(lightOn), invisible(invisible) {
     if(isColor) {
       C=new(UseGC) prc::RGBAColour[nC];
       for(size_t i=0; i < nC; ++i) {
@@ -769,7 +778,7 @@ public:
     drawBaseTriangles(t,s), nC(s->nC),
     diffuse(s->diffuse), emissive(s->emissive),
     specular(s->specular), opacity(s->opacity), shininess(s->shininess),
-    metallic(s->metallic), fresnel0(s->fresnel0), invisible(s->invisible) {
+    metallic(s->metallic), fresnel0(s->fresnel0), lightOn(s->lightOn), invisible(s->invisible) {
 
     if(nC) {
       C=new(UseGC) prc::RGBAColour[nC];

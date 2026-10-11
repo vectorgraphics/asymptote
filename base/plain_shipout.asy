@@ -32,27 +32,36 @@ object embed3(string, frame, string, string, string, light, projection);
 string Embed(string name, string text="", string options="", real width=0,
              real height=0);
 
-bool primitive() { // Encode primitive objects
-  return settings.outformat == "html" || settings.outformat=="v3d" || settings.v3d;
-}
-
 bool prconly(string format="")
 {
   return outformat(format) == "prc";
 }
 
-bool prc0(string format="")
-{
-  return settings.outformat == "prc" || (settings.prc && (outformat(format) == "pdf" || prconly() || settings.inlineimage ));
+bool prc(string format="") {
+  return prconly() ||
+    ((settings.prc && (outformat(format) == "pdf" || settings.inlineimage)) &&
+     Embed != null);
 }
 
-bool prc(string format="") {
-  return prc0(format) && Embed != null;
+bool v3d(string format="")
+{
+  return (outformat(format) == "v3d" ||
+          (settings.v3d && (outformat(format) == "pdf" || settings.inlineimage))) &&
+    Embed != null;
+}
+
+bool primitive() { // Encode primitive objects
+  return settings.outformat == "html" || settings.outformat=="v3d" || v3d();
+}
+
+bool format3D(string format="")
+{
+  return prc(format) || v3d(format);
 }
 
 bool is3D(string format="")
 {
-  return prc(format) || settings.render != 0;
+  return format3D(format) || settings.render != 0 ;
 }
 
 frame enclose(string prefix=defaultfilename, object F, string format="")
@@ -127,16 +136,19 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 
   if(!uptodate()) {
     bool inlinetex=settings.inlinetex;
-    bool prc=prc(format) || settings.v3d;
     bool empty3=pic.empty3();
-    if(prc && !empty3) {
+    bool format3D=format3D(format);
+    if(format3D && !empty3 && !prconly()) {
         if(settings.render == 0) {
         string image=outprefix(prefix)+"+"+(string) file3.length;
         if(settings.inlineimage) image += "_0";
         settings.inlinetex=false;
+        bool prcsave=settings.prc, v3dsave=settings.v3d;
         settings.prc=false;
+        settings.v3d=false;
         shipout(image,pic,orientation,nativeformat(),view=false,light,P);
-        settings.prc=true;
+        settings.prc=prcsave;
+        settings.v3d=v3dsave;
       }
       settings.inlinetex=settings.inlineimage;
     }
@@ -154,7 +166,7 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
     else
       f=pic.fit(prefix,format,view=view,options,script,light,P);
 
-     if(!prconly() && (!pic.empty2() || settings.render == 0 || prc ||
+     if(!prconly() && (!pic.empty2() || settings.render == 0 || format3D ||
                        pic.queueErase)) {
       shipout(prefix,orientation(f),format,wait,view,t);
       pic.queueErase=false;

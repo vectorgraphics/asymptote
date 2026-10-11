@@ -21,6 +21,20 @@ flat out int MaterialIndex;
 #ifdef COLOR
 OUT vec4 Color;
 #endif
+OUT vec4 emissive;
+
+struct Material {
+  vec4 diffuse,emissive,specular;
+  vec4 parameters;
+};
+
+uniform Material Materials[Nmaterials];
+
+#ifdef NORMAL
+OUT vec4 diffuse;
+OUT vec3 specular;
+OUT float roughness,metallic,fresnel0;
+#endif
 
 #else
 OUT vec4 diffuse;
@@ -41,6 +55,12 @@ IN vec4 color;
 #endif
 
 uniform bool orthographic;
+
+// runtime light count (same uniform as in the fragment shader): unlit
+// scenes, including outline mode's runtime nlights=0, need no
+// recompilation
+uniform int nlights;
+
 uniform mat3 normMat;
 uniform mat4 viewMat;
 uniform mat4 projViewMat;
@@ -62,35 +82,92 @@ void main(void)
 
 #ifdef WEBGL2
   MaterialIndex=int(materialIndex);
+#ifdef NORMAL
+  Material m;
+#ifdef GENERAL
+  m=Materials[abs(int(materialIndex))-1];
+  emissive=m.emissive;
+  if(materialIndex >= 0.0)
+    diffuse=m.diffuse;
+  else {
+    if (m.parameters[3] != 0.0) {
+      diffuse=color;
+      // with no active lights the fragment shader's BRDF loop runs zero
+      // times, so the color must reach the output via emissive
+      if (nlights == 0)
+        emissive += color;
+    } else {
+      emissive += color;
+      diffuse = m.diffuse;
+    }
+  }
+#else
+  m=Materials[int(materialIndex)];
+  emissive=m.emissive;
+#ifdef COLOR
+  if (m.parameters[3] != 0.0) {
+    diffuse=color;
+    // with no active lights the fragment shader's BRDF loop runs zero
+    // times, so the color must reach the output via emissive
+    if (nlights == 0)
+      emissive += color;
+  } else {
+    emissive += color;
+    diffuse = m.diffuse;
+  }
+#else
+  diffuse=m.diffuse;
+#endif // COLOR
+#endif // GENERAL
+  specular=m.specular.rgb;
+  vec4 parameters=m.parameters;
+  roughness=1.0-parameters[0];
+  metallic=parameters[1];
+  fresnel0=parameters[2];
+#else
+  emissive=Materials[int(materialIndex)].emissive;
+#endif // NORMAL
 #ifdef COLOR
   Color=color;
 #endif
 #else
 #ifdef NORMAL
   Material m;
-#ifdef TRANSPARENT
+#ifdef GENERAL
   m=Materials[int(abs(materialIndex))-1];
   emissive=m.emissive;
   if(materialIndex >= 0.0)
     diffuse=m.diffuse;
   else {
-    diffuse=color;
-#if nlights == 0
-    emissive += color;
-#endif
+    if (m.parameters[3] != 0.0) {
+      diffuse=color;
+      // with no active lights the fragment shader's BRDF loop runs zero
+      // times, so the color must reach the output via emissive
+      if (nlights == 0)
+        emissive += color;
+    } else {
+      emissive += color;
+      diffuse = m.diffuse;
+    }
   }
 #else
   m=Materials[int(materialIndex)];
   emissive=m.emissive;
 #ifdef COLOR
-  diffuse=color;
-#if nlights == 0
+  if (m.parameters[3] != 0.0) {
+    diffuse=color;
+    // with no active lights the fragment shader's BRDF loop runs zero
+    // times, so the color must reach the output via emissive
+    if (nlights == 0)
+      emissive += color;
+  } else {
     emissive += color;
-#endif
+    diffuse = m.diffuse;
+  }
 #else
   diffuse=m.diffuse;
 #endif // COLOR
-#endif // TRANSPARENT
+#endif // GENERAL
   specular=m.specular.rgb;
   vec4 parameters=m.parameters;
   roughness=1.0-parameters[0];
