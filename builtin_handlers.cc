@@ -534,6 +534,18 @@ bool planHeteroWrite(coenv &e, arglist *args, WritePlan &plan, bool report)
   return true;
 }
 
+// Translates val, leaving on the stack a value of type t, its type as given
+// by writtenType.
+void transWrittenValue(coenv &e, exp *val, ty *t)
+{
+  if (t->kind == ty_null) {
+    // The literal null puts nothing on the stack until it is cast to a type.
+    val->trans(e);
+    e.c.encode(inst::builtin, run::pushNullRecord);
+  } else
+    val->transToType(e, t);
+}
+
 } // namespace
 
 types::ty *callExp::getHeteroWriteType(coenv &e)
@@ -581,7 +593,7 @@ types::ty *callExp::transHeteroWrite(coenv &e)
     if (k == plan.order.size())
       break;
     size_t j = plan.order[k];
-    (*args)[j].val->transToType(e, plan.argTypes[j]);
+    transWrittenValue(e, (*args)[j].val, plan.argTypes[j]);
     tag(plan.argTypes[j]);
   }
 

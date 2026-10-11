@@ -592,3 +592,12 @@ StartTest("structs of the base library are written by their own writers");
   close(g);
 }
 EndTest();
+
+StartTest("the literal null can be written");
+{
+  file f = output(tmpfile);
+  write(f, 1, null, "x", endl);
+  close(f);
+  assert(doRead() == "1" + '\t' + "null" + '\t' + "x");
+}
+EndTest();
