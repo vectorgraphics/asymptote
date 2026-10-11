@@ -129,11 +129,9 @@ this option should be turned off."
 # if you are not using the non-interactive 3D render path.
 option(OPTIMIZE_LINK_TIME "Enable link-time optimization (breaks fork-based 3D rendering)" false)
 
-option(TARGET_X86_64_V3_OR_HIGHER
-    "Targets x86-64-v3 CPU architecture. Binaries will only work on systems with x86-64-v3 (e.g. AVX, AVX2) support (i.e Haswell/Excavator or newer CPUs).
-This option is inert if compiling for systems not x86 or x86-64."
-    true)
-
+set(TARGET_X86_64_V3_OR_HIGHER "AUTO" CACHE STRING
+    "x86-64-v3 CPU targeting. AUTO: detect AVX2 on build CPU and enable if supported (default). ON: force x86-64-v3. OFF: use baseline x86-64. Inert on non-x86 architectures.")
+set_property(CACHE TARGET_X86_64_V3_OR_HIGHER PROPERTY STRINGS AUTO ON OFF)
 
 # testing
 option(ENABLE_ASY_CXXTEST "Enable C++-side testing. This option is inert for final asy libraries and binaries" true)
