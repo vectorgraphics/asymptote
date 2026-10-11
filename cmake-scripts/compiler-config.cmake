@@ -2,15 +2,23 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 if (OPTIMIZE_LINK_TIME)
-    include(CheckIPOSupported)
-
-    check_ipo_supported(RESULT ipo_supported_result LANGUAGES C CXX)
-
-    if (ipo_supported_result)
-        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-        message(STATUS "Using link-time optimization")
+    if (MSVC)
+        include(CheckIPOSupported)
+        check_ipo_supported(RESULT ipo_supported_result LANGUAGES C CXX)
+        if (ipo_supported_result)
+            set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+            message(STATUS "Using link-time optimization")
+        else()
+            message(FATAL_ERROR "Compiler does not support link-time optimization")
+        endif()
     else()
-        message(FATAL_ERROR "Compiler does not support link-time optimization")
+        # Use plain -flto (fat objects) to match the autotools build.
+        # Set as variables for CMakeLists.txt to apply only to asycore
+        # and settings objects — NOT to subdirectory targets (gc, prc,
+        # tinyexr, vma) which are built separately in the autotools model.
+        set(ASY_LTO_COMPILE_OPTIONS -flto)
+        set(ASY_LTO_LINK_OPTIONS -flto)
+        message(STATUS "Using link-time optimization (-flto, asycore only)")
     endif()
 endif()
 
