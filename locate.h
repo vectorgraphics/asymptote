@@ -32,16 +32,16 @@ string executablePath();
 string executableDir();
 
 // Determine the system base directory (used to initialize settings::systemDir).
-// Candidates relative to the running executable are preferred over the
-// compiled-in ASYMPTOTE_SYSDIR, so that a binary run in place uses its own
-// base/ rather than that of a separately installed Asymptote. Callers must pass
+// base/ beside the running executable is preferred over the compiled-in
+// ASYMPTOTE_SYSDIR, so that a binary run in place uses its own base/ rather
+// than that of a separately installed Asymptote. Callers must pass
 // ASYMPTOTE_SYSDIR in: under CMake it differs between asy and asy-ctan, and
 // settings.cc is the only source file compiled separately per executable.
 // noexcept: it runs as a static initializer, so it reports every failure by
 // falling back to compiledInSysdir rather than by throwing. See locate.cc.
 string resolveSysdir(string const& compiledInSysdir) noexcept;
 
-// True if initSysdir() resolved systemDir relative to the running executable.
+// True if resolveSysdir() resolved systemDir relative to the running executable.
 // Used to keep an installed Asymptote's configuration (the MSWindows registry
 // entry) from overriding a binary that found its own base/.
 extern bool relocatedSysdir;

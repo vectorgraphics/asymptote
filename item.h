@@ -199,6 +199,27 @@ private:
   };
 };
 
+// A self-describing value used by the heterogeneous write() builtin in
+// COMPACT mode, where vm::item is a bare union with no type tag.  The
+// transHeteroWrite handler (builtin_handlers.cc) wraps each argument in a
+// tagged_var* and builds a temporary array that is passed directly to
+// write_var.  The tag stores the full types::ty * pointer as an Int (both
+// are 64-bit), giving access to both the ty_kind (for fast dispatch) and
+// the full type (for record method lookup).
+//
+// Invariant: tagged_var* values only appear in the internal array built by
+// transHeteroWrite and consumed by write_var.  The array is created and
+// consumed within a single bytecode sequence (newInitializedArray immediately
+// followed by the write_var builtin call), so no user-visible code path can
+// observe or mutate the elements.
+struct tagged_var : public gc {
+  Int tag;        // types::ty * of the original value (reinterpreted as Int)
+  item value;     // the actual value
+
+  tagged_var() : tag(0), value() {}
+  tagged_var(Int tag, item value) : tag(tag), value(value) {}
+};
+
 #ifdef SIMPLE_FRAME
 // In the simple implementation, a frame is just an array of items.
 typedef item vmFrame;
