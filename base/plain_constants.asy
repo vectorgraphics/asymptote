@@ -102,10 +102,17 @@ struct bool3 {
   bool value;
   bool set;
 
-  // A method, so that write shows a bool3 this way wherever one appears,
-  // including as a field of another struct or in a templated module.
-  void write(file file=stdout, suffix suffix=endl) {
-    write(file,set ? (value ? "true" : "false") : "default",suffix);
+  // Defined inside the struct so that write shows a bool3 this way wherever
+  // one appears, including as a field of another struct or in a templated
+  // module.
+  autounravel void write(file file, string s="", bool3 b, suffix suffix=none)
+  {
+    write(file,s+(b.set ? (b.value ? "true" : "false") : "default"),suffix);
+  }
+
+  autounravel void write(string s="", bool3 b, suffix suffix=endl)
+  {
+    write(stdout,s,b,suffix);
   }
 }
 
