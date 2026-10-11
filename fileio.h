@@ -444,6 +444,24 @@ public:
   void writeline();
 };
 
+// An output file that accumulates in memory what is written to it.
+class ostringfile : public ofile {
+  ostringstream buf;
+public:
+  ostringfile() : ofile("<string>") {
+    stream=&buf;
+    buf.precision(settings::getSetting<Int>("digits"));
+  }
+
+  void open() {}
+  void close() {}
+  void flush() {}
+  bool enabled() {return true;}
+  void writeline() {buf << '\n';}
+
+  string str() {return buf.str();}
+};
+
 class ibfile : public ifile {
 public:
   ibfile(const string& name, bool check=true, Mode type=BINPUT,

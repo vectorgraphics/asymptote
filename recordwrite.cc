@@ -248,9 +248,19 @@ class Describer {
     }
     if (truncated)
       return;
-    // The output of a struct's own writer is not counted against the budget.
-    if (callRecordWriter(s, frame, r, f))
-      return;
+    // The output of a struct's own writer goes straight to the file if the
+    // struct is the value being described.  A nested struct's is captured so
+    // that it can be counted against the budget.
+    if (depth == 1) {
+      if (callRecordWriter(s, frame, r, f))
+        return;
+    } else {
+      camp::ostringfile *captured = new camp::ostringfile;
+      if (callRecordWriter(s, frame, r, captured)) {
+        emit(captured->str(), true);
+        return;
+      }
+    }
     if (depth > maxDepth) {
       emitType(r);
       return;
@@ -382,6 +392,13 @@ bool callRecordWriter(vm::stack *s, vm::vmFrame *frame,
 void describeValue(vm::stack *s, camp::file *f, types::ty *t, vm::item val)
 {
   Describer(s, f).describe(t, val, 1);
+}
+
+string describeToString(vm::stack *s, types::ty *t, vm::item val)
+{
+  camp::ostringfile *out = new camp::ostringfile;
+  Describer(s, out).describe(t, val, 1);
+  return out->str();
 }
 
 } // namespace run

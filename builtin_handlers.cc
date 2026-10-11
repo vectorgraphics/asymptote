@@ -402,11 +402,12 @@ void writeError(bool report, position pos)
 // type.  An overloaded name is written as its non-function value (there is at
 // most one, as a variable hides any earlier variable of the same name); if it
 // has none, there is no telling which of its functions is meant.
-ty *writtenType(coenv &e, exp *val, WritePlan &plan, bool report)
+ty *writtenType(coenv &e, exp *val, bool &argError, bool report,
+                const char *verb="write")
 {
   ty *t = val->cgetType(e);
   if (t->kind == ty_error) {
-    plan.argError = true;
+    argError = true;
     return nullptr;
   }
   if (t->kind != ty_overloaded)
@@ -416,7 +417,7 @@ ty *writtenType(coenv &e, exp *val, WritePlan &plan, bool report)
   if (!value || value->kind == ty_error) {
     writeError(report, val->getPos());
     if (report)
-      em << "cannot write an overloaded function";
+      em << "cannot " << verb << " an overloaded function";
     return nullptr;
   }
   return value;
@@ -444,7 +445,7 @@ bool planHeteroWrite(coenv &e, arglist *args, WritePlan &plan, bool report)
   for (size_t i = 0; i < n; ++i) {
     exp *val = (*args)[i].val;
     symbol name = (*args)[i].name;
-    ty *t = writtenType(e, val, plan, report);
+    ty *t = writtenType(e, val, plan.argError, report);
     if (!t)
       return false;
     plan.argTypes[i] = t;
@@ -506,7 +507,7 @@ bool planHeteroWrite(coenv &e, arglist *args, WritePlan &plan, bool report)
 
   // The elements of a rest argument are further data.
   if (exp *rest = args->rest.val) {
-    ty *t = writtenType(e, rest, plan, report);
+    ty *t = writtenType(e, rest, plan.argError, report);
     if (!t)
       return false;
     if (t->kind == ty_array)
@@ -546,7 +547,56 @@ void transWrittenValue(coenv &e, exp *val, ty *t)
     val->transToType(e, t);
 }
 
+// Returns the type of the value that a describe() call describes, or null,
+// reporting the error if `report` is true, when the call is invalid.
+ty *describedType(coenv &e, position pos, arglist *args, bool &argError,
+                  bool report)
+{
+  if (args->size() != 1 || (*args)[0].name || args->rest.val) {
+    writeError(report, pos);
+    if (report)
+      em << "describe takes exactly one unnamed argument";
+    return nullptr;
+  }
+  exp *val = (*args)[0].val;
+  ty *t = writtenType(e, val, argError, report, "describe");
+  if (t && t->kind == ty_void) {
+    writeError(report, val->getPos());
+    if (report)
+      em << "cannot describe a void value";
+    return nullptr;
+  }
+  return t;
+}
+
 } // namespace
+
+types::ty *callExp::getDescribeType(coenv &e)
+{
+  bool argError = false;
+  return describedType(e, getPos(), args, argError, false) ? primString() :
+                                                             primError();
+}
+
+types::ty *callExp::transDescribe(coenv &e)
+{
+  cachedApp = 0;
+  cachedVarEntry = 0;
+
+  bool argError = false;
+  ty *t = describedType(e, getPos(), args, argError, true);
+  if (!t) {
+    if (argError)
+      reportArgErrors(e);
+    return primError();
+  }
+
+  // Evaluate the argument and pass it to the runtime with its static type.
+  transWrittenValue(e, (*args)[0].val, t);
+  e.c.encode(inst::intpush, (Int)(intptr_t)t);
+  e.c.encode(inst::builtin, run::describeTagged);
+  return primString();
+}
 
 types::ty *callExp::getHeteroWriteType(coenv &e)
 {

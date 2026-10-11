@@ -31,6 +31,9 @@ vm::array *copyArray2(vm::array *a);
 // any value with no textual form of its own, such as a function.
 void describeValue(vm::stack *s, camp::file *f, types::ty *t, vm::item val);
 
+// Returns what describeValue would write, as a string.
+string describeToString(vm::stack *s, types::ty *t, vm::item val);
+
 // Tests whether t is the type of a write suffix, void (file).
 bool isWriteSuffixType(types::ty *t);
 

@@ -833,6 +833,11 @@ public:
   types::ty *transHeteroWrite(coenv &e);
   types::ty *getHeteroWriteType(coenv &e);
 
+  // Custom handlers for the `describe` builtin, which returns as a string
+  // the description that write gives of a value nested in a struct.
+  types::ty *transDescribe(coenv &e);
+  types::ty *getDescribeType(coenv &e);
+
 private:
   void reportNonFunction();
 

@@ -1,0 +1,6 @@
+errortests/describe.asy: 4.15: describe takes exactly one unnamed argument
+errortests/describe.asy: 5.15: describe takes exactly one unnamed argument
+errortests/describe.asy: 6.15: cannot call 'string describe(<open>)' with named parameters
+errortests/describe.asy: 7.15: describe takes exactly one unnamed argument
+errortests/describe.asy: 16.23: cannot describe a void value
+errortests/describe.asy: 17.16: cannot describe an overloaded function

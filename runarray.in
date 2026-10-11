@@ -704,6 +704,13 @@ array* :insertTaggedRest(array *a, array *rest, Int tag, Int beforeLast)
   return c;
 }
 
+// Return a description of value, whose type is given by tag as for
+// makeTaggedVar.  Used by the describe handler.
+string :describeTagged(item value, Int tag)
+{
+  return describeToString(Stack, (types::ty *)(intptr_t) tag, value);
+}
+
 // Produce an array of n deep copies of value.
 // typeDepth is the true depth of the array determined at compile-time when the
 // operations for the array type are added.  This typeDepth argument is

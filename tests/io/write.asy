@@ -593,6 +593,53 @@ StartTest("structs of the base library are written by their own writers");
 }
 EndTest();
 
+StartTest("describe returns the description of a value as a string");
+{
+  struct Inner { string s = "hi"; }
+  struct Outer { int x = 1; Inner inner; Outer next; real f(real) = sin; }
+  real twice(real x) { return 2x; }
+  int both = 3;
+  int both(int x) { return x; }
+  Outer nothing = null;
+  assert(describe(42) == "42");
+  assert(describe(2.5) == "2.5");
+  assert(describe(true) == "true");
+  assert(describe((1, 2)) == "(1,2)");
+  assert(describe("a b") == "\"a b\"");
+  assert(describe(new int[] {1, 2}) == "{1, 2}");
+  assert(describe(new string[][] {{"a"}, {"b", "c"}}) ==
+         "{{\"a\"}, {\"b\", \"c\"}}");
+  assert(describe(new Outer) ==
+         "(x=1, inner=(s=\"hi\"), next=null, f=<real(real)>)");
+  assert(describe(nothing) == "null");
+  assert(describe(null) == "null");
+  assert(describe(twice) == "<real(real x)>");
+  assert(describe(both) == "3");
+  assert(describe(stdout) == "<file>");
+  assert("p=" + describe((1, 2)) + "." == "p=(1,2).");
+}
+EndTest();
+
+StartTest("describe uses a struct's own writer and limits nested output");
+{
+  struct Named {
+    string name;
+    void operator init(string name) { this.name = name; }
+    void write(file f, suffix s) { write(f, "<<" + name + ">>"); s(f); }
+  }
+  struct Holder { Named a = Named("first"); Named b = Named("second"); }
+  int limit = settings.structlimit;
+  assert(describe(Named("x")) == "<<x>>");
+  assert(describe(new Holder) == "(a=<<first>>, b=<<second>>)");
+  // The writer of the value itself is not cut short; that of a field is.
+  settings.structlimit = 12;
+  assert(describe(Named("a long name of many letters")) ==
+         "<<a long name of many letters>>");
+  assert(describe(new Holder) == "(a=<<first>>...)");
+  settings.structlimit = limit;
+}
+EndTest();
+
 StartTest("the literal null can be written");
 {
   file f = output(tmpfile);

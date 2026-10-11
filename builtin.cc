@@ -856,6 +856,12 @@ void base_venv(venv &ve)
                       &absyntax::callExp::getHeteroWriteType},
                      primVoid(), SYM(write), true);
 
+  // describe(x) returns a description of a value of any type.
+  addOpenBuiltinFunc(ve, run::describeTagged,
+                     {&absyntax::callExp::transDescribe,
+                      &absyntax::callExp::getDescribeType},
+                     primString(), SYM(describe));
+
   addFunc(ve,arrayArrayOp<pen,equals>,booleanArray(),SYM_EQ,
           formal(penArray(),SYM(a)),formal(penArray(),SYM(b)));
   addFunc(ve,arrayArrayOp<pen,notequals>,booleanArray(),SYM_NEQ,

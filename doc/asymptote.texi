@@ -4297,7 +4297,7 @@ point but shown as @code{<Point, cyclic>}. At most @code{structlimit} characters
 (default @code{1000}; @code{0} means no limit) are written for each struct,
 after which the output ends in @code{...} followed by the closing brackets
 still needed for the brackets to match. Text written by a field's own
-writer is not counted.
+writer counts toward the limit and may be cut short.
 
 A value with no textual form, such as a function or a file, is
 written as the name of its type, as in @code{<real(real)>}, and an array
@@ -4312,6 +4312,27 @@ write(file=stdout, s="", key, value, suffix=endl);
 @noindent
 The name of an overloaded function cannot be written, as it does not
 identify a single value.
+
+@cindex @code{describe}
+The function
+@verbatim
+string describe(T x);
+@end verbatim
+@noindent
+accepts a value of any type and returns, as a string, what @code{write}
+shows for a value that is a field of a struct: a string appears in
+quotes, an array on a single line between braces, and everything else as
+described above.
+@verbatim
+describe("a");                          // "a" (including the quotes)
+describe(new int[] {1,2});              // {1, 2}
+describe(new Point);                    // (x=1, y=2.5, name="p", next=null)
+@end verbatim
+@noindent
+The result is meant to be read, not parsed: special characters within a
+string are not escaped. A writer for a container can use
+@code{describe} to write its items, as those in the @code{collections}
+modules do (@pxref{Collections (containers)}).
 
 @cindex binary format
 @cindex single precision
