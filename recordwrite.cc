@@ -144,6 +144,63 @@ mem::vector<Field> dataFields(types::record *r)
   return fields;
 }
 
+bool isControl(char c)
+{
+  unsigned char u = (unsigned char) c;
+  return u < 0x20 || u == 0x7f;
+}
+
+// Asymptote has two forms of string literal.  Between double quotes, every
+// character stands for itself, except that a backslash followed by a double
+// quote denotes the double quote alone (and two backslashes stay two).
+// Between single quotes, the escape sequences of C apply.  Returns true if text is to be written between single quotes, with
+// escape sequences.
+//
+// Double quotes are used wherever they need no escape sequence, so that
+// what is shown is what the string contains: a string with nothing special
+// in it, and a string whose only special characters are backslashes, such as
+// TeX code.  Single quotes are used for a string with control characters,
+// which would otherwise be invisible, and for one with a double quote.  They
+// are also needed where a backslash would be taken with the double quote
+// that ends the literal, which happens when the string ends in an odd
+// number of backslashes.
+bool needsEscapes(const string& text)
+{
+  size_t trailingBackslashes = 0;
+  for (char c : text) {
+    if (isControl(c) || c == '"')
+      return true;
+    trailingBackslashes = c == '\\' ? trailingBackslashes + 1 : 0;
+  }
+  return trailingBackslashes % 2 == 1;
+}
+
+// Returns how the character c is written between single quotes.
+string escapedChar(char c)
+{
+  switch (c) {
+    case '\\': return "\\\\";
+    case '\'': return "\\'";
+    case '\a': return "\\a";
+    case '\b': return "\\b";
+    case '\f': return "\\f";
+    case '\n': return "\\n";
+    case '\r': return "\\r";
+    case '\t': return "\\t";
+    case '\v': return "\\v";
+  }
+  if (!isControl(c))
+    return string(1, c);
+  // Two hexadecimal digits, in upper case, which is all the lexer accepts.
+  // Two are always given so that a following digit is not taken with them.
+  static const char digits[] = "0123456789ABCDEF";
+  unsigned char u = (unsigned char) c;
+  string hex = "\\x";
+  hex += digits[u >> 4];
+  hex += digits[u & 15];
+  return hex;
+}
+
 // Writes descriptions of values, within a budget of characters.  When the
 // budget runs out, an ellipsis is written and everything further is dropped
 // except for closing brackets, so that brackets always match.
@@ -190,15 +247,33 @@ class Describer {
       remaining -= std::min(remaining, text.size());
   }
 
-  // Writes a string in quotes.  A string that does not fit is cut short, but
-  // the quotes always match.
+  // Writes a string as an Asymptote string literal that denotes it.  A
+  // string that does not fit is cut short, between characters and never
+  // inside an escape sequence, and the quotes always match.
   void emitQuoted(const string& text)
   {
-    emit("\"");
+    bool escaped = needsEscapes(text);
+    const char *quote = escaped ? "'" : "\"";
+    emit(quote);
     if (truncated)
       return;
-    emit(text, true);
-    close("\"");
+
+    string out;
+    bool cut = false;
+    for (char c : text) {
+      string unit = escaped ? escapedChar(c) : string(1, c);
+      if (limited && out.size() + unit.size() > remaining) {
+        cut = true;
+        break;
+      }
+      out += unit;
+    }
+    f->write(out);
+    if (limited)
+      remaining -= out.size();
+    if (cut)
+      truncate();
+    close(quote);
   }
 
   template<class T>

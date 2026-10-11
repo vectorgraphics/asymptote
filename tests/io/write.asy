@@ -620,6 +620,45 @@ StartTest("describe returns the description of a value as a string");
 }
 EndTest();
 
+// Assigned by evaluated code, which sees only top-level variables.
+string describeRoundtrip;
+
+StartTest("describe writes a string as a literal that denotes it");
+{
+  // Double quotes wherever no escape sequence is needed.
+  assert(describe("") == '""');
+  assert(describe("plain") == '"plain"');
+  assert(describe("it's") == '"it\'s"');
+  assert(describe("$\alpha$ and \TeX") == '"$\\alpha$ and \\TeX"');
+  assert(describe("two at end\\") == '"two at end\\\\"');
+  // Single quotes, with escape sequences, otherwise.
+  assert(describe('tab\there') == "'tab\there'");
+  assert(describe('line\nbreak') == "'line\nbreak'");
+  assert(describe('say "hi"') == "'say " + '"hi"' + "'");
+  assert(describe('both \' and "') == "'both \' and " + '"' + "'");
+  assert(describe('one at end\\') == "'one at end\\'");
+  assert(describe('\\"a') == "'\\" + '"' + "a'");
+  assert(describe('\a\0\x1F\x7F') == "'\a\x00\x1F\x7F'");
+
+  // Each description is a literal that evaluates to the original string.
+  string[] samples = {"", "plain", "it's", "$\alpha$ and \TeX", "end\\",
+                      'tab\there', 'line\nbreak', 'say "hi"', 'both \' and "',
+                      'end\\', '\\"a', '\a\0\x1F\x7F', '\\', 'c:\\dir\\"x"'};
+  for (string sample : samples) {
+    describeRoundtrip = "?";
+    eval("describeRoundtrip=" + describe(sample) + ";", true);
+    assert(describeRoundtrip == sample);
+  }
+
+  // A long string is cut between characters, never inside an escape.
+  struct Holder { string s = 'ab\n\n\n\n\ncd'; }
+  int limit = settings.structlimit;
+  settings.structlimit = 8;
+  assert(describe(new Holder) == "(s='ab\n...')");
+  settings.structlimit = limit;
+}
+EndTest();
+
 StartTest("describe uses a struct's own writer and limits nested output");
 {
   struct Named {

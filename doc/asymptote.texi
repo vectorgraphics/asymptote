@@ -4329,8 +4329,19 @@ describe(new int[] {1,2});              // {1, 2}
 describe(new Point);                    // (x=1, y=2.5, name="p", next=null)
 @end verbatim
 @noindent
-The result is meant to be read, not parsed: special characters within a
-string are not escaped. A writer for a container can use
+A string is shown as a string literal that denotes it. Double quotes are
+used wherever no escape sequence is needed, so that a string of @TeX{}
+code appears exactly as it is, backslashes included. Single quotes, with
+the escape sequences of @code{C}, are used for a string that contains a
+control character such as a newline or a tab, contains a double quote, or
+ends in an odd number of backslashes:
+@verbatim
+describe("$\alpha$");                   // "$\alpha$"
+describe('two\nlines');                 // 'two\nlines'
+describe('say "hi"');                   // 'say "hi"'
+@end verbatim
+@noindent
+A writer for a container can use
 @code{describe} to write its items, as those in the @code{collections}
 modules do (@pxref{Collections (containers)}).
 
