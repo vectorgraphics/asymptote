@@ -190,6 +190,10 @@ if (ENABLE_VULKAN)
     if (Vulkan_FOUND AND Vulkan_glslang_FOUND)
         list(APPEND ASY_STATIC_LIBRARIES Vulkan::Vulkan Vulkan::glslang)
         list(APPEND ASY_MACROS HAVE_LIBVULKAN)
+        # libglslang.a (static) contains its own bison parser which defines
+        # yydebug. Suppress the duplicate in camp.tab.cc when both are
+        # linked into the same binary.
+        list(APPEND ASY_MACROS YYDEBUG=0)
     else()
         message(FATAL_ERROR "Vulkan not found")
     endif()
