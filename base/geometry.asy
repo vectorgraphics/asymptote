@@ -1484,6 +1484,28 @@ struct line
     this.extendA = extendA;
     this.extendB = extendB;
   }
+
+  /*<asyxml><method type = "void" signature="write(file,line,suffix)"><code></asyxml>*/
+  autounravel void write(file file, line l, suffix suffix)
+  {/*<asyxml></code><documentation>Write some informations about 'l'.</documentation></method></asyxml>*/
+    write(file, "A = "+(string)((pair)l.A), endl);
+    write(file, "Extend A = "+(l.extendA ? "true" : "false"), endl);
+    write(file, "B = "+(string)((pair)l.B), endl);
+    write(file, "Extend B = "+(l.extendB ? "true" : "false"), endl);
+    write(file, "u = "+(string)((pair)l.u), endl);
+    write(file, "v = "+(string)((pair)l.v), endl);
+    write(file, "a = "+(string) l.a, endl);
+    write(file, "b = "+(string) l.b, endl);
+    write(file, "c = "+(string) l.c, endl);
+    write(file, "slope = "+(string) l.slope, endl);
+    write(file, "origin = "+(string) l.origin, suffix);
+  }
+
+  /*<asyxml><method type = "void" signature="write(line)"><code></asyxml>*/
+  autounravel void write(explicit line l)
+  {/*<asyxml></code><documentation>Write some informations about 'l'.</documentation></method></asyxml>*/
+    write(stdout, l, endl);
+  }
 }/*<asyxml></struct></asyxml>*/
 
 /*<asyxml><function type="line" signature="line(point,bool,point,bool)"><code></asyxml>*/
@@ -1527,6 +1549,26 @@ struct segment
     this.a = l.a; this.b = l.b; this.c = l.c;
     this.slope = l.slope; this.origin = l.origin;
     this.u = l.u; this.v = l.v;
+  }
+
+  /*<asyxml><method type = "void" signature="write(file,segment,suffix)"><code></asyxml>*/
+  autounravel void write(file file, segment s, suffix suffix)
+  {/*<asyxml></code><documentation>Write some informations about 's'.</documentation></method></asyxml>*/
+    write(file, "A = "+(string)((pair)s.A), endl);
+    write(file, "B = "+(string)((pair)s.B), endl);
+    write(file, "u = "+(string)((pair)s.u), endl);
+    write(file, "v = "+(string)((pair)s.v), endl);
+    write(file, "a = "+(string) s.a, endl);
+    write(file, "b = "+(string) s.b, endl);
+    write(file, "c = "+(string) s.c, endl);
+    write(file, "slope = "+(string) s.slope, endl);
+    write(file, "origin = "+(string) s.origin, suffix);
+  }
+
+  /*<asyxml><method type = "void" signature="write(explicit segment)"><code></asyxml>*/
+  autounravel void write(explicit segment s)
+  {/*<asyxml></code><documentation>Write some informations about 's'.</documentation></method></asyxml>*/
+    write(stdout, s, endl);
   }
 }/*<asyxml></struct></asyxml>*/
 
@@ -1671,36 +1713,6 @@ segment segment(line l)
 point midpoint(segment s)
 {/*<asyxml></code><documentation>Return the midpoint of 's'.</documentation></function></asyxml>*/
   return 0.5 * (s.A + s.B);
-}
-
-/*<asyxml><function type="void" signature="write(line)"><code></asyxml>*/
-void write(explicit line l)
-{/*<asyxml></code><documentation>Write some informations about 'l'.</documentation></function></asyxml>*/
-  write("A = "+(string)((pair)l.A));
-  write("Extend A = "+(l.extendA ? "true" : "false"));
-  write("B = "+(string)((pair)l.B));
-  write("Extend B = "+(l.extendB ? "true" : "false"));
-  write("u = "+(string)((pair)l.u));
-  write("v = "+(string)((pair)l.v));
-  write("a = "+(string) l.a);
-  write("b = "+(string) l.b);
-  write("c = "+(string) l.c);
-  write("slope = "+(string) l.slope);
-  write("origin = "+(string) l.origin);
-}
-
-/*<asyxml><function type="void" signature="write(explicit segment)"><code></asyxml>*/
-void write(explicit segment s)
-{/*<asyxml></code><documentation>Write some informations about 's'.</documentation></function></asyxml>*/
-  write("A = "+(string)((pair)s.A));
-  write("B = "+(string)((pair)s.B));
-  write("u = "+(string)((pair)s.u));
-  write("v = "+(string)((pair)s.v));
-  write("a = "+(string) s.a);
-  write("b = "+(string) s.b);
-  write("c = "+(string) s.c);
-  write("slope = "+(string) s.slope);
-  write("origin = "+(string) s.origin);
 }
 
 /*<asyxml><operator type = "bool" signature="==(line,line)"><code></asyxml>*/
@@ -5840,6 +5852,18 @@ struct trilinear
    <url href = "http://mathworld.wolfram.com/TrilinearCoordinates.html"/></documentation><property type = "real" signature="a,b,c"><code></asyxml>*/
   real a,b,c;/*<asyxml></code><documentation>The trilinear coordinates.</documentation></property><property type = "triangle" signature="t"><code></asyxml>*/
   triangle t;/*<asyxml></code><documentation>The reference triangle.</documentation></property></asyxml>*/
+
+  /*<asyxml><method type = "void" signature="write(file,trilinear,suffix)"><code></asyxml>*/
+  autounravel void write(file file, trilinear tri, suffix suffix)
+  {/*<asyxml></code><documentation></documentation></method></asyxml>*/
+    write(file, format("%f : ", tri.a) + format("%f : ", tri.b) + format("%f", tri.c), suffix);
+  }
+
+  /*<asyxml><method type = "void" signature="write(trilinear)"><code></asyxml>*/
+  autounravel void write(trilinear tri)
+  {/*<asyxml></code><documentation></documentation></method></asyxml>*/
+    write(stdout, tri, endl);
+  }
 }/*<asyxml></struct></asyxml>*/
 
 /*<asyxml><function type="trilinear" signature="trilinear(triangle,real,real,real)"><code></asyxml>*/
@@ -5874,12 +5898,6 @@ trilinear trilinear(triangle t, point M)
   ot.c = sameside(A, B, C, m) * t3/t.c();
   ot.t = t;
   return ot;
-}
-
-/*<asyxml><function type="void" signature="write(trilinear)"><code></asyxml>*/
-void write(trilinear tri)
-{/*<asyxml></code><documentation></documentation></function></asyxml>*/
-  write(format("%f : ", tri.a) + format("%f : ", tri.b) + format("%f", tri.c));
 }
 
 /*<asyxml><function type="point" signature="trilinear(triangle,real,real,real)"><code></asyxml>*/

@@ -568,3 +568,27 @@ StartTest("pair and triple written to a file get no newline");
   assert(doRead() == "(1,2)(1,2,3)|");
 }
 EndTest();
+
+StartTest("structs of the base library are written by their own writers");
+{
+  import rational;
+  import three;
+  struct Holder {
+    rational r = rational(2, 6);
+    rational[] list = {rational(3)};
+    align a = N;
+    control c = control((1, 2, 3), (4, 5, 6));
+  }
+  file f = output(tmpfile);
+  write(f, rational(1, 2), endl);
+  write(f, "r=", rational(1, 2), 5, endl);
+  write(f, new Holder, endl);
+  close(f);
+  file g = input(tmpfile);
+  string s; s = g; assert(s == "1/2");
+  s = g; assert(s == "r=1/2" + '\t' + "5");
+  s = g; assert(s == "(r=1/3, list={3}, a=(0,1), " +
+                "c=.. controls (1,2,3) and (4,5,6))");
+  close(g);
+}
+EndTest();

@@ -475,6 +475,19 @@ struct control {
     active=true;
     this.straight=straight;
   }
+
+  autounravel void write(file file, control c, suffix suffix)
+  {
+    write(file,".. controls ");
+    write(file,c.post);
+    write(file," and ");
+    write(file,c.pre,suffix);
+  }
+
+  autounravel void write(file file, control c)
+  {
+    write(file,c,none);
+  }
 }
 
 control nocontrol;
@@ -487,14 +500,6 @@ control operator * (transform3 t, control c)
   C.active=c.active;
   C.straight=c.straight;
   return C;
-}
-
-void write(file file, control c)
-{
-  write(file,".. controls ");
-  write(file,c.post);
-  write(file," and ");
-  write(file,c.pre);
 }
 
 struct Tension {
@@ -512,6 +517,20 @@ struct Tension {
     this.atLeast=atLeast;
     this.active=active;
   }
+
+  autounravel void write(file file, Tension t, suffix suffix)
+  {
+    write(file,"..tension ");
+    if(t.atLeast) write(file,"atleast ");
+    write(file,t.out);
+    write(file," and ");
+    write(file,t.in,suffix);
+  }
+
+  autounravel void write(file file, Tension t)
+  {
+    write(file,t,none);
+  }
 }
 
 Tension operator init()
@@ -521,15 +540,6 @@ Tension operator init()
 
 Tension noTension;
 noTension.active=false;
-
-void write(file file, Tension t)
-{
-  write(file,"..tension ");
-  if(t.atLeast) write(file,"atleast ");
-  write(file,t.out);
-  write(file," and ");
-  write(file,t.in);
-}
 
 struct dir {
   triple dir;
@@ -562,14 +572,20 @@ struct dir {
     d.init(this);
     return d;
   }
-}
 
-void write(file file, dir d)
-{
-  if(d.dir != O) {
-    write(file,"{"); write(file,unit(d.dir)); write(file,"}");
-  } else if(d.Curl) {
-    write(file,"{curl "); write(file,d.gamma); write(file,"}");
+  autounravel void write(file file, dir d, suffix suffix)
+  {
+    if(d.dir != O) {
+      write(file,"{"); write(file,unit(d.dir)); write(file,"}");
+    } else if(d.Curl) {
+      write(file,"{curl "); write(file,d.gamma); write(file,"}");
+    }
+    suffix(file);
+  }
+
+  autounravel void write(file file, dir d)
+  {
+    write(file,d,none);
   }
 }
 
@@ -666,34 +682,35 @@ struct flatguide3 {
   bool solved(int i) {
     return out[i].active() || control[i].active;
   }
-}
 
-void write(file file, string s="", explicit flatguide3 x, suffix suffix=none)
-{
-  write(file,s);
-  if(x.size() == 0) write(file,"<nullpath3>");
-  else for(int i=0; i < x.nodes.length; ++i) {
-      if(i > 0) write(file,endl);
-      if(x.cyclic[i]) write(file,"cycle");
-      else write(file,x.nodes[i]);
-      if(i < x.nodes.length-1) {
-        // Explicit control points trump other specifiers
-        if(x.control[i].active)
-          write(file,x.control[i]);
-        else {
-          write(file,x.out[i]);
-          if(x.Tension[i].active) write(file,x.Tension[i]);
+  autounravel void write(file file, string s="", explicit flatguide3 x,
+                         suffix suffix=none)
+  {
+    write(file,s);
+    if(x.size() == 0) write(file,"<nullpath3>");
+    else for(int i=0; i < x.nodes.length; ++i) {
+        if(i > 0) write(file,endl);
+        if(x.cyclic[i]) write(file,"cycle");
+        else write(file,x.nodes[i]);
+        if(i < x.nodes.length-1) {
+          // Explicit control points trump other specifiers
+          if(x.control[i].active)
+            write(file,x.control[i]);
+          else {
+            write(file,x.out[i]);
+            if(x.Tension[i].active) write(file,x.Tension[i]);
+          }
+          write(file,"..");
+          if(!x.control[i].active) write(file,x.in[i]);
         }
-        write(file,"..");
-        if(!x.control[i].active) write(file,x.in[i]);
       }
-    }
-  write(file,suffix);
-}
+    write(file,suffix);
+  }
 
-void write(string s="", flatguide3 x, suffix suffix=endl)
-{
-  write(stdout,s,x,suffix);
+  autounravel void write(string s="", flatguide3 x, suffix suffix=endl)
+  {
+    write(stdout,s,x,suffix);
+  }
 }
 
 // A guide3 is most easily represented as something that modifies a flatguide3.

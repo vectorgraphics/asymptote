@@ -264,12 +264,20 @@ struct solution
 {
   real[] t;
   real[] y;
-}
 
-void write(solution S)
-{
-  for(int i=0; i < S.t.length; ++i)
-    write(S.t[i],S.y[i]);
+  autounravel void write(file file, solution S, suffix suffix)
+  {
+    for(int i=0; i < S.t.length; ++i) {
+      if(i > 0) write(file,endl);
+      write(file,S.t[i],S.y[i]);
+    }
+    suffix(file);
+  }
+
+  autounravel void write(solution S)
+  {
+    if(S.t.length > 0) write(stdout,S,endl);
+  }
 }
 
 // Integrate dy/dt+cy=f(t,y) from a to b using initial conditions y,
@@ -351,15 +359,21 @@ struct Solution
 {
   real[] t;
   real[][] y;
-}
 
-void write(Solution S)
-{
-  for(int i=0; i < S.t.length; ++i) {
-    write(S.t[i],tab);
-    for(real y : S.y[i])
-      write(y,tab);
-    write();
+  autounravel void write(file file, Solution S, suffix suffix)
+  {
+    for(int i=0; i < S.t.length; ++i) {
+      if(i > 0) write(file,endl);
+      write(file,S.t[i],tab);
+      for(real y : S.y[i])
+        write(file,y,tab);
+    }
+    suffix(file);
+  }
+
+  autounravel void write(Solution S)
+  {
+    if(S.t.length > 0) write(stdout,S,endl);
   }
 }
 

@@ -36,30 +36,31 @@ struct material {
   void diffuse(pen q) {p[0]=q;}
   void emissive(pen q) {p[1]=q;}
   void specular(pen q) {p[2]=q;}
+
+  autounravel void write(file file, string s="", material x,
+                         suffix suffix=none)
+  {
+    write(file,s);
+    write(file,"{");
+    write(file,"diffuse=",x.diffuse());
+    write(file,", emissive=",x.emissive());
+    write(file,", specular=",x.specular());
+    write(file,", opacity=",x.opacity);
+    write(file,", shininess=",x.shininess);
+    write(file,", metallic=",x.metallic);
+    write(file,", F0=",x.fresnel0);
+    write(file,"}",suffix);
+  }
+
+  autounravel void write(string s="", material x, suffix suffix=endl)
+  {
+    write(stdout,s,x,suffix);
+  }
 }
 
 material operator init()
 {
   return material();
-}
-
-void write(file file, string s="", material x, suffix suffix=none)
-{
-  write(file,s);
-  write(file,"{");
-  write(file,"diffuse=",x.diffuse());
-  write(file,", emissive=",x.emissive());
-  write(file,", specular=",x.specular());
-  write(file,", opacity=",x.opacity);
-  write(file,", shininess=",x.shininess);
-  write(file,", metallic=",x.metallic);
-  write(file,", F0=",x.fresnel0);
-  write(file,"}",suffix);
-}
-
-void write(string s="", material x, suffix suffix=endl)
-{
-  write(stdout,s,x,suffix);
 }
 
 bool operator == (material m, material n)

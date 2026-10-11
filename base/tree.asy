@@ -11,6 +11,32 @@ struct tree
   tree right;
   int key = 0;
   int value = 0;
+
+  // Writes the entries in order of their keys, one per line.
+  autounravel void write(file out, tree t, suffix suffix)
+  {
+    bool first = true;
+    void visit(tree t) {
+      if (t == null)
+        return;
+      visit(t.left);
+      if (!first)
+        write(out,endl);
+      first = false;
+      write(out,t.key);
+      write(out,"->");
+      write(out,t.value);
+      visit(t.right);
+    }
+    visit(t);
+    suffix(out);
+  }
+
+  autounravel void write(file out=stdout, tree t)
+  {
+    if (t != null)
+      write(out,t,endl);
+  }
 }
 
 tree newtree()
@@ -68,19 +94,4 @@ int lookup(tree t, int key)
     return lookup(t.left, key);
   else
     return lookup(t.right, key);
-}
-
-void write(file out=stdout, tree t)
-{
-  if (t != null) {
-    if(t.left != null) {
-      write(out,t.left);
-    }
-    write(out,t.key);
-    write(out,"->");
-    write(out,t.value,endl);
-    if (t.right != null) {
-      write(out,t.right);
-    }
-  }
 }

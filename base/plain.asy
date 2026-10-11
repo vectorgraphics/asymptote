@@ -287,10 +287,25 @@ struct processtime {
   real clock;
 }
 
+string cputimeformat="%#.2f";
+
 struct cputime {
   processtime parent;
   processtime child;
   processtime change;
+
+  string summary(string format=cputimeformat) {
+    return format(format,change.user)+"u "+
+      format(format,change.system)+"s "+
+      format(format,parent.user+child.user)+"U "+
+      format(format,parent.system+child.system)+"S ";
+  }
+
+  // A method rather than an autounravel function, which would make calls of
+  // the write functions below that take a format ambiguous.
+  void write(file file=stdout, suffix suffix=endl) {
+    write(file,summary(),suffix);
+  }
 }
 
 cputime cputime()
@@ -316,16 +331,10 @@ cputime cputime()
   return cputime;
 }
 
-string cputimeformat="%#.2f";
-
 void write(file file, string s="", cputime c, string format=cputimeformat,
            suffix suffix=none)
 {
-  write(file,s,
-        format(format,c.change.user)+"u "+
-        format(format,c.change.system)+"s "+
-        format(format,c.parent.user+c.child.user)+"U "+
-        format(format,c.parent.system+c.child.system)+"S ",suffix);
+  write(file,s,c.summary(format),suffix);
 }
 
 void write(string s="", cputime c, string format=cputimeformat,

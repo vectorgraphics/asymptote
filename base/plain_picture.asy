@@ -183,6 +183,12 @@ struct node {
 struct pairOrTriple {
   real x,y,z;
   void init() { x=y=z=0; }
+  autounravel void write(file file, pairOrTriple a, suffix suffix) {
+    write(file,(a.x,a.y,a.z),suffix);
+  }
+  autounravel void write(pairOrTriple a) {
+    write(stdout,a,endl);
+  }
 };
 void copyPairOrTriple(pairOrTriple dest, pairOrTriple src)
 {
@@ -195,9 +201,6 @@ pair operator cast (pairOrTriple a) {
 };
 triple operator cast (pairOrTriple a) {
   return (a.x, a.y, a.z);
-}
-void write(pairOrTriple a) {
-  write((triple) a);
 }
 
 struct picture { // <<<1

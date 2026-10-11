@@ -143,6 +143,18 @@ struct rational {
     return r.p*s.q-s.p*r.q >= 0;
   }
 
+  autounravel void write(file fout, string s="", rational r,
+                         suffix suffix=none)
+  {
+    write(fout,s+(r.q == 1 ? string(r.p) : string(r.p)+"/"+string(r.q)),
+          suffix);
+  }
+
+  autounravel void write(string s="", rational r, suffix suffix=endl)
+  {
+    write(stdout,s,r,suffix);
+  }
+
 }
 
 bool[] operator ==(rational[] r, rational s)
@@ -233,16 +245,6 @@ string texstring(rational r)
  return s+"\frac{"+string(abs(r.p))+"}{"+string(r.q)+"}";
 }
 
-
-void write(file fout, string s="", rational r, suffix suffix=none)
-{
- write(fout,s+string(r),suffix);
-}
-
-void write(string s="", rational r, suffix suffix=endl)
-{
- write(stdout,s,r,suffix);
-}
 
 void write(file fout=stdout, string s="", rational[] a, suffix suffix=none)
 {
