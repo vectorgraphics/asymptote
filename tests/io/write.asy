@@ -540,3 +540,20 @@ StartTest("functions and other values with no text are named by type");
   close(g);
 }
 EndTest();
+
+StartTest("bool3 is written by its own writer");
+{
+  bool3 b;
+  struct Flags { bool3 a; bool3 b = true; }
+  file f = output(tmpfile);
+  write(f, b, endl);
+  write(f, "b=", b, endl);
+  write(f, new Flags, endl);
+  close(f);
+  file g = input(tmpfile);
+  string s; s = g; assert(s == "default");
+  s = g; assert(s == "b=default");
+  s = g; assert(s == "(a=default, b=true)");
+  close(g);
+}
+EndTest();

@@ -101,17 +101,12 @@ restricted pen defaultpen;
 struct bool3 {
   bool value;
   bool set;
-}
 
-void write(file file, string s="", bool3 b, suffix suffix=none)
-{
-  if(b.set) write(b.value,suffix);
-  else write("default",suffix);
-}
-
-void write(string s="", bool3 b, suffix suffix=endl)
-{
-  write(stdout,s,b,suffix);
+  // A method, so that write shows a bool3 this way wherever one appears,
+  // including as a field of another struct or in a templated module.
+  void write(file file=stdout, suffix suffix=endl) {
+    write(file,set ? (value ? "true" : "false") : "default",suffix);
+  }
 }
 
 restricted bool3 default;
