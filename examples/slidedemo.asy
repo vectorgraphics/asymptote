@@ -26,7 +26,7 @@ usepackage("mflogo");
 
 // Optional background color or header:
 // import x11colors;
-// fill(background,box((-1,-1),(1,1)),Azure);
+// fill(background,box((-xmax,-1),(xmax,1)),Azure);
 // label(background,"Header",(0,startposition.y));
 
 titlepage(title="Slides with {\tt Asymptote}: A Demo",
