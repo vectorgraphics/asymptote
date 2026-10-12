@@ -600,7 +600,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
                 settings::getSetting<bool>("wsl") ?
                 static_cast<std::string>(wslUnix2Dos(fil)) : fil);
 
-              lsDocumentUri uri(filReturn);
+              lsDocumentUri uri{AbsolutePath(filReturn)};
               return lsLocation(uri, rng);
             });
     return rsp;
