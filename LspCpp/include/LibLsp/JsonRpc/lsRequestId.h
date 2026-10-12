@@ -14,7 +14,7 @@ struct lsRequestId
     };
     Type type = kNone;
 
-    int value = -1;
+    int64_t value = -1;
     std::string k_string;
     bool has_value() const
     {
@@ -32,6 +32,7 @@ struct lsRequestId
     void set(std::string const& v)
     {
         k_string = v;
+        value = -1;
         type = kString;
     }
     bool operator==(lsRequestId const& rhs) const
@@ -54,7 +55,7 @@ struct lsRequestId
     {
         if (type != rhs.type)
         {
-            return false;
+            return type < rhs.type;
         }
         if (type == kInt)
         {

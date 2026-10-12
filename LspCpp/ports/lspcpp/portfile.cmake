@@ -1,0 +1,30 @@
+set(SOURCE_PATH "${CMAKE_CURRENT_LIST_DIR}/../..")
+
+vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
+    FEATURES
+        bdwgc LSPCPP_SUPPORT_BOEHM_GC
+)
+
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
+    OPTIONS
+        ${FEATURE_OPTIONS}
+        -DLSPCPP_BUILD_EXAMPLES=OFF
+        -DLSPCPP_BUILD_TESTS=OFF
+        -DLSPCPP_INSTALL=ON
+        -DLSPCPP_USE_CPP17=ON
+        -DLSPCPP_STANDALONE_ASIO=ON
+        -DUSE_EXTERNAL_ASIO=ON
+        -DUSE_EXTERNAL_IXWEBSOCKET=ON
+        -DUSE_SYSTEM_RAPIDJSON=ON
+)
+
+vcpkg_cmake_install()
+vcpkg_cmake_config_fixup(CONFIG_PATH "lib/cmake/lspcpp")
+
+file(REMOVE_RECURSE
+    "${CURRENT_PACKAGES_DIR}/debug/include"
+)
+
+file(INSTALL "${SOURCE_PATH}/LICENSE" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
+file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/usage" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")

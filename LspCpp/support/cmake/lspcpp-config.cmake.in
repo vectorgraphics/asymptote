@@ -1,5 +1,23 @@
 @PACKAGE_INIT@
 
+include(CMakeFindDependencyMacro)
+
+if (@USE_SYSTEM_RAPIDJSON@)
+  find_dependency(RapidJSON CONFIG)
+endif ()
+
+if (@LSPCPP_STANDALONE_ASIO@ AND @USE_EXTERNAL_ASIO@)
+  find_dependency(asio CONFIG)
+elseif (@LSPCPP_STANDALONE_ASIO@)
+  find_dependency(Threads)
+endif ()
+
+if (@USE_EXTERNAL_IXWEBSOCKET@)
+  find_dependency(Threads)
+  find_dependency(ZLIB)
+  find_dependency(ixwebsocket CONFIG)
+endif ()
+
 if (NOT TARGET lspcpp::lspcpp)
   include(${CMAKE_CURRENT_LIST_DIR}/@targets_export_name@.cmake)
 endif ()

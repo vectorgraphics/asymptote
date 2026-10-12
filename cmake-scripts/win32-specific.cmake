@@ -11,21 +11,15 @@ if (MSVC)
 endif()
 
 # alot of asymptote sources use __MSDOS__ macro for checking windows
-list(APPEND ASY_MACROS WIN32_LEAN_AND_MEAN NOMINMAX __MSDOS__=1)
+list(APPEND ASY_MACROS WIN32_LEAN_AND_MEAN NOMINMAX __MSDOS__=1 HAVE_LIBTIRPC)
 
 
-# set ASYMPTOTE_SYSDIR to empty string
-if (CTAN_BUILD)
-    list(APPEND ASY_MACROS ASYMPTOTE_SYSDIR="")
-else()
-    # because of how ASYMPTOTE_SYSDIR is calculated on windows,
-    # this value is replaced by the what is in the registry when we launch
-    # asymptote, given if ASYMPTOTE_SYSDIR is not empty
-    # (empty indicates a CTAN build which uses kpsewhich for determining path)
-
-    # hence, we can leave this value to anything non-empty.
-    list(APPEND ASY_MACROS ASYMPTOTE_SYSDIR="NUL")
-endif()
+# There is no fixed install prefix on Windows: the installed sysdir comes from
+# the registry (queryRegistry, written by the NSIS installer) or from a base/
+# beside asy.exe (resolveSysdir), so there is nothing to compile in. It is
+# applied per-target in add_settings_obj, not globally: settings.cc is
+# ASYMPTOTE_SYSDIR's only consumer.
+set(ASYMPTOTE_SYSDIR_VALUE "")
 
 
 set(BUILD_SHARED_LIBS OFF)

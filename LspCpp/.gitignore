@@ -543,3 +543,7 @@ FodyWeavers.xsd
 # Cmake directories
 cmake-*
 CMakeUserPresets.json
+build/
+
+
+_build*/

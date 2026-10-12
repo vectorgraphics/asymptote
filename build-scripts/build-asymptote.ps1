@@ -4,14 +4,20 @@
     Script to build asymptote
 .DESCRIPTION
     Builds asymptote installer file.
-    This script uses asymptote source directory. If building fails, try removing cmake-build-msvc/release directory
+    This script uses asymptote source directory. If building fails, try re-running with -Reconfigure,
+    or removing cmake-build-msvc/release directory
 .PARAMETER Version
     Specifies Asymptote version to build. If not given, will automatically determine version from configure.ac.
+.PARAMETER Reconfigure
+    Force CMakeCache.txt to be cleared before configuring (full reconfigure). By default
+    the cache is kept between runs (and only cleared when the preset changes), so the
+    build stays incremental.
 #>
 param(
     [AllowEmptyString()]
     [Parameter()]
-    [string]$Version
+    [string]$Version,
+    [switch]$Reconfigure
 )
 $ErrorActionPreference = "Stop"
 $PSNativeCommandUseErrorActionPreference = $true
@@ -236,12 +242,30 @@ function buildAsy($preset, $cfgDir) {
         $env:VCPKG_ROOT = $vcpkgToolsCacheLoc
     }
 
+
     # ------------------------------------
-    # clear CMakeCache.txt
-    if (Test-Path -Type Leaf "$asymptoteRoot/$cfgDir/CMakeCache.txt")
+    # clear CMakeCache.txt only when the preset changed since the last run (or
+    # -Reconfigure was given). Keeping the cache otherwise skips the full
+    # reconfigure (vcpkg toolchain + dependency checks), so re-runs of the
+    # script are incremental. The preset used on the previous run is recorded
+    # in a marker file so a preset switch is still detected.
+    $presetMarker="$asymptoteRoot/$cfgDir/.asy-build-preset"
+    New-Item -ItemType Directory -Path "$asymptoteRoot/$cfgDir" -Force | Out-Null
+    $lastPreset=""
+    if (Test-Path -Type Leaf $presetMarker)
     {
-        Remove-Item -Force "$asymptoteRoot/$cfgDir/CMakeCache.txt"
+        $lastPreset=Get-Content -Raw -Path $presetMarker
+        if ($null -ne $lastPreset) { $lastPreset=$lastPreset.Trim() }
     }
+    if ($Reconfigure -or $lastPreset -ne $preset)
+    {
+        if (Test-Path -Type Leaf "$asymptoteRoot/$cfgDir/CMakeCache.txt")
+        {
+            Write-Host "Clearing CMakeCache.txt in $cfgDir (preset '$lastPreset' -> '$preset', or -Reconfigure)"
+            Remove-Item -Force "$asymptoteRoot/$cfgDir/CMakeCache.txt"
+        }
+    }
+    Set-Content -Path $presetMarker -Value $preset
 
     # ------------------------------------
     # configure
@@ -252,6 +276,7 @@ function buildAsy($preset, $cfgDir) {
     # ------------------------------------
     # build
     cmake --build $asymptoteRoot/$cfgDir --target asy-pre-nsis-targets -j
+
     Pop-EnvironmentBlock  # ASY_VERSION_OVERRIDE, VCPKG_ROOT
     Pop-EnvironmentBlock  # Visual studio vars
     # install to pre-installation root
@@ -292,13 +317,11 @@ else
 }
 
 # ------------------------------------------------------
-# building for CTAN
-
-buildAsy msvc/release/with-external-doc-files/with-ctan cmake-build-msvc/release
+# building for CTAN (asy-ctan.exe was built alongside asy.exe in a single CMake build)
 
 if ($env:ASYMPTOTE_BUILD_SHARED_DIRECTORY)
 {
-    Write-Output "Using shared build directory at $ASYMPTOTE_BUILD_SHARED_DIRECTORY for CTAN output"
+    Write-Output "Using shared build directory at $env:ASYMPTOTE_BUILD_SHARED_DIRECTORY for CTAN output"
     $ctanOutputDir = "$env:ASYMPTOTE_BUILD_SHARED_DIRECTORY/CTAN"
 }
 else
@@ -311,7 +334,7 @@ New-Item -ItemType Directory -Path "$ctanOutputDir" -Force
 New-Item -ItemType Directory -Path "$ctanOutputDir/dll" -Force
 Get-ChildItem "$asymptoteRoot/cmake-install-w32-nsis-release/build-$Version/" `
     -Filter "*.dll" | Copy-Item -Force -Destination "$ctanOutputDir/dll"
-Copy-Item $asymptoteRoot/cmake-build-msvc/release/asy.exe -Force -Destination "$ctanOutputDir/asy.exe"
+Copy-Item $asymptoteRoot/cmake-build-msvc/release/asy-ctan.exe -Force -Destination "$ctanOutputDir/asy.exe"
 
 Pop-Location  # asymptote
 deactivate  # pyxasy build environment

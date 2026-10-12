@@ -1,0 +1,1 @@
+{"jsonrpc":"2.0","method":"textDocument/didChange","params":{"textDocument":{"uri":"file:///fixture.cpp","version":2},"contentChanges":[{"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":3}},"text":"int"}]}}

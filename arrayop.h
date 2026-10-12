@@ -14,6 +14,7 @@
 #include "fileio.h"
 #include "callable.h"
 #include "mathop.h"
+#include "errormsg.h"
 
 namespace run {
 
@@ -24,6 +25,14 @@ using camp::tab;
 
 vm::array *copyArray(vm::array *a);
 vm::array *copyArray2(vm::array *a);
+
+// Call the write(file, suffix) method on a record.
+// frame is the record's vmFrame, t is the record type (ty with kind ty_record),
+// f is the target file.
+void callRecordWriteMethod(vm::stack *s, vm::vmFrame *frame, types::ty *t, camp::file *f);
+
+// Tests whether t is the type of a write suffix, void (file).
+bool isWriteSuffixType(types::ty *t);
 
 template<class T, class U, template <class S> class op>
 void arrayOp(vm::stack *s)
@@ -92,7 +101,7 @@ void binopArray2(vm::stack *s)
   array *a=pop<array*>(s);
   size_t size=checkArray(a);
   bool empty=true;
-  T m=0;
+  T m;
   for(size_t i=0; i < size; i++) {
     array *ai=read<array*>(a,i);
     size_t aisize=checkArray(ai);
@@ -105,8 +114,10 @@ void binopArray2(vm::stack *s)
         m=op<T>()(m,read<T>(ai,j));
     }
   }
-  if(empty) vm::error(arrayempty);
-  s->push(m);
+  if(!empty)
+    s->push(m);
+  else
+    vm::error(arrayempty);
 }
 
 template<class T, template <class S> class op>
@@ -115,7 +126,7 @@ void binopArray3(vm::stack *s)
   array *a=pop<array*>(s);
   size_t size=checkArray(a);
   bool empty=true;
-  T m=0;
+  T m;
   for(size_t i=0; i < size; i++) {
     array *ai=read<array*>(a,i);
     size_t aisize=checkArray(ai);
@@ -133,8 +144,10 @@ void binopArray3(vm::stack *s)
       }
     }
   }
-  if(empty) vm::error(arrayempty);
-  s->push(m);
+  if(!empty)
+    s->push(m);
+  else
+    vm::error(arrayempty);
 }
 
 template<class T, class U, template <class S> class op>
@@ -314,37 +327,184 @@ extern string emptystring;
 
 void writestring(vm::stack *s);
 
-template<class T>
-void write(vm::stack *s)
+// Generic write fallback for heterogeneous arguments.
+// Receives a single array of tagged_var* elements, built by the
+// transHeteroWrite handler (builtin_handlers.cc).
+// Each element is a tagged_var whose ->tag is the full types::ty * pointer
+// (stored as an Int) and whose ->value holds the actual vm::item.
+// Scans the elements to identify the file (first, if ty_file), label
+// (next, if ty_string), optional suffix (last, if of type void (file)),
+// and data values (everything else).
+inline void write_var(vm::stack *s)
 {
-  array *a=pop<array*>(s);
-  vm::callable *suffix=pop<vm::callable *>(s,NULL);
-  T first=pop<T>(s);
-  string S=pop<string>(s,emptystring);
-  vm::item it=pop(s);
-  bool defaultfile=isdefault(it);
-  camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
-  if(!f->isOpen() || !f->enabled()) return;
+  array *arr = pop<array *>(s);
+  size_t n = checkArray(arr);
 
-  size_t size=checkArray(a);
-  if(S != "") f->write(S);
-  f->write(first);
-  for(size_t i=0; i < size; ++i) {
-    f->write(tab);
-    f->write(read<T>(a,i));
+
+  // Helper: resolve the effective type and value for element i.
+  // The tag in tagged_var is the types::ty * pointer as an Int.  Every
+  // element is keyed by a concrete type: the transHeteroWrite handler wraps
+  // only values it has validated as writeable.
+  struct tv_res {
+    types::ty *t;
+    vm::item value;
+  };
+  auto getTV = [&](size_t i) -> tv_res {
+    vm::tagged_var *tv = vm::get<vm::tagged_var *>((*arr)[i]);
+    return { (types::ty *)(intptr_t)tv->tag, tv->value };
+  };
+
+  camp::file *f = &camp::Stdout;
+  bool defaultfile = true;
+  string label;
+  bool haveLabel = false;
+  size_t i = 0;
+
+  // Consume optional file (first element, if file type).
+  if (i < n && getTV(i).t->kind == types::ty_file) {
+    vm::item vi = getTV(i).value;
+    f = isdefault(vi) ? &camp::Stdout : vm::get<camp::file *>(vi);
+    defaultfile = isdefault(vi);
+    ++i;
   }
-  if(f->text()) {
-    if(suffix) {
-      s->push(f);
-      suffix->call(s);
-    } else if(defaultfile) {
-      try {
-        f->writeline();
-      } catch (quit&) {
+
+  // Consume optional label (next element, if string).
+  if (i < n && getTV(i).t->kind == types::ty_string) {
+    label = vm::get<string>(getTV(i).value);
+    haveLabel = true;
+    ++i;
+  }
+
+  // Check for suffix (last element, if of type void (file)).  The test must
+  // be on the full type recorded in the tag, not just its kind: the callable
+  // is handed a file and expected to return nothing, so calling a function of
+  // any other signature would corrupt the stack.
+  vm::callable *suffix = NULL;
+  size_t dataEnd = n;
+  if (n > 0) {
+    size_t last = n - 1;
+    if (last >= i) {
+      tv_res lastTV = getTV(last);
+      if (isWriteSuffixType(lastTV.t)) {
+        suffix = vm::get<vm::callable *>(lastTV.value);
+        dataEnd = n - 1;
       }
     }
   }
+
+  if (!f->isOpen() || !f->enabled()) return;
+
+  if (f->Standard()) interact::lines = 0;
+
+  if (haveLabel && label != "") f->write(label);
+
+  // Write one data value to f.  Scalars are written directly.  Arrays of
+  // any depth are written recursively: tab between elements on the same
+  // line, newline between lines, and (depth-2) blank lines between blocks
+  // at each level above the innermost -- matching the type-specific
+  // write(file, array) builtins.  Records, whether standalone or the cells
+  // of an array, are written by calling their write(file, suffix) method.
+  // A type that cannot be written is a runtime error.
+  bool firstWritten = true;
+  auto beginValue = [&]() {
+    if (!firstWritten) f->write(tab);
+    firstWritten = false;
+  };
+  auto writeScalar = [](camp::file *f, types::ty *t, vm::item val) -> bool {
+    switch (t->kind) {
+      case types::ty_boolean:   f->write(vm::get<bool>(val)); return true;
+      case types::ty_Int:       f->write(vm::get<Int>(val)); return true;
+      case types::ty_real:      f->write(vm::get<double>(val)); return true;
+      case types::ty_pair:      f->write(vm::get<camp::pair>(val)); return true;
+      case types::ty_triple:    f->write(vm::get<camp::triple>(val)); return true;
+      case types::ty_string:    f->write(vm::get<string>(val)); return true;
+      case types::ty_pen:       f->write(vm::get<camp::pen>(val)); return true;
+      case types::ty_guide:
+                               f->write(vm::get<camp::guide *>(val)); return true;
+      case types::ty_path:
+                               f->write(new camp::pathguide(*vm::get<camp::path *>(val))); return true;
+      case types::ty_transform: f->write(vm::get<camp::transform>(val)); return true;
+      default: return false;
+    }
+  };
+  auto writeRecord = [&](types::ty *t, vm::item val) {
+    vm::vmFrame *recFrame = vm::get<vm::vmFrame *>(val);
+    if (!recFrame)
+      vm::error("dereference of null pointer");
+    callRecordWriteMethod(s, recFrame, t, f);
+  };
+  auto writeArr = [&](auto&& self, types::ty *elemTy, vm::array *a, int depth, int totalDepth) -> void {
+    size_t n = checkArray(a);
+    for (size_t k = 0; k < n; ++k) {
+      vm::item &it = (*a)[k];
+      if (it.empty()) continue;
+      if (depth == 1) {
+        if (elemTy->kind == types::ty_record)
+          writeRecord(elemTy, it);
+        else if (!writeScalar(f, elemTy, it)) {
+          ostringstream msg;
+          msg << "cannot write value of type '" << *elemTy << "'";
+          vm::error(msg);
+        }
+      } else {
+        vm::array *sub = vm::get<vm::array *>(it);
+        self(self, elemTy, sub, depth - 1, totalDepth);
+      }
+      if (k + 1 < n && f->text()) {
+        if (depth == 1 && totalDepth > 1)
+          f->write(tab);
+        else if (depth == 1)
+          f->writeline();
+        else {
+          f->writeline();
+          for (int b = 1; b < depth - 1; ++b)
+            f->writeline();
+        }
+      }
+    }
+  };
+  auto writeOne = [&](tv_res tv) {
+    if (tv.t->kind == types::ty_array) {
+      types::array *arrTy = dynamic_cast<types::array *>(tv.t);
+      if (arrTy) {
+        if (!firstWritten) f->writeline();
+        firstWritten = false;
+        vm::array *data = vm::get<vm::array *>(tv.value);
+        types::ty *innerTy = arrTy->celltype;
+        while (innerTy->kind == types::ty_array)
+          innerTy = ((types::array *)innerTy)->celltype;
+        writeArr(writeArr, innerTy, data, arrTy->depth(), arrTy->depth());
+        return;
+      }
+    }
+    beginValue();
+    if (tv.t->kind == types::ty_record) {
+      writeRecord(tv.t, tv.value);
+      return;
+    }
+    if (!writeScalar(f, tv.t, tv.value)) {
+      ostringstream msg;
+      msg << "cannot write value of type '" << *tv.t << "'";
+      vm::error(msg);
+    }
+  };
+
+  try {
+    for (size_t d = 0; d < dataEnd - i; ++d)
+      writeOne(getTV(i + d));
+  } catch (quit&) {
+  }
+
+  if (f->text()) {
+    if (suffix) {
+      s->push(f);
+      suffix->call(s);
+    } else if (defaultfile) {
+      try { f->writeline(); } catch (quit&) {}
+    }
+  }
 }
+
 
 template<class T>
 void writeArray(vm::stack *s)
@@ -397,79 +557,6 @@ void writeArray(vm::stack *s)
       }
       ++i;
       if(cont && f->text()) f->writeline();
-    }
-  } catch (quit&) {
-  }
-  f->flush();
-}
-
-template<class T>
-void writeArray2(vm::stack *s)
-{
-  array *a=pop<array*>(s);
-  vm::item it=pop(s);
-  bool defaultfile=isdefault(it);
-  camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
-  if(!f->isOpen() || !f->enabled()) return;
-
-  size_t size=checkArray(a);
-  if(f->Standard()) interact::lines=0;
-
-  try {
-    for(size_t i=0; i < size; i++) {
-      vm::item& I=(*a)[i];
-      if(!I.empty()) {
-        array *ai=vm::get<array*>(I);
-        size_t aisize=checkArray(ai);
-        for(size_t j=0; j < aisize; j++) {
-          if(j > 0 && f->text()) f->write(tab);
-          vm::item& I=(*ai)[j];
-          if(!I.empty())
-            f->write(vm::get<T>(I));
-        }
-      }
-      if(f->text()) f->writeline();
-    }
-  } catch (quit&) {
-  }
-  f->flush();
-}
-
-template<class T>
-void writeArray3(vm::stack *s)
-{
-  array *a=pop<array*>(s);
-  vm::item it=pop(s);
-  bool defaultfile=isdefault(it);
-  camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
-  if(!f->isOpen() || !f->enabled()) return;
-
-  size_t size=checkArray(a);
-  if(f->Standard()) interact::lines=0;
-
-  try {
-    for(size_t i=0; i < size;) {
-      vm::item& I=(*a)[i];
-      if(!I.empty()) {
-        array *ai=vm::get<array*>(I);
-        size_t aisize=checkArray(ai);
-        for(size_t j=0; j < aisize; j++) {
-          vm::item& I=(*ai)[j];
-          if(!I.empty()) {
-            array *aij=vm::get<array*>(I);
-            size_t aijsize=checkArray(aij);
-            for(size_t k=0; k < aijsize; k++) {
-              if(k > 0 && f->text()) f->write(tab);
-              vm::item& I=(*aij)[k];
-              if(!I.empty())
-                f->write(vm::get<T>(I));
-            }
-          }
-          if(f->text()) f->writeline();
-        }
-      }
-      ++i;
-      if(i < size && f->text()) f->writeline();
     }
   } catch (quit&) {
   }

@@ -1,52 +1,18 @@
 ﻿
 #include "LibLsp/JsonRpc/Condition.h"
+#include "LibLsp/JsonRpc/RemoteEndPoint.h"
 #include "LibLsp/lsp/general/exit.h"
 #include "LibLsp/lsp/textDocument/declaration_definition.h"
 #include <boost/program_options.hpp>
-#include "LibLsp/lsp/textDocument/signature_help.h"
 #include "LibLsp/lsp/general/initialize.h"
 #include "LibLsp/lsp/ProtocolJsonHandler.h"
-#include "LibLsp/lsp/textDocument/typeHierarchy.h"
-#include "LibLsp/lsp/AbsolutePath.h"
-#include "LibLsp/lsp/textDocument/resolveCompletionItem.h"
-#include <network/uri.hpp>
 
 #include "LibLsp/JsonRpc/Endpoint.h"
 #include "LibLsp/JsonRpc/stream.h"
-#include "LibLsp/JsonRpc/TcpServer.h"
-#include "LibLsp/lsp/textDocument/document_symbol.h"
-#include "LibLsp/lsp/workspace/execute_command.h"
-#include <boost/process.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/asio.hpp>
+#include <cstdlib>
 #include <iostream>
-#include <thread>
 
-using namespace boost::asio::ip;
 using namespace std;
-class DummyLog :public lsp::Log
-{
-public:
-
-        void log(Level level, std::wstring&& msg)
-        {
-
-                std::wcerr << msg << std::endl;
-        };
-        void log(Level level, const std::wstring& msg)
-        {
-                std::wcerr << msg << std::endl;
-        };
-        void log(Level level, std::string&& msg)
-        {
-                std::cerr << msg << std::endl;
-        };
-        void log(Level level, const std::string& msg)
-        {
-                std::cerr << msg << std::endl;
-        };
-};
-
 
 class StdIOServer
 {
@@ -66,7 +32,6 @@ public:
 
                 remote_end_point_.registerHandler([&](Notify_Exit::notify& notify)
                         {
-                remote_end_point_.stop();
                                 esc_event.notify(std::make_unique<bool>(true));
                         });
                 remote_end_point_.registerHandler([&](const td_definition::request& req,
@@ -88,36 +53,11 @@ public:
 
         }
 
-        struct ostream : lsp::base_ostream<std::ostream>
-        {
-                explicit ostream(std::ostream& _t)
-                        : base_ostream<std::ostream>(_t)
-                {
-
-                }
-
-                std::string what() override
-                {
-                        return {};
-                }
-        };
-        struct istream :lsp::base_istream<std::istream>
-        {
-                explicit istream(std::istream& _t)
-                        : base_istream<std::istream>(_t)
-                {
-                }
-
-                std::string what() override
-                {
-                        return {};
-                }
-        };
         std::shared_ptr < lsp::ProtocolJsonHandler >  protocol_json_handler = std::make_shared < lsp::ProtocolJsonHandler >();
-        DummyLog _log;
+        lsp::StderrLog _log;
 
-        std::shared_ptr<ostream> output = std::make_shared<ostream>(std::cout);
-        std::shared_ptr<istream> input = std::make_shared<istream>(std::cin);
+        std::shared_ptr<lsp::ostream> output = lsp::make_stdout_stream();
+        std::shared_ptr<lsp::istream> input = lsp::make_stdin_stream();
 
         std::shared_ptr < GenericEndpoint >  endpoint = std::make_shared<GenericEndpoint>(_log);
         RemoteEndPoint remote_end_point_;
@@ -155,7 +95,7 @@ int main(int argc, char* argv[])
         StdIOServer server;
         server.esc_event.wait();
 
-        return 0;
+        std::_Exit(0);
 }
 
 

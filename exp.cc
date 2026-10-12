@@ -69,6 +69,11 @@ void exp::transToType(coenv &e, types::ty *target)
 
   types::ty *source = e.e.castSource(target, ct, symbol::castsym);
   if (source==0) {
+    // Last resort: subclasses may know how to specialize themselves to the
+    // target (e.g. nameExp pointing at an open-signature builtin with a
+    // `specialize` hook in its CustomHandlers).
+    if (target->kind != ty_error && trySpecializeToType(e, target))
+      return;
     if (target->kind != ty_error) {
       types::ty *sources=cgetType(e);
       em.error(getPos());
@@ -192,6 +197,20 @@ void nameExp::prettyprint(ostream &out, Int indent)
 
   value->prettyprint(out, indent+1);
 }
+
+bool nameExp::trySpecializeToType(coenv &e, types::ty *target)
+{
+  symbol id = value->getName();
+  if (!id) return false;
+  const callExp::CustomHandlers *h = lookupCustomHandlers(id);
+  if (!h || !h->specialize) return false;
+  trans::access *a = h->specialize(target);
+  if (!a) return false;
+  a->encode(trans::READ, getPos(), e.c);
+  ct = 0;
+  return true;
+}
+
 exp *nameExp::evaluate(coenv &e, types::ty *target) {
   // Names have no side effects unless an implicit cast is needed.
   if (equivalent(target, cgetType(e))) {
@@ -346,10 +365,15 @@ types::ty *subscriptExp::getType(coenv &e)
 {
   if (!isAnArray(e, object)) {
     ty *t = object->cgetType(e)->signatureless();
-    if (!t || t->kind != ty_record) {
-      return primError();
+    if (!t) return primError();
+    switch (t->kind) {
+      case ty_record:
+        return static_cast<record*>(t)->valType();
+      case types::ty_string:
+        return primString();
+      default:
+        return primError();
     }
-    return static_cast<record*>(t)->valType();
   }
 
   array *a = getArrayType(e);
@@ -670,8 +694,8 @@ types::ty *scaleExp::trans(coenv &e)
   }
 
   if (!right->scalable()) {
-    em.warning(right->getPos());
-    em << "implicit scaling may be unintentional";
+    em.error(right->getPos());
+    em << "implicit scaling not allowed here; use explicit * operator";
   }
 
   // Defer to the binaryExp for multiplication.
@@ -977,6 +1001,21 @@ void callExp::reportNonFunction() {
     em << "called expression is not a function";
 }
 
+bool callExp::resolvedToOpenSignature() const
+{
+  if (cachedApp) {
+    signature *sig = cachedApp->getType()->getSignature();
+    return sig && sig->isOpen;
+  }
+
+  if (cachedVarEntry) {
+    function *ft = dynamic_cast<function *>(cachedVarEntry->getType());
+    return ft && ft->getSignature()->isOpen;
+  }
+
+  return false;
+}
+
 types::ty *callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
 {
   assert(cachedVarEntry == 0 && cachedApp == 0);
@@ -1093,10 +1132,75 @@ types::ty *callExp::transPerfectMatch(coenv &e) {
   return ct ? ct : dynamic_cast<function *>(ve->getType())->getResult();
 }
 
+
+
+types::ty *callExp::getTypeRegular(coenv &e)
+{
+  if (cachedApp)
+    return cachedApp->getType()->getResult();
+  if (cachedVarEntry) {
+    function *ft = dynamic_cast<function *>(cachedVarEntry->getType());
+    assert(ft);
+    return ft->getResult();
+  }
+  return cacheAppOrVarEntry(e, true);
+}
+
+// Returns true if the type is itself a record, or is an overloaded type
+// that includes a record among its possible types.
+static bool containsRecord(types::ty *at) {
+  if (!at) return false;
+  if (at->kind == ty_record) return true;
+  if (at->kind == ty_overloaded) {
+    for (types::ty_iterator ai = at->begin(); ai != at->end(); ++ai)
+      if ((*ai)->kind == ty_record) return true;
+  }
+  return false;
+}
+
 types::ty *callExp::trans(coenv &e)
 {
+  // Resolve the callee if not already cached.
   if (cachedVarEntry == 0 && cachedApp == 0)
     cacheAppOrVarEntry(e, false);
+
+  // If the call resolved to an open-signature builtin with a registered
+  // custom-translation handler, dispatch to that handler.  The side-table
+  // lookup is gated on resolvedToOpenSignature() so the common case
+  // (concrete-signature resolution) pays nothing.
+  if (resolvedToOpenSignature()) {
+    if (const CustomHandlers *h = lookupCustomHandlers(callee->getName())) {
+      if (h->trans)
+        return (this->*(h->trans))(e);
+    }
+  } else {
+    // If regular resolution found a concrete (non-open) match but a record
+    // argument was implicitly cast to a non-record type, the match is spurious.
+    // Invalidate and dispatch to the record handler.
+    symbol name = callee->getName();
+    if ((name == SYM_EQ || name == SYM_NEQ) && args->size() == 2) {
+      const CustomHandlers *h = lookupCustomHandlers(name);
+      if (h && h->trans && cachedApp) {
+        types::ty *lt = (*args)[0].val->cgetType(e);
+        types::ty *rt = (*args)[1].val->cgetType(e);
+        types::signature *sig = cachedApp->getType()->getSignature();
+        bool spurious = false;
+        if (sig && sig->getNumFormals() >= 2) {
+          types::ty *p0 = sig->getFormal(0).t;
+          types::ty *p1 = sig->getFormal(1).t;
+          if (containsRecord(lt) && p0 && !equivalent(lt, p0))
+            spurious = true;
+          if (containsRecord(rt) && p1 && !equivalent(rt, p1))
+            spurious = true;
+        }
+        if (spurious) {
+          cachedApp = 0;
+          cachedVarEntry = 0;
+          return (this->*(h->trans))(e);
+        }
+      }
+    }
+  }
 
   if (cachedVarEntry)
     return transPerfectMatch(e);
@@ -1104,7 +1208,7 @@ types::ty *callExp::trans(coenv &e)
   // The cached data is no longer needed after translation, so let it be
   // garbage collected.
   application *a = cachedApp;
-  cachedApp=0;
+  cachedApp = 0;
 
   if (!a) {
     reportArgErrors(e);
@@ -1114,9 +1218,9 @@ types::ty *callExp::trans(coenv &e)
   // To simulate left-to-right order of evaluation, produce the
   // side-effects for the callee.
   assert(a);
-  function *t=a->getType();
+  function *t = a->getType();
   assert(t);
-  exp *temp=callee->evaluate(e, t);
+  exp *temp = callee->evaluate(e, t);
 
   // Let the application handle the argument translation.
   a->transArgs(e);
@@ -1129,14 +1233,56 @@ types::ty *callExp::trans(coenv &e)
 
 types::ty *callExp::getType(coenv &e)
 {
-  if (cachedApp)
-    return cachedApp->getType()->getResult();
-  if (cachedVarEntry) {
-    function *ft = dynamic_cast<function *>(cachedVarEntry->getType());
-    assert(ft);
-    return ft->getResult();
+  // Check whether the name has a registered custom handler.  We perform the
+  // regular resolution first to determine whether the call actually resolved
+  // to an open signature (the case in which the custom handler applies).
+  symbol name = callee->getName();
+  const CustomHandlers *h = lookupCustomHandlers(name);
+  if (h && h->getType) {
+    types::ty *t = getTypeRegular(e);
+    assert(t);
+    // Dispatch to the custom handler only when the call actually resolved to
+    // the open-signature builtin (mirroring the gating in trans()).  If regular
+    // resolution produced a concrete match or an error, return it as-is;
+    // otherwise a handler such as getAliasType (which returns primBoolean()
+    // unconditionally) would mask the underlying error with a bogus type.  The
+    // error check comes first so the anti-masking guard holds even if a failed
+    // resolution ever stops implying !resolvedToOpenSignature().
+    if (t->kind != ty_error && resolvedToOpenSignature())
+      return (this->*(h->getType))(e);
+    // If regular resolution found a concrete (non-open) match but one of the
+    // arguments is a record type that was implicitly cast to a non-record type
+    // (e.g. via `real operator cast(foo)`), the match is spurious.  Invalidate
+    // the resolution and dispatch to the handler, which applies record
+    // semantics.  We detect this by checking whether the resolved function's
+    // parameter types differ from the argument types for a record argument.
+    if (t->kind != ty_error && !resolvedToOpenSignature()
+        && (name == SYM_EQ || name == SYM_NEQ)
+        && args->size() == 2) {
+      types::ty *lt = (*args)[0].val->cgetType(e);
+      types::ty *rt = (*args)[1].val->cgetType(e);
+      bool spurious = false;
+      if (cachedApp) {
+        types::signature *sig = cachedApp->getType()->getSignature();
+        if (sig && sig->getNumFormals() >= 2) {
+          types::ty *p0 = sig->getFormal(0).t;
+          types::ty *p1 = sig->getFormal(1).t;
+          if (containsRecord(lt) && p0 && !equivalent(lt, p0))
+            spurious = true;
+          if (containsRecord(rt) && p1 && !equivalent(rt, p1))
+            spurious = true;
+        }
+      }
+      if (spurious) {
+        cachedApp = 0;
+        cachedVarEntry = 0;
+        return (this->*(h->getType))(e);
+      }
+    }
+    return t;
   }
-  return cacheAppOrVarEntry(e, true);
+
+  return getTypeRegular(e);
 }
 
 bool callExp::resolved(coenv &e) {

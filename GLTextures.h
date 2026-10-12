@@ -10,7 +10,9 @@
 
 #include "GL/glew.h"
 
-namespace gl
+#include "glmCommon.h"
+
+namespace camp
 {
 struct GLTexturesFmt
 {
@@ -40,6 +42,11 @@ public:
   virtual ~AGLTexture();
   void setActive() const;
   virtual void setUniform(GLint uniformNumber) const = 0;
+
+  // Suppress destruction of the GL texture object.  The texture ID is
+  // cleared so the destructor becomes a no-op, avoiding calls to
+  // glDeleteTextures from a thread that doesn't own the GL context.
+  void release() { textureId = 0; }
 
 protected:
   GLuint textureId=0;
@@ -128,6 +135,6 @@ public:
   }
 };
 
-} // namespace gl
+} // namespace camp
 
 #endif

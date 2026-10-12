@@ -26,6 +26,16 @@ class Er:
         cls.report_error(filename, line, f"no asy type associated to '{t}'")
 
 
+# Types bound by const reference to the stack's heap copy, avoiding an O(n)
+# deep copy.
+# These are large, immutable, heap-allocated types whose size grows with
+# the number of segments (path, path3).  All other types are either small
+# fixed-size objects (pair, triple, transform, string, pen, ...) or
+# primitives, so copying them by value is cheap and safe (the .in code
+# sometimes reassigns parameters, which would break a const reference).
+_CONST_REF_TYPES = frozenset({"path", "path3"})
+
+
 # Convert parameters into stack pop code in correct order
 def c_params(params_list):
     global STACK
@@ -45,9 +55,16 @@ def c_params(params_list):
         if not match:
             continue
         _, type_str, name, eqsign, val = match.groups()
-        template = "" if type_str == "item" else f"<{type_str}>"
-        def_val = f",{val}" if eqsign else ""
-        r = f"  {type_str} {name}=vm::pop{template}({STACK}{def_val});\n"
+        if type_str in _CONST_REF_TYPES and not eqsign:
+            # Bind to the heap object the stack item points to; popping by
+            # value (even into a const reference) would copy it. Parameters
+            # with defaults fall back to by-value, since the default is a
+            # value, not a pointer.
+            r = f"  const {type_str} &{name}=*vm::pop<{type_str}*>({STACK});\n"
+        else:
+            template = "" if type_str == "item" else f"<{type_str}>"
+            def_val = f",{val}" if eqsign else ""
+            r = f"  {type_str} {name}=vm::pop{template}({STACK}{def_val});\n"
         result.append(r)
     return result
 

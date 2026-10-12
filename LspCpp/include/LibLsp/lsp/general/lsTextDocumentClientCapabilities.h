@@ -9,6 +9,7 @@
 #include "lsWorkspaceClientCapabilites.h"
 #include "LibLsp/lsp/lsp_completion.h"
 #include "LibLsp/lsp/lsp_diagnostic.h"
+#include "LibLsp/lsp/protocol_3_18.h"
 
 struct WorkDoneProgressOptions
 {
@@ -535,7 +536,7 @@ struct lsTextDocumentClientCapabilities
     optional<DynamicRegistrationCapabilities> formatting;
 
     // Capabilities specific to the `textDocument/rangeFormatting`
-    optional<DynamicRegistrationCapabilities> rangeFormatting;
+    optional<DocumentRangeFormattingClientCapabilities> rangeFormatting;
 
     // Capabilities specific to the `textDocument/onTypeFormatting`
     optional<DynamicRegistrationCapabilities> onTypeFormatting;
@@ -567,7 +568,7 @@ struct lsTextDocumentClientCapabilities
     optional<CodeActionCapabilities> codeAction;
 
     // Capabilities specific to the `textDocument/codeLens`
-    optional<DynamicRegistrationCapabilities> codeLens;
+    optional<CodeLensClientCapabilities> codeLens;
 
     // Capabilities specific to the `textDocument/documentLink`
     optional<DynamicRegistrationCapabilities> documentLink;
@@ -646,12 +647,18 @@ struct lsTextDocumentClientCapabilities
     //
     optional<InlayHintClientCapabilities> inlayHint;
 
+    optional<DiagnosticClientCapabilities> diagnostic;
+
+    optional<InlineValueClientCapabilities> inlineValue;
+
+    optional<InlineCompletionClientCapabilities> inlineCompletion;
+
     MAKE_SWAP_METHOD(
         lsTextDocumentClientCapabilities, synchronization, completion, hover, signatureHelp, implementation, references,
         documentHighlight, documentSymbol, formatting, rangeFormatting, onTypeFormatting, declaration, definition,
         typeDefinition, implementation, codeAction, codeLens, documentLink, colorProvider, rename, publishDiagnostics,
         foldingRange, semanticHighlightingCapabilities, typeHierarchyCapabilities, callHierarchy, selectionRange,
-        linkedEditingRange, semanticTokens, moniker, inlayHint
+        linkedEditingRange, semanticTokens, moniker, inlayHint, diagnostic, inlineValue, inlineCompletion
     )
 };
 
@@ -660,5 +667,5 @@ MAKE_REFLECT_STRUCT(
     documentHighlight, documentSymbol, formatting, rangeFormatting, onTypeFormatting, declaration, definition,
     typeDefinition, implementation, codeAction, codeLens, documentLink, colorProvider, rename, publishDiagnostics,
     foldingRange, semanticHighlightingCapabilities, typeHierarchyCapabilities, callHierarchy, selectionRange,
-    linkedEditingRange, semanticTokens, moniker, inlayHint
+    linkedEditingRange, semanticTokens, moniker, inlayHint, diagnostic, inlineValue, inlineCompletion
 )

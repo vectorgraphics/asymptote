@@ -1,0 +1,20 @@
+#!/bin/sh
+# build-asymptote-sandbox: configure + build the cmake `linux/sandbox` preset.
+#
+# This preset is designed to run inside constrained CI / coding-agent sandboxes
+# that cannot reach the network and therefore cannot use vcpkg. It uses only
+# system-provided libraries and disables the features whose CMake configs are
+# only delivered through vcpkg (FFTW3, Eigen3) or that require components not
+# packaged on most distros (Vulkan/glslang, LSP backend, googletest, doc gen).
+#
+# It is NOT a substitute for the full `linux/release` preset; it exists so that
+# changes to the cmake build scripts can still be exercised end-to-end without
+# leaving the sandbox. Production / release builds should continue to use
+# `cmake --preset linux/release`.
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+cmake --preset linux/sandbox "$@"
+cmake --build --preset linux/sandbox --target asy-with-basefiles

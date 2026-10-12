@@ -1,0 +1,1 @@
+{"jsonrpc":"2.0","id":106,"result":{"contents":{"kind":"plaintext","value":"function foo\n\n-> void\n\nvoid foo()"},"range":{"start":{"line":0,"character":25},"end":{"line":0,"character":28}}}}

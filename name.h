@@ -89,7 +89,7 @@ public:
   virtual symbol asPath() const {
     ostringstream out;
     printPath(out);
-    return symbol::literalTrans(out.str());  
+    return symbol::literalTrans(out.str());
   }
 
   [[nodiscard]]

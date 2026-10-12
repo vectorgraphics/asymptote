@@ -334,17 +334,17 @@ path3 transformed(const double* t, const path3& p);
 extern path3 nullpath3;
 extern const unsigned maxdepth;
 
-bool intersect(double& S, double& T, path3& p, path3& q, double fuzz,
+bool intersect(double& S, double& T, const path3& p, const path3& q, double fuzz,
                unsigned depth=maxdepth);
 bool intersections(double& s, double& t, std::vector<double>& S,
-                   std::vector<double>& T, path3& p, path3& q,
+                   std::vector<double>& T, const path3& p, const path3& q,
                    double fuzz, bool single, bool exact,
                    unsigned depth=maxdepth);
-void intersections(std::vector<double>& S, path3& g,
+void intersections(std::vector<double>& S, const path3& g,
                    const triple& p, const triple& q, double fuzz);
 
 bool intersections(std::vector<double>& T, std::vector<double>& U,
-                   std::vector<double>& V, path3& p, triple *P,
+                   std::vector<double>& V, const path3& p, triple *P,
                    double fuzz, bool single, unsigned depth=maxdepth);
 bool intersections(double& U, double& V, const triple& v, triple *P,
                    double fuzz, unsigned depth=maxdepth);

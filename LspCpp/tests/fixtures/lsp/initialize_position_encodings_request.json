@@ -1,0 +1,1 @@
+{"jsonrpc":"2.0","id":117,"method":"initialize","params":{"processId":123,"capabilities":{"general":{"positionEncodings":["utf-8","utf-16"]}},"trace":"off"}}

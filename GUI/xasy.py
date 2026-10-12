@@ -6,7 +6,13 @@ import pathlib
 sys.path.append(str(pathlib.Path(__file__).resolve().parent))
 
 import signal, os
-import PySide6.QtWidgets as QtWidgets
+try:
+    import PySide6.QtWidgets as QtWidgets
+except ImportError:
+    print("ERROR: PySide6 is not installed.")
+    print("Install it with:  pip install PySide6")
+    input("Press Enter to exit...")
+    sys.exit(1)
 from Window1 import MainWindow1
 
 def main(args):

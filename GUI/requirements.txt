@@ -1,3 +1,5 @@
+# Because of the packages below, xasy requires a later version of Python
+# (currently 3.9-3.13) than the build scripts (currently 3.7+).
 numpy~=2.0.0
 cson~=0.8
 PySide6~=6.9.0

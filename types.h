@@ -194,25 +194,27 @@ public:
   primitiveTy(ty_kind kind)
     : ty(kind) {}
 
-  bool primitive() {
+  bool primitive() override {
     return true;
   }
 
-  bool isReference() {
+  bool isReference() override {
     return false;
   }
 
-  ty *virtualFieldGetType(symbol );
-  trans::varEntry *virtualField(symbol, signature *);
+  ty *virtualFieldGetType(symbol) override;
+  trans::varEntry *virtualField(symbol, signature *) override;
 
-  bool equiv(const ty *other) const
+  bool equiv(const ty *other) const override
   {
     return this->kind==other->kind;
   }
 
-  size_t hash() const {
+  size_t hash() const override {
     return (size_t)kind + 47;
   }
+
+  ty *keyType() override;
 };
 
 class nullTy : public primitiveTy {
@@ -350,19 +352,25 @@ struct signature : public gc {
 
   bool isOpen;
 
+  // For an open signature: true if named arguments are passed through to the
+  // custom call-site handler, which is then responsible for interpreting them.
+  bool openTakesNames;
+
   signature()
-    : numKeywordOnly(0), rest(0), isOpen(false)
+    : numKeywordOnly(0), rest(0), isOpen(false), openTakesNames(false)
   {}
 
   struct OPEN_t {};
 
   static const OPEN_t OPEN;
 
-  explicit signature(OPEN_t) : numKeywordOnly(0), rest(0), isOpen(true) {}
+  explicit signature(OPEN_t)
+    : numKeywordOnly(0), rest(0), isOpen(true), openTakesNames(false)
+  {}
 
   signature(signature &sig)
     : formals(sig.formals), numKeywordOnly(sig.numKeywordOnly),
-      rest(sig.rest), isOpen(sig.isOpen)
+      rest(sig.rest), isOpen(sig.isOpen), openTakesNames(sig.openTakesNames)
   {}
 
   virtual ~signature() {}

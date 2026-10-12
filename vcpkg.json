@@ -1,12 +1,14 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-
-  "builtin-baseline": "c49e1c4ed0bbde971759c750e0d5cc915c542db9",
+  "builtin-baseline": "84bab45d415d22042bd0b9081aea57f362da3f35",
   "name": "asymptote",
   "version": "0.0-snapshot",
   "dependencies": [
     "zlib",
     "glm",
+    "vulkan",
+    "glfw3",
+    "glslang",
     {
       "name": "getopt-win32",
       "platform": "windows"
@@ -15,7 +17,9 @@
   "features": {
     "threading": {
       "description": "Enable threading support",
-      "dependencies": ["pthreads"]
+      "dependencies": [
+        "pthreads"
+      ]
     },
     "readline": {
       "description": "Enable readline support",
@@ -33,25 +37,26 @@
     },
     "curl": {
       "description": "Enable curl support",
-      "dependencies": ["curl"]
+      "dependencies": [
+        "curl"
+      ]
     },
     "eigen3": {
       "description": "eigen3 support",
-      "dependencies": ["eigen3"]
+      "dependencies": [
+        "eigen3"
+      ]
     },
     "gsl": {
       "description": "GSL support",
-      "dependencies": ["gsl"]
+      "dependencies": [
+        "gsl"
+      ]
     },
     "fftw3": {
       "description": "fftw3 support",
-      "dependencies": ["fftw3"]
-    },
-    "opengl": {
-      "description": "OpenGL Support",
       "dependencies": [
-        "opengl",
-        "freeglut"
+        "fftw3"
       ]
     },
     "lsp": {

@@ -309,6 +309,14 @@ void Reflect(Reader& visitor, TextDocumentHover::Either& value)
     {
         Reflect(visitor, value.first);
     }
+    else if (reader.IsString())
+    {
+        std::string content;
+        Reflect(visitor, content);
+        std::pair<optional<std::string>, optional<lsMarkedString>> marked;
+        marked.first = std::move(content);
+        value.first = std::vector<std::pair<optional<std::string>, optional<lsMarkedString>>> {std::move(marked)};
+    }
     else if (reader.m_->IsObject())
     {
         Reflect(visitor, value.second);

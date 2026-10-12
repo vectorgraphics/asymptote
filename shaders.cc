@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#ifdef HAVE_RENDERER
 #ifdef HAVE_GL
 
 #include <fstream>
@@ -42,6 +43,23 @@ GLuint compileAndLinkShader(std::vector<ShaderfileModePair> const& shaders,
   fpu_trap(false); // Work around FE_INVALID
   glLinkProgram(shader);
   fpu_trap(settings::trap());
+
+  {
+    GLint status;
+    glGetProgramiv(shader, GL_LINK_STATUS, &status);
+    if(status != GL_TRUE) {
+      GLint length;
+      glGetProgramiv(shader, GL_INFO_LOG_LENGTH, &length);
+      std::vector<GLchar> msg(length);
+      glGetProgramInfoLog(shader, length, &length, msg.data());
+      std::cerr << "Shader link failed:";
+      for(GLint i=0; i < length; ++i)
+        std::cerr << msg[i];
+      if(test)
+        return 0;
+      return 0;
+    }
+  }
 
   for(size_t i=0; i < n; ++i) {
     glDetachShader(shader,compiledShaders[i]);
@@ -127,4 +145,5 @@ GLuint createShaderFile(std::string file, int shaderType,
   return createShader(shaderSrc.str(),shaderType,file,ssbo,interlock,compute,
                       test);
 }
-#endif
+#endif // HAVE_GL
+#endif // HAVE_RENDERER

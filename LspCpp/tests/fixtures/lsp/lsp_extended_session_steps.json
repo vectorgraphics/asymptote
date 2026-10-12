@@ -1,0 +1,8 @@
+[
+  {"step":"initialize","file":"initialize_request.json","kind":"request","response_fixture":"initialize_response.json"},
+  {"step":"didOpen","file":"did_open_notification.json","kind":"notification"},
+  {"step":"semanticTokens","file":"semantic_tokens_full_request.json","kind":"request","response_fixture":"semantic_tokens_full_response.json"},
+  {"step":"rename","file":"rename_request.json","kind":"request","response_fixture":"rename_workspace_edit_response.json"},
+  {"step":"codeAction","file":"code_action_request.json","kind":"request","response_fixture":"code_action_title_response.json"},
+  {"step":"shutdown","file":"shutdown_request.json","kind":"request","response_fixture":"shutdown_null_response.json"}
+]

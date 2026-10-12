@@ -9,7 +9,10 @@ include(${TEST_CXX_SRC_ROOT}/cmake-scripts/tests.cmake)
 
 # test target
 
-add_executable(asyCxxTests ${ASY_TEST_SOURCES} ${TEST_CXX_SRC_ROOT}/src/testMain.cc)
+# settings.cc is no longer part of asycore (it is a per-binary OBJECT library);
+# pull in the normal settings_obj so the test binary resolves settings symbols.
+add_executable(asyCxxTests ${ASY_TEST_SOURCES} ${TEST_CXX_SRC_ROOT}/src/testMain.cc
+        $<TARGET_OBJECTS:settings_obj>)
 target_include_directories(
         asyCxxTests
         PRIVATE ${TEST_CXX_SRC_ROOT}/include

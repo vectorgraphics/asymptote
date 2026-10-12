@@ -17,6 +17,10 @@
 #include "drawsurface.h"
 #include "drawpath3.h"
 #include "seconds.h"
+#ifdef HAVE_RENDERER
+#include "glfw.h"
+#include "rendererloader.h"
+#endif
 
 #if defined(_WIN32)
 #include <Windows.h>
@@ -32,7 +36,9 @@ using std::ofstream;
 using vm::array;
 
 using namespace settings;
-using namespace gl;
+
+extern pthread_mutex_t main_wait_mutex;
+extern pthread_cond_t main_wait_cond;
 
 texstream::~texstream() {
   string texengine=getSetting<string>("tex");
@@ -659,7 +665,10 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   cmd.push_back("-dMaxSubsetPct=100");
   cmd.push_back("-dEncodeColorImages="+compress);
   cmd.push_back("-dEncodeGrayImages="+compress);
-  cmd.push_back("-dCompatibilityLevel=1.5");
+  if(getSetting<double>("render") == 0)
+    cmd.push_back("-dCompatibilityLevel=1.4");
+  else
+    cmd.push_back("-dCompatibilityLevel=1.5");
   cmd.push_back("-dTransferFunctionInfo=/Apply");
   if(!getSetting<bool>("autorotate"))
     cmd.push_back("-dAutoRotatePages=/None");
@@ -860,7 +869,9 @@ bool picture::postprocess(const string& prename, const string& outname,
       } else
         status=pdftoeps(prename,outname);
     } else {
-      double render=fabs(getSetting<double>("render"));
+      double render = settings::getSetting<double>("render");
+      if (render < 0) // For backwards compatibility
+        render *= -2.0;
       if(render == 0) render=1.0;
       double res=render*72.0;
       Int antialias=getSetting<Int>("antialias");
@@ -881,8 +892,9 @@ bool picture::postprocess(const string& prename, const string& outname,
         cmd.push_back(prename);
         status=System(cmd,0,true,"gs","Ghostscript");
       } else if(!svg && !xasy) {
-        double expand=antialias;
-        if(expand < 2.0) expand=1.0;
+        double expand=1.0;
+        if(antialias > 0)
+          expand=antialias;
         res *= expand;
         string s=getSetting<string>("convert");
         cmd.push_back(s);
@@ -1429,29 +1441,51 @@ void picture::render(double size2, const triple& Min, const triple& Max,
     if(remesh) (*p)->meshinit();
     (*p)->render(size2,Min,Max,perspective,remesh);
   }
-
-#ifdef HAVE_GL
-  drawBuffers();
-#endif
 }
 
-typedef gl::GLRenderArgs Communicate;
-
-Communicate com;
+#ifdef HAVE_LIBGLM
+AsyRender::RenderFunctionArgs args = {};
 
 extern bool allowRender;
 
 void glrenderWrapper()
 {
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
+  if (gl == nullptr) {
+    // Renderer not yet initialised.  In threaded mode, the asymain thread
+    // may have woken us to create the renderer (to avoid a race condition
+    // caused by dlopen from a non-main thread).
 #ifdef HAVE_PTHREAD
-  wait(initSignal,initLock);
-  endwait(initSignal,initLock);
+    if(AsyRender::threads) {
+      createRenderer();
+      if(camp::gl != nullptr) {
+        // Signal asymain that the renderer is ready.
+        pthread_mutex_lock(&main_wait_mutex);
+        pthread_cond_signal(&main_wait_cond);
+        pthread_mutex_unlock(&main_wait_mutex);
+      }
+    }
 #endif
-  if(allowRender)
-    glrender(com);
+    return;
+  }
+#ifdef HAVE_PTHREAD
+  gl->threadMgr.wait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
+  gl->threadMgr.endwait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
+#endif
+  if(allowRender) {
+    allowRender=false;
+    gl->render(args);
+    // Signal asymain that rendering is complete.
+    // This is needed when the render thread handles rendering via handshake
+    // (e.g., headless mode or when not yet in a View mainLoop).
+    if(gl->readyAfterExport) {
+      gl->readyAfterExport=false;
+      gl->threadMgr.endwait(gl->threadMgr.readySignal,gl->threadMgr.readyLock);
+    }
+  }
 #endif
 }
+#endif // HAVE_LIBGLM
 
 bool picture::shipout3(const string& prefix, const string& format,
                        double width, double height, double angle, double zoom,
@@ -1459,28 +1493,35 @@ bool picture::shipout3(const string& prefix, const string& format,
                        const pair& margin, double *t, double *tup,
                        double *background,
                        size_t nlights, triple *lights, double *diffuse,
-                       double *specular, bool view)
+                       bool view)
 {
   if(getSetting<bool>("interrupt"))
     return true;
 
   if(width <= 0 || height <= 0) return false;
 
+#ifdef HAVE_LIBGLM
+  initRenderer(format.c_str());
+#endif
+
   bool webgl=format == "html";
   bool v3d=format == "v3d";
 
 #ifndef HAVE_LIBGLM
-  if(webgl)
-    camp::reportError("to support WebGL rendering, please install glm header files, then ./configure; make");
-
-  if(v3d)
-    camp::reportError("to support V3D rendering, please install glm header files, then ./configure; make");
+  if(webgl || v3d)
+    camp::reportError("to support html and v3d rendering, please install glm header files, then ./configure; make");
 #endif
 
 #ifndef HAVE_LIBOSMESA
-#ifndef HAVE_GL
-  if(!webgl)
-    camp::reportError("to support onscreen OpenGL rendering; please install the glut library, then ./configure; make");
+#ifndef HAVE_RENDERER
+  if(!webgl && !v3d) {
+#ifdef _WIN32
+    string extra="vulkan and glslang";
+#else
+    string extra="either vulkan and glslang or GL";
+#endif
+    camp::reportError("to support onscreen rendering, please install glfw and "+extra+" development libraries, then ./configure; make");
+  }
 #endif
 #endif
 
@@ -1517,10 +1558,10 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool View=settings::view() && view;
 #endif
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
   bool offscreen=false;
 #ifdef HAVE_LIBOSMESA
-  offscreen=true;
+  offscreen=!vulkan;
 #endif
 #ifdef HAVE_PTHREAD
   bool animating=getSetting<bool>("animating");
@@ -1529,69 +1570,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 #endif
 
   bool format3d=webgl || v3d;
-
-  if(!format3d) {
-#ifdef HAVE_GL
-    if(glthread && !offscreen) {
-#ifdef HAVE_PTHREAD
-      if(gl::initialize) {
-        gl::initialize=false;
-        com.prefix=prefix;
-        com.pic=pic;
-        com.format=outputformat;
-        com.width=width;
-        com.height=height;
-        com.angle=angle;
-        com.zoom=zoom;
-        com.m=m;
-        com.M=M;
-        com.shift=shift;
-        com.margin=margin;
-        com.t=t;
-        com.tup=tup;
-        com.background=background;
-        com.nlights=nlights;
-        com.lights=lights;
-        com.diffuse=diffuse;
-        com.specular=specular;
-        com.view=View;
-        if(Wait)
-          pthread_mutex_lock(&readyLock);
-        allowRender=true;
-        wait(initSignal,initLock);
-        endwait(initSignal,initLock);
-        static bool initialize=true;
-        if(initialize) {
-          wait(initSignal,initLock);
-          endwait(initSignal,initLock);
-          initialize=false;
-        }
-        if(Wait) {
-          pthread_cond_wait(&readySignal,&readyLock);
-          pthread_mutex_unlock(&readyLock);
-        }
-        return true;
-      }
-      if(Wait)
-        pthread_mutex_lock(&readyLock);
-#endif
-    } else {
-#if !defined(_WIN32)
-      int pid=fork();
-      if(pid == -1)
-        camp::reportError("Cannot fork process");
-      if(pid != 0)  {
-        oldpid=pid;
-        waitpid(pid,NULL,interact::interactive && View ? WNOHANG : 0);
-        return true;
-      }
-#endif
-    }
-#endif
-  }
-
-#if HAVE_LIBGLM
-  gl::GLRenderArgs args;
+#ifdef HAVE_LIBGLM
   args.prefix=prefix;
   args.pic=pic;
   args.format=outputformat;
@@ -1606,14 +1585,94 @@ bool picture::shipout3(const string& prefix, const string& format,
   args.t=t;
   args.tup=tup;
   args.background=background;
-  args.nlights=nlights;
+  args.nlightsin=nlights;
   args.lights=lights;
   args.diffuse=diffuse;
-  args.specular=specular;
   args.view=View;
+  args.oldpid=oldpid;
+#endif
+  if(!format3d) {
+#ifdef HAVE_RENDERER
+#ifdef HAVE_LIBGLM
+    if(AsyRender::threads && !offscreen) {
+#ifdef HAVE_PTHREAD
+      if(!gl->initialized) {
+        if(Wait)
+          pthread_mutex_lock(&gl->threadMgr.readyLock);
+        allowRender=true;
+        gl->threadMgr.wait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
+        gl->threadMgr.endwait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
+        static bool initialize=true;
+        if(initialize) {
+          gl->threadMgr.wait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
+          gl->threadMgr.endwait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
+          initialize=false;
+        }
+        if(Wait) {
+          pthread_cond_wait(&gl->threadMgr.readySignal,&gl->threadMgr.readyLock);
+          pthread_mutex_unlock(&gl->threadMgr.readyLock);
+        }
+        return true;
+      }
+      if(Wait)
+        pthread_mutex_lock(&gl->threadMgr.readyLock);
+#ifdef HAVE_RENDERER
+      // glfwPostEmptyEvent() only works when the render thread is inside
+      // a GLFW event loop.  In headless mode or when the render thread is
+      // not yet in a View mainLoop, use the handshake instead.
+      if(camp::headlessRenderer || !gl->initializedView) {
+        // Set up args for the render thread, then wake it via handshake.
+        allowRender=true;
+        gl->threadMgr.wait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
+        gl->threadMgr.endwait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
+        // The render thread has done the work.  Wait for completion
+        // and return -- don't fall through to gl->render() below.
+        if(Wait) {
+          pthread_cond_wait(&gl->threadMgr.readySignal,&gl->threadMgr.readyLock);
+          pthread_mutex_unlock(&gl->threadMgr.readyLock);
+        }
+        return true;
+      } else {
+        glfwPostEmptyEvent();
+      }
+#endif
+#endif
+    } else {
+#endif
+#if !defined(_WIN32)
+      int pid=fork();
+      if(pid == -1)
+        camp::reportError("Cannot fork process");
+      if(pid != 0)  {
+        oldpid=pid;
+        if(interact::interactive && View) {
+          waitpid(pid,nullptr,WNOHANG);
+          return true;
+        }
+        int status=0;
+        while(waitpid(pid,&status,0) == -1 && errno == EINTR);
+        if(WIFSIGNALED(status)) {
+          ostringstream buf;
+          buf << "3D renderer terminated by signal " << WTERMSIG(status)
+              << " (" << strsignal(WTERMSIG(status)) << ")";
+          reportError(buf);
+        }
+        if(WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+          ostringstream buf;
+          buf << "3D renderer exited with status " << WEXITSTATUS(status);
+          reportError(buf);
+        }
+        return true;
+      }
+#endif
+#ifdef HAVE_LIBGLM
+    }
+#endif
+#endif
+  }
 
-  glrender(args,oldpid);
-
+#if HAVE_LIBGLM
+  gl->render(args);
   if(format3d) {
     string name=buildname(prefix,format);
     abs3Doutfile *fileObj=nullptr;
@@ -1645,11 +1704,11 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(webgl && View)
       htmlView(name);
 
-#ifdef HAVE_GL
-    if(format3dWait) {
-      format3dWait=false;
+#ifdef HAVE_RENDERER
+    if(gl->format3dWait) {
+      gl->format3dWait=false;
 #ifdef HAVE_PTHREAD
-      endwait(initSignal,initLock);
+      gl->threadMgr.endwait(gl->threadMgr.initSignal,gl->threadMgr.initLock);
 #endif
     }
 #endif
@@ -1658,12 +1717,14 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
 #endif
 
-#ifdef HAVE_GL
+#ifdef HAVE_RENDERER
 #ifdef HAVE_PTHREAD
-  if(glthread && !offscreen && Wait) {
-    pthread_cond_wait(&readySignal,&readyLock);
-    pthread_mutex_unlock(&readyLock);
+#ifdef HAVE_LIBGLM
+  if(AsyRender::threads && !offscreen && Wait) {
+    pthread_cond_wait(&gl->threadMgr.readySignal,&gl->threadMgr.readyLock);
+    pthread_mutex_unlock(&gl->threadMgr.readyLock);
   }
+#endif
   return true;
 #endif
 #endif

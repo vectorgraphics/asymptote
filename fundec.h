@@ -132,7 +132,7 @@ public:
   // value of "result."
   types::function *getType(types::ty *result, coenv &e,
                            bool encodeDefVal = false);
-  
+
   mem::vector<tySymbolPair> *getFields();
 
   virtual void addOps(coenv &e, record *r);

@@ -3,7 +3,7 @@
 %global __python %{__python3}
 
 Name:           asymptote
-Version:        3.10
+Version:        3.15
 Release:        1%{?dist}
 Summary:        Descriptive vector graphics language
 
@@ -13,16 +13,21 @@ URL:            https://asymptote.sourceforge.io/
 Source:         http://downloads.sourceforge.net/sourceforge/asymptote/asymptote-%{version}.src.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
+BuildRequires:  cmake
 BuildRequires:  gcc-c++
 BuildRequires:  ncurses-devel
 BuildRequires:  readline-devel
 BuildRequires:  fftw-devel >= 3.0
 BuildRequires:  gsl-devel
 BuildRequires:  glm-devel
+BuildRequires:  python3
 BuildRequires:  tetex-latex
 BuildRequires:  ghostscript >= 9.55
 BuildRequires:  texinfo >= 4.7
-BuildRequires:  freeglut-devel
+BuildRequires:  glfw-devel
+BuildRequires:  vulkan-loader-devel
+BuildRequires:  glslang-devel
+BuildRequires:  SPIRV-Tools-devel
 BuildRequires:  zlib-devel
 BuildRequires:  libtool
 BuildRequires:  libtirpc-devel
@@ -30,7 +35,6 @@ BuildRequires:  libglvnd-devel
 BuildRequires:  libcurl-devel
 
 Requires:       tetex-latex
-Requires:       freeglut-devel >= 3.0.0
 Requires:       dvisvgm >= 2.9.1
 Requires:       ImageMagick
 Requires(post): /usr/bin/texhash /sbin/install-info
@@ -50,12 +54,18 @@ that LaTeX does for scientific text.
 %build
 CFLAGS="`echo $RPM_OPT_FLAGS | sed s/-O2/-O3/` -fno-lto" \
 %configure --with-latex=%{_texmf}/tex/latex --with-context=%{_texmf}/tex/context/third
-make %{?_smp_mflags}
+# Build the info page (and its example-PDF dependencies) here so that
+# %install stays lean and only copies the pre-built info file.
+make all info %{?_smp_mflags}
 
 
 %install
 rm -rf $RPM_BUILD_ROOT
 make install-notexhash DESTDIR=$RPM_BUILD_ROOT
+# The info page is already built in %build; install-info here just copies
+# it into the build root (kept separate from install-notexhash so that
+# target remains independent of texinfo support).
+make install-info DESTDIR=$RPM_BUILD_ROOT
 
 %{__install} -p -m 644 BUGS ChangeLog LICENSE README ReleaseNotes TODO \
     $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}/

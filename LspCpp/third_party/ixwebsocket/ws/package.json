@@ -1,0 +1,10 @@
+{
+  "name": "ixwebsocket-ws-test-deps",
+  "version": "1.0.0",
+  "description": "Node.js dependencies for ixwebsocket WebSocket tests",
+  "private": true,
+  "dependencies": {
+    "ws": "^8.21.0"
+  }
+}
+

@@ -1,0 +1,8 @@
+[
+  {"step":"initialize","file":"initialize_request.json","kind":"request","response_fixture":"initialize_response.json"},
+  {"step":"didOpen","file":"did_open_notification.json","kind":"notification"},
+  {"step":"foldingRange","file":"folding_range_request.json","kind":"request","response_fixture":"folding_range_response.json"},
+  {"step":"selectionRange","file":"selection_range_request.json","kind":"request","response_fixture":"selection_range_response.json"},
+  {"step":"inlayHint","file":"inlay_hint_request.json","kind":"request","response_fixture":"inlay_hint_response.json"},
+  {"step":"shutdown","file":"shutdown_request.json","kind":"request","response_fixture":"shutdown_null_response.json"}
+]

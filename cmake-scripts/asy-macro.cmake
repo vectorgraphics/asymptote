@@ -40,10 +40,6 @@ if (CMAKE_BUILD_TYPE IN_LIST cmake_debug_build_types)
     list(APPEND ASY_MACROS DEBUG)
 endif()
 
-if (CTAN_BUILD)
-    list(APPEND ASY_MACROS CTAN_BUILD)
-endif()
-
 if (ENABLE_COMPACT_ZERO_BUILD)
     message(STATUS "Setting COMPACT=0. Ensure this is not a production build.")
     list(APPEND ASY_MACROS COMPACT=0)

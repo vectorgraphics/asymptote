@@ -4,17 +4,18 @@
 #include "config.h"
 #endif
 
-#ifndef GLEW_INCLUDE
-#include "GL/glew.h"
-#else
-#include GLEW_INCLUDE
+#ifdef HAVE_LIBGL
+
+#include "backports/glew/include/GL/glew.h"
+#ifndef __APPLE__
+#include "backports/glew/include/GL/glxew.h"
 #endif
 
-#ifdef HAVE_LIBGL
 #ifdef HAVE_LIBOSMESA
 #define GLEW_OSMESA
 #define APIENTRY
 #endif
 
 #include "backports/glew/src/glew.c"
+
 #endif /* HAVE_LIBGL */
