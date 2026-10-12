@@ -44,12 +44,12 @@ public:
 class fileinfo : public gc {
   string filename;
   size_t lineNum;
-  uint16_t fileIndex_;
+  uint16_t fileIndex;
 
 public:
   fileinfo(string filename, size_t lineNum=1)
     : filename(filename), lineNum(lineNum),
-      fileIndex_(positionFileRegistry::intern(filename)) {}
+      fileIndex(positionFileRegistry::intern(filename)) {}
 
   size_t line() const
   {
@@ -60,8 +60,8 @@ public:
     return filename;
   }
 
-  uint16_t fileIndex() const {
-    return fileIndex_;
+  uint16_t index() const {
+    return fileIndex;
   }
 
   // The filename without the directory and without the '.asy' suffix.
@@ -83,71 +83,71 @@ inline bool operator == (const fileinfo& a, const fileinfo& b)
 }
 
 class position : public gc {
-  // Packed representation: a position is a 16-bit file index (0 means
-  // "no file"), a 16-bit line number, a 16-bit column number, and 16
-  // bits of padding. Total: one 64-bit word. Equality is a single word
-  // comparison.
-  uint16_t fileIndex_;
-  uint16_t line_;
-  uint16_t column_;
-  uint16_t reserved_;
+  // Packed representation: a 16-bit file index (0 means "no file"), a
+  // 32-bit line number, and a 16-bit column number. Total: one 64-bit
+  // word. Equality is a single word comparison.
+  uint32_t line;
+  uint16_t fileIndex;
+  uint16_t column;
 
-  // Saturating cast from a (possibly large) integral value to uint16_t.
+  // Saturating casts from (possibly large) integral values.
   static uint16_t toU16(size_t v) {
     return v > 0xFFFFu ? uint16_t(0xFFFFu) : uint16_t(v);
+  }
+  static uint32_t toU32(size_t v) {
+    return v > 0xFFFFFFFFu ? 0xFFFFFFFFu : (uint32_t) v;
   }
 
 public:
   void init(fileinfo *f, Int p) {
     if (f) {
-      fileIndex_ = f->fileIndex();
-      line_ = toU16(f->line());
-      column_ = toU16((size_t) p);
+      fileIndex = f->index();
+      line      = toU32(f->line());
+      column    = toU16((size_t) p);
     } else {
-      fileIndex_ = 0;
-      line_ = 0;
-      column_ = 0;
+      fileIndex = 0;
+      line      = 0;
+      column    = 0;
     }
-    reserved_ = 0;
   }
 
   string filename() const {
-    return positionFileRegistry::getFilename(fileIndex_);
+    return positionFileRegistry::getFilename(fileIndex);
   }
 
   size_t Line() const {
-    return line_;
+    return line;
   }
 
   size_t Column() const {
-    return column_;
+    return column;
   }
 
-  position shift(unsigned int offset) const {
+  position shift(uint32_t offset) const {
     position P=*this;
-    P.line_ = uint16_t(P.line_ - offset);
+    P.line = (P.line > offset) ? P.line - offset : 0;
     return P;
   }
 
   std::pair<size_t,size_t>LineColumn() const {
-    return std::pair<size_t,size_t>(line_,column_);
+    return std::pair<size_t,size_t>(line,column);
   }
 
   bool match(const string& s) {
-    return fileIndex_ != 0 && filename() == s;
+    return fileIndex != 0 && filename() == s;
   }
 
   bool match(size_t l) {
-    return line_ == l;
+    return line == l;
   }
 
   bool matchColumn(size_t c) {
-    return column_ == c;
+    return column == c;
   }
 
   bool operator! () const
   {
-    return fileIndex_ == 0;
+    return fileIndex == 0;
   }
 
   friend ostream& operator << (ostream& out, const position& pos);
@@ -163,17 +163,17 @@ public:
 
   void print(ostream& out) const
   {
-    if (fileIndex_) {
-      out << filename() << ":" << line_ << "." << column_;
+    if (fileIndex) {
+      out << filename() << ":" << line << "." << column;
     }
   }
 
   // Write out just the module name and line number.
   void printTerse(ostream& out) const
   {
-    if (fileIndex_) {
-      const string& fname = positionFileRegistry::getFilename(fileIndex_);
-      out << errormsg::moduleNameFromPath(fname) << ":" << line_;
+    if (fileIndex) {
+      const string& fname = positionFileRegistry::getFilename(fileIndex);
+      out << errormsg::moduleNameFromPath(fname) << ":" << line;
     }
   }
 };
@@ -186,10 +186,10 @@ struct nullPosInitializer {
 
 inline bool operator == (const position& a, const position& b)
 {
-  // Since filenames are interned uniquely into fileIndex, comparing all
-  // fields suffices. This is a single 64-bit comparison.
-  return a.fileIndex_ == b.fileIndex_ && a.line_ == b.line_ &&
-         a.column_ == b.column_;
+  // Since filenames are interned uniquely into fileIndex and all 8 bytes
+  // of the struct are live data, a whole-word comparison suffices.
+  return a.fileIndex == b.fileIndex && a.line == b.line &&
+         a.column == b.column;
 }
 
 string warning(string s);

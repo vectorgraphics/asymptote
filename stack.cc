@@ -340,7 +340,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
   processDataStruct& P=processData();
   position& topPos=P.topPos;
   string& fileName=P.fileName;
-  unsigned int offset=P.xmapCount;
+  uint32_t offset=P.xmapCount;
 
   bool traceless=!settings::debug;
   bool xasy=settings::xasy || offset || settings::keys;

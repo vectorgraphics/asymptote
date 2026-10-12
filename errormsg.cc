@@ -97,26 +97,26 @@ ostream& operator<< (ostream& out, const position& pos)
   if(filename != "-" && !(quiet || where)) {
     std::ifstream fin(filename.c_str());
     string s;
-    size_t count=pos.line_;
+    size_t count=pos.line;
     while(count > 0 && getline(fin,s)) {
       count--;
     }
     s=std::regex_replace(s,std::regex("\t")," ");
     out << s << endl;
-    for(size_t i=1; i < pos.column_; ++i)
+    for(size_t i=1; i < pos.column; ++i)
       out << " ";
     out << "^" << endl;
   } else if(filename == "-" && !quiet && !where) {
     size_t promptWidth=settings::getSetting<string>("prompt").length();
     for(size_t i=0; i < promptWidth; ++i)
       out << " ";
-    for(size_t i=1; i < pos.column_; ++i)
+    for(size_t i=1; i < pos.column; ++i)
       out << " ";
     out << "^" << endl;
   }
 
   out << filename << ": ";
-  out << pos.line_ << "." << pos.column_;
+  out << pos.line << "." << pos.column;
 
   if(settings::xasy) {
     camp::openpipeout();
