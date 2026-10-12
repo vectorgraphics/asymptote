@@ -93,8 +93,6 @@ AC_C_BIGENDIAN(
    [AC_DEFINE(UNIVERSAL_ENDIAN_BUILD,1,[Endianness is determined at compile time])]
 )
 
-echo Compiling with $CXXFLAGS $CFLAGS
-
 # --------------- additional optimizations ---------------------
 # Options for additional optimizations (link-time optimization, support for later x86-64 instruction sets (e.g. AVX2))
 
@@ -123,13 +121,28 @@ AS_IF(
    [
       case "$host_cpu" in
         x86_64|amd64|i686|x86)
-           AX_GCC_X86_CPU_SUPPORTS(avx2, [
-              with_x86_64_v3_targeting=yes
-              AC_MSG_NOTICE([Build CPU supports AVX2, targeting x86-64-v3])
-           ], [
-              with_x86_64_v3_targeting=no
-              AC_MSG_NOTICE([Build CPU does not support AVX2, using baseline x86-64])
-           ])
+           # Guard: only call AX_GCC_X86_CPU_SUPPORTS if the compiler actually
+           # has the __builtin_cpu_init / __builtin_cpu_supports builtins.
+           # The upstream macro calls AC_MSG_ERROR when they are missing;
+           # pre-testing here lets us fall back to baseline gracefully instead.
+           AC_LANG_PUSH([C])
+           AC_COMPILE_IFELSE(
+              [AC_LANG_PROGRAM([#include <stdlib.h>],
+                [__builtin_cpu_init ();])
+              ],
+              [AX_GCC_X86_CPU_SUPPORTS(avx2, [
+                 with_x86_64_v3_targeting=yes
+                 AC_MSG_NOTICE([Build CPU supports AVX2, targeting x86-64-v3])
+               ], [
+                 with_x86_64_v3_targeting=no
+                 AC_MSG_NOTICE([Build CPU does not support AVX2, using baseline x86-64])
+               ])
+              ],
+              [with_x86_64_v3_targeting=no
+               AC_MSG_NOTICE([Compiler lacks __builtin_cpu_init; skipping AVX2 detection, using baseline x86-64])
+              ]
+           )
+           AC_LANG_POP([C])
            ;;
         *)
            with_x86_64_v3_targeting=no
@@ -142,7 +155,7 @@ AS_IF(
 AS_IF(
    [test "x$with_x86_64_v3_targeting" = "xyes"],
    [
-      saved_CFLAGS=$CFLAGS
+      saved_CFLAGS="$CFLAGS"
       CFLAGS="$CFLAGS -march=x86-64-v3"
       AC_LANG_PUSH([C])
       AC_COMPILE_IFELSE(
@@ -157,6 +170,8 @@ AS_IF(
       AC_LANG_POP([C])
    ]
 )
+
+echo Compiling with $CXXFLAGS $CFLAGS
 
 AC_ARG_WITH(latex,
         [AS_HELP_STRING(--with-latex=PATH,
