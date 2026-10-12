@@ -177,7 +177,10 @@ namespace AsymptoteLsp
     unique_ptr<unordered_map<std::string, std::vector<std::string>>> fileContentsPtr;
     std::string plainFile;
 
-    std::mutex onChangeMutex;
+    // Protects symmapContextsPtr and fileContentsPtr against concurrent
+    // access from notification handlers (onChange, onOpen) and request
+    // handlers (hover, color, definition) which run on separate threads.
+    std::mutex docStateMutex;
   };
 
   class TCPAsymptoteLSPServer : public lsp::TcpServer, public AsymptoteLspServer
