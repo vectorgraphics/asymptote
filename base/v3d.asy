@@ -38,6 +38,8 @@ struct CameraInformation
 
   light light;
 
+  string imageName;
+
   void setCameraInfo()
   {
     size(canvasWidth,canvasHeight);
@@ -226,6 +228,18 @@ struct v3dfile
             triple position=xdrfile;
             ci.light.position.push(position);
             ci.light.diffuse.push(rgba(readColorData(1,false)[0]));
+          }
+        else if (headerKey==v3dheadertypes.imageName)
+          {
+            xdrfile.word(true);
+            ci.imageName=xdrfile;
+            xdrfile.word(false);
+            string c;
+            int n=length(ci.imageName);
+            int words=(n+3)#4;
+            int bytes=4*words;
+            for(int i=n; i < bytes; ++i)
+              c=getc(xdrfile);
           }
         else
           {
@@ -498,13 +512,26 @@ struct v3dfile
     static bool processed;
     if(processed) return;
 
-    while (!eof(xdrfile))
+    while (true)
       {
         int ty=getType();
+        if(eof(xdrfile)) break;
         if(ty == v3dtypes.header)
           {
             hasCameraInfo=true;
             info=processHeader();
+            if(info.imageName != "")
+              {
+                settings.ibl=true;
+                string name=info.imageName;
+                // If the name contains an absolute path, extract just the filename; relative paths are ok.
+                if(length(name) > 0 && substr(name,0,1) == "/")
+                  {
+                    int lastSlash=rfind(name,'/');
+                    name=substr(name,lastSlash+1);
+                  }
+                settings.image=name;
+              }
           }
         else if(ty == v3dtypes.material)
           {
@@ -584,7 +611,7 @@ struct v3dfile
           }
         else
           {
-            //  abort("Unknown type:"+string(ty));
+            abort("Unknown type:"+string(ty));
           }
       }
     processed=true;

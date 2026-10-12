@@ -11,6 +11,7 @@ Asymptote incorporates the following third-party components:
 | libatomic_ops | MIT (core) / GPL-2.0 (extensions) | https://github.com/ivmai/libatomic_ops |
 | GLEW | BSD 3-Clause | https://glew.sourceforge.net/ |
 | TinyEXR | BSD 3-Clause | https://github.com/syoyo/tinyexr |
+| gl-matrix | Zlib | https://github.com/toji/gl-matrix |
 
 Full copyright notices and license texts for all components (including
 Asymptote's own LGPL) are available via `asy --licenses=full`, which reads

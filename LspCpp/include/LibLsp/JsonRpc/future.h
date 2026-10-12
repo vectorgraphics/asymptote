@@ -15,8 +15,10 @@
 #pragma once
 
 #include <condition_variable>
+#include <chrono>
 #include <memory>
 #include <mutex>
+#include <utility>
 
 namespace lsp
 {
@@ -106,7 +108,7 @@ T future<T>::get()
 {
     std::unique_lock<std::mutex> lock(state->mutex);
     state->cv.wait(lock, [&] { return state->hasVal; });
-    return state->val;
+    return std::move(state->val);
 }
 
 template<typename T>

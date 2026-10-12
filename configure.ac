@@ -3,10 +3,11 @@
 # this file.
 
 AC_PREREQ([2.71])
-AC_INIT([Asymptote],[3.12git],[https://github.com/vectorgraphics/asymptote/issues])
+AC_INIT([Asymptote],[3.16git],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
+m4_include([ax_gcc_x86_cpu_supports.m4])
 m4_include([pkg.m4])
 
 AH_TOP([#pragma once])
@@ -92,6 +93,84 @@ AC_C_BIGENDIAN(
    [AC_DEFINE(UNIVERSAL_ENDIAN_BUILD,1,[Endianness is determined at compile time])]
 )
 
+# --------------- additional optimizations ---------------------
+# Options for additional optimizations (link-time optimization, support for later x86-64 instruction sets (e.g. AVX2))
+
+AC_ARG_WITH(link-time-opt,
+   [AS_HELP_STRING(--with-link-time-opt=[[[yes]]],
+      [Enables link-time optimization. Enabled by default])],
+   [],
+   [with_link_time_opt=yes]
+)
+
+AS_IF(
+   [test "x$with_link_time_opt" = "xyes"],
+   [CFLAGS="$CFLAGS -flto"]
+)
+
+AC_ARG_WITH(x86-64-v3-targeting,
+   [AS_HELP_STRING(--with-x86-64-v3-targeting=[[[check]]],
+      [Targets x86-64-v3 CPUs or higher (i.e. AVX/AVX2 support).
+      check: auto-detect AVX2 on build CPU (default). yes: force on. no: force off.])],
+   [],
+   [with_x86_64_v3_targeting=check]
+)
+
+AS_IF(
+   [test "x$with_x86_64_v3_targeting" = "xcheck"],
+   [
+      case "$host_cpu" in
+        x86_64|amd64|i686|x86)
+           # Guard: only call AX_GCC_X86_CPU_SUPPORTS if the compiler actually
+           # has the __builtin_cpu_init / __builtin_cpu_supports builtins.
+           # The upstream macro calls AC_MSG_ERROR when they are missing;
+           # pre-testing here lets us fall back to baseline gracefully instead.
+           AC_LANG_PUSH([C])
+           AC_COMPILE_IFELSE(
+              [AC_LANG_PROGRAM([#include <stdlib.h>],
+                [__builtin_cpu_init ();])
+              ],
+              [AX_GCC_X86_CPU_SUPPORTS(avx2, [
+                 with_x86_64_v3_targeting=yes
+                 AC_MSG_NOTICE([Build CPU supports AVX2, targeting x86-64-v3])
+               ], [
+                 with_x86_64_v3_targeting=no
+                 AC_MSG_NOTICE([Build CPU does not support AVX2, using baseline x86-64])
+               ])
+              ],
+              [with_x86_64_v3_targeting=no
+               AC_MSG_NOTICE([Compiler lacks __builtin_cpu_init; skipping AVX2 detection, using baseline x86-64])
+              ]
+           )
+           AC_LANG_POP([C])
+           ;;
+        *)
+           with_x86_64_v3_targeting=no
+           AC_MSG_NOTICE([Not an x86 architecture ($host_cpu), x86-64-v3 targeting not applicable])
+           ;;
+      esac
+   ]
+)
+
+AS_IF(
+   [test "x$with_x86_64_v3_targeting" = "xyes"],
+   [
+      saved_CFLAGS="$CFLAGS"
+      CFLAGS="$CFLAGS -march=x86-64-v3"
+      AC_LANG_PUSH([C])
+      AC_COMPILE_IFELSE(
+         [AC_LANG_PROGRAM([],[])],
+         [AC_MSG_NOTICE([Compiler supports -march=x86-64-v3])],
+         [
+            CFLAGS="$saved_CFLAGS"
+            with_x86_64_v3_targeting=no
+            AC_MSG_NOTICE([Compiler does not support -march=x86-64-v3, using baseline])
+         ]
+      )
+      AC_LANG_POP([C])
+   ]
+)
+
 echo Compiling with $CXXFLAGS $CFLAGS
 
 AC_ARG_WITH(latex,
@@ -127,10 +206,13 @@ else
 fi
 ])
 
-AC_CHECK_PROGS(TEXI2DVI,[texi2dvi],
-[@echo \*\*\*\*\*\*\*\*\*\* Please install texi2dvi or put https://asymptote.sourceforge.io/asymptote.pdf in the doc directory: cannot execute texi2dvi])
+AC_CHECK_PROGS(TEXI2ANY,[texi2any makeinfo])
+if test -z "$TEXI2ANY"; then
+  AC_MSG_NOTICE([*** Could not find texi2any: will compile \
+without documentation support ***])
+fi
 
-AC_SUBST(TEXI2DVI)
+AC_SUBST(TEXI2ANY)
 
 latexdir=$latexdir/asymptote
 contextdir=$contextdir/asymptote
@@ -173,18 +255,11 @@ CPPFLAGS=$CPPFLAGS" -I. "
 
 AC_ARG_ENABLE(texlive-build,
 [AS_HELP_STRING(--enable-texlive-build[[[=no]]],
-automatically determine sysdir from kpsewhich)],
+leave ASYMPTOTE_SYSDIR empty and define KPSEWHICH so the binary
+determines sysdir from kpsewhich at runtime)],
 [ if test "x$enableval" = "xyes" ; then
     sysdir=""
-  fi
-])
-
-AC_ARG_ENABLE(relocatable,
-[AS_HELP_STRING(--enable-relocatable[[[=no]]],
-leave ASYMPTOTE_SYSDIR empty so the binary finds its data directory
-relative to its own location at runtime (for portable/staged macOS installs))],
-[ if test "x$enableval" = "xyes" ; then
-    OPTIONS=$OPTIONS"-DIS_RELOCATABLE "
+    OPTIONS=$OPTIONS"-DKPSEWHICH "
   fi
 ])
 
@@ -284,7 +359,7 @@ LSPLIBS=
 LSPLIB=
 if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
    LSPLIB=$LSP_ROOT/liblspcpp.a
-   LSPLIBS=$LSPLIBS" -L$LSP_ROOT -L$LSP_ROOT/third_party/uri/src -llspcpp -lnetwork-uri"
+   LSPLIBS=$LSPLIBS" -L$LSP_ROOT/build -L$LSP_ROOT/build/third_party/uri/src -llspcpp -lnetwork-uri"
    LSP_CMAKE_OPTIONS="-DLSPCPP_USE_CPP17=ON "
 
    if test "x$enable_gc" != "xno"; then
@@ -525,9 +600,23 @@ VMA_IMPL_FILES=$VMA_IMPL_FILES" vma_cxx vma_impl"
 ASY_VULKAN_LIBS=""
 AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h],[break])
 
+dnl Check for vulkan/vulkan.hpp and VK_API_VERSION_1_4 using a C++ compile test.
+dnl On some distros (e.g., Ubuntu with LunarG libvulkan-dev) the C++ header
+dnl may be missing, or the headers may be too old to support Vulkan 1.4.
+AC_LANG_PUSH([C++])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([[#include <vulkan/vulkan.hpp>]],
+                   [[(void)(uintptr_t)VK_API_VERSION_1_4;]])],
+  [have_vulkan_hpp=yes],
+  [have_vulkan_hpp=no]
+)
+AC_LANG_POP([C++])
+
 case "$OSTYPE" in
      *)
-          AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
+          if test "x$have_vulkan_hpp" != "xyes"; then
+            AC_MSG_NOTICE([*** Could not find vulkan/vulkan.hpp with VK_API_VERSION_1_4: will compile without Vulkan support ***])
+          else
           AC_CHECK_LIB([vulkan], [vkCreateInstance],
           [
           LIBS_SAVE=$LIBS
@@ -540,31 +629,39 @@ case "$OSTYPE" in
                ;;
           esac
           ASY_VULKAN_LIBS="-lvulkan $VULKAN_LIBS-lSPIRV"
-          AC_CHECK_LIB([glslang],[glslang_initialize_process],
-          [
-          AC_DEFINE(HAVE_LIBVULKAN,1,
-          DEFINE_LIB([vulkan]))
-          ASY_VULKAN_LIBS="$ASY_VULKAN_LIBS -lglslang -lSPIRV-Tools-opt -lSPIRV-Tools"
-          ],
-
-          [
-          ASY_VULKAN_LIBS="$ASY_VULKAN_LIBS -lOGLCompiler"
-          AC_CHECK_LIB([glslang],[glslang_finalize_process],
-          [
-          AC_DEFINE(HAVE_LIBVULKAN,1,
-          DEFINE_LIB([vulkan]))
-          ASY_VULKAN_LIBS="$ASY_VULKAN_LIBS -lglslang"
-          ],
-          [
-          AC_MSG_NOTICE([*** Could not find libglslang: will compile without Vulkan support ***])
-          ASY_VULKAN_LIBS=""
+          dnl On some distros (e.g., Ubuntu) libglslang.a is a thin C wrapper and
+          dnl the actual C++ implementation is in companion libraries. Try -lglslang
+          dnl alone first; if that fails, try with companions.
+          ASY_GLSLANG_LIBS=""
+          LIBS_SAVE=$LIBS
+          LIBS="$LIBS -lglslang"
+          AC_LINK_IFELSE(
+            [AC_LANG_CALL([], [glslang_initialize_process])],
+            [ASY_GLSLANG_LIBS="-lglslang"],
+            []
+          )
+          dnl If -lglslang alone didn't work, try with companion libraries
+          if test "x$ASY_GLSLANG_LIBS" = "x"; then
+            LIBS="$LIBS_SAVE -lglslang $VULKAN_LIBS -lOGLCompiler"
+            AC_LINK_IFELSE(
+              [AC_LANG_CALL([], [glslang_initialize_process])],
+              [ASY_GLSLANG_LIBS="-lglslang $VULKAN_LIBS -lOGLCompiler"],
+              []
+            )
+          fi
           LIBS=$LIBS_SAVE
-          ]
-          )
-          ]
-          )
+          if test "x$ASY_GLSLANG_LIBS" != "x"; then
+            AC_DEFINE(HAVE_LIBVULKAN,1,
+            DEFINE_LIB([vulkan]))
+            ASY_VULKAN_LIBS="$ASY_VULKAN_LIBS $ASY_GLSLANG_LIBS -lSPIRV-Tools-opt -lSPIRV-Tools"
+          else
+            AC_MSG_NOTICE([*** Could not find libglslang: will compile without Vulkan support ***])
+            ASY_VULKAN_LIBS=""
+            LIBS=$LIBS_SAVE
+          fi
           ],
           AC_MSG_NOTICE([*** Could not find libvulkan: will compile without Vulkan support ***]))
+          fi
 esac
 fi
 
@@ -618,7 +715,6 @@ case "$OSTYPE" in
               # chained fixups. Add -no_fixup_chains to use traditional fixups
               # which work correctly with dynamic_lookup for dlopen'd libraries.
               SHIM_LDFLAGS="-undefined dynamic_lookup -Wl,-no_fixup_chains"
-              AC_CHECK_LIB([gccpp],[GC_throw_bad_alloc])
               AC_CHECK_HEADER(OpenGL/gl.h,
                              [AC_DEFINE(HAVE_LIBGL,1,
                              DEFINE([<gl.h> header]))
@@ -672,7 +768,6 @@ CXX_STANDARD=$cxxstd
 AC_SUBST(ASYGLVERSION)
 AC_SUBST(GCOPTIONS)
 AC_SUBST(GCLIB)
-AC_SUBST(GCPPLIB)
 AC_SUBST(LSPLIB)
 AC_SUBST(LSPLIBS)
 AC_SUBST(INCL)
@@ -723,6 +818,6 @@ AC_FUNC_FSEEKO
 AC_CHECK_FUNCS(strptime)
 AC_CHECK_FUNCS(strnlen)
 
-AC_CONFIG_FILES([Makefile doc/Makefile doc/png/Makefile])
+AC_CONFIG_FILES([Makefile doc/Makefile doc/png/Makefile doc/FAQ/Makefile])
 AC_CONFIG_HEADERS([config.h])
 AC_OUTPUT

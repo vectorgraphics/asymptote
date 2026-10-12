@@ -4,6 +4,7 @@
 #include "LibLsp/JsonRpc/lsResponseMessage.h"
 
 #include "LibLsp/lsp/symbol.h"
+#include "LibLsp/lsp/lsProgressToken.h"
 #include "LibLsp/lsp/lsTextDocumentIdentifier.h"
 /**
   * The document symbol request is sent from the client to the server to list all symbols found in a given text document.
@@ -11,9 +12,22 @@
 struct lsDocumentSymbolParams
 {
     lsTextDocumentIdentifier textDocument;
-    MAKE_SWAP_METHOD(lsDocumentSymbolParams, textDocument)
+
+    /**
+ * An optional token that a server can use to report work done progress
+ * (WorkDoneProgressParams).
+ */
+    optional<lsProgressToken> workDoneToken;
+
+    /**
+ * An optional token that a server can use to report partial results
+ * (PartialResultParams).
+ */
+    optional<lsProgressToken> partialResultToken;
+
+    MAKE_SWAP_METHOD(lsDocumentSymbolParams, textDocument, workDoneToken, partialResultToken)
 };
-MAKE_REFLECT_STRUCT(lsDocumentSymbolParams, textDocument);
+MAKE_REFLECT_STRUCT(lsDocumentSymbolParams, textDocument, workDoneToken, partialResultToken);
 
 struct TextDocumentDocumentSymbol
 {

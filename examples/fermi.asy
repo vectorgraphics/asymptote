@@ -36,5 +36,3 @@ drawVertexOX(zl);
 
 // draw gluon. Note that the underlying fermion line is blotted out.
 drawGluon(arc((0,0),mxu,myl,CW));
-
-// shipout

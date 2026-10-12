@@ -194,6 +194,8 @@ public:
   drawElement *transformed(const double* t);
 };
 
+double pixelsPerBp();
+
 // Draw a pixel.
 class drawPixel : public drawElement {
   triple v;
@@ -212,13 +214,22 @@ public:
 
   void bounds(const double* t, bbox3& B) {
     Min=Max=(t != NULL) ? t*v : v;
+    // width is in device pixels; convert to PostScript units.
+    double h=0.5*width/pixelsPerBp();
+    triple H=triple(h,h,h);
+    Min -= H;
+    Max += H;
     B.add(Min);
+    B.add(Max);
   }
 
   void ratio(const double* t, pair &b, double (*m)(double, double), double,
              bool &first) {
     triple V=(t != NULL) ? t*v : v;
-    pair z=pair(xratio(V),yratio(V));
+    // width is in device pixels; convert to PostScript units.
+    double h=0.5*width/pixelsPerBp();
+    triple H=triple(h,h,h);
+    pair z=pair(m(xratio(V-H),xratio(V+H)),m(yratio(V-H),yratio(V+H)));
 
     if(first) {
       b=z;

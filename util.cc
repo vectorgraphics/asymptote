@@ -341,6 +341,24 @@ void writeDisabled()
   camp::reportError("Write to other directories disabled; override with option -globalwrite");
 }
 
+void checkread(const string& name)
+{
+  if(globalread()) return;
+  string dir=stripFile(name);
+  if(dir.empty()) return;
+  string indir=stripFile(outname());
+  if(dir != indir) readDisabled();
+}
+
+void checkwrite(const string& name)
+{
+  if(globalwrite()) return;
+  string dir=stripFile(name);
+  if(dir.empty()) return;
+  string outdir=stripFile(outname());
+  if(dir != outdir) writeDisabled();
+}
+
 string cleanpath(string name)
 {
   string dir=stripFile(name);
@@ -354,8 +372,7 @@ string inpath(string name)
   bool global=globalread();
   string dir=stripFile(name);
   if(global && !dir.empty()) return name;
-  string indir=stripFile(outname());
-  if(!(global || dir.empty() || dir == indir)) readDisabled();
+  checkread(name);
   return stripDir(name);
 }
 
@@ -364,9 +381,8 @@ string outpath(string name)
   bool global=globalwrite();
   string dir=stripFile(name);
   if(global && !dir.empty()) return name;
-  string outdir=stripFile(outname());
-  if(!(global || dir.empty() || dir == outdir)) writeDisabled();
-  return outdir+stripDir(name);
+  checkwrite(name);
+  return stripFile(outname())+stripDir(name);
 }
 
 string buildname(string prefix, string suffix, string aux)

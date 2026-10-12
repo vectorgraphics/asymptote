@@ -65,14 +65,50 @@ var ICONS_GROUP
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "asymptote-${PRODUCT_VERSION}-setup.exe"
 InstallDir "$PROGRAMFILES64\Asymptote"
-InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
+; Read the "Path" value (the directory), NOT the default value: the default
+; value of an App Paths key is the exe path ("...\Asymptote\asy.exe"), and
+; using it as the install dir would nest the whole install in a subdirectory
+; named "asy.exe".
+InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" "Path"
 ShowInstDetails show
 ShowUnInstDetails show
 
 Section "Asymptote" SEC01
+
+  ; Remove the old asy.exe and its runtime DLLs before copying. A running
+  ; (or hung) asy.exe keeps its image and loaded DLLs (glfw3.dll,
+  ; vulkan-1.dll, etc.) mapped, and `File /r` cannot overwrite them. Windows
+  ; allows deleting images that are still running (they stay mapped in memory
+  ; until the process exits), so clearing them first lets the fresh copies
+  ; land unconditionally; the old process simply keeps running until closed.
+  Delete "$INSTDIR\asy.exe"
+
+  ; Skip vulkan_lvp.dll: it is user-installed for software rendering and is
+  ; not part of the package.
+  FindFirst $R9 $R8 "$INSTDIR\*.dll"
+  ${IfNot} ${Errors}
+    asy_dll_del:
+      StrCmp $R8 "vulkan_lvp.dll" asy_dll_skip
+      Delete "$INSTDIR\$R8"
+      asy_dll_skip:
+      FindNext $R9 $R8
+      ${IfNot} ${Errors}
+        Goto asy_dll_del
+      ${EndIf}
+    FindClose $R9
+  ${EndIf}
+
+  Delete "$INSTDIR\base\*.dll"
+
   SetOutPath "$INSTDIR"
-  SetOverwrite try
+  SetOverwrite on
   File /r build-${PRODUCT_VERSION}\*
+
+  ; A failed asy.exe copy must not complete as a silent no-op install.
+  ${IfNot} ${FileExists} "$INSTDIR\asy.exe"
+    MessageBox MB_ICONSTOP "Installation failed: asy.exe could not be written to $INSTDIR.$\r$\nClose any running Asymptote processes (check Task Manager) and install again."
+    Abort
+  ${EndIf}
 
   FileOpen $0 $INSTDIR\asy.bat w
 
@@ -157,6 +193,9 @@ FunctionEnd
 
 Section Uninstall
   !insertmacro MUI_STARTMENU_GETFOLDER "Application" $ICONS_GROUP
+  ; No lock guard needed here: unlike overwriting, Windows allows deleting a
+  ; running image file, so the Delete/RMDir below succeed even if asy.exe is
+  ; still running (the process keeps its in-memory copy until it exits).
   Delete "$INSTDIR\${PRODUCT_NAME}.url"
   Delete "$INSTDIR\uninst.exe"
   !include AsymptoteUninstallList.nsi

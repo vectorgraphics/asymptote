@@ -7,21 +7,21 @@
 #include "LibLsp/lsp/textDocument/typeHierarchy.h"
 #include "LibLsp/lsp/AbsolutePath.h"
 #include "LibLsp/lsp/textDocument/resolveCompletionItem.h"
-#include <network/uri.hpp>
 
 
 #include "LibLsp/JsonRpc/Endpoint.h"
 #include "LibLsp/JsonRpc/stream.h"
 #include "LibLsp/JsonRpc/TcpServer.h"
+#include "LibLsp/lsp/asio.h"
 #include "LibLsp/lsp/textDocument/document_symbol.h"
 #include "LibLsp/lsp/workspace/execute_command.h"
 
 #include <boost/filesystem.hpp>
-#include <boost/asio.hpp>
+#include <cstdlib>
 #include <iostream>
 #include <thread>
 
-using namespace boost::asio::ip;
+using namespace asio::ip;
 using namespace std;
 class DummyLog :public lsp::Log
 {
@@ -92,21 +92,27 @@ public:
                 server.point.registerHandler([=](Notify_Exit::notify& notify)
                         {
                                 std::cout << notify.ToJson() << std::endl;
+                                server.stop();
                         });
-                std::thread([&]()
+                server_thread = std::thread([&]()
                         {
                                 server.run();
-                        }).detach();
+                        });
         }
         ~Server()
         {
                 server.stop();
+                if (server_thread.joinable())
+                {
+                        server_thread.join();
+                }
         }
         std::shared_ptr < lsp::ProtocolJsonHandler >  protocol_json_handler = std::make_shared < lsp::ProtocolJsonHandler >();
         DummyLog _log;
 
         std::shared_ptr < GenericEndpoint >  endpoint = std::make_shared<GenericEndpoint>(_log);
         lsp::TcpServer server;
+        std::thread server_thread;
 
 };
 
@@ -115,8 +121,8 @@ class Client
 public:
         struct iostream :public lsp::base_iostream<tcp::iostream>
         {
-                explicit iostream(boost::asio::basic_socket_iostream<tcp>& _t)
-                        : base_iostream<boost::asio::basic_socket_iostream<tcp>>(_t)
+                explicit iostream(tcp::iostream& _t)
+                        : base_iostream<tcp::iostream>(_t)
                 {
                 }
 
@@ -124,6 +130,11 @@ public:
                 {
                         auto  msg = _impl.error().message();
                         return  msg;
+                }
+
+                void interrupt() override
+                {
+                        _impl.close();
                 }
 
         };
@@ -146,9 +157,11 @@ public:
         }
         ~Client()
         {
-        remote_end_point_.stop();
-                std::this_thread::sleep_for(std::chrono::milliseconds (1000));
-                socket_->close();
+                if (socket_)
+                {
+                        socket_->close();
+                }
+                remote_end_point_.stop();
         }
 
         std::shared_ptr < lsp::ProtocolJsonHandler >  protocol_json_handler = std::make_shared< lsp::ProtocolJsonHandler>();
@@ -169,7 +182,7 @@ int main()
 
         {
                 td_initialize::request req;
-                auto rsp = client.remote_end_point_.waitResponse(req);
+                auto rsp = client.remote_end_point_.waitResponse(req, 5000);
                 if (rsp)
                 {
                         std::cout << rsp->response.ToJson() << std::endl;
@@ -177,6 +190,7 @@ int main()
                 else
                 {
                         std::cout << "get initialze  response time out" << std::endl;
+                        return 1;
                 }
         }
         {
@@ -188,7 +202,7 @@ int main()
                 if (lsp::future_status::timeout == state)
                 {
                         std::cout << "get textDocument/definition  response time out" << std::endl;
-                        return 0;
+                        return 1;
                 }
                 auto rsp = future_rsp.get();
                 if (rsp.is_error)
@@ -199,11 +213,14 @@ int main()
                 else
                 {
                         std::cout << rsp.response.ToJson() << std::endl;
+                        return 1;
                 }
         }
         Notify_Exit::notify notify;
         client.remote_end_point_.send(notify);
-        return 0;
+        server.server.stop();
+        std::cout << std::flush;
+        std::_Exit(0);
 }
 
 

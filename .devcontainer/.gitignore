@@ -1,0 +1,12 @@
+# Personal, per-developer provisioning hooks are not shared: they are optional,
+# machine-specific, and may contain secrets (e.g. claude-config-seed/). Ignore
+# the directory's *contents* rather than the directory itself...
+local/*
+
+# ...but DO track the committed example templates, so a colleague who clones the
+# repo can see the hook contract and copy a starting point. (Re-includes need
+# the parent dir not fully excluded, which is why the rule above is `local/*`
+# and not `local/`.) Every `*.example` file is tracked; `README.example.md`
+# needs its own line since it does not end in `.example`.
+!local/*.example
+!local/README.example.md

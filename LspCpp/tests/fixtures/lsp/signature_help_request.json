@@ -1,0 +1,1 @@
+{"jsonrpc":"2.0","id":108,"method":"textDocument/signatureHelp","params":{"textDocument":{"uri":"file:///fixture.cpp"},"position":{"line":3,"character":2}}}

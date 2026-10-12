@@ -191,11 +191,16 @@ struct CompletionList
     bool isIncomplete = false;
     // The completion items.
     std::vector<lsCompletionItem> items;
+    // Determines how item defaults are combined with completion item values.
+    //
+    // @since 3.18.0
+    optional<int> applyKind;
 
     void swap(CompletionList& arg) noexcept
     {
         items.swap(arg.items);
         std::swap(isIncomplete, arg.isIncomplete);
+        applyKind.swap(arg.applyKind);
     }
 };
-MAKE_REFLECT_STRUCT(CompletionList, isIncomplete, items);
+MAKE_REFLECT_STRUCT(CompletionList, isIncomplete, items, applyKind);

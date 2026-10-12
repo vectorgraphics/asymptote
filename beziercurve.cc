@@ -13,8 +13,8 @@ namespace camp {
 
 #ifdef HAVE_RENDERER
 
-VertexBuffer pointData;       // pixels
-VertexBuffer lineData;        // material Bezier curves
+VertexBuffer pointData(ReserveGlobal);       // pixels
+VertexBuffer lineData(ReserveGlobal);        // material Bezier curves
 
 void BezierCurve::init(double res)
 {

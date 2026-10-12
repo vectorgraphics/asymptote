@@ -92,8 +92,9 @@ ostream& operator<< (ostream& out, const position& pos)
 
   string filename=pos.filename();
 
-  if(filename != "-" && !(settings::getSetting<bool>("quiet") ||
-                          settings::getSetting<bool>("where"))) {
+  bool quiet = settings::getSetting<bool>("quiet");
+  bool where = settings::getSetting<bool>("where");
+  if(filename != "-" && !(quiet || where)) {
     std::ifstream fin(filename.c_str());
     string s;
     size_t count=pos.line_;
@@ -103,6 +104,13 @@ ostream& operator<< (ostream& out, const position& pos)
     s=std::regex_replace(s,std::regex("\t")," ");
     out << s << endl;
     for(size_t i=1; i < pos.column_; ++i)
+      out << " ";
+    out << "^" << endl;
+  } else if(filename == "-" && !quiet && !where) {
+    size_t promptWidth=settings::getSetting<string>("prompt").length();
+    for(size_t i=0; i < promptWidth; ++i)
+      out << " ";
+    for(size_t i=1; i < pos.column; ++i)
       out << " ";
     out << "^" << endl;
   }

@@ -22,6 +22,9 @@ jobs:
       - uses: ./.github/actions/initialize-linux-env
       - run: |
           ASY_VERSION_OVERRIDE="${{ inputs.version_override }}" cmake --preset linux/release/ci/with-ccache
+      - name: Save vcpkg cache (even if configure failed)
+        uses: ./.github/actions/vcpkg-cache-save
+        if: always()
       - name: tar+gz cmake configuration
         run: tar -czf cmake-linux-cfg-artifact.tar.gz --exclude='vcpkg_installed' cmake-build-linux/release
       - name: Upload configuration artifacts
@@ -36,6 +39,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
+      # The build re-runs cmake, and with it vcpkg install, so this job needs
+      # the vcpkg cache restored. It has no vcpkg-cache-save step because it
+      # installs only what the configure job has already built and saved.
       - uses: ./.github/actions/initialize-linux-env
       - name: Download configuration artifacts
         uses: actions/download-artifact@v4
@@ -97,6 +103,9 @@ jobs:
         run: rm -f cmake-build-linux/release/CMakeCache.txt
       - name: reconfigure with documentation
         run: ASY_VERSION_OVERRIDE="${{ inputs.version_override }}" cmake --preset linux/release/ci/with-ccache
+      - name: Save vcpkg cache (even if configure failed)
+        uses: ./.github/actions/vcpkg-cache-save
+        if: always()
       - name: touch asymptote binary (to avoid need for rebuilding)
         run: touch cmake-build-linux/release/asy
       - name: build documentation

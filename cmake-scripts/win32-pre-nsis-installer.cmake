@@ -12,7 +12,7 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 
 # helper target for files needed
-add_custom_target(asy-pre-nsis-targets DEPENDS asy asy-ctan asy-basefiles)
+add_custom_target(asy-pre-nsis-targets DEPENDS asy asy-ctan asy-basefiles asy-licenses)
 
 # check done, start configuration
 set(ASYMPTOTE_NSI_CONFIGURATION_DIR ${CMAKE_CURRENT_BINARY_DIR}/nsifiles)
@@ -58,7 +58,13 @@ install(TARGETS asy
 
 # Lavapipe ICD manifest and DLL (from the shared DLL directory).
 if(WIN32 AND DEFINED ENV{ASYMPTOTE_BUILD_SHARED_DIRECTORY})
-    install(FILES "$ENV{ASYMPTOTE_BUILD_SHARED_DIRECTORY}/CTAN/dll/lvp_icd.json"
+    # file(TO_CMAKE_PATH): the env var arrives with native backslashes
+    # (e.g. Z:\asy). Baked raw into the generated cmake_install.cmake, the
+    # backslash sequences (like \a) are invalid CMake escapes and the install
+    # script fails to parse. Forward slashes are valid everywhere.
+    file(TO_CMAKE_PATH "$ENV{ASYMPTOTE_BUILD_SHARED_DIRECTORY}/CTAN/dll/lvp_icd.json"
+        _ASY_LVP_ICD_JSON)
+    install(FILES "${_ASY_LVP_ICD_JSON}"
             ${ASY_NSIS_INSTALL_ARGUMENT}
     )
 endif()

@@ -1,13 +1,12 @@
 
 layout(binding = 3, std430) buffer CountBuffer
 {
-  uint maxSize;
+  uint maxDepth;
   uint count[];
 };
 
 layout(binding = 4, std430) buffer OffsetBuffer
 {
-  uint maxDepth;
   uint offset[];
 };
 
@@ -146,8 +145,6 @@ void main()
     if(OpaqueDepth != 0.0)
       opaqueDepth[pixel]=0.0;
   } else {
-    atomicMax(maxDepth,size);
-    maxSize=maxDepth;
     for(uint i=k+1u; i < size; i++) {
       vec4 temp=fragment[listIndex+i];
       float d=depth[listIndex+i];
@@ -174,14 +171,13 @@ void main()
     }
   }
 
-  // if FXAA is enabled, convert it to perceptual since FXAA needs it
-  // otherwise, if OUTPUT_AS_SRGB is enabled, also convert it to perceptual
-#if defined(ENABLE_FXAA) || defined(OUTPUT_AS_SRGB)
-  // before we pass to post-processing stage, convert the color into
-  // perceptual (sRGB) first since we blended the colors using linear values
-  vec3 perceptualColor=linearToPerceptual(outColor.rgb);
-  outColor = vec4(perceptualColor, outColor.a);
-#endif
+  // Before we pass to post-processing, convert the color into perceptual
+  // (sRGB) space if the sRGB flag (push.constants[3] bit 1) or the FXAA flag
+  // (bit 3) is set, since we blended the colors using linear values
+  if((push.constants[3] & (2u | 8u)) != 0u) {
+    vec3 perceptualColor=linearToPerceptual(outColor.rgb);
+    outColor = vec4(perceptualColor, outColor.a);
+  }
 
   COUNT(pixel)=0u;
 }

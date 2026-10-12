@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "lsAny.h"
+#include "lsMarkedString.h"
 //
 //Represents a reference to a command.Provides a title which will be used to represent a command in the UI.
 //Commands are identified by a string identifier.
@@ -22,12 +23,17 @@ struct lsCommand
     // **NOTE** This must be serialized as an array. Use
     // MAKE_REFLECT_STRUCT_WRITER_AS_ARRAY.
     optional<AnyArray> arguments;
+    // An optional tooltip shown for this command.
+    //
+    // @since 3.18.0
+    optional<std::pair<optional<std::string>, optional<MarkupContent>>> tooltip;
 
     void swap(lsCommand<AnyArray>& arg) noexcept
     {
         title.swap(arg.title);
         command.swap(arg.command);
         arguments.swap(arg.arguments);
+        tooltip.swap(arg.tooltip);
     }
 };
 template<typename TVisitor, typename T>
@@ -37,6 +43,7 @@ void Reflect(TVisitor& visitor, lsCommand<T>& value)
     REFLECT_MEMBER(title);
     REFLECT_MEMBER(command);
     REFLECT_MEMBER(arguments);
+    REFLECT_MEMBER(tooltip);
     REFLECT_MEMBER_END();
 }
 

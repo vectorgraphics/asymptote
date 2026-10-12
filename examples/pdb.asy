@@ -162,3 +162,4 @@ if(!error(input(viewfilename,check=false)))
   options="3Dviews="+locatefile(viewfilename);
 
 shipout(options=options);
+erase();

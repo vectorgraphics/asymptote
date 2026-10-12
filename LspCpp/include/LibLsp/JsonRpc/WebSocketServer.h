@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <LibLsp/lsp/asio.h>
 #include <ixwebsocket/IXWebSocketServer.h>
@@ -15,10 +16,12 @@ class Log;
 namespace lsp
 {
 
-class websocket_stream_wrapper : public istream, public ostream
+class websocket_stream_wrapper : public istream, public ostream, public std::enable_shared_from_this<websocket_stream_wrapper>
 {
 public:
     websocket_stream_wrapper(std::shared_ptr<ix::WebSocket> _w);
+    ~websocket_stream_wrapper() override;
+    void bindMessageCallback();
 
     std::shared_ptr<ix::WebSocket> ws_;
     std::atomic<bool> quit {};
@@ -46,6 +49,8 @@ public:
     void clear() override;
 
     std::string what() override;
+
+    void interrupt() override;
 };
 
 /// The top-level class of the HTTP server.

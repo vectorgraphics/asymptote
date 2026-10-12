@@ -71,6 +71,35 @@ using DoubleHeader=SingleObjectHeader<double,1>;
 using Uint32Header=SingleObjectHeader<uint32_t,0,1>;
 using RGBAHeader=SingleObjectHeader<prc::RGBAColour,0,4>;
 
+class StringHeader : public AHeader
+{
+public:
+  StringHeader(v3dheadertypes const& ty, std::string const& str) : AHeader(ty), str(str) {}
+  ~StringHeader() override = default;
+
+protected:
+  uint32_t getWordSize(bool) const override
+  {
+    return 2+(str.size()+3)/4;
+  }
+
+  void writeContent(xdr::oxstream& ox) const override
+  {
+    size_t n=str.size();
+    ox << n;
+    for(size_t i=0; i < n; ++i)
+      ox << (xdr::xbyte) str[i];
+
+    size_t words=(str.size()+3)/4;
+    size_t bytes=4*words;
+    for(size_t i=n; i < bytes; ++i)
+      ox << (xdr::xbyte) 0;
+  }
+
+private:
+  std::string str;
+};
+
 const unsigned int v3dVersion=2;
 
 class LightHeader : public AHeader

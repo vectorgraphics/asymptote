@@ -2,6 +2,7 @@
 
 #include "LibLsp/lsp/lsDocumentUri.h"
 #include "LibLsp/lsp/lsAny.h"
+#include "LibLsp/lsp/lsProgressToken.h"
 #include "lsClientCapabilities.h"
 #include "LibLsp/lsp/workspace/workspaceFolders.h"
 
@@ -85,9 +86,15 @@ struct lsInitializeParams
  */
     optional<std::vector<WorkspaceFolder>> workspaceFolders;
 
+    /**
+ * An optional token that a server can use to report work done progress.
+ * ProgressToken = integer | string (WorkDoneProgressParams).
+ */
+    optional<lsProgressToken> workDoneToken;
+
     MAKE_SWAP_METHOD(
         lsInitializeParams, processId, rootPath, rootUri, initializationOptions, capabilities, clientName, clientInfo,
-        trace, workspaceFolders, locale
+        trace, workspaceFolders, locale, workDoneToken
     )
 };
 
@@ -97,7 +104,7 @@ void Reflect(Writer& writer, lsInitializeParams::lsTrace& value);
 
 MAKE_REFLECT_STRUCT(
     lsInitializeParams, processId, rootPath, rootUri, initializationOptions, capabilities, clientName, clientInfo,
-    trace, workspaceFolders, locale
+    trace, workspaceFolders, locale, workDoneToken
 )
 
 struct lsInitializeError

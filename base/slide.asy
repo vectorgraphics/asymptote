@@ -6,7 +6,6 @@ bool stepping=false;    // Set to true to enable stepping.
 bool itemstep=true;     // Set to false to disable stepping on each item.
 
 settings.toolbar=false; // Disable 3D toolbar by default.
-if(settings.render < 0) settings.render=4;
 
 bool allowstepping=false; // Allow stepping for current slide.
 
@@ -26,15 +25,16 @@ if(landscape) {
 }
 
 texpreamble("\paperwidth="+string(pagewidth)+"bp");
-texpreamble("\paperheight"+string(pageheight)+"bp");
+texpreamble("\paperheight="+string(pageheight)+"bp");
 
+real xmax = pagewidth/pageheight;
 size(pagewidth,pageheight,IgnoreAspect);
 picture background;
 
 real minipagemargin=1inch;
 real minipagewidth=pagewidth-2minipagemargin;
 
-transform tinv=inverse(fixedscaling((-1,-1),(1,1),currentpen));
+transform tinv=inverse(fixedscaling((-xmax,-1),(xmax,1),currentpen));
 
 pen itempen=fontsize(24pt);
 pen codepen=fontsize(20pt);
@@ -59,7 +59,7 @@ string oldbulletcolor;
 string newbulletcolor="red";
 string bullet="{\bulletcolor\textbullet}";
 
-pair pagenumberposition=S+E;
+pair pagenumberposition=(xmax,-1);
 pair pagenumberalign=4NW;
 pen pagenumberpen=fontsize(12);
 pen steppagenumberpen=colorless(pagenumberpen);
@@ -70,8 +70,8 @@ pen figuremattpen;
 pen backgroundcolor;
 pen foregroundcolor;
 
-pair titlepageposition=(-0.8,0.4);
-pair startposition=(-0.8,0.9);
+pair titlepageposition=(-0.8*xmax,0.4);
+pair startposition=(-0.8*xmax,0.9);
 pair currentposition=startposition;
 
 string bulletcolor(string color)
@@ -137,7 +137,7 @@ void reversevideo()
 {
   backgroundcolor=black;
   foregroundcolor=white;
-  fill(background,box((-1,-1),(1,1)),backgroundcolor);
+  fill(background,box((-xmax,-1),(xmax,1)),backgroundcolor);
   setpens(mediumred,paleblue,mediumblue);
   // Work around pdflatex bug, in which white is mapped to black!
   figuremattpen=pdf() ? cmyk(0,0,0,1/255) : white;
@@ -213,7 +213,7 @@ void newslide(bool stepping=true)
 
 bool checkposition()
 {
-  if(abs(currentposition.x) > 1 || abs(currentposition.y) > 1) {
+  if(abs(currentposition.x) > xmax || abs(currentposition.y) > 1) {
     newslide();
     return false;
   }
@@ -284,9 +284,9 @@ void remark(bool center=false, string s, pair align=0, pen p=itempen,
   frame f;
   label(f,s,(indent,0),align,p,filltype);
   pair m=tinv*min(f);
-  pair M=tinv*min(f);
+  pair M=tinv*max(f);
 
-  if(abs(offset.x+M.x) > 1)
+  if(abs(offset.x+M.x) > xmax)
     warning("slidetoowide","slide too wide on page "+(string) page+':\n'+
             (string) s);
 
@@ -462,13 +462,19 @@ string[] codefile;
 void asyinclude(string s, real xsize=0, real ysize=xsize)
 {
   picture currentpictureSave=currentpicture;
+  light currentlightSave=currentlight;
+  pen currentpenSave=currentpen;
+  projection currentprojectionSave=currentprojection;
   currentpicture=new picture;
-  _eval("include \""+s+"\";",true);
-  s=stripdirectory(outprefix()+"_"+s);
+   _eval("include \""+s+"\";",true);
+   s=stripdirectory(outprefix()+"_"+s);
   codefile.push(s);
   frame f=(xsize > 0 || ysize > 0) ?
     currentpicture.fit(xsize,ysize) : currentpicture.fit();
   currentpicture=currentpictureSave;
+  currentlight=currentlightSave;
+  currentpen=currentpenSave;
+  currentprojection=currentprojectionSave;
   display(f);
 }
 

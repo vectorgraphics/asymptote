@@ -13,18 +13,38 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-linux-env
+      - name: Enable test dependencies
+        run: echo LSPCPP_CI_VCPKG_FEATURES=tests >> "$GITHUB_ENV"
       - name: Add gc option to cmake build
         if: ${{ matrix.with_gc == 'with-gc' }}
         run: |
           echo LSPCPP_SUPPORT_BOEHM_GC=true >> "$GITHUB_ENV"
-          echo LSPCPP_CI_VCPKG_FEATURES=bdwgc >> "$GITHUB_ENV"
+          echo LSPCPP_CI_VCPKG_FEATURES=tests\;bdwgc >> "$GITHUB_ENV"
       - name: configure cmake
         run: cmake --preset ci/default
       - name: build cmake
-        run: cmake --build --preset ci/default -j --target lspcpp
+        run: cmake --build --preset ci/default -j
+      - name: run ctest
+        run: ctest --preset ci/default
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: liblspcpp-linux-${{ matrix.with_gc }}
           path: cmake-build-ci/liblspcpp.a
+
+  build-lsp-linux-cpp14:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: ./.github/actions/initialize-linux-env
+      - name: Enable test dependencies
+        run: echo LSPCPP_CI_VCPKG_FEATURES=tests >> "$GITHUB_ENV"
+      - name: configure cmake
+        run: cmake --preset ci/cpp14
+      - name: build cmake
+        run: cmake --build --preset ci/cpp14 -j
+      - name: run ctest
+        run: ctest --preset ci/cpp14 -R lspcpp --output-on-failure

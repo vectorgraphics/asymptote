@@ -7,6 +7,7 @@
 #include <string>
 #include <type_traits>
 #include <vector>
+#include <utility>
 #include <functional>
 #include <map>
 #include <algorithm>
@@ -25,6 +26,99 @@ enum class SerializeFormat
 struct JsonNull
 {
     void swap(JsonNull& arg) noexcept;
+};
+
+// Nullable holds either a value or JSON null. Unlike optional<T>, a Nullable
+// object member is always serialized (as null or a value); optional object
+// members are omitted when disengaged.
+template<typename T>
+class Nullable
+{
+public:
+    using value_type = T;
+
+    Nullable() = default;
+    Nullable(std::nullptr_t) {}
+    Nullable(T const& value) : value_(value) {}
+    Nullable(T&& value) : value_(std::move(value)) {}
+
+    Nullable& operator=(std::nullptr_t)
+    {
+        value_.reset();
+        return *this;
+    }
+
+    Nullable& operator=(T const& value)
+    {
+        value_ = value;
+        return *this;
+    }
+
+    Nullable& operator=(T&& value)
+    {
+        value_ = std::move(value);
+        return *this;
+    }
+
+    template<typename... Args>
+    T& emplace(Args&&... args)
+    {
+        return value_.emplace(std::forward<Args>(args)...);
+    }
+
+    void reset()
+    {
+        value_.reset();
+    }
+
+    void swap(Nullable& other) noexcept
+    {
+        using std::swap;
+        swap(value_, other.value_);
+    }
+
+    bool has_value() const
+    {
+        return value_.has_value();
+    }
+
+    bool isNull() const
+    {
+        return !value_.has_value();
+    }
+
+    T& value()
+    {
+        return value_.value();
+    }
+
+    T const& value() const
+    {
+        return value_.value();
+    }
+
+    T& operator*()
+    {
+        return *value_;
+    }
+
+    T const& operator*() const
+    {
+        return *value_;
+    }
+
+    T* operator->()
+    {
+        return &value_.value();
+    }
+
+    T const* operator->() const
+    {
+        return &value_.value();
+    }
+
+private:
+    optional<T> value_;
 };
 
 class Reader
@@ -229,6 +323,33 @@ void Reflect(Writer& visitor, optional<T>& value)
     if (value)
     {
         Reflect(visitor, *value);
+    }
+    else
+    {
+        visitor.Null();
+    }
+}
+
+template<typename T>
+void Reflect(Reader& visitor, Nullable<T>& value)
+{
+    if (visitor.IsNull())
+    {
+        visitor.GetNull();
+        value.reset();
+        return;
+    }
+    T real_value;
+    Reflect(visitor, real_value);
+    value = std::move(real_value);
+}
+
+template<typename T>
+void Reflect(Writer& visitor, Nullable<T>& value)
+{
+    if (value.has_value())
+    {
+        Reflect(visitor, value.value());
     }
     else
     {

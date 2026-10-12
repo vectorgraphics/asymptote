@@ -237,7 +237,7 @@ public:
 
   explicit memixstream(std::vector<uint8_t>& data, bool singleprecision=false);
 
-  void open(const char *filename, open_mode = in) override {};
+  void open(const char*, open_mode = in) override {};
 
   void close() override {};
 

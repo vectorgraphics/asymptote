@@ -8,6 +8,7 @@
 #include <mutex>
 #include <string>
 #include <memory>
+#include <vector>
 #include "Directory.h"
 
 struct WorkingFiles;
@@ -22,6 +23,12 @@ struct WorkingFile
     std::atomic<long long> counter;
     WorkingFile(WorkingFiles&, AbsolutePath const& filename, std::string const& buffer_content);
     WorkingFile(WorkingFiles&, AbsolutePath const& filename, std::string&& buffer_content);
+    void RebuildLineOffsets();
+    int GetOffsetForPosition(lsPosition position) const;
+    size_t LineOffsetCountForTest() const
+    {
+        return line_offsets.size();
+    }
     std::string const& GetContentNoLock() const
     {
         return buffer_content;
@@ -30,6 +37,7 @@ struct WorkingFile
 protected:
     friend struct WorkingFiles;
     std::string buffer_content;
+    std::vector<size_t> line_offsets;
 };
 
 struct WorkingFiles

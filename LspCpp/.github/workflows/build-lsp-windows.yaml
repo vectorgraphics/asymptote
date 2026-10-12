@@ -13,18 +13,21 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/initialize-windows-env
+      - name: Enable test dependencies
+        run: Write-Output LSPCPP_CI_VCPKG_FEATURES=tests >> "$env:GITHUB_ENV"
       - name: Add gc option to cmake build
         if: ${{ matrix.with_gc == 'with-gc' }}
         run: |
           Write-Output LSPCPP_SUPPORT_BOEHM_GC=true >> "$env:GITHUB_ENV"
-          Write-Output LSPCPP_CI_VCPKG_FEATURES=bdwgc >> "$env:GITHUB_ENV"
+          Write-Output 'LSPCPP_CI_VCPKG_FEATURES=tests;bdwgc' >> "$env:GITHUB_ENV"
       - name: configure and build cmake
         run: |
           $VsInfo = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
           & "$($VsInfo.InstallLocation)\\Common7\\Tools\\Launch-VsDevShell.ps1" `
             -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
           cmake --preset ci/default
-          cmake --build --preset ci/default -j --target lspcpp
+          cmake --build --preset ci/default -j
+          ctest --preset ci/default
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:

@@ -1,0 +1,1 @@
+{"jsonrpc":"2.0","id":108,"result":{"activeParameter":0,"activeSignature":0,"signatures":[{"documentation":{"kind":"markdown","value":"comment `markdown` \\_escape\\_"},"label":"x(int) -> void","parameters":[{"label":"int"}]}]}}
