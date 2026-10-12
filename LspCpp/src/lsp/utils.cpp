@@ -591,7 +591,7 @@ int GetOffsetForPosition(lsPosition position, std::string const& content)
         // index landing between them snaps past the whole code point.
         // Saturating subtraction: |character| is unsigned.
         unsigned const units = (lead >= 0xF0) ? 2u : 1u;
-        position.character -= std::min(position.character, units);
+        position.character -= (position.character < units) ? position.character : units;
     }
     return int(i);
 }
