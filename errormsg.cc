@@ -110,7 +110,7 @@ ostream& operator<< (ostream& out, const position& pos)
     size_t promptWidth=settings::getSetting<string>("prompt").length();
     for(size_t i=0; i < promptWidth; ++i)
       out << " ";
-    for(size_t i=1; i < pos.column; ++i)
+    for(size_t i=1; i < pos.column_; ++i)
       out << " ";
     out << "^" << endl;
   }
