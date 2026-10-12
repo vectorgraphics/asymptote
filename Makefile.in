@@ -114,6 +114,13 @@ OPTS = $(DEFS) $(CPPFLAGS) @CXXFLAGS@ $(CFLAGS) \
 	-Iprc/include -I$(LSP_ROOT)/include -I. \
 	$(MACOS_CFLAGS)
 
+# Renderer shared libraries run in a forked child that shares the parent's
+# Boehm GC heap. LTO cross-TU inlining can move local GC pointers into
+# registers that the GC's conservative stack scanner cannot see, causing
+# premature collection and segfaults. Strip -flto for the renderer objects
+# and their .so link.
+RENDER_OPTS = $(filter-out -flto,$(OPTS))
+
 # Multi-arch flags are incompatible with -E (preprocess-only) and -M (deps).
 # Strip them for any pass that runs the preprocessor without compiling.
 PREPROC_OPTS = $(filter-out $(MACOS_ARCH_FLAGS),$(OPTS))
@@ -255,30 +262,30 @@ portability-check-macos:
 # Build the Vulkan renderer as a shared library loaded at runtime via dlopen.
 VULKAN_PIC_OBJS = $(VULKAN_OBJS:=.pic.o)
 libasyvulkan.so: $(VULKAN_PIC_OBJS)
-	$(CXX) $(OPTS) -shared -o $@ $^ $(filter -L%,$(LFLAGS)) @SHIM_LDFLAGS@ @ASY_VULKAN_LIBS@ -lglfw
+	$(CXX) $(RENDER_OPTS) -shared -o $@ $^ $(filter -L%,$(LFLAGS)) @SHIM_LDFLAGS@ @ASY_VULKAN_LIBS@ -lglfw
 
 # Build the OpenGL renderer as a shared library loaded at runtime via dlopen.
 libasyopengl.so: $(OPENGL_PIC_OBJS)
-	$(CXX) $(OPTS) -shared -o $@ $^ $(filter -L%,$(LFLAGS)) @SHIM_LDFLAGS@ @ASY_GL_LIBS@ -lglfw
+	$(CXX) $(RENDER_OPTS) -shared -o $@ $^ $(filter -L%,$(LFLAGS)) @SHIM_LDFLAGS@ @ASY_GL_LIBS@ -lglfw
 
 # Rebuild vkrender.pic.o with validation layer support, then finish the build.
 .PHONY: validation novalidation
 validation:
-	$(CXX) $(OPTS) -DENABLE_VK_VALIDATION -fPIC -o vkrender.pic.o -c vkrender.cc
+	$(CXX) $(RENDER_OPTS) -DENABLE_VK_VALIDATION -fPIC -o vkrender.pic.o -c vkrender.cc
 	$(MAKE) asy
 
 # Rebuild vkrender.pic.o without validation layer support, then finish the build.
 novalidation:
-	$(CXX) $(OPTS) -fPIC -o vkrender.pic.o -c vkrender.cc
+	$(CXX) $(RENDER_OPTS) -fPIC -o vkrender.pic.o -c vkrender.cc
 	$(MAKE) asy
 
 # Shared library objects need -fPIC but must not define FOR_SHARED,
 # since common.h uses !defined(FOR_SHARED) to enable HAVE_VULKAN/HAVE_GL.
 $(VULKAN_PIC_OBJS): %.pic.o: %.cc
-	$(CXX) $(OPTS) -fPIC -o $@ -c $<
+	$(CXX) $(RENDER_OPTS) -fPIC -o $@ -c $<
 
 glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o: %.pic.o: %.cc
-	$(CXX) $(OPTS) -fPIC -o $@ -c $<
+	$(CXX) $(RENDER_OPTS) -fPIC -o $@ -c $<
 
 # glew.c is a C file, needs special handling for the OpenGL shared library.
 glew.pic.o: glew.c config.h

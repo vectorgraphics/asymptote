@@ -7,6 +7,7 @@ AC_INIT([Asymptote],[3.16git],[https://github.com/vectorgraphics/asymptote/issue
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
+m4_include([ax_gcc_x86_cpu_supports.m4])
 m4_include([pkg.m4])
 
 AH_TOP([#pragma once])
@@ -90,6 +91,84 @@ AC_C_BIGENDIAN(
    [],
    [],
    [AC_DEFINE(UNIVERSAL_ENDIAN_BUILD,1,[Endianness is determined at compile time])]
+)
+
+# --------------- additional optimizations ---------------------
+# Options for additional optimizations (link-time optimization, support for later x86-64 instruction sets (e.g. AVX2))
+
+AC_ARG_WITH(link-time-opt,
+   [AS_HELP_STRING(--with-link-time-opt=[[[yes]]],
+      [Enables link-time optimization. Enabled by default])],
+   [],
+   [with_link_time_opt=yes]
+)
+
+AS_IF(
+   [test "x$with_link_time_opt" = "xyes"],
+   [CFLAGS="$CFLAGS -flto"]
+)
+
+AC_ARG_WITH(x86-64-v3-targeting,
+   [AS_HELP_STRING(--with-x86-64-v3-targeting=[[[check]]],
+      [Targets x86-64-v3 CPUs or higher (i.e. AVX/AVX2 support).
+      check: auto-detect AVX2 on build CPU (default). yes: force on. no: force off.])],
+   [],
+   [with_x86_64_v3_targeting=check]
+)
+
+AS_IF(
+   [test "x$with_x86_64_v3_targeting" = "xcheck"],
+   [
+      case "$host_cpu" in
+        x86_64|amd64|i686|x86)
+           # Guard: only call AX_GCC_X86_CPU_SUPPORTS if the compiler actually
+           # has the __builtin_cpu_init / __builtin_cpu_supports builtins.
+           # The upstream macro calls AC_MSG_ERROR when they are missing;
+           # pre-testing here lets us fall back to baseline gracefully instead.
+           AC_LANG_PUSH([C])
+           AC_COMPILE_IFELSE(
+              [AC_LANG_PROGRAM([#include <stdlib.h>],
+                [__builtin_cpu_init ();])
+              ],
+              [AX_GCC_X86_CPU_SUPPORTS(avx2, [
+                 with_x86_64_v3_targeting=yes
+                 AC_MSG_NOTICE([Build CPU supports AVX2, targeting x86-64-v3])
+               ], [
+                 with_x86_64_v3_targeting=no
+                 AC_MSG_NOTICE([Build CPU does not support AVX2, using baseline x86-64])
+               ])
+              ],
+              [with_x86_64_v3_targeting=no
+               AC_MSG_NOTICE([Compiler lacks __builtin_cpu_init; skipping AVX2 detection, using baseline x86-64])
+              ]
+           )
+           AC_LANG_POP([C])
+           ;;
+        *)
+           with_x86_64_v3_targeting=no
+           AC_MSG_NOTICE([Not an x86 architecture ($host_cpu), x86-64-v3 targeting not applicable])
+           ;;
+      esac
+   ]
+)
+
+AS_IF(
+   [test "x$with_x86_64_v3_targeting" = "xyes"],
+   [
+      saved_CFLAGS="$CFLAGS"
+      CFLAGS="$CFLAGS -march=x86-64-v3"
+      AC_LANG_PUSH([C])
+      AC_COMPILE_IFELSE(
+         [AC_LANG_PROGRAM([],[])],
+         [AC_MSG_NOTICE([Compiler supports -march=x86-64-v3])],
+         [
+            CFLAGS="$saved_CFLAGS"
+            with_x86_64_v3_targeting=no
+            AC_MSG_NOTICE([Compiler does not support -march=x86-64-v3, using baseline])
+         ]
+      )
+      AC_LANG_POP([C])
+   ]
 )
 
 echo Compiling with $CXXFLAGS $CFLAGS

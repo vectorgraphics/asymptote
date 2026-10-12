@@ -123,11 +123,18 @@ this option should be turned off."
 
 # additional optimization options
 
-# LTO is disabled by default: it changes code and stack layout in ways that
-# corrupt Boehm GC's stack scan in the forked 3D render child, causing
-# silent render failures.  Enable explicitly with -DOPTIMIZE_LINK_TIME=ON
-# if you are not using the non-interactive 3D render path.
-option(OPTIMIZE_LINK_TIME "Enable link-time optimization (breaks fork-based 3D rendering)" false)
+# LTO is applied to asycore, settings objects and all subdirectory targets
+# (gc, vma, prc, tinyexr) -- matching the autotools build, which passes -flto
+# through CFLAGS to every subproject.  An earlier blanket exclusion of
+# subdirectory targets was based on a suspicion that LTO on them corrupted the
+# Boehm GC stack scan in the forked 3D render child (-noV); diagnostic builds
+# with those targets under LTO confirmed that render path still works, so the
+# exclusion was a red herring and LTO is now applied uniformly.
+option(OPTIMIZE_LINK_TIME "Enable link-time optimization" true)
+
+set(TARGET_X86_64_V3_OR_HIGHER "AUTO" CACHE STRING
+    "x86-64-v3 CPU targeting. AUTO: detect AVX2 on build CPU and enable if supported (default). ON: force x86-64-v3. OFF: use baseline x86-64. Inert on non-x86 architectures.")
+set_property(CACHE TARGET_X86_64_V3_OR_HIGHER PROPERTY STRINGS AUTO ON OFF)
 
 # testing
 option(ENABLE_ASY_CXXTEST "Enable C++-side testing. This option is inert for final asy libraries and binaries" true)
