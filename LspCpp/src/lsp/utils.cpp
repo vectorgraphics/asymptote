@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cctype>
+#include <cerrno>
 #include <cstring>
 #include <fstream>
 #include <functional>
@@ -11,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <vector>
 #include <sys/stat.h>
 
 #include "LibLsp/lsp/lsPosition.h"
@@ -86,8 +88,15 @@ bool FindAnyPartial(std::string const& value, std::vector<std::string> const& va
 
 std::string GetDirName(std::string path)
 {
-
-    ReplaceAll(path, "\\", "/");
+    path = ReplaceAll(path, "\\", "/");
+    if (path.empty())
+    {
+        return "./";
+    }
+    if (path == "/" || (path.size() == 3 && path[1] == ':' && path[2] == '/'))
+    {
+        return path;
+    }
     if (path.size() && path.back() == '/')
     {
         path.pop_back();
@@ -123,6 +132,11 @@ std::string StripFileType(std::string const& path)
 // See http://stackoverflow.com/a/29752943
 std::string ReplaceAll(std::string const& source, std::string const& from, std::string const& to)
 {
+    if (from.empty())
+    {
+        return source;
+    }
+
     std::string result;
     result.reserve(source.length()); // avoids a few memory allocations
 
@@ -146,13 +160,18 @@ std::vector<std::string> SplitString(std::string const& str, std::string const& 
 {
     // http://stackoverflow.com/a/13172514
     std::vector<std::string> strings;
+    if (delimiter.empty())
+    {
+        strings.emplace_back(str);
+        return strings;
+    }
 
     std::string::size_type pos = 0;
     std::string::size_type prev = 0;
     while ((pos = str.find(delimiter, prev)) != std::string::npos)
     {
         strings.emplace_back(str.substr(prev, pos - prev));
-        prev = pos + 1;
+        prev = pos + delimiter.length();
     }
 
     // To get the last substring (or only, if delimiter is not found)
@@ -227,7 +246,11 @@ optional<std::string> ReadContent(AbsolutePath const& filename)
 {
 
     std::ifstream cache;
-    cache.open(filename.path);
+    cache.open(filename.path());
+    if (!cache.is_open())
+    {
+        return {};
+    }
 
     try
     {
@@ -243,7 +266,7 @@ std::vector<std::string> ReadLinesWithEnding(AbsolutePath const& filename)
 {
     std::vector<std::string> result;
 
-    std::ifstream input(filename.path);
+    std::ifstream input(filename.path());
     for (std::string line; SafeGetline(input, line);)
     {
         result.emplace_back(line);
@@ -268,15 +291,9 @@ bool WriteToFile(std::string const& filename, std::string const& content)
 std::string FormatMicroseconds(long long microseconds)
 {
     long long milliseconds = microseconds / 1000;
-    long long remaining = microseconds - milliseconds;
-
-    // Only show two digits after the dot.
-    while (remaining >= 100)
-    {
-        remaining /= 10;
-    }
-
-    return std::to_string(milliseconds) + "." + std::to_string(remaining) + "ms";
+    long long hundredths = (microseconds % 1000) / 10;
+    std::string fraction = hundredths < 10 ? "0" + std::to_string(hundredths) : std::to_string(hundredths);
+    return std::to_string(milliseconds) + "." + fraction + "ms";
 }
 
 std::string UpdateToRnNewlines(std::string output)
@@ -319,8 +336,14 @@ bool IsUnixAbsolutePath(std::string const& path)
 bool IsWindowsAbsolutePath(std::string const& path)
 {
     auto is_drive_letter = [](char c) { return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'); };
+    auto is_slash = [](char c) { return c == '/' || c == '\\'; };
 
-    return path.size() > 3 && path[1] == ':' && (path[2] == '/' || path[2] == '\\') && is_drive_letter(path[0]);
+    if (path.size() >= 3 && path[1] == ':' && is_slash(path[2]) && is_drive_letter(path[0]))
+    {
+        return true;
+    }
+
+    return path.size() >= 5 && is_slash(path[0]) && is_slash(path[1]) && !is_slash(path[2]);
 }
 
 bool IsDirectory(std::string const& path)
@@ -369,6 +392,23 @@ std::wstring s2ws(std::string const& str)
 }
 
 #ifndef _WIN32
+static std::string GetCurrentWorkingDirectory()
+{
+    std::vector<char> buffer(1024);
+    while (true)
+    {
+        if (getcwd(buffer.data(), buffer.size()) != nullptr)
+        {
+            return std::string(buffer.data());
+        }
+        if (errno != ERANGE)
+        {
+            return {};
+        }
+        buffer.resize(buffer.size() * 2);
+    }
+}
+
 // Returns the canonicalized absolute pathname, without expanding symbolic
 // links. This is a variant of realpath(2), C++ rewrite of
 // https://github.com/freebsd/freebsd/blob/master/lib/libc/stdlib/realpath.c
@@ -385,24 +425,26 @@ AbsolutePath RealPathNotExpandSymlink(std::string path, bool ensure_exists)
         return {};
     }
 
-    // Do not use PATH_MAX because it is tricky on Linux.
-    // See https://eklitzke.org/path-max-is-tricky
-    char tmp[1024];
     std::string resolved;
     size_t i = 0;
     struct stat sb;
-    if (path[0] == '/')
+    if (path.size() >= 2 && path[0] == '/' && path[1] == '/' && (path.size() == 2 || path[2] != '/'))
+    {
+        resolved = "//";
+        i = 2;
+    }
+    else if (path[0] == '/')
     {
         resolved = "/";
         i = 1;
     }
     else
     {
-        if (!getcwd(tmp, sizeof tmp) && ensure_exists)
+        resolved = GetCurrentWorkingDirectory();
+        if (resolved.empty())
         {
             return {};
         }
-        resolved = tmp;
     }
 
     while (i < path.size())
@@ -436,11 +478,12 @@ AbsolutePath RealPathNotExpandSymlink(std::string path, bool ensure_exists)
         // Here we differ from realpath(3), we use stat(2) instead of
         // lstat(2) because we do not want to resolve symlinks.
         resolved += next_token;
-        if (stat(resolved.c_str(), &sb) != 0 && ensure_exists)
+        bool const stat_ok = stat(resolved.c_str(), &sb) == 0;
+        if (!stat_ok && ensure_exists)
         {
             return {};
         }
-        if (!S_ISDIR(sb.st_mode) && j < path.size() && ensure_exists)
+        if (ensure_exists && stat_ok && !S_ISDIR(sb.st_mode) && j < path.size())
         {
             errno = ENOTDIR;
             return {};
@@ -452,7 +495,7 @@ AbsolutePath RealPathNotExpandSymlink(std::string path, bool ensure_exists)
     {
         resolved.pop_back();
     }
-    return AbsolutePath(resolved, true /*validate*/);
+    return AbsolutePath::FromNormalized(resolved);
 }
 #endif
 
@@ -466,7 +509,7 @@ AbsolutePath NormalizePath(std::string const& path0, bool ensure_exists, bool fo
 
     // Normalize the path name, ie, resolve `..`.
     unsigned long len = GetFullPathNameW(path.c_str(), MAX_PATH, buffer, nullptr);
-    if (!len)
+    if (!len || len >= MAX_PATH)
     {
         return {};
     }
@@ -478,7 +521,7 @@ AbsolutePath NormalizePath(std::string const& path0, bool ensure_exists, bool fo
     if (ensure_exists)
     {
         len = GetLongPathNameW(path.c_str(), buffer, MAX_PATH);
-        if (!len)
+        if (!len || len >= MAX_PATH)
         {
             return {};
         }
@@ -508,7 +551,7 @@ AbsolutePath NormalizePath(std::string const& path0, bool ensure_exists, bool fo
     // cquery assumes forward-slashes.
     std::replace(path.begin(), path.end(), '\\', '/');
 
-    return AbsolutePath(lsp::ws2s(path), false /*validate*/);
+    return AbsolutePath::FromNormalized(lsp::ws2s(path));
 #else
 
     return RealPathNotExpandSymlink(path0, ensure_exists);
@@ -518,8 +561,8 @@ AbsolutePath NormalizePath(std::string const& path0, bool ensure_exists, bool fo
 
 // VSCode (UTF-16) disagrees with Emacs lsp-mode (UTF-8) on how to represent
 // text documents.
-// We use a UTF-8 iterator to approximate UTF-16 in the specification (weird).
-// This is good enough and fails only for UTF-16 surrogate pairs.
+// We iterate UTF-8 code points and count UTF-16 code units per code point:
+// code points above U+FFFF (4-byte UTF-8 sequences) count as a surrogate pair.
 int GetOffsetForPosition(lsPosition position, std::string const& content)
 {
     size_t i = 0;
@@ -535,7 +578,8 @@ int GetOffsetForPosition(lsPosition position, std::string const& content)
     // Iterate characters on the target line.
     while (position.character > 0 && i < content.size())
     {
-        if (uint8_t(content[i++]) >= 128)
+        uint8_t const lead = uint8_t(content[i++]);
+        if (lead >= 128)
         {
             // Skip 0b10xxxxxx
             while (i < content.size() && uint8_t(content[i]) >= 128 && uint8_t(content[i]) < 192)
@@ -543,7 +587,11 @@ int GetOffsetForPosition(lsPosition position, std::string const& content)
                 i++;
             }
         }
-        position.character--;
+        // Code points above U+FFFF take two UTF-16 code units; a character
+        // index landing between them snaps past the whole code point.
+        // Saturating subtraction: |character| is unsigned.
+        unsigned const units = (lead >= 0xF0) ? 2u : 1u;
+        position.character -= std::min(position.character, units);
     }
     return int(i);
 }
@@ -553,14 +601,18 @@ lsPosition GetPositionForOffset(size_t offset, std::string const& content)
     lsPosition result;
     for (size_t i = 0; i < offset && i < content.length(); ++i)
     {
+        uint8_t const byte = uint8_t(content[i]);
         if (content[i] == '\n')
         {
             result.line++;
             result.character = 0;
         }
-        else
+        else if (byte < 128 || byte >= 192)
         {
-            result.character++;
+            // Count UTF-16 code units like GetOffsetForPosition: continuation
+            // bytes (0b10xxxxxx) do not start a new character, and 4-byte
+            // sequences (code points above U+FFFF) count as a surrogate pair.
+            result.character += (byte >= 0xF0) ? 2 : 1;
         }
     }
     return result;

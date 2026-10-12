@@ -21,12 +21,19 @@ struct ApplyWorkspaceEditParams
          */
     std::string label;
 
-    MAKE_SWAP_METHOD(ApplyWorkspaceEditParams, edit, label)
+    /**
+     * Additional metadata about the workspace edit.
+     *
+     * @since 3.18.0
+     */
+    optional<lsWorkspaceEditMetadata> metadata;
+
+    MAKE_SWAP_METHOD(ApplyWorkspaceEditParams, edit, label, metadata)
 };
 /**
  * The workspace/applyEdit request is sent from the server to the client to modify resource on the client side.
  */
-MAKE_REFLECT_STRUCT(ApplyWorkspaceEditParams, edit, label);
+MAKE_REFLECT_STRUCT(ApplyWorkspaceEditParams, edit, label, metadata);
 
 struct ApplyWorkspaceEditResponse
 {

@@ -7,6 +7,7 @@
 #include "LibLsp/lsp/lsDocumentUri.h"
 #include "LibLsp/lsp/lsAny.h"
 #include "LibLsp/lsp/extention/jdtls/searchSymbols.h"
+#include "LibLsp/lsp/protocol_3_18.h"
 
 /**
  * Capabilities specific to `WorkspaceEdit`s
@@ -81,14 +82,21 @@ struct WorkspaceEditCapabilities
          */
     optional<lschangeAnnotationSupport> changeAnnotationSupport;
 
+    /**
+     * Whether the client supports workspace edit metadata.
+     *
+     * @since 3.18.0
+     */
+    optional<bool> metadataSupport;
+
     MAKE_SWAP_METHOD(
         WorkspaceEditCapabilities, documentChanges, resourceChanges, resourceOperations, failureHandling,
-        normalizesLineEndings, changeAnnotationSupport
+        normalizesLineEndings, changeAnnotationSupport, metadataSupport
     )
 };
 MAKE_REFLECT_STRUCT(
     WorkspaceEditCapabilities, documentChanges, resourceChanges, resourceOperations, failureHandling,
-    normalizesLineEndings, changeAnnotationSupport
+    normalizesLineEndings, changeAnnotationSupport, metadataSupport
 )
 
 struct DynamicRegistrationCapabilities
@@ -246,13 +254,19 @@ struct lsWorkspaceClientCapabilites
    */
     optional<lsFileOperations> fileOperations;
 
+    optional<TextDocumentContentClientCapabilities> textDocumentContent;
+
+    optional<WorkspaceDiagnosticClientCapabilities> diagnostics;
+
     MAKE_SWAP_METHOD(
         lsWorkspaceClientCapabilites, applyEdit, workspaceEdit, didChangeConfiguration, didChangeWatchedFiles, symbol,
-        executeCommand, workspaceFolders, configuration, semanticTokens, codeLens, fileOperations
+        executeCommand, workspaceFolders, configuration, semanticTokens, codeLens, fileOperations, textDocumentContent,
+        diagnostics
     )
 };
 
 MAKE_REFLECT_STRUCT(
     lsWorkspaceClientCapabilites, applyEdit, workspaceEdit, didChangeConfiguration, didChangeWatchedFiles, symbol,
-    executeCommand, workspaceFolders, configuration, semanticTokens, codeLens, fileOperations
+    executeCommand, workspaceFolders, configuration, semanticTokens, codeLens, fileOperations, textDocumentContent,
+    diagnostics
 )

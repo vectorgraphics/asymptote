@@ -37,9 +37,14 @@ struct lsSignatureInformation
     // The parameters of this signature.
     std::vector<lsParameterInformation> parameters;
 
-    MAKE_SWAP_METHOD(lsSignatureInformation, label, documentation, parameters)
+    // The active parameter of this signature.
+    //
+    // @since 3.18.0
+    optional<int> activeParameter;
+
+    MAKE_SWAP_METHOD(lsSignatureInformation, label, documentation, parameters, activeParameter)
 };
-MAKE_REFLECT_STRUCT(lsSignatureInformation, label, documentation, parameters);
+MAKE_REFLECT_STRUCT(lsSignatureInformation, label, documentation, parameters, activeParameter);
 
 // Signature help represents the signature of something
 // callable. There can be multiple signature but only one

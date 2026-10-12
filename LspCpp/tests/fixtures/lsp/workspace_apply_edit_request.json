@@ -1,0 +1,1 @@
+{"jsonrpc":"2.0","id":5501,"method":"workspace/applyEdit","params":{"edit":{"changes":{"file:///fixture.cpp":[{"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":4}},"newText":"int"}]}}}}

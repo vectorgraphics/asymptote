@@ -12,16 +12,82 @@ struct WorkingFilesData
     std::mutex files_mutex; // Protects |d_ptr->files|.
 };
 
+namespace
+{
+std::vector<size_t> BuildLineOffsets(std::string const& content)
+{
+    std::vector<size_t> offsets;
+    offsets.push_back(0);
+    for (size_t i = 0; i < content.size(); ++i)
+    {
+        if (content[i] == '\n')
+        {
+            offsets.push_back(i + 1);
+        }
+    }
+    return offsets;
+}
+
+void RebuildLineOffsets(WorkingFile& file)
+{
+    file.RebuildLineOffsets();
+}
+
+int GetCachedOffsetForPosition(WorkingFile const& file, lsPosition position)
+{
+    return file.GetOffsetForPosition(position);
+}
+} // namespace
+
 WorkingFile::WorkingFile(WorkingFiles& _parent, AbsolutePath const& filename, std::string const& buffer_content)
     : filename(filename), directory(filename), parent(_parent), counter(0), buffer_content(buffer_content)
 {
-    directory = Directory(GetDirName(filename.path));
+    directory = Directory(AbsolutePath::FromNormalized(GetDirName(filename.path())));
+    this->RebuildLineOffsets();
 }
 
 WorkingFile::WorkingFile(WorkingFiles& _parent, AbsolutePath const& filename, std::string&& buffer_content)
     : filename(filename), directory(filename), parent(_parent), counter(0), buffer_content(buffer_content)
 {
-    directory = Directory(GetDirName(filename.path));
+    directory = Directory(AbsolutePath::FromNormalized(GetDirName(filename.path())));
+    this->RebuildLineOffsets();
+}
+
+void WorkingFile::RebuildLineOffsets()
+{
+    line_offsets = BuildLineOffsets(buffer_content);
+}
+
+int WorkingFile::GetOffsetForPosition(lsPosition position) const
+{
+    if (line_offsets.empty())
+    {
+        return ::GetOffsetForPosition(position, buffer_content);
+    }
+
+    size_t i = buffer_content.size();
+    if (position.line < line_offsets.size())
+    {
+        i = line_offsets[position.line];
+    }
+
+    while (position.character > 0 && i < buffer_content.size())
+    {
+        uint8_t const lead = uint8_t(buffer_content[i++]);
+        if (lead >= 128)
+        {
+            while (i < buffer_content.size() && uint8_t(buffer_content[i]) >= 128 && uint8_t(buffer_content[i]) < 192)
+            {
+                i++;
+            }
+        }
+        // Match lsp::GetOffsetForPosition: code points above U+FFFF count as
+        // two UTF-16 code units (a surrogate pair).
+        // Saturating subtraction: |character| is unsigned.
+        unsigned const units = (lead >= 0xF0) ? 2u : 1u;
+        position.character -= std::min(position.character, units);
+    }
+    return static_cast<int>(i);
 }
 
 WorkingFiles::WorkingFiles() : d_ptr(new WorkingFilesData())
@@ -63,6 +129,11 @@ std::shared_ptr<WorkingFile> WorkingFiles::GetFileByFilename(AbsolutePath const&
 
 std::shared_ptr<WorkingFile> WorkingFiles::GetFileByFilenameNoLock(AbsolutePath const& filename)
 {
+    if (!filename.valid())
+    {
+        return nullptr;
+    }
+
     auto const findIt = d_ptr->files.find(filename);
     if (findIt != d_ptr->files.end())
     {
@@ -76,12 +147,17 @@ std::shared_ptr<WorkingFile> WorkingFiles::OnOpen(lsTextDocumentItem& open)
     std::lock_guard<std::mutex> lock(d_ptr->files_mutex);
 
     AbsolutePath filename = open.uri.GetAbsolutePath();
+    if (!filename.valid())
+    {
+        return {};
+    }
 
     // The file may already be open.
     if (auto file = GetFileByFilenameNoLock(filename))
     {
         file->version = open.version;
         file->buffer_content.swap(open.text);
+        RebuildLineOffsets(*file);
 
         return file;
     }
@@ -96,6 +172,10 @@ std::shared_ptr<WorkingFile> WorkingFiles::OnChange(lsTextDocumentDidChangeParam
     std::lock_guard<std::mutex> lock(d_ptr->files_mutex);
 
     AbsolutePath filename = change.textDocument.uri.GetAbsolutePath();
+    if (!filename.valid())
+    {
+        return {};
+    }
     auto file = GetFileByFilenameNoLock(filename);
     if (!file)
     {
@@ -114,16 +194,18 @@ std::shared_ptr<WorkingFile> WorkingFiles::OnChange(lsTextDocumentDidChangeParam
         if (!diff.range)
         {
             file->buffer_content = diff.text;
+            RebuildLineOffsets(*file);
         }
         else
         {
-            int start_offset = GetOffsetForPosition(diff.range->start, file->buffer_content);
+            int start_offset = GetCachedOffsetForPosition(*file, diff.range->start);
             // Ignore TextDocumentContentChangeEvent.rangeLength which causes trouble
             // when UTF-16 surrogate pairs are used.
-            int end_offset = GetOffsetForPosition(diff.range->end, file->buffer_content);
+            int end_offset = GetCachedOffsetForPosition(*file, diff.range->end);
             file->buffer_content.replace(
                 file->buffer_content.begin() + start_offset, file->buffer_content.begin() + end_offset, diff.text
             );
+            RebuildLineOffsets(*file);
         }
     }
     return file;
@@ -134,6 +216,10 @@ bool WorkingFiles::OnClose(lsTextDocumentIdentifier const& close)
     std::lock_guard<std::mutex> lock(d_ptr->files_mutex);
 
     AbsolutePath filename = close.uri.GetAbsolutePath();
+    if (!filename.valid())
+    {
+        return false;
+    }
     auto const findIt = d_ptr->files.find(filename);
     if (findIt != d_ptr->files.end())
     {
@@ -148,11 +234,15 @@ std::shared_ptr<WorkingFile> WorkingFiles::OnSave(lsTextDocumentIdentifier const
     std::lock_guard<std::mutex> lock(d_ptr->files_mutex);
 
     AbsolutePath filename = _save.uri.GetAbsolutePath();
+    if (!filename.valid())
+    {
+        return {};
+    }
     auto const findIt = d_ptr->files.find(filename);
     if (findIt != d_ptr->files.end())
     {
         std::shared_ptr<WorkingFile>& file = findIt->second;
-        lsp::WriteToFile(file->filename, file->GetContentNoLock());
+        lsp::WriteToFile(file->filename.path(), file->GetContentNoLock());
         return findIt->second;
     }
     return {};

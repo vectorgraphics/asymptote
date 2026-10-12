@@ -51,7 +51,7 @@ struct lsRequest : public RequestInMessage
     void swap(lsRequest& arg) noexcept
     {
         id.swap(arg.id);
-        method.swap(method);
+        method.swap(arg.method);
         std::swap(params, arg.params);
     }
     T params;
