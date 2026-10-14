@@ -276,7 +276,10 @@ std::string wslUnix2Dos(std::string const& unixPath)
           shared_ptr<lsp::ProtocolJsonHandler> const& jsonHandler,
           shared_ptr<GenericEndpoint> const& endpoint, LspLog& log) :
           internalREP(make_unique<RemoteEndPoint>(jsonHandler, endpoint, log)), remoteEndPoint(internalREP.get()),
-          pjh(jsonHandler), ep(endpoint), _log(log)
+          pjh(jsonHandler), ep(endpoint), _log(log),
+          symmapContextsPtr(make_unique<SymContextFilemap>()),
+          fileContentsPtr(make_unique<
+                  std::remove_reference<decltype(*fileContentsPtr)>::type>())
   {
     initializeRequestFn();
     initializeNotifyFn();
@@ -287,7 +290,10 @@ std::string wslUnix2Dos(std::string const& unixPath)
           shared_ptr<lsp::ProtocolJsonHandler> const& jsonHandler,
           shared_ptr<GenericEndpoint> const& endpoint, LspLog& log) :
           internalREP(nullptr), remoteEndPoint(remoteEndPt),
-          pjh(jsonHandler), ep(endpoint), _log(log)
+          pjh(jsonHandler), ep(endpoint), _log(log),
+          symmapContextsPtr(make_unique<SymContextFilemap>()),
+          fileContentsPtr(make_unique<
+                  std::remove_reference<decltype(*fileContentsPtr)>::type>())
   {
     initializeRequestFn();
     initializeNotifyFn();
@@ -514,6 +520,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
   SymbolContext* AsymptoteLspServer::fromRawPath(lsTextDocumentIdentifier const& identifier)
   {
     std::string rawPath=getDocIdentifierRawPath(identifier);
+    if (!symmapContextsPtr) return nullptr;
     auto fileSymIt=symmapContextsPtr->find(rawPath);
 
     return fileSymIt != symmapContextsPtr->end() ? fileSymIt->second.get() : nullptr;
@@ -829,6 +836,24 @@ std::string wslUnix2Dos(std::string const& unixPath)
 
   AsymptoteLspServer::~AsymptoteLspServer()
   {
+    // Stop the RemoteEndPoint and fully destroy it (which destroys the
+    // asio::thread_pool and joins all worker/notification threads) BEFORE
+    // the other member variables (docStateMutex, symmapContextsPtr,
+    // fileContentsPtr, plainFile) are destroyed.
+    //
+    // RemoteEndPoint::stop() alone is not sufficient: it calls
+    // handler_pool->stop() which only cancels *pending* work items;
+    // currently-running handlers on the pool are not joined until the
+    // thread_pool shared_ptr is destroyed.  Since internalREP is declared
+    // first it would otherwise be destroyed last -- after every other
+    // member -- leaving a window where a still-running handler dereferences
+    // an already-destroyed mutex or unique_ptr, causing an intermittent
+    // segfault.
+    if (internalREP)
+    {
+      internalREP->stop();
+      internalREP.reset();   // destroys RemoteEndPoint -> thread_pools -> join
+    }
   }
 
   void AsymptoteLspServer::startIO(std::istream& in, std::ostream& out)
