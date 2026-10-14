@@ -82,10 +82,12 @@ inline bool operator == (const fileinfo& a, const fileinfo& b)
   return a.line() == b.line() && a.name() == b.name();
 }
 
-class position : public gc {
-  // Packed representation: a 16-bit file index (0 means "no file"), a
-  // 32-bit line number, and a 16-bit column number. Total: one 64-bit
-  // word. Equality is a single word comparison.
+
+class position {
+  // Plain value type: no pointers, so it needs no GC base and is never
+  // GC-allocated. Packed representation: a 16-bit file index (0 means
+  // "no file"), a 32-bit line number, and a 16-bit column number. Total:
+  // one 64-bit word. Equality is a single word comparison.
   uint32_t line;
   uint16_t fileIndex;
   uint16_t column;

@@ -13,7 +13,7 @@
 #   BENCH         Asymptote source file to profile (default: map.asy)
 #   BENCH_OPTS    -u settings string passed to asy (default: maxOperations=500000)
 #   ASY_ROOT      Path to the asymptote source root (default: ../..)
-#   CFLAGS        Compiler flags used when (re)building asy (default: -g -O2)
+#   CFLAGS        Compiler flags used when (re)building asy
 #   CALLGRIND_EXTRA_OPTS   Extra flags passed to valgrind --tool=callgrind
 #   ANNOTATE_OPTS Flags passed to callgrind_annotate
 #                 (default: --auto=yes --threshold=99.5)
