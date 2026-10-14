@@ -234,26 +234,26 @@ void stack::debug()
       breakpoint();
       break;
     case 's': // step
-      if((!curPos.match(lastPos.filename()) || !curPos.match(lastPos.Line())))
+      if((!curPos.match(lastPos.fileindex()) || !curPos.match(lastPos.Line())))
         breakpoint();
       break;
     case 'n': // next
-      if(curPos.match(lastPos.filename()) && !curPos.match(lastPos.Line()))
+      if(curPos.match(lastPos.fileindex()) && !curPos.match(lastPos.Line()))
         breakpoint();
       break;
     case 'f': // file
-      if(!curPos.match(lastPos.filename()))
+      if(!curPos.match(lastPos.fileindex()))
         breakpoint();
       break;
     case 'r': // return
-      if(curPos.match(breakPos.filename()))
+      if(curPos.match(breakPos.fileindex()))
         breakpoint();
       break;
     case 'c': // continue
     default:
       for(auto p=bplist.begin(); p != bplist.end(); ++p) {
-        if(curPos.match(p->f.name()) && curPos.match(p->f.line()) &&
-           (newline || !curPos.match(breakPos.filename()) ||
+        if(curPos.match(p->f.index()) && curPos.match(p->f.line()) &&
+           (newline || !curPos.match(breakPos.fileindex()) ||
             !curPos.match(breakPos.Line()))) {
           breakPos=curPos;
           breakpoint(p->r);
@@ -261,7 +261,7 @@ void stack::debug()
           break;
         }
         if(!newline &&
-           (curPos.match(lastPos.filename()) && !curPos.match(lastPos.Line())))
+           (curPos.match(lastPos.fileindex()) && !curPos.match(lastPos.Line())))
           newline=true;
       }
       break;
@@ -340,7 +340,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
   processDataStruct& P=processData();
   position& topPos=P.topPos;
   string& fileName=P.fileName;
-  unsigned int offset=P.xmapCount;
+  uint32_t offset=P.xmapCount;
 
   bool traceless=!settings::debug;
   bool xasy=settings::xasy || offset || settings::keys;

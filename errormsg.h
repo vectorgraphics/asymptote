@@ -21,13 +21,35 @@ struct interrupted : std::exception {};   // Exception to interrupt execution.
 struct quit : std::exception {};          // Exception to quit current operation.
 struct EofException : std::exception {};           // Exception to exit interactive mode.
 
+// Strips the directory prefix and the '.asy' suffix from a filename,
+// returning just the module name. Assumes '/' as the directory separator.
+namespace errormsg {
+string moduleNameFromPath(const string& filename);
+} // namespace errormsg
+
+// Registry that interns filenames so that positions can reference them by
+// a small (16-bit) index instead of carrying a fileinfo pointer. This keeps
+// the position struct compact (one 64-bit word) which improves cache
+// locality of bytecode instructions that carry a position.
+class positionFileRegistry {
+public:
+  // Returns the index for the given filename, allocating a new one if
+  // necessary. Index 0 is reserved to mean "no file".
+  static uint16_t intern(const string& filename);
+  // Returns the filename associated with the given index. Returns the
+  // empty string for index 0.
+  static const string& getFilename(uint16_t index);
+};
+
 class fileinfo : public gc {
   string filename;
   size_t lineNum;
+  uint16_t fileIndex;
 
 public:
   fileinfo(string filename, size_t lineNum=1)
-    : filename(filename), lineNum(lineNum) {}
+    : filename(filename), lineNum(lineNum),
+      fileIndex(positionFileRegistry::intern(filename)) {}
 
   size_t line() const
   {
@@ -38,21 +60,14 @@ public:
     return filename;
   }
 
+  uint16_t index() const {
+    return fileIndex;
+  }
+
   // The filename without the directory and without the '.asy' suffix.
   // Note that this assumes name are separated by a forward slash.
   string moduleName() const {
-    size_t start = filename.rfind('/');
-    if (start == filename.npos)
-      start = 0;
-    else
-      // Step over slash.
-      ++start;
-
-    size_t end = filename.rfind(".asy");
-    if (end != filename.size() - 4)
-      end = filename.size();
-
-    return filename.substr(start, end-start);
+    return errormsg::moduleNameFromPath(filename);
   }
 
   // Specifies a newline symbol at the character position given.
@@ -67,24 +82,39 @@ inline bool operator == (const fileinfo& a, const fileinfo& b)
   return a.line() == b.line() && a.name() == b.name();
 }
 
-class position : public gc {
-  fileinfo *file;
-  size_t line;
-  size_t column;
+
+class position {
+  // Plain value type: no pointers, so it needs no GC base and is never
+  // GC-allocated. Packed representation: a 16-bit file index (0 means
+  // "no file"), a 32-bit line number, and a 16-bit column number. Total:
+  // one 64-bit word. Equality is a single word comparison.
+  uint32_t line;
+  uint16_t fileIndex;
+  uint16_t column;
+
+  // Saturating casts from (possibly large) integral values.
+  static uint16_t toU16(size_t v) {
+    return v > 0xFFFFu ? uint16_t(0xFFFFu) : uint16_t(v);
+  }
+  static uint32_t toU32(size_t v) {
+    return v > 0xFFFFFFFFu ? 0xFFFFFFFFu : (uint32_t) v;
+  }
 
 public:
   void init(fileinfo *f, Int p) {
-    file = f;
-    if (file) {
-      line = file->line();
-      column = p;
+    if (f) {
+      fileIndex = f->index();
+      line      = toU32(f->line());
+      column    = toU16((size_t) p);
     } else {
-      line = column = 0;
+      fileIndex = 0;
+      line      = 0;
+      column    = 0;
     }
   }
 
   string filename() const {
-    return file ? file->name() : "";
+    return positionFileRegistry::getFilename(fileIndex);
   }
 
   size_t Line() const {
@@ -95,9 +125,9 @@ public:
     return column;
   }
 
-  position shift(unsigned int offset) const {
+  position shift(uint32_t offset) const {
     position P=*this;
-    P.line -= offset;
+    P.line = (P.line > offset) ? P.line - offset : 0;
     return P;
   }
 
@@ -105,11 +135,21 @@ public:
     return std::pair<size_t,size_t>(line,column);
   }
 
-  bool match(const string& s) {
-    return file && file->name() == s;
+  // Fast index-based file match (avoids string comparison).
+  // Returns false if this position has no file or if the index is 0.
+  bool match(uint16_t idx) const {
+    return fileIndex != 0 && fileIndex == idx;
   }
 
-  bool match(size_t l) {
+  bool match(const string& s) const {
+    return fileIndex != 0 && filename() == s;
+  }
+
+  uint16_t fileindex() const {
+    return fileIndex;
+  }
+
+  bool match(size_t l) const {
     return line == l;
   }
 
@@ -119,31 +159,33 @@ public:
 
   bool operator! () const
   {
-    return (file == 0);
+    return fileIndex == 0;
   }
 
   friend ostream& operator << (ostream& out, const position& pos);
+  friend inline bool operator == (const position& a, const position& b);
 
   typedef std::pair<size_t, size_t> posInFile;
   typedef std::pair<std::string, posInFile> filePos;
 
   explicit operator AsymptoteLsp::filePos()
   {
-    return std::make_pair((std::string) file->name().c_str(),LineColumn());
+    return std::make_pair((std::string) filename().c_str(),LineColumn());
   }
 
   void print(ostream& out) const
   {
-    if (file) {
-      out << file->name() << ":" << line << "." << column;
+    if (fileIndex) {
+      out << filename() << ":" << line << "." << column;
     }
   }
 
   // Write out just the module name and line number.
   void printTerse(ostream& out) const
   {
-    if (file) {
-      out << file->moduleName() << ":" << line;
+    if (fileIndex) {
+      const string& fname = positionFileRegistry::getFilename(fileIndex);
+      out << errormsg::moduleNameFromPath(fname) << ":" << line;
     }
   }
 };
@@ -156,8 +198,10 @@ struct nullPosInitializer {
 
 inline bool operator == (const position& a, const position& b)
 {
-  return a.Line() == b.Line() && a.Column() == b.Column() &&
-    a.filename() == b.filename();
+  // Since filenames are interned uniquely into fileIndex and all 8 bytes
+  // of the struct are live data, a whole-word comparison suffices.
+  return a.fileIndex == b.fileIndex && a.line == b.line &&
+         a.column == b.column;
 }
 
 string warning(string s);

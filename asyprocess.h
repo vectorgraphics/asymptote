@@ -110,7 +110,7 @@ struct processDataStruct {
   string KEY;
   xkey_t xkey;
   xmap_t xmap;
-  unsigned int xmapCount;
+  uint32_t xmapCount;
 
   terminator<std::ofstream> ofile;
   terminator<std::fstream> ifile;

@@ -700,8 +700,8 @@ void exit()
 
 void assert(bool b, string s=emptystring)
 {
-  flush(cout);
   if(!b) {
+    flush(cout);
     ostringstream buf;
     buf << "assert FAILED";
     if(s != "") buf << ": " << s;
