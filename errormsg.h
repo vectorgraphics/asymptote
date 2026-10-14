@@ -135,11 +135,21 @@ public:
     return std::pair<size_t,size_t>(line,column);
   }
 
-  bool match(const string& s) {
+  // Fast index-based file match (avoids string comparison).
+  // Returns false if this position has no file or if the index is 0.
+  bool match(uint16_t idx) const {
+    return fileIndex != 0 && fileIndex == idx;
+  }
+
+  bool match(const string& s) const {
     return fileIndex != 0 && filename() == s;
   }
 
-  bool match(size_t l) {
+  uint16_t fileindex() const {
+    return fileIndex;
+  }
+
+  bool match(size_t l) const {
     return line == l;
   }
 

@@ -51,8 +51,8 @@ uint16_t positionFileRegistry::intern(const string& filename)
   if (it != idx.end()) return it->second;
   auto& names = registryFilenames();
   size_t next = names.size();
-  // Cap at uint16_t max; if exceeded, reuse last index (graceful fallback).
-  if (next > 0xFFFFu) return uint16_t(0xFFFFu);
+  // Index 0xFFFF is reserved as an overflow placeholder; cap real files at 0xFFFE.
+  if (next > 0xFFFEu) return 0xFFFFu;
   uint16_t newIndex = uint16_t(next);
   names.push_back(filename);
   idx.emplace(filename, newIndex);
@@ -62,8 +62,10 @@ uint16_t positionFileRegistry::intern(const string& filename)
 const string& positionFileRegistry::getFilename(uint16_t index)
 {
   auto& names = registryFilenames();
-  if (index >= names.size()) return names[0];
-  return names[index];
+  if (index < names.size()) return names[index];
+  // Out-of-range: return a generic placeholder for diagnostics.
+  static const string unknown = "<file>";
+  return unknown;
 }
 
 namespace errormsg {
@@ -197,8 +199,8 @@ void errorstream::trace(position pos)
 {
   if (mode == ErrorMode::SUPPRESS)
     return;
-  static position lastpos;
-  if(!pos || (pos.match(lastpos.filename()) && pos.match(lastpos.Line())))
+  static position lastpos = [] { position p; p.init(nullptr, 0); return p; }();
+  if(!pos || (pos.match(lastpos.fileindex()) && pos.match(lastpos.Line())))
     return;
   lastpos=pos;
   message(pos,"");
