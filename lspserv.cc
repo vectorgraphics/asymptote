@@ -17,6 +17,8 @@
 #include <memory>
 #include <queue>
 
+#include <fstream>
+#include <sstream>
 #include <thread>
 
 #include "common.h"
@@ -359,8 +361,31 @@ std::string wslUnix2Dos(std::string const& unixPath)
   {
     std::lock_guard lk(docStateMutex);
     logInfo("onOpen notification");
-    lsDocumentUri fileUri(notify.params.textDocument.uri);
-    reloadFile(fileUri.GetRawPath());
+
+    // Use the in-memory text from the didOpen notification (the editor's
+    // buffer) instead of re-reading from disk.  This mirrors onChange and
+    // handles unsaved / virtual files correctly.
+    auto& text = notify.params.textDocument.text;
+    lsTextDocumentIdentifier docId;
+    docId.uri = notify.params.textDocument.uri;
+    std::string rawPath = getDocIdentifierRawPath(docId);
+
+    // istring's block* is intentionally process-lifetime (matching ifile's
+    // behavior in generateMissingTrees); it is not deleted.
+    block* codeBlk;
+    try
+    {
+      codeBlk = istring(mem::string(text.c_str())).getTree();
+    }
+    catch (handled_error const&)
+    {
+      logWarning("onOpen: failed to parse document text");
+      return;
+    }
+
+    std::istringstream iss(text);
+    updateFileContentsTable(rawPath, iss);
+    reloadFileRaw(codeBlk, rawPath);
   }
 
   void AsymptoteLspServer::onSave(Notify_TextDocumentDidSave::notify& notify)
@@ -391,6 +416,79 @@ std::string wslUnix2Dos(std::string const& unixPath)
     if (plainCtx != nullptr)
     {
       generateMissingTrees(plainFile);
+
+      // Respect settings.autoimport (set via -autoimport or config file).
+      // The autoimport logic in plain.asy is executed at runtime via eval(),
+      // which the LSP (static AST parser) cannot see.  Load the autoimported
+      // module here so its symbols are available for hover/definition.
+      //
+      // Thread safety: this runs inside handleInitailizeRequest which holds
+      // docStateMutex.  The LSP protocol guarantees that no didOpen/didChange
+      // notifications arrive until the initialize response is sent, so no
+      // concurrent access to symmapContextsPtr or plainCtx can occur.
+      std::string ai=settings::getSetting<std::string>("autoimport");
+      if (not ai.empty())
+      {
+        // trim leading/trailing whitespace
+        size_t begin=ai.find_first_not_of(" \t");
+        size_t end=ai.find_last_not_of(" \t");
+        if (begin!=std::string::npos)
+          ai=ai.substr(begin, end-begin+1);
+
+        std::string moduleFile=settings::locateFile(mem::string(ai.c_str()), true).c_str();
+        if (moduleFile.empty())
+        {
+          logWarning("onInitialize: autoimport module not found: " + ai);
+        }
+        else
+        {
+          // Read the module file and parse it in-memory via istring,
+          // matching the approach used by onOpen/onChange.
+          // modBlk is process-lifetime (not deleted), consistent with
+          // ifile's cachedTree behavior in generateMissingTrees.
+          block* modBlk=nullptr;
+          try
+          {
+            std::ifstream mfin(moduleFile.c_str());
+            if (mfin)
+            {
+              std::string mcontent((std::istreambuf_iterator<char>(mfin)),
+                                    std::istreambuf_iterator<char>());
+              mfin.close();
+              modBlk=istring(mem::string(mcontent.c_str())).getTree();
+            }
+          }
+          catch (handled_error const&)
+          {
+            logWarning("onInitialize: failed to parse autoimport module: " + ai);
+          }
+
+          if (modBlk != nullptr)
+          {
+            // Manually create the symbol context.  We cannot use
+            // reloadFileRaw here because it calls ifile internally,
+            // which opens a file descriptor and may crash in the LSP
+            // initialization context (no process stack yet).
+            SearchPathAddition sp(stripFile(string(moduleFile.c_str())));
+            auto s=symmapContextsPtr->emplace(
+                    moduleFile,
+                    make_unique<SymbolContext>(posInFile(1, 1), moduleFile));
+            auto fit=std::get<0>(s);
+            modBlk->createSymMap(fit->second.get());
+            fit->second->extRefs.extFileRefs[plainFile]=plainCtx;
+
+            // Register as external reference in plain.asy's context.
+            // The module name (ai) is used as the access/unravel key so
+            // that user code like "<module>.symbol" resolves correctly,
+            // matching the semantics of: import "<module>" as dummy
+            plainCtx->extRefs.extFileRefs[moduleFile]=fit->second.get();
+            plainCtx->extRefs.fileIdPair[ai]=moduleFile;
+            plainCtx->extRefs.unraveledVals.emplace(ai);
+            plainCtx->extRefs.accessVals.emplace(ai);
+            logInfo("onInitialize: loaded autoimport module: " + ai);
+          }
+        }
+      }
     }
     else
     {

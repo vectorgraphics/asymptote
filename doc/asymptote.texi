@@ -12150,6 +12150,11 @@ M-x lsp
 
 @end itemize
 
+To view all overloads of a function, execute
+@code{\(lsp-describe-thing-at-point)} (via @code{M-x}) which
+opens a help window, or set @code{\(setq lsp-eldoc-render-all t)}
+in your initialization file to show them in the echo area.
+
 @node PostScript to Asymptote
 @chapter @code{PostScript} to @code{Asymptote}
 @cindex @code{pstoedit}
