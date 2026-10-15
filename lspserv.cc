@@ -25,11 +25,40 @@
 #include "dec.h"
 #include "asyprocess.h"
 #include "locate.h"
+#ifdef USEGC
+#include <gc/gc.h>
+#endif
+
+#ifdef USEGC
+  class GCThreadGuard
+  {
+    bool registered=false;
+  public:
+    GCThreadGuard()
+    {
+      GC_stack_base gsb;
+      GC_get_stack_base(&gsb);
+      registered = (GC_register_my_thread(&gsb) == GC_SUCCESS);
+    }
+    ~GCThreadGuard()
+    {
+      if (registered) GC_unregister_my_thread();
+    }
+    GCThreadGuard(GCThreadGuard const&) = delete;
+    GCThreadGuard& operator=(GCThreadGuard const&) = delete;
+  };
+#else
+  class GCThreadGuard
+  {
+  public:
+    GCThreadGuard() {}
+  };
+#endif
 
 #define REGISTER_REQ_FN(typ, fn) remoteEndPoint->registerHandler(\
-  [this](typ::request const& req) { return this->fn(req); });
+  [this](typ::request const& req) { GCThreadGuard _gc; return this->fn(req); });
 #define REGISTER_NOTIF_FN(typ, handler) remoteEndPoint->registerHandler(\
-  [this](typ::notify& notif) { this->handler(notif); });
+  [this](typ::notify& notif) { GCThreadGuard _gc; this->handler(notif); });
 
 namespace AsymptoteLsp
 {
