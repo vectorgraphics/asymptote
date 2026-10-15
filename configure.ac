@@ -564,11 +564,13 @@ fi
 
 # ----------- glm
 # glm is header only and is already on the include path
+have_glm=no
 AC_CHECK_HEADER(
    glm/glm.hpp,
    [AC_DEFINE(
       HAVE_LIBGLM,1,
       DEFINE([the <glm/glm.hpp> header]))
+    have_glm=yes
    ],
    AC_MSG_NOTICE([*** Could not find glm header files: will compile without WebGL or OpenGL/Vulkan support ***])
 )
@@ -579,10 +581,12 @@ AC_SUBST(TINYEXR_ROOT)
 
 # ------------------- GLFW -----------------
 
+have_glfw=no
 if test "x$enable_vulkan" != "xno" -o "x$enable_gl" != "xno"; then
    AC_CHECK_LIB([glfw], [glfwShowWindow],
                 [AC_DEFINE(HAVE_LIBGLFW,1,DEFINE_LIB([GLFW]))
-                 LIBS=$LIBS"-lglfw "],
+                 LIBS=$LIBS"-lglfw "
+                 have_glfw=yes],
                 AC_MSG_NOTICE([*** Could not find libglfw: will compile without Vulkan or OpenGL support ***]))
 fi
 
@@ -787,12 +791,18 @@ AC_SUBST(MACOS_DEPLOYMENT_FLAGS)
 # Determine which shim shared libraries (loaded via dlopen at runtime) to
 # build and link the asy binary against. Empty when both renderers are
 # disabled so the main binary does not depend on libglfw, libGL, or libvulkan.
+# Gate on the libraries actually found, not just the --enable-* request flags:
+# both shims link -lglfw and use glm, so each requires glfw+glm present plus its
+# own renderer library (Vulkan or GL). Otherwise the shim link fails (e.g. on
+# -lglfw) and the asy binary is never built.
 SHIMLIBS=""
-if test "x$enable_vulkan" != "xno"; then
-    SHIMLIBS="$SHIMLIBS libasyvulkan.so"
-fi
-if test "x$enable_gl" != "xno"; then
-    SHIMLIBS="$SHIMLIBS libasyopengl.so"
+if test "x$have_glfw" = "xyes" -a "x$have_glm" = "xyes"; then
+    if test "x$enable_vulkan" != "xno" -a "x$ASY_VULKAN_LIBS" != "x"; then
+        SHIMLIBS="$SHIMLIBS libasyvulkan.so"
+    fi
+    if test "x$enable_gl" != "xno" -a "x$ASY_GL_LIBS" != "x"; then
+        SHIMLIBS="$SHIMLIBS libasyopengl.so"
+    fi
 fi
 AC_SUBST(SHIMLIBS)
 
