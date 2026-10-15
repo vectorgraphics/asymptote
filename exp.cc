@@ -1188,9 +1188,11 @@ types::ty *callExp::trans(coenv &e)
         if (sig && sig->getNumFormals() >= 2) {
           types::ty *p0 = sig->getFormal(0).t;
           types::ty *p1 = sig->getFormal(1).t;
-          if (containsRecord(lt) && p0 && !equivalent(lt, p0))
+          if (containsRecord(lt) && p0 && !equivalent(lt, p0)
+              && (containsRecord(rt) || rt->kind == ty_null))
             spurious = true;
-          if (containsRecord(rt) && p1 && !equivalent(rt, p1))
+          if (containsRecord(rt) && p1 && !equivalent(rt, p1)
+              && (containsRecord(lt) || lt->kind == ty_null))
             spurious = true;
         }
         if (spurious) {
@@ -1267,9 +1269,11 @@ types::ty *callExp::getType(coenv &e)
         if (sig && sig->getNumFormals() >= 2) {
           types::ty *p0 = sig->getFormal(0).t;
           types::ty *p1 = sig->getFormal(1).t;
-          if (containsRecord(lt) && p0 && !equivalent(lt, p0))
+          if (containsRecord(lt) && p0 && !equivalent(lt, p0)
+              && (containsRecord(rt) || rt->kind == ty_null))
             spurious = true;
-          if (containsRecord(rt) && p1 && !equivalent(rt, p1))
+          if (containsRecord(rt) && p1 && !equivalent(rt, p1)
+              && (containsRecord(lt) || lt->kind == ty_null))
             spurious = true;
         }
       }

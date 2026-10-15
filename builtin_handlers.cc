@@ -182,7 +182,25 @@ record *resolveRecordEqTarget(exp *left, exp *right, coenv &e)
   if (lt->kind == ty_null && rt->kind == ty_null) return nullptr;
   if (lt->kind == ty_null) return uniqueRecordType(rt);
   if (rt->kind == ty_null) return uniqueRecordType(lt);
-  return commonRecordType(lt, rt);
+
+  record *common = commonRecordType(lt, rt);
+  if (common) return common;
+
+  // If one side is a record and the other is not, check whether the
+  // non-record side can be implicitly cast to the record type (e.g. a
+  // string operand compared to a struct that has `T operator cast(string)`).
+  record *lr = uniqueRecordType(lt);
+  if (lr && rt->kind != ty_record) {
+    if (e.e.castable(lr, rt, symbol::castsym))
+      return lr;
+  }
+  record *rr = uniqueRecordType(rt);
+  if (rr && lt->kind != ty_record) {
+    if (e.e.castable(rr, lt, symbol::castsym))
+      return rr;
+  }
+
+  return nullptr;
 }
 
 } // namespace
