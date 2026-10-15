@@ -362,13 +362,5 @@ schur schur(pair[][] a)
   return schur;
 }
 
-if(settings.autoimport != "") {
-  string s=settings.autoimport;
-  settings.autoimport="";
-  eval("import \""+s+"\" as dummy",true);
-  atupdate(updatefunction);
-  atexit(exitfunction);
-  settings.autoimport=s;
-}
 
 cputime();

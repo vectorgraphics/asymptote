@@ -57,8 +57,11 @@ using types::record;
 using interact::interactive;
 using interact::uptodate;
 
+
 using absyntax::runnable;
 using absyntax::block;
+using absyntax::importdec;
+using absyntax::idpair;
 
 mem::stack<processDataStruct *> processDataStack;
 
@@ -181,9 +184,38 @@ bool runRunnable(runnable *r, coenv &e, istack &s, transMode tm=TRANS_NORMAL) {
   return true;
 }
 
+
 void runAutoplain(coenv &e, istack &s) {
   absyntax::runnable *r=absyntax::autoplainRunnable();
   runRunnable(r,e,s);
+}
+
+
+void runAutoimport(coenv &e, istack &s) {
+  string autoimport=settings::getSetting<string>("autoimport");
+  if(autoimport.empty()) return;
+
+
+
+  for(std::string const& m : splitAutoimport(mem::stdString(autoimport))) {
+    string modname=(string) m;
+    // Determine dest (the name the module is accessible by in the local
+    // environment): the last path component.
+    // For "collections/hashmap" -> dest is "hashmap".
+    // For "three" -> dest is "three".
+    symbol src=symbol::literalTrans(modname);
+    string lastComp=stripDir(modname);
+    symbol dest=symbol::literalTrans(lastComp);
+
+    // Construct: import <modname> as <lastComp>;
+    // (equivalent to the stridpair parser rule for path imports)
+    position pos=nullPos;
+    idpair *id=new idpair(pos, src, symbol::trans("as"), dest);
+    importdec *imp=new importdec(pos, id);
+    runnable *r=imp;
+
+    runRunnable(r,e,s);
+  }
 }
 
 // icore
@@ -193,8 +225,10 @@ void runAutoplain(coenv &e, istack &s) {
 // after running the code specified.  They can be overridden by a derived
 // class that wishes different behaviour.
 void icore::preRun(coenv &e, istack &s) {
-  if(getSetting<bool>("autoplain"))
+  if(getSetting<bool>("autoplain")) {
     runAutoplain(e,s);
+    runAutoimport(e,s);
+  }
 }
 
 void icore::postRun(coenv &, istack &s) {

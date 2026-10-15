@@ -451,10 +451,12 @@ std::string wslUnix2Dos(std::string const& unixPath)
     {
       generateMissingTrees(plainFile);
 
+
       // Respect settings.autoimport (set via -autoimport or config file).
-      // The autoimport logic in plain.asy is executed at runtime via eval(),
-      // which the LSP (static AST parser) cannot see.  Load the autoimported
-      // module here so its symbols are available for hover/definition.
+      // The autoimport is executed at runtime by runAutoimport() in
+      // asyprocess.cc, which the LSP (static AST parser) cannot see.
+      // Load the autoimported module(s) here so their symbols are
+      // available for hover/definition.
       //
       // Thread safety: this runs inside handleInitailizeRequest which holds
       // docStateMutex.  The LSP protocol guarantees that no didOpen/didChange
@@ -463,23 +465,17 @@ std::string wslUnix2Dos(std::string const& unixPath)
       std::string ai=settings::getSetting<std::string>("autoimport");
       if (not ai.empty())
       {
-        // trim leading/trailing whitespace
-        size_t begin=ai.find_first_not_of(" \t");
-        size_t end=ai.find_last_not_of(" \t");
-        if (begin!=std::string::npos)
-          ai=ai.substr(begin, end-begin+1);
+        for (std::string const& modname : splitAutoimport(ai))
+        {
+          std::string moduleFile=settings::locateFile(mem::string(modname.c_str()), true).c_str();
+          if (moduleFile.empty())
+          {
+            logWarning("onInitialize: autoimport module not found: " + modname);
+            continue;
+          }
 
-        std::string moduleFile=settings::locateFile(mem::string(ai.c_str()), true).c_str();
-        if (moduleFile.empty())
-        {
-          logWarning("onInitialize: autoimport module not found: " + ai);
-        }
-        else
-        {
           // Read the module file and parse it in-memory via istring,
           // matching the approach used by onOpen/onChange.
-          // modBlk is process-lifetime (not deleted), consistent with
-          // ifile's cachedTree behavior in generateMissingTrees.
           block* modBlk=nullptr;
           try
           {
@@ -494,7 +490,8 @@ std::string wslUnix2Dos(std::string const& unixPath)
           }
           catch (handled_error const&)
           {
-            logWarning("onInitialize: failed to parse autoimport module: " + ai);
+            logWarning("onInitialize: failed to parse autoimport module: " + modname);
+            continue;
           }
 
           if (modBlk != nullptr)
@@ -512,14 +509,16 @@ std::string wslUnix2Dos(std::string const& unixPath)
             fit->second->extRefs.extFileRefs[plainFile]=plainCtx;
 
             // Register as external reference in plain.asy's context.
-            // The module name (ai) is used as the access/unravel key so
-            // that user code like "<module>.symbol" resolves correctly,
-            // matching the semantics of: import "<module>" as dummy
+            // Use the last path component as the access/unravel key,
+            // matching the semantics of runAutoimport in asyprocess.cc.
+            std::string lastComp=modname;
+            size_t slash=lastComp.rfind('/');
+            if(slash!=std::string::npos) lastComp=lastComp.substr(slash+1);
             plainCtx->extRefs.extFileRefs[moduleFile]=fit->second.get();
-            plainCtx->extRefs.fileIdPair[ai]=moduleFile;
-            plainCtx->extRefs.unraveledVals.emplace(ai);
-            plainCtx->extRefs.accessVals.emplace(ai);
-            logInfo("onInitialize: loaded autoimport module: " + ai);
+            plainCtx->extRefs.fileIdPair[lastComp]=moduleFile;
+            plainCtx->extRefs.unraveledVals.emplace(lastComp);
+            plainCtx->extRefs.accessVals.emplace(lastComp);
+            logInfo("onInitialize: loaded autoimport module: " + modname);
           }
         }
       }

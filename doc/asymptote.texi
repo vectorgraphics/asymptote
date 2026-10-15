@@ -11691,9 +11691,13 @@ If multiple files are specified, they are treated as separate
 @code{Asymptote} runs.
 
 @cindex @code{autoimport}
-If the string @code{autoimport} is nonempty, a module with this name is
-automatically imported for each run as the final step in loading module
-@code{plain}.
+If the string @code{autoimport} is nonempty, one or more modules are
+automatically imported for each run, immediately after loading module
+@code{plain}. Multiple modules may be specified as a comma-separated
+list, for example @code{-autoimport three,graph}. Path syntax is also
+accepted, for example @code{-autoimport collections/hashmap} (the module
+is imported under its last path component name, as with
+@code{import collections/hashmap}).
 
 @anchor{configuration file}
 @cindex configuration file

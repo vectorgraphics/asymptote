@@ -41,6 +41,9 @@ void runCodeEmbedded(absyntax::block *code, trans::coenv &e, istack &s);
 void runStringEmbedded(const string& str, trans::coenv &e, istack &s);
 void runPromptEmbedded(trans::coenv &e, istack &s);
 
+// Runs the autoimported module(s) in the given environment.
+void runAutoimport(trans::coenv &e, istack &s);
+
 // Basic listing.
 void doUnrestrictedList();
 
