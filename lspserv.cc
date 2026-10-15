@@ -451,7 +451,6 @@ std::string wslUnix2Dos(std::string const& unixPath)
     {
       generateMissingTrees(plainFile);
 
-
       // Respect settings.autoimport (set via -autoimport or config file).
       // The autoimport is executed at runtime by runAutoimport() in
       // asyprocess.cc, which the LSP (static AST parser) cannot see.

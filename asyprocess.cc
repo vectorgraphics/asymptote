@@ -57,7 +57,6 @@ using types::record;
 using interact::interactive;
 using interact::uptodate;
 
-
 using absyntax::runnable;
 using absyntax::block;
 using absyntax::importdec;
@@ -184,18 +183,14 @@ bool runRunnable(runnable *r, coenv &e, istack &s, transMode tm=TRANS_NORMAL) {
   return true;
 }
 
-
 void runAutoplain(coenv &e, istack &s) {
   absyntax::runnable *r=absyntax::autoplainRunnable();
   runRunnable(r,e,s);
 }
 
-
 void runAutoimport(coenv &e, istack &s) {
   string autoimport=settings::getSetting<string>("autoimport");
   if(autoimport.empty()) return;
-
-
 
   for(std::string const& m : splitAutoimport(mem::stdString(autoimport))) {
     string modname=(string) m;

@@ -11695,9 +11695,11 @@ If the string @code{autoimport} is nonempty, one or more modules are
 automatically imported for each run, immediately after loading module
 @code{plain}. Multiple modules may be specified as a comma-separated
 list, for example @code{-autoimport three,graph}. Path syntax is also
-accepted, for example @code{-autoimport collections/hashmap} (the module
-is imported under its last path component name, as with
-@code{import collections/hashmap}).
+accepted (for example, to autoimport a personal module kept in a
+subdirectory, @code{-autoimport mydir/common}; the module is imported
+under its last path component name, here @code{common}). Note that
+templated modules (such as @code{collections/hashmap}) cannot be autoimported
+because they require type parameters.
 
 @anchor{configuration file}
 @cindex configuration file

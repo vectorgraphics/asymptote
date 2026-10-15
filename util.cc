@@ -228,7 +228,6 @@ char *StrdupMalloc(string s)
   return dest;
 }
 
-
 string stripDir(string name)
 {
 #if defined(_WIN32)
@@ -242,7 +241,6 @@ string stripDir(string name)
   if(p < string::npos) name.erase(0,p+1);
   return name;
 }
-
 
 std::vector<std::string> splitAutoimport(std::string const& s)
 {
