@@ -26,7 +26,7 @@
 #include "asyprocess.h"
 #include "locate.h"
 #ifdef USEGC
-#include <gc/gc.h>
+#include <gc.h>
 #endif
 
 #ifdef USEGC
