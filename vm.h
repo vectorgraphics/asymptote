@@ -31,8 +31,8 @@ void run(lambda *l);
 position getPos();
 
 void errornothrow(const char* message);
-void error(const char* message);
-void error(const ostringstream& message);
+[[noreturn]] void error(const char* message);
+[[noreturn]] void error(const ostringstream& message);
 
 } // namespace vm
 

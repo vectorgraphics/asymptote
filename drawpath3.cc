@@ -124,7 +124,7 @@ void drawNurbsPath3::bounds(const double* t, bbox3& b)
   triple* Controls;
   if(t == NULL) Controls=controls;
   else {
-    Controls=new triple[n];
+    Controls=new(NoGC) triple[n];
     for(size_t i=0; i < n; i++)
       Controls[i]=t*controls[i];
   }
@@ -151,7 +151,7 @@ void drawNurbsPath3::ratio(const double* t, pair &b, double (*m)(double, double)
   triple* Controls;
   if(t == NULL) Controls=controls;
   else {
-    Controls=new triple[n];
+    Controls=new(NoGC) triple[n];
     for(size_t i=0; i < n; i++)
       Controls[i]=t*controls[i];
   }

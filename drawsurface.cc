@@ -593,11 +593,12 @@ void drawNurbs::bounds(const double* t, bbox3& b)
   double x,y,z;
   double X,Y,Z;
 
+  if(nu > SIZE_MAX/nv) outOfMemory();
   const size_t n=nu*nv;
   triple* Controls;
   if(t == NULL) Controls=controls;
   else {
-    Controls=new triple[n];
+    Controls=new(NoGC) triple[n];
     for(size_t i=0; i < n; i++)
       Controls[i]=t*controls[i];
   }
@@ -621,12 +622,13 @@ drawElement *drawNurbs::transformed(const double* t)
 void drawNurbs::ratio(const double *t, pair &b, double (*m)(double, double),
                       double, bool &first)
 {
+  if(nu > SIZE_MAX/nv) outOfMemory();
   const size_t n=nu*nv;
 
   triple* Controls;
   if(t == NULL) Controls=controls;
   else {
-    Controls=new triple[n];
+    Controls=new(NoGC) triple[n];
     for(unsigned int i=0; i < n; ++i)
       Controls[i]=t*controls[i];
   }
@@ -654,12 +656,14 @@ void drawNurbs::ratio(const double *t, pair &b, double (*m)(double, double),
 void drawNurbs::displacement()
 {
 #ifdef HAVE_RENDERER
+  size_t w=weights ? 4 : 3;
+  if(nu > SIZE_MAX/(w*nv)) outOfMemory();
   size_t n=nu*nv;
   size_t nuknots=udegree+nu+1;
   size_t nvknots=vdegree+nv+1;
 
   if(Controls == NULL) {
-    Controls=new(UseGC)  float[(weights ? 4 : 3)*n];
+    Controls=new(UseGC)  float[w*n];
     uKnots=new(UseGC) float[nuknots];
     vKnots=new(UseGC) float[nvknots];
   }
@@ -913,7 +917,7 @@ void drawBaseTriangles::bounds(const double* t, bbox3& b)
 
   if(t == NULL) tP=P;
   else {
-    tP=new triple[nP];
+    tP=new(NoGC) triple[nP];
     for(size_t i=0; i < nP; i++)
       tP[i]=t*P[i];
   }
@@ -937,7 +941,7 @@ void drawBaseTriangles::ratio(const double* t, pair &b,
 
   if(t == NULL) tP=P;
   else {
-    tP=new triple[nP];
+    tP=new(NoGC) triple[nP];
     for(size_t i=0; i < nP; i++)
       tP[i]=t*P[i];
   }
@@ -1015,7 +1019,7 @@ void drawTriangles::render(double size2, const triple& b,
 
   triple *P0;
   if(billboard) {
-    P0=new triple [nP];
+    P0=new(NoGC) triple [nP];
     for(size_t i=0; i < nP; i++)
       P0[i]=billboardTransform(center,P[i]);
   } else {
