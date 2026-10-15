@@ -260,8 +260,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
           }
           else
           {
-            // import cycles detected!
-            logWarning("Import cycles detected!");
+            // already being processed (shared import or cycle) -- skip.
           }
         }
         it->second=fit->second.get();
