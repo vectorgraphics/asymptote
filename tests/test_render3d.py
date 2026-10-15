@@ -7,6 +7,7 @@ Vulkan or no Vulkan device is available.
 Usage:
     python3 tests/test_render3d.py
     python3 tests/test_render3d.py --asy PATH --asy-base-dir PATH
+    python3 tests/test_render3d.py --device 1
 """
 
 from __future__ import annotations
@@ -118,25 +119,28 @@ def vulkan_device_count() -> int:
     return 0
 
 
-def render(asy: str, base_dir: str) -> tuple[bool, str]:
+def render(asy: str, base_dir: str, device: Optional[int] = None) -> tuple[bool, str]:
     """Render SCENE to PNG; return (success, diagnostic)."""
     with tempfile.TemporaryDirectory() as tmpdir:
         source = os.path.join(tmpdir, "render3d.asy")
         output = os.path.join(tmpdir, "render3d.png")
         with open(source, "w", encoding="utf-8") as f:
             f.write(SCENE)
+        cmd = [
+            asy,
+            "-noV",
+            "-sysdir",
+            base_dir,
+            "-f",
+            "png",
+            "-render=1",
+        ]
+        if device is not None:
+            cmd.extend(["-device", str(device)])
+        cmd.append(source)
         try:
             result = subprocess.run(
-                [
-                    asy,
-                    "-noV",
-                    "-sysdir",
-                    base_dir,
-                    "-f",
-                    "png",
-                    "-render=1",
-                    source,
-                ],
+                cmd,
                 cwd=tmpdir,
                 capture_output=True,
                 text=True,
@@ -168,17 +172,27 @@ def main() -> int:
         default=_DEFAULT_BASE_DIR,
         help="path to the asy base/sysdir (default: %(default)s)",
     )
+    parser.add_argument(
+        "--device",
+        type=int,
+        default=None,
+        help="Vulkan device index to force (overrides $ASYMPTOTE_GPU)",
+    )
     args = parser.parse_args()
+
+    device = args.device
+    if device is None and os.environ.get("ASYMPTOTE_GPU"):
+        device = int(os.environ["ASYMPTOTE_GPU"])
 
     print("Testing 3D rendering ... ", end="", flush=True)
     if not asy_has_vulkan(args.asy):
         print("SKIPPED (asy was built without Vulkan)")
         return SKIP
-    if vulkan_device_count() == 0:
+    if device is None and vulkan_device_count() == 0:
         print("SKIPPED (no Vulkan device found)")
         return SKIP
 
-    success, diagnostic = render(args.asy, args.asy_base_dir)
+    success, diagnostic = render(args.asy, args.asy_base_dir, device)
     if not success:
         print("FAILED")
         print(diagnostic)
