@@ -56,10 +56,10 @@ public:
   void prepend(picture &pic);
 
   bool havelabels();
-  
+
   [[nodiscard]]
   bool have3D() const;
-  
+
   [[nodiscard]]
   bool havepng() const;
 
@@ -103,18 +103,17 @@ public:
   // 3D output
   bool shipout3(const string& prefix, const string format);
 
-  [[nodiscard]]
-  bool reloadPDF(const string& Viewer, const string& outname) const;
+  void reloadPDF(const string& Viewer, const string& outname) const;
 
   [[nodiscard]]
   picture *transformed(const transform& t) const;
-  
+
   [[nodiscard]]
   picture *transformed(const vm::array& t) const;
 
   [[nodiscard]]
   bool null() const;
-  
+
   // FFI functions
 
   void addToPicture(IAsyPicture* otherPic) override;

@@ -723,7 +723,7 @@ int picture::pdftoeps(const string& pdfname, const string& epsname, bool eps)
   return status;
 }
 
-bool picture::reloadPDF(const string& Viewer, const string& outname) const
+void picture::reloadPDF(const string& Viewer, const string& outname) const
 {
   static bool needReload=true;
   static bool haveReload=false;
@@ -746,7 +746,6 @@ bool picture::reloadPDF(const string& Viewer, const string& outname) const
     cmd.push_back(reloadprefix+".pdf");
     System(cmd,0,false);
   }
-  return true;
 }
 
 int picture::epstosvg(const string& epsname, const string& outname,
