@@ -74,7 +74,7 @@ class bltinAccess : public access, public IAsyBuiltinAccess {
 public:
   bltinAccess(vm::bltin f)
     : f(f) {}
-  
+
   [[nodiscard]]
   vm::bltin getFunction() const;
 
@@ -89,7 +89,7 @@ class callableAccess : public access {
 public:
   callableAccess(vm::callable *f)
     : f(f) {}
-  
+
   [[nodiscard]]
   vm::callable* getFunction() const;
 
@@ -122,7 +122,6 @@ public:
   localAccess(Int offset, frame *level)
     : offset(offset), level(level) {}
 
-  Int getOffset() const { return offset; }
   frame *getLevel() const { return level; }
 
   void encode(action act, position pos, coder &e);
