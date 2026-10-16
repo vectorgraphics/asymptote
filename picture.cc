@@ -1537,13 +1537,13 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
 
   pic->b3=bbox3();
-  for (drawElement* node : nodes) {
+  for (drawElement* node : pic->nodes) {
     assert(node);
     node->bounds(pic->b3);
   }
   pic->lastnumber3=pic->nodes.size();
 
-  for (drawElement* node : nodes) {
+  for (drawElement* node : pic->nodes) {
     assert(node);
     node->displacement();
   }
