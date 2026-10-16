@@ -8,6 +8,7 @@ runs:
     - name: Setup TeX Live
       uses: zauguin/install-texlive@v4
       with:
+        repository: https://mirror.math.princeton.edu/pub/CTAN/systems/texlive/tlnet/
         packages: |
           scheme-basic
           collection-latex

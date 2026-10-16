@@ -1,4 +1,5 @@
 #pragma once
+#include <chrono>
 #include <condition_variable>
 template<class T>
 class Condition
@@ -39,13 +40,15 @@ public:
         }
         else
         {
-            if (!any)
+            if (!m_condition.wait_for(
+                    ul,
+                    std::chrono::milliseconds(timeout),
+                    [&]()
+                    {
+                        return static_cast<bool>(any);
+                    }))
             {
-                std::cv_status status = m_condition.wait_for(ul, std::chrono::milliseconds(timeout));
-                if (status == std::cv_status::timeout)
-                {
-                    return {};
-                }
+                return {};
             }
         }
         return std::unique_ptr<T>(any.release());

@@ -1,0 +1,1 @@
+{"jsonrpc":"2.0","id":104,"method":"textDocument/completion","params":{"textDocument":{"uri":"file:///fixture.cpp"},"position":{"line":0,"character":3},"context":{"triggerKind":1}}}

@@ -172,7 +172,13 @@ std::string wslUnix2Dos(std::string const& unixPath)
     std::unordered_set<std::string> processing;
 
     processing.emplace(inputFile);
-    SymbolContext* ctx=symmapContextsPtr->at(inputFile).get();
+    auto ctxIt=symmapContextsPtr->find(inputFile);
+    if (ctxIt == symmapContextsPtr->end())
+    {
+      logWarning("generateMissingTrees: file not found in symmap: " + inputFile);
+      return;
+    }
+    SymbolContext* ctx=ctxIt->second.get();
 
     for (auto const& locPair : ctx->getEmptyRefs())
     {
@@ -320,6 +326,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
 
   void AsymptoteLspServer::onChange(Notify_TextDocumentDidChange::notify& notify)
   {
+    std::lock_guard lk(docStateMutex);
     logInfo("text change notification");
 
     auto& fileChange = notify.params.contentChanges;
@@ -350,6 +357,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
 
   void AsymptoteLspServer::onOpen(Notify_TextDocumentDidOpen::notify& notify)
   {
+    std::lock_guard lk(docStateMutex);
     logInfo("onOpen notification");
     lsDocumentUri fileUri(notify.params.textDocument.uri);
     reloadFile(fileUri.GetRawPath());
@@ -372,6 +380,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
 //#pragma region requests
   td_initialize::response AsymptoteLspServer::handleInitailizeRequest(td_initialize::request const& req)
   {
+    std::lock_guard lk(docStateMutex);
     clearVariables();
 
     symmapContextsPtr=make_unique<SymContextFilemap>();
@@ -379,7 +388,14 @@ std::string wslUnix2Dos(std::string const& unixPath)
             std::remove_reference<decltype(*fileContentsPtr)>::type>();
     plainFile=settings::locateFile("plain", true).c_str();
     plainCtx=reloadFileRaw(plainFile, false);
-    generateMissingTrees(plainFile);
+    if (plainCtx != nullptr)
+    {
+      generateMissingTrees(plainFile);
+    }
+    else
+    {
+      logError("Failed to load plain.asy -- LSP symbol resolution will be limited.");
+    }
 
     td_initialize::response rsp;
     rsp.id=req.id;
@@ -407,6 +423,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
 
   td_hover::response AsymptoteLspServer::handleHoverRequest(td_hover::request const& req)
   {
+    std::lock_guard lk(docStateMutex);
     td_hover::response rsp;
     SymbolContext* fileSymPtr=fromRawPath(req.params.textDocument);
     std::vector<std::pair<optional<std::string>, optional<lsMarkedString>>> nullVec;
@@ -453,12 +470,22 @@ std::string wslUnix2Dos(std::string const& unixPath)
 
   td_documentColor::response AsymptoteLspServer::handleDocColorRequest(td_documentColor::request const& req)
   {
+    std::lock_guard lk(docStateMutex);
     td_documentColor::response rsp;
 
     if (SymbolContext* fileSymPtr=fromRawPath(req.params.textDocument))
     {
       logInfo("Got Document color request.");
       auto& colorsInfo = fileSymPtr->colorInformation;
+
+      auto contentsIt = fileContentsPtr->find(getDocIdentifierRawPath(req.params.textDocument));
+      if (contentsIt == fileContentsPtr->end())
+      {
+        logWarning("handleDocColorRequest: no file contents available.");
+        return rsp;
+      }
+      auto& strLines = contentsIt->second;
+
       for (auto const& colorPtr : colorsInfo)
       {
         ColorInformation cif;
@@ -467,12 +494,21 @@ std::string wslUnix2Dos(std::string const& unixPath)
         cif.range.start=toLsPosition(colorPtr->rangeBegin);
 
         auto s=colorPtr->lastArgPosition;
-        auto& line=std::get<0>(s);
-        auto& colm=std::get<1>(s);
+        size_t line=std::get<0>(s);
+        size_t colm=std::get<1>(s);
         size_t offset = 0;
         size_t lineOffset = 0;
 
-        auto& strLines = fileContentsPtr->at(getDocIdentifierRawPath(req.params.textDocument));
+        if (line == 0 or colm == 0 or line >= strLines.size())
+        {
+          continue;
+        }
+
+        if (colm > strLines[line - 1].size())
+        {
+          continue;
+        }
+
         char ch=strLines[line + lineOffset - 1][colm - 1 + offset];
 
         while (
@@ -485,6 +521,10 @@ std::string wslUnix2Dos(std::string const& unixPath)
           {
             ++lineOffset;
             offset = 0;
+            if (line + lineOffset > strLines.size())
+            {
+              break;
+            }
           }
           if (line+lineOffset <= strLines.size())
           {
@@ -507,6 +547,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
 
   td_colorPresentation::response AsymptoteLspServer::handleColorPresRequest(td_colorPresentation::request const& req)
   {
+    std::lock_guard lk(docStateMutex);
     td_colorPresentation::response rsp;
 
     if (SymbolContext* fileSymPtr=fromRawPath(req.params.textDocument))
@@ -566,6 +607,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
 
   td_definition::response AsymptoteLspServer::handleDefnRequest(td_definition::request const& req)
   {
+    std::lock_guard lk(docStateMutex);
     td_definition::response rsp;
     std::list<posRangeInFile> posRanges;
     if (SymbolContext* fileSymPtr=fromRawPath(req.params.textDocument))
@@ -599,7 +641,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
                 settings::getSetting<bool>("wsl") ?
                 static_cast<std::string>(wslUnix2Dos(fil)) : fil);
 
-              lsDocumentUri uri(filReturn);
+              lsDocumentUri uri{AbsolutePath(filReturn)};
               return lsLocation(uri, rng);
             });
     return rsp;

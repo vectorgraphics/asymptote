@@ -663,7 +663,10 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   cmd.push_back("-dMaxSubsetPct=100");
   cmd.push_back("-dEncodeColorImages="+compress);
   cmd.push_back("-dEncodeGrayImages="+compress);
-  cmd.push_back("-dCompatibilityLevel=1.5");
+  if(getSetting<double>("render") == 0)
+    cmd.push_back("-dCompatibilityLevel=1.4");
+  else
+    cmd.push_back("-dCompatibilityLevel=1.5");
   cmd.push_back("-dTransferFunctionInfo=/Apply");
   if(!getSetting<bool>("autorotate"))
     cmd.push_back("-dAutoRotatePages=/None");
@@ -1640,7 +1643,23 @@ bool picture::shipout3(const string& prefix, const string& format,
         camp::reportError("Cannot fork process");
       if(pid != 0)  {
         oldpid=pid;
-        waitpid(pid,NULL,interact::interactive && View ? WNOHANG : 0);
+        if(interact::interactive && View) {
+          waitpid(pid,nullptr,WNOHANG);
+          return true;
+        }
+        int status=0;
+        while(waitpid(pid,&status,0) == -1 && errno == EINTR);
+        if(WIFSIGNALED(status)) {
+          ostringstream buf;
+          buf << "3D renderer terminated by signal " << WTERMSIG(status)
+              << " (" << strsignal(WTERMSIG(status)) << ")";
+          reportError(buf);
+        }
+        if(WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+          ostringstream buf;
+          buf << "3D renderer exited with status " << WEXITSTATUS(status);
+          reportError(buf);
+        }
         return true;
       }
 #endif

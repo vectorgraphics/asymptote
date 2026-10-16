@@ -10,7 +10,8 @@ enum class lsMessageType : int
     Error = 1,
     Warning = 2,
     Info = 3,
-    Log = 4
+    Log = 4,
+    Debug = 5
 };
 MAKE_REFLECT_TYPE_PROXY(lsMessageType)
 struct MessageParams

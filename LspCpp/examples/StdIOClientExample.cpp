@@ -1,6 +1,4 @@
 ﻿
-#include "LibLsp/lsp/ProcessIoService.h"
-
 #include <boost/program_options.hpp>
 #include "LibLsp/lsp/general/exit.h"
 #include "LibLsp/lsp/textDocument/declaration_definition.h"
@@ -11,7 +9,6 @@
 #include "LibLsp/lsp/textDocument/typeHierarchy.h"
 #include "LibLsp/lsp/AbsolutePath.h"
 #include "LibLsp/lsp/textDocument/resolveCompletionItem.h"
-#include <network/uri.hpp>
 #include "LibLsp/JsonRpc/Endpoint.h"
 #include "LibLsp/JsonRpc/stream.h"
 #include "LibLsp/JsonRpc/TcpServer.h"
@@ -19,12 +16,10 @@
 #include "LibLsp/lsp/workspace/execute_command.h"
 #include <boost/process.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/asio.hpp>
 #include <iostream>
 
 #include <thread>
 
-using namespace boost::asio::ip;
 using namespace std;
 class DummyLog :public lsp::Log
 {
@@ -89,15 +84,12 @@ public:
         {
                 std::error_code ec;
                 namespace bp = boost::process;
-                c = std::make_shared<bp::child>(asio_io.getIOService(), execPath,
+                c = std::make_shared<bp::child>(execPath,
                         bp::args = args,
                         ec,
 
                         bp::std_out > read_from_service,
-                        bp::std_in < write_to_service,
-                        bp::on_exit([&](int exit_code, const std::error_code& ec_in){
-
-                        }));
+                        bp::std_in < write_to_service);
                 if (ec)
                 {
                         // fail
@@ -110,11 +102,14 @@ public:
         }
         ~Client()
         {
-        point.stop();
-        std::this_thread::sleep_for(std::chrono::milliseconds (1000));
+                if (c && c->running())
+                {
+                        c->terminate();
+                        c->wait();
+                }
+                point.stop();
         }
 
-        lsp::ProcessIoService asio_io;
         std::shared_ptr < lsp::ProtocolJsonHandler >  protocol_json_handler = std::make_shared< lsp::ProtocolJsonHandler>();
         DummyLog _log;
 
@@ -177,6 +172,7 @@ int main(int argc, char* argv[])
                 else
                 {
                         std::cerr << "get initialze  response time out" << std::endl;
+                        return 1;
                 }
         }
         {
@@ -186,7 +182,7 @@ int main(int argc, char* argv[])
                 if (lsp::future_status::timeout == state)
                 {
                         std::cerr << "get textDocument/definition  response time out" << std::endl;
-                        return 0;
+                        return 1;
                 }
                 auto rsp = future_rsp.get();
                 if (rsp.is_error)
@@ -209,10 +205,15 @@ int main(int argc, char* argv[])
                 else
                 {
                         std::cerr << "get initialze  response time out" << std::endl;
+                        return 1;
                 }
         }
         Notify_Exit::notify notify;
         client.point.send(notify);
+        if (client.c)
+        {
+                client.c->wait();
+        }
         return 0;
 }
 

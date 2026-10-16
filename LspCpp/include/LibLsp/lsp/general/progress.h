@@ -2,13 +2,14 @@
 
 #include "LibLsp/JsonRpc/NotificationInMessage.h"
 #include "LibLsp/lsp/lsAny.h"
+#include "LibLsp/lsp/lsProgressToken.h"
 //The base protocol offers also support to report progress in a generic fashion.
 //This mechanism can be used to report any kind of progress including work done
 //progress(usually used to report progress in the user interface using a progress bar)
 //and partial result progress to support streaming of results.
 struct ProgressParams
 {
-    std::pair<optional<std::string>, optional<int>> token;
+    lsProgressToken token;
     lsp::Any value;
     MAKE_SWAP_METHOD(ProgressParams, token, value)
 };

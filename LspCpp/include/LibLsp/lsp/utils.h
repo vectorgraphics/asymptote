@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <codecvt>
+#include <cstddef>
 #include <functional>
 #include <iterator>
 #include <locale>
@@ -104,7 +105,7 @@ AbsolutePath NormalizePath(std::string const& path, bool ensure_exists = true, b
 int GetOffsetForPosition(lsPosition position, std::string const& content);
 
 // Finds the position for an |offset| in |content|.
-lsPosition GetPositionForOffset(int offset, std::string const& content);
+lsPosition GetPositionForOffset(size_t offset, std::string const& content);
 
 // Utility method to find a position for the given character.
 lsPosition CharPos(std::string const& search, char character, int character_offset = 0);

@@ -7,6 +7,7 @@
 #include "LibLsp/lsp/lsAny.h"
 #include "InitializeParams.h"
 #include "LibLsp/lsp/textDocument/SemanticTokens.h"
+#include "LibLsp/lsp/protocol_3_18.h"
 
 extern void Reflect(Reader&, std::pair<optional<lsTextDocumentSyncKind>, optional<lsTextDocumentSyncOptions>>&);
 
@@ -23,10 +24,11 @@ struct CodeActionOptions : WorkDoneProgressOptions
     //
     typedef std::string CodeActionKind;
     std::vector<CodeActionKind> codeActionKinds;
+    optional<std::vector<CodeActionKindDocumentation>> documentation;
 
-    MAKE_SWAP_METHOD(CodeActionOptions, workDoneProgress, codeActionKinds);
+    MAKE_SWAP_METHOD(CodeActionOptions, workDoneProgress, codeActionKinds, documentation);
 };
-MAKE_REFLECT_STRUCT(CodeActionOptions, workDoneProgress, codeActionKinds)
+MAKE_REFLECT_STRUCT(CodeActionOptions, workDoneProgress, codeActionKinds, documentation)
 struct CodeLensOptions : WorkDoneProgressOptions
 {
     //
@@ -316,9 +318,11 @@ struct WorkspaceServerCapabilities
     };
     optional<lsFileOperations> fileOperations;
 
-    MAKE_SWAP_METHOD(WorkspaceServerCapabilities, workspaceFolders, fileOperations)
+    optional<TextDocumentContentOptions> textDocumentContentProvider;
+
+    MAKE_SWAP_METHOD(WorkspaceServerCapabilities, workspaceFolders, fileOperations, textDocumentContentProvider)
 };
-MAKE_REFLECT_STRUCT(WorkspaceServerCapabilities, workspaceFolders, fileOperations)
+MAKE_REFLECT_STRUCT(WorkspaceServerCapabilities, workspaceFolders, fileOperations, textDocumentContentProvider)
 MAKE_REFLECT_STRUCT(
     WorkspaceServerCapabilities::lsFileOperations, didCreate, willCreate, didRename, willRename, didDelete, willDelete
 )
@@ -452,7 +456,7 @@ struct lsServerCapabilities
     optional<std::pair<optional<bool>, optional<WorkDoneProgressOptions>>> documentFormattingProvider;
 
     // The server provides document range formatting.
-    optional<std::pair<optional<bool>, optional<WorkDoneProgressOptions>>> documentRangeFormattingProvider;
+    optional<std::pair<optional<bool>, optional<DocumentRangeFormattingOptions>>> documentRangeFormattingProvider;
 
     // The server provides document formatting on typing.
     optional<lsDocumentOnTypeFormattingOptions> documentOnTypeFormattingProvider;
@@ -544,6 +548,12 @@ struct lsServerCapabilities
         */
     optional<std::pair<optional<bool>, optional<InlayHintOptions>>> inlayHintProvider;
 
+    optional<DiagnosticOptions> diagnosticProvider;
+
+    optional<std::pair<optional<bool>, optional<InlineValueOptions>>> inlineValueProvider;
+
+    optional<std::pair<optional<bool>, optional<InlineCompletionOptions>>> inlineCompletionProvider;
+
     optional<lsp::Any> experimental;
 
     MAKE_SWAP_METHOD(
@@ -553,7 +563,8 @@ struct lsServerCapabilities
         codeLensProvider, documentFormattingProvider, documentRangeFormattingProvider, documentOnTypeFormattingProvider,
         renameProvider, documentLinkProvider, executeCommandProvider, workspace, semanticHighlighting,
         typeHierarchyProvider, callHierarchyProvider, selectionRangeProvider, experimental, colorProvider,
-        foldingRangeProvider, linkedEditingRangeProvider, monikerProvider, semanticTokensProvider
+        foldingRangeProvider, linkedEditingRangeProvider, monikerProvider, semanticTokensProvider, inlayHintProvider,
+        diagnosticProvider, inlineValueProvider, inlineCompletionProvider
     )
 };
 MAKE_REFLECT_STRUCT(
@@ -563,5 +574,6 @@ MAKE_REFLECT_STRUCT(
     documentRangeFormattingProvider, documentOnTypeFormattingProvider, renameProvider, documentLinkProvider,
     executeCommandProvider, workspace, semanticHighlighting, typeHierarchyProvider, callHierarchyProvider,
     selectionRangeProvider, experimental, colorProvider, foldingRangeProvider, linkedEditingRangeProvider,
-    monikerProvider, semanticTokensProvider
+    monikerProvider, semanticTokensProvider, inlayHintProvider, diagnosticProvider, inlineValueProvider,
+    inlineCompletionProvider
 )

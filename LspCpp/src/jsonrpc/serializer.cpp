@@ -238,6 +238,10 @@ void JsonReader::IterArray(std::function<void(Reader&)> fn)
 
 void JsonReader::DoMember(char const* name, std::function<void(Reader&)> fn)
 {
+    if (!m_->IsObject())
+    {
+        return;
+    }
     path_.push_back(name);
     auto it = m_->FindMember(name);
     if (it != m_->MemberEnd())

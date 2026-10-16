@@ -9,39 +9,66 @@ set(
 
 # Python
 
+# Some builds are deliberately done with old software so that they
+# run on old platforms.  Keep in sync with py-version in .pylintrc and
+# python_version in mypy.ini; raising it also unpins mypy (see mypy.ini).
+set(PY3_MINIMUM_VERSION "3.7")
+
 set(PY3_INTERPRETER "" CACHE STRING "Python 3 interpreter. If left empty, will try to determine Python automatically")
 
-function(verify_py3_interpreter_is_py3 validator_result_var py_interpreter)
+# Report the interpreter's version as major.minor.micro, or "" if it will not
+# run at all.
+function(get_py_interpreter_version out_var py_interpreter)
     execute_process(
-            COMMAND ${py_interpreter} -c "import sys; print(int(sys.version[0])>=3,end='')"
-            OUTPUT_VARIABLE PY3_INTERPRETER_VERSION_RESULT)
-    if (NOT PY3_INTERPRETER_VERSION_RESULT STREQUAL "True")
+            COMMAND ${py_interpreter} -c "import sys; print('%d.%d.%d' % sys.version_info[:3],end='')"
+            OUTPUT_VARIABLE PY_VERSION_OUTPUT
+            RESULT_VARIABLE PY_VERSION_RESULT
+            ERROR_QUIET)
+    if (NOT PY_VERSION_RESULT EQUAL 0)
+        set(${out_var} "" PARENT_SCOPE)
+    else()
+        set(${out_var} "${PY_VERSION_OUTPUT}" PARENT_SCOPE)
+    endif()
+endfunction()
+
+# find_program VALIDATOR contract: reject a candidate by setting the named
+# result variable FALSE; leaving it alone accepts.
+function(verify_py3_interpreter validator_result_var py_interpreter)
+    get_py_interpreter_version(PY_VERSION ${py_interpreter})
+    if (PY_VERSION STREQUAL "" OR PY_VERSION VERSION_LESS PY3_MINIMUM_VERSION)
         set(${validator_result_var} FALSE PARENT_SCOPE)
     endif()
 endfunction()
 
 if(NOT PY3_INTERPRETER)
-    message(STATUS "No Python3 interpreter specified, attempting to find python")
+    message(STATUS "No Python3 interpreter specified, attempting to find python >= ${PY3_MINIMUM_VERSION}")
     find_program(
             PY3_INTERPRETER_FOUND
             NAMES python3 python
-            VALIDATOR verify_py3_interpreter_is_py3
+            VALIDATOR verify_py3_interpreter
             REQUIRED
     )
     message(STATUS "Found python3 at ${PY3_INTERPRETER_FOUND}")
     set(PY3_INTERPRETER ${PY3_INTERPRETER_FOUND} CACHE STRING "" FORCE)
 else()
-    set(PY_INTERPRETER_IS_PY3 TRUE)
-    set(VARIABLE_RESULT_VAR PY_INTERPRETER_IS_PY3)
-    verify_py3_interpreter_is_py3(VARIABLE_RESULT_VAR ${PY3_INTERPRETER})
+    # Pass the variable's name, not its value: the function writes through
+    # ${validator_result_var} into the caller's scope.
+    set(PY_INTERPRETER_USABLE TRUE)
+    verify_py3_interpreter(PY_INTERPRETER_USABLE ${PY3_INTERPRETER})
 
-    if (NOT PY_INTERPRETER_IS_PY3)
-        message(FATAL_ERROR "Specified python interpreter cannot be used as python3 interpreter!")
+    if (NOT PY_INTERPRETER_USABLE)
+        get_py_interpreter_version(PY3_VERSION ${PY3_INTERPRETER})
+        if (PY3_VERSION STREQUAL "")
+            message(FATAL_ERROR "Specified python interpreter ${PY3_INTERPRETER} could not be run!")
+        endif()
+        message(FATAL_ERROR
+                "Specified python interpreter ${PY3_INTERPRETER} is version ${PY3_VERSION}; "
+                "this build requires Python >= ${PY3_MINIMUM_VERSION}.")
     endif()
 endif()
 
-execute_process(COMMAND ${PY3_INTERPRETER} --version OUTPUT_VARIABLE PY3_VERSION)
-message(STATUS "Version: ${PY3_VERSION}")
+get_py_interpreter_version(PY3_VERSION ${PY3_INTERPRETER})
+message(STATUS "Version: ${PY3_VERSION} (minimum ${PY3_MINIMUM_VERSION})")
 
 # windows flex + bison
 set(
@@ -86,7 +113,6 @@ option(
 
 option(DEBUG_GC_ENABLE "Enable debug mode for gc" false)
 option(DEBUG_GC_BACKTRACE_ENABLE "Enable backtrace for gc" false)
-# CTAN_BUILD is no longer a CMake cache variable; it's a compile definition applied per-target.
 
 option(
         ENABLE_COMPACT_ZERO_BUILD "\
@@ -97,13 +123,18 @@ this option should be turned off."
 
 # additional optimization options
 
-if (CMAKE_BUILD_TYPE IN_LIST cmake_release_build_types)
-    set(default_lto true)
-else()
-    set(default_lto false)
-endif()
+# LTO is applied to asycore, settings objects and all subdirectory targets
+# (gc, vma, prc, tinyexr) -- matching the autotools build, which passes -flto
+# through CFLAGS to every subproject.  An earlier blanket exclusion of
+# subdirectory targets was based on a suspicion that LTO on them corrupted the
+# Boehm GC stack scan in the forked 3D render child (-noV); diagnostic builds
+# with those targets under LTO confirmed that render path still works, so the
+# exclusion was a red herring and LTO is now applied uniformly.
+option(OPTIMIZE_LINK_TIME "Enable link-time optimization" true)
 
-option(OPTIMIZE_LINK_TIME "Enable link-time optimization. Enabled by default in release build types" ${default_lto})
+set(TARGET_X86_64_V3_OR_HIGHER "AUTO" CACHE STRING
+    "x86-64-v3 CPU targeting. AUTO: detect AVX2 on build CPU and enable if supported (default). ON: force x86-64-v3. OFF: use baseline x86-64. Inert on non-x86 architectures.")
+set_property(CACHE TARGET_X86_64_V3_OR_HIGHER PROPERTY STRINGS AUTO ON OFF)
 
 # testing
 option(ENABLE_ASY_CXXTEST "Enable C++-side testing. This option is inert for final asy libraries and binaries" true)
