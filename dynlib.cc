@@ -40,13 +40,13 @@ string tryGetDllPath(string const& libName)
     // and only process if the file ends in .so/.dll
     return libPathAsIs;
   }
-  
+
   // otherwise, try to find <libName>.dll or lib<libName>.so
   string dllName= libName+settings::fs::DYNAMIC_LIB_EXTENSION_DOTTED;
 #ifndef _WIN32
   dllName= "lib"+libName;
 #endif
-  return settings::locateFile(dllName, true);
+  return settings::locateFile(dllName, true, settings::fs::DYNAMIC_LIB_EXTENSION);
 }
 
 void callForeignFunction(vm::stack* stack, TAsyForeignFunction const fn)

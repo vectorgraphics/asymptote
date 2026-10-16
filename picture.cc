@@ -1844,9 +1844,9 @@ IAsyPicture* picture::createTransformed(const IAsyTransform* transformPtr) const
 }
 IAsyPicture* picture::createTransformedArray(const IAsyArray* arrayPtr) const
 {
-  auto const* castedArray= dynamic_cast<transform const*>(arrayPtr);
+  auto const* castedArray= dynamic_cast<vm::array const*>(arrayPtr);
   if (castedArray == nullptr) {
-    reportError("transformPtr is not a transform instance");
+    reportError("arrayPtr is not an array instance");
   }
   return transformed(*castedArray);
 }
