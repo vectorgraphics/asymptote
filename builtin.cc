@@ -786,9 +786,8 @@ void printBytecode(stack *Stack)
   if (numArgs != 1)
     cerr << "printBytecode takes one argument" << endl;
 
-  // TODO: Add a reliable test for the object being a func.
   callable *c = a->read<callable *>(0);
-  if (func *f = dynamic_cast<func *>(c))
+  if (func *f = c->isFunc())
     print(cout, f->body->code);
   else
     cout << "callable is not a standard function";

@@ -761,9 +761,9 @@ to the directory @code{base} (in the top level directory of the
 @cindex @code{asy-mode}
 @cindex @code{lasy-mode}
 Users of @code{emacs} can edit @code{Asymptote} code with the mode
-@code{asy-mode}, after enabling it by putting the following lines in their
-@code{.emacs} initialization file, replacing @code{ASYDIR} with the
-location of the @code{Asymptote} system directory (by default,
+@code{asy-mode}.  You can enable the mode by putting the following lines in your
+@code{.emacs} initialization file, replacing @code{ASYDIR} with
+the location of the @code{Asymptote} system directory (by default,
 @code{@value{Datadir}/asymptote} or @code{C:\Program Files\Asymptote}
 under @code{MSDOS}):
 @verbatim
@@ -11696,9 +11696,15 @@ If multiple files are specified, they are treated as separate
 @code{Asymptote} runs.
 
 @cindex @code{autoimport}
-If the string @code{autoimport} is nonempty, a module with this name is
-automatically imported for each run as the final step in loading module
-@code{plain}.
+If the string @code{autoimport} is nonempty, one or more modules are
+automatically imported for each run, immediately after loading module
+@code{plain}. Multiple modules may be specified as a comma-separated
+list, for example @code{-autoimport three,graph}. Path syntax is also
+accepted (for example, to autoimport a personal module kept in a
+subdirectory, @code{-autoimport mydir/common}; the module is imported
+under its last path component name, here @code{common}). Note that
+templated modules (such as @code{collections/hashmap}) cannot be autoimported
+because they require type parameters.
 
 @anchor{configuration file}
 @cindex configuration file
@@ -12154,6 +12160,11 @@ M-x lsp
 @end verbatim
 
 @end itemize
+
+To view all overloads of a function, execute
+@code{\(lsp-describe-thing-at-point)} (via @code{M-x}) which
+opens a help window, or set @code{\(setq lsp-eldoc-render-all t)}
+in your initialization file to show them in the echo area.
 
 @node PostScript to Asymptote
 @chapter @code{PostScript} to @code{Asymptote}

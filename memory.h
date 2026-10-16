@@ -15,6 +15,8 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
+#include <cassert>
+#include <cstdint>
 #include <initializer_list>
 
 #ifdef USEGC
@@ -61,8 +63,9 @@ inline void* operator new(size_t size, GCPlacement) {
 }
 
 inline void* operator new[](size_t size, GCPlacement) {
-                           return operator new(size);
-                         }
+  assert(size <= INT64_MAX);
+  return operator new(size);
+}
 
 template<class T>
 struct GC_type_traits {};

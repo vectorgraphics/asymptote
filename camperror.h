@@ -18,14 +18,14 @@
 namespace camp {
 
 // Used internally to report an error in an operation.
-void reportError(const string& desc);
-void reportError(const ostringstream& desc);
+[[noreturn]] void reportError(const string& desc);
+[[noreturn]] void reportError(const ostringstream& desc);
 
 void reportWarning(const string& desc);
 void reportWarning(const ostringstream& desc);
 
-void reportFatal(const string& desc);
-void reportFatal(const ostringstream& desc);
+[[noreturn]] void reportFatal(const string& desc);
+[[noreturn]] void reportFatal(const ostringstream& desc);
 
 inline std::ostream& newl(std::ostream& s) {s << '\n'; return s;}
 

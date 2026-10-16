@@ -242,6 +242,28 @@ string stripDir(string name)
   return name;
 }
 
+std::vector<std::string> splitAutoimport(std::string const& s)
+{
+  std::vector<std::string> result;
+  std::string remaining=s;
+  while(!remaining.empty()) {
+    std::string::size_type b=remaining.find_first_not_of(" \t");
+    if(b==std::string::npos) break;
+    remaining=remaining.substr(b);
+
+    std::string::size_type comma=remaining.find(',');
+    std::string modname=(comma==std::string::npos) ? remaining : remaining.substr(0,comma);
+    if(comma!=std::string::npos) remaining=remaining.substr(comma+1);
+    else remaining="";
+
+    std::string::size_type b2=modname.find_first_not_of(" \t");
+    std::string::size_type e2=modname.find_last_not_of(" \t");
+    if(b2==std::string::npos) continue;
+    result.push_back(modname.substr(b2, e2-b2+1));
+  }
+  return result;
+}
+
 string stripFile(string name)
 {
 #if defined(_WIN32)

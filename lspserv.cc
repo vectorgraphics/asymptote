@@ -17,17 +17,48 @@
 #include <memory>
 #include <queue>
 
+#include <fstream>
+#include <sstream>
 #include <thread>
 
 #include "common.h"
 #include "dec.h"
 #include "asyprocess.h"
 #include "locate.h"
+#ifdef USEGC
+#include <gc.h>
+#endif
+
+#ifdef USEGC
+  class GCThreadGuard
+  {
+    bool registered=false;
+  public:
+    GCThreadGuard()
+    {
+      GC_stack_base gsb;
+      GC_get_stack_base(&gsb);
+      registered = (GC_register_my_thread(&gsb) == GC_SUCCESS);
+    }
+    ~GCThreadGuard()
+    {
+      if (registered) GC_unregister_my_thread();
+    }
+    GCThreadGuard(GCThreadGuard const&) = delete;
+    GCThreadGuard& operator=(GCThreadGuard const&) = delete;
+  };
+#else
+  class GCThreadGuard
+  {
+  public:
+    GCThreadGuard() {}
+  };
+#endif
 
 #define REGISTER_REQ_FN(typ, fn) remoteEndPoint->registerHandler(\
-  [this](typ::request const& req) { return this->fn(req); });
+  [this](typ::request const& req) { GCThreadGuard _gc; return this->fn(req); });
 #define REGISTER_NOTIF_FN(typ, handler) remoteEndPoint->registerHandler(\
-  [this](typ::notify& notif) { this->handler(notif); });
+  [this](typ::notify& notif) { GCThreadGuard _gc; this->handler(notif); });
 
 namespace AsymptoteLsp
 {
@@ -229,8 +260,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
           }
           else
           {
-            // import cycles detected!
-            logWarning("Import cycles detected!");
+            // already being processed (shared import or cycle) -- skip.
           }
         }
         it->second=fit->second.get();
@@ -274,7 +304,10 @@ std::string wslUnix2Dos(std::string const& unixPath)
           shared_ptr<lsp::ProtocolJsonHandler> const& jsonHandler,
           shared_ptr<GenericEndpoint> const& endpoint, LspLog& log) :
           internalREP(make_unique<RemoteEndPoint>(jsonHandler, endpoint, log)), remoteEndPoint(internalREP.get()),
-          pjh(jsonHandler), ep(endpoint), _log(log)
+          pjh(jsonHandler), ep(endpoint), _log(log),
+          symmapContextsPtr(make_unique<SymContextFilemap>()),
+          fileContentsPtr(make_unique<
+                  std::remove_reference<decltype(*fileContentsPtr)>::type>())
   {
     initializeRequestFn();
     initializeNotifyFn();
@@ -285,7 +318,10 @@ std::string wslUnix2Dos(std::string const& unixPath)
           shared_ptr<lsp::ProtocolJsonHandler> const& jsonHandler,
           shared_ptr<GenericEndpoint> const& endpoint, LspLog& log) :
           internalREP(nullptr), remoteEndPoint(remoteEndPt),
-          pjh(jsonHandler), ep(endpoint), _log(log)
+          pjh(jsonHandler), ep(endpoint), _log(log),
+          symmapContextsPtr(make_unique<SymContextFilemap>()),
+          fileContentsPtr(make_unique<
+                  std::remove_reference<decltype(*fileContentsPtr)>::type>())
   {
     initializeRequestFn();
     initializeNotifyFn();
@@ -359,8 +395,31 @@ std::string wslUnix2Dos(std::string const& unixPath)
   {
     std::lock_guard lk(docStateMutex);
     logInfo("onOpen notification");
-    lsDocumentUri fileUri(notify.params.textDocument.uri);
-    reloadFile(fileUri.GetRawPath());
+
+    // Use the in-memory text from the didOpen notification (the editor's
+    // buffer) instead of re-reading from disk.  This mirrors onChange and
+    // handles unsaved / virtual files correctly.
+    auto& text = notify.params.textDocument.text;
+    lsTextDocumentIdentifier docId;
+    docId.uri = notify.params.textDocument.uri;
+    std::string rawPath = getDocIdentifierRawPath(docId);
+
+    // istring's block* is intentionally process-lifetime (matching ifile's
+    // behavior in generateMissingTrees); it is not deleted.
+    block* codeBlk;
+    try
+    {
+      codeBlk = istring(mem::string(text.c_str())).getTree();
+    }
+    catch (handled_error const&)
+    {
+      logWarning("onOpen: failed to parse document text");
+      return;
+    }
+
+    std::istringstream iss(text);
+    updateFileContentsTable(rawPath, iss);
+    reloadFileRaw(codeBlk, rawPath);
   }
 
   void AsymptoteLspServer::onSave(Notify_TextDocumentDidSave::notify& notify)
@@ -391,6 +450,77 @@ std::string wslUnix2Dos(std::string const& unixPath)
     if (plainCtx != nullptr)
     {
       generateMissingTrees(plainFile);
+
+      // Respect settings.autoimport (set via -autoimport or config file).
+      // The autoimport is executed at runtime by runAutoimport() in
+      // asyprocess.cc, which the LSP (static AST parser) cannot see.
+      // Load the autoimported module(s) here so their symbols are
+      // available for hover/definition.
+      //
+      // Thread safety: this runs inside handleInitailizeRequest which holds
+      // docStateMutex.  The LSP protocol guarantees that no didOpen/didChange
+      // notifications arrive until the initialize response is sent, so no
+      // concurrent access to symmapContextsPtr or plainCtx can occur.
+      std::string ai=settings::getSetting<std::string>("autoimport");
+      if (not ai.empty())
+      {
+        for (std::string const& modname : splitAutoimport(ai))
+        {
+          std::string moduleFile=settings::locateFile(mem::string(modname.c_str()), true).c_str();
+          if (moduleFile.empty())
+          {
+            logWarning("onInitialize: autoimport module not found: " + modname);
+            continue;
+          }
+
+          // Read the module file and parse it in-memory via istring,
+          // matching the approach used by onOpen/onChange.
+          block* modBlk=nullptr;
+          try
+          {
+            std::ifstream mfin(moduleFile.c_str());
+            if (mfin)
+            {
+              std::string mcontent((std::istreambuf_iterator<char>(mfin)),
+                                    std::istreambuf_iterator<char>());
+              mfin.close();
+              modBlk=istring(mem::string(mcontent.c_str())).getTree();
+            }
+          }
+          catch (handled_error const&)
+          {
+            logWarning("onInitialize: failed to parse autoimport module: " + modname);
+            continue;
+          }
+
+          if (modBlk != nullptr)
+          {
+            // Manually create the symbol context.  We cannot use
+            // reloadFileRaw here because it calls ifile internally,
+            // which opens a file descriptor and may crash in the LSP
+            // initialization context (no process stack yet).
+            SearchPathAddition sp(stripFile(string(moduleFile.c_str())));
+            auto s=symmapContextsPtr->emplace(
+                    moduleFile,
+                    make_unique<SymbolContext>(posInFile(1, 1), moduleFile));
+            auto fit=std::get<0>(s);
+            modBlk->createSymMap(fit->second.get());
+            fit->second->extRefs.extFileRefs[plainFile]=plainCtx;
+
+            // Register as external reference in plain.asy's context.
+            // Use the last path component as the access/unravel key,
+            // matching the semantics of runAutoimport in asyprocess.cc.
+            std::string lastComp=modname;
+            size_t slash=lastComp.rfind('/');
+            if(slash!=std::string::npos) lastComp=lastComp.substr(slash+1);
+            plainCtx->extRefs.extFileRefs[moduleFile]=fit->second.get();
+            plainCtx->extRefs.fileIdPair[lastComp]=moduleFile;
+            plainCtx->extRefs.unraveledVals.emplace(lastComp);
+            plainCtx->extRefs.accessVals.emplace(lastComp);
+            logInfo("onInitialize: loaded autoimport module: " + modname);
+          }
+        }
+      }
     }
     else
     {
@@ -416,6 +546,7 @@ std::string wslUnix2Dos(std::string const& unixPath)
   SymbolContext* AsymptoteLspServer::fromRawPath(lsTextDocumentIdentifier const& identifier)
   {
     std::string rawPath=getDocIdentifierRawPath(identifier);
+    if (!symmapContextsPtr) return nullptr;
     auto fileSymIt=symmapContextsPtr->find(rawPath);
 
     return fileSymIt != symmapContextsPtr->end() ? fileSymIt->second.get() : nullptr;
@@ -731,6 +862,24 @@ std::string wslUnix2Dos(std::string const& unixPath)
 
   AsymptoteLspServer::~AsymptoteLspServer()
   {
+    // Stop the RemoteEndPoint and fully destroy it (which destroys the
+    // asio::thread_pool and joins all worker/notification threads) BEFORE
+    // the other member variables (docStateMutex, symmapContextsPtr,
+    // fileContentsPtr, plainFile) are destroyed.
+    //
+    // RemoteEndPoint::stop() alone is not sufficient: it calls
+    // handler_pool->stop() which only cancels *pending* work items;
+    // currently-running handlers on the pool are not joined until the
+    // thread_pool shared_ptr is destroyed.  Since internalREP is declared
+    // first it would otherwise be destroyed last -- after every other
+    // member -- leaving a window where a still-running handler dereferences
+    // an already-destroyed mutex or unique_ptr, causing an intermittent
+    // segfault.
+    if (internalREP)
+    {
+      internalREP->stop();
+      internalREP.reset();   // destroys RemoteEndPoint -> thread_pools -> join
+    }
   }
 
   void AsymptoteLspServer::startIO(std::istream& in, std::ostream& out)

@@ -35,6 +35,11 @@ char *StrdupMalloc(string s);
 // Strip the directory from a filename.
 string stripDir(string name);
 
+// Splits an autoimport setting string into individual module names.
+// Handles whitespace and comma-separated lists (e.g., "three, graph").
+// Returns a vector of trimmed module name strings.
+std::vector<std::string> splitAutoimport(std::string const& s);
+
 // Strip the file from a filename, returning the directory.
 string stripFile(string name);
 

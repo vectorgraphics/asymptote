@@ -243,6 +243,7 @@ public:
     vm::array *g0=vm::read<vm::array*>(g,0);
     nv=checkArray(g0);
 
+    if(nu > SIZE_MAX/nv) outOfMemory();
     size_t n=nu*nv;
     controls=new(UseGC) triple[n];
 
@@ -308,6 +309,7 @@ public:
     shininess(s->shininess), metallic(s->metallic), fresnel0(s->fresnel0),
     lightOn(s->lightOn), invisible(s->invisible) {
 
+    if(nu > SIZE_MAX/nv) outOfMemory();
     const size_t n=nu*nv;
     controls=new(UseGC) triple[n];
     for(unsigned int i=0; i < n; ++i)
@@ -495,7 +497,6 @@ public:
   }
 };
 
-
 class drawBaseTriangles : public drawElement {
 protected:
 #ifdef HAVE_LIBGLM
@@ -512,8 +513,8 @@ public:
   triple* N;
   size_t nI;
   size_t Ni;
-  uint32_t (*PI)[3];
-  uint32_t (*NI)[3];
+  uint32_t (*PI)[3]=nullptr;
+  uint32_t (*NI)[3]=nullptr;
   size_t centerIndex;
   Interaction interaction;
 
@@ -683,7 +684,7 @@ public:
 class drawTriangles : public drawBaseTriangles {
   size_t nC;
   prc::RGBAColour*C;
-  uint32_t (*CI)[3];
+  uint32_t (*CI)[3]=nullptr;
   size_t Ci;
 
   // Asymptote material data
