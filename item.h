@@ -54,23 +54,47 @@ public:
   ~item() override= default;
 
   item(item const& other)
-    : i(other.i)
+    :
+#if !COMPACT
+      kind(other.kind),
+#endif
+      i(other.i)
   {
-    // here, item is vfptr + data contents of item, so
-    // make sure they are the same
-    // sufficient to copy the number as i
+    // In a compact build, item is exactly a vfptr plus one Int-sized union
+    // member, so copying that single member is sufficient (the vfptr is set
+    // automatically by the constructor). Non-compact builds also carry a type
+    // tag (kind), copied above, so this layout invariant does not hold there.
+#if COMPACT
     static_assert(sizeof(void*)+sizeof(Int) == sizeof(item));
+#endif
   }
   item& operator=(item const& other)
   {
+#if !COMPACT
+    kind= other.kind;
+#endif
     i= other.i;
     return *this;
   }
 
-  item(item&& other) noexcept : i(other.i) { }
+  item(item&& other) noexcept
+    :
+#if !COMPACT
+      kind(other.kind),
+#endif
+      i(other.i)
+  {
+#if !COMPACT
+    other.kind= &typeid(void);
+#endif
+  }
 
   item& operator=(item&& other) noexcept
   {
+#if !COMPACT
+    kind= other.kind;
+    other.kind= &typeid(void);
+#endif
     i= std::exchange(other.i, 0);
     return *this;
   }
@@ -349,26 +373,26 @@ public:
     auto* ptr= vars.data() + index;
     return ptr;
   }
-    
+
   [[nodiscard]]
   IAsyItem const* getItemConst(size_t const& index) const override
   {
     auto const* ptr = vars.data() + index;
     return ptr;
   }
-  
+
   [[nodiscard]]
   size_t getSize() const override
   {
     return vars.size();
   }
-  
+
   // Extends vars to ensure it has a place for any variable indexed up to n.
   void extend(size_t const& n) final {
     if(vars.size() < n)
       vars.resize(n);
   }
-  
+
 };
 #endif
 

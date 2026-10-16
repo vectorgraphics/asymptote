@@ -441,7 +441,6 @@ public:
   virtual IAsyTuple* createTriple(double x, double y, double z)= 0;
 
   // tension specifier functions
-  // TODO: Ask John about what exactly a tension specifier is
 
   /** Creates a new tension specifier with in=out=val and atleast value. */
   virtual IAsyTensionSpecifier*
@@ -928,11 +927,17 @@ public:
   /** Runs a piece of Asymptote code in a non-embedded manner */
   virtual void runString(char const* text, bool interactiveWrite)= 0;
 
-  /** Runs a piece of Asymptote code in a non-embedded manner */
+  /**
+   * Runs a piece of Asymptote code in a non-embedded manner.
+   *
+   * @param runnableCode A {@link THAsyRunnable} code handle. There is no FFI
+   * call that creates one; the handle must come from an Asymptote value of
+   * {@code code} type (see {@link Asy::BaseTypes::Code}) passed to your
+   * function -- typically {@code args->getNumberedArg(i)->asRawPointer()} on a
+   * code-typed argument. Passing any other pointer is undefined behavior.
+   */
   virtual void runRunnable(THAsyRunnable runnableCode)= 0;
 };
-
-// question: will we ever exceed 256 primitive types?
 
 namespace Asy
 {
@@ -1560,8 +1565,15 @@ public:
    * interactive type. */
   virtual void runStringEmbedded(char const* text)= 0;
 
-  /** Runs a piece of runnable code in an embedded manner. The stack must be of
-   * an interactive type. */
+  /**
+   * Runs a piece of runnable code in an embedded manner. The stack must be of
+   * an interactive type.
+   *
+   * @param runnableCode A {@link THAsyRunnable} code handle, which must come
+   * from an Asymptote value of {@code code} type ({@link Asy::BaseTypes::Code});
+   * there is no FFI call that creates one. Passing any other pointer is
+   * undefined behavior.
+   */
   virtual void runCodeEmbedded(THAsyRunnable runnableCode)= 0;
 };
 
@@ -1774,8 +1786,6 @@ class IAsyVarFrame
 public:
   virtual ~IAsyVarFrame()= default;
 
-  // TODO: Ask John about index 0 and whether we should clarify what it stores
-  //       I, Jamie, unfortunately do not know what index 0 stores.
   /**
    * Gets an item from the array. This value of this item is modifiable (e.g.
    * if the item contains a pointer, one may change the pointer's value).

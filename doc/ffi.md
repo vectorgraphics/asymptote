@@ -27,6 +27,9 @@ your plugin must be compiled with a compatible C++ ABI (same compiler
 family / library as the Asymptote host, e.g. MSVC for MSVC builds,
 GCC/Clang libstdc++ or libc++ accordingly).
 
+**C++ standard:** `asyffi.h` itself only requires C++17. (The separate
+`asymptote-ffi-helper-lib` convenience layer needs C++20 -- see section 7.)
+
 ---
 
 ## 2. How plugins are loaded
@@ -78,8 +81,7 @@ DECLARE_REGISTER_FN;
 REGISTER_FN_SIG
 {
   // Register: real doubleIt(real x)
-  Asy::TypeInfo realType;
-  realType.baseType = Asy::BaseTypes::Real;
+  Asy::TypeInfo realType{ Asy::BaseTypes::Real, {} };
 
   Asy::FnArgMetadata const arg{ realType, "x", /*optional*/ false,
                                 /*explicitArgs*/ false };
@@ -87,7 +89,7 @@ REGISTER_FN_SIG
   Asy::FunctionTypeMetadata const meta{ realType, /*numArgs*/ 1, &arg };
 
   registerer->registerFunction("doubleIt",
-      +[](IAsyContext* ctx, IAsyStackContext* stack,
+      [](IAsyContext* ctx, IAsyStackContext* stack,
           IAsyArgs* args, IAsyItem* ret) {
         double const x = args->getNumberedArg(0)->asDouble();
         ret->setDoubleValue(2.0 * x);
