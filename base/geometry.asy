@@ -3103,9 +3103,15 @@ parabola parabola(point M1, point M2, point M3, point M4, point M5)
 
 /*<asyxml><function type="hyperbola" signature="hyperbola(point,point,point)"><code></asyxml>*/
 hyperbola hyperbola(point F1, point F2, point M)
-{/*<asyxml></code><documentation>Return the hyperbola passing through 'M' whose the foci are 'F1' and 'F2'.</documentation></function></asyxml>*/
-  real a = abs(abs(F1 - M) - abs(F2 - M));
-  return hyperbola(F1, F2, finite(a) ? a/2 : a);
+{/*<asyxml></code><documentation>Return the hyperbola passing through 'M' whose the foci are 'F1' and 'F2'.
+   Aborts if 'M' is equidistant from both foci (degenerate: the locus is the perpendicular
+   bisector, not a hyperbola) or if 'a >= c' (no hyperbola through M with the given foci).</documentation></function></asyxml>*/
+  real a = abs(abs(F1 - M) - abs(F2 - M)) / 2;
+  real c = abs(F1 - F2) / 2;
+  if(!finite(a) || !finite(c)) return hyperbola(F1, F2, a);
+  if(a == 0) abort("hyperbola(F1,F2,M): M is equidistant from both foci; no hyperbola exists (degenerate case).");
+  if(a >= c) abort("hyperbola(F1,F2,M): a >= c; M is not on any hyperbola with foci F1 and F2 (degenerate case).");
+  return hyperbola(F1, F2, a, byfoci);
 }
 
 /*<asyxml><function type="hyperbola" signature="hyperbola(point,real,real,real)"><code></asyxml>*/
