@@ -1410,12 +1410,12 @@ void draw3D(frame f, patch s, material m,
      primitive);
 }
 
-void _draw(frame f, path3 g, triple center=O, material m,
+void _draw(frame f, path3 g, material m,
            light light=currentlight, interaction interaction=Embedded)
 {
   if(!prc()) m=material(m,light);
-  _draw(f,g,center,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
-        interaction.type);
+  _draw(f,g,interaction.center,m.p,m.opacity,m.shininess,
+        m.metallic,m.fresnel0,interaction.type);
 }
 
 int computeNormals(triple[] v, int[][] vi, triple[] n, int[][] ni)
@@ -2346,31 +2346,53 @@ unitdisk.primitive=primitive(
     return unscaled(t,X,Y);
   });
 
+// Draw a dot at position v. If filltype is Fill (the default), a sphere
+// is drawn. If filltype is NoFill (or Draw), a billboard circle
+// (unitcircle3 oriented toward the camera) is drawn with the pen.
+// If filltype is FillDraw, a billboard hemisphere is filled with
+// fillpen and a billboard circle is drawn with drawpen.
 void dot(frame f, triple v, material p=currentpen,
          light light=nolight, string name="",
-         render render=defaultrender, projection P=currentprojection)
+         render render=defaultrender, projection P=currentprojection,
+         filltype filltype=dotfilltype)
 {
   if(name == "" && render.defaultnames) name="dot";
   pen q=(pen) p;
-  real size=0.5*linewidth(dotsize(q)+q);
-  transform3 T=shift(v)*scale3(size);
-  draw(f,T*unitsphere,p,light,name,render,P);
+  if(filltype == Fill) {
+    real size=0.5*linewidth(dotsize(q)+q);
+    transform3 T=shift(v)*scale3(size);
+    draw(f,T*unitsphere,p,light,name,render,P);
+  } else {
+    real r=0.5*(dotsize(q)-linewidth(q));
+    if(r <= 0) return;
+    render R=render(render,interaction(Billboard,center=v));
+    path3 circ=shift(v)*transform3(P)*scale3(r)*unitcircle3;
+    if(filltype.type == filltype.FillDraw) {
+      pen fillpen=filltype.fillpen==nullpen ? q : filltype.fillpen;
+      pen drawpen=filltype.drawpen==nullpen ? q : filltype.drawpen;
+      real hr=r-0.5*linewidth(q);
+      if(hr > 0)
+        draw(f,shift(v)*transform3(P)*scale3(hr)*unithemisphere,fillpen,light,name,R);
+      draw(f,circ,drawpen,light,name,R,P);
+    } else
+      draw(f,circ,p,light,name,R,P);
+  }
 }
 
 void dot(frame f, triple[] v, material p=currentpen, light light=nolight,
          string name="", render render=defaultrender,
-         projection P=currentprojection)
+         projection P=currentprojection, filltype filltype=dotfilltype)
 {
   if(v.length > 0) {
     // Remove duplicate points.
     v=sort(v,lexorder);
 
     triple last=v[0];
-    dot(f,last,p,light,name,render,P);
+    dot(f,last,p,light,name,render,P,filltype);
     for(int i=1; i < v.length; ++i) {
       triple V=v[i];
       if(V != last) {
-        dot(f,V,p,light,name,render,P);
+        dot(f,V,p,light,name,render,P,filltype);
         last=V;
       }
     }
@@ -2379,15 +2401,15 @@ void dot(frame f, triple[] v, material p=currentpen, light light=nolight,
 
 void dot(frame f, path3 g, material p=currentpen, light light=nolight,
          string name="", render render=defaultrender,
-         projection P=currentprojection)
+         projection P=currentprojection, filltype filltype=dotfilltype)
 {
   dot(f,sequence(new triple(int i) {return point(g,i);},size(g)),
-      p,light,name,render,P);
+      p,light,name,render,P,filltype);
 }
 
 void dot(frame f, path3[] g, material p=currentpen, light light=nolight,
          string name="", render render=defaultrender,
-         projection P=currentprojection)
+         projection P=currentprojection, filltype filltype=dotfilltype)
 {
   int sum;
   for(path3 G : g)
@@ -2401,26 +2423,32 @@ void dot(frame f, path3[] g, material p=currentpen, light light=nolight,
         triple v=point(g[i],j);
         ++j;
         return v;
-      },sum),p,light,name,render,P);
+      },sum),p,light,name,render,P,filltype);
 }
 
 void dot(picture pic=currentpicture, triple v, material p=currentpen,
-         light light=nolight, string name="", render render=defaultrender)
+         light light=nolight, string name="", render render=defaultrender,
+         filltype filltype=dotfilltype)
 {
   pen q=(pen) p;
-  real size=0.5*linewidth(dotsize(q)+q);
+  real size;
+  if(filltype == Fill)
+    size=0.5*linewidth(dotsize(q)+q);
+  else
+    size=0.5*dotsize(q);
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       triple V=t*v;
-      dot(f,V,p,light,name,render,P);
+      dot(f,V,p,light,name,render,P,filltype);
       if(pic != null)
-        dot(pic,project(V,P.t),q);
+        dot(pic,project(V,P.t),q,filltype);
     },true);
   triple R=size*(1,1,1);
   pic.addBox(v,v,-R,R);
 }
 
 void dot(picture pic=currentpicture, triple[] v, material p=currentpen,
-         light light=nolight, string name="", render render=defaultrender)
+         light light=nolight, string name="", render render=defaultrender,
+         filltype filltype=dotfilltype)
 {
   if(v.length > 0) {
     // Remove duplicate points.
@@ -2430,12 +2458,12 @@ void dot(picture pic=currentpicture, triple[] v, material p=currentpen,
     bool group=name != "" || render.defaultnames;
     if(group)
       begingroup3(pic,name == "" ? "dots" : name,render);
-    dot(pic,last,p,light,partname(0,render),render);
+    dot(pic,last,p,light,partname(0,render),render,filltype);
     int k=0;
     for(int i=1; i < v.length; ++i) {
       triple V=v[i];
       if(V != last) {
-        dot(pic,V,p,light,partname(++k,render),render);
+        dot(pic,V,p,light,partname(++k,render),render,filltype);
         last=V;
       }
     }
@@ -2446,14 +2474,15 @@ void dot(picture pic=currentpicture, triple[] v, material p=currentpen,
 
 void dot(picture pic=currentpicture, explicit path3 g, material p=currentpen,
          light light=nolight, string name="",
-         render render=defaultrender)
+         render render=defaultrender, filltype filltype=dotfilltype)
 {
   dot(pic,sequence(new triple(int i) {return point(g,i);},size(g)),
-      p,light,name,render);
+      p,light,name,render,filltype);
 }
 
 void dot(picture pic=currentpicture, path3[] g, material p=currentpen,
-         light light=nolight, string name="", render render=defaultrender)
+         light light=nolight, string name="", render render=defaultrender,
+         filltype filltype=dotfilltype)
 {
   int sum;
   for(path3 G : g)
@@ -2467,12 +2496,13 @@ void dot(picture pic=currentpicture, path3[] g, material p=currentpen,
         triple v=point(g[i],j);
         ++j;
         return v;
-      },sum),p,light,name,render);
+      },sum),p,light,name,render,filltype);
 }
 
 void dot(picture pic=currentpicture, Label L, triple v, align align=NoAlign,
          string format=defaultformat, material p=currentpen,
-         light light=nolight, string name="", render render=defaultrender)
+         light light=nolight, string name="", render render=defaultrender,
+         filltype filltype=dotfilltype)
 {
   Label L=L.copy();
   if(L.s == "") {
@@ -2482,7 +2512,7 @@ void dot(picture pic=currentpicture, Label L, triple v, align align=NoAlign,
   }
   L.align(align,E);
   L.p((pen) p);
-  dot(pic,v,p,light,name,render);
+  dot(pic,v,p,light,name,render,filltype);
   label(pic,L,v,render);
 }
 

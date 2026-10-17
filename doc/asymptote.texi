@@ -1354,10 +1354,13 @@ point on a picture @code{dest} using @code{add} or @code{attach}
 @cindex @code{dot}
 To draw a dot, simply draw a path containing a single point.
 The @code{dot} command defined in the module @code{plain} draws a
-dot having a diameter equal to an explicit pen line width or the
-default line width magnified by @code{dotfactor} (6 by default),
-using the specified filltype (@pxref{filltype}) or @code{dotfilltype}
-(@code{Fill} by default):
+dot using the specified filltype (@pxref{filltype}) or @code{dotfilltype}
+(@code{Fill} by default). With @code{filltype=Fill}, the dot has a
+diameter equal to an explicit pen line width or the default line
+width magnified by @code{dotfactor} (6 by default). With other
+filltypes, the dot is drawn as a ring with an
+outer diameter of @code{dotfactor} times the pen line width,
+regardless of whether the line width is explicitly specified:
 @verbatim
 void dot(frame f, pair z, pen p=currentpen, filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, pair z, pen p=currentpen,
