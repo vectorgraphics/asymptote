@@ -6483,18 +6483,56 @@ struct inversion
 
 /*<asyxml><function type="inversion" signature="inversion(circle,circle,real)"><code></asyxml>*/
 inversion inversion(circle c1, circle c2, real sgn = 1)
-{/*<asyxml></code><documentation>Return the inversions which transform 'c1' to
-   . 'c2' and positive inversion power if 'sgn > 0';
-   . 'c2' and negative inversion power if 'sgn < 0';
-   . 'c1' and 'c2' to 'c2' if 'sgn = 0'.</documentation></function></asyxml>*/
+{/*<asyxml></code><documentation>Return the inversion which transforms 'c1' to 'c2'.
+   Except in the degenerate configurations listed below, there are two such inversions;
+   the optional argument 'sgn' selects which one is returned:
+   . 'sgn > 0': the inversion whose center is located between the centers of 'c1' and 'c2';
+   . 'sgn < 0': the inversion whose center is located outside the segment joining the centers of 'c1' and 'c2';
+   . 'sgn = 0': the inversion with center at the radical center of 'c1' and 'c2', which leaves both 'c1' and 'c2' invariant.
+   When the preferred inversion does not exist (externally tangent for 'sgn > 0', internally tangent or equal radii for 'sgn < 0'),
+   the other inversion is returned instead.
+   An error is raised only when no inversion exists at all:
+   . externally tangent circles with equal radii (the only possible center is the midpoint, which lies on both circles);
+   . 'sgn = 0' for concentric circles (no radical center) or tangent circles (radical center lies on them).</documentation></function></asyxml>*/
   if(sgn == 0) {
+    if(c1.C == c2.C) abort("inversion: concentric circles have no radical center");
     point O = radicalcenter(c1, c2);
-    return inversion(O^c1, O);
+    real k = O^c1;
+    if(k == 0) abort("inversion: the radical center of tangent circles lies on them; no invariant inversion exists");
+    return inversion(k, O);
   }
   pair C1 = locate(c1.C), C2 = locate(c2.C);
-  real r1 = c1.r, r2 = sgn(sgn) * c2.r;
-  pair O = (r2 * C1 + r1 * C2) / (r1 + r2);
-  real k =  r1 * r2 * (1 - abs2(C2 - C1) / (r1 + r2)^2);
+  real r1 = c1.r, r2 = c2.r;
+  real d = length(C2 - C1);
+  pair O;
+  real k;
+  if(sgn > 0) {
+    // center at the internal division point of the segment joining the centers
+    O = (r2 * C1 + r1 * C2) / (r1 + r2);
+    k = r1 * r2 * (1 - d^2 / (r1 + r2)^2);
+    if(k == 0) {
+      // externally tangent: fall back to the external division point
+      if(r1 == r2) abort("inversion: externally tangent circles with equal radii admit no inversion");
+      O = (r2 * C1 - r1 * C2) / (r2 - r1);
+      k = r1 * r2 * (d^2 / (r1 - r2)^2 - 1);
+    }
+  } else {
+    if(r1 == r2) {
+      // equal radii: fall back to the internal division point
+      O = (r1 * C1 + r1 * C2) / (2 * r1);
+      k = r1^2 * (1 - d^2 / (2 * r1)^2);
+      if(k == 0) abort("inversion: externally tangent circles with equal radii admit no inversion");
+    } else {
+      // center at the external division point of the segment joining the centers
+      O = (r2 * C1 - r1 * C2) / (r2 - r1);
+      k = r1 * r2 * (d^2 / (r1 - r2)^2 - 1);
+      if(k == 0) {
+        // internally tangent: fall back to the internal division point
+        O = (r2 * C1 + r1 * C2) / (r1 + r2);
+        k = r1 * r2 * (1 - d^2 / (r1 + r2)^2);
+      }
+    }
+  }
   return inversion(O / currentcoordsys, k);
 }
 
