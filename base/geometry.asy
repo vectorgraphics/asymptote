@@ -2575,6 +2575,11 @@ struct ellipse
       this.c = abs(C - P[0]);
       this.b = this.c < epsgeo ? a : sqrt(a^2 - c^2); // Handle case of circle.
       this.e = this.c < epsgeo ? 0 : this.c/a; // Handle case of circle.
+      if (this.c < epsgeo) this.angle = 0; // a circle has no distinguished major axis;
+                                           // the angle above is meaningless here and, in a
+                                           // non-default coordinate system, degrees(F2 - F1)
+                                           // (with F1 == F2) would be a spurious value that
+                                           // shifts angle-based drawing (arc, angabscissa, ...)
       if(this.e >= 1) abort("ellipse.init: wrong parameter: e >= 1.");
       this.p = a * (1 - this.e^2);
       if (this.c != 0) {// directrix is not set for a circle.
