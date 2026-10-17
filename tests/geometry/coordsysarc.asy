@@ -1,4 +1,3 @@
-
 import TestLib;
 import geometry;
 
@@ -11,11 +10,6 @@ import geometry;
 // the coordinate system's i-axis.
 StartTest("coordsysarc");
 
-bool nearlyequal(pair a, pair b)
-{
-  return abs(a - b) <= 1e-6 * max(1, max(abs(a), abs(b)));
-}
-
 pair[] endpoints(path p)
 {
   return new pair[] {point(p, 0), point(p, length(p))};
@@ -25,8 +19,8 @@ void checkarc(path p, pair P, pair Q)
 {
   // the drawn arc must connect P and Q (in either order)
   pair[] e = endpoints(p);
-  assert((nearlyequal(e[0], P) && nearlyequal(e[1], Q))
-      || (nearlyequal(e[0], Q) && nearlyequal(e[1], P)));
+  assert((close(e[0], P) && close(e[1], Q))
+      || (close(e[0], Q) && close(e[1], P)));
 }
 
 void run(string tag)
@@ -49,15 +43,15 @@ void run(string tag)
   point C = (1, 1);
   circle c = circle(C, 4);
   path ac = (path)arc(c, 45, 135);
-  assert(nearlyequal(point(ac, 0),
-                     locate(C) + (R * (4 * cos(radians(45)), 4 * sin(radians(45))))));
-  assert(nearlyequal(point(ac, length(ac)),
-                     locate(C) + (R * (4 * cos(radians(135)), 4 * sin(radians(135))))));
+  assert(close(point(ac, 0),
+               locate(C) + (R * (4 * cos(radians(45)), 4 * sin(radians(45))))));
+  assert(close(point(ac, length(ac)),
+               locate(C) + (R * (4 * cos(radians(135)), 4 * sin(radians(135))))));
 
   // round-trip consistency: point(el, relabscissa(el, M)) == M
   ellipse el = circle(P, v);
-  assert(nearlyequal(locate(point(el, relabscissa(el, Q))), locate(Q)));
-  assert(nearlyequal(locate(point(el, relabscissa(el, Rr))), locate(Rr)));
+  assert(close(locate(point(el, relabscissa(el, Q))), locate(Q)));
+  assert(close(locate(point(el, relabscissa(el, Rr))), locate(Rr)));
 }
 
 run("default");
