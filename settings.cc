@@ -1877,6 +1877,10 @@ void initSettings() {
   addOption(new boolSetting("pdfreload", 0,
                             "Automatically reload document in pdfviewer",
                             false));
+
+  addOption(new boolSetting("ffi", 0,
+                    "Enable FFI (Foreign function interface)",
+                    true));
   addOption(new IntSetting("pdfreloaddelay", 0, "usec",
                            "Delay before attempting initial pdf reload"
                            ,750000));

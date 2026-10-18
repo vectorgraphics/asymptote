@@ -76,3 +76,11 @@ void callForeignFunction(vm::stack* stack, TAsyForeignFunction const fn)
 }
 
 void unloadLib(string const& key) { camp::getDynlibManager()->delLib(key); }
+
+void ffiNotSupportedError(string const& dllPath)
+{
+  em.sync();
+  em << "error: FFI is not enabled. Cannot load '" << dllPath << "'\n";
+  em.sync(true);
+  throw handled_error();
+}

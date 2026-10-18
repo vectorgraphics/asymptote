@@ -130,6 +130,12 @@ record *genv::loadModule(symbol id, string filename) {
   }
   // otherwise, try loading as a dynamic library
   if (string const dllPath= tryGetDllPath(filename); !dllPath.empty()) {
+    if (!getSetting<bool>("ffi")) {
+      ffiNotSupportedError(dllPath);
+      return nullptr;
+    }
+
+    // in this case, FFI is enabled and we can proceed
     inTranslation.push_front(filename);
     em.sync();
     // specifically, filename here is used as key

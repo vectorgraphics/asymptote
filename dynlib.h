@@ -17,3 +17,6 @@ string tryGetDllPath(string const& libName);
 void unloadLib(string const& key);
 
 void callForeignFunction(vm::stack* stack, TAsyForeignFunction fn);
+
+/** Throw an error to indicate FFI is not enabled */
+void ffiNotSupportedError(string const& dllPath);
