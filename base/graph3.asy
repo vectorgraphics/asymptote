@@ -385,7 +385,7 @@ axis Bounds(int type=Both, int type2=Both, triple align=O, bool extend=false)
   };
 }
 
-axis YZEquals(real y, real z, triple align=O, bool extend=false)
+axis YZEquals(real y, real z, triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -398,7 +398,7 @@ axis YZEquals(real y, real z, triple align=O, bool extend=false)
   };
 }
 
-axis XZEquals(real x, real z, triple align=O, bool extend=false)
+axis XZEquals(real x, real z, triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -411,7 +411,7 @@ axis XZEquals(real x, real z, triple align=O, bool extend=false)
   };
 }
 
-axis XYEquals(real x, real y, triple align=O, bool extend=false)
+axis XYEquals(real x, real y, triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -424,7 +424,7 @@ axis XYEquals(real x, real y, triple align=O, bool extend=false)
   };
 }
 
-axis YZZero(triple align=O, bool extend=false)
+axis YZZero(triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -437,7 +437,7 @@ axis YZZero(triple align=O, bool extend=false)
   };
 }
 
-axis XZZero(triple align=O, bool extend=false)
+axis XZZero(triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -450,7 +450,7 @@ axis XZZero(triple align=O, bool extend=false)
   };
 }
 
-axis XYZero(triple align=O, bool extend=false)
+axis XYZero(triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -1231,7 +1231,7 @@ void limits(picture pic=currentpicture, triple min, triple max)
 // Draw x, y and z axes.
 void axes3(picture pic=currentpicture,
            Label xlabel="", Label ylabel="", Label zlabel="",
-           bool extend=false,
+           bool extend=true,
            triple min=(-infinity,-infinity,-infinity),
            triple max=(infinity,infinity,infinity),
            pen p=currentpen, pen py=p, pen pz=p,
