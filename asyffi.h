@@ -930,8 +930,10 @@ public:
   /**
    * Runs a piece of Asymptote code in a non-embedded manner.
    *
-   * @param runnableCode A {@link THAsyRunnable} code handle. There is no FFI
-   * call that creates one; the handle must come from an Asymptote value of
+   * @param runnableCode A {@link THAsyRunnable} code handle.
+   *
+   * @remark There is no FFI call that creates one. A function to compile code
+   * is planned for the future. The handle must come from an Asymptote value of
    * {@code code} type (see {@link Asy::BaseTypes::Code}) passed to your
    * function -- typically {@code args->getNumberedArg(i)->asRawPointer()} on a
    * code-typed argument. Passing any other pointer is undefined behavior.
@@ -1571,8 +1573,10 @@ public:
    *
    * @param runnableCode A {@link THAsyRunnable} code handle, which must come
    * from an Asymptote value of {@code code} type ({@link Asy::BaseTypes::Code});
-   * there is no FFI call that creates one. Passing any other pointer is
-   * undefined behavior.
+   *
+   *
+   * @remark Right now, there is no FFI call that creates one. This is planned
+   * for the future. Passing any other pointer is undefined behavior.
    */
   virtual void runCodeEmbedded(THAsyRunnable runnableCode)= 0;
 };
