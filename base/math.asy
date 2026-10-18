@@ -377,11 +377,16 @@ pair[] quarticroots(real a, real b, real c, real d, real e)
 
   // Remove roots at numerical infinity.
   if(abs(a) <= Fuzz*(abs(b)+Fuzz*(abs(c)+Fuzz*(abs(d)+Fuzz*abs(e)))))
-    return cubicroots(b,c,d,e);
+    return complexcubicroots(b,c,d,e);
 
   // Detect roots at numerical zero.
-  if(abs(e) <= Fuzz*(abs(d)+Fuzz*(abs(c)+Fuzz*(abs(b)+Fuzz*abs(a)))))
-    return cubicroots(a,b,c,d);
+  if(abs(e) <= Fuzz*(abs(d)+Fuzz*(abs(c)+Fuzz*(abs(b)+Fuzz*abs(a))))) {
+    // x^4 factorizes as x*(a*x^3+b*x^2+c*x+d) when e~0,
+    // so one root is at 0 plus the 3 roots of the cubic.
+    pair[] roots=complexcubicroots(a,b,c,d);
+    roots.push((0,0));
+    return roots;
+  }
 
   real ainv=1/a;
   b *= ainv;

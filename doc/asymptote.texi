@@ -6072,6 +6072,12 @@ quadratic equation @math{ax^2+bx+c=0};
 This numerically robust solver returns the real roots of the
 cubic equation @math{ax^3+bx^2+cx+d=0}. Multiple roots are listed separately.
 
+@cindex @code{complexcubicroots}
+@item @code{pair[] complexcubicroots(real a, real b, real c, real d);}
+This numerically robust solver returns the complex roots of the
+cubic equation @math{ax^3+bx^2+cx+d=0}. Multiple roots are listed
+separately.
+
 @end table
 
 @cindex vectorization
@@ -12441,7 +12447,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  pdftex comment getstring getstringprefix getreal defaultS hsv
 @c  LocalWords:  ticklocate autoscaleT autoscaling vectorfield autolimits dvi
 @c  LocalWords:  zlimits inline dvipdf hyperdvi autoconf gui zerowindingoverlap
-@c  LocalWords:  prepended intMax quadraticroots cubicroots filltype prepend dx
+@c  LocalWords:  prepended intMax quadraticroots cubicroots complexcubicroots filltype prepend dx
 @c  LocalWords:  ticklabel popup UnFill markroutine marknodes markuniform erf
 @c  LocalWords:  intersectpoint cyrillic mathtext russian brokenaxis Datadir ds
 @c  LocalWords:  resetdefaultpen latticeshade axialshade radialshade erfc det
