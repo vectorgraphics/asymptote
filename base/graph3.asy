@@ -563,7 +563,8 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
             triple b2=xmax == infinity ? tinv*(rt.x-max3(p).x,ytrans(t,y0),
                                                ztrans(t,z0)) : (xmax,y0,z0);
 
-            if(xmin == -infinity || xmax == infinity) {
+            if(xmin == -infinity || xmax == infinity ||
+               divisor.length == 0) {
               bounds mx=autoscale(a.x,b.x,pic.scale.x.scale);
               pic.scale.x.tickMin=mx.min;
               pic.scale.x.tickMax=mx.max;
@@ -622,6 +623,12 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
     }
 
     if(finite(a) && finite(b)) {
+      if(divisor.length == 0 && ticks != NoTicks3) {
+        bounds mx=autoscale(a.x,b.x,pic.scale.x.scale);
+        pic.scale.x.tickMin=mx.min;
+        pic.scale.x.tickMax=mx.max;
+        divisor=mx.divisor;
+      }
       picture d;
       ticks(d,pic.scaling3(warn=false),L,
             (a.x,0,0)--(b.x,0,0),(a2.x,0,0)--(b2.x,0,0),p,arrow,margin,
@@ -697,7 +704,8 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
             triple b2=ymax == infinity ? tinv*(xtrans(t,x0),rt.y-max3(p).y,
                                                ztrans(t,z0)) : (x0,ymax,z0);
 
-            if(ymin == -infinity || ymax == infinity) {
+            if(ymin == -infinity || ymax == infinity ||
+               divisor.length == 0) {
               bounds my=autoscale(a.y,b.y,pic.scale.y.scale);
               pic.scale.y.tickMin=my.min;
               pic.scale.y.tickMax=my.max;
@@ -756,6 +764,12 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
     }
 
     if(finite(a) && finite(b)) {
+      if(divisor.length == 0 && ticks != NoTicks3) {
+        bounds my=autoscale(a.y,b.y,pic.scale.y.scale);
+        pic.scale.y.tickMin=my.min;
+        pic.scale.y.tickMax=my.max;
+        divisor=my.divisor;
+      }
       picture d;
       ticks(d,pic.scaling3(warn=false),L,
             (0,a.y,0)--(0,b.y,0),(0,a2.y,0)--(0,a2.y,0),p,arrow,margin,
@@ -831,7 +845,8 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
             triple b2=zmax == infinity ? tinv*(xtrans(t,x0),ytrans(t,y0),
                                                rt.z-max3(p).z) : (x0,y0,zmax);
 
-            if(zmin == -infinity || zmax == infinity) {
+            if(zmin == -infinity || zmax == infinity ||
+               divisor.length == 0) {
               bounds mz=autoscale(a.z,b.z,pic.scale.z.scale);
               pic.scale.z.tickMin=mz.min;
               pic.scale.z.tickMax=mz.max;
@@ -890,6 +905,12 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
     }
 
     if(finite(a) && finite(b)) {
+      if(divisor.length == 0 && ticks != NoTicks3) {
+        bounds mz=autoscale(a.z,b.z,pic.scale.z.scale);
+        pic.scale.z.tickMin=mz.min;
+        pic.scale.z.tickMax=mz.max;
+        divisor=mz.divisor;
+      }
       picture d;
       ticks(d,pic.scaling3(warn=false),L,
             (0,0,a.z)--(0,0,b.z),(0,0,a2.z)--(0,0,a2.z),p,arrow,margin,

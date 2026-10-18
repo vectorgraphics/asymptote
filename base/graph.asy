@@ -1189,7 +1189,8 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
       pair a2=xmin == -infinity ? tinv*(lb.x-min(p).x,ytrans(t,y2)) : (xmin,y2);
       pair b2=xmax == infinity ? tinv*(rt.x-max(p).x,ytrans(t,y2)) : (xmax,y2);
 
-      if(xmin == -infinity || xmax == infinity) {
+      if(xmin == -infinity || xmax == infinity ||
+         divisor.length == 0) {
         bounds mx=autoscale(a.x,b.x,pic.scale.x.scale);
         pic.scale.x.tickMin=mx.min;
         pic.scale.x.tickMax=mx.max;
@@ -1236,6 +1237,12 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
     }
 
     if(finite(a) && finite(b)) {
+      if(divisor.length == 0 && ticks != NoTicks) {
+        bounds mx=autoscale(a.x,b.x,pic.scale.x.scale);
+        pic.scale.x.tickMin=mx.min;
+        pic.scale.x.tickMax=mx.max;
+        divisor=mx.divisor;
+      }
       frame d;
       ticks(d,pic.scaling(warn=false),L,side,
             (a.x,0)--(b.x,0),(a2.x,0)--(b2.x,0),p,arrow,margin,
@@ -1283,7 +1290,8 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
       pair a2=ymin == -infinity ? tinv*(xtrans(t,x2),lb.y-min(p).y) : (x2,ymin);
       pair b2=ymax == infinity ? tinv*(xtrans(t,x2),rt.y-max(p).y) : (x2,ymax);
 
-      if(ymin == -infinity || ymax == infinity) {
+      if(ymin == -infinity || ymax == infinity ||
+         divisor.length == 0) {
         bounds my=autoscale(a.y,b.y,pic.scale.y.scale);
         pic.scale.y.tickMin=my.min;
         pic.scale.y.tickMax=my.max;
@@ -1329,6 +1337,12 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
     }
 
     if(finite(a) && finite(b)) {
+      if(divisor.length == 0 && ticks != NoTicks) {
+        bounds my=autoscale(a.y,b.y,pic.scale.y.scale);
+        pic.scale.y.tickMin=my.min;
+        pic.scale.y.tickMax=my.max;
+        divisor=my.divisor;
+      }
       frame d;
       ticks(d,pic.scaling(warn=false),L,side,
             (0,a.y)--(0,b.y),(0,a2.y)--(0,b2.y),p,arrow,margin,
