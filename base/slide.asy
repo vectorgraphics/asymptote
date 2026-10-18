@@ -252,7 +252,7 @@ void title(string s, pair position=N, pair align=titlealign,
   if(newslide) newslide();
   checkposition();
   frame f;
-  if(s != "") label(f,minipage("\center "+s,minipagewidth),(0,0),align,p);
+  if(s != "") label(f,minipage("\centering "+s,minipagewidth),(0,0),align,p);
   add(f,position,labelmargin(p)*align);
   currentposition=(currentposition.x,position.y+
                    (tinv*(min(f)-titleskip*I*lineskip(p)*pt)).y);
@@ -312,7 +312,7 @@ void remark(bool center=false, string s, pair align=0, pen p=itempen,
 
 void center(string s, pen p=itempen)
 {
-  remark(center=true,"\center "+s,p);
+  remark(center=true,"\centering "+s,p);
 }
 
 void vbox(string s, pen p=itempen)
