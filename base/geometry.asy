@@ -7132,6 +7132,114 @@ line[] tangents(hyperbola h, point M)
   return ol;
 }
 
+/*<asyxml><function type="line[]" signature="tangents(conic,vector)"><code></asyxml>*/
+line[] tangents(conic co, vector v)
+{/*<asyxml></code><documentation>Return all tangent lines to the conic 'co' that are parallel to the direction 'v'.
+   For a circle or ellipse, there are always 2 such tangents.
+   For a parabola, there is 1 (or 0 if 'v' is parallel to the axis of the parabola).
+   For a hyperbola, there can be 0, 1, or 2 such tangents depending on
+   whether the direction lies between the asymptote directions.
+   The tangents are computed using the dual conic (adjugate of the conic matrix).</documentation></function></asyxml>*/
+  line[] ol;
+  if(length(v) < epsgeo) return ol;
+  bqe eq = changecoordsys(defaultcoordsys, equation(co));
+  real a = eq.a[0], b = eq.a[1], c = eq.a[2];
+  real d = eq.a[3], e = eq.a[4], f = eq.a[5];
+  // Adjugate of M = [[a,b/2,d/2],[b/2,c,e/2],[d/2,e/2,f]]
+  real A11 = c*f - e*e/4, A12 = d*e/4 - b*f/2, A13 = b*e/4 - c*d/2;
+  real A22 = a*f - d*d/4, A23 = b*d/4 - a*e/2;
+  real A33 = a*c - b*b/4;
+
+  // Normal to direction v = (vx, vy) is (vy, -vx); snap near-zero to 0
+  pair vp = (pair)v;
+  real l = (abs(vp.y) < epsgeo) ? 0 : vp.y;
+  real m = (abs(-vp.x) < epsgeo) ? 0 : -vp.x;
+  // Tangency condition: A33*n^2 + 2*(A13*l+A23*m)*n + (A11*l^2+2*A12*l*m+A22*m^2) = 0
+  real qa = A33, qb = 2*(A13*l + A23*m), qc = A11*l*l + 2*A12*l*m + A22*m*m;
+  if(abs(qa) < epsgeo) {
+    if(abs(qb) > epsgeo)
+      ol.push(line(defaultcoordsys, l, m, -qc/qb));
+  } else {
+    real disc = qb*qb - 4*qa*qc;
+    if(disc >= -10*epsgeo) {
+      if(disc < 0) disc = 0;
+      real sq = sqrt(disc);
+      ol.push(line(defaultcoordsys, l, m, (-qb+sq)/(2*qa)));
+      if(disc > 10*epsgeo)
+        ol.push(line(defaultcoordsys, l, m, (-qb-sq)/(2*qa)));
+    }
+  }
+  return ol;
+}
+
+/*<asyxml><function type="line[]" signature="tangents(conic,conic)"><code></asyxml>*/
+line[] tangents(conic co1, conic co2)
+{/*<asyxml></code><documentation>Return the common tangent lines of the two conics 'co1' and 'co2'.
+   There can be up to 4 common tangents; complex or degenerate solutions are not returned.</documentation></function></asyxml>*/
+  line[] ol;
+  bqe eq1 = changecoordsys(defaultcoordsys, equation(co1));
+  bqe eq2 = changecoordsys(defaultcoordsys, equation(co2));
+  // Dual conic of eq1: adjugate of the conic matrix, n=1 slice in line coordinates
+  real a1=eq1.a[0], b1=eq1.a[1], c1=eq1.a[2], d1=eq1.a[3], e1=eq1.a[4], f1=eq1.a[5];
+  bqe dc1 = bqe(defaultcoordsys,
+    c1*f1-e1*e1/4,  d1*e1/2-b1*f1,  a1*f1-d1*d1/4,
+    b1*e1/2-c1*d1,  b1*d1/2-a1*e1,  a1*c1-b1*b1/4);
+  // Dual conic of eq2
+  real a2=eq2.a[0], b2=eq2.a[1], c2=eq2.a[2], d2=eq2.a[3], e2=eq2.a[4], f2=eq2.a[5];
+  bqe dc2 = bqe(defaultcoordsys,
+    c2*f2-e2*e2/4,  d2*e2/2-b2*f2,  a2*f2-d2*d2/4,
+    b2*e2/2-c2*d2,  b2*d2/2-a2*e2,  a2*c2-b2*b2/4);
+
+
+  point[] p = intersectionpoints(dc1, dc2);
+  for (int i = 0; i < p.length; ++i) {
+    real l = (abs(p[i].x) < epsgeo) ? 0 : p[i].x;
+    real m = (abs(p[i].y) < epsgeo) ? 0 : p[i].y;
+    ol.push(line(defaultcoordsys, l, m, 1));
+  }
+  // n=0 chart: lines through the origin, A11*l^2 + 2*A12*l*m + A22*m^2 = 0
+  real A11_1 = c1*f1-e1*e1/4, A12_1 = d1*e1/4-b1*f1/2, A22_1 = a1*f1-d1*d1/4;
+  real A11_2 = c2*f2-e2*e2/4, A12_2 = d2*e2/4-b2*f2/2, A22_2 = a2*f2-d2*d2/4;
+  // The n=0 equation is the intersection of the two homogeneous quadrics;
+  // a line through origin (l,m,0) is tangent to both conics iff
+  // [l,m,0] satisfies both dual conics, i.e. both homogeneous parts vanish.
+  // Solve A11_1*l^2 + 2*A12_1*l*m + A22_1*m^2 = 0 and check against conic 2.
+  real D0 = A12_1*A12_1 - A11_1*A22_1;
+  if(D0 >= -10*epsgeo) {
+    if(D0 < 0) D0 = 0;
+    real sq0 = sqrt(D0);
+    if(abs(A11_1) > epsgeo) {
+      real l1 = (-A12_1 + sq0) / A11_1;
+      // Check against conic 2: A11_2*l^2 + 2*A12_2*l + A22_2 = 0 (with m=1)
+      real r1 = A11_2*l1*l1 + 2*A12_2*l1 + A22_2;
+      real s1 = abs(A11_2*l1*l1) + abs(2*A12_2*l1) + abs(A22_2);
+      if(abs(r1) < 100*epsgeo*s1)
+        ol.push(line(defaultcoordsys, l1, 1, 0));
+      if(D0 > 10*epsgeo) {
+        real l2 = (-A12_1 - sq0) / A11_1;
+        real r2 = A11_2*l2*l2 + 2*A12_2*l2 + A22_2;
+        real s2 = abs(A11_2*l2*l2) + abs(2*A12_2*l2) + abs(A22_2);
+        if(abs(r2) < 100*epsgeo*s2)
+          ol.push(line(defaultcoordsys, l2, 1, 0));
+      }
+    } else if(abs(A22_1) > epsgeo) {
+      real m1 = (-A12_1 + sq0) / A22_1;
+      real r1 = A11_2 + 2*A12_2*m1 + A22_2*m1*m1;
+      real s1 = abs(A11_2) + abs(2*A12_2*m1) + abs(A22_2*m1*m1);
+      if(abs(r1) < 100*epsgeo*s1)
+        ol.push(line(defaultcoordsys, 1, m1, 0));
+      if(D0 > 10*epsgeo) {
+        real m2 = (-A12_1 - sq0) / A22_1;
+        real r2 = A11_2 + 2*A12_2*m2 + A22_2*m2*m2;
+        real s2 = abs(A11_2) + abs(2*A12_2*m2) + abs(A22_2*m2*m2);
+        if(abs(r2) < 100*epsgeo*s2)
+          ol.push(line(defaultcoordsys, 1, m2, 0));
+      }
+    }
+  }
+  return ol;
+}
+
 /*<asyxml><function type="point[]" signature="intersectionpoints(conic,arc)"><code></asyxml>*/
 point[] intersectionpoints(conic co, arc a)
 {/*<asyxml></code><documentation>intersectionpoints(arc, circle) is also defined.</documentation></function></asyxml>*/
