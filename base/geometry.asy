@@ -2412,7 +2412,14 @@ bqe bqe(point M1, point M2, point M3, point M4, point M5)
     M[i] = new real[] {pts[i].x * pts[i].y, pts[i].y^2, pts[i].x, pts[i].y, 1};
     x[i] = pts[i].x^2;
   }
-  if(abs(determinant(M)) < 1e-5) {// Try c = -1
+  // Relative singularity test: scale = product of row norms
+  real rnorms = 1;
+  for (int i = 0; i < 5; ++i) {
+    real rn = 0;
+    for (int j = 0; j < 5; ++j) rn += M[i][j]*M[i][j];
+    rnorms *= sqrt(rn);
+  }
+  if(abs(determinant(M)) < 100*epsgeo * rnorms) {// Try c = -1
     for (int i = 0; i < 5; ++i) {
       M[i] = new real[] {pts[i].x^2, pts[i].x * pts[i].y, pts[i].x, pts[i].y, 1};
       x[i] = pts[i].y^2;
@@ -2448,10 +2455,11 @@ system.");
 /*<asyxml><function type="real[]" signature="realquarticroots(real,real,real,real,real)"><code></asyxml>*/
 real[] realquarticroots(real a, real b, real c, real d, real e)
 {/*<asyxml></code><documentation>Return the real roots of the quartic equation ax^4 + b^x3 + cx^2 + dx = 0.</documentation></function></asyxml>*/
-  static real Fuzz = sqrt(realEpsilon);
+  real p(real x){return a * x^4 + b * x^3 + c * x^2 + d * x + e;}
+  real pscale(real x){return abs(a)*abs(x)^4 + abs(b)*abs(x)^3 + abs(c)*x^2 + abs(d)*abs(x) + abs(e);}
+  real Fuzz(real x){return epsgeo * pscale(x);}
   pair[] zroots = quarticroots(a, b, c, d, e);
   real[] roots;
-  real p(real x){return a * x^4 + b * x^3 + c * x^2 + d * x + e;}
   real prime(real x){return 4 * a * x^3 + 3 * b * x^2 + 2 * c * x + d;}
   real x;
   bool search = true;
@@ -2460,21 +2468,26 @@ real[] realquarticroots(real a, real b, real c, real d, real e)
   {
     bool exist = false;
     for (int i = 0; i < roots.length; ++i) {
-      if(abs(roots[i]-x) < 1e-5) {exist = true; break;}
+      real rdiff = abs(roots[i]-x);
+      real rscale = max(abs(roots[i]), abs(x));
+      if(rdiff <= epsgeo * rscale) {exist = true; break;}
     }
     if(!exist) roots.push(x);
   }
   for(int i = 0; i < zroots.length; ++i) {
-    if(zroots[i].y == 0 || abs(p(zroots[i].x)) < Fuzz) addroot(zroots[i].x);
+    if(zroots[i].y == 0 || abs(p(zroots[i].x)) < Fuzz(zroots[i].x)) addroot(zroots[i].x);
     else {
-      if(abs(zroots[i].y) < 1e-3) {
+      // A root is "nearly real" when its imaginary part is negligible relative
+      // to the magnitude of the (complex) root itself, not just its real part.
+      real xscale = abs(zroots[i]);
+      if(abs(zroots[i].y) <= epsgeo * xscale) {
         x = zroots[i].x;
         search = true;
         n = 200;
         while(search) {
-          real tx = abs(p(x)) < Fuzz ? x : newton(iterations = n, p, prime, x);
+          real tx = abs(p(x)) < Fuzz(x) ? x : newton(iterations = n, p, prime, x);
           if(tx < realMax) {
-            if(abs(p(tx)) < Fuzz) {
+            if(abs(p(tx)) < Fuzz(tx)) {
               addroot(tx);
               search = false;
             } else if(n < 200) n *=2;
@@ -3024,7 +3037,12 @@ bool isparabola(bqe bqe)
   bqe lbqe = changecoordsys(defaultcoordsys, bqe);
   real a = lbqe.a[0], b = lbqe.a[1]/2, c = lbqe.a[2], d = lbqe.a[3]/2, f = lbqe.a[4]/2, g = lbqe.a[5];
   real delta = a * c * g + b * f * d + d * b * f - (b^2 * g + d^2 * c + f^2 * a);
-  return (abs(delta) > epsgeo && abs(b^2 - a * c) < epsgeo);
+  real deltascale = abs(a*c*g)+abs(b*f*d)+abs(d*b*f)+abs(b^2*g)+abs(d^2*c)+abs(f^2*a);
+  real J = b^2 - a*c;
+  real Jscale = abs(b^2) + abs(a*c);
+  real qscale = a*a + b*b + c*c;
+  if(Jscale < epsgeo * qscale) Jscale = epsgeo * qscale;
+  return (abs(delta) > epsgeo * deltascale && abs(J) < epsgeo * Jscale);
 }
 
 /*<asyxml><function type="parabola" signature="parabola(bqe)"><code></asyxml>*/
@@ -3405,7 +3423,7 @@ circle operator ecast(conic c)
 {/*<asyxml></code><documentation>Conic section to circle.</documentation></operator></asyxml>*/
   ellipse el = (ellipse)c;
   circle oc;
-  if(abs(el.a - el.b) < epsgeo) {
+  if(abs(el.a - el.b) < epsgeo * max(abs(el.a), abs(el.b))) {
     oc = circle(el.C, el.a);
     if(degenerate(c)) oc.l = c.l[0];
   }
@@ -3933,14 +3951,17 @@ string conictype(bqe bqe)
   string os = "degenerated";
   real a = lbqe.a[0], b = lbqe.a[1]/2, c = lbqe.a[2], d = lbqe.a[3]/2, f = lbqe.a[4]/2, g = lbqe.a[5];
   real delta = a * c * g + b * f * d + d * b * f - (b^2 * g + d^2 * c + f^2 * a);
-  if(abs(delta) < 10 * epsgeo) return os;
+  real deltascale = abs(a*c*g)+abs(b*f*d)+abs(d*b*f)+abs(b^2*g)+abs(d^2*c)+abs(f^2*a);
+  if(abs(delta) <= 10 * epsgeo * deltascale) return os;
   real J = a * c - b^2;
-  real I = a + c;
-  if(J > epsgeo) {
-    if(delta/I < -epsgeo);
+  // Scale of J: floor at coefficient magnitude to handle a=0 or c=0 (parabola)
+  real Jscale = abs(a*c) + b^2;
+  real qscale = a*a + b*b + c*c;
+  if(Jscale < epsgeo * qscale) Jscale = epsgeo * qscale;
+  if(J > epsgeo * Jscale) {
     os = "ellipse";
   } else {
-    if(abs(J) < epsgeo) os = "parabola"; else os = "hyperbola";
+    if(abs(J) < epsgeo * Jscale) os = "parabola"; else os = "hyperbola";
   }
   return os;
 }
@@ -6775,10 +6796,29 @@ point[] intersectionpoints(bqe bqe1, bqe bqe2)
   real[] a=changecoordsys(R,bqe1).a;
   real[] b=changecoordsys(R,bqe2).a;
 
-  static real e=100 * sqrt(realEpsilon);
   real[] x,y,c;
   point[] P;
-  if(abs(a[0]-b[0]) > e || abs(a[1]-b[1]) > e || abs(a[2]-b[2]) > e) {
+  point[] dedup(point[] pts)
+  {
+    point[] Q;
+    for (int i = 0; i < pts.length; ++i) {
+      bool dup = false;
+      for (int j = 0; j < Q.length; ++j) {
+        real dx = pts[i].x - Q[j].x;
+        real dy = pts[i].y - Q[j].y;
+        real sc = max(abs(pts[i].x), abs(Q[j].x)) + max(abs(pts[i].y), abs(Q[j].y));
+        if (sc == 0) sc = 1;
+        if (abs(dx) <= epsgeo * sc && abs(dy) <= epsgeo * sc) { dup = true; break; }
+      }
+      if (!dup) Q.push(pts[i]);
+    }
+    return Q;
+  }
+  bool coefdiff(real p, real q)
+  {
+    return abs(p-q) > epsgeo * max(abs(p), abs(q));
+  }
+  if(coefdiff(a[0],b[0]) || coefdiff(a[1],b[1]) || coefdiff(a[2],b[2])) {
     c=new real[] {a[0]*a[2]*(-2*b[0]*b[2]+b[1]^2)+a[0]^2*b[2]^2+a[2]^2*b[0]^2,
 
                   2*a[0]*a[2]*b[1]*b[4]-2*a[2]*a[3]*b[0]*b[2]
@@ -6796,7 +6836,9 @@ point[] intersectionpoints(bqe bqe1, bqe bqe2)
                   +a[2]^2*b[5]^2};
     x=realquarticroots(c[0],c[1],c[2],c[3],c[4]);
   } else {
-    if(abs(b[4]) > e) {
+    real bscale = abs(b[0])+abs(b[1])+abs(b[2])+abs(b[3])+abs(b[4])+abs(b[5]);
+    if(bscale == 0) bscale = 1;
+    if(abs(b[4]) > epsgeo * bscale) {
       real D=b[4]^2;
       c=new real[] {(a[0]*b[4]^2+a[2]*b[3]^2+
                      (-2*a[2]*a[3])*b[3]+a[2]*a[3]^2)/D,
@@ -6804,7 +6846,7 @@ point[] intersectionpoints(bqe bqe1, bqe bqe2)
                       (2*a[2]*a[5])*b[3])/D,a[2]*(a[5]-b[5])^2/D+a[5]};
       x=quadraticroots(c[0],c[1],c[2]);
     } else {
-      if(abs(a[3]-b[3]) > e) {
+      if(coefdiff(a[3],b[3])) {
         real D=b[3]-a[3];
         c=new real[] {a[2],0,a[0]*(a[5]-b[5])^2/D^2-a[3]*b[5]/D+a[5]};
         y=quadraticroots(c[0],c[1],c[2]);
@@ -6812,14 +6854,15 @@ point[] intersectionpoints(bqe bqe1, bqe bqe2)
           c=new real[] {a[0],a[3],a[2]*y[i]^2+a[5]};
           x=quadraticroots(c[0],c[1],c[2]);
           for(int j=0; j < x.length; ++j) {
-            if(abs(b[0]*x[j]^2+b[1]*x[j]*y[i]+b[2]*y[i]^2+b[3]*x[j]
-                   +b[4]*y[i]+b[5]) < 1e-5)
+            real res = b[0]*x[j]^2+b[1]*x[j]*y[i]+b[2]*y[i]^2+b[3]*x[j]+b[4]*y[i]+b[5];
+            real scl = abs(b[0]*x[j]^2)+abs(b[1]*x[j]*y[i])+abs(b[2]*y[i]^2)+abs(b[3]*x[j])+abs(b[4]*y[i])+abs(b[5]);
+            if(abs(res) <= 100*epsgeo*scl)
               P.push(changecoordsys(currentcoordsys,point(R,(x[j],y[i]))));
           }
         }
-        return P;
+        return dedup(P);
       } else {
-        if(abs(a[5]-b[5]) < e)
+        if(!coefdiff(a[5],b[5]))
           abort("intersectionpoints: intersection of identical conics.");
       }
     }
@@ -6828,12 +6871,13 @@ point[] intersectionpoints(bqe bqe1, bqe bqe2)
     c=new real[] {a[2],0,a[0]*x[i]^2+a[3]*x[i]+a[5]};
     y=quadraticroots(c[0],c[1],c[2]);
     for(int j=0; j < y.length; ++j) {
-      if(abs(b[0]*x[i]^2+b[1]*x[i]*y[j]+b[2]*y[j]^2+b[3]*x[i]+b[4]*y[j]+b[5])
-         < 1e-5)
+      real res = b[0]*x[i]^2+b[1]*x[i]*y[j]+b[2]*y[j]^2+b[3]*x[i]+b[4]*y[j]+b[5];
+      real scl = abs(b[0]*x[i]^2)+abs(b[1]*x[i]*y[j])+abs(b[2]*y[j]^2)+abs(b[3]*x[i])+abs(b[4]*y[j])+abs(b[5]);
+      if(abs(res) <= 100*epsgeo*scl)
         P.push(changecoordsys(currentcoordsys,point(R,(x[i],y[j]))));
     }
   }
-  return P;
+  return dedup(P);
 }
 
 /*<asyxml><function type="point[]" signature="intersectionpoints(conic,conic)"><code></asyxml>*/
@@ -7141,7 +7185,7 @@ line[] tangents(conic co, vector v)
    whether the direction lies between the asymptote directions.
    The tangents are computed using the dual conic (adjugate of the conic matrix).</documentation></function></asyxml>*/
   line[] ol;
-  if(length(v) < epsgeo) return ol;
+  if(length(v) == 0) return ol;
   bqe eq = changecoordsys(defaultcoordsys, equation(co));
   real a = eq.a[0], b = eq.a[1], c = eq.a[2];
   real d = eq.a[3], e = eq.a[4], f = eq.a[5];
@@ -7152,20 +7196,30 @@ line[] tangents(conic co, vector v)
 
   // Normal to direction v = (vx, vy) is (vy, -vx); snap near-zero to 0
   pair vp = (pair)v;
-  real l = (abs(vp.y) < epsgeo) ? 0 : vp.y;
-  real m = (abs(-vp.x) < epsgeo) ? 0 : -vp.x;
+  real vlen = max(abs(vp.x), abs(vp.y));
+  real l = (abs(vp.y) < epsgeo * vlen) ? 0 : vp.y;
+  real m = (abs(-vp.x) < epsgeo * vlen) ? 0 : -vp.x;
   // Tangency condition: A33*n^2 + 2*(A13*l+A23*m)*n + (A11*l^2+2*A12*l*m+A22*m^2) = 0
   real qa = A33, qb = 2*(A13*l + A23*m), qc = A11*l*l + 2*A12*l*m + A22*m*m;
-  if(abs(qa) < epsgeo) {
-    if(abs(qb) > epsgeo)
+  // Scale for qa: use the terms that compose A33 = a*c - b^2/4
+  real qascale = abs(a*c) + abs(b*b/4);
+  real qqscale = a*a + b*b + c*c;
+  if(qascale < epsgeo * qqscale) qascale = epsgeo * qqscale;
+  // Scale for qb: the two terms that compose it, so qb=0 (e.g. an axis-parallel
+  // direction on a parabola) is treated as "no linear tangent" robustly.
+  real qbscale = abs(2*A13*l) + abs(2*A23*m);
+  if(qa == 0 && qb == 0 && qc == 0) return ol;
+  if(abs(qa) < epsgeo * qascale) {
+    if(abs(qb) > epsgeo * qbscale)
       ol.push(line(defaultcoordsys, l, m, -qc/qb));
   } else {
     real disc = qb*qb - 4*qa*qc;
-    if(disc >= -10*epsgeo) {
+    real discs = qb*qb + 4*abs(qa*qc);
+    if(disc >= -10*epsgeo*discs) {
       if(disc < 0) disc = 0;
       real sq = sqrt(disc);
       ol.push(line(defaultcoordsys, l, m, (-qb+sq)/(2*qa)));
-      if(disc > 10*epsgeo)
+      if(disc > 10*epsgeo*discs)
         ol.push(line(defaultcoordsys, l, m, (-qb-sq)/(2*qa)));
     }
   }
@@ -7193,42 +7247,51 @@ line[] tangents(conic co1, conic co2)
 
   point[] p = intersectionpoints(dc1, dc2);
   for (int i = 0; i < p.length; ++i) {
-    real l = (abs(p[i].x) < epsgeo) ? 0 : p[i].x;
-    real m = (abs(p[i].y) < epsgeo) ? 0 : p[i].y;
+    real l = p[i].x, m = p[i].y;
+    // Snap near-zero component relative to the other (homogeneous coords)
+    real r = max(abs(l), abs(m));
+    if(r == 0) continue;
+    if(abs(l) < epsgeo * r) l = 0;
+    if(abs(m) < epsgeo * r) m = 0;
     ol.push(line(defaultcoordsys, l, m, 1));
   }
   // n=0 chart: lines through the origin, A11*l^2 + 2*A12*l*m + A22*m^2 = 0
   real A11_1 = c1*f1-e1*e1/4, A12_1 = d1*e1/4-b1*f1/2, A22_1 = a1*f1-d1*d1/4;
   real A11_2 = c2*f2-e2*e2/4, A12_2 = d2*e2/4-b2*f2/2, A22_2 = a2*f2-d2*d2/4;
+  // Per-entry scales for the n=0 chart coefficients
+  real A11s1 = abs(c1*f1) + abs(e1*e1/4);
+  real A22s1 = abs(a1*f1) + abs(d1*d1/4);
   // The n=0 equation is the intersection of the two homogeneous quadrics;
   // a line through origin (l,m,0) is tangent to both conics iff
   // [l,m,0] satisfies both dual conics, i.e. both homogeneous parts vanish.
   // Solve A11_1*l^2 + 2*A12_1*l*m + A22_1*m^2 = 0 and check against conic 2.
   real D0 = A12_1*A12_1 - A11_1*A22_1;
-  if(D0 >= -10*epsgeo) {
+  real D0scale = A12_1*A12_1 + abs(A11_1*A22_1);
+  if(D0scale == 0) return ol;
+  if(D0 >= -10*epsgeo*D0scale) {
     if(D0 < 0) D0 = 0;
     real sq0 = sqrt(D0);
-    if(abs(A11_1) > epsgeo) {
+    if(abs(A11_1) > epsgeo * A11s1) {
       real l1 = (-A12_1 + sq0) / A11_1;
       // Check against conic 2: A11_2*l^2 + 2*A12_2*l + A22_2 = 0 (with m=1)
       real r1 = A11_2*l1*l1 + 2*A12_2*l1 + A22_2;
       real s1 = abs(A11_2*l1*l1) + abs(2*A12_2*l1) + abs(A22_2);
       if(abs(r1) < 100*epsgeo*s1)
         ol.push(line(defaultcoordsys, l1, 1, 0));
-      if(D0 > 10*epsgeo) {
+      if(D0 > 10*epsgeo*D0scale) {
         real l2 = (-A12_1 - sq0) / A11_1;
         real r2 = A11_2*l2*l2 + 2*A12_2*l2 + A22_2;
         real s2 = abs(A11_2*l2*l2) + abs(2*A12_2*l2) + abs(A22_2);
         if(abs(r2) < 100*epsgeo*s2)
           ol.push(line(defaultcoordsys, l2, 1, 0));
       }
-    } else if(abs(A22_1) > epsgeo) {
+    } else if(abs(A22_1) > epsgeo * A22s1) {
       real m1 = (-A12_1 + sq0) / A22_1;
       real r1 = A11_2 + 2*A12_2*m1 + A22_2*m1*m1;
       real s1 = abs(A11_2) + abs(2*A12_2*m1) + abs(A22_2*m1*m1);
       if(abs(r1) < 100*epsgeo*s1)
         ol.push(line(defaultcoordsys, 1, m1, 0));
-      if(D0 > 10*epsgeo) {
+      if(D0 > 10*epsgeo*D0scale) {
         real m2 = (-A12_1 - sq0) / A22_1;
         real r2 = A11_2 + 2*A12_2*m2 + A22_2*m2*m2;
         real s2 = abs(A11_2) + abs(2*A12_2*m2) + abs(A22_2*m2*m2);
