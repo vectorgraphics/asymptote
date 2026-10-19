@@ -42,9 +42,13 @@ class exp : public varinit {
 protected:
   // The cached type (from a call to cgetType).
   types::ty *ct;
+  // The scope generation at which ct was computed.  If the environment's
+  // scope generation has changed since then, the cached type is stale and
+  // must be recomputed.
+  size_t ctGen;
 public:
   exp(position pos)
-    : varinit(pos), ct(0) {}
+    : varinit(pos), ct(0), ctGen(0) {}
 
   void prettyprint(ostream &out, Int indent) = 0;
 
@@ -138,13 +142,9 @@ public:
   // Same result as getType, but caches the result so that subsequent
   // calls are faster.  For this to work correctly, the expression should
   // only be used in one place, so the environment doesn't change between
-  // calls.
-  virtual types::ty *cgetType(coenv &e) {
-#ifdef DEBUG_CACHE
-    testCachedType(e);
-#endif
-    return ct ? ct : ct = getType(e);
-  }
+  // calls.  If the environment's scope generation changes (e.g. when a
+  // loop body is re-translated with a new frame), the cache is invalidated.
+  virtual types::ty *cgetType(coenv &e);
 
   void testCachedType(coenv &e);
 
@@ -777,6 +777,11 @@ private:
   // varEntry used in advance.
   trans::varEntry *cachedVarEntry;
 
+  // Scope generation at which cachedApp/cachedVarEntry were resolved.
+  size_t callGen;
+
+  void invalidateCallCacheIfNeeded(coenv &e);
+
   types::signature *argTypes(coenv& e, bool *searchable);
   void reportArgErrors(coenv &e);
   application *resolve(coenv &e,
@@ -846,28 +851,28 @@ private:
 public:
   callExp(position pos, exp *callee, arglist *args)
     : exp(pos), callee(callee), args(args),
-      cachedApp(0), cachedVarEntry(0) { assert(args); }
+      cachedApp(0), cachedVarEntry(0), callGen(0) { assert(args); }
 
   callExp(position pos, exp *callee)
     : exp(pos), callee(callee), args(new arglist()),
-      cachedApp(0), cachedVarEntry(0) {}
+      cachedApp(0), cachedVarEntry(0), callGen(0) {}
 
   callExp(position pos, exp *callee, exp *arg1)
     : exp(pos), callee(callee), args(new arglist()),
-      cachedApp(0), cachedVarEntry(0) {
+      cachedApp(0), cachedVarEntry(0), callGen(0) {
     args->add(arg1);
   }
 
   callExp(position pos, exp *callee, exp *arg1, exp *arg2)
     : exp(pos), callee(callee), args(new arglist()),
-      cachedApp(0), cachedVarEntry(0) {
+      cachedApp(0), cachedVarEntry(0), callGen(0) {
     args->add(arg1);
     args->add(arg2);
   }
 
   callExp(position pos, exp *callee, exp *arg1, exp *arg2, exp *arg3)
     : exp(pos), callee(callee), args(new arglist()),
-      cachedApp(0), cachedVarEntry(0) {
+      cachedApp(0), cachedVarEntry(0), callGen(0) {
     args->add(arg1);
     args->add(arg2);
     args->add(arg3);
