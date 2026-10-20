@@ -462,6 +462,13 @@ public:
   cubicroots(double a, double b, double c, double d);
 };
 
+class Cubicroots {
+public:
+  unsigned roots; // Total number of roots.
+  pair z1,z2,z3;  // Complex roots
+  Cubicroots(double a, double b, double c, double d);
+};
+
 path nurb(pair z0, pair z1, pair z2, pair z3,
           double w0, double w1, double w2, double w3, Int m);
 

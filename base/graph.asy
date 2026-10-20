@@ -1181,15 +1181,25 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
   int[] divisor=copy(axis.xdivisor);
   pair side=axis.side;
   int type=axis.type;
+  bool extend=axis.extend;
 
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
       transform tinv=inverse(t);
-      pair a=xmin == -infinity ? tinv*(lb.x-min(p).x,ytrans(t,y)) : (xmin,y);
-      pair b=xmax == infinity ? tinv*(rt.x-max(p).x,ytrans(t,y)) : (xmax,y);
-      pair a2=xmin == -infinity ? tinv*(lb.x-min(p).x,ytrans(t,y2)) : (xmin,y2);
-      pair b2=xmax == infinity ? tinv*(rt.x-max(p).x,ytrans(t,y2)) : (xmax,y2);
+      pair a=xmin == -infinity
+        ? (extend ? tinv*(lb.x-min(p).x,ytrans(t,y)) : (pic.userMin().x,y))
+        : (xmin,y);
+      pair b=xmax == infinity
+        ? (extend ? tinv*(rt.x-max(p).x,ytrans(t,y)) : (pic.userMax().x,y))
+        : (xmax,y);
+      pair a2=xmin == -infinity
+        ? (extend ? tinv*(lb.x-min(p).x,ytrans(t,y2)) : (pic.userMin().x,y2))
+        : (xmin,y2);
+      pair b2=xmax == infinity
+        ? (extend ? tinv*(rt.x-max(p).x,ytrans(t,y2)) : (pic.userMax().x,y2))
+        : (xmax,y2);
 
-      if(xmin == -infinity || xmax == infinity) {
+      if(xmin == -infinity || xmax == infinity ||
+         divisor.length == 0) {
         bounds mx=autoscale(a.x,b.x,pic.scale.x.scale);
         pic.scale.x.tickMin=mx.min;
         pic.scale.x.tickMax=mx.max;
@@ -1220,6 +1230,11 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
     real Xmin=finite(xmin) ? xmin : pic.userMin().x;
     real Xmax=finite(xmax) ? xmax : pic.userMax().x;
 
+    // If the limits are fully automatic and there is no x-content yet,
+    // skip the sizing pass to keep it order-independent.  The deferred
+    // drawing closure will compute everything at shipout time.
+    if(xmin == -infinity && xmax == infinity && !pic.userSetx()) return;
+
     pair a=(Xmin,y);
     pair b=(Xmax,y);
     pair a2=(Xmin,y2);
@@ -1236,6 +1251,12 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
     }
 
     if(finite(a) && finite(b)) {
+      if(divisor.length == 0 && ticks != NoTicks) {
+        bounds mx=autoscale(a.x,b.x,pic.scale.x.scale);
+        pic.scale.x.tickMin=mx.min;
+        pic.scale.x.tickMax=mx.max;
+        divisor=mx.divisor;
+      }
       frame d;
       ticks(d,pic.scaling(warn=false),L,side,
             (a.x,0)--(b.x,0),(a2.x,0)--(b2.x,0),p,arrow,margin,
@@ -1255,8 +1276,6 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
   for(int i=0; i < pic.scale.y.bound.length; ++i)
     pic.scale.y.bound[i]();
 
-  pic.scale.y.bound.delete();
-
   bounds();
 
   // Request another x bounds calculation before final picture scaling.
@@ -1275,15 +1294,25 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
   int[] divisor=copy(axis.ydivisor);
   pair side=axis.side;
   int type=axis.type;
+  bool extend=axis.extend;
 
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
       transform tinv=inverse(t);
-      pair a=ymin == -infinity ? tinv*(xtrans(t,x),lb.y-min(p).y) : (x,ymin);
-      pair b=ymax == infinity ? tinv*(xtrans(t,x),rt.y-max(p).y) : (x,ymax);
-      pair a2=ymin == -infinity ? tinv*(xtrans(t,x2),lb.y-min(p).y) : (x2,ymin);
-      pair b2=ymax == infinity ? tinv*(xtrans(t,x2),rt.y-max(p).y) : (x2,ymax);
+      pair a=ymin == -infinity
+        ? (extend ? tinv*(xtrans(t,x),lb.y-min(p).y) : (x,pic.userMin().y))
+        : (x,ymin);
+      pair b=ymax == infinity
+        ? (extend ? tinv*(xtrans(t,x),rt.y-max(p).y) : (x,pic.userMax().y))
+        : (x,ymax);
+      pair a2=ymin == -infinity
+        ? (extend ? tinv*(xtrans(t,x2),lb.y-min(p).y) : (x2,pic.userMin().y))
+        : (x2,ymin);
+      pair b2=ymax == infinity
+        ? (extend ? tinv*(xtrans(t,x2),rt.y-max(p).y) : (x2,pic.userMax().y))
+        : (x2,ymax);
 
-      if(ymin == -infinity || ymax == infinity) {
+      if(ymin == -infinity || ymax == infinity ||
+         divisor.length == 0) {
         bounds my=autoscale(a.y,b.y,pic.scale.y.scale);
         pic.scale.y.tickMin=my.min;
         pic.scale.y.tickMax=my.max;
@@ -1313,6 +1342,10 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
     real Ymin=finite(ymin) ? ymin : pic.userMin().y;
     real Ymax=finite(ymax) ? ymax : pic.userMax().y;
 
+    // If the limits are fully automatic and there is no y-content yet,
+    // skip the sizing pass to keep it order-independent.
+    if(ymin == -infinity && ymax == infinity && !pic.userSety()) return;
+
     pair a=(x,Ymin);
     pair b=(x,Ymax);
     pair a2=(x2,Ymin);
@@ -1329,6 +1362,12 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
     }
 
     if(finite(a) && finite(b)) {
+      if(divisor.length == 0 && ticks != NoTicks) {
+        bounds my=autoscale(a.y,b.y,pic.scale.y.scale);
+        pic.scale.y.tickMin=my.min;
+        pic.scale.y.tickMax=my.max;
+        divisor=my.divisor;
+      }
       frame d;
       ticks(d,pic.scaling(warn=false),L,side,
             (0,a.y)--(0,b.y),(0,a2.y)--(0,b2.y),p,arrow,margin,
@@ -1347,8 +1386,6 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
   // Process any queued x axis bound calculation requests.
   for(int i=0; i < pic.scale.x.bound.length; ++i)
     pic.scale.x.bound[i]();
-
-  pic.scale.x.bound.delete();
 
   bounds();
 
@@ -1521,17 +1558,21 @@ void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
   axis(pic,axis);
 
   if(xmin == -infinity && !axis.extend) {
-    if(pic.scale.set)
-      xmin=pic.scale.x.automin() ? pic.scale.x.tickMin :
-        max(pic.scale.x.tickMin,pic.userMin().x);
-    else xmin=pic.userMin().x;
+    if(pic.userSetx()) {
+      if(pic.scale.set)
+        xmin=pic.scale.x.automin() ? pic.scale.x.tickMin :
+          max(pic.scale.x.tickMin,pic.userMin().x);
+      else xmin=pic.userMin().x;
+    }
   }
 
   if(xmax == infinity && !axis.extend) {
-    if(pic.scale.set)
-      xmax=pic.scale.x.automax() ? pic.scale.x.tickMax :
-        min(pic.scale.x.tickMax,pic.userMax().x);
-    else xmax=pic.userMax().x;
+    if(pic.userSetx()) {
+      if(pic.scale.set)
+        xmax=pic.scale.x.automax() ? pic.scale.x.tickMax :
+          min(pic.scale.x.tickMax,pic.userMax().x);
+      else xmax=pic.userMax().x;
+    }
   }
 
   if(L.defaultposition) L.position(axis.position);
@@ -1583,18 +1624,22 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
   axis(pic,axis);
 
   if(ymin == -infinity && !axis.extend) {
-    if(pic.scale.set)
-      ymin=pic.scale.y.automin() ? pic.scale.y.tickMin :
-        max(pic.scale.y.tickMin,pic.userMin().y);
-    else ymin=pic.userMin().y;
+    if(pic.userSety()) {
+      if(pic.scale.set)
+        ymin=pic.scale.y.automin() ? pic.scale.y.tickMin :
+          max(pic.scale.y.tickMin,pic.userMin().y);
+      else ymin=pic.userMin().y;
+    }
   }
 
 
   if(ymax == infinity && !axis.extend) {
-    if(pic.scale.set)
-      ymax=pic.scale.y.automax() ? pic.scale.y.tickMax :
-        min(pic.scale.y.tickMax,pic.userMax().y);
-    else ymax=pic.userMax().y;
+    if(pic.userSety()) {
+      if(pic.scale.set)
+        ymax=pic.scale.y.automax() ? pic.scale.y.tickMax :
+          min(pic.scale.y.tickMax,pic.userMax().y);
+      else ymax=pic.userMax().y;
+    }
   }
 
   if(L.defaultposition) L.position(axis.position);

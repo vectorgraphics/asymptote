@@ -340,6 +340,16 @@ realarray *cubicroots(real a, real b, real c, real d)
   return roots;
 }
 
+pairarray *complexcubicroots(real a, real b, real c, real d)
+{
+  Cubicroots q(a,b,c,d);
+  array *roots=new array(q.roots);
+  if(q.roots >= 1) (*roots)[0]=q.z1;
+  if(q.roots >= 2) (*roots)[1]=q.z2;
+  if(q.roots == 3) (*roots)[2]=q.z3;
+  return roots;
+}
+
 
 // Logical operations
 

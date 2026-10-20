@@ -217,6 +217,58 @@ cubicroots::cubicroots(double a, double b, double c, double d)
   }
 }
 
+// Solve for the complex roots of the cubic equation ax^3+bx^2+cx+d=0.
+Cubicroots::Cubicroots(double a, double b, double c, double d)
+{
+  // Remove roots at numerical infinity.
+  if(fabs(a) <= Fuzz2*(fabs(b)+fabs(c)*Fuzz2+fabs(d)*Fuzz4)) {
+    Quadraticroots q(b,c,d);
+    roots=q.roots;
+    if(q.roots >= 1) z1=q.z1;
+    if(q.roots == 2) z2=q.z2;
+    return;
+  }
+
+  // Detect roots at numerical zero.
+  if(fabs(d) <= Fuzz2*(fabs(c)+fabs(b)*Fuzz2+fabs(a)*Fuzz4)) {
+    Quadraticroots q(a,b,c);
+    roots=q.roots+1;
+    z1=0.0;
+    if(q.roots >= 1) z2=q.z1;
+    if(q.roots == 2) z3=q.z2;
+    return;
+  }
+
+  // Normalize.
+  double ainv=1.0/a;
+  b *= ainv;
+  c *= ainv;
+  d *= ainv;
+
+  // Solve the normalized cubic x^3+bx^2+cx+d=0 using the
+  // robust real solver.
+  cubicroots r(1.0,b,c,d);
+
+  if(r.roots == 3) {
+    // All three roots are real.
+    roots=3;
+    z1=r.t1;
+    z2=r.t2;
+    z3=r.t3;
+  } else {
+    // One real root r.t1 and a complex conjugate pair.
+    // Deflate: (x - r.t1)(x^2 + bx' + cx') = x^3+bx^2+cx+d
+    // where bx' = b + r.t1, cx' = c + r.t1*bx'.
+    roots=3;
+    z1=r.t1;
+    double bx=b+r.t1;
+    double cx=c+r.t1*bx;
+    Quadraticroots q(1.0,bx,cx);
+    z2=q.z1;
+    z3=q.z2;
+  }
+}
+
 pair path::point(double t) const
 {
   checkEmpty(n);

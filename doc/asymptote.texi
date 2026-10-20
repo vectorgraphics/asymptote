@@ -1359,10 +1359,13 @@ point on a picture @code{dest} using @code{add} or @code{attach}
 @cindex @code{dot}
 To draw a dot, simply draw a path containing a single point.
 The @code{dot} command defined in the module @code{plain} draws a
-dot having a diameter equal to an explicit pen line width or the
-default line width magnified by @code{dotfactor} (6 by default),
-using the specified filltype (@pxref{filltype}) or @code{dotfilltype}
-(@code{Fill} by default):
+dot using the specified filltype (@pxref{filltype}) or @code{dotfilltype}
+(@code{Fill} by default). With @code{filltype=Fill}, the dot has a
+diameter equal to an explicit pen line width or the default line
+width magnified by @code{dotfactor} (6 by default). With other
+filltypes, the dot is drawn as a ring with an
+outer diameter of @code{dotfactor} times the pen line width,
+regardless of whether the line width is explicitly specified:
 @verbatim
 void dot(frame f, pair z, pen p=currentpen, filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, pair z, pen p=currentpen,
@@ -6073,6 +6076,12 @@ quadratic equation @math{ax^2+bx+c=0};
 @item @code{real[] cubicroots(real a, real b, real c, real d);}
 This numerically robust solver returns the real roots of the
 cubic equation @math{ax^3+bx^2+cx+d=0}. Multiple roots are listed separately.
+
+@cindex @code{complexcubicroots}
+@item @code{pair[] complexcubicroots(real a, real b, real c, real d);}
+This numerically robust solver returns the complex roots of the
+cubic equation @math{ax^3+bx^2+cx+d=0}. Multiple roots are listed
+separately.
 
 @end table
 
@@ -12443,7 +12452,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  pdftex comment getstring getstringprefix getreal defaultS hsv
 @c  LocalWords:  ticklocate autoscaleT autoscaling vectorfield autolimits dvi
 @c  LocalWords:  zlimits inline dvipdf hyperdvi autoconf gui zerowindingoverlap
-@c  LocalWords:  prepended intMax quadraticroots cubicroots filltype prepend dx
+@c  LocalWords:  prepended intMax quadraticroots cubicroots complexcubicroots filltype prepend dx
 @c  LocalWords:  ticklabel popup UnFill markroutine marknodes markuniform erf
 @c  LocalWords:  intersectpoint cyrillic mathtext russian brokenaxis Datadir ds
 @c  LocalWords:  resetdefaultpen latticeshade axialshade radialshade erfc det

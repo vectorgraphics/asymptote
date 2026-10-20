@@ -79,6 +79,8 @@ int _matherr(struct _exception *except)
 
 #if defined(_WIN32)
 #include <combaseapi.h>
+#include <shellapi.h>
+#include <vector>
 #endif
 
 #include "renderBase.h"
@@ -251,6 +253,35 @@ void *asymain(void *A)
 
 int main(int argc, char *argv[])
 {
+#if defined(_WIN32)
+  // On Windows the CRT converts the command line from UTF-16 to the system
+  // ANSI code page before handing it to main().  On any non-UTF-8 code page
+  // (CP1252, CP936, ...) non-ASCII filenames are mangled.  Re-acquire the
+  // command line in its native UTF-16 form, convert each argument to UTF-8,
+  // and replace argc/argv so that the rest of the program sees correct bytes.
+  // The vectors are declared at function scope so they outlive all uses of
+  // the (possibly replaced) argv pointer.
+  std::vector<std::string> utf8Args;
+  std::vector<char*> utf8Ptrs;
+  int wArgc = 0;
+  wchar_t* const* wArgv = CommandLineToArgvW(GetCommandLineW(), &wArgc);
+  if (wArgv) {
+    utf8Args.resize(wArgc);
+    utf8Ptrs.resize(wArgc);
+    for (int i = 0; i < wArgc; i++) {
+      int len = WideCharToMultiByte(CP_UTF8, 0, wArgv[i], -1,
+                                    nullptr, 0, nullptr, nullptr);
+      utf8Args[i].resize(len);
+      WideCharToMultiByte(CP_UTF8, 0, wArgv[i], -1,
+                          &utf8Args[i][0], len, nullptr, nullptr);
+      utf8Ptrs[i] = utf8Args[i].data();
+    }
+    CoTaskMemFree(const_cast<wchar_t**>(wArgv));
+    argc = wArgc;
+    argv = utf8Ptrs.data();
+  }
+#endif
+
 #ifdef HAVE_LIBGSL
   unsetenv("GSL_RNG_SEED");
   unsetenv("GSL_RNG_TYPE");

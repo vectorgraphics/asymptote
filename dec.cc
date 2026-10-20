@@ -803,6 +803,34 @@ void decid::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
   start->addOps(base->t, e, r);
 
   addTypeWithPermission(e, r, ent, start->getName());
+
+  // If the base type is a record, duplicate any constructor functions
+  // (functions with the record's name that return the record type) under
+  // the new typedef name.  The constructor type is obtained from the
+  // record's postdefenv; the varEntry is looked up in the main environment.
+  record *baseRecord = dynamic_cast<record*>(base->t);
+  if (baseRecord) {
+    symbol baseName = baseRecord->getName();
+    symbol newName = start->getName();
+    if (baseName != newName) {
+      { // Suppress errors while probing for constructors.
+        auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+        ty *ctorType = baseRecord->postdefenv.ve.getType(baseName);
+        if (ctorType && !ctorType->isOverloaded() &&
+            ctorType->kind == ty_function) {
+          function *ft = dynamic_cast<function*>(ctorType);
+          if (ft && equivalent(ft->result, baseRecord)) {
+            varEntry *v = e.e.ve.lookByType(baseName, ctorType);
+            if (v && !e.e.ve.lookByType(newName, ctorType)) {
+              if (r)
+                r->e.addVar(newName, v);
+              e.e.addVar(newName, v);
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 

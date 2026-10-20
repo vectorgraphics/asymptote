@@ -141,40 +141,65 @@ void markangle(picture pic=currentpicture, Label L="",
 {
   if(space == 0) space=markanglespace(p);
   if(radius == 0) radius=markangleradius(p);
-  picture lpic,phantom;
-  frame ff;
-  path lpth;
   p=squarecap+p;
-  pair OB=unit(B-O), OA=unit(A-O);
-  real xoa=degrees(OA,false);
-  real gle=degrees(acos(dot(OA,OB)));
-  if((conj(OA)*OB).y < 0) gle *= -1;
   bool ccw=radius > 0;
-  if(!ccw) radius=-radius;
-  bool drawarrow = !arrow(phantom,arc((0,0),radius,xoa,xoa+gle,ccw),p,margin);
-  if(drawarrow && margin == NoMargin) margin=TrueMargin(0,0.5linewidth(p));
-  if(filltype != NoFill) {
-    lpth=margin(arc((0,0),radius+(n-1)*space,xoa,xoa+gle,ccw),p).g;
-    pair p0=relpoint(lpth,0), p1=relpoint(lpth,1);
-    pair ac=p0-p0-A+O, bd=p1-p1-B+O, det=(conj(ac)*bd).y;
-    pair op=(det == 0) ? O : p0+(conj(p1-p0)*bd).y*ac/det;
-    filltype.fill(ff,op--lpth--relpoint(lpth,1)--cycle,p);
-    add(lpic,ff);
-  }
-  for(int i=0; i < n; ++i) {
-    lpth=margin(arc((0,0),radius+i*space,xoa,xoa+gle,ccw),p).g;
-    draw(lpic,lpth,p=p,arrow=arrow,margin=NoMargin,marker=marker);
-  }
+  real outradius=abs(radius);
   Label lL=L.copy();
   real position=lL.position.position.x;
   if(lL.defaultposition) {lL.position.relative=true; position=0.5;}
-  if(lL.position.relative) position=reltime(lpth,position);
-  if(lL.align.default) {
-    lL.align.relative=true;
-    lL.align.dir=unit(point(lpth,position));
-  }
-  label(lpic,lL,point(lpth,position),align=NoAlign, p=p);
-  add(pic,lpic,O);
+  // Register bounding box hint so the scaler knows where the marker will be.
+  // The arc fits within a circle of radius (radius+(n-1)*space) around O.
+  real totalradius=outradius+(n-1)*space;
+  pic.addBox(O,O,
+             -totalradius+min(p),
+             totalradius+max(p));
+  
+  // Deferred drawing: compute the angle in PostScript space using the
+  // actual (possibly non-uniform) transform, then draw a circular arc
+  // that matches the visual angle.
+  pic.add(new void(frame f, transform t) {
+    // Transform directions to PostScript space.
+    pair tA = t*(A-O);
+    pair tB = t*(B-O);
+    pair tO = t*O;
+    
+    // Compute angles in PostScript space.
+    pair OA = unit(tA);
+    pair OB = unit(tB);
+    real xoa = degrees(OA, false);
+    real gle = degrees(acos(dot(OA, OB)));
+    if((conj(OA)*OB).y < 0) gle *= -1;
+    
+    picture lpic;
+    path lpth;
+    
+    // Check if the arrow would actually be drawn; if so and no explicit
+    // margin, add a small default margin to prevent the arrowhead from
+    // overlapping the arc endpoints.
+    picture phantom;
+    if(!arrow(phantom,arc((0,0),outradius,xoa,xoa+gle,ccw),p,margin)
+       && margin == NoMargin)
+      margin=TrueMargin(0,0.5linewidth(p));
+    
+    if(filltype != NoFill) {
+      lpth=margin(arc((0,0),outradius+(n-1)*space,xoa,xoa+gle,ccw),p).g;
+      frame ff;
+      filltype.fill(ff,(0,0)--lpth--relpoint(lpth,1)--cycle,p);
+      add(lpic,ff);
+    }
+    for(int i=0; i < n; ++i) {
+      lpth=margin(arc((0,0),outradius+i*space,xoa,xoa+gle,ccw),p).g;
+      draw(lpic,lpth,p=p,arrow=arrow,margin=NoMargin,marker=marker);
+    }
+    real pos = position;
+    if(lL.position.relative) pos=reltime(lpth,position);
+    if(lL.align.default) {
+      lL.align.relative=true;
+      lL.align.dir=unit(point(lpth,pos));
+    }
+    label(lpic,lL,point(lpth,pos),NoAlign,p);
+    add(f,shift(tO)*lpic.fit(identity));
+  });
 }
 
 marker StickIntervalMarker(int i=2, int n=1, real size=0, real space=0,

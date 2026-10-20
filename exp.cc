@@ -41,6 +41,19 @@ void exp::prettyprint(ostream &out, Int indent)
 }
 #endif
 
+types::ty *exp::cgetType(coenv &e) {
+  bool cacheValid = (ct && ctGen == e.e.scopeGeneration);
+#ifdef DEBUG_CACHE
+  if (cacheValid)
+    testCachedType(e);
+#endif
+  if (cacheValid)
+    return ct;
+  ct = getType(e);
+  ctGen = e.e.scopeGeneration;
+  return ct;
+}
+
 void exp::transAsType(coenv &e, types::ty *target) {
   trans(e);
 }
@@ -1136,14 +1149,27 @@ types::ty *callExp::transPerfectMatch(coenv &e) {
 
 types::ty *callExp::getTypeRegular(coenv &e)
 {
-  if (cachedApp)
+  invalidateCallCacheIfNeeded(e);
+  if (cachedApp) {
+    callGen = e.e.scopeGeneration;
     return cachedApp->getType()->getResult();
+  }
   if (cachedVarEntry) {
     function *ft = dynamic_cast<function *>(cachedVarEntry->getType());
     assert(ft);
+    callGen = e.e.scopeGeneration;
     return ft->getResult();
   }
+  callGen = e.e.scopeGeneration;
   return cacheAppOrVarEntry(e, true);
+}
+
+void callExp::invalidateCallCacheIfNeeded(coenv &e)
+{
+  if ((cachedApp || cachedVarEntry) && callGen != e.e.scopeGeneration) {
+    cachedApp = 0;
+    cachedVarEntry = 0;
+  }
 }
 
 // Returns true if the type is itself a record, or is an overloaded type
@@ -1160,9 +1186,11 @@ static bool containsRecord(types::ty *at) {
 
 types::ty *callExp::trans(coenv &e)
 {
+  invalidateCallCacheIfNeeded(e);
   // Resolve the callee if not already cached.
   if (cachedVarEntry == 0 && cachedApp == 0)
     cacheAppOrVarEntry(e, false);
+  callGen = e.e.scopeGeneration;
 
   // If the call resolved to an open-signature builtin with a registered
   // custom-translation handler, dispatch to that handler.  The side-table
@@ -1290,8 +1318,10 @@ types::ty *callExp::getType(coenv &e)
 }
 
 bool callExp::resolved(coenv &e) {
+  invalidateCallCacheIfNeeded(e);
   if (cachedApp == 0 && cachedVarEntry == 0)
     cacheAppOrVarEntry(e, true);
+  callGen = e.e.scopeGeneration;
   return cachedApp || cachedVarEntry;
 }
 

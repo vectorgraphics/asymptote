@@ -2351,7 +2351,16 @@ void setOptions(int argc, char *argv[])
   if(verbose == 0 && !debug) GC_set_warn_proc(no_GCwarn);
 #endif
 
-  if(setlocale (LC_ALL, "") == NULL && debug)
+#if defined(_WIN32)
+  // Use the UTF-8 locale so the CRT's narrow file APIs (fopen, open, stat, ...)
+  // interpret their char* arguments as UTF-8 and internally convert to UTF-16
+  // for the Win32 calls.  Available on Windows 10 1903+; silently a no-op on
+  // older builds.  Users who need a different locale for number formatting can
+  // call the Asymptote locale() function in their code.
+  if(setlocale(LC_ALL, ".UTF-8") == NULL && debug)
+#else
+  if(setlocale(LC_ALL, "") == NULL && debug)
+#endif
     perror("setlocale");
 
   // Set variables for the file arguments.
