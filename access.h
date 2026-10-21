@@ -150,13 +150,15 @@ public:
   TAsyForeignFunction function;
   bool hasReturn;
   Int numArgs;
+  string fnName;
 
   foreignAccess(
     TAsyForeignFunction const fn,
     bool const& hasRetVal,
-    Int const& argsCount
+    Int const& argsCount,
+    string const& name= string()
     )
-      : function(fn), hasReturn(hasRetVal), numArgs(argsCount)
+      : function(fn), hasReturn(hasRetVal), numArgs(argsCount), fnName(name)
   {}
 
   void encode(action act, position pos, coder& e) override;

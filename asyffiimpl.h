@@ -12,7 +12,7 @@ namespace camp
 class AsyArgsImpl : public IAsyArgs
 {
 public:
-  AsyArgsImpl(size_t const& argSize);
+  AsyArgsImpl(size_t const& argSize, string const& fnName= string());
 
   [[nodiscard]]
   size_t getArgumentCount() const override;
@@ -25,6 +25,7 @@ public:
 
 private:
   mem::vector<vm::item> argsStorage;
+  string fnName;
 };
 
 class AsyContextImpl : public IAsyContext
@@ -113,7 +114,7 @@ public:
 
   [[noreturn]]
   void reportError(const char* message) override;
-  
+
   void reportWarning(const char* message) override;
   [[noreturn]]
   void reportFatal(const char* message) override;
@@ -128,7 +129,7 @@ public:
           Asy::PenLineJoin lineJoin, double miterLimit,
           Asy::PenOverwrites overwriteType, IAsyTransform const* transformValue
   ) override;
-  
+
   [[nodiscard]]
   void* createAsyType(Asy::TypeInfo typeInfo) const override;
 
@@ -170,7 +171,7 @@ public:
           IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
           const char* shader, const char* key
   ) override;
-  
+
   IAsyDrawElement* createDrawElementForGouraudShade(
           const IAsyArray* srcPaths, bool stroke, IAsyPen* penType,
           const IAsyArray* pens, const IAsyArray* pairVertices,
@@ -260,7 +261,7 @@ public:
   bool isInteractive() const override;
 
   void runStringEmbedded(const char* text) override;
-  
+
   void runCodeEmbedded(THAsyRunnable runnableCode) override;
 
 protected:

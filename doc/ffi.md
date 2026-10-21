@@ -72,8 +72,74 @@ The header provides convenience macros:
 
 ## 3. Minimal example plugin
 
-```c
+### Recommended: use the helper library (type-inferred registration)
+
+For most plugins, the [asymptote-ffi-helper-lib](https://github.com/vectorgraphics/asymptote-ffi-helper-lib)
+provides a type-inferred `registerFunction` that eliminates all hand-written
+metadata. The simplest possible plugin is:
+
+```cpp
 // myplugin.cc
+#include <asyffihelper.h>
+using namespace AsyFfi;
+DECLARE_REGISTER_FN;
+
+REGISTER_FN_SIG
+{
+    // int(int) -> int.  Types are inferred from the lambda signature.
+    registerFunction(registerer, "doubleIt", [](int64_t x) -> int64_t { return 2 * x; });
+
+    // pair(pair, pair) -> pair
+    registerFunction(
+        registerer, "midpoint", [](AsyFfi::pair a, AsyFfi::pair b) -> AsyFfi::pair {
+            return AsyFfi::pair{(a.x + b.x) / 2.0, (a.y + b.y) / 2.0};
+        }
+    );
+
+    // real(real[]) -> real
+    registerFunction(
+        registerer, "addAll", [](std::vector<double> xs) -> double {
+            double s = 0; for (double v : xs) s += v; return s;
+        }
+    );
+
+    // void(int)  -- a leading AsyFfi::Context param gives host access; it is
+    // excluded from the inferred Asy signature (still void(int)).
+    registerFunction(
+        registerer, "logIt", [](Context ctx, int64_t x) -> void {
+            ctx->reportWarning("logIt called");
+        }
+    );
+}
+```
+
+Build it with the CMake helper (see section 7):
+
+```cmake
+asyffi_add_plugin(mymodule myplugin.cc)
+```
+
+Now in Asymptote:
+
+```asy
+import mymodule;
+label(string(mymodule.doubleIt(21)));              // 42
+label(string(mymodule.midpoint((0,0),(4,6)).x));   // 2
+label(string(mymodule.addAll(new real[]{1,2,3})));  // 6
+```
+
+The return and argument types are inferred from the C++ lambda's signature.
+See section 7 for the full helper-library reference, and the helper repo's
+`tests/fnsSample/fnsSample.cc` for a buildable example that also demonstrates
+calling back into Asymptote from C++ via `AsyFfi::call`.
+
+### If you do not want the helper library
+
+You can write a plugin using only `asyffi.h` (no C++20 required, C++17
+suffices). Every function requires hand-built type metadata:
+
+```cpp
+// myplugin.cc  (raw asyffi.h, C++17)
 #include "asyffi.h"
 
 DECLARE_REGISTER_FN;
@@ -146,6 +212,32 @@ Registration takes an `Asy::FunctionTypeMetadata`:
 
 > **Tip:** the metadata arrays (`argInfoPtr`, `returnType`) are read at
 > registration time, so file-scope or static locals are fine.
+
+### Type mapping (C++ type -> Asymptote type)
+
+When using the helper library's `TypeInfoOf<T>` trait (or the type-inferred
+`registerFunction`), the following C++ types map to Asymptote types:
+
+| C++ type | Asy type | `BaseTypes` |
+|----------|----------|-------------|
+| `void` | `void` | `Void` |
+| `double` | `real` | `Real` |
+| `int64_t` | `int` | `Integer` |
+| `int` | `int` (convenience) | `Integer` |
+| `bool` | `bool` | `Boolean` |
+| `std::string` | `string` | `Str` |
+| `std::vector<T>` | `T[]` (1-D array) | `ArrayType` |
+| `AsyFfi::pair` | `pair` | `Pair` |
+| `AsyFfi::triple` | `triple` | `Triple` |
+| `AsyFfi::transform` | `transform` | `Transform` |
+| `AsyFfi::path` | `path` | `Path` |
+| `AsyFfi::path3` | `path3` | `Path3` |
+| `AsyFfi::picture` | `picture` | `Picture` |
+| `AsyFfi::pen` | `pen` | `Pen` |
+
+> **Note on integers:** Asymptote's `Int` is a 64-bit type. In C++, use
+> `int64_t` (not `int`) to match it exactly. The `TypeInfoOf` trait accepts
+> `int` as a convenience, but `int64_t` is the canonical mapping.
 
 ---
 
@@ -257,45 +349,111 @@ reclaimed by the GC; because this is an exception and not a non-local jump,
 C++ destructors on your plugin's stack still run during unwinding.
 `reportFatal` is for unrecoverable situations (the host terminates).
 
+### Helper-library error messages
+
+When using the helper library's `AsyFfi::call` (C++ calling back into
+Asymptote), a failed function resolution produces a diagnostic that names
+the module, the function, and the expected return type. For example, calling
+a non-existent built-in:
+
+```
+asy::call: could not resolve built-in 'foo' in module '(top-level)' as a function returning real
+```
+
+Calling a built-in with the wrong expected return type:
+
+```
+asy::call: could not resolve built-in 'sqrt' in module '(top-level)' as a function returning pair
+```
+
+This makes it straightforward to identify typos, wrong module names, or
+signature mismatches during development. The raw `asyffi.h` API does not
+provide equivalent diagnostics (a `nullptr` from `getBuiltin` must be
+checked manually).
+
 ---
 
 ## 7. C++ helper library (recommended for real plugins)
 
-For anything beyond a toy example, look at
+For anything beyond a toy example, use
 [asymptote-ffi-helper-lib](https://github.com/vectorgraphics/asymptote-ffi-helper-lib),
-an Apache-license Asymptote FFI helper library.
-It is a thin C++20 layer on top of `asyffi.h` that removes most of the boilerplate:
+an Apache-license C++20 layer on top of `asyffi.h` that removes most of the
+boilerplate. It is the **recommended** way to write a plugin:
 
-- **Type builders** (`AsyFfiHelpers::TypeObjects`) -- build the
-  `Asy::FunctionTypeMetadata` / `Asy::TypeInfo` trees for
-  `registerFunction` declaratively instead of hand-filling C structs.
-  Types are built as `TypeObject`s (`Primitive`, `Array`, `Function`,
-  `Record`) and a function's signature is produced with
-  `TO::Function::builder(returnTypeObj).build(arg1, arg2, ...)`, where
-  each `argN` is a `TO::Function::Argument`.
-- **Template-based item access** (`AsyFfiHelpers::Item`) -- typed
-  get/set helpers for `IAsyItem`, so you can `AI::setItem(ptr, 3.14)`
-  without thinking about which `set*Value` overload applies.
-- **RAII GC thread registration** (`asyffihelpers/threads.h`) -- wrappers
-  that call `IAsyContext::registerThreadWithGc` / `unregisterThreadWithGc`
-  automatically on thread start/end.
+- **Type-inferred registration** (`AsyFfi::registerFunction`) -- the
+  function's Asymptote signature is deduced from the C++ lambda's type.
+  No hand-written `FunctionTypeMetadata`, no manual argument unpacking.
+  See section 3 for the minimal example.
+- **Injected host context** (`AsyFfi::Context`) -- a plugin lambda may take a
+  leading `AsyFfi::Context` parameter to reach the Asy host (via `ctx->`) and
+  to call back into Asy; it is excluded from the inferred Asy signature.
+- **Typed value conversion** (`AsyFfi::toItem` / `AsyFfi::fromItem`) --
+  write/read any supported C++ type to/from an `IAsyItem` without choosing
+  the right `set*Value` / `as*` overload.
+- **C++ -> Asymptote calls** (`AsyFfi::call`) -- call Asymptote built-ins
+  or imported-module functions from C++ with typed arguments and a typed
+  return value, in a one-liner.
+- **Typed value proxies** (`AsyFfi::pair`, `AsyFfi::triple`,
+  `AsyFfi::path`, `AsyFfi::path3`, `AsyFfi::picture`, `AsyFfi::pen`,
+  `AsyFfi::transform`) -- lightweight C++ types for structural Asy values,
+  each with `TypeInfoOf` and `ItemFunctions` specializations.
+- **Type builders** (`AsyFfiHelpers::TypeObjects`) -- for the
+  explicit-metadata (escape-hatch) path, build `Asy::TypeInfo` trees
+  declaratively instead of hand-filling C structs.
+- **RAII GC thread registration** (`asyffihelpers/threads.h`) --
+  `registerThreadWithGc` / `unregisterThreadWithGc` automatically on
+  thread start/end.
 - **Managed records** (`AsyFfiHelpers::Structs::ManagedRecord`) --
   RAII wrapper over `IAsyRecord` for working with Asymptote structs.
 - Pen construction and other context helpers
   (`pen.h`, `contextFuncs.h`, `array.h`, `args.h`).
 
-The repo's `examples/` directory has complete, buildable plugins:
+### Building a plugin (`asyffi_add_plugin`)
+
+The helper library ships a one-function CMake helper that builds a
+loadable plugin with the correct flags, include dirs, and output name:
+
+```cmake
+# In a consumer project that has the asyffi_helper target available:
+add_subdirectory(asyffi-helper-lib helper)   # provides target: asyffi_helper
+include(asyffi-helper-lib/cmake/asyffi_plugin.cmake)
+
+asyffi_add_plugin(mymodule myplugin.cc)      # -> libmymodule.so / mymodule.dll
+```
+
+Options:
+- `LIBNAME <name>` -- set the output file name (leading `lib` is stripped).
+- `ASY_PATH_DIR <dir>` -- copy the built library into an Asymptote
+  search-path directory so you can `import <name>;` directly.
+
+### Buildable examples
+
+The helper repo ships complete, buildable plugins: self-contained example
+projects under `examples/` (each its own CMake project with a `test.asy`), and
+round-trip ctest targets under `tests/`:
 
 | Example | Demonstrates |
 |---------|--------------|
-| `structSample.cc` (+ `structSample_recfile.asy`) | Creating instances of an Asymptote `struct`, setting fields, returning the var frame; loading the `.asy` module via `IAsyGlobalEnvironment::loadExistingModule` |
-| `pictureSample.cc` | Creating pictures / draw elements |
-| `clipSample.cc` | Clip begin/end draw elements |
-| `threadSample.cc` | Multi-threaded plugins with GC registration |
+| `examples/minimal/minimal.cc` | The minimal type-inferred `registerFunction` plugin ("hello world") |
+| `examples/picture/picture.cc` | Creating pictures / draw elements, with the injected `AsyFfi::Context` |
+| `examples/clip/clip.cc` | Clip begin/end draw elements |
+| `examples/thread/thread.cc` | Multi-threaded plugins with GC registration |
+| `examples/struct/struct.cc` | Returning an Asy struct instance, loading a `.asy` module (escape-hatch overload) |
+| `tests/fnsSample/fnsSample.cc` | Type-inferred `registerFunction` + `AsyFfi::call` (C++ -> Asy) in one plugin |
+
+The `tests/` targets are verified by round-trip ctests that build the plugin,
+load it in `asy`, and abort on a wrong return value. Each `examples/` project
+builds its `.so` next to a `test.asy` that you run with `asy -V test`.
 
 ### Building the helper library
 
-See the repo website for instructions on how to build the library.
+```sh
+cd asyffi-helper-lib
+cmake -S . -B build -DCMAKE_CXX_STANDARD=20 \
+      -DASYFFI_HEADER_DOWNLOAD_URL=/path/to/asymptote/asyffi.h
+cmake --build build -j
+ctest --test-dir build
+```
 
 ---
 

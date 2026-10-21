@@ -49,12 +49,12 @@ string tryGetDllPath(string const& libName)
   return settings::locateFile(dllName, true, settings::fs::DYNAMIC_LIB_EXTENSION);
 }
 
-void callForeignFunction(vm::stack* stack, TAsyForeignFunction const fn)
+void callForeignFunction(vm::stack* stack, TAsyForeignFunction const fn, string const& fnName)
 {
   bool const hasReturn= stack->pop<Int>() != 0;
   auto const numArgs= stack->pop<Int>();
 
-  camp::AsyArgsImpl args(numArgs);
+  camp::AsyArgsImpl args(numArgs, fnName);
   vm::item returnItem;// not always used;
 
   for (Int i= numArgs - 1; i >= 0; --i) {

@@ -189,6 +189,7 @@ void foreignAccess::encode(action act, position pos, coder& e)
     case CALL:
       e.encode(inst::intpush, numArgs);
       e.encode(inst::intpush, hasReturn ? 1 : 0);
+      e.encode(inst::constpush, item(fnName));
       e.encode(inst::foreigncall, item(fnAsVoidPtr));
       break;
     case WRITE:

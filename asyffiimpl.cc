@@ -29,7 +29,8 @@ namespace camp
 
 using Asy::BaseTypes;
 
-AsyArgsImpl::AsyArgsImpl(size_t const& argSize) : argsStorage(argSize) {}
+AsyArgsImpl::AsyArgsImpl(size_t const& argSize, string const& name)
+    : argsStorage(argSize), fnName(name) {}
 void AsyArgsImpl::setArgNum(size_t const& argNum, vm::item const& arg)
 {
   argsStorage[argNum]= arg;
@@ -41,7 +42,13 @@ size_t AsyArgsImpl::getArgumentCount() const { return argsStorage.size(); }
 IAsyItem* AsyArgsImpl::getNumberedArg(const size_t& argNum)
 {
   if (argNum >= argsStorage.size()) {
-    reportError("Argument number out of range");
+    std::string msg= "Argument number out of range";
+    if (!fnName.empty()) {
+      msg= mem::stdString(fnName) + ": argument " + std::to_string(argNum)
+           + " out of range (" + std::to_string(argsStorage.size())
+           + " arguments available)";
+    }
+    reportError(msg.c_str());
     return nullptr;
   }
   return argsStorage.data() + argNum;
@@ -722,12 +729,65 @@ void AsyFfiRegistererImpl::registerFunction(
         Asy::FunctionTypeMetadata const& fnTypeInfo
 )
 {
+  // Registration-time sanity checks
+  {
+    std::string qualName= std::string(libName) + "." + name;
+    if (fnTypeInfo.numArgs > 0 && fnTypeInfo.argInfoPtr == nullptr) {
+      reportError(
+          (qualName + ": registration error: numArgs="
+           + std::to_string(fnTypeInfo.numArgs) + " but argInfoPtr is null")
+              .c_str()
+      );
+    }
+    for (size_t i= 0; i < fnTypeInfo.numArgs; ++i) {
+      if (fnTypeInfo.argInfoPtr[i].name == nullptr) {
+        reportError(
+            (qualName + ": registration error: argument " + std::to_string(i)
+             + " has a null name").c_str()
+        );
+      }
+    }
+    // Validate return type extraData for types that require it
+    auto& rt= fnTypeInfo.returnType;
+    if (rt.baseType == Asy::BaseTypes::ArrayType) {
+      if (rt.extraData.arrayTypeInfo.typeOfItem == nullptr) {
+        reportError(
+            (qualName
+             + ": registration error: ArrayType return type has null "
+               "typeOfItem").c_str()
+        );
+      }
+    } else if (rt.baseType == Asy::BaseTypes::FunctionType) {
+      if (rt.extraData.functionTypeInfo.returnType == nullptr) {
+        reportError(
+            (qualName
+             + ": registration error: FunctionType return type has null "
+               "returnType").c_str()
+        );
+      }
+    } else if (rt.baseType == Asy::BaseTypes::Record) {
+      if (rt.extraData.recordPtr == nullptr) {
+        reportError(
+            (qualName
+             + ": registration error: Record return type has null "
+               "recordPtr").c_str()
+        );
+      }
+    }
+  }
+
   Asy::FunctionTypePtrRetMetadata const fnMetadataPtr= {
           &(fnTypeInfo.returnType), fnTypeInfo.numArgs, fnTypeInfo.argInfoPtr
   };
 
   types::function* functionSig= createFunctionTypeFromMetadata(fnMetadataPtr);
-  recordVar->add(name, functionSig, fn);
+  string qualifiedName= string(libName) + "." + name;
+  auto* foreignAcc= new trans::foreignAccess(
+          fn, functionSig->getResult()->kind != types::ty_void,
+          static_cast<Int>(functionSig->getSignature()->formals.size()),
+          qualifiedName
+  );
+  recordVar->add(name, functionSig, foreignAcc);
 }
 IAsyGlobalEnvironment* AsyFfiRegistererImpl::getGlobalEnvironment()
 {
