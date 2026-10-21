@@ -27,7 +27,7 @@ struct bbox3 : public gc, public IAsyBbox3 {
   {
     return leftBound;
   }
-  
+
   [[nodiscard]]
   double getRight() const override
   {
@@ -49,12 +49,12 @@ struct bbox3 : public gc, public IAsyBbox3 {
     return empty;
   }
   [[nodiscard]]
-  double getNear() override
+  double getNear() const override
   {
     return nearBound;
   }
   [[nodiscard]]
-  double getFar() override
+  double getFar() const override
   {
     return farBound;
   }
