@@ -34,19 +34,18 @@ record* loadDynLib(string const& key, string const& fileName, trans::genv* genv)
 
 string tryGetDllPath(string const& libName)
 {
-  // firstly, try to get the file as is
-  auto const libPathAsIs= settings::locateFile(libName, true, settings::fs::DYNAMIC_LIB_EXTENSION);
-  if (!libPathAsIs.empty() && settings::fs::extension(libPathAsIs) == settings::fs::DYNAMIC_LIB_EXTENSION_DOTTED) {
-    // and only process if the file ends in .so/.dll
-    return libPathAsIs;
-  }
-
-  // otherwise, try to find <libName>.dll or lib<libName>.so
-  string dllName= libName+settings::fs::DYNAMIC_LIB_EXTENSION_DOTTED;
-#ifndef _WIN32
-  dllName= "lib"+libName;
-#endif
-  return settings::locateFile(dllName, true, settings::fs::DYNAMIC_LIB_EXTENSION);
+  // Resolve the exact name the user typed, with the platform dynamic-library
+  // extension (.so on UNIX, .dll on Windows), across every Asy search path.
+  // The loader adds and strips NO 'lib' prefix: import a file named libfoo.so
+  // as `import libfoo;`. (The CMake helper names output lib<name> on all
+  // platforms; that is a build-side detail the import machinery does not parse.)
+  string const path=
+      settings::locateFile(libName, true, settings::fs::DYNAMIC_LIB_EXTENSION);
+  // Accept only a file that really carries the platform extension, so
+  // `import X;` resolves to X.so/X.dll and never a bare extension-less X.
+  if (settings::fs::extension(path) == settings::fs::DYNAMIC_LIB_EXTENSION_DOTTED)
+    return path;
+  return string();
 }
 
 void callForeignFunction(vm::stack* stack, TAsyForeignFunction const fn, string const& fnName)

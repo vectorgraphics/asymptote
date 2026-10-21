@@ -38,17 +38,29 @@ From Asymptote code, a plugin is loaded with the ordinary `import`
 statement:
 
 ```asy
-import myplugin;      // or: import "mymodule";
-myplugin.hello();
+import libmyplugin;              // extension-less import name
+libmyplugin.hello();
 ```
 
-When Asymptote cannot find `mymodule.asy`, it looks for a dynamic library:
+A plugin is imported by the library file's name **without** its extension:
+`import libmyplugin;`. To import it under an alias, use the quoted form with
+`as`: `import "libmyplugin" as m;` -- note that a **quoted** import requires an
+`as <alias>`; a bare `import "x";` with no alias is a syntax error.
 
-1. `mymodule.so` (or `mymodule.dll` on Windows), then
-2. `libmymodule.so` on non-Windows.
+Resolution works as follows. Asymptote first searches all of the Asy search
+paths for `<name>.asy`; if it finds one, that is used as an ordinary Asy
+module. If none is found, Asymptote searches all paths for `<name>.so` (UNIX)
+or `<name>.dll` (Windows) and loads it as an FFI plugin. Asymptote does
+**not** parse or strip a `lib` prefix -- import a library by the file's actual
+base name, so a built file `libmyplugin.so` is imported as `import libmyplugin;`.
 
-The search uses the standard Asymptote path (`asy path`). The import name
-is used as the library key
+An explicit filename (`import "libmyplugin.so" as m;`) or an absolute path also
+loads, but is **not portable** across platforms because the file extension
+differs. We recommend the `lib` prefix in import names: it avoids collisions
+with a same-named `<name>.asy` and with built-in Asymptote modules.
+
+The search uses the standard Asymptote path (`asy path`). The import name is
+used as the library key.
 
 When the library is found, Asymptote looks up the exported symbol
 
@@ -122,10 +134,10 @@ asyffi_add_plugin(mymodule myplugin.cc)
 Now in Asymptote:
 
 ```asy
-import mymodule;
-label(string(mymodule.doubleIt(21)));              // 42
-label(string(mymodule.midpoint((0,0),(4,6)).x));   // 2
-label(string(mymodule.addAll(new real[]{1,2,3})));  // 6
+import libmymodule;
+label(string(libmymodule.doubleIt(21)));              // 42
+label(string(libmymodule.midpoint((0,0),(4,6)).x));   // 2
+label(string(libmymodule.addAll(new real[]{1,2,3})));  // 6
 ```
 
 The return and argument types are inferred from the C++ lambda's signature.
@@ -170,17 +182,17 @@ function or a no-capture lambda cast to `TAsyForeignFunction`):
 ```bash
 # Linux / macOS (clang works on macOS; same -shared -fPIC flags)
 g++ -std=c++17 -shared -fPIC -I/path/to/asymptote \
-    -o mymodule.so myplugin.cc
+    -o libmymodule.so myplugin.cc
 
 # Windows (MSVC)
-cl /std:c++17 /LD /I path\to\asymptote myplugin.cc /Fe:mymodule.dll
+cl /std:c++17 /LD /I path\to\asymptote myplugin.cc /Fe:libmymodule.dll
 ```
 
 Now in Asymptote:
 
 ```asy
-import mymodule;
-real y = mymodule.doubleIt(21);   // 42
+import libmymodule;
+real y = libmymodule.doubleIt(21);   // 42
 ```
 
 ### Foreign function signature
@@ -418,13 +430,13 @@ loadable plugin with the correct flags, include dirs, and output name:
 add_subdirectory(asyffi-helper-lib helper)   # provides target: asyffi_helper
 include(asyffi-helper-lib/cmake/asyffi_plugin.cmake)
 
-asyffi_add_plugin(mymodule myplugin.cc)      # -> libmymodule.so / mymodule.dll
+asyffi_add_plugin(mymodule myplugin.cc)      # -> libmymodule.so / libmymodule.dll
 ```
 
 Options:
 - `LIBNAME <name>` -- set the output file name (leading `lib` is stripped).
 - `ASY_PATH_DIR <dir>` -- copy the built library into an Asymptote
-  search-path directory so you can `import <name>;` directly.
+  search-path directory so you can `import lib<name>;` directly.
 
 ### Buildable examples
 
@@ -465,13 +477,13 @@ ctest --test-dir build
 3. Export the entry point with `DECLARE_REGISTER_FN` and call
    `registerer->registerFunction(...)` for each function, supplying correct
    `FunctionTypeMetadata` (wrong metadata -> confusing runtime errors).
-4. Build a shared library: Linux/macOS -> `-shared -fPIC` (name it
-   `mymodule.so` or `libmymodule.so`); Windows -> DLL named `mymodule.dll`.
-5. Put the library on the Asymptote path (`asy path`), then `import mymodule;`
+4. Build a shared library: Linux/macOS -> `-shared -fPIC` ->
+   `libmymodule.so`; Windows -> `libmymodule.dll`.
+5. Put the library on the Asymptote path (`asy path`), then `import libmymodule;`
    in your `.asy` file.
-6. Debug tips: `import "mymodule"` with a quoted string gives you the file
-   used as the library key; `unloadLib("mymodule")` reload-safe re-import
-   during interactive sessions; `ctx->reportWarning(...)` is a handy
+6. Debug tips: `import "libmymodule" as mym;` with a quoted string gives you the
+   file used as the library key; `unloadLib("libmymodule")` reload-safe
+   re-import during interactive sessions; `ctx->reportWarning(...)` is a handy
    print-to-console.
 
 External (companion repo, Apache-2.0):
