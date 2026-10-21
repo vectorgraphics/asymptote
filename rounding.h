@@ -44,7 +44,7 @@ static fpu_control_t fpu_init;
 #    define FPU_RESTORE
 #  endif /* not FPU_EXTENDED */
 #else /* not HAVE_FPU_CONTROL_H */
-#  ifdef __FreeBSD__
+#  if defined(__FreeBSD__) && (defined(__i386__) || defined(__x86_64__))
 #    include <floatingpoint.h>
 #    define FPU_ROUND_DOUBLE  (fpsetprec(FP_PD))
 #    define FPU_RESTORE       (fpsetprec(FP_PE))
