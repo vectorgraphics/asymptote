@@ -181,11 +181,11 @@ function or a no-capture lambda cast to `TAsyForeignFunction`):
 
 ```bash
 # Linux / macOS (clang works on macOS; same -shared -fPIC flags)
-g++ -std=c++17 -shared -fPIC -I/path/to/asymptote \
+g++ -std=c++17 -shared -fPIC -I/path/to/dir/with/asyffi.h \
     -o libmymodule.so myplugin.cc
 
 # Windows (MSVC)
-cl /std:c++17 /LD /I path\to\asymptote myplugin.cc /Fe:libmymodule.dll
+cl /std:c++17 /LD /I path\to\dir\with\asyffi.h myplugin.cc /Fe:libmymodule.dll
 ```
 
 Now in Asymptote:
@@ -461,8 +461,7 @@ builds its `.so` next to a `test.asy` that you run with `asy -V test`.
 
 ```sh
 cd asyffi-helper-lib
-cmake -S . -B build -DCMAKE_CXX_STANDARD=20 \
-      -DASYFFI_HEADER_DOWNLOAD_URL=/path/to/asymptote/asyffi.h
+cmake -S . -B build -DCMAKE_CXX_STANDARD=20
 cmake --build build -j
 ctest --test-dir build
 ```
