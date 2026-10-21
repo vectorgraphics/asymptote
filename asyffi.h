@@ -1,0 +1,1906 @@
+#pragma once
+
+/**
+ * @file asyffi.h
+ * @brief This file forms part of the Asymptote FFI library
+ * @author Jamie Selina Lindner [jamievlin@outlook.com]
+ * @remark While this file is under Apache License 2.0, other files are
+ * not unless if specified explicitly.
+ * @license See LICENSE-APACHE.TXT
+ *
+ *    Copyright 2026 Jamie Selina Lindner
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <cstddef>
+#include <cstdint>
+
+#if defined(_WIN32)
+#  define ASY_FFI_EXPORT __declspec(dllexport)
+
+// In case someone targets 32-bit x86 systems, this calling convention is
+// needed
+#  ifndef _M_X64
+#    define LNK_CALL __cdecl
+#  else
+#    define LNK_CALL
+#  endif
+
+#elif defined(__linux__) || defined(__APPLE__)
+#  define ASY_FFI_EXPORT [[gnu::visibility("default")]]
+
+// like the case for windows. LNK_CALL is not used for 64-bit systems.
+// On Apple (both arm64 and x86_64) the ABI is LP64, so LNK_CALL is empty
+// there as well; __cdecl is only meaningful on 32-bit x86.
+#  if !defined(__LP64__) && defined(__i386__)
+#    define LNK_CALL __attribute__((__cdecl__))
+#  else
+#    define LNK_CALL
+#  endif
+
+#else
+#  error Right now, FFI is only supported for MSWindows, Linux, and macOS
+#endif
+
+/**
+ * These values are used for compact builds of asymptote
+ * (most builds by default)
+ */
+constexpr int64_t ASY_COMPACT_DEFAULT_VALUE= 0x7fffffffffffffffLL;
+constexpr int64_t ASY_COMPACT_UNDEFINED_VALUE= 0x7ffffffffffffffeLL;
+constexpr int64_t ASY_COMPACT_BOOL_TRUTH_VALUE= 0xABABABABABABABACLL;
+constexpr int64_t ASY_COMPACT_BOOL_FALSE_VALUE= 0xABABABABABABABABLL;
+
+/** Opaque handle to Asymptote type object */
+typedef void* THAsyType;
+
+/** Opaque handle to Asymptote string */
+typedef void* THAsyString;
+
+/** Opaque handle for Asymptote runnable */
+typedef void* THAsyRunnable;
+
+class IAsyItem
+{
+public:
+  virtual ~IAsyItem()= default;
+
+  [[nodiscard]]
+  virtual int64_t asInt64() const= 0;
+
+  [[nodiscard]]
+  virtual double asDouble() const= 0;
+
+  [[nodiscard]]
+  virtual void* asRawPointer() const= 0;
+
+  [[nodiscard]]
+  virtual bool asBoolean() const= 0;
+
+  [[nodiscard]]
+  virtual bool isDefault() const= 0;
+
+  virtual void setInt64Value(int64_t const& value)= 0;
+  virtual void setDoubleValue(double const& value)= 0;
+  virtual void setRawPointer(void* pointer)= 0;
+  virtual void setBooleanValue(bool const& value)= 0;
+
+  /**
+   * Sets value with type info. This method is only relevant if
+   * the asymptote host is of a non-compact build.
+   *
+   * On compact asymptote builds, this function behaves the same as
+   * {@link setRawPointer(void*)}.
+   *
+   * @remark Most builds (in particular, builds supplied from asymptote
+   * website) are compact and hence if one is not targeting non-compact
+   * function, there is no need to use this function.
+   */
+  virtual void setValueWithTypeId(void* pointer, void* tyinfo)= 0;
+};
+
+typedef void* TAsyFfiCycleToken;
+
+class IAsyCallable
+{
+public:
+  virtual ~IAsyCallable()= default;
+};
+
+/** Interface for Asymptote array. */
+class IAsyArray
+{
+public:
+  virtual ~IAsyArray()= default;
+
+  /**
+   * Gets an item at the specified position.
+   * Attempting to get an item at a position beyond the array's size
+   * has undefined behavior.
+   */
+  [[nodiscard]]
+  virtual IAsyItem* getItem(size_t const& position)= 0;
+
+  /**
+   * Sets an item at the specified position.
+   * Attempting to set an item at a position beyond the array's size
+   * has undefined behavior. Note that the item is copied, hence there is no
+   * need to preserve the itemToSet pointer.
+   */
+  virtual void setItem(size_t const& position, IAsyItem* itemToSet)= 0;
+
+  /** Gets the size of an array */
+  [[nodiscard]]
+  virtual size_t getSize() const= 0;
+
+  /** Resizes the array. New values may not be initialized */
+  virtual void setSize(size_t const& newSize)= 0;
+
+  /**
+   * Pushes itemToAdd to the end of an array. Note that the item is copied
+   * so there is no need to preserve the itemToAdd's object.
+   */
+  virtual void pushItem(IAsyItem* itemToAdd)= 0;
+
+  /**
+   * Pushes a new uninitialized item and return a pointer to that item.
+   * This pointer can be used to set the value of the new item.
+   *
+   * @remark Note that this pointer may not point to a valid item after
+   * an insertion, removal, or any changes to the array.
+   */
+  virtual IAsyItem* pushAndReturnBlankItem()= 0;
+
+  /** Removes the last item in the array. */
+  virtual void popItem()= 0;
+
+  [[nodiscard]]
+  virtual bool isCyclic() const= 0;
+  virtual void setCyclic(bool const& isCyclic)= 0;
+};
+
+/** Interface for asymptote arguments */
+class IAsyArgs
+{
+public:
+  virtual ~IAsyArgs()= default;
+
+  [[nodiscard]]
+  virtual size_t getArgumentCount() const= 0;
+
+  [[nodiscard]]
+  virtual IAsyItem* getNumberedArg(size_t const& argNum)= 0;
+};
+
+class IAsyTuple;
+class IAsyTransform;
+class IAsyTensionSpecifier;
+class IAsyCurlSpecifier;
+
+class IAsyPath;
+class IAsySolvedKnot;
+class IAsyPath3;
+class IAsyRecord;
+
+class IAsyPen;
+class IAsyVarFrame;
+
+class IAsyBbox;
+class IAsyBbox3;
+
+namespace Asy
+{
+enum class PenOverwrites : int8_t;
+enum class PenLineJoin : int8_t;
+enum class PenLineCap : int8_t;
+enum class PenBaseLine : int8_t;
+enum class PenFillRule : int8_t;
+enum class PenColorSpace : uint8_t;
+struct PenLineType;
+struct PenTransparencyInfo;
+struct PenColor;
+
+struct TypeInfo;
+struct FnArgMetadata;
+
+
+/** Struct containing 3D Material data*/
+struct Material3D {
+
+  /** Shininess value. 1 corresponds to a perfectly smooth surface and 0 to a
+   * highly rough surface */
+  double shininess;
+
+  /** Metallic value. 1 corresponds to a metal surface (reflective with no
+   * absorption) and 0 to nonmetallic surface (color absorption/reflection by
+   * fresnel rules) */
+  double metallic;
+
+  /**
+   * Reflective value when viewed from direction perpendicular from the surface.
+   * The default value is usually 0.04
+   */
+  double fresnel0;
+
+  /** An array containing 3 pens, first pen is used as the diffuse color, second
+   * as specular, and third as emissive */
+  IAsyArray const* dseColors;
+};
+
+/**
+ * Information about a particular draw element. Note that
+ * this struct is not for creating a new draw element, but rather
+ * to retrieve information about it (for example, whether the draw
+ * element is 3D)
+ */
+struct IAsyDrawElementInfo {
+  /** Whether the element is a label */
+  bool isLabel;
+
+  /** Whether the element is a new page */
+  bool isNewPage;
+
+  /** Whether the element is layer */
+  bool isLayer;
+
+  /** Whether the element is 3D */
+  bool is3D;
+
+  /** Whether the element is implemented as raw svg */
+  bool isSvg;
+};
+
+enum class DrawVerbatimLanguage : uint8_t
+{
+  PostScript= 0,
+  TeX,
+  JavaScript
+};
+
+}// namespace Asy
+
+/** Interface for Asymptote draw element. This is a combination of drawable
+ * shapes and pen which can be directly added to a picture */
+class IAsyDrawElement
+{
+public:
+  virtual ~IAsyDrawElement()= default;
+
+  /**
+   * Creates a new drawElement with the transform applied for 2D.
+   * Note that in some cases, the returned draw element may be this instance.
+   */
+  virtual IAsyDrawElement*
+  createTransformed2d(IAsyTransform const* transform)= 0;
+
+  /**
+   * Creates a new drawElement with the transform applied for 3D.
+   * Note that in some cases, the returned draw element may be this instance.
+   *
+   * @param transform Array of doubles representing a 4x4 transformation matrix
+   * in row-major order
+   */
+  virtual IAsyDrawElement* createTransformed3d(double const* transform)= 0;
+
+  [[nodiscard]]
+  virtual Asy::IAsyDrawElementInfo getDrawElementInfo() const= 0;
+};
+
+/** Interface for Asymptote pictures */
+class IAsyPicture
+{
+public:
+  virtual ~IAsyPicture()= default;
+
+  /** Add another picture to this picture */
+  virtual void addToPicture(IAsyPicture* otherPic)= 0;
+
+  /** Prepends a picture to this picture */
+  virtual void prependToPicture(IAsyPicture* otherPic)= 0;
+
+  /** Returns whether this picture has labels */
+  [[nodiscard]]
+  virtual bool hasLabels()= 0;
+
+  /** Returns whether this picture has 3D elements */
+  [[nodiscard]]
+  virtual bool has3D() const= 0;
+
+  /** Returns whether this picture has embedded PNG images */
+  [[nodiscard]]
+  virtual bool hasPng() const= 0;
+
+  /**
+   * Gets bounding box of the image.
+   * @remark The returned bounding box is a copy, so it can
+   * be modified without affecting the original picture
+   */
+  virtual IAsyBbox* getBounds()= 0;
+
+  /**
+   * Gets 3D bounding box of the image.
+   * @remark The returned bounding box is a copy, so it can
+   * be modified without affecting the original picture
+   */
+  virtual IAsyBbox3* getBounds3()= 0;
+
+  /** Whether the picture is null */
+  [[nodiscard]]
+  virtual bool isNull() const= 0;
+
+  /** Creates a new image with specified transformation applied */
+  [[nodiscard]]
+  virtual IAsyPicture*
+  createTransformed(IAsyTransform const* transformPtr) const= 0;
+
+  /** Creates a new image with specified 3D transformation applied stored in
+   * arrayPtr
+   *
+   * @param arrayPtr an array of
+   * 4 sub-arrays where each sub-array is a double array with length of 4. This
+   * array stores the transformation information encoded as a row-major 4x4
+   * matrix.
+   */
+  [[nodiscard]]
+  virtual IAsyPicture*
+  createTransformedArray(IAsyArray const* arrayPtr) const= 0;
+
+  /** Prepends a draw element to the image */
+  virtual void prependDrawElement(IAsyDrawElement* drawElement)= 0;
+
+  /** Appends a draw element to the image */
+  virtual void appendDrawElement(IAsyDrawElement* drawElement)= 0;
+
+  /** Prepends a draw element to the image */
+  virtual void encloseDrawElements(
+          IAsyDrawElement* beginElement, IAsyDrawElement* endElement
+  )= 0;
+};
+
+
+class IAsyContext
+{
+public:
+  virtual ~IAsyContext()= default;
+
+  virtual void* malloc(size_t const& size)= 0;
+  virtual void* mallocAtomic(size_t const& size)= 0;
+
+  /**
+   * In a compact build, the couple highest values in Int (INT_MAX) are
+   * reserved for default/undefined values. In addition, there are special
+   * numbers to store "truthy" and "falsy" values for boolean
+   */
+  [[nodiscard]]
+  virtual bool isCompactBuild() const= 0;
+
+  [[nodiscard]]
+  virtual char const* getVersion() const= 0;
+
+  [[nodiscard]]
+  virtual char const* getAsyGlVersion() const= 0;
+
+  virtual IAsyItem* createBlankItem()= 0;
+
+  /**
+   * Creates a new Asymptote string.
+   * @param str Contents of the string. Must be a null-terminated pointer
+   * @return An opaque pointer to asymptote string. This pointer can then
+   * be assigned to an item
+   */
+  virtual THAsyString createNewAsyString(char const* str)= 0;
+  virtual THAsyString
+  createNewAsyStringSized(char const* str, size_t const& size)= 0;
+  virtual void updateAsyString(THAsyString asyStringPtr, char const* str)= 0;
+  virtual void updateAsyStringSized(
+          THAsyString asyString, char const* str, size_t const& size
+  )= 0;
+
+  /**
+   * Gets the length of the specified string (this length does not include
+   * the null terminator).
+   */
+  virtual size_t getStringLength(THAsyString asyString)= 0;
+
+  /**
+   * Copies the string to a destination, including the null terminator of
+   * the string.
+   *
+   * @param asyString Opaque pointer to an asymptote string instance.
+   * @param destination Destination to copy to. It must point to a writable
+   * buffer of at least size bufferSize.
+   * @param bufferSize Size of the buffer to copy to. Make sure this number
+   * is at least the length of the string + 1 (for the null terminator).
+   */
+  virtual void
+  copyString(THAsyString asyString, char* destination, size_t bufferSize)= 0;
+
+  virtual IAsyArray* createNewArray(size_t const& initialSize)= 0;
+
+  virtual IAsyTransform* createNewTransform(
+          double x, double y, double xx, double xy, double yx, double yy
+  )= 0;
+
+  /** Creates a transform that is the identity function, or in tuple form,
+   * (0, 0, 1, 0, 0, 1). Note that this transform can have its value changed by
+   * the {@link IAsyTuple::setIndexedValue } function.
+   */
+  virtual IAsyTransform* createNewIdentityTransform()= 0;
+
+  virtual IAsyTuple* createPair(double x, double y)= 0;
+  virtual IAsyTuple* createTriple(double x, double y, double z)= 0;
+
+  // tension specifier functions
+
+  /** Creates a new tension specifier with in=out=val and atleast value. */
+  virtual IAsyTensionSpecifier*
+  createTensionSpecifierWithSameVal(double val, bool atleast)= 0;
+
+  /** Creates a new tension specifier with specified out, in, and atleast
+   * values.*/
+  virtual IAsyTensionSpecifier*
+  createTensionSpecifier(double out, double in, bool atleast)= 0;
+
+  /** Creates a new curl specifier */
+  virtual IAsyCurlSpecifier* createCurlSpecifier(double value, uint8_t s)= 0;
+
+  /** Creates a new cycle token */
+  virtual TAsyFfiCycleToken createCycleToken()= 0;
+
+  /** Gets a specified asymptote setting */
+  virtual IAsyItem* getSetting(char const* name)= 0;
+
+  // path functions
+
+  /**
+   * Creates a new 2D path.
+   *
+   * @param n number of knots
+   * @param cycles whether this path is cyclic
+   * @param numSolvedKnots number of solved knots to pass in
+   * @param solvedKnotsPtr pointer to an array of {@link IAsySolvedKnot*} to
+   * pass to path creation. Each solved knot must be of 2D type (having pairs as
+   * values instead of triples). This pointer must point
+   * to numSolvedKnots number of {@link IAsySolvedKnot*} pointers.
+   *
+   * @remark This object is created using Asymptote's built in allocator which
+   * means garbage collection will be handled automatically.
+   *
+   * @return pointer to the specified 2D IAsyPath
+   */
+  virtual IAsyPath* createAsyPath(
+          int64_t n, bool cycles, size_t numSolvedKnots,
+          IAsySolvedKnot const* const* solvedKnotsPtr
+  )= 0;
+
+  /**
+   * Creates a new 3D path
+   *
+   *
+   * @param n number of knots
+   * @param cycles whether this path is cyclic
+   * @param numSolvedKnots number of solved knots to pass in
+   * @param solvedKnotsPtr pointer to an array of {@link IAsySolvedKnot*} to
+   * pass to path creation. Each solved knot must be of 3D type (having triples
+   * as values instead of pairs). This pointer must point to
+   * numSolvedKnots number of {@link IAsySolvedKnot*} pointers.
+   *
+   * @remark This object is created using Asymptote's built in allocator which
+   * means garbage collection will be handled automatically.
+   *
+   * @return pointer to the specified 3D IAsyPath3.
+   */
+  virtual IAsyPath3* createAsyPath3(
+          int64_t n, bool cycles, size_t numSolvedKnots,
+          IAsySolvedKnot const* const* solvedKnotsPtr
+  )= 0;
+
+  /**
+   * Creates a new 2D solved knot.
+   *
+   * @param pre pre pair point. This value must point to a pair.
+   * @param point the point. This value must point to a pair.
+   * @param post post pair point. This value must point to a pair.
+   * @param isStraight
+   *
+   * @remark This object is created using Asymptote's built in allocator which
+   * means garbage collection will be handled automatically.
+   * @return a new 2D solved knot.
+   */
+  virtual IAsySolvedKnot* createSolvedKnot2D(
+          IAsyTuple const* pre, IAsyTuple const* point, IAsyTuple const* post,
+          bool isStraight
+  )= 0;
+
+  /**
+   * Creates a new 3D solved knot.
+   *
+   * @param pre pre triple point. This value must point to a triple.
+   * @param point the point. This value must point to a triple.
+   * @param post post triple point. This value must point to a triple.
+   * @param isStraight
+   *
+   * @remark This object is created using Asymptote's built in allocator which
+   * means garbage collection will be handled automatically.
+   * @return a new 3D solved knot.
+   */
+  virtual IAsySolvedKnot* createSolvedKnot3D(
+          IAsyTuple const* pre, IAsyTuple const* point, IAsyTuple const* post,
+          bool isStraight
+  )= 0;
+
+  // GC functions
+  /**
+   * Returns true if the garbage collector is supported in this build of
+   * Asymptote, false otherwise
+   */
+  [[nodiscard]]
+  virtual bool isGcSupported() const= 0;
+
+  /**
+   * Returns the size of gc stack base in bytes.
+   *
+   * @remark This is used to allocate
+   * memory for registering a new thread with Asymptote's garbage collector.
+   * Moreover, if GC is not supported, this function returns 0.
+   */
+  [[nodiscard]]
+  virtual size_t getGcStackBaseSize() const= 0;
+
+  /**
+   * Gets stack base for the thread that calls this function.
+   *
+   * @param stackBase pointer to a memory block with size obtained from
+   * {@link getGcStackBaseSize} function call.
+   * @return true if successful, false otherwise
+   * @remark If one is creating a new thread, be sure to call this function
+   * from the same thread that is going to be used, and not from the main
+   * thread. If GC is not supported, this function's behavior is undefined.
+   */
+  virtual bool getGcStackBase(void* stackBase)= 0;
+
+  /**
+   * Register the calling thread with the garbage collector. This will allow the
+   * calling thread to perform memory-related operations.
+   * @param stackBase pointer to an initialized stack base (after calling {@link
+   * getGcStackBase})
+   * @return true if successful or if the thread is already registered, false
+   * otherwise.
+   * @remark If GC is not supported, this function's behavior is undefined.
+   */
+  virtual bool registerThreadWithGc(void* stackBase) const= 0;
+
+  /**
+   * Unregister the calling thread from the garbage collector system.
+   * @remark If GC is not supported, this function's behavior is undefined.
+   */
+  virtual void unregisterThreadWithGc() const= 0;
+
+  // frame functions
+
+  [[nodiscard]]
+  /**
+   * Whether the Asymptote build is of simple frame variant.
+   *
+   * In a simple frame build, records are passed as an {@link IAsyItem} pointing
+   * to an array of variables, whereas in a non-simple frame build (which is the
+   * case for a standard Asymptote build), records are passed as {@link
+   * IAsyVarFrame}
+   */
+  virtual bool isSimpleFrameBuild() const= 0;
+
+  // warnings and errors
+
+  /**
+   * Throws an error with given message.
+   * @remark This function throws C++ exceptions. Therefore,
+   * do not use this in any functions marked "noexcept"
+   */
+  [[noreturn]]
+  virtual void reportError(char const* message)= 0;
+
+  /**
+   * Throws a warning with given message.
+   */
+  virtual void reportWarning(char const* message)= 0;
+
+  /**
+   * Throws a fatal error with given message.
+   * @remark This function throws C++ exceptions. Therefore,
+   * do not use this in any functions marked "noexcept"
+   */
+  [[noreturn]]
+  virtual void reportFatal(char const* message)= 0;
+
+  // pen creation functions
+
+  virtual IAsyPen* createNewPen(
+          const Asy::PenLineType* lineType, double lineWidth,
+          IAsyPath const* path, char const* font, double fontSize,
+          double lineSkip, Asy::PenColorSpace colorSpace, Asy::PenColor color,
+          char const* pattern, Asy::PenFillRule fillRule,
+          Asy::PenTransparencyInfo const* transparency,
+          Asy::PenBaseLine baseLine, Asy::PenLineCap lineCap,
+          Asy::PenLineJoin lineJoin, double miterLimit,
+          Asy::PenOverwrites overwriteType, IAsyTransform const* transform
+  )= 0;
+
+  // types functions
+
+  [[nodiscard]]
+  virtual THAsyType createAsyType(Asy::TypeInfo typeInfo) const= 0;
+
+  // var frames
+
+  virtual IAsyVarFrame* createNewVarFrame(size_t const& initialSize)= 0;
+
+  // picture
+
+  virtual IAsyPicture* createPicture(bool deconstruct)= 0;
+
+  // draw element creation functions
+
+  /**
+   * Creates a new 2D draw element from a given path and a pen. The key
+   * parameter is used to differentiate elements for use with xasy.
+   */
+  virtual IAsyDrawElement*
+  createDrawElementFromPath(IAsyPath* path, IAsyPen* pen, char const* key)= 0;
+
+  /** Creates a new 3D draw element from a given path and a pen. The key
+   * parameter is used to differentiate elements for use with xasy.
+   */
+  virtual IAsyDrawElement* createDrawElementFromPath3(
+          IAsyPath3* path3, IAsyTuple* center, double opacity,
+          Asy::Material3D const& material, bool billboard, char const* key
+  )= 0;
+
+  /**
+   * Creates a new 3D draw element from a single point.
+   *
+   * @param point A 3-tuple value representing a point in 3D space to place the
+   * pixel
+   * @param pen The pen to draw the point with
+   * @param width The width of the point
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   *
+   * @return a new 3D draw element
+   */
+  virtual IAsyDrawElement* createDrawElementForPixel(
+          IAsyTuple* point, IAsyPen const* pen, double width, char const* key
+  )= 0;
+
+  /**
+   * Creates a new 2D fill element by a single color. For more information, see
+   * <a href="https://asymptote.sourceforge.io/doc/fill.html">here</a>
+   *
+   * @param srcPaths An array of {@link IAsyPath} pointers representing the
+   * paths to be used
+   * @param stroke Whether to also draw the stroke
+   * @param penType Pen for drawing
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   * @return A new 2D fill element
+   */
+  virtual IAsyDrawElement* createDrawElementForFill(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          char const* key
+  )= 0;
+
+  /**
+   * Creates a new 2D fill element by lattice shade. For more information, see
+   * Asymptote's {@code void latticeshade(...)} function
+   * <a href="https://asymptote.sourceforge.io/doc/fill.html">here</a>
+   *
+   * @param srcPaths Array of paths to use for filling
+   * @param stroke Whether to also draw the boundaries with zerowinding rule
+   * @param penType Pen fill rule
+   * @param pens A 2D array of {@link IAsyPen} for use with drawing
+   * @param transf Optional transformation to apply. This value can be null, in
+   * which the identity transformation will be used
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   * @return A new 2D lattice shaded element
+   */
+  virtual IAsyDrawElement* createDrawElementForLatticeShade(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          IAsyArray const* pens, IAsyTransform const* transf, char const* key
+  )= 0;
+
+  /**
+   * Creates a new 2D fill element by axial shade as a line segment from point A
+   * to point B. For more information, see Asymptote's {@code void
+   * axialshade(...)} function <a
+   * href="https://asymptote.sourceforge.io/doc/fill.html">here</a>
+   *
+   * @param srcPaths Array of paths to use for filling
+   * @param stroke Whether to also draw the boundaries with zerowinding rule
+   * @param penType Pen to draw at point A
+   * @param pairA A pair indicating point A
+   * @param extendA Whether to extend A
+   * @param penB Pen to draw at point B
+   * @param pairB A pair indicating point B
+   * @param extendB Whether to extend B
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   *
+   * @return a new axial shaded draw element
+   */
+  virtual IAsyDrawElement* createDrawElementForAxialShade(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          IAsyTuple* pairA, bool extendA, IAsyPen* penB, IAsyTuple* pairB,
+          bool extendB, char const* key
+  )= 0;
+
+  /**
+   * Creates a new 2D fill element by radial shade transitioning from circle A
+   * to circle B. For more information, see Asymptote's {@code void
+   * radialshade(...)} function <a
+   * href="https://asymptote.sourceforge.io/doc/fill.html">here</a>
+   *
+   * @param srcPaths Array of paths to use for filling
+   * @param stroke Whether to also draw the boundaries with zerowinding rule
+   * @param penType Pen to draw at circle A
+   * @param pairA Center of the circle A
+   * @param ra Radius of circle A
+   * @param extendA Whether to extend circle A
+   * @param penB Pen to draw at circle B
+   * @param pairB A pair indicating circle B
+   * @param rb Radius of circle B
+   * @param extendB Whether to extend circle B
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   *
+   * @return a new radial shaded draw element
+   */
+  virtual IAsyDrawElement* createDrawElementForRadialShade(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          IAsyTuple* pairA, double const& ra, bool extendA, IAsyPen* penB,
+          IAsyTuple* pairB, double const& rb, bool extendB, char const* key
+  )= 0;
+
+  /**
+   * Creates a new 2D fill element with custom postscript calculator
+   * routine. For more information, see Asymptote's {@code void
+   * functionshade(...)} <a
+   * href="https://asymptote.sourceforge.io/doc/fill.html">here</a>.
+   *
+   * @param srcPaths Array of paths to use for filling
+   * @param stroke Whether to also draw the boundaries with zerowinding rule
+   * @param penType pen to use for filling
+   * @param shader String containing postscript calculator routine. This routine
+   * is in the form {@code (x: real, y: real) -> color} where x and y are values
+   * from [0,1] and color has the same number of components as {@code
+   * fillrule}'s color components.
+   * @param key An optional unique key for xasy to differentiate elements.
+   * This value can be null.
+   * @return a new function shaded draw element
+   */
+  virtual IAsyDrawElement* createDrawElementForFunctionShade(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          char const* shader, char const* key
+  )= 0;
+
+  /**
+   * Creates a new 2D fill element with gouraud shading.
+   * For more information, see Asymptote's {@code void
+   * gouraudshade(...)} <a
+   * href="https://asymptote.sourceforge.io/doc/fill.html">here</a>.
+   * @param srcPaths Array of paths to use for filling
+   * @param stroke Whether to also draw the boundaries with zerowinding rule
+   * @param penType pen to use for filling
+   * @param pens Array of pens for each vertex color on a triangle lattice
+   * @param pairVertices Array of pairs to specify vertices of a triangle
+   * lattice to use for shading
+   * @param intEdges Flags for each edge of the triangle lattice
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   * @return a new gouraud shaded draw element
+   */
+  virtual IAsyDrawElement* createDrawElementForGouraudShade(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          IAsyArray const* pens, IAsyArray const* pairVertices,
+          IAsyArray const* intEdges, char const* key
+  )= 0;
+  /**
+   * Creates a new 2D fill element with tensor shading.
+   * For more information, see Asymptote's {@code void
+   * tensorshade(...)} <a
+   * href="https://asymptote.sourceforge.io/doc/fill.html">here</a>.
+   * @param srcPaths Array of paths to use for filling
+   * @param stroke Whether to also draw the boundaries with zerowinding rule
+   * @param penType pen to use for filling
+   * @param pens 2D Array of pens for each vertex color on a triangle lattice
+   * @param boundaries Array of paths. Each path must be of length 4
+   * @param z 2D array of internal control points.
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   * @return a new tensor shaded draw element
+   */
+  virtual IAsyDrawElement* createDrawElementForTensorShade(
+          IAsyArray const* srcPaths, bool stroke, IAsyPen* penType,
+          IAsyArray const* pens, IAsyArray const* boundaries,
+          IAsyArray const* z, char const* key
+  )= 0;
+
+  /**
+   * Creates a new draw element for labels. For more information, see
+   * {@code label(...)} <a
+   * href="https://asymptote.sourceforge.io/doc/label.html">here</a>.
+   * @param label Text of the label
+   * @param size Size of the label
+   * @param transf Transform to apply to the label
+   * @param pairPosition Pair for label's position
+   * @param pairAlign Pair for align data
+   * @param penType pen type
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   * @return
+   */
+  virtual IAsyDrawElement* createDrawElementForLabel(
+          char const* label, char const* size, IAsyTransform* transf,
+          IAsyTuple* pairPosition, IAsyTuple* pairAlign, IAsyPen* penType,
+          char const* key
+  )= 0;
+
+  /**
+   * Creates a new draw element for labels following path. For more information,
+   * see
+   * {@code label(..., path g, ...)} <a
+   * href="https://asymptote.sourceforge.io/doc/label.html">here</a>.
+   * @param label Text of the label
+   * @param size Size of the label
+   * @param src Path to follow
+   * @param justify Justify option for the label
+   * @param pairShift pair for shift data
+   * @param penType pen type
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   * @return
+   */
+  virtual IAsyDrawElement* createDrawElementForLabelPath(
+          char const* label, char const* size, IAsyPath* src,
+          char const* justify, IAsyTuple* pairShift, IAsyPen* penType,
+          char const* key
+  )= 0;
+
+  /**
+   * Creates a new draw element for verbatim drawings.
+   *
+   * @param language Language of the text to draw
+   * @param text The text content
+   * @param pairMin An optional pair value for minimum. This value can be null.
+   * If this value is not null, pairMax must also be not null
+   * @param pairMax An optional pair value for maximum. This value must not be
+   * null if pairMin is not null
+   * @return
+   */
+  virtual IAsyDrawElement* createDrawElementForVerbatim(
+          Asy::DrawVerbatimLanguage language, char const* text,
+          IAsyTuple* pairMin, IAsyTuple* pairMax
+  )= 0;
+
+  /**
+   * Creates a draw element for clipping a picture. For more information, see
+   * <a href="https://asymptote.sourceforge.io/doc/clip.html">here</a>
+   *
+   * @param src Array of {@link IAsyPath*}. The enclosing path must be cyclic.
+   * @param stroke If true, the clipped region is the same as if the region
+   * drawn by the source path under zerowinding rule.
+   * @param pen Pen containing the fillrule to use when determining the clipping
+   * region.
+   * @param gSave
+   * @param key An optional unique key for xasy to differentiate elements. This
+   * value can be null.
+   *
+   * @remark In order to properly clip a picture, one must also create an end
+   * clip drawElement using {@link IAsyContext::createDrawElementEndClip} with a
+   * reference to this beginClip draw element and enclose both into a picture
+   * using {@link IAsyPicture::encloseDrawElements}.
+   * @return
+   */
+  virtual IAsyDrawElement* createDrawElementForBeginClip(
+          IAsyArray* src, bool stroke, IAsyPen* pen, bool gSave, char const* key
+  )= 0;
+
+  /** A corresponding element to {@link
+   * IAsyContext::createDrawElementForBeginClip}.
+   * @param beginClip Pointer to the matching {@link IAsyDrawElement} pointer
+   * created by {@link IAsyContext::createDrawElementForBeginClip}.
+   * @param gRestore This param must be same as the {@code gSave} parameter in
+   * the specified beginClip.
+   */
+  virtual IAsyDrawElement*
+  createDrawElementEndClip(IAsyDrawElement* beginClip, bool gRestore)= 0;
+
+  /** Runs a piece of Asymptote code in a non-embedded manner */
+  virtual void runString(char const* text, bool interactiveWrite)= 0;
+
+  /**
+   * Runs a piece of Asymptote code in a non-embedded manner.
+   *
+   * @param runnableCode A {@link THAsyRunnable} code handle.
+   *
+   * @remark There is no FFI call that creates one. A function to compile code
+   * is planned for the future. The handle must come from an Asymptote value of
+   * {@code code} type (see {@link Asy::BaseTypes::Code}) passed to your
+   * function -- typically {@code args->getNumberedArg(i)->asRawPointer()} on a
+   * code-typed argument. Passing any other pointer is undefined behavior.
+   */
+  virtual void runRunnable(THAsyRunnable runnableCode)= 0;
+};
+
+namespace Asy
+{
+
+/** Types of Asymptote */
+enum class BaseTypes : uint8_t
+{
+  /** Corresponds to void.
+   * If used as function return type, will not return any value */
+  Void= 0,
+
+  /** Corresponds to real (double-precision floating point) */
+  Real,
+
+  /** Corresponds to int (64-bit integer) */
+  Integer,
+
+  /** Corresponds to pair (x,y), where x and y are real values */
+  Pair,
+  /** Corresponds to triple (x,y,z), where x, y, and z are real values */
+  Triple,
+
+  /** Corresponds to bool */
+  Boolean,
+
+  /** Corresponds to string */
+  Str,
+
+  /** Corresponds to inferred type. Do not use this when specifying arguments */
+  Inferred,
+
+  /** Corresponds to 2D affine transform type */
+  Transform,
+
+  /** Corresponds to guide */
+  Guide,
+
+  /** Corresponds to path in 2D space */
+  Path,
+
+  /** Corresponds to path in 3D space */
+  Path3,
+
+  /** Corresponds to cycle token */
+  CycleToken,
+
+  /** Corresponds to tension specifier for paths */
+  TensionSpecifier,
+
+  /** Corresponds to curl specifier for paths */
+  CurlSpecifier,
+
+  /** Corresponds to Pen */
+  Pen,
+
+  /**
+   * Corresponds to pictures. Note that in Asymptote, the corresponding type is
+   * frame.
+   * @remark frame in Asymptote corresponds to C++-level picture, while picture
+   * in Asymptote is a wrapping struct on top.
+   */
+  Picture,
+
+  /** Corresponds to file */
+  File,
+
+  /** Corresponds to code. The object type is an opaque handle {@link
+     THAsyRunnable} */
+  Code,
+
+  /**
+   * Corresponds to array. If this type is specified in {@link Asy::TypeInfo},
+   * {@link Asy::TypeInfo::extraData.arrayTypeInfo} must be specified
+   */
+  ArrayType,
+
+  /** Corresponds to Asymptote structs */
+  Record,
+
+  /**
+   * Corresponds to Asymptote function type. If this type is specified in
+   * {@link Asy::TypeInfo}, {@link Asy::TypeInfo::extraData.functionTypeInfo}
+   * must be filled with appropriate information
+   */
+  FunctionType,
+};
+
+/** Pen overwrite types */
+enum class PenOverwrites : int8_t
+{
+  Default= -1,
+  Allow,
+  Suppress,
+  SuppressQuiet,
+  Move,
+  MoveQuiet
+};
+
+/** How the pen should fill covered areas. Corresponds to PostScript fill rules
+ */
+enum class PenFillRule : int8_t
+{
+  Default= -1,
+
+  /** Corresponds to standard postscript fill */
+  ZeroWinding,
+
+  /** Corresponds to eofill rule */
+  EvenOdd
+};
+
+/** How the pen handles base alignment */
+enum class PenBaseLine : int8_t
+{
+  Default= -1,
+
+  NoBaseAlign,
+
+  BaseAlign
+};
+
+/** Determines the color space for a pen */
+enum class PenColorSpace : uint8_t
+{
+  Default= 0,
+
+  /** Pen will not be visible */
+  Invisible,
+
+  /** Grayscale drawing*/
+  Grayscale,
+
+  /** Red/Green/Blue space. Best for displaying content on screen */
+  Rgb,
+
+  /** Cyan/Magenta/Yellow/Black space. Best for content that is on print */
+  Cmyk,
+
+  /** Pen draws/fills with a specific pattern */
+  Pattern
+};
+
+/**
+ * Determines how pen terminates the lines.
+ * This corresponds to Postscript line caps
+ */
+enum class PenLineCap : int8_t
+{
+  Default= -1,
+  Square,
+  Round,
+  Extended
+};
+
+/** Determine how the pen joins lines.
+ * This corresponds to Postscript join styles
+ */
+enum class PenLineJoin : int8_t
+{
+  Default= -1,
+  Miter,
+  Round,
+  Bevel
+};
+
+struct PenTransparencyInfo {
+  char const* blendType;
+  double opacity;
+};
+
+struct PenLineType {
+  /** Number of pattern entries that patternPtr array points to */
+  size_t patternCount;
+
+  /** Pointer to array of postscript pattern entries */
+  double* patternPtr;
+
+  /** Offset in the pattern to start drawing */
+  double offset;
+  /** Whether to scale the line type values by pen width */
+  bool scale;
+  /** Whether to adjust the line type values to fit an arclength */
+  bool adjust;
+};
+
+struct PenColor {
+  union
+  {
+    double red;
+    double cyan;
+  };
+  union
+  {
+    double green;
+    double magenta;
+  };
+  union
+  {
+    double blue;
+    double yellow;
+  };
+  union
+  {
+    double grey;
+    double k;
+  };
+};
+
+}// namespace Asy
+
+class IAsyTensionSpecifier
+{
+public:
+  virtual ~IAsyTensionSpecifier()= default;
+
+  [[nodiscard]]
+  virtual double getOut() const= 0;
+
+  [[nodiscard]]
+  virtual double getIn() const= 0;
+
+  [[nodiscard]]
+  virtual bool getAtleast() const= 0;
+};
+
+constexpr uint8_t ASY_SIDE_OUT= 0;
+constexpr uint8_t ASY_SIDE_IN= 1;
+constexpr uint8_t ASY_SIDE_END= 2;
+constexpr uint8_t ASY_SIDE_JOIN= 3;
+
+class IAsyCurlSpecifier
+{
+public:
+  virtual ~IAsyCurlSpecifier()= default;
+
+  [[nodiscard]]
+  virtual double getValue() const= 0;
+  [[nodiscard]]
+  virtual uint8_t getSideAsInt() const= 0;
+};
+
+class IAsySolvedKnot
+{
+public:
+  virtual ~IAsySolvedKnot()= default;
+
+  [[nodiscard]]
+  virtual IAsyTuple const* getPre() const= 0;
+
+  [[nodiscard]]
+  virtual IAsyTuple const* getPoint() const= 0;
+
+  [[nodiscard]]
+  virtual IAsyTuple const* getPost() const= 0;
+
+  [[nodiscard]]
+  virtual bool isStraight() const= 0;
+};
+
+class IAsyPath
+{
+public:
+  virtual ~IAsyPath()= default;
+
+  [[nodiscard]]
+  virtual bool isCyclic() const= 0;
+
+  [[nodiscard]]
+  virtual double getCachedLength() const= 0;
+
+  /** Gets the nth solved knot.
+   * @remark The pointer returned here may not be stable, which means
+   * after certain operations, this pointer may no longer point to a valid
+   * object
+   */
+  [[nodiscard]]
+  virtual IAsySolvedKnot const* getNodeAt(size_t index) const= 0;
+
+  [[nodiscard]]
+  virtual size_t getNodesCount() const= 0;
+
+  [[nodiscard]]
+  virtual IAsyBbox const* getBox() const= 0;
+
+  /** Gets the times where minimum and maximum extents are attained. */
+  [[nodiscard]]
+  virtual IAsyBbox const* getTimes() const= 0;
+};
+
+class IAsyPath3
+{
+public:
+  virtual ~IAsyPath3()= default;
+
+  [[nodiscard]]
+  virtual bool isCyclic() const= 0;
+
+  [[nodiscard]]
+  virtual double getCachedLength() const= 0;
+
+  /** Gets the nth solved knot.
+   * @remark The pointer returned here may not be stable, which means
+   * after certain operations, this pointer may no longer point to a valid
+   * object
+   */
+  [[nodiscard]]
+  virtual IAsySolvedKnot const* getNodeAt(size_t index) const= 0;
+
+  [[nodiscard]]
+  virtual size_t getNodesCount() const= 0;
+
+  [[nodiscard]]
+  virtual IAsyBbox3 const* getBox() const= 0;
+
+  /** Gets the times where minimum and maximum extents are attained. */
+  [[nodiscard]]
+  virtual IAsyBbox3 const* getTimes() const= 0;
+};
+
+/** Interface representing guides */
+class IAsyGuide
+{
+public:
+  virtual ~IAsyGuide()= default;
+
+  /**
+   * Returns a created path that represents the guide. Path is allocated
+   * using the garbage collector.
+   */
+  virtual IAsyPath* solveGuide()= 0;
+
+  /** Whether the path is cyclic */
+  [[nodiscard]]
+  virtual bool isCyclic()= 0;
+
+  [[nodiscard]]
+  virtual uint8_t getLocation() const= 0;
+};
+
+class IAsyBbox
+{
+public:
+  virtual ~IAsyBbox()= default;
+
+  [[nodiscard]]
+  virtual double getLeft() const= 0;
+
+  [[nodiscard]]
+  virtual double getRight() const= 0;
+
+  [[nodiscard]]
+  virtual double getTop() const= 0;
+
+  [[nodiscard]]
+  virtual double getBottom() const= 0;
+
+  [[nodiscard]]
+  virtual bool isEmpty() const= 0;
+};
+
+class IAsyBbox3 : public virtual IAsyBbox
+{
+public:
+  ~IAsyBbox3() override= default;
+
+  [[nodiscard]]
+  virtual double getNear() const= 0;
+
+  [[nodiscard]]
+  virtual double getFar() const= 0;
+};
+
+constexpr double ASY_PEN_DEFAULT_WIDTH= -1;
+
+class IAsyPen
+{
+public:
+  virtual ~IAsyPen()= default;
+
+  [[nodiscard]]
+  virtual double getLineWidth() const= 0;
+
+  /**
+   * @return A new string copy of pen's font
+   * @remark If the font is not explicitly specified, it returns the default
+   * font being used
+   */
+  [[nodiscard]]
+  virtual void* getFontName() const= 0;
+
+  virtual void setFontName(char const* newFont)= 0;
+
+  [[nodiscard]]
+  virtual double getFontSize() const= 0;
+
+  [[nodiscard]]
+  virtual double getLineSkip() const= 0;
+
+  [[nodiscard]]
+  virtual Asy::PenColorSpace getColorSpace() const= 0;
+  virtual bool tryPromoteColorSpace(Asy::PenColorSpace newColorSpace)= 0;
+
+  [[nodiscard]]
+  virtual double getRedOrCyan() const= 0;
+
+  [[nodiscard]]
+  virtual double getGreenOrMagenta() const= 0;
+
+  [[nodiscard]]
+  virtual double getBlueOrYellow() const= 0;
+
+  [[nodiscard]]
+  virtual double getGreyOrKValue() const= 0;
+
+  virtual void tryConvertToGreyscale()= 0;
+
+  [[nodiscard]]
+  virtual char const* getPatternName() const= 0;
+
+  [[nodiscard]]
+  virtual Asy::PenFillRule getFillRule() const= 0;
+
+  virtual void setFillRule(Asy::PenFillRule fillRule)= 0;
+
+  [[nodiscard]]
+  virtual Asy::PenBaseLine getBaseLine() const= 0;
+
+  [[nodiscard]]
+  virtual Asy::PenLineCap getLineCap() const= 0;
+
+  [[nodiscard]]
+  virtual Asy::PenLineJoin getLineJoin() const= 0;
+
+  [[nodiscard]]
+  virtual double getMiterLimit() const= 0;
+
+  [[nodiscard]]
+  virtual Asy::PenOverwrites getOverwriteValue() const= 0;
+
+  /**
+   * If the pen's transform is null, this function returns the default transform
+   * value.
+   * @remark This transform is a copy of the pen's transform.
+   */
+  [[nodiscard]]
+  virtual IAsyTransform const* getTransformValue() const= 0;
+
+  /** Creates a new pen copy that is this pen composed with another pen */
+  virtual IAsyPen* composeWithAnotherPen(IAsyPen const* other) const= 0;
+
+  /** Creates a new pen that has its colors multiplied by factor */
+  [[nodiscard]]
+  virtual IAsyPen* multiplyColor(double factor) const= 0;
+
+  virtual void
+  setColor(Asy::PenColorSpace newColorSpace, Asy::PenColor newColor)= 0;
+};
+
+namespace Asy
+{
+
+struct ArrayTypeMetadata {
+  /** The type of the item that the array is storing. Cannot be ArrayType */
+  TypeInfo const* typeOfItem;
+
+  /** Dimensions of the array. Must be greater than zero. */
+  size_t dimension;
+};
+
+/**
+ * Struct to hold data about a function type. Unlike
+ * {@link Asy::FunctionTypeMetadata} AsyTypeInfo must be a pointer to an
+ * existing AsyTypeInfo object. This is because the former struct has
+ * a dependency on {@link Asy::TypeInfo}, however AsyTypeInfo has a dependency
+ * on this struct
+ */
+struct FunctionTypePtrRetMetadata {
+
+  /** Pointer to a return type object for a function */
+  TypeInfo const* returnType;
+
+  /** Number of arguments */
+  size_t numArgs;
+
+  /**
+   * Pointer to an AsyFnArgMetadata array which stores information about
+   * each argument
+   */
+  FnArgMetadata const* argInfoPtr;
+};
+
+/**
+ * Information about a particular asymptote type.
+ */
+struct TypeInfo {
+  /** Base type information */
+  BaseTypes baseType;
+
+  /**
+   * Pointer to additional data. For most types, this value is not used.
+   * For {@link Asy::BaseTypes::ArrayType}, extraData must point to a struct of
+   * {@link Asy::ArrayTypeMetadata} in arrayTypeInfo.
+   */
+  union
+  {
+    /** This is required for arrays. */
+    ArrayTypeMetadata arrayTypeInfo;
+
+    /** This is required for function types */
+    FunctionTypePtrRetMetadata functionTypeInfo;
+
+    /** This is required for records */
+    IAsyRecord* recordPtr;
+  } extraData;
+};
+
+/**
+ * This struct is like {@link Asy::FunctionTypePtrRetMetadata} however
+ * returnType is not a pointer.
+ */
+struct FunctionTypeMetadata {
+
+  /** Return type of the function */
+  TypeInfo returnType;
+
+  /** Number of arguments */
+  size_t numArgs;
+
+  /** Pointer to an array about each argument's type information */
+  FnArgMetadata const* argInfoPtr;
+};
+
+/**
+ * Information about each argument for an asymptote external function
+ */
+struct FnArgMetadata {
+  /** Argument type */
+  TypeInfo type;
+
+  /** Argument name */
+  char const* name;
+
+  /** Whether the argument is optional */
+  bool optional;
+
+  /** Whether the argument needs to be specified explicitly. */
+  bool explicitArgs;
+};
+
+}// namespace Asy
+
+/**
+ * Context interface for any asy operations involving stack
+ * (e.g., executing code in the current environment, changing variables, etc.)
+ */
+class IAsyStackContext
+{
+public:
+  virtual ~IAsyStackContext()= default;
+
+  /**
+   * Calls an asymptote function. This does not pop any value out of stack
+   * after call
+   *
+   * @param callable Function to call
+   * @param numArgs number of arguments
+   * @param ptrArgs pointer to an array of IAsyItem pointers
+   */
+  virtual void
+  callVoid(IAsyCallable* callable, size_t numArgs, IAsyItem const** ptrArgs)= 0;
+
+  /**
+   * Calls an asymptote function and pops & returns the top-most item in the
+   * stack
+   *
+   * @param callable Function to call
+   * @param numArgs number of arguments
+   * @param ptrArgs pointer to an array of IAsyItem pointers
+   *
+   * @return Pointer to the popped item of the stack that is returned from the
+   * function.
+   *
+   * @remark Running this function on a void callable has undefined behaviour.
+   */
+  virtual IAsyItem* callReturning(
+          IAsyCallable* callable, size_t numArgs, IAsyItem const** ptrArgs
+  )= 0;
+
+  /**
+   * Calls an asymptote function and pops & returns the top-most item in the
+   * stack in an existing item
+   *
+   * @param callable Function to call
+   * @param numArgs number of arguments
+   * @param ptrArgs pointer to an array of IAsyItem pointers
+   * @param returnItem pointer to an item to store the returned object
+   *
+   * @remark Running this function on a void callable has undefined behaviour.
+   */
+  virtual void callReturningToExistingItem(
+          IAsyCallable* callable, size_t numArgs, IAsyItem const** ptrArgs,
+          IAsyItem* returnItem
+  )= 0;
+
+  /**
+   * Gets a function fnName, either from top-level or in a specified, if given.
+   *
+   * @param module If given, the function will be retrieved from this module,
+   * otherwise if this parameter is null, will get the function from top-level.
+   * @param fnName name of the function.
+   * @param typeInfo Type of the built-in function.
+   *
+   * @return Object to the built-in function, or null if such built-in cannot be
+   * found.
+   */
+  virtual IAsyCallable*
+  getBuiltin(char const* module, char const* fnName, Asy::TypeInfo typeInfo)= 0;
+
+  /** Whether the stack is interactive. Only interactive stacks can run embedded
+   * code. */
+  [[nodiscard]]
+  virtual bool isInteractive() const= 0;
+
+  /** Runs a piece of Asymptote code in an embedded manner. The stack must be of
+   * interactive type. */
+  virtual void runStringEmbedded(char const* text)= 0;
+
+  /**
+   * Runs a piece of runnable code in an embedded manner. The stack must be of
+   * an interactive type.
+   *
+   * @param runnableCode A {@link THAsyRunnable} code handle, which must come
+   * from an Asymptote value of {@code code} type ({@link Asy::BaseTypes::Code});
+   *
+   *
+   * @remark Right now, there is no FFI call that creates one. This is planned
+   * for the future. Passing any other pointer is undefined behavior.
+   */
+  virtual void runCodeEmbedded(THAsyRunnable runnableCode)= 0;
+};
+
+/**
+ * Setter/Getter interface for Pair and Triple types and other types
+ * implementing a tuple interface
+ */
+class IAsyTuple
+{
+public:
+  virtual ~IAsyTuple()= default;
+
+  /**
+   * Gets the value.
+   * @param index In the case of a pair or triple,
+   * 0 index corresponds to the "x" value, 1 to "y" and for triple,
+   * and 2 to "z". In other cases, return the element at that index as
+   * specified by the type implementing IAsyTuple.
+   *
+   * @return Value of that element
+   */
+  [[nodiscard]]
+  virtual double getIndexedValue(size_t const& index) const= 0;
+
+  /**
+   * Set value.
+   * @param index In the case of a pair or triple,
+   *  0 corresponds to the "x" value, 1 to "y" and for triple,
+   *  and 2 to "z". In other cases, sets the element at that index as specified
+   *  by the type implementing IAsyTuple.
+   * @param val Value to set the element to
+   */
+  virtual void setIndexedValue(size_t const& index, double const& val)= 0;
+
+  /** @return 2 if object is a pair, 3 if triple. In other cases, the number
+   * of elements specified by the type implementing IAsyTuple.
+   */
+  [[nodiscard]]
+  virtual size_t getTupleSize() const= 0;
+};
+
+/**
+ * Function type for foreign function.
+ * Function will pass (context, stackContext, args, returnItem). If the function
+ * is registered as void, returnItem will be set as nullptr
+ */
+typedef void (*LNK_CALL TAsyForeignFunction)(
+        IAsyContext*, IAsyStackContext*, IAsyArgs*, IAsyItem*
+);
+
+/**
+ * An interface representing a 2D affine transform. It is a tuple
+ * (x, y, xx, xy, yx, yy) where the R^2 transform function T is defined as
+ * (u, v) -> (x + xx*u + xy*v, y + yx*u + yy*v)
+ */
+class IAsyTransform : public virtual IAsyTuple
+{
+public:
+  ~IAsyTransform() override= default;
+
+  [[nodiscard]]
+  virtual double getx() const= 0;
+
+  [[nodiscard]]
+  virtual double gety() const= 0;
+
+  [[nodiscard]]
+  virtual double getxx() const= 0;
+
+  [[nodiscard]]
+  virtual double getxy() const= 0;
+
+  [[nodiscard]]
+  virtual double getyy() const= 0;
+
+  [[nodiscard]]
+  virtual double getyx() const= 0;
+
+  virtual void setFromAnotherTransform(IAsyTransform const* other)= 0;
+
+  /** Applies transformation from in and returns out. Both in and out
+   * must be pairs */
+  virtual void apply(IAsyTuple* in, IAsyTuple* out)= 0;
+};
+
+/** Interface for Asymptote global environment which manages module imports */
+class IAsyGlobalEnvironment
+{
+public:
+  virtual ~IAsyGlobalEnvironment()= default;
+
+  /**
+   * Get a file module as record. If this module has already been loaded,
+   * returns the existing module, otherwise loads the module from fileName
+   */
+  virtual IAsyRecord*
+  loadFileModule(const char* moduleName, const char* fileName)= 0;
+
+  /** Returns an existing module. If the module is not already loaded,
+   * its behavior is undefined. */
+  virtual IAsyRecord* loadExistingModule(const char* id)= 0;
+};
+
+class IAsyFfiRegisterer
+{
+public:
+  virtual ~IAsyFfiRegisterer()= default;
+
+  virtual void registerFunction(
+          char const* name, TAsyForeignFunction fn,
+          Asy::FunctionTypeMetadata const& fnTypeInfo
+  )= 0;
+
+  virtual IAsyContext* getContext()= 0;
+
+  /** @return Asymptote global module import manager */
+  virtual IAsyGlobalEnvironment* getGlobalEnvironment()= 0;
+};
+
+
+namespace Asy
+{
+enum class AccessTypes : uint8_t
+{
+  Builtin,
+  Local,
+};
+
+}
+
+class IAsyAccess
+{
+public:
+  virtual ~IAsyAccess()= default;
+
+  virtual void* tryCastTo(Asy::AccessTypes accessType)= 0;
+};
+
+class IAsyLocalAccess
+{
+public:
+  virtual ~IAsyLocalAccess()= default;
+
+  [[nodiscard]]
+  virtual int64_t getOffset() const= 0;
+};
+
+class IAsyBuiltinAccess
+{
+public:
+  virtual ~IAsyBuiltinAccess()= default;
+};
+
+namespace Asy
+{
+
+/** Whether a lambda requires a closure or not */
+enum class ClosureRequirement : uint8_t
+{
+  /**
+   * A closure is required.
+   * This is the case when a variable escapes a lambda function.
+   */
+  Required= 0,
+
+  /** A closure is not required. */
+  NotRequired,
+
+  /**
+   * It is not yet known. When a lambda is run for the first time, the
+   * requirement is updated to {@link Required} or {@link NotRequired}.
+   */
+  Maybe,
+};
+
+}// namespace Asy
+
+/**
+ * Interface for Asymptote's lambda, which is a combination of a runnable code
+ * block, variables and its closure, if applicable.
+ */
+class IAsyLambda
+{
+public:
+  virtual ~IAsyLambda()= default;
+
+  [[nodiscard]]
+  virtual size_t getFrameSize() const= 0;
+
+  [[nodiscard]]
+  virtual size_t getParentIndex() const= 0;
+
+  [[nodiscard]]
+  virtual Asy::ClosureRequirement getClosureRequirement() const= 0;
+};
+
+/**
+ * Interface for Asymptote variable frames, which are how
+ * Asymptote internally stores its structs. Variables are accessible as
+ * an array where each element is the struct's variables (or functions).
+ * This virtual array stores the variables in the order they are defined in the
+ * original struct.
+ *
+ * @remark For plugin developers & Asymptote users, be careful that the changing
+ * the order of variables in the struct changes their order here. This can break
+ * compatibility of external code.
+ */
+class IAsyVarFrame
+{
+public:
+  virtual ~IAsyVarFrame()= default;
+
+  /**
+   * Gets an item from the array. This value of this item is modifiable (e.g.
+   * if the item contains a pointer, one may change the pointer's value).
+   *
+   * @remark For setting items, use this function to get the item and change
+   * the item's values.
+   *
+   * @remark The first field of the struct is stored at index 1,
+   * while index 0 is used for internal storage.
+   */
+  virtual IAsyItem* getItem(size_t const& index)= 0;
+
+  /** Gets an item from the array. The item here is not modifiable. */
+  [[nodiscard]]
+  virtual IAsyItem const* getItemConst(size_t const& index) const= 0;
+
+  /** Gets size of the variable frame (i.e. the number of elements in a struct)
+   */
+  [[nodiscard]]
+  virtual size_t getSize() const= 0;
+
+  /**
+   * Extends the variable frame to fit n elements. This function is inert
+   * if the variable frame already holds more n elements or more.
+   */
+  virtual void extend(size_t const& n)= 0;
+};
+
+class IAsyVarEntry
+{
+public:
+  virtual ~IAsyVarEntry()= default;
+
+  virtual IAsyAccess* getAccess()= 0;
+};
+
+/**
+ * Interface for Proto-Environment.
+ * This is where Asymptote stores type definitions and variable names.
+ *
+ */
+class IAsyProtoEnvironment
+{
+public:
+  virtual ~IAsyProtoEnvironment()= default;
+
+  /** Return the type associated with the typename.
+   * If the type does not exist, returns a null pointer. */
+  virtual THAsyType getType(char const* typeName)= 0;
+
+  /** Return the type as record.
+   * If the type does not exist or exists but is not a record (struct) type,
+   * this function returns a nullptr. */
+  virtual IAsyRecord* getTypeAsRecord(char const* typeName)= 0;
+
+  virtual THAsyType getTypeFromVariable(char const* varName)= 0;
+
+  virtual IAsyVarEntry* getVarRecord(char const* varName, THAsyType type)= 0;
+};
+
+/**
+ * Interface for Asymptote records. Records are how Asymptote stores internal
+ * imported files, code blocks and struct definitions. Note that IAsyRecord do
+ * not store individual instances of structs, but rather definitions (e.g. which
+ * fields are present, which code should get executed).
+ *
+ * To access a data of a struct instance, use {@link IAsyVarFrame}.
+ */
+class IAsyRecord
+{
+public:
+  virtual ~IAsyRecord()= default;
+
+  /**
+   * Returns the init lambda for the record. This is useful for creating
+   * new instances of a record.
+   */
+  virtual IAsyLambda* getInitLambda()= 0;
+
+  /** Return the proto-environment (type & variable records) associated with
+   * this struct/code block */
+  virtual IAsyProtoEnvironment* getProtoEnvironment()= 0;
+
+  /** Return the post-definition proto-environment (type & variable records)
+   * associated with this struct/code block */
+  virtual IAsyProtoEnvironment* getPostDefinitionProtoEnvironment()= 0;
+};
+
+/** Function type for an Asymptote plugin registration point */
+typedef void (*LNK_CALL TAsyRegisterDynlibFn)(IAsyContext*, IAsyFfiRegisterer*);
+
+// convenience macros for asy function registration
+
+/** Macro to declare registration point for an Asymptote plugin */
+#define REGISTER_FN_SIG                                                        \
+  void LNK_CALL registerAsymptotePlugin(                                       \
+          IAsyContext* context, IAsyFfiRegisterer* registerer                  \
+  )
+
+/** Macro to declare registration point function for an Asymptote plugin */
+#define DECLARE_REGISTER_FN extern "C" ASY_FFI_EXPORT REGISTER_FN_SIG
+
+/** Helper macro to declare an Asymptote foreign function with functionName */
+#define ASY_FOREIGN_FUNC_SIG(functionName)                                     \
+  void LNK_CALL functionName(                                                  \
+          IAsyContext* context, IAsyStackContext* stackContext,                \
+          IAsyArgs* args, IAsyItem* returnValue                                \
+  )
+
+/**
+ * Shorthand for "functionName", &functionName for registering functions
+ */
+#define ASYFFI_FN_NAME_AND_ADDR(functionName) #functionName, &(functionName)
