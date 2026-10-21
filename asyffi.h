@@ -23,6 +23,7 @@
  * limitations under the License.
  */
 
+#include <cstddef>
 #include <cstdint>
 
 #if defined(_WIN32)
@@ -37,7 +38,6 @@
 #  endif
 
 #elif defined(__linux__) || defined(__APPLE__)
-#  include <cstddef>
 #  define ASY_FFI_EXPORT [[gnu::visibility("default")]]
 
 // like the case for windows. LNK_CALL is not used for 64-bit systems.
@@ -103,7 +103,7 @@ public:
    * On compact asymptote builds, this function behaves the same as
    * {@link setRawPointer(void*)}.
    *
-   * @remark Most builds (in particular, builds suppliied from asymptote
+   * @remark Most builds (in particular, builds supplied from asymptote
    * website) are compact and hence if one is not targeting non-compact
    * function, there is no need to use this function.
    */
@@ -310,6 +310,7 @@ public:
   virtual void prependToPicture(IAsyPicture* otherPic)= 0;
 
   /** Returns whether this picture has labels */
+  [[nodiscard]]
   virtual bool hasLabels()= 0;
 
   /** Returns whether this picture has 3D elements */
@@ -378,7 +379,7 @@ public:
 
   /**
    * In a compact build, the couple highest values in Int (INT_MAX) are
-   * reserved for default/undefined values. In addition, there are speical
+   * reserved for default/undefined values. In addition, there are special
    * numbers to store "truthy" and "falsy" values for boolean
    */
   [[nodiscard]]
@@ -657,7 +658,7 @@ public:
   virtual IAsyDrawElement*
   createDrawElementFromPath(IAsyPath* path, IAsyPen* pen, char const* key)= 0;
 
-  /** Creates a new 3D draw element from a given path and a pen. They key
+  /** Creates a new 3D draw element from a given path and a pen. The key
    * parameter is used to differentiate elements for use with xasy.
    */
   virtual IAsyDrawElement* createDrawElementFromPath3(
@@ -777,7 +778,7 @@ public:
    * href="https://asymptote.sourceforge.io/doc/fill.html">here</a>.
    *
    * @param srcPaths Array of paths to use for filling
-   * @param stroke Whether to also the boundaries with zerowinding rule
+   * @param stroke Whether to also draw the boundaries with zerowinding rule
    * @param penType pen to use for filling
    * @param shader String containing postscript calculator routine. This routine
    * is in the form {@code (x: real, y: real) -> color} where x and y are values
@@ -798,9 +799,9 @@ public:
    * gouraudshade(...)} <a
    * href="https://asymptote.sourceforge.io/doc/fill.html">here</a>.
    * @param srcPaths Array of paths to use for filling
-   * @param stroke Whether to also the boundaries with zerowinding rule
+   * @param stroke Whether to also draw the boundaries with zerowinding rule
    * @param penType pen to use for filling
-   * @param pens Array of pens tfor each vertex color on a triangle lattice
+   * @param pens Array of pens for each vertex color on a triangle lattice
    * @param pairVertices Array of pairs to specify vertices of a triangle
    * lattice to use for shading
    * @param intEdges Flags for each edge of the triangle lattice
@@ -819,7 +820,7 @@ public:
    * tensorshade(...)} <a
    * href="https://asymptote.sourceforge.io/doc/fill.html">here</a>.
    * @param srcPaths Array of paths to use for filling
-   * @param stroke Whether to also the boundaries with zerowinding rule
+   * @param stroke Whether to also draw the boundaries with zerowinding rule
    * @param penType pen to use for filling
    * @param pens 2D Array of pens for each vertex color on a triangle lattice
    * @param boundaries Array of paths. Each path must be of length 4
@@ -907,7 +908,7 @@ public:
    * @remark In order to properly clip a picture, one must also create an end
    * clip drawElement using {@link IAsyContext::createDrawElementEndClip} with a
    * reference to this beginClip draw element and enclose both into a picture
-   * using {@link IAsyPicture::encloseDrawElements}}.
+   * using {@link IAsyPicture::encloseDrawElements}.
    * @return
    */
   virtual IAsyDrawElement* createDrawElementForBeginClip(
@@ -1020,7 +1021,7 @@ enum class BaseTypes : uint8_t
   Record,
 
   /**
-   * Corresponds to Asympote function type. If this type is specified in
+   * Corresponds to Asymptote function type. If this type is specified in
    * {@link Asy::TypeInfo}, {@link Asy::TypeInfo::extraData.functionTypeInfo}
    * must be filled with appropriate information
    */
@@ -1306,10 +1307,10 @@ public:
   ~IAsyBbox3() override= default;
 
   [[nodiscard]]
-  virtual double getNear()= 0;
+  virtual double getNear() const= 0;
 
   [[nodiscard]]
-  virtual double getFar()= 0;
+  virtual double getFar() const= 0;
 };
 
 constexpr double ASY_PEN_DEFAULT_WIDTH= -1;
