@@ -23,6 +23,9 @@ GCLIB = @GCLIB@
 # such as CC="gcc -m32", force a rebuild with "make gc-clean".
 GCBUILDFLAGS = $(MACOS_CFLAGS) $(GCOPTIONS)
 GCSTAMP = gc-build-flags.txt
+# Build gc without LTO: on macOS an LTO-built libgc fails its own tests
+# (gctest, staticrootstest, ...) with a silent exit status 1.
+GC_CFLAGS = $(filter-out -flto,$(CFLAGS))
 LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIB) @LSPLIBS@
 CXX_STANDARD = @CXX_STANDARD@
@@ -341,7 +344,7 @@ $(GCSTAMP): FORCE
 $(GCLIB): $(GCSTAMP)
 	-cd $(GC) && ln -sf ../libatomic_ops libatomic_ops
 	cd $(GC) && \
-		./configure CC="$(CC)" CXX="$(CXX)" CFLAGS="$(MACOS_CFLAGS) $(CFLAGS)" CXXFLAGS="$(MACOS_CFLAGS) $(CXXFLAGS)" $(GCOPTIONS)
+		./configure CC="$(CC)" CXX="$(CXX)" CFLAGS="$(MACOS_CFLAGS) $(GC_CFLAGS)" CXXFLAGS="$(MACOS_CFLAGS) $(CXXFLAGS)" $(GCOPTIONS)
 	$(MAKE) -C $(GC) all CFLAGS_EXTRA="$(MACOS_CFLAGS)"
 	$(MAKE) -C $(GC) check CFLAGS_EXTRA="$(MACOS_CFLAGS)"
 
