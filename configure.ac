@@ -7,7 +7,6 @@ AC_INIT([Asymptote],[3.16git],[https://github.com/vectorgraphics/asymptote/issue
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
-m4_include([ax_gcc_x86_cpu_supports.m4])
 m4_include([pkg.m4])
 
 AH_TOP([#pragma once])
@@ -121,28 +120,31 @@ AS_IF(
    [
       case "$host_cpu" in
         x86_64|amd64|i686|x86)
-           # Guard: only call AX_GCC_X86_CPU_SUPPORTS if the compiler actually
-           # has the __builtin_cpu_init / __builtin_cpu_supports builtins.
-           # The upstream macro calls AC_MSG_ERROR when they are missing;
-           # pre-testing here lets us fall back to baseline gracefully instead.
+           # Check AVX2 inline rather than with AX_GCC_X86_CPU_SUPPORTS:
+           # that macro AC_REQUIREs a check that errors out when the compiler
+           # lacks __builtin_cpu_init, and AC_REQUIRE hoists that check out of
+           # this case statement, so it ran (and failed) on non-x86 hosts too.
+           # An AC_RUN_IFELSE here only runs on x86; a compiler without the
+           # builtins fails to compile or link the test program, which falls
+           # back to baseline x86-64. The fourth argument to AC_RUN_IFELSE is
+           # the cross-compile default.
            AC_LANG_PUSH([C])
-           AC_COMPILE_IFELSE(
-              [AC_LANG_PROGRAM([#include <stdlib.h>],
-                [__builtin_cpu_init ();])
-              ],
-              [AX_GCC_X86_CPU_SUPPORTS(avx2, [
-                 with_x86_64_v3_targeting=yes
-                 AC_MSG_NOTICE([Build CPU supports AVX2, targeting x86-64-v3])
-               ], [
-                 with_x86_64_v3_targeting=no
-                 AC_MSG_NOTICE([Build CPU does not support AVX2, using baseline x86-64])
-               ])
-              ],
-              [with_x86_64_v3_targeting=no
-               AC_MSG_NOTICE([Compiler lacks __builtin_cpu_init; skipping AVX2 detection, using baseline x86-64])
-              ]
-           )
+           AC_CACHE_CHECK([whether the build CPU supports AVX2],
+              [asy_cv_cpu_supports_avx2],
+              [AC_RUN_IFELSE(
+                 [AC_LANG_PROGRAM([],
+                   [__builtin_cpu_init ();
+                    return __builtin_cpu_supports ("avx2") ? 0 : 1;])
+                 ],
+                 [asy_cv_cpu_supports_avx2=yes],
+                 [asy_cv_cpu_supports_avx2=no],
+                 [asy_cv_cpu_supports_avx2=no])])
            AC_LANG_POP([C])
+           AS_IF([test "x$asy_cv_cpu_supports_avx2" = "xyes"],
+              [with_x86_64_v3_targeting=yes
+               AC_MSG_NOTICE([Build CPU supports AVX2, targeting x86-64-v3])],
+              [with_x86_64_v3_targeting=no
+               AC_MSG_NOTICE([AVX2 not detected, using baseline x86-64])])
            ;;
         *)
            with_x86_64_v3_targeting=no
