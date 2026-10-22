@@ -338,7 +338,7 @@ AC_ARG_ENABLE(
 if test "x$enable_threads" != "xno"; then
    AX_PTHREAD
 else
-   GCOPTIONS=$GCOPTIONS"--disable-threads "
+   GCOPTIONS="$GCOPTIONS --disable-threads"
 fi
 
 # --------------- sigsegv ------------------------------
@@ -502,7 +502,7 @@ AC_ARG_ENABLE(gc-full-debug,
     if test "x$enableval" = "xyes" ; then
       AC_DEFINE(GC_DEBUG,1,[GC Debug is enabled])
       AC_DEFINE(GC_BACKTRACE,1,[GC backtrace is enabled])
-      GCOPTIONS=$GCOPTIONS"--enable-gc-debug "
+      GCOPTIONS="$GCOPTIONS --enable-gc-debug"
       AC_MSG_NOTICE([*** Enabling GC backtrace debugging; remember to make gc-clean ***])
     fi
  fi
