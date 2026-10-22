@@ -281,6 +281,13 @@ installing it, using the @code{Asymptote Web Application}:
 It is also possible to send remote commands to this server via the
 curl utility (@pxref{Command-Line Interface}).
 
+The @code{Asymptote Wiki} at
+@url{https://asymptote.ualberta.ca/wiki/} is a community gallery
+where users can share examples and modules. Examples are organized
+into user-defined categories, compiled with the installed version of
+@code{Asymptote}, and displayed as inline @acronym{SVG} (2D) or
+interactive @acronym{WebGL} (3D).
+
 A major advantage of @code{Asymptote} over other graphics packages is
 that it is a high-level programming language, as opposed to just a graphics
 application: it can therefore exploit the best features of the script
