@@ -5,6 +5,8 @@
 
 #if !defined(_WIN32)
 #include <sys/resource.h>
+#include <unistd.h>
+#include <time.h>
 #endif
 
 
@@ -22,9 +24,6 @@ inline double cpuTime() {
               ((unsigned long long)d.dwHighDateTime << 32))*100.0 : 0.0;
 }
 #else
-#include <unistd.h>
-#include <time.h>
-
 inline double cpuTime() {
 #ifdef CLOCK_PROCESS_CPUTIME_ID
   timespec t;
