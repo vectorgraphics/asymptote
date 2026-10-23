@@ -60,7 +60,9 @@ static string narrowPath(std::filesystem::path const& path)
 // with narrowing applied once to the result (narrowing first would resolve a
 // path that had already lost characters). canonical() uses the error_code
 // overload so a missing path yields "" rather than throwing. Shared with
-// insearchpath() (util.cc) for the -noglobalread import/include gate.
+// insearchpath() (util.cc, which declares it locally) for the -noglobalread
+// import/include gate; declared in util.cc rather than locate.h to keep
+// <filesystem> out of the widely-included header.
 string canonicalPath(std::filesystem::path const& path)
 {
   std::error_code ec;

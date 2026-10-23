@@ -408,6 +408,14 @@ string outpath(string name)
   return stripFile(outname())+stripDir(name);
 }
 
+// Defined in locate.cc; declared here (not in locate.h) so that the
+// <filesystem> include stays out of the widely-included header (on Windows it
+// pulls in <locale>, whose two-argument isxdigit collides with readline's
+// one-argument isxdigit macro in any TU that includes both).
+namespace settings {
+string canonicalPath(std::filesystem::path const& path);
+}
+
 // True if `name` resolves (via the module search path) to a file within one of
 // the search-path directories. A bare module name or a search-path-relative
 // name (e.g. "collections/iter") resolves inside the search area; an absolute
