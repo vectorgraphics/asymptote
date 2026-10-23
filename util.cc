@@ -12,6 +12,7 @@
 #include <sstream>
 #include <cerrno>
 #include <cstdlib>
+#include <filesystem>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -405,6 +406,27 @@ string outpath(string name)
   if(global && !dir.empty()) return name;
   checkwrite(name);
   return stripFile(outname())+stripDir(name);
+}
+
+// True if `name` resolves (via the module search path) to a file within one of
+// the search-path directories. A bare module name or a search-path-relative
+// name (e.g. "collections/iter") resolves inside the search area; an absolute
+// path or a ".." traversal resolves outside it. Names that do not resolve are
+// left for the caller's lookup to report, so this returns true for them.
+bool insearchpath(const string& name)
+{
+  string file=settings::locateFile(name);
+  if(file.empty()) return true;
+  string rf=settings::canonicalPath(std::filesystem::path(file));
+  if(rf.empty()) return false;
+  for(const string& dir:settings::searchPath) {
+    string rd=settings::canonicalPath(std::filesystem::path(dir));
+    if(rd.empty()) continue;
+    string bound=rd+settings::dirsep;
+    if(rf.compare(0,bound.size(),bound)==0)
+      return true;
+  }
+  return false;
 }
 
 string buildname(string prefix, string suffix, string aux)

@@ -1404,6 +1404,13 @@ void includedec::loadFailed(coenv &)
 
 void includedec::transAsField(coenv &e, record *r)
 {
+  // Under -noglobalread an include may only read a file that resolves within
+  // the module search path (as with import): a bare name or a search-path-
+  // relative name is fine, but an absolute path or a ".." traversal resolves
+  // outside it and is rejected. No-op when globalread is enabled; URL includes
+  // are handled by curlEnabled() inside parseFile.
+  if(!settings::globalread() && !parser::isURL(filename) && !insearchpath(filename))
+    readDisabled();
   file *ast = parser::parseFile(filename,"Including");
   em.sync();
 

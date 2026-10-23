@@ -5,9 +5,10 @@
  * Locate files in search path.
  *****/
 
+#include <filesystem>
+#include <system_error>
+
 #if defined(_WIN32)
-#  include <filesystem>
-#  include <system_error>
 #  include <vector>
 #  include <Windows.h>
 #else
@@ -38,49 +39,34 @@ namespace settings
 // runs as a static initializer in settings.cc -- to assign it.
 bool relocatedSysdir= false;
 
-#if defined(_WIN32)
-// Narrow a path to the encoding the rest of the program uses for paths.
-//
-// asy strings are 8-bit, and the file APIs this program reaches for on Windows
-// are the ...A variants (PathFileExistsA in fileExists(), the narrow CRT
-// elsewhere), so a path handed to them must be in the process code page -- not
-// UTF-8. The narrowing done by path::string() follows that same code page, so
-// its result is what those APIs expect.
-//
-// A path containing characters outside that code page is therefore not
-// representable here, and path::string() substitutes for them silently.
-
-// Returns "" rather than letting an exception escape. resolveSysdir() guards
-// its whole body for the static-initializer case, but this is also reached at
-// runtime through executableDir(), and "" is the not-representable answer both
-// paths already handle.
+// Narrow a std::filesystem::path to an asy string. On Windows asy's 8-bit
+// paths and the ...A file APIs live in the process code page, which is what
+// path::string() produces; there a path holding characters outside that code
+// page is not representable, and path::string() may throw, so return "" rather
+// than let the exception escape -- the not-representable answer the callers
+// already handle. On POSIX the guard is a defensive no-op.
 static string narrowPath(std::filesystem::path const& path)
 {
   try {
-    return string(path.string().c_str());
+    return string(path.string());
   } catch (...) {
     return "";
   }
 }
 
-// Resolve symlinks, junctions and 8.3 short names in a path, or return "" if it
-// cannot be resolved. This is the Win32 counterpart of the realpath() call in
-// the __APPLE__ branch below, and exists for the same reason: GetModuleFileNameW
-// reports the path the process was launched from, unresolved, and only reopening
-// the file and asking for its final name gets past a reparse point.
-//
-// The argument is a path rather than a string so that the resolution runs on the
-// wide form throughout, with narrowPath() applied once to the result. Narrowing
-// first would resolve a path that had already lost characters.
-static string canonicalPath(std::filesystem::path const& path)
+// Resolve symlinks and ".." in path to a canonical absolute path as an asy
+// string, or "" if it cannot be resolved. The argument is a path rather than a
+// string so that, on Windows, the resolution runs on the wide form throughout
+// with narrowing applied once to the result (narrowing first would resolve a
+// path that had already lost characters). canonical() uses the error_code
+// overload so a missing path yields "" rather than throwing. Shared with
+// insearchpath() (util.cc) for the -noglobalread import/include gate.
+string canonicalPath(std::filesystem::path const& path)
 {
-  // The error_code overload, not the throwing one, for the reason given above
-  // narrowPath().
   std::error_code ec;
   std::filesystem::path const resolved= std::filesystem::canonical(path, ec);
   return ec ? "" : narrowPath(resolved);
 }
-#endif
 
 // Absolute path of the running executable, or "" if it cannot be determined.
 // Declared in locate.h: rendererloader.cc and vkrender.cc resolve co-installed

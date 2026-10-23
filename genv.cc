@@ -116,6 +116,14 @@ bool endswith(string suffix, string str)
 }
 
 record *genv::loadModule(symbol id, string filename) {
+  // Under -noglobalread an import may only read a file that resolves within
+  // the module search path: a bare name or a search-path-relative name (e.g.
+  // "collections/iter") is fine, but an absolute path or a ".." traversal
+  // resolves outside it and is rejected. No-op when globalread is enabled; URL
+  // imports are handled by curlEnabled() inside parseFile.
+  if(!settings::globalread() && !parser::isURL(filename) && !insearchpath(filename))
+    readDisabled();
+
   // Get the abstract syntax tree.
   absyntax::file *ast = parser::parseFile(filename,"Loading");
 
@@ -135,6 +143,10 @@ record *genv::loadTemplatedModule(
       string filename,
       mem::vector<absyntax::namedTy*> *args
 ) {
+
+  // Same -noglobalread search-path gate as loadModule; see there.
+  if(!settings::globalread() && !parser::isURL(filename) && !insearchpath(filename))
+    readDisabled();
 
   // Get the abstract syntax tree.
   absyntax::file *ast = parser::parseFile(filename,"Loading");

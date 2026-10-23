@@ -8,6 +8,8 @@
 #ifndef LOCATE_H
 #define LOCATE_H
 
+#include <filesystem>
+
 #include "common.h"
 #include "settings.h"
 
@@ -30,6 +32,13 @@ string executablePath();
 // use this rather than rolling their own: the search path is CWD-dependent and
 // can pick up a stale system-wide installation.
 string executableDir();
+
+// Resolve symlinks and ".." in path to a canonical absolute path as an asy
+// string, or "" if it cannot be resolved. Takes a path (not a string) so that,
+// on Windows, the resolution runs on the wide form throughout. Used by
+// executablePath() and by insearchpath() (util.cc) for the -noglobalread
+// import/include gate.
+string canonicalPath(std::filesystem::path const& path);
 
 // Determine the system base directory (used to initialize settings::systemDir).
 // base/ beside the running executable is preferred over the compiled-in
