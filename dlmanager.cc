@@ -177,19 +177,6 @@ LoadedDynLib* DynlibManager::getLib(string const& dlKey, string const& dlPath)
 }
 
 
-LoadedDynLib* DynlibManager::loadLib(string const& dlKey, string const& dlPath)
-{
-  auto [dynlib, inserted]= tryLoadLib(dlKey, dlPath);
-
-  if (!inserted) {
-    reportError(
-            dlKey + " on " + dlPath + " not loaded because it has been loaded."
-    );
-  }
-
-  return dynlib;
-}
-
 void DynlibManager::delLib(string const& dlKey) { loadedDls.erase(dlKey); }
 void DynlibManager::closeDynLibManager() { loadedDls.clear(); }
 

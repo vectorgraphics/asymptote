@@ -116,17 +116,38 @@ bool endswith(string suffix, string str)
   return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
 }
 
+// RAII guard that registers `filename` on genv::inTranslation for the duration
+// of a module load and removes it again on scope exit. Using a guard (rather
+// than a manual push/remove pair) guarantees the entry is removed even when the
+// load throws (e.g. a failed dynamic-library load). Otherwise the stale entry
+// would make the next import of the same module trip the "recursive loading"
+// check in checkRecursion instead of allowing a genuine second attempt.
+class inTranslationGuard
+{
+public:
+  inTranslationGuard(mem::list<string>& list, string const& filename)
+      : list_(list), filename_(filename)
+  {
+    list_.push_front(filename_);
+  }
+  ~inTranslationGuard() { list_.remove(filename_); }
+
+  inTranslationGuard(inTranslationGuard const&)= delete;
+  inTranslationGuard& operator=(inTranslationGuard const&)= delete;
+
+private:
+  mem::list<string>& list_;
+  string filename_;
+};
+
 record *genv::loadModule(symbol id, string filename) {
 
   // Get the abstract syntax tree
   if (absyntax::file* ast= parser::parseFileOrNull(filename, "Loading")) {
     // in case it's an abstract syntax tree
-    inTranslation.push_front(filename);
+    inTranslationGuard guard(inTranslation, filename);
     em.sync();
-    record *r=ast->transAsFile(*this, id);
-    inTranslation.remove(filename);
-
-    return r;
+    return ast->transAsFile(*this, id);
   }
   // otherwise, try loading as a dynamic library
   if (string const dllPath= tryGetDllPath(filename); !dllPath.empty()) {
@@ -136,12 +157,10 @@ record *genv::loadModule(symbol id, string filename) {
     }
 
     // in this case, FFI is enabled and we can proceed
-    inTranslation.push_front(filename);
+    inTranslationGuard guard(inTranslation, filename);
     em.sync();
     // specifically, filename here is used as key
-    record* r = loadDynLib(filename, dllPath, this);  // NOLINT(readability-suspicious-call-argument)
-    inTranslation.remove(filename);
-    return r;
+    return loadDynLib(filename, dllPath, this);  // NOLINT(readability-suspicious-call-argument)
   }
 
   // otherwise, throw a parser error
@@ -158,15 +177,11 @@ record *genv::loadTemplatedModule(
   // Get the abstract syntax tree.
   absyntax::file *ast = parser::parseFile(filename,"Loading");
 
-  inTranslation.push_front(filename);
+  inTranslationGuard guard(inTranslation, filename);
 
   em.sync();
 
-  record *r=ast->transAsTemplatedFile(*this, id, args);
-
-  inTranslation.remove(filename);
-
-  return r;
+  return ast->transAsTemplatedFile(*this, id, args);
 }
 
 

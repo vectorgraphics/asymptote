@@ -82,9 +82,6 @@ public:
    */
   LoadedDynLib* getLib(string const& dlKey, string const& dlPath);
 
-  /** Raises an error if dlKey has already been loaded */
-  LoadedDynLib* loadLib(string const& dlKey, string const& dlPath);
-
   [[nodiscard]]
   LoadedDynLib* getPreloadedLib(string const& dlKey) const;
   void delLib(string const& dlPath);

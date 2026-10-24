@@ -21,7 +21,7 @@ auto constexpr ASYFFI_REGISTER_PLUGIN_FUNCTION_NAME= "registerAsymptotePlugin";
 record* loadDynLib(string const& key, string const& fileName, trans::genv* genv)
 {
   camp::LoadedDynLib const* lib=
-          camp::getDynlibManager()->loadLib(key, fileName);
+          camp::getDynlibManager()->getLib(key, fileName);
 
   camp::AsyFfiRegistererImpl registerer(key, genv, camp::getAsyContext());
   auto const registerFunction= lib->getSymAddress<TAsyRegisterDynlibFn>(
