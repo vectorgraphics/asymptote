@@ -92,9 +92,12 @@ public:
     template<typename T>
     static bool isDynamicRegistrationSupported(optional<T>& capability)
     {
-        if (capability)
+        // Clients often send capability objects without dynamicRegistration
+        // (e.g. documentSymbol: { hierarchicalDocumentSymbolSupport: true }).
+        // Do not call optional::value() when the field is absent.
+        if (capability && capability->dynamicRegistration)
         {
-            return (capability.value().dynamicRegistration.value());
+            return capability->dynamicRegistration.value();
         }
         return false;
     }

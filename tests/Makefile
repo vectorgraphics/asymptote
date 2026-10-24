@@ -4,7 +4,7 @@
 # once any .py script here has been imported.
 TESTDIRS = $(filter-out __pycache__/,$(wildcard */))
 
-test: $(TESTDIRS) test_collections_errors test_surface_errors test_executable_path test_relocatable
+test: $(TESTDIRS) test_collections_errors test_surface_errors test_executable_path test_relocatable test_render3d
 
 $(TESTDIRS)::
 	@echo
@@ -29,6 +29,10 @@ test_executable_path:
 test_relocatable:
 	@echo
 	python3 test_relocatable.py --asy ../asy --asy-base-dir ../base
+
+test_render3d:
+	@echo
+	python3 test_render3d.py || test $$? -eq 77
 
 $(EXTRADIRS)::
 	@echo

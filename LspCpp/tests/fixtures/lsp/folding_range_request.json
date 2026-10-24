@@ -1,0 +1,1 @@
+{"jsonrpc":"2.0","id":121,"method":"textDocument/foldingRange","params":{"textDocument":{"uri":"file:///fixture.cpp"}}}

@@ -438,6 +438,7 @@ void iofile::writeline()
 void igzxfile::open()
 {
   name=locatefile(inpath(name));
+  settings::haveReadFile=true;
   gzfile=gzopen(name.c_str(),"rb");
   Check();
 

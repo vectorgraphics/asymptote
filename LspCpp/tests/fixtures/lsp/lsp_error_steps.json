@@ -1,0 +1,4 @@
+[
+  {"step":"initialize","file":"initialize_request.json","kind":"request","response_fixture":"initialize_response.json"},
+  {"step":"unsupportedMethod","file":"unsupported_method_request.json","kind":"request","response_fixture":"unsupported_method_error_response.json"}
+]

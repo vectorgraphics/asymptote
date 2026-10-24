@@ -80,7 +80,7 @@ string differences(wrapped_int[] aArray, wrapped_int[] bArray) {
   string arrayValues = '[\n';
   bool different = false;
   for (int i = 0; i < aIntArray.length; ++i) {
-    arrayValues += '  [' + format('%5d', aIntArray[i]) + ',' 
+    arrayValues += '  [' + format('%5d', aIntArray[i]) + ','
                    + format('%5d', bIntArray[i]) + ']';
     if (!alias(aArray[i], bArray[i])) {
       arrayValues += '  <---';
@@ -249,8 +249,9 @@ actions[DELETE_CONTAINS] = new void(int ...Set_wrapped_int[] sets) {
     assert(s.contains(toDelete), 'Contains failed ' + string(i));
     wrapped_int deleted = s.extract(toDelete);
     assert(!alias(deleted, null), 'Delete returned null');
-    typedef bool F(wrapped_int, wrapped_int);
-    assert(((F)operator ==) != ((F)alias));
+    // Verify operator== is contents-based, not identity-based.
+    assert(wrap(0) == wrap(0));
+    assert(!alias(wrap(0), wrap(0)));
     assert(deleted == toDelete, 'Delete returned ' + string(deleted.t) +
                       ' instead of ' + string(toDelete.t));
     assert(!s.contains(toDelete), 'Contains failed');
@@ -290,7 +291,7 @@ int chooseAction(real[] probs) {
     }
   }
   return probs.length - 1;
-} 
+}
 
 from collections.zip(T=wrapped_int) access zip;
 

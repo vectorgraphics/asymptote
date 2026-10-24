@@ -5,22 +5,12 @@
 #include "interact.h"
 #include "picture.h"
 
-#ifdef HAVE_LIBGLM
-
-#ifdef HAVE_GLFW
-// Forward declaration for GLFWwindow to avoid including glfw3.h here
-struct GLFWwindow;
-#endif
-
-using settings::getSetting;
-
-
 namespace camp {
-
-AsyRender* gl;
 
 // Physical pixels per PostScript unit: 72 bp/inch * inch/pixels, where
 // pixels/inch comes from the monitor's physical size and pixel resolution.
+// Used unconditionally by drawPixel (drawpath3.h), so it must be defined even
+// when glm/GL/Vulkan are unavailable; without GLFW it falls back to 96 ppi.
 double pixelsPerBp()
 {
   static double ppb = 0;
@@ -43,6 +33,16 @@ double pixelsPerBp()
 
   return ppb;
 }
+
+} // namespace camp
+
+#ifdef HAVE_LIBGLM
+
+using settings::getSetting;
+
+namespace camp {
+
+AsyRender* gl;
 
 } // namespace camp
 

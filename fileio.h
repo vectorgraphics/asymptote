@@ -606,6 +606,7 @@ public:
 
   void open() override {
     name=locatefile(inpath(name));
+    settings::haveReadFile=true;
     fstream=new xdr::ixstream(name.c_str(),mode);
     index=processData().ixfile.add(fstream);
     if(check) Check();

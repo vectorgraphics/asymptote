@@ -39,14 +39,13 @@ void Reflect(Reader& visitor, lsRequestId& value)
     else if (visitor.IsInt64())
     {
         value.type = lsRequestId::kInt;
-        // `lsRequestId.value` is an `int`, so we're forced to truncate.
-        value.value = static_cast<int>(visitor.GetInt64());
+        value.value = visitor.GetInt64();
     }
     else if (visitor.IsString())
     {
         value.type = lsRequestId::kString;
         value.k_string = visitor.GetString();
-        value.value = atoi(value.k_string.c_str());
+        value.value = -1;
     }
     else
     {
@@ -63,19 +62,10 @@ void Reflect(Writer& visitor, lsRequestId& value)
         visitor.Null();
         break;
     case lsRequestId::kInt:
-        visitor.Int(value.value);
+        visitor.Int64(value.value);
         break;
     case lsRequestId::kString:
-
-        if (value.k_string.empty())
-        {
-            std::string str = std::to_string(value.value);
-            visitor.String(str.c_str(), str.length());
-        }
-        else
-        {
-            visitor.String(value.k_string.c_str(), value.k_string.length());
-        }
+        visitor.String(value.k_string.c_str(), value.k_string.length());
         break;
     }
 }
@@ -86,10 +76,7 @@ std::string ToString(lsRequestId const& id)
     {
         if (id.type == lsRequestId::kString)
         {
-            if (!id.k_string.empty())
-            {
-                return id.k_string;
-            }
+            return id.k_string;
         }
         return std::to_string(id.value);
     }

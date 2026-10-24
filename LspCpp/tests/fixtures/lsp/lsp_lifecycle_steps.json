@@ -1,0 +1,6 @@
+[
+  {"step":"beforeInit","file":"initialize_before_init_request.json","kind":"request","response_fixture":"server_not_initialized_error_response.json"},
+  {"step":"initialize","file":"initialize_request.json","kind":"request","response_fixture":"initialize_response.json"},
+  {"step":"duplicateInit","file":"initialize_duplicate_request.json","kind":"request","response_fixture":"already_initialized_error_response.json"},
+  {"step":"shutdown","file":"shutdown_request.json","kind":"request","response_fixture":"shutdown_null_response.json"}
+]

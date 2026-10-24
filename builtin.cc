@@ -176,9 +176,11 @@ varEntry *addFunc(venv &ve, bltin f, ty *result, symbol name,
                  fA,fB,fC,fD,fE,fF,fG,fH,fI);
 }
 
-void addOpenFunc(venv &ve, bltin f, ty *result, symbol name)
+void addOpenFunc(venv &ve, bltin f, ty *result, symbol name,
+                 bool takesNames=false)
 {
   function *fun = new function(result, signature::OPEN);
+  fun->getSignature()->openTakesNames = takesNames;
 
   REGISTER_BLTIN(f, name);
   access *a= new bltinAccess(f);
@@ -186,6 +188,14 @@ void addOpenFunc(venv &ve, bltin f, ty *result, symbol name)
   varEntry *ent = new varEntry(fun, a, 0, nullPos);
 
   ve.enter(name, ent);
+}
+
+void addOpenBuiltinFunc(venv &ve, bltin runtimeFn,
+                        absyntax::callExp::CustomHandlers handlers,
+                        ty *result, symbol name, bool takesNames)
+{
+  addOpenFunc(ve, runtimeFn, result, name, takesNames);
+  absyntax::registerCustomHandlers(name, handlers);
 }
 
 
@@ -471,13 +481,6 @@ void addBooleanOps(venv &ve, ty *t1, symbol name, ty *t2)
           formal(t2,SYM(b)));
 }
 
-void addWrite(venv &ve, bltin f, ty *t1, ty *t2)
-{
-  addRestFunc(ve,f,primVoid(),SYM(write),t2,
-              formal(primFile(),SYM(file),true),
-              formal(primString(),SYM(s),true),
-              formal(t1,SYM(x)),formal(voidFileFunction(),SYM(suffix),true));
-}
 
 template<class T>
 void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
@@ -496,15 +499,10 @@ void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   addCast(ve,t3,primFile(),readArray2<T>);
   addCast(ve,t4,primFile(),readArray3<T>);
 
-  addWrite(ve,write<T>,t1,t2);
   addRestFunc(ve,writeArray<T>,primVoid(),SYM(write),t3,
               formal(primFile(),SYM(file),true),
               formal(primString(),SYM(s),true),
               formal(t2,SYM(a),false,true));
-  addFunc(ve,writeArray2<T>,primVoid(),SYM(write),
-          formal(primFile(),SYM(file),true),t3);
-  addFunc(ve,writeArray3<T>,primVoid(),SYM(write),
-          formal(primFile(),SYM(file),true),t4);
 }
 
 inline double abs(pair z) {
@@ -601,17 +599,15 @@ void addArrayOps(venv &ve, types::array *t)
 {
   ty *ct = t->celltype;
 
-  // Check for the alias function to see if these operation have already been
-  // added, if they have, don't add them again.
-  static types::function aliasType(primBoolean(), primVoid(), primVoid());
-  aliasType.sig.formals[0].t = t;
-  aliasType.sig.formals[1].t = t;
+  // Check for the copy function to see if these operations have already been
+  // added. If they have, don't add them again.
+  static types::function copyType(primVoid(), primVoid(), primVoid());
+  copyType.result = t;
+  copyType.sig.formals[0].t = t;
+  copyType.sig.formals[1].t = primInt();
 
-  if (ve.lookByType(SYM(alias), &aliasType))
+  if (ve.lookByType(SYM(copy), &copyType))
     return;
-
-  addFunc(ve, run::arrayAlias,
-          primBoolean(), SYM(alias), formal(t, SYM(a)), formal(t, SYM(b)));
 
   size_t depth=(size_t) t->depth();
 
@@ -660,28 +656,23 @@ void addArrayOps(venv &ve, types::array *t)
   }
 }
 
-void addRecordOps(record* r)
-{
-  assert(r);
-  trans::venv &ve = r->e.ve;
-  auto addOp= [&ve, r](vm::bltin f, ty* result, symbol name, auto&&... formals) {
-    varEntry* fVar=
-            addFunc(ve, f, result, name, std::forward<formal>(formals)...);
-    r->autounravelRegistry.registerAutoUnravel(name, fVar, AutounravelPriority::OFFER);
-  };
-  // alias
-  addOp(run::boolMemEq, primBoolean(), SYM(alias), formal(r, SYM(a)),
-        formal(r, SYM(b)));
-  // operator==
-  addOp(run::boolMemEq, primBoolean(), SYM_EQ, formal(r, SYM(a)),
-        formal(r, SYM(b)));
-  // operator!=
-  addOp(run::boolMemNeq, primBoolean(), SYM_NEQ, formal(r, SYM(a)),
-        formal(r, SYM(b)));
-}
-
 void addOperators(venv &ve)
 {
+  // Global open-signature `==` / `!=`.  When neither operand has a
+  // concrete equality in scope these resolve to the open signature; a
+  // custom call-site handler then enforces record reference-equality
+  // semantics.  Replaces the legacy per-record `addRecordOps` machinery.
+  addOpenBuiltinFunc(ve, run::boolMemEq,
+                     {&absyntax::callExp::transRecordEq,
+                      &absyntax::callExp::getRecordEqType,
+                      &absyntax::specializeRecordEq},
+                     primBoolean(), SYM_EQ);
+  addOpenBuiltinFunc(ve, run::boolMemNeq,
+                     {&absyntax::callExp::transRecordEq,
+                      &absyntax::callExp::getRecordEqType,
+                      &absyntax::specializeRecordNeq},
+                     primBoolean(), SYM_NEQ);
+
   addSimpleOperator(ve,binaryOp<string,plus>,primString(),SYM_PLUS);
 
   addBooleanOps<bool,And>(ve,primBoolean(),SYM_AMPERSAND,booleanArray());
@@ -760,7 +751,6 @@ dummyRecord *createDummyRecord(venv &ve, symbol name)
   dummyRecord *r=new dummyRecord(name);
   vm::vmFrame *f = make_dummyframe(name);
   addConstant(ve, f, r, name);
-  addRecordOps(r);
   return r;
 }
 
@@ -795,9 +785,8 @@ void printBytecode(stack *Stack)
   if (numArgs != 1)
     cerr << "printBytecode takes one argument" << endl;
 
-  // TODO: Add a reliable test for the object being a func.
   callable *c = a->read<callable *>(0);
-  if (func *f = dynamic_cast<func *>(c))
+  if (func *f = c->isFunc())
     print(cout, f->body->code);
   else
     cout << "callable is not a standard function";
@@ -858,9 +847,14 @@ void base_venv(venv &ve)
           formal(primString(),SYM(s)),
           formal(voidFileFunction(),SYM(suffix),true));
 
-  addWrite(ve,write<transform>,primTransform(),transformArray());
-  addWrite(ve,write<guide *>,primGuide(),guideArray());
-  addWrite(ve,write<pen>,primPen(),penArray());
+  // Generic heterogeneous write: the open-signature fallback.  Concretes win;
+  // the handler classifies file/label/data/suffix (accepting the names file,
+  // s and suffix) and emits a call to write_var.
+  addOpenBuiltinFunc(ve, run::write_var,
+                     {&absyntax::callExp::transHeteroWrite,
+                      &absyntax::callExp::getHeteroWriteType},
+                     primVoid(), SYM(write), true);
+
   addFunc(ve,arrayArrayOp<pen,equals>,booleanArray(),SYM_EQ,
           formal(penArray(),SYM(a)),formal(penArray(),SYM(b)));
   addFunc(ve,arrayArrayOp<pen,notequals>,booleanArray(),SYM_NEQ,
@@ -892,6 +886,11 @@ void base_venv(venv &ve)
   addOpenFunc(ve, openFunc, primInt(), SYM(openFunc));
 #endif
 
+  addOpenBuiltinFunc(ve, run::boolMemEq,
+                     {&absyntax::callExp::transAlias,
+                      &absyntax::callExp::getAliasType,
+                      &absyntax::specializeAlias},
+                     primBoolean(), SYM(alias));
   addOpenFunc(ve, printBytecode, primVoid(), SYM(printBytecode));
 
   gen_runtime_venv(ve);

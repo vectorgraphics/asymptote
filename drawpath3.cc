@@ -96,7 +96,7 @@ void drawPath3::render(double size2, const triple& b, const triple& B,
 
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
 
-  R.queue(controls,straight,size3.length()/size2);
+  R.queue(Controls,straight,size3.length()/size2);
 #endif
 }
 
@@ -124,7 +124,7 @@ void drawNurbsPath3::bounds(const double* t, bbox3& b)
   triple* Controls;
   if(t == NULL) Controls=controls;
   else {
-    Controls=new triple[n];
+    Controls=new(NoGC) triple[n];
     for(size_t i=0; i < n; i++)
       Controls[i]=t*controls[i];
   }
@@ -151,7 +151,7 @@ void drawNurbsPath3::ratio(const double* t, pair &b, double (*m)(double, double)
   triple* Controls;
   if(t == NULL) Controls=controls;
   else {
-    Controls=new triple[n];
+    Controls=new(NoGC) triple[n];
     for(size_t i=0; i < n; i++)
       Controls[i]=t*controls[i];
   }

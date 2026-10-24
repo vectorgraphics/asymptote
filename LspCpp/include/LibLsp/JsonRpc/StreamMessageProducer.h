@@ -2,8 +2,11 @@
 #include <string>
 #include <functional>
 #include "MessageProducer.h"
+#include <atomic>
+#include <cstddef>
 #include <iostream>
 #include <memory>
+#include <utility>
 #include "MessageIssue.h"
 
 namespace lsp
@@ -22,13 +25,25 @@ public:
     {
     }
 
-    bool keepRunning = false;
+    std::atomic<bool> keepRunning {false};
 
     virtual void bind(std::shared_ptr<lsp::istream>) = 0;
+    void setMaxFrameSize(size_t value)
+    {
+        maxFrameSize = value;
+    }
+    void setOverloadHandler(std::function<bool(std::string const&)> handler)
+    {
+        overloadHandler = std::move(handler);
+    }
 
 protected:
+    bool reportOverload(std::string const& message);
+
     MessageIssueHandler& issueHandler;
     std::shared_ptr<lsp::istream> input;
+    size_t maxFrameSize = 0;
+    std::function<bool(std::string const&)> overloadHandler;
 };
 
 class LSPStreamMessageProducer : public StreamMessageProducer

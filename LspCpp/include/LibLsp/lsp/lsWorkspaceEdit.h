@@ -22,6 +22,14 @@ struct lsChangeAnnotations
     MAKE_SWAP_METHOD(lsChangeAnnotations, id)
 };
 MAKE_REFLECT_STRUCT(lsChangeAnnotations, id)
+
+struct lsWorkspaceEditMetadata
+{
+    optional<bool> isRefactoring;
+    MAKE_SWAP_METHOD(lsWorkspaceEditMetadata, isRefactoring)
+};
+MAKE_REFLECT_STRUCT(lsWorkspaceEditMetadata, isRefactoring)
+
 struct lsWorkspaceEdit
 {
     // Holds changes to existing resources.
@@ -48,8 +56,15 @@ struct lsWorkspaceEdit
          */
     optional<lsChangeAnnotations> changeAnnotations;
 
-    MAKE_SWAP_METHOD(lsWorkspaceEdit, changes, documentChanges, changeAnnotations)
+    /**
+     * Additional metadata about this workspace edit.
+     *
+     * @since 3.18.0
+     */
+    optional<lsWorkspaceEditMetadata> metadata;
+
+    MAKE_SWAP_METHOD(lsWorkspaceEdit, changes, documentChanges, changeAnnotations, metadata)
 };
-MAKE_REFLECT_STRUCT(lsWorkspaceEdit, changes, documentChanges, changeAnnotations)
+MAKE_REFLECT_STRUCT(lsWorkspaceEdit, changes, documentChanges, changeAnnotations, metadata)
 
 extern void Reflect(Reader& visitor, lsWorkspaceEdit::Either& value);

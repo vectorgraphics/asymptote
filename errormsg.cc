@@ -12,6 +12,7 @@
 #include "errormsg.h"
 #include "interact.h"
 #include "fileio.h"
+#include "hashing.h"
 
 errorstream em;
 
@@ -20,6 +21,70 @@ static nullPosInitializer nullPosInit;
 
 bool errorstream::interrupt=false;
 
+namespace {
+struct memStringHash {
+  size_t operator()(const string& s) const {
+    return hashing::hashSpan(s);
+  }
+};
+// Storage for the filename registry. Index 0 is reserved for the empty
+// string and corresponds to "no file" (i.e. nullPos).
+mem::vector<string>& registryFilenames() {
+  static mem::vector<string> v = [] {
+    mem::vector<string> tmp;
+    tmp.push_back(string());
+    return tmp;
+  }();
+  return v;
+}
+mem::unordered_map<string, uint16_t, memStringHash>& registryIndex() {
+  static mem::unordered_map<string, uint16_t, memStringHash> m;
+  return m;
+}
+} // namespace
+
+uint16_t positionFileRegistry::intern(const string& filename)
+{
+  if (filename.empty()) return 0;
+  auto& idx = registryIndex();
+  auto it = idx.find(filename);
+  if (it != idx.end()) return it->second;
+  auto& names = registryFilenames();
+  size_t next = names.size();
+  // Index 0xFFFF is reserved as an overflow placeholder; cap real files at 0xFFFE.
+  if (next > 0xFFFEu) return 0xFFFFu;
+  uint16_t newIndex = uint16_t(next);
+  names.push_back(filename);
+  idx.emplace(filename, newIndex);
+  return newIndex;
+}
+
+const string& positionFileRegistry::getFilename(uint16_t index)
+{
+  auto& names = registryFilenames();
+  if (index < names.size()) return names[index];
+  // Out-of-range: return a generic placeholder for diagnostics.
+  static const string unknown = "<file>";
+  return unknown;
+}
+
+namespace errormsg {
+string moduleNameFromPath(const string& filename) {
+  size_t start = filename.rfind('/');
+  if (start == filename.npos)
+    start = 0;
+  else
+    // Step over slash.
+    ++start;
+
+  size_t end = filename.rfind(".asy");
+  if (end != filename.size() - 4)
+    end = filename.size();
+
+  return filename.substr(start, end-start);
+}
+} // namespace errormsg
+
 using camp::newl;
 
 ostream& operator<< (ostream& out, const position& pos)
@@ -27,10 +92,11 @@ ostream& operator<< (ostream& out, const position& pos)
   if (!pos)
     return out;
 
-  string filename=pos.file->name();
+  string filename=pos.filename();
 
-  if(filename != "-" && !(settings::getSetting<bool>("quiet") ||
-                          settings::getSetting<bool>("where"))) {
+  bool quiet = settings::getSetting<bool>("quiet");
+  bool where = settings::getSetting<bool>("where");
+  if(filename != "-" && !(quiet || where)) {
     std::ifstream fin(filename.c_str());
     string s;
     size_t count=pos.line;
@@ -39,6 +105,13 @@ ostream& operator<< (ostream& out, const position& pos)
     }
     s=std::regex_replace(s,std::regex("\t")," ");
     out << s << endl;
+    for(size_t i=1; i < pos.column; ++i)
+      out << " ";
+    out << "^" << endl;
+  } else if(filename == "-" && !quiet && !where) {
+    size_t promptWidth=settings::getSetting<string>("prompt").length();
+    for(size_t i=0; i < promptWidth; ++i)
+      out << " ";
     for(size_t i=1; i < pos.column; ++i)
       out << " ";
     out << "^" << endl;
@@ -126,8 +199,8 @@ void errorstream::trace(position pos)
 {
   if (mode == ErrorMode::SUPPRESS)
     return;
-  static position lastpos;
-  if(!pos || (pos.match(lastpos.filename()) && pos.match(lastpos.Line())))
+  static position lastpos = [] { position p; p.init(nullptr, 0); return p; }();
+  if(!pos || (pos.match(lastpos.fileindex()) && pos.match(lastpos.Line())))
     return;
   lastpos=pos;
   message(pos,"");

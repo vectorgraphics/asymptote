@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <functional>
+#include <iostream>
 #include <vector>
 namespace lsp
 {
@@ -130,6 +131,50 @@ public:
     void warning(std::wstring const& msg)
     {
         log(Level::WARNING, msg);
+    }
+};
+
+class NullLog : public Log
+{
+public:
+    void log(Level, std::wstring&&) override
+    {
+    }
+
+    void log(Level, std::wstring const&) override
+    {
+    }
+
+    void log(Level, std::string&&) override
+    {
+    }
+
+    void log(Level, std::string const&) override
+    {
+    }
+};
+
+class StderrLog : public Log
+{
+public:
+    void log(Level, std::wstring&& msg) override
+    {
+        std::wcerr << msg << std::endl;
+    }
+
+    void log(Level, std::wstring const& msg) override
+    {
+        std::wcerr << msg << std::endl;
+    }
+
+    void log(Level, std::string&& msg) override
+    {
+        std::cerr << msg << std::endl;
+    }
+
+    void log(Level, std::string const& msg) override
+    {
+        std::cerr << msg << std::endl;
     }
 };
 } // namespace lsp

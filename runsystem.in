@@ -228,6 +228,9 @@ Int convert(string args=emptystring, string file=emptystring,
     oldPath=getPath();
     setPath(dir.c_str());
   }
+  // convert() execs ImageMagick, whose file I/O is invisible to asy's checks;
+  // a job that invoked it may have read local files, so block later curl.
+  settings::haveReadFile=true;
   Int ret=System(cmd,quiet ? 1 : 0,true,"convert",
                  "your ImageMagick convert utility");
   if(oldPath != NULL)
@@ -256,6 +259,10 @@ Int animate(string args=emptystring, string file=emptystring,
       checkwrite(cmd[i]);
     }
     cmd.push_back(name);
+    // animate() execs ImageMagick, whose file I/O is invisible to asy's
+    // checks; a job that invoked it may have read local files, so block
+    // later curl.
+    settings::haveReadFile=true;
     return System(cmd,0,false,"animate","your animated GIF viewer");
   }
   return 0;

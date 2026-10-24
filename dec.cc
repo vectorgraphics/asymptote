@@ -18,7 +18,7 @@
 #include "runtime.h"
 #include "locate.h"
 #include "asyparser.h"
-#include "builtin.h"  // for trans::addRecordOps
+#include "builtin.h"
 
 namespace absyntax {
 
@@ -803,6 +803,34 @@ void decid::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
   start->addOps(base->t, e, r);
 
   addTypeWithPermission(e, r, ent, start->getName());
+
+  // If the base type is a record, duplicate any constructor functions
+  // (functions with the record's name that return the record type) under
+  // the new typedef name.  The constructor type is obtained from the
+  // record's postdefenv; the varEntry is looked up in the main environment.
+  record *baseRecord = dynamic_cast<record*>(base->t);
+  if (baseRecord) {
+    symbol baseName = baseRecord->getName();
+    symbol newName = start->getName();
+    if (baseName != newName) {
+      { // Suppress errors while probing for constructors.
+        auto modeGuard = em.modeGuard(ErrorMode::SUPPRESS);
+        ty *ctorType = baseRecord->postdefenv.ve.getType(baseName);
+        if (ctorType && !ctorType->isOverloaded() &&
+            ctorType->kind == ty_function) {
+          function *ft = dynamic_cast<function*>(ctorType);
+          if (ft && equivalent(ft->result, baseRecord)) {
+            varEntry *v = e.e.ve.lookByType(baseName, ctorType);
+            if (v && !e.e.ve.lookByType(newName, ctorType)) {
+              if (r)
+                r->e.addVar(newName, v);
+              e.e.addVar(newName, v);
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 
@@ -1376,6 +1404,13 @@ void includedec::loadFailed(coenv &)
 
 void includedec::transAsField(coenv &e, record *r)
 {
+  // Under -noglobalread an include may only read a file that resolves within
+  // the module search path (as with import): a bare name or a search-path-
+  // relative name is fine, but an absolute path or a ".." traversal resolves
+  // outside it and is rejected. No-op when globalread is enabled; URL includes
+  // are handled by curlEnabled() inside parseFile.
+  if(!settings::globalread() && !parser::isURL(filename) && !insearchpath(filename))
+    readDisabled();
   file *ast = parser::parseFile(filename,"Including");
   em.sync();
 
@@ -1428,7 +1463,6 @@ void recorddec::transAsField(coenv &e, record *parent)
   addTypeWithPermission(
           e, parent, new trans::tyEntry(r, nullptr, parent, getPos()), id
   );
-  trans::addRecordOps(r);
 
   // Start translating the initializer.
   coder c=e.c.newRecordInit(getPos(), r);

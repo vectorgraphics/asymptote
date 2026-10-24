@@ -35,6 +35,11 @@ char *StrdupMalloc(string s);
 // Strip the directory from a filename.
 string stripDir(string name);
 
+// Splits an autoimport setting string into individual module names.
+// Handles whitespace and comma-separated lists (e.g., "three, graph").
+// Returns a vector of trimmed module name strings.
+std::vector<std::string> splitAutoimport(std::string const& s);
+
 // Strip the file from a filename, returning the directory.
 string stripFile(string name);
 
@@ -55,6 +60,13 @@ string cleanpath(string name);
 // Construct the full path name, checking access.
 string inpath(string name);
 string outpath(string name);
+
+// True if `name` resolves (via the module search path) to a file within one of
+// the search-path directories. Used to gate import/include under -noglobalread:
+// a bare module name or a search-path-relative name (e.g. "collections/iter")
+// resolves inside the search area, while an absolute path or a ".." traversal
+// resolves outside it.
+bool insearchpath(const string& name);
 
 // Construct a filename from the original, adding aux at the end, and
 // changing the suffix.

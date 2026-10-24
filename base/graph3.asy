@@ -385,7 +385,7 @@ axis Bounds(int type=Both, int type2=Both, triple align=O, bool extend=false)
   };
 }
 
-axis YZEquals(real y, real z, triple align=O, bool extend=false)
+axis YZEquals(real y, real z, triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -398,7 +398,7 @@ axis YZEquals(real y, real z, triple align=O, bool extend=false)
   };
 }
 
-axis XZEquals(real x, real z, triple align=O, bool extend=false)
+axis XZEquals(real x, real z, triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -411,7 +411,7 @@ axis XZEquals(real x, real z, triple align=O, bool extend=false)
   };
 }
 
-axis XYEquals(real x, real y, triple align=O, bool extend=false)
+axis XYEquals(real x, real y, triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -424,7 +424,7 @@ axis XYEquals(real x, real y, triple align=O, bool extend=false)
   };
 }
 
-axis YZZero(triple align=O, bool extend=false)
+axis YZZero(triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -437,7 +437,7 @@ axis YZZero(triple align=O, bool extend=false)
   };
 }
 
-axis XZZero(triple align=O, bool extend=false)
+axis XZZero(triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -450,7 +450,7 @@ axis XZZero(triple align=O, bool extend=false)
   };
 }
 
-axis XYZero(triple align=O, bool extend=false)
+axis XYZero(triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -540,14 +540,19 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
   real z=axis.value2;
   real y2,z2;
   int[] divisor=copy(axis.xdivisor);
+  bool extend=axis.extend;
 
   pic.add(new void(picture f, transform3 t, transform3 T, projection P,
                    triple lb, triple rt) {
             transform3 tinv=inverse(t);
-            triple a=xmin == -infinity ? tinv*(lb.x-min3(p).x,ytrans(t,y),
-                                               ztrans(t,z)) : (xmin,y,z);
-            triple b=xmax == infinity ? tinv*(rt.x-max3(p).x,ytrans(t,y),
-                                              ztrans(t,z)) : (xmax,y,z);
+            triple a=xmin == -infinity
+              ? (extend ? tinv*(lb.x-min3(p).x,ytrans(t,y),ztrans(t,z))
+                        : (pic.userMin().x,y,z))
+              : (xmin,y,z);
+            triple b=xmax == infinity
+              ? (extend ? tinv*(rt.x-max3(p).x,ytrans(t,y),ztrans(t,z))
+                        : (pic.userMax().x,y,z))
+              : (xmax,y,z);
             real y0;
             real z0;
             if(abs(dir.y) < abs(dir.z)) {
@@ -558,12 +563,17 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
               z0=z;
             }
 
-            triple a2=xmin == -infinity ? tinv*(lb.x-min3(p).x,ytrans(t,y0),
-                                                ztrans(t,z0)) : (xmin,y0,z0);
-            triple b2=xmax == infinity ? tinv*(rt.x-max3(p).x,ytrans(t,y0),
-                                               ztrans(t,z0)) : (xmax,y0,z0);
+            triple a2=xmin == -infinity
+              ? (extend ? tinv*(lb.x-min3(p).x,ytrans(t,y0),ztrans(t,z0))
+                        : (pic.userMin().x,y0,z0))
+              : (xmin,y0,z0);
+            triple b2=xmax == infinity
+              ? (extend ? tinv*(rt.x-max3(p).x,ytrans(t,y0),ztrans(t,z0))
+                        : (pic.userMax().x,y0,z0))
+              : (xmax,y0,z0);
 
-            if(xmin == -infinity || xmax == infinity) {
+            if(xmin == -infinity || xmax == infinity ||
+               divisor.length == 0) {
               bounds mx=autoscale(a.x,b.x,pic.scale.x.scale);
               pic.scale.x.tickMin=mx.min;
               pic.scale.x.tickMax=mx.max;
@@ -622,6 +632,12 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
     }
 
     if(finite(a) && finite(b)) {
+      if(divisor.length == 0 && ticks != NoTicks3) {
+        bounds mx=autoscale(a.x,b.x,pic.scale.x.scale);
+        pic.scale.x.tickMin=mx.min;
+        pic.scale.x.tickMax=mx.max;
+        divisor=mx.divisor;
+      }
       picture d;
       ticks(d,pic.scaling3(warn=false),L,
             (a.x,0,0)--(b.x,0,0),(a2.x,0,0)--(b2.x,0,0),p,arrow,margin,
@@ -674,14 +690,19 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
   real z=axis.value2;
   real x2,z2;
   int[] divisor=copy(axis.ydivisor);
+  bool extend=axis.extend;
 
   pic.add(new void(picture f, transform3 t, transform3 T, projection P,
                    triple lb, triple rt) {
             transform3 tinv=inverse(t);
-            triple a=ymin == -infinity ? tinv*(xtrans(t,x),lb.y-min3(p).y,
-                                               ztrans(t,z)) : (x,ymin,z);
-            triple b=ymax == infinity ? tinv*(xtrans(t,x),rt.y-max3(p).y,
-                                              ztrans(t,z)) : (x,ymax,z);
+            triple a=ymin == -infinity
+              ? (extend ? tinv*(xtrans(t,x),lb.y-min3(p).y,ztrans(t,z))
+                        : (x,pic.userMin().y,z))
+              : (x,ymin,z);
+            triple b=ymax == infinity
+              ? (extend ? tinv*(xtrans(t,x),rt.y-max3(p).y,ztrans(t,z))
+                        : (x,pic.userMax().y,z))
+              : (x,ymax,z);
             real x0;
             real z0;
             if(abs(dir.x) < abs(dir.z)) {
@@ -692,12 +713,17 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
               z0=z;
             }
 
-            triple a2=ymin == -infinity ? tinv*(xtrans(t,x0),lb.y-min3(p).y,
-                                                ztrans(t,z0)) : (x0,ymin,z0);
-            triple b2=ymax == infinity ? tinv*(xtrans(t,x0),rt.y-max3(p).y,
-                                               ztrans(t,z0)) : (x0,ymax,z0);
+            triple a2=ymin == -infinity
+              ? (extend ? tinv*(xtrans(t,x0),lb.y-min3(p).y,ztrans(t,z0))
+                        : (x0,pic.userMin().y,z0))
+              : (x0,ymin,z0);
+            triple b2=ymax == infinity
+              ? (extend ? tinv*(xtrans(t,x0),rt.y-max3(p).y,ztrans(t,z0))
+                        : (x0,pic.userMax().y,z0))
+              : (x0,ymax,z0);
 
-            if(ymin == -infinity || ymax == infinity) {
+            if(ymin == -infinity || ymax == infinity ||
+               divisor.length == 0) {
               bounds my=autoscale(a.y,b.y,pic.scale.y.scale);
               pic.scale.y.tickMin=my.min;
               pic.scale.y.tickMax=my.max;
@@ -756,6 +782,12 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
     }
 
     if(finite(a) && finite(b)) {
+      if(divisor.length == 0 && ticks != NoTicks3) {
+        bounds my=autoscale(a.y,b.y,pic.scale.y.scale);
+        pic.scale.y.tickMin=my.min;
+        pic.scale.y.tickMax=my.max;
+        divisor=my.divisor;
+      }
       picture d;
       ticks(d,pic.scaling3(warn=false),L,
             (0,a.y,0)--(0,b.y,0),(0,a2.y,0)--(0,a2.y,0),p,arrow,margin,
@@ -808,14 +840,19 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
   real y=axis.value2;
   real x2,y2;
   int[] divisor=copy(axis.zdivisor);
+  bool extend=axis.extend;
 
   pic.add(new void(picture f, transform3 t, transform3 T, projection P,
                    triple lb, triple rt) {
             transform3 tinv=inverse(t);
-            triple a=zmin == -infinity ? tinv*(xtrans(t,x),ytrans(t,y),
-                                               lb.z-min3(p).z) : (x,y,zmin);
-            triple b=zmax == infinity ? tinv*(xtrans(t,x),ytrans(t,y),
-                                              rt.z-max3(p).z) : (x,y,zmax);
+            triple a=zmin == -infinity
+              ? (extend ? tinv*(xtrans(t,x),ytrans(t,y),lb.z-min3(p).z)
+                        : (x,y,pic.userMin().z))
+              : (x,y,zmin);
+            triple b=zmax == infinity
+              ? (extend ? tinv*(xtrans(t,x),ytrans(t,y),rt.z-max3(p).z)
+                        : (x,y,pic.userMax().z))
+              : (x,y,zmax);
             real x0;
             real y0;
             if(abs(dir.x) < abs(dir.y)) {
@@ -826,12 +863,17 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
               y0=y;
             }
 
-            triple a2=zmin == -infinity ? tinv*(xtrans(t,x0),ytrans(t,y0),
-                                                lb.z-min3(p).z) : (x0,y0,zmin);
-            triple b2=zmax == infinity ? tinv*(xtrans(t,x0),ytrans(t,y0),
-                                               rt.z-max3(p).z) : (x0,y0,zmax);
+            triple a2=zmin == -infinity
+              ? (extend ? tinv*(xtrans(t,x0),ytrans(t,y0),lb.z-min3(p).z)
+                        : (x0,y0,pic.userMin().z))
+              : (x0,y0,zmin);
+            triple b2=zmax == infinity
+              ? (extend ? tinv*(xtrans(t,x0),ytrans(t,y0),rt.z-max3(p).z)
+                        : (x0,y0,pic.userMax().z))
+              : (x0,y0,zmax);
 
-            if(zmin == -infinity || zmax == infinity) {
+            if(zmin == -infinity || zmax == infinity ||
+               divisor.length == 0) {
               bounds mz=autoscale(a.z,b.z,pic.scale.z.scale);
               pic.scale.z.tickMin=mz.min;
               pic.scale.z.tickMax=mz.max;
@@ -890,6 +932,12 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
     }
 
     if(finite(a) && finite(b)) {
+      if(divisor.length == 0 && ticks != NoTicks3) {
+        bounds mz=autoscale(a.z,b.z,pic.scale.z.scale);
+        pic.scale.z.tickMin=mz.min;
+        pic.scale.z.tickMax=mz.max;
+        divisor=mz.divisor;
+      }
       picture d;
       ticks(d,pic.scaling3(warn=false),L,
             (0,0,a.z)--(0,0,b.z),(0,0,a2.z)--(0,0,a2.z),p,arrow,margin,
@@ -1210,7 +1258,7 @@ void limits(picture pic=currentpicture, triple min, triple max)
 // Draw x, y and z axes.
 void axes3(picture pic=currentpicture,
            Label xlabel="", Label ylabel="", Label zlabel="",
-           bool extend=false,
+           bool extend=true,
            triple min=(-infinity,-infinity,-infinity),
            triple max=(infinity,infinity,infinity),
            pen p=currentpen, pen py=p, pen pz=p,

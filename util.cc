@@ -12,6 +12,7 @@
 #include <sstream>
 #include <cerrno>
 #include <cstdlib>
+#include <filesystem>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -242,6 +243,28 @@ string stripDir(string name)
   return name;
 }
 
+std::vector<std::string> splitAutoimport(std::string const& s)
+{
+  std::vector<std::string> result;
+  std::string remaining=s;
+  while(!remaining.empty()) {
+    std::string::size_type b=remaining.find_first_not_of(" \t");
+    if(b==std::string::npos) break;
+    remaining=remaining.substr(b);
+
+    std::string::size_type comma=remaining.find(',');
+    std::string modname=(comma==std::string::npos) ? remaining : remaining.substr(0,comma);
+    if(comma!=std::string::npos) remaining=remaining.substr(comma+1);
+    else remaining="";
+
+    std::string::size_type b2=modname.find_first_not_of(" \t");
+    std::string::size_type e2=modname.find_last_not_of(" \t");
+    if(b2==std::string::npos) continue;
+    result.push_back(modname.substr(b2, e2-b2+1));
+  }
+  return result;
+}
+
 string stripFile(string name)
 {
 #if defined(_WIN32)
@@ -383,6 +406,35 @@ string outpath(string name)
   if(global && !dir.empty()) return name;
   checkwrite(name);
   return stripFile(outname())+stripDir(name);
+}
+
+// Defined in locate.cc; declared here (not in locate.h) so that the
+// <filesystem> include stays out of the widely-included header (on Windows it
+// pulls in <locale>, whose two-argument isxdigit collides with readline's
+// one-argument isxdigit macro in any TU that includes both).
+namespace settings {
+string canonicalPath(std::filesystem::path const& path);
+}
+
+// True if `name` resolves (via the module search path) to a file within one of
+// the search-path directories. A bare module name or a search-path-relative
+// name (e.g. "collections/iter") resolves inside the search area; an absolute
+// path or a ".." traversal resolves outside it. Names that do not resolve are
+// left for the caller's lookup to report, so this returns true for them.
+bool insearchpath(const string& name)
+{
+  string file=settings::locateFile(name);
+  if(file.empty()) return true;
+  string rf=settings::canonicalPath(std::filesystem::path(file));
+  if(rf.empty()) return false;
+  for(const string& dir:settings::searchPath) {
+    string rd=settings::canonicalPath(std::filesystem::path(dir));
+    if(rd.empty()) continue;
+    string bound=rd+settings::dirsep;
+    if(rf.compare(0,bound.size(),bound)==0)
+      return true;
+  }
+  return false;
 }
 
 string buildname(string prefix, string suffix, string aux)

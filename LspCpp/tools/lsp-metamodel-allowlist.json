@@ -1,0 +1,76 @@
+{
+  "duplicate_registrations": [],
+  "missing_notification_parser": [
+    "$/cancelRequest"
+  ],
+  "missing_request_parser": [
+    "callHierarchy/incomingCalls",
+    "codeLens/resolve",
+    "completionItem/resolve",
+    "textDocument/colorPresentation",
+    "textDocument/documentColor",
+    "textDocument/linkedEditingRange",
+    "textDocument/prepareCallHierarchy",
+    "window/showMessage"
+  ],
+  "missing_response_parser": [
+    "callHierarchy/incomingCalls",
+    "client/registerCapability",
+    "client/unregisterCapability",
+    "textDocument/linkedEditingRange",
+    "textDocument/prepareCallHierarchy",
+    "window/showMessage",
+    "workspace/configuration",
+    "workspace/workspaceFolders"
+  ],
+  "missing_type_declaration": [
+    "$/logTrace",
+    "$/setTrace",
+    "callHierarchy/outgoingCalls",
+    "notebookDocument/didChange",
+    "notebookDocument/didClose",
+    "notebookDocument/didOpen",
+    "notebookDocument/didSave",
+    "telemetry/event",
+    "textDocument/moniker",
+    "textDocument/prepareTypeHierarchy",
+    "textDocument/semanticTokens/range",
+    "typeHierarchy/subtypes",
+    "typeHierarchy/supertypes",
+    "window/showDocument",
+    "window/showMessageRequest",
+    "window/workDoneProgress/cancel",
+    "window/workDoneProgress/create",
+    "workspace/codeLens/refresh",
+    "workspace/didCreateFiles",
+    "workspace/didDeleteFiles",
+    "workspace/didRenameFiles",
+    "workspace/willCreateFiles",
+    "workspace/willDeleteFiles",
+    "workspace/willRenameFiles"
+  ],
+  "opt_in_request_parser": [
+    "textDocument/onTypeFormatting",
+    "textDocument/prepareRename",
+    "textDocument/rangeFormatting",
+    "textDocument/selectionRange",
+    "textDocument/typeDefinition",
+    "workspace/applyEdit",
+    "workspace/diagnostic/refresh",
+    "workspace/inlayHint/refresh",
+    "workspace/semanticTokens/refresh"
+  ],
+  "opt_in_response_parser": [
+    "textDocument/onTypeFormatting",
+    "workspace/applyEdit",
+    "workspace/diagnostic/refresh",
+    "workspace/inlayHint/refresh",
+    "workspace/semanticTokens/refresh"
+  ],
+  "response_only_no_request": [
+    "codeLens/resolve",
+    "completionItem/resolve",
+    "textDocument/colorPresentation",
+    "textDocument/documentColor"
+  ]
+}

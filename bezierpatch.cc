@@ -15,9 +15,10 @@ using ::orient2d;
 using ::orient3d;
 
 const double third=1.0/3.0;
-static constexpr glm::vec4 black(0, 0, 0, 0);
 
 #ifdef HAVE_LIBGLM
+
+static constexpr glm::vec4 black(0, 0, 0, 0);
 
 int MaterialIndex;
 size_t materialIndex;

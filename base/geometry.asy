@@ -2412,7 +2412,14 @@ bqe bqe(point M1, point M2, point M3, point M4, point M5)
     M[i] = new real[] {pts[i].x * pts[i].y, pts[i].y^2, pts[i].x, pts[i].y, 1};
     x[i] = pts[i].x^2;
   }
-  if(abs(determinant(M)) < 1e-5) {// Try c = -1
+  // Relative singularity test: scale = product of row norms
+  real rnorms = 1;
+  for (int i = 0; i < 5; ++i) {
+    real rn = 0;
+    for (int j = 0; j < 5; ++j) rn += M[i][j]*M[i][j];
+    rnorms *= sqrt(rn);
+  }
+  if(abs(determinant(M)) < 100*epsgeo * rnorms) {// Try c = -1
     for (int i = 0; i < 5; ++i) {
       M[i] = new real[] {pts[i].x^2, pts[i].x * pts[i].y, pts[i].x, pts[i].y, 1};
       x[i] = pts[i].y^2;
@@ -2448,10 +2455,11 @@ system.");
 /*<asyxml><function type="real[]" signature="realquarticroots(real,real,real,real,real)"><code></asyxml>*/
 real[] realquarticroots(real a, real b, real c, real d, real e)
 {/*<asyxml></code><documentation>Return the real roots of the quartic equation ax^4 + b^x3 + cx^2 + dx = 0.</documentation></function></asyxml>*/
-  static real Fuzz = sqrt(realEpsilon);
+  real p(real x){return a * x^4 + b * x^3 + c * x^2 + d * x + e;}
+  real pscale(real x){return abs(a)*abs(x)^4 + abs(b)*abs(x)^3 + abs(c)*x^2 + abs(d)*abs(x) + abs(e);}
+  real Fuzz(real x){return epsgeo * pscale(x);}
   pair[] zroots = quarticroots(a, b, c, d, e);
   real[] roots;
-  real p(real x){return a * x^4 + b * x^3 + c * x^2 + d * x + e;}
   real prime(real x){return 4 * a * x^3 + 3 * b * x^2 + 2 * c * x + d;}
   real x;
   bool search = true;
@@ -2460,21 +2468,26 @@ real[] realquarticroots(real a, real b, real c, real d, real e)
   {
     bool exist = false;
     for (int i = 0; i < roots.length; ++i) {
-      if(abs(roots[i]-x) < 1e-5) {exist = true; break;}
+      real rdiff = abs(roots[i]-x);
+      real rscale = max(abs(roots[i]), abs(x));
+      if(rdiff <= epsgeo * rscale) {exist = true; break;}
     }
     if(!exist) roots.push(x);
   }
   for(int i = 0; i < zroots.length; ++i) {
-    if(zroots[i].y == 0 || abs(p(zroots[i].x)) < Fuzz) addroot(zroots[i].x);
+    if(zroots[i].y == 0 || abs(p(zroots[i].x)) < Fuzz(zroots[i].x)) addroot(zroots[i].x);
     else {
-      if(abs(zroots[i].y) < 1e-3) {
+      // A root is "nearly real" when its imaginary part is negligible relative
+      // to the magnitude of the (complex) root itself, not just its real part.
+      real xscale = abs(zroots[i]);
+      if(abs(zroots[i].y) <= epsgeo * xscale) {
         x = zroots[i].x;
         search = true;
         n = 200;
         while(search) {
-          real tx = abs(p(x)) < Fuzz ? x : newton(iterations = n, p, prime, x);
+          real tx = abs(p(x)) < Fuzz(x) ? x : newton(iterations = n, p, prime, x);
           if(tx < realMax) {
-            if(abs(p(tx)) < Fuzz) {
+            if(abs(p(tx)) < Fuzz(tx)) {
               addroot(tx);
               search = false;
             } else if(n < 200) n *=2;
@@ -2575,6 +2588,11 @@ struct ellipse
       this.c = abs(C - P[0]);
       this.b = this.c < epsgeo ? a : sqrt(a^2 - c^2); // Handle case of circle.
       this.e = this.c < epsgeo ? 0 : this.c/a; // Handle case of circle.
+      if (this.c < epsgeo) this.angle = 0; // a circle has no distinguished major axis;
+                                           // the angle above is meaningless here and, in a
+                                           // non-default coordinate system, degrees(F2 - F1)
+                                           // (with F1 == F2) would be a spurious value that
+                                           // shifts angle-based drawing (arc, angabscissa, ...)
       if(this.e >= 1) abort("ellipse.init: wrong parameter: e >= 1.");
       this.p = a * (1 - this.e^2);
       if (this.c != 0) {// directrix is not set for a circle.
@@ -3019,7 +3037,12 @@ bool isparabola(bqe bqe)
   bqe lbqe = changecoordsys(defaultcoordsys, bqe);
   real a = lbqe.a[0], b = lbqe.a[1]/2, c = lbqe.a[2], d = lbqe.a[3]/2, f = lbqe.a[4]/2, g = lbqe.a[5];
   real delta = a * c * g + b * f * d + d * b * f - (b^2 * g + d^2 * c + f^2 * a);
-  return (abs(delta) > epsgeo && abs(b^2 - a * c) < epsgeo);
+  real deltascale = abs(a*c*g)+abs(b*f*d)+abs(d*b*f)+abs(b^2*g)+abs(d^2*c)+abs(f^2*a);
+  real J = b^2 - a*c;
+  real Jscale = abs(b^2) + abs(a*c);
+  real qscale = a*a + b*b + c*c;
+  if(Jscale < epsgeo * qscale) Jscale = epsgeo * qscale;
+  return (abs(delta) > epsgeo * deltascale && abs(J) < epsgeo * Jscale);
 }
 
 /*<asyxml><function type="parabola" signature="parabola(bqe)"><code></asyxml>*/
@@ -3098,9 +3121,15 @@ parabola parabola(point M1, point M2, point M3, point M4, point M5)
 
 /*<asyxml><function type="hyperbola" signature="hyperbola(point,point,point)"><code></asyxml>*/
 hyperbola hyperbola(point F1, point F2, point M)
-{/*<asyxml></code><documentation>Return the hyperbola passing through 'M' whose the foci are 'F1' and 'F2'.</documentation></function></asyxml>*/
-  real a = abs(abs(F1 - M) - abs(F2 - M));
-  return hyperbola(F1, F2, finite(a) ? a/2 : a);
+{/*<asyxml></code><documentation>Return the hyperbola passing through 'M' whose the foci are 'F1' and 'F2'.
+   Aborts if 'M' is equidistant from both foci (degenerate: the locus is the perpendicular
+   bisector, not a hyperbola) or if 'a >= c' (no hyperbola through M with the given foci).</documentation></function></asyxml>*/
+  real a = abs(abs(F1 - M) - abs(F2 - M)) / 2;
+  real c = abs(F1 - F2) / 2;
+  if(!finite(a) || !finite(c)) return hyperbola(F1, F2, a);
+  if(a == 0) abort("hyperbola(F1,F2,M): M is equidistant from both foci; no hyperbola exists (degenerate case).");
+  if(a >= c) abort("hyperbola(F1,F2,M): a >= c; M is not on any hyperbola with foci F1 and F2 (degenerate case).");
+  return hyperbola(F1, F2, a, byfoci);
 }
 
 /*<asyxml><function type="hyperbola" signature="hyperbola(point,real,real,real)"><code></asyxml>*/
@@ -3169,7 +3198,6 @@ circle circle(explicit point C, real r)
 /*<asyxml><function type="circle" signature="circle(point,point)"><code></asyxml>*/
 circle circle(point A, point B)
 {/*<asyxml></code><documentation>Return the circle of diameter AB.</documentation></function></asyxml>*/
-  real r;
   circle oc;
   real a = abs(A), b = abs(B);
   if(finite(a) && finite(b)) {
@@ -3274,10 +3302,10 @@ circle operator -(explicit circle c, vector m)
 {/*<asyxml></code><documentation>Translation of 'c'.</documentation></operator></asyxml>*/
   return circle(c.C - m, c.r);
 }
-/*<asyxml><operator type = "real" signature="^(point,explicit circle)"><code></asyxml>*/
+/*<asyxml><operator type="real" signature="^(point,explicit circle)"><code></asyxml>*/
 real operator ^(point M, explicit circle c)
-{/*<asyxml></code><documentation>The power of 'M' with respect to the circle 'c'</documentation></operator></asyxml>*/
-  return xpart((abs(locate(M) - locate(c.C)), c.r)^2);
+{/*<asyxml></code><documentation>The power of 'M' with respect to the circle 'c'.</documentation></operator></asyxml>*/
+  return abs(locate(M) - locate(c.C))^2 - c.r^2;
 }
 /*<asyxml><operator type = "bool" signature="@(point,explicit circle)"><code></asyxml>*/
 bool operator @(point M, explicit circle c)
@@ -3395,7 +3423,7 @@ circle operator ecast(conic c)
 {/*<asyxml></code><documentation>Conic section to circle.</documentation></operator></asyxml>*/
   ellipse el = (ellipse)c;
   circle oc;
-  if(abs(el.a - el.b) < epsgeo) {
+  if(abs(el.a - el.b) < epsgeo * max(abs(el.a), abs(el.b))) {
     oc = circle(el.C, el.a);
     if(degenerate(c)) oc.l = c.l[0];
   }
@@ -3923,14 +3951,17 @@ string conictype(bqe bqe)
   string os = "degenerated";
   real a = lbqe.a[0], b = lbqe.a[1]/2, c = lbqe.a[2], d = lbqe.a[3]/2, f = lbqe.a[4]/2, g = lbqe.a[5];
   real delta = a * c * g + b * f * d + d * b * f - (b^2 * g + d^2 * c + f^2 * a);
-  if(abs(delta) < 10 * epsgeo) return os;
+  real deltascale = abs(a*c*g)+abs(b*f*d)+abs(d*b*f)+abs(b^2*g)+abs(d^2*c)+abs(f^2*a);
+  if(abs(delta) <= 10 * epsgeo * deltascale) return os;
   real J = a * c - b^2;
-  real I = a + c;
-  if(J > epsgeo) {
-    if(delta/I < -epsgeo);
+  // Scale of J: floor at coefficient magnitude to handle a=0 or c=0 (parabola)
+  real Jscale = abs(a*c) + b^2;
+  real qscale = a*a + b*b + c*c;
+  if(Jscale < epsgeo * qscale) Jscale = epsgeo * qscale;
+  if(J > epsgeo * Jscale) {
     os = "ellipse";
   } else {
-    if(abs(J) < epsgeo) os = "parabola"; else os = "hyperbola";
+    if(abs(J) < epsgeo * Jscale) os = "parabola"; else os = "hyperbola";
   }
   return os;
 }
@@ -6354,81 +6385,183 @@ void dot(picture pic = currentpicture, triangle t, pen p = currentpen)
 
 // *=======================================================*
 // *.......................INVERSIONS......................*
-/*<asyxml><struct signature="inversion"><code></asyxml>*/
-struct inversion
-{/*<asyxml></code><documentation>https://mathworld.wolfram.com/Inversion.html</documentation></asyxml>*/
-  point C;
-  real k;
-  
-  /*<asyxml><function type="void" signature="init(point,real)"><code></asyxml>*/
-  void operator init(point C, real k)
-  {/*<asyxml></code><documentation>Return the inversion with respect to 'C' having circle power 'k'.</documentation></function></asyxml>*/
-    this.C = C;
-    this.k = k;
-  }
-  /*<asyxml><function type="void" signature="init(real,point)"><code></asyxml>*/
-  void operator init(real k, point C)
-  {/*<asyxml></code><documentation>Return the inversion with respect to 'C' having circle power 'k'.</documentation></function></asyxml>*/
-    this.C = C;
-    this.k = k;
-  }
-}/*<asyxml></struct></asyxml>*/
-
-/*<asyxml><function type="point" signature="inverse(inversion,point)"><code></asyxml>*/
-point inverse(inversion i, point P)
-{/*<asyxml></code><documentation>Return the inverse point of 'P' with respect to 'i'.</documentation></function></asyxml>*/
-  pair C = locate(i.C), P1 = locate(P);
-  pair P2 = C + i.k / conj(P1 - C);
-  return P2 / currentcoordsys;
+/*<asyxml><function type="point" signature="inverse(real,point,point)"><code></asyxml>*/
+point inverse(real k, point C, point P)
+{/*<asyxml></code><documentation>Return the inverse point of 'P' with respect to point 'C' and inversion power 'k'.</documentation></function></asyxml>*/
+  if (k == 0 || !finite(k)) abort("inverse: inversion power must be non-zero and finite");
+  if (!finite(C)) abort("inverse: inversion center must be finite");
+  point[] p = standardizecoordsys(C, P);
+  coordsys R = p[0].coordsys;
+  if (p[1] == p[0]) return point(R, (infinity, infinity));
+  if (!finite(p[1])) return C;
+  return C + k/conj(P - C);
 }
 
-/*<asyxml><function type="point" signature="radicalcenter(circle,circle)"><code></asyxml>*/
-point radicalcenter(circle c1, circle c2)
-{/*<asyxml></code><documentation><url href="http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
+/*<asyxml><function type="point" signature="radicalcenter(circle,circle,bool)"><code></asyxml>*/
+point radicalcenter(circle c1, circle c2, bool abort=true)
+{/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/>
+   If 'abort' is 'true' and the circles are concentric, execution will be aborted.
+   If 'abort' is 'false' and the circles are both concentric and congruent, a warning is sent
+   but the common center is returned (as the most convenient point among infinitely many points in the plane
+   having the same power of a point with respect to both circles).</documentation></function></asyxml>*/
+  // TODO Consider degenerate circle(s)
+  if (c1.C == c2.C) {
+    bool congruent = abs(c1.r) == abs(c2.r);
+    if (congruent && !abort) {
+      warning("radicalcenter", "The common center is returned as the most convenient point
+for two circles which are both concentric and congruent.");
+      return c1.C;
+    }
+    abort("radicalcenter: circles are concentric" + (congruent ? " and congruent" : ""));
+  }
+  point[] P = standardizecoordsys(c1.C, c2.C);
+  coordsys R = P[0].coordsys;
+  pair C1 = locate(c1.C);
+  pair C2 = locate(c2.C);
   real k = c1.r^2 - c2.r^2;
-  pair C1 = locate(c1.C), C2 = locate(c2.C);
-  pair D = C2 - C1;
-  pair K = C1 == C2 ?
-    (infinity, infinity) :
-    0.5 * (C1 + C2 + k * D / abs2(D));
-  return K / currentcoordsys;
+  pair oop = C2 - C1;
+  pair K = (C1 + C2)/2 + k/2 * oop/dot(oop, oop);
+  return point(R, K/R);
 }
 
-/*<asyxml><function type="line" signature="radicalline(circle,circle)"><code></asyxml>*/
-line radicalline(circle c1, circle c2)
-{/*<asyxml></code><documentation><url href="http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
-  if (c1.C == c2.C) abort("radicalline: the centers must be distinct");
+/*<asyxml><function type="line" signature="radicalline(circle,circle,bool)"><code></asyxml>*/
+line radicalline(circle c1, circle c2, bool abort=true)
+{/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/>
+   If 'abort' is 'true' and the circles are concentric, execution will be aborted.
+   If 'abort' is 'false' and the circles are both concentric and congruent, a warning is sent
+   but the line through the common center in direction '(1, 0)' is returned (as the most convenient one
+   among infinitely many).</documentation></function></asyxml>*/
+  // TODO Consider degenerate circle(s)
+  if (c1.C == c2.C) {
+    bool congruent = abs(c1.r) == abs(c2.r);
+    if (congruent && !abort) {
+      warning("radicalline", "The line through the common center in direction '(1, 0)' is returned as the most convenient line
+for two circles which are both concentric and congruent.");
+      return line(c1.C, c1.C + vector(c1.C.coordsys, (1, 0)));
+    }
+    abort("radicalline: circles are concentric" + (congruent ? " and congruent" : ""));
+  }
   return perpendicular(radicalcenter(c1, c2), line(c1.C, c2.C));
 }
 
 /*<asyxml><function type="point" signature="radicalcenter(circle,circle,circle)"><code></asyxml>*/
 point radicalcenter(circle c1, circle c2, circle c3)
-{/*<asyxml></code><documentation><url href="http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
+{/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
+  // TODO Consider degenerate circle(s)
+
+  /* Pseudocode:
+     - Introduce optional argument bool abort=true
+     - Remove duplicate circles from the set { c1, c2, c3 } considering two circles ci and cj to be equal
+       if ci.C == cj.C and abs(ci.r) == abs(cj.r)
+     - If there is only one unique circle c1', there are infinitely many points in the plane having
+       the same power of a point with respect to all circles:
+         if !abort: warn and return the common center as the most convenient point
+         otherwise: abort (there is no unique point)
+         (It seems that calling radicalcenter(c1', c1', abort) will do.)
+     - If there are two unique circles c1' and c2':
+         if concentric (hence non-congruent): abort (there is no point at all)
+         otherwise: there are infinitely many points in the plane having the same power of a point with respect to all circles
+           if !abort: warn and return radicalcenter(c1', c2') as the most convenient point  (the value of the optional argument is not relevant here)
+           otherwise: abort (there is no unique point)
+     - If all circles are pairwise distinct:
+         if any two concentric (hence non-congruent): abort (there is no point at all)
+         otherwise:
+           if centers are collinear: (there is either none or infinitely many points)
+             check if radicalcenter(ci, cj) for all three pairs returns one unique point  (the value of the optional argument is not relevant here)
+             if yes and !abort: warn and return that point as the most convenient point
+             otherwise: abort (there is no point at all)
+           otherwise: return intersectionpoint(radicalline(c1, c2), radicalline(c1, c3))
+  */
   return intersectionpoint(radicalline(c1, c2), radicalline(c1, c3));
 }
 
-/*<asyxml><function type="inversion" signature="inversion(circle,circle)"><code></asyxml>*/
+/*<asyxml><struct signature="inversion"><code></asyxml>*/
+struct inversion
+{/*<asyxml></code><documentation><url href = "http://mathworld.wolfram.com/Inversion.html"/></documentation></asyxml>*/
+  /*<asyxml><property type="real" signature="k"><code></asyxml>*/
+  restricted real k = 1;/*<asyxml></code><documentation>Inversion power</documentation></property></asyxml>*/
+  /*<asyxml><property type="point" signature="C"><code></asyxml>*/
+  restricted point C;/*<asyxml></code><documentation>Inversion center</documentation></property></asyxml>*/
+
+  /*<asyxml><method type="void" signature="operator init(real,point)"><code></asyxml>*/
+  void operator init(real k, point C)
+  {/*<asyxml></code><documentation>Initialize the inversion with respect to 'C' having inversion power 'k'.</documentation></method></asyxml>*/
+    if (k == 0 || !finite(k)) abort("inversion: inversion power must be non-zero and finite");
+    if (!finite(C)) abort("inversion: inversion center must be finite");
+    this.k = k;
+    this.C = C;
+  }
+
+  /*<asyxml><method type="void" signature="operator init(point,real)"><code></asyxml>*/
+  void operator init(point C, real k)
+  {/*<asyxml></code><documentation>Initialize the inversion with respect to 'C' having inversion power 'k'.</documentation></method></asyxml>*/
+    if (k == 0 || !finite(k)) abort("inversion: inversion power must be non-zero and finite");
+    if (!finite(C)) abort("inversion: inversion center must be finite");
+    this.k = k;
+    this.C = C;
+  }
+}/*<asyxml></struct></asyxml>*/
+
+/*<asyxml><function type="inversion" signature="inversion(circle,circle,real)"><code></asyxml>*/
 inversion inversion(circle c1, circle c2, real sgn = 1)
-{/*<asyxml></code><documentation>Return the inversion which transforms 'c1' to
-   • 'c2' and positive inversion radius if 'sgn > 0';
-   • 'c2' and negative inversion radius if 'sgn < 0';
-   • 'c1' and 'c2' to 'c2' if 'sgn = 0'.</documentation></function></asyxml>*/
+{/*<asyxml></code><documentation>Return the inversion which transforms 'c1' to 'c2'.
+   Except in the degenerate configurations listed below, there are two such inversions;
+   the optional argument 'sgn' selects which one is returned:
+   . 'sgn > 0': the inversion whose center is located between the centers of 'c1' and 'c2';
+   . 'sgn < 0': the inversion whose center is located outside the segment joining the centers of 'c1' and 'c2';
+   . 'sgn = 0': the inversion with center at the radical center of 'c1' and 'c2', which leaves both 'c1' and 'c2' invariant.
+   When the preferred inversion does not exist (externally tangent for 'sgn > 0', internally tangent or equal radii for 'sgn < 0'),
+   the other inversion is returned instead.
+   An error is raised only when no inversion exists at all:
+   . externally tangent circles with equal radii (the only possible center is the midpoint, which lies on both circles);
+   . 'sgn = 0' for concentric circles (no radical center) or tangent circles (radical center lies on them).</documentation></function></asyxml>*/
   if(sgn == 0) {
+    if(c1.C == c2.C) abort("inversion: concentric circles have no radical center");
     point O = radicalcenter(c1, c2);
-    return inversion(O, O^c1);
+    real k = O^c1;
+    if(k == 0) abort("inversion: the radical center of tangent circles lies on them; no invariant inversion exists");
+    return inversion(k, O);
   }
   pair C1 = locate(c1.C), C2 = locate(c2.C);
-  real r1 = c1.r, r2 = sgn(sgn) * c2.r;
-  pair O = (r2 * C1 + r1 * C2) / (r1 + r2);
-  real k =  r1 * r2 * (1 - abs2(C2 - C1) / (r1 + r2)^2);
+  real r1 = c1.r, r2 = c2.r;
+  real d = length(C2 - C1);
+  pair O;
+  real k;
+  if(sgn > 0) {
+    // center at the internal division point of the segment joining the centers
+    O = (r2 * C1 + r1 * C2) / (r1 + r2);
+    k = r1 * r2 * (1 - d^2 / (r1 + r2)^2);
+    if(k == 0) {
+      // externally tangent: fall back to the external division point
+      if(r1 == r2) abort("inversion: externally tangent circles with equal radii admit no inversion");
+      O = (r2 * C1 - r1 * C2) / (r2 - r1);
+      k = r1 * r2 * (d^2 / (r1 - r2)^2 - 1);
+    }
+  } else {
+    if(r1 == r2) {
+      // equal radii: fall back to the internal division point
+      O = (r1 * C1 + r1 * C2) / (2 * r1);
+      k = r1^2 * (1 - d^2 / (2 * r1)^2);
+      if(k == 0) abort("inversion: externally tangent circles with equal radii admit no inversion");
+    } else {
+      // center at the external division point of the segment joining the centers
+      O = (r2 * C1 - r1 * C2) / (r2 - r1);
+      k = r1 * r2 * (d^2 / (r1 - r2)^2 - 1);
+      if(k == 0) {
+        // internally tangent: fall back to the internal division point
+        O = (r2 * C1 + r1 * C2) / (r1 + r2);
+        k = r1 * r2 * (1 - d^2 / (r1 + r2)^2);
+      }
+    }
+  }
   return inversion(O / currentcoordsys, k);
 }
 
 /*<asyxml><function type="inversion" signature="inversion(circle,circle,circle)"><code></asyxml>*/
 inversion inversion(circle c1, circle c2, circle c3)
-{/*<asyxml></code><documentation>Return the inversion which transform 'c1' to 'c1', 'c2' to 'c2' and 'c3' to 'c3'.</documentation></function></asyxml>*/
-  point Rc = radicalcenter(c1, c2, c3);
-  return inversion(Rc, Rc^c1);
+{/*<asyxml></code><documentation>Return the inversion which transforms 'c1' to 'c1', 'c2' to 'c2' and 'c3' to 'c3'.</documentation></function></asyxml>*/
+  point O = radicalcenter(c1, c2, c3);
+  return inversion(O^c1, O);
 }
 
 circle operator cast(inversion i)
@@ -6454,56 +6587,50 @@ inversion inversion(circle c)
 /*<asyxml><operator type="point" signature="*(inversion,point)"><code></asyxml>*/
 point operator *(inversion i, point P)
 {/*<asyxml></code><documentation>Provide inversion * point.</documentation></operator></asyxml>*/
-  return inverse(i, P);
+  return inverse(i.k, i.C, P);
 }
 
-void lineinversion()
+/*<asyxml><function type="circle" signature="lineinversion(point,line)"><code></asyxml>*/
+circle lineinversion(point C, line l)
 {
-  warning("lineinversion", "the inversion of the line is not a circle.
+  circle oc = circle(C, infinity);
+  oc.l = l;
+  warning("lineinversion", "The inversion of the line is not a circle.
 The returned circle has an infinite radius, circle.l has been set.");
+  return oc;
 }
 
-/*<asyxml><function type="circle" signature="inverse(inversion,line)"><code></asyxml>*/
-circle inverse(inversion i, line l)
-{/*<asyxml></code><documentation>Return the inverse circle of 'l' with respect to 'i'.</documentation></function></asyxml>*/
-  if(i.C @ l) {
-    lineinversion();
-    circle c = circle(i.C, infinity);
-    c.l = l;
-    return c;
-  }
-  point A = inverse(i, l.A), B = inverse(i, l.B);
-  return circle(i.C, A, B);
+/*<asyxml><function type="circle" signature="inverse(real,point,line)"><code></asyxml>*/
+circle inverse(real k, point C, line l)
+{/*<asyxml></code><documentation>Return the inverse circle of 'l' with
+   respect to point 'C' and inversion power 'k'.</documentation></function></asyxml>*/
+  if(C @ l) return lineinversion(C, l);
+  point A = inverse(k, C, l.A);
+  point B = inverse(k, C, l.B);
+  return circle(C, A, B);
 }
 
 /*<asyxml><operator type="circle" signature="*(inversion,line)"><code></asyxml>*/
 circle operator *(inversion i, line l)
 {/*<asyxml></code><documentation>Provide inversion * line for lines that don't pass through the inversion center.</documentation></operator></asyxml>*/
-  return inverse(i, l);
+  return inverse(i.k, i.C, l);
 }
 
-/*<asyxml><function type="circle" signature="inverse(inversion,circle)"><code></asyxml>*/
-circle inverse(inversion i, circle c)
-{/*<asyxml></code><documentation>Return the inverse circle of 'c' with respect to 'i'.</documentation></function></asyxml>*/
-  if(degenerate(c)) return inverse(i, c.l);
-  if(i.C @ c) {
-    lineinversion();
-    point M1 = rotate(90, c.C) * i.C, M2 = rotate(-90, c.C) * i.C;
-    circle c1 = circle(i.C, infinity);
-    c1.l = line(inverse(i, M1), inverse(i, M2));
-    return c1;
-  }
-  pair C1 = locate(i.C), C2 = locate(c.C);
-  pair D = C2 - C1;
-  real s = i.k / (abs2(D) - c.r^2);
-  pair C3 = C1 + s * D;
-  return circle((point)(C3 / currentcoordsys), abs(s) * c.r);
+/*<asyxml><function type="circle" signature="inverse(real,point,circle)"><code></asyxml>*/
+circle inverse(real k, point C, circle c)
+{/*<asyxml></code><documentation>Return the inverse circle of 'c' with
+   respect to point 'C' and inversion power 'k'.</documentation></function></asyxml>*/
+  if(degenerate(c)) return inverse(k, C, c.l);
+  if(C @ c) return lineinversion(C, line(inverse(k, C, rotate(+90, c.C) * C), inverse(k, C, rotate(-90, c.C) * C)));
+  point[] P = standardizecoordsys(C, c.C);
+  real s = k/((P[1].x - P[0].x)^2 + (P[1].y - P[0].y)^2 - c.r^2);
+  return circle(P[0] + s * (P[1] - P[0]), abs(s) * c.r);
 }
 
 /*<asyxml><operator type="circle" signature="*(inversion,circle)"><code></asyxml>*/
 circle operator *(inversion i, circle c)
 {/*<asyxml></code><documentation>Provide inversion * circle.</documentation></operator></asyxml>*/
-  return inverse(i, c);
+  return inverse(i.k, i.C, c);
 }
 // *.......................INVERSIONS......................*
 // *=======================================================*
@@ -6669,10 +6796,29 @@ point[] intersectionpoints(bqe bqe1, bqe bqe2)
   real[] a=changecoordsys(R,bqe1).a;
   real[] b=changecoordsys(R,bqe2).a;
 
-  static real e=100 * sqrt(realEpsilon);
   real[] x,y,c;
   point[] P;
-  if(abs(a[0]-b[0]) > e || abs(a[1]-b[1]) > e || abs(a[2]-b[2]) > e) {
+  point[] dedup(point[] pts)
+  {
+    point[] Q;
+    for (int i = 0; i < pts.length; ++i) {
+      bool dup = false;
+      for (int j = 0; j < Q.length; ++j) {
+        real dx = pts[i].x - Q[j].x;
+        real dy = pts[i].y - Q[j].y;
+        real sc = max(abs(pts[i].x), abs(Q[j].x)) + max(abs(pts[i].y), abs(Q[j].y));
+        if (sc == 0) sc = 1;
+        if (abs(dx) <= epsgeo * sc && abs(dy) <= epsgeo * sc) { dup = true; break; }
+      }
+      if (!dup) Q.push(pts[i]);
+    }
+    return Q;
+  }
+  bool coefdiff(real p, real q)
+  {
+    return abs(p-q) > epsgeo * max(abs(p), abs(q));
+  }
+  if(coefdiff(a[0],b[0]) || coefdiff(a[1],b[1]) || coefdiff(a[2],b[2])) {
     c=new real[] {a[0]*a[2]*(-2*b[0]*b[2]+b[1]^2)+a[0]^2*b[2]^2+a[2]^2*b[0]^2,
 
                   2*a[0]*a[2]*b[1]*b[4]-2*a[2]*a[3]*b[0]*b[2]
@@ -6690,7 +6836,9 @@ point[] intersectionpoints(bqe bqe1, bqe bqe2)
                   +a[2]^2*b[5]^2};
     x=realquarticroots(c[0],c[1],c[2],c[3],c[4]);
   } else {
-    if(abs(b[4]) > e) {
+    real bscale = abs(b[0])+abs(b[1])+abs(b[2])+abs(b[3])+abs(b[4])+abs(b[5]);
+    if(bscale == 0) bscale = 1;
+    if(abs(b[4]) > epsgeo * bscale) {
       real D=b[4]^2;
       c=new real[] {(a[0]*b[4]^2+a[2]*b[3]^2+
                      (-2*a[2]*a[3])*b[3]+a[2]*a[3]^2)/D,
@@ -6698,7 +6846,7 @@ point[] intersectionpoints(bqe bqe1, bqe bqe2)
                       (2*a[2]*a[5])*b[3])/D,a[2]*(a[5]-b[5])^2/D+a[5]};
       x=quadraticroots(c[0],c[1],c[2]);
     } else {
-      if(abs(a[3]-b[3]) > e) {
+      if(coefdiff(a[3],b[3])) {
         real D=b[3]-a[3];
         c=new real[] {a[2],0,a[0]*(a[5]-b[5])^2/D^2-a[3]*b[5]/D+a[5]};
         y=quadraticroots(c[0],c[1],c[2]);
@@ -6706,14 +6854,15 @@ point[] intersectionpoints(bqe bqe1, bqe bqe2)
           c=new real[] {a[0],a[3],a[2]*y[i]^2+a[5]};
           x=quadraticroots(c[0],c[1],c[2]);
           for(int j=0; j < x.length; ++j) {
-            if(abs(b[0]*x[j]^2+b[1]*x[j]*y[i]+b[2]*y[i]^2+b[3]*x[j]
-                   +b[4]*y[i]+b[5]) < 1e-5)
+            real res = b[0]*x[j]^2+b[1]*x[j]*y[i]+b[2]*y[i]^2+b[3]*x[j]+b[4]*y[i]+b[5];
+            real scl = abs(b[0]*x[j]^2)+abs(b[1]*x[j]*y[i])+abs(b[2]*y[i]^2)+abs(b[3]*x[j])+abs(b[4]*y[i])+abs(b[5]);
+            if(abs(res) <= 100*epsgeo*scl)
               P.push(changecoordsys(currentcoordsys,point(R,(x[j],y[i]))));
           }
         }
-        return P;
+        return dedup(P);
       } else {
-        if(abs(a[5]-b[5]) < e)
+        if(!coefdiff(a[5],b[5]))
           abort("intersectionpoints: intersection of identical conics.");
       }
     }
@@ -6722,12 +6871,13 @@ point[] intersectionpoints(bqe bqe1, bqe bqe2)
     c=new real[] {a[2],0,a[0]*x[i]^2+a[3]*x[i]+a[5]};
     y=quadraticroots(c[0],c[1],c[2]);
     for(int j=0; j < y.length; ++j) {
-      if(abs(b[0]*x[i]^2+b[1]*x[i]*y[j]+b[2]*y[j]^2+b[3]*x[i]+b[4]*y[j]+b[5])
-         < 1e-5)
+      real res = b[0]*x[i]^2+b[1]*x[i]*y[j]+b[2]*y[j]^2+b[3]*x[i]+b[4]*y[j]+b[5];
+      real scl = abs(b[0]*x[i]^2)+abs(b[1]*x[i]*y[j])+abs(b[2]*y[j]^2)+abs(b[3]*x[i])+abs(b[4]*y[j])+abs(b[5]);
+      if(abs(res) <= 100*epsgeo*scl)
         P.push(changecoordsys(currentcoordsys,point(R,(x[i],y[j]))));
     }
   }
-  return P;
+  return dedup(P);
 }
 
 /*<asyxml><function type="point[]" signature="intersectionpoints(conic,conic)"><code></asyxml>*/
@@ -7026,6 +7176,133 @@ line[] tangents(hyperbola h, point M)
   return ol;
 }
 
+/*<asyxml><function type="line[]" signature="tangents(conic,vector)"><code></asyxml>*/
+line[] tangents(conic co, vector v)
+{/*<asyxml></code><documentation>Return all tangent lines to the conic 'co' that are parallel to the direction 'v'.
+   For a circle or ellipse, there are always 2 such tangents.
+   For a parabola, there is 1 (or 0 if 'v' is parallel to the axis of the parabola).
+   For a hyperbola, there can be 0, 1, or 2 such tangents depending on
+   whether the direction lies between the asymptote directions.
+   The tangents are computed using the dual conic (adjugate of the conic matrix).</documentation></function></asyxml>*/
+  line[] ol;
+  if(length(v) == 0) return ol;
+  bqe eq = changecoordsys(defaultcoordsys, equation(co));
+  real a = eq.a[0], b = eq.a[1], c = eq.a[2];
+  real d = eq.a[3], e = eq.a[4], f = eq.a[5];
+  // Adjugate of M = [[a,b/2,d/2],[b/2,c,e/2],[d/2,e/2,f]]
+  real A11 = c*f - e*e/4, A12 = d*e/4 - b*f/2, A13 = b*e/4 - c*d/2;
+  real A22 = a*f - d*d/4, A23 = b*d/4 - a*e/2;
+  real A33 = a*c - b*b/4;
+
+  // Normal to direction v = (vx, vy) is (vy, -vx); snap near-zero to 0
+  pair vp = (pair)v;
+  real vlen = max(abs(vp.x), abs(vp.y));
+  real l = (abs(vp.y) < epsgeo * vlen) ? 0 : vp.y;
+  real m = (abs(-vp.x) < epsgeo * vlen) ? 0 : -vp.x;
+  // Tangency condition: A33*n^2 + 2*(A13*l+A23*m)*n + (A11*l^2+2*A12*l*m+A22*m^2) = 0
+  real qa = A33, qb = 2*(A13*l + A23*m), qc = A11*l*l + 2*A12*l*m + A22*m*m;
+  // Scale for qa: use the terms that compose A33 = a*c - b^2/4
+  real qascale = abs(a*c) + abs(b*b/4);
+  real qqscale = a*a + b*b + c*c;
+  if(qascale < epsgeo * qqscale) qascale = epsgeo * qqscale;
+  // Scale for qb: the two terms that compose it, so qb=0 (e.g. an axis-parallel
+  // direction on a parabola) is treated as "no linear tangent" robustly.
+  real qbscale = abs(2*A13*l) + abs(2*A23*m);
+  if(qa == 0 && qb == 0 && qc == 0) return ol;
+  if(abs(qa) < epsgeo * qascale) {
+    if(abs(qb) > epsgeo * qbscale)
+      ol.push(line(defaultcoordsys, l, m, -qc/qb));
+  } else {
+    real disc = qb*qb - 4*qa*qc;
+    real discs = qb*qb + 4*abs(qa*qc);
+    if(disc >= -10*epsgeo*discs) {
+      if(disc < 0) disc = 0;
+      real sq = sqrt(disc);
+      ol.push(line(defaultcoordsys, l, m, (-qb+sq)/(2*qa)));
+      if(disc > 10*epsgeo*discs)
+        ol.push(line(defaultcoordsys, l, m, (-qb-sq)/(2*qa)));
+    }
+  }
+  return ol;
+}
+
+/*<asyxml><function type="line[]" signature="tangents(conic,conic)"><code></asyxml>*/
+line[] tangents(conic co1, conic co2)
+{/*<asyxml></code><documentation>Return the common tangent lines of the two conics 'co1' and 'co2'.
+   There can be up to 4 common tangents; complex or degenerate solutions are not returned.</documentation></function></asyxml>*/
+  line[] ol;
+  bqe eq1 = changecoordsys(defaultcoordsys, equation(co1));
+  bqe eq2 = changecoordsys(defaultcoordsys, equation(co2));
+  // Dual conic of eq1: adjugate of the conic matrix, n=1 slice in line coordinates
+  real a1=eq1.a[0], b1=eq1.a[1], c1=eq1.a[2], d1=eq1.a[3], e1=eq1.a[4], f1=eq1.a[5];
+  bqe dc1 = bqe(defaultcoordsys,
+    c1*f1-e1*e1/4,  d1*e1/2-b1*f1,  a1*f1-d1*d1/4,
+    b1*e1/2-c1*d1,  b1*d1/2-a1*e1,  a1*c1-b1*b1/4);
+  // Dual conic of eq2
+  real a2=eq2.a[0], b2=eq2.a[1], c2=eq2.a[2], d2=eq2.a[3], e2=eq2.a[4], f2=eq2.a[5];
+  bqe dc2 = bqe(defaultcoordsys,
+    c2*f2-e2*e2/4,  d2*e2/2-b2*f2,  a2*f2-d2*d2/4,
+    b2*e2/2-c2*d2,  b2*d2/2-a2*e2,  a2*c2-b2*b2/4);
+
+
+  point[] p = intersectionpoints(dc1, dc2);
+  for (int i = 0; i < p.length; ++i) {
+    real l = p[i].x, m = p[i].y;
+    // Snap near-zero component relative to the other (homogeneous coords)
+    real r = max(abs(l), abs(m));
+    if(r == 0) continue;
+    if(abs(l) < epsgeo * r) l = 0;
+    if(abs(m) < epsgeo * r) m = 0;
+    ol.push(line(defaultcoordsys, l, m, 1));
+  }
+  // n=0 chart: lines through the origin, A11*l^2 + 2*A12*l*m + A22*m^2 = 0
+  real A11_1 = c1*f1-e1*e1/4, A12_1 = d1*e1/4-b1*f1/2, A22_1 = a1*f1-d1*d1/4;
+  real A11_2 = c2*f2-e2*e2/4, A12_2 = d2*e2/4-b2*f2/2, A22_2 = a2*f2-d2*d2/4;
+  // Per-entry scales for the n=0 chart coefficients
+  real A11s1 = abs(c1*f1) + abs(e1*e1/4);
+  real A22s1 = abs(a1*f1) + abs(d1*d1/4);
+  // The n=0 equation is the intersection of the two homogeneous quadrics;
+  // a line through origin (l,m,0) is tangent to both conics iff
+  // [l,m,0] satisfies both dual conics, i.e. both homogeneous parts vanish.
+  // Solve A11_1*l^2 + 2*A12_1*l*m + A22_1*m^2 = 0 and check against conic 2.
+  real D0 = A12_1*A12_1 - A11_1*A22_1;
+  real D0scale = A12_1*A12_1 + abs(A11_1*A22_1);
+  if(D0scale == 0) return ol;
+  if(D0 >= -10*epsgeo*D0scale) {
+    if(D0 < 0) D0 = 0;
+    real sq0 = sqrt(D0);
+    if(abs(A11_1) > epsgeo * A11s1) {
+      real l1 = (-A12_1 + sq0) / A11_1;
+      // Check against conic 2: A11_2*l^2 + 2*A12_2*l + A22_2 = 0 (with m=1)
+      real r1 = A11_2*l1*l1 + 2*A12_2*l1 + A22_2;
+      real s1 = abs(A11_2*l1*l1) + abs(2*A12_2*l1) + abs(A22_2);
+      if(abs(r1) < 100*epsgeo*s1)
+        ol.push(line(defaultcoordsys, l1, 1, 0));
+      if(D0 > 10*epsgeo*D0scale) {
+        real l2 = (-A12_1 - sq0) / A11_1;
+        real r2 = A11_2*l2*l2 + 2*A12_2*l2 + A22_2;
+        real s2 = abs(A11_2*l2*l2) + abs(2*A12_2*l2) + abs(A22_2);
+        if(abs(r2) < 100*epsgeo*s2)
+          ol.push(line(defaultcoordsys, l2, 1, 0));
+      }
+    } else if(abs(A22_1) > epsgeo * A22s1) {
+      real m1 = (-A12_1 + sq0) / A22_1;
+      real r1 = A11_2 + 2*A12_2*m1 + A22_2*m1*m1;
+      real s1 = abs(A11_2) + abs(2*A12_2*m1) + abs(A22_2*m1*m1);
+      if(abs(r1) < 100*epsgeo*s1)
+        ol.push(line(defaultcoordsys, 1, m1, 0));
+      if(D0 > 10*epsgeo*D0scale) {
+        real m2 = (-A12_1 - sq0) / A22_1;
+        real r2 = A11_2 + 2*A12_2*m2 + A22_2*m2*m2;
+        real s2 = abs(A11_2) + abs(2*A12_2*m2) + abs(A22_2*m2*m2);
+        if(abs(r2) < 100*epsgeo*s2)
+          ol.push(line(defaultcoordsys, 1, m2, 0));
+      }
+    }
+  }
+  return ol;
+}
+
 /*<asyxml><function type="point[]" signature="intersectionpoints(conic,arc)"><code></asyxml>*/
 point[] intersectionpoints(conic co, arc a)
 {/*<asyxml></code><documentation>intersectionpoints(arc, circle) is also defined.</documentation></function></asyxml>*/
@@ -7150,20 +7427,20 @@ arc arc(explicit arc a, point M, point N)
   return arc(a, relabscissa(a, M), relabscissa(a, N));
 }
 
-/*<asyxml><function type="arc" signature="inverse(inversion,segment)"><code></asyxml>*/
-arc inverse(inversion i, segment s)
-{/*<asyxml></code><documentation>Return the inverse arc circle of 's'
-   with respect to inversion 'i'.</documentation></function></asyxml>*/
-  point Ap = inverse(i, s.A), Bp = inverse(i, s.B),
-    M = inverse(i, midpoint(s));
-  return arccircle(Ap, M, Bp);
+/*<asyxml><function type="arc" signature="inverse(real,point,segment)"><code></asyxml>*/
+arc inverse(real k, point C, segment s)
+{/*<asyxml></code><documentation>Return the inverse arc circle of 's' with
+   respect to point 'C' and inversion power 'k'.</documentation></function></asyxml>*/
+  point A = inverse(k, C, s.A);
+  point B = inverse(k, C, s.B);
+  point M = inverse(k, C, midpoint(s));
+  return arccircle(A, M, B);
 }
 
 /*<asyxml><operator type="arc" signature="*(inversion,segment)"><code></asyxml>*/
 arc operator *(inversion i, segment s)
-{/*<asyxml></code><documentation>Provide
-   inversion * segment.</documentation></operator></asyxml>*/
-  return inverse(i, s);
+{/*<asyxml></code><documentation>Provide inversion * segment.</documentation></operator></asyxml>*/
+  return inverse(i.k, i.C, s);
 }
 
 /*<asyxml><operator type = "path" signature="*(inversion,triangle)"><code></asyxml>*/

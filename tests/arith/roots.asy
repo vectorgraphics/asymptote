@@ -1,6 +1,7 @@
 // Roots.
 
 import TestLib;
+import math;
 real x;
 real[] r;
 
@@ -81,6 +82,47 @@ r=cubicroots(1,0,20,-4);
 assert(r.length == 1);
 x=cbrt(54+6sqrt(6081));
 assert(close(r[0],x/3-20/x));
+
+EndTest();
+
+StartTest("quartic roots");
+
+// Check that each expected root appears in z.
+void assertin(pair[] z, pair target) {
+  for(pair w : z)
+    if(close(w,target)) return;
+  write("  expected root ", target, " not found in ", z, "\n");
+  assert(false);
+}
+
+pair[] z;
+
+// a=0 degenerates to cubic x^3+1=0 = (x+1)(x^2-x+1)
+z=quarticroots(0,1,0,0,1);
+assert(z.length == 3);
+assertin(z,(-1,0));
+assertin(z,(0.5,0.5sqrt(3)));
+assertin(z,(0.5,-0.5sqrt(3)));
+
+// e=0: x^4-x = x(x-1)(x^2+x+1)
+z=quarticroots(1,0,0,-1,0);
+assert(z.length == 4);
+assertin(z,(0,0));
+assertin(z,(1,0));
+assertin(z,(-0.5,0.5sqrt(3)));
+assertin(z,(-0.5,-0.5sqrt(3)));
+
+// e=0: x^4=0
+z=quarticroots(1,0,0,0,0);
+assert(z.length == 4);
+for(pair w : z) assert(close(w,(0,0)));
+
+// a=0: x^3-1=0 = (x-1)(x^2+x+1)
+z=quarticroots(0,1,0,0,-1);
+assert(z.length == 3);
+assertin(z,(1,0));
+assertin(z,(-0.5,0.5sqrt(3)));
+assertin(z,(-0.5,-0.5sqrt(3)));
 
 EndTest();
 

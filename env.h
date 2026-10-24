@@ -53,8 +53,15 @@ public:
 
   protoenv(const protoenv&);
 
+  // A generation counter that changes every time a scope is opened.
+  // Used to invalidate cached types in expressions when the same AST
+  // is re-translated in a different environment (e.g. loop bodies that
+  // are translated twice for closure support).
+  size_t scopeGeneration = 0;
+
   void beginScope()
   {
+    ++scopeGeneration;
     te.beginScope(); ve.beginScope();
   }
   void endScope()
@@ -162,7 +169,6 @@ public:
 
   // Add the standard functions for a new type.
   void addArrayOps(types::array *t);
-  void addRecordOps(types::record *r);
 
   void list(record *r=0)
   {

@@ -2288,11 +2288,11 @@ draw=new void(frame f, path3 g, material p=currentpen,
           }
 // Draw central core for better small-scale rendering.
           if((!prc || piecewisestraight(g)) && !primitive && opacity(q) == 1)
-            _draw(f,c,p,light);
+            _draw(f,c,p,light,render.interaction);
         }
         for(surface s : T.s)
           draw(f,s,p,light,render);
-      } else _draw(f,g,p,light);
+      } else _draw(f,g,p,light,render.interaction);
     }
     bool group=q != nullpen && (name != "" || render.defaultnames);
     if(group)
@@ -2359,8 +2359,8 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
   bool group=arrow != None || bar != None;
   if(group)
     begingroup3(pic,name,render);
-  bool drawpath=arrow(pic,g,p,margin,light,arrowheadlight);
-  if(bar(pic,g,p,margin,light,arrowheadlight) && drawpath)
+  bool drawpath=arrow(pic,g,p,margin,light,arrowheadlight,render);
+  if(bar(pic,g,p,margin,light,arrowheadlight,render) && drawpath)
     draw(pic,L,g,align,p,margin,light,render);
   if(group)
     endgroup3(pic);
@@ -2377,7 +2377,7 @@ void draw(frame f, path3 g, material p=currentpen, arrowbar3 arrow,
   bool group=arrow != None;
   if(group)
     begingroup3(f,name,render);
-  if(arrow(pic,g,p,NoMargin3,light,arrowheadlight))
+  if(arrow(pic,g,p,NoMargin3,light,arrowheadlight,render))
     draw(f,g,p,light,render,P);
   add(f,pic.fit());
   if(group)

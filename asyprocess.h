@@ -41,6 +41,9 @@ void runCodeEmbedded(absyntax::block *code, trans::coenv &e, istack &s);
 void runStringEmbedded(const string& str, trans::coenv &e, istack &s);
 void runPromptEmbedded(trans::coenv &e, istack &s);
 
+// Runs the autoimported module(s) in the given environment.
+void runAutoimport(trans::coenv &e, istack &s);
+
 // Basic listing.
 void doUnrestrictedList();
 
@@ -110,7 +113,7 @@ struct processDataStruct {
   string KEY;
   xkey_t xkey;
   xmap_t xmap;
-  unsigned int xmapCount;
+  uint32_t xmapCount;
 
   terminator<std::ofstream> ofile;
   terminator<std::fstream> ifile;

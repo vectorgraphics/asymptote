@@ -1,0 +1,10 @@
+[
+  {"step":"initialize","file":"initialize_request.json","kind":"request","response_fixture":"initialize_response.json"},
+  {"step":"didOpen","file":"did_open_notification.json","kind":"notification"},
+  {"step":"didChange","file":"did_change_notification.json","kind":"notification"},
+  {"step":"completion","file":"completion_request.json","kind":"request","response_fixture":"completion_list_response.json"},
+  {"step":"hover","file":"hover_request.json","kind":"request","response_fixture":"hover_markup_content_response.json"},
+  {"step":"references","file":"references_request.json","kind":"request","response_fixture":"references_locations_response.json"},
+  {"step":"signatureHelp","file":"signature_help_request.json","kind":"request","response_fixture":"signature_help_response.json"},
+  {"step":"shutdown","file":"shutdown_request.json","kind":"request","response_fixture":"shutdown_null_response.json"}
+]

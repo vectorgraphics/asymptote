@@ -281,6 +281,13 @@ installing it, using the @code{Asymptote Web Application}:
 It is also possible to send remote commands to this server via the
 curl utility (@pxref{Command-Line Interface}).
 
+The @code{Asymptote Wiki} at
+@url{https://asymptote.ualberta.ca/wiki/} is a community gallery
+where users can share examples and modules. Examples are organized
+into user-defined categories, compiled with the installed version of
+@code{Asymptote}, and displayed as inline @acronym{SVG} (2D) or
+interactive @acronym{WebGL} (3D).
+
 A major advantage of @code{Asymptote} over other graphics packages is
 that it is a high-level programming language, as opposed to just a graphics
 application: it can therefore exploit the best features of the script
@@ -756,9 +763,9 @@ to the directory @code{base} (in the top level directory of the
 @cindex @code{asy-mode}
 @cindex @code{lasy-mode}
 Users of @code{emacs} can edit @code{Asymptote} code with the mode
-@code{asy-mode}, after enabling it by putting the following lines in their
-@code{.emacs} initialization file, replacing @code{ASYDIR} with the
-location of the @code{Asymptote} system directory (by default,
+@code{asy-mode}.  You can enable the mode by putting the following lines in your
+@code{.emacs} initialization file, replacing @code{ASYDIR} with
+the location of the @code{Asymptote} system directory (by default,
 @code{@value{Datadir}/asymptote} or @code{C:\Program Files\Asymptote}
 under @code{MSDOS}):
 @verbatim
@@ -1354,10 +1361,13 @@ point on a picture @code{dest} using @code{add} or @code{attach}
 @cindex @code{dot}
 To draw a dot, simply draw a path containing a single point.
 The @code{dot} command defined in the module @code{plain} draws a
-dot having a diameter equal to an explicit pen line width or the
-default line width magnified by @code{dotfactor} (6 by default),
-using the specified filltype (@pxref{filltype}) or @code{dotfilltype}
-(@code{Fill} by default):
+dot using the specified filltype (@pxref{filltype}) or @code{dotfilltype}
+(@code{Fill} by default). With @code{filltype=Fill}, the dot has a
+diameter equal to an explicit pen line width or the default line
+width magnified by @code{dotfactor} (6 by default). With other
+filltypes, the dot is drawn as a ring with an
+outer diameter of @code{dotfactor} times the pen line width,
+regardless of whether the line width is explicitly specified:
 @verbatim
 void dot(frame f, pair z, pen p=currentpen, filltype filltype=dotfilltype);
 void dot(picture pic=currentpicture, pair z, pen p=currentpen,
@@ -4185,14 +4195,37 @@ Data of a built-in type @code{T} can be written to an output file by
 calling one of the functions
 @cindex @code{write}
 @verbatim
-write(string s="", T x, suffix suffix=endl, ... T[]);
-write(file file, string s="", T x, suffix suffix=none, ... T[]);
-write(file file=stdout, string s="", explicit T[] x, ... T[][]);
-write(file file=stdout, T[][]);
-write(file file=stdout, T[][][]);
+write(file file=stdout, string s="", ... T[]);
 write(suffix suffix=endl);
 write(file file, suffix suffix=none);
+write(...);
 @end verbatim
+The last form accepts a heterogeneous list of writeable values,
+optionally prefixed by a @code{file} and/or an identifying
+@code{string}, and optionally suffixed by a @code{suffix} (a
+function of type @code{void(file)}).  It is used when no
+type-specific @code{write} overload matches, for example
+@code{write(42, 3.14, "done")}.  The file, identifying string, and
+suffix may instead be given anywhere in the list as the named
+arguments @code{file}, @code{s}, and @code{suffix}, as in
+@code{write(x, y, suffix=none)}.  The elements of a rest argument,
+as in @code{write(x ... a)}, are written after the other values.
+Values of any struct type that
+defines a publicly accessible @code{write(file, suffix)} method
+(such as @code{Label}), and arrays of such values, are written by
+calling that method.  The
+optional identifying string (if present) is written flush against
+the first data value (no tab separator), so
+@code{write("a", "b", 1)} produces
+@verbatim
+ab	1
+@end verbatim
+@noindent
+while @code{write(1, "a", "b")} produces
+@verbatim
+1	a	b
+@end verbatim
+@noindent
 @cindex @code{none}
 @cindex @code{flush}
 @cindex @code{endl}
@@ -4202,10 +4235,9 @@ write(file file, suffix suffix=none);
 @cindex @code{tab}
 @cindex @code{comma}
 If @code{file} is not specified, @code{stdout} is used and
-terminated by default with a newline. If specified, the optional
-identifying string @code{s} is written before the data @code{x}.
-An arbitrary number of data values may be listed when writing scalars
-or one-dimensional arrays. The @code{suffix} may be one of the following:
+the default @code{suffix} is @code{endl}. If specified, the optional
+identifying string @code{s} is written before the data.
+The @code{suffix} may be one of the following:
 @code{none} (do nothing), @code{flush} (output buffered data),
 @code{endl} (terminate with a newline and flush),
 @code{newl} (terminate with a newline),
@@ -4218,6 +4250,23 @@ file fout=output("test.txt");
 write(fout,1);                  // Writes "1"
 write(fout, endl);              // Writes a new line
 write(fout,"List: ",1,2,3);     // Writes "List: 1     2     3"
+@end verbatim
+@noindent
+When multiple arrays of the same scalar type @code{T} are listed, they are
+written as indexed columns, one index per line:
+@verbatim
+write(new int[] {1,2}, new int[]{3,4});
+// 0:      1       3
+// 1:      2       4
+@end verbatim
+Arrays of different types (or any mix of values) are written by the
+heterogeneous form, with each value on its own line:
+@verbatim
+write(new int[] {1,2}, new pair[]{1, I});
+// 1
+// 2
+// (1,0)
+// (0,1)
 @end verbatim
 @noindent
 
@@ -4537,16 +4586,26 @@ reference, a reference that does not actually refer to any instance of the
 structure.  Trying to use a field of a null reference will cause an error.
 
 @cindex alias
+The function @code{bool alias(T,T)} checks to see if two expressions of
+the same nullable type refer to the same instance of that type.
+In the example at the beginning of this section, @code{alias(foo,bar)}
+would return true, but @code{alias(foo,new T)} would return false, as
+@code{new T} creates a new instance of the structure @code{T}.
+If @code{a} has a well-defined type, then @code{alias(a,null)} is an idiomatic
+way to check whether @code{a} is @code{null}; however, @code{alias(null, null)}
+is an error since neither operand has a well-defined type.
+
 @cindex @code{==}
 @cindex @code{!=}
-The function @code{bool alias(T,T)} checks to see if two structure references
-refer to the same instance of the structure (or both to @code{null}).
-In the example at the beginning of this section, @code{alias(foo,bar)}
-would return true, but @code{alias(foo,new T)} would return false, as @code{new
-T} creates a new instance of the structure @code{T}.  The boolean operators
+The boolean operators
 @code{==} and @code{!=} are by default equivalent to @code{alias} and
 @code{!alias} respectively, but may be overwritten for a particular type
 (for example, to do a deep comparison).
+Because the default @code{==} and @code{!=} (like @code{alias}) require both
+operands to have the same type, no implicit casting is performed to reconcile
+differing operand types: comparing values of two different structure types is
+an error, even if a cast between them exists, unless a matching
+@code{operator ==} has been declared.
 
 Here is a simple example that illustrates the use of structures:
 @verbatim
@@ -5708,8 +5767,8 @@ This declares @code{a} to be @code{real} and implicitly declares @code{A} to
 be of type @code{real[]}.
 
 In the following list of built-in array functions, @code{T} represents a
-generic type. Note that the internal functions @code{alias}, @code{array},
-@code{copy}, @code{concat}, @code{sequence}, @code{map}, and
+generic type. Note that the internal functions @code{array}, @code{copy},
+@code{concat}, @code{sequence}, @code{map}, and
 @code{transpose}, which depend on type @code{T[]}, are defined only after the
 first declaration of a variable of type @code{T[]}.
 
@@ -6019,6 +6078,12 @@ quadratic equation @math{ax^2+bx+c=0};
 @item @code{real[] cubicroots(real a, real b, real c, real d);}
 This numerically robust solver returns the real roots of the
 cubic equation @math{ax^3+bx^2+cx+d=0}. Multiple roots are listed separately.
+
+@cindex @code{complexcubicroots}
+@item @code{pair[] complexcubicroots(real a, real b, real c, real d);}
+This numerically robust solver returns the complex roots of the
+cubic equation @math{ax^3+bx^2+cx+d=0}. Multiple roots are listed
+separately.
 
 @end table
 
@@ -6987,13 +7052,12 @@ This approach is necessary if we are redefining the @code{==}
 operator. Two @code{Person}s are equal if they have the same first name,
 last name, and age.
 
-The default @code{==} operator for user-defined structs considers two objects
-equal if they are the same object, meaning that changes to one will be reflected
-in the other. A hash method that plays well with the default @code{==}
-operator must remain the
-same even if the fields change. In this case, we can add a never-changing
-@code{id} field
-that uniquely identifies a @code{Person} object, and use that for hashing: 
+In contrast, the default @code{==} operator for structs considers two objects
+equal if they are the same object, meaning that changes to one will be
+reflected in the other. A hash method that plays well with this operator must
+remain the same even if the fields change. In this case, we can add a
+never-changing @code{id} field that uniquely identifies a @code{Person} object,
+and use that for hashing: 
 
 @verbatim
 struct Person {
@@ -12005,9 +12069,15 @@ If multiple files are specified, they are treated as separate
 @code{Asymptote} runs.
 
 @cindex @code{autoimport}
-If the string @code{autoimport} is nonempty, a module with this name is
-automatically imported for each run as the final step in loading module
-@code{plain}.
+If the string @code{autoimport} is nonempty, one or more modules are
+automatically imported for each run, immediately after loading module
+@code{plain}. Multiple modules may be specified as a comma-separated
+list, for example @code{-autoimport three,graph}. Path syntax is also
+accepted (for example, to autoimport a personal module kept in a
+subdirectory, @code{-autoimport mydir/common}; the module is imported
+under its last path component name, here @code{common}). Note that
+templated modules (such as @code{collections/hashmap}) cannot be autoimported
+because they require type parameters.
 
 @anchor{configuration file}
 @cindex configuration file
@@ -12464,6 +12534,11 @@ M-x lsp
 
 @end itemize
 
+To view all overloads of a function, execute
+@code{\(lsp-describe-thing-at-point)} (via @code{M-x}) which
+opens a help window, or set @code{\(setq lsp-eldoc-render-all t)}
+in your initialization file to show them in the echo area.
+
 @node PostScript to Asymptote
 @chapter @code{PostScript} to @code{Asymptote}
 @cindex @code{pstoedit}
@@ -12741,7 +12816,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  pdftex comment getstring getstringprefix getreal defaultS hsv
 @c  LocalWords:  ticklocate autoscaleT autoscaling vectorfield autolimits dvi
 @c  LocalWords:  zlimits inline dvipdf hyperdvi autoconf gui zerowindingoverlap
-@c  LocalWords:  prepended intMax quadraticroots cubicroots filltype prepend dx
+@c  LocalWords:  prepended intMax quadraticroots cubicroots complexcubicroots filltype prepend dx
 @c  LocalWords:  ticklabel popup UnFill markroutine marknodes markuniform erf
 @c  LocalWords:  intersectpoint cyrillic mathtext russian brokenaxis Datadir ds
 @c  LocalWords:  resetdefaultpen latticeshade axialshade radialshade erfc det

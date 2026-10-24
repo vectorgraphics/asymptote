@@ -120,6 +120,21 @@ struct ScaleT {
   autoscaleT y;
   autoscaleT z;
 
+  // Process any pending bounding-box update routines (e.g. from the
+  // graph module) so that this.bounds is current before scaling.
+  private bool boundUpdating=false;
+  void boundUpdate() {
+    if(boundUpdating) return;
+    boundUpdating=true;
+    for(boundRoutine r : x.bound) r();
+    x.bound.delete();
+    for(boundRoutine r : y.bound) r();
+    y.bound.delete();
+    for(boundRoutine r : z.bound) r();
+    z.bound.delete();
+    boundUpdating=false;
+  }
+
   ScaleT copy() {
     ScaleT dest=new ScaleT;
     dest.set=set;
@@ -647,6 +662,7 @@ struct picture { // <<<1
   // Returns the transform for turning user-space pairs into true-space pairs.
   transform scaling(real xsize, real ysize, bool keepAspect=true,
                     bool warn=true) {
+    scale.boundUpdate();
     bounds b=(T == identity()) ? this.bounds : T * this.bounds;
 
     return b.scaling(xsize, ysize, xunitsize, yunitsize, keepAspect, warn);

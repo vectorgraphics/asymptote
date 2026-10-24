@@ -92,6 +92,87 @@ AC_C_BIGENDIAN(
    [AC_DEFINE(UNIVERSAL_ENDIAN_BUILD,1,[Endianness is determined at compile time])]
 )
 
+# --------------- additional optimizations ---------------------
+# Options for additional optimizations (link-time optimization, support for later x86-64 instruction sets (e.g. AVX2))
+
+AC_ARG_WITH(link-time-opt,
+   [AS_HELP_STRING(--with-link-time-opt=[[[yes]]],
+      [Enables link-time optimization. Enabled by default])],
+   [],
+   [with_link_time_opt=yes]
+)
+
+AS_IF(
+   [test "x$with_link_time_opt" = "xyes"],
+   [CFLAGS="$CFLAGS -flto"]
+)
+
+AC_ARG_WITH(x86-64-v3-targeting,
+   [AS_HELP_STRING(--with-x86-64-v3-targeting=[[[check]]],
+      [Targets x86-64-v3 CPUs or higher (i.e. AVX/AVX2 support).
+      check: auto-detect AVX2 on build CPU (default). yes: force on. no: force off.])],
+   [],
+   [with_x86_64_v3_targeting=check]
+)
+
+AS_IF(
+   [test "x$with_x86_64_v3_targeting" = "xcheck"],
+   [
+      case "$host_cpu" in
+        x86_64|amd64|i686|x86)
+           # Check AVX2 inline rather than with AX_GCC_X86_CPU_SUPPORTS:
+           # that macro AC_REQUIREs a check that errors out when the compiler
+           # lacks __builtin_cpu_init, and AC_REQUIRE hoists that check out of
+           # this case statement, so it ran (and failed) on non-x86 hosts too.
+           # An AC_RUN_IFELSE here only runs on x86; a compiler without the
+           # builtins fails to compile or link the test program, which falls
+           # back to baseline x86-64. The fourth argument to AC_RUN_IFELSE is
+           # the cross-compile default.
+           AC_LANG_PUSH([C])
+           AC_CACHE_CHECK([whether the build CPU supports AVX2],
+              [asy_cv_cpu_supports_avx2],
+              [AC_RUN_IFELSE(
+                 [AC_LANG_PROGRAM([],
+                   [__builtin_cpu_init ();
+                    return __builtin_cpu_supports ("avx2") ? 0 : 1;])
+                 ],
+                 [asy_cv_cpu_supports_avx2=yes],
+                 [asy_cv_cpu_supports_avx2=no],
+                 [asy_cv_cpu_supports_avx2=no])])
+           AC_LANG_POP([C])
+           AS_IF([test "x$asy_cv_cpu_supports_avx2" = "xyes"],
+              [with_x86_64_v3_targeting=yes
+               AC_MSG_NOTICE([Build CPU supports AVX2, targeting x86-64-v3])],
+              [with_x86_64_v3_targeting=no
+               AC_MSG_NOTICE([AVX2 not detected, using baseline x86-64])])
+           ;;
+        *)
+           with_x86_64_v3_targeting=no
+           AC_MSG_NOTICE([Not an x86 architecture ($host_cpu), x86-64-v3 targeting not applicable])
+           ;;
+      esac
+   ]
+)
+
+AS_IF(
+   [test "x$with_x86_64_v3_targeting" = "xyes"],
+   [
+      saved_CFLAGS="$CFLAGS"
+      CFLAGS="$CFLAGS -march=x86-64-v3"
+      AC_LANG_PUSH([C])
+      AC_COMPILE_IFELSE(
+         [AC_LANG_PROGRAM([],[])],
+         [AC_MSG_NOTICE([Compiler supports -march=x86-64-v3])],
+         [
+            CFLAGS="$saved_CFLAGS"
+            with_x86_64_v3_targeting=no
+            AC_MSG_NOTICE([Compiler does not support -march=x86-64-v3, using baseline])
+         ]
+      )
+      AC_LANG_POP([C])
+   ]
+)
+
 echo Compiling with $CXXFLAGS $CFLAGS
 
 AC_ARG_WITH(latex,
@@ -257,7 +338,7 @@ AC_ARG_ENABLE(
 if test "x$enable_threads" != "xno"; then
    AX_PTHREAD
 else
-   GCOPTIONS=$GCOPTIONS"--disable-threads "
+   GCOPTIONS="$GCOPTIONS --disable-threads"
 fi
 
 # --------------- sigsegv ------------------------------
@@ -280,7 +361,7 @@ LSPLIBS=
 LSPLIB=
 if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
    LSPLIB=$LSP_ROOT/build/liblspcpp.a
-   LSPLIBS=$LSPLIBS" -L$LSP_ROOT/build -L$LSP_ROOT/build/third_party/uri/src -llspcpp -lnetwork-uri"
+   LSPLIBS=$LSPLIBS" -L$LSP_ROOT/build -llspcpp"
    LSP_CMAKE_OPTIONS="-DLSPCPP_USE_CPP17=ON "
 
    if test "x$enable_gc" != "xno"; then
@@ -421,7 +502,7 @@ AC_ARG_ENABLE(gc-full-debug,
     if test "x$enableval" = "xyes" ; then
       AC_DEFINE(GC_DEBUG,1,[GC Debug is enabled])
       AC_DEFINE(GC_BACKTRACE,1,[GC backtrace is enabled])
-      GCOPTIONS=$GCOPTIONS"--enable-gc-debug "
+      GCOPTIONS="$GCOPTIONS --enable-gc-debug"
       AC_MSG_NOTICE([*** Enabling GC backtrace debugging; remember to make gc-clean ***])
     fi
  fi
@@ -485,11 +566,13 @@ fi
 
 # ----------- glm
 # glm is header only and is already on the include path
+have_glm=no
 AC_CHECK_HEADER(
    glm/glm.hpp,
    [AC_DEFINE(
       HAVE_LIBGLM,1,
       DEFINE([the <glm/glm.hpp> header]))
+    have_glm=yes
    ],
    AC_MSG_NOTICE([*** Could not find glm header files: will compile without WebGL or OpenGL/Vulkan support ***])
 )
@@ -500,10 +583,12 @@ AC_SUBST(TINYEXR_ROOT)
 
 # ------------------- GLFW -----------------
 
+have_glfw=no
 if test "x$enable_vulkan" != "xno" -o "x$enable_gl" != "xno"; then
    AC_CHECK_LIB([glfw], [glfwShowWindow],
                 [AC_DEFINE(HAVE_LIBGLFW,1,DEFINE_LIB([GLFW]))
-                 LIBS=$LIBS"-lglfw "],
+                 LIBS=$LIBS"-lglfw "
+                 have_glfw=yes],
                 AC_MSG_NOTICE([*** Could not find libglfw: will compile without Vulkan or OpenGL support ***]))
 fi
 
@@ -708,12 +793,18 @@ AC_SUBST(MACOS_DEPLOYMENT_FLAGS)
 # Determine which shim shared libraries (loaded via dlopen at runtime) to
 # build and link the asy binary against. Empty when both renderers are
 # disabled so the main binary does not depend on libglfw, libGL, or libvulkan.
+# Gate on the libraries actually found, not just the --enable-* request flags:
+# both shims link -lglfw and use glm, so each requires glfw+glm present plus its
+# own renderer library (Vulkan or GL). Otherwise the shim link fails (e.g. on
+# -lglfw) and the asy binary is never built.
 SHIMLIBS=""
-if test "x$enable_vulkan" != "xno"; then
-    SHIMLIBS="$SHIMLIBS libasyvulkan.so"
-fi
-if test "x$enable_gl" != "xno"; then
-    SHIMLIBS="$SHIMLIBS libasyopengl.so"
+if test "x$have_glfw" = "xyes" -a "x$have_glm" = "xyes"; then
+    if test "x$enable_vulkan" != "xno" -a "x$ASY_VULKAN_LIBS" != "x"; then
+        SHIMLIBS="$SHIMLIBS libasyvulkan.so"
+    fi
+    if test "x$enable_gl" != "xno" -a "x$ASY_GL_LIBS" != "x"; then
+        SHIMLIBS="$SHIMLIBS libasyopengl.so"
+    fi
 fi
 AC_SUBST(SHIMLIBS)
 

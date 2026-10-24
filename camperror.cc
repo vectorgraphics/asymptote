@@ -43,6 +43,7 @@ void reportFatal(const string& desc)
   try {
     throw quit();
   } catch(handled_error const&) {
+    exit(1);
   }
 }
 
