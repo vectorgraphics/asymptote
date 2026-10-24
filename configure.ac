@@ -360,7 +360,7 @@ AC_SUBST(LSP_ROOT)
 LSPLIBS=
 LSPLIB=
 if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
-   LSPLIB=$LSP_ROOT/liblspcpp.a
+   LSPLIB=$LSP_ROOT/build/liblspcpp.a
    LSPLIBS=$LSPLIBS" -L$LSP_ROOT/build -llspcpp"
    LSP_CMAKE_OPTIONS="-DLSPCPP_USE_CPP17=ON "
 
