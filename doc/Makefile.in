@@ -65,6 +65,7 @@ asymptote.dvi: $(SOURCE) $(ASYFILES:.asy=.eps) latexusage.pdf
 
 asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf) latexusage.pdf
 	@if test "$(TEXI2ANY)" != ""; then \
+	  rm -f asymptote.{aux,log,toc,idx,ilg,cp,cps,fn,ky,pg,vr}; \
 	  $(TEXI2ANY) --pdf asymptote.texi; \
 	fi
 
