@@ -1,8 +1,9 @@
 .NOTPARALLEL:
 
 # Every subdirectory is a test suite, except the byte-cache Python leaves behind
-# once any .py script here has been imported.
-TESTDIRS = $(filter-out __pycache__/,$(wildcard */))
+# once any .py script here has been imported, and `idir/` which is a local
+# scratch directory (gitignored) with no .asy files.
+TESTDIRS = $(filter-out __pycache__/ idir/,$(wildcard */))
 
 test: $(TESTDIRS) test_collections_errors test_surface_errors test_executable_path test_relocatable test_render3d
 

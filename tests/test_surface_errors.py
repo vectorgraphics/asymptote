@@ -18,15 +18,9 @@ import argparse
 import concurrent.futures
 import os
 import re
-import subprocess
 import sys
-import tempfile
-import textwrap
 
-# One directory up from this file is the asymptote source root.
-SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_DEFAULT_ASY = os.path.join(SCRIPT_DIR, "asy")
-_DEFAULT_BASE_DIR = os.path.join(SCRIPT_DIR, "base")
+import asy_test_common
 
 # Prepended to the snippets that use the surface named in their first line.
 
@@ -128,8 +122,7 @@ CASES: list[tuple[str, str, str]] = [
     ),
     (
         "cornerPen row shorter than the patch",
-        _COLORS
-        + """
+        _COLORS + """
         picture pic;
         draw(pic,surface(unitsquare3),cornerPen(red,green,blue));
         pic.fit3(currentprojection);
@@ -150,24 +143,6 @@ CASES: list[tuple[str, str, str]] = [
 ]
 
 
-def run_asy(asy: str, base_dir: str, code: str) -> tuple[str, int]:
-    """Write *code* to a temp file, run asy on it, return stderr and return code."""
-    fd, tmpfile = tempfile.mkstemp(suffix=".asy")
-    try:
-        with os.fdopen(fd, "w") as f:
-            f.write(textwrap.dedent(code).lstrip("\n"))
-        result = subprocess.run(
-            [asy, "-q", "-sysdir", base_dir, tmpfile],
-            cwd=SCRIPT_DIR,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        return result.stderr, result.returncode
-    finally:
-        os.unlink(tmpfile)
-
-
 def _available_cpus() -> int:
     """The number of CPUs this process may use (not the number in the machine)."""
     if hasattr(os, "sched_getaffinity"):
@@ -186,16 +161,7 @@ def main() -> int:
         metavar="PATTERN",
         help="only run tests whose name matches PATTERN (case-insensitive regex)",
     )
-    parser.add_argument(
-        "--asy",
-        default=_DEFAULT_ASY,
-        help="path to the asy executable (default: %(default)s)",
-    )
-    parser.add_argument(
-        "--asy-base-dir",
-        default=_DEFAULT_BASE_DIR,
-        help="path to the asy base/sysdir (default: %(default)s)",
-    )
+    asy_test_common.add_asy_arguments(parser)
     args = parser.parse_args()
 
     cases = [
@@ -210,7 +176,12 @@ def main() -> int:
     # run.
     with concurrent.futures.ThreadPoolExecutor(max_workers=_available_cpus()) as pool:
         results = list(
-            pool.map(lambda case: run_asy(args.asy, args.asy_base_dir, case[1]), cases)
+            pool.map(
+                lambda case: asy_test_common.run_asy(
+                    args.asy, args.asy_base_dir, case[1]
+                ),
+                cases,
+            )
         )
 
     print(f"Testing runtime errors (surfaces, asy = {args.asy})")
