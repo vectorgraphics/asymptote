@@ -1,4 +1,5 @@
 private import graph;
+private from math access leastsquares;
 
 private transform swap=(0,0,0,1,1,0);
 
@@ -262,6 +263,162 @@ pen[] palette(real[] f, pen[] palette)
   real step=Max == Min ? 0.0 : (palette.length-1)/(Max-Min);
   return sequence(new pen(int i) {return palette[round((f[i]-Min)*step)];},
                   f.length);
+}
+
+struct surfaceVertex {
+  triple z;      // 3D vertex position (user coordinates)
+  pair uv;       // parametric coordinates (structured surfaces only)
+  int patch;     // index of patch in surface.s
+  int corner;    // index of corner in patch (0-3 or 0-2)
+  int U, V;      // mesh cell of patch in surface.index (structured only)
+  void operator init(triple z, pair uv=(0,0), int patch=0, int corner=0,
+                     int U=0, int V=0) {
+    this.z=z;
+    this.uv=uv;
+    this.patch=patch;
+    this.corner=corner;
+    this.U=U;
+    this.V=V;
+  }
+}
+
+using vertexPen=pen(surfaceVertex);
+
+vertexPen operator cast(pen f(triple)) {
+  return new pen(surfaceVertex sv) {return f(sv.z);};
+}
+
+// Construct a vertexPen from f using the specified palette.
+vertexPen palette(real f(triple), real Min, real Max, pen[] palette)
+{
+  if(palette.length == 0) return new pen(surfaceVertex) {return nullpen;};
+  real step=Max == Min ? 0.0 : (palette.length-1)/(Max-Min);
+  return new pen(surfaceVertex sv) {return palette[round((f(sv.z)-Min)*step)];};
+}
+
+// Fits a cubic polynomial to the data (one for each color channel), preferring
+// polynomials of low degree. The fit commutes with rotations of the data.
+// If any of the pens is not opaque, the opacity is fit as a further channel,
+// using the blend mode of the first pen; otherwise the result is opaque.
+vertexPen fitColors(triple[] coords, pen[] colors)
+{
+  int n=coords.length;
+  assert(n == colors.length,
+         "coords and colors arrays must have the same length");
+  assert(n > 0, "fitColors requires at least one data point");
+
+  // Center and scale the coordinates by a single scalar.
+  triple center=(0,0,0);
+  for(int i=0; i < n; ++i) center += coords[i];
+  center /= n;
+  real scale=0;
+  triple[] c=coords - center;
+  for(int i=0; i < n; ++i) {
+    scale=max(scale,length(c[i]));
+  }
+  if(scale == 0) scale=1;
+  c /= scale;
+
+  // Normalize all pens to the colorspace of the first one.
+  string cs=colorspace(colors[0]);
+  pen[] pens=new pen[n];
+  for(int i=0; i < n; ++i) {
+    pen p=colors[i];
+    if(colorspace(p) != cs) {
+      if(cs == "rgb") p=rgb(p);
+      else if(cs == "cmyk") p=cmyk(p);
+      else if(cs == "gray") p=gray(p);
+      else abort("fitColors: unsupported colorspace "+cs);
+    }
+    pens[i]=p;
+  }
+
+  // Extract color channels.
+  real[] first=colors(pens[0]);
+  int nch=first.length;
+  real[][] channel=new real[nch][n];
+  for(int k=0; k < nch; ++k) channel[k][0]=first[k];
+  for(int i=1; i < n; ++i) {
+    real[] cc=colors(pens[i]);
+    for(int k=0; k < nch; ++k) channel[k][i]=cc[k];
+  }
+
+  // Fit the opacity only if it varies from 1, so that opaque data always
+  // yields an exactly opaque surface.
+  real[] alpha=sequence(new real(int i) {return opacity(colors[i]);},n);
+  bool transparent=min(alpha) < 1;
+  string blend=blend(colors[0]);
+  if(transparent) channel.push(alpha);
+  int nfit=channel.length;
+
+  // The monomials of degree at most 3. Cubics, unlike trilinear polynomials,
+  // are closed under rotation, and they can interpolate the corners of a box
+  // in any orientation.
+  real[] monomials(triple p) {
+    real x=p.x, y=p.y, z=p.z;
+    real xx=x*x, yy=y*y, zz=z*z;
+    return new real[] {1,
+                       x,y,z,
+                       xx,x*y,x*z,yy,y*z,zz,
+                       xx*x,xx*y,xx*z,x*yy,x*y*z,x*zz,yy*y,yy*z,y*zz,zz*z};
+  }
+
+  // Build the design matrix, plus a small ridge penalty to handle
+  // underdetermined systems. Weighting the penalty for the coefficient of
+  // x^a y^b z^c by sqrt(a!b!c!/(a+b+c)!) (the Bombieri norm) makes it invariant
+  // under rotation. The penalty grows with the degree so that a term of high
+  // degree is used only where the data cannot be fit without it; otherwise
+  // the fit would be shared among monomials that agree at the data points
+  // (such as x and x^3 at the corners of a box).
+  real cubic=sqrt(0.001);
+  real quadratic=0.1*cubic;
+  real linear=0.01*cubic;
+  real r2=sqrt(1/2), r3=sqrt(1/3), r6=sqrt(1/6);
+  real[] penalty={linear,
+                  linear,linear,linear,
+                  quadratic,r2*quadratic,r2*quadratic,
+                  quadratic,r2*quadratic,quadratic,
+                  cubic,r3*cubic,r3*cubic,r3*cubic,r6*cubic,r3*cubic,
+                  cubic,r3*cubic,r3*cubic,cubic};
+  int nfeat=penalty.length;
+  int rows=n+nfeat;
+  real[][] A=new real[rows][];
+  for(int i=0; i < n; ++i)
+    A[i]=monomials(c[i]);
+  for(int k=0; k < nfeat; ++k) {
+    real[] row=array(nfeat,0.0);
+    row[k]=penalty[k];
+    A[n+k]=row;
+  }
+
+  real[][] coeffs=new real[nfit][];
+  for(int k=0; k < nfit; ++k) {
+    real[] b=new real[rows];
+    for(int i=0; i < n; ++i) b[i]=channel[k][i];
+    for(int j=0; j < nfeat; ++j) b[n+j]=0;
+    coeffs[k]=leastsquares(A,b);
+  }
+
+  pen makepen(real[] vals) {
+    pen p=nullpen;
+    if(cs == "gray") p=gray(vals[0]);
+    else if(cs == "rgb") p=rgb(vals[0],vals[1],vals[2]);
+    else if(cs == "cmyk") p=cmyk(vals[0],vals[1],vals[2],vals[3]);
+    return transparent ? p+opacity(vals[nch],blend) : p;
+  }
+
+  real invscale=1/scale;
+  return new pen(surfaceVertex sv) {
+    real[] feats=monomials((sv.z-center)*invscale);
+    real[] vals=new real[nfit];
+    for(int k=0; k < nfit; ++k) {
+      real[] ck=coeffs[k];
+      real s=0;
+      for(int j=0; j < nfeat; ++j) s += ck[j]*feats[j];
+      vals[k]=min(max(s,0.0),1.0);
+    }
+    return makepen(vals);
+  };
 }
 
 // Construct a pen[][] array from f using the specified palette.

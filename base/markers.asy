@@ -153,7 +153,7 @@ void markangle(picture pic=currentpicture, Label L="",
   pic.addBox(O,O,
              -totalradius+min(p),
              totalradius+max(p));
-  
+
   // Deferred drawing: compute the angle in PostScript space using the
   // actual (possibly non-uniform) transform, then draw a circular arc
   // that matches the visual angle.
@@ -162,17 +162,17 @@ void markangle(picture pic=currentpicture, Label L="",
     pair tA = t*(A-O);
     pair tB = t*(B-O);
     pair tO = t*O;
-    
+
     // Compute angles in PostScript space.
     pair OA = unit(tA);
     pair OB = unit(tB);
     real xoa = degrees(OA, false);
     real gle = degrees(acos(dot(OA, OB)));
     if((conj(OA)*OB).y < 0) gle *= -1;
-    
+
     picture lpic;
     path lpth;
-    
+
     // Check if the arrow would actually be drawn; if so and no explicit
     // margin, add a small default margin to prevent the arrowhead from
     // overlapping the arc endpoints.
@@ -180,7 +180,7 @@ void markangle(picture pic=currentpicture, Label L="",
     if(!arrow(phantom,arc((0,0),outradius,xoa,xoa+gle,ccw),p,margin)
        && margin == NoMargin)
       margin=TrueMargin(0,0.5linewidth(p));
-    
+
     if(filltype != NoFill) {
       lpth=margin(arc((0,0),outradius+(n-1)*space,xoa,xoa+gle,ccw),p).g;
       frame ff;

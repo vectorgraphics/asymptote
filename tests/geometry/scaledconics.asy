@@ -4,7 +4,7 @@ import geometry;
 
 // Regression test for scale-relative tolerances in conic classification,
 // intersection, root-finding, and tangent computation.  Verifies that
-// conics at very large (10^3 – 10^5) and very small (10^-3) coordinates
+// conics at very large (10^3 - 10^5) and very small (10^-3) coordinates
 // are classified, intersected, and operated on correctly, and that
 // tangents() does not return spurious results or crash at non-unit scales.
 StartTest("scaledconics");
@@ -71,7 +71,7 @@ void checktangents()
 {
   point O = (0, 0);
 
-  // ellipse – both horizontal and vertical directions give 2 tangents
+  // ellipse - both horizontal and vertical directions give 2 tangents
   conic e = (conic)ellipse(O, 5, 3);
   checktangentdir(e, (1, 0), 2);
   checktangentdir(e, (0, 1), 2);
@@ -105,7 +105,7 @@ void checktangents()
 }
 
 // ---------------------------------------------------------------------------
-// tangents(conic, conic) – common tangents
+// tangents(conic, conic) - common tangents
 // ---------------------------------------------------------------------------
 void checkcommontangents(conic a, conic b, int expected)
 {
@@ -192,7 +192,7 @@ void checkquartics()
 }
 
 // ---------------------------------------------------------------------------
-// intersectionpoints(bqe, bqe) – no spurious duplicates
+// intersectionpoints(bqe, bqe) - no spurious duplicates
 // ---------------------------------------------------------------------------
 void checkconicintersection(conic a, conic b, int expectedn)
 {

@@ -133,7 +133,7 @@ if (ENABLE_ASYMPTOTE_PDF_DOCGEN)
 # asy files
 set(ASY_DOC_FILE_PREFIXES
         axis3 basealign bezier bigdiagonal binarytreetest Bode brokenaxis
-        colons colors cube cylinderskeleton datagraph diagonal dots
+        colons colors colorsurface cube cylinderskeleton datagraph diagonal dots
         eetomumu elliptic errorbars exp  fillcontour flow flowchartdemo
         GaussianSurface generalaxis generalaxis3 graphmarkers graphwithderiv grid3xyz
         hatch helix HermiteSpline histogram Hobbycontrol Hobbydir icon image imagecontour

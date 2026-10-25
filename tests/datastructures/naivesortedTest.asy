@@ -80,7 +80,7 @@ string differences(wrapped_int[] aArray, wrapped_int[] bArray) {
   string arrayValues = '[\n';
   bool different = false;
   for (int i = 0; i < aIntArray.length; ++i) {
-    arrayValues += '  [' + format('%5d', aIntArray[i]) + ',' 
+    arrayValues += '  [' + format('%5d', aIntArray[i]) + ','
                    + format('%5d', bIntArray[i]) + ']';
     if (!alias(aArray[i], bArray[i])) {
       arrayValues += '  <---';
@@ -291,7 +291,7 @@ int chooseAction(real[] probs) {
     }
   }
   return probs.length - 1;
-} 
+}
 
 from collections.zip(T=wrapped_int) access zip;
 

@@ -2081,7 +2081,11 @@ surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
 
   real[] x=uniform(pic.scale.x.T,pic.scale.x.Tinv,a.x,b.x,nx);
   real[] y=uniform(pic.scale.y.T,pic.scale.y.Tinv,a.y,b.y,ny);
-  return surface(pic,f,x,y,xsplinetype,ysplinetype,cond);
+  surface s=surface(pic,f,x,y,xsplinetype,ysplinetype,cond);
+  // The parametric coordinates are the x and y coordinates of the points of
+  // the surface, which are scaled coordinates of pic.
+  s.domain(Scale(pic,a),Scale(pic,b));
+  return s;
 }
 
 // return the surface described by a real matrix f, interpolated bilinearly.
@@ -2110,7 +2114,11 @@ surface surface(picture pic=currentpicture, real[][] f, pair a, pair b,
       if(all || condi[j])
         vi[j]=(x,pic.scale.y.Tinv(interp(a.y,b.y,j/ny)),fi[j]);
   }
-  return surface(pic,v,cond);
+  surface s=surface(pic,v,cond);
+  // The parametric coordinates are the x and y coordinates of the points of
+  // the surface, which are scaled coordinates of pic.
+  s.domain(a,b);
+  return s;
 }
 
 // return the surface described by a parametric function f evaluated at u and v
@@ -2137,6 +2145,9 @@ surface surface(picture pic=currentpicture, triple f(pair z),
       if(all || (activei[j]=cond(z))) Pi[j]=f(z);
     }
   }
+  // The parametric coordinates are mesh coordinates, since u and v need not
+  // be evenly spaced. Callers that lay out a uniform grid call s.domain
+  // themselves.
   return surface(pic,P,active);
 }
 
@@ -2152,7 +2163,9 @@ surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
   real dv=1/nv;
   real[] u=sequence(new real(int i) {return interp(a.x,b.x,i*du);},nu+1);
   real[] v=sequence(new real(int j) {return interp(a.y,b.y,j*dv);},nv+1);
-  return surface(pic,f,u,v,cond);
+  surface s=surface(pic,f,u,v,cond);
+  s.domain(a,b);
+  return s;
 }
 
 // return the surface described by a parametric function f evaluated at u and v
@@ -2222,29 +2235,40 @@ surface surface(picture pic=currentpicture, triple f(pair z),
   surface s=surface(sx.length);
   s.index=new int[nu][nv];
   int k=0;
+  bool[] activeip =(all || active.length == 0) ? null : active[0];
   for(int i=0; i < nu; ++i) {
     int[] indexi=s.index[i];
+    bool[] activei=activeip;
+    if (!all) {
+      activeip = active[i+1];
+    }
     for(int j=0; j < nv; ++j) {
-      indexi[j]=k;
-      ++k;
+      if (all || (activei[j] && activei[j+1] && activeip[j] && activeip[j+1])) {
+        indexi[j]=k;
+        ++k;
+      }
     }
   }
 
-  for(int k=0; k < sx.length; ++k) {
-    triple[][] Q=new triple[4][];
-    real[][] Px=sx[k];
-    real[][] Py=sy[k];
-    real[][] Pz=sz[k];
-    for(int i=0; i < 4 ; ++i) {
-      real[] Pxi=Px[i];
-      real[] Pyi=Py[i];
-      real[] Pzi=Pz[i];
-      Q[i]=new triple[] {(Pxi[0],Pyi[0],Pzi[0]),
-                         (Pxi[1],Pyi[1],Pzi[1]),
-                         (Pxi[2],Pyi[2],Pzi[2]),
-                         (Pxi[3],Pyi[3],Pzi[3])};
+  for (int i=0; i < nu; ++i) {
+    for (int j=0; j < nv; ++j) {
+      if (!s.index[i].initialized(j)) continue;
+      int k=s.index[i][j];
+      triple[][] Q=new triple[4][];
+      real[][] Px=sx[k];
+      real[][] Py=sy[k];
+      real[][] Pz=sz[k];
+      for(int ii=0; ii < 4 ; ++ii) {
+        real[] Pxi=Px[ii];
+        real[] Pyi=Py[ii];
+        real[] Pzi=Pz[ii];
+        Q[ii]=new triple[] {(Pxi[0],Pyi[0],Pzi[0]),
+                            (Pxi[1],Pyi[1],Pzi[1]),
+                            (Pxi[2],Pyi[2],Pzi[2]),
+                            (Pxi[3],Pyi[3],Pzi[3])};
+      }
+      s.s[k]=patch(Q);
     }
-    s.s[k]=patch(Q);
   }
 
   // A cyclic u parameter should have splinetype either periodic or
@@ -2262,6 +2286,10 @@ surface surface(picture pic=currentpicture, triple f(pair z),
      joinsSmoothly(vsplinetype[2]) &&
      vperiodic(fx) && vperiodic(fy) && vperiodic(fz)) s.vcyclic(true);
 
+  // The parametric coordinates are left as surface coordinates: u and v may
+  // be spaced nonuniformly, so the map between the two is not affine in
+  // general. Callers that lay out a uniform grid call s.domain themselves.
+
   return s;
 }
 
@@ -2273,8 +2301,10 @@ surface surface(picture pic=currentpicture, triple f(pair z), pair a, pair b,
                 splinetype[] usplinetype, splinetype[] vsplinetype=Spline,
                 bool cond(pair z)=null)
 {
-  return surface(pic,f,uniform(a.x,b.x,nu),uniform(a.y,b.y,nv),
-                 usplinetype,vsplinetype,cond);
+  surface s=surface(pic,f,uniform(a.x,b.x,nu),uniform(a.y,b.y,nv),
+                    usplinetype,vsplinetype,cond);
+  s.domain(a,b);
+  return s;
 }
 
 // return the surface described by a real function f over box(a,b),
@@ -2295,7 +2325,12 @@ surface surface(picture pic=currentpicture, real f(pair z), pair a, pair b,
   real[] y=sequence(new real(int j) {
       return pic.scale.y.Tinv(interp(a.y,b.y,j*dy));
     },ny+1);
-  return surface(pic,new triple(pair z) {return (z.x,z.y,f(z));},x,y,cond);
+  surface s=surface(pic,new triple(pair z) {return (z.x,z.y,f(z));},x,y,
+                    cond);
+  // The parametric coordinates are the x and y coordinates of the points of
+  // the surface, which are scaled coordinates of pic.
+  s.domain(a,b);
+  return s;
 }
 
 // return the surface described by a real function f over box(a,b),
@@ -2326,7 +2361,11 @@ surface surface(picture pic=currentpicture, real f(pair z), pair a, pair b,
       if(!all) activei[j]=cond(z);
     }
   }
-  return surface(pic,F,x,y,xsplinetype,ysplinetype,active);
+  surface s=surface(pic,F,x,y,xsplinetype,ysplinetype,active);
+  // The parametric coordinates are the x and y coordinates of the points of
+  // the surface, which are scaled coordinates of pic.
+  s.domain(Scale(pic,a),Scale(pic,b));
+  return s;
 }
 
 guide3[][] lift(real f(real x, real y), guide[][] g,

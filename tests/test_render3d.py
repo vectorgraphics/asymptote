@@ -21,10 +21,7 @@ import sys
 import tempfile
 from typing import Optional
 
-# One directory up from this file is the asymptote source root.
-SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_DEFAULT_ASY = os.path.join(SCRIPT_DIR, "asy")
-_DEFAULT_BASE_DIR = os.path.join(SCRIPT_DIR, "base")
+import asy_test_common
 
 SKIP = 77
 
@@ -162,16 +159,7 @@ def render(asy: str, base_dir: str, device: Optional[int] = None) -> tuple[bool,
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="3D bitmap rendering test.")
-    parser.add_argument(
-        "--asy",
-        default=_DEFAULT_ASY,
-        help="path to the asy executable (default: %(default)s)",
-    )
-    parser.add_argument(
-        "--asy-base-dir",
-        default=_DEFAULT_BASE_DIR,
-        help="path to the asy base/sysdir (default: %(default)s)",
-    )
+    asy_test_common.add_asy_arguments(parser)
     parser.add_argument(
         "--device",
         type=int,

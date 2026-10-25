@@ -16,19 +16,11 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
-import os
 import re
-import subprocess
 import sys
-import tempfile
-import textwrap
 from typing import Optional
 
-# One directory up from this file is the asymptote source root.
-SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_DEFAULT_ASY = os.path.join(SCRIPT_DIR, "asy")
-_DEFAULT_BASE_DIR = os.path.join(SCRIPT_DIR, "base")
-
+import asy_test_common
 
 # ---------------------------------------------------------------------------
 # Harness
@@ -46,8 +38,8 @@ class _Counts:
 class TestRunner:
     verbose: bool = False
     filter_pattern: Optional[str] = None
-    asy: str = _DEFAULT_ASY
-    base_dir: str = _DEFAULT_BASE_DIR
+    asy: str = asy_test_common.DEFAULT_ASY
+    base_dir: str = asy_test_common.DEFAULT_BASE_DIR
     simulate_failure: bool = False
     counts: _Counts = dataclasses.field(default_factory=_Counts, init=False)
 
@@ -55,24 +47,8 @@ class TestRunner:
         """Write *code* to a temp file, run asy on it, return stderr and return code."""
         if self.simulate_failure:
             return "<simulated output that does not match any expected pattern>", 1
-        fd, tmpfile = tempfile.mkstemp(suffix=".asy")
-        try:
-            # Asy code snippets are embedded in Python triple-quoted strings
-            # which inherit Python indentation. Dedent them here so the
-            # temporary .asy files contain nicely-formatted code for humans.
-            cleaned = textwrap.dedent(code).lstrip("\n")
-            with os.fdopen(fd, "w") as f:
-                f.write(cleaned)
-            result = subprocess.run(
-                [self.asy, "-q", "-noautoplain", "-sysdir", self.base_dir, tmpfile],
-                cwd=SCRIPT_DIR,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            return result.stderr, result.returncode
-        finally:
-            os.unlink(tmpfile)
+        # -noautoplain keeps the bare snippets from also loading plain.asy.
+        return asy_test_common.run_asy(self.asy, self.base_dir, code, ("-noautoplain",))
 
     def check(self, name: str, code: str, expected_pattern: str) -> bool:
         """Run *code* and verify stderr matches *expected_pattern* (regex).
@@ -521,16 +497,7 @@ def main() -> int:
         metavar="PATTERN",
         help="only run tests whose name matches PATTERN (case-insensitive regex)",
     )
-    parser.add_argument(
-        "--asy",
-        default=_DEFAULT_ASY,
-        help="path to the asy executable (default: %(default)s)",
-    )
-    parser.add_argument(
-        "--asy-base-dir",
-        default=_DEFAULT_BASE_DIR,
-        help="path to the asy base/sysdir (default: %(default)s)",
-    )
+    asy_test_common.add_asy_arguments(parser)
     parser.add_argument(
         "--simulate-failure",
         action="store_true",
