@@ -39,17 +39,14 @@ if (ENABLE_VULKAN)
 
     # CMake automatically adds the "lib" prefix and ".so" suffix → libasyvulkan.so
     #
-    # Build the library into the assembled base directory (the same place the
-    # base/*.asy files are staged). At runtime the loader finds it through the
-    # Asymptote search path via settings::locateFile; placing it alongside the
-    # base files makes `asy -dir <base>` resolve it from any working directory,
-    # mirroring the installed layout (where it lands in the sysdir next to base).
-    # Otherwise it would only be found when the current directory happened to be
-    # the build root.
+    # Build the library into the build root, beside the asy executable.
+    # At runtime the loader checks executableDir() first (rendererloader.cc),
+    # matching the autotools build where the .so is also in the top-level
+    # directory.  The installed layout (sysdir) is covered by the locateFile
+    # fallback.
     set_target_properties(asyvulkan PROPERTIES
         OUTPUT_NAME asyvulkan
         POSITION_INDEPENDENT_CODE ON
-        LIBRARY_OUTPUT_DIRECTORY ${ASY_BUILD_BASE_DIR}
     )
 
     target_include_directories(asyvulkan PRIVATE

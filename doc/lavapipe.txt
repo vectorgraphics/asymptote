@@ -1,9 +1,10 @@
-The Asymptote distribution ships a precompiled llvmpipe Vulkan driver
-(libvulkan_lvp.dylib) and an ICD manifest (lvp_icd.x86_64.json) for
-macOS running on Intel hardware. These are installed alongside the
-other Asymptote files in the Asymptote search path. When Metal is
-unavailable (e.g., headless VM), the renderer loader automatically
-detects this and uses the shipped llvmpipe driver via VK_ICD_FILENAMES.
+On macOS running on Intel hardware, a precompiled llvmpipe Vulkan driver
+(libvulkan_lvp.dylib) and an ICD manifest (lvp_icd.x86_64.json) can be
+installed beside the asy executable, alongside the other shared libraries.
+When Metal is unavailable (e.g., headless VM), the renderer loader
+automatically detects this and uses the llvmpipe driver via VK_ICD_FILENAMES.
+The ICD JSON is looked up beside the executable first, then in the
+Asymptote search path.
 
 sudo port install meson ninja llvm-19 py312-mako py312-packaging xorg-libxshmfence
 sudo ln -s /opt/local/bin/llvm-config-mp-19 /opt/local/bin/llvm-config
@@ -30,13 +31,16 @@ meson setup .. \
 ninja
 sudo ninja install
 
-cd ~/asymptote
-cp /opt/local/lib/libvulkan_lvp.dylib base
-cp /opt/local/share/vulkan/icd.d/lvp_icd.x86_64.json base
+# Install beside the asy executable (replace /path/to with the
+# directory containing the asy binary):
+cd /path/to
+cp /opt/local/lib/libvulkan_lvp.dylib .
+cp /opt/local/share/vulkan/icd.d/lvp_icd.x86_64.json .
 install_name_tool -change @rpath/libLLVM.dylib \
   /opt/local/libexec/llvm-19/lib/libLLVM.dylib \
-  base/libvulkan_lvp.dylib
-sed -i '' 's|/opt/local/lib/libvulkan_lvp.dylib|./libvulkan_lvp.dylib|' base/lvp_icd.x86_64.json
+  libvulkan_lvp.dylib
+sed -i '' 's|/opt/local/lib/libvulkan_lvp.dylib|./libvulkan_lvp.dylib|' \
+  lvp_icd.x86_64.json
 
 Runtime dependencies on the target Mac (must be installed via MacPorts):
 

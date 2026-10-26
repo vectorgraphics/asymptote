@@ -533,11 +533,24 @@ void createRenderer()
         }
 
         // Step 4: If Metal is NOT available and Vulkan was requested,
-        // use the shipped llvmpipe driver from the Asymptote search path.
+        // use the llvmpipe driver.  The ICD JSON (and the dylib it
+        // references) are installed beside the executable on VMs, the
+        // same way the .so/.dll renderer libraries are.  Fall back to
+        // the Asymptote search path for compatibility.
         if (!metalAvailable && useVulkan) {
-            // Locate the shipped llvmpipe ICD JSON via the Asymptote path.
-            mem::string icdJsonPath = settings::locateFile("lvp_icd.x86_64.json", true, "");
-            std::string icdJsonStr = mem::stdString(icdJsonPath);
+            std::string icdJsonStr;
+            {
+                mem::string exeDir = settings::executableDir();
+                if (!exeDir.empty()) {
+                    mem::string candidate = exeDir + "/lvp_icd.x86_64.json";
+                    if (settings::fs::exists(candidate))
+                        icdJsonStr = mem::stdString(candidate);
+                }
+            }
+            if (icdJsonStr.empty()) {
+                icdJsonStr =
+                    mem::stdString(settings::locateFile("lvp_icd.x86_64.json", true, ""));
+            }
 
             if (!icdJsonStr.empty()) {
                 // Convert to absolute path (the Vulkan loader needs it).
