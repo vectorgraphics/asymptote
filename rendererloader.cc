@@ -444,10 +444,20 @@ void createRenderer()
             if (!test.good()) {
                 std::ofstream ofs(icdPath.c_str(), std::ios::trunc);
                 if (ofs.is_open()) {
+                    // Use forward slashes (valid on Windows) to avoid
+                    // JSON backslash escaping.
+                    std::string lvpDll;
+                    if (!exeDir.empty()) {
+                        for (char c : exeDir)
+                            lvpDll += (c == '\\') ? '/' : c;
+                        lvpDll += "/vulkan_lvp.dll";
+                    } else {
+                        lvpDll = "vulkan_lvp.dll";
+                    }
                     ofs << "{\n"
                         << "    \"file_format_version\": \"1.0.0\",\n"
                         << "    \"ICD\": {\n"
-                        << "        \"library_path\": \".\\\\vulkan_lvp.dll\",\n"
+                        << "        \"library_path\": \"" << lvpDll << "\",\n"
                         << "        \"api_version\": \"1.3.0\"\n"
                         << "    }\n"
                         << "}\n";

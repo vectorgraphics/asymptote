@@ -177,8 +177,10 @@ def main() -> int:
         print("SKIPPED (asy was built without Vulkan)")
         return SKIP
     asy_dir = os.path.dirname(args.asy)
-    icd = os.path.join(asy_dir, "lvp_icd.x86_64.json")
-    if device is None and not os.path.isfile(icd) and vulkan_device_count() == 0:
+    llvmpipe = ("vulkan_lvp.dll" if sys.platform == "win32"
+                else "lvp_icd.x86_64.json")
+    if device is None and not os.path.isfile(os.path.join(asy_dir, llvmpipe)) \
+            and vulkan_device_count() == 0:
         print("SKIPPED (no Vulkan device found)")
         return SKIP
 
