@@ -73,17 +73,8 @@ def _load_vulkan() -> Optional[ctypes.CDLL]:
     return None
 
 
-def vulkan_device_count(asy_dir: str = "") -> int:
-    """Return the number of Vulkan physical devices the loader reports.
-
-    If a llvmpipe ICD manifest sits beside the asy executable it is
-    pointed at via VK_ICD_FILENAMES so that software rendering on
-    headless VMs is visible, mirroring rendererloader.cc.
-    """
-    if sys.platform == "darwin":
-        icd = os.path.join(asy_dir, "lvp_icd.x86_64.json")
-        if os.path.isfile(icd):
-            os.environ["VK_ICD_FILENAMES"] = os.path.abspath(icd)
+def vulkan_device_count() -> int:
+    """Return the number of Vulkan physical devices the loader reports."""
     lib = _load_vulkan()
     if lib is None:
         return 0
@@ -185,7 +176,9 @@ def main() -> int:
     if not asy_has_vulkan(args.asy):
         print("SKIPPED (asy was built without Vulkan)")
         return SKIP
-    if device is None and vulkan_device_count(os.path.dirname(args.asy)) == 0:
+    asy_dir = os.path.dirname(args.asy)
+    icd = os.path.join(asy_dir, "lvp_icd.x86_64.json")
+    if device is None and not os.path.isfile(icd) and vulkan_device_count() == 0:
         print("SKIPPED (no Vulkan device found)")
         return SKIP
 
