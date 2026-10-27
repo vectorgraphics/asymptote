@@ -8,6 +8,14 @@
 
 namespace camp
 {
+
+// Ensure the IBL image library is available: if locateFile("ibl") is empty,
+// prompt (if possible) to download the current image into ~/.asy/ibl/.
+// Returns the resolved ibl directory path (e.g. "/home/user/.asy/ibl/"),
+// or "" if the library is unavailable and the user declined / no download
+// possible.
+string ensureIBLDir();
+
 class IEXRFile
 {
 public:

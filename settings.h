@@ -25,6 +25,7 @@ void glrenderWrapper();
 
 namespace settings {
 extern char *argv0;
+extern string initdir;
 
 void Warn(const string& s);
 void noWarn(const string& s);

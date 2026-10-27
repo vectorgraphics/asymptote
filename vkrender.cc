@@ -1068,7 +1068,7 @@ void AsyVkRender::checkSoftwareRenderer()
 {
   if (View && isRemoteX11()) {
     if(physicalDevice && physicalDevice.getProperties().deviceType != vk::PhysicalDeviceType::eCpu)
-      runtimeError("remote onscreen rendering requires the llvmpipe device");
+      runtimeError("remote onscreen rendering requires -device llvmpipe");
   }
 }
 
@@ -2960,7 +2960,12 @@ void AsyVkRender::createDependentBuffers()
 
 void AsyVkRender::initIBL() {
 
-  string imageDir=settings::locateFile(settings::getSetting<string>("imageDir"))+"/";
+  string imageDir=camp::ensureIBLDir();
+  if(imageDir.empty()) {
+    ibl=false;
+    createIBLPlaceholders();
+    return;
+  }
   string imagePath=imageDir+settings::getSetting<string>("image")+"/";
 
   auto const createReflectionSampler = [=](

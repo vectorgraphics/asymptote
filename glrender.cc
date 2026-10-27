@@ -118,11 +118,14 @@ static void cleanupIBL()
   placeholderReflTex.release();
 }
 
-void initIBL()
+// Returns false if IBL images are not available (caller should set ibl=false).
+bool initIBL()
 {
   camp::GLTexturesFmt fmt;
   fmt.internalFmt=GL_RGB16F;
-  string imageDir=locateFile(getSetting<string>("imageDir"))+"/";
+  string imageDir=camp::ensureIBLDir();
+  if(imageDir.empty())
+    return false;
   string imagePath=imageDir+getSetting<string>("image")+"/";
   irradianceTex=fromEXR(imagePath+"diffuse.exr",fmt,1);
 
@@ -144,6 +147,7 @@ void initIBL()
     files.emplace_back(mss.str());
   }
   reflTexturesTex=fromEXR3(files,fmt3,3);
+  return true;
 }
 
 void initPlaceholderTextures()
@@ -185,7 +189,11 @@ void AsyGLRender::updateIBL()
   if(image == iblImageName)
     return;
 
-  initIBL();
+  if (!initIBL()) {
+    ibl=false;
+    initPlaceholderTextures();
+    return;
+  }
   iblImageName=image;
 }
 
