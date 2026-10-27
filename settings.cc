@@ -1694,9 +1694,13 @@ void initSettings() {
                             "Show 3D axes in PDF output", true));
   addOption(new boolSetting("ibl", 0,
                             "Enable environment map image-based lighting", false));
-  addOption(new stringSetting("image", 0,"str","Environment image name","snowyField"));
-  addOption(new stringSetting("imageDir", 0,"str","Environment image library directory","ibl"));
-  addOption(new stringSetting("imageURL", 0,"str","Environment image library URL","https://vectorgraphics.gitlab.io/asymptote/ibl"));
+  addOption(new envSetting("image", "snowyField", "str",
+                           "Environment image name"));
+  addOption(new envSetting("imageDir", "ibl", "str",
+                           "Environment image library directory"));
+  addOption(new envSetting("imageURL",
+                           "https://vectorgraphics.gitlab.io/asymptote/ibl",
+                           "str", "Environment image library URL"));
   addOption(new realSetting("render", 0, "n",
                             "Render 3D graphics using n pixels per bp",
                             havegl ? 2.0 : 0.0));
@@ -1902,8 +1906,8 @@ void initSettings() {
   addOption(new IntSetting("pdfreloaddelay", 0, "usec",
                            "Delay before attempting initial pdf reload"
                            ,750000));
-  addOption(new stringSetting("autoimport", 0, "str",
-                              "Module to automatically import"));
+  addOption(new envSetting("autoimport", "", "str",
+                           "Module to automatically import"));
   addOption(new userSetting("command", 'c', "str",
                             "Command to autoexecute"));
   addOption(new userSetting("user", 'u', "str",
