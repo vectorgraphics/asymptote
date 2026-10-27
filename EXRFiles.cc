@@ -6,7 +6,6 @@
 #include <tinyexr.h>
 #include "locate.h"
 #include "settings.h"
-#include "interact.h"
 #include "camperror.h"
 
 #include <filesystem>
@@ -14,6 +13,8 @@
 #include <iostream>
 #include <sstream>
 #include <cstdio>
+
+#include "interact.h"
 
 #ifndef _WIN32
 #include <unistd.h>
