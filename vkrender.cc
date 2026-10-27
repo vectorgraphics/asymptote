@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <cctype>
+#include <cstdlib>
 #include <limits>
 #include <chrono>
 #include <thread>
@@ -906,22 +909,67 @@ void AsyVkRender::pickPhysicalDevice()
 {
   bool remote=View && isRemoteX11();
 
-  Int device=getSetting<Int>("device");
+  string deviceSpec=getSetting<string>("device");
 
-  ssize_t count=0;
+  auto devices=instance->enumeratePhysicalDevices();
+  ssize_t count=(ssize_t)devices.size();
+
   bool showDevices=settings::verbose > 1;
-  if(device >= 0 || showDevices) {
-    for(auto& dev: instance->enumeratePhysicalDevices()) {
-      if(showDevices)
-        std::cerr << "Device " << count << ": " << dev.getProperties().deviceName << std::endl;
-      count++;
+  if(showDevices)
+    for(ssize_t i=0;i<count;i++)
+      std::cerr << "Device " << i << ": " << devices[i].getProperties().deviceName << std::endl;
+
+  auto listDevices=[&](){
+    for(ssize_t i=0;i<count;i++)
+      std::cerr << "  " << i << ": " << devices[i].getProperties().deviceName << std::endl;
+  };
+
+  // Resolve settings.device to a device index.  It may be a non-negative
+  // integer (an index) or a device name (an exact match, or else a unique
+  // case-insensitive substring of a name).  An empty value selects
+  // automatically below.
+  ssize_t index=-1;
+  if(!deviceSpec.empty()) {
+    bool allDigits=true;
+    for(char c: deviceSpec)
+      if(c<'0'||c>'9'){allDigits=false;break;}
+    if(allDigits) {
+      unsigned long ul=std::strtoul(deviceSpec.c_str(),nullptr,10);
+      if(ul>=(unsigned long)count){
+        std::cerr << "device index " << deviceSpec << " out of range; available devices:\n";
+        listDevices();
+        runtimeError("device index out of range");
+      }
+      index=(ssize_t)ul;
+    } else {
+      size_t exactCount=0, exactIdx=0, subCount=0, subIdx=0;
+      string query=deviceSpec;
+      std::transform(query.begin(),query.end(),query.begin(),
+                     [](unsigned char c){ return static_cast<char>(std::tolower(c)); });
+      for(size_t i=0;i<(size_t)count;i++){
+        string const name=string(devices[i].getProperties().deviceName.data());
+        if(name==deviceSpec){exactCount++;exactIdx=i;}
+        string lower=name;
+        std::transform(lower.begin(),lower.end(),lower.begin(),
+                       [](unsigned char c){ return static_cast<char>(std::tolower(c)); });
+        if(lower.find(query)!=string::npos){subCount++;subIdx=i;}
+      }
+      if(exactCount==1)
+        index=(ssize_t)exactIdx;
+      else if(subCount==1)
+        index=(ssize_t)subIdx;
+      else {
+        std::cerr << "no unique device matching \"" << deviceSpec << "\"; available devices:\n";
+        listDevices();
+        runtimeError("could not resolve device");
+      }
     }
   }
 
   bool software=View && remote;
 
-  if(device >= 0 && device < count) {
-    physicalDevice=instance->enumeratePhysicalDevices()[device];
+  if(index >= 0) {
+    physicalDevice=devices[index];
     checkSoftwareRenderer();
   } else {
     auto const getDeviceScore =
@@ -974,7 +1022,7 @@ void AsyVkRender::pickPhysicalDevice()
 
     std::pair<size_t, vk::PhysicalDevice> highestDeviceScore;
 
-    for (auto & dev: instance->enumeratePhysicalDevices())
+    for (auto & dev: devices)
       {
         auto const score = getDeviceScore(dev);
 

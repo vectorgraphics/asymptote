@@ -116,7 +116,7 @@ def vulkan_device_count() -> int:
     return 0
 
 
-def render(asy: str, base_dir: str, device: Optional[int] = None) -> tuple[bool, str]:
+def render(asy: str, base_dir: str, device: Optional[str] = None) -> tuple[bool, str]:
     """Render SCENE to PNG; return (success, diagnostic)."""
     with tempfile.TemporaryDirectory() as tmpdir:
         source = os.path.join(tmpdir, "render3d.asy")
@@ -162,15 +162,15 @@ def main() -> int:
     asy_test_common.add_asy_arguments(parser)
     parser.add_argument(
         "--device",
-        type=int,
+        type=str,
         default=None,
-        help="Vulkan device index to force (overrides $ASYMPTOTE_GPU)",
+        help="Vulkan device (index or name) to force (overrides $ASYMPTOTE_DEVICE)",
     )
     args = parser.parse_args()
 
     device = args.device
-    if device is None and os.environ.get("ASYMPTOTE_GPU"):
-        device = int(os.environ["ASYMPTOTE_GPU"])
+    if device is None and os.environ.get("ASYMPTOTE_DEVICE"):
+        device = os.environ["ASYMPTOTE_DEVICE"]
 
     print("Testing 3D rendering ... ", end="", flush=True)
     if not asy_has_vulkan(args.asy):

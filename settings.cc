@@ -476,25 +476,29 @@ struct option : public gc {
     return ss.str();
   }
 
+  // Print a help line with the option label in a fixed-width column.
+  // If the label is too wide, the description wraps to the next line.
+  static void describeLine(const string &start, const string &text) {
+    const unsigned WIDTH=22;
+    cerr << std::left << std::setw(WIDTH) << start;
+    if (start.size() >= WIDTH) {
+      cerr << endl;
+      cerr << std::left << std::setw(WIDTH) << "";
+    }
+    cerr << text << endl;
+  }
+
   // Outputs description of the command for the -help option.
   virtual void describe(char option) {
     // Don't show the option if it has no description (deprecated options
     // are silently accepted but not listed).
     if(!hide() && !desc.empty() && ((option == 'h') ^ env())) {
-      const unsigned WIDTH=22;
       string start=describeStart();
-      cerr << std::left << std::setw(WIDTH) << start;
-      if (start.size() >= WIDTH) {
-        cerr << endl;
-        cerr << std::left << std::setw(WIDTH) << "";
-      }
-      cerr << " " << desc;
-      if(cmdlineonly) cerr << "; command-line only";
-      if(Default != "") {
-        cerr << " ";
-        cerr << Default;
-      }
-      cerr << endl;
+      string text=" " + desc;
+      if(cmdlineonly) text += "; command-line only";
+      if(Default != "")
+        text += " " + Default;
+      describeLine(start, text);
     }
   }
 
@@ -751,9 +755,29 @@ string GetEnv(string s, string Default) {
 }
 
 struct envSetting : public stringSetting {
-  envSetting(string name, string Default)
-    : stringSetting(name, 0, " ", "", GetEnv(name,Default)) {}
+  string help;   // explicit description; if empty, not listed under -h
+  string deflt;  // constant default value, shown in the -h listing
+
+  envSetting(string name, string Default,
+             string argname=" ", string desc="")
+    : stringSetting(name, 0, argname, "", GetEnv(name,Default)),
+      help(desc), deflt(Default) {}
   bool env() {return true;}
+
+  void describe(char option) override {
+    if(hide()) return;
+    if(option == 'e') {
+      // Consistent with the other environment settings: just the value.
+      describeLine("-"+name, " [" + GetEnv(name, deflt) + "]");
+    } else if(!help.empty()) {
+      // Documented environment settings also appear under -h (and hence the
+      // man page), like any other option, with their constant default value.
+      string text=" " + help;
+      if(deflt != "")
+        text += " [" + deflt + "]";
+      describeLine(describeStart(), text);
+    }
+  }
 };
 
 template<class T>
@@ -1689,8 +1713,8 @@ void initSettings() {
                             "Render 3D images in sRGB space", false));
   addOption(new boolSetting("offscreen", 0,
                             "Use offscreen rendering", false));
-  addOption(new IntSetting("device", 0, "n",
-                           "Set Vulkan device", -1));
+  addOption(new envSetting("device", "", "str",
+                           "Vulkan device, by index or name (see asy -vv)"));
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
                             true));
