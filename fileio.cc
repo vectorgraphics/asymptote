@@ -16,6 +16,21 @@ namespace camp {
 
 FILE *pipeout=NULL;
 
+namespace {
+// pipeout is a process-global stream opened once by openpipeout(), so its
+// cleanup is process-scoped (not tied to any penv/processData lifetime):
+// flush and close it at process exit.
+struct pipeoutGuard {
+  ~pipeoutGuard() {
+    if(pipeout) {
+      fclose(pipeout);
+      pipeout=NULL;
+    }
+  }
+} pipeoutGuardInstance;
+}
+
+
 string tab="\t";
 string newline="\n";
 
