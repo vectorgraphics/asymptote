@@ -334,6 +334,7 @@ bool cmyk;
 
 // Disable system calls.
 bool safe=true;
+const string defaultImageURL = "https://vectorgraphics.gitlab.io/asymptote/ibl";
 // Enable reading from other directories
 bool globalRead=true;
 // Enable writing to (or changing to) other directories
@@ -1698,8 +1699,7 @@ void initSettings() {
                            "Environment image name"));
   addOption(new envSetting("imageDir", "ibl", "str",
                            "Environment image library directory"));
-  addOption(new envSetting("imageURL",
-                           "https://vectorgraphics.gitlab.io/asymptote/ibl",
+  addOption(new envSetting("imageURL", defaultImageURL,
                            "str", "Environment image library URL"));
   addOption(new realSetting("render", 0, "n",
                             "Render 3D graphics using n pixels per bp",

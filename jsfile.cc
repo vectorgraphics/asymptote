@@ -127,11 +127,14 @@ void jsfile::open(string name)
 
   out.precision(getSetting<Int>("digits"));
 
-  bool ibl=getSetting<bool>("ibl");
+  // An empty image name disables IBL (and the native automatic download);
+  // without one the WebGL runtime has no environment maps to fetch.
+  string image=getSetting<string>("image");
+  bool ibl=getSetting<bool>("ibl") && !image.empty();
   bool webgl2=ibl || getSetting<bool>("webgl2");
   if(ibl)
-    out << "<script src=\"https://vectorgraphics.gitlab.io/asymptote/ibl/tinyexr.js\">"
-        << newl << "</script>" << newl;
+    out << "<script src=\"" << getSetting<string>("imageURL")
+        << "/tinyexr.js\">" << newl << "</script>" << newl;
 
   if(getSetting<bool>("offline")) {
     out << "<script>" << newl;
@@ -154,7 +157,7 @@ void jsfile::open(string name)
       << newl;
   if(ibl) {
     out << s << "imageURL=\"" << getSetting<string>("imageURL")+"/\";" << newl;
-    out << s << "image=\"" << stripDir(getSetting<string>("image")) << "\";" << newl << newl;
+    out << s << "image=\"" << image << "\";" << newl << newl;
   }
   out << newl
       <<  s << "minBound=[" << gl->Xmin << "," << gl->Ymin << "," << gl->Zmin << "];"

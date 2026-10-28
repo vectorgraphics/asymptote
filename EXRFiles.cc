@@ -6,7 +6,6 @@
 #include <tinyexr.h>
 #include "locate.h"
 #include "settings.h"
-#include "util.h"
 #include "camperror.h"
 
 #include <filesystem>
@@ -126,21 +125,51 @@ static string iblBaseDir()
 
 #ifdef HAVE_LIBCURL
 
+// True if `name` would resolve outside its base directory: it contains
+// a ".." path component (either separator). Relative subdirectories are
+// allowed, but the image must stay within the image library directory.
+static bool escapesBaseDir(string const& name)
+{
+  size_t start = 0;
+  while (true) {
+    size_t end = name.find_first_of("/\\", start);
+    size_t len = (end == string::npos) ? string::npos : end - start;
+    if (name.substr(start, len) == "..")
+      return true;
+    if (end == string::npos)
+      break;
+    start = end + 1;
+  }
+  return false;
+}
+
 // Download the IBL environment map `image` into iblBase. Returns true on
 // success. Downloads automatically (no prompt) -- the user opted in by
 // requesting the image via -image. Set -image="" to disable.
-// The only URL we will auto-download from without -nosafe. A malicious
-// .asy file could overload settings.imageURL to track users or serve
-// arbitrary content; we don't want that by default.
-static string const defaultImageURL =
-  "https://vectorgraphics.gitlab.io/asymptote/ibl";
-
+// `image` is meant to be a file name, possibly with a relative
+// subdirectory of the image library; it must resolve within the library
+// directory. settings.image and settings.imageURL are settable from .asy
+// code at any time, so the restrictions below are checked on every call:
+// in safe mode we only auto-download from the default URL (a malicious
+// .asy file could otherwise overload settings.imageURL to track users or
+// serve arbitrary content); '%' is rejected outright since it is
+// ambiguous in the URL; and ".." components are rejected so the name
+// cannot resolve outside the library directory.
 static bool downloadIBL(string const& image, string const& iblBase)
 {
   string const url = settings::getSetting<string>("imageURL");
   // Only auto-download from the default URL unless -nosafe is specified.
-  if (url != defaultImageURL && settings::safe)
+  if (url != settings::defaultImageURL && settings::safe) {
+    cerr << "Not auto-downloading IBL image '" << image
+         << "' from non-default -imageURL. Use -nosafe to allow this."
+         << endl;
     return false;
+  }
+  if (image.find('%') != string::npos || escapesBaseDir(image)) {
+    cerr << "IBL image name '" << image
+         << "' is not allowed for automatic download." << endl;
+    return false;
+  }
   string imgDir = iblBase + image + "/";
 
   // Count how many files are still missing.
@@ -229,7 +258,7 @@ static bool downloadIBL(string const& image, string const& iblBase)
 // path (with trailing slash) or "" if unavailable.
 string ensureIBLDir()
 {
-  string image = stripDir(settings::getSetting<string>("image"));
+  string const image = settings::getSetting<string>("image");
   if (image.empty())
     return "";
   string dir = settings::locateFile(settings::getSetting<string>("imageDir"));
@@ -247,7 +276,7 @@ string ensureIBLDir()
   // downloadIBL skips files that already exist, so it is safe to call
   // unconditionally: a no-op if everything is in place, and fills in any
   // missing files otherwise (interrupted downloads, clobbered files, etc.).
-  // Returns false if files are still missing (download failed or no libcurl).
+  // Returns false if files are still missing (download failed or declined).
   bool available;
 #ifdef HAVE_LIBCURL
   available = downloadIBL(image, iblBase);

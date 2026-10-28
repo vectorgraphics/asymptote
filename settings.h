@@ -36,6 +36,9 @@ extern const string dirsep;
 
 extern bool safe;
 
+// Default -imageURL; also the only URL auto-downloaded in safe mode.
+extern const string defaultImageURL;
+
 bool globalread();
 bool globalwrite();
 
