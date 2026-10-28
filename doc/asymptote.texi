@@ -9379,6 +9379,9 @@ given. To disable this automatic download, set @code{-image=""}.
 Additional rendered images can be generated on an @code{NVIDIA} @acronym{GPU}
 using the @code{reflect} program in the @code{cudareflect} subdirectory
 of the @code{Asymptote} source directory.
+For @acronym{HTML} (@code{WebGL}) output, the @acronym{EXR} images and the
+@code{tinyexr} decoder are loaded by the browser at runtime from the
+@code{-imageURL} directory.
 
 Sample Bezier surfaces are
 contained in the example files @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/BezierSurface.html,,BezierSurface}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/BezierSurface.asy,,.asy}}, @code{@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/teapot.html,,teapot}@uref{https://asymptote.sourceforge.io/gallery/3Dwebgl/teapot.asy,,.asy}},

@@ -139,7 +139,7 @@ void jsfile::open(string name)
   bool ibl=getSetting<bool>("ibl") && !image.empty() && !badName;
   bool webgl2=ibl || getSetting<bool>("webgl2");
   if(ibl)
-    out << "<script src=\"" << settings::defaultImageURL
+    out << "<script src=\"" << getSetting<string>("imageURL")
         << "/tinyexr.js\">" << newl << "</script>" << newl;
 
   if(getSetting<bool>("offline")) {
