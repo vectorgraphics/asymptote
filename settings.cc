@@ -360,6 +360,12 @@ bool iblNameOK(string const& name)
 {
   if(name.find('%') != string::npos)
     return false;
+  // Control characters are never valid in a file path (and a NUL would let a
+  // "..\0" slip past the ".." check below and be truncated to ".." by the C
+  // library), so reject them outright.
+  for(unsigned char c : name)
+    if(c < 0x20 || c == 0x7f)
+      return false;
   // Must be a relative path within the image library: no leading separator.
   if(!name.empty() && (name[0] == '/' || name[0] == '\\'))
     return false;
