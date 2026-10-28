@@ -70,7 +70,12 @@ file* input(string name=emptystring, bool check=true,
     error(buf);
   }
 
-  f->open();
+  try {
+    f->open();
+  } catch (std::exception const&) {
+    delete f;
+    throw;
+  }
   return f;
 }
 
@@ -109,7 +114,12 @@ file* output(string name=emptystring, bool update=false,
     error(buf);
   }
 
-  f->open();
+  try {
+    f->open();
+  } catch (std::exception const&) {
+    delete f;
+    throw;
+  }
   if(update) f->seek(0,false);
 
   return f;
