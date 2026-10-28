@@ -74,7 +74,7 @@ using RGBAHeader=SingleObjectHeader<prc::RGBAColour,0,4>;
 class StringHeader : public AHeader
 {
 public:
-  StringHeader(v3dheadertypes const& ty, std::string const& str) : AHeader(ty), str(str) {}
+  StringHeader(v3dheadertypes const& ty, string const& str) : AHeader(ty), str(str) {}
   ~StringHeader() override = default;
 
 protected:
@@ -97,7 +97,7 @@ protected:
   }
 
 private:
-  std::string str;
+  string str;
 };
 
 const unsigned int v3dVersion=2;

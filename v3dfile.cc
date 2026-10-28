@@ -73,15 +73,14 @@ void v3dfile::addHeaders()
   bool ibl = getSetting<bool>("ibl");
   if (ibl) {
     string const& image = getSetting<string>("image");
-    if (!image.empty()) {
-      // If the name contains an absolute path, extract just the filename; relative paths are ok.
-      std::string name(image);
-      if (!name.empty() && name[0] == '/') {
-        auto lastSlash = name.rfind('/');
-        name = (lastSlash != 0) ? name.substr(lastSlash + 1) : name.substr(1);
-      }
+    if (!image.empty() && settings::iblNameOK(image)) {
       headers.emplace_back(make_unique<StringHeader>(
-                             v3dheadertypes::imageName, name));
+                             v3dheadertypes::imageName, image));
+    } else if (!image.empty()) {
+      // A name that would resolve outside the image library directory is
+      // not embedded: the V3D viewer fetches it relative to the library URL.
+      std::cerr << "IBL image name '" << image
+                << "' is not allowed; IBL not embedded in V3D." << std::endl;
     }
   }
 

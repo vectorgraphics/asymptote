@@ -9373,8 +9373,9 @@ or, for @code{WebGL} rendering, the @acronym{URL} specified by
 If the requested environment image (specified by @code{-image}, which
 defaults to @code{snowyField}) is not found locally, Asymptote will
 automatically download it from the @code{-imageURL} directory into the
-@code{-imageDir} search path. To disable this automatic download, set
-@code{-image=""}.
+@code{-imageDir} search path, unless the @code{-imageURL} has been
+changed from its default, in which case @code{-nosafe} must also be
+given. To disable this automatic download, set @code{-image=""}.
 Additional rendered images can be generated on an @code{NVIDIA} @acronym{GPU}
 using the @code{reflect} program in the @code{cudareflect} subdirectory
 of the @code{Asymptote} source directory.

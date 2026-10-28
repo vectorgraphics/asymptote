@@ -36,6 +36,15 @@ extern const string dirsep;
 
 extern bool safe;
 
+// Default -imageURL; also the only URL auto-downloaded in safe mode.
+extern const string defaultImageURL;
+
+// True if `name` may be used as the IBL image name: it is a relative path
+// (no leading separator) containing no '%' (ambiguous in a URL) and no ".."
+// path component (either separator), so that it resolves within the image
+// library directory. Relative subdirectories are ok.
+bool iblNameOK(string const& name);
+
 bool globalread();
 bool globalwrite();
 
