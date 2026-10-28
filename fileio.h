@@ -55,6 +55,16 @@ extern FILE *pipeout;
 void openpipeout();
 string locatefile(string name);
 
+// File objects are intentionally never deleted by the VM.  File values
+// are raw pointers that the VM aliases freely (file g = f copies the
+// pointer), so reference counting / finalization is infeasible without
+// a major VM change.  The per-object overhead is tens of bytes for the
+// process lifetime.  The heavyweight resources (streams) are bounded:
+// close() deletes the inner stream, and the terminator<T*> registries
+// in processDataStruct run explicit destructors on streams still open
+// at process exit.  The only exception is the failure path in
+// gen_runfile3/gen_runfile4, where the not-yet-published object is
+// deleted immediately if open() throws.
 class file : public gc {
 protected:
   string name;
