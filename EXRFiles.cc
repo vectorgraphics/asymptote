@@ -204,6 +204,8 @@ static bool downloadIBL(string const& image, string const& iblBase)
       string remote = url + "/" + image + "/diffuse.exr";
       if (!downloadFile(remote, local)) {
         cerr << "IBL environment map '" << image << "' not found on server." << endl;
+        // remove imgDir only if empty (keeps partial downloads for resume)
+        std::filesystem::remove(imgDir.c_str(), ec);
         return false;
       }
       ++downloaded;
@@ -228,6 +230,8 @@ static bool downloadIBL(string const& image, string const& iblBase)
 
   if (failed > 0) {
     cerr << "Download incomplete: " << failed << " file(s) failed." << endl;
+    // remove imgDir only if empty (keeps partial downloads for resume)
+    std::filesystem::remove(imgDir.c_str(), ec);
     return false;
   }
   cerr << "IBL environment map '" << image << "' ready ("
