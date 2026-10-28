@@ -56,10 +56,13 @@ void debug(bool state)
 }
 
 namespace {
-void error(const string& filename)
+void error(const string& filename, const string& reason="")
 {
   em.sync();
-  em << "error: could not load module '" << filename << "'\n";
+  em << "error: could not load module '" << filename << "'";
+  if(!reason.empty())
+    em << " (" << reason << ")";
+  em << "\n";
   em.sync(true);
   throw handled_error();
 }
@@ -180,7 +183,7 @@ int curlProgress(void *, curl_off_t, curl_off_t, curl_off_t, curl_off_t)
   return errorstream::interrupt ? -1 : 0;
 }
 
-bool readURL(stringstream& buf, const string& filename)
+bool readURL(stringstream& buf, const string& filename, string& reason)
 {
   CURL *curl=curl_easy_init();
   if(settings::verbose > 3)
@@ -196,24 +199,34 @@ bool readURL(stringstream& buf, const string& filename)
   curl_easy_setopt(curl,CURLOPT_NOPROGRESS,0);
   curl_easy_setopt(curl,CURLOPT_XFERINFOFUNCTION,curlProgress);
 
+
   CURLcode res=curl_easy_perform(curl);
+  long httpCode=0;
+  curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
   curl_easy_cleanup(curl);
 
   if(res != CURLE_OK) {
-    cerr << curl_easy_strerror(res) << endl;
+    reason = (res == CURLE_URL_MALFORMAT)
+      ? "invalid URL" : curl_easy_strerror(res);
     return false;
   }
-  string s=buf.str();
-  return !s.empty() && s != "404: Not Found";
+  if(httpCode >= 400) {
+    ostringstream b;
+    b << "HTTP " << httpCode;
+    reason = b.str();
+    return false;
+  }
+  return !buf.str().empty();
 }
 
 absyntax::file *parseURL(const string& filename,
                          const char *nameOfAction)
 {
   stringstream code;
+  string reason;
 
-  if(!readURL(code,filename))
-    error(filename);
+  if(!readURL(code,filename,reason))
+    error(filename,reason);
 
   if(nameOfAction && settings::verbose > 1)
     cerr << nameOfAction << " " <<  filename << endl;

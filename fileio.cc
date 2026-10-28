@@ -132,7 +132,14 @@ void ifile::open()
               "cannot read file:// URL when globalread is disabled");
           settings::haveReadFile=true;
         }
-        parser::readURL(buf,name);
+        string reason;
+        if(!parser::readURL(buf,name,reason)) {
+          ostringstream b;
+          b << "Cannot open file \"" << name << "\"";
+          if(!reason.empty())
+            b << " (" << reason << ")";
+          camp::reportError(b);
+        }
         stream=&buf;
       } else
 #endif

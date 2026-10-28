@@ -44,7 +44,6 @@ extern const string defaultImageURL;
 // path component (either separator), so that it resolves within the image
 // library directory. Relative subdirectories are ok.
 bool iblNameOK(string const& name);
-
 bool globalread();
 bool globalwrite();
 
