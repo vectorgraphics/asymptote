@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file=requirements-dev.txt requirements-dev.in
 #
-astroid==3.3.11
+astroid==4.0.4
     # via pylint
 black==26.10.1
     # via -r requirements-dev.in
@@ -36,7 +36,7 @@ platformdirs==4.14.0
     # via
     #   black
     #   pylint
-pylint==3.3.9
+pylint==4.0.9
     # via -r requirements-dev.in
 pytokens==0.4.1
     # via black
