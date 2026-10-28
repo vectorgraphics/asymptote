@@ -30,6 +30,9 @@ absyntax::file *parseString(const string& code,
                             bool extendable=false);
 
 bool isURL(const string& filename);
-bool readURL(stringstream& buf, const string& filename);
+// Read `filename` into `buf`. On failure returns false and sets `reason`
+// (e.g. "invalid URL", the curl error string, or an HTTP error status
+// such as "HTTP 404").
+bool readURL(stringstream& buf, const string& filename, string& reason);
 
 } // namespace parser
