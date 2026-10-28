@@ -6,6 +6,7 @@
 #include <tinyexr.h>
 #include "locate.h"
 #include "settings.h"
+#include "util.h"
 #include "camperror.h"
 
 #include <filesystem>
@@ -13,13 +14,6 @@
 #include <iostream>
 #include <sstream>
 #include <cstdio>
-
-#include "interact.h"
-
-#ifndef _WIN32
-#include <unistd.h>
-#include <termios.h>
-#endif
 
 #ifdef HAVE_LIBCURL
 #include <curl/curl.h>
@@ -133,10 +127,20 @@ static string iblBaseDir()
 #ifdef HAVE_LIBCURL
 
 // Download the IBL environment map `image` into iblBase. Returns true on
-// success. Prompts the user first (if stdin allows).
+// success. Downloads automatically (no prompt) -- the user opted in by
+// requesting the image via -image. Set -image="" to disable.
+// The only URL we will auto-download from without -nosafe. A malicious
+// .asy file could overload settings.imageURL to track users or serve
+// arbitrary content; we don't want that by default.
+static string const defaultImageURL =
+  "https://vectorgraphics.gitlab.io/asymptote/ibl";
+
 static bool downloadIBL(string const& image, string const& iblBase)
 {
   string const url = settings::getSetting<string>("imageURL");
+  // Only auto-download from the default URL unless -nosafe is specified.
+  if (url != defaultImageURL && settings::safe)
+    return false;
   string imgDir = iblBase + image + "/";
 
   // Count how many files are still missing.
@@ -156,48 +160,9 @@ static bool downloadIBL(string const& image, string const& iblBase)
   if (missing == 0)
     return true;
 
-  // Only prompt if we have a terminal or are in interactive mode.
-  // When readline is unavailable in interactive mode, the prompt would
-  // conflict with the main loop's use of cin (readverbatimline), so fall
-  // back to the wget hints instead.
-#ifdef _WIN32
-  bool canPrompt = interact::interactive;
-#else
-  bool canPrompt = interact::interactive || isatty(0);
-#endif
-#if !defined(HAVE_READLINE)
-  if (interact::interactive)
-    canPrompt = false;
-#endif
-  if (!canPrompt)
-    return false;
-
-  cerr << "IBL environment map '" << image << "' not found.\n"
-       << "Would you like to download it (" << missing << " file"
-       << (missing == 1 ? "" : "s") << ") from:" << endl
-       << "  " << url << "/" << image << "?" << endl;
-
-  // readline puts the terminal in raw mode; restore canonical
-  // mode so the user sees what they type and Enter submits the line.
-#ifndef _WIN32
-  struct termios t;
-  if (tcgetattr(STDIN_FILENO, &t) == 0) {
-    t.c_iflag = ICRNL | IXON;
-    t.c_oflag = OPOST | ONLCR;
-    t.c_lflag = ICANON | ECHO | ECHONL | ISIG | IEXTEN;
-    tcsetattr(STDIN_FILENO, TCSANOW, &t);
-  }
-#endif
-  cout << "[y/N] ";
-  cout.flush();
-  string answer;
-  std::getline(std::cin, answer);
-  if (answer.empty() || (answer[0] != 'y' && answer[0] != 'Y')) {
-    cerr << "Skipping download." << endl;
-    return false;
-  }
-
-  cerr << "Downloading to " << iblBase << image << "..." << endl;
+  cerr << "Downloading IBL environment map '" << image << "' ("
+       << missing << " file" << (missing == 1 ? "" : "s") << ") to "
+       << iblBase << image << "..." << endl;
 
   std::error_code ec;
   std::filesystem::create_directories(imgDir.c_str(), ec);
@@ -264,7 +229,9 @@ static bool downloadIBL(string const& image, string const& iblBase)
 // path (with trailing slash) or "" if unavailable.
 string ensureIBLDir()
 {
-  string const image = settings::getSetting<string>("image");
+  string image = stripDir(settings::getSetting<string>("image"));
+  if (image.empty())
+    return "";
   string dir = settings::locateFile(settings::getSetting<string>("imageDir"));
 
   // Determine the download target: use the ibl directory if it exists,
@@ -280,8 +247,7 @@ string ensureIBLDir()
   // downloadIBL skips files that already exist, so it is safe to call
   // unconditionally: a no-op if everything is in place, and fills in any
   // missing files otherwise (interrupted downloads, clobbered files, etc.).
-  // It only prompts the user if at least one file is actually missing.
-  // Returns false if files are still missing (declined, failed, no prompt).
+  // Returns false if files are still missing (download failed or no libcurl).
   bool available;
 #ifdef HAVE_LIBCURL
   available = downloadIBL(image, iblBase);
@@ -294,7 +260,6 @@ string ensureIBLDir()
   }
 #else
   available = !dir.empty();
-#endif
   if (!available) {
     cerr << "EXR file not found. Precomputed image directories like ibl/"
          << image << " can be downloaded into the Asymptote search path "
@@ -304,8 +269,10 @@ string ensureIBLDir()
          << "wget -q --show-progress -nH -np -r --cut-dirs=1 "
          << settings::getSetting<string>("imageURL") << "/" << image
          << endl;
-    return "";
   }
+#endif
+  if (!available)
+    return "";
   if (settings::verbose > 1)
     cerr << "Reading IBL images from " << dir + "/" + image << endl;
   return dir + "/";

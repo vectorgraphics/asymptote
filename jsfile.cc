@@ -154,7 +154,7 @@ void jsfile::open(string name)
       << newl;
   if(ibl) {
     out << s << "imageURL=\"" << getSetting<string>("imageURL")+"/\";" << newl;
-    out << s << "image=\"" << getSetting<string>("image") << "\";" << newl << newl;
+    out << s << "image=\"" << stripDir(getSetting<string>("image")) << "\";" << newl << newl;
   }
   out << newl
       <<  s << "minBound=[" << gl->Xmin << "," << gl->Ymin << "," << gl->Zmin << "];"
