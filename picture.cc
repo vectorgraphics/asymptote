@@ -1657,11 +1657,8 @@ bool picture::shipout3(const string& prefix, const string& format,
               << " (" << strsignal(WTERMSIG(status)) << ")";
           reportError(buf);
         }
-        if(WIFEXITED(status) && WEXITSTATUS(status) != 0) {
-          ostringstream buf;
-          buf << "3D renderer exited with status " << WEXITSTATUS(status);
-          reportError(buf);
-        }
+        if(WIFEXITED(status) && WEXITSTATUS(status) != 0)
+          exit(WEXITSTATUS(status));
         return true;
       }
 #endif
