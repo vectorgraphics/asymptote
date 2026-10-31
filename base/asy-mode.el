@@ -1,5 +1,4 @@
-;;; asy-mode.el --- Major mode for editing Asymptote source code.
-;; -*- lexical-binding: t; -*-
+;;; asy-mode.el --- Major mode for editing Asymptote source code.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2006-8
 
