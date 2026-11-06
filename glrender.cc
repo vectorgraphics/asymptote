@@ -201,7 +201,8 @@ void *glrenderWrapper(void *a);
 
 void noShaders()
 {
-  cerr << "GLSL shaders not found." << endl;
+  cerr << "GLSL shaders not found - expected shaders/GL/*.glsl on the Asymptote search path;"
+          " check that asy is installed correctly, or pass -sysdir=/path/to/base" << endl;
   exit(-1);
 }
 
@@ -1379,7 +1380,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
     fpu_trap(false); // Work around FE_INVALID in Mesa/libgallium during GL initialization
     GLFWwindow* newWindow = glfwCreateRenderWindow(Width, Height, title.empty() ? Prefix.c_str() : title.c_str(), this);
     if(newWindow == nullptr) {
-      cerr << "Failed to create GLFW window" << endl;
+      cerr << "Failed to create GLFW window - check that a display server is running (the DISPLAY or WAYLAND_DISPLAY environment variable is set) and that GPU drivers are installed" << endl;
       exit(-1);
     }
     glfwWindow = newWindow;
@@ -1394,6 +1395,7 @@ void AsyGLRender::render(RenderFunctionArgs const& args)
       const char *glVer = (const char *)glGetString(GL_VERSION);
       if(glVer == NULL) {
         cerr << "GLEW initialization error: " << glewGetErrorString(glewErr) << endl;
+        cerr << "Check that the OpenGL drivers are installed and that the GLEW library was found." << endl;
         exit(-1);
       }
     }

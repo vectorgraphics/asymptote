@@ -335,6 +335,14 @@ public:
 extern errorstream em;
 void outOfMemory();
 
+namespace errormsg {
+// Appends the search path and a short note on how to add a directory to it,
+// for use after a failed module lookup.  The appended lines are indented so
+// that the errortest harness (cmake-scripts/scripts/wce.script.cmake) can
+// strip the environment-specific paths before comparing output.
+void moduleNotFoundHint(errorstream& out, const string& moduleName);
+} // namespace errormsg
+
 GC_DECLARE_PTRFREE(nullPosInitializer);
 
 #endif

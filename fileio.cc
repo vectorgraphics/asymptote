@@ -95,7 +95,7 @@ void file::Check()
 {
   if(error()) {
     ostringstream buf;
-    buf << "Cannot open file \"" << name << "\"";
+    buf << "Cannot open file \"" << name << "\" - check that the path is correct and that you have permission to read or write it";
     reportError(buf);
   }
 }
@@ -128,7 +128,7 @@ void ifile::open()
 {
   if(standard) {
     if(mode & std::ios::binary)
-      reportError("Cannot open standard input in binary mode");
+      reportError("Cannot open standard input in binary mode - read binary data from a file instead of from standard input");
     stream=&cin;
   } else {
     if(mode & std::ios::out)
@@ -138,9 +138,9 @@ void ifile::open()
       if(parser::isURL(name)) {
         if(!settings::curlEnabled())
           camp::reportError(
-            "libcurl disabled after reading files via input(): "
-            "read online content before local files or "
-            "override with the unsafe option -curlAfterRead");
+            "libcurl disabled after reading files via input() - "
+            "read online content (URLs) before local files, or "
+            "override with the command-line option -curlAfterRead");
         if(name.rfind("file://",0)==0) {
           if(!settings::globalread())
             camp::reportError(
@@ -382,7 +382,7 @@ void ofile::open()
 {
   if(standard) {
     if(mode & std::ios::binary)
-      reportError("Cannot open standard output in binary mode");
+      reportError("Cannot open standard output in binary mode - binary output to standard output is not supported; write to a file instead");
     stream=&cout;
   } else {
     name=outpath(name);
@@ -434,7 +434,7 @@ bool ofile::enabled()
 void opipe::write(const string& val) {
   if (fprintf(pipeout,"%s",val.c_str()) < 0)
   {
-    reportError("Write failed to pipe");
+    reportError("Write failed to pipe - the external program may have exited or closed its input");
   }
 }
 
@@ -444,7 +444,7 @@ void opipe::flush()
   {
     if (fflush(pipeout) == EOF)
     {
-      reportError("Flushing pipe failed");
+      reportError("Flushing pipe failed - the external program may have exited");
     }
   }
 }
