@@ -291,8 +291,9 @@ glrender.pic.o GLTextures.pic.o openglshim.pic.o shaders.pic.o: %.pic.o: %.cc
 	$(CXX) $(RENDER_OPTS) -fPIC -o $@ -c $<
 
 # glew.c is a C file, needs special handling for the OpenGL shared library.
+# Like the other renderer objects, build it without -flto (see RENDER_OPTS).
 glew.pic.o: glew.c config.h
-	$(CC) $(GLEWOPTS) -o $@ -c $<
+	$(CC) $(filter-out -flto,$(GLEWOPTS)) -o $@ -c $<
 
 $(XNAME): $(PYFILES)
 	$(SILENT_MAKE)ln -sf GUI/xasy.py $(XNAME)
