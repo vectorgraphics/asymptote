@@ -4296,7 +4296,7 @@ void AsyVkRender::resizeFragmentBuffer(FrameObject & object) {
   switchBlendPipeline(feedbackData[0]);
 
   if (fragments > maxFragments) {
-    maxFragments=11*fragments/10;
+    maxFragments=(uint32_t) std::min(11*(uint64_t) fragments/10,(uint64_t) UINT32_MAX);
     device->waitIdle();
     updateSceneDependentBuffers();
   }
