@@ -2364,12 +2364,38 @@ returns an array of strings obtained by splitting @code{s} into substrings
 delimited by @code{delimiter} (an empty delimiter signifies a space,
 but with duplicate delimiters discarded);
 
+@cindex @code{join}
+@item string join(string[] a, string delimiter='')
+returns the string formed by concatenating the elements of @code{a},
+separated by @code{delimiter}. To build up a long string piece by piece,
+it is more efficient to collect the pieces in an array and join them at
+the end:
+@verbatim
+string[] a;
+for(int i=0; i < 10; ++i)
+  a.push(string(i));
+string s=join(a);
+@end verbatim
+
+@noindent
+runs in linear time, whereas
+@verbatim
+string s;
+for(int i=0; i < 10; ++i)
+  s += string(i);
+@end verbatim
+
+@noindent
+runs in quadratic time, as the entire string up to that point is copied
+at each step of the iteration. The same distinction arises between
+guides and paths (@pxref{Paths and guides}).
+
 @cindex @code{array}
 @cindex @code{operator +(...string[] a)}.
 @item string[] array(string s)
 returns an array of strings obtained by splitting @code{s} into
 individual characters. The inverse operation is provided by
-@code{operator +(...string[] a)}.
+@code{join(a)} or @code{operator +(...string[] a)}.
 
 @anchor{format}
 @item string format(string s, int n, string locale="")
