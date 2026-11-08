@@ -98,10 +98,6 @@ const bool havegl=true;
 const bool havegl=false;
 #endif
 
-#if !defined(_WIN32)
-mode_t mask;
-#endif
-
 // Flag set by --version option to exit after all options are parsed
 static bool showVersion=false;
 
