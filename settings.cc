@@ -785,7 +785,7 @@ struct envSetting : public stringSetting {
              string argname=" ", string desc="")
     : stringSetting(name, 0, argname, "", GetEnv(name,Default)),
       help(desc), deflt(Default) {}
-  bool env() {return true;}
+  bool env() override {return true;}
 
   void describe(char option) override {
     if(hide()) return;
