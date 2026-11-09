@@ -665,7 +665,7 @@ struct Process::Impl
             execvp(executable.c_str(), argv.data());
 
             int const error = errno;
-            ::write(err_pipe[1], &error, sizeof(error));
+            (void)::write(err_pipe[1], &error, sizeof(error));
             close(err_pipe[1]);
             _exit(EXIT_FAILURE);
         }
