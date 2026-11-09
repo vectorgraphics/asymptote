@@ -700,11 +700,10 @@ Then compile @code{Asymptote} with the commands
 @verbatim
 ./configure
 make all
-make install
+sudo make install
 @end verbatim
 @noindent
-You may need to replace the last line with @code{sudo make install}
-after first running @code{make all} without root privileges (to avoid
+We recommend running @code{make all} without root privileges (to avoid
 generating files with incorrect permissions).
 Be sure to use @acronym{GNU} @code{make} (on non-@acronym{GNU} systems
 this command may be called @code{gmake}).
@@ -841,7 +840,7 @@ cd asymptote
 ./autogen.sh
 ./configure
 make all
-make install
+sudo make install
 @end verbatim
 
 @noindent
