@@ -3295,7 +3295,7 @@ import fontsize;
 at the beginning of the file (this requires the @code{type1cm} package
 available from
 @quotation
-@url{http://mirror.ctan.org/macros/latex/contrib/type1cm/}
+@url{https://mirror.ctan.org/macros/latex/contrib/type1cm/}
 @end quotation
 and included in recent @LaTeX{} distributions). The font size and line
 skip of a pen can be examined with the routines
@@ -8287,7 +8287,7 @@ To switch between using inline Asymptote code with @code{latex} and
 An even better method for processing a @LaTeX{} file with embedded
 @code{Asymptote} code is to use the @code{latexmk} utility from
 @quotation
-@url{http://mirror.ctan.org/support/latexmk/}
+@url{https://mirror.ctan.org/support/latexmk/}
 @end quotation
 @noindent
 after putting the contents of
@@ -11578,7 +11578,7 @@ The related @code{animate} module, derived from the @code{animation}
 module, generates higher-quality portable clickable @acronym{PDF} movies, with
 optional controls. This requires installing the module
 @quotation
-@url{http://mirror.ctan.org/macros/latex/contrib/animate/animate.sty}
+@url{https://mirror.ctan.org/macros/latex/contrib/animate/animate.sty}
 @end quotation
 @noindent
 (version 2007/11/30 or later) in a new directory @code{animate} in the
@@ -11601,7 +11601,7 @@ string pdf(fit fit=NoBox, real delay=animationdelay, string options="",
 of the @code{animate} structure accepts any of the @code{animate.sty} options,
 as described here:
 @quotation
-@url{http://mirror.ctan.org/macros/latex/contrib/animate/doc/animate.pdf}
+@url{https://mirror.ctan.org/macros/latex/contrib/animate/doc/animate.pdf}
 @end quotation
 
 @node animate
@@ -11681,7 +11681,7 @@ This is a simple tree drawing module used by the example @code{@uref{https://asy
 This module provides an interface to the @LaTeX{} package
 (included with @code{MikTeX})
 @quotation
-@url{http://mirror.ctan.org/macros/latex/contrib/media9}
+@url{https://mirror.ctan.org/macros/latex/contrib/media9}
 @end quotation
 @noindent
 for embedding movies, sounds, and 3D objects into a @acronym{PDF} document.
@@ -12453,39 +12453,66 @@ elements will be individually deconstructed (@pxref{add}).
 
 @code{Asymptote} code may be sent to the
 @url{https://asymptote.ualberta.ca} server directly from the command
-line
+line.  The public endpoint is
+
+@code{https://asymptote.ualberta.ca/cli}
+
+@noindent
+Send your @code{.asy} source as the @acronym{POST} body (for example with
+@code{curl --data-binary}) and choose the output format with the @code{f}
+(or @code{outformat}) query argument; additional @code{asy} command-line
+options are passed as further query arguments.  A @acronym{GET} to the
+endpoint returns the server's @code{asy -version} string.
 
 @itemize @bullet
 
 @item SVG output:
 
-@code{curl --data-binary 'import venn;' 'asymptote.ualberta.ca:10007?f=svg' | display -}
+@code{curl --data-binary 'import venn;' 'https://asymptote.ualberta.ca/cli?f=svg' | display -}
+
+@item PDF output:
+
+@code{curl --data-binary 'import venn;' 'https://asymptote.ualberta.ca/cli?f=pdf' -o venn.pdf}
 
 @item HTML output:
 
-@code{curl --data-binary @@/usr/local/share/doc/asymptote/examples/Klein.asy 'asymptote.ualberta.ca:10007' -o Klein.html}
+@code{curl --data-binary @@/usr/local/share/doc/asymptote/examples/Klein.asy 'https://asymptote.ualberta.ca/cli' -o Klein.html}
 
 @item V3D output:
 
-@code{curl --data-binary 'import teapot;' 'asymptote.ualberta.ca:10007?f=v3d' -o teapot.v3d}
+@code{curl --data-binary 'import teapot;' 'https://asymptote.ualberta.ca/cli?f=v3d' -o teapot.v3d}
+
+@item PDF output with embedded V3D content and rendered bitmap at 2 pixels per bp:
+
+@code{curl --data-binary 'import teapot;' 'https://asymptote.ualberta.ca/cli?f=pdf&v3d' -o teapot.pdf}
 
 @item PDF output with rendered bitmap at 2 pixels per bp:
 
-@code{curl --data-binary 'import teapot;' 'asymptote.ualberta.ca:10007?f=pdf' -o teapot.pdf}
+@code{curl --data-binary 'import teapot;' 'https://asymptote.ualberta.ca/cli?f=pdf' -o teapot.pdf}
 
 @item PDF output with rendered bitmap at 4 pixels per bp:
 
-@code{curl --data-binary 'import teapot;' 'asymptote.ualberta.ca:10007?f=pdf&render=4' -o teapot.pdf}
+@code{curl --data-binary 'import teapot;' 'https://asymptote.ualberta.ca/cli?f=pdf&render=4' -o teapot.pdf}
 
-@item PRC output:
+@item PRC output (legacy format):
 
-@code{curl --data-binary 'import teapot;' 'asymptote.ualberta.ca:10007?f=pdf&prc' -o teapot.pdf}
+@code{curl --data-binary 'import teapot;' 'https://asymptote.ualberta.ca/cli?f=prc' -o teapot.prc}
 
-@item PRC output with rendered preview bitmap at 4 pixels per bp:
+@item PDF output with embedded PRC content:
 
-@code{curl --data-binary 'import teapot;' 'asymptote.ualberta.ca:10007?f=pdf&prc&render=4' -o teapot.pdf}
+@code{curl --data-binary 'import teapot;' 'https://asymptote.ualberta.ca/cli?f=pdf&prc' -o teapot.pdf}
+
+@item PDF output with embedded PRC content and rendered preview bitmap at 4 pixels per bp:
+
+@code{curl --data-binary 'import teapot;' 'https://asymptote.ualberta.ca/cli?f=pdf&prc&render=4' -o teapot.pdf}
 
 @end itemize
+
+@noindent
+The same requests are also accepted over plain HTTP directly on port
+@code{10007} (for example
+@code{curl --data-binary 'import venn;' 'http://asymptote.ualberta.ca:10007?f=svg'}).
+The @acronym{HTTPS} endpoint above is preferred; the direct port will eventually be discontinued.
 
 The source code for the command-line interface is available at
 @url{https://github.com/vectorgraphics/asymptote-http-server}.
