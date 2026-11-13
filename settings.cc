@@ -451,6 +451,10 @@ struct option : public gc {
 
   virtual ~option() {}
 
+  // Returns true if this option is a secure setting that must be spelled
+  // out in full on the command line (no abbreviation allowed).
+  virtual bool isSecure() { return false; }
+
   // Builds this option's contribution to the optstring argument of get_opt().
   virtual string optstring() {
     if (code) {
@@ -554,12 +558,12 @@ public:
     : option(name, code, argname, desc, false,Default),
       t(t), perm(trans::PUBLIC), added(false) {}
 
-  void reset() = 0;
+  void reset() override = 0;
 
   virtual trans::access *buildAccess() = 0;
 
   // Add to the dictionaries of options and to the settings module.
-  virtual void add() {
+  void add() override {
     assert(!added);
 
     option::add();
@@ -572,6 +576,8 @@ public:
     s->secure();
     s->add();
   }
+
+  bool isSecure() override { return perm == trans::RESTRICTED; }
 };
 
 struct itemSetting : public setting {
@@ -1596,6 +1602,10 @@ void getOptions(int argc, char *argv[])
 
   errno=0;
   for(;;) {
+    // Save optind so we can recover the raw argv entry for secure
+    // options (see below).
+    int preOptind = optind;
+
     int c = getopt_long_only(argc,argv,
                              optstring.c_str(), longopts, &long_index);
     if (c == -1)
@@ -1603,7 +1613,18 @@ void getOptions(int argc, char *argv[])
 
     if (c == 0) {
       const char *name=longopts[long_index].name;
-      //cerr << "long option: " << name << endl;
+      // Reject abbreviated secure options (getopt_long_only allows them).
+      if (optionsMap[name]->isSecure()) {
+        int idx = (preOptind == 0) ? 1 : preOptind;
+        if (idx >= 1 && idx < argc && string(argv[idx]) !=
+            string("-")+name && string(argv[idx]) != string("--")+name) {
+          // Report in the same style as getopt's own "unrecognized option".
+          cerr << argv0 << ": unrecognized option '" << argv[idx] << "'"
+               << endl;
+          syntax = true;
+          break;
+        }
+      }
       if (!optionsMap[name]->getOption())
         syntax=true;
     }
