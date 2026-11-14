@@ -181,6 +181,7 @@ private:
   vk::UniqueInstance instance;
 
   std::vector<const char*> validationLayers {};
+  bool enableValidation{false};  // set once in createInstance() from ASY_VK_VALIDATION
   vk::UniqueSurfaceKHR surface;
 
   vk::PhysicalDevice physicalDevice = nullptr;
@@ -452,7 +453,6 @@ private:
 
   std::set<std::string> getInstanceExtensions();
   std::set<std::string> getDeviceExtensions(vk::PhysicalDevice& device);
-  std::vector<const char*> getRequiredInstanceExtensions();
   void createInstance();
   void createSurface();
   void createAllocator();

@@ -24,11 +24,6 @@
 #include "vkutils.h"
 #include "ThreadSafeQueue.h"
 
-// For debugging:
-#if defined(ENABLE_VK_VALIDATION)
-#define VALIDATION
-#endif
-
 #define SHADER_DIRECTORY "shaders/"
 #define VALIDATION_LAYER "VK_LAYER_KHRONOS_validation"
 
@@ -52,17 +47,6 @@ void exitHandler(int);
 
 #ifdef HAVE_VULKAN
 uint32_t apiVersion=VK_API_VERSION_1_4;
-
-std::vector<const char*> instanceExtensions
-{
-  VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
-  // VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
-#if defined(VALIDATION) || defined(DEBUG)
-  VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
-  VK_EXT_DEBUG_REPORT_EXTENSION_NAME
-#endif
-
-};
 
 using namespace glm;
 
@@ -712,19 +696,6 @@ std::set<std::string> AsyVkRender::getDeviceExtensions(vk::PhysicalDevice& devic
   return extensions;
 }
 
-std::vector<const char*> AsyVkRender::getRequiredInstanceExtensions()
-{
-  uint32_t glfwExtensionCount;
-  auto const glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-  std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-  for(auto& extension : instanceExtensions) {
-    extensions.emplace_back(extension);
-  }
-
-  return extensions;
-}
-
 void AsyVkRender::createInstance()
 {
   auto appInfo = vk::ApplicationInfo(
@@ -736,7 +707,6 @@ void AsyVkRender::createInstance()
   );
   auto supportedExtensions = getInstanceExtensions();
   auto supportedLayers = vk::enumerateInstanceLayerProperties();
-  auto extensions = getRequiredInstanceExtensions();
 
   auto isLayerSupported = [supportedLayers](std::string layerName) {
     return std::find_if(
@@ -756,19 +726,30 @@ void AsyVkRender::createInstance()
       }) != supportedExtensions.end();
   };
 
-#ifdef VALIDATION
-  if (isLayerSupported(VALIDATION_LAYER)) {
-    validationLayers.emplace_back(VALIDATION_LAYER);
-  } else if (settings::verbose > 1) {
-    std::cout << "Validation layers are not supported by the current Vulkan instance" << std::endl;
+  // Vulkan validation layers are enabled at runtime via the environment
+  // variable ASY_VK_VALIDATION (off if unset or 0, on otherwise).
+  const char* valEnv = std::getenv("ASY_VK_VALIDATION");
+  enableValidation = (valEnv != nullptr && valEnv[0] != '0' && valEnv[0] != '\0');
+  if (enableValidation) {
+    if (isLayerSupported(VALIDATION_LAYER)) {
+      validationLayers.emplace_back(VALIDATION_LAYER);
+    } else {
+      std::cerr << "ASY_VK_VALIDATION is set but " << VALIDATION_LAYER
+                << " is not available. Validation disabled." << std::endl;
+      enableValidation = false;
+    }
   }
-#endif
 
   std::vector<const char*> all_extensions;
   all_extensions.reserve(supportedExtensions.size());
 
   for (const auto& str : supportedExtensions) {
-      all_extensions.push_back(str.c_str());
+    if (!enableValidation &&
+        (str == VK_EXT_DEBUG_UTILS_EXTENSION_NAME ||
+         str == VK_EXT_DEBUG_REPORT_EXTENSION_NAME)) {
+      continue;
+    }
+    all_extensions.push_back(str.c_str());
   }
 
   auto const instanceCI = vk::InstanceCreateInfo(
@@ -781,16 +762,16 @@ void AsyVkRender::createInstance()
     VEC_VIEW(validationLayers),
     VEC_VIEW(all_extensions)
   );
-#ifdef VALIDATION
 #ifndef _WIN32
-  // Preload the validation layer into global scope so its function pointer
-  // chain works correctly even though libasyvulkan.so was loaded with RTLD_LOCAL.
-  void *layerHandle = dlopen("libVkLayer_khronos_validation.so", RTLD_GLOBAL | RTLD_NOW);
-  if (!layerHandle) {
-    std::cerr << "Warning: failed to preload validation layer: "
-              << dlerror() << std::endl;
+  if (enableValidation) {
+    // Preload the validation layer into global scope so its function pointer
+    // chain works correctly even though libasyvulkan.so was loaded with RTLD_LOCAL.
+    void *layerHandle = dlopen("libVkLayer_khronos_validation.so", RTLD_GLOBAL | RTLD_NOW);
+    if (!layerHandle) {
+      std::cerr << "Warning: failed to preload validation layer: "
+                << dlerror() << std::endl;
+    }
   }
-#endif
 #endif
 
   instance = vk::createInstanceUnique(instanceCI);
@@ -799,7 +780,8 @@ void AsyVkRender::createInstance()
 
 void AsyVkRender::createDebugMessenger()
 {
-#if defined(VALIDATION)
+  if (!enableValidation) return;
+
   vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
   vk::DebugUtilsMessageTypeFlagsEXT typeFlags(vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation);
   if (settings::verbose > 2)
@@ -845,7 +827,6 @@ void AsyVkRender::createDebugMessenger()
   debugUtilsMsg=
           instance->createDebugUtilsMessengerEXTUnique(
           debugCreateInfo);
-#endif
 }
 
 void AsyVkRender::createSurface()
