@@ -511,7 +511,15 @@ void execError(const char *command, const char *hint, const char *application)
          << application << "." << endl << endl
          << "Alternatively, set the environment variable ASYMPTOTE_" << s
          << endl << "or use the command line option -" << hint
-         << "=\"LOCATION\". For further details, see" << endl
+         << "=\"LOCATION\"." << endl << endl;
+    // A short note for the tools that users most often lack.
+    string h(hint);
+    if (h == "texpath")
+      cerr << "If LaTeX typesetting is not needed, run asy with -tex none." << endl;
+    else if (h == "gs")
+      cerr << "Ghostscript converts EPS output to PDF or PNG and processes labels;"
+              " EPS output (-f eps) may still work without it." << endl;
+    cerr << "For further details, see" << endl
          << "https://asymptote.sourceforge.io/doc/Configuring.html" << endl
          << "https://asymptote.sourceforge.io/doc/Search-paths.html" << endl;
   }

@@ -32,9 +32,9 @@ void checkColorSpace(ColorSpace colorspace)
   switch(colorspace) {
     case DEFCOLOR:
     case INVISIBLE:
-      reportError("Cannot shade with invisible pen");
+      reportError("Cannot shade with invisible pen - use a visible pen, e.g. pen p=red");
     case PATTERN:
-      reportError("Cannot shade with pattern");
+      reportError("Cannot shade with pattern - pattern pens are not supported for shading; use a solid color pen instead");
       break;
     default:
       break;
@@ -49,11 +49,11 @@ psfile::psfile(const string& filename, bool pdfformat)
   else out=new ofstream(filename.c_str());
   out->setf(std::ios::boolalpha);
   if(!out || !*out)
-    reportError("Cannot write to "+filename);
+    reportError("Cannot write to "+filename+" - check the directory permissions and available disk space");
 }
 
-static const char *inconsistent="inconsistent colorspaces";
-static const char *rectangular="matrix is not rectangular";
+static const char *inconsistent="inconsistent colorspaces - all pens used in one shading operation must have the same colorspace (e.g. all RGB or all CMYK)";
+static const char *rectangular="matrix is not rectangular - all rows of the image data must have the same length";
 
 void psfile::writefromRGB(unsigned char r, unsigned char g, unsigned char b,
                           ColorSpace colorspace, size_t ncomponents)
@@ -110,7 +110,7 @@ void psfile::writeCompressed(const unsigned char *a, size_t size)
   Bytef *compressed=new Bytef[compressedSize];
 
   if(compress(compressed,&compressedSize,a,size) != Z_OK)
-    reportError("image compression failed");
+    reportError("image compression failed - zlib returned an error while compressing the image data; this usually indicates a memory shortage or an internal bug");
 
   encode85 e(out);
   for(size_t i=0; i < compressedSize; ++i)
@@ -124,7 +124,7 @@ void psfile::close()
     if(!filename.empty()) {
       if(!out->good())
         // Don't call reportError since this may be called on handled_error.
-        reportFatal("Cannot write to "+filename);
+        reportFatal("Cannot write to "+filename+" - check the directory permissions and available disk space");
       delete out;
       out=NULL;
     }
@@ -455,7 +455,7 @@ void psfile::tensorshade(const pen& pentype, const array& pens,
 
   array *p0=read<array *>(pens,0);
   if(checkArray(p0) != 4)
-    reportError("4 pens required");
+    reportError("4 pens required for tensor patch shading - each patch needs exactly 4 pens");
   setfirstopacity(*p0);
 
   ColorSpace colorspace=maxcolorspace2(pens);
@@ -472,7 +472,7 @@ void psfile::tensorshade(const pen& pentype, const array& pens,
     write(0);
     path g=read<path>(boundaries,i);
     if(!(g.cyclic() && g.size() == 4))
-      reportError("specify cyclic path of length 4");
+      reportError("specify cyclic path of length 4 - each tensor patch boundary must be a cyclic path with exactly 4 nodes");
     for(Int j=4; j > 0; --j) {
       write(g.point(j));
       write(g.precontrol(j));
@@ -489,7 +489,7 @@ void psfile::tensorshade(const pen& pentype, const array& pens,
     } else {
       array *zi=read<array *>(z,i);
       if(checkArray(zi) != 4)
-        reportError("specify 4 internal control points for each path");
+        reportError("specify 4 internal control points for each path - provide 4 control points per patch, or leave the control point array empty for automatic Coons shading");
       write(read<pair>(zi,0));
       write(read<pair>(zi,3));
       write(read<pair>(zi,2));
@@ -498,7 +498,7 @@ void psfile::tensorshade(const pen& pentype, const array& pens,
 
     array *pi=read<array *>(pens,i);
     if(checkArray(pi) != 4)
-      reportError("specify 4 pens for each path");
+      reportError("specify 4 pens for each path - the pen array for tensor patch shading must have exactly 4 pens per patch");
     vertexpen(pi,0,colorspace);
     vertexpen(pi,3,colorspace);
     vertexpen(pi,2,colorspace);

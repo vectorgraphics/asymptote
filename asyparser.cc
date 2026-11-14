@@ -62,6 +62,7 @@ void error(const string& filename, const string& reason="")
   em << "error: could not load module '" << filename << "'";
   if(!reason.empty())
     em << " (" << reason << ")";
+  errormsg::moduleNotFoundHint(em, filename);
   em << "\n";
   em.sync(true);
   throw handled_error();
