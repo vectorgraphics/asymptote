@@ -632,6 +632,27 @@ def temporary_tree(path: str) -> Generator[None, None, None]:
         shutil.rmtree(undo, ignore_errors=True)
 
 
+@contextlib.contextmanager
+def removing_additions(work: str) -> Generator[None, None, None]:
+    """Remove whatever the body adds to ``work`` on the way out, raise or not.
+
+    Staged layouts each hold up to three copies of base/, so keeping them until
+    main()'s final cleanup can exhaust a small scratch quota (TMPDIR).  Diffing
+    the listing, rather than naming the paths, also catches what the body moves
+    or creates beside its layouts."""
+    before = set(os.listdir(work))
+    try:
+        yield
+    finally:
+        for name in set(os.listdir(work)) - before:
+            path = os.path.join(work, name)
+            if os.path.isdir(path) and not os.path.islink(path):
+                shutil.rmtree(path, ignore_errors=True)
+            else:
+                with contextlib.suppress(OSError):
+                    os.remove(path)
+
+
 # ---------------------------------------------------------------------------
 # the fall-through value
 # ---------------------------------------------------------------------------
@@ -820,12 +841,9 @@ def run_core_matrix(ctx: Ctx) -> None:
     equivalent to an absent directory, and that the result ignores both.
     """
     for states in itertools.product(State, State, (State.VALID, State.DECOY)):
-        code = state_code(states)
-        check_layout(ctx, "core/" + code, states)
-        # Remove this layout before the next so at most one copy of base/
-        # exists at a time; the matrix is large enough to exhaust /tmp quota
-        # on systems with large IBL assets.
-        shutil.rmtree(os.path.join(ctx.work, "core", code), ignore_errors=True)
+        # One layout on disk at a time: the matrix is the largest section.
+        with removing_additions(ctx.work):
+            check_layout(ctx, "core/" + state_code(states), states)
 
 
 # ---------------------------------------------------------------------------
@@ -1226,16 +1244,20 @@ def run_all(ctx: Ctx, asy_ctan: Optional[str]) -> None:
     run_core_matrix(ctx)
 
     section("route")
-    run_route_axis(ctx)
+    with removing_additions(ctx.work):
+        run_route_axis(ctx)
 
     section("overrides")
-    run_override_axis(ctx)
+    with removing_additions(ctx.work):
+        run_override_axis(ctx)
 
     # C and REG are one section: both are about what happens when no candidate
     # fires, and exactly one of them applies on any given OS.
     section("fallback")
-    run_compiled_in_axis(ctx)
-    run_registry_axis(ctx)
+    with removing_additions(ctx.work):
+        run_compiled_in_axis(ctx)
+    with removing_additions(ctx.work):
+        run_registry_axis(ctx)
 
     section("ctan")
     # Without --asy-ctan, --asy stands in when it is itself the TeXLive binary
@@ -1250,7 +1272,8 @@ def run_all(ctx: Ctx, asy_ctan: Optional[str]) -> None:
     if kpsewhich is None:
         record("ctan/*", Status.FAIL, f"could not read {candidate} -version")
     elif kpsewhich:
-        run_ctan_axis(ctx, candidate)
+        with removing_additions(ctx.work):
+            run_ctan_axis(ctx, candidate)
     elif asy_ctan:
         record(
             "ctan/*",
