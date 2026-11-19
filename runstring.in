@@ -249,9 +249,12 @@ string join(stringarray *a, string delimiter=emptystring)
 {
   size_t size=checkArray(a);
   string result;
-  for(size_t i=0; i < size; ++i) {
-    if(i > 0) result += delimiter;
-    result += read<string>(a,i);
+  if(size > 0) {
+    result=read<string>(a,0);
+    for(size_t i=1; i < size; ++i) {
+      result += delimiter;
+      result += read<string>(a,i);
+    }
   }
   return result;
 }
