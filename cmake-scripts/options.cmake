@@ -97,13 +97,6 @@ This option is intended primarily for environments where Vulkan/glslang/glfw3 ca
 (e.g. constrained CI sandboxes); production builds should leave this enabled."
         true)
 
-if (CMAKE_BUILD_TYPE IN_LIST cmake_release_build_types)
-    set(default_vk_validation_opt false)
-else()
-    set(default_vk_validation_opt true)
-endif()
-
-option(ENABLE_VK_VALIDATION_LAYERS "Whether to enable Vulkan validation layer" ${default_vk_validation_opt})
 option(
         ENABLE_RPC_FEATURES
         "Whether to enable XDR/RPC features. Also enables V3D. If compiling on UNIX systems, requires libtirpc to be installed."

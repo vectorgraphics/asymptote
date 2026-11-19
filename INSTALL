@@ -8,7 +8,7 @@ tar -xf asymptote-x.xx.src.tar
 cd asymptote-x.xx
 ./configure
 make all
-make install
+sudo make install
 
 The last command requires root privileges. To install without root privileges
 you should change the first line to
@@ -35,7 +35,7 @@ cd asymptote
 ./autogen.sh
 ./configure
 make all
-make install
+sudo make install
 
 Optional packages:
 

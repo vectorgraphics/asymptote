@@ -66,7 +66,7 @@ class TestRunner:  # pylint: disable=too-few-public-methods
         ]
 
     def run_test(self, test_path: pathlib.Path):
-        print(f"Runing {test_path}")
+        print(f"Running {test_path}")
         try:
             out_process = subprocess.run(
                 self._asy_base_args + [test_path],

@@ -251,7 +251,7 @@ void v3dfile::addTriangles(size_t nP, triple const* P, size_t nN,
       const uint32_t *PIi=PI[i];
       const uint32_t *CIi=CI[i];
       if(distinct(CIi,PIi)) {
-        explicitNI=true;
+        explicitCI=true;
         break;
       }
     }
