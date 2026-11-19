@@ -13,6 +13,7 @@
 #include "interact.h"
 #include "fileio.h"
 #include "hashing.h"
+#include "locate.h"
 
 errorstream em;
 
@@ -82,6 +83,16 @@ string moduleNameFromPath(const string& filename) {
     end = filename.size();
 
   return filename.substr(start, end-start);
+}
+
+void moduleNotFoundHint(errorstream& out, const string& module)
+{
+  out << "\n  Searched for '" << module << ".asy' in:";
+  for (auto const& dir : settings::searchPath)
+    out << "\n    " << dir;
+  out << "\n  To add a directory to this search path, either set ASYMPTOTE_DIR,"
+         "\n  e.g. export ASYMPTOTE_DIR=/path/to/asymptote/base,"
+         "\n  or set dir in config.asy, e.g. import settings; dir=\"path/to/modules\";";
 }
 } // namespace errormsg
 

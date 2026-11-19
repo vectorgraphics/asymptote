@@ -940,6 +940,7 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
     if(!tainted) {
       em.error(pos);
       em << "could not load module '" << filename << "'";
+      errormsg::moduleNotFoundHint(em, filename);
       em.sync(true);
     }
     return 0;
@@ -1020,6 +1021,7 @@ varEntry *accessTemplatedModule(position pos, coenv &e, record *r, symbol id,
   if (!imp) {
     em.error(pos);
     em << "could not load module '" << id << "'";
+    errormsg::moduleNotFoundHint(em, moduleName);
     em.sync(true);
     return nullptr;
   }

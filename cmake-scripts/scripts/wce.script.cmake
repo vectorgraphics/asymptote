@@ -32,8 +32,22 @@ foreach(TEST_FILE IN LISTS TEST_FILES)
 
     file(READ ${ERRORS_FILE} EXPECTED_ERROR_OUTPUT)
 
+    # Some error messages are followed by indented, multi-line hints, such as
+    # the search path printed when a module cannot be found.  Those lines
+    # contain machine-specific information, so strip them (and normalize line
+    # endings and trailing whitespace) before comparing; only the unindented
+    # error lines are part of the expected output.
+    string(REPLACE "\r\n" "\n" ASY_STDERR_OUTPUT "${ASY_STDERR_OUTPUT}")
+    string(REPLACE "\r\n" "\n" EXPECTED_ERROR_OUTPUT "${EXPECTED_ERROR_OUTPUT}")
+    string(REGEX REPLACE "[ \t\n]+$" "" ASY_STDERR_OUTPUT "${ASY_STDERR_OUTPUT}")
+    string(REGEX REPLACE "[ \t\n]+$" "" EXPECTED_ERROR_OUTPUT "${EXPECTED_ERROR_OUTPUT}")
+    string(REGEX REPLACE "\n  [^\n]*" "" ASY_STDERR_OUTPUT "${ASY_STDERR_OUTPUT}")
+    string(REGEX REPLACE "\n  [^\n]*" "" EXPECTED_ERROR_OUTPUT "${EXPECTED_ERROR_OUTPUT}")
+
     if (NOT ASY_STDERR_OUTPUT STREQUAL EXPECTED_ERROR_OUTPUT)
         message(WARNING "Error test FAILED: ${TEST_NAME}")
+        message(STATUS "  Expected:\n${EXPECTED_ERROR_OUTPUT}")
+        message(STATUS "  Actual:\n${ASY_STDERR_OUTPUT}")
         set(ALL_PASSED FALSE)
     else()
         message(STATUS "Error test passed: ${TEST_NAME}")
