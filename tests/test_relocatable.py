@@ -59,6 +59,7 @@ import itertools
 import ntpath
 import os
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -441,6 +442,18 @@ def _skip_unsafe(dirpath: str, names: List[str]) -> set:
     return {n for n in names if not os.path.exists(os.path.join(dirpath, n))}
 
 
+def _copytree_writable(src: str, dst: str, **kwargs: Any) -> None:
+    """shutil.copytree, then give the owner write permission on every copied
+    directory.  copytree copies directory modes, so a read-only source (an
+    installed or Nix-store base/) would yield a copy whose contents rmtree
+    cannot delete -- and ignore_errors would hide that."""
+    shutil.copytree(src, dst, **kwargs)
+    for dirpath, _, _ in os.walk(dst):
+        mode = os.stat(dirpath).st_mode
+        if not mode & stat.S_IWUSR:
+            os.chmod(dirpath, stat.S_IMODE(mode) | stat.S_IWUSR)
+
+
 def copy_base_into(base_dir: str, dst: str, with_plain: bool = True) -> None:
     """Copy the base files into ``dst``, creating it if need be.
 
@@ -458,7 +471,7 @@ def copy_base_into(base_dir: str, dst: str, with_plain: bool = True) -> None:
         src = os.path.join(base_dir, name)
         tgt = os.path.join(dst, name)
         if os.path.isdir(src):
-            shutil.copytree(src, tgt, ignore=_skip_unsafe)
+            _copytree_writable(src, tgt, ignore=_skip_unsafe)
         elif os.path.isfile(src):
             shutil.copy2(src, tgt)
 
@@ -529,7 +542,7 @@ def copy_bundled_libs(asy_under_test: str, dst_dir: str) -> None:
     libdir = os.path.join(srcdir, "lib")
     staged_libdir = os.path.join(dst_dir, "lib")
     if os.path.isdir(libdir) and not os.path.exists(staged_libdir):
-        shutil.copytree(libdir, staged_libdir)
+        _copytree_writable(libdir, staged_libdir)
 
 
 def stage_binary(dst_dir: str, asy_under_test: str) -> str:
