@@ -807,7 +807,12 @@ def run_core_matrix(ctx: Ctx) -> None:
     equivalent to an absent directory, and that the result ignores both.
     """
     for states in itertools.product(State, State, (State.VALID, State.DECOY)):
-        check_layout(ctx, "core/" + state_code(states), states)
+        code = state_code(states)
+        check_layout(ctx, "core/" + code, states)
+        # Remove this layout before the next so at most one copy of base/
+        # exists at a time; the matrix is large enough to exhaust /tmp quota
+        # on systems with large IBL assets.
+        shutil.rmtree(os.path.join(ctx.work, "core", code), ignore_errors=True)
 
 
 # ---------------------------------------------------------------------------
