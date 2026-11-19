@@ -121,13 +121,9 @@ string[] array(string s)
 }
 
 // Concatenate an array of strings into a single string.
-// TODO: Move to C++ code.
 string operator +(...string[] a)
 {
-  string S;
-  for(string s : a)
-    S += s;
-  return S;
+  return join(a);
 }
 
 int system(string s)

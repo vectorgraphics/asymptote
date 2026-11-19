@@ -5,6 +5,7 @@
  *
  *****/
 
+stringarray* => stringArray()
 stringarray2* => stringArray2()
 Intarray*  => IntArray()
 
@@ -241,6 +242,21 @@ string replace(string *S, stringarray2 *translate)
     ++pos;
   }
   return buf.str();
+}
+
+// Concatenates the strings in a, separated by delimiter.
+string join(stringarray *a, string delimiter=emptystring)
+{
+  size_t size=checkArray(a);
+  string result;
+  if(size > 0) {
+    result=read<string>(a,0);
+    for(size_t i=1; i < size; ++i) {
+      result += delimiter;
+      result += read<string>(a,i);
+    }
+  }
+  return result;
 }
 
 string format(string *format, Int x, string locale=emptystring)
