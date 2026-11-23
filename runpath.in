@@ -422,7 +422,7 @@ bool inside(path g, pair z, pen fillrule=CURRENTPEN)
 }
 
 // Return a positive (negative) value if a--b--c--cycle is oriented
-// counterclockwise (clockwise) or zero if all three points are colinear.
+// counterclockwise (clockwise) or zero if all three points are collinear.
 // Equivalently, return a positive (negative) value if c lies to the
 // left (right) of the line through a and b or zero if c lies on this line.
 // The value returned is the determinant

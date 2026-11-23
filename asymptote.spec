@@ -10,7 +10,7 @@ Summary:        Descriptive vector graphics language
 Group:          Applications/Publishing
 License:        GPL
 URL:            https://asymptote.sourceforge.io/
-Source:         http://downloads.sourceforge.net/sourceforge/asymptote/asymptote-%{version}.src.tgz
+Source:         https://downloads.sourceforge.net/sourceforge/asymptote/asymptote-%{version}.src.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  cmake

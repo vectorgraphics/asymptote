@@ -271,7 +271,7 @@ fill(shift(6,0)*yscale(0.7)*xscale(2)*P, green);
 if(long) {
 title("C++/Java-like Programming Syntax");
 
-code("// Declaration: Declare x to be real:
+code("// Declaration: Declare x as real:
 real x;
 
 // Assignment: Assign x the value 1.

@@ -216,7 +216,7 @@ transform3 reflect(triple u, triple v, triple w)
 {
   triple n=unit(cross(v-u,w-u));
   if(n == O)
-    abort("points determining reflection plane cannot be colinear");
+    abort("points determining reflection plane cannot be collinear");
 
   return new real[][] {
     {1-2*n.x^2, -2*n.x*n.y, -2*n.x*n.z, u.x},
@@ -2030,7 +2030,7 @@ path3 circle(triple c, real r, triple normal=Z)
 
 // return an arc centered at c from triple v1 to v2 (assuming |v2-c|=|v1-c|),
 // drawing in the given direction.
-// The normal must be explicitly specified if c and the endpoints are colinear.
+// The normal must be explicitly specified if c and the endpoints are collinear.
 path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
 {
   v1 -= c;
@@ -2078,7 +2078,7 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
 // return an arc centered at c with radius r from c+r*dir(theta1,phi1) to
 // c+r*dir(theta2,phi2) in degrees, drawing in the given direction
 // relative to the normal vector cross(dir(theta1,phi1),dir(theta2,phi2)).
-// The normal must be explicitly specified if c and the endpoints are colinear.
+// The normal must be explicitly specified if c and the endpoints are collinear.
 path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
           triple normal=O, bool direction)
 {
@@ -2089,7 +2089,7 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
 // c+r*dir(theta2,phi2) in degrees, drawing drawing counterclockwise
 // relative to the normal vector cross(dir(theta1,phi1),dir(theta2,phi2))
 // iff theta2 > theta1 or (theta2 == theta1 and phi2 >= phi1).
-// The normal must be explicitly specified if c and the endpoints are colinear.
+// The normal must be explicitly specified if c and the endpoints are collinear.
 path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
           triple normal=O)
 {
