@@ -1600,12 +1600,48 @@ void getOptions(int argc, char *argv[])
   c_option *longopts=build_longopts();
   int long_index = 0;
 
+  // Reject abbreviated names for secure options.  We must do this in a
+  // pre-scan of argv *before* calling getopt_long_only, because GNU getopt
+  // permutes argv in place and defers the swaps until it finishes -- so
+  // reading argv[optind] after a call does not reliably give back the
+  // option string that was actually processed.
+  for (int i = 1; i < argc && !syntax; ++i) {
+    const char *arg = argv[i];
+    if (arg[0] != '-' || arg[1] == '\0')
+      continue;  // not an option-like argument
+
+    // Extract the option-name portion (strip leading dashes and any =value).
+    const char *name_start = (arg[1] == '-') ? arg + 2 : arg + 1;
+    string name(name_start);
+    size_t eqpos = name.find('=');
+    if (eqpos != string::npos)
+      name = name.substr(0, eqpos);
+    if (name.empty())
+      continue;
+
+    // If it is a single character present in the optstring it is a short
+    // option (e.g. -f), not a long-option abbreviation -- skip it.
+    if (name.length() == 1 && optstring.find(name[0]) != string::npos)
+      continue;
+
+    // Check whether this name is a *proper* prefix of any secure option's
+    // full name.  If so, the user typed an abbreviation we must reject.
+    for (optionsMap_t::iterator p = optionsMap.begin();
+         p != optionsMap.end(); ++p) {
+      if (!p->second->isSecure())
+        continue;
+      const string &full = p->first;
+      if (name.length() < full.length() &&
+          full.compare(0, name.length(), name) == 0) {
+        cerr << argv0 << ": unrecognized option '" << arg << "'" << endl;
+        syntax = true;
+        break;
+      }
+    }
+  }
+
   errno=0;
   for(;;) {
-    // Save optind so we can recover the raw argv entry for secure
-    // options (see below).
-    int preOptind = optind;
-
     int c = getopt_long_only(argc,argv,
                              optstring.c_str(), longopts, &long_index);
     if (c == -1)
@@ -1613,18 +1649,6 @@ void getOptions(int argc, char *argv[])
 
     if (c == 0) {
       const char *name=longopts[long_index].name;
-      // Reject abbreviated secure options (getopt_long_only allows them).
-      if (optionsMap[name]->isSecure()) {
-        int idx = (preOptind == 0) ? 1 : preOptind;
-        if (idx >= 1 && idx < argc && string(argv[idx]) !=
-            string("-")+name && string(argv[idx]) != string("--")+name) {
-          // Report in the same style as getopt's own "unrecognized option".
-          cerr << argv0 << ": unrecognized option '" << argv[idx] << "'"
-               << endl;
-          syntax = true;
-          break;
-        }
-      }
       if (!optionsMap[name]->getOption())
         syntax=true;
     }
