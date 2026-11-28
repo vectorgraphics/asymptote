@@ -685,7 +685,7 @@ void initRenderer(const char* format)
         std::cerr << "For software 3D rendering, install vulkan_lvp.dll here:\n"
                   << "  " << (exeDir.empty() ? "." : exeDir) << "\n";
 #endif
-        camp::reportError("No 3D rendering available");
+        camp::reportError("No 3D rendering available - no usable OpenGL or Vulkan renderer was found; rebuild asymptote with OpenGL or Vulkan support, or produce 3D output without a GPU using -f html, -f v3d, or -render 0");
     }
 
     initializedRenderer = true;
