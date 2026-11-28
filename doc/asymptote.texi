@@ -845,7 +845,7 @@ sudo make install
 
 @noindent
 To compile without optimization
-On @code{Ubuntu} systems, you may need to first install the required
+on @code{Ubuntu} systems, you may need to first install the required
 dependencies:
 @verbatim
 apt-get build-dep asymptote
@@ -1851,7 +1851,7 @@ monograph, The MetaFontbook, Chapter 14.
 The user can still customize the guide (or path) by specifying
 direction, tension, and curl values.
 
-The higher the tension, the straighter the curve is, and the more
+The higher the tension, the straighter the curve, and the more
 it approximates a straight line.
 @cindex @code{tension}
 @cindex @code{and}
@@ -1940,7 +1940,7 @@ with those of C, C++, and Java:
 @verbatim
 // This is a comment.
 
-// Declaration: Declare x to be a real variable;
+// Declaration: declare x as a real variable;
 real x;
 
 // Assignment: Assign the real variable x the value 1.
@@ -2131,7 +2131,7 @@ returns the 2D scalar product @code{z.x*w.y-z.y*w.x};
 @cindex @code{orient}
 @item real orient(pair a, pair b, pair c);
 returns a positive (negative) value if @code{a--b--c--cycle} is oriented
-counterclockwise (clockwise) or zero if all three points are colinear.
+counterclockwise (clockwise) or zero if all three points are collinear.
 Equivalently, a positive (negative) value is returned if
 @code{c} lies to the left (right) of the line through @code{a} and @code{b}
 or zero if @code{c} lies on this line.
@@ -2147,7 +2147,7 @@ as @code{cross(a-c,b-c)}, which is the determinant
 @item real incircle(pair a, pair b, pair c, pair d);
 returns a positive (negative) value if @code{d} lies inside (outside)
 the circle passing through the counterclockwise-oriented points @code{a,b,c}
-or zero if @code{d} lies on the this circle.
+or zero if @code{d} lies on this circle.
 The value returned is the determinant
 @verbatim
 |a.x a.y a.x^2+a.y^2 1|
@@ -2402,13 +2402,13 @@ individual characters. The inverse operation is provided by
 returns a string containing @code{n} formatted according to the C-style format
 string @code{s} using locale @code{locale} (or the current locale if an
 empty string is specified), following the behavior of the C function
-@code{fprintf}), except that only one data field is allowed.
+@code{fprintf}, except that only one data field is allowed.
 
 @item string format(string s=defaultformat, bool forcemath=false, string s=defaultseparator, real x, string locale="")
 returns a string containing @code{x} formatted according to the C-style format
 string @code{s} using locale @code{locale} (or the current locale if an
 empty string is specified), following the behavior of the C function
-@code{fprintf}), except that only one data field is allowed, trailing
+@code{fprintf}, except that only one data field is allowed, trailing
 zeros are removed by default (unless @code{#} is specified), and
 if @code{s} specifies math mode or @code{forcemath=true}, @TeX{} is
 used to typeset scientific notation using the
@@ -2581,7 +2581,7 @@ path arc(pair c, real r, real angle1, real angle2, bool direction);
 @end verbatim
 Here the direction can be specified as CCW (counter-clockwise) or CW
 (clockwise). For convenience, an arc centered at @code{c} from pair
-@code{z1} to @code{z2} (assuming @code{|z2-c|=|z1-c|}) in the may also
+@code{z1} to @code{z2} (assuming @code{|z2-c|=|z1-c|}) may also
 be constructed with
 @verbatim
 path arc(pair c, explicit pair z1, explicit pair z2,
@@ -2829,7 +2829,7 @@ returns the intersection point of the extensions of the line segments
 @item slice cut(path p, path knife, int n);
 returns the portions of path @code{p} before and after the @code{n}th
 intersection of @code{p} with path @code{knife} as a structure
-@code{slice} (if no intersection exist is found, the entire path is
+@code{slice} (if no intersection is found, the entire path is
 considered to be `before' the intersection):
 @verbatim
 struct slice {
@@ -3246,7 +3246,7 @@ pen beveljoin=linejoin(2);
 
 @noindent
 The default join style, @code{roundjoin}, may be changed with
-@code{defaultpen(pen)}.The join style of a pen is returned by
+@code{defaultpen(pen)}. The join style of a pen is returned by
 @code{int linejoin(pen p=currentpen)}.
 
 @cindex @code{miterlimit}
@@ -3618,7 +3618,7 @@ is an isometry (preserves distance).
 @cindex @code{max}
 Frames are canvases for drawing in @code{PostScript} coordinates. While working
 with frames directly is occasionally necessary for constructing deferred
-drawing routines
+drawing routines.
 The implicit initializer for frames is @code{newframe}. The function
 @code{bool empty(frame f)} returns @code{true} only if the frame @code{f}
 is empty. A frame may be erased with the @code{erase(frame)} routine.
@@ -4138,7 +4138,7 @@ Hammerlindl, TUGBOAT: The Communications of the TeX Users Group, 29:2,
 
 @cindex @code{file}
 @code{Asymptote} can read and write text files (including comma-separated
-value) files and portable @acronym{XDR} (External Data Representation)
+value files) and portable @acronym{XDR} (External Data Representation)
 binary files.
 
 @cindex @code{input}
@@ -4180,7 +4180,7 @@ cd(string s)}, which returns the new working directory. If
 program startup.
 
 @cindex @code{getc}
-When reading pairs, the enclosing parenthesis are optional.
+When reading pairs, the enclosing parentheses are optional.
 Strings are also read by assignment, by reading characters up to but not
 including a newline. In addition, @code{Asymptote} provides the function
 @code{string getc(file)} to read the next character (treating the
@@ -4306,7 +4306,7 @@ write(new int[] {1,2}, new pair[]{1, I});
 @cindex @code{xdr}
 A file may be opened with @code{mode="xdr"} to read or write
 double precision (64-bit) reals and single precision (32-bit)
-integers in Sun Microsystem's @acronym{XDR} (External
+integers in Sun Microsystems' @acronym{XDR} (External
 Data Representation) portable binary format.
 A file may instead be opened with @code{mode="binary"}
 to read or write double precision reals and single
@@ -7858,7 +7858,7 @@ the binary operators that are supposed to return a set will instead
 throw errors.
 @end table
 
-The preceeding methods are sufficient assuming that equivalent elements are
+The preceding methods are sufficient assuming that equivalent elements are
 interchangeable. However, on rare occasions, one may care which of two
 equivalent elements is in the set. For example, if the set was configured such
 that two ordered pairs are considered equivalent if they have the same first
@@ -9791,7 +9791,7 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
           triple normal=O);
 @end verbatim
 The normal must be explicitly specified if @code{c} and the endpoints
-are colinear. If @code{r} < 0, the complementary arc of radius
+are collinear. If @code{r} < 0, the complementary arc of radius
 @code{|r|} is constructed.
 For convenience, an arc centered at @code{c} from triple @code{v1} to
 @code{v2} (assuming @code{|v2-c|=|v1-c|}) in the direction CCW
@@ -11335,7 +11335,7 @@ returns the partial @code{dx}-weighted sums of a real array @code{a}.
 @cindex @code{increasing}
 @item bool increasing(real[] a, bool strict=false)
 returns, if @code{strict=false}, whether @code{i > j} implies
-@code{a[i] >= a[j]}, or if @code{strict=true}, whether @code{i > j} implies
+@code{a[i] >= a[j]}, or if @code{strict=true}, whether @code{i > j}
 implies @code{a[i] > a[j]}.
 
 @cindex @code{unique}
@@ -11717,7 +11717,7 @@ A more portable method for embedding movie files, which should work on any
 platform and does not require the @code{media9} package, is provided
 by using the @code{external} module instead of @code{embed}.
 
-Examples of the above two interfaces is provided in the file
+Examples of the above two interfaces are provided in the file
 @code{embeddedmovie.asy} in the @code{animations} subdirectory of the
 examples directory and in
 @code{@uref{https://asymptote.sourceforge.io/gallery/animations/externalmovie.pdf,,externalmovie}@uref{https://asymptote.sourceforge.io/gallery/animations/externalmovie.asy,,.asy}}.
@@ -12872,7 +12872,7 @@ developed the @code{Asymptote Web Application} hosted at
 @c  LocalWords:  multithreaded newframe init emph nums concat xline yline zpart
 @c  LocalWords:  colatitude zscale cosh nullpen MetaFontbook cyclicflag FreeBSD
 @c  LocalWords:  nodeps Ghostgum beginlabel endlabel pTick ptick loggrid SAS dy
-@c  LocalWords:  currentprojection latticeshading subpictures colinear unitcube
+@c  LocalWords:  currentprojection latticeshading subpictures collinear unitcube
 @c  LocalWords:  Autoscaling solveQuadratic MidArrow MidArcArrow Prebuilt url
 @c  LocalWords:  pdftex comment getstring getstringprefix getreal defaultS hsv
 @c  LocalWords:  ticklocate autoscaleT autoscaling vectorfield autolimits dvi
